@@ -187,7 +187,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
 
                     if (writer.forScalar()) {
                         writer.write(source, relationshipEntity);
-                        mappingContext.registerRelationship(new MappedRelationship(edge.getStartNode(), edge.getType(), edge.getEndNode()));
+                        mappingContext.registerRelationship(new MappedRelationship(edge.getStartNode(), edge.getType(), edge.getEndNode(), edge.getId()));
                     } else {
                         oneToMany.add(edge);
                     }
@@ -220,7 +220,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
                 if (!oneToOne) {
                     oneToMany.add(edge);
                 } else {
-                    mappingContext.registerRelationship(new MappedRelationship(edge.getStartNode(), edge.getType(), edge.getEndNode()));
+                    mappingContext.registerRelationship(new MappedRelationship(edge.getStartNode(), edge.getType(), edge.getEndNode(), edge.getId()));
                 }
             }
         }
@@ -300,8 +300,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
 
         // finally register all the relationships in the mapping context
         for (RelationshipModel edge : oneToManyRelationships) {
-            MappedRelationship mappedRelationship = new MappedRelationship(edge.getStartNode(), edge.getType(), edge.getEndNode());
-            mappingContext.registerRelationship(mappedRelationship);
+            mappingContext.registerRelationship(new MappedRelationship(edge.getStartNode(), edge.getType(), edge.getEndNode(), edge.getId()));
         }
     }
 

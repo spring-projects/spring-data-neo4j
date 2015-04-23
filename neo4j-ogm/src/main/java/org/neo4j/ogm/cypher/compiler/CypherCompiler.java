@@ -43,8 +43,9 @@ public interface CypherCompiler {
      * @param startNode The {@link NodeBuilder} representation of the relationship start node
      * @param relationshipType The type of relationship between the nodes to delete
      * @param endNode The {@link NodeBuilder} representation of the relationship end node
+     * @param relId The id of the relationship to unrelate
      */
-    void unrelate(String startNode, String relationshipType, String endNode);
+    void unrelate(String startNode, String relationshipType, String endNode, Long relId);
 
     /**
      * Returns {@link NodeBuilder} that represents a new node to be created in the database.

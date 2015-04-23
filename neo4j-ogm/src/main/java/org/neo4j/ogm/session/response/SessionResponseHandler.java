@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.session.response;
 
+import java.lang.reflect.Field;
+import java.util.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.cypher.compiler.CypherContext;
@@ -28,11 +31,9 @@ import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.model.RelationshipModel;
 import org.neo4j.ogm.session.result.RowModel;
 
-import java.lang.reflect.Field;
-import java.util.*;
-
 /**
  *  @author Vince Bickers
+ *  @author Luanne Misquitta
  */
 public class SessionResponseHandler implements ResponseHandler {
 
@@ -117,10 +118,15 @@ public class SessionResponseHandler implements ResponseHandler {
         }
 
         // finally, all new relationships just established in the graph need to be added to the mapping context.
-        for (Object object : context.log()) {
-            if (object instanceof TransientRelationship) {
-                MappedRelationship relationship = (((TransientRelationship) object).convert(directRefMap));
-                mappingContext.mappedRelationships().add(relationship);
+        if(directRefMap.size() > 0) {
+            for (Object object : context.log()) {
+                if (object instanceof TransientRelationship) {
+                    MappedRelationship relationship = (((TransientRelationship) object).convert(directRefMap));
+                    if(mappingContext.getRelationshipEntity(relationship.getRelationshipId()) == null) {
+                        relationship.setRelationshipId(null);
+                    }
+                    mappingContext.mappedRelationships().add(relationship);
+                }
             }
         }
 

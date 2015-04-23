@@ -12,6 +12,8 @@
 
 package org.neo4j.ogm.mapper;
 
+import java.util.Iterator;
+
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.cypher.compiler.*;
@@ -24,8 +26,6 @@ import org.neo4j.ogm.metadata.info.AnnotationInfo;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Iterator;
 
 /**
  * Implementation of {@link EntityToGraphMapper} that is driven by an instance of {@link MetaData}.
@@ -104,8 +104,8 @@ public class EntityGraphMapper implements EntityToGraphMapper {
         while (mappedRelationshipIterator.hasNext()) {
             MappedRelationship mappedRelationship = mappedRelationshipIterator.next();
             if (!context.isRegisteredRelationship(mappedRelationship)) {
-                logger.debug("context-del: (${})-[:{}]->(${})", mappedRelationship.getStartNodeId(), mappedRelationship.getRelationshipType(), mappedRelationship.getEndNodeId());
-                compiler.unrelate("$" + mappedRelationship.getStartNodeId(), mappedRelationship.getRelationshipType(), "$" + mappedRelationship.getEndNodeId());
+                logger.debug("context-del: (${})-[{}:{}]->(${})", mappedRelationship.getStartNodeId(), mappedRelationship.getRelationshipId(), mappedRelationship.getRelationshipType(), mappedRelationship.getEndNodeId());
+                compiler.unrelate("$" + mappedRelationship.getStartNodeId(), mappedRelationship.getRelationshipType(), "$" + mappedRelationship.getEndNodeId(), mappedRelationship.getRelationshipId());
                 clearRelatedObjects(mappedRelationship.getStartNodeId());
                 mappedRelationshipIterator.remove();
             }
@@ -452,9 +452,9 @@ public class EntityGraphMapper implements EntityToGraphMapper {
 
     private MappedRelationship createMappedRelationship(Long aNode, RelationshipBuilder relationshipBuilder, Long bNode) {
         if (relationshipBuilder.hasDirection(Relationship.INCOMING)) {
-            return new MappedRelationship(bNode, relationshipBuilder.getType(), aNode);
+            return new MappedRelationship(bNode, relationshipBuilder.getType(), aNode, relationshipBuilder.getId());
         }  else {
-            return new MappedRelationship(aNode, relationshipBuilder.getType(), bNode);
+            return new MappedRelationship(aNode, relationshipBuilder.getType(), bNode, relationshipBuilder.getId());
         }
     }
 
