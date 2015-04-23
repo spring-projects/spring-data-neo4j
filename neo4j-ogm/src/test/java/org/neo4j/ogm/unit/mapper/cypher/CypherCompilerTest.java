@@ -500,7 +500,9 @@ public class CypherCompilerTest {
         mappingContext.remember(forum);
         mappingContext.remember(topic);
         mappingContext.remember(link);
-        mappingContext.registerRelationship(new MappedRelationship(forumId, "HAS_TOPIC", topicId));
+        mappingContext.registerRelationshipEntity(link, relationshipId);
+        MappedRelationship mappedRelationship = new MappedRelationship(forumId, "HAS_TOPIC", topicId, relationshipId);
+        mappingContext.registerRelationship(mappedRelationship);
 
         // change the timestamp
         link.setTimestamp(327790L);

@@ -13,15 +13,15 @@
 
 package org.neo4j.ogm.unit.mapper.direct.aabb;
 
+import java.io.IOException;
+import java.util.UUID;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.unit.mapper.direct.RelationshipTest;
-
-import java.io.IOException;
-import java.util.UUID;
 
 /**
  * @author Vince Bickers
@@ -106,7 +106,6 @@ public class AABBTest extends RelationshipTest {
         a3.b = new B[] { b3 };
 
         session.save(b2);
-
 
         // when we reload a1
         a1 = session.load(A.class, a1.id);

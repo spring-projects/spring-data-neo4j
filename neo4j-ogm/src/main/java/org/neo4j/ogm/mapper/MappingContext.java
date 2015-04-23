@@ -12,6 +12,13 @@
 
 package org.neo4j.ogm.mapper;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.neo4j.ogm.entityaccess.DefaultEntityAccessStrategy;
 import org.neo4j.ogm.entityaccess.EntityAccessStrategy;
 import org.neo4j.ogm.entityaccess.PropertyReader;
@@ -20,13 +27,6 @@ import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * The MappingContext maintains a map of all the objects created during the hydration
@@ -150,6 +150,9 @@ public class MappingContext {
     }
 
     public void registerRelationship(MappedRelationship relationship) {
+        if(relationship.getRelationshipId()!=null && relationshipEntityRegister.get(relationship.getRelationshipId())==null) {
+            relationship.setRelationshipId(null); //We're only interested in id's of relationship entities
+        }
         relationshipRegister.add(relationship);
     }
 

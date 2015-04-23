@@ -20,10 +20,11 @@
 	</appender>
 
   <!--
-      <logger name="org.springframework" level="debug" />
-       -->
+  <logger name="org.springframework" level="debug" />
+   -->
 
-	<root level="warn">
+
+  <root level="warn">
 		<appender-ref ref="console" />
 	</root>
 
