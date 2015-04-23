@@ -165,7 +165,7 @@ public class AABBTest extends RelationshipTest {
         session.clear();
 
         a1 = session.load(A.class, a1.id);
-        assertSameArray(new R[] { r1, r2}, a1.r);
+        assertSameArray(new R[]{r1, r2}, a1.r);
     }
 
     /**
@@ -262,6 +262,9 @@ public class AABBTest extends RelationshipTest {
         public R(A a, B b) {
             this.a = a;
             this.b = b;
+        }
+
+        public R() {
         }
 
         @Override
