@@ -18,6 +18,7 @@ import java.util.Set;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 class NewRelationshipBuilder extends RelationshipBuilder {
 
@@ -78,14 +79,23 @@ class NewRelationshipBuilder extends RelationshipBuilder {
 
             // for MERGE, we need properties in this format: name:{_#_props}.name
             final String propertyVariablePrefix = '{' + this.reference + "_props}.";
+            boolean firstProperty = true;
             for (Entry<String, Object> relationshipProperty: this.props.entrySet()) {
                 if (relationshipProperty.getValue() != null) {
+                    if(!firstProperty) {
+                        queryBuilder.append(','); //more than one property, append a comma before the next one
+                    }
                     queryBuilder.append(relationshipProperty.getKey()).append(':')
-                        .append(propertyVariablePrefix).append(relationshipProperty.getKey()).append(',');
+                        .append(propertyVariablePrefix).append(relationshipProperty.getKey());
+                    firstProperty = false;
                 }
             }
-            queryBuilder.setLength(queryBuilder.length() - 1);
-            queryBuilder.append('}');
+            if(firstProperty) { //no non-null properties, remove the opening {
+                queryBuilder.setLength(queryBuilder.length() - 1);
+            }
+            else {
+                queryBuilder.append('}');
+            }
 
             parameters.put(this.reference + "_props", this.props);
         }
