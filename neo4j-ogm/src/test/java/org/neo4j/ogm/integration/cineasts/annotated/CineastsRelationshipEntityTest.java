@@ -465,5 +465,39 @@ public class CineastsRelationshipEntityTest{
 		assertEquals(1, adam.getRatings().size());
 	}
 
+	/**
+	 * @see DATAGRAPH-610
+	 */
+	@Test
+	public void shouldSaveRelationshipEntityWithNullProperty() {
+		Actor bruce = new Actor("Bruce");
+		Actor jim = new Actor("Jim");
 
+		Knows knows = new Knows(); //since = null
+		knows.setFirstActor(bruce);
+		knows.setSecondActor(jim);
+
+		bruce.getKnows().add(knows);
+		session.save(bruce);
+
+		Actor actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name", "Bruce")));
+		Assert.assertNotNull(actor);
+		assertEquals(1, actor.getKnows().size());
+		assertEquals("Jim", actor.getKnows().iterator().next().getSecondActor().getName());
+
+		bruce.getKnows().iterator().next().setSince(new Date());
+		session.save(bruce);
+
+		actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name", "Bruce")));
+		assertEquals(1, actor.getKnows().size());
+		assertNotNull(actor.getKnows().iterator().next().getSince());
+
+		bruce.getKnows().iterator().next().setSince(null);
+		session.save(bruce);
+
+		actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name", "Bruce")));
+		assertEquals(1, actor.getKnows().size());
+		assertNull(actor.getKnows().iterator().next().getSince());
+
+	}
 }
