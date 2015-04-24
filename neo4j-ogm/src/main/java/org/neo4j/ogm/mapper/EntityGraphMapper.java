@@ -401,14 +401,23 @@ public class EntityGraphMapper implements EntityToGraphMapper {
             logger.debug("RE is new or has not changed");
         }
 
-        if (parent == targetEntity && !context.visited(startEntity)) {
-            mapRelatedEntity(cypherCompiler, nodeBuilder, targetEntity, tgtIdentity, relationshipBuilder, startEntity, horizon);
-        } else if (parent == startEntity && !context.visited(targetEntity)) {
-            mapRelatedEntity(cypherCompiler, nodeBuilder, startEntity, srcIdentity, relationshipBuilder, targetEntity, horizon);
-        } else {
-            NodeBuilder srcNodeBuilder = context.nodeBuilder(startEntity);
-            NodeBuilder tgtNodeBuilder = context.nodeBuilder(targetEntity);
-            updateRelationship(srcIdentity, tgtIdentity, context, srcNodeBuilder, tgtNodeBuilder, relationshipBuilder);
+        NodeBuilder srcNodeBuilder = context.nodeBuilder(startEntity);
+        NodeBuilder tgtNodeBuilder = context.nodeBuilder(targetEntity);
+        if (parent == targetEntity) {
+            if(!context.visited(startEntity)) {
+                mapRelatedEntity(cypherCompiler, nodeBuilder, targetEntity, tgtIdentity, relationshipBuilder, startEntity, horizon);
+            }
+            else {
+                updateRelationship(tgtIdentity, srcIdentity, context, tgtNodeBuilder, srcNodeBuilder, relationshipBuilder);
+            }
+        }
+        else { //parent=startEntity
+            if(!context.visited(targetEntity)) {
+                mapRelatedEntity(cypherCompiler, nodeBuilder, startEntity, srcIdentity, relationshipBuilder, targetEntity, horizon);
+            }
+            else {
+                updateRelationship(srcIdentity, tgtIdentity, context, srcNodeBuilder, tgtNodeBuilder, relationshipBuilder);
+            }
         }
     }
 
