@@ -12,10 +12,10 @@
 
 package org.neo4j.ogm.domain.cineasts.annotated;
 
-import org.neo4j.ogm.annotation.Relationship;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import org.neo4j.ogm.annotation.Relationship;
 
 /**
  * @author Vince Bickers
@@ -62,6 +62,10 @@ public class Actor {
         }
         Nomination nomination = new Nomination(movie,this,nominationName,year);
         nominations.add(nomination);
+        if(movie.getNominations() == null) {
+            movie.setNominations(new HashSet<Nomination>());
+        }
+        movie.getNominations().add(nomination);
         return nomination;
     }
 
@@ -71,6 +75,14 @@ public class Actor {
 
     public Set<Knows> getKnows() {
         return knows;
+    }
+
+    public Set<Nomination> getNominations() {
+        return nominations;
+    }
+
+    public void setNominations(Set<Nomination> nominations) {
+        this.nominations = nominations;
     }
 
     @Override
