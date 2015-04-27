@@ -30,6 +30,9 @@ public class Nomination {
     String name;
     int year;
 
+    public Nomination() {
+    }
+
     public Nomination(Movie movie, Actor actor, String name, int year) {
         this.movie = movie;
         this.actor = actor;
