@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.neo4j.repository.GraphRepositoryFactoryBean;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 
@@ -98,6 +99,14 @@ public @interface EnableNeo4jRepositories {
 	 * {@link GraphRepositoryFactoryBean}.
 	 */
 	Class<?> repositoryFactoryBeanClass() default GraphRepositoryFactoryBean.class;
+	
+	/**
+	 * Configure the repository base class to be used to create repository proxies for this particular configuration.
+	 * 
+	 * @return
+	 * @since 3.4
+	 */
+	Class<?> repositoryBaseClass() default DefaultRepositoryBaseClass.class;
 
 	/**
 	 * Returns the name of the {@link Neo4jTemplate} bean to be used with the repository factory. Defaults to

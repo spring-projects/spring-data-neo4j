@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.NamedQueries;
+import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.query.*;
@@ -32,6 +33,7 @@ import java.lang.reflect.Method;
 
 /**
  * @author mh
+ * @author Oliver Gierke
  * @since 28.03.11
  */
 public class GraphRepositoryFactory extends RepositoryFactorySupport {
@@ -58,27 +60,15 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
     /*
      * (non-Javadoc)
-     *
-     * @see
-     * org.springframework.data.repository.support.RepositoryFactorySupport#
-     * getTargetRepository(java.lang.Class)
-     */
+     * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getTargetRepository(org.springframework.data.repository.core.RepositoryInformation)
+     */	
     @Override
-    protected Object getTargetRepository(RepositoryMetadata metadata) {
-        return getTargetRepository(metadata, template);
+    protected Object getTargetRepository(RepositoryInformation information) {
+    		return getTargetRepository(information, template);
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected Object getTargetRepository(RepositoryMetadata metadata, Neo4jTemplate template) {
-
-        Class<?> type = metadata.getDomainType();
-        GraphEntityInformation entityInformation = (GraphEntityInformation)getEntityInformation(type);
-        // todo entityInformation.isGraphBacked();
-        if (entityInformation.isNodeEntity()) {
-            return new NodeGraphRepositoryImpl(type, template);
-        } else {
-            return new RelationshipGraphRepository(type, template);
-        }
+    protected Object getTargetRepository(RepositoryInformation metadata, Neo4jTemplate template) {
+    		return getTargetRepositoryViaReflection(metadata, template);
     }
 
     @Override
