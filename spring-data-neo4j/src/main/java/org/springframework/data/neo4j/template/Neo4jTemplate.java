@@ -12,21 +12,21 @@
 
 package org.springframework.data.neo4j.template;
 
+import static org.springframework.data.neo4j.util.IterableUtils.*;
+
+import javax.persistence.PersistenceException;
+import java.util.Collection;
+import java.util.Map;
+
 import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.session.result.QueryStatistics;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.data.neo4j.event.*;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
-
-import javax.persistence.PersistenceException;
-import java.util.Collection;
-import java.util.Map;
-
-import static org.springframework.data.neo4j.util.IterableUtils.getSingle;
-import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
 
 /**
  * Spring Data template for Neo4j.  Implementation of {@link Neo4jOperations}.
@@ -37,6 +37,7 @@ import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
  *
  * @author Adam George
  * @author Michal Bachman
+ * @author Luanne Misquitta
  */
 @Repository
 public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisherAware {
@@ -183,10 +184,20 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     }
 
     @Override
-    public void execute(String jsonStatements) {
+    public QueryStatistics execute(String jsonStatements) {
         try {
-            session.execute(jsonStatements);
+            return session.execute(jsonStatements);
         } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
+    }
+
+    @Override
+    public QueryStatistics execute(String cypher, Map<String, Object> parameters) {
+        try {
+            return session.execute(cypher, parameters);
+        }
+        catch (Exception e) {
             throw new PersistenceException(e);
         }
     }

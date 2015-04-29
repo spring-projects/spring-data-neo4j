@@ -12,14 +12,19 @@
 
 package org.neo4j.ogm.session;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.cypher.compiler.CypherContext;
 import org.neo4j.ogm.cypher.query.GraphModelQuery;
 import org.neo4j.ogm.cypher.query.RowModelQuery;
+import org.neo4j.ogm.cypher.query.RowModelQueryWithStatistics;
 import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
 import org.neo4j.ogm.entityaccess.FieldWriter;
 import org.neo4j.ogm.mapper.EntityGraphMapper;
@@ -33,33 +38,17 @@ import org.neo4j.ogm.session.request.DefaultRequest;
 import org.neo4j.ogm.session.request.Neo4jRequest;
 import org.neo4j.ogm.session.request.RequestHandler;
 import org.neo4j.ogm.session.request.SessionRequestHandler;
-import org.neo4j.ogm.session.request.strategy.AggregateStatements;
-import org.neo4j.ogm.session.request.strategy.DeleteNodeStatements;
-import org.neo4j.ogm.session.request.strategy.DeleteRelationshipStatements;
-import org.neo4j.ogm.session.request.strategy.DeleteStatements;
-import org.neo4j.ogm.session.request.strategy.QueryStatements;
-import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
-import org.neo4j.ogm.session.request.strategy.VariableDepthRelationshipQuery;
+import org.neo4j.ogm.session.request.strategy.*;
 import org.neo4j.ogm.session.response.Neo4jResponse;
 import org.neo4j.ogm.session.response.ResponseHandler;
 import org.neo4j.ogm.session.response.SessionResponseHandler;
+import org.neo4j.ogm.session.result.QueryStatistics;
 import org.neo4j.ogm.session.result.RowModel;
 import org.neo4j.ogm.session.transaction.SimpleTransaction;
 import org.neo4j.ogm.session.transaction.Transaction;
 import org.neo4j.ogm.session.transaction.TransactionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Vince Bickers
@@ -271,7 +260,7 @@ public class Neo4jSession implements Session {
     }
 
     @Override
-    public void execute(String cypher, Map<String, Object> parameters) {
+    public QueryStatistics execute(String cypher, Map<String, Object> parameters) {
         if (StringUtils.isEmpty(cypher)) {
             throw new RuntimeException("Supplied cypher statement must not be null or empty.");
         }
@@ -279,12 +268,14 @@ public class Neo4jSession implements Session {
         if (parameters == null) {
             throw new RuntimeException("Supplied Parameters cannot be null.");
         }
-
+        assertNothingReturned(cypher);
         String url  = getCurrentOrCreateAutocommitTransaction().url();
         // NOTE: No need to check if domain objects are parameters and flatten them to json as this is done
         // for us using the existing execute() method.
-        RowModelQuery qry = new RowModelQuery(cypher, parameters);
-        getRequestHandler().execute(qry, url).close();
+        RowModelQueryWithStatistics parameterisedStatement = new RowModelQueryWithStatistics(cypher, parameters);
+        try (Neo4jResponse<QueryStatistics> response = getRequestHandler().execute(parameterisedStatement, url)) {
+            return response.next();
+        }
     }
 
     @Override
@@ -293,12 +284,15 @@ public class Neo4jSession implements Session {
     }
 
     @Override
-    public void execute(String statement) {
-        ParameterisedStatement parameterisedStatement = new ParameterisedStatement(statement, Utils.map());
+    public QueryStatistics execute(String statement) {
+        if (StringUtils.isEmpty(statement)) {
+            throw new RuntimeException("Supplied cypher statement must not be null or empty.");
+        }
+        assertNothingReturned(statement);
+        RowModelQueryWithStatistics parameterisedStatement = new RowModelQueryWithStatistics(statement, Utils.map());
         String url = getCurrentOrCreateAutocommitTransaction().url();
-        try (Neo4jResponse<String> response = getRequestHandler().execute(parameterisedStatement, url)) {
-            // ensure that any errors in the response body get detected and thrown
-            response.initialiseScan("row");
+        try (Neo4jResponse<QueryStatistics> response = getRequestHandler().execute(parameterisedStatement, url)) {
+            return response.next();
         }
     }
 
@@ -471,6 +465,12 @@ public class Neo4jSession implements Session {
                return annotation.get(RelationshipEntity.TYPE, classInfo.name());
         }
         return classInfo.label();
+    }
+
+    private void assertNothingReturned(String cypher) {
+        if (cypher.toUpperCase().contains("RETURN")) {
+            throw new RuntimeException("execute() must not return data. Use query() instead.");
+        }
     }
 
     // NOT on the interface

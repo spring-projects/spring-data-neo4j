@@ -19,12 +19,14 @@ import java.util.Map;
  * Simple encapsulation of a Cypher query and its parameters.
  *
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class ParameterisedStatement {
 
     private final String statement;
     private final Map<String, Object> parameters = new HashMap<>();
     private final String[] resultDataContents;
+    private boolean includeStats = false;
 
     /**
      * Constructs a new {@link ParameterisedStatement} based on the given Cypher query string and query parameters.
@@ -42,6 +44,13 @@ public class ParameterisedStatement {
         this.resultDataContents = resultDataContents;
     }
 
+    protected ParameterisedStatement(String cypher, Map<String, ?> parameters, boolean includeStats, String... resultDataContents) {
+        this.statement = cypher;
+        this.parameters.putAll(parameters);
+        this.resultDataContents = resultDataContents;
+        this.includeStats = includeStats;
+    }
+
     public String getStatement() {
         return statement.trim();
     }
@@ -54,5 +63,8 @@ public class ParameterisedStatement {
         return resultDataContents;
     }
 
+    public boolean isIncludeStats() {
+        return includeStats;
+    }
 }
 
