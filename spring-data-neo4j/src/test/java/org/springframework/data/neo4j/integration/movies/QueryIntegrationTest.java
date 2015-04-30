@@ -14,11 +14,9 @@ package org.springframework.data.neo4j.integration.movies;
 
 import static org.junit.Assert.*;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
 
 import org.junit.After;
 import org.junit.ClassRule;
@@ -31,11 +29,7 @@ import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.movies.context.PersistenceContext;
 import org.springframework.data.neo4j.integration.movies.domain.User;
-import org.springframework.data.neo4j.integration.movies.domain.queryresult.EntityWrappingQueryResult;
-import org.springframework.data.neo4j.integration.movies.domain.queryresult.Gender;
-import org.springframework.data.neo4j.integration.movies.domain.queryresult.RichUserQueryResult;
-import org.springframework.data.neo4j.integration.movies.domain.queryresult.UserQueryResult;
-import org.springframework.data.neo4j.integration.movies.domain.queryresult.UserQueryResultInterface;
+import org.springframework.data.neo4j.integration.movies.domain.queryresult.*;
 import org.springframework.data.neo4j.integration.movies.repo.UnmanagedUserPojo;
 import org.springframework.data.neo4j.integration.movies.repo.UserRepository;
 import org.springframework.test.annotation.DirtiesContext;
@@ -201,11 +195,10 @@ public class QueryIntegrationTest {
         assertEquals("The wrong user was returned", 31, result.getAgeOfUser());
     }
 
-    @Ignore
     @Test
-    public void shouldRetrieveUsersByGenderAndConvertToCorrectEnumType() {
+    public void shouldRetrieveUsersByGenderAndConvertToCorrectTypes() {
         executeUpdate("CREATE (:User {name:'David Warner', gender:'MALE'}), (:User {name:'Shikhar Dhawan', gender:'MALE'}), "
-                + "(:User {name:'Sarah Taylor', gender:'FEMALE'})");
+                + "(:User {name:'Sarah Taylor', gender:'FEMALE', account: '3456789', deposits:['12345.6','45678.9']})");
 
         Iterable<RichUserQueryResult> usersByGender = userRepository.findUsersByGender(Gender.FEMALE);
         assertNotNull("The resultant users list shouldn't be null", usersByGender);
@@ -215,6 +208,8 @@ public class QueryIntegrationTest {
         RichUserQueryResult userQueryResult = userIterator.next();
         assertEquals(Gender.FEMALE, userQueryResult.getUserGender());
         assertEquals("Sarah Taylor", userQueryResult.getUserName());
+        assertEquals(BigInteger.valueOf(3456789),userQueryResult.getUserAccount());
+        assertArrayEquals(new BigDecimal[]{BigDecimal.valueOf(12345.6), BigDecimal.valueOf(45678.9)}, userQueryResult.getUserDeposits());
         assertFalse(userIterator.hasNext());
     }
 

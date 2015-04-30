@@ -12,12 +12,13 @@
 
 package org.neo4j.ogm.entityaccess;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
 import org.neo4j.ogm.metadata.ClassUtils;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
 import org.neo4j.ogm.session.Utils;
-
-import java.lang.reflect.Field;
 
 /**
  * @author Vince Bickers
@@ -71,7 +72,11 @@ public class FieldWriter extends EntityAccess {
     public Class<?> type() {
         if (fieldInfo.hasConverter()) {
             try {
-                return fieldInfo.converter().getClass().getDeclaredMethod("toGraphProperty", fieldType).getReturnType();
+                for(Method method : fieldInfo.converter().getClass().getDeclaredMethods()) {
+                    if(method.getName().equals("toGraphProperty") && !method.isSynthetic()) { //we don't want the method on the AttributeConverter interface
+                        return method.getReturnType();
+                    }
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
