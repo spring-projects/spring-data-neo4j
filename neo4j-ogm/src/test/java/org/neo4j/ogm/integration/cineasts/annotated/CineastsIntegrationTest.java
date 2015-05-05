@@ -21,7 +21,6 @@ import org.neo4j.ogm.domain.cineasts.annotated.Rating;
 import org.neo4j.ogm.domain.cineasts.annotated.SecurityRole;
 import org.neo4j.ogm.domain.cineasts.annotated.Title;
 import org.neo4j.ogm.domain.cineasts.annotated.User;
-import org.junit.Ignore;
 import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
@@ -142,8 +141,10 @@ public class CineastsIntegrationTest {
 
     }
 
+    /**
+     * @see DATAGRAPH-614
+     */
     @Test
-    @Ignore("this test is ignored because it fails if we build on Windows, possibly due to code page issues")
     public void saveAndRetrieveUserWithDifferentCharset() {
         User user = new User();
         user.setLogin("aki");
