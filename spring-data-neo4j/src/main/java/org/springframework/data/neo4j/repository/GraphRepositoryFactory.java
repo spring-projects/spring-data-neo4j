@@ -68,7 +68,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     }
 
     protected Object getTargetRepository(RepositoryInformation metadata, Neo4jTemplate template) {
-    		return getTargetRepositoryViaReflection(metadata, template);
+    		return getTargetRepositoryViaReflection(metadata, metadata.getDomainType(), template);
     }
 
     @Override
