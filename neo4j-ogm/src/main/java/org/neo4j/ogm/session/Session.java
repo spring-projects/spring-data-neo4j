@@ -12,14 +12,16 @@
 
 package org.neo4j.ogm.session;
 
-import org.neo4j.ogm.model.Property;
-import org.neo4j.ogm.session.transaction.Transaction;
-
 import java.util.Collection;
 import java.util.Map;
 
+import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.session.result.QueryStatistics;
+import org.neo4j.ogm.session.transaction.Transaction;
+
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public interface Session {
 
@@ -44,7 +46,7 @@ public interface Session {
     <T> Collection<T> loadByProperty(Class<T> type, Property<String, Object> property, int depth);
 
 
-    void execute(String jsonStatements);
+    QueryStatistics execute(String jsonStatements);
 
     void purgeDatabase();
 
@@ -133,9 +135,9 @@ public interface Session {
      *                   if a complex domain object is provided only the properties of that object will be set.
      *                   If relationships of a provided object also need to be set then the cypher should reflect this
      *                   and further domain object parameters provided.
-     *
+     * @return {@link QueryStatistics} representing statistics about graph modifications as a result of the cypher execution.
      */
-    void execute(String cypher, Map<String, Object> parameters);
+    QueryStatistics execute(String cypher, Map<String, Object> parameters);
 
     /**
      * Applies the given {@link GraphCallback} in the scope of this {@link Session}, giving fine-grained control over

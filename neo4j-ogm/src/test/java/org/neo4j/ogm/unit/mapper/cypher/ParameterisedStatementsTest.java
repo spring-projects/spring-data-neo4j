@@ -12,16 +12,16 @@
 
 package org.neo4j.ogm.unit.mapper.cypher;
 
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
 import org.neo4j.ogm.cypher.statement.ParameterisedStatements;
 import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Vince Bickers
@@ -38,7 +38,7 @@ public class ParameterisedStatementsTest {
 
         String cypher = mapper.writeValueAsString(new ParameterisedStatements(statements));
 
-        assertEquals("{\"statements\":[{\"statement\":\"MATCH p=(n)-[*0..1]-(m) WHERE id(n) = { id } RETURN collect(distinct p)\",\"parameters\":{\"id\":123},\"resultDataContents\":[\"graph\"]}]}", cypher);
+        assertEquals("{\"statements\":[{\"statement\":\"MATCH p=(n)-[*0..1]-(m) WHERE id(n) = { id } RETURN collect(distinct p)\",\"parameters\":{\"id\":123},\"resultDataContents\":[\"graph\"],\"includeStats\":false}]}", cypher);
 
     }
 

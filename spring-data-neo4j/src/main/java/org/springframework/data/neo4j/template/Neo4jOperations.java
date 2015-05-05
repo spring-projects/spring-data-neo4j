@@ -12,16 +12,18 @@
 
 package org.springframework.data.neo4j.template;
 
-import org.springframework.stereotype.Repository;
-
 import java.util.Collection;
 import java.util.Map;
+
+import org.neo4j.ogm.session.result.QueryStatistics;
+import org.springframework.stereotype.Repository;
 
 /**
  * Spring Data operations interface, implemented by {@link Neo4jTemplate}, that provides the API for using
  * the persistence framework in a more direct way as an alternative to the repositories.
  *
  * @author Adam George
+ * @author Luanne Misquitta
  */
 @Repository
 public interface Neo4jOperations {
@@ -165,9 +167,24 @@ public interface Neo4jOperations {
      * Issue a single Cypher update operation (such as a <tt>CREATE</tt>, <tt>MERGE</tt> or <tt>DELETE</tt> statement).
      *
      * @param cypherQuery The Cypher query to execute
+     * @return {@link QueryStatistics} representing statistics about graph modifications as a result of the cypher execution.
      */
-    void execute(String cypherQuery);
+    QueryStatistics execute(String cypherQuery);
 
+    /**
+     * Allows a cypher statement with a modification statement to be executed.
+     *
+     * <p>Parameters may be scalars or domain objects themselves.</p>
+     *
+     * @param cypher The parametrisable cypher to execute.
+     * @param parameters Any parameters to attach to the cypher. These may be domain objects or scalars. Note that
+     *                   if a complex domain object is provided only the properties of that object will be set.
+     *                   If relationships of a provided object also need to be set then the cypher should reflect this
+     *                   and further domain object parameters provided.
+     *
+     * @return {@link QueryStatistics} representing statistics about graph modifications as a result of the cypher execution.
+     */
+    QueryStatistics execute(String cypher, Map<String, Object> parameters);
     /**
      * Provides the instance count for the given <em>node</em> entity type.  This method is also provided by the
      * corresponding repository.
