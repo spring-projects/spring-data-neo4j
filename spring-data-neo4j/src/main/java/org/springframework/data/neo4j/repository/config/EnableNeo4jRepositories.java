@@ -16,7 +16,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.neo4j.repository.support.GraphRepositoryFactoryBean;
 import org.springframework.data.repository.query.QueryLookupStrategy;
-
+import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
 import java.lang.annotation.*;
 
 /**
@@ -84,6 +84,13 @@ public @interface EnableNeo4jRepositories {
      * {@link org.springframework.data.neo4j.repository.support.GraphRepositoryFactoryBean}.
      */
     Class<?> repositoryFactoryBeanClass() default GraphRepositoryFactoryBean.class;
+
+    /**
+     * Configure the repository base class to be used to create repository proxies for this particular configuration.
+     *
+     * @return
+     */
+     Class<?> repositoryBaseClass() default DefaultRepositoryBaseClass.class;
 
     /**
      * Configures whether nested repository-interfaces (e.g. defined as inner classes) should be discovered by the
