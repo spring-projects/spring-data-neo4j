@@ -36,7 +36,7 @@ public class JsonResponse implements Neo4jResponse<String> {
 
     public JsonResponse(InputStream results) {
         this.results = results;
-        this.scanner = new Scanner(results);
+        this.scanner = new Scanner(results, "UTF-8");
     }
 
     public void initialiseScan(String token) {

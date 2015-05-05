@@ -101,15 +101,15 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
     }
 
     @Override
-    public EntityAccess getRelationalWriter(ClassInfo classInfo, String relationshipType, Object parameter) {
+    public EntityAccess getRelationalWriter(ClassInfo classInfo, String relationshipType, Object scalarValue) {
 
         // 1st, try to find a scalar method annotated with the relationship type.
         MethodInfo methodInfo = classInfo.relationshipSetter(relationshipType);
         if (methodInfo != null && !methodInfo.getAnnotations().isEmpty()) {
 
-            if (methodInfo.isTypeOf(parameter.getClass()) ||
-                methodInfo.isParameterisedTypeOf(parameter.getClass()) ||
-                methodInfo.isArrayOf(parameter.getClass())) {
+            if (methodInfo.isTypeOf(scalarValue.getClass()) ||
+                methodInfo.isParameterisedTypeOf(scalarValue.getClass()) ||
+                methodInfo.isArrayOf(scalarValue.getClass())) {
                     return new MethodWriter(classInfo, methodInfo);
 
             }
@@ -118,9 +118,9 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
         // 2nd, try to find a scalar or vector field annotated as the neo4j relationship type
         FieldInfo fieldInfo = classInfo.relationshipField(relationshipType);
         if (fieldInfo != null && !fieldInfo.getAnnotations().isEmpty()) {
-            if (fieldInfo.isTypeOf(parameter.getClass()) ||
-                fieldInfo.isParameterisedTypeOf(parameter.getClass()) ||
-                fieldInfo.isArrayOf(parameter.getClass())) {
+            if (fieldInfo.isTypeOf(scalarValue.getClass()) ||
+                fieldInfo.isParameterisedTypeOf(scalarValue.getClass()) ||
+                fieldInfo.isArrayOf(scalarValue.getClass())) {
                     return new FieldWriter(classInfo, fieldInfo);
             }
         }
@@ -128,9 +128,9 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
         // 3rd, try to find a "setXYZ" method where XYZ is derived from the relationship type
         methodInfo = classInfo.relationshipSetter(relationshipType);
         if (methodInfo != null) {
-            if (methodInfo.isTypeOf(parameter.getClass()) ||
-                    methodInfo.isParameterisedTypeOf(parameter.getClass()) ||
-                    methodInfo.isArrayOf(parameter.getClass())) {
+            if (methodInfo.isTypeOf(scalarValue.getClass()) ||
+                    methodInfo.isParameterisedTypeOf(scalarValue.getClass()) ||
+                    methodInfo.isArrayOf(scalarValue.getClass())) {
                 return new MethodWriter(classInfo, methodInfo);
 
             }
@@ -139,21 +139,21 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
         // 4th, try to find a "XYZ" field name where XYZ is derived from the relationship type
         fieldInfo = classInfo.relationshipField(relationshipType);
         if (fieldInfo != null) {
-            if (fieldInfo.isTypeOf(parameter.getClass()) ||
-                    fieldInfo.isParameterisedTypeOf(parameter.getClass()) ||
-                    fieldInfo.isArrayOf(parameter.getClass())) {
+            if (fieldInfo.isTypeOf(scalarValue.getClass()) ||
+                    fieldInfo.isParameterisedTypeOf(scalarValue.getClass()) ||
+                    fieldInfo.isArrayOf(scalarValue.getClass())) {
                 return new FieldWriter(classInfo, fieldInfo);
             }
         }
 
         // 5th, try to find a unique setter method that takes the parameter
-        List<MethodInfo> methodInfos = classInfo.findSetters(parameter.getClass());
+        List<MethodInfo> methodInfos = classInfo.findSetters(scalarValue.getClass());
         if (methodInfos.size() == 1) {
             return new MethodWriter(classInfo, methodInfos.iterator().next());
         }
 
         // 6th, try to find a unique field that has the same type as the parameter
-        List<FieldInfo> fieldInfos = classInfo.findFields(parameter.getClass());
+        List<FieldInfo> fieldInfos = classInfo.findFields(scalarValue.getClass());
         if (fieldInfos.size() == 1) {
             return new FieldWriter(classInfo, fieldInfos.iterator().next());
         }
@@ -209,8 +209,13 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
 
     @Override
     public Collection<RelationalReader> getRelationalReaders(ClassInfo classInfo) {
+
         Collection<RelationalReader> readers = new ArrayList<>();
+
+
+
         for (FieldInfo fieldInfo : classInfo.relationshipFields()) {
+
             MethodInfo getterInfo = classInfo.methodsInfo().get(inferGetterName(fieldInfo));
 
             if (getterInfo != null) {

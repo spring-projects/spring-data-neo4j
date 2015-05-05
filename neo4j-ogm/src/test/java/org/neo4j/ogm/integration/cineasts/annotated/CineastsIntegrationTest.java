@@ -15,7 +15,6 @@ package org.neo4j.ogm.integration.cineasts.annotated;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.Ignore;
 import org.neo4j.ogm.domain.cineasts.annotated.*;
 import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Session;
@@ -137,8 +136,10 @@ public class CineastsIntegrationTest {
 
     }
 
+    /**
+     * @see DATAGRAPH-614
+     */
     @Test
-    @Ignore("this test is ignored because it fails if we build on Windows, possibly due to code page issues")
     public void saveAndRetrieveUserWithDifferentCharset() {
         User user = new User();
         user.setLogin("aki");
