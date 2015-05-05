@@ -13,43 +13,30 @@
 
 package org.springframework.data.neo4j.integration.template;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.neo4j.ogm.session.Utils.*;
 
+import javax.persistence.PersistenceException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.persistence.PersistenceException;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.graphdb.DynamicLabel;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.session.Utils;
+import org.neo4j.ogm.session.result.QueryStatistics;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
-import org.springframework.data.neo4j.integration.movies.domain.Actor;
-import org.springframework.data.neo4j.integration.movies.domain.Genre;
-import org.springframework.data.neo4j.integration.movies.domain.Rating;
-import org.springframework.data.neo4j.integration.movies.domain.TempMovie;
-import org.springframework.data.neo4j.integration.movies.domain.User;
+import org.springframework.data.neo4j.integration.movies.domain.*;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
 
 /**
  * @author Adam George
+ * @author Luanne Misquitta
  */
 public class Neo4jTemplateTest {
 
@@ -184,6 +171,14 @@ public class Neo4jTemplateTest {
         assertEquals("There weren't any genres created", 2, Utils.size(genres));
     }
 
+    /**
+     * @see DATAGRAPH-607
+     */
+    @Test(expected = java.lang.RuntimeException.class)
+    public void shouldThrowExeceptionForExecuteQueryThatReturnsResults() {
+        this.template.execute("CREATE (g1:Genre {name:'Comedy'}), (g2:Genre {name:'Action'}) return g1");
+    }
+
     @Test
     public void shouldCountNumberOfEntitiesOfParticularTypeInGraphDatabase() {
         GraphDatabaseService database = neo4jRule.getGraphDatabaseService();
@@ -236,6 +231,72 @@ public class Neo4jTemplateTest {
     @Test(expected = PersistenceException.class)
     public void shouldHandleErrorsOnExecute() {
         this.template.execute("CREAT (node:NODE)");
+    }
+
+    /**
+     * @see DATAGRAPH-607
+     */
+    @Test
+    public void shouldReturnQueryStats() {
+        QueryStatistics stats = this.template.execute("CREATE (a:Actor {name:'Keanu Reeves'}) CREATE (m:Movie {title:'The Matrix'}) " +
+                "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m)");
+        assertTrue(stats.containsUpdates());
+        assertEquals(2, stats.getNodesCreated());
+        assertEquals(3, stats.getPropertiesSet());
+        assertEquals(1, stats.getRelationshipsCreated());
+        assertEquals(2, stats.getLabelsAdded());
+
+        stats = this.template.execute("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null");
+        assertTrue(stats.containsUpdates());
+        assertEquals(1, stats.getLabelsRemoved());
+        assertEquals(1, stats.getPropertiesSet());
+
+        stats = this.template.execute("MATCH n-[r]-(m:Movie) delete n,r,m");
+        assertTrue(stats.containsUpdates());
+        assertEquals(2, stats.getNodesDeleted());
+        assertEquals(1, stats.getRelationshipsDeleted());
+    }
+
+    /**
+     * @see DATAGRAPH-607
+     */
+    @Test
+    public void shouldReturnSchemaQueryStats() {
+        QueryStatistics stats = this.template.execute("CREATE INDEX ON :Actor(name)");
+        assertEquals(1, stats.getIndexesAdded());
+
+        stats = this.template.execute("CREATE CONSTRAINT ON (movie:Movie) ASSERT movie.title IS UNIQUE");
+        assertEquals(1, stats.getConstraintsAdded());
+
+        stats = this.template.execute("DROP CONSTRAINT ON (movie:Movie) ASSERT movie.title is UNIQUE");
+        assertEquals(1, stats.getConstraintsRemoved());
+
+        stats = this.template.execute("DROP INDEX ON :Actor(name)");
+        assertEquals(1, stats.getIndexesRemoved());
+    }
+
+    /**
+     * @see DATAGRAPH-607
+     */
+    @Test
+    public void shouldReturnQueryStatsForQueryWithParams() {
+        QueryStatistics stats = this.template.execute("CREATE (a:Actor {name:{actorName}}) CREATE (m:Movie {title:{movieTitle}}) " +
+                "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m)",map("actorName","Keanu Reeves", "movieTitle","THe Matrix"));
+        assertTrue(stats.containsUpdates());
+        assertEquals(2, stats.getNodesCreated());
+        assertEquals(3, stats.getPropertiesSet());
+        assertEquals(1, stats.getRelationshipsCreated());
+        assertEquals(2, stats.getLabelsAdded());
+
+        stats = this.template.execute("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null");
+        assertTrue(stats.containsUpdates());
+        assertEquals(1, stats.getLabelsRemoved());
+        assertEquals(1, stats.getPropertiesSet());
+
+        stats = this.template.execute("MATCH n-[r]-(m:Movie) delete n,r,m");
+        assertTrue(stats.containsUpdates());
+        assertEquals(2, stats.getNodesDeleted());
+        assertEquals(1, stats.getRelationshipsDeleted());
     }
 
 }
