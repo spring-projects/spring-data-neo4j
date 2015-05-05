@@ -468,7 +468,7 @@ public class Neo4jSession implements Session {
     }
 
     private void assertNothingReturned(String cypher) {
-        if (cypher.toUpperCase().contains("RETURN")) {
+        if (cypher.toUpperCase().contains(" RETURN ")) {
             throw new RuntimeException("execute() must not return data. Use query() instead.");
         }
     }
