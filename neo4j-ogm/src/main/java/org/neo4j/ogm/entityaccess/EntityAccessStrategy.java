@@ -12,9 +12,9 @@
 
 package org.neo4j.ogm.entityaccess;
 
-import org.neo4j.ogm.metadata.info.ClassInfo;
-
 import java.util.Collection;
+
+import org.neo4j.ogm.metadata.info.ClassInfo;
 
 /**
  * Implements the logic to determine how entities should be accessed in both reading and writing scenarios.
@@ -39,4 +39,6 @@ public interface EntityAccessStrategy {
 
     RelationalReader getEndNodeReader(ClassInfo relationshipEntityClassInfo);
     RelationalReader getStartNodeReader(ClassInfo classInfo);
+
+    RelationalWriter getRelationalEntityWriter(ClassInfo classInfo, Class entityAnnotation);
 }
