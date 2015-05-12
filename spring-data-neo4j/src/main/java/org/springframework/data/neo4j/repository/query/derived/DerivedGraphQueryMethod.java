@@ -12,16 +12,19 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
-import org.neo4j.ogm.session.Session;
-import org.springframework.data.neo4j.repository.query.GraphQueryMethod;
-import org.springframework.data.repository.core.RepositoryMetadata;
-
 import java.lang.reflect.Method;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.annotation.Property;
+import org.neo4j.ogm.session.Session;
+import org.springframework.data.neo4j.repository.query.GraphQueryMethod;
+import org.springframework.data.repository.core.RepositoryMetadata;
+
 /**
  * @author Mark Angrish
+ * @author Luanne Misquitta
  */
 public class DerivedGraphQueryMethod extends GraphQueryMethod {
 
@@ -49,8 +52,15 @@ public class DerivedGraphQueryMethod extends GraphQueryMethod {
         StringBuilder queryBuilder = new StringBuilder();
         queryBuilder.append("MATCH (o:");
 
-        //TODO: check NodeEntity annotation for label/s. Work out how to support RelationshipEntity.
-        queryBuilder.append(type.getSimpleName());
+        //TODO: Work out how to support RelationshipEntity.
+        //TODO We should be using ClassInfo to get this sort of information, to be refactored.
+        NodeEntity annotation = type.getAnnotation(NodeEntity.class);
+        if(annotation!=null && annotation.label()!=null && annotation.label().length()>0) {
+            queryBuilder.append(annotation.label());
+        }
+        else {
+            queryBuilder.append(type.getSimpleName());
+        }
         queryBuilder.append(") WHERE ");
 
         // TODO: This will be broken down with another regex.
@@ -59,7 +69,16 @@ public class DerivedGraphQueryMethod extends GraphQueryMethod {
         queryBuilder.append("o.");
 
         // FIXME: Shady way up lowercasing the camel casing to match a propertyName!
-        queryBuilder.append(predicates.substring(0, 1).toLowerCase() + predicates.substring(1));
+        String property = predicates.substring(0, 1).toLowerCase() + predicates.substring(1);
+        try {
+            Property propertyAnnotation = type.getDeclaredField(property).getAnnotation(Property.class);
+            if(propertyAnnotation != null && propertyAnnotation.name()!=null && propertyAnnotation.name().length()>0) {
+                property = propertyAnnotation.name();
+            }
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException("Could not find property " + property + " on class " + type.getSimpleName() + ". Check spelling or use @Query.");
+        }
+        queryBuilder.append(property);
 
         //TODO: Use a lookup table to match SDC behaviour to actual sign (see Part.java)
         queryBuilder.append(" = ");

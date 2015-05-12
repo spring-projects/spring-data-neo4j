@@ -12,13 +12,22 @@
 
 package org.springframework.data.neo4j.integration.movies.repo;
 
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.data.neo4j.integration.movies.domain.Cinema;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Michal Bachman
+ * @author Luanne Misquitta
  */
 @Repository
 public interface CinemaRepository extends GraphRepository<Cinema> {
+
+	Collection<Cinema> findByName(String name);
+
+	List<Cinema> findByLocation(String location);
+
 }

@@ -28,8 +28,10 @@ import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.movies.context.PersistenceContext;
+import org.springframework.data.neo4j.integration.movies.domain.Cinema;
 import org.springframework.data.neo4j.integration.movies.domain.User;
 import org.springframework.data.neo4j.integration.movies.domain.queryresult.*;
+import org.springframework.data.neo4j.integration.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.integration.movies.repo.UnmanagedUserPojo;
 import org.springframework.data.neo4j.integration.movies.repo.UserRepository;
 import org.springframework.test.annotation.DirtiesContext;
@@ -38,6 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 @ContextConfiguration(classes = {PersistenceContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -49,6 +52,9 @@ public class QueryIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CinemaRepository cinemaRepository;
 
     @After
     public void clearDatabase() {
@@ -225,6 +231,25 @@ public class QueryIntegrationTest {
         assertNotNull("The loaded wrapper object shouldn't be null", wrappedUser);
         assertNotNull("The enclosed user shouldn't be null", wrappedUser.getUser());
         assertEquals("Barry", wrappedUser.getUser().getName());
+    }
+
+    /**
+     * @see DATAGRAPH-628
+     */
+    @Test
+    public void shouldFindNodeEntitiesWithLabels() {
+        executeUpdate("CREATE (m:Theatre {name:'Picturehouse', city:'London'}) CREATE (g:Theatre {name:'Ritzy', city:'London'})");
+
+        Collection<Cinema> cinemas = cinemaRepository.findByName("Picturehouse");
+        Iterator<Cinema> iterator = cinemas.iterator();
+        assertTrue(iterator.hasNext());
+        assertEquals("Picturehouse", iterator.next().getName());
+        assertFalse(iterator.hasNext());
+
+        List<Cinema> theatres = cinemaRepository.findByLocation("London");
+        assertEquals(2, theatres.size());
+        assertTrue(theatres.contains(new Cinema("Picturehouse")));
+        assertTrue(theatres.contains(new Cinema("Ritzy")));
     }
 
 }
