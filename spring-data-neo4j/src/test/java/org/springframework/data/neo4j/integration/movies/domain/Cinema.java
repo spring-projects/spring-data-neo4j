@@ -12,18 +12,25 @@
 
 package org.springframework.data.neo4j.integration.movies.domain;
 
-import org.neo4j.ogm.annotation.Relationship;
-
 import java.util.HashSet;
 import java.util.Set;
 
+import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.annotation.Property;
+import org.neo4j.ogm.annotation.Relationship;
+
 /**
  * @author Michal Bachman
+ * @author Luanne Misquitta
  */
+@NodeEntity(label = "Theatre")
 public class Cinema {
 
     private Long id;
     private String name;
+
+    @Property(name = "city")
+    private String location;
 
     @Relationship(direction = Relationship.INCOMING)
     private Set<User> visited = new HashSet<>();
@@ -41,5 +48,24 @@ public class Cinema {
 
     public String getName() {
         return name;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Cinema cinema = (Cinema) o;
+
+        return !(name != null ? !name.equals(cinema.name) : cinema.name != null);
+    }
+
+    @Override
+    public int hashCode() {
+        return name != null ? name.hashCode() : 0;
     }
 }

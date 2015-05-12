@@ -12,8 +12,16 @@
 
 package org.springframework.data.neo4j.integration.movies;
 
-import org.junit.Rule;
+import static org.junit.Assert.*;
+import static org.neo4j.ogm.testutil.GraphTestUtils.*;
+
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
@@ -36,16 +44,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import static org.junit.Assert.*;
-import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
-
 /**
  * @author Michal Bachman
+ * @author Luanne Misquitta
  */
 @ContextConfiguration(classes = {PersistenceContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -464,7 +465,7 @@ public class End2EndIntegrationTest {
 
         assertSameGraph( getDatabase(), "CREATE " +
                 "(m:User {name:'Michal'})," +
-                "(c:Cinema {name:'Odeon'})," +
+                "(c:Theatre {name:'Odeon'})," +
                 "(m)-[:VISITED]->(c)" );
     }
 
@@ -481,7 +482,7 @@ public class End2EndIntegrationTest {
 
         assertSameGraph( getDatabase(), "CREATE " +
                 "(m:User {name:'Michal'})," +
-                "(c:Cinema {name:'Odeon'})," +
+                "(c:Theatre {name:'Odeon'})," +
                 "(m)-[:VISITED]->(c)" );
     }
 
