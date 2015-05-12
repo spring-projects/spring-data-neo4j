@@ -15,7 +15,9 @@ package org.neo4j.ogm.mapper;
 import java.util.*;
 import java.util.Map.Entry;
 
+import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.Relationship;
+import org.neo4j.ogm.annotation.StartNode;
 import org.neo4j.ogm.entityaccess.*;
 import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.metadata.MetaData;
@@ -241,15 +243,21 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
 
         // set the start and end entities
         ClassInfo relEntityInfo = metadata.classInfo(relationshipEntity);
-        RelationalWriter startNodeAccess = entityAccessStrategy.getRelationalWriter(relEntityInfo, edge.getType(), startEntity);
-        if (startNodeAccess != null) {
-            startNodeAccess.write(relationshipEntity, startEntity);
-        } // todo : throw exception, though this is detectable during metadata load
+        RelationalWriter startNodeWriter = entityAccessStrategy.getRelationalEntityWriter(relEntityInfo, StartNode.class);
+        if (startNodeWriter != null) {
+            startNodeWriter.write(relationshipEntity, startEntity);
+        }
+        else {
+            throw new RuntimeException("Cannot find a writer for the StartNode of relational entity " + relEntityInfo.name());
+        }
 
-        RelationalWriter endNodeAccess = entityAccessStrategy.getRelationalWriter(relEntityInfo, edge.getType(), endEntity);
-        if (endNodeAccess != null) {
-            endNodeAccess.write(relationshipEntity, endEntity);
-        } // todo : throw exception, though this is detectable during metadata load
+        RelationalWriter endNodeWriter = entityAccessStrategy.getRelationalEntityWriter(relEntityInfo, EndNode.class);
+        if (endNodeWriter != null) {
+            endNodeWriter.write(relationshipEntity, endEntity);
+        }
+        else {
+            throw new RuntimeException("Cannot find a writer for the EndNode of relational entity " + relEntityInfo.name());
+        }
 
         return relationshipEntity;
     }

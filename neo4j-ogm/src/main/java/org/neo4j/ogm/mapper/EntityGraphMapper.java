@@ -290,7 +290,7 @@ public class EntityGraphMapper implements EntityToGraphMapper {
      *
      * Instead, the direction of the relationship is established between source and target by means of
      * the relationshipDirection argument.
-     * 
+     *
      * In the event that the relationship being managed is represented by an instance of RelationshipEntity
      * then the target will always be a RelationshipEntity, and the actual relationship will be
      * established between the relevant start and end nodes.
@@ -440,23 +440,21 @@ public class EntityGraphMapper implements EntityToGraphMapper {
         }
     }
 
-    private Object getStartEntity(ClassInfo relEntityClassInfo, Object relationshipEntity) {
-        RelationalReader actualStartNodeReader = entityAccessStrategy.getStartNodeReader(relEntityClassInfo);
-        Object startEntity = actualStartNodeReader.read(relationshipEntity);
-        if (startEntity == null) {
-            throw new RuntimeException("@StartNode of a relationship entity may not be null");
-        }
-        return startEntity;
-    }
+	private Object getStartEntity(ClassInfo relEntityClassInfo, Object relationshipEntity) {
+		RelationalReader actualStartNodeReader = entityAccessStrategy.getStartNodeReader(relEntityClassInfo);
+		if (actualStartNodeReader != null) {
+			return actualStartNodeReader.read(relationshipEntity);
+		}
+		throw new RuntimeException("@StartNode of a relationship entity may not be null");
+	}
 
-    private Object getTargetEntity(ClassInfo relEntityClassInfo, Object relationshipEntity) {
-        RelationalReader actualEndNodeReader = entityAccessStrategy.getEndNodeReader(relEntityClassInfo);
-        Object targetEntity = actualEndNodeReader.read(relationshipEntity);
-        if (targetEntity == null) {
-            throw new RuntimeException("@EndNode of a relationship entity may not be null");
-        }
-        return targetEntity;
-    }
+	private Object getTargetEntity(ClassInfo relEntityClassInfo, Object relationshipEntity) {
+		RelationalReader actualEndNodeReader = entityAccessStrategy.getEndNodeReader(relEntityClassInfo);
+		if (actualEndNodeReader != null) {
+			return actualEndNodeReader.read(relationshipEntity);
+		}
+		throw new RuntimeException("@EndNode of a relationship entity may not be null");
+	}
 
 
     private MappedRelationship createMappedRelationship(Long aNode, RelationshipBuilder relationshipBuilder, Long bNode) {

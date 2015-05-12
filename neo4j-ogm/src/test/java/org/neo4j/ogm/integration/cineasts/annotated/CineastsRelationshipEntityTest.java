@@ -500,4 +500,30 @@ public class CineastsRelationshipEntityTest{
 		assertNull(actor.getKnows().iterator().next().getSince());
 
 	}
+
+	/**
+	 * @see DATAGRAPH-616
+	 */
+	@Test
+	public void shouldLoadRelationshipEntityWithSameStartEndNodeType() {
+		Actor bruce = new Actor("Bruce");
+		Actor jim = new Actor("Jim");
+
+		Knows knows = new Knows();
+		knows.setFirstActor(bruce);
+		knows.setSecondActor(jim);
+		knows.setSince(new Date());
+
+		bruce.getKnows().add(knows);
+
+		session.save(bruce);
+
+		session.clear();
+
+		Actor actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name", "Bruce")));
+		Assert.assertNotNull(actor);
+		assertEquals(1, actor.getKnows().size());
+		assertEquals("Bruce",actor.getKnows().iterator().next().getFirstActor().getName());
+		assertEquals("Jim", actor.getKnows().iterator().next().getSecondActor().getName());
+	}
 }
