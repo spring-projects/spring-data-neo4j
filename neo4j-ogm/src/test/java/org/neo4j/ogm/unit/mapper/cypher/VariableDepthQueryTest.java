@@ -50,7 +50,7 @@ public class VariableDepthQueryTest {
 
     @Test
     public void testFindByProperty() throws Exception {
-        assertEquals("MATCH p=(n:`Asteroid`)-[*0..4]-(m) WHERE n.diameter = { diameter } RETURN collect(distinct p)", query.findByProperty("Asteroid", new Property<String, Object>("diameter", 60.2), 4).getStatement());
+        assertEquals("MATCH p=(n:`Asteroid`)-[*0..4]-(m) WHERE n.`diameter` = { `diameter` } RETURN collect(distinct p)", query.findByProperty("Asteroid", new Property<String, Object>("diameter", 60.2), 4).getStatement());
     }
 
     @Test
@@ -70,7 +70,7 @@ public class VariableDepthQueryTest {
 
     @Test
     public void testFindByPropertyZeroDepth() throws Exception {
-        assertEquals("MATCH (n:`Asteroid`) WHERE n.diameter = { diameter } RETURN collect(n)", query.findByProperty("Asteroid", new Property<String, Object>("diameter", 60.2), 0).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` = { `diameter` } RETURN collect(n)", query.findByProperty("Asteroid", new Property<String, Object>("diameter", 60.2), 0).getStatement());
     }
 
     /**
@@ -116,9 +116,17 @@ public class VariableDepthQueryTest {
      */
     @Test
     public void testFindByPropertyNegativeDepth() throws Exception {
-        assertEquals("MATCH p=(n:`Asteroid`)-[*0..]-(m) WHERE n.diameter = { diameter } RETURN collect(distinct p)", query.findByProperty("Asteroid", new Property<String, Object>("diameter", 60.2), -1).getStatement());
+        assertEquals("MATCH p=(n:`Asteroid`)-[*0..]-(m) WHERE n.`diameter` = { `diameter` } RETURN collect(distinct p)", query.findByProperty("Asteroid", new Property<String, Object>("diameter", 60.2), -1).getStatement());
     }
 
+    /**
+     * @see DATAGRAPH-631
+     * @throws Exception
+     */
+    @Test
+    public void testFindByPropertyWithIllegalCharacters() throws Exception {
+        assertEquals("MATCH p=(n:`Studio`)-[*0..3]-(m) WHERE n.`studio-name` = { `studio-name` } RETURN collect(distinct p)", query.findByProperty("Studio", new Property<String, Object>("studio-name", "Abbey Road Studios"),3).getStatement());
+    }
 
 
 }
