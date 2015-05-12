@@ -82,7 +82,7 @@ public class VariableDepthQuery implements QueryStatements {
             return InfiniteDepthReadStrategy.findByProperty(label, property);
         }
         if (max > 0) {
-            String qry = String.format("MATCH p=(n:`%s`)-[*%d..%d]-(m) WHERE n.%s = { %s } RETURN collect(distinct p)", label, min, max, property.getKey(), property.getKey());
+            String qry = String.format("MATCH p=(n:`%s`)-[*%d..%d]-(m) WHERE n.`%s` = { `%s` } RETURN collect(distinct p)", label, min, max, property.getKey(), property.getKey());
             return new GraphModelQuery(qry, Utils.map(property.getKey(), property.asParameter()));
         } else {
             return DepthZeroReadStrategy.findByProperty(label, property);
@@ -112,7 +112,7 @@ public class VariableDepthQuery implements QueryStatements {
         }
 
         public static GraphModelQuery findByProperty(String label, Property<String, Object> property) {
-            return new GraphModelQuery(String.format("MATCH (n:`%s`) WHERE n.%s = { %s } RETURN collect(n)", label, property.getKey(), property.getKey()), Utils.map(property.getKey(), property.asParameter()));
+            return new GraphModelQuery(String.format("MATCH (n:`%s`) WHERE n.`%s` = { `%s` } RETURN collect(n)", label, property.getKey(), property.getKey()), Utils.map(property.getKey(), property.asParameter()));
         }
 
     }
@@ -132,7 +132,7 @@ public class VariableDepthQuery implements QueryStatements {
         }
 
         public static GraphModelQuery findByProperty(String label, Property<String, Object> property) {
-            return new GraphModelQuery(String.format("MATCH p=(n:`%s`)-[*0..]-(m) WHERE n.%s = { %s } RETURN collect(distinct p)", label, property.getKey(), property.getKey()), Utils.map(property.getKey(), property.asParameter()));
+            return new GraphModelQuery(String.format("MATCH p=(n:`%s`)-[*0..]-(m) WHERE n.`%s` = { `%s` } RETURN collect(distinct p)", label, property.getKey(), property.getKey()), Utils.map(property.getKey(), property.asParameter()));
         }
 
     }
