@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.neo4j.ogm.domain.education.Student;
 import org.neo4j.ogm.domain.forum.Member;
 import org.neo4j.ogm.domain.forum.activity.Activity;
+import org.neo4j.ogm.metadata.AmbiguousBaseClassException;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
@@ -385,10 +386,9 @@ public class MetaDataTest {
         assertEquals("org.neo4j.ogm.domain.forum.Member", classInfo.name());
     }
 
-    @Test
+    @Test(expected = AmbiguousBaseClassException.class)
     public void testCannotResolveInconsistentClassHierarchies() {
-        ClassInfo classInfo = metaData.resolve("Login", "Topic");
-        assertNull(classInfo);
+        metaData.resolve("Login", "Topic");
     }
 
     @Test
@@ -506,12 +506,12 @@ public class MetaDataTest {
         assertEquals(null, metaData.resolve("Membership"));
     }
 
-    @Test
+    @Test(expected = AmbiguousBaseClassException.class)
     /**
      * Taxa not forming a class hierarchy cannot be resolved.
      */
     public void testNoCommonLeafInTaxa() {
-        assertEquals(null, metaData.resolve("Topic", "Member"));
+        metaData.resolve("Topic", "Member");
     }
 
     @Test

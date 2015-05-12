@@ -133,8 +133,9 @@ public class MetaData {
                 } // not found, try again
             }
             if (baseClasses.size() > 1) {
-                LOGGER.info("Multiple leaf classes found in type hierarchy for specified taxa: " + Arrays.toString(taxa) + ". leaf classes are: " + baseClasses);
-                return null;
+                //LOGGER.info("Multiple leaf classes found in type hierarchy for specified taxa: " + Arrays.toString(taxa) + ". leaf classes are: " + baseClasses);
+                //return null;
+                throw new AmbiguousBaseClassException(Arrays.toString(taxa));
             }
             if (baseClasses.iterator().hasNext()) {
                 return baseClasses.iterator().next();
