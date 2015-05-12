@@ -12,16 +12,17 @@
 
 package org.neo4j.ogm.entityaccess;
 
-import java.lang.reflect.Constructor;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
+import org.neo4j.ogm.metadata.BaseClassNotFoundException;
 import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.model.NodeModel;
 import org.neo4j.ogm.model.RelationshipModel;
+
+import java.lang.reflect.Constructor;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A metadata-driven factory class for creating node and relationship entities.
@@ -80,7 +81,7 @@ public class EntityFactory {
 
     private <T> T instantiateObjectFromTaxa(String... taxa) {
         if (taxa == null || taxa.length == 0) {
-            throw new MappingException("Cannot map to a class with no taxa by which to determine the class name.");
+            throw new BaseClassNotFoundException("<null>");
         }
 
         String fqn = resolve(taxa);
@@ -103,7 +104,7 @@ public class EntityFactory {
             if (classInfo != null) {
                 taxaLeafClass.put(Arrays.toString(taxa), fqn=classInfo.name());
             } else {
-                throw new MappingException("Could not resolve a single base class from " + Arrays.toString(taxa));
+                throw new BaseClassNotFoundException(Arrays.toString(taxa));
             }
         }
         return fqn;

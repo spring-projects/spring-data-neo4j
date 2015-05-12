@@ -12,13 +12,11 @@
 
 package org.neo4j.ogm.mapper;
 
-import java.util.*;
-import java.util.Map.Entry;
-
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.StartNode;
 import org.neo4j.ogm.entityaccess.*;
+import org.neo4j.ogm.metadata.BaseClassNotFoundException;
 import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
@@ -29,6 +27,9 @@ import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.model.RelationshipModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * @author Vince Bickers
@@ -80,12 +81,16 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
     private void mapNodes(GraphModel graphModel) {
         for (NodeModel node : graphModel.getNodes()) {
             Object entity = mappingContext.get(node.getId());
-            if (entity == null) {
-                entity = mappingContext.registerNodeEntity(entityFactory.newObject(node), node.getId());
+            try {
+                if (entity == null) {
+                    entity = mappingContext.registerNodeEntity(entityFactory.newObject(node), node.getId());
+                }
+                setIdentity(entity, node.getId());
+                setProperties(node, entity);
+                mappingContext.remember(entity);
+            } catch (BaseClassNotFoundException e) {
+                logger.debug(e.getMessage());
             }
-            setIdentity(entity, node.getId());
-            setProperties(node, entity);
-            mappingContext.remember(entity);
         }
     }
 
@@ -117,7 +122,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
         PropertyWriter writer = entityAccessStrategy.getPropertyWriter(classInfo, property.getKey().toString());
 
         if (writer == null) {
-            logger.warn("Unable to find property: {} on class: {} for writing", property.getKey(), classInfo.name());
+            logger.debug("Unable to find property: {} on class: {} for writing", property.getKey(), classInfo.name());
         } else {
             Object value = property.getValue();
             // merge iterable / arrays and co-erce to the correct attribute type
@@ -160,70 +165,74 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
             Object source = mappingContext.get(edge.getStartNode());
             Object target = mappingContext.get(edge.getEndNode());
 
-            // check whether this edge should in fact be handled as a relationship entity
-            // This works because a relationship in the graph that has properties must be represented
-            // by a domain entity annotated with @RelationshipEntity, and (if it exists) it will be found by
-            // metadata.resolve(...)
-            ClassInfo relationshipEntityClassInfo = metadata.resolve(edge.getType());
+            if (source != null && target != null) {
+                // check whether this edge should in fact be handled as a relationship entity
+                // This works because a relationship in the graph that has properties must be represented
+                // by a domain entity annotated with @RelationshipEntity, and (if it exists) it will be found by
+                // metadata.resolve(...)
+                ClassInfo relationshipEntityClassInfo = metadata.resolve(edge.getType());
 
-            if (relationshipEntityClassInfo != null) {
-                logger.debug("Found relationship type: {} to map to RelationshipEntity: {}", edge.getType(), relationshipEntityClassInfo.name());
+                if (relationshipEntityClassInfo != null) {
+                    logger.debug("Found relationship type: {} to map to RelationshipEntity: {}", edge.getType(), relationshipEntityClassInfo.name());
 
-                // look to see if this relationship already exists in the mapping context.
-                Object relationshipEntity = mappingContext.getRelationshipEntity(edge.getId());
+                    // look to see if this relationship already exists in the mapping context.
+                    Object relationshipEntity = mappingContext.getRelationshipEntity(edge.getId());
 
-                // do we know about it?
-                if (relationshipEntity == null) { // no, create a new relationship entity
-                    relationshipEntity = createRelationshipEntity(edge, source, target);
-                }
-
-                // source.setRelationshipEntity if OUTGOING/UNDIRECTED
-                if (!relationshipDirection(source, edge, relationshipEntity).equals(Relationship.INCOMING)) {
-                    // try and find a one-to-one writer
-                    ClassInfo sourceInfo = metadata.classInfo(source);
-                    RelationalWriter writer = entityAccessStrategy.getRelationalWriter(sourceInfo, edge.getType(), relationshipEntity);
-
-                    if (writer == null) {
-                        throw new RuntimeException("no writer for " + source);
+                    // do we know about it?
+                    if (relationshipEntity == null) { // no, create a new relationship entity
+                        relationshipEntity = createRelationshipEntity(edge, source, target);
                     }
 
-                    if (writer.forScalar()) {
-                        writer.write(source, relationshipEntity);
+                    // source.setRelationshipEntity if OUTGOING/UNDIRECTED
+                    if (!relationshipDirection(source, edge, relationshipEntity).equals(Relationship.INCOMING)) {
+                        // try and find a one-to-one writer
+                        ClassInfo sourceInfo = metadata.classInfo(source);
+                        RelationalWriter writer = entityAccessStrategy.getRelationalWriter(sourceInfo, edge.getType(), relationshipEntity);
+
+                        if (writer == null) {
+                            throw new RuntimeException("no writer for " + source);
+                        }
+
+                        if (writer.forScalar()) {
+                            writer.write(source, relationshipEntity);
+                            mappingContext.registerRelationship(new MappedRelationship(edge.getStartNode(), edge.getType(), edge.getEndNode(), edge.getId()));
+                        } else {
+                            oneToMany.add(edge);
+                        }
+                    }
+                    // target.setRelationshipEntity if INCOMING/UNDIRECTED
+                    if (!relationshipDirection(target, edge, relationshipEntity).equals(Relationship.OUTGOING)) {
+                        ClassInfo targetInfo = metadata.classInfo(target);
+                        RelationalWriter writer = entityAccessStrategy.getRelationalWriter(targetInfo, edge.getType(), relationshipEntity);
+
+                        if (writer == null) {
+                            throw new RuntimeException("no writer for " + target);
+                        }
+
+                        if (writer.forScalar()) {
+                            writer.write(target, relationshipEntity);
+                        } else {
+                            oneToMany.add(edge);
+                        }
+                    }
+                }
+                else {
+                    boolean oneToOne = true;
+                    if (!relationshipDirection(source, edge, target).equals(Relationship.INCOMING)) {
+                        oneToOne &= tryMappingAsSingleton(source, target, edge);
+                    }
+                    if (!relationshipDirection(target, edge, source).equals(Relationship.OUTGOING)) {
+                        oneToOne &= tryMappingAsSingleton(target, source, edge);
+
+                    }
+                    if (!oneToOne) {
+                        oneToMany.add(edge);
+                    } else {
                         mappingContext.registerRelationship(new MappedRelationship(edge.getStartNode(), edge.getType(), edge.getEndNode(), edge.getId()));
-                    } else {
-                        oneToMany.add(edge);
                     }
                 }
-                // target.setRelationshipEntity if INCOMING/UNDIRECTED
-                if (!relationshipDirection(target, edge, relationshipEntity).equals(Relationship.OUTGOING)) {
-                    ClassInfo targetInfo = metadata.classInfo(target);
-                    RelationalWriter writer = entityAccessStrategy.getRelationalWriter(targetInfo, edge.getType(), relationshipEntity);
-
-                    if (writer == null) {
-                        throw new RuntimeException("no writer for " + target);
-                    }
-
-                    if (writer.forScalar()) {
-                        writer.write(target, relationshipEntity);
-                    } else {
-                        oneToMany.add(edge);
-                    }
-                }
-            }
-            else {
-                boolean oneToOne = true;
-                if (!relationshipDirection(source, edge, target).equals(Relationship.INCOMING)) {
-                    oneToOne &= tryMappingAsSingleton(source, target, edge);
-                }
-                if (!relationshipDirection(target, edge, source).equals(Relationship.OUTGOING)) {
-                    oneToOne &= tryMappingAsSingleton(target, source, edge);
-
-                }
-                if (!oneToOne) {
-                    oneToMany.add(edge);
-                } else {
-                    mappingContext.registerRelationship(new MappedRelationship(edge.getStartNode(), edge.getType(), edge.getEndNode(), edge.getId()));
-                }
+            } else {
+                logger.debug("Relationship {} cannot be hydrated because one or more required node types are not mapped to entity classes", edge);
             }
         }
         mapOneToMany(oneToMany);
@@ -361,7 +370,8 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
             return true;
         }
 
-        logger.warn("Unable to map iterable of type: {} onto property of {}", valueType, classInfo.name());
+        // this is not necessarily an error. but we can't tell.
+        logger.debug("Unable to map iterable of type: {} onto property of {}", valueType, classInfo.name());
         return false;
     }
 

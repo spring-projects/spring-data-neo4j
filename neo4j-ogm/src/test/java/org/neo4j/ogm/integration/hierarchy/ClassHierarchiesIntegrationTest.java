@@ -732,30 +732,29 @@ public class ClassHierarchiesIntegrationTest {
         assertTrue(blokes.contains(adam));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void shouldNotReadHierarchy() {
         new ExecutionEngine(getDatabase()).execute("CREATE (:Person {name:'Daniela'})");
-
-        session.loadAll(Person.class);
+        assertEquals(0, session.loadAll(Person.class).size());
     }
 
     @Test
     public void shouldLeaveExistingLabelsAlone() {
         new ExecutionEngine(getDatabase()).execute("CREATE (:Female:Person:GoldMember {name:'Daniela'})");
 
-        session.save(session.load(Person.class, 0L));
+        session.save(session.load(Female.class, 0L));
 
         assertSameGraph(getDatabase(), "CREATE (:Female:Person:GoldMember {name:'Daniela'})");
     }
 
     //this should throw an exception, but for a different reason than it does now!
-    @Test//(expected = RuntimeException.class)
+    @Test
     public void shouldFailWithConflictingHierarchies() {
         new ExecutionEngine(getDatabase()).execute("CREATE (:Female:Person {name:'Daniela'})");
 
         SessionFactory sessionFactory = new SessionFactory("org.neo4j.ogm.integration.hierarchy.domain", "org.neo4j.ogm.integration.hierarchy.conflicting");
         session = sessionFactory.openSession(neo4jRule.baseNeoUrl());
 
-        session.loadAll(Person.class);
+        assertEquals(0, session.loadAll(Female.class).size());
     }
 }
