@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
  * fields.
  *
  * @author Adam George
+ * @author Luanne Misquitta
  */
 public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
 
@@ -290,6 +291,9 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
 
     @Override
     public RelationalWriter getRelationalEntityWriter(ClassInfo classInfo, Class entityAnnotation) {
+        if (entityAnnotation.getName() == null) {
+            throw new RuntimeException(entityAnnotation.getSimpleName() + " is not defined on " + classInfo.name());
+        }
         //Find annotated field
         FieldInfo field = null;
         for(FieldInfo fieldInfo : classInfo.relationshipFields()) {
