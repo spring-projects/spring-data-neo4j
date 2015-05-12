@@ -15,17 +15,12 @@ package org.neo4j.ogm.defects;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.util.Date;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.ogm.domain.cineasts.annotated.Actor;
-import org.neo4j.ogm.domain.cineasts.annotated.Knows;
 import org.neo4j.ogm.domain.cineasts.annotated.Movie;
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
@@ -64,31 +59,6 @@ public class RelationshipEntityTest {
 		daniel = session.load(Actor.class,daniel.getId());
 		assertNotNull(daniel);
 		assertEquals(1, daniel.getNominations().size()); //fails
-	}
-
-	/**
-	 * @see DATAGRAPH-616
-	 */
-	@Test
-	public void shouldLoadRelationshipEntityWithSameStartEndNodeType() {
-		Actor bruce = new Actor("Bruce");
-		Actor jim = new Actor("Jim");
-
-		Knows knows = new Knows();
-		knows.setFirstActor(bruce);
-		knows.setSecondActor(jim);
-		knows.setSince(new Date());
-
-		bruce.getKnows().add(knows);
-
-		session.save(bruce);
-
-		session.clear();
-
-		Actor actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name", "Bruce")));
-		Assert.assertNotNull(actor);
-		assertEquals(1, actor.getKnows().size());
-		assertEquals("Jim",actor.getKnows().iterator().next().getSecondActor().getName()); //fails
 	}
 
 }

@@ -12,6 +12,10 @@
 
 package org.neo4j.ogm.entityaccess;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.StartNode;
 import org.neo4j.ogm.metadata.info.ClassInfo;
@@ -19,10 +23,6 @@ import org.neo4j.ogm.metadata.info.FieldInfo;
 import org.neo4j.ogm.metadata.info.MethodInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Default implementation of {@link EntityAccessStrategy} that looks up information from {@link ClassInfo} in the following order.
@@ -37,6 +37,7 @@ import java.util.List;
  * fields.
  *
  * @author Adam George
+ * @author Luanne Misquitta
  */
 public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
 
@@ -285,6 +286,34 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
             }
         }
         logger.warn("Failed to find an @StartNode on " + relationshipEntityClassInfo);
+        return null;
+    }
+
+    @Override
+    public RelationalWriter getRelationalEntityWriter(ClassInfo classInfo, Class entityAnnotation) {
+        if (entityAnnotation.getName() == null) {
+            throw new RuntimeException(entityAnnotation.getSimpleName() + " is not defined on " + classInfo.name());
+        }
+        //Find annotated field
+        FieldInfo field = null;
+        for(FieldInfo fieldInfo : classInfo.relationshipFields()) {
+            if(fieldInfo.getAnnotations().get(entityAnnotation.getName()) != null) {
+                field = fieldInfo;
+                break;
+            }
+        }
+        if(field != null) {
+            String setter = "set" + field.getName().substring(0,1).toUpperCase() + field.getName().substring(1);
+            //Preferably find a setter for the field
+            for(MethodInfo methodInfo : classInfo.relationshipSetters()) {
+                if (methodInfo.getName().equals(setter)) {
+                    return new MethodWriter(classInfo, methodInfo);
+                }
+
+            }
+            //Otherwise use the field
+            return new FieldWriter(classInfo,field);
+        }
         return null;
     }
 
