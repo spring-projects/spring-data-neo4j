@@ -12,7 +12,9 @@
 
 package org.springframework.data.neo4j.repository.query.derived.strategy;
 
-import org.neo4j.ogm.model.Property;
+import java.util.List;
+
+import org.springframework.data.neo4j.repository.query.derived.Parameter;
 
 /**
  * @author Luanne Misquitta
@@ -20,7 +22,16 @@ import org.neo4j.ogm.model.Property;
 public class CypherNodeFinderStatements implements FinderStatements {
 
 	@Override
-	public String findByProperty(String label, Property<String, Integer> property) {
-		return String.format("MATCH (n:`%s`) WHERE n.`%s` = { %d } RETURN collect(n)", label, property.getKey(), property.getValue());
+	public String findByProperties(String label, List<Parameter> parameters) {
+				StringBuilder query = new StringBuilder(String.format("MATCH p=(n:`%s`)-[*0..1]-(m) WHERE ",label));
+		for(Parameter parameter : parameters) {
+			if(parameter.getBooleanOperator() != null) {
+				query.append(parameter.getBooleanOperator());
+			}
+			query.append(String.format(" n.`%s` %s { %d } ",parameter.getProperty().getKey(), parameter.getComparisonOperator(), parameter.getProperty().getValue()));
+		}
+		query.append(" RETURN collect(distinct p)");
+		return query.toString();
 	}
+
 }

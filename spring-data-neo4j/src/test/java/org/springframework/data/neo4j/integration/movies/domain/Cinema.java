@@ -54,6 +54,10 @@ public class Cinema {
         return location;
     }
 
+    public Set<User> getVisited() {
+        return visited;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

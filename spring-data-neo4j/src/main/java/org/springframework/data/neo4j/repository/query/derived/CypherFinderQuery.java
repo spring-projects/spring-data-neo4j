@@ -11,6 +11,9 @@
  */
 package org.springframework.data.neo4j.repository.query.derived;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.model.Property;
 import org.springframework.data.neo4j.repository.query.derived.strategy.CypherNodeFinderStatements;
@@ -20,44 +23,39 @@ import org.springframework.data.repository.query.parser.Part;
 /**
  * @author Luanne Misquitta
  */
-public class CypherFinderQuery implements DerivedQueryDefinition{
+public class CypherFinderQuery implements DerivedQueryDefinition {
 
 	private Class entityType;
-	private Property<String,Integer> baseProperty; //maps the property name to the positional param value
-	private int paramPosition=0;
+	private List<Parameter> parameters = new ArrayList<>();
+	private int paramPosition = 0;
 
 	public CypherFinderQuery(Class entityType) {
 		this.entityType = entityType;
 	}
 
 	@Override
-	public void addPart(Part part) {
+	public void addPart(Part part, String booleanOperator) {
 		String property = part.getProperty().getSegment();
 		try { //todo this is crap. Use the classinfo
 			org.neo4j.ogm.annotation.Property propertyAnnotation = entityType.getDeclaredField(property).getAnnotation(org.neo4j.ogm.annotation.Property.class);
-			if(propertyAnnotation != null && propertyAnnotation.name()!=null && propertyAnnotation.name().length()>0) {
+			if (propertyAnnotation != null && propertyAnnotation.name() != null && propertyAnnotation.name().length() > 0) {
 				property = propertyAnnotation.name();
 			}
 		} catch (NoSuchFieldException e) {
 			throw new RuntimeException("Could not find property " + property + " on class " + entityType.getSimpleName() + ". Check spelling or use @Query.");
 		}
-		baseProperty = new Property<>(property, paramPosition++);
-	}
-
-	@Override
-	public Property<String, Object> parameters() {
-		return null;
+		parameters.add(new Parameter(new Property<>(property, paramPosition++), "=", booleanOperator)); //todo magic =
 	}
 
 	@Override
 	public String toQueryString() {
 		FinderStatements finder = new CypherNodeFinderStatements(); //todo get the right one depending on whether it's a node or RE
-		return finder.findByProperty(getLabelOrType(entityType),baseProperty);
+		return finder.findByProperties(getLabelOrType(entityType), parameters);
 	}
 
 	private String getLabelOrType(Class entityType) { //todo get rid of this crap and use the metadata
 		NodeEntity annotation = (NodeEntity) entityType.getAnnotation(NodeEntity.class);
-		if(annotation!=null && annotation.label()!=null && annotation.label().length()>0) {
+		if (annotation != null && annotation.label() != null && annotation.label().length() > 0) {
 			return annotation.label();
 		}
 		return entityType.getSimpleName();

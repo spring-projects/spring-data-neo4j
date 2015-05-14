@@ -35,13 +35,14 @@ public class DerivedQueryCreator extends AbstractQueryCreator<DerivedQueryDefini
 	@Override
 	protected DerivedQueryBuilder create(Part part, Iterator<Object> iterator) {
 		DerivedQueryBuilder queryBuilder = new DerivedQueryBuilder(entityType);
-		queryBuilder.addPart(part);
+		queryBuilder.addPart(part,null);
 		return queryBuilder;
 	}
 
 	@Override
 	protected DerivedQueryBuilder and(Part part, DerivedQueryBuilder base, Iterator<Object> iterator) {
-		return null;
+		base.addPart(part, "AND"); //todo magic string
+		return base;
 	}
 
 	@Override

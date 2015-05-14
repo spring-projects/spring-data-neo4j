@@ -12,13 +12,15 @@
 
 package org.springframework.data.neo4j.repository.query.derived.strategy;
 
-import org.neo4j.ogm.model.Property;
+import java.util.List;
+
+import org.springframework.data.neo4j.repository.query.derived.Parameter;
 
 /**
  * @author Luanne Misquitta
  */
 public interface FinderStatements {
 
-	String findByProperty(String label, Property<String,Integer> property);
+	String findByProperties(String label, List<Parameter> parameters);
 
 }

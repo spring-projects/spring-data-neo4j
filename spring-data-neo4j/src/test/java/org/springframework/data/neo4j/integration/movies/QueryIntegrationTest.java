@@ -28,7 +28,6 @@ import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.movies.context.PersistenceContext;
-import org.springframework.data.neo4j.integration.movies.domain.Cinema;
 import org.springframework.data.neo4j.integration.movies.domain.User;
 import org.springframework.data.neo4j.integration.movies.domain.queryresult.*;
 import org.springframework.data.neo4j.integration.movies.repo.CinemaRepository;
@@ -87,29 +86,6 @@ public class QueryIntegrationTest {
             assertNotNull(properties);
         }
         assertEquals(2, i);
-    }
-
-
-    @Test
-    public void shouldFindUsersByName() {
-        executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
-
-        Collection<User> users = userRepository.findByName("Michal");
-        Iterator<User> iterator = users.iterator();
-        assertTrue(iterator.hasNext());
-        assertEquals("Michal", iterator.next().getName());
-        assertFalse(iterator.hasNext());
-    }
-
-    @Test
-    public void shouldFindUsersByMiddleName() {
-        executeUpdate("CREATE (m:User {middleName:'Joseph'})<-[:FRIEND_OF]-(a:User {middleName:'Mary'})");
-
-        Collection<User> users = userRepository.findByMiddleName("Joseph");
-        Iterator<User> iterator = users.iterator();
-        assertTrue(iterator.hasNext());
-        assertEquals("Joseph", iterator.next().getMiddleName());
-        assertFalse(iterator.hasNext());
     }
 
     @Test
@@ -214,7 +190,7 @@ public class QueryIntegrationTest {
         RichUserQueryResult userQueryResult = userIterator.next();
         assertEquals(Gender.FEMALE, userQueryResult.getUserGender());
         assertEquals("Sarah Taylor", userQueryResult.getUserName());
-        assertEquals(BigInteger.valueOf(3456789),userQueryResult.getUserAccount());
+        assertEquals(BigInteger.valueOf(3456789), userQueryResult.getUserAccount());
         assertArrayEquals(new BigDecimal[]{BigDecimal.valueOf(12345.6), BigDecimal.valueOf(45678.9)}, userQueryResult.getUserDeposits());
         assertFalse(userIterator.hasNext());
     }
@@ -233,23 +209,6 @@ public class QueryIntegrationTest {
         assertEquals("Barry", wrappedUser.getUser().getName());
     }
 
-    /**
-     * @see DATAGRAPH-628
-     */
-    @Test
-    public void shouldFindNodeEntitiesWithLabels() {
-        executeUpdate("CREATE (m:Theatre {name:'Picturehouse', city:'London'}) CREATE (g:Theatre {name:'Ritzy', city:'London'})");
 
-        Collection<Cinema> cinemas = cinemaRepository.findByName("Picturehouse");
-        Iterator<Cinema> iterator = cinemas.iterator();
-        assertTrue(iterator.hasNext());
-        assertEquals("Picturehouse", iterator.next().getName());
-        assertFalse(iterator.hasNext());
-
-        List<Cinema> theatres = cinemaRepository.findByLocation("London");
-        assertEquals(2, theatres.size());
-        assertTrue(theatres.contains(new Cinema("Picturehouse")));
-        assertTrue(theatres.contains(new Cinema("Ritzy")));
-    }
 
 }

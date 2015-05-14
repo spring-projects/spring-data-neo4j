@@ -12,25 +12,32 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
-import org.springframework.data.repository.query.parser.Part;
+import org.neo4j.ogm.model.Property;
 
 /**
  * @author Luanne Misquitta
  */
-public class DerivedQueryBuilder {
+public class Parameter {
 
-	private DerivedQueryDefinition query;
+	private Property<String,Integer> property;
+	private String comparisonOperator; //TODO fix datatype
+	private String booleanOperator; //TODO fix datatype
 
-	public DerivedQueryBuilder(Class entityType) {
-		query = new CypherFinderQuery(entityType);
+	public Parameter(Property<String, Integer> property, String comparisonOperator, String booleanOperator) {
+		this.property = property;
+		this.comparisonOperator = comparisonOperator;
+		this.booleanOperator = booleanOperator;
 	}
 
-	public void addPart(Part part, String booleanOperator) {
-		query.addPart(part, booleanOperator);
+	public Property<String, Integer> getProperty() {
+		return property;
 	}
 
-	public DerivedQueryDefinition buildQuery() {
-		return query;
+	public String getComparisonOperator() {
+		return comparisonOperator;
 	}
 
+	public String getBooleanOperator() {
+		return booleanOperator;
+	}
 }

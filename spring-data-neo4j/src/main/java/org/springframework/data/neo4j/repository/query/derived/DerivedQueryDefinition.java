@@ -12,7 +12,6 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
-import org.neo4j.ogm.model.Property;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -20,9 +19,7 @@ import org.springframework.data.repository.query.parser.Part;
  */
 public interface DerivedQueryDefinition {
 
-	void addPart(Part part);
-
-	Property<String,Object> parameters(); //todo probably dont neet it
+	void addPart(Part part, String booleanOperator);
 
 	String toQueryString();
 
