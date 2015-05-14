@@ -115,7 +115,7 @@ public class DerivedGraphRepositoryQuery extends GraphRepositoryQuery {
     }
 
     protected Object execute(Class<?> returnType, Class<?> concreteType, String cypherQuery, Map<String, Object> queryParams) {
-        if (returnType.equals(Void.class)) {
+        if (returnType.equals(Void.class)) { //TODO this returns statistics now, what do we do with it?
             session.execute(cypherQuery, queryParams);
             return null;
         }

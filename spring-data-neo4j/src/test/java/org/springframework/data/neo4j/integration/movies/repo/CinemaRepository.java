@@ -30,4 +30,7 @@ public interface CinemaRepository extends GraphRepository<Cinema> {
 
 	List<Cinema> findByLocation(String location);
 
+	List<Cinema> findByNameAndLocation(String name, String location);
+
+
 }
