@@ -13,6 +13,7 @@
 package org.neo4j.ogm.metadata.info;
 
 import org.neo4j.ogm.annotation.*;
+import org.neo4j.ogm.metadata.ClassUtils;
 import org.neo4j.ogm.metadata.MappingException;
 
 import java.io.BufferedInputStream;
@@ -767,6 +768,10 @@ public class ClassInfo {
 
     public boolean isTransient() {
         return annotationsInfo.get(Transient.CLASS) != null;
+    }
+
+    public Class<?> getType(String typeParameterDescriptor) {
+        return ClassUtils.getType(typeParameterDescriptor);
     }
 }
 

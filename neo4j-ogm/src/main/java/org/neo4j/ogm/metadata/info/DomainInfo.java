@@ -447,4 +447,9 @@ public class DomainInfo implements ClassFileProcessor {
         }
     }
 
+    // leaky for spring
+    public Map<String, ClassInfo> getClassInfoMap() {
+        return classNameToClassInfo;
+    }
+
 }

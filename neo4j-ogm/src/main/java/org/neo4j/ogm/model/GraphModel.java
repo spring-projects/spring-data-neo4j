@@ -21,6 +21,7 @@ import java.util.Map;
 public class GraphModel  {
 
     private final Map<Long, NodeModel> nodeMap = new HashMap<>();
+    private final Map<Long, RelationshipModel> relationshipMap = new HashMap<>();
 
     private NodeModel[] nodes = new NodeModel[]{};
     private RelationshipModel[] relationships = new RelationshipModel[]{};
@@ -42,6 +43,9 @@ public class GraphModel  {
 
     public void setRelationships(RelationshipModel[] relationships) {
         this.relationships = relationships;
+        for (RelationshipModel relationship : relationships) {
+            relationshipMap.put(relationship.getId(), relationship);
+        }
     }
 
     public NodeModel node(Long nodeId) {
@@ -59,4 +63,7 @@ public class GraphModel  {
         return nodeMap.containsKey(nodeId);
     }
 
+    public boolean containsRelationshipWithId(Long relId) {
+        return relationshipMap.containsKey(relId);
+    }
 }

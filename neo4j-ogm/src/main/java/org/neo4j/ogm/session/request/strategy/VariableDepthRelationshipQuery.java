@@ -12,12 +12,12 @@
 
 package org.neo4j.ogm.session.request.strategy;
 
-import java.util.Collection;
-
 import org.neo4j.ogm.cypher.query.GraphModelQuery;
 import org.neo4j.ogm.exception.InvalidDepthException;
 import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Utils;
+
+import java.util.Collection;
 
 /**
  * @author Luanne Misquitta
@@ -56,9 +56,8 @@ public class VariableDepthRelationshipQuery implements QueryStatements {
     @Override
     public GraphModelQuery findByType(String type, int depth) {
         int max = max(depth);
-        int min = min(max);
         if (max > 0) {
-            String qry = String.format("MATCH p=(n)-[:`%s`*%d..%d]-(m) RETURN collect(distinct p)", type, min, max);
+            String qry = String.format("MATCH p=(n)-[:`%s`*..%d]-(m) RETURN collect(distinct p)", type, max);
             return new GraphModelQuery(qry, Utils.map());
         } else {
             throw new InvalidDepthException("Cannot load a relationship entity with depth 0 i.e. no start or end node");

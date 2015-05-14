@@ -14,6 +14,7 @@ package org.neo4j.ogm.mapper;
 
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.Relationship;
+import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.annotation.StartNode;
 import org.neo4j.ogm.entityaccess.*;
 import org.neo4j.ogm.metadata.BaseClassNotFoundException;
@@ -58,8 +59,15 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
             Set<T> set = new HashSet<>();
             for (Object o : mappingContext.getAll(type)) {
                 // can't use the "type" argument to determine ClassInfo because it might be an interface as of DATAGRAPH-577
-                PropertyReader graphIdReader = entityAccessStrategy.getIdentityPropertyReader(metadata.classInfo(o.getClass().getName()));
-                if (graphModel.containsNodeWithId((Long) graphIdReader.read(o))) {
+                ClassInfo classInfo = metadata.classInfo(o.getClass().getName());
+                PropertyReader graphIdReader = entityAccessStrategy.getIdentityPropertyReader(classInfo);
+                Long id = (Long) graphIdReader.read(o);
+                if (classInfo.annotationsInfo().get(RelationshipEntity.CLASS) != null) {
+                    if (graphModel.containsRelationshipWithId(id)) {
+                        set.add(type.cast(o));
+                    }
+                }
+                else if (graphModel.containsNodeWithId(id)) {
                     set.add(type.cast(o));
                 }
             }

@@ -37,37 +37,37 @@ public abstract class ClassUtils {
     }};
 
     /**
-     * Return the reified class for the parameter of a JavaBean setter from the setter signature
+     * Return the reified class for the parameter of a parameterised setter or field from the parameter signature
      */
-    public static Class<?> getType(String setterDescriptor) {
+    public static Class<?> getType(String descriptor) {
 
-        int p = setterDescriptor.indexOf("(");
-        int q = setterDescriptor.indexOf(")");
+        int p = descriptor.indexOf("(");
+        int q = descriptor.indexOf(")");
 
-        if (!setterDescriptor.contains("[")) {
-            if (setterDescriptor.endsWith(";)V")) {
+        if (!descriptor.contains("[")) {
+            if (descriptor.endsWith(";)V")) {
                 q--;
             }
-            if (setterDescriptor.startsWith("(L")) {
+            if (descriptor.startsWith("(L")) {
                 p++;
             }
-            if(setterDescriptor.startsWith("L")) { //handles descriptors of the format Ljava/lang/Byte;
+            if(descriptor.startsWith("L")) { //handles descriptors of the format Ljava/lang/Byte;
                 p++;
-                q = setterDescriptor.length()-1;
+                q = descriptor.length()-1;
             }
         }
-        if(setterDescriptor.startsWith("[")) { //handles descriptors of the format [F
+        if(descriptor.startsWith("[")) { //handles descriptors of the format [F
             p = 0;
             q = 2;
         }
-        if(setterDescriptor.startsWith("[L")) { //handles descriptors of the format [Ljava/lang/Float;
+        if(descriptor.startsWith("[L")) { //handles descriptors of the format [Ljava/lang/Float;
             p = 1;
-            q = setterDescriptor.length()-1;
+            q = descriptor.length()-1;
         }
-        if(setterDescriptor.length()==1) { //handles descriptors of the format I
+        if(descriptor.length()==1) { //handles descriptors of the format I
                 q=1;
         }
-        String typeName = setterDescriptor.substring(p + 1, q).replace("/", ".");
+        String typeName = descriptor.substring(p + 1, q).replace("/", ".");
         if (typeName.length() == 1) {
             return PRIMITIVE_TYPE_MAP.get(typeName);
         }
