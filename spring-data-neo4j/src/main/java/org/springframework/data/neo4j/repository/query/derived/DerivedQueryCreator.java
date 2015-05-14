@@ -47,8 +47,8 @@ public class DerivedQueryCreator extends AbstractQueryCreator<DerivedQueryDefini
 
 	@Override
 	protected DerivedQueryBuilder or(DerivedQueryBuilder base, DerivedQueryBuilder criteria) {
-		//TODO sdn 3.3 doesn't support it so let's do the same? Preferably find out wtf this or thing does and implement it
-		throw new UnsupportedOperationException("Or is not supported currently!");
+		base.addPart(criteria, "OR"); //TODO magic string
+		return base;
 	}
 
 	@Override

@@ -102,7 +102,7 @@ public class DerivedQueryTest {
 	}
 
 	/**
-	 * @see DATAGRAPH-628
+	/* * @see DATAGRAPH-628
 	 */
 	@Test
 	public void shouldFindNodeEntitiesWithLabels() {
@@ -131,5 +131,14 @@ public class DerivedQueryTest {
 		List<Cinema> theatres = cinemaRepository.findByNameAndLocation("Ritzy", "London");
 		assertEquals(1, theatres.size());
 		assertEquals("Michal", theatres.get(0).getVisited().iterator().next().getName());
+	}
+
+	@Test
+	public void shouldFindNodeEntititiesMultipleOredProperties() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'})" +
+				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
+
+		List<Cinema> theatres = cinemaRepository.findByNameOrLocation("Ritzy", "London");
+		assertEquals(2, theatres.size());
 	}
 }
