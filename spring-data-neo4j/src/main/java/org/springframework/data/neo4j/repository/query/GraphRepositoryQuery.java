@@ -40,11 +40,12 @@ public class GraphRepositoryQuery implements RepositoryQuery {
         Class<?> returnType = graphQueryMethod.getMethod().getReturnType();
         Class<?> concreteType = graphQueryMethod.resolveConcreteReturnType();
 
-        Map<String, Object> params = resolveParams(parameters);
+        Map<String, Object> params = resolveParams(parameters); //todo review this
 
-        return execute(returnType, concreteType, graphQueryMethod.getQuery(), params);
+        return execute(returnType, concreteType, getQueryString(), params);
     }
 
+    //todo this should be abstract?
     protected Object execute(Class<?> returnType, Class<?> concreteType, String cypherQuery, Map<String, Object> queryParams) {
         if (returnType.equals(Void.class)) {
             session.execute(cypherQuery, queryParams);
@@ -82,6 +83,10 @@ public class GraphRepositoryQuery implements RepositoryQuery {
     @Override
     public GraphQueryMethod getQueryMethod() {
         return graphQueryMethod;
+    }
+
+    protected String getQueryString() { //todo should this be abstract
+        return getQueryMethod().getQuery();
     }
 
 }
