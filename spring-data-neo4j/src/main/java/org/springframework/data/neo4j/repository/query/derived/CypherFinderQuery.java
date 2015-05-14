@@ -26,6 +26,7 @@ import org.springframework.data.repository.query.parser.Part;
 public class CypherFinderQuery implements DerivedQueryDefinition {
 
 	private Class entityType;
+	private Part basePart;
 	private List<Parameter> parameters = new ArrayList<>();
 	private int paramPosition = 0;
 
@@ -33,8 +34,17 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 		this.entityType = entityType;
 	}
 
+
+	@Override
+	public Part getBasePart() {
+		return basePart;
+	}
+
 	@Override
 	public void addPart(Part part, String booleanOperator) {
+		if(booleanOperator == null) {
+			basePart = part;
+		}
 		String property = part.getProperty().getSegment();
 		try { //todo this is crap. Use the classinfo
 			org.neo4j.ogm.annotation.Property propertyAnnotation = entityType.getDeclaredField(property).getAnnotation(org.neo4j.ogm.annotation.Property.class);

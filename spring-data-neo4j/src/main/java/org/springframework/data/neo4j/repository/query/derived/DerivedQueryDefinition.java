@@ -19,6 +19,8 @@ import org.springframework.data.repository.query.parser.Part;
  */
 public interface DerivedQueryDefinition {
 
+	Part getBasePart();
+
 	void addPart(Part part, String booleanOperator);
 
 	String toQueryString();

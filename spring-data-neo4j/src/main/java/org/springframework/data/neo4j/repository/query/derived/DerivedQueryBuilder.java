@@ -29,6 +29,10 @@ public class DerivedQueryBuilder {
 		query.addPart(part, booleanOperator);
 	}
 
+	public void addPart(DerivedQueryBuilder fromBuilder, String booleanOperator) {
+		query.addPart(fromBuilder.query.getBasePart(),booleanOperator);
+	}
+
 	public DerivedQueryDefinition buildQuery() {
 		return query;
 	}
