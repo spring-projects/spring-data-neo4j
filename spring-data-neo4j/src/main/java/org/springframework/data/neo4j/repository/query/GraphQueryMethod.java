@@ -12,16 +12,17 @@
 
 package org.springframework.data.neo4j.repository.query;
 
-import org.neo4j.ogm.session.Session;
-import org.springframework.data.neo4j.annotation.Query;
-import org.springframework.data.neo4j.annotation.QueryResult;
-import org.springframework.data.repository.core.RepositoryMetadata;
-import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.query.RepositoryQuery;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+
+import org.neo4j.ogm.session.Session;
+import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.annotation.QueryResult;
+import org.springframework.data.neo4j.repository.query.derived.DerivedGraphRepositoryQuery;
+import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.repository.query.RepositoryQuery;
 
 /**
  * @author Mark Angrish
@@ -31,12 +32,14 @@ public class GraphQueryMethod extends QueryMethod {
     private final Session session;
     private final Method method;
     private final Query queryAnnotation;
+    private final RepositoryMetadata metadata;
 
     public GraphQueryMethod(Method method, RepositoryMetadata metadata, Session session) {
         super(method, metadata);
         this.method = method;
         this.session = session;
         this.queryAnnotation = method.getAnnotation(Query.class);
+        this.metadata = metadata; //TODO do we need this
     }
 
     public String getQuery() {
@@ -77,9 +80,13 @@ public class GraphQueryMethod extends QueryMethod {
     }
 
     public RepositoryQuery createQuery() {
-        if (resolveConcreteReturnType().isAnnotationPresent(QueryResult.class)) {
-            return new QueryResultGraphRepositoryQuery(this, session);
+        if (method.getAnnotation(Query.class) != null) {
+            if (resolveConcreteReturnType().isAnnotationPresent(QueryResult.class)) {
+                return new QueryResultGraphRepositoryQuery(this, session);
+            }
+            return new GraphRepositoryQuery(this, session);
         }
-        return new GraphRepositoryQuery(this, session);
+        return new DerivedGraphRepositoryQuery(this, metadata, session); //todo we need the neo4j meta thingie
+
     }
 }
