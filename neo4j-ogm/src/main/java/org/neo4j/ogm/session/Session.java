@@ -12,12 +12,12 @@
 
 package org.neo4j.ogm.session;
 
-import java.util.Collection;
-import java.util.Map;
-
 import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.result.QueryStatistics;
 import org.neo4j.ogm.session.transaction.Transaction;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author Vince Bickers
@@ -156,5 +156,6 @@ public interface Session {
      * @return The number of entities in the database of the given type
      */
     long countEntitiesOfType(Class<?> entity);
+
 
 }

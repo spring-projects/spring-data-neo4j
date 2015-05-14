@@ -20,10 +20,7 @@ import org.neo4j.ogm.metadata.info.DomainInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Vince Bickers
@@ -176,5 +173,8 @@ public class MetaData {
         return null;
     }
 
+    public Collection<ClassInfo> persistentEntities() {
+        return domainInfo.getClassInfoMap().values();
+    }
 
 }

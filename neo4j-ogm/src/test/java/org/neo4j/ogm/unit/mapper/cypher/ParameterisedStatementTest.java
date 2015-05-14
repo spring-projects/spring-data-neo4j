@@ -63,7 +63,7 @@ public class ParameterisedStatementTest {
     @Test
     public void testFindByTypeWithIllegalCharacter() throws Exception {
         statement = new VariableDepthRelationshipQuery().findByType("HAS-ALBUM", 1);
-        assertEquals("MATCH p=(n)-[:`HAS-ALBUM`*0..1]-(m) RETURN collect(distinct p)", statement.getStatement());
+        assertEquals("MATCH p=(n)-[:`HAS-ALBUM`*..1]-(m) RETURN collect(distinct p)", statement.getStatement());
         assertEquals("{}", mapper.writeValueAsString(statement.getParameters()));
     }
 

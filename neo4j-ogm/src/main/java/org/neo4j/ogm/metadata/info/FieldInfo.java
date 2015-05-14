@@ -199,4 +199,8 @@ public class FieldInfo {
 
         return true;
     }
+
+    public boolean isArray() {
+        return descriptor.startsWith("[");
+    }
 }

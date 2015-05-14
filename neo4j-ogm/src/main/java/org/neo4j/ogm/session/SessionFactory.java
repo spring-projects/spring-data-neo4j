@@ -34,4 +34,8 @@ public class SessionFactory {
         return new Neo4jSession(metaData, url, httpClient, objectMapper);
     }
 
+    public MetaData metaData() {
+        return metaData;
+    }
+
 }
