@@ -12,9 +12,17 @@
 
 package org.neo4j.ogm.session.request.strategy;
 
+<<<<<<< HEAD
+=======
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.neo4j.ogm.cypher.Parameter;
+>>>>>>> DATAGRAPH-629 - Support finders which accept multiple properties or operators other than equals.
 import org.neo4j.ogm.cypher.query.GraphModelQuery;
+import org.neo4j.ogm.cypher.query.GraphRowModelQuery;
 import org.neo4j.ogm.exception.InvalidDepthException;
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Utils;
 
 import java.util.Collection;
@@ -65,12 +73,21 @@ public class VariableDepthRelationshipQuery implements QueryStatements {
     }
 
     @Override
-    public GraphModelQuery findByProperty(String type, Property<String, Object> property, int depth) {
+    public GraphRowModelQuery findByProperties(String type, Collection<Parameter> parameters, int depth) {
         int max = max(depth);
         int min = min(max);
         if (max > 0) {
-            String qry = String.format("MATCH (n)-[r:`%s`]->() WHERE r.`%s` = { `%s` } WITH n MATCH p=(n)-[*%d..%d]-(m) RETURN collect(distinct p)", type, property.getKey(), property.getKey(), min, max);
-            return new GraphModelQuery(qry, Utils.map(property.getKey(), property.asParameter()));
+            Map<String,Object> properties = new HashMap<>();
+            StringBuilder query = new StringBuilder(String.format("MATCH (n)-[r:`%s`]->() WHERE ",type));
+            for(Parameter parameter : parameters) {
+                if(parameter.getBooleanOperator() != null) {
+                    query.append(parameter.getBooleanOperator());
+                }
+                query.append(String.format(" r.`%s` %s { `%s` } ",parameter.getPropertyName(), parameter.getComparisonOperator(), parameter.getPropertyName()));
+                properties.put(parameter.getPropertyName(),parameter.getPropertyValue());
+            }
+            query.append(String.format(" WITH n MATCH p=(n)-[*%d..%d]-(m) RETURN collect(distinct p),ID(n)",min,max));
+            return new GraphRowModelQuery(query.toString(), properties);
         } else {
             throw new InvalidDepthException("Cannot load a relationship entity with depth 0 i.e. no start or end node");
         }

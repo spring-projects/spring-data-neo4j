@@ -18,7 +18,7 @@ import javax.persistence.PersistenceException;
 import java.util.Collection;
 import java.util.Map;
 
-import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.result.QueryStatistics;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,7 +150,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     @Override
     public <T> Collection<T> loadAllByProperty(Class<T> type, String name, Object value) {
         try {
-            return session.loadByProperty(type, Property.with(name, value));
+            return session.loadByProperty(type, new Parameter(name, value));
         } catch (Exception e) {
             throw new PersistenceException(e);
         }
@@ -158,7 +158,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
 
     public <T> Collection<T> loadAllByProperty(Class<T> type, String name, Object value, int depth) {
         try {
-            return session.loadByProperty(type, Property.with(name, value), depth);
+            return session.loadByProperty(type, new Parameter(name, value), depth);
         } catch (Exception e) {
             throw new PersistenceException(e);
         }

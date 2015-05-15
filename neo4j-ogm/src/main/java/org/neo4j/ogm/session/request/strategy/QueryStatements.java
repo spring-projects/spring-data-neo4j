@@ -12,10 +12,11 @@
 
 package org.neo4j.ogm.session.request.strategy;
 
-import org.neo4j.ogm.model.Property;
-import org.neo4j.ogm.cypher.query.GraphModelQuery;
-
 import java.util.Collection;
+
+import org.neo4j.ogm.cypher.Parameter;
+import org.neo4j.ogm.cypher.query.GraphModelQuery;
+import org.neo4j.ogm.cypher.query.GraphRowModelQuery;
 
 /**
  * @author Vince Bickers
@@ -55,10 +56,10 @@ public interface QueryStatements {
     /**
      * construct a query to fetch all objects with the specified label and property
      * @param type the label value or relationship type to filter on
-     * @param property a property<K,V> value to filter on
+     * @param parameters parameters to filter on
      * @param depth the depth to traverse for related objects
      * @return a Cypher expression
      */
-    GraphModelQuery findByProperty(String type, Property<String, Object> property, int depth);
+    GraphRowModelQuery findByProperties(String type, Collection<Parameter> parameters, int depth);
 
 }

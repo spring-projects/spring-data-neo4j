@@ -15,8 +15,8 @@ package org.neo4j.ogm.session.response;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.neo4j.ogm.model.GraphModel;
 import org.neo4j.ogm.session.result.GraphRowModel;
-import org.neo4j.ogm.session.result.ResultProcessingException;
 import org.neo4j.shell.util.json.JSONArray;
+import org.neo4j.shell.util.json.JSONException;
 import org.neo4j.shell.util.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +35,9 @@ public class GraphRowModelResponse implements Neo4jResponse<GraphRowModel> {
 		this.response = response;
 		this.objectMapper = objectMapper;
 		try {
-			initialiseScan("data");
+			initialiseScan("results");
 		} catch (Exception e) {
-			throw new ResultProcessingException("Could not initialise response", e);
+			//throw new ResultProcessingException("Could not initialise response", e);
 		}
 	}
 
@@ -45,10 +45,13 @@ public class GraphRowModelResponse implements Neo4jResponse<GraphRowModel> {
 	public GraphRowModel next() {
 		String json = response.next();
 		if (json != null) {
+			/*if (json.startsWith("{\"null")) {
+				json = json.substring(6);
+			}*/
 			try {
 				GraphRowModel graphRowModel = new GraphRowModel();
-				JSONObject outerObject = new JSONObject(json);
-				JSONArray innerObject = outerObject.getJSONArray("data");
+				JSONObject outerObject = getOuterObject(json);
+				JSONArray innerObject = outerObject.getJSONArray("results").getJSONObject(0).getJSONArray("data");
 				for (int i=0; i< innerObject.length(); i++) {
 					String graphJson = innerObject.getJSONObject(i).getString("graph");
 					String rowJson = innerObject.getJSONObject(i).getString("row");
@@ -84,5 +87,16 @@ public class GraphRowModelResponse implements Neo4jResponse<GraphRowModel> {
 	@Override
 	public int rowId() {
 		return response.rowId();
+	}
+
+	private JSONObject getOuterObject(String json) throws JSONException {
+		JSONObject outerObject;
+		try {
+			 outerObject = new JSONObject(json);
+
+		} catch (JSONException e) {
+			outerObject = new JSONObject(json + "]}");
+		}
+		return outerObject;
 	}
 }

@@ -22,8 +22,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.helpers.collection.IteratorUtil;
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.domain.cineasts.annotated.*;
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
@@ -61,7 +61,7 @@ public class CineastsRelationshipEntityTest{
 		session.save(michal);
 
 		//Check that Pulp Fiction has one rating from Michal
-		Collection<Movie> films = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Pulp Fiction"));
+		Collection<Movie> films = session.loadByProperty(Movie.class, new Parameter("title", "Pulp Fiction"));
 		assertEquals(1, films.size());
 
 		Movie film = films.iterator().next();
@@ -83,17 +83,17 @@ public class CineastsRelationshipEntityTest{
 		session.save(luanne);
 
 		//Verify that pulp fiction has two ratings
-		films = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Pulp Fiction"));
+		films = session.loadByProperty(Movie.class, new Parameter("title", "Pulp Fiction"));
 		film = films.iterator().next();
 		assertEquals(2, film.getRatings().size());   //Fail, it has just one rating, luannes
 
 		//Verify that luanne's rating is saved
-		Collection<User> users = session.loadByProperty(User.class,new Property<String, Object>("login","luanne"));
+		Collection<User> users = session.loadByProperty(User.class,new Parameter("login","luanne"));
 		User foundLuanne = users.iterator().next();
 		assertEquals(1,foundLuanne.getRatings().size());
 
 		//Verify that Michals rating still exists
-		users = session.loadByProperty(User.class,new Property<String, Object>("name","Michal"));
+		users = session.loadByProperty(User.class,new Parameter("name","Michal"));
 		User foundMichal = users.iterator().next();
 		assertEquals(1,foundMichal.getRatings().size()); //Fail, Michals rating is gone
 	}
@@ -102,11 +102,11 @@ public class CineastsRelationshipEntityTest{
 	public void shouldCreateREWithExistingStartAndEndNodes() {
 		neo4jRule.loadClasspathCypherScriptFile("org/neo4j/ogm/cql/cineasts.cql");
 
-		Collection<Movie> films = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Top Gear"));
+		Collection<Movie> films = session.loadByProperty(Movie.class, new Parameter("title", "Top Gear"));
 		Movie movie = films.iterator().next();
 		assertEquals(2,movie.getRatings().size());
 
-		User michal = session.loadByProperty(User.class, new Property<String, Object>("name", "Michal")).iterator().next();
+		User michal = session.loadByProperty(User.class, new Parameter("name", "Michal")).iterator().next();
 
 		Set<Rating> ratings = new HashSet<>();
 		Rating awesome = new Rating();
@@ -120,7 +120,7 @@ public class CineastsRelationshipEntityTest{
 		movie.setRatings(ratings);
 		session.save(movie);
 
-		Collection<Movie> movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Top Gear"));
+		Collection<Movie> movies = session.loadByProperty(Movie.class,new Parameter("title","Top Gear"));
 		movie = movies.iterator().next();
 		Assert.assertNotNull(movie.getRatings()); //Fails. But when entities are created first, test passes, see CineastsRatingsTest.shouldSaveRatingWithMovie
 		assertEquals(1,movie.getRatings().size());
@@ -131,14 +131,14 @@ public class CineastsRelationshipEntityTest{
 	public void shouldNotLoseRelationshipEntitiesWhenALoadedEntityIsPersisted() {
 		neo4jRule.loadClasspathCypherScriptFile("org/neo4j/ogm/cql/cineasts.cql");
 
-		Movie topGear = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Top Gear")).iterator().next();
+		Movie topGear = session.loadByProperty(Movie.class, new Parameter("title", "Top Gear")).iterator().next();
 		assertEquals(2,topGear.getRatings().size());  //2 ratings
 		session.save(topGear);
 
-		topGear = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Top Gear")).iterator().next();
+		topGear = session.loadByProperty(Movie.class, new Parameter("title", "Top Gear")).iterator().next();
 		assertEquals(2,topGear.getRatings().size());  //Then there was one
 
-		User michal = session.loadByProperty(User.class, new Property<String, Object>("name", "Michal")).iterator().next();
+		User michal = session.loadByProperty(User.class, new Parameter("name", "Michal")).iterator().next();
 		assertEquals(2,michal.getRatings().size());  //The Top Gear Rating is gone
 	}
 
@@ -151,7 +151,7 @@ public class CineastsRelationshipEntityTest{
 						"(bw)-[:ACTS_IN {role : 'John'}]->(dh)");
 
 
-		//Movie dieHard = IteratorUtil.firstOrNull(session.loadByProperty(Movie.class, new Property<String, Object>("title", "Die Hard")));
+		//Movie dieHard = IteratorUtil.firstOrNull(session.loadByProperty(Movie.class, new Parameter("title", "Die Hard")));
 
 		Movie dieHard = session.load(Movie.class, 0L);
 
@@ -182,7 +182,7 @@ public class CineastsRelationshipEntityTest{
 		movie.setRatings(ratings);
 		session.save(movie);
 
-		Collection<Movie> movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Harry Potter and the Philosophers Stone"));
+		Collection<Movie> movies = session.loadByProperty(Movie.class,new Parameter("title","Harry Potter and the Philosophers Stone"));
 		movie = movies.iterator().next();
 		assertEquals(1,movie.getRatings().size());
 		Rating rating =  movie.getRatings().iterator().next();
@@ -194,7 +194,7 @@ public class CineastsRelationshipEntityTest{
 		vince.setRatings(ratings);
 		movie.setRatings(ratings);
 		session.save(movie);
-		movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Harry Potter and the Philosophers Stone"));
+		movies = session.loadByProperty(Movie.class,new Parameter("title","Harry Potter and the Philosophers Stone"));
 		movie = movies.iterator().next();
 		assertEquals(1,movie.getRatings().size());
 		rating =  movie.getRatings().iterator().next();
@@ -220,7 +220,7 @@ public class CineastsRelationshipEntityTest{
 
 		session.save(bruce);
 
-		Actor actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name", "Bruce")));
+		Actor actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Parameter("name", "Bruce")));
 		Assert.assertNotNull(actor);
 		assertEquals(1,actor.getKnows().size());
 		assertEquals("Jim",actor.getKnows().iterator().next().getSecondActor().getName());
@@ -319,30 +319,30 @@ public class CineastsRelationshipEntityTest{
 
 		session.save(adam);
 
-		Collection<Movie> movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Harry Potter and the Goblet of Fire"));
+		Collection<Movie> movies = session.loadByProperty(Movie.class,new Parameter("title","Harry Potter and the Goblet of Fire"));
 		azkaban = movies.iterator().next();
 		Assert.assertNotNull(azkaban.getRatings());
 		assertEquals(1, azkaban.getRatings().size());
 
-		movies = session.loadByProperty(Movie.class,new Property<String, Object>("title","Harry Potter and the Order of the Phoenix"));
+		movies = session.loadByProperty(Movie.class,new Parameter("title","Harry Potter and the Order of the Phoenix"));
 		phoenix = movies.iterator().next();
 		Assert.assertNotNull(phoenix.getRatings());
 		assertEquals(1, phoenix.getRatings().size());
 
-		adam = session.loadByProperty(User.class,new Property<String, Object>("name","Adam")).iterator().next();
+		adam = session.loadByProperty(User.class,new Parameter("name","Adam")).iterator().next();
 		assertEquals(2, adam.getRatings().size());
 
 		adam.setRatings(azkabanRatings); //Get rid of the Phoenix rating
 		session.save(adam);
 
-		adam = session.loadByProperty(User.class,new Property<String, Object>("name","Adam")).iterator().next();
+		adam = session.loadByProperty(User.class,new Parameter("name","Adam")).iterator().next();
 		assertEquals(1, adam.getRatings().size());
 
-		movies = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Harry Potter and the Order of the Phoenix"));
+		movies = session.loadByProperty(Movie.class, new Parameter("title", "Harry Potter and the Order of the Phoenix"));
 		phoenix = movies.iterator().next();
 		assertNull(phoenix.getRatings());
 
-		movies = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Harry Potter and the Goblet of Fire"));
+		movies = session.loadByProperty(Movie.class, new Parameter("title", "Harry Potter and the Goblet of Fire"));
 		azkaban = movies.iterator().next();
 		Assert.assertNotNull(azkaban.getRatings());
 		assertEquals(1,azkaban.getRatings().size());
@@ -390,20 +390,20 @@ public class CineastsRelationshipEntityTest{
 
 		session.save(adam);
 
-		adam = session.loadByProperty(User.class, new Property<String, Object>("name", "Adam")).iterator().next();
+		adam = session.loadByProperty(User.class, new Parameter("name", "Adam")).iterator().next();
 		assertEquals(2, adam.getRatings().size());
 
 		//delete all ratings
 		session.deleteAll(Rating.class);
 		assertEquals(0, session.loadAll(Rating.class).size());
 
-		phoenix = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Harry Potter and the Order of the Phoenix")).iterator().next();
+		phoenix = session.loadByProperty(Movie.class, new Parameter("title", "Harry Potter and the Order of the Phoenix")).iterator().next();
 		assertNull(phoenix.getRatings());
 
-		goblet = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Harry Potter and the Goblet of Fire")).iterator().next();
+		goblet = session.loadByProperty(Movie.class, new Parameter("title", "Harry Potter and the Goblet of Fire")).iterator().next();
 		assertNull(goblet.getRatings());
 
-		adam = session.loadByProperty(User.class, new Property<String, Object>("name", "Adam")).iterator().next();
+		adam = session.loadByProperty(User.class, new Parameter("name", "Adam")).iterator().next();
 		assertNull(adam.getRatings());
 	}
 
@@ -448,20 +448,20 @@ public class CineastsRelationshipEntityTest{
 
 		session.save(adam);
 
-		adam = session.loadByProperty(User.class, new Property<String, Object>("name", "Adam")).iterator().next();
+		adam = session.loadByProperty(User.class, new Parameter("name", "Adam")).iterator().next();
 		assertEquals(2, adam.getRatings().size());
 
 		//delete one rating
 		session.delete(okay);
 		assertEquals(1, session.loadAll(Rating.class).size());
 
-		phoenix = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Harry Potter and the Order of the Phoenix")).iterator().next();
+		phoenix = session.loadByProperty(Movie.class, new Parameter("title", "Harry Potter and the Order of the Phoenix")).iterator().next();
 		assertNull(phoenix.getRatings());
 
-		goblet = session.loadByProperty(Movie.class, new Property<String, Object>("title", "Harry Potter and the Goblet of Fire")).iterator().next();
+		goblet = session.loadByProperty(Movie.class, new Parameter("title", "Harry Potter and the Goblet of Fire")).iterator().next();
 		assertEquals(1, goblet.getRatings().size());
 
-		adam = session.loadByProperty(User.class, new Property<String, Object>("name", "Adam")).iterator().next();
+		adam = session.loadByProperty(User.class, new Parameter("name", "Adam")).iterator().next();
 		assertEquals(1, adam.getRatings().size());
 	}
 
@@ -480,7 +480,7 @@ public class CineastsRelationshipEntityTest{
 		bruce.getKnows().add(knows);
 		session.save(bruce);
 
-		Actor actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name", "Bruce")));
+		Actor actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Parameter("name", "Bruce")));
 		Assert.assertNotNull(actor);
 		assertEquals(1, actor.getKnows().size());
 		assertEquals("Jim", actor.getKnows().iterator().next().getSecondActor().getName());
@@ -488,14 +488,14 @@ public class CineastsRelationshipEntityTest{
 		bruce.getKnows().iterator().next().setSince(new Date());
 		session.save(bruce);
 
-		actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name", "Bruce")));
+		actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Parameter("name", "Bruce")));
 		assertEquals(1, actor.getKnows().size());
 		assertNotNull(actor.getKnows().iterator().next().getSince());
 
 		bruce.getKnows().iterator().next().setSince(null);
 		session.save(bruce);
 
-		actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name", "Bruce")));
+		actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Parameter("name", "Bruce")));
 		assertEquals(1, actor.getKnows().size());
 		assertNull(actor.getKnows().iterator().next().getSince());
 
@@ -520,7 +520,7 @@ public class CineastsRelationshipEntityTest{
 
 		session.clear();
 
-		Actor actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Property<String, Object>("name", "Bruce")));
+		Actor actor = IteratorUtil.firstOrNull(session.loadByProperty(Actor.class, new Parameter("name", "Bruce")));
 		Assert.assertNotNull(actor);
 		assertEquals(1, actor.getKnows().size());
 		assertEquals("Bruce",actor.getKnows().iterator().next().getFirstActor().getName());

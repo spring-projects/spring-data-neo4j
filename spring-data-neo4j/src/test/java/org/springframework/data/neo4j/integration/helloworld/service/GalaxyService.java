@@ -12,16 +12,16 @@
 
 package org.springframework.data.neo4j.integration.helloworld.service;
 
-import org.neo4j.ogm.model.Property;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.helloworld.domain.World;
 import org.springframework.data.neo4j.integration.helloworld.repo.WorldRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * @author Vince Bickers
@@ -147,11 +147,11 @@ public class GalaxyService {
     }
 
     private Iterable<World> findByProperty(String propertyName, Object propertyValue) {
-        return session.loadByProperty(World.class, new Property(propertyName, propertyValue));
+        return session.loadByProperty(World.class, new Parameter(propertyName, propertyValue));
     }
 
     public Iterable<World> findByProperty(String propertyName, Object propertyValue, int depth) {
-        return session.loadByProperty(World.class, new Property(propertyName, propertyValue), depth);
+        return session.loadByProperty(World.class, new Parameter(propertyName, propertyValue), depth);
     }
 
 
