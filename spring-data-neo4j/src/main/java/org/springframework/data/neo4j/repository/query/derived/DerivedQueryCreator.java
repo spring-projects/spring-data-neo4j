@@ -34,7 +34,7 @@ public class DerivedQueryCreator extends AbstractQueryCreator<DerivedQueryDefini
 
 	@Override
 	protected DerivedQueryBuilder create(Part part, Iterator<Object> iterator) {
-		DerivedQueryBuilder queryBuilder = new DerivedQueryBuilder(entityType);
+		DerivedQueryBuilder queryBuilder = new DerivedQueryBuilder(entityType, part);
 		queryBuilder.addPart(part,null);
 		return queryBuilder;
 	}
