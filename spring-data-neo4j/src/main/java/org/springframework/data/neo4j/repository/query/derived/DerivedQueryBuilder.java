@@ -21,8 +21,8 @@ public class DerivedQueryBuilder {
 
 	private DerivedQueryDefinition query;
 
-	public DerivedQueryBuilder(Class entityType) {
-		query = new CypherFinderQuery(entityType);
+	public DerivedQueryBuilder(Class entityType, Part basePart) {
+		query = new CypherFinderQuery(entityType, basePart);
 	}
 
 	public void addPart(Part part, String booleanOperator) {
