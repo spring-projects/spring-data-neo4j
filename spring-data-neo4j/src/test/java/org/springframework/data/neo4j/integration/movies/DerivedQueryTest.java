@@ -19,7 +19,10 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.ogm.session.Session;
@@ -69,8 +72,7 @@ public class DerivedQueryTest {
 		new ExecutionEngine(neo4jRule.getGraphDatabaseService()).execute(cypher);
 	}
 
-	@Ignore
-	@Test //TODO fix
+	@Test
 	public void shouldFindUsersByName() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
@@ -84,8 +86,7 @@ public class DerivedQueryTest {
 		assertFalse(iterator.hasNext());
 	}
 
-	@Ignore
-	@Test //TODO fix
+	@Test
 	public void shouldFindUsersByMiddleName() {
 		executeUpdate("CREATE (m:User {middleName:'Joseph'})<-[:FRIEND_OF]-(a:User {middleName:'Mary', name: 'Joseph'})");
 

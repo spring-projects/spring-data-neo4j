@@ -23,11 +23,13 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.cypher.compiler.CypherContext;
 import org.neo4j.ogm.cypher.query.GraphModelQuery;
+import org.neo4j.ogm.cypher.query.GraphRowModelQuery;
 import org.neo4j.ogm.cypher.query.RowModelQuery;
 import org.neo4j.ogm.cypher.query.RowModelQueryWithStatistics;
 import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
 import org.neo4j.ogm.entityaccess.FieldWriter;
 import org.neo4j.ogm.mapper.EntityGraphMapper;
+import org.neo4j.ogm.mapper.GraphEntityMapper;
 import org.neo4j.ogm.mapper.MappingContext;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.AnnotationInfo;
@@ -42,6 +44,8 @@ import org.neo4j.ogm.session.request.strategy.*;
 import org.neo4j.ogm.session.response.Neo4jResponse;
 import org.neo4j.ogm.session.response.ResponseHandler;
 import org.neo4j.ogm.session.response.SessionResponseHandler;
+import org.neo4j.ogm.session.result.GraphRowModel;
+import org.neo4j.ogm.session.result.GraphRowResult;
 import org.neo4j.ogm.session.result.QueryStatistics;
 import org.neo4j.ogm.session.result.RowModel;
 import org.neo4j.ogm.session.transaction.SimpleTransaction;
@@ -204,7 +208,7 @@ public class Neo4jSession implements Session {
 
     @Override
     public Iterable<Map<String, Object>> query(String cypher, Map<String, ?> parameters) {
-        return executeAndMap(null, cypher, parameters, new MapRowModelMapper());
+        return executeAndMap(null, cypher, parameters, new MapRowModelMapper(), false);
     }
 
     @Override
@@ -212,10 +216,10 @@ public class Neo4jSession implements Session {
         if (type == null || type.equals(Void.class)) {
             throw new RuntimeException("Supplied type must not be null or void.");
         }
-        return executeAndMap(type, cypher, parameters, new EntityRowModelMapper<T>());
+        return executeAndMap(type, cypher, parameters, new EntityRowModelMapper<T>(), true);
     }
 
-    private <T> Iterable<T> executeAndMap(Class<T> type, String cypher, Map<String, ?> parameters, RowModelMapper<T> rowModelMapper) {
+    private <T> Iterable<T> executeAndMap(Class<T> type, String cypher, Map<String, ?> parameters, RowModelMapper<T> rowModelMapper, boolean mixedModel) {
         if (StringUtils.isEmpty(cypher)) {
             throw new RuntimeException("Supplied cypher statement must not be null or empty.");
         }
@@ -228,25 +232,46 @@ public class Neo4jSession implements Session {
 
         String url = getCurrentOrCreateAutocommitTransaction().url();
 
-        if (type != null && metaData.classInfo(type.getSimpleName()) != null) {
-            GraphModelQuery qry = new GraphModelQuery(cypher, parameters);
-            try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
-                return getResponseHandler().loadAll(type, response);
+        if(mixedModel) {
+            Collection<T> result = new ArrayList<>();
+            GraphRowModelQuery qry = new GraphRowModelQuery(cypher,parameters);
+            try (Neo4jResponse<GraphRowModel> response = getRequestHandler().execute(qry, url)) {
+                GraphRowModel graphRowModel = response.next();
+                for(GraphRowResult graphRowResult : graphRowModel.getGraphRowResults()) {
+                    //Load the GraphModel into the ogm
+                    GraphEntityMapper ogm = new GraphEntityMapper(metaData, mappingContext);
+                    ogm.map(type, graphRowResult.getGraph());
+                    //Extract the id's of filtered nodes from the rowData
+                    Object[] rowData = graphRowResult.getRow();
+                    for (Object data : rowData) {
+                        if (data instanceof Number) {
+                            result.add((T) mappingContext.get(((Number) data).longValue()));
+                        }
+                    }
+                }
+                return result;
             }
         }
         else {
-            RowModelQuery qry = new RowModelQuery(cypher, parameters);
-            try (Neo4jResponse<RowModel> response = getRequestHandler().execute(qry, url)) {
-
-                String[] variables = response.columns();
-
-                Collection<T> result = new ArrayList<>();
-                RowModel rowModel;
-                while ((rowModel = response.next()) != null) {
-                    rowModelMapper.mapIntoResult(result, rowModel.getValues(), variables);
+            if (type != null && metaData.classInfo(type.getSimpleName()) != null) {
+                GraphModelQuery qry = new GraphModelQuery(cypher, parameters);
+                try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
+                    return getResponseHandler().loadAll(type, response);
                 }
+            } else {
+                RowModelQuery qry = new RowModelQuery(cypher, parameters);
+                try (Neo4jResponse<RowModel> response = getRequestHandler().execute(qry, url)) {
 
-                return result;
+                    String[] variables = response.columns();
+
+                    Collection<T> result = new ArrayList<>();
+                    RowModel rowModel;
+                    while ((rowModel = response.next()) != null) {
+                        rowModelMapper.mapIntoResult(result, rowModel.getValues(), variables);
+                    }
+
+                    return result;
+                }
             }
         }
     }

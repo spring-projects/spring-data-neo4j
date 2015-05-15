@@ -23,14 +23,14 @@ public class CypherNodeFinderStatements implements FinderStatements {
 
 	@Override
 	public String findByProperties(String label, List<Parameter> parameters) {
-				StringBuilder query = new StringBuilder(String.format("MATCH p=(n:`%s`)-[*0..1]-(m) WHERE ",label));
+				StringBuilder query = new StringBuilder(String.format("MATCH (n:`%s`) WHERE ",label));
 		for(Parameter parameter : parameters) {
 			if(parameter.getBooleanOperator() != null) {
 				query.append(parameter.getBooleanOperator());
 			}
 			query.append(String.format(" n.`%s` %s { %d } ",parameter.getProperty().getKey(), parameter.getComparisonOperator(), parameter.getProperty().getValue()));
 		}
-		query.append(" RETURN collect(distinct p)");
+		query.append(" WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)");
 		return query.toString();
 	}
 
