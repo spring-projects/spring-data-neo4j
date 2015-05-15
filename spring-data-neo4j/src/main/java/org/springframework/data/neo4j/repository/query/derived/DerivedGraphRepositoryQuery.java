@@ -12,32 +12,39 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.neo4j.repository.query.GraphQueryMethod;
-import org.springframework.data.neo4j.repository.query.GraphRepositoryQuery;
 import org.springframework.data.repository.core.EntityMetadata;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.PartTree;
 
 /**
  * @author Mark Angrish
  * @author Luanne Misquitta
  */
-public class DerivedGraphRepositoryQuery extends GraphRepositoryQuery {
+public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 
     private DerivedQueryDefinition queryDefinition;
 
+    private final GraphQueryMethod graphQueryMethod;
+
+    protected final Session session;
+
     public DerivedGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, RepositoryMetadata metadata, Session session) {
-        super(graphQueryMethod, session);
+        this.graphQueryMethod = graphQueryMethod;
+        this.session = session;
         EntityMetadata<?> info = graphQueryMethod.getEntityInformation();
         PartTree tree = new PartTree(graphQueryMethod.getName(), info.getJavaType());
         this.queryDefinition = new DerivedQueryCreator(tree, info.getJavaType()).createQuery();
     }
 
 
-    @Override
     protected String getQueryString() {
         return queryDefinition.toQueryString();
     }
@@ -58,5 +65,35 @@ public class DerivedGraphRepositoryQuery extends GraphRepositoryQuery {
         }
 
         return session.queryForObject(returnType, cypherQuery, queryParams);
+    }
+
+    @Override
+    public Object execute(Object[] parameters) {
+        Class<?> returnType = graphQueryMethod.getMethod().getReturnType();
+        Class<?> concreteType = graphQueryMethod.resolveConcreteReturnType();
+
+        Map<String, Object> params = resolveParams(parameters); //todo review this
+
+        return execute(returnType, concreteType, getQueryString(), params);
+    }
+
+    private Map<String, Object> resolveParams(Object[] parameters) {
+        Map<String, Object> params = new HashMap<>();
+        Parameters<?, ?> methodParameters = graphQueryMethod.getParameters();
+
+        for (int i = 0; i < parameters.length; i++) {
+            org.springframework.data.repository.query.Parameter parameter = methodParameters.getParameter(i);
+
+            if (parameter.isNamedParameter()) {
+                params.put(parameter.getName(), parameters[i]);
+            } else {
+                params.put("" + i, parameters[i]);
+            }
+        }
+        return params;
+    }
+    @Override
+    public QueryMethod getQueryMethod() {
+        return graphQueryMethod;
     }
 }
