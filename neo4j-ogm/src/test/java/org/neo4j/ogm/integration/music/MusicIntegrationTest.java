@@ -21,11 +21,11 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.domain.music.Album;
 import org.neo4j.ogm.domain.music.Artist;
 import org.neo4j.ogm.domain.music.Recording;
 import org.neo4j.ogm.domain.music.Studio;
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
@@ -66,7 +66,7 @@ public class MusicIntegrationTest {
 		assertEquals("Please Please Me", theBeatles.getAlbums().iterator().next().getName());
 		assertEquals("EMI Studios, London", theBeatles.getAlbums().iterator().next().getRecording().getStudio().getName());
 
-		please = session.loadByProperty(Album.class, new Property<String, Object>("name", "Please Please Me")).iterator().next();
+		please = session.loadByProperty(Album.class, new Parameter("name", "Please Please Me")).iterator().next();
 		assertEquals("The Beatles", please.getArtist().getName());
 
 		Album hard = new Album("A Hard Day's Night");
@@ -93,7 +93,7 @@ public class MusicIntegrationTest {
 	@Test
 	public void shouldLoadStudioWithLocationMissingInDomainModel() {
 		new ExecutionEngine(neo4jRule.getGraphDatabaseService()).execute("CREATE (s:Studio {`studio-name`:'Abbey Road Studios'})");
-		Studio studio = session.loadByProperty(Studio.class, new Property<String, Object>("studio-name","Abbey Road Studios")).iterator().next();
+		Studio studio = session.loadByProperty(Studio.class, new Parameter("studio-name","Abbey Road Studios")).iterator().next();
 		assertNotNull(studio);
 
 	}

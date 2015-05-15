@@ -15,7 +15,7 @@ package org.neo4j.ogm.session;
 import java.util.Collection;
 import java.util.Map;
 
-import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.session.result.QueryStatistics;
 import org.neo4j.ogm.session.transaction.Transaction;
 
@@ -41,9 +41,13 @@ public interface Session {
 
     <T> Collection<T> loadAll(Collection<T> objects, int depth);
 
-    <T> Collection<T> loadByProperty(Class<T> type, Property<String, Object> property);
+    <T> Collection<T> loadByProperty(Class<T> type, Parameter property);
 
-    <T> Collection<T> loadByProperty(Class<T> type, Property<String, Object> property, int depth);
+    <T> Collection<T> loadByProperty(Class<T> type, Parameter property, int depth);
+
+    <T> Collection<T> loadByProperties(Class<T> type, Collection<Parameter> properties);
+
+    <T> Collection<T> loadByProperties(Class<T> type, Collection<Parameter> properties, int depth);
 
 
     QueryStatistics execute(String jsonStatements);

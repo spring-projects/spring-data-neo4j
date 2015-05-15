@@ -15,9 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.model.Property;
-import org.springframework.data.neo4j.repository.query.derived.strategy.CypherNodeFinderStatements;
-import org.springframework.data.neo4j.repository.query.derived.strategy.FinderStatements;
+import org.neo4j.ogm.cypher.Parameter;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -42,6 +40,11 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 	}
 
 	@Override
+	public List<Parameter> getQueryParameters() {
+		return parameters;
+	}
+
+	@Override
 	public void addPart(Part part, String booleanOperator) {
 		String property = part.getProperty().getSegment();
 		try { //todo this is crap. Use the classinfo
@@ -52,13 +55,12 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 		} catch (NoSuchFieldException e) {
 			throw new RuntimeException("Could not find property " + property + " on class " + entityType.getSimpleName() + ". Check spelling or use @Query.");
 		}
-		parameters.add(new Parameter(new Property<>(property, paramPosition++), "=", booleanOperator)); //todo magic =
-	}
-
-	@Override
-	public String toQueryString() {
-		FinderStatements finder = new CypherNodeFinderStatements(); //todo get the right one depending on whether it's a node or RE
-		return finder.findByProperties(getLabelOrType(entityType), parameters);
+		Parameter parameter = new Parameter();
+		parameter.setPropertyPosition(paramPosition++);
+		parameter.setPropertyName(property);
+		parameter.setComparisonOperator("="); //todo hardcoded for now
+		parameter.setBooleanOperator(booleanOperator);
+		parameters.add(parameter);
 	}
 
 	private String getLabelOrType(Class entityType) { //todo get rid of this crap and use the metadata

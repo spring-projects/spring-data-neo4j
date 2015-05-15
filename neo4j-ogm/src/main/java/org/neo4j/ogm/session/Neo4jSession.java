@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.neo4j.ogm.annotation.RelationshipEntity;
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.cypher.compiler.CypherContext;
 import org.neo4j.ogm.cypher.query.GraphModelQuery;
 import org.neo4j.ogm.cypher.query.GraphRowModelQuery;
@@ -29,13 +30,11 @@ import org.neo4j.ogm.cypher.query.RowModelQueryWithStatistics;
 import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
 import org.neo4j.ogm.entityaccess.FieldWriter;
 import org.neo4j.ogm.mapper.EntityGraphMapper;
-import org.neo4j.ogm.mapper.GraphEntityMapper;
 import org.neo4j.ogm.mapper.MappingContext;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.AnnotationInfo;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.model.GraphModel;
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.request.DefaultRequest;
 import org.neo4j.ogm.session.request.Neo4jRequest;
 import org.neo4j.ogm.session.request.RequestHandler;
@@ -45,7 +44,6 @@ import org.neo4j.ogm.session.response.Neo4jResponse;
 import org.neo4j.ogm.session.response.ResponseHandler;
 import org.neo4j.ogm.session.response.SessionResponseHandler;
 import org.neo4j.ogm.session.result.GraphRowModel;
-import org.neo4j.ogm.session.result.GraphRowResult;
 import org.neo4j.ogm.session.result.QueryStatistics;
 import org.neo4j.ogm.session.result.RowModel;
 import org.neo4j.ogm.session.transaction.SimpleTransaction;
@@ -102,7 +100,7 @@ public class Neo4jSession implements Session {
     public <T> T load(Class<T> type, Long id, int depth) {
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        GraphModelQuery qry = queryStatements.findOne(id,depth);
+        GraphModelQuery qry = queryStatements.findOne(id, depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
             return getResponseHandler().loadById(type, response, id);
         }
@@ -162,18 +160,31 @@ public class Neo4jSession implements Session {
     }
 
     @Override
-    public <T> Collection<T> loadByProperty(Class<T> type, Property<String, Object> property) {
-        return loadByProperty(type, property, 1);
+    public <T> Collection<T> loadByProperty(Class<T> type, Parameter property) {
+        return loadByProperties(type, Collections.singletonList(property));
     }
 
     @Override
-    public <T> Collection<T> loadByProperty(Class<T> type, Property<String, Object> property, int depth) {
+    public <T> Collection<T> loadByProperty(Class<T> type, Parameter property, int depth) {
+       return loadByProperties(type, Collections.singletonList(property), depth);
+    }
+
+    @Override
+    public <T> Collection<T> loadByProperties(Class<T> type, Collection<Parameter> properties) {
+        return loadByProperties(type, properties, 1);
+    }
+
+    @Override
+    public <T> Collection<T> loadByProperties(Class<T> type, Collection<Parameter> properties, int depth) {
         ClassInfo classInfo = metaData.classInfo(type.getName());
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        GraphModelQuery qry = queryStatements.findByProperty(getEntityType(classInfo), property, depth);
-        try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
-            return getResponseHandler().loadByProperty(type, response, property);
+        GraphRowModelQuery qry = queryStatements.findByProperties(getEntityType(classInfo), properties, depth);
+
+
+
+        try (Neo4jResponse<GraphRowModel> response = getRequestHandler().execute(qry, url)) {
+            return getResponseHandler().loadByProperty(type, response);
         }
     }
 
@@ -208,7 +219,7 @@ public class Neo4jSession implements Session {
 
     @Override
     public Iterable<Map<String, Object>> query(String cypher, Map<String, ?> parameters) {
-        return executeAndMap(null, cypher, parameters, new MapRowModelMapper(), false);
+        return executeAndMap(null, cypher, parameters, new MapRowModelMapper());
     }
 
     @Override
@@ -216,10 +227,10 @@ public class Neo4jSession implements Session {
         if (type == null || type.equals(Void.class)) {
             throw new RuntimeException("Supplied type must not be null or void.");
         }
-        return executeAndMap(type, cypher, parameters, new EntityRowModelMapper<T>(), true);
+        return executeAndMap(type, cypher, parameters, new EntityRowModelMapper<T>());
     }
 
-    private <T> Iterable<T> executeAndMap(Class<T> type, String cypher, Map<String, ?> parameters, RowModelMapper<T> rowModelMapper, boolean mixedModel) {
+    private <T> Iterable<T> executeAndMap(Class<T> type, String cypher, Map<String, ?> parameters, RowModelMapper<T> rowModelMapper) {
         if (StringUtils.isEmpty(cypher)) {
             throw new RuntimeException("Supplied cypher statement must not be null or empty.");
         }
@@ -232,46 +243,24 @@ public class Neo4jSession implements Session {
 
         String url = getCurrentOrCreateAutocommitTransaction().url();
 
-        if(mixedModel) {
-            Collection<T> result = new ArrayList<>();
-            GraphRowModelQuery qry = new GraphRowModelQuery(cypher,parameters);
-            try (Neo4jResponse<GraphRowModel> response = getRequestHandler().execute(qry, url)) {
-                GraphRowModel graphRowModel = response.next();
-                for(GraphRowResult graphRowResult : graphRowModel.getGraphRowResults()) {
-                    //Load the GraphModel into the ogm
-                    GraphEntityMapper ogm = new GraphEntityMapper(metaData, mappingContext);
-                    ogm.map(type, graphRowResult.getGraph());
-                    //Extract the id's of filtered nodes from the rowData
-                    Object[] rowData = graphRowResult.getRow();
-                    for (Object data : rowData) {
-                        if (data instanceof Number) {
-                            result.add((T) mappingContext.get(((Number) data).longValue()));
-                        }
-                    }
-                }
-                return result;
+        if (type != null && metaData.classInfo(type.getSimpleName()) != null) {
+            GraphModelQuery qry = new GraphModelQuery(cypher, parameters);
+            try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
+                return getResponseHandler().loadAll(type, response);
             }
-        }
-        else {
-            if (type != null && metaData.classInfo(type.getSimpleName()) != null) {
-                GraphModelQuery qry = new GraphModelQuery(cypher, parameters);
-                try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
-                    return getResponseHandler().loadAll(type, response);
+        } else {
+            RowModelQuery qry = new RowModelQuery(cypher, parameters);
+            try (Neo4jResponse<RowModel> response = getRequestHandler().execute(qry, url)) {
+
+                String[] variables = response.columns();
+
+                Collection<T> result = new ArrayList<>();
+                RowModel rowModel;
+                while ((rowModel = response.next()) != null) {
+                    rowModelMapper.mapIntoResult(result, rowModel.getValues(), variables);
                 }
-            } else {
-                RowModelQuery qry = new RowModelQuery(cypher, parameters);
-                try (Neo4jResponse<RowModel> response = getRequestHandler().execute(qry, url)) {
 
-                    String[] variables = response.columns();
-
-                    Collection<T> result = new ArrayList<>();
-                    RowModel rowModel;
-                    while ((rowModel = response.next()) != null) {
-                        rowModelMapper.mapIntoResult(result, rowModel.getValues(), variables);
-                    }
-
-                    return result;
-                }
+                return result;
             }
         }
     }

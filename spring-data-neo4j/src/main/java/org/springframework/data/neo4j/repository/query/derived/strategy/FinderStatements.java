@@ -14,7 +14,7 @@ package org.springframework.data.neo4j.repository.query.derived.strategy;
 
 import java.util.List;
 
-import org.springframework.data.neo4j.repository.query.derived.Parameter;
+import org.neo4j.ogm.cypher.Parameter;
 
 /**
  * @author Luanne Misquitta

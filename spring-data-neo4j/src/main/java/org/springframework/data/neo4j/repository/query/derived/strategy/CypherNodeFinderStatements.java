@@ -14,7 +14,7 @@ package org.springframework.data.neo4j.repository.query.derived.strategy;
 
 import java.util.List;
 
-import org.springframework.data.neo4j.repository.query.derived.Parameter;
+import org.neo4j.ogm.cypher.Parameter;
 
 /**
  * @author Luanne Misquitta
@@ -28,7 +28,7 @@ public class CypherNodeFinderStatements implements FinderStatements {
 			if(parameter.getBooleanOperator() != null) {
 				query.append(parameter.getBooleanOperator());
 			}
-			query.append(String.format(" n.`%s` %s { %d } ",parameter.getProperty().getKey(), parameter.getComparisonOperator(), parameter.getProperty().getValue()));
+			query.append(String.format(" n.`%s` %s { %d } ",parameter.getPropertyName(), parameter.getComparisonOperator(), parameter.getPropertyValue()));
 		}
 		query.append(" WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)");
 		return query.toString();

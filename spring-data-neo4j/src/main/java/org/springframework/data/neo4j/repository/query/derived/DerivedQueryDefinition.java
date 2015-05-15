@@ -12,6 +12,9 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
+import java.util.List;
+
+import org.neo4j.ogm.cypher.Parameter;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -19,10 +22,12 @@ import org.springframework.data.repository.query.parser.Part;
  */
 public interface DerivedQueryDefinition {
 
-	Part getBasePart();
-
 	void addPart(Part part, String booleanOperator);
 
-	String toQueryString();
+	Part getBasePart();
+
+	List<Parameter> getQueryParameters();
+
+	//String toQueryString();
 
 }

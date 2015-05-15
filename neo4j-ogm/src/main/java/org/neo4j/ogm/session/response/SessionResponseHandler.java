@@ -26,9 +26,8 @@ import org.neo4j.ogm.mapper.TransientRelationship;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.model.GraphModel;
-import org.neo4j.ogm.model.NodeModel;
-import org.neo4j.ogm.model.Property;
-import org.neo4j.ogm.model.RelationshipModel;
+import org.neo4j.ogm.session.result.GraphRowModel;
+import org.neo4j.ogm.session.result.GraphRowResult;
 import org.neo4j.ogm.session.result.RowModel;
 
 /**
@@ -46,7 +45,25 @@ public class SessionResponseHandler implements ResponseHandler {
     }
 
     @Override
-    public <T> Set<T> loadByProperty(Class<T> type, Neo4jResponse<GraphModel> response, Property<String, Object> filter) {
+    public <T> List<T> loadByProperty(Class<T> type, Neo4jResponse<GraphRowModel> response) {
+        List<T> result = new ArrayList<>();
+        GraphRowModel graphRowModel = response.next();
+        for(GraphRowResult graphRowResult : graphRowModel.getGraphRowResults()) {
+            //Load the GraphModel into the ogm
+            GraphEntityMapper ogm = new GraphEntityMapper(metaData, mappingContext);
+            ogm.map(type, graphRowResult.getGraph());
+            //Extract the id's of filtered nodes from the rowData
+            Object[] rowData = graphRowResult.getRow();
+            for (Object data : rowData) {
+                if (data instanceof Number) {
+                    result.add((T) mappingContext.get(((Number) data).longValue()));
+                }
+            }
+        }
+        response.close();
+        return result;
+
+        /*
 
         GraphEntityMapper ogm = new GraphEntityMapper(metaData, mappingContext);
         Set<T> objects = new HashSet<>();
@@ -70,10 +87,7 @@ public class SessionResponseHandler implements ResponseHandler {
                     }
                 }
             }
-        }
-        response.close();
-
-        return objects;
+        }*/
     }
 
     @Override
