@@ -59,7 +59,7 @@ public class GraphQueryMethod extends QueryMethod {
      * @return The concrete, non-generic return type of this query method - i.e., the type to which graph database query results
      *         should be mapped
      */
-    Class<?> resolveConcreteReturnType() {
+    public Class<?> resolveConcreteReturnType() {
         Class<?> type = this.method.getReturnType();
         Type genericType = this.method.getGenericReturnType();
 
