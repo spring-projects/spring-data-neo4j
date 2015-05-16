@@ -12,16 +12,20 @@
 
 package org.neo4j.ogm.session.request.strategy;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.cypher.query.GraphModelQuery;
 import org.neo4j.ogm.cypher.query.GraphRowModelQuery;
+import org.neo4j.ogm.cypher.query.Paging;
+import org.neo4j.ogm.cypher.query.Query;
+import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Utils;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Vince Bickers
@@ -30,7 +34,7 @@ import org.neo4j.ogm.session.Utils;
 public class VariableDepthQuery implements QueryStatements {
 
     @Override
-    public GraphModelQuery findOne(Long id, int depth) {
+    public Query findOne(Long id, int depth) {
         int max = max(depth);
         int min = min(max);
         if (depth < 0) {
@@ -45,7 +49,7 @@ public class VariableDepthQuery implements QueryStatements {
     }
 
     @Override
-    public GraphModelQuery findAll(Collection<Long> ids, int depth) {
+    public Query findAll(Collection<Long> ids, int depth) {
         int max = max(depth);
         int min = min(max);
         if (depth < 0) {
@@ -60,12 +64,17 @@ public class VariableDepthQuery implements QueryStatements {
     }
 
     @Override
-    public GraphModelQuery findAll() {
+    public Query findAll() {
         return new GraphModelQuery("MATCH p=()-->() RETURN p", Utils.map());
     }
 
     @Override
-    public GraphModelQuery findByType(String label, int depth) {
+    public Query findAll(Paging paging) {
+        return findAll().setPage(paging);
+    }
+
+    @Override
+    public Query findByType(String label, int depth) {
         int max = max(depth);
         int min = min(max);
         if (depth < 0) {
@@ -80,7 +89,7 @@ public class VariableDepthQuery implements QueryStatements {
     }
 
     @Override
-    public GraphRowModelQuery findByProperties(String label, Collection<Parameter> parameters, int depth) {
+    public Query findByProperties(String label, Collection<Parameter> parameters, int depth) {
         int max = max(depth);
         int min = min(max);
         if (depth < 0) {
@@ -94,6 +103,21 @@ public class VariableDepthQuery implements QueryStatements {
         } else {
             return DepthZeroReadStrategy.findByProperties(label, parameters);
         }
+    }
+
+    @Override
+    public Query findByProperties(String type, Collection<Parameter> parameters, String orderings, int depth) {
+        return null;
+    }
+
+    @Override
+    public Query findByProperties(String type, Collection<Parameter> parameters, Paging paging, int depth) {
+        return null;
+    }
+
+    @Override
+    public Query findByProperties(String type, Collection<Parameter> parameters, String orderings, Paging paging, int depth) {
+        return null;
     }
 
     private static StringBuilder constructQuery(String label, Collection<Parameter> parameters, Map<String, Object> properties) {
@@ -139,6 +163,37 @@ public class VariableDepthQuery implements QueryStatements {
 		}
         relationshipMatch.append("(x) ");
         return relationshipMatch;
+    }
+
+
+    @Override
+    public Query findByType(String type, String orderings, int depth) {
+        return null;
+    }
+
+    @Override
+    public Query findAll(Collection<Long> ids, String orderings, int depth) {
+        return null;
+    }
+
+    @Override
+    public Query findAll(Collection<Long> ids, String orderings, Paging paging, int depth) {
+        return null;
+    }
+
+    @Override
+    public Query findByType(String type, Paging paging, int depth) {
+        return findByType(type, depth).setPage(paging);
+    }
+
+    @Override
+    public Query findByType(String type, String orderings, Paging paging, int depth) {
+        return null;
+    }
+
+    @Override
+    public Query findAll(Collection<Long> ids, Paging paging, int depth) {
+        return findAll(ids, depth).setPage(paging);
     }
 
     private int min(int depth) {

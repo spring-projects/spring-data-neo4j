@@ -12,21 +12,32 @@
 
 package org.neo4j.ogm.cypher.statement;
 
+import org.neo4j.ogm.cypher.query.Orderings;
+import org.neo4j.ogm.cypher.query.Paging;
+import org.neo4j.ogm.cypher.query.PagingAndSorting;
+
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Simple encapsulation of a Cypher query and its parameters.
+ * Simple encapsulation of a Cypher query and its parameters and other optional parts (paging/sort).
+ *
+ * Note, this object will be transformed directly to JSON so don't add anything here that is
+ * not part of the HTTP Transactional endpoint syntax
  *
  * @author Vince Bickers
  * @author Luanne Misquitta
  */
 public class ParameterisedStatement {
 
-    private final String statement;
-    private final Map<String, Object> parameters = new HashMap<>();
-    private final String[] resultDataContents;
+    private String statement;
+    private Map<String, Object> parameters = new HashMap<>();
+    private String[] resultDataContents;
     private boolean includeStats = false;
+
+    private Paging paging;
+    private Orderings orderings = new Orderings();
+
 
     /**
      * Constructs a new {@link ParameterisedStatement} based on the given Cypher query string and query parameters.
@@ -52,7 +63,17 @@ public class ParameterisedStatement {
     }
 
     public String getStatement() {
-        return statement.trim();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(statement.trim());
+
+        sb.append(orderings);
+
+        if (paging != null) {
+            sb.append(paging);
+        }
+
+        return sb.toString().trim();
     }
 
     public Map<String, Object> getParameters() {
@@ -65,6 +86,22 @@ public class ParameterisedStatement {
 
     public boolean isIncludeStats() {
         return includeStats;
+    }
+
+    public Paging page() {
+        return paging;
+    }
+
+    public Orderings orderings() {
+        return orderings;
+    }
+
+    protected void addOrdering(PagingAndSorting.Direction direction, String... properties) {
+        this.orderings.add(direction, properties);
+    }
+
+    protected void addPaging(Paging page) {
+        this.paging = page;
     }
 }
 

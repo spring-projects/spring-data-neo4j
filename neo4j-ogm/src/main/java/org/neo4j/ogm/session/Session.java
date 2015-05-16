@@ -12,6 +12,11 @@
 
 package org.neo4j.ogm.session;
 
+import org.neo4j.ogm.cypher.query.Paging;
+import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.session.result.QueryStatistics;
+import org.neo4j.ogm.session.transaction.Transaction;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -26,29 +31,39 @@ import org.neo4j.ogm.session.transaction.Transaction;
  */
 public interface Session {
 
+    // load a single object of Class type, with id id
     <T> T load(Class<T> type, Long id);
-
     <T> T load(Class<T> type, Long id, int depth);
 
+    // load objects of Class type with ids ...
     <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids);
-
     <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, int depth);
+    <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, String orderings);
+    <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, String orderings, int depth);
+    <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, Paging paging);
+    <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, Paging paging, int depth);
 
+
+    // load all objects of class type
     <T> Collection<T> loadAll(Class<T> type);
-
     <T> Collection<T> loadAll(Class<T> type, int depth);
+    <T> Collection<T> loadAll(Class<T> type, String orderings);
+    <T> Collection<T> loadAll(Class<T> type, String orderings, int depth);
+    <T> Collection<T> loadAll(Class<T> type, Paging paging);
+    <T> Collection<T> loadAll(Class<T> type, Paging paging, int depth);
 
+
+    // load specific objects
     <T> Collection<T> loadAll(Collection<T> objects);
-
     <T> Collection<T> loadAll(Collection<T> objects, int depth);
 
-    <T> Collection<T> loadByProperty(Class<T> type, Parameter property);
 
+    // load objects of Class type with the properties...
+    <T> Collection<T> loadByProperty(Class<T> type, Parameter property);
     <T> Collection<T> loadByProperty(Class<T> type, Parameter property, int depth);
 
-    <T> Collection<T> loadByProperties(Class<T> type, List<Parameter> properties);
-
     <T> Collection<T> loadByProperties(Class<T> type, List<Parameter> properties, int depth);
+    <T> Collection<T> loadByProperties(Class<T> type, List<Parameter> properties);
 
 
     QueryStatistics execute(String jsonStatements);
@@ -161,6 +176,5 @@ public interface Session {
      * @return The number of entities in the database of the given type
      */
     long countEntitiesOfType(Class<?> entity);
-
 
 }
