@@ -12,20 +12,13 @@
 
 package org.neo4j.ogm.session;
 
-<<<<<<< HEAD
-import org.neo4j.ogm.model.Property;
-=======
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import org.neo4j.ogm.cypher.Parameter;
->>>>>>> DATAGRAPH-629 - Support finders which accept multiple properties or operators other than equals.
 import org.neo4j.ogm.session.result.QueryStatistics;
 import org.neo4j.ogm.session.transaction.Transaction;
-
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * @author Vince Bickers
