@@ -21,15 +21,22 @@ import org.junit.Test;
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Parameter;
+import org.junit.Test;
+import org.neo4j.ogm.model.Property;
+import org.neo4j.ogm.session.request.strategy.QueryStatements;
 import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
+
+import java.util.Arrays;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Vince Bickers
  * @author Luanne Misquitta
  */
-public class VariableDepthQueryTest {
+public class NodeEntityQueryTest {
 
-    private final VariableDepthQuery query = new VariableDepthQuery();
+    private final QueryStatements query = new VariableDepthQuery();
 
     @Test
     public void testFindOne() throws Exception {

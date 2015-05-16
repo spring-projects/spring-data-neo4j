@@ -12,11 +12,6 @@
 
 package org.neo4j.ogm.session;
 
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -29,6 +24,7 @@ import org.neo4j.ogm.cypher.query.GraphModelQuery;
 import org.neo4j.ogm.cypher.query.GraphRowModelQuery;
 import org.neo4j.ogm.cypher.query.RowModelQuery;
 import org.neo4j.ogm.cypher.query.RowModelQueryWithStatistics;
+import org.neo4j.ogm.cypher.query.*;
 import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
 import org.neo4j.ogm.entityaccess.FieldWriter;
 import org.neo4j.ogm.mapper.EntityGraphMapper;
@@ -55,6 +51,11 @@ import org.neo4j.ogm.session.transaction.Transaction;
 import org.neo4j.ogm.session.transaction.TransactionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Vince Bickers
@@ -104,7 +105,7 @@ public class Neo4jSession implements Session {
     public <T> T load(Class<T> type, Long id, int depth) {
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        GraphModelQuery qry = queryStatements.findOne(id, depth);
+        PagingAndSorting qry = queryStatements.findOne(id,depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
             return getResponseHandler().loadById(type, response, id);
         }
@@ -119,7 +120,7 @@ public class Neo4jSession implements Session {
     public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, int depth) {
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        GraphModelQuery qry = queryStatements.findAll(ids, depth);
+        PagingAndSorting qry = queryStatements.findAll(ids, depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
             return getResponseHandler().loadAll(type, response);
         }
@@ -135,7 +136,7 @@ public class Neo4jSession implements Session {
         ClassInfo classInfo = metaData.classInfo(type.getName());
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        GraphModelQuery qry = queryStatements.findByType(getEntityType(classInfo), depth);
+        PagingAndSorting qry = queryStatements.findByType(getEntityType(classInfo), depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
             return getResponseHandler().loadAll(type, response);
         }
@@ -168,6 +169,45 @@ public class Neo4jSession implements Session {
         return loadByProperties(type, Collections.singletonList(property));
     }
 
+    public <T> Collection<T> loadAll(Class<T> clazz, String orderings) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public <T> Collection<T> loadAll(Class<T> clazz, String orderings, int depth) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public <T> Collection<T> loadAll(Class<T> clazz, Collection<Long> ids, String orderings) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public <T> Collection<T> loadAll(Class<T> clazz, Collection<Long> ids, String orderings, int depth) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public <T> Collection<T> loadAll(Class<T> clazz, Paging paging) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public <T> Collection<T> loadAll(Class<T> clazz, Paging paging, int depth) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public <T> Collection<T> loadAll(Class<T> clazz, Collection<Long> ids, Paging paging) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public <T> Collection<T> loadAll(Class<T> clazz, Collection<Long> ids, Paging paging, int depth) {
+        throw new RuntimeException("not implemented");
+    }
+
     @Override
     public <T> Collection<T> loadByProperty(Class<T> type, Parameter property, int depth) {
        return loadByProperties(type, Collections.singletonList(property), depth);
@@ -183,11 +223,8 @@ public class Neo4jSession implements Session {
         ClassInfo classInfo = metaData.classInfo(type.getName());
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        GraphRowModelQuery qry = queryStatements.findByProperties(getEntityType(classInfo), resolvePropertyAnnotations(type, properties), depth);
-
-
-
-        try (Neo4jResponse<GraphRowModel> response = getRequestHandler().execute(qry, url)) {
+        Query qry = queryStatements.findByProperties(getEntityType(classInfo), resolvePropertyAnnotations(type, properties), depth);
+        try (Neo4jResponse<GraphRowModel> response = getRequestHandler().execute((GraphRowModelQuery) qry, url)) {
             return getResponseHandler().loadByProperty(type, response);
         }
     }
@@ -248,7 +285,7 @@ public class Neo4jSession implements Session {
         String url = getCurrentOrCreateAutocommitTransaction().url();
 
         if (type != null && metaData.classInfo(type.getSimpleName()) != null) {
-            GraphModelQuery qry = new GraphModelQuery(cypher, parameters);
+            PagingAndSorting qry = new GraphModelQuery(cypher, parameters);
             try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
                 return getResponseHandler().loadAll(type, response);
             }
