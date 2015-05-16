@@ -20,6 +20,8 @@ import org.neo4j.ogm.cypher.Parameter;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
+ * A {@link DerivedQueryDefinition} that builds a Cypher query.
+ *
  * @author Luanne Misquitta
  */
 public class CypherFinderQuery implements DerivedQueryDefinition {
@@ -67,9 +69,12 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 
 	private ComparisonOperator convertToComparisonOperator(Part.Type type) {
 		switch (type) {
-			case GREATER_THAN: return ComparisonOperator.GREATER_THAN;
-			case LESS_THAN: return ComparisonOperator.LESS_THAN;
-			default: return ComparisonOperator.EQUALS;
+			case GREATER_THAN:
+				return ComparisonOperator.GREATER_THAN;
+			case LESS_THAN:
+				return ComparisonOperator.LESS_THAN;
+			default:
+				return ComparisonOperator.EQUALS;
 		}
 	}
 }

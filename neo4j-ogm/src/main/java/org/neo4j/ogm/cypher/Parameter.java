@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2015] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2015] "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -13,6 +13,7 @@
 package org.neo4j.ogm.cypher;
 
 /**
+ * A parameter along with filter information to be added to a query.
  * @author Luanne Misquitta
  */
 public class Parameter {

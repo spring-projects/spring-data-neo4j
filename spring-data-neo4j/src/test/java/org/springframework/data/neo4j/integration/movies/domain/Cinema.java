@@ -44,6 +44,11 @@ public class Cinema {
         this.name = name;
     }
 
+    public Cinema(String name, int capacity) {
+        this.name = name;
+        this.capacity = capacity;
+    }
+
     public void addVisitor(User user) {
         visited.add(user);
     }

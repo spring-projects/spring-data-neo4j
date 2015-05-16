@@ -20,6 +20,7 @@ import org.neo4j.ogm.cypher.query.GraphRowModelQuery;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public interface QueryStatements {
 

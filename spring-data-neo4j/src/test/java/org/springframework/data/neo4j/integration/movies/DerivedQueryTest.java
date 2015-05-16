@@ -130,6 +130,9 @@ public class DerivedQueryTest {
 		assertTrue(theatres.contains(new Cinema("Ritzy")));
 	}
 
+	/**
+	 * @see DATAGRAPH-629
+	 */
 	@Test
 	public void shouldFindNodeEntitiesMultipleAndedProperties() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'})" +
@@ -140,6 +143,9 @@ public class DerivedQueryTest {
 		assertEquals("Michal", theatres.get(0).getVisited().iterator().next().getName());
 	}
 
+	/**
+	 * @see DATAGRAPH-629
+	 */
 	@Test
 	public void shouldFindNodeEntititiesMultipleOredProperties() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'})" +
@@ -150,6 +156,9 @@ public class DerivedQueryTest {
 	}
 
 
+	/**
+	 * @see DATAGRAPH-629
+	 */
 	@Test
 	public void shouldReturnNoResultsCorrectly() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'})" +
@@ -159,6 +168,9 @@ public class DerivedQueryTest {
 		assertEquals(0, theatres.size());
 	}
 
+	/**
+	 * @see DATAGRAPH-629
+	 */
 	@Test
 	public void shouldFindREWithSingleProperty() {
 		User critic = new User("Gary");
@@ -177,6 +189,9 @@ public class DerivedQueryTest {
 		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
 	}
 
+	/**
+	 * @see DATAGRAPH-629
+	 */
 	@Test
 	public void shouldFindNodeEntititiesWithComparisonOperators() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500})" +

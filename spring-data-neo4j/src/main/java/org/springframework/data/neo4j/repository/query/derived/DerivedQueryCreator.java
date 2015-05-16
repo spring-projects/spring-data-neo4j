@@ -22,6 +22,8 @@ import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
 
 /**
+ * An {@link AbstractQueryCreator} that builds a graph query.
+ *
  * @author Luanne Misquitta
  */
 public class DerivedQueryCreator extends AbstractQueryCreator<DerivedQueryDefinition, DerivedQueryBuilder> {
@@ -36,7 +38,7 @@ public class DerivedQueryCreator extends AbstractQueryCreator<DerivedQueryDefini
 	@Override
 	protected DerivedQueryBuilder create(Part part, Iterator<Object> iterator) {
 		DerivedQueryBuilder queryBuilder = new DerivedQueryBuilder(entityType, part);
-		queryBuilder.addPart(part,BooleanOperator.NONE);
+		queryBuilder.addPart(part, BooleanOperator.NONE);
 		return queryBuilder;
 	}
 

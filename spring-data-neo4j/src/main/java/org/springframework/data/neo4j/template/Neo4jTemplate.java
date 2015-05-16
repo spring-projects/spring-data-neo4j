@@ -16,6 +16,7 @@ import static org.springframework.data.neo4j.util.IterableUtils.*;
 
 import javax.persistence.PersistenceException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.neo4j.ogm.cypher.Parameter;
@@ -151,6 +152,24 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     public <T> Collection<T> loadAllByProperty(Class<T> type, String name, Object value) {
         try {
             return session.loadByProperty(type, new Parameter(name, value));
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
+    }
+
+    @Override
+    public <T> T loadByProperties(Class<T> type, List<Parameter> parameters) {
+        try {
+            return getSingle(loadAllByProperties(type, parameters));
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
+    }
+
+    @Override
+    public <T> Collection<T> loadAllByProperties(Class<T> type, List<Parameter> parameters) {
+        try {
+            return session.loadByProperties(type, parameters);
         } catch (Exception e) {
             throw new PersistenceException(e);
         }

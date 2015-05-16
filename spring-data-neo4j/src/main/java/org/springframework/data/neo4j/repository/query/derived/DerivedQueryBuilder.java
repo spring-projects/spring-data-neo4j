@@ -16,6 +16,8 @@ import org.neo4j.ogm.cypher.BooleanOperator;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
+ * The graph query builder.
+ *
  * @author Luanne Misquitta
  */
 public class DerivedQueryBuilder {
@@ -26,16 +28,29 @@ public class DerivedQueryBuilder {
 		query = new CypherFinderQuery(entityType, basePart);
 	}
 
+	/**
+	 * Add a part as a parameter to the graph query.
+	 * @param part the Part to be added
+	 * @param booleanOperator the {@link BooleanOperator} to be used when appending the parameter to the query.
+	 */
 	public void addPart(Part part, BooleanOperator booleanOperator) {
 		query.addPart(part, booleanOperator);
 	}
 
+	/**
+	 * Add criteria from an intermediate builder to the query
+	 * @param fromBuilder the intermediate builder
+	 * @param booleanOperator the {@link BooleanOperator} to be used when appending the criteria to the query
+	 */
 	public void addPart(DerivedQueryBuilder fromBuilder, BooleanOperator booleanOperator) {
-		query.addPart(fromBuilder.query.getBasePart(),booleanOperator);
+		query.addPart(fromBuilder.query.getBasePart(), booleanOperator);
 	}
 
+	/**
+	 * Builds the final query
+	 * @return the final query
+	 */
 	public DerivedQueryDefinition buildQuery() {
 		return query;
 	}
-
 }

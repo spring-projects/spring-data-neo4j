@@ -17,6 +17,8 @@ import java.util.Map;
 import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
 
 /**
+ * A {@link ParameterisedStatement} which returns data in both row and graph formats.
+ *
  * @author Luanne Misquitta
  */
 public class GraphRowModelQuery extends ParameterisedStatement {

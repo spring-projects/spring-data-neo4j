@@ -98,6 +98,9 @@ public class MusicIntegrationTest {
 
 	}
 
+	/**
+	 * @see DATAGRAPH-629
+	 */
 	@Test
 	public void shouldRetrieveEntityByPropertyWithZeroDepth() {
 		Studio emi = new Studio("EMI Studios, London");

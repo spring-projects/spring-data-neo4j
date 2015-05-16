@@ -13,6 +13,7 @@
 package org.neo4j.ogm.session;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.neo4j.ogm.cypher.Parameter;
@@ -45,9 +46,9 @@ public interface Session {
 
     <T> Collection<T> loadByProperty(Class<T> type, Parameter property, int depth);
 
-    <T> Collection<T> loadByProperties(Class<T> type, Collection<Parameter> properties);
+    <T> Collection<T> loadByProperties(Class<T> type, List<Parameter> properties);
 
-    <T> Collection<T> loadByProperties(Class<T> type, Collection<Parameter> properties, int depth);
+    <T> Collection<T> loadByProperties(Class<T> type, List<Parameter> properties, int depth);
 
 
     QueryStatistics execute(String jsonStatements);
