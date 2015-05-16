@@ -31,8 +31,11 @@ import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.movies.context.PersistenceContext;
 import org.springframework.data.neo4j.integration.movies.domain.Cinema;
+import org.springframework.data.neo4j.integration.movies.domain.Rating;
+import org.springframework.data.neo4j.integration.movies.domain.TempMovie;
 import org.springframework.data.neo4j.integration.movies.domain.User;
 import org.springframework.data.neo4j.integration.movies.repo.CinemaRepository;
+import org.springframework.data.neo4j.integration.movies.repo.RatingRepository;
 import org.springframework.data.neo4j.integration.movies.repo.UserRepository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -57,6 +60,9 @@ public class DerivedQueryTest {
 
 	@Autowired
 	private CinemaRepository cinemaRepository;
+
+	@Autowired
+	private RatingRepository ratingRepository;
 
 	@Before
 	public void init() throws IOException {
@@ -141,5 +147,33 @@ public class DerivedQueryTest {
 
 		List<Cinema> theatres = cinemaRepository.findByNameOrLocation("Ritzy", "London");
 		assertEquals(2, theatres.size());
+	}
+
+
+	@Test
+	public void shouldReturnNoResultsCorrectly() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'})" +
+				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
+
+		Collection<Cinema> theatres = cinemaRepository.findByName("Does not exist");
+		assertEquals(0, theatres.size());
+	}
+
+	@Test
+	public void shouldFindREWithSingleProperty() {
+		User critic = new User("Gary");
+		TempMovie film = new TempMovie("Fast and Furious XVII");
+		Rating filmRating = critic.rate(film, 2, "They've made far too many of these films now!");
+
+
+		userRepository.save(critic);
+
+		List<Rating> ratings = ratingRepository.findByStars(2);
+		assertNotNull(ratings);
+		Rating loadedRating = ratings.get(0);
+		assertNotNull("The loaded rating shouldn't be null", loadedRating);
+		assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), loadedRating.getStars());
+		assertEquals("The rated film wasn't saved correctly", film.getTitle(), loadedRating.getMovie().getTitle());
+		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
 	}
 }

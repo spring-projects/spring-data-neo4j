@@ -47,6 +47,7 @@ public class SessionResponseHandler implements ResponseHandler {
     @Override
     public <T> List<T> loadByProperty(Class<T> type, Neo4jResponse<GraphRowModel> response) {
         List<T> result = new ArrayList<>();
+        ClassInfo classInfo = metaData.classInfo(type.getName());
         GraphRowModel graphRowModel = response.next();
         for(GraphRowResult graphRowResult : graphRowModel.getGraphRowResults()) {
             //Load the GraphModel into the ogm
@@ -56,38 +57,18 @@ public class SessionResponseHandler implements ResponseHandler {
             Object[] rowData = graphRowResult.getRow();
             for (Object data : rowData) {
                 if (data instanceof Number) {
-                    result.add((T) mappingContext.get(((Number) data).longValue()));
+                    if (classInfo.annotationsInfo().get(RelationshipEntity.CLASS) == null) {
+                        result.add((T) mappingContext.get(((Number) data).longValue()));
+
+                    }
+                    else {
+                        result.add((T) mappingContext.getRelationshipEntity(((Number) data).longValue()));
+                    }
                 }
             }
         }
         response.close();
         return result;
-
-        /*
-
-        GraphEntityMapper ogm = new GraphEntityMapper(metaData, mappingContext);
-        Set<T> objects = new HashSet<>();
-
-        GraphModel graphModel;
-        while ((graphModel = response.next()) != null) {
-
-            ogm.map(type, graphModel);
-
-            if (metaData.isRelationshipEntity(type.getName())) {
-                for (RelationshipModel relationshipModel : graphModel.getRelationships()) {
-                    if (relationshipModel.getPropertyList().contains(filter)
-                            && mappingContext.getRelationshipEntity(relationshipModel.getId()).getClass().isAssignableFrom(type)) {
-                        objects.add(type.cast(mappingContext.getRelationshipEntity(relationshipModel.getId())));
-                    }
-                }
-            } else {
-                for (NodeModel nodeModel : graphModel.getNodes()) {
-                    if (nodeModel.getPropertyList().contains(filter) && (mappingContext.get(nodeModel.getId()).getClass().isAssignableFrom(type))) {
-                        objects.add(type.cast(mappingContext.get(nodeModel.getId())));
-                    }
-                }
-            }
-        }*/
     }
 
     @Override

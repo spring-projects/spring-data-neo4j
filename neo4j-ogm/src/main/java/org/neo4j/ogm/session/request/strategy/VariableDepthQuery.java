@@ -86,7 +86,7 @@ public class VariableDepthQuery implements QueryStatements {
         }
         if (max > 0) {
             Map<String,Object> properties = new HashMap<>();
-            StringBuilder query = new StringBuilder(String.format("MATCH (n:`%s`) WHERE ",label));
+            StringBuilder query = new StringBuilder(String.format("MATCH (n:`%s`) WHERE",label));
             for(Parameter parameter : parameters) {
                 if(parameter.getBooleanOperator() != null) {
                     query.append(parameter.getBooleanOperator());
@@ -94,7 +94,7 @@ public class VariableDepthQuery implements QueryStatements {
                 query.append(String.format(" n.`%s` %s { `%s` } ",parameter.getPropertyName(), parameter.getComparisonOperator(), parameter.getPropertyName()));
                 properties.put(parameter.getPropertyName(),parameter.getPropertyValue());
             }
-            query.append(String.format(" WITH n MATCH p=(n)-[*%d..%d]-(m) RETURN collect(distinct p),ID(n)",min,max));
+            query.append(String.format("WITH n MATCH p=(n)-[*%d..%d]-(m) RETURN collect(distinct p),ID(n)",min,max));
             return new GraphRowModelQuery(query.toString(), properties);
         } else {
             return DepthZeroReadStrategy.findByProperties(label, parameters);
@@ -125,7 +125,7 @@ public class VariableDepthQuery implements QueryStatements {
 
         public static GraphRowModelQuery findByProperties(String label, Collection<Parameter> parameters) { //todo test zero depth
             Map<String,Object> properties = new HashMap<>();
-            StringBuilder query = new StringBuilder(String.format("MATCH (n:`%s`) WHERE ",label));
+            StringBuilder query = new StringBuilder(String.format("MATCH (n:`%s`) WHERE",label));
             for(Parameter parameter : parameters) {
                 if(parameter.getBooleanOperator() != null) {
                     query.append(parameter.getBooleanOperator());
@@ -133,7 +133,7 @@ public class VariableDepthQuery implements QueryStatements {
                 query.append(String.format(" n.`%s` %s { `%s` } ",parameter.getPropertyName(), parameter.getComparisonOperator(), parameter.getPropertyName()));
                 properties.put(parameter.getPropertyName(),parameter.getPropertyValue());
             }
-            query.append(" WITH n MATCH p=(n)-[*0..0]-(m) RETURN collect(distinct p),ID(n)");
+            query.append("WITH n MATCH p=(n)-[*0..0]-(m) RETURN collect(distinct p),ID(n)");
             return new GraphRowModelQuery(query.toString(), properties);
         }
 
@@ -155,7 +155,7 @@ public class VariableDepthQuery implements QueryStatements {
 
         public static GraphRowModelQuery findByProperties(String label, Collection<Parameter> parameters) {
             Map<String,Object> properties = new HashMap<>();
-            StringBuilder query = new StringBuilder(String.format("MATCH (n:`%s`) WHERE ",label));
+            StringBuilder query = new StringBuilder(String.format("MATCH (n:`%s`) WHERE",label));
             for(Parameter parameter : parameters) {
                 if(parameter.getBooleanOperator() != null) {
                     query.append(parameter.getBooleanOperator());
@@ -163,7 +163,7 @@ public class VariableDepthQuery implements QueryStatements {
                 query.append(String.format(" n.`%s` %s { `%s` } ",parameter.getPropertyName(), parameter.getComparisonOperator(), parameter.getPropertyName()));
                 properties.put(parameter.getPropertyName(),parameter.getPropertyValue());
             }
-            query.append(" WITH n MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p),ID(n)");
+            query.append("WITH n MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p),ID(n)");
             return new GraphRowModelQuery(query.toString(), properties);
         }
 
