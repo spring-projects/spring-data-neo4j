@@ -22,7 +22,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.*;
 import org.neo4j.ogm.annotation.NodeEntity;
@@ -94,7 +97,6 @@ public class Neo4jTemplateTest {
     }
 
     @Test
-    @Ignore("Defect in Neo4jSession means this doesn't work yet")
     public void shouldSaveAndRetrieveRelationshipEntitiesWithoutExplicitTransactionManagement() {
         User critic = new User("Gary");
         TempMovie film = new TempMovie("Fast and Furious XVII");

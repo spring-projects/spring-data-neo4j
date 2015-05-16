@@ -17,7 +17,8 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.util.Collection;
 
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
@@ -40,11 +41,15 @@ public class MusicIntegrationTest {
 
     private static Session session;
 
-    @BeforeClass
-	public static void init() throws IOException {
+    @Before
+	public void init() throws IOException {
 		session = new SessionFactory("org.neo4j.ogm.domain.music").openSession(neo4jRule.baseNeoUrl());
 	}
 
+	@After
+	public void clear() {
+		session.purgeDatabase();
+	}
 	/**
 	 * @see DATAGRAPH-589
 	 */

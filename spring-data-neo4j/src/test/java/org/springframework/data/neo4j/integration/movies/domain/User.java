@@ -12,19 +12,17 @@
 
 package org.springframework.data.neo4j.integration.movies.domain;
 
-import org.neo4j.ogm.annotation.Relationship;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.neo4j.ogm.annotation.Relationship;
+
 /**
  * @author Michal Bachman
  */
-public class User {
+public class User extends Person{
 
-    private Long id;
-    private String name;
     private String middleName;
     private Collection<Genre> interested = new HashSet<>();
 
@@ -38,7 +36,7 @@ public class User {
     }
 
     public User(String name) {
-        this.name = name;
+        setName(name);
     }
 
     public void interestedIn(Genre genre) {
@@ -60,19 +58,6 @@ public class User {
         movie.addRating(rating);
         ratings.add(rating);
         return rating;
-    }
-
-    //this doesn't need to be part of the domain, but this class is for testing
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public Collection<User> getFriends() {

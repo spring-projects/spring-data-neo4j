@@ -17,6 +17,7 @@ import java.util.Iterator;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -29,15 +30,17 @@ import org.springframework.data.repository.query.parser.PartTree;
 public class DerivedQueryCreator extends AbstractQueryCreator<DerivedQueryDefinition, DerivedQueryBuilder> {
 
 	private final Class entityType;
+	private final Neo4jMappingContext mappingContext;
 
-	public DerivedQueryCreator(PartTree tree, Class entityType) {
+	public DerivedQueryCreator(PartTree tree, Class entityType, Neo4jMappingContext mappingContext) {
 		super(tree);
 		this.entityType = entityType;
+		this.mappingContext = mappingContext;
 	}
 
 	@Override
 	protected DerivedQueryBuilder create(Part part, Iterator<Object> iterator) {
-		DerivedQueryBuilder queryBuilder = new DerivedQueryBuilder(entityType, part);
+		DerivedQueryBuilder queryBuilder = new DerivedQueryBuilder(entityType, part, mappingContext);
 		queryBuilder.addPart(part, BooleanOperator.NONE);
 		return queryBuilder;
 	}

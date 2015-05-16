@@ -14,9 +14,13 @@ package org.springframework.data.neo4j.repository.query.derived;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Parameter;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -26,14 +30,16 @@ import org.springframework.data.repository.query.parser.Part;
  */
 public class CypherFinderQuery implements DerivedQueryDefinition {
 
+	private final Neo4jMappingContext mappingContext;
 	private Class entityType;
 	private Part basePart;
 	private List<Parameter> parameters = new ArrayList<>();
 	private int paramPosition = 0;
 
-	public CypherFinderQuery(Class entityType, Part basePart) {
+	public CypherFinderQuery(Class entityType, Part basePart, Neo4jMappingContext mappingContext) {
 		this.entityType = entityType;
 		this.basePart = basePart;
+		this.mappingContext = mappingContext;
 	}
 
 
@@ -50,14 +56,15 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 	@Override
 	public void addPart(Part part, BooleanOperator booleanOperator) {
 		String property = part.getProperty().getSegment();
-		try { //todo this is crap. Use the classinfo
-			org.neo4j.ogm.annotation.Property propertyAnnotation = entityType.getDeclaredField(property).getAnnotation(org.neo4j.ogm.annotation.Property.class);
+		Neo4jPersistentEntity persistentEntity = mappingContext.getPersistentEntity(entityType);
+		Neo4jPersistentProperty persistentProperty = persistentEntity.getPersistentProperty(property);
+ 		if(persistentProperty.isAnnotationPresent(Property.class)) {
+			Property propertyAnnotation = persistentProperty.findAnnotation(Property.class);
 			if (propertyAnnotation != null && propertyAnnotation.name() != null && propertyAnnotation.name().length() > 0) {
 				property = propertyAnnotation.name();
 			}
-		} catch (NoSuchFieldException e) {
-			throw new RuntimeException("Could not find property " + property + " on class " + entityType.getSimpleName() + ". Check spelling or use @Query.");
 		}
+
 		Parameter parameter = new Parameter();
 		parameter.setPropertyPosition(paramPosition++);
 		parameter.setPropertyName(property);

@@ -19,9 +19,9 @@ import java.util.Map;
 
 import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.session.Session;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.query.GraphQueryMethod;
 import org.springframework.data.repository.core.EntityMetadata;
-import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -41,12 +41,13 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 
 	protected final Session session;
 
-	public DerivedGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, RepositoryMetadata metadata, Session session) {
+
+	public DerivedGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session, Neo4jMappingContext mappingContext) {
 		this.graphQueryMethod = graphQueryMethod;
 		this.session = session;
 		EntityMetadata<?> info = graphQueryMethod.getEntityInformation();
 		PartTree tree = new PartTree(graphQueryMethod.getName(), info.getJavaType());
-		this.queryDefinition = new DerivedQueryCreator(tree, info.getJavaType()).createQuery();
+		this.queryDefinition = new DerivedQueryCreator(tree, info.getJavaType(), mappingContext).createQuery();
 	}
 
 

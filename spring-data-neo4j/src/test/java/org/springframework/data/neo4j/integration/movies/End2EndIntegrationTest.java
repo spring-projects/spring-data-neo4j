@@ -92,7 +92,7 @@ public class End2EndIntegrationTest {
         User user = new User( "Michal" );
         userRepository.save( user );
 
-        assertSameGraph( getDatabase(), "CREATE (u:User {name:'Michal'})" );
+        assertSameGraph( getDatabase(), "CREATE (u:User:Person {name:'Michal'})" );
         assertEquals( 0L, (long) user.getId() );
     }
 
@@ -102,7 +102,7 @@ public class End2EndIntegrationTest {
         User user = new User();
         userRepository.save( user );
 
-        assertSameGraph( getDatabase(), "CREATE (u:User)" );
+        assertSameGraph( getDatabase(), "CREATE (u:User:Person)" );
         assertEquals( 0L, (long) user.getId() );
     }
 
@@ -162,9 +162,9 @@ public class End2EndIntegrationTest {
 
         userRepository.save( set );
 
-        assertSameGraph( getDatabase(), "CREATE (:User {name:'Michal'})," +
-                "(:User {name:'Vince'})," +
-                "(:User {name:'Adam'})" );
+        assertSameGraph( getDatabase(), "CREATE (:User:Person {name:'Michal'})," +
+                "(:User:Person {name:'Vince'})," +
+                "(:User:Person {name:'Adam'})" );
 
         assertEquals( 3, userRepository.count() );
     }
@@ -179,9 +179,9 @@ public class End2EndIntegrationTest {
 
         userRepository.save( list );
 
-        assertSameGraph( getDatabase(), "CREATE (:User {name:'Michal'})," +
-                "(:User {name:'Vince'})," +
-                "(:User {name:'Adam'})" );
+        assertSameGraph( getDatabase(), "CREATE (:User:Person {name:'Michal'})," +
+                "(:User:Person {name:'Vince'})," +
+                "(:User:Person {name:'Adam'})" );
 
         assertEquals( 3, userRepository.count() );
     }
@@ -193,7 +193,7 @@ public class End2EndIntegrationTest {
         user.setName( "Adam" );
         userRepository.save( user );
 
-        assertSameGraph( getDatabase(), "CREATE (u:User {name:'Adam'})" );
+        assertSameGraph( getDatabase(), "CREATE (u:User:Person {name:'Adam'})" );
         assertEquals( 0L, (long) user.getId() );
     }
 
@@ -335,7 +335,7 @@ public class End2EndIntegrationTest {
 
         userRepository.save( user );
 
-        assertSameGraph( getDatabase(), "CREATE (u:User {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'})" );
+        assertSameGraph( getDatabase(), "CREATE (u:User:Person {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'})" );
     }
 
     @Test
@@ -349,7 +349,7 @@ public class End2EndIntegrationTest {
         userRepository.save( user );
 
         assertSameGraph( getDatabase(), "CREATE " +
-                "(u:User {name:'Michal'})," +
+                "(u:User:Person {name:'Michal'})," +
                 "(g1:Genre {name:'Drama'})," +
                 "(g2:Genre {name:'Historical'})," +
                 "(g3:Genre {name:'Thriller'})," +
@@ -366,7 +366,7 @@ public class End2EndIntegrationTest {
 
         userRepository.save( user, 1 );
 
-        assertSameGraph( getDatabase(), "CREATE (u:User {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'})" );
+        assertSameGraph( getDatabase(), "CREATE (u:User:Person {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'})" );
     }
 
     @Test
@@ -384,8 +384,8 @@ public class End2EndIntegrationTest {
         userRepository.save( vince );
 
         assertSameGraph( getDatabase(), "CREATE " +
-                "(m:User {name:'Michal'})," +
-                "(v:User {name:'Vince'})," +
+                "(m:User:Person {name:'Michal'})," +
+                "(v:User:Person {name:'Vince'})," +
                 "(g:Genre {name:'Drama'})," +
                 "(m)-[:INTERESTED]->(g)," +
                 "(v)-[:INTERESTED]->(g)" );
@@ -399,7 +399,7 @@ public class End2EndIntegrationTest {
 
         userRepository.save( user, 0 );
 
-        assertSameGraph( getDatabase(), "CREATE (u:User {name:'Michal'})" );
+        assertSameGraph( getDatabase(), "CREATE (u:User:Person {name:'Michal'})" );
     }
 
     @Test
@@ -416,7 +416,7 @@ public class End2EndIntegrationTest {
         userRepository.save( michal );
 
         assertSameGraph( getDatabase(), "CREATE " +
-                "(m:User {name:'Michal'})," +
+                "(m:User:Person {name:'Michal'})," +
                 "(g:Genre {name:'New Drama'})," +
                 "(m)-[:INTERESTED]->(g)" );
     }
@@ -435,7 +435,7 @@ public class End2EndIntegrationTest {
         userRepository.save( michal );
 
         assertSameGraph( getDatabase(), "CREATE " +
-                "(m:User {name:'Michal'})," +
+                "(m:User:Person {name:'Michal'})," +
                 "(g:Genre {name:'Drama'})" );
     }
 
@@ -451,7 +451,7 @@ public class End2EndIntegrationTest {
         userService.notInterestedIn( michal.getId(), drama.getId() );
 
         assertSameGraph( getDatabase(), "CREATE " +
-                "(m:User {name:'Michal'})," +
+                "(m:User:Person {name:'Michal'})," +
                 "(g:Genre {name:'Drama'})" );
     }
 
@@ -464,7 +464,7 @@ public class End2EndIntegrationTest {
         cinemaRepository.save( cinema );
 
         assertSameGraph( getDatabase(), "CREATE " +
-                "(m:User {name:'Michal'})," +
+                "(m:User:Person {name:'Michal'})," +
                 "(c:Theatre {name:'Odeon', capacity:0})," +
                 "(m)-[:VISITED]->(c)" );
     }
@@ -481,7 +481,7 @@ public class End2EndIntegrationTest {
         cinemaRepository.save( cinema );
 
         assertSameGraph( getDatabase(), "CREATE " +
-                "(m:User {name:'Michal'})," +
+                "(m:User:Person {name:'Michal'})," +
                 "(c:Theatre {name:'Odeon', capacity:0})," +
                 "(m)-[:VISITED]->(c)" );
     }
@@ -495,11 +495,11 @@ public class End2EndIntegrationTest {
 
         try
         {
-            assertSameGraph( getDatabase(), "CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User {name:'Adam'})" );
+            assertSameGraph( getDatabase(), "CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User:Person {name:'Adam'})" );
         }
         catch ( AssertionError error )
         {
-            assertSameGraph( getDatabase(), "CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})" );
+            assertSameGraph( getDatabase(), "CREATE (m:User:Person {name:'Michal'})<-[:FRIEND_OF]-(a:User:Person {name:'Adam'})" );
         }
     }
 
@@ -548,7 +548,7 @@ public class End2EndIntegrationTest {
 
         User michal = ((Iterable<User>)findByProperty(User.class, "name", "Michal" )).iterator().next();
 
-        assertSameGraph(getDatabase(), "CREATE (u:User {name:'Michal'})-[:RATED {stars:5, " +
+        assertSameGraph(getDatabase(), "CREATE (u:User:Person {name:'Michal'})-[:RATED {stars:5, " +
                 "comment:'Best movie ever'}]->(m:Movie {title:'Pulp Fiction'})");
     }
 

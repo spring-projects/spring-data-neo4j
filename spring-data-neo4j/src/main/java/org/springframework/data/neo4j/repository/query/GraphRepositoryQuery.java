@@ -87,7 +87,7 @@ public class GraphRepositoryQuery implements RepositoryQuery {
         return graphQueryMethod;
     }
 
-    protected String getQueryString() { //todo should this be abstract
+    protected String getQueryString() {
         return getQueryMethod().getQuery();
     }
 

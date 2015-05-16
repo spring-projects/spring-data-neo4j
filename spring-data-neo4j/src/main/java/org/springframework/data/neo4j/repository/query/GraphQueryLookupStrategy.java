@@ -15,6 +15,7 @@ package org.springframework.data.neo4j.repository.query;
 import java.lang.reflect.Method;
 
 import org.neo4j.ogm.session.Session;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.EvaluationContextProvider;
@@ -28,14 +29,16 @@ import org.springframework.data.repository.query.RepositoryQuery;
 public class GraphQueryLookupStrategy implements QueryLookupStrategy {
 
     private final Session session;
+    private final Neo4jMappingContext mappingContext;
 
     public GraphQueryLookupStrategy(Session session, QueryLookupStrategy.Key key,
-            EvaluationContextProvider evaluationContextProvider) {
+            EvaluationContextProvider evaluationContextProvider, Neo4jMappingContext mappingContext) {
         this.session = session;
+        this.mappingContext = mappingContext;
     }
 
     @Override
     public RepositoryQuery resolveQuery(Method method, RepositoryMetadata repositoryMetadata, NamedQueries namedQueries) {
-        return new GraphQueryMethod(method, repositoryMetadata, session).createQuery();
+        return new GraphQueryMethod(method, repositoryMetadata, session, mappingContext).createQuery();
     }
 }
