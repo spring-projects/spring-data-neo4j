@@ -51,7 +51,7 @@ public class VariableDepthQueryTest {
 
     @Test
     public void testFindByProperty() throws Exception {
-        assertEquals("MATCH (n:`Asteroid`) WHERE  n.`diameter` = { `diameter` }  WITH n MATCH p=(n)-[*0..4]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Collections.singletonList(new Parameter("diameter", 60.2)), 4).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` = { `diameter` } WITH n MATCH p=(n)-[*0..4]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Collections.singletonList(new Parameter("diameter", 60.2)), 4).getStatement());
     }
 
     @Test
@@ -71,7 +71,7 @@ public class VariableDepthQueryTest {
 
     @Test
     public void testFindByPropertyZeroDepth() throws Exception {
-        assertEquals("MATCH (n:`Asteroid`) WHERE  n.`diameter` = { `diameter` }  WITH n MATCH p=(n)-[*0..0]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Collections.singletonList(new Parameter("diameter", 60.2)), 0).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` = { `diameter` } WITH n MATCH p=(n)-[*0..0]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Collections.singletonList(new Parameter("diameter", 60.2)), 0).getStatement());
     }
 
     /**
@@ -117,7 +117,7 @@ public class VariableDepthQueryTest {
      */
     @Test
     public void testFindByPropertyNegativeDepth() throws Exception {
-        assertEquals("MATCH (n:`Asteroid`) WHERE  n.`diameter` = { `diameter` }  WITH n MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Collections.singletonList(new Parameter("diameter", 60.2)), -1).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` = { `diameter` } WITH n MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Collections.singletonList(new Parameter("diameter", 60.2)), -1).getStatement());
     }
 
     /**
@@ -126,8 +126,31 @@ public class VariableDepthQueryTest {
      */
     @Test
     public void testFindByPropertyWithIllegalCharacters() throws Exception {
-        assertEquals("MATCH (n:`Studio`) WHERE  n.`studio-name` = { `studio-name` }  WITH n MATCH p=(n)-[*0..3]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Studio", Collections.singletonList(new Parameter("studio-name", "Abbey Road Studios")), 3).getStatement());
+        assertEquals("MATCH (n:`Studio`) WHERE n.`studio-name` = { `studio-name` } WITH n MATCH p=(n)-[*0..3]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Studio", Collections.singletonList(new Parameter("studio-name", "Abbey Road Studios")), 3).getStatement());
     }
 
+    @Test
+    public void testFindByPropertyGreaterThan() throws Exception {
+        Parameter parameter = new Parameter("diameter",60);
+        parameter.setComparisonOperator(">");
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` } WITH n MATCH p=(n)-[*0..4]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Collections.singletonList(parameter), 4).getStatement());
+    }
 
+    @Test
+    public void testFindByMultipleAndProperties() {
+        Parameter nameParam = new Parameter("name","AST-1");
+        Parameter diameterParam = new Parameter("diameter", 60);
+        diameterParam.setComparisonOperator("<");
+        diameterParam.setBooleanOperator("AND");
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`name` = { `name` } AND n.`diameter` < { `diameter` } WITH n MATCH p=(n)-[*0..2]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid",Arrays.asList(nameParam, diameterParam),2).getStatement());
+    }
+
+    @Test
+    public void testFindByMultipleOrProperties() {
+        Parameter nameParam = new Parameter("name","AST-1");
+        Parameter diameterParam = new Parameter("diameter", 60);
+        diameterParam.setComparisonOperator(">");
+        diameterParam.setBooleanOperator("OR");
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`name` = { `name` } OR n.`diameter` > { `diameter` } WITH n MATCH p=(n)-[*0..2]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(nameParam, diameterParam), 2).getStatement());
+    }
 }
