@@ -15,6 +15,7 @@ package org.springframework.data.neo4j.repository.query.derived;
 
 import java.util.Iterator;
 
+import org.neo4j.ogm.cypher.BooleanOperator;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
@@ -35,19 +36,19 @@ public class DerivedQueryCreator extends AbstractQueryCreator<DerivedQueryDefini
 	@Override
 	protected DerivedQueryBuilder create(Part part, Iterator<Object> iterator) {
 		DerivedQueryBuilder queryBuilder = new DerivedQueryBuilder(entityType, part);
-		queryBuilder.addPart(part,null);
+		queryBuilder.addPart(part,BooleanOperator.NONE);
 		return queryBuilder;
 	}
 
 	@Override
 	protected DerivedQueryBuilder and(Part part, DerivedQueryBuilder base, Iterator<Object> iterator) {
-		base.addPart(part, "AND"); //todo magic string
+		base.addPart(part, BooleanOperator.AND);
 		return base;
 	}
 
 	@Override
 	protected DerivedQueryBuilder or(DerivedQueryBuilder base, DerivedQueryBuilder criteria) {
-		base.addPart(criteria, "OR"); //TODO magic string
+		base.addPart(criteria, BooleanOperator.OR);
 		return base;
 	}
 

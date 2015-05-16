@@ -18,6 +18,8 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.Test;
+import org.neo4j.ogm.cypher.BooleanOperator;
+import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
 
@@ -132,7 +134,7 @@ public class VariableDepthQueryTest {
     @Test
     public void testFindByPropertyGreaterThan() throws Exception {
         Parameter parameter = new Parameter("diameter",60);
-        parameter.setComparisonOperator(">");
+        parameter.setComparisonOperator(ComparisonOperator.GREATER_THAN);
         assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` } WITH n MATCH p=(n)-[*0..4]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Collections.singletonList(parameter), 4).getStatement());
     }
 
@@ -140,17 +142,17 @@ public class VariableDepthQueryTest {
     public void testFindByMultipleAndProperties() {
         Parameter nameParam = new Parameter("name","AST-1");
         Parameter diameterParam = new Parameter("diameter", 60);
-        diameterParam.setComparisonOperator("<");
-        diameterParam.setBooleanOperator("AND");
-        assertEquals("MATCH (n:`Asteroid`) WHERE n.`name` = { `name` } AND n.`diameter` < { `diameter` } WITH n MATCH p=(n)-[*0..2]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid",Arrays.asList(nameParam, diameterParam),2).getStatement());
+        diameterParam.setComparisonOperator(ComparisonOperator.LESS_THAN);
+        diameterParam.setBooleanOperator(BooleanOperator.AND);
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`name` = { `name` } AND n.`diameter` < { `diameter` } WITH n MATCH p=(n)-[*0..2]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(nameParam, diameterParam), 2).getStatement());
     }
 
     @Test
     public void testFindByMultipleOrProperties() {
         Parameter nameParam = new Parameter("name","AST-1");
         Parameter diameterParam = new Parameter("diameter", 60);
-        diameterParam.setComparisonOperator(">");
-        diameterParam.setBooleanOperator("OR");
+        diameterParam.setComparisonOperator(ComparisonOperator.GREATER_THAN);
+        diameterParam.setBooleanOperator(BooleanOperator.OR);
         assertEquals("MATCH (n:`Asteroid`) WHERE n.`name` = { `name` } OR n.`diameter` > { `diameter` } WITH n MATCH p=(n)-[*0..2]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(nameParam, diameterParam), 2).getStatement());
     }
 }

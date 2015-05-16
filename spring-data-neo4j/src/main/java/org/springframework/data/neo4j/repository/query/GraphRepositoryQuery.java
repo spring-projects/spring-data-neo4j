@@ -40,12 +40,11 @@ public class GraphRepositoryQuery implements RepositoryQuery {
         Class<?> returnType = graphQueryMethod.getMethod().getReturnType();
         Class<?> concreteType = graphQueryMethod.resolveConcreteReturnType();
 
-        Map<String, Object> params = resolveParams(parameters); //todo review this
+        Map<String, Object> params = resolveParams(parameters);
 
         return execute(returnType, concreteType, getQueryString(), params);
     }
 
-    //todo this should be abstract?
     protected Object execute(Class<?> returnType, Class<?> concreteType, String cypherQuery, Map<String, Object> queryParams) {
         if (returnType.equals(Void.class)) {
             session.execute(cypherQuery, queryParams);

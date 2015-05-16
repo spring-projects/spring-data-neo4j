@@ -10,17 +10,23 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
 
-package org.springframework.data.neo4j.repository.query.derived.strategy;
-
-import java.util.List;
-
-import org.neo4j.ogm.cypher.Parameter;
+package org.neo4j.ogm.cypher;
 
 /**
  * @author Luanne Misquitta
  */
-public interface FinderStatements {
+public enum ComparisonOperator {
+	EQUALS("="),
+	GREATER_THAN(">"),
+	LESS_THAN("<");
 
-	String findByProperties(String label, List<Parameter> parameters);
+	private String value;
 
+	ComparisonOperator(String value) {
+		this.value = value;
+	}
+
+	public String getValue() {
+		return value;
+	}
 }

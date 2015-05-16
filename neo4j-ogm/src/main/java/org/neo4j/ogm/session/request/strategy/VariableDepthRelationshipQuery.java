@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.Parameter;
 >>>>>>> DATAGRAPH-629 - Support finders which accept multiple properties or operators other than equals.
 import org.neo4j.ogm.cypher.query.GraphModelQuery;
@@ -28,7 +29,6 @@ import org.neo4j.ogm.session.Utils;
 import java.util.Collection;
 
 /**
- * @author Luanne Misquitta
  * @author Luanne Misquitta
  */
 public class VariableDepthRelationshipQuery implements QueryStatements {
@@ -80,10 +80,10 @@ public class VariableDepthRelationshipQuery implements QueryStatements {
             Map<String,Object> properties = new HashMap<>();
             StringBuilder query = new StringBuilder(String.format("MATCH (n)-[r:`%s`]->() WHERE",type));
             for(Parameter parameter : parameters) {
-                if(parameter.getBooleanOperator() != null) {
-                    query.append(parameter.getBooleanOperator());
+                if(parameter.getBooleanOperator() != BooleanOperator.NONE) {
+                    query.append(parameter.getBooleanOperator().getValue());
                 }
-                query.append(String.format(" r.`%s` %s { `%s` } ",parameter.getPropertyName(), parameter.getComparisonOperator(), parameter.getPropertyName()));
+                query.append(String.format(" r.`%s` %s { `%s` } ",parameter.getPropertyName(), parameter.getComparisonOperator().getValue(), parameter.getPropertyName()));
                 properties.put(parameter.getPropertyName(),parameter.getPropertyValue());
             }
             query.append(String.format("WITH n,r MATCH p=(n)-[*%d..%d]-(m) RETURN collect(distinct p),ID(r)",min,max));

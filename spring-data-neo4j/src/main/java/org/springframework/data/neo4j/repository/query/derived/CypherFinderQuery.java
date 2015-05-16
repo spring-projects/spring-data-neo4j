@@ -14,7 +14,8 @@ package org.springframework.data.neo4j.repository.query.derived;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.cypher.BooleanOperator;
+import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Parameter;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -45,7 +46,7 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 	}
 
 	@Override
-	public void addPart(Part part, String booleanOperator) {
+	public void addPart(Part part, BooleanOperator booleanOperator) {
 		String property = part.getProperty().getSegment();
 		try { //todo this is crap. Use the classinfo
 			org.neo4j.ogm.annotation.Property propertyAnnotation = entityType.getDeclaredField(property).getAnnotation(org.neo4j.ogm.annotation.Property.class);
@@ -58,16 +59,17 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 		Parameter parameter = new Parameter();
 		parameter.setPropertyPosition(paramPosition++);
 		parameter.setPropertyName(property);
-		parameter.setComparisonOperator("="); //todo hardcoded for now
+		parameter.setComparisonOperator(convertToComparisonOperator(part.getType()));
 		parameter.setBooleanOperator(booleanOperator);
 		parameters.add(parameter);
 	}
 
-	private String getLabelOrType(Class entityType) { //todo get rid of this crap and use the metadata
-		NodeEntity annotation = (NodeEntity) entityType.getAnnotation(NodeEntity.class);
-		if (annotation != null && annotation.label() != null && annotation.label().length() > 0) {
-			return annotation.label();
+
+	private ComparisonOperator convertToComparisonOperator(Part.Type type) {
+		switch (type) {
+			case GREATER_THAN: return ComparisonOperator.GREATER_THAN;
+			case LESS_THAN: return ComparisonOperator.LESS_THAN;
+			default: return ComparisonOperator.EQUALS;
 		}
-		return entityType.getSimpleName();
 	}
 }
