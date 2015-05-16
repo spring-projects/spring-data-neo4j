@@ -97,4 +97,30 @@ public class MusicIntegrationTest {
 		assertNotNull(studio);
 
 	}
+
+	@Test
+	public void shouldRetrieveEntityByPropertyWithZeroDepth() {
+		Studio emi = new Studio("EMI Studios, London");
+
+		Artist theBeatles = new Artist("The Beatles");
+		Album please = new Album("Please Please Me");
+		Recording pleaseRecording = new Recording(please, emi, 1963);
+		please.setRecording(pleaseRecording);
+		theBeatles.getAlbums().add(please);
+		please.setArtist(theBeatles);
+		session.save(theBeatles);
+
+		theBeatles = session.loadAll(Artist.class).iterator().next();
+		assertEquals("The Beatles", theBeatles.getName());
+		assertEquals(1, theBeatles.getAlbums().size());
+		assertEquals("Please Please Me", theBeatles.getAlbums().iterator().next().getName());
+		assertEquals("EMI Studios, London", theBeatles.getAlbums().iterator().next().getRecording().getStudio().getName());
+
+		session.clear();
+
+		please = session.loadByProperty(Album.class, new Parameter("name", "Please Please Me"),0).iterator().next();
+		assertEquals("Please Please Me",please.getName());
+		assertNull(please.getArtist());
+		assertNull(please.getRecording());
+	}
 }

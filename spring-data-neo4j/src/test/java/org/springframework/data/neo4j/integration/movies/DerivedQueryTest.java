@@ -176,4 +176,29 @@ public class DerivedQueryTest {
 		assertEquals("The rated film wasn't saved correctly", film.getTitle(), loadedRating.getMovie().getTitle());
 		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
 	}
+
+	@Test
+	public void shouldFindNodeEntititiesWithComparisonOperators() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500})" +
+				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
+
+		List<Cinema> theatres = cinemaRepository.findByCapacityGreaterThan(3000);
+		assertEquals(2, theatres.size());
+		assertTrue(theatres.contains(new Cinema("Picturehouse")));
+		assertTrue(theatres.contains(new Cinema("Ritzy")));
+
+		theatres = cinemaRepository.findByCapacityGreaterThan(6000);
+		assertEquals(1, theatres.size());
+		assertEquals("Ritzy", theatres.get(0).getName());
+
+		theatres = cinemaRepository.findByCapacityLessThan(8000);
+		assertEquals(2, theatres.size());
+		assertTrue(theatres.contains(new Cinema("Picturehouse")));
+		assertTrue(theatres.contains(new Cinema("Ritzy")));
+
+		theatres = cinemaRepository.findByCapacityLessThan(7000);
+		assertEquals(1, theatres.size());
+		assertEquals("Picturehouse", theatres.get(0).getName());
+
+	}
 }

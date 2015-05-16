@@ -14,6 +14,7 @@ package org.springframework.data.neo4j.repository.query.derived;
 
 import java.util.List;
 
+import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.Parameter;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -22,7 +23,7 @@ import org.springframework.data.repository.query.parser.Part;
  */
 public interface DerivedQueryDefinition {
 
-	void addPart(Part part, String booleanOperator);
+	void addPart(Part part, BooleanOperator booleanOperator);
 
 	Part getBasePart();
 

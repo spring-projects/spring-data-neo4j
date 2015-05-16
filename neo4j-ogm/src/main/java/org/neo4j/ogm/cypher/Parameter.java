@@ -20,8 +20,8 @@ public class Parameter {
 	private String propertyName;
 	private Object propertyValue;
 	private Integer propertyPosition;
-	private String comparisonOperator = "="; //TODO fix datatype
-	private String booleanOperator = null; //TODO fix datatype
+	private ComparisonOperator comparisonOperator = ComparisonOperator.EQUALS;
+	private BooleanOperator booleanOperator = BooleanOperator.NONE;
 
 	public Parameter() {
 	}
@@ -55,19 +55,19 @@ public class Parameter {
 		this.propertyPosition = propertyPosition;
 	}
 
-	public String getComparisonOperator() {
+	public ComparisonOperator getComparisonOperator() {
 		return comparisonOperator;
 	}
 
-	public void setComparisonOperator(String comparisonOperator) {
+	public void setComparisonOperator(ComparisonOperator comparisonOperator) {
 		this.comparisonOperator = comparisonOperator;
 	}
 
-	public String getBooleanOperator() {
+	public BooleanOperator getBooleanOperator() {
 		return booleanOperator;
 	}
 
-	public void setBooleanOperator(String booleanOperator) {
+	public void setBooleanOperator(BooleanOperator booleanOperator) {
 		this.booleanOperator = booleanOperator;
 	}
 }

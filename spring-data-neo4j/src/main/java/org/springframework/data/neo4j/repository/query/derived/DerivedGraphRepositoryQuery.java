@@ -47,49 +47,26 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		this.queryDefinition = new DerivedQueryCreator(tree, info.getJavaType()).createQuery();
 	}
 
-	protected Object execute(Class<?> returnType, Class<?> concreteType, String cypherQuery, Map<String, Object> queryParams) {
-		if (returnType.equals(Void.class)) { //TODO this returns statistics now, what do we do with it?
-			session.execute(cypherQuery, queryParams);
-			return null;
-		}
-
-		if (Iterable.class.isAssignableFrom(returnType)) {
-			// Special method to handle SDN Iterable<Map<String, Object>> behaviour.
-			// TODO: Do we really want this method in an OGM? It's a little too low level and/or doesn't really fit.
-			if (Map.class.isAssignableFrom(concreteType)) {
-				return session.query(cypherQuery, queryParams);
-			}
-			return session.query(concreteType, cypherQuery, queryParams);
-		}
-
-		return session.queryForObject(returnType, cypherQuery, queryParams);
-	}
 
 	@Override
 	public Object execute(Object[] parameters) {
 		Class<?> returnType = graphQueryMethod.getMethod().getReturnType();
 		Class<?> concreteType = graphQueryMethod.resolveConcreteReturnType();
 
-		List<Parameter> params = resolveParams(parameters); //todo review this
+		List<Parameter> params = resolveParams(parameters);
 		if (returnType.equals(Void.class)) {
 			throw new RuntimeException("Derived Queries must have a return type");
 		}
 
 		if (Iterable.class.isAssignableFrom(returnType)) {
-			/*// Special method to handle SDN Iterable<Map<String, Object>> behaviour.
-			// TODO: Do we really want this method in an OGM? It's a little too low level and/or doesn't really fit.
-			if (Map.class.isAssignableFrom(concreteType)) {
-				return session.query(cypherQuery, queryParams);
-			}*/
 			return session.loadByProperties(concreteType, params);
 		}
 
-		Iterator objectIterator = session.loadByProperties(returnType, params).iterator(); //todo test for empty resultset
+		Iterator objectIterator = session.loadByProperties(returnType, params).iterator();
 		if(objectIterator.hasNext()) {
 			return objectIterator.next();
 		}
 		return null;
-		//return execute(returnType, concreteType, getQueryString(), params);
 	}
 
 	private List<Parameter> resolveParams(Object[] parameters) {

@@ -465,7 +465,7 @@ public class End2EndIntegrationTest {
 
         assertSameGraph( getDatabase(), "CREATE " +
                 "(m:User {name:'Michal'})," +
-                "(c:Theatre {name:'Odeon'})," +
+                "(c:Theatre {name:'Odeon', capacity:0})," +
                 "(m)-[:VISITED]->(c)" );
     }
 
@@ -482,7 +482,7 @@ public class End2EndIntegrationTest {
 
         assertSameGraph( getDatabase(), "CREATE " +
                 "(m:User {name:'Michal'})," +
-                "(c:Theatre {name:'Odeon'})," +
+                "(c:Theatre {name:'Odeon', capacity:0})," +
                 "(m)-[:VISITED]->(c)" );
     }
 

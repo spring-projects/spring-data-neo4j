@@ -12,6 +12,7 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
+import org.neo4j.ogm.cypher.BooleanOperator;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -25,11 +26,11 @@ public class DerivedQueryBuilder {
 		query = new CypherFinderQuery(entityType, basePart);
 	}
 
-	public void addPart(Part part, String booleanOperator) {
+	public void addPart(Part part, BooleanOperator booleanOperator) {
 		query.addPart(part, booleanOperator);
 	}
 
-	public void addPart(DerivedQueryBuilder fromBuilder, String booleanOperator) {
+	public void addPart(DerivedQueryBuilder fromBuilder, BooleanOperator booleanOperator) {
 		query.addPart(fromBuilder.query.getBasePart(),booleanOperator);
 	}
 
