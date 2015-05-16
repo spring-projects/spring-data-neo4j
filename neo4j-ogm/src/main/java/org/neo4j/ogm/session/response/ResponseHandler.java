@@ -22,6 +22,7 @@ import org.neo4j.ogm.session.result.GraphRowModel;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public interface ResponseHandler {
 

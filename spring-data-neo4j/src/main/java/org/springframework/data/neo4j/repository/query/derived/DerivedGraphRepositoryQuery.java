@@ -28,6 +28,8 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.PartTree;
 
 /**
+ * Specialisation of {@link RepositoryQuery} that handles mapping of derived finders.
+ *
  * @author Mark Angrish
  * @author Luanne Misquitta
  */
@@ -69,8 +71,12 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		return null;
 	}
 
+	/**
+	 * Sets values from  parameters supplied by the finder on {@link Parameter} built by the {@link GraphQueryMethod}
+	 * @param parameters parameter values supplied by the finder method
+	 * @return List of Parameter with values set
+	 */
 	private List<Parameter> resolveParams(Object[] parameters) {
-		//Create a map of the parameter position -> parameter value
 		Map<Integer, Object> params = new HashMap<>();
 		Parameters<?, ?> methodParameters = graphQueryMethod.getParameters();
 

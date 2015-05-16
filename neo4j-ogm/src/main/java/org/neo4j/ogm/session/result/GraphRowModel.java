@@ -18,7 +18,9 @@ import java.util.List;
 import org.neo4j.ogm.model.GraphModel;
 
 /**
- * Created by luanne on 15/05/15.
+ * The results of a query which returns both graph and row data.
+ *
+ * @author Luanne Misquitta
  */
 public class GraphRowModel {
 

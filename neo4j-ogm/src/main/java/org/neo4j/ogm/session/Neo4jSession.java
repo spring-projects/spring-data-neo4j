@@ -170,12 +170,12 @@ public class Neo4jSession implements Session {
     }
 
     @Override
-    public <T> Collection<T> loadByProperties(Class<T> type, Collection<Parameter> properties) {
+    public <T> Collection<T> loadByProperties(Class<T> type, List<Parameter> properties) {
         return loadByProperties(type, properties, 1);
     }
 
     @Override
-    public <T> Collection<T> loadByProperties(Class<T> type, Collection<Parameter> properties, int depth) {
+    public <T> Collection<T> loadByProperties(Class<T> type, List<Parameter> properties, int depth) {
         ClassInfo classInfo = metaData.classInfo(type.getName());
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);

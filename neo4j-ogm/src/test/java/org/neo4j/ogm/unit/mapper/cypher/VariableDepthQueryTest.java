@@ -131,6 +131,10 @@ public class VariableDepthQueryTest {
         assertEquals("MATCH (n:`Studio`) WHERE n.`studio-name` = { `studio-name` } WITH n MATCH p=(n)-[*0..3]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Studio", Collections.singletonList(new Parameter("studio-name", "Abbey Road Studios")), 3).getStatement());
     }
 
+    /**
+     * @see DATAGRAPH-629
+     * @throws Exception
+     */
     @Test
     public void testFindByPropertyGreaterThan() throws Exception {
         Parameter parameter = new Parameter("diameter",60);
@@ -138,6 +142,9 @@ public class VariableDepthQueryTest {
         assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` } WITH n MATCH p=(n)-[*0..4]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Collections.singletonList(parameter), 4).getStatement());
     }
 
+    /**
+     * @see DATAGRAPH-629
+     */
     @Test
     public void testFindByMultipleAndProperties() {
         Parameter nameParam = new Parameter("name","AST-1");
@@ -147,6 +154,9 @@ public class VariableDepthQueryTest {
         assertEquals("MATCH (n:`Asteroid`) WHERE n.`name` = { `name` } AND n.`diameter` < { `diameter` } WITH n MATCH p=(n)-[*0..2]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(nameParam, diameterParam), 2).getStatement());
     }
 
+    /**
+     * @see DATAGRAPH-629
+     */
     @Test
     public void testFindByMultipleOrProperties() {
         Parameter nameParam = new Parameter("name","AST-1");

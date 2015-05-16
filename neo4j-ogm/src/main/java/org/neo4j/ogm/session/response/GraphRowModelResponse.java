@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * The {@link Neo4jResponse} that contains data in both graph and row formats.
+ *
  * @author Luanne Misquitta
  */
 public class GraphRowModelResponse implements Neo4jResponse<GraphRowModel> {
@@ -37,7 +39,8 @@ public class GraphRowModelResponse implements Neo4jResponse<GraphRowModel> {
 		try {
 			initialiseScan("results");
 		} catch (Exception e) {
-			//throw new ResultProcessingException("Could not initialise response", e);
+			//Ignore this exception since we're reading the JSON manually in next()
+			//TODO look into enhancing the JSONResponse parsing
 		}
 	}
 
@@ -45,16 +48,13 @@ public class GraphRowModelResponse implements Neo4jResponse<GraphRowModel> {
 	public GraphRowModel next() {
 		String json = response.next();
 		if (json != null) {
-			/*if (json.startsWith("{\"null")) {
-				json = json.substring(6);
-			}*/
 			try {
 				GraphRowModel graphRowModel = new GraphRowModel();
-				JSONObject outerObject = getOuterObject(json);
-				JSONArray innerObject = outerObject.getJSONArray("results").getJSONObject(0).getJSONArray("data");
-				for (int i=0; i< innerObject.length(); i++) {
-					String graphJson = innerObject.getJSONObject(i).getString("graph");
-					String rowJson = innerObject.getJSONObject(i).getString("row");
+				JSONObject jsonObject = getOuterObject(json);
+				JSONArray dataObject = jsonObject.getJSONArray("results").getJSONObject(0).getJSONArray("data");
+				for (int i = 0; i < dataObject.length(); i++) {
+					String graphJson = dataObject.getJSONObject(i).getString("graph");
+					String rowJson = dataObject.getJSONObject(i).getString("row");
 					GraphModel graphModel = objectMapper.readValue(graphJson, GraphModel.class);
 					Object[] rows = objectMapper.readValue(rowJson, Object[].class);
 					graphRowModel.addGraphRowResult(graphModel, rows);
@@ -92,10 +92,9 @@ public class GraphRowModelResponse implements Neo4jResponse<GraphRowModel> {
 	private JSONObject getOuterObject(String json) throws JSONException {
 		JSONObject outerObject;
 		try {
-			 outerObject = new JSONObject(json);
-
+			outerObject = new JSONObject(json);
 		} catch (JSONException e) {
-			outerObject = new JSONObject(json + "]}");
+			outerObject = new JSONObject(json + "]}"); //TODO enhance the JSONParser to not strip off these 2 characters
 		}
 		return outerObject;
 	}

@@ -53,7 +53,7 @@ public class SessionResponseHandler implements ResponseHandler {
             //Load the GraphModel into the ogm
             GraphEntityMapper ogm = new GraphEntityMapper(metaData, mappingContext);
             ogm.map(type, graphRowResult.getGraph());
-            //Extract the id's of filtered nodes from the rowData
+            //Extract the id's of filtered nodes from the rowData and return them
             Object[] rowData = graphRowResult.getRow();
             for (Object data : rowData) {
                 if (data instanceof Number) {

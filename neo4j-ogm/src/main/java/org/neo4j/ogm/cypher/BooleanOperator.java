@@ -13,6 +13,7 @@
 package org.neo4j.ogm.cypher;
 
 /**
+ * Boolean operators used in queries.
  * @author Luanne Misquitta
  */
 public enum BooleanOperator {

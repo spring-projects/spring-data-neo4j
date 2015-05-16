@@ -23,6 +23,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
 
 /**
  * @author Mark Angrish
+ * @author Luanne Misquitta
  */
 public class GraphQueryLookupStrategy implements QueryLookupStrategy {
 
