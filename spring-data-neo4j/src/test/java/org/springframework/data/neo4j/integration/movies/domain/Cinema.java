@@ -35,11 +35,18 @@ public class Cinema {
     @Relationship(direction = Relationship.INCOMING)
     private Set<User> visited = new HashSet<>();
 
+    private int capacity;
+
     public Cinema() {
     }
 
     public Cinema(String name) {
         this.name = name;
+    }
+
+    public Cinema(String name, int capacity) {
+        this.name = name;
+        this.capacity = capacity;
     }
 
     public void addVisitor(User user) {
@@ -52,6 +59,18 @@ public class Cinema {
 
     public String getLocation() {
         return location;
+    }
+
+    public Set<User> getVisited() {
+        return visited;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
     }
 
     @Override

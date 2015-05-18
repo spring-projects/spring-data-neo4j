@@ -20,9 +20,13 @@ import java.util.regex.Pattern;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.neo4j.ogm.annotation.Property;
+import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.RelationshipEntity;
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.cypher.compiler.CypherContext;
 import org.neo4j.ogm.cypher.query.GraphModelQuery;
+import org.neo4j.ogm.cypher.query.GraphRowModelQuery;
 import org.neo4j.ogm.cypher.query.RowModelQuery;
 import org.neo4j.ogm.cypher.query.RowModelQueryWithStatistics;
 import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
@@ -30,10 +34,11 @@ import org.neo4j.ogm.entityaccess.FieldWriter;
 import org.neo4j.ogm.mapper.EntityGraphMapper;
 import org.neo4j.ogm.mapper.MappingContext;
 import org.neo4j.ogm.metadata.MetaData;
+import org.neo4j.ogm.metadata.RelationshipUtils;
 import org.neo4j.ogm.metadata.info.AnnotationInfo;
 import org.neo4j.ogm.metadata.info.ClassInfo;
+import org.neo4j.ogm.metadata.info.FieldInfo;
 import org.neo4j.ogm.model.GraphModel;
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.request.DefaultRequest;
 import org.neo4j.ogm.session.request.Neo4jRequest;
 import org.neo4j.ogm.session.request.RequestHandler;
@@ -42,6 +47,7 @@ import org.neo4j.ogm.session.request.strategy.*;
 import org.neo4j.ogm.session.response.Neo4jResponse;
 import org.neo4j.ogm.session.response.ResponseHandler;
 import org.neo4j.ogm.session.response.SessionResponseHandler;
+import org.neo4j.ogm.session.result.GraphRowModel;
 import org.neo4j.ogm.session.result.QueryStatistics;
 import org.neo4j.ogm.session.result.RowModel;
 import org.neo4j.ogm.session.transaction.SimpleTransaction;
@@ -98,7 +104,7 @@ public class Neo4jSession implements Session {
     public <T> T load(Class<T> type, Long id, int depth) {
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        GraphModelQuery qry = queryStatements.findOne(id,depth);
+        GraphModelQuery qry = queryStatements.findOne(id, depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
             return getResponseHandler().loadById(type, response, id);
         }
@@ -158,18 +164,31 @@ public class Neo4jSession implements Session {
     }
 
     @Override
-    public <T> Collection<T> loadByProperty(Class<T> type, Property<String, Object> property) {
-        return loadByProperty(type, property, 1);
+    public <T> Collection<T> loadByProperty(Class<T> type, Parameter property) {
+        return loadByProperties(type, Collections.singletonList(property));
     }
 
     @Override
-    public <T> Collection<T> loadByProperty(Class<T> type, Property<String, Object> property, int depth) {
+    public <T> Collection<T> loadByProperty(Class<T> type, Parameter property, int depth) {
+       return loadByProperties(type, Collections.singletonList(property), depth);
+    }
+
+    @Override
+    public <T> Collection<T> loadByProperties(Class<T> type, List<Parameter> properties) {
+        return loadByProperties(type, properties, 1);
+    }
+
+    @Override
+    public <T> Collection<T> loadByProperties(Class<T> type, List<Parameter> properties, int depth) {
         ClassInfo classInfo = metaData.classInfo(type.getName());
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        GraphModelQuery qry = queryStatements.findByProperty(getEntityType(classInfo), property, depth);
-        try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
-            return getResponseHandler().loadByProperty(type, response, property);
+        GraphRowModelQuery qry = queryStatements.findByProperties(getEntityType(classInfo), resolvePropertyAnnotations(type, properties), depth);
+
+
+
+        try (Neo4jResponse<GraphRowModel> response = getRequestHandler().execute(qry, url)) {
+            return getResponseHandler().loadByProperty(type, response);
         }
     }
 
@@ -233,8 +252,7 @@ public class Neo4jSession implements Session {
             try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
                 return getResponseHandler().loadAll(type, response);
             }
-        }
-        else {
+        } else {
             RowModelQuery qry = new RowModelQuery(cypher, parameters);
             try (Neo4jResponse<RowModel> response = getRequestHandler().execute(qry, url)) {
 
@@ -465,6 +483,49 @@ public class Neo4jSession implements Session {
                return annotation.get(RelationshipEntity.TYPE, classInfo.name());
         }
         return classInfo.label();
+    }
+
+    private List<Parameter> resolvePropertyAnnotations(Class entityType, List<Parameter> parameters) {
+        for(Parameter parameter : parameters) {
+            if(parameter.getOwnerEntityType() == null) {
+                parameter.setOwnerEntityType(entityType);
+            }
+            parameter.setPropertyName(resolvePropertyName(parameter.getOwnerEntityType(), parameter.getPropertyName()));
+            if(parameter.isNested()) {
+                resolveRelationshipType(parameter);
+                ClassInfo nestedClassInfo = metaData.classInfo(parameter.getNestedPropertyType().getName());
+                parameter.setNestedEntityTypeLabel(getEntityType(nestedClassInfo));
+            }
+        }
+        return parameters;
+    }
+
+    private String resolvePropertyName(Class entityType, String propertyName) {
+        ClassInfo classInfo = metaData.classInfo(entityType.getName());
+        FieldInfo fieldInfo = classInfo.propertyFieldByName(propertyName);
+        if (fieldInfo != null && fieldInfo.getAnnotations() != null) {
+            AnnotationInfo annotation = fieldInfo.getAnnotations().get(Property.CLASS);
+            if (annotation != null) {
+                return annotation.get(Property.NAME, propertyName);
+            }
+        }
+        return propertyName;
+    }
+
+    private void resolveRelationshipType(Parameter parameter) {
+        ClassInfo classInfo = metaData.classInfo(parameter.getOwnerEntityType().getName());
+        FieldInfo fieldInfo = classInfo.relationshipFieldByName(parameter.getNestedPropertyName());
+
+        String defaultRelationshipType = RelationshipUtils.inferRelationshipType(parameter.getNestedPropertyName());
+        parameter.setRelationshipType(defaultRelationshipType);
+        parameter.setRelationshipDirection(Relationship.UNDIRECTED);
+        if(fieldInfo.getAnnotations() != null) {
+            AnnotationInfo annotation = fieldInfo.getAnnotations().get(Relationship.CLASS);
+            if(annotation != null) {
+                parameter.setRelationshipType(annotation.get(Relationship.TYPE, defaultRelationshipType));
+                parameter.setRelationshipDirection(annotation.get(Relationship.DIRECTION, Relationship.UNDIRECTED));
+            }
+        }
     }
 
     private void assertNothingReturned(String cypher) {

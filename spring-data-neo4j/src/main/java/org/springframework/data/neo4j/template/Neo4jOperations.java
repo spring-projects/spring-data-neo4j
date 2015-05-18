@@ -13,8 +13,10 @@
 package org.springframework.data.neo4j.template;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.session.result.QueryStatistics;
 import org.springframework.stereotype.Repository;
 
@@ -103,6 +105,30 @@ public interface Neo4jOperations {
      *         there aren't any matches, never <code>null</code>
      */
     <T> Collection<T> loadAllByProperty(Class<T> type, String propertyName, Object propertyValue);
+
+    /**
+     * Retrieves the entity of the specified type that contains properties matching the ones supplied with given name and value.
+     * This method assumes that the requested property/value combinations will be unique for all entities of this type in
+     * the database and will throw an exception unless exactly one result is found.  If several entities are expected to
+     * be returned then use {@link #loadAllByProperty(Class, String, Object)} instead.
+     *
+     * @param type          The type of entity to load
+     * @param parameters    The parameters to filter by
+     * @return The instance of T corresponding to the entity that matches the given properties, never <code>null</code>
+     * @throws NotFoundException     if there are no matching entities
+     * @throws IllegalStateException if there's more than one matching entity
+     */
+    <T> T loadByProperties(Class<T> type, List<Parameter> parameters);
+
+    /**
+     * Retrieves all the entities of the specified type that contain a properties matching the ones supplied with given name and value.
+     *
+     * @param type          The type of entity to load
+     * @param parameters    The parameters to filter by
+     * @return A {@link Collection} containing all the entities that match the given properties or an empty {@link Collection} if
+     *         there aren't any matches, never <code>null</code>
+     */
+    <T> Collection<T> loadAllByProperties(Class<T> type, List<Parameter> parameters);
 
     /**
      * Saves the specified entity in the graph database.  If the entity is currently transient then the persistent version of

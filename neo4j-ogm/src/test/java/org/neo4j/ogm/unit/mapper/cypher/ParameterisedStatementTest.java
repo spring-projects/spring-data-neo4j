@@ -15,12 +15,13 @@ package org.neo4j.ogm.unit.mapper.cypher;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.request.strategy.DeleteNodeStatements;
 import org.neo4j.ogm.session.request.strategy.DeleteRelationshipStatements;
 import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
@@ -76,36 +77,36 @@ public class ParameterisedStatementTest {
 
     @Test
     public void findByPropertyStringValue() throws Exception {
-        statement = new VariableDepthQuery().findByProperty("Asteroid", new Property<String, Object>("ref", "45 Eugenia"), 1);
-        assertEquals("MATCH p=(n:`Asteroid`)-[*0..1]-(m) WHERE n.`ref` = { `ref` } RETURN collect(distinct p)", statement.getStatement());
+        statement = new VariableDepthQuery().findByProperties("Asteroid", Collections.singletonList(new Parameter("ref", "45 Eugenia")), 1);
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`ref` = { `ref` } WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)", statement.getStatement());
         assertEquals("{\"ref\":\"45 Eugenia\"}", mapper.writeValueAsString(statement.getParameters()));
     }
 
     @Test
     public void findByPropertyIntegralValue() throws Exception {
-        statement =  new VariableDepthQuery().findByProperty("Asteroid", new Property<String, Object>("index", 77), 1);
-        assertEquals("MATCH p=(n:`Asteroid`)-[*0..1]-(m) WHERE n.`index` = { `index` } RETURN collect(distinct p)",statement.getStatement());
+        statement =  new VariableDepthQuery().findByProperties("Asteroid", Collections.singletonList(new Parameter("index", 77)), 1);
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`index` = { `index` } WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)",statement.getStatement());
         assertEquals("{\"index\":77}", mapper.writeValueAsString(statement.getParameters()));
     }
 
     @Test
     public void findByPropertyStandardForm() throws Exception {
-        statement = new VariableDepthQuery().findByProperty("Asteroid", new Property<String, Object>("diameter", 6.02E1), 1);
-        assertEquals("MATCH p=(n:`Asteroid`)-[*0..1]-(m) WHERE n.`diameter` = { `diameter` } RETURN collect(distinct p)", statement.getStatement());
+        statement = new VariableDepthQuery().findByProperties("Asteroid", Collections.singletonList(new Parameter("diameter", 6.02E1)), 1);
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` = { `diameter` } WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)", statement.getStatement());
         assertEquals("{\"diameter\":60.2}", mapper.writeValueAsString(statement.getParameters()));
     }
 
     @Test
     public void findByPropertyDecimal() throws Exception {
-        statement = new VariableDepthQuery().findByProperty("Asteroid", new Property<String, Object>("diameter", 60.2), 1);
-        assertEquals("MATCH p=(n:`Asteroid`)-[*0..1]-(m) WHERE n.`diameter` = { `diameter` } RETURN collect(distinct p)", statement.getStatement());
+        statement = new VariableDepthQuery().findByProperties("Asteroid", Collections.singletonList(new Parameter("diameter", 60.2)), 1);
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` = { `diameter` } WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)", statement.getStatement());
         assertEquals("{\"diameter\":60.2}", mapper.writeValueAsString(statement.getParameters()));
     }
 
     @Test
     public void findByPropertyEmbeddedDelimiter() throws Exception {
-        statement = new VariableDepthQuery().findByProperty("Cookbooks", new Property<String, Object>("title", "Mrs Beeton's Household Recipes"), 1);
-        assertEquals("MATCH p=(n:`Cookbooks`)-[*0..1]-(m) WHERE n.`title` = { `title` } RETURN collect(distinct p)", statement.getStatement());
+        statement = new VariableDepthQuery().findByProperties("Cookbooks", Collections.singletonList(new Parameter("title", "Mrs Beeton's Household Recipes")), 1);
+        assertEquals("MATCH (n:`Cookbooks`) WHERE n.`title` = { `title` } WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)", statement.getStatement());
         assertEquals("{\"title\":\"Mrs Beeton's Household Recipes\"}", mapper.writeValueAsString(statement.getParameters()));
     }
 
@@ -175,8 +176,8 @@ public class ParameterisedStatementTest {
      */
     @Test
     public void testFindByPropertyWithIllegalCharacter() throws Exception {
-        statement = new VariableDepthRelationshipQuery().findByProperty("HAS-ALBUM", new Property<String, Object>("fake-property","none"),1);
-        assertEquals("MATCH (n)-[r:`HAS-ALBUM`]->() WHERE r.`fake-property` = { `fake-property` } WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p)", statement.getStatement());
+        statement = new VariableDepthRelationshipQuery().findByProperties("HAS-ALBUM", Collections.singletonList(new Parameter("fake-property", "none")), 1);
+        assertEquals("MATCH (n)-[r:`HAS-ALBUM`]->() WHERE r.`fake-property` = { `fake-property` } WITH n,r MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(r)", statement.getStatement());
         assertEquals("{\"fake-property\":\"none\"}", mapper.writeValueAsString(statement.getParameters()));
 
     }

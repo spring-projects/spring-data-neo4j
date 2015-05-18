@@ -12,10 +12,6 @@
 
 package org.neo4j.ogm.metadata.info;
 
-import org.neo4j.ogm.annotation.*;
-import org.neo4j.ogm.metadata.ClassUtils;
-import org.neo4j.ogm.metadata.MappingException;
-
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -23,6 +19,10 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+
+import org.neo4j.ogm.annotation.*;
+import org.neo4j.ogm.metadata.ClassUtils;
+import org.neo4j.ogm.metadata.MappingException;
 
 /**
  * Maintains object to graph mapping details at the class (type) level
@@ -42,6 +42,7 @@ import java.util.*;
  * through the ClassInfo hierarchy to recover label information.
  *
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class ClassInfo {
 
@@ -299,7 +300,7 @@ public class ClassInfo {
     }
 
     /**
-     * Finds the property field with a specific name from the ClassInfo's property fields
+     * Finds the property field with a specific property name from the ClassInfo's property fields
      *
      * @param propertyName the propertyName of the field to find
      * @return A FieldInfo object describing the required property field, or null if it doesn't exist.
@@ -307,6 +308,21 @@ public class ClassInfo {
     public FieldInfo propertyField(String propertyName) {
         for (FieldInfo fieldInfo : propertyFields()) {
             if (fieldInfo.property().equalsIgnoreCase(propertyName)) {
+                return fieldInfo;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Finds the property field with a specific field name from the ClassInfo's property fields
+     *
+     * @param propertyName the propertyName of the field to find
+     * @return A FieldInfo object describing the required property field, or null if it doesn't exist.
+     */
+    public FieldInfo propertyFieldByName(String propertyName) {
+        for (FieldInfo fieldInfo : propertyFields()) {
+            if (fieldInfo.getName().equalsIgnoreCase(propertyName)) {
                 return fieldInfo;
             }
         }
@@ -346,6 +362,21 @@ public class ClassInfo {
     public FieldInfo relationshipField(String relationshipName) {
         for (FieldInfo fieldInfo : relationshipFields()) {
             if (fieldInfo.relationship().equalsIgnoreCase(relationshipName)) {
+                return fieldInfo;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Finds the relationship field with a specific property name from the ClassInfo's relationship fields
+     *
+     * @param fieldName the name of the field
+     * @return A FieldInfo object describing the required relationship field, or null if it doesn't exist.
+     */
+    public FieldInfo relationshipFieldByName(String fieldName) {
+        for (FieldInfo fieldInfo : relationshipFields()) {
+            if (fieldInfo.getName().equalsIgnoreCase(fieldName)) {
                 return fieldInfo;
             }
         }
