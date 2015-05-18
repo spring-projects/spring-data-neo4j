@@ -53,13 +53,21 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 	@Override
 	public void addPart(Part part, BooleanOperator booleanOperator) {
 		String property = part.getProperty().getSegment();
-
 		Parameter parameter = new Parameter();
 		parameter.setPropertyPosition(paramPosition++);
 		parameter.setPropertyName(property);
+		parameter.setOwnerEntityType(entityType);
 		parameter.setComparisonOperator(convertToComparisonOperator(part.getType()));
 		parameter.setBooleanOperator(booleanOperator);
+
+		if (part.getProperty().next() != null) {
+			parameter.setOwnerEntityType(part.getProperty().getOwningType().getType());
+			parameter.setNestedPropertyType(part.getProperty().getType());
+			parameter.setPropertyName(part.getProperty().getLeafProperty().getSegment());
+			parameter.setNestedPropertyName(part.getProperty().getSegment());
+		}
 		parameters.add(parameter);
+
 	}
 
 

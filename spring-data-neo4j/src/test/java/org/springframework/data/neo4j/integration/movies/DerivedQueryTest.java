@@ -216,4 +216,30 @@ public class DerivedQueryTest {
 		assertEquals("Picturehouse", theatres.get(0).getName());
 
 	}
+
+	/**
+	 * @see DATAGRAPH-629
+	 */
+	@Test
+	public void shouldFindNodeEntititiesWithNestedProperty() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500})" +
+				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
+
+		List<Cinema> theatres = cinemaRepository.findByVisitedName("Michal");
+		assertEquals(1, theatres.size());
+		assertTrue(theatres.contains(new Cinema("Ritzy")));
+	}
+
+	/**
+	 * @see DATAGRAPH-629
+	 */
+	@Test
+	public void shouldFindNodeEntititiesWithBaseAndNestedProperty() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 5000})" +
+				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(m)");
+
+		List<Cinema> theatres = cinemaRepository.findByLocationAndVisitedName("London", "Michal");
+		assertEquals(1, theatres.size());
+		assertTrue(theatres.contains(new Cinema("Ritzy")));
+	}
 }

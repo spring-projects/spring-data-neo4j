@@ -42,6 +42,7 @@ import org.neo4j.ogm.metadata.MappingException;
  * through the ClassInfo hierarchy to recover label information.
  *
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class ClassInfo {
 
@@ -361,6 +362,21 @@ public class ClassInfo {
     public FieldInfo relationshipField(String relationshipName) {
         for (FieldInfo fieldInfo : relationshipFields()) {
             if (fieldInfo.relationship().equalsIgnoreCase(relationshipName)) {
+                return fieldInfo;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Finds the relationship field with a specific property name from the ClassInfo's relationship fields
+     *
+     * @param fieldName the name of the field
+     * @return A FieldInfo object describing the required relationship field, or null if it doesn't exist.
+     */
+    public FieldInfo relationshipFieldByName(String fieldName) {
+        for (FieldInfo fieldInfo : relationshipFields()) {
+            if (fieldInfo.getName().equalsIgnoreCase(fieldName)) {
                 return fieldInfo;
             }
         }

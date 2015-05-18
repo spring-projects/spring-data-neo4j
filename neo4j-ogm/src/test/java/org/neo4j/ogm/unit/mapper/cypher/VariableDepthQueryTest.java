@@ -165,4 +165,135 @@ public class VariableDepthQueryTest {
         diameterParam.setBooleanOperator(BooleanOperator.OR);
         assertEquals("MATCH (n:`Asteroid`) WHERE n.`name` = { `name` } OR n.`diameter` > { `diameter` } WITH n MATCH p=(n)-[*0..2]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(nameParam, diameterParam), 2).getStatement());
     }
+
+    /**
+     * @see DATAGRAPH-629
+     */
+    @Test
+    public void testFindByNestedPropertyOutgoing() {
+        Parameter planetParam = new Parameter();
+        planetParam.setPropertyName("name");
+        planetParam.setPropertyValue("Earth");
+        planetParam.setComparisonOperator(ComparisonOperator.EQUALS);
+        planetParam.setNestedPropertyName("collidesWith");
+        planetParam.setNestedEntityTypeLabel("Planet");
+        planetParam.setRelationshipType("COLLIDES");
+        planetParam.setRelationshipDirection("OUTGOING");
+        assertEquals("MATCH (n:`Asteroid`) MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)-[:`COLLIDES`]->(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(planetParam), 1).getStatement());
+
+    }
+
+    /**
+     * @see DATAGRAPH-629
+     */
+    @Test
+    public void testFindByNestedPropertyIncoming() {
+        Parameter planetParam = new Parameter();
+        planetParam.setPropertyName("name");
+        planetParam.setPropertyValue("Earth");
+        planetParam.setComparisonOperator(ComparisonOperator.EQUALS);
+        planetParam.setNestedPropertyName("collidesWith");
+        planetParam.setNestedEntityTypeLabel("Planet");
+        planetParam.setRelationshipType("COLLIDES");
+        planetParam.setRelationshipDirection("INCOMING");
+        assertEquals("MATCH (n:`Asteroid`) MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)<-[:`COLLIDES`]-(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(planetParam), 1).getStatement());
+
+    }
+
+    /**
+     * @see DATAGRAPH-629
+     */
+    @Test
+    public void testFindByNestedPropertyUndirected() {
+        Parameter planetParam = new Parameter();
+        planetParam.setPropertyName("name");
+        planetParam.setPropertyValue("Earth");
+        planetParam.setComparisonOperator(ComparisonOperator.EQUALS);
+        planetParam.setNestedPropertyName("collidesWith");
+        planetParam.setNestedEntityTypeLabel("Planet");
+        planetParam.setRelationshipType("COLLIDES");
+        planetParam.setRelationshipDirection("UNDIRECTED");
+        assertEquals("MATCH (n:`Asteroid`) MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)-[:`COLLIDES`]-(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(planetParam), 1).getStatement());
+
+    }
+
+    /**
+     * @see DATAGRAPH-629
+     */
+    @Test
+    public void testFindByMultipleNestedProperties() {
+        Parameter diameterParam = new Parameter("diameter", 60);
+        diameterParam.setComparisonOperator(ComparisonOperator.GREATER_THAN);
+
+        Parameter planetParam = new Parameter();
+        planetParam.setPropertyName("name");
+        planetParam.setPropertyValue("Earth");
+        planetParam.setComparisonOperator(ComparisonOperator.EQUALS);
+        planetParam.setBooleanOperator(BooleanOperator.AND);
+        planetParam.setNestedPropertyName("collidesWith");
+        planetParam.setNestedEntityTypeLabel("Planet");
+        planetParam.setRelationshipType("COLLIDES");
+        planetParam.setRelationshipDirection("OUTGOING");
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` }  MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)-[:`COLLIDES`]->(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(diameterParam, planetParam), 1).getStatement());
+    }
+
+    /**
+     * @see DATAGRAPH-629
+     */
+    @Test
+    public void testFindByMultipleNestedPropertiesInfiniteDepth() {
+        Parameter diameterParam = new Parameter("diameter", 60);
+        diameterParam.setComparisonOperator(ComparisonOperator.GREATER_THAN);
+
+        Parameter planetParam = new Parameter();
+        planetParam.setPropertyName("name");
+        planetParam.setPropertyValue("Earth");
+        planetParam.setComparisonOperator(ComparisonOperator.EQUALS);
+        planetParam.setBooleanOperator(BooleanOperator.AND);
+        planetParam.setNestedPropertyName("collidesWith");
+        planetParam.setNestedEntityTypeLabel("Planet");
+        planetParam.setRelationshipType("COLLIDES");
+        planetParam.setRelationshipDirection("OUTGOING");
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` }  MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)-[:`COLLIDES`]->(x) WITH n MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(diameterParam, planetParam), -1).getStatement());
+    }
+
+    /**
+     * @see DATAGRAPH-629
+     */
+    @Test
+    public void testFindByMultipleNestedPropertiesOred() {
+        Parameter diameterParam = new Parameter("diameter", 60);
+        diameterParam.setComparisonOperator(ComparisonOperator.GREATER_THAN);
+
+        Parameter planetParam = new Parameter();
+        planetParam.setPropertyName("name");
+        planetParam.setPropertyValue("Earth");
+        planetParam.setComparisonOperator(ComparisonOperator.EQUALS);
+        planetParam.setBooleanOperator(BooleanOperator.OR);
+        planetParam.setNestedPropertyName("collidesWith");
+        planetParam.setNestedEntityTypeLabel("Planet");
+        planetParam.setRelationshipType("COLLIDES");
+        planetParam.setRelationshipDirection("OUTGOING");
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` }  OPTIONAL MATCH (x:`Planet`) WHERE x.`name` = { `name` }  OPTIONAL MATCH (n)-[:`COLLIDES`]->(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(diameterParam, planetParam), 1).getStatement());
+    }
+
+    /**
+     * @see DATAGRAPH-629
+     */
+    @Test
+    public void testFindByMultipleNestedPropertiesOredDepth0() {
+        Parameter diameterParam = new Parameter("diameter", 60);
+        diameterParam.setComparisonOperator(ComparisonOperator.GREATER_THAN);
+
+        Parameter planetParam = new Parameter();
+        planetParam.setPropertyName("name");
+        planetParam.setPropertyValue("Earth");
+        planetParam.setComparisonOperator(ComparisonOperator.EQUALS);
+        planetParam.setBooleanOperator(BooleanOperator.OR);
+        planetParam.setNestedPropertyName("collidesWith");
+        planetParam.setNestedEntityTypeLabel("Planet");
+        planetParam.setRelationshipType("COLLIDES");
+        planetParam.setRelationshipDirection("OUTGOING");
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` }  OPTIONAL MATCH (x:`Planet`) WHERE x.`name` = { `name` }  OPTIONAL MATCH (n)-[:`COLLIDES`]->(x) WITH n MATCH p=(n)-[*0..0]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(diameterParam, planetParam), 0).getStatement());
+    }
 }

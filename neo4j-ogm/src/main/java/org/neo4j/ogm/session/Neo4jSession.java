@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.neo4j.ogm.annotation.Property;
+import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.cypher.compiler.CypherContext;
@@ -33,6 +34,7 @@ import org.neo4j.ogm.entityaccess.FieldWriter;
 import org.neo4j.ogm.mapper.EntityGraphMapper;
 import org.neo4j.ogm.mapper.MappingContext;
 import org.neo4j.ogm.metadata.MetaData;
+import org.neo4j.ogm.metadata.RelationshipUtils;
 import org.neo4j.ogm.metadata.info.AnnotationInfo;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
@@ -181,7 +183,7 @@ public class Neo4jSession implements Session {
         ClassInfo classInfo = metaData.classInfo(type.getName());
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        GraphRowModelQuery qry = queryStatements.findByProperties(getEntityType(classInfo), replacePropertyNamesWithGraphProperties(classInfo, properties), depth);
+        GraphRowModelQuery qry = queryStatements.findByProperties(getEntityType(classInfo), resolvePropertyAnnotations(type, properties), depth);
 
 
 
@@ -483,17 +485,47 @@ public class Neo4jSession implements Session {
         return classInfo.label();
     }
 
-    private List<Parameter> replacePropertyNamesWithGraphProperties(ClassInfo classInfo, List<Parameter> parameters) {
+    private List<Parameter> resolvePropertyAnnotations(Class entityType, List<Parameter> parameters) {
         for(Parameter parameter : parameters) {
-            FieldInfo fieldInfo = classInfo.propertyFieldByName(parameter.getPropertyName());
-            if (fieldInfo != null && fieldInfo.getAnnotations() != null) {
-                AnnotationInfo annotation = fieldInfo.getAnnotations().get(Property.CLASS);
-                if (annotation != null) {
-                    parameter.setPropertyName(annotation.get(Property.NAME, parameter.getPropertyName()));
-                }
+            if(parameter.getOwnerEntityType() == null) {
+                parameter.setOwnerEntityType(entityType);
+            }
+            parameter.setPropertyName(resolvePropertyName(parameter.getOwnerEntityType(), parameter.getPropertyName()));
+            if(parameter.isNested()) {
+                resolveRelationshipType(parameter);
+                ClassInfo nestedClassInfo = metaData.classInfo(parameter.getNestedPropertyType().getName());
+                parameter.setNestedEntityTypeLabel(getEntityType(nestedClassInfo));
             }
         }
         return parameters;
+    }
+
+    private String resolvePropertyName(Class entityType, String propertyName) {
+        ClassInfo classInfo = metaData.classInfo(entityType.getName());
+        FieldInfo fieldInfo = classInfo.propertyFieldByName(propertyName);
+        if (fieldInfo != null && fieldInfo.getAnnotations() != null) {
+            AnnotationInfo annotation = fieldInfo.getAnnotations().get(Property.CLASS);
+            if (annotation != null) {
+                return annotation.get(Property.NAME, propertyName);
+            }
+        }
+        return propertyName;
+    }
+
+    private void resolveRelationshipType(Parameter parameter) {
+        ClassInfo classInfo = metaData.classInfo(parameter.getOwnerEntityType().getName());
+        FieldInfo fieldInfo = classInfo.relationshipFieldByName(parameter.getNestedPropertyName());
+
+        String defaultRelationshipType = RelationshipUtils.inferRelationshipType(parameter.getNestedPropertyName());
+        parameter.setRelationshipType(defaultRelationshipType);
+        parameter.setRelationshipDirection(Relationship.UNDIRECTED);
+        if(fieldInfo.getAnnotations() != null) {
+            AnnotationInfo annotation = fieldInfo.getAnnotations().get(Relationship.CLASS);
+            if(annotation != null) {
+                parameter.setRelationshipType(annotation.get(Relationship.TYPE, defaultRelationshipType));
+                parameter.setRelationshipDirection(annotation.get(Relationship.DIRECTION, Relationship.UNDIRECTED));
+            }
+        }
     }
 
     private void assertNothingReturned(String cypher) {
