@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.cypher.compiler.CypherContext;
@@ -34,6 +35,7 @@ import org.neo4j.ogm.mapper.MappingContext;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.AnnotationInfo;
 import org.neo4j.ogm.metadata.info.ClassInfo;
+import org.neo4j.ogm.metadata.info.FieldInfo;
 import org.neo4j.ogm.model.GraphModel;
 import org.neo4j.ogm.session.request.DefaultRequest;
 import org.neo4j.ogm.session.request.Neo4jRequest;
@@ -179,7 +181,7 @@ public class Neo4jSession implements Session {
         ClassInfo classInfo = metaData.classInfo(type.getName());
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        GraphRowModelQuery qry = queryStatements.findByProperties(getEntityType(classInfo), properties, depth);
+        GraphRowModelQuery qry = queryStatements.findByProperties(getEntityType(classInfo), replacePropertyNamesWithGraphProperties(classInfo, properties), depth);
 
 
 
@@ -479,6 +481,19 @@ public class Neo4jSession implements Session {
                return annotation.get(RelationshipEntity.TYPE, classInfo.name());
         }
         return classInfo.label();
+    }
+
+    private List<Parameter> replacePropertyNamesWithGraphProperties(ClassInfo classInfo, List<Parameter> parameters) {
+        for(Parameter parameter : parameters) {
+            FieldInfo fieldInfo = classInfo.propertyFieldByName(parameter.getPropertyName());
+            if (fieldInfo != null && fieldInfo.getAnnotations() != null) {
+                AnnotationInfo annotation = fieldInfo.getAnnotations().get(Property.CLASS);
+                if (annotation != null) {
+                    parameter.setPropertyName(annotation.get(Property.NAME, parameter.getPropertyName()));
+                }
+            }
+        }
+        return parameters;
     }
 
     private void assertNothingReturned(String cypher) {

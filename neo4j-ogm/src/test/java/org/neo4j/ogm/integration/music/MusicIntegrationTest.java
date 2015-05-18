@@ -98,7 +98,7 @@ public class MusicIntegrationTest {
 	@Test
 	public void shouldLoadStudioWithLocationMissingInDomainModel() {
 		new ExecutionEngine(neo4jRule.getGraphDatabaseService()).execute("CREATE (s:Studio {`studio-name`:'Abbey Road Studios'})");
-		Studio studio = session.loadByProperty(Studio.class, new Parameter("studio-name","Abbey Road Studios")).iterator().next();
+		Studio studio = session.loadByProperty(Studio.class, new Parameter("name","Abbey Road Studios")).iterator().next();
 		assertNotNull(studio);
 
 	}
