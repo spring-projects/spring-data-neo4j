@@ -17,15 +17,16 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.util.Collection;
 
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.domain.music.Album;
 import org.neo4j.ogm.domain.music.Artist;
 import org.neo4j.ogm.domain.music.Recording;
 import org.neo4j.ogm.domain.music.Studio;
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
@@ -40,11 +41,15 @@ public class MusicIntegrationTest {
 
     private static Session session;
 
-    @BeforeClass
-	public static void init() throws IOException {
+    @Before
+	public void init() throws IOException {
 		session = new SessionFactory("org.neo4j.ogm.domain.music").openSession(neo4jRule.baseNeoUrl());
 	}
 
+	@After
+	public void clear() {
+		session.purgeDatabase();
+	}
 	/**
 	 * @see DATAGRAPH-589
 	 */
@@ -66,7 +71,7 @@ public class MusicIntegrationTest {
 		assertEquals("Please Please Me", theBeatles.getAlbums().iterator().next().getName());
 		assertEquals("EMI Studios, London", theBeatles.getAlbums().iterator().next().getRecording().getStudio().getName());
 
-		please = session.loadByProperty(Album.class, new Property<String, Object>("name", "Please Please Me")).iterator().next();
+		please = session.loadByProperty(Album.class, new Parameter("name", "Please Please Me")).iterator().next();
 		assertEquals("The Beatles", please.getArtist().getName());
 
 		Album hard = new Album("A Hard Day's Night");
@@ -93,8 +98,37 @@ public class MusicIntegrationTest {
 	@Test
 	public void shouldLoadStudioWithLocationMissingInDomainModel() {
 		new ExecutionEngine(neo4jRule.getGraphDatabaseService()).execute("CREATE (s:Studio {`studio-name`:'Abbey Road Studios'})");
-		Studio studio = session.loadByProperty(Studio.class, new Property<String, Object>("studio-name","Abbey Road Studios")).iterator().next();
+		Studio studio = session.loadByProperty(Studio.class, new Parameter("name","Abbey Road Studios")).iterator().next();
 		assertNotNull(studio);
 
+	}
+
+	/**
+	 * @see DATAGRAPH-629
+	 */
+	@Test
+	public void shouldRetrieveEntityByPropertyWithZeroDepth() {
+		Studio emi = new Studio("EMI Studios, London");
+
+		Artist theBeatles = new Artist("The Beatles");
+		Album please = new Album("Please Please Me");
+		Recording pleaseRecording = new Recording(please, emi, 1963);
+		please.setRecording(pleaseRecording);
+		theBeatles.getAlbums().add(please);
+		please.setArtist(theBeatles);
+		session.save(theBeatles);
+
+		theBeatles = session.loadAll(Artist.class).iterator().next();
+		assertEquals("The Beatles", theBeatles.getName());
+		assertEquals(1, theBeatles.getAlbums().size());
+		assertEquals("Please Please Me", theBeatles.getAlbums().iterator().next().getName());
+		assertEquals("EMI Studios, London", theBeatles.getAlbums().iterator().next().getRecording().getStudio().getName());
+
+		session.clear();
+
+		please = session.loadByProperty(Album.class, new Parameter("name", "Please Please Me"),0).iterator().next();
+		assertEquals("Please Please Me",please.getName());
+		assertNull(please.getArtist());
+		assertNull(please.getRecording());
 	}
 }

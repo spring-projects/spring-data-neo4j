@@ -24,12 +24,12 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.ogm.annotation.typeconversion.DateString;
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.domain.convertible.date.Memo;
 import org.neo4j.ogm.domain.convertible.enums.Education;
 import org.neo4j.ogm.domain.convertible.enums.Gender;
 import org.neo4j.ogm.domain.convertible.enums.Person;
 import org.neo4j.ogm.domain.convertible.numbers.Account;
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
@@ -65,7 +65,7 @@ public class ConvertibleIntegrationTest {
         person.setGender(Gender.FEMALE);
         session.save(person);
 
-        Person luanne = session.loadByProperty(Person.class,new Property<String, Object>("name","luanne")).iterator().next();
+        Person luanne = session.loadByProperty(Person.class,new Parameter("name","luanne")).iterator().next();
         assertEquals(Gender.FEMALE, luanne.getGender());
         assertTrue(luanne.getCompletedEducation().contains(Education.HIGHSCHOOL));
         assertTrue(luanne.getCompletedEducation().contains(Education.BACHELORS));
@@ -106,7 +106,7 @@ public class ConvertibleIntegrationTest {
         memo.setActioned(actioned.getTime());
         session.save(memo);
 
-        Memo loadedMemo = session.loadByProperty(Memo.class,new Property<String, Object>("memo","theMemo")).iterator().next();
+        Memo loadedMemo = session.loadByProperty(Memo.class,new Parameter("memo","theMemo")).iterator().next();
 
         Calendar loadedCal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         loadedCal.setTime(loadedMemo.getActioned());

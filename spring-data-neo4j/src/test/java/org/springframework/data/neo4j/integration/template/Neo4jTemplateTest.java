@@ -22,10 +22,15 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.*;
 import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.cypher.ComparisonOperator;
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.session.Utils;
 import org.neo4j.ogm.session.result.QueryStatistics;
@@ -92,7 +97,6 @@ public class Neo4jTemplateTest {
     }
 
     @Test
-    @Ignore("Defect in Neo4jSession means this doesn't work yet")
     public void shouldSaveAndRetrieveRelationshipEntitiesWithoutExplicitTransactionManagement() {
         User critic = new User("Gary");
         TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -297,6 +301,28 @@ public class Neo4jTemplateTest {
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesDeleted());
         assertEquals(1, stats.getRelationshipsDeleted());
+    }
+
+    /**
+     * @see DATAGRAPH-629
+     */
+    @Test
+    public void shouldRetrieveEntitiesByMatchingProperties() {
+        this.template.save(new Cinema("Ritzy", 5000));
+        this.template.save(new Cinema("Picturehouse", 7500));
+
+        Parameter name = new Parameter("name", "Ritzy");
+        Cinema loadedCinema = this.template.loadByProperties(Cinema.class, Collections.singletonList(name));
+        assertNotNull("No cinema was loaded", loadedCinema);
+        assertEquals("Ritzy", loadedCinema.getName());
+
+        Parameter capacity = new Parameter("capacity", 1000);
+        capacity.setComparisonOperator(ComparisonOperator.GREATER_THAN);
+        Collection<Cinema> loadedCinemas = this.template.loadAllByProperties(Cinema.class, Collections.singletonList(capacity));
+        assertNotNull(loadedCinemas);
+        assertEquals(2, loadedCinemas.size());
+        assertTrue(loadedCinemas.contains(new Cinema("Ritzy", 5000)));
+        assertTrue(loadedCinemas.contains(new Cinema("Picturehouse", 7500)));
     }
 
 }

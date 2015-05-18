@@ -26,9 +26,8 @@ import org.neo4j.ogm.mapper.TransientRelationship;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.model.GraphModel;
-import org.neo4j.ogm.model.NodeModel;
-import org.neo4j.ogm.model.Property;
-import org.neo4j.ogm.model.RelationshipModel;
+import org.neo4j.ogm.session.result.GraphRowModel;
+import org.neo4j.ogm.session.result.GraphRowResult;
 import org.neo4j.ogm.session.result.RowModel;
 
 /**
@@ -46,34 +45,30 @@ public class SessionResponseHandler implements ResponseHandler {
     }
 
     @Override
-    public <T> Set<T> loadByProperty(Class<T> type, Neo4jResponse<GraphModel> response, Property<String, Object> filter) {
+    public <T> List<T> loadByProperty(Class<T> type, Neo4jResponse<GraphRowModel> response) {
+        List<T> result = new ArrayList<>();
+        ClassInfo classInfo = metaData.classInfo(type.getName());
+        GraphRowModel graphRowModel = response.next();
+        for(GraphRowResult graphRowResult : graphRowModel.getGraphRowResults()) {
+            //Load the GraphModel into the ogm
+            GraphEntityMapper ogm = new GraphEntityMapper(metaData, mappingContext);
+            ogm.map(type, graphRowResult.getGraph());
+            //Extract the id's of filtered nodes from the rowData and return them
+            Object[] rowData = graphRowResult.getRow();
+            for (Object data : rowData) {
+                if (data instanceof Number) {
+                    if (classInfo.annotationsInfo().get(RelationshipEntity.CLASS) == null) {
+                        result.add((T) mappingContext.get(((Number) data).longValue()));
 
-        GraphEntityMapper ogm = new GraphEntityMapper(metaData, mappingContext);
-        Set<T> objects = new HashSet<>();
-
-        GraphModel graphModel;
-        while ((graphModel = response.next()) != null) {
-
-            ogm.map(type, graphModel);
-
-            if (metaData.isRelationshipEntity(type.getName())) {
-                for (RelationshipModel relationshipModel : graphModel.getRelationships()) {
-                    if (relationshipModel.getPropertyList().contains(filter)
-                            && mappingContext.getRelationshipEntity(relationshipModel.getId()).getClass().isAssignableFrom(type)) {
-                        objects.add(type.cast(mappingContext.getRelationshipEntity(relationshipModel.getId())));
                     }
-                }
-            } else {
-                for (NodeModel nodeModel : graphModel.getNodes()) {
-                    if (nodeModel.getPropertyList().contains(filter) && (mappingContext.get(nodeModel.getId()).getClass().isAssignableFrom(type))) {
-                        objects.add(type.cast(mappingContext.get(nodeModel.getId())));
+                    else {
+                        result.add((T) mappingContext.getRelationshipEntity(((Number) data).longValue()));
                     }
                 }
             }
         }
         response.close();
-
-        return objects;
+        return result;
     }
 
     @Override

@@ -12,33 +12,17 @@
 
 package org.springframework.data.neo4j.integration.movies.repo;
 
-import java.util.Collection;
 import java.util.List;
 
-import org.springframework.data.neo4j.integration.movies.domain.Cinema;
+import org.springframework.data.neo4j.integration.movies.domain.Rating;
 import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.stereotype.Repository;
 
 /**
- * @author Michal Bachman
  * @author Luanne Misquitta
  */
-@Repository
-public interface CinemaRepository extends GraphRepository<Cinema> {
+public interface RatingRepository extends GraphRepository<Rating> {
 
-	Collection<Cinema> findByName(String name);
+	List<Rating> findByStars(int stars);
 
-	List<Cinema> findByLocation(String location);
 
-	List<Cinema> findByNameAndLocation(String name, String location);
-
-	List<Cinema> findByNameOrLocation(String name, String location);
-
-	List<Cinema> findByCapacityGreaterThan(int capacity);
-
-	List<Cinema> findByCapacityLessThan(int capacity);
-
-	List<Cinema> findByVisitedName(String name);
-
-	List<Cinema> findByLocationAndVisitedName(String location, String name);
 }

@@ -22,7 +22,10 @@ import org.springframework.data.repository.query.RepositoryQuery;
 
 
 /**
+ * Specialisation of {@link RepositoryQuery} that handles mapping to object annotated with <code>&#064;Query</code>.
+ *
  * @author Mark Angrish
+ * @author Luanne Misquitta
  */
 public class GraphRepositoryQuery implements RepositoryQuery {
 
@@ -42,7 +45,7 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 
         Map<String, Object> params = resolveParams(parameters);
 
-        return execute(returnType, concreteType, graphQueryMethod.getQuery(), params);
+        return execute(returnType, concreteType, getQueryString(), params);
     }
 
     protected Object execute(Class<?> returnType, Class<?> concreteType, String cypherQuery, Map<String, Object> queryParams) {
@@ -82,6 +85,10 @@ public class GraphRepositoryQuery implements RepositoryQuery {
     @Override
     public GraphQueryMethod getQueryMethod() {
         return graphQueryMethod;
+    }
+
+    protected String getQueryString() {
+        return getQueryMethod().getQuery();
     }
 
 }
