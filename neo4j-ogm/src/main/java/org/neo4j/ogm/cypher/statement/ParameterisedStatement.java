@@ -31,6 +31,11 @@ import java.util.Map;
 public class ParameterisedStatement {
 
     private String statement;
+
+    private int matchIndex;
+    private int filterIndex;
+    private int returnIndex;
+
     private Map<String, Object> parameters = new HashMap<>();
     private String[] resultDataContents;
     private boolean includeStats = false;
@@ -53,6 +58,9 @@ public class ParameterisedStatement {
         this.statement = cypher;
         this.parameters.putAll(parameters);
         this.resultDataContents = resultDataContents;
+
+        parseStatement();
+
     }
 
     protected ParameterisedStatement(String cypher, Map<String, ?> parameters, boolean includeStats, String... resultDataContents) {
@@ -64,16 +72,82 @@ public class ParameterisedStatement {
 
     public String getStatement() {
 
-        StringBuilder sb = new StringBuilder();
-        sb.append(statement.trim());
+        String stmt = statement.trim();
+        String orderings = orderings().toString();
+        String pagination = paging == null ? "" : page().toString();
 
-        sb.append(orderings);
+        if (orderings.length() > 0 || pagination.length() > 0) {
 
-        if (paging != null) {
-            sb.append(paging);
+
+
+            String matchClause = (filterIndex > -1) ? parseClause(matchIndex, filterIndex) : parseClause(matchIndex, returnIndex);
+            String filterClause = parseClause(filterIndex, returnIndex);
+            String returnClause = parseClause(returnIndex, -1);
+            int pathIndex = matchClause.indexOf("-[");
+            String pathClause = "";
+
+            // extract any path from the match statement
+            if (pathIndex > -1) {
+                if (filterIndex > -1) {
+                    pathClause = parseClause(pathIndex, filterIndex);
+                } else {
+                    pathClause = parseClause(pathIndex, returnIndex);
+                }
+                matchClause = matchClause.substring(0, pathIndex);
+            }
+
+            // match clause will now be one of:
+
+            // "match p=(n)"
+            // "match p=(n:...)"
+            // "match (n)"
+
+            // path clause will be one of
+            // ""
+            // "-[...."
+
+            // filter clause will be one of
+            // ""
+            // "WHERE ... "
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(matchClause);
+
+            sb.append(filterClause);
+
+            // node bindings
+            if (matchClause.contains("(n")) {
+                sb.append(" WITH n");
+            }
+
+            // path bindings
+            if (matchClause.contains("p=()")) {
+                sb.append( " WITH p");
+            }
+
+            if (orderings.length() > 0) {
+                sb.append(orderings);
+            }
+
+            if (pagination.length() > 0) {
+                sb.append(pagination);
+            }
+
+            if (pathIndex > -1) {
+                sb.append(" MATCH p=(n)");
+                sb.append(pathClause);
+            }
+
+
+            //if (matchClause.contains("(n")) {
+                sb.append(returnClause);
+            //}
+
+
+            return sb.toString();
         }
 
-        return sb.toString().trim();
+        return stmt;
     }
 
     public Map<String, Object> getParameters() {
@@ -102,6 +176,20 @@ public class ParameterisedStatement {
 
     protected void addPaging(Paging page) {
         this.paging = page;
+    }
+
+    private void parseStatement() {
+        this.returnIndex = statement.indexOf(" RETURN ");
+        this.filterIndex = statement.indexOf(" WHERE ");
+        this.matchIndex = statement.indexOf("MATCH ");
+
+    }
+
+    private String parseClause(int i, int j) {
+        if (j == -1) {
+            j = statement.length();
+        }
+        return (i > -1 && i < j) ? statement.substring(i, j) : "";
     }
 }
 

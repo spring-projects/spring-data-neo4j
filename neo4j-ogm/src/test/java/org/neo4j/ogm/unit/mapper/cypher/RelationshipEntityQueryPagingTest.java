@@ -29,7 +29,7 @@ public class RelationshipEntityQueryPagingTest {
 
     @Test
     public void testFindByLabel() throws Exception {
-        assertEquals("MATCH p=(n)-[:`ORBITS`*..3]-(m) RETURN collect(distinct p) SKIP 10 LIMIT 10", query.findByType("ORBITS", new Paging(1, 10), 3).getStatement());
+        assertEquals("MATCH p=(n)-[:`EATS`]-(m) RETURN collect(distinct p) SKIP 2 LIMIT 2", query.findByType("ORBITS", new Paging(1, 10), 3).getStatement());
     }
 
     @Test
