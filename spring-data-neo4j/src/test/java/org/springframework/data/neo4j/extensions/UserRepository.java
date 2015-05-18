@@ -11,7 +11,7 @@
  */
 package org.springframework.data.neo4j.extensions;
 
-import org.springframework.data.neo4j.examples.movies.domain.User;
+import org.springframework.data.neo4j.extensions.domain.User;
 import org.springframework.stereotype.Repository;
 
 /**

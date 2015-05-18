@@ -11,14 +11,23 @@
  */
 package org.springframework.data.neo4j.extensions;
 
+import org.neo4j.ogm.metadata.info.ClassInfo;
+import org.neo4j.ogm.metadata.info.FieldInfo;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.data.neo4j.server.RemoteServer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collection;
 
 /**
  *
@@ -46,5 +55,35 @@ public class CustomPersistenceContext extends Neo4jConfiguration {
         return new RemoteServer("http://localhost:7879");
     }
 
-}
+    @Bean
+    public ConversionService conversionService() {
+        final DefaultConversionService conversionService = new DefaultConversionService();
 
+        // perhaps this should all be wrapped in a new meta-data-driven implementation of ConversionService?
+        Collection<ClassInfo> persistentEntities = getSessionFactory().metaData().persistentEntities();
+        for (ClassInfo classInfo : persistentEntities) {
+            //TODO: consider method-level converters too
+            for (final FieldInfo fieldInfo : classInfo.fieldsInfo().fields()) {
+                if (fieldInfo.hasConverter()) {
+                    @SuppressWarnings("rawtypes")
+                    Converter<?, ?> converter = new Converter() {
+                        @SuppressWarnings("unchecked")
+                        @Override
+                        public Object convert(Object source) {
+                            return fieldInfo.converter().toGraphProperty(source);
+                        }
+                    };
+
+                    ParameterizedType pt = (ParameterizedType) fieldInfo.converter().getClass().getGenericInterfaces()[0];
+                    Type[] converterTypeParameters = pt.getActualTypeArguments();
+                    //TODO: what about duplicates?
+                    conversionService.addConverter(
+                            (Class<?>) converterTypeParameters[0], (Class<?>) converterTypeParameters[1], converter);
+                }
+            }
+        }
+
+        return conversionService;
+    }
+
+}
