@@ -72,7 +72,7 @@ public class VariableDepthRelationshipQuery implements QueryStatements {
 
     @Override
     public Query findAll() {
-        return new GraphModelQuery("MATCH p=()-->() RETURN p", Utils.map());
+        return new GraphModelQuery("MATCH p=()-[r]->() RETURN p", Utils.map());
     }
 
     @Override
@@ -84,7 +84,7 @@ public class VariableDepthRelationshipQuery implements QueryStatements {
     public Query findByType(String type, int depth) {
         int max = max(depth);
         if (max > 0) {
-            String qry = String.format("MATCH p=(n)-[:`%s`*..%d]-(m) RETURN collect(distinct p)", type, max);
+            String qry = String.format("MATCH p=()-[r:`%s`*..%d]-(m) RETURN collect(distinct p)", type, max);
             return new GraphModelQuery(qry, Utils.map());
         } else {
             throw new InvalidDepthException("Cannot load a relationship entity with depth 0 i.e. no start or end node");
