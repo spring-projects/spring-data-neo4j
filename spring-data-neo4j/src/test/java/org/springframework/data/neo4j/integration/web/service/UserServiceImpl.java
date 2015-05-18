@@ -12,18 +12,18 @@
 
 package org.springframework.data.neo4j.integration.web.service;
 
-import org.neo4j.ogm.model.Property;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Set;
+import java.util.TreeSet;
+
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.web.domain.User;
 import org.springframework.data.neo4j.integration.web.repo.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * @author Michal Bachman
@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService {
     }
 
     protected Iterable<User> findByProperty(String propertyName, Object propertyValue) {
-        return session.loadByProperty(User.class, new Property(propertyName, propertyValue));
+        return session.loadByProperty(User.class, new Parameter(propertyName, propertyValue));
     }
 
 }

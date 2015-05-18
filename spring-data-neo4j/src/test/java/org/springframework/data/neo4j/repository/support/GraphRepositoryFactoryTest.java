@@ -1,5 +1,7 @@
 package org.springframework.data.neo4j.repository.support;
 
+import static org.junit.Assert.*;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,8 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
  * code for these subcomponents is subject to the terms and
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Unit tests for {@code GraphRepositoryFactory}.
@@ -36,11 +36,12 @@ public class GraphRepositoryFactoryTest {
     GraphRepositoryFactory factory;
 
     @Mock org.neo4j.ogm.session.Session session;
+    @Mock org.springframework.data.neo4j.mapping.Neo4jMappingContext mappingContext;
 
     @Before
     public void setUp() {
 
-        factory = new GraphRepositoryFactory(session) {
+        factory = new GraphRepositoryFactory(session, mappingContext) {
 
         };
     }

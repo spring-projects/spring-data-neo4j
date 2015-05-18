@@ -20,12 +20,12 @@ import java.util.Collections;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.domain.social.Individual;
 import org.neo4j.ogm.domain.social.Mortal;
 import org.neo4j.ogm.domain.social.Person;
 import org.neo4j.ogm.domain.social.User;
 import org.neo4j.ogm.integration.InMemoryServerTest;
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.SessionFactory;
 
 /**
@@ -51,11 +51,11 @@ public class SocialIntegrationTest extends InMemoryServerTest {
 		session.execute("create (p1:Person {name:'A'}) create (p2:Person {name:'B'}) create (p3:Person {name:'C'})" +
 				" create (p4:Person {name:'D'}) create (p1)-[:LIKES]->(p2) create (p1)-[:LIKES]->(p3) create (p4)-[:LIKES]->(p1)", Collections.EMPTY_MAP);
 
-		Person personA = session.loadByProperty(Person.class, new Property<String, Object>("name","A")).iterator().next();
+		Person personA = session.loadByProperty(Person.class, new Parameter("name","A")).iterator().next();
 		assertNotNull(personA);
 		assertEquals(2, personA.getPeopleILike().size());
 
-		Person personD = session.loadByProperty(Person.class, new Property<String, Object>("name","D")).iterator().next();
+		Person personD = session.loadByProperty(Person.class, new Parameter("name","D")).iterator().next();
 		assertNotNull(personD);
 		assertEquals(1, personD.getPeopleILike().size());
 		assertEquals(personA,personD.getPeopleILike().get(0));
@@ -70,7 +70,7 @@ public class SocialIntegrationTest extends InMemoryServerTest {
 		session.execute("create (p1:Individual {name:'A'}) create (p2:Individual {name:'B'}) create (p3:Individual {name:'C'})" +
 				" create (p4:Individual {name:'D'}) create (p1)-[:FRIENDS]->(p2) create (p1)-[:FRIENDS]->(p3) create (p4)-[:FRIENDS]->(p1)", Collections.EMPTY_MAP);
 
-		Individual individualA = session.loadByProperty(Individual.class, new Property<String, Object>("name","A")).iterator().next();
+		Individual individualA = session.loadByProperty(Individual.class, new Parameter("name","A")).iterator().next();
 		assertNotNull(individualA);
 		assertEquals(3, individualA.getFriends().size());
 
@@ -84,16 +84,16 @@ public class SocialIntegrationTest extends InMemoryServerTest {
 		session.execute("create (p1:User {name:'A'}) create (p2:User {name:'B'}) create (p3:User {name:'C'})" +
 				" create (p4:User {name:'D'}) create (p1)-[:FRIEND]->(p2) create (p1)-[:FRIEND]->(p3) create (p4)-[:FRIEND]->(p1)", Collections.EMPTY_MAP);
 
-		User userA = session.loadByProperty(User.class, new Property<String, Object>("name","A")).iterator().next();
+		User userA = session.loadByProperty(User.class, new Parameter("name","A")).iterator().next();
 		assertNotNull(userA);
 		assertEquals(3, userA.getFriends().size());
 
-		User userB = session.loadByProperty(User.class, new Property<String, Object>("name", "B")).iterator().next();
+		User userB = session.loadByProperty(User.class, new Parameter("name", "B")).iterator().next();
 		assertNotNull(userB);
 		assertEquals(1, userB.getFriends().size());
 		assertEquals(userA, userB.getFriends().get(0));
 
-		User userD = session.loadByProperty(User.class, new Property<String, Object>("name", "D")).iterator().next();
+		User userD = session.loadByProperty(User.class, new Parameter("name", "D")).iterator().next();
 		assertNotNull(userD);
 		assertEquals(1, userD.getFriends().size());
 		assertEquals(userA, userD.getFriends().get(0));
@@ -120,16 +120,16 @@ public class SocialIntegrationTest extends InMemoryServerTest {
 
 		session.clear();
 
-		userA = session.loadByProperty(User.class, new Property<String, Object>("name","A")).iterator().next();
+		userA = session.loadByProperty(User.class, new Parameter("name","A")).iterator().next();
 		assertNotNull(userA);
 		assertEquals(3, userA.getFriends().size());
 
-		userB = session.loadByProperty(User.class, new Property<String, Object>("name", "B")).iterator().next();
+		userB = session.loadByProperty(User.class, new Parameter("name", "B")).iterator().next();
 		assertNotNull(userB);
 		assertEquals(1, userB.getFriends().size());
 		assertEquals(userA.getName(), userB.getFriends().get(0).getName());
 
-		userD = session.loadByProperty(User.class, new Property<String, Object>("name", "D")).iterator().next();
+		userD = session.loadByProperty(User.class, new Parameter("name", "D")).iterator().next();
 		assertNotNull(userD);
 		assertEquals(1, userD.getFriends().size());
 		assertEquals(userA.getName(), userD.getFriends().get(0).getName());
@@ -149,11 +149,11 @@ public class SocialIntegrationTest extends InMemoryServerTest {
 		session.save(userA);
 
 		session.clear();
-		userA = session.loadByProperty(Person.class, new Property<String, Object>("name","A")).iterator().next();
+		userA = session.loadByProperty(Person.class, new Parameter("name","A")).iterator().next();
 		assertNotNull(userA);
 		assertEquals(1, userA.getPeopleILike().size());
 		session.clear();
-		userB = session.loadByProperty(Person.class, new Property<String, Object>("name", "B")).iterator().next();
+		userB = session.loadByProperty(Person.class, new Parameter("name", "B")).iterator().next();
 		assertNotNull(userB);
 		assertEquals(1, userB.getPeopleILike().size());
 	}
@@ -179,19 +179,19 @@ public class SocialIntegrationTest extends InMemoryServerTest {
 
 		session.clear();
 
-		mortalA = session.loadByProperty(Mortal.class,new Property<String, Object>("name","A")).iterator().next();
+		mortalA = session.loadByProperty(Mortal.class,new Parameter("name","A")).iterator().next();
 		assertNotNull(mortalA);
 		assertEquals(2, mortalA.getKnownBy().size());
 
-		mortalB = session.loadByProperty(Mortal.class, new Property<String, Object>("name","B")).iterator().next();
+		mortalB = session.loadByProperty(Mortal.class, new Parameter("name","B")).iterator().next();
 		assertNotNull(mortalB);
 		assertEquals(0, mortalB.getKnownBy().size());
 
-		mortalC = session.loadByProperty(Mortal.class, new Property<String, Object>("name", "C")).iterator().next();
+		mortalC = session.loadByProperty(Mortal.class, new Parameter("name", "C")).iterator().next();
 		assertNotNull(mortalC);
 		assertEquals(0, mortalC.getKnownBy().size());
 
-		mortalD = session.loadByProperty(Mortal.class, new Property<String, Object>("name", "D")).iterator().next();
+		mortalD = session.loadByProperty(Mortal.class, new Parameter("name", "D")).iterator().next();
 		assertNotNull(mortalD);
 		assertEquals(1, mortalD.getKnownBy().size());
 		assertEquals("A", mortalD.getKnownBy().iterator().next().getName());
@@ -205,19 +205,19 @@ public class SocialIntegrationTest extends InMemoryServerTest {
 		session.execute("create (m1:Mortal {name:'A'}) create (m2:Mortal {name:'B'}) create (m3:Mortal {name:'C'})" +
 				" create (m4:Mortal {name:'D'}) create (m1)<-[:KNOWN_BY]-(m2) create (m1)<-[:KNOWN_BY]-(m3) create (m4)<-[:KNOWN_BY]-(m1)", Collections.EMPTY_MAP);
 
-		Mortal mortalA = session.loadByProperty(Mortal.class,new Property<String, Object>("name","A")).iterator().next();
+		Mortal mortalA = session.loadByProperty(Mortal.class,new Parameter("name","A")).iterator().next();
 		assertNotNull(mortalA);
 		assertEquals(2, mortalA.getKnownBy().size());
 
-		Mortal mortalB = session.loadByProperty(Mortal.class, new Property<String, Object>("name","B")).iterator().next();
+		Mortal mortalB = session.loadByProperty(Mortal.class, new Parameter("name","B")).iterator().next();
 		assertNotNull(mortalB);
 		assertEquals(0, mortalB.getKnownBy().size());
 
-		Mortal mortalC = session.loadByProperty(Mortal.class, new Property<String, Object>("name", "C")).iterator().next();
+		Mortal mortalC = session.loadByProperty(Mortal.class, new Parameter("name", "C")).iterator().next();
 		assertNotNull(mortalC);
 		assertEquals(0, mortalC.getKnownBy().size());
 
-		Mortal mortalD = session.loadByProperty(Mortal.class, new Property<String, Object>("name", "D")).iterator().next();
+		Mortal mortalD = session.loadByProperty(Mortal.class, new Parameter("name", "D")).iterator().next();
 		assertNotNull(mortalD);
 		assertEquals(1, mortalD.getKnownBy().size());
 		assertEquals("A", mortalD.getKnownBy().iterator().next().getName());
