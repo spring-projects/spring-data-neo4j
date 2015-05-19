@@ -35,5 +35,27 @@ public class Role {
         this.role = role;
     }
 
+    public Movie getMovie() {
+        return movie;
+    }
 
+    public void setMovie(Movie movie) {
+        this.movie = movie;
+    }
+
+    public Actor getActor() {
+        return actor;
+    }
+
+    public void setActor(Actor actor) {
+        this.actor = actor;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 }

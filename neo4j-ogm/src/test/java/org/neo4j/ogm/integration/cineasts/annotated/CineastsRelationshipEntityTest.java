@@ -526,4 +526,47 @@ public class CineastsRelationshipEntityTest{
 		assertEquals("Bruce",actor.getKnows().iterator().next().getFirstActor().getName());
 		assertEquals("Jim", actor.getKnows().iterator().next().getSecondActor().getName());
 	}
+
+	/**
+	 * @see DATAGRAPH-552
+	 */
+	@Test
+	public void shouldHydrateTheEndNodeOfAnRECorrectly() {
+		//TODO add some more end node hydration tests
+		Movie movie = new Movie();
+		movie.setTitle("Pulp Fiction");
+		Actor actor = new Actor("John Travolta");
+		actor.playedIn(movie, "Vincent");
+		session.save(movie);
+
+		User michal = new User();
+		michal.setName("Michal");
+
+		Rating awesome = new Rating();
+		awesome.setMovie(movie);
+		awesome.setUser(michal);
+		awesome.setStars(5);
+		michal.setRatings(Collections.singleton(awesome));
+		session.save(michal);
+
+		//Check that Pulp Fiction has one rating from Michal
+		Collection<Movie> films = session.loadByProperty(Movie.class, new Parameter("title", "Pulp Fiction"));
+		assertEquals(1, films.size());
+
+		Movie film = films.iterator().next();
+		Assert.assertNotNull(film);
+		assertEquals(1, film.getRatings().size());
+		assertEquals("Michal", film.getRatings().iterator().next().getUser().getName());
+		assertEquals("Vincent", film.getRoles().iterator().next().getRole());
+
+		session.clear();
+		Rating rating  = session.load(Rating.class, awesome.getId(),2);
+		assertNotNull(rating);
+		Movie loadedMovie = rating.getMovie();
+		assertNotNull(loadedMovie);
+		assertEquals("Pulp Fiction", loadedMovie.getTitle());
+		assertEquals("Vincent",loadedMovie.getRoles().iterator().next().getRole());
+
+	}
+
 }
