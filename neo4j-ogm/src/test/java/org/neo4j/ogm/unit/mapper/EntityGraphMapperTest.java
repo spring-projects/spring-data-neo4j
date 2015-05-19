@@ -580,7 +580,7 @@ public class EntityGraphMapperTest {
     public void shouldProduceCypherForUpdatingExistingRichRelationshipBetweenNodes() {
         ExecutionResult executionResult = executionEngine.execute(
                 "CREATE (f:Forum {name:'Spring Data Neo4j'})-[r:HAS_TOPIC {timestamp:20000}]->(t:Topic) " +
-                "RETURN id(f) AS forumId, id(t) AS topicId, id(r) AS relId");
+                "RETURN id(f) AS forumId, id(t) AS topicId, ID(r) AS relId");
         Map<String, Object> rs = executionResult.iterator().next();
         Long forumId = (Long) rs.get("forumId");
         Long topicId = (Long) rs.get("topicId");
@@ -608,7 +608,7 @@ public class EntityGraphMapperTest {
     @Test
     public void shouldSaveCollectionOfRichRelationships() {
         ExecutionResult executionResult = executionEngine.execute("CREATE "
-                + "(f:Forum {name:'SDN 4.x'})-[r:HAS_TOPIC]->(t:Topic) RETURN id(f) AS forumId, id(r) AS relId, id(t) AS topicId");
+                + "(f:Forum {name:'SDN 4.x'})-[r:HAS_TOPIC]->(t:Topic) RETURN id(f) AS forumId, ID(r) AS relId, id(t) AS topicId");
         Map<String, Object> resultSet = executionResult.iterator().next();
         Long forumId = (Long) resultSet.get("forumId");
         Long relationshipId = (Long) resultSet.get("relId");
@@ -687,7 +687,7 @@ public class EntityGraphMapperTest {
                 "CREATE (j:Person:DomainObject { name :'jim' })" +
                         "-[r:WRITES_POLICY]->" +
                         "(h:Policy:DomainObject { name: 'health' }) " +
-                        "RETURN id(j) AS jid, id(r) AS rid, id(h) AS hid");
+                        "RETURN id(j) AS jid, ID(r) AS rid, id(h) AS hid");
 
         Map<String, Object> resultSet = executionResult.iterator().next();
 
@@ -726,7 +726,7 @@ public class EntityGraphMapperTest {
                 "CREATE (j:Person:DomainObject { name :'jim' })" +
                         "-[r:WRITES_POLICY]->" +
                         "(h:Policy:DomainObject { name: 'health' }) " +
-                        "RETURN id(j) AS jid, id(r) AS rid, id(h) AS hid");
+                        "RETURN id(j) AS jid, ID(r) AS rid, id(h) AS hid");
 
         Map<String, Object> resultSet = executionResult.iterator().next();
 
@@ -767,7 +767,7 @@ public class EntityGraphMapperTest {
                 "CREATE (h:Policy:DomainObject { name: 'health' }) " +
                 "CREATE (i:Policy:DomainObject { name: 'immigration' }) " +
                 "CREATE (j)-[r:WRITES_POLICY]->(h) " +
-                "RETURN id(j) AS jid, id(r) AS rid, id(h) AS hid, id(i) as iid");
+                "RETURN id(j) AS jid, ID(r) AS rid, id(h) AS hid, id(i) as iid");
 
         Map<String, Object> resultSet = executionResult.iterator().next();
 
@@ -814,7 +814,7 @@ public class EntityGraphMapperTest {
                         "CREATE (h:Policy:DomainObject { name: 'health' }) " +
                         "CREATE (i:Policy:DomainObject { name: 'immigration' }) " +
                         "CREATE (j)-[r:WRITES_POLICY]->(h) " +
-                        "RETURN id(j) AS jid, id(r) AS rid, id(h) AS hid, id(i) as iid");
+                        "RETURN id(j) AS jid, ID(r) AS rid, id(h) AS hid, id(i) as iid");
 
         Map<String, Object> resultSet = executionResult.iterator().next();
 

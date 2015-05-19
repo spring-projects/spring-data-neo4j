@@ -19,7 +19,6 @@ import org.neo4j.ogm.cypher.query.GraphRowModelQuery;
 import org.neo4j.ogm.cypher.query.Paging;
 import org.neo4j.ogm.cypher.query.Query;
 import org.neo4j.ogm.exception.InvalidDepthException;
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.Utils;
 
 import java.util.Collection;
@@ -72,7 +71,7 @@ public class VariableDepthRelationshipQuery implements QueryStatements {
 
     @Override
     public Query findAll() {
-        return new GraphModelQuery("MATCH p=()-[r]->() RETURN p", Utils.map());
+        return new GraphModelQuery("MATCH p=()-->() RETURN p", Utils.map());
     }
 
     @Override
@@ -84,7 +83,7 @@ public class VariableDepthRelationshipQuery implements QueryStatements {
     public Query findByType(String type, int depth) {
         int max = max(depth);
         if (max > 0) {
-            String qry = String.format("MATCH p=()-[r:`%s`*..%d]-(m) RETURN collect(distinct p)", type, max);
+            String qry = String.format("MATCH p=()-[r:`%s`*..%d]-() RETURN collect(distinct p)", type, max);
             return new GraphModelQuery(qry, Utils.map());
         } else {
             throw new InvalidDepthException("Cannot load a relationship entity with depth 0 i.e. no start or end node");
@@ -120,7 +119,7 @@ public class VariableDepthRelationshipQuery implements QueryStatements {
 				query.append(String.format(" r.`%s` %s { `%s` } ", parameter.getPropertyName(), parameter.getComparisonOperator().getValue(), parameter.getPropertyName()));
 				properties.put(parameter.getPropertyName(), parameter.getPropertyValue());
 			}
-			query.append(String.format("WITH n,r MATCH p=(n)-[*%d..%d]-(m) RETURN collect(distinct p),ID(r)", min, max));
+			query.append(String.format("WITH n,r MATCH p=(n)-[*%d..%d]-(m) RETURN collect(distinct p), ID(r)", min, max));
 			return new GraphRowModelQuery(query.toString(), properties);
 		} else {
 			throw new InvalidDepthException("Cannot load a relationship entity with depth 0 i.e. no start or end node");
@@ -134,7 +133,7 @@ public class VariableDepthRelationshipQuery implements QueryStatements {
 
     @Override
     public Query findByProperties(String type, Collection<Parameter> parameters, Paging paging, int depth) {
-        return null;
+        return findByProperties(type,parameters,depth).setPage(paging);
     }
 
     @Override

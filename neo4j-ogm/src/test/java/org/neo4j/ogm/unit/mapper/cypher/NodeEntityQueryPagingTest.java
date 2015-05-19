@@ -1,11 +1,12 @@
 package org.neo4j.ogm.unit.mapper.cypher;
 
 import org.junit.Test;
+import org.neo4j.ogm.cypher.Parameter;
 import org.neo4j.ogm.cypher.query.Paging;
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 
@@ -23,17 +24,17 @@ public class NodeEntityQueryPagingTest {
 
     @Test
     public void testFindById() {
-        check("MATCH p=(n) WHERE id(n) in { ids } WITH n SKIP 2 LIMIT 2 MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p)", query.findAll(Arrays.asList(23L, 24L), new Paging(1, 2), 1).getStatement());
+        check("MATCH (n) WHERE id(n) in { ids } WITH n SKIP 2 LIMIT 2 MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p)", query.findAll(Arrays.asList(23L, 24L), new Paging(1, 2), 1).getStatement());
     }
 
     @Test
     public void testFindByType() {
-        check("MATCH p=(n:`Raptor`) WITH n SKIP 4 LIMIT 2 MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p)", query.findByType("Raptor", new Paging(2,2), 1).getStatement());
+        check("MATCH (n:`Raptor`) WITH n SKIP 4 LIMIT 2 MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p)", query.findByType("Raptor", new Paging(2,2), 1).getStatement());
     }
 
     @Test
-    public void testByProperty() {
-        check("MATCH p=(n:`Raptor`) WHERE n.`name` = { `name` } WITH n SKIP 0 LIMIT 2 MATCH p=(n)-[*0..2]-(m) RETURN collect(distinct p)", query.findByProperty("Raptor", new Property<String, Object>("name", "velociraptor"), new Paging(0, 2), 2).getStatement());
+    public void testFindByProperty() {
+        check("MATCH (n:`Raptor`) WHERE n.`name` = { `name` } WITH n SKIP 0 LIMIT 2 MATCH p=(n)-[*0..2]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Raptor", Collections.singletonList(new Parameter("name", "velociraptor")), new Paging(0, 2), 2).getStatement());
     }
 
     @Test
@@ -48,22 +49,22 @@ public class NodeEntityQueryPagingTest {
 
     @Test
     public void testByPropertyDepthZero() {
-        check("MATCH (n:`Raptor`) WHERE n.`name` = { `name` } WITH n SKIP 0 LIMIT 2 RETURN collect(n)", query.findByProperty("Raptor", new Property<String, Object>("name", "velociraptor"), new Paging(0, 2), 0).getStatement());
+        check("MATCH (n:`Raptor`) WHERE n.`name` = { `name` } WITH n SKIP 0 LIMIT 2 MATCH p=(n)-[*0..0]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Raptor", Collections.singletonList(new Parameter("name", "velociraptor")), new Paging(0, 2), 0).getStatement());
     }
 
     @Test
     public void testFindByIdDepthInfinite() {
-        check("MATCH p=(n) WHERE id(n) in { ids } WITH n SKIP 2 LIMIT 2 MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p)", query.findAll(Arrays.asList(23L, 24L), new Paging(1, 2), -1).getStatement());
+        check("MATCH p=(n)-[*0..]-(m) WHERE id(n) in { ids } WITH p SKIP 2 LIMIT 2 RETURN collect(distinct p)", query.findAll(Arrays.asList(23L, 24L), new Paging(1, 2), -1).getStatement());
     }
 
     @Test
     public void testFindByTypeDepthInfinite() {
-        check("MATCH p=(n:`Raptor`) WITH n SKIP 6 LIMIT 2 MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p)", query.findByType("Raptor", new Paging(3,2), -1).getStatement());
+        check("MATCH p=(n:`Raptor`)-[*0..]-(m) WITH p SKIP 6 LIMIT 2 RETURN collect(distinct p)", query.findByType("Raptor", new Paging(3,2), -1).getStatement());
     }
 
     @Test
-    public void testByPropertyDepthInfinite() {
-        check("MATCH p=(n:`Raptor`) WHERE n.`name` = { `name` } WITH n SKIP 0 LIMIT 2 MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p)", query.findByProperty("Raptor", new Property<String, Object>("name", "velociraptor"), new Paging(0, 2), -1).getStatement());
+    public void testFindByPropertyDepthInfinite() {
+        check("MATCH (n:`Raptor`) WHERE n.`name` = { `name` }  WITH n SKIP 0 LIMIT 2 MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Raptor", Collections.singletonList(new Parameter("name", "velociraptor")), new Paging(0, 2), -1).getStatement());
     }
 
     private void check(String expected, String actual) {

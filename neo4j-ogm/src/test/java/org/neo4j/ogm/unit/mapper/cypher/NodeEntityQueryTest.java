@@ -12,21 +12,15 @@
 
 package org.neo4j.ogm.unit.mapper.cypher;
 
-import static org.junit.Assert.*;
-
-import java.util.Arrays;
-import java.util.Collections;
-
 import org.junit.Test;
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Parameter;
-import org.junit.Test;
-import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.session.request.strategy.QueryStatements;
 import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 
@@ -40,12 +34,12 @@ public class NodeEntityQueryTest {
 
     @Test
     public void testFindOne() throws Exception {
-        assertEquals("MATCH p=(n)-[*0..2]-(m) WHERE id(n) = { id } RETURN collect(distinct p)", query.findOne(0L, 2).getStatement());
+        assertEquals("MATCH (n) WHERE id(n) = { id } WITH n MATCH p=(n)-[*0..2]-(m) RETURN collect(distinct p)", query.findOne(0L, 2).getStatement());
     }
 
     @Test
     public void testFindAllCollection() throws Exception {
-        assertEquals("MATCH p=(n)-[*0..1]-(m) WHERE id(n) in { ids } RETURN collect(distinct p)", query.findAll(Arrays.asList(1L, 2L, 3L), 1).getStatement());
+        assertEquals("MATCH (n) WHERE id(n) in { ids } WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p)", query.findAll(Arrays.asList(1L, 2L, 3L), 1).getStatement());
     }
 
     @Test
@@ -55,12 +49,12 @@ public class NodeEntityQueryTest {
 
     @Test
     public void testFindByLabel() throws Exception {
-        assertEquals("MATCH p=(n:`Orbit`)-[*0..3]-(m) RETURN collect(distinct p)", query.findByType("Orbit", 3).getStatement());
+        assertEquals("MATCH (n:`Orbit`) WITH n MATCH p=(n)-[*0..3]-(m) RETURN collect(distinct p)", query.findByType("Orbit", 3).getStatement());
     }
 
     @Test
     public void testFindByProperty() throws Exception {
-        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` = { `diameter` } WITH n MATCH p=(n)-[*0..4]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Collections.singletonList(new Parameter("diameter", 60.2)), 4).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` = { `diameter` } WITH n MATCH p=(n)-[*0..4]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Asteroid", Collections.singletonList(new Parameter("diameter", 60.2)), 4).getStatement());
     }
 
     @Test
@@ -80,7 +74,7 @@ public class NodeEntityQueryTest {
 
     @Test
     public void testFindByPropertyZeroDepth() throws Exception {
-        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` = { `diameter` } WITH n MATCH p=(n)-[*0..0]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Collections.singletonList(new Parameter("diameter", 60.2)), 0).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` = { `diameter` } WITH n MATCH p=(n)-[*0..0]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Asteroid", Collections.singletonList(new Parameter("diameter", 60.2)), 0).getStatement());
     }
 
     /**
@@ -89,7 +83,7 @@ public class NodeEntityQueryTest {
      */
     @Test
     public void testFindByLabelWithIllegalCharacters() throws Exception {
-        assertEquals("MATCH p=(n:`l'artiste`)-[*0..3]-(m) RETURN collect(distinct p)", query.findByType("l'artiste", 3).getStatement());
+        assertEquals("MATCH (n:`l'artiste`) WITH n MATCH p=(n)-[*0..3]-(m) RETURN collect(distinct p)", query.findByType("l'artiste", 3).getStatement());
     }
 
     /**
@@ -126,7 +120,7 @@ public class NodeEntityQueryTest {
      */
     @Test
     public void testFindByPropertyNegativeDepth() throws Exception {
-        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` = { `diameter` }  WITH n MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Collections.singletonList(new Parameter("diameter", 60.2)), -1).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` = { `diameter` }  WITH n MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Asteroid", Collections.singletonList(new Parameter("diameter", 60.2)), -1).getStatement());
     }
 
     /**
@@ -135,7 +129,7 @@ public class NodeEntityQueryTest {
      */
     @Test
     public void testFindByPropertyWithIllegalCharacters() throws Exception {
-        assertEquals("MATCH (n:`Studio`) WHERE n.`studio-name` = { `studio-name` } WITH n MATCH p=(n)-[*0..3]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Studio", Collections.singletonList(new Parameter("studio-name", "Abbey Road Studios")), 3).getStatement());
+        assertEquals("MATCH (n:`Studio`) WHERE n.`studio-name` = { `studio-name` } WITH n MATCH p=(n)-[*0..3]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Studio", Collections.singletonList(new Parameter("studio-name", "Abbey Road Studios")), 3).getStatement());
     }
 
     /**
@@ -146,7 +140,7 @@ public class NodeEntityQueryTest {
     public void testFindByPropertyGreaterThan() throws Exception {
         Parameter parameter = new Parameter("diameter",60);
         parameter.setComparisonOperator(ComparisonOperator.GREATER_THAN);
-        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` } WITH n MATCH p=(n)-[*0..4]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Collections.singletonList(parameter), 4).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` } WITH n MATCH p=(n)-[*0..4]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Asteroid", Collections.singletonList(parameter), 4).getStatement());
     }
 
     /**
@@ -158,7 +152,7 @@ public class NodeEntityQueryTest {
         Parameter diameterParam = new Parameter("diameter", 60);
         diameterParam.setComparisonOperator(ComparisonOperator.LESS_THAN);
         diameterParam.setBooleanOperator(BooleanOperator.AND);
-        assertEquals("MATCH (n:`Asteroid`) WHERE n.`name` = { `name` } AND n.`diameter` < { `diameter` } WITH n MATCH p=(n)-[*0..2]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(nameParam, diameterParam), 2).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`name` = { `name` } AND n.`diameter` < { `diameter` } WITH n MATCH p=(n)-[*0..2]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Asteroid", Arrays.asList(nameParam, diameterParam), 2).getStatement());
     }
 
     /**
@@ -170,7 +164,7 @@ public class NodeEntityQueryTest {
         Parameter diameterParam = new Parameter("diameter", 60);
         diameterParam.setComparisonOperator(ComparisonOperator.GREATER_THAN);
         diameterParam.setBooleanOperator(BooleanOperator.OR);
-        assertEquals("MATCH (n:`Asteroid`) WHERE n.`name` = { `name` } OR n.`diameter` > { `diameter` } WITH n MATCH p=(n)-[*0..2]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(nameParam, diameterParam), 2).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`name` = { `name` } OR n.`diameter` > { `diameter` } WITH n MATCH p=(n)-[*0..2]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Asteroid", Arrays.asList(nameParam, diameterParam), 2).getStatement());
     }
 
     /**
@@ -186,7 +180,7 @@ public class NodeEntityQueryTest {
         planetParam.setNestedEntityTypeLabel("Planet");
         planetParam.setRelationshipType("COLLIDES");
         planetParam.setRelationshipDirection("OUTGOING");
-        assertEquals("MATCH (n:`Asteroid`) MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)-[:`COLLIDES`]->(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(planetParam), 1).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)-[:`COLLIDES`]->(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Asteroid", Arrays.asList(planetParam), 1).getStatement());
 
     }
 
@@ -203,7 +197,7 @@ public class NodeEntityQueryTest {
         planetParam.setNestedEntityTypeLabel("Planet");
         planetParam.setRelationshipType("COLLIDES");
         planetParam.setRelationshipDirection("INCOMING");
-        assertEquals("MATCH (n:`Asteroid`) MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)<-[:`COLLIDES`]-(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(planetParam), 1).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)<-[:`COLLIDES`]-(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Asteroid", Arrays.asList(planetParam), 1).getStatement());
 
     }
 
@@ -220,7 +214,7 @@ public class NodeEntityQueryTest {
         planetParam.setNestedEntityTypeLabel("Planet");
         planetParam.setRelationshipType("COLLIDES");
         planetParam.setRelationshipDirection("UNDIRECTED");
-        assertEquals("MATCH (n:`Asteroid`) MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)-[:`COLLIDES`]-(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(planetParam), 1).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)-[:`COLLIDES`]-(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Asteroid", Arrays.asList(planetParam), 1).getStatement());
 
     }
 
@@ -241,7 +235,7 @@ public class NodeEntityQueryTest {
         planetParam.setNestedEntityTypeLabel("Planet");
         planetParam.setRelationshipType("COLLIDES");
         planetParam.setRelationshipDirection("OUTGOING");
-        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` }  MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)-[:`COLLIDES`]->(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(diameterParam, planetParam), 1).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` }  MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)-[:`COLLIDES`]->(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Asteroid", Arrays.asList(diameterParam, planetParam), 1).getStatement());
     }
 
     /**
@@ -261,7 +255,7 @@ public class NodeEntityQueryTest {
         planetParam.setNestedEntityTypeLabel("Planet");
         planetParam.setRelationshipType("COLLIDES");
         planetParam.setRelationshipDirection("OUTGOING");
-        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` }  MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)-[:`COLLIDES`]->(x)  WITH n MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(diameterParam, planetParam), -1).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` }  MATCH (x:`Planet`) WHERE x.`name` = { `name` }  MATCH (n)-[:`COLLIDES`]->(x)  WITH n MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Asteroid", Arrays.asList(diameterParam, planetParam), -1).getStatement());
     }
 
     /**
@@ -281,7 +275,7 @@ public class NodeEntityQueryTest {
         planetParam.setNestedEntityTypeLabel("Planet");
         planetParam.setRelationshipType("COLLIDES");
         planetParam.setRelationshipDirection("OUTGOING");
-        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` }  OPTIONAL MATCH (x:`Planet`) WHERE x.`name` = { `name` }  OPTIONAL MATCH (n)-[:`COLLIDES`]->(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(diameterParam, planetParam), 1).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` }  OPTIONAL MATCH (x:`Planet`) WHERE x.`name` = { `name` }  OPTIONAL MATCH (n)-[:`COLLIDES`]->(x) WITH n MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Asteroid", Arrays.asList(diameterParam, planetParam), 1).getStatement());
     }
 
     /**
@@ -301,6 +295,6 @@ public class NodeEntityQueryTest {
         planetParam.setNestedEntityTypeLabel("Planet");
         planetParam.setRelationshipType("COLLIDES");
         planetParam.setRelationshipDirection("OUTGOING");
-        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` }  OPTIONAL MATCH (x:`Planet`) WHERE x.`name` = { `name` }  OPTIONAL MATCH (n)-[:`COLLIDES`]->(x) WITH n MATCH p=(n)-[*0..0]-(m) RETURN collect(distinct p),ID(n)", query.findByProperties("Asteroid", Arrays.asList(diameterParam, planetParam), 0).getStatement());
+        assertEquals("MATCH (n:`Asteroid`) WHERE n.`diameter` > { `diameter` }  OPTIONAL MATCH (x:`Planet`) WHERE x.`name` = { `name` }  OPTIONAL MATCH (n)-[:`COLLIDES`]->(x) WITH n MATCH p=(n)-[*0..0]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Asteroid", Arrays.asList(diameterParam, planetParam), 0).getStatement());
     }
 }
