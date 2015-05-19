@@ -35,10 +35,12 @@ public class ParameterisedStatement {
     private int matchIndex;
     private int filterIndex;
     private int returnIndex;
+    private int withIndex;
 
     private Map<String, Object> parameters = new HashMap<>();
     private String[] resultDataContents;
     private boolean includeStats = false;
+    private int relIndex;
 
     private Paging paging;
     private Orderings orderings = new Orderings();
@@ -78,73 +80,17 @@ public class ParameterisedStatement {
 
         if (orderings.length() > 0 || pagination.length() > 0) {
 
-
-
-            String matchClause = (filterIndex > -1) ? parseClause(matchIndex, filterIndex) : parseClause(matchIndex, returnIndex);
-            String filterClause = parseClause(filterIndex, returnIndex);
-            String returnClause = parseClause(returnIndex, -1);
-            int pathIndex = matchClause.indexOf("-[");
-            String pathClause = "";
-
-            // extract any path from the match statement
-            if (pathIndex > -1) {
-                if (filterIndex > -1) {
-                    pathClause = parseClause(pathIndex, filterIndex);
+            if (withIndex > -1) {
+                int nextClauseIndex = stmt.indexOf(" MATCH", withIndex);
+                String withClause = stmt.substring(withIndex, nextClauseIndex);
+                stmt = stmt.replace(withClause, withClause + orderings + pagination);
+            } else {
+                if (stmt.startsWith("MATCH p=(")) {
+                    stmt = stmt.replace("RETURN ", "WITH p" + orderings + pagination + " RETURN ");
                 } else {
-                    pathClause = parseClause(pathIndex, returnIndex);
+                    stmt = stmt.replace("RETURN ", "WITH n" + orderings + pagination + " RETURN ");
                 }
-                matchClause = matchClause.substring(0, pathIndex);
             }
-
-            // match clause will now be one of:
-
-            // "match p=(n)"
-            // "match p=(n:...)"
-            // "match (n)"
-
-            // path clause will be one of
-            // ""
-            // "-[...."
-
-            // filter clause will be one of
-            // ""
-            // "WHERE ... "
-
-            StringBuilder sb = new StringBuilder();
-            sb.append(matchClause);
-
-            sb.append(filterClause);
-
-            // node bindings
-            if (matchClause.contains("(n")) {
-                sb.append(" WITH n");
-            }
-
-            // path bindings
-            if (matchClause.contains("p=()")) {
-                sb.append( " WITH p");
-            }
-
-            if (orderings.length() > 0) {
-                sb.append(orderings);
-            }
-
-            if (pagination.length() > 0) {
-                sb.append(pagination);
-            }
-
-            if (pathIndex > -1) {
-                sb.append(" MATCH p=(n)");
-                sb.append(pathClause);
-            }
-
-
-            //if (matchClause.contains("(n")) {
-                sb.append(returnClause);
-            //}
-
-
-            return sb.toString();
         }
 
         return stmt;
@@ -182,6 +128,8 @@ public class ParameterisedStatement {
         this.returnIndex = statement.indexOf(" RETURN ");
         this.filterIndex = statement.indexOf(" WHERE ");
         this.matchIndex = statement.indexOf("MATCH ");
+        this.withIndex = statement.indexOf("WITH n");
+        this.relIndex = statement.indexOf("-[r");
 
     }
 
