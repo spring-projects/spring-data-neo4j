@@ -105,7 +105,7 @@ public class Neo4jSession implements Session {
     public <T> T load(Class<T> type, Long id, int depth) {
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        PagingAndSorting qry = queryStatements.findOne(id,depth);
+        Query qry = queryStatements.findOne(id,depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
             return getResponseHandler().loadById(type, response, id);
         }
@@ -120,7 +120,7 @@ public class Neo4jSession implements Session {
     public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, int depth) {
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        PagingAndSorting qry = queryStatements.findAll(ids, depth);
+        Query qry = queryStatements.findAll(ids, depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
             return getResponseHandler().loadAll(type, response);
         }
@@ -136,7 +136,7 @@ public class Neo4jSession implements Session {
         ClassInfo classInfo = metaData.classInfo(type.getName());
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        PagingAndSorting qry = queryStatements.findByType(getEntityType(classInfo), depth);
+        Query qry = queryStatements.findByType(getEntityType(classInfo), depth);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
             return getResponseHandler().loadAll(type, response);
         }
@@ -198,7 +198,7 @@ public class Neo4jSession implements Session {
         ClassInfo classInfo = metaData.classInfo(type.getName());
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        PagingAndSorting qry = queryStatements.findByType(getEntityType(classInfo), depth).setPage(paging);
+        Query qry = queryStatements.findByType(getEntityType(classInfo), depth).setPage(paging);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
             return getResponseHandler().loadAll(type, response);
         }
@@ -213,7 +213,7 @@ public class Neo4jSession implements Session {
     public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, Paging paging, int depth) {
         String url = getCurrentOrCreateAutocommitTransaction().url();
         QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
-        PagingAndSorting qry = queryStatements.findAll(ids, depth).setPage(paging);
+        Query qry = queryStatements.findAll(ids, depth).setPage(paging);
         try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
             return getResponseHandler().loadAll(type, response);
         }
@@ -296,7 +296,7 @@ public class Neo4jSession implements Session {
         String url = getCurrentOrCreateAutocommitTransaction().url();
 
         if (type != null && metaData.classInfo(type.getSimpleName()) != null) {
-            PagingAndSorting qry = new GraphModelQuery(cypher, parameters);
+            Query qry = new GraphModelQuery(cypher, parameters);
             try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
                 return getResponseHandler().loadAll(type, response);
             }

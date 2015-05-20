@@ -14,11 +14,7 @@ package org.neo4j.ogm.session.request;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.neo4j.ogm.cypher.query.GraphModelQuery;
-import org.neo4j.ogm.cypher.query.GraphRowModelQuery;
-import org.neo4j.ogm.cypher.query.PagingAndSorting;
-import org.neo4j.ogm.cypher.query.RowModelQuery;
-import org.neo4j.ogm.cypher.query.RowModelQueryWithStatistics;
+import org.neo4j.ogm.cypher.query.*;
 import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
 import org.neo4j.ogm.cypher.statement.ParameterisedStatements;
 import org.neo4j.ogm.metadata.MappingException;
@@ -49,9 +45,9 @@ public class SessionRequestHandler implements RequestHandler {
     }
 
     @Override
-    public Neo4jResponse<GraphModel> execute(PagingAndSorting query, String url) {
+    public Neo4jResponse<GraphModel> execute(Query query, String url) {
         List<ParameterisedStatement> list = new ArrayList<>();
-        list.add((GraphModelQuery) query);
+        list.add(query);
         Neo4jResponse<String> response = execute(list, url);
         return new GraphModelResponse(response, mapper);
     }

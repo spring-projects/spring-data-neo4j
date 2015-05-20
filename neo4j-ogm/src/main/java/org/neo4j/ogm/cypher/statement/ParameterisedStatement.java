@@ -32,15 +32,11 @@ public class ParameterisedStatement {
 
     private String statement;
 
-    private int matchIndex;
-    private int filterIndex;
-    private int returnIndex;
     private int withIndex;
 
     private Map<String, Object> parameters = new HashMap<>();
     private String[] resultDataContents;
     private boolean includeStats = false;
-    private int relIndex;
 
     private Paging paging;
     private Orderings orderings = new Orderings();
@@ -125,19 +121,8 @@ public class ParameterisedStatement {
     }
 
     private void parseStatement() {
-        this.returnIndex = statement.indexOf(" RETURN ");
-        this.filterIndex = statement.indexOf(" WHERE ");
-        this.matchIndex = statement.indexOf("MATCH ");
         this.withIndex = statement.indexOf("WITH n");
-        this.relIndex = statement.indexOf("-[r");
 
-    }
-
-    private String parseClause(int i, int j) {
-        if (j == -1) {
-            j = statement.length();
-        }
-        return (i > -1 && i < j) ? statement.substring(i, j) : "";
     }
 }
 
