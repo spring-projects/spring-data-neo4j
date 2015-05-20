@@ -39,6 +39,10 @@ public class LoadByTypeDelegate implements Capability.LoadByType {
         String entityType = session.entityType(type.getName());
         QueryStatements queryStatements = session.queryStatementsFor(type);
 
+        // all this business about selecting which type of model/response to handle is horribly hacky
+        // it should be possible for the response handler to select based on the model implementation
+        // and we should have a single method loadAll(...). Filters should not be a special case
+        // though they are at the moment because of the problems with "graph" response format.
         if (filters.isEmpty()) {
 
             Query qry = queryStatements.findByType(entityType, depth)
@@ -56,8 +60,14 @@ public class LoadByTypeDelegate implements Capability.LoadByType {
                     .setSortOrder(sortOrder)
                     .setPagination(pagination);
 
-            try (Neo4jResponse<GraphRowModel> response = session.requestHandler().execute((GraphRowModelQuery) qry, url)) {
-                return session.responseHandler().loadByProperty(type, response);
+            if (depth != 0) {
+                try (Neo4jResponse<GraphRowModel> response = session.requestHandler().execute((GraphRowModelQuery) qry, url)) {
+                    return session.responseHandler().loadByProperty(type, response);
+                }
+            } else {
+                try (Neo4jResponse<GraphModel> response = session.requestHandler().execute(qry, url)) {
+                    return session.responseHandler().loadAll(type, response);
+                }
             }
         }
     }
