@@ -3,12 +3,12 @@ package org.neo4j.ogm.cypher.query;
 /**
  * @author: Vince Bickers
  */
-public class Paging {
+public class Pagination {
 
     private final Integer index;
     private final Integer size;
 
-    public Paging(Integer index, Integer size) {
+    public Pagination(Integer index, Integer size) {
         this.index = index;
         this.size = size;
     }

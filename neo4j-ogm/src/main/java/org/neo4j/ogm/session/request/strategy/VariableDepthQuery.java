@@ -15,11 +15,9 @@ package org.neo4j.ogm.session.request.strategy;
 
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.cypher.BooleanOperator;
-import org.neo4j.ogm.cypher.Parameter;
-import org.neo4j.ogm.cypher.query.GraphModelQuery;
-import org.neo4j.ogm.cypher.query.GraphRowModelQuery;
-import org.neo4j.ogm.cypher.query.Paging;
-import org.neo4j.ogm.cypher.query.Query;
+import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.cypher.Filters;
+import org.neo4j.ogm.cypher.query.*;
 import org.neo4j.ogm.session.Utils;
 
 import java.util.Collection;
@@ -68,11 +66,6 @@ public class VariableDepthQuery implements QueryStatements {
     }
 
     @Override
-    public Query findAll(Paging paging) {
-        return findAll().setPage(paging);
-    }
-
-    @Override
     public Query findByType(String label, int depth) {
         int max = max(depth);
         int min = min(max);
@@ -88,7 +81,7 @@ public class VariableDepthQuery implements QueryStatements {
     }
 
     @Override
-    public Query findByProperties(String label, Collection<Parameter> parameters, int depth) {
+    public Query findByProperties(String label, Filters parameters, int depth) {
         int max = max(depth);
         int min = min(max);
         if (depth < 0) {
@@ -104,25 +97,10 @@ public class VariableDepthQuery implements QueryStatements {
         }
     }
 
-    @Override
-    public Query findByProperties(String type, Collection<Parameter> parameters, String orderings, int depth) {
-        return null;
-    }
-
-    @Override
-    public Query findByProperties(String type, Collection<Parameter> parameters, Paging paging, int depth) {
-        return findByProperties(type, parameters, depth).setPage(paging);
-    }
-
-    @Override
-    public Query findByProperties(String type, Collection<Parameter> parameters, String orderings, Paging paging, int depth) {
-        return null;
-    }
-
-    private static StringBuilder constructQuery(String label, Collection<Parameter> parameters, Map<String, Object> properties) {
+    private static StringBuilder constructQuery(String label, Filters parameters, Map<String, Object> properties) {
         StringBuilder query = new StringBuilder(String.format("MATCH (n:`%s`)",label));
         StringBuilder relationshipMatch = null;
-        for(Parameter parameter : parameters) {
+        for(Filter parameter : parameters) {
             if(parameter.isNested()) {
                 if(parameter.getBooleanOperator().equals(BooleanOperator.OR)) {
                     query.append(" OPTIONAL");
@@ -146,7 +124,7 @@ public class VariableDepthQuery implements QueryStatements {
         return query;
     }
 
-    private static StringBuilder constructRelationshipMatch(Parameter parameter) {
+    private static StringBuilder constructRelationshipMatch(Filter parameter) {
         StringBuilder relationshipMatch;
         relationshipMatch = new StringBuilder();
         if(parameter.getBooleanOperator().equals(BooleanOperator.OR)) {
@@ -162,37 +140,6 @@ public class VariableDepthQuery implements QueryStatements {
 		}
         relationshipMatch.append("(x) ");
         return relationshipMatch;
-    }
-
-
-    @Override
-    public Query findByType(String type, String orderings, int depth) {
-        return null;
-    }
-
-    @Override
-    public Query findAll(Collection<Long> ids, String orderings, int depth) {
-        return null;
-    }
-
-    @Override
-    public Query findAll(Collection<Long> ids, String orderings, Paging paging, int depth) {
-        return null;
-    }
-
-    @Override
-    public Query findByType(String type, Paging paging, int depth) {
-        return findByType(type, depth).setPage(paging);
-    }
-
-    @Override
-    public Query findByType(String type, String orderings, Paging paging, int depth) {
-        return null;
-    }
-
-    @Override
-    public Query findAll(Collection<Long> ids, Paging paging, int depth) {
-        return findAll(ids, depth).setPage(paging);
     }
 
     private int min(int depth) {
@@ -217,7 +164,7 @@ public class VariableDepthQuery implements QueryStatements {
             return new GraphModelQuery(String.format("MATCH (n:`%s`) RETURN collect(n)", label), Utils.map());
         }
 
-        public static GraphRowModelQuery findByProperties(String label, Collection<Parameter> parameters) {
+        public static GraphRowModelQuery findByProperties(String label, Filters parameters) {
             Map<String,Object> properties = new HashMap<>();
             StringBuilder query = constructQuery(label, parameters, properties);
             query.append("WITH n MATCH p=(n)-[*0..0]-(m) RETURN collect(distinct p), ID(n)");
@@ -240,7 +187,7 @@ public class VariableDepthQuery implements QueryStatements {
             return new GraphModelQuery(String.format("MATCH p=(n:`%s`)-[*0..]-(m) RETURN collect(distinct p)", label), Utils.map());
         }
 
-        public static GraphRowModelQuery findByProperties(String label, Collection<Parameter> parameters) {
+        public static GraphRowModelQuery findByProperties(String label, Filters parameters) {
             Map<String,Object> properties = new HashMap<>();
             StringBuilder query = constructQuery(label, parameters, properties);
             query.append(" WITH n MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p), ID(n)");

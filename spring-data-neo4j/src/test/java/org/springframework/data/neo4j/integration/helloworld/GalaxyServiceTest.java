@@ -15,7 +15,7 @@ package org.springframework.data.neo4j.integration.helloworld;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.cypher.query.Paging;
+import org.neo4j.ogm.cypher.query.Pagination;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -165,7 +165,7 @@ public class GalaxyServiceTest {
         }
 
         for (int page = 0; page < pages; page++) {
-            Iterable<World> paged = galaxyService.findAllWorlds(new Paging(page, PAGE_SIZE));
+            Iterable<World> paged = galaxyService.findAllWorlds(new Pagination(page, PAGE_SIZE));
             for (World world : paged) {
                 System.out.println(world.getName() + ":" + world.getId());
                 n -= world.getId();
@@ -193,7 +193,7 @@ public class GalaxyServiceTest {
 
         // fetch the first 2 pages
         for (int page = 0; page < 2; page++) {
-            Iterable<World> pagedWorlds = galaxyService.findAllWorldsById(ids, new Paging(page, PAGE_SIZE));
+            Iterable<World> pagedWorlds = galaxyService.findAllWorldsById(ids, new Pagination(page, PAGE_SIZE));
             Iterator<World> pagedIterator = pagedWorlds.iterator();
             for (int i = 0; i < PAGE_SIZE; i++) {
                 World pagedWorld = pagedIterator.next();

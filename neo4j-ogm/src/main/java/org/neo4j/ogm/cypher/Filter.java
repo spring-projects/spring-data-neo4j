@@ -25,7 +25,7 @@ package org.neo4j.ogm.cypher;
 
  * @author Luanne Misquitta
  */
-public class Parameter {
+public class Filter {
 
 	/**
 	 * The property name on the entity to be used in the filter
@@ -83,10 +83,10 @@ public class Parameter {
 	private String relationshipDirection;
 
 
-	public Parameter() {
+	public Filter() {
 	}
 
-	public Parameter(String propertyName, Object propertyValue) {
+	public Filter(String propertyName, Object propertyValue) {
 		this.propertyName = propertyName;
 		this.propertyValue = propertyValue;
 	}

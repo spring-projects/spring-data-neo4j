@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.ogm.cypher.Parameter;
+import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
@@ -612,11 +612,11 @@ public class End2EndIntegrationTest {
     }
 
     protected Iterable<?> findByProperty(Class clazz, String propertyName, Object propertyValue) {
-        return session.loadByProperty(clazz, new Parameter(propertyName, propertyValue));
+        return session.loadAll(clazz, new Filter(propertyName, propertyValue));
     }
 
     protected Iterable<?> findByProperty(Class clazz, String propertyName, Object propertyValue, int depth) {
-        return session.loadByProperty(clazz, new Parameter(propertyName, propertyValue), depth);
+        return session.loadAll(clazz, new Filter(propertyName, propertyValue), depth);
     }
 
 }

@@ -13,15 +13,10 @@
 package org.neo4j.ogm.session.request.strategy;
 
 
-import org.neo4j.ogm.cypher.query.Paging;
+import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.cypher.query.Query;
-import org.neo4j.ogm.model.Property;
 
 import java.util.Collection;
-
-import org.neo4j.ogm.cypher.Parameter;
-import org.neo4j.ogm.cypher.query.GraphModelQuery;
-import org.neo4j.ogm.cypher.query.GraphRowModelQuery;
 
 /**
  * @author Vince Bickers
@@ -42,7 +37,6 @@ public interface QueryStatements {
      * @return a Cypher expression
      */
     Query findAll();
-    Query findAll(Paging paging);
     /**
      * construct a query to fetch all objects with the specified ids
      * @param ids the ids of the objects to find
@@ -50,9 +44,6 @@ public interface QueryStatements {
      * @return a Cypher expression
      */
     Query findAll(Collection<Long> ids, int depth);
-    Query findAll(Collection<Long> ids, Paging paging, int depth);
-    Query findAll(Collection<Long> ids, String orderings, int depth);
-    Query findAll(Collection<Long> ids, String orderings, Paging paging, int depth);
 
     /**
      * construct queries to fetch all objects with the specified label or relationship type
@@ -61,21 +52,15 @@ public interface QueryStatements {
      * @return a Cypher expression
      */
     Query findByType(String type, int depth);
-    Query findByType(String type, String orderings, int depth);
-    Query findByType(String type, Paging paging, int depth);
-    Query findByType(String type, String orderings, Paging paging, int depth);
 
     /**
      * construct queries to fetch all objects with the specified label and property
      * @param type the label value or relationship type to filter on
-     * @param parameters parameters to filter on
+     * @param filters parameters to filter on
      * @param depth the depth to traverse for related objects
      * @return a Cypher expression
      */
 
-    Query findByProperties(String type, Collection<Parameter> parameters, int depth);
-    Query findByProperties(String type, Collection<Parameter> parameters, String orderings, int depth);
-    Query findByProperties(String type, Collection<Parameter> parameters, Paging paging, int depth);
-    Query findByProperties(String type, Collection<Parameter> parameters, String orderings, Paging paging, int depth);
+    Query findByProperties(String type, Filters filters, int depth);
 
 }

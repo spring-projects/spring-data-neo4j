@@ -19,7 +19,7 @@ import java.util.Collection;
  *
  * @param <T> The type of object onto which the row model should be mapped
  */
-interface RowModelMapper<T> {
+public interface RowModelMapper<T> {
 
     /**
      * Appends elements to the given result for each of the row values.

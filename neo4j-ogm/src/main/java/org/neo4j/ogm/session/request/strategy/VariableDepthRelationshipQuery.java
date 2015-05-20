@@ -13,11 +13,9 @@
 package org.neo4j.ogm.session.request.strategy;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
-import org.neo4j.ogm.cypher.Parameter;
-import org.neo4j.ogm.cypher.query.GraphModelQuery;
-import org.neo4j.ogm.cypher.query.GraphRowModelQuery;
-import org.neo4j.ogm.cypher.query.Paging;
-import org.neo4j.ogm.cypher.query.Query;
+import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.cypher.Filters;
+import org.neo4j.ogm.cypher.query.*;
 import org.neo4j.ogm.exception.InvalidDepthException;
 import org.neo4j.ogm.session.Utils;
 
@@ -55,28 +53,8 @@ public class VariableDepthRelationshipQuery implements QueryStatements {
     }
 
     @Override
-    public Query findAll(Collection<Long> ids, Paging paging, int depth) {
-        return findAll(ids, depth).setPage(paging);
-    }
-
-    @Override
-    public Query findAll(Collection<Long> ids, String orderings, int depth) {
-        return null;
-    }
-
-    @Override
-    public Query findAll(Collection<Long> ids, String orderings, Paging paging, int depth) {
-        return null;
-    }
-
-    @Override
     public Query findAll() {
         return new GraphModelQuery("MATCH p=()-->() RETURN p", Utils.map());
-    }
-
-    @Override
-    public Query findAll(Paging paging) {
-        return findAll().setPage(paging);
     }
 
     @Override
@@ -90,29 +68,15 @@ public class VariableDepthRelationshipQuery implements QueryStatements {
         }
     }
 
-    @Override
-    public Query findByType(String type, String orderings, int depth) {
-        return null;
-    }
-
-    @Override
-    public Query findByType(String type, Paging paging, int depth) {
-        return findByType(type, depth).setPage(paging);
-    }
-
-    @Override
-    public Query findByType(String type, String orderings, Paging paging, int depth) {
-        return null;
-    }
 
 	@Override
-	public Query findByProperties(String type, Collection<Parameter> parameters, int depth) {
+	public Query findByProperties(String type, Filters parameters, int depth) {
 		int max = max(depth);
 		int min = min(max);
 		if (max > 0) {
 			Map<String, Object> properties = new HashMap<>();
 			StringBuilder query = new StringBuilder(String.format("MATCH (n)-[r:`%s`]->() WHERE", type));
-			for (Parameter parameter : parameters) {
+			for (Filter parameter : parameters) {
 				if (parameter.getBooleanOperator() != BooleanOperator.NONE) {
 					query.append(parameter.getBooleanOperator().getValue());
 				}
@@ -125,22 +89,6 @@ public class VariableDepthRelationshipQuery implements QueryStatements {
 			throw new InvalidDepthException("Cannot load a relationship entity with depth 0 i.e. no start or end node");
 		}
 	}
-
-    @Override
-    public Query findByProperties(String type, Collection<Parameter> parameters, String orderings, int depth) {
-        return null;
-    }
-
-    @Override
-    public Query findByProperties(String type, Collection<Parameter> parameters, Paging paging, int depth) {
-        return findByProperties(type,parameters,depth).setPage(paging);
-    }
-
-    @Override
-    public Query findByProperties(String type, Collection<Parameter> parameters, String orderings, Paging paging, int depth) {
-        return null;
-    }
-
 
     private int min(int depth) {
         return Math.min(0, depth);

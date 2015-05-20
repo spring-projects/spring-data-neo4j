@@ -12,8 +12,8 @@
 
 package org.springframework.data.neo4j.integration.helloworld.service;
 
-import org.neo4j.ogm.cypher.Parameter;
-import org.neo4j.ogm.cypher.query.Paging;
+import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -150,20 +150,20 @@ public class GalaxyService {
     }
 
     private Iterable<World> findByProperty(String propertyName, Object propertyValue) {
-        return session.loadByProperty(World.class, new Parameter(propertyName, propertyValue));
+        return session.loadAll(World.class, new Filter(propertyName, propertyValue));
     }
 
     public Iterable<World> findByProperty(String propertyName, Object propertyValue, int depth) {
-        return session.loadByProperty(World.class, new Parameter(propertyName, propertyValue), depth);
+        return session.loadAll(World.class, new Filter(propertyName, propertyValue), depth);
     }
 
 
-    public Iterable<World> findAllWorlds(Paging paging) {
+    public Iterable<World> findAllWorlds(Pagination paging) {
         return session.loadAll(World.class, paging, 0);
 
     }
 
-    public Iterable<World> findAllWorldsById(Collection<Long> ids, Paging paging) {
+    public Iterable<World> findAllWorldsById(Collection<Long> ids, Pagination paging) {
         return session.loadAll(World.class, ids, paging, 0);
 
     }

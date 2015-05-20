@@ -17,7 +17,7 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.neo4j.ogm.cypher.Parameter;
+import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.web.domain.User;
@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService {
     }
 
     protected Iterable<User> findByProperty(String propertyName, Object propertyValue) {
-        return session.loadByProperty(User.class, new Parameter(propertyName, propertyValue));
+        return session.loadAll(User.class, new Filter(propertyName, propertyValue));
     }
 
 }

@@ -12,7 +12,7 @@
 
 package org.springframework.data.neo4j.repository;
 
-import org.neo4j.ogm.cypher.query.Paging;
+import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -140,7 +140,8 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
     @Override
     public Iterable<T> findAll(Sort sort, int depth) {
-        return session.loadAll(clazz, sort.toString(), depth);
+        //return session.loadAll(clazz, sort.toString(), depth);
+        throw new RuntimeException("not implemented");
     }
 
     @Override
@@ -150,7 +151,8 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
     @Override
     public Iterable<T> findAll(Iterable<Long> ids, Sort sort, int depth) {
-        return session.loadAll(clazz, (Collection<Long>) ids, sort.toString(), depth);
+        //return session.loadAll(clazz, (Collection<Long>) ids, sort.toString(), depth);
+        throw new RuntimeException("not implemented");
     }
 
 
@@ -162,7 +164,7 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
     @Override
     public Page<T> findAll(Pageable pageable, int depth) {
 
-        Collection<T> data = session.loadAll(clazz, new Paging(pageable.getPageNumber(), pageable.getPageSize()), depth);
+        Collection<T> data = session.loadAll(clazz, new Pagination(pageable.getPageNumber(), pageable.getPageSize()), depth);
         return updatePage(pageable, new ArrayList<T>(data));
     }
 

@@ -6,11 +6,11 @@ import java.util.List;
 /**
  * @author: Vince Bickers
  */
-public class Orderings {
+public class SortOrder {
 
     private List<Ordering> orderings = new ArrayList();
 
-    public Orderings add(PagingAndSorting.Direction direction, String... properties) {
+    public SortOrder add(FilteringPagingAndSorting.Direction direction, String... properties) {
         orderings.add(new Ordering(direction, properties));
         return this;
     }
@@ -31,10 +31,10 @@ public class Orderings {
 
     class Ordering {
 
-        private final PagingAndSorting.Direction direction;
+        private final FilteringPagingAndSorting.Direction direction;
         private final String[] properties;
 
-        public Ordering(PagingAndSorting.Direction direction, String... properties) {
+        public Ordering(FilteringPagingAndSorting.Direction direction, String... properties) {
             this.direction = direction;
             this.properties = properties;
         }
@@ -49,7 +49,7 @@ public class Orderings {
                     sb.append(",");
                 }
                 sb.deleteCharAt(sb.length() - 1);
-                if (direction == PagingAndSorting.Direction.DESC) {
+                if (direction == FilteringPagingAndSorting.Direction.DESC) {
                     sb.append(" DESC");
                 }
             }

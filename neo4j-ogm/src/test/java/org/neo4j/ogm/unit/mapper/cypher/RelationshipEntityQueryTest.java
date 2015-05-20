@@ -1,13 +1,13 @@
 package org.neo4j.ogm.unit.mapper.cypher;
 
 import org.junit.Test;
-import org.neo4j.ogm.cypher.Parameter;
+import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.exception.InvalidDepthException;
 import org.neo4j.ogm.session.request.strategy.QueryStatements;
 import org.neo4j.ogm.session.request.strategy.VariableDepthRelationshipQuery;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 
@@ -40,7 +40,7 @@ public class RelationshipEntityQueryTest {
 
     @Test
     public void testFindByProperty() throws Exception {
-        assertEquals("MATCH (n)-[r:`ORBITS`]->() WHERE r.`distance` = { `distance` } WITH n,r MATCH p=(n)-[*0..4]-(m) RETURN collect(distinct p), ID(r)", query.findByProperties("ORBITS", Collections.singletonList(new Parameter("distance", 60.2)), 4).getStatement());
+        assertEquals("MATCH (n)-[r:`ORBITS`]->() WHERE r.`distance` = { `distance` } WITH n,r MATCH p=(n)-[*0..4]-(m) RETURN collect(distinct p), ID(r)", query.findByProperties("ORBITS", new Filters().add(new Filter("distance", 60.2)), 4).getStatement());
     }
 
     @Test(expected = InvalidDepthException.class)
@@ -60,7 +60,7 @@ public class RelationshipEntityQueryTest {
 
     @Test(expected = InvalidDepthException.class)
     public void testFindByPropertyZeroDepth() throws Exception {
-        query.findByProperties("ORBITS", Collections.singletonList(new Parameter("perihelion", 19.7)), 0).getStatement();
+        query.findByProperties("ORBITS", new Filters().add(new Filter("perihelion", 19.7)), 0).getStatement();
     }
 
     @Test(expected = InvalidDepthException.class)
@@ -80,7 +80,7 @@ public class RelationshipEntityQueryTest {
 
     @Test(expected = InvalidDepthException.class)
     public void testFindByPropertyInfiniteDepth() throws Exception {
-        query.findByProperties("ORBITS", Collections.singletonList(new Parameter("period", 2103.776)), -1).getStatement();
+        query.findByProperties("ORBITS", new Filters().add(new Filter("period", 2103.776)), -1).getStatement();
     }
 
 }

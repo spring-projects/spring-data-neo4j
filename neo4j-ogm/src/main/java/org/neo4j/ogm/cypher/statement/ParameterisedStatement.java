@@ -12,9 +12,10 @@
 
 package org.neo4j.ogm.cypher.statement;
 
-import org.neo4j.ogm.cypher.query.Orderings;
-import org.neo4j.ogm.cypher.query.Paging;
-import org.neo4j.ogm.cypher.query.PagingAndSorting;
+import org.neo4j.ogm.cypher.Filters;
+import org.neo4j.ogm.cypher.query.FilteringPagingAndSorting;
+import org.neo4j.ogm.cypher.query.Pagination;
+import org.neo4j.ogm.cypher.query.SortOrder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,8 +39,9 @@ public class ParameterisedStatement {
     private String[] resultDataContents;
     private boolean includeStats = false;
 
-    private Paging paging;
-    private Orderings orderings = new Orderings();
+    private Pagination paging;
+    private SortOrder orderings = new SortOrder();
+    private Filters filters = new Filters();
 
 
     /**
@@ -104,24 +106,34 @@ public class ParameterisedStatement {
         return includeStats;
     }
 
-    public Paging page() {
+    public Pagination page() {
         return paging;
     }
 
-    public Orderings orderings() {
+    public SortOrder orderings() {
         return orderings;
     }
 
-    protected void addOrdering(PagingAndSorting.Direction direction, String... properties) {
+    protected void addOrdering(FilteringPagingAndSorting.Direction direction, String... properties) {
         this.orderings.add(direction, properties);
     }
 
-    protected void addPaging(Paging page) {
+    protected void addPaging(Pagination page) {
         this.paging = page;
     }
 
     private void parseStatement() {
         this.withIndex = statement.indexOf("WITH n");
+
+    }
+
+    public void addSortOrder(SortOrder sortOrder) {
+        this.orderings = sortOrder;
+
+    }
+
+    public void addFilters(Filters filters) {
+        this.filters = filters;
 
     }
 }
