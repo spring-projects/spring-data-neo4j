@@ -146,14 +146,14 @@ public class FieldInfo {
     }
 
     public boolean isCollection() {
-        String descriptorClass =getCollectionClassname();
+        String descriptorClass = getCollectionClassname();
         try {
             Class descriptorClazz = Class.forName(descriptorClass);
             if (Collection.class.isAssignableFrom(descriptorClazz)) {
                 return true;
             }
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         return false;
     }

@@ -12,16 +12,19 @@
 
 package org.springframework.data.neo4j.integration.helloworld.service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.neo4j.ogm.cypher.Parameter;
+import org.neo4j.ogm.cypher.query.Paging;
 import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.integration.helloworld.domain.World;
 import org.springframework.data.neo4j.integration.helloworld.repo.WorldRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * @author Vince Bickers
@@ -155,4 +158,17 @@ public class GalaxyService {
     }
 
 
+    public Iterable<World> findAllWorlds(Paging paging) {
+        return session.loadAll(World.class, paging, 0);
+
+    }
+
+    public Iterable<World> findAllWorldsById(Collection<Long> ids, Paging paging) {
+        return session.loadAll(World.class, ids, paging, 0);
+
+    }
+
+    public Page<World> findAllWorlds(Pageable pageable, int depth) {
+        return worldRepository.findAll(pageable, depth);
+    }
 }
