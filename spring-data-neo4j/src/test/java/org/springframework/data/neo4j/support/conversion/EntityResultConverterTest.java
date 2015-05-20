@@ -1,6 +1,7 @@
 package org.springframework.data.neo4j.support.conversion;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.neo4j.annotation.MapResult;
 import org.springframework.data.neo4j.annotation.QueryResult;
@@ -85,6 +86,19 @@ public class EntityResultConverterTest {
     }
 
     @Test
+    @Ignore("added for discussion")
+    public void testClashingInheritedFieldNameForMojoMapping() {
+        Map<String, Object> value = new HashMap<>();
+        value.put("a", 23);
+        value.put("a_bis", "23");
+
+        ConflictingPojo result = (ConflictingPojo) converter.convert(value, ConflictingPojo.class);
+
+        assertEquals(Integer.valueOf(23), result.getA());
+        assertEquals("23", result.getABis());
+    }
+
+    @Test
     public void testInheritedInterfaceIsFullyConverted() {
         Map<String, Object> value = new HashMap<>();
         value.put("boss", person(22L, "Michael Hunger"));
@@ -145,7 +159,6 @@ class AConfusedPOJO {
     private Person boss;
 }
 
-@QueryResult
 class ParentPojo {
 
     @ResultColumn("a")
@@ -172,5 +185,20 @@ class ChildPojo extends ParentPojo {
 
     public void setB(Integer b) {
         this.b = b;
+    }
+}
+
+@QueryResult
+class ConflictingPojo extends ParentPojo {
+
+    @ResultColumn("a_bis")
+    private String a;
+
+    public String getABis() {
+        return a;
+    }
+
+    public void setABis(String a) {
+        this.a = a;
     }
 }
