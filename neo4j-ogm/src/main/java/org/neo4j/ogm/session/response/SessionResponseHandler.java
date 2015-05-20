@@ -58,7 +58,7 @@ public class SessionResponseHandler implements ResponseHandler {
             for (Object data : rowData) {
                 if (data instanceof Number) {
                     if (classInfo.annotationsInfo().get(RelationshipEntity.CLASS) == null) {
-                        result.add((T) mappingContext.get(((Number) data).longValue()));
+                        result.add((T) mappingContext.getNodeEntity(((Number) data).longValue()));
 
                     }
                     else {
@@ -132,6 +132,7 @@ public class SessionResponseHandler implements ResponseHandler {
     public <T> T loadById(Class<T> type, Neo4jResponse<GraphModel> response, Long id) {
         GraphEntityMapper ogm = new GraphEntityMapper(metaData, mappingContext);
         GraphModel graphModel;
+
         while ((graphModel = response.next()) != null) {
             ogm.map(type, graphModel);
         }
@@ -143,7 +144,7 @@ public class SessionResponseHandler implements ResponseHandler {
         Object ref;
         ClassInfo typeInfo = metaData.classInfo(type.getName());
         if (typeInfo.annotationsInfo().get(RelationshipEntity.CLASS) == null) {
-            ref = mappingContext.get(id);
+            ref = mappingContext.getNodeEntity(id);
         } else {
             ref = mappingContext.getRelationshipEntity(id);
         }

@@ -14,7 +14,6 @@ package org.neo4j.ogm.mapper;
 
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.Relationship;
-import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.annotation.StartNode;
 import org.neo4j.ogm.entityaccess.*;
 import org.neo4j.ogm.metadata.BaseClassNotFoundException;
@@ -53,38 +52,36 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
     }
 
     @Override
-    public <T> Set<T> map(Class<T> type, GraphModel graphModel) {
+    public <T> List<T> map(Class<T> type, GraphModel graphModel) {
 
-        // these two lists will contain the node ids and edge ids from the response, in the order
-        // they were presented to us.
+        /*
+         * these two lists will contain the node ids and edge ids from the response, in the order
+         * they were presented to us.
+         */
         List<Long> nodeIds = new ArrayList();
         List<Long> edgeIds = new ArrayList();
 
         mapEntities(type, graphModel, nodeIds, edgeIds);
+        List<T> results = new ArrayList<>();
 
-        try {
-            Set<T> set = new HashSet<>();
+        for (Long id : nodeIds) {
+            Object o = mappingContext.getNodeEntity(id);
+            if (o != null && type.isAssignableFrom(o.getClass()) && !results.contains(o)) {
+                results.add(type.cast(o));
+            }
+        }
 
-            // this code cannot guarantee we get the objects we're looking for back in the order they were presented
-            // to us, which is critical if we want to support sorting!
-            for (Object o : mappingContext.getAll(type)) {
-                // can't use the "type" argument to determine ClassInfo because it might be an interface as of DATAGRAPH-577
-                ClassInfo classInfo = metadata.classInfo(o.getClass().getName());
-                PropertyReader graphIdReader = entityAccessStrategy.getIdentityPropertyReader(classInfo);
-                Long id = (Long) graphIdReader.read(o);
-                if (classInfo.annotationsInfo().get(RelationshipEntity.CLASS) != null) {
-                    if (graphModel.containsRelationshipWithId(id)) {
-                        set.add(type.cast(o));
-                    }
-                }
-                else if (graphModel.containsNodeWithId(id)) {
-                    set.add(type.cast(o));
+        // only look for REs if we node NEs were found
+        if (results.isEmpty()) {
+            for (Long id : edgeIds) {
+                Object o = mappingContext.getRelationshipEntity(id);
+                if (o != null && type.isAssignableFrom(o.getClass()) && !results.contains(o)) {
+                    results.add(type.cast(o));
                 }
             }
-            return set;
-        } catch (Exception e) {
-            throw new MappingException("Error mapping GraphModel to instance of " + type.getName(), e);
         }
+
+        return results;
     }
 
     private <T> void mapEntities(Class<T> type, GraphModel graphModel, List<Long> nodeIds, List<Long> edgeIds) {
@@ -99,7 +96,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
     private void mapNodes(GraphModel graphModel, List<Long> nodeIds) {
 
         for (NodeModel node : graphModel.getNodes()) {
-            Object entity = mappingContext.get(node.getId());
+            Object entity = mappingContext.getNodeEntity(node.getId());
             try {
                 if (entity == null) {
                     entity = mappingContext.registerNodeEntity(entityFactory.newObject(node), node.getId());
@@ -182,8 +179,8 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
 
         for (RelationshipModel edge : graphModel.getRelationships()) {
 
-            Object source = mappingContext.get(edge.getStartNode());
-            Object target = mappingContext.get(edge.getEndNode());
+            Object source = mappingContext.getNodeEntity(edge.getStartNode());
+            Object target = mappingContext.getNodeEntity(edge.getEndNode());
 
             edgeIds.add(edge.getId());
 
@@ -304,8 +301,8 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
         // first, build the full set of related entities of each type for each source entity in the relationship
         for (RelationshipModel edge : oneToManyRelationships) {
 
-            Object instance = mappingContext.get(edge.getStartNode());
-            Object parameter = mappingContext.get(edge.getEndNode());
+            Object instance = mappingContext.getNodeEntity(edge.getStartNode());
+            Object parameter = mappingContext.getNodeEntity(edge.getEndNode());
 
             // is this a relationship entity we're trying to map?
             Object relationshipEntity = mappingContext.getRelationshipEntity(edge.getId());
@@ -353,7 +350,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
      * @param source an entity representing the start of the relationship from the graph's perspective
      * @param edge   {@link RelationshipModel} holding information about the relationship in the graph
      * @param target en entity representing the end of the relationship from the graph's perspective
-     * @return  one of {@link Relationship.OUTGOING}, {@link Relationship.INCOMING}, {@link Relationship.UNDIRECTED}
+     * @return  one of Relationship.OUTGOING, Relationship.INCOMING, Relationship.UNDIRECTED
      */
     private String relationshipDirection(Object source, RelationshipModel edge, Object target) {
         ClassInfo classInfo = metadata.classInfo(source);
