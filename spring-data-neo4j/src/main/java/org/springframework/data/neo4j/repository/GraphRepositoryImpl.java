@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -161,21 +162,10 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
     @Override
     public Page<T> findAll(Pageable pageable, int depth) {
 
-        List<T> results = ((List<T>) session.loadAll(clazz, new Paging(pageable.getPageNumber(), pageable.getPageSize()), depth));
-        return updatePage(pageable, results);
+        Collection<T> data = session.loadAll(clazz, new Paging(pageable.getPageNumber(), pageable.getPageSize()), depth);
+        return updatePage(pageable, new ArrayList<T>(data));
     }
 
-//    @Override
-//    public Page<T> findAll(Iterable<Long> ids, Pageable pageable) {
-//        return findAll(ids, pageable, DEFAULT_QUERY_DEPTH);
-//    }
-//
-//    @Override
-//    public Page<T> findAll(Iterable<Long> ids, Pageable pageable, int depth) {
-//        List<T> results = ((List<T>) session.loadAll(clazz, ids, new Paging(pageable.getPageNumber(), pageable.getPageSize()), depth));
-//        return new PageImpl<T>(results, pageable,)
-//    }
-//
     private Page<T> updatePage(Pageable pageable, List<T> results) {
         // This is a cheap trick to estimate the total number of objects without actually knowing the real value.
         // Essentially, if the result size is the same as the page size, we assume more data can be fetched, so
@@ -184,7 +174,7 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
         // retrieved so far. This will ensure that page.next() returns false.
         int pageSize = pageable.getPageSize();
         int pageOffset = pageable.getOffset();
-        int total = pageOffset + results.size() + results.size() == pageSize ? pageSize : 0;
+        int total = pageOffset + results.size() + (results.size() == pageSize ? pageSize : 0);
 
         return new PageImpl<T>(results, pageable, total);
 

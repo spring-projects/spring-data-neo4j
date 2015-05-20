@@ -169,43 +169,54 @@ public class Neo4jSession implements Session {
         return loadByProperties(type, Collections.singletonList(property));
     }
 
-    public <T> Collection<T> loadAll(Class<T> clazz, String orderings) {
+    public <T> Collection<T> loadAll(Class<T> type, String orderings) {
         throw new RuntimeException("not implemented");
     }
 
     @Override
-    public <T> Collection<T> loadAll(Class<T> clazz, String orderings, int depth) {
+    public <T> Collection<T> loadAll(Class<T> type, String orderings, int depth) {
         throw new RuntimeException("not implemented");
     }
 
     @Override
-    public <T> Collection<T> loadAll(Class<T> clazz, Collection<Long> ids, String orderings) {
+    public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, String orderings) {
         throw new RuntimeException("not implemented");
     }
 
     @Override
-    public <T> Collection<T> loadAll(Class<T> clazz, Collection<Long> ids, String orderings, int depth) {
+    public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, String orderings, int depth) {
         throw new RuntimeException("not implemented");
     }
 
     @Override
-    public <T> Collection<T> loadAll(Class<T> clazz, Paging paging) {
-        throw new RuntimeException("not implemented");
+    public <T> Collection<T> loadAll(Class<T> type, Paging paging) {
+        return loadAll(type, paging, 1);
     }
 
     @Override
-    public <T> Collection<T> loadAll(Class<T> clazz, Paging paging, int depth) {
-        throw new RuntimeException("not implemented");
+    public <T> Collection<T> loadAll(Class<T> type, Paging paging, int depth) {
+        ClassInfo classInfo = metaData.classInfo(type.getName());
+        String url = getCurrentOrCreateAutocommitTransaction().url();
+        QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
+        PagingAndSorting qry = queryStatements.findByType(getEntityType(classInfo), depth).setPage(paging);
+        try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
+            return getResponseHandler().loadAll(type, response);
+        }
     }
 
     @Override
-    public <T> Collection<T> loadAll(Class<T> clazz, Collection<Long> ids, Paging paging) {
-        throw new RuntimeException("not implemented");
+    public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, Paging paging) {
+        return loadAll(type, ids, paging, 1);
     }
 
     @Override
-    public <T> Collection<T> loadAll(Class<T> clazz, Collection<Long> ids, Paging paging, int depth) {
-        throw new RuntimeException("not implemented");
+    public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, Paging paging, int depth) {
+        String url = getCurrentOrCreateAutocommitTransaction().url();
+        QueryStatements queryStatements = getQueryStatementsBasedOnType(type);
+        PagingAndSorting qry = queryStatements.findAll(ids, depth).setPage(paging);
+        try (Neo4jResponse<GraphModel> response = getRequestHandler().execute(qry, url)) {
+            return getResponseHandler().loadAll(type, response);
+        }
     }
 
     @Override
