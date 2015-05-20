@@ -75,25 +75,36 @@ public class ParameterisedStatement {
         String sorting = sortOrder().toString();
         String pagination = paging == null ? "" : page().toString();
 
-        // these transformations are entirely dependent on the form of our base queries
+        // these transformations are entirely dependent on the form of our base queries and
+        // binding the sorting properties to the default query variables is a terrible hack. All this
+        // needs refactoring ASAP.
         if (sorting.length() > 0 || pagination.length() > 0) {
 
             if (withIndex > -1) {
                 int nextClauseIndex = stmt.indexOf(" MATCH", withIndex);
                 String withClause = stmt.substring(withIndex, nextClauseIndex);
                 String newWithClause = withClause;
-                if (sorting.contains(" r.") && !withClause.contains(",r")) {
-                    newWithClause = newWithClause + ",r";
+                if (stmt.contains(")-[r")) {
+                    sorting = sorting.replace("$", "r");
+                    if (!withClause.contains(",r")) {
+                        newWithClause = newWithClause + ",r";
+                    }
+                } else {
+                    sorting = sorting.replace("$", "n");
                 }
                 stmt = stmt.replace(withClause, newWithClause + sorting + pagination);
             } else {
                 if (stmt.startsWith("MATCH p=(")) {
                     String withClause = "WITH p";
-                    if (sorting.contains(" r.")) {
+                    if (stmt.contains(")-[r")) {
                         withClause = withClause + ",r";
+                        sorting = sorting.replace("$", "r");
+                    } else {
+                        sorting = sorting.replace("$", "n");
                     }
                     stmt = stmt.replace("RETURN ", withClause + sorting + pagination + " RETURN ");
                 } else {
+                    sorting = sorting.replace("$", "n");
                     stmt = stmt.replace("RETURN ", "WITH n" + sorting + pagination + " RETURN ");
                 }
             }

@@ -54,9 +54,19 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
 
     @Override
     public <T> Set<T> map(Class<T> type, GraphModel graphModel) {
-        mapEntities(type, graphModel);
+
+        // these two lists will contain the node ids and edge ids from the response, in the order
+        // they were presented to us.
+        List<Long> nodeIds = new ArrayList();
+        List<Long> edgeIds = new ArrayList();
+
+        mapEntities(type, graphModel, nodeIds, edgeIds);
+
         try {
             Set<T> set = new HashSet<>();
+
+            // this code cannot guarantee we get the objects we're looking for back in the order they were presented
+            // to us, which is critical if we want to support sorting!
             for (Object o : mappingContext.getAll(type)) {
                 // can't use the "type" argument to determine ClassInfo because it might be an interface as of DATAGRAPH-577
                 ClassInfo classInfo = metadata.classInfo(o.getClass().getName());
@@ -77,16 +87,17 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
         }
     }
 
-    private <T> void mapEntities(Class<T> type, GraphModel graphModel) {
+    private <T> void mapEntities(Class<T> type, GraphModel graphModel, List<Long> nodeIds, List<Long> edgeIds) {
         try {
-            mapNodes(graphModel);
-            mapRelationships(graphModel);
+            mapNodes(graphModel, nodeIds);
+            mapRelationships(graphModel, edgeIds);
         } catch (Exception e) {
             throw new MappingException("Error mapping GraphModel to instance of " + type.getName(), e);
         }
     }
 
-    private void mapNodes(GraphModel graphModel) {
+    private void mapNodes(GraphModel graphModel, List<Long> nodeIds) {
+
         for (NodeModel node : graphModel.getNodes()) {
             Object entity = mappingContext.get(node.getId());
             try {
@@ -96,6 +107,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
                 setIdentity(entity, node.getId());
                 setProperties(node, entity);
                 mappingContext.remember(entity);
+                nodeIds.add(node.getId());
             } catch (BaseClassNotFoundException e) {
                 logger.debug(e.getMessage());
             }
@@ -164,7 +176,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
         return false;
     }
 
-    private void mapRelationships(GraphModel graphModel) {
+    private void mapRelationships(GraphModel graphModel, List<Long> edgeIds) {
 
         final List<RelationshipModel> oneToMany = new ArrayList<>();
 
@@ -172,6 +184,8 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
 
             Object source = mappingContext.get(edge.getStartNode());
             Object target = mappingContext.get(edge.getEndNode());
+
+            edgeIds.add(edge.getId());
 
             if (source != null && target != null) {
                 // check whether this edge should in fact be handled as a relationship entity

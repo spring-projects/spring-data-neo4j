@@ -30,7 +30,7 @@ public class SortOrder {
         if (!sortClauses.isEmpty()) {
             sb.append(" ORDER BY ");
             for (SortClause ordering : sortClauses) {
-                sb.append(ordering);
+                sb.append("$." + ordering);
                 sb.append(",");
             }
             sb.deleteCharAt(sb.length() - 1);

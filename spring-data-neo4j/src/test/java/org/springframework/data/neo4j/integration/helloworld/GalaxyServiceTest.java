@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.integration.helloworld.context.HelloWorldContext;
 import org.springframework.data.neo4j.integration.helloworld.domain.World;
 import org.springframework.data.neo4j.integration.helloworld.service.GalaxyService;
@@ -27,9 +28,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import static org.hamcrest.core.AnyOf.anyOf;
@@ -177,34 +176,6 @@ public class GalaxyServiceTest {
     }
 
     @Test
-    public void shouldSupportPagingWithIds() {
-
-        List<World> worlds = (List<World>) galaxyService.makeAllWorldsAtOnce();
-
-        long n = 0;
-        List<Long> ids = new ArrayList();
-        for (int i = 0; i < 6; i++) {
-            long id = worlds.get(i).getId();
-            n += id;
-            ids.add(id);
-        }
-
-        int PAGE_SIZE=3;
-
-        // fetch the first 2 pages
-        for (int page = 0; page < 2; page++) {
-            Iterable<World> pagedWorlds = galaxyService.findAllWorldsById(ids, new Pagination(page, PAGE_SIZE));
-            Iterator<World> pagedIterator = pagedWorlds.iterator();
-            for (int i = 0; i < PAGE_SIZE; i++) {
-                World pagedWorld = pagedIterator.next();
-                n -= pagedWorld.getId();
-            }
-        }
-        assertEquals(0L, n);
-
-    }
-
-    @Test
     public void shouldDetectNotOnLastPage() {
 
         int count = galaxyService.makeAllWorldsAtOnce().size();
@@ -212,7 +183,7 @@ public class GalaxyServiceTest {
         assertEquals(count, 13);
 
         Pageable pageable = new PageRequest(2, 3);
-        Page<World> worlds = galaxyService.findAllWorlds(pageable, 0);
+        Page<World> worlds = galaxyService.findAllWorlds(pageable);
 
 
         for ( World world : worlds) {
@@ -230,7 +201,7 @@ public class GalaxyServiceTest {
         assertEquals(count, 13);
 
         Pageable pageable = new PageRequest(4, 3);
-        Page<World> worlds = galaxyService.findAllWorlds(pageable, 0);
+        Page<World> worlds = galaxyService.findAllWorlds(pageable);
 
 
         for ( World world : worlds) {
@@ -250,7 +221,7 @@ public class GalaxyServiceTest {
         Pageable pageable = new PageRequest(0, 3);
 
         for(;;) {
-            Page<World> worlds = galaxyService.findAllWorlds(pageable, 1);
+            Page<World> worlds = galaxyService.findAllWorlds(pageable);
             for ( World world : worlds) {
                 System.out.println(world.getName() + ": " + world.getId());
                 count--;
@@ -259,6 +230,47 @@ public class GalaxyServiceTest {
                 break;
             }
             pageable = pageable.next();
+        }
+
+        assertEquals(0, count);
+    }
+
+    @Test
+    public void shouldPageAllWorldsSorted() {
+
+        int count = galaxyService.makeAllWorldsAtOnce().size();
+
+        assertEquals(count, 13);
+
+        Pageable pageable = new PageRequest(0, 3, Sort.Direction.ASC, "name");
+
+        for(;;) {
+            Page<World> worlds = galaxyService.findAllWorlds(pageable);
+            for ( World world : worlds) {
+                System.out.println(world.getName() + ": " + world.getId());
+                count--;
+            }
+            if (!worlds.hasNext()) {
+                break;
+            }
+            pageable = pageable.next();
+        }
+
+        assertEquals(0, count);
+    }
+
+    @Test
+    public void shouldIterateAllWorldsSorted() {
+
+        int count = galaxyService.makeAllWorldsAtOnce().size();
+
+        assertEquals(count, 13);
+
+        Sort sort = new Sort(Sort.Direction.ASC, "name");
+
+        for (World world : galaxyService.findAllWorlds(sort)) {
+            System.out.println(world.getName() + ": " + world.getId());
+            count--;
         }
 
         assertEquals(0, count);
