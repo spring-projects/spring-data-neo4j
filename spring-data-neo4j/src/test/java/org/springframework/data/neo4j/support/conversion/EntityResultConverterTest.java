@@ -9,6 +9,7 @@ import org.springframework.data.neo4j.model.Group;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.repository.MemberData;
 import org.springframework.data.neo4j.repository.MemberDataPOJO;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +17,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
 
 /**
  * Unit Tests for EntityResultConverter class.
@@ -82,6 +84,25 @@ public class EntityResultConverterTest {
         assertEquals(Integer.valueOf(21), result.getB());
     }
 
+    @Test
+    public void testInheritedInterfaceIsFullyConverted() {
+        Map<String, Object> value = new HashMap<>();
+        value.put("boss", person(22L, "Michael Hunger"));
+        value.put("employeeId", 23);
+
+        AChildInterface result = (AChildInterface) converter.convert(value, AChildInterface.class);
+
+        assertEquals("Michael Hunger", result.getBoss().getName());
+        assertEquals(Integer.valueOf(23), result.getEmployeeId());
+    }
+
+    private Person person(long id, String name) {
+        Person person = new Person();
+        ReflectionTestUtils.setField(person, "graphId", id);
+        person.setName(name);
+        return person;
+    }
+
 }
 
 @MapResult
@@ -92,6 +113,19 @@ interface ADeprecatedMapResultInterface {
 
     @ResultColumn("boss")
     Person getBoss();
+}
+
+interface AParentInterface {
+
+    @ResultColumn("boss")
+    Person getBoss();
+}
+
+@QueryResult
+interface AChildInterface extends AParentInterface {
+
+    @ResultColumn("employeeId")
+    Integer getEmployeeId();
 }
 
 interface APlainInterface {
