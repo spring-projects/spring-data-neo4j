@@ -13,7 +13,6 @@
 package org.neo4j.ogm.cypher.statement;
 
 import org.neo4j.ogm.cypher.Filters;
-import org.neo4j.ogm.cypher.query.FilteringPagingAndSorting;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
 
@@ -40,7 +39,7 @@ public class ParameterisedStatement {
     private boolean includeStats = false;
 
     private Pagination paging;
-    private SortOrder orderings = new SortOrder();
+    private SortOrder sortOrder = new SortOrder();
     private Filters filters = new Filters();
 
 
@@ -73,20 +72,29 @@ public class ParameterisedStatement {
     public String getStatement() {
 
         String stmt = statement.trim();
-        String orderings = orderings().toString();
+        String sorting = sortOrder().toString();
         String pagination = paging == null ? "" : page().toString();
 
-        if (orderings.length() > 0 || pagination.length() > 0) {
+        // these transformations are entirely dependent on the form of our base queries
+        if (sorting.length() > 0 || pagination.length() > 0) {
 
             if (withIndex > -1) {
                 int nextClauseIndex = stmt.indexOf(" MATCH", withIndex);
                 String withClause = stmt.substring(withIndex, nextClauseIndex);
-                stmt = stmt.replace(withClause, withClause + orderings + pagination);
+                String newWithClause = withClause;
+                if (sorting.contains(" r.") && !withClause.contains(",r")) {
+                    newWithClause = newWithClause + ",r";
+                }
+                stmt = stmt.replace(withClause, newWithClause + sorting + pagination);
             } else {
                 if (stmt.startsWith("MATCH p=(")) {
-                    stmt = stmt.replace("RETURN ", "WITH p" + orderings + pagination + " RETURN ");
+                    String withClause = "WITH p";
+                    if (sorting.contains(" r.")) {
+                        withClause = withClause + ",r";
+                    }
+                    stmt = stmt.replace("RETURN ", withClause + sorting + pagination + " RETURN ");
                 } else {
-                    stmt = stmt.replace("RETURN ", "WITH n" + orderings + pagination + " RETURN ");
+                    stmt = stmt.replace("RETURN ", "WITH n" + sorting + pagination + " RETURN ");
                 }
             }
         }
@@ -110,31 +118,25 @@ public class ParameterisedStatement {
         return paging;
     }
 
-    public SortOrder orderings() {
-        return orderings;
-    }
-
-    protected void addOrdering(FilteringPagingAndSorting.Direction direction, String... properties) {
-        this.orderings.add(direction, properties);
+    public SortOrder sortOrder() {
+        return sortOrder;
     }
 
     protected void addPaging(Pagination page) {
         this.paging = page;
     }
 
-    private void parseStatement() {
-        this.withIndex = statement.indexOf("WITH n");
-
-    }
-
     public void addSortOrder(SortOrder sortOrder) {
-        this.orderings = sortOrder;
-
+        this.sortOrder = sortOrder;
     }
 
     public void addFilters(Filters filters) {
         this.filters = filters;
-
     }
+
+    private void parseStatement() {
+        this.withIndex = statement.indexOf("WITH n");
+    }
+
 }
 

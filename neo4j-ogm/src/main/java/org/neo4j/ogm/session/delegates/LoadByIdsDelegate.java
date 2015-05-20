@@ -31,7 +31,7 @@ public class LoadByIdsDelegate implements Capability.LoadByIds {
 
         Query qry = queryStatements.findAll(ids, depth)
                 .setSortOrder(sortOrder)
-                .setPage(pagination);
+                .setPagination(pagination);
 
         try (Neo4jResponse<GraphModel> response = session.requestHandler().execute(qry, url)) {
             return session.responseHandler().loadAll(type, response);

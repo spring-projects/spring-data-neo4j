@@ -43,7 +43,7 @@ public class LoadByTypeDelegate implements Capability.LoadByType {
 
             Query qry = queryStatements.findByType(entityType, depth)
                     .setSortOrder(sortOrder)
-                    .setPage(pagination);
+                    .setPagination(pagination);
 
             try (Neo4jResponse<GraphModel> response = session.requestHandler().execute(qry, url)) {
                 return session.responseHandler().loadAll(type, response);
@@ -54,7 +54,7 @@ public class LoadByTypeDelegate implements Capability.LoadByType {
 
             Query qry = queryStatements.findByProperties(entityType, filters, depth)
                     .setSortOrder(sortOrder)
-                    .setPage(pagination);
+                    .setPagination(pagination);
 
             try (Neo4jResponse<GraphRowModel> response = session.requestHandler().execute((GraphRowModelQuery) qry, url)) {
                 return session.responseHandler().loadByProperty(type, response);

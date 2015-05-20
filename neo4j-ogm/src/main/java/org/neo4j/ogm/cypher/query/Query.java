@@ -22,18 +22,8 @@ public class Query extends ParameterisedStatement implements FilteringPagingAndS
         super(cypher, parameters, includeStats, resultDataContents);
     }
 
-    public Query setPage(Pagination page) {
+    public Query setPagination(Pagination page) {
         super.addPaging(page);
-        return this;
-    }
-
-    public Query orderAscending(String... properties) {
-        super.addOrdering(Direction.ASC, properties);
-        return this;
-    }
-
-    public Query orderDescending(String... properties) {
-        super.addOrdering(Direction.DESC, properties);
         return this;
     }
 

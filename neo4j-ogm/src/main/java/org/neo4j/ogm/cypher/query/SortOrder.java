@@ -8,33 +8,42 @@ import java.util.List;
  */
 public class SortOrder {
 
-    private List<Ordering> orderings = new ArrayList();
+    public static enum Direction {
 
-    public SortOrder add(FilteringPagingAndSorting.Direction direction, String... properties) {
-        orderings.add(new Ordering(direction, properties));
+        ASC, DESC
+    }
+
+    private List<SortClause> sortClauses = new ArrayList();
+
+    public SortOrder add(Direction direction, String... properties) {
+        sortClauses.add(new SortClause(direction, properties));
+        return this;
+    }
+
+    public SortOrder add(String... properties) {
+        sortClauses.add(new SortClause(Direction.ASC, properties));
         return this;
     }
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        if (!orderings.isEmpty()) {
+        if (!sortClauses.isEmpty()) {
             sb.append(" ORDER BY ");
-            for (Ordering ordering : orderings) {
+            for (SortClause ordering : sortClauses) {
                 sb.append(ordering);
                 sb.append(",");
             }
             sb.deleteCharAt(sb.length() - 1);
-            sb.append(" ");
         }
         return sb.toString();
     }
 
-    class Ordering {
+    class SortClause {
 
-        private final FilteringPagingAndSorting.Direction direction;
+        private final Direction direction;
         private final String[] properties;
 
-        public Ordering(FilteringPagingAndSorting.Direction direction, String... properties) {
+        public SortClause(Direction direction, String... properties) {
             this.direction = direction;
             this.properties = properties;
         }
@@ -49,7 +58,7 @@ public class SortOrder {
                     sb.append(",");
                 }
                 sb.deleteCharAt(sb.length() - 1);
-                if (direction == FilteringPagingAndSorting.Direction.DESC) {
+                if (direction == Direction.DESC) {
                     sb.append(" DESC");
                 }
             }

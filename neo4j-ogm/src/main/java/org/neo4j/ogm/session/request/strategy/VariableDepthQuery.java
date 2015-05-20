@@ -157,18 +157,18 @@ public class VariableDepthQuery implements QueryStatements {
         }
 
         public static GraphModelQuery findAll(Collection<Long> ids) {
-            return new GraphModelQuery("MATCH (n) WHERE id(n) in { ids } RETURN collect(n)", Utils.map("ids", ids));
+            return new GraphModelQuery("MATCH (n) WHERE id(n) in { ids } RETURN n", Utils.map("ids", ids));
         }
 
         public static GraphModelQuery findByLabel(String label) {
-            return new GraphModelQuery(String.format("MATCH (n:`%s`) RETURN collect(n)", label), Utils.map());
+            return new GraphModelQuery(String.format("MATCH (n:`%s`) RETURN n", label), Utils.map());
         }
 
-        public static GraphRowModelQuery findByProperties(String label, Filters parameters) {
+        public static GraphModelQuery findByProperties(String label, Filters parameters) {
             Map<String,Object> properties = new HashMap<>();
             StringBuilder query = constructQuery(label, parameters, properties);
-            query.append("WITH n MATCH p=(n)-[*0..0]-(m) RETURN collect(distinct p), ID(n)");
-            return new GraphRowModelQuery(query.toString(), properties);
+            query.append("RETURN n");
+            return new GraphModelQuery(query.toString(), properties);
         }
 
     }
@@ -176,15 +176,15 @@ public class VariableDepthQuery implements QueryStatements {
     private static class InfiniteDepthReadStrategy {
 
         public static GraphModelQuery findOne(Long id) {
-            return new GraphModelQuery("MATCH p=(n)-[*0..]-(m) WHERE id(n) = { id } RETURN collect(distinct p)", Utils.map("id", id));
+            return new GraphModelQuery("MATCH (n) WHERE id(n) = { id } WITH n MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p)", Utils.map("id", id));
         }
 
         public static GraphModelQuery findAll(Collection<Long> ids) {
-            return new GraphModelQuery("MATCH p=(n)-[*0..]-(m) WHERE id(n) in { ids } RETURN collect(distinct p)", Utils.map("ids", ids));
+            return new GraphModelQuery("MATCH (n) WHERE id(n) in { ids } WITH n MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p)", Utils.map("ids", ids));
         }
 
         public static GraphModelQuery findByLabel(String label) {
-            return new GraphModelQuery(String.format("MATCH p=(n:`%s`)-[*0..]-(m) RETURN collect(distinct p)", label), Utils.map());
+            return new GraphModelQuery(String.format("MATCH (n:`%s`) WITH n MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p)", label), Utils.map());
         }
 
         public static GraphRowModelQuery findByProperties(String label, Filters parameters) {
