@@ -240,4 +240,28 @@ public class GalaxyServiceTest {
 
     }
 
+    @Test
+    public void shouldIterateAllWorldsUsingPageable() {
+
+        int count = galaxyService.makeAllWorldsAtOnce().size();
+
+        assertEquals(count, 13);
+
+        Pageable pageable = new PageRequest(0, 3);
+
+        for(;;) {
+            Page<World> worlds = galaxyService.findAllWorlds(pageable, 1);
+            for ( World world : worlds) {
+                System.out.println(world.getName() + ": " + world.getId());
+                count--;
+            }
+            if (!worlds.hasNext()) {
+                break;
+            }
+            pageable = pageable.next();
+        }
+
+        assertEquals(0, count);
+    }
+
 }
