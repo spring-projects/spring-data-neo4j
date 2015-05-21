@@ -131,4 +131,46 @@ public class MusicIntegrationTest {
 		assertNull(please.getArtist());
 		assertNull(please.getRecording());
 	}
+
+	/**
+	 * @see DATAGRAPH-637
+	 */
+	@Test
+	public void shouldSaveAndRetrieveArtistWithTwoRelationshipTypesToAlbums() {
+		Studio emi = new Studio("EMI Studios, London");
+		Studio olympic = new Studio("Olympic Studios, London");
+
+		Artist theBeatles = new Artist("The Beatles");
+		Artist eric = new Artist("Eric Clapton");
+
+		Album slowhand = new Album("Slowhand");
+		Recording slowRecording = new Recording(slowhand, olympic, 1977);
+		slowhand.setRecording(slowRecording);
+		slowhand.setArtist(eric);
+		session.save(slowhand);
+
+
+		session.clear();
+		Album white = new Album("The Beatles");
+		Recording pleaseRecording = new Recording(white, emi, 1968);
+		white.setRecording(pleaseRecording);
+		theBeatles.getAlbums().add(white);
+		white.setArtist(theBeatles);
+		white.setGuestArtist(eric);
+		session.save(white);
+
+		theBeatles = session.loadByProperty(Artist.class, new Parameter("name", "The Beatles")).iterator().next();
+		assertEquals("The Beatles", theBeatles.getName());
+		assertEquals(1, theBeatles.getAlbums().size());
+		assertEquals("The Beatles", theBeatles.getAlbums().iterator().next().getName());
+		assertEquals("EMI Studios, London", theBeatles.getAlbums().iterator().next().getRecording().getStudio().getName());
+		assertEquals(eric, theBeatles.getAlbums().iterator().next().getGuestArtist());
+
+		//Eric has 2 albums now
+		session.clear();
+		Artist loadedEric = session.loadByProperty(Artist.class, new Parameter("name", "Eric Clapton")).iterator().next();
+		assertNotNull(loadedEric);
+		assertEquals("The Beatles", loadedEric.getGuestAlbums().iterator().next().getName());
+		assertEquals("Slowhand", loadedEric.getAlbums().iterator().next().getName());
+	}
 }

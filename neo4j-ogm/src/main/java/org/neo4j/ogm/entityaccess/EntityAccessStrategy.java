@@ -20,6 +20,7 @@ import org.neo4j.ogm.metadata.info.ClassInfo;
  * Implements the logic to determine how entities should be accessed in both reading and writing scenarios.
  *
  * @author Adam George
+ * @author Luanne Misquitta
  */
 public interface EntityAccessStrategy {
 
@@ -31,8 +32,8 @@ public interface EntityAccessStrategy {
     RelationalWriter getRelationalWriter(ClassInfo classInfo, String relationshipType, Object parameter);
     RelationalReader getRelationalReader(ClassInfo classInfo, String relationshipType);
 
-    RelationalWriter getIterableWriter(ClassInfo classInfo, Class<?> parameterType);
-    RelationalReader getIterableReader(ClassInfo classInfo, Class<?> parameterType);
+    RelationalWriter getIterableWriter(ClassInfo classInfo, Class<?> parameterType, String relationshipType);
+    RelationalReader getIterableReader(ClassInfo classInfo, Class<?> parameterType, String relationshipType);
 
     Collection<RelationalReader> getRelationalReaders(ClassInfo classInfo);
     Collection<PropertyReader> getPropertyReaders(ClassInfo classInfo);

@@ -30,6 +30,7 @@ public class Album {
 	@Relationship(type = "RECORDED-AT")
 	private Recording recording;
 
+	private Artist guestArtist; //we only tolerate one guest artist
 
 	public Album() {
 	}
@@ -60,5 +61,15 @@ public class Album {
 
 	public void setRecording(Recording recording) {
 		this.recording = recording;
+	}
+
+	@Relationship(type = "GUEST_ALBUM", direction = "INCOMING")
+	public Artist getGuestArtist() {
+		return guestArtist;
+	}
+
+	@Relationship(type = "GUEST_ALBUM", direction = "INCOMING")
+	public void setGuestArtist(Artist guestArtist) {
+		this.guestArtist = guestArtist;
 	}
 }

@@ -316,9 +316,9 @@ public class CypherCompilerTest {
 
         // expect(for now) two separate delete clauses
         String cypher=
-                "MATCH ($0)-[_2:STUDENTS]->($1) WHERE id($0)=0 AND id($1)=1 " +
+                "MATCH ($0)-[_2:`STUDENTS`]->($1) WHERE id($0)=0 AND id($1)=1 " +
                 "DELETE _2 " +
-                "WITH $0,$1 MATCH ($0)-[_1:STUDENTS]->($3) WHERE id($3)=3 " +
+                "WITH $0,$1 MATCH ($0)-[_1:`STUDENTS`]->($3) WHERE id($3)=3 " +
                 "DELETE _1";
 
         expectOnSave(music, cypher);
@@ -362,7 +362,7 @@ public class CypherCompilerTest {
         // we expect a new relationship to be created, and an old one deleted
         expectOnSave(msThompson,
                 "MATCH ($2) WHERE id($2)=2 MATCH ($3) WHERE id($3)=3 MERGE ($2)-[_2:`STUDENTS`]->($3) " +
-                "WITH $2,$3,_2 MATCH ($1)-[_3:STUDENTS]->($3) WHERE id($1)=1 DELETE _3 " +
+                "WITH $2,$3,_2 MATCH ($1)-[_3:`STUDENTS`]->($3) WHERE id($1)=1 DELETE _3 " +
                 "RETURN id(_2) AS _2");
 
         // fixme: these other tests now need to be in their own test method, because
@@ -425,14 +425,14 @@ public class CypherCompilerTest {
         // this is because MrWhite is not "visited" during the traversal of
         // hillsRoad - his reference is now inaccessible. this looks like a FIXME
         expectOnSave(hillsRoad,
-                "MATCH ($0)-[_2:TEACHERS]->($1) WHERE id($0)=0 AND id($1)=1 DELETE _2");
+                "MATCH ($0)-[_2:`TEACHERS`]->($1) WHERE id($0)=0 AND id($1)=1 DELETE _2");
 
         // we expect mrWhite's relationship to hillsRoad to be removed
         // but the change to hillsRoad's relationship with MrWhite is not detected
         // this is because hillsRoad object is no longer directly accessible from MrWhite
         // looks like a FIXME (infer symmetric deletions)
         expectOnSave(mrWhite,
-                "MATCH ($1)-[_0:SCHOOL]->($0) WHERE id($1)=1 AND id($0)=0 DELETE _0");
+                "MATCH ($1)-[_0:`SCHOOL`]->($0) WHERE id($1)=1 AND id($0)=0 DELETE _0");
 
         // because missJones has a reference to hillsRoad, we expect an outcome
         // the same as if we had saved hillsRoiad directly.
@@ -547,7 +547,7 @@ public class CypherCompilerTest {
         link.setTopic(null);
 
         // expect the delete to be recognised when the forum is saved
-        expectOnSave(forum, "MATCH ($0)-[_0:HAS_TOPIC]->($1) WHERE id($0)=0 AND id($1)=1 DELETE _0");
+        expectOnSave(forum, "MATCH ($0)-[_0:`HAS_TOPIC`]->($1) WHERE id($0)=0 AND id($1)=1 DELETE _0");
 
         // expect the delete to be recognised if the RE is saved
 //        expectOnSave(link, "MATCH ($0)-[_0:HAS_TOPIC]->($1) WHERE id($0)=0 AND id($1)=1 DELETE _0");
