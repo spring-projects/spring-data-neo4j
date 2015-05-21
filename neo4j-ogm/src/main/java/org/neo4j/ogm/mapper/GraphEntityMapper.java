@@ -314,8 +314,9 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
             }
         }
 
-        // then set the entire collection at the same time.
+        // then set the entire collection at the same time for each owning type
         for (Object instance : typeRelationships.getOwningTypes()) {
+            //get all relationship types for which we're trying to set collections of instances
             for (String relationshipType : typeRelationships.getOwningRelationshipTypes(instance)) {
                 Collection<?> entities = typeRelationships.getCollectiblesForOwnerAndRelationshipType(instance,relationshipType);
                 Class entityType = typeRelationships.getCollectibleTypeForOwnerAndRelationshipType(instance, relationshipType);
@@ -354,6 +355,15 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
         return writer.relationshipDirection();
     }
 
+    /**
+     * Map many values to an instance based on the relationship type.
+     * See DATAGRAPH-637
+     * @param instance the instance to map values onto
+     * @param valueType the type of each value
+     * @param values the values to map
+     * @param relationshipType the relationship type associated with these values
+     * @return true if mapping succeeded, false otherwise
+     */
     private boolean mapOneToMany(Object instance, Class<?> valueType, Object values, String relationshipType) {
 
         ClassInfo classInfo = metadata.classInfo(instance);

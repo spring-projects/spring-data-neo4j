@@ -22,7 +22,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Utility to help group elements of a common type into a single collection by relationship type to be set on an owning object.
- *
+ * The ability to set a collection of instances on an owning entity based on the type of instance is insufficient as described in DATAGRAPH-637.
+ * The relationship type is required to be able to correctly determine which instances are to be set for which property of the node entity.
  * @author Adam George
  * @author Luanne Misquitta
  */
