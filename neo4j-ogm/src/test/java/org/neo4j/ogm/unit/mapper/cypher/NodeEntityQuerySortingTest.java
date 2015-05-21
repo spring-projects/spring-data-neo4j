@@ -94,6 +94,18 @@ public class NodeEntityQuerySortingTest {
         check("MATCH (n:`Raptor`) WHERE n.`name` = { `name` }  WITH n ORDER BY n.name DESC MATCH p=(n)-[*0..]-(m) RETURN collect(distinct p), ID(n)", query.findByProperties("Raptor", filters, -1).setSortOrder(sortOrder).getStatement());
     }
 
+    @Test
+    public void testMultipleSortOrders() {
+        sortOrder.add(SortOrder.Direction.DESC, "age", "name");
+        check("MATCH (n:`Raptor`) WITH n ORDER BY n.age,n.name DESC RETURN n", query.findByType("Raptor", 0).setSortOrder(sortOrder).getStatement());
+    }
+
+    @Test
+    public void testDifferentSortDirections() {
+        sortOrder.add(SortOrder.Direction.DESC, "age").add("name");
+        check("MATCH (n:`Raptor`) WITH n ORDER BY n.age DESC,n.name RETURN n", query.findByType("Raptor", 0).setSortOrder(sortOrder).getStatement());
+    }
+
     private void check(String expected, String actual) {
         assertEquals(expected, actual);
     }

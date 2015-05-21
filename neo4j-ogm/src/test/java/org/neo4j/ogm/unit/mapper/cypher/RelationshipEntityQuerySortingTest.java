@@ -56,4 +56,16 @@ public class RelationshipEntityQuerySortingTest {
         assertEquals("MATCH (n)-[r:`ORBITS`]->() WHERE r.`distance` = { `distance` } WITH n,r ORDER BY r.aphelion MATCH p=(n)-[*0..1]-(m) RETURN collect(distinct p), ID(r)", query.findByProperties("ORBITS", filters, 1).setSortOrder(sortOrder).getStatement());
     }
 
+    @Test
+    public void testMultipleSortOrders() {
+        sortOrder.add(SortOrder.Direction.DESC, "distance", "aphelion");
+        assertEquals("MATCH p=()-[r:`ORBITS`*..3]-() WITH p,r ORDER BY r.distance,r.aphelion DESC RETURN collect(distinct p)", query.findByType("ORBITS", 3).setSortOrder(sortOrder).getStatement());
+    }
+
+    @Test
+    public void testDifferentSortDirections() {
+        sortOrder.add(SortOrder.Direction.DESC, "type").add("name");
+        assertEquals("MATCH p=()-[r:`ORBITS`*..3]-() WITH p,r ORDER BY r.type DESC,r.name RETURN collect(distinct p)", query.findByType("ORBITS", 3).setSortOrder(sortOrder).getStatement());
+    }
+
 }

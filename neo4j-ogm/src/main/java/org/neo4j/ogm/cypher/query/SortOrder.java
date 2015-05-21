@@ -30,7 +30,7 @@ public class SortOrder {
         if (!sortClauses.isEmpty()) {
             sb.append(" ORDER BY ");
             for (SortClause ordering : sortClauses) {
-                sb.append("$." + ordering);
+                sb.append(ordering);
                 sb.append(",");
             }
             sb.deleteCharAt(sb.length() - 1);
@@ -54,7 +54,7 @@ public class SortOrder {
 
             if (properties.length > 0) {
                 for (String n : properties) {
-                    sb.append(n);
+                    sb.append("$." + n);
                     sb.append(",");
                 }
                 sb.deleteCharAt(sb.length() - 1);
