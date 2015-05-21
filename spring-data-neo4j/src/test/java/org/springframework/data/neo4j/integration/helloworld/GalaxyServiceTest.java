@@ -28,6 +28,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -212,45 +214,53 @@ public class GalaxyServiceTest {
     }
 
     @Test
-    public void shouldIterateAllWorldsUsingPageable() {
+    public void shouldPageAllWorlds() {
 
-        int count = galaxyService.makeAllWorldsAtOnce().size();
-
-        assertEquals(count, 13);
+        long sum = 0;
+        List<World> worlds = (List<World>) galaxyService.makeAllWorldsAtOnce();
+        for (World world : worlds) {
+            sum += world.getId();
+        }
+        // note: this doesn't work, because deleted node ids are not reclaimed
+        // long sum = (size * size - size) / 2;   // 0-based node ids
 
         Pageable pageable = new PageRequest(0, 3);
 
         for(;;) {
-            Page<World> worlds = galaxyService.findAllWorlds(pageable);
-            for ( World world : worlds) {
-                System.out.println(world.getName() + ": " + world.getId());
-                count--;
+            Page<World> page = galaxyService.findAllWorlds(pageable);
+            for ( World world : page) {
+                System.out.println(world.getName() + ":" + world.getId());
+                sum-=world.getId();
             }
-            if (!worlds.hasNext()) {
+            if (!page.hasNext()) {
                 break;
             }
             pageable = pageable.next();
         }
 
-        assertEquals(0, count);
+        assertEquals(0, sum);
     }
 
     @Test
     public void shouldPageAllWorldsSorted() {
 
-        int count = galaxyService.makeAllWorldsAtOnce().size();
-
+        List<World> worlds = (List<World>) galaxyService.makeAllWorldsAtOnce();
+        int count = worlds.size();
         assertEquals(count, 13);
+
+        String[] sortedNames = getNamesSorted(worlds);
 
         Pageable pageable = new PageRequest(0, 3, Sort.Direction.ASC, "name");
 
+        int i = 0;
         for(;;) {
-            Page<World> worlds = galaxyService.findAllWorlds(pageable);
-            for ( World world : worlds) {
-                System.out.println(world.getName() + ": " + world.getId());
+            Page<World> page = galaxyService.findAllWorlds(pageable);
+            for ( World world : page ) {
+                assertEquals(sortedNames[i], world.getName());
                 count--;
+                i++;
             }
-            if (!worlds.hasNext()) {
+            if (!page.hasNext()) {
                 break;
             }
             pageable = pageable.next();
@@ -262,18 +272,33 @@ public class GalaxyServiceTest {
     @Test
     public void shouldIterateAllWorldsSorted() {
 
-        int count = galaxyService.makeAllWorldsAtOnce().size();
-
+        List<World> worlds = (List<World>) galaxyService.makeAllWorldsAtOnce();
+        int count = worlds.size();
         assertEquals(count, 13);
 
-        Sort sort = new Sort(Sort.Direction.ASC, "name");
+        String[] sortedNames = getNamesSorted(worlds);
 
+        Sort sort = new Sort(Sort.Direction.ASC, "name");
+        int i = 0;
         for (World world : galaxyService.findAllWorlds(sort)) {
-            System.out.println(world.getName() + ": " + world.getId());
+            assertEquals(sortedNames[i], world.getName());
             count--;
+            i++;
         }
 
         assertEquals(0, count);
+    }
+
+    private String[] getNamesSorted(List<World> worlds) {
+        List<String> names = new ArrayList();
+
+        for (World world : worlds) {
+            names.add(world.getName());
+        }
+
+        String[] sortedNames = names.toArray(new String[]{});
+        Arrays.sort(sortedNames);
+        return sortedNames;
     }
 
 }

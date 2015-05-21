@@ -172,4 +172,8 @@ public class GalaxyService {
     public Page<World> findAllWorlds(Pageable pageable) {
         return worldRepository.findAll(pageable, 0);
     }
+
+    public Iterable<World> findAllWorlds(Sort sort, int depth) {
+        return worldRepository.findAll(sort, depth);
+    }
 }
