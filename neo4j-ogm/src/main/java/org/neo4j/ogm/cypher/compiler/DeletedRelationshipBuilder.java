@@ -45,9 +45,9 @@ public class DeletedRelationshipBuilder implements CypherEmitter, Comparable<Del
         queryBuilder.append(src);
         queryBuilder.append(")-[");
         queryBuilder.append(rid);
-        queryBuilder.append(":");
+        queryBuilder.append(":`");
         queryBuilder.append(type);
-        queryBuilder.append("]->(");
+        queryBuilder.append("`]->(");
         queryBuilder.append(tgt);
         queryBuilder.append(")");
 

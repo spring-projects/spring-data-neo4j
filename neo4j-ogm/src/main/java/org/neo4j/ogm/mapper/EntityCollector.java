@@ -12,61 +12,78 @@
 
 package org.neo4j.ogm.mapper;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * Utility to help group elements of a common type into a single collection to be set on an owning object.
+ * Utility to help group elements of a common type into a single collection by relationship type to be set on an owning object.
  *
  * @author Adam George
+ * @author Luanne Misquitta
  */
 class EntityCollector {
 
     private final Logger logger = LoggerFactory.getLogger(EntityCollector.class);
-    private final Map<Object, Map<Class<?>, Set<Object>>> typeRelationships = new HashMap<>();
+    private final Map<Object, Map<String, Set<Object>>> relationshipTypes = new HashMap<>();
 
     /**
-     * Adds the given collectible element into a collection ready to be set on the given owning type.
+     * Adds the given collectible element into a collection based on relationship type ready to be set on the given owning type.
      *
      * @param owningEntity The type on which the collection is to be set
      * @param collectibleElement The element to add to the collection that will eventually be set on the owning type
+     * @param relationshipType The relationship type that this collection corresponds to
      */
-    public void recordTypeRelationship(Object owningEntity, Object collectibleElement) {
-        Map<Class<?>, Set<Object>> handled = this.typeRelationships.get(owningEntity);
-        if (handled == null) {
-            this.typeRelationships.put(owningEntity, handled = new HashMap<>());
+    public void recordTypeRelationship(Object owningEntity, Object collectibleElement, String relationshipType) {
+        if (this.relationshipTypes.get(owningEntity) == null) {
+            this.relationshipTypes.put(owningEntity, new HashMap<String, Set<Object>>());
         }
-        Class<?> type = collectibleElement.getClass();
-        Set<Object> objects = handled.get(type);
-        if (objects == null) {
-            handled.put(type, objects = new HashSet<>());
+        if (this.relationshipTypes.get(owningEntity).get(relationshipType) == null) {
+            this.relationshipTypes.get(owningEntity).put(relationshipType, new HashSet<Object>());
         }
-        objects.add(collectibleElement);
+        this.relationshipTypes.get(owningEntity).get(relationshipType).add(collectibleElement);
     }
 
     /**
      * @return All the owning types that have been added to this {@link EntityCollector}
      */
     public Iterable<Object> getOwningTypes() {
-        return this.typeRelationships.keySet();
+        return this.relationshipTypes.keySet();
     }
 
     /**
-     * Retrieves the type map that corresponds to the given owning object, which is a mapping between a type and
-     * a collection of instances of that type to set on the owning object.
+     * Retrieves all relationship types for which collectibles can be set on an owning object
      *
-     * @param owningObject The object for which to retrieve the type map
-     * @return The type map for the given object or an empty map if it's unknown, never <code>null</code>
+     * @param owningObject the owning object
+     * @return all relationship types owned by the owning object
      */
-    public Map<Class<?>, Set<Object>> getTypeCollectionMapping(Object owningObject) {
-        Map<Class<?>, Set<Object>> handled = this.typeRelationships.get(owningObject);
-        return handled != null ? handled : Collections.<Class<?>, Set<Object>> emptyMap();
+    public Iterable<String> getOwningRelationshipTypes(Object owningObject) {
+        return this.relationshipTypes.get(owningObject).keySet();
     }
 
+    /**
+     * A set of collectibles based on relationship type for an owning object
+     *
+     * @param owningObject the owning object
+     * @param relationshipType the relationship type
+     * @return set of instances to be set for the relationship type on the owning object
+     */
+    public Set<Object> getCollectiblesForOwnerAndRelationshipType(Object owningObject, String relationshipType) {
+        return this.relationshipTypes.get(owningObject).get(relationshipType);
+    }
+
+    /**
+     * Get the type of the instance to be set on the owner object
+     *
+     * @param owningObject the owner object
+     * @param relationshipType the relationship type
+     * @return type of instance
+     */
+    public Class getCollectibleTypeForOwnerAndRelationshipType(Object owningObject, String relationshipType) {
+        return this.relationshipTypes.get(owningObject).get(relationshipType).iterator().next().getClass();
+    }
 }
