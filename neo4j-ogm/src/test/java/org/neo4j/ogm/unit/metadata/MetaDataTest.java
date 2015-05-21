@@ -12,6 +12,13 @@
 
 package org.neo4j.ogm.unit.metadata;
 
+import static org.junit.Assert.*;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.ogm.domain.education.Student;
@@ -22,13 +29,6 @@ import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
 import org.neo4j.ogm.metadata.info.MethodInfo;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Vince Bickers
@@ -419,7 +419,7 @@ public class MetaDataTest {
     @Test
     public void testFindDateField() {
         ClassInfo classInfo = metaData.classInfo("Member");
-        List<FieldInfo> fieldInfos = classInfo.findFields( Date.class);
+        List<FieldInfo> fieldInfos = classInfo.findFields(Date.class);
         FieldInfo fieldInfo = fieldInfos.iterator().next();
         assertEquals("renewalDate", fieldInfo.getName());
         assertTrue(fieldInfo.hasConverter());
@@ -527,10 +527,15 @@ public class MetaDataTest {
         assertEquals("org.neo4j.ogm.domain.forum.BronzeMembership", metaData.resolve("IMembership", "Membership", "Bronze").name());
     }
 
+    /**
+     * @see DATAGRAPH-634
+     */
     @Test
     public void testLiskovSubstitutionPrinciple() {
         assertEquals("org.neo4j.ogm.domain.forum.Member", metaData.resolve("Member").name());
         assertEquals("org.neo4j.ogm.domain.forum.Member", metaData.resolve("Login", "Member").name());
+        assertEquals("org.neo4j.ogm.domain.forum.Member", metaData.resolve("Login","Member").name());
+        assertEquals("org.neo4j.ogm.domain.forum.Member", metaData.resolve("Member","Login").name());
     }
 
     @Test
