@@ -12,6 +12,10 @@
 
 package org.neo4j.ogm.unit.entityaccess;
 
+import static org.junit.Assert.*;
+
+import java.util.*;
+
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.ogm.annotation.Property;
@@ -29,12 +33,9 @@ import org.neo4j.ogm.entityaccess.*;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.DomainInfo;
 
-import java.util.*;
-
-import static org.junit.Assert.*;
-
 /**
  * @author Adam George
+ * @author Luanne Misquitta
  */
 public class DefaultEntityAccessStrategyTest {
 
@@ -104,8 +105,7 @@ public class DefaultEntityAccessStrategyTest {
     public void shouldRetrieveObjectAccessForWritingIterableObject() {
         ClassInfo classInfo = this.domainInfo.getClass(Program.class.getName());
 
-        // TODO: this supports the behaviour required currently, but what happens if there's more than one collection of X?
-        EntityAccess iterableAccess = this.entityAccessStrategy.getIterableWriter(classInfo, Satellite.class);
+        EntityAccess iterableAccess = this.entityAccessStrategy.getIterableWriter(classInfo, Satellite.class, "satellites");
         assertNotNull("The resultant object accessor shouldn't be null", iterableAccess);
         Program spaceProgramme = new Program();
         iterableAccess.write(spaceProgramme, Arrays.asList(new Satellite()));
@@ -151,6 +151,13 @@ public class DefaultEntityAccessStrategyTest {
         DummyDomainObject domainObject = new DummyDomainObject();
         objectAccess.write(domainObject, parameter);
         assertEquals(domainObject.member, parameter);
+
+        Member otherMember = new Member();
+        objectAccess = this.entityAccessStrategy.getRelationalWriter(classInfo, "REGISTERED", otherMember);
+        assertNotNull("The resultant object accessor shouldn't be null", objectAccess);
+        domainObject = new DummyDomainObject();
+        objectAccess.write(domainObject, otherMember);
+        assertEquals(domainObject.registeredMember, otherMember);
     }
 
     @Test
@@ -267,11 +274,18 @@ public class DefaultEntityAccessStrategyTest {
 
         DummyDomainObject domainObject = new DummyDomainObject();
         domainObject.member = new Member();
+        domainObject.registeredMember = new Member();
 
         RelationalReader reader = this.entityAccessStrategy.getRelationalReader(classInfo, "CONTAINS");
         assertNotNull("The resultant object reader shouldn't be null", reader);
         assertSame(domainObject.member, reader.read(domainObject));
         assertEquals("CONTAINS", reader.relationshipType());
+
+        reader = this.entityAccessStrategy.getRelationalReader(classInfo, "REGISTERED");
+        assertNotNull("The resultant object reader shouldn't be null", reader);
+        assertSame(domainObject.registeredMember, reader.read(domainObject));
+        assertEquals("REGISTERED", reader.relationshipType());
+
     }
 
     @Test
@@ -325,16 +339,22 @@ public class DefaultEntityAccessStrategyTest {
         domainObject.favouriteTopic = new Topic();
         domainObject.member = new Member();
         domainObject.readOnlyComment = new Comment();
+        domainObject.registeredMember = new Member();
+        domainObject.naturalSatellites = new ArrayList<>();
+        domainObject.artificialSatellites = Collections.singletonList(new Satellite());
 
         Collection<RelationalReader> relationalAccessors = this.entityAccessStrategy.getRelationalReaders(classInfo);
         assertNotNull("The resultant list of object accessors shouldn't be null", relationalAccessors);
-        assertEquals("An unexpected number of accessors was returned", 4, relationalAccessors.size());
+        assertEquals("An unexpected number of accessors was returned", 7, relationalAccessors.size());
 
         Map<String, Class<? extends RelationalReader>> expectedRelationalReaders = new HashMap<>();
         expectedRelationalReaders.put("COMMENT", MethodReader.class);
         expectedRelationalReaders.put("FAVOURITE_TOPIC", FieldReader.class);
         expectedRelationalReaders.put("CONTAINS", FieldReader.class);
         expectedRelationalReaders.put("POST_WITHOUT_ACCESSOR_METHODS", FieldReader.class);
+        expectedRelationalReaders.put("NATURAL", FieldReader.class);
+        expectedRelationalReaders.put("ARTIFICIAL", FieldReader.class);
+        expectedRelationalReaders.put("REGISTERED", FieldReader.class);
 
         for (RelationalReader objectAccess : relationalAccessors) {
             String relType = objectAccess.relationshipType();
@@ -364,6 +384,44 @@ public class DefaultEntityAccessStrategyTest {
     }
 
     /**
+     * @see DATAGRAPH-637
+     */
+    @Test
+    public void shouldPreferAnnotatedFieldWithMatchingRelationshipTypeWhenGettingIterableWriter() {
+        // 2nd, try to find a field annotated with with relationship type
+        ClassInfo classInfo = this.domainInfo.getClass(DummyDomainObject.class.getName());
+
+        List<Satellite> natural = new ArrayList<>();
+        natural.add(new Satellite());
+
+        EntityAccess objectAccess = this.entityAccessStrategy.getIterableWriter(classInfo, Satellite.class, "NATURAL");
+        assertNotNull("The resultant object accessor shouldn't be null", objectAccess);
+        DummyDomainObject domainObject = new DummyDomainObject();
+        objectAccess.write(domainObject, natural);
+        assertEquals(natural, domainObject.naturalSatellites);
+    }
+
+
+    /**
+     * @see DATAGRAPH-637
+     */
+    @Test
+    public void shouldPreferAnnotatedFieldWithMatchingRelationshipTypeWhenGettingIterableReader() {
+        // 2nd, try to find a field annotated with with relationship type
+        ClassInfo classInfo = this.domainInfo.getClass(DummyDomainObject.class.getName());
+
+        List<Satellite> natural = new ArrayList<>();
+        natural.add(new Satellite());
+
+        RelationalReader relationalReader = this.entityAccessStrategy.getIterableReader(classInfo, Satellite.class, "NATURAL");
+        assertNotNull("The resultant object accessor shouldn't be null", relationalReader);
+        DummyDomainObject domainObject = new DummyDomainObject();
+        domainObject.naturalSatellites = natural;
+        Object o = relationalReader.read(domainObject);
+        assertEquals(natural, o);
+    }
+
+    /**
      * Domain object exhibiting various annotation configurations on its properties for test purposes.
      */
     public static class DummyDomainObject {
@@ -386,6 +444,15 @@ public class DefaultEntityAccessStrategyTest {
 
         @Relationship(type = "CONTAINS")
         Member member;
+
+        @Relationship(type = "REGISTERED")
+        Member registeredMember;
+
+        @Relationship(type = "NATURAL")
+        List<Satellite> naturalSatellites;
+
+        @Relationship(type = "ARTIFICIAL")
+        List<Satellite> artificialSatellites;
 
         Topic favouriteTopic;
         boolean topicAccessorWasCalled;
@@ -438,6 +505,14 @@ public class DefaultEntityAccessStrategyTest {
 
         public void setContains(Member nestedObject) {
             throw new UnsupportedOperationException("Shouldn't be calling the setter with: " + nestedObject);
+        }
+
+        public Member getRegisteredMember() {
+            throw new UnsupportedOperationException("Shouldn't be calling the getter");
+        }
+
+        public void setRegisteredMember(Member registeredMember) {
+            throw new UnsupportedOperationException("Shouldn't be calling the setter with: " + registeredMember);
         }
 
         public Topic getTopic() {

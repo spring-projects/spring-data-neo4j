@@ -720,6 +720,21 @@ public class ClassInfo {
     }
 
     /**
+     * Finds all fields whose type is equivalent to Array<X> or assignable from Iterable<X>
+     * where X is the generic parameter type of the Array or Iterable and the relationship type backing this iterable is "relationshipType"
+     */
+    public List<FieldInfo> findIterableFields(Class iteratedType, String relationshipType) {
+        List<FieldInfo> fieldInfos = new ArrayList<>();
+        for(FieldInfo fieldInfo : findIterableFields(iteratedType)) {
+            if(fieldInfo.relationship().equals(relationshipType)) {
+                fieldInfos.add(fieldInfo);
+            }
+        }
+        return fieldInfos;
+    }
+
+
+    /**
      * Finds all setter methods whose parameter signature is equivalent to Array<X> or assignable from Iterable<X>
      * where X is the generic parameter type of the Array or Iterable
      */
@@ -759,9 +774,24 @@ public class ClassInfo {
     }
 
     /**
-     * Finds all getter methods whose parameterised return type is equivalent to Array<X> or assignable from Iterable<X>
-     * where X is the generic parameter type of the Array or Iterable
+     * Finds all setter methods whose parameter signature is equivalent to Array<X> or assignable from Iterable<X>
+     * where X is the generic parameter type of the Array or Iterable and the relationship type this setter is annotated with is "relationshipType"
      */
+    public List<MethodInfo> findIterableSetters(Class iteratedType, String relationshipType) {
+        List<MethodInfo> methodInfos = new ArrayList<>();
+        for(MethodInfo methodInfo : findIterableSetters(iteratedType)) {
+            if(methodInfo.relationship().equals(relationshipType)) {
+                methodInfos.add(methodInfo);
+            }
+        }
+        return methodInfos;
+    }
+
+
+        /**
+		 * Finds all getter methods whose parameterised return type is equivalent to Array<X> or assignable from Iterable<X>
+		 * where X is the generic parameter type of the Array or Iterable
+		 */
     public List<MethodInfo> findIterableGetters(Class iteratedType) {
         List<MethodInfo> methodInfos = new ArrayList<>();
         String typeSignature = "L" + iteratedType.getName().replace('.', '/') + ";";
@@ -795,6 +825,20 @@ public class ClassInfo {
         catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Finds all getter methods whose parameterised return type is equivalent to Array<X> or assignable from Iterable<X>
+     * where X is the generic parameter type of the Array or Iterable and the relationship type this getter is annotated with is "relationshipType"
+     */
+    public List<MethodInfo> findIterableGetters(Class iteratedType, String relationshipType) {
+        List<MethodInfo> methodInfos = new ArrayList<>();
+        for(MethodInfo methodInfo : findIterableGetters(iteratedType)) {
+            if(methodInfo.relationship().equals(relationshipType)) {
+                methodInfos.add(methodInfo);
+            }
+        }
+        return methodInfos;
     }
 
     public boolean isTransient() {
