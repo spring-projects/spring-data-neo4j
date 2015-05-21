@@ -12,6 +12,8 @@
 
 package org.neo4j.ogm.metadata;
 
+import java.util.*;
+
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.metadata.info.AnnotationInfo;
@@ -20,10 +22,9 @@ import org.neo4j.ogm.metadata.info.DomainInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class MetaData {
 
@@ -114,7 +115,8 @@ public class MetaData {
                     } else {
                         // ensure this class has either no subclasses or is the superclass of a single-inheritance subclass-chain
                         ClassInfo baseClassInfo = findSingleBaseClass(taxonClassInfo, taxonClassInfo.directSubclasses());
-                        if (baseClassInfo != null) {
+                        //We might have already registered this baseClassInfo, if so, we don't care about the taxonClassInfo
+                        if (baseClassInfo != null && !baseClasses.contains(baseClassInfo)) {
                             // we don't care what the base class at the end of the chain is, we register the
                             // taxon class now.
                             baseClasses.add(taxonClassInfo);
