@@ -12,17 +12,13 @@
 
 package org.neo4j.ogm.integration.music;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.util.Collection;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.domain.music.Album;
 import org.neo4j.ogm.domain.music.Artist;
 import org.neo4j.ogm.domain.music.Recording;
@@ -30,6 +26,11 @@ import org.neo4j.ogm.domain.music.Studio;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
+
+import java.io.IOException;
+import java.util.Collection;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Luanne Misquitta
@@ -159,7 +160,7 @@ public class MusicIntegrationTest {
 		white.setGuestArtist(eric);
 		session.save(white);
 
-		theBeatles = session.loadByProperty(Artist.class, new Parameter("name", "The Beatles")).iterator().next();
+		theBeatles = session.loadAll(Artist.class, new Filters().add("name", "The Beatles")).iterator().next();
 		assertEquals("The Beatles", theBeatles.getName());
 		assertEquals(1, theBeatles.getAlbums().size());
 		assertEquals("The Beatles", theBeatles.getAlbums().iterator().next().getName());
@@ -168,7 +169,7 @@ public class MusicIntegrationTest {
 
 		//Eric has 2 albums now
 		session.clear();
-		Artist loadedEric = session.loadByProperty(Artist.class, new Parameter("name", "Eric Clapton")).iterator().next();
+		Artist loadedEric = session.loadAll(Artist.class, new Filters().add("name", "Eric Clapton")).iterator().next();
 		assertNotNull(loadedEric);
 		assertEquals("The Beatles", loadedEric.getGuestAlbums().iterator().next().getName());
 		assertEquals("Slowhand", loadedEric.getAlbums().iterator().next().getName());
