@@ -11,16 +11,16 @@
  */
 package org.neo4j.ogm.unit.mapper.cypher;
 
-import static org.junit.Assert.*;
-
-import java.util.Arrays;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.cypher.query.SortOrder;
 import org.neo4j.ogm.session.request.strategy.QueryStatements;
 import org.neo4j.ogm.session.request.strategy.VariableDepthRelationshipQuery;
+
+import java.util.Arrays;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Vince Bickers
@@ -59,7 +59,7 @@ public class RelationshipEntityQuerySortingTest {
     @Test
     public void testMultipleSortOrders() {
         sortOrder.add(SortOrder.Direction.DESC, "distance", "aphelion");
-        assertEquals("MATCH p=()-[r:`ORBITS`*..3]-() WITH p,r ORDER BY r.distance,r.aphelion DESC RETURN collect(distinct p)", query.findByType("ORBITS", 3).setSortOrder(sortOrder).getStatement());
+        assertEquals("MATCH p=()-[r:`ORBITS`*..3]-() WITH p,r ORDER BY r.distance DESC,r.aphelion DESC RETURN collect(distinct p)", query.findByType("ORBITS", 3).setSortOrder(sortOrder).getStatement());
     }
 
     @Test

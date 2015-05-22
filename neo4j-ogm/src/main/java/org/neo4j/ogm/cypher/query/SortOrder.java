@@ -66,12 +66,12 @@ public class SortOrder {
             if (properties.length > 0) {
                 for (String n : properties) {
                     sb.append("$." + n);
+                    if (direction == Direction.DESC) {
+                        sb.append(" DESC");
+                    }
                     sb.append(",");
                 }
                 sb.deleteCharAt(sb.length() - 1);
-                if (direction == Direction.DESC) {
-                    sb.append(" DESC");
-                }
             }
             return sb.toString();
         }

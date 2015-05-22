@@ -19,9 +19,18 @@ public class Pagination {
     private final Integer index;
     private final Integer size;
 
-    public Pagination(Integer index, Integer size) {
-        this.index = index;
-        this.size = size;
+    public Pagination(int pageNumber, int pageSize) {
+
+        if (pageNumber < 0) {
+            throw new RuntimeException("Page number must not be negative");
+        }
+
+        if (pageSize < 1) {
+            throw new RuntimeException("Page size must greater then zero");
+        }
+
+        this.index = pageNumber;
+        this.size = pageSize;
     }
 
     public String toString() {
