@@ -1,13 +1,5 @@
 /*
-<<<<<<< HEAD
-<<<<<<< HEAD
  * Copyright (c)  [2011-2015] "Neo Technology" / "Graph Aware Ltd."
-=======
- * Copyright (c)  [2011-2015] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
->>>>>>> DATAGRAPH-629 - Support finders which accept multiple properties or operators other than equals.
-=======
- * Copyright (c)  [2011-2015] "Neo Technology" / "Graph Aware Ltd."
->>>>>>> DATAGRAPH-629 - Support finders which accept multiple properties or operators other than equals.
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.

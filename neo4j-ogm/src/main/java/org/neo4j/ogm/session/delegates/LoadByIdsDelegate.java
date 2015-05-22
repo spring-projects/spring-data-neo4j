@@ -11,6 +11,8 @@
  */
 package org.neo4j.ogm.session.delegates;
 
+import java.util.Collection;
+
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.Query;
 import org.neo4j.ogm.cypher.query.SortOrder;
@@ -20,10 +22,8 @@ import org.neo4j.ogm.session.Neo4jSession;
 import org.neo4j.ogm.session.request.strategy.QueryStatements;
 import org.neo4j.ogm.session.response.Neo4jResponse;
 
-import java.util.Collection;
-
 /**
- * @author: Vince Bickers
+ * @author Vince Bickers
  */
 public class LoadByIdsDelegate implements Capability.LoadByIds {
 

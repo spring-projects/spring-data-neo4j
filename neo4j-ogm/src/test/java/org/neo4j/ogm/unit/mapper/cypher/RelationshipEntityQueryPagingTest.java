@@ -11,6 +11,10 @@
  */
 package org.neo4j.ogm.unit.mapper.cypher;
 
+import static org.junit.Assert.*;
+
+import java.util.Arrays;
+
 import org.junit.Test;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
@@ -18,12 +22,8 @@ import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.session.request.strategy.QueryStatements;
 import org.neo4j.ogm.session.request.strategy.VariableDepthRelationshipQuery;
 
-import java.util.Arrays;
-
-import static org.junit.Assert.assertEquals;
-
 /**
- * @author: Vince Bickers
+ * @author Vince Bickers
  */
 public class RelationshipEntityQueryPagingTest {
     

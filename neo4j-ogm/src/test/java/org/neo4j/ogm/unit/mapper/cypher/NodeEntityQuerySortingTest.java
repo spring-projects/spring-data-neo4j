@@ -11,18 +11,18 @@
  */
 package org.neo4j.ogm.unit.mapper.cypher;
 
+import static org.junit.Assert.*;
+
+import java.util.Arrays;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.cypher.query.SortOrder;
 import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
 
-import java.util.Arrays;
-
-import static org.junit.Assert.assertEquals;
-
 /**
- * @author: Vince Bickers
+ * @author Vince Bickers
  */
 public class NodeEntityQuerySortingTest {
 

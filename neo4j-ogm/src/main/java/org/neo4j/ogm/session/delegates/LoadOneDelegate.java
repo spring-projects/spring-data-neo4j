@@ -19,7 +19,7 @@ import org.neo4j.ogm.session.request.strategy.QueryStatements;
 import org.neo4j.ogm.session.response.Neo4jResponse;
 
 /**
- * @author: Vince Bickers
+ * @author Vince Bickers
  */
 public class LoadOneDelegate implements Capability.LoadOne {
 

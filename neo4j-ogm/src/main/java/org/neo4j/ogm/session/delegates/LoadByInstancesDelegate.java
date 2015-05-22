@@ -11,6 +11,11 @@
  */
 package org.neo4j.ogm.session.delegates;
 
+import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
 import org.neo4j.ogm.entityaccess.FieldWriter;
@@ -18,13 +23,8 @@ import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.session.Capability;
 import org.neo4j.ogm.session.Neo4jSession;
 
-import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
 /**
- * @author: Vince Bickers
+ * @author Vince Bickers
  */
 public class LoadByInstancesDelegate implements Capability.LoadByInstances {
 

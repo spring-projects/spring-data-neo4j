@@ -11,6 +11,8 @@
  */
 package org.neo4j.ogm.session.delegates;
 
+import java.util.Map;
+
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.ogm.cypher.query.RowModelQueryWithStatistics;
 import org.neo4j.ogm.session.Capability;
@@ -19,10 +21,8 @@ import org.neo4j.ogm.session.Utils;
 import org.neo4j.ogm.session.response.Neo4jResponse;
 import org.neo4j.ogm.session.result.QueryStatistics;
 
-import java.util.Map;
-
 /**
- * @author: Vince Bickers
+ * @author Vince Bickers
  */
 public class ExecuteStatementsDelegate implements Capability.ExecuteStatements {
 

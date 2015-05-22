@@ -11,6 +11,12 @@
  */
 package org.neo4j.ogm.session.delegates;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.ogm.cypher.query.GraphModelQuery;
 import org.neo4j.ogm.cypher.query.Query;
@@ -22,14 +28,8 @@ import org.neo4j.ogm.session.request.strategy.AggregateStatements;
 import org.neo4j.ogm.session.response.Neo4jResponse;
 import org.neo4j.ogm.session.result.RowModel;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
- * @author: Vince Bickers
+ * @author Vince Bickers
  */
 public class ExecuteQueriesDelegate implements Capability.ExecuteQueries {
 

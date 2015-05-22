@@ -18,7 +18,7 @@ import org.neo4j.ogm.session.transaction.SimpleTransaction;
 import org.neo4j.ogm.session.transaction.Transaction;
 
 /**
- * @author: Vince Bickers
+ * @author Vince Bickers
  */
 public class TransactionsDelegate implements Capability.Transactions {
 

@@ -11,6 +11,8 @@
  */
 package org.neo4j.ogm.session.delegates;
 
+import java.util.Collection;
+
 import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.cypher.Filter;
@@ -30,10 +32,8 @@ import org.neo4j.ogm.session.request.strategy.QueryStatements;
 import org.neo4j.ogm.session.response.Neo4jResponse;
 import org.neo4j.ogm.session.result.GraphRowModel;
 
-import java.util.Collection;
-
 /**
- * @author: Vince Bickers
+ * @author Vince Bickers
  */
 public class LoadByTypeDelegate implements Capability.LoadByType {
 

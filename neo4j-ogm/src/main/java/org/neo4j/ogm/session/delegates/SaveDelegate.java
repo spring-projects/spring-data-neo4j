@@ -11,6 +11,9 @@
  */
 package org.neo4j.ogm.session.delegates;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.neo4j.ogm.cypher.compiler.CypherContext;
 import org.neo4j.ogm.mapper.EntityGraphMapper;
 import org.neo4j.ogm.metadata.info.ClassInfo;
@@ -19,11 +22,8 @@ import org.neo4j.ogm.session.Neo4jSession;
 import org.neo4j.ogm.session.response.Neo4jResponse;
 import org.neo4j.ogm.session.transaction.Transaction;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
- * @author: Vince Bickers
+ * @author Vince Bickers
  */
 public class SaveDelegate implements Capability.Save {
 
