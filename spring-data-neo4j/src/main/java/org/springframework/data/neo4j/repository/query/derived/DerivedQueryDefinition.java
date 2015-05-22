@@ -12,10 +12,8 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
-import java.util.List;
-
 import org.neo4j.ogm.cypher.BooleanOperator;
-import org.neo4j.ogm.cypher.Parameter;
+import org.neo4j.ogm.cypher.Filters;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -41,8 +39,8 @@ public interface DerivedQueryDefinition {
 
 	/**
 	 * Gets all parameters
-	 * @return List of Parameter
+	 * @return List of Filters
 	 */
-	List<Parameter> getQueryParameters();
+	Filters getFilters();
 
 }

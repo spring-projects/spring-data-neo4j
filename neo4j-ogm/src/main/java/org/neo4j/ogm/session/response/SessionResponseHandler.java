@@ -12,9 +12,6 @@
 
 package org.neo4j.ogm.session.response;
 
-import java.lang.reflect.Field;
-import java.util.*;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.cypher.compiler.CypherContext;
@@ -29,6 +26,9 @@ import org.neo4j.ogm.model.GraphModel;
 import org.neo4j.ogm.session.result.GraphRowModel;
 import org.neo4j.ogm.session.result.GraphRowResult;
 import org.neo4j.ogm.session.result.RowModel;
+
+import java.lang.reflect.Field;
+import java.util.*;
 
 /**
  *  @author Vince Bickers
@@ -58,7 +58,7 @@ public class SessionResponseHandler implements ResponseHandler {
             for (Object data : rowData) {
                 if (data instanceof Number) {
                     if (classInfo.annotationsInfo().get(RelationshipEntity.CLASS) == null) {
-                        result.add((T) mappingContext.get(((Number) data).longValue()));
+                        result.add((T) mappingContext.getNodeEntity(((Number) data).longValue()));
 
                     }
                     else {
@@ -132,6 +132,7 @@ public class SessionResponseHandler implements ResponseHandler {
     public <T> T loadById(Class<T> type, Neo4jResponse<GraphModel> response, Long id) {
         GraphEntityMapper ogm = new GraphEntityMapper(metaData, mappingContext);
         GraphModel graphModel;
+
         while ((graphModel = response.next()) != null) {
             ogm.map(type, graphModel);
         }
@@ -143,7 +144,7 @@ public class SessionResponseHandler implements ResponseHandler {
         Object ref;
         ClassInfo typeInfo = metaData.classInfo(type.getName());
         if (typeInfo.annotationsInfo().get(RelationshipEntity.CLASS) == null) {
-            ref = mappingContext.get(id);
+            ref = mappingContext.getNodeEntity(id);
         } else {
             ref = mappingContext.getRelationshipEntity(id);
         }
@@ -152,7 +153,7 @@ public class SessionResponseHandler implements ResponseHandler {
 
     @Override
     public <T> Collection<T> loadAll(Class<T> type, Neo4jResponse<GraphModel> response) {
-        Set<T> objects = new HashSet<>();
+        List<T> objects = new ArrayList<>();
         GraphEntityMapper ogm = new GraphEntityMapper(metaData, mappingContext);
         GraphModel graphModel;
         while ((graphModel = response.next()) != null) {

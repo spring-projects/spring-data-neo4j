@@ -12,16 +12,16 @@
 
 package org.neo4j.ogm.cypher.query;
 
-import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
-
 import java.util.Map;
 
 /**
  * @author Vince Bickers
  */
-public class RowModelQuery extends ParameterisedStatement {
+public class RowModelQuery extends Query {
 
     public RowModelQuery(String cypher, Map<String, ?> parameters) {
         super(cypher, parameters, "row");
     }
+
+
 }

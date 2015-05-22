@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * A {@code Map}-based implementation of {@link RowModelMapper}.
  */
-class MapRowModelMapper implements RowModelMapper<Map<String, Object>> {
+public class MapRowModelMapper implements RowModelMapper<Map<String, Object>> {
 
     @Override
     public void mapIntoResult(Collection<Map<String, Object>> result, Object[] rowValues, String[] responseVariables) {

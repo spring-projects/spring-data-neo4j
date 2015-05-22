@@ -68,6 +68,10 @@ public class Neo4jMappingContext implements MappingContext<Neo4jPersistentEntity
                     throw new RuntimeException(e);
                 }
             } catch (MappingException me) {
+                // a class is in the mapping domain that doesn't have an identity field.
+                // this is not a problem provided the class is not going to be used for entity mapping.
+                // one valid example of such a class is an @QueryResult class. These need to be in
+                // the domain mapping context for now, but don't need an identity field.
                 logger.debug(me.getMessage());
             }
         }

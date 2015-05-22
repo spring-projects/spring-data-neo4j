@@ -12,14 +12,17 @@
 
 package org.springframework.data.neo4j.repository;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
  * @author Vince Bickers
  */
 @NoRepositoryBean
-public interface GraphRepository<T> extends CrudRepository<T, Long> {
+public interface GraphRepository<T> extends PagingAndSortingRepository<T, Long> {
 
     <S extends T> S save(S s, int depth);
 
@@ -27,11 +30,27 @@ public interface GraphRepository<T> extends CrudRepository<T, Long> {
 
     T findOne(Long id, int depth);
 
+
+    Iterable<T> findAll();
+
     Iterable<T> findAll(int depth);
+
+    Iterable<T> findAll(Sort sort);
+
+    Iterable<T> findAll(Sort sort, int depth);
+
+
+    Iterable<T> findAll(Iterable<Long> ids);
 
     Iterable<T> findAll(Iterable<Long> ids, int depth);
 
-    //Iterable<T> findByProperties(String propertyName, Object propertyValue);
+    Iterable<T> findAll(Iterable<Long> ids, Sort sort);
 
-    //Iterable<T> findByProperties(String propertyName, Object propertyValue, int depth);
+    Iterable<T> findAll(Iterable<Long> ids, Sort sort, int depth);
+
+
+    Page<T> findAll(Pageable pageable);
+
+    Page<T> findAll(Pageable pageable, int depth);
+
 }

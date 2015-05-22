@@ -55,8 +55,8 @@ public class MappingContextTest {
         collector.registerNodeEntity(policy, policy.getId());
         collector.registerRelationship(new MappedRelationship(jim.getId(), "INFLUENCES", policy.getId()));
 
-        assertEquals(jim, collector.get(jim.getId()));
-        assertEquals(policy, collector.get(policy.getId()));
+        assertEquals(jim, collector.getNodeEntity(jim.getId()));
+        assertEquals(policy, collector.getNodeEntity(policy.getId()));
         assertTrue(collector.isRegisteredRelationship(new MappedRelationship(jim.getId(), "INFLUENCES", policy.getId())));
 
     }
@@ -75,8 +75,8 @@ public class MappingContextTest {
         collector.registerRelationship(new MappedRelationship(jim.getId(), "INFLUENCES", policy.getId()));
         collector.clear(jim);
 
-        assertEquals(null, collector.get(jim.getId()));
-        assertEquals(policy, collector.get(policy.getId()));
+        assertEquals(null, collector.getNodeEntity(jim.getId()));
+        assertEquals(policy, collector.getNodeEntity(policy.getId()));
         assertFalse(collector.isRegisteredRelationship(new MappedRelationship(jim.getId(), "INFLUENCES", policy.getId())));
 
     }
@@ -107,11 +107,11 @@ public class MappingContextTest {
         collector.clear(Policy.class);
 
         assertEquals(0, collector.getAll(Policy.class).size());
-        assertEquals(null, collector.get(healthcare.getId()));
-        assertEquals(null, collector.get(immigration.getId()));
+        assertEquals(null, collector.getNodeEntity(healthcare.getId()));
+        assertEquals(null, collector.getNodeEntity(immigration.getId()));
 
-        assertEquals(jim, collector.get(jim.getId()));
-        assertEquals(rik, collector.get(rik.getId()));
+        assertEquals(jim, collector.getNodeEntity(jim.getId()));
+        assertEquals(rik, collector.getNodeEntity(rik.getId()));
         assertEquals(1, collector.mappedRelationships().size());
 
     }
@@ -160,7 +160,7 @@ public class MappingContextTest {
             for (int i = 1; i <= NUM_OBJECTS; i++) {
                 Long id = new Long(i);
 
-                TestObject testObject = (TestObject) collector.get(id);
+                TestObject testObject = (TestObject) collector.getNodeEntity(id);
                 if (testObject == null) {
                     testObject = (TestObject) collector.registerNodeEntity(new TestObject(), id);
                     synchronized (testObject) {

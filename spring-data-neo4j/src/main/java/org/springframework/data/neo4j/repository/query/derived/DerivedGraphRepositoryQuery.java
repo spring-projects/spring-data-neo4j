@@ -12,12 +12,8 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.neo4j.ogm.cypher.Parameter;
+import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.query.GraphQueryMethod;
@@ -26,6 +22,10 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.PartTree;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Specialisation of {@link RepositoryQuery} that handles mapping of derived finders.
@@ -56,16 +56,16 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		Class<?> returnType = graphQueryMethod.getMethod().getReturnType();
 		Class<?> concreteType = graphQueryMethod.resolveConcreteReturnType();
 
-		List<Parameter> params = resolveParams(parameters);
+		Filters params = resolveParams(parameters);
 		if (returnType.equals(Void.class)) {
 			throw new RuntimeException("Derived Queries must have a return type");
 		}
 
 		if (Iterable.class.isAssignableFrom(returnType)) {
-			return session.loadByProperties(concreteType, params);
+			return session.loadAll(concreteType, params);
 		}
 
-		Iterator objectIterator = session.loadByProperties(returnType, params).iterator();
+		Iterator objectIterator = session.loadAll(returnType, params).iterator();
 		if(objectIterator.hasNext()) {
 			return objectIterator.next();
 		}
@@ -73,11 +73,11 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 	}
 
 	/**
-	 * Sets values from  parameters supplied by the finder on {@link Parameter} built by the {@link GraphQueryMethod}
+	 * Sets values from  parameters supplied by the finder on {@link org.neo4j.ogm.cypher.Filter} built by the {@link GraphQueryMethod}
 	 * @param parameters parameter values supplied by the finder method
 	 * @return List of Parameter with values set
 	 */
-	private List<Parameter> resolveParams(Object[] parameters) {
+	private Filters resolveParams(Object[] parameters) {
 		Map<Integer, Object> params = new HashMap<>();
 		Parameters<?, ?> methodParameters = graphQueryMethod.getParameters();
 
@@ -86,8 +86,8 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 			params.put(i, parameters[i]);
 		}
 
-		List<Parameter> queryParams = queryDefinition.getQueryParameters();
-		for(Parameter queryParam : queryParams) {
+		Filters queryParams = queryDefinition.getFilters();
+		for(Filter queryParam : queryParams) {
 			queryParam.setPropertyValue(params.get(queryParam.getPropertyPosition()));
 		}
 		return queryParams;

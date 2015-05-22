@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class ParameterisedStatements {
 
-    private final List<ParameterisedStatement> statements;
+    private List<ParameterisedStatement> statements;
 
     public ParameterisedStatements(List<ParameterisedStatement> statements) {
         this.statements = statements;
