@@ -237,12 +237,12 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
     }
 
     @Override
-    public EntityAccess getIterableWriter(ClassInfo classInfo, Class<?> parameterType) {
-        MethodInfo methodInfo = getIterableSetterMethodInfo(classInfo, parameterType);
+    public EntityAccess getIterableWriter(ClassInfo classInfo, Class<?> parameterType, String relationshipType) {
+        MethodInfo methodInfo = getIterableSetterMethodInfo(classInfo, parameterType, relationshipType);
         if (methodInfo != null) {
             return new MethodWriter(classInfo, methodInfo);
         }
-        FieldInfo fieldInfo = getIterableFieldInfo(classInfo, parameterType);
+        FieldInfo fieldInfo = getIterableFieldInfo(classInfo, parameterType, relationshipType);
         if (fieldInfo != null) {
             return new FieldWriter(classInfo, fieldInfo);
         }
@@ -250,12 +250,12 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
     }
 
     @Override
-    public RelationalReader getIterableReader(ClassInfo classInfo, Class<?> parameterType) {
-        MethodInfo methodInfo = getIterableGetterMethodInfo(classInfo, parameterType);
+    public RelationalReader getIterableReader(ClassInfo classInfo, Class<?> parameterType, String relationshipType) {
+        MethodInfo methodInfo = getIterableGetterMethodInfo(classInfo, parameterType, relationshipType);
         if (methodInfo != null) {
             return new MethodReader(classInfo, methodInfo);
         }
-        FieldInfo fieldInfo = getIterableFieldInfo(classInfo, parameterType);
+        FieldInfo fieldInfo = getIterableFieldInfo(classInfo, parameterType, relationshipType);
         if (fieldInfo != null) {
             return new FieldReader(classInfo, fieldInfo);
         }
@@ -317,8 +317,11 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
         return null;
     }
 
-    private MethodInfo getIterableSetterMethodInfo(ClassInfo classInfo, Class<?> parameterType) {
-        List<MethodInfo> methodInfos = classInfo.findIterableSetters(parameterType);
+    private MethodInfo getIterableSetterMethodInfo(ClassInfo classInfo, Class<?> parameterType, String relationshipType) {
+        List<MethodInfo> methodInfos = classInfo.findIterableSetters(parameterType, relationshipType);
+        if (methodInfos.size() == 0) {
+            methodInfos = classInfo.findIterableSetters(parameterType);
+        }
         if (methodInfos.size() == 1) {
             return methodInfos.iterator().next();
         }
@@ -331,8 +334,11 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
         return null;
     }
 
-    private MethodInfo getIterableGetterMethodInfo(ClassInfo classInfo, Class<?> parameterType) {
-        List<MethodInfo> methodInfos = classInfo.findIterableGetters(parameterType);
+    private MethodInfo getIterableGetterMethodInfo(ClassInfo classInfo, Class<?> parameterType, String relationshipType) {
+        List<MethodInfo> methodInfos = classInfo.findIterableGetters(parameterType,relationshipType);
+        if(methodInfos.size() == 0) {
+            methodInfos = classInfo.findIterableGetters(parameterType);
+        }
         if (methodInfos.size() == 1) {
             return methodInfos.iterator().next();
         }
@@ -344,8 +350,11 @@ public class DefaultEntityAccessStrategy implements EntityAccessStrategy {
         return null;
     }
 
-    private FieldInfo getIterableFieldInfo(ClassInfo classInfo, Class<?> parameterType) {
-        List<FieldInfo> fieldInfos = classInfo.findIterableFields(parameterType);
+    private FieldInfo getIterableFieldInfo(ClassInfo classInfo, Class<?> parameterType, String relationshipType) {
+        List<FieldInfo> fieldInfos = classInfo.findIterableFields(parameterType, relationshipType);
+        if(fieldInfos.size() == 0) {
+            fieldInfos = classInfo.findIterableFields(parameterType);
+        }
         if (fieldInfos.size() == 1) {
             return fieldInfos.iterator().next();
         }

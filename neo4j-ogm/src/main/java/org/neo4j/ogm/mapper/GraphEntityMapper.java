@@ -12,6 +12,9 @@
 
 package org.neo4j.ogm.mapper;
 
+import java.util.*;
+import java.util.Map.Entry;
+
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.StartNode;
@@ -27,9 +30,6 @@ import org.neo4j.ogm.model.Property;
 import org.neo4j.ogm.model.RelationshipModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * @author Vince Bickers
@@ -309,28 +309,29 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
             if (relationshipEntity != null) {
                 // establish a relationship between
                 if (!relationshipDirection(instance, edge, relationshipEntity).equals(Relationship.INCOMING)) {
-                    typeRelationships.recordTypeRelationship(instance, relationshipEntity);
+                    typeRelationships.recordTypeRelationship(instance, relationshipEntity, edge.getType());
                 }
                 if (!relationshipDirection(parameter, edge, relationshipEntity).equals(Relationship.OUTGOING)) {
-                    typeRelationships.recordTypeRelationship(parameter, relationshipEntity);
+                    typeRelationships.recordTypeRelationship(parameter, relationshipEntity,edge.getType());
                 }
             }
             else {
                 if (!relationshipDirection(instance, edge, parameter).equals(Relationship.INCOMING)) {
-                    typeRelationships.recordTypeRelationship(instance, parameter);
+                    typeRelationships.recordTypeRelationship(instance, parameter,edge.getType());
                 }
                 if (!relationshipDirection(parameter, edge, instance).equals(Relationship.OUTGOING)) {
-                    typeRelationships.recordTypeRelationship(parameter, instance);
+                    typeRelationships.recordTypeRelationship(parameter, instance,edge.getType());
                 }
             }
         }
 
-        // then set the entire collection at the same time.
+        // then set the entire collection at the same time for each owning type
         for (Object instance : typeRelationships.getOwningTypes()) {
-            Map<Class<?>, Set<Object>> handled = typeRelationships.getTypeCollectionMapping(instance);
-            for (Class<?> type : handled.keySet()) {
-                Collection<?> entities = handled.get(type);
-                mapOneToMany(instance, type, entities);
+            //get all relationship types for which we're trying to set collections of instances
+            for (String relationshipType : typeRelationships.getOwningRelationshipTypes(instance)) {
+                Collection<?> entities = typeRelationships.getCollectiblesForOwnerAndRelationshipType(instance,relationshipType);
+                Class entityType = typeRelationships.getCollectibleTypeForOwnerAndRelationshipType(instance, relationshipType);
+                mapOneToMany(instance, entityType, entities,relationshipType);
             }
         }
 
@@ -356,7 +357,7 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
         ClassInfo classInfo = metadata.classInfo(source);
         RelationalWriter writer = entityAccessStrategy.getRelationalWriter(classInfo, edge.getType(), target);
         if (writer == null) {
-            writer = entityAccessStrategy.getIterableWriter(classInfo, target.getClass());
+            writer = entityAccessStrategy.getIterableWriter(classInfo, target.getClass(),edge.getType());
             // will occur if there is no relationship specified on a relationship entity
             if (writer == null) {
                 return Relationship.OUTGOING;  // the default
@@ -365,15 +366,24 @@ public class GraphEntityMapper implements GraphToEntityMapper<GraphModel> {
         return writer.relationshipDirection();
     }
 
-    private boolean mapOneToMany(Object instance, Class<?> valueType, Object values) {
+    /**
+     * Map many values to an instance based on the relationship type.
+     * See DATAGRAPH-637
+     * @param instance the instance to map values onto
+     * @param valueType the type of each value
+     * @param values the values to map
+     * @param relationshipType the relationship type associated with these values
+     * @return true if mapping succeeded, false otherwise
+     */
+    private boolean mapOneToMany(Object instance, Class<?> valueType, Object values, String relationshipType) {
 
         ClassInfo classInfo = metadata.classInfo(instance);
 
         // TODO: should just have one kind of relationshipWriter
-        RelationalWriter writer = entityAccessStrategy.getIterableWriter(classInfo, valueType);
+        RelationalWriter writer = entityAccessStrategy.getIterableWriter(classInfo, valueType, relationshipType);
         if (writer != null) {
             if (writer.type().isArray() || Iterable.class.isAssignableFrom(writer.type())) {
-                RelationalReader reader = entityAccessStrategy.getIterableReader(classInfo, valueType);
+                RelationalReader reader = entityAccessStrategy.getIterableReader(classInfo, valueType, relationshipType);
                 Object currentValues;
                 if (reader != null) {
                     currentValues = reader.read(instance);

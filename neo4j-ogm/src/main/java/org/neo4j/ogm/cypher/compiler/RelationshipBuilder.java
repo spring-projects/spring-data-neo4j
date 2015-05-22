@@ -83,6 +83,6 @@ public abstract class RelationshipBuilder implements CypherEmitter, Comparable<R
 
     @Override
     public String toString() {
-        return "(" + startNodeIdentifier + ")-[" + reference + ":" + type + "]->(" + endNodeIdentifier + ")";
+        return "(" + startNodeIdentifier + ")-[" + reference + ":`" + type + "`]->(" + endNodeIdentifier + ")";
     }
 }
