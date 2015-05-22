@@ -61,7 +61,7 @@ public class MappingContext {
         this.metaData = metaData;
     }
 
-    public Object get(Long id) {
+    public Object getNodeEntity(Long id) {
         return nodeEntityRegister.get(id);
     }
 

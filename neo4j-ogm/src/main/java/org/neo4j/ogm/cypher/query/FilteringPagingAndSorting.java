@@ -9,16 +9,17 @@
  * code for these subcomponents is subject to the terms and
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
+package org.neo4j.ogm.cypher.query;
 
-package org.neo4j.ogm.session.query;
+import org.neo4j.ogm.cypher.Filters;
 
 /**
  * @author Vince Bickers
  */
-public interface Query<T> extends AutoCloseable {
+public interface FilteringPagingAndSorting {
 
-    Query<T> execute();
-
-    T next();
+    Query setPagination(Pagination page);
+    Query setFilters(Filters filters);
+    Query setSortOrder(SortOrder sortOrder);
 
 }

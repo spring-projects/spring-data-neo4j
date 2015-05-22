@@ -22,7 +22,7 @@ import java.util.Collections;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.ogm.cypher.Parameter;
+import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.domain.education.Course;
 import org.neo4j.ogm.domain.education.School;
 import org.neo4j.ogm.domain.education.Student;
@@ -51,7 +51,7 @@ public class EducationIntegrationTest extends InMemoryServerTest {
         session.save(course);
 
         //fetch Courses by name
-        Collection<Course> courses = session.loadByProperty(Course.class,new Parameter("name","CompSci"));
+        Collection<Course> courses = session.loadAll(Course.class, new Filter("name", "CompSci"));
         assertEquals(1,courses.size());
         assertEquals(course,courses.iterator().next());
         assertEquals(1,courses.iterator().next().getStudents().size());

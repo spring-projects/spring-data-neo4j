@@ -13,15 +13,6 @@
 
 package org.springframework.data.neo4j.integration.template;
 
-import static org.junit.Assert.*;
-import static org.neo4j.ogm.session.Utils.*;
-
-import javax.persistence.PersistenceException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -30,7 +21,8 @@ import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.*;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.cypher.ComparisonOperator;
-import org.neo4j.ogm.cypher.Parameter;
+import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.session.Utils;
 import org.neo4j.ogm.session.result.QueryStatistics;
@@ -38,6 +30,15 @@ import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.data.neo4j.integration.movies.domain.*;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
+
+import javax.persistence.PersistenceException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+import static org.neo4j.ogm.session.Utils.map;
 
 /**
  * @author Adam George
@@ -311,14 +312,14 @@ public class Neo4jTemplateTest {
         this.template.save(new Cinema("Ritzy", 5000));
         this.template.save(new Cinema("Picturehouse", 7500));
 
-        Parameter name = new Parameter("name", "Ritzy");
-        Cinema loadedCinema = this.template.loadByProperties(Cinema.class, Collections.singletonList(name));
+        Filter name = new Filter("name", "Ritzy");
+        Cinema loadedCinema = this.template.loadByProperties(Cinema.class, new Filters().add(name));
         assertNotNull("No cinema was loaded", loadedCinema);
         assertEquals("Ritzy", loadedCinema.getName());
 
-        Parameter capacity = new Parameter("capacity", 1000);
+        Filter capacity = new Filter("capacity", 1000);
         capacity.setComparisonOperator(ComparisonOperator.GREATER_THAN);
-        Collection<Cinema> loadedCinemas = this.template.loadAllByProperties(Cinema.class, Collections.singletonList(capacity));
+        Collection<Cinema> loadedCinemas = this.template.loadAllByProperties(Cinema.class, new Filters().add(capacity));
         assertNotNull(loadedCinemas);
         assertEquals(2, loadedCinemas.size());
         assertTrue(loadedCinemas.contains(new Cinema("Ritzy", 5000)));

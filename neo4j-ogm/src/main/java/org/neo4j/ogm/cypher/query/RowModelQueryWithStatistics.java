@@ -12,9 +12,9 @@
 
 package org.neo4j.ogm.cypher.query;
 
-import java.util.Map;
-
 import org.neo4j.ogm.cypher.statement.ParameterisedStatement;
+
+import java.util.Map;
 
 /**
  * @author Luanne Misquitta

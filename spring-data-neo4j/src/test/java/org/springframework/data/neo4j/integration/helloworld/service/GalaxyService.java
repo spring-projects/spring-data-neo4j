@@ -12,16 +12,20 @@
 
 package org.springframework.data.neo4j.integration.helloworld.service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
-import org.neo4j.ogm.cypher.Parameter;
+import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.integration.helloworld.domain.World;
 import org.springframework.data.neo4j.integration.helloworld.repo.WorldRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * @author Vince Bickers
@@ -147,12 +151,29 @@ public class GalaxyService {
     }
 
     private Iterable<World> findByProperty(String propertyName, Object propertyValue) {
-        return session.loadByProperty(World.class, new Parameter(propertyName, propertyValue));
+        return session.loadAll(World.class, new Filter(propertyName, propertyValue));
     }
 
     public Iterable<World> findByProperty(String propertyName, Object propertyValue, int depth) {
-        return session.loadByProperty(World.class, new Parameter(propertyName, propertyValue), depth);
+        return session.loadAll(World.class, new Filter(propertyName, propertyValue), depth);
     }
 
 
+    public Iterable<World> findAllWorlds(Pagination paging) {
+        return session.loadAll(World.class, paging, 0);
+
+    }
+
+    public Iterable<World> findAllWorlds(Sort sort) {
+        return worldRepository.findAll(sort, 0);
+
+    }
+
+    public Page<World> findAllWorlds(Pageable pageable) {
+        return worldRepository.findAll(pageable, 0);
+    }
+
+    public Iterable<World> findAllWorlds(Sort sort, int depth) {
+        return worldRepository.findAll(sort, depth);
+    }
 }

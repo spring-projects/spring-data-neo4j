@@ -19,7 +19,7 @@ import java.util.Collection;
  *
  * @param <T> The type of entity to which the row is to be mapped
  */
-class EntityRowModelMapper<T> implements RowModelMapper<T> {
+public class EntityRowModelMapper<T> implements RowModelMapper<T> {
 
     @Override
     @SuppressWarnings("unchecked")

@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.neo4j.ogm.cypher.Parameter;
+import org.neo4j.ogm.cypher.Filter;
 
 /**
  * Simple integration test based on cineasts that exercises relationship entities.
@@ -77,7 +77,7 @@ public class CineastsIntegrationTest {
 
     @Test
     public void loadParticularUserRatingsAndComments() {
-        Collection<User> filmCritics = session.loadByProperty(User.class, new Parameter("name", "Michal"));
+        Collection<User> filmCritics = session.loadAll(User.class, new Filter("name", "Michal"));
         assertEquals(1, filmCritics.size());
 
         User critic = filmCritics.iterator().next();
@@ -93,7 +93,7 @@ public class CineastsIntegrationTest {
 
     @Test
     public void loadRatingsForSpecificFilm() {
-        Collection<Movie> films = session.loadByProperty(Movie.class, new Parameter("title", "Top Gear"));
+        Collection<Movie> films = session.loadAll(Movie.class, new Filter("title", "Top Gear"));
         assertEquals(1, films.size());
 
         Movie film = films.iterator().next();
@@ -115,7 +115,7 @@ public class CineastsIntegrationTest {
         user.setSecurityRoles(new SecurityRole[]{SecurityRole.USER});
         session.save(user);
 
-        Collection<User> users = session.loadByProperty(User.class,new Parameter("login","daniela"));
+        Collection<User> users = session.loadAll(User.class, new Filter("login", "daniela"));
         assertEquals(1,users.size());
         User daniela = users.iterator().next();
         assertEquals("Daniela", daniela.getName());
@@ -132,7 +132,7 @@ public class CineastsIntegrationTest {
         user.setTitles(Arrays.asList(Title.MR));
         session.save(user);
 
-        Collection<User> users = session.loadByProperty(User.class,new Parameter("login","vince"));
+        Collection<User> users = session.loadAll(User.class, new Filter("login", "vince"));
         assertEquals(1,users.size());
         User vince = users.iterator().next();
         assertEquals("Vince", vince.getName());
@@ -152,7 +152,7 @@ public class CineastsIntegrationTest {
         user.setPassword("aki");
         session.save(user);
 
-        Collection<User> users = session.loadByProperty(User.class,new Parameter("login","aki"));
+        Collection<User> users = session.loadAll(User.class, new Filter("login", "aki"));
         assertEquals(1,users.size());
         User aki = users.iterator().next();
         try {

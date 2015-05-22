@@ -115,14 +115,14 @@ public class EntityGraphMapper implements EntityToGraphMapper {
     private void clearRelatedObjects(Long node) {
         for (MappedRelationship mappedRelationship : mappingContext.mappedRelationships()) {
             if (mappedRelationship.getStartNodeId() == node || mappedRelationship.getEndNodeId() == node) {
-                Object dirty = mappingContext.get(mappedRelationship.getEndNodeId());
+                Object dirty = mappingContext.getNodeEntity(mappedRelationship.getEndNodeId());
                 // forward
                 if (dirty != null) {
                     logger.debug("flushing end node of: (${})-[:{}]->(${})", mappedRelationship.getStartNodeId(), mappedRelationship.getRelationshipType(), mappedRelationship.getEndNodeId());
                     mappingContext.deregister(dirty, mappedRelationship.getEndNodeId());
                 }
                 // reverse
-                dirty = mappingContext.get(mappedRelationship.getStartNodeId());
+                dirty = mappingContext.getNodeEntity(mappedRelationship.getStartNodeId());
                 if (dirty != null) {
                     logger.debug("flushing start node of: (${})-[:{}]->(${})", mappedRelationship.getStartNodeId(), mappedRelationship.getRelationshipType(), mappedRelationship.getEndNodeId());
                     mappingContext.deregister(dirty,  mappedRelationship.getStartNodeId());

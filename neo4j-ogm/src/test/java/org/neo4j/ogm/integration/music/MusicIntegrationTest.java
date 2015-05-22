@@ -12,17 +12,13 @@
 
 package org.neo4j.ogm.integration.music;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.util.Collection;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.ogm.cypher.Parameter;
+import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.domain.music.Album;
 import org.neo4j.ogm.domain.music.Artist;
 import org.neo4j.ogm.domain.music.Recording;
@@ -30,6 +26,11 @@ import org.neo4j.ogm.domain.music.Studio;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
+
+import java.io.IOException;
+import java.util.Collection;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Luanne Misquitta
@@ -71,7 +72,7 @@ public class MusicIntegrationTest {
 		assertEquals("Please Please Me", theBeatles.getAlbums().iterator().next().getName());
 		assertEquals("EMI Studios, London", theBeatles.getAlbums().iterator().next().getRecording().getStudio().getName());
 
-		please = session.loadByProperty(Album.class, new Parameter("name", "Please Please Me")).iterator().next();
+		please = session.loadAll(Album.class, new Filter("name", "Please Please Me")).iterator().next();
 		assertEquals("The Beatles", please.getArtist().getName());
 
 		Album hard = new Album("A Hard Day's Night");
@@ -98,7 +99,7 @@ public class MusicIntegrationTest {
 	@Test
 	public void shouldLoadStudioWithLocationMissingInDomainModel() {
 		new ExecutionEngine(neo4jRule.getGraphDatabaseService()).execute("CREATE (s:Studio {`studio-name`:'Abbey Road Studios'})");
-		Studio studio = session.loadByProperty(Studio.class, new Parameter("name","Abbey Road Studios")).iterator().next();
+		Studio studio = session.loadAll(Studio.class, new Filter("name", "Abbey Road Studios")).iterator().next();
 		assertNotNull(studio);
 
 	}
@@ -126,7 +127,7 @@ public class MusicIntegrationTest {
 
 		session.clear();
 
-		please = session.loadByProperty(Album.class, new Parameter("name", "Please Please Me"),0).iterator().next();
+		please = session.loadAll(Album.class, new Filter("name", "Please Please Me"), 0).iterator().next();
 		assertEquals("Please Please Me",please.getName());
 		assertNull(please.getArtist());
 		assertNull(please.getRecording());
@@ -159,7 +160,7 @@ public class MusicIntegrationTest {
 		white.setGuestArtist(eric);
 		session.save(white);
 
-		theBeatles = session.loadByProperty(Artist.class, new Parameter("name", "The Beatles")).iterator().next();
+		theBeatles = session.loadAll(Artist.class, new Filters().add("name", "The Beatles")).iterator().next();
 		assertEquals("The Beatles", theBeatles.getName());
 		assertEquals(1, theBeatles.getAlbums().size());
 		assertEquals("The Beatles", theBeatles.getAlbums().iterator().next().getName());
@@ -168,7 +169,7 @@ public class MusicIntegrationTest {
 
 		//Eric has 2 albums now
 		session.clear();
-		Artist loadedEric = session.loadByProperty(Artist.class, new Parameter("name", "Eric Clapton")).iterator().next();
+		Artist loadedEric = session.loadAll(Artist.class, new Filters().add("name", "Eric Clapton")).iterator().next();
 		assertNotNull(loadedEric);
 		assertEquals("The Beatles", loadedEric.getGuestAlbums().iterator().next().getName());
 		assertEquals("Slowhand", loadedEric.getAlbums().iterator().next().getName());

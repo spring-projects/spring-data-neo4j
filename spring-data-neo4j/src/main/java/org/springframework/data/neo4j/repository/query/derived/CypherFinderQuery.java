@@ -11,12 +11,10 @@
  */
 package org.springframework.data.neo4j.repository.query.derived;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
-import org.neo4j.ogm.cypher.Parameter;
+import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.cypher.Filters;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -30,7 +28,7 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 	private final Neo4jMappingContext mappingContext;
 	private Class entityType;
 	private Part basePart;
-	private List<Parameter> parameters = new ArrayList<>();
+	private Filters parameters = new Filters();
 	private int paramPosition = 0;
 
 	public CypherFinderQuery(Class entityType, Part basePart, Neo4jMappingContext mappingContext) {
@@ -46,14 +44,14 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 	}
 
 	@Override
-	public List<Parameter> getQueryParameters() {
+	public Filters getFilters() {
 		return parameters;
 	}
 
 	@Override
 	public void addPart(Part part, BooleanOperator booleanOperator) {
 		String property = part.getProperty().getSegment();
-		Parameter parameter = new Parameter();
+		Filter parameter = new Filter();
 		parameter.setPropertyPosition(paramPosition++);
 		parameter.setPropertyName(property);
 		parameter.setOwnerEntityType(entityType);
