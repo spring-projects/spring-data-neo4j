@@ -12,8 +12,6 @@
 
 package org.neo4j.ogm.mapper;
 
-import java.util.Iterator;
-
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.cypher.compiler.*;
@@ -26,6 +24,8 @@ import org.neo4j.ogm.metadata.info.AnnotationInfo;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
 
 /**
  * Implementation of {@link EntityToGraphMapper} that is driven by an instance of {@link MetaData}.
@@ -457,12 +457,44 @@ public class EntityGraphMapper implements EntityToGraphMapper {
 	}
 
 
+    /**
+     * This function creates a MappedRelationship that will be added into the cypher context.
+     *
+     * It is only called when both aNode and bNode are already pre-existing nodes in the graph. The relationship
+     * itself may or may not already exist in the graph.
+     *
+     * aNode and bNode here represent the ends of the relationship, and there is no implied understanding
+     * of relationship direction between them. Consequently we need to look at the relationshipBuilder's direction
+     * property to determine whether to create a mapping from a->b or from a->b.
+     *
+     * In the event that the relationshipBuilder's direction is UNDIRECTED, and the relationship pre-exists in the
+     * graph, it is critical to return the mapping that represents the existing relationship, or the detection of
+     * possibly deleted relationships will fail. If the UNDIRECTED relationship is new however, this is not important,
+     * so the default is to always return an OUTGOING relationship: a->b
+     *
+     * @param aNode one of the nodes in the relationship
+     * @param relationshipBuilder descibes the relationship, type, direction, etc.
+     * @param bNode the other node in the relationship
+     * @return a mappingContext representing a new or existing relationship between aNode and bNode
+     */
     private MappedRelationship createMappedRelationship(Long aNode, RelationshipBuilder relationshipBuilder, Long bNode) {
-        if (relationshipBuilder.hasDirection(Relationship.INCOMING)) {
-            return new MappedRelationship(bNode, relationshipBuilder.getType(), aNode, relationshipBuilder.getId());
-        }  else {
-            return new MappedRelationship(aNode, relationshipBuilder.getType(), bNode, relationshipBuilder.getId());
+
+        MappedRelationship mappedRelationshipOutgoing = new MappedRelationship(aNode, relationshipBuilder.getType(), bNode, relationshipBuilder.getId());
+        MappedRelationship mappedRelationshipIncoming = new MappedRelationship(bNode, relationshipBuilder.getType(), aNode, relationshipBuilder.getId());
+
+        if (relationshipBuilder.hasDirection(Relationship.UNDIRECTED)) {
+            if (mappingContext.isRegisteredRelationship(mappedRelationshipIncoming)) {
+                return mappedRelationshipIncoming;
+            }
+            return mappedRelationshipOutgoing;
         }
+
+        if (relationshipBuilder.hasDirection(Relationship.INCOMING)) {
+            return mappedRelationshipIncoming;
+        }
+
+        return mappedRelationshipOutgoing;
+
     }
 
     /**
@@ -542,7 +574,16 @@ public class EntityGraphMapper implements EntityToGraphMapper {
 
     }
     /**
-     * Checks the relationship creation request to ensure it will be handled correctly. This includes
+     * This function is called when we are certain that the relationship in question does not yet exist
+     * in the graph, because one of its start / end nodes is also not in the graph.
+     *
+     * If this is the first time we have seen this relationship as we walk the object graph, we create
+     * a new relationship and register it as a transient relationship in the cypher context.
+     *
+     * If we come across the same relationship again and the corresponding transient relationship already
+     * exists, we simply do nothing.
+     *
+     * The function checks the relationship creation request to ensure it will be handled correctly. This includes
      * ensuring the correct direction is observed, and that a new relationship (a)-[:TYPE]-(b) is created only
      * once from one of the participating nodes (rather than from both ends).
      *
@@ -667,7 +708,5 @@ public class EntityGraphMapper implements EntityToGraphMapper {
         }
         return mapBothWays;
     }
-
-
 
 }
