@@ -17,7 +17,6 @@ import org.neo4j.ogm.metadata.MappingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -241,7 +240,7 @@ public class DomainInfo implements ClassFileProcessor {
         interfaceNameToClassInfo.clear();
 
         for (String packageName : packages) {
-            String path = packageName.replace(".", File.separator);
+            String path = packageName.replace(".", "/");
             classPaths.add(path);
         }
 
