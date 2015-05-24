@@ -1,5 +1,46 @@
 Spring Data Neo4j Changelog
 ===========================
+Changes in version 4.0.0.RC1 (2015-05-25)
+
+New Features and Improvements
+-----------------------------
+* DATAGRAPH-550 - Support for arrays/collections of Convertible types
+* DATAGRAPH-554 - Support for @QueryResult
+* DATAGRAPH-556 - Support pageable / sortable
+* DATAGRAPH-564 - Integration with Spring Data REST
+* DATAGRAPH-577 - @NodeEntity etc on interfaces
+* DATAGRAPH-579 - Supply User-Agent Header
+* DATAGRAPH-587 - @Query results ordering
+* DATAGRAPH-607 - Return stats on Neo4jTemplate execute() methods.
+* DATAGRAPH-608 - Type Conversions in @QueryResult Objects
+* DATAGRAPH-623 - Documentation
+* DATAGRAPH-629 - Dynamic query improvements
+
+Bug Fixes: (See JIRAs for details)
+----------------------------------
+* DATAGRAPH-565
+* DATAGRAPH-568
+* DATAGRAPH-569
+* DATAGRAPH-578
+* DATAGRAPH-582
+* DATAGRAPH-583
+* DATAGRAPH-586
+* DATAGRAPH-589
+* DATAGRAPH-590
+* DATAGRAPH-591
+* DATAGRAPH-594
+* DATAGRAPH-606
+* DATAGRAPH-610
+* DATAGRAPH-611
+* DATAGRAPH-614
+* DATAGRAPH-616
+* DATAGRAPH-628
+* DATAGRAPH-630
+* DATAGRAPH-631
+* DATAGRAPH-634
+* DATAGRAPH-637
+* DATAGRAPH-638
+* DATAGRAPH-639
 
 Changes in version 4.0.0.M1 (2015-03-20)
 ----------------------------------------
