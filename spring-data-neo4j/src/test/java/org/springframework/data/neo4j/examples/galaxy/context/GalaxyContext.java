@@ -35,7 +35,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 public class GalaxyContext extends Neo4jConfiguration {
 
-
     @Autowired
     private Environment environment;
 

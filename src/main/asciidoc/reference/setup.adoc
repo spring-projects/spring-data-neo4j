@@ -78,11 +78,24 @@ To use the `InProcessServer` in your tests, you will need to add the following d
 .Maven dependencies for Spring Data Neo4j Test classes
 [source,xml]
 ----
-
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-neo4j</artifactId>
             <version>${sdn.version}</version>
+            <type>test-jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-kernel</artifactId>
+            <version>${neo4j.version}</version>
+            <type>test-jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.neo4j.app</groupId>
+            <artifactId>neo4j-server</artifactId>
+            <version>${neo4j.version}</version>
             <type>test-jar</type>
         </dependency>
 

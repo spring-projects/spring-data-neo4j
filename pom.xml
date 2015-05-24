@@ -27,6 +27,9 @@
         <springdata.commons>1.11.0.BUILD-SNAPSHOT</springdata.commons>
         <source.level>1.7</source.level>
         <commonslang.version>2.6</commonslang.version>
+        <neo4j.version>2.1.7</neo4j.version>
+        <neo4j.ogm.version>1.1.0.BUILD-SNAPSHOT</neo4j.ogm.version>
+        <!-- todo enable? -->
         <bundlor.enabled>false</bundlor.enabled>
     </properties>
 
@@ -74,6 +77,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>+5:30</timezone>
+
         </developer>
         <developer>
             <id>mangrish</id>
