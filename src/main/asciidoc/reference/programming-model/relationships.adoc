@@ -1,4 +1,4 @@
-[[reference_programming_model_relationships]]
+[[reference_programming-model_relationships]]
 = Relating node entities
 
 Since relationships are first-class citizens in Neo4j, associations between node entities are represented by relationships. 
@@ -6,21 +6,14 @@ In general, relationships are categorized by a type, and start and end nodes (wh
 Relationships can have an arbitrary number of properties. 
 Spring Data Neo4j has special support to represent Neo4j relationships as entities too, but it is often not needed.
 
-// TODO SDN4_GA
-[NOTE]
-====
-The Milestone 1 of Spring Data Neo4j 4 provides support for Relationship-Entities but it is not fully implemented and tested.
-Use it only for providing feedback to the authors.
-====
-
 == @Relationship: Connecting node entities
 
-Every field of a node entity that references one or more other node entities is backed by relationships in the graph. 
+Every field of an entity that references one or more other node entities is backed by relationships in the graph.
 These relationships are managed by Spring Data Neo4j automatically.
 
-The simplest kind of relationship is a single field pointing to another node entity (1:1). 
-In this case, the field does not have to be annotated at all, although the annotation may be used to control the direction and type of the relationship. 
-When setting the field, a relationship is created when the entity is persisted. 
+The simplest kind of relationship is a single object reference pointing to another entity (1:1).
+In this case, the reference does not have to be annotated at all, although the annotation may be used to control the direction and type of the relationship.
+When setting the reference, a relationship is created when the entity is persisted.
 If the field is set to `null`, the relationship is removed.
 
 .Single relationship field
@@ -33,7 +26,7 @@ public class Movie {
 }
 ----
 
-It is also possible to have fields that reference a set of node entities (1:N). 
+It is also possible to have fields that reference a set of entities (1:N).
 These fields come in two forms, modifiable or read-only. 
 Modifiable fields are of the type `Collection<T>`, and read-only fields are `Iterable<T>`, where T is a type annotated with `@NodeEntity`.
 
@@ -60,15 +53,14 @@ Relationships are added, removed or updated according to the differences between
 Spring Data Neo4j ensures by default that there is only one relationship of a given type between any two given entities.  
 If you don't care about the direction then you can specify `direction=Relationship.UNDIRECTED` which will guarantee that the path between two node entities is navigable from either side.
 
-== @RelationshipEntity: Rich relationships
+== `@RelationshipEntity`: Rich relationships
 
 To access the full data model of graph relationships, POJOs can also be annotated with `@RelationshipEntity`, making them relationship entities. 
-Just as node entities represent nodes in the graph, relationship entities represent relationships. 
-As described above, fields annotated with `@Relationship` provide a way to only link node entities via relationships, but it provides no way of accessing the relationships themselves.
+Just as node entities represent nodes in the graph, relationship entities represent relationships. Such POJOs allow you access and manage properties on the underlying relationships in the graph.
 
 Fields in relationship entities are similar to node entities, in that they're persisted as properties on the relationship. 
 For accessing the two endpoints of the relationship, two special annotations are available: `@StartNode` and `@EndNode`. 
-A field annotated with one of these annotations will provide read-only access to the corresponding endpoint, depending on the chosen annotation.
+A field annotated with one of these annotations will provide access to the corresponding endpoint, depending on the chosen annotation.
 
 For controlling the relationship-type a `String` attribute called `type` is available on the `@RelationshipEntity` annotation.  
 Like the simple strategy for labelling node entities, if this is unset then the name of the class is used to derive the relationship type.  

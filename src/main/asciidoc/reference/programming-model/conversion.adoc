@@ -88,12 +88,7 @@ public class Invoice {
 [[reference_programming-model_mapresult]]
 == Mapping Query Results
 
-NOTE: This feature isn't supported as of SDN 4 Milestone 1
-
-////
-TODO SDN4_GA
-
-For queries executed via `@Query` repository methods, it's possible to specify a conversion of complex query results to POJOs. These result objects are then populated with the query result data and can be serialized and sent to a different part of the applicaton, e.g. a frontend-ui.
+For queries executed via `@Query` repository methods, it's possible to specify a conversion of complex query results to POJOs. These result objects are then populated with the query result data and can be serialized and sent to a different part of the application, e.g. a frontend-ui.
 
 Use a class annotated with `@QueryResult` as the method return type and SDN will apply the same simple mapping strategy as it does for normal entities.
 
@@ -116,5 +111,3 @@ public interface MovieRepository extends GraphRepository<Movie> {
 
 }
 ----
-
-////

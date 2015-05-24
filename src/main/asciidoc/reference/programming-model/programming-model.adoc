@@ -6,19 +6,27 @@ It discusses the mapping mode, the annotations provided by Spring Data Neo4j and
 
 :leveloffset: +1
 
-:numbered:
 include::mapping.adoc[]
+
 include::simple_mapping.adoc[]
+
 include::node-entities.adoc[]
+
 include::relationships.adoc[]
+
 include::indexing.adoc[]
+
 include::template.adoc[]
+
 include::repositories.adoc[]
+
 include::conversion.adoc[]
+
 include::transactions.adoc[]
+
 include::attachdetach.adoc[]
+
 include::typerepresentationstrategy.adoc[]
-include::beanvalidation.adoc[]
-:numbered!:
 
 :leveloffset: -1
+

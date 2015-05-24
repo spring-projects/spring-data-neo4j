@@ -1,10 +1,10 @@
-[[reference_programming_model_annotations]]
+[[reference_programming-model_annotations]]
 = Defining node entities
 
 Node entities are declared using the `@org.neo4j.ogm.annotation.NodeEntity` annotation. 
 Relationship entities use the `@org.neo4j.ogm.annotation.RelationshipEntity` annotation.
 
-== @NodeEntity: The basic building block
+== `@NodeEntity`: The basic building block
 
 The `@NodeEntity` annotation is used to declare that a POJO class is an entity backed by a node in the graph database. 
 Entities handled by Spring Data Neo4j must have one empty public constructor to allow the library to construct the objects.
@@ -22,7 +22,6 @@ All parent classes are also added as labels so that retrieving a collection of n
 
 Entity fields can be annotated with `@Property`, `@GraphId`, `@Transient` or `@Relationship`.
 All annotations live in the `org.neo4j.ogm.annotation` package.
-// TODO SDN4_GA Support for `@Query` on fields is likely to be available in the full release but is unsupported as of milestone 1.  
 Marking a field with the transient modifier has the same effect as annotating it with `@Transient`; it won't be persisted to the graph database.
 
 
@@ -141,28 +140,3 @@ Custom converters are also specified by using `@Convert` - this is discussed in 
 Node property names can be explicitly assigned by setting the `name` attribute.  
 For example `@Property(name="last_name") String lastName`.  The node property name defaults to the field name when not specified.
 
-////
-== @Query: fields as query result views
-
-NOTE: This is not supported on entity fields for milestone one, although it does work in repositories
-
-The `@Query` annotation leverages the delegation infrastructure supported by Spring Data Neo4j. 
-It provides dynamic fields which, when accessed, return the values selected by the provided query language expression. 
-The provided query must contain a placeholder named `{self}` for the the current entity. 
-For instance the query `MATCH ({self}-[:FRIEND_OF]->(friend) RETURN friend`. 
-Graph queries can return variable number of entities. 
-That's why annotation can be put onto fields with a single value, a subclass of Iterable of a concrete type or an Iterable of `Map<String,Object>`. Additional parameters are taken from the params attribute of the `@Query` annotation. 
-These parameter tuples form key-value pairs that are provided to the query at execution time.
-
-.@Graph on a node entity field
-[source,java]
-----
-@NodeEntity
-public class Group {
-    @Query(value = "MATCH ({self})-[r]->(friend) WHERE r.type={relType} RETURN friend",
-                params = {"relType", "FRIEND_OF"})
-    private Iterable<Person> friends;
-}
-----
-
-////
