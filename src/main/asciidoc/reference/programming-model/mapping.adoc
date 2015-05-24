@@ -1,8 +1,8 @@
-[[reference_programming_model_mapping]]
+[[reference_programming-model_mapping]]
 = Under the hood
 
 == Metadata collection
-Reflection and annotation-based metadata is collected about persistent entities in `org.neo4j.ogm.metadata.Metadata` which provides it to any part of the library. 
+Metadata is collected about persistent entities in `org.neo4j.ogm.metadata.Metadata` which provides it to any part of the library.
 This information is gathered by reading the class files directly rather than loading via reflection, resulting in much faster startup times.
 
 The metadata holds all the required object-graph mapping information for each type.
@@ -18,7 +18,7 @@ The new `Neo4jTemplate` is essentially a wrapper around this `Session`, which ex
 Unlike the previous AspectJ-driven mapping, Spring Data Neo4j 4 doesn't automatically commit when a transaction closes, so an explicit call to `save(...)` is required in order to persist changes to the database.
 
 == Fine-grained control via depth specification
-Spring Data Neo4j introduces the concept of persistence horizon (depth). 
+The new object mapping framework in Spring Data Neo4j introduces the concept of persistence horizon (depth).
 On any individual request, the persistence horizon indicates how many relationships should be traversed in the graph when loading or saving data. 
 A horizon of zero means that only the root object's properties will be loaded or saved, a horizon of 1 will include the root object and all its immediate neighbours, and so on. 
 This attribute is enabled via a `depth` argument available on all repository and template methods, but SDN 4 chooses sensible defaults so that you don't have to specify the depth attribute unless you want change the default values.

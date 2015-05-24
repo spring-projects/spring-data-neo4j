@@ -15,18 +15,12 @@ If you have any feedback on Spring Data Neo4j or this book, please provide it vi
 
 == Format of the Book
 
-////
-This book is presented as a http://martinfowler.com/bliki/DuplexBook.html[duplex book], a term coined by Martin Fowler. A duplex book consists of at least two parts. The first part is an easily accessible tutorial or narrative that gives the reader an overview of the topics contained in the book. It contains lots of examples and discussion topics. This part of the book is highly suited for cover-to-cover reading.
 
-We chose a tutorial describing the creation of a web application that allows movie enthusiasts to find their favorite movies, rate them, connect with fellow movie geeks, and enjoy social features such as recommendations. The application is running on Neo4j using Spring Data Neo4j and the well-known Spring Web Stack.
-
-The second part of the book is the 
-////
 This book is a classic reference documentation, containing detailed information about the library. It discusses the programming model, the underlying assumptions, and internals, as well as the APIs for the object-graph mapping. The reference documentation is typically used to look up concrete bits of information, or to drill down into certain topics. 
 
 == Acknowledgements
 
-We would like to thank everyone who contributed to this book, especially Oliver Gierke, the lead of the Spring Data Project, who helped a lot during the development of the library as well.
+We would like to thank everyone who contributed to this book, especially Oliver Gierke, the lead of the Spring Data Project.
 
 Many thanks to our colleagues at Neo Technology and Graph Aware who not only contributed to Spring Data Neo4j but also provided content and feedback for this book.
 

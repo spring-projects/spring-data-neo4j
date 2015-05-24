@@ -58,7 +58,7 @@ Neo4j uses transactions to guarantee the integrity of your data and Spring Data 
 The implications of this are described in the chapter around <<reference_programming_model_transactions,transactions>>.
 
 == Configuration
-As of Milestone 1, only Java bean-based configuration is supported. See <<setup>> for more details.
+As of Release Candidate 1, only Java bean-based configuration is supported. See <<setup>> for more details.
 
 ////
 == Examples

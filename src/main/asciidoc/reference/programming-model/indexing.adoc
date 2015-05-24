@@ -1,4 +1,4 @@
-[[reference_programming_model_indexing]]
+[[reference_programming-model_indexing]]
 = Indexing
 
 Indexing is used in Neo4j to quickly find nodes and relationships from which to start graph operations. 
@@ -13,10 +13,7 @@ The "legacy" index framework should only be used for fulltext and spatial indexe
 
 == Index Management in Spring Data Neo4j 4
 
-From Spring Data Neo4j 4, `@Indexed` is no longer available.
-The index management concern was separated from the mapping framework.
-Creating indexes should be done when seeding and migrating databases instead as part of data model design decisions.
-
+In Spring Data Neo4j 4, index management concerns were removed from the mapping framework entirely.
 Index creation and management is therefore now outside the scope of this document.  
 Please see the Neo4j documention on indexes for for information:  http://neo4j.com/docs/stable/query-schema-index.html
 

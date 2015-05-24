@@ -1,4 +1,4 @@
-[[setup]]
+[[reference_setup]]
 = Getting started
 
 Spring Data Neo4j dramatically simplifies development, but some setup is naturally required.
@@ -73,23 +73,31 @@ As the above example shows, you simply construct a new instance with the URL of 
 `InProcessServer` is useful for test and development environments, but is not recommended for production use.  
 This implementation will start a new instance of `CommunityNeoServer` running on an available local port and return the URL needed to connect to it. 
 It also registers a shutdown hook so that the underlying Neo4j server exits cleanly when the JVM shuts down, via _Control+C_, for example.
-To use the `InProcessServer` in your tests, you will need to add a dependency to the `spring-data-neo4j-tests.jar``:
+To use the `InProcessServer` in your tests, you will need to add the following dependencies``:
 
 .Maven dependencies for Spring Data Neo4j Test classes
 [source,xml]
 ----
-        <dependency>
-            <groupId>org.neo4j.ogm</groupId>
-            <artifactId>neo4j-testutils</artifactId>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
 
         <dependency>
             <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-neo4j-tests</artifactId>
+            <artifactId>spring-data-neo4j</artifactId>
+            <version>${sdn.version}</version>
             <type>test-jar</type>
-            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-kernel</artifactId>
+            <version>${neo4j.version}</version>
+            <type>test-jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.neo4j.app</groupId>
+            <artifactId>neo4j-server</artifactId>
+            <version>${neo4j.version}</version>
+            <type>test-jar</type>
         </dependency>
 ----
 
@@ -99,7 +107,7 @@ The `SessionFactory` is needed by SDN to create instances of `org.neo4j.ogm.sess
 This also sets up the object-graph mapping metadata when constructed, which is then used across all `Session` objects that it creates.  
 As seen in the above example, the packages to scan for domain object metadata should be provided to the `SessionFactory` constructor.
 
-Note that the session factory should typically be application-scoped.  
+Note that the session factory should typically be application-scoped.
 While you can use a narrower scope for this if you like, there is typically no advantage in doing so.
 
 === Session Bean

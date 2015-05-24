@@ -1,4 +1,4 @@
-[[reference_programming_model_simple-mapping]]
+[[reference_programming-model_simple-mapping]]
 = Simplified Object-Graph Mapping
 
 As of version 4, Spring Data Neo4j supports mapping annotated and non-annotated objects models.
