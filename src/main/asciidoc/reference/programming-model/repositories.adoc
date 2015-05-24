@@ -1,12 +1,12 @@
-[[reference_programming_model_repositories]]
+[[reference_programming-model_repositories]]
 = CRUD with repositories
 
 The repositories provided by Spring Data Neo4j build on the composable repository infrastructure in http://static.springsource.org/spring-data/data-commons/docs/current/reference/html/#repositories[Spring Data Commons]. 
 These allow for interface-based composition of repositories consisting of provided default implementations for certain interfaces and additional custom implementations for other methods.
 
-Spring Data Neo4j comes with a single `org.springframework.data.repository.CrudRepository` specialisation called
+Spring Data Neo4j comes with a single `org.springframework.data.repository.PagingAndSortingRepository` specialisation called
 `GraphRepository<T>` used for all object-graph mapping repositories.  
-This sub-interface also adds specific finder methods that take a _depth_ argument to control the horizon with which related entities are fetched. 
+This sub-interface also adds specific finder methods that take a _depth_ argument to control the horizon with which related entities are fetched and saved.
 Generally, it provides all the desired repository methods. 
 If other operations are required then the additional repository interfaces should be added to the individual interface declaration.
 
@@ -21,10 +21,7 @@ earlier, these features are no longer supported in Spring Data Neo4j as of versi
 
 As of SDN 4, this `GraphRepository<T>` should be the interface from which your entity repository interfaces inherit, with `T` being specified as the domain entity type to persist.
 
-There is also no `TypeRepresentationStrategy` in the latest framework version.  
-Instead, the type representation strategy has been greatly simplified to use a single label-based mechanism as described in more detail here: <<reference_programming-model_typerepresentationstrategy,Entity Type Representation>>
-
-Examples of methods you get for free out of `GraphRepository` are as follows.  
+Examples of methods you get for free out of `GraphRepository` are as follows.
 For all of these examples the ID parameter is a `Long` that matches the graph ID:
 
 Load an entity instance via an id::
@@ -35,7 +32,8 @@ Check for existence of an id in the graph::
 
 Iterate over all nodes of a node entity type::
 `Iterable<T> findAll()`
-// TODO SDN4_GA `Iterable<T> findAll(Sort)`
+`Iterable<T> findAll(Sort ...)`
+`Page<T> findAll(Pageable ...)`
 
 Count the instances of the repository entity type::
 `Long count()`
@@ -61,14 +59,9 @@ The named or indexed parameter `{param}` will be substituted by the actual metho
 Node and Relationship-Entities are handled directly and converted into their respective ids, Iterables thereof as well. 
 All other parameters types are provided directly (i.e. Strings, Longs, etc).
 
-[NOTE]
-As of Milestone 1 of Spring Data Neo4j 4, paging is not natively supported
-
-
 === Query results
 
-Typical results for queries are `Iterable<Type>`, `Iterable<Map<String,Object>>` or `Type`.  As of Milestone 1,
-`Slice<Type>` and `Page<Type>` are not supported. 
+Typical results for queries are `Iterable<Type>`, `Iterable<Map<String,Object>>` or simply `Type`.
 Nodes and relationships are converted to their respective entities (if they exist). 
 Other values are converted using the registered <<reference_programming-model_conversion,conversion services>> (e.g. enums).
 
@@ -92,8 +85,6 @@ returns the movies rated by the friends of the user 'Michael', aggregated by `mo
 Examples of Cypher queries placed on repository methods with @Query where values are replaced with method parameters,
 as described in the <<reference_programming_model_annotatedQueries>>) section.
 
-////
-TODO SDN4_GA
 [source,java]
 ----
 public interface MovieRepository extends GraphRepository<Movie> {
@@ -109,7 +100,7 @@ public interface MovieRepository extends GraphRepository<Movie> {
 	// returns the Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter. 
 	// (The parenthesis around 'movie' and 'actor' in the match clause are optional.)                       
 	@Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor")
-	Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, PageRequest);
+	Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, PageRequest page);
 
     // returns users who rated a movie (movie parameter) higher than rating (rating parameter)
     @Query("MATCH (movie:Movie)<-[r:RATED]-(user) " +
@@ -122,44 +113,13 @@ public interface MovieRepository extends GraphRepository<Movie> {
            "WHERE r.stars > {1} " +
            "RETURN user")
      Iterable<User> getUsersWhoRatedMovieFromTitle(String movieTitle, Integer rating);
- }
+}
 ----
-////
-
-[source,java]
-----
-public interface MovieRepository extends GraphRepository<Movie> {
-    
-    // returns the node with id equal to idOfMovie parameter  
-    @Query("MATCH (n) WHERE id(n)={0} RETURN n")
-    Movie getMovieFromId(Integer idOfMovie);
-
-    // returns the nodes which have a title according to the movieTitle parameter
-    @Query("MATCH (movie:Movie {title={0}}) RETURN movie")
-    Movie getMovieFromTitle(String movieTitle);
-
-    // returns users who rated a movie based on movie title (movieTitle parameter) 
-    // higher than rating (rating parameter)
-    @Query("MATCH (movie:Movie {title:{title}})<-[r:RATED]-(user) " +
-           "WHERE r.stars > {rating} " +
-           "RETURN user")
-     Iterable<User> getUsersWhoRatedMovieFromTitle(@Param("title"} String movieTitle, 
-                                                   @Param("rating") Integer rating);
- }
-----
-
-
-If you provided a `@Param("name")` annotation or use Java 8 then the method parameter name can be used directly (e.g. `findByTitle(String title)`).
 
 === Queries derived from finder-method names
 
-As known from Rails or Grails it is possible to derive queries for domain entities from finder method names like +
-`Iterable<Person> findByNameAndAgeGreaterThan(String name, int age)`. 
-
-Using the metadata infrastructure in the underlying object-graph mapper, a finder method name can be split into its semantic parts and converted into a cypher query.  
+Using the metadata infrastructure in the underlying object-graph mapper, a finder method name can be split into its semantic parts and converted into a cypher query.
 Navigation along relationships will be reflected in the generated `MATCH` clause and properties with operators will end up as expressions in the `WHERE` clause.  
-// TODO SDN4_GA Order and limiting of the query will by handled by provided `Pageable` or `Sort` parameters.  
-// The other
 The parameters will be used in the order they appear in the method signature so they should align with the expressions stated in the method name.
 
 .Some examples of methods and corresponding Cypher queries of a PersonRepository
@@ -170,10 +130,7 @@ public interface PersonRepository extends GraphRepository<Person> {
     // MATCH (person:Person {name={0}}) RETURN person
     Person findByName(String name);
 
-    // MATCH (person:Person) WHERE person.name =~ '.*{0}.*' RETURN person
-    Iterable<Person> findByNameLike(String name)
-
-    // MATCH (person:Person) 
+    // MATCH (person:Person)
     // WHERE person.age = {0} AND person.married = {1}
     // RETURN person
     Iterable<Person> findByAgeAndMarried(int age, boolean married)

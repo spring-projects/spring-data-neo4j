@@ -1,4 +1,4 @@
-[[reference_programming_model_lifecycle]]
+[[reference_programming-model_attachdetach]]
 = Entity Attachment
 
 In previous versions of Spring Data Neo4j, entities could be "attached" or "detached" depending on whether or not they were enhanced by AspectJ and actively managed by the framework. 
@@ -13,12 +13,6 @@ This method is normally invoked indirectly via a Spring repository or `Neo4jTemp
 Under the bonnet, the implementation of `Session` has access to the `MappingContext` that keeps track of the data that has been loaded from Neo4j during the lifetime of the session.  
 Upon invocation of `save()` with an entity, it checks the given object graph for changes compared with the data that was loaded from the database.  
 The differences are used to construct a Cypher query that persists the deltas to Neo4j before repopulating it's state based on the response from the database server.
-
-////
-One thing that hasn't changed in version 4 is the fact that all entities returned by library functions are initially in an attached state, and those created with the `new` keyword aren't.  
-However, there's no longer any attachment or detachment that goes on depending on where certain code is executed, because entities aren't managed with AspectJ enhancements.  
-Therefore calling `save()` is always required in order to persist your changes back to Neo4j.
-////
 
 .Persisting entities
 ====
@@ -55,6 +49,7 @@ If you don't then you may unexpectedly see relationships deleted or updates not 
 ====
 
 .Relationship save cascading
+====
 [source,java]
 ----
 @NodeEntity
@@ -76,6 +71,7 @@ Actor actor = new Actor("Tom Hanks");
 
 movie.setTopActor(actor);
 ----
+====
 
 Neither the actor nor the movie has been assigned a node in the graph. 
 If we were to call `repository.save(movie)`, then Spring Data Neo4j would first create a node for the movie. 
@@ -94,15 +90,69 @@ The cascading is however only propagated to related entity fields that have been
 In the following example, the actor and the movie are both attached entites, having both been previously persisted to the graph: 
 
 .Cascade for modified fields
+====
 [source,java]
 ----
 actor.setBirthyear(1956);
 movieRepository.save(movie);
 ----
+====
 
 [NOTE]
 ====
 In this case, even though the movie has a reference to the actor, the property change on the actor will not be persisted by the call to `movie.persist()`.
 The reason for this is, as mentioned above, that cascading will only be done for fields that have been modified. 
 Since the `movie.topActor` field has not been modified, it will not cascade the persist operation to the actor.
+====
+
+[[reference_programming-model_sorting_and_paging]]
+= Sorting and Paging
+Spring Data Neo4j supports Sorting and Paging of results, both when using Spring Data's Pageable and Sort interfaces, and also when using the Session object.
+The syntax for the two is slightly different, the main difference being that the Session object methods take independent arguments for Sorting and Pagination, whereas Spring's Pageable interface embeds an optional Sort object.
+Behind the scenes however, Repository-based paging and sorting delegates to the core OGM equivalents.
+
+[NOTE]
+====
+As of Release Candidate 1, sorting and paging is not supported on derived query methods.
+====
+
+====
+.Repository-based paging
+[source,java]
+----
+Pageable pageable = new PageRequest(0, 3);
+Page<World> page = worldRepository.findAll(pageable, 0);
+----
+
+.Repository-based sorting
+[source,java]
+----
+Sort sort = new Sort(Sort.Direction.ASC, "name");
+Iterable<World> worlds = worldRepository.findAll(sort, 0)) {
+----
+
+.Repository-based sorting with paging
+[source,java]
+----
+Pageable pageable = new PageRequest(0, 3, Sort.Direction.ASC, "name");
+Page<World> page = worldRepository.findAll(pageable, 0);
+----
+
+.Core OGM-based paging
+[source,java]
+----
+Iterable<World> worlds = loadAll(World.class, new Pagination(0,3), 0)
+----
+
+.Core OGM-based sorting
+[source,java]
+----
+Iterable<World> worlds = loadAll(World.class, new SortOrder().add("name"), 0)
+----
+
+.Core OGM-based sorting with paging
+[source,java]
+----
+Iterable<World> worlds = loadAll(World.class, new SortOrder().add("name"), new Pagination(0,3), 0)
+----
 ====

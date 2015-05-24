@@ -1,4 +1,4 @@
-[[reference_programming_model_typerepresentationstrategy]]
+[[reference_programming-model_typerepresentationstrategy]]
 = Entity Type Representation
 
 As of Spring Data Neo4j 4, type representation has been greatly simplified to the point that there is just one strategy.
@@ -40,7 +40,3 @@ The label applied to a node in the database can be configured by setting the val
 
 For `@RelationshipEntity` classes, the simple name of the class is used to derive the relationship type to use, although it's converted into SNAKE_CASE to honour the naming conventions of Neo4j relationships.  
 Much like node entities, you can configure the relationship type to use by setting the `type` property in the `@RelationshipEntity` annotation.
-
-== Type Aliases
-
-NOTE: As of SDN 4 milestone 1, `@TypeAlias` is no longer supported. You would use the `label` attribute of `@NodeEntity` or `type` on `@RelationshipEntity`.

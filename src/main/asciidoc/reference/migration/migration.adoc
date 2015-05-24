@@ -1,12 +1,17 @@
-= Migration Guide from SDN3 to SDN4
-:numbered:
+[[reference_migration]]
+= Migrating from previous versions of Spring Data Neo4j
+
 == Package changes
 Because the Neo4j Object Graph Mapper can be used independently of Spring Data Neo4j, the core annotations have been
 moved out of the spring framework packages:
 
 `org.springframework.data.neo4j.annotation` -> `org.neo4j.ogm.annotation`
 
-The `@Query` annotation is only supported in Spring Data Neo4j.
+[NOTE]
+====
+The `@Query` and `@QueryResult` annotations are only supported in the Spring modules, and are not used by the core
+mapping framework. These annotations have not changed.
+====
 
 == Annotation changes
 There have been some changes to the annotations that were used in previous versions of Spring Data Neo4j.
@@ -38,9 +43,8 @@ The following annotations are no longer used, either because they are no longer 
 * @GraphTraversal
 * @RelatedToVia
 * @RelatedTo
-// TODO SDN4_GA
 * @Index
-* @TypeAlias 
+* @TypeAlias
 * @Fetch
 
 == Features no longer supported
@@ -108,7 +112,7 @@ The following table shows the `Neo4jTemplate` functions that have been retained 
 
 |`query`
 |`query`
-|Return type changed from `Result` to be `Iterable` // todo consolidate to List
+|Return type changed from `Result` to be `Iterable`
 
 |`save`
 |`save`
@@ -153,10 +157,5 @@ being incompatible with future versions of Neo4j.
 === Graph Traversal and Node/Relationship Manipulation
 These features cannot be supported by Cypher and have therefore been dropped from `Neo4jTemplate`.
 
-== Features not yet included in Milestone 1 but that are on the Roadmap
-
-* Full text indexes and queries
-* Geospatial queries
-* `@QueryResult`
 
 Please provide feedback on the new APIs of SDN 4 and the migration needs to spring-data-neo4j@neotechnology.com or via a https://jira.spring.io/browse/DATAGRAPH[JIRA issue]

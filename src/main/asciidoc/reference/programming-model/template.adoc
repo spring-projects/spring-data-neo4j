@@ -1,4 +1,4 @@
-[[reference_programming_model_template]]
+[[reference_programming-model_template]]
 = Neo4jTemplate
 
 The `Neo4jTemplate` offers the convenient API of Spring templates for the Neo4j graph database.  
@@ -106,4 +106,3 @@ public class ApplicationConfig extends Neo4jConfiguration {
 ----
 
 Note that changes made to entities in the before-save event application listener are reflected in the stored entity - after-save ones are not.
-
