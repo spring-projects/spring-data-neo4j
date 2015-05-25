@@ -26,7 +26,7 @@ public class EmptyResponse implements Neo4jResponse<String> {
     }
 
     @Override
-    public void initialiseScan(String token) {
+    public void initialiseScan(ResponseRecord record) {
     }
 
     @Override

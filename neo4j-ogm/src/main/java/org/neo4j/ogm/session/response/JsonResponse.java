@@ -23,10 +23,17 @@ import java.util.Scanner;
 public class JsonResponse implements Neo4jResponse<String> {
 
     private static final String COMMA = ",";
-    private static final String START_RECORD_TOKEN = "{\"";
+    private static final String START_RECORD_TOKEN = "{";
     private static final String NEXT_RECORD_TOKEN  = COMMA + START_RECORD_TOKEN;
+
     private static final String ERRORS_TOKEN = "],\"errors";
     private static final String COLUMNS_TOKEN = "{\"columns";
+
+    private static final String GRAPH_TOKEN = "\"graph";
+    private static final String ROW_TOKEN = "\"row";
+    private static final String RESULTS_TOKEN = "\"results";
+    private static final String STATS_TOKEN = "\"stats";
+
 
     private final InputStream results;
     private final Scanner scanner;
@@ -39,8 +46,8 @@ public class JsonResponse implements Neo4jResponse<String> {
         this.scanner = new Scanner(results, "UTF-8");
     }
 
-    public void initialiseScan(String token) {
-        this.scanToken = token;
+    public void initialiseScan(ResponseRecord record) {
+        this.scanToken = extractToken(record);
         this.scanner.useDelimiter(scanToken);
         // TODO: this currently assumes only ONE data[] element in the response stream.
         parseColumns();
@@ -122,9 +129,22 @@ public class JsonResponse implements Neo4jResponse<String> {
             scanner.close();
         }
 
-        //String errors = sb.substring(cp + 2);
-
-        //errors = errors.substring(sb.indexOf("[") + 1, sb.lastIndexOf("]"));
         throw new ResultProcessingException(sb.substring(cp + 2), null);
+    }
+
+    private String extractToken(ResponseRecord format) {
+
+        switch (format) {
+            case GRAPH:
+                return GRAPH_TOKEN;
+            case ROW:
+                return ROW_TOKEN;
+            case RESULTS:
+                return RESULTS_TOKEN;
+            case STATS:
+                return STATS_TOKEN;
+            default:
+                throw new RuntimeException("Unhandled response format: " + format);
+        }
     }
 }

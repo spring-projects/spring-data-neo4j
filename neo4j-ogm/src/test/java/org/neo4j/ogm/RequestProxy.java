@@ -50,7 +50,7 @@ public abstract class RequestProxy implements Neo4jRequest<String> {
         }
 
         @Override
-        public void initialiseScan(String token) {
+        public void initialiseScan(ResponseRecord record) {
             // nothing to do
         }
 

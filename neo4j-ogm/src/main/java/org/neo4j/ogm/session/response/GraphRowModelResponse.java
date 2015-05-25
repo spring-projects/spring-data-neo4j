@@ -37,7 +37,7 @@ public class GraphRowModelResponse implements Neo4jResponse<GraphRowModel> {
 		this.response = response;
 		this.objectMapper = objectMapper;
 		try {
-			initialiseScan("results");
+			initialiseScan(ResponseRecord.RESULTS);
 		} catch (Exception e) {
 			//Ignore this exception since we're reading the JSON manually in next()
 			//TODO look into enhancing the JSONResponse parsing
@@ -75,8 +75,8 @@ public class GraphRowModelResponse implements Neo4jResponse<GraphRowModel> {
 	}
 
 	@Override
-	public void initialiseScan(String token) {
-		response.initialiseScan(token);
+	public void initialiseScan(ResponseRecord record) {
+		response.initialiseScan(record);
 	}
 
 	@Override

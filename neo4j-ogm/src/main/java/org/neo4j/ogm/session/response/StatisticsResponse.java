@@ -32,7 +32,7 @@ public class StatisticsResponse implements Neo4jResponse<QueryStatistics> {
 		this.response = response;
 		this.objectMapper = mapper;
 		try {
-			initialiseScan("stats");
+			initialiseScan(ResponseRecord.STATS);
 		} catch (Exception e) {
 			throw new ResultProcessingException("Could not initialise response", e);
 		}
@@ -59,8 +59,8 @@ public class StatisticsResponse implements Neo4jResponse<QueryStatistics> {
 	}
 
 	@Override
-	public void initialiseScan(String token) {
-		response.initialiseScan(token);
+	public void initialiseScan(ResponseRecord record) {
+		response.initialiseScan(record);
 	}
 
 	@Override
