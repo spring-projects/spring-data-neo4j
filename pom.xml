@@ -18,8 +18,6 @@
 
     <modules>
 
-        <module>neo4j-ogm-test</module>
-        <module>neo4j-ogm</module>
         <module>spring-data-neo4j</module>
         <module>spring-data-neo4j-distribution</module>
 
@@ -31,6 +29,7 @@
         <source.level>1.7</source.level>
         <commonslang.version>2.6</commonslang.version>
         <neo4j.version>2.1.7</neo4j.version>
+        <neo4j.ogm.version>1.1.0.BUILD-SNAPSHOT</neo4j.ogm.version>
 
         <!-- todo enable? -->
         <bundlor.enabled>false</bundlor.enabled>
@@ -69,6 +68,17 @@
                 <role>Developer</role>
             </roles>
             <timezone>GMT</timezone>
+        </developer>
+        <developer>
+            <id>lmisquitta</id>
+            <name>Luanne Misquitta</name>
+            <email>luanne at graphaware.com</email>
+            <organization>GraphAware</organization>
+            <organizationUrl>http://www.graphaware.com</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>+7</timezone>
         </developer>
         <developer>
             <id>mangrish</id>
@@ -142,7 +152,7 @@
                 <scope>test</scope>
             </dependency>
 
-        </dependencies>
+       </dependencies>
 
     </dependencyManagement>
 
