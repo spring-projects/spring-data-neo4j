@@ -49,7 +49,7 @@ import static org.junit.Assert.assertEquals;
 */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = RestRelationshipTests.MyConfig.class)
-@TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
+
 public class RestRelationshipTests {
 
     @Configuration

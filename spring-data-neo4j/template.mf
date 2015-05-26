@@ -2,6 +2,8 @@ Bundle-SymbolicName: org.springframework.data.neo4j
 Bundle-Name: Spring Data Neo4J
 Bundle-Vendor: SpringSource
 Bundle-ManifestVersion: 2
+Export-Template:
+ org.springframework.data.neo4j.*;version="${project.version}"
 Import-Template: 
  org.springframework.beans.*;version="[3.0.0, 4.0.0)",
  org.springframework.context.*;version="[3.0.0, 4.0.0)",

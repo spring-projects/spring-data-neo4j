@@ -83,15 +83,15 @@ public abstract class Neo4jHelper {
 
     private static void removeNodes(GraphDatabaseService graphDatabaseService, boolean includeReferenceNode) {
         GraphDatabaseAPI api = (GraphDatabaseAPI) graphDatabaseService;
-        NodeManager nodeManager = api.getDependencyResolver().resolveDependency(NodeManager.class);
+//        NodeManager nodeManager = api.getDependencyResolver().resolveDependency(NodeManager.class);
         final GlobalGraphOperations globalGraphOperations = GlobalGraphOperations.at(graphDatabaseService);
         for (Node node : globalGraphOperations.getAllNodes()) {
             for (Relationship rel : node.getRelationships(Direction.OUTGOING)) {
                 try {
-                    if (nodeManager.isDeleted(rel)) continue;
+//                    if (nodeManager.isDeleted(rel)) continue;
                     rel.delete();
                 } catch(IllegalStateException ise) {
-                    if (!ise.getMessage().contains("since it has already been deleted")) throw ise;
+                    if (!ise.getMessage().contains("been deleted")) throw ise;
                 }
 
             }
@@ -101,10 +101,10 @@ public abstract class Neo4jHelper {
         }
         for (Node node : globalGraphOperations.getAllNodes()) {
             try {
-                if (nodeManager.isDeleted(node)) continue;
+//                if (nodeManager.isDeleted(node)) continue;
                 node.delete();
             } catch(IllegalStateException ise) {
-                if (!ise.getMessage().contains("since it has already been deleted")) throw ise;
+                if (!ise.getMessage().contains("been deleted")) throw ise;
             }
         }
     }

@@ -32,6 +32,7 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -131,14 +132,21 @@ public class FinderTests extends EntityTestBase {
     }
 
     @Test
-    @Transactional
+    @Transactional(propagation = Propagation.NOT_SUPPORTED  )
     public void testFindRelationshipEntity() {
-        Person p1 = persistedPerson("Michael", 35);
-        Person p2 = persistedPerson("David", 27);
-        Friendship friendship = p1.knows(p2);
-        assertEquals("Wrong friendship count.", 1L, (long) friendshipRepository.count());
-        assertEquals(friendship, friendshipRepository.findOne(getRelationshipId(friendship)));
-        assertEquals("Did not find friendship.", Collections.singleton(friendship), new HashSet<Friendship>(IteratorUtil.asCollection(friendshipRepository.findAll())));
+        Friendship friendship;
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            Person p1 = persistedPerson("Michael", 35);
+            Person p2 = persistedPerson("David", 27);
+            friendship = p1.knows(p2);
+            tx.success();
+        }
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            assertEquals("Wrong friendship count.", 1L, (long) friendshipRepository.count());
+            assertEquals(friendship, friendshipRepository.findOne(getRelationshipId(friendship)));
+            assertEquals("Did not find friendship.", Collections.singleton(friendship), new HashSet<Friendship>(IteratorUtil.asCollection(friendshipRepository.findAll())));
+            tx.success();
+        }
     }
 
     @Test

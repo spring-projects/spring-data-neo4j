@@ -28,6 +28,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.TermQuery;
 import org.junit.Assert;
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
@@ -42,6 +43,10 @@ public class RestIndexTest extends RestTestBase {
 
     private static final String NODE_INDEX_NAME = "NODE_INDEX";
     private static final String REL_INDEX_NAME = "REL_INDEX";
+
+    protected GraphDatabaseService createRestGraphDatabase() {
+        return new RestGraphDatabase(SERVER_ROOT_URI);
+    }
 
     @Test
     public void testAddToNodeIndex() {

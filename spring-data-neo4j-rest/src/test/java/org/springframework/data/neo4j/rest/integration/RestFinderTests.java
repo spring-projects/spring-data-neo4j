@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.rest.integration;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.neo4j.aspects.support.FinderTests;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
@@ -28,6 +29,8 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
 * @author mh
@@ -53,4 +56,9 @@ public class RestFinderTests extends FinderTests {
         RestTestBase.shutdownDb();
     }
 
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void testFindRelationshipEntity() {
+        super.testFindRelationshipEntity();
+    }
 }

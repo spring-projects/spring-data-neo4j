@@ -22,9 +22,11 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.support.Neo4jEmbeddedTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.jta.UserTransactionAdapter;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransactionManager>
@@ -34,6 +36,15 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
     public JtaTransactionManagerFactoryBean( GraphDatabaseService gds )
     {
         jtaTransactionManager = create( gds );
+    }
+
+    static Constructor springTxManagerConstructor;
+    static {
+        try {
+            springTxManagerConstructor = Class.forName("org.neo4j.kernel.impl.transaction.SpringTransactionManager").getConstructor(GraphDatabaseAPI.class);
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
+            springTxManagerConstructor = null;
+        }
     }
 
     @Override
@@ -60,22 +71,21 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
             return createJtaTransactionManager( (GraphDatabase)gds );
         }
         if ( gds instanceof GraphDatabaseAPI)
-            try
-            {
-                return createJtaTransactionManager( gds );
+            if (springTxManagerConstructor==null) return createJtaTransactionManager(new  Neo4jEmbeddedTransactionManager(gds));
+            try {
+                return createJtaTransactionManager((TransactionManager)springTxManagerConstructor.newInstance(gds));
+            } catch (Exception e) {
+                // throw new RuntimeException(e);
             }
-            catch ( RuntimeException e )
-            {
-                if (e.getCause() instanceof NoSuchMethodException)
-                    return createJtaTransactionManagerForOnePointSeven( gds );
-            }
-
         return createNullJtaTransactionManager();
     }
 
-    private JtaTransactionManager createJtaTransactionManager(GraphDatabase gdb)
+    private JtaTransactionManager createJtaTransactionManager(GraphDatabase gdb) {
+        return createJtaTransactionManager(gdb.getTransactionManager());
+    }
+
+    private JtaTransactionManager createJtaTransactionManager(TransactionManager transactionManager)
     {
-        TransactionManager transactionManager = gdb.getTransactionManager();
         UserTransaction userTransaction = new UserTransactionAdapter( transactionManager );
 
         return new JtaTransactionManager( userTransaction, transactionManager );
@@ -88,32 +98,13 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
 
         return new JtaTransactionManager( userTransaction, transactionManager );
     }
-
-    private JtaTransactionManager createJtaTransactionManagerForOnePointSeven( GraphDatabaseService gds )
-    {
-        TransactionManager transactionManager = createTransactionManagerForOnePointSeven( gds );
-        UserTransaction userTransaction = createUserTransactionForOnePointSeven( gds );
-
-        return new JtaTransactionManager( userTransaction, transactionManager );
-    }
-
+/*
     private JtaTransactionManager createJtaTransactionManager( GraphDatabaseService gds )
     {
         TransactionManager transactionManager = createTransactionManagerForOnePointEight( gds );
         UserTransaction userTransaction = createUserTransactionForOnePointEight( gds );
 
         return new JtaTransactionManager( userTransaction, transactionManager );
-    }
-
-    private TransactionManager createTransactionManagerForOnePointSeven( GraphDatabaseService gds )
-    {
-        return createDynamically( this.<TransactionManager>classFor("org.neo4j.kernel.impl.transaction.SpringTransactionManager"), GraphDatabaseService.class, gds );
-    }
-
-    private UserTransaction createUserTransactionForOnePointSeven( GraphDatabaseService gds )
-    {
-        TransactionManager txManager = ((GraphDatabaseAPI) gds).getDependencyResolver().resolveDependency(TransactionManager.class);
-        return createDynamically(this.<UserTransaction>classFor("org.neo4j.kernel.impl.transaction.UserTransactionImpl"), TransactionManager.class, txManager);
     }
 
     private TransactionManager createTransactionManagerForOnePointEight( GraphDatabaseService gds )
@@ -131,6 +122,16 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
             return (Class<T>) Class.forName(name);
         } catch (ClassNotFoundException cnfe) {
             throw new RuntimeException("Class not found",cnfe);
+        }
+    }
+
+*/
+    private  boolean classExists(String name) {
+        try {
+            Class.forName(name);
+            return true;
+        } catch (ClassNotFoundException cnfe) {
+            return false;
         }
     }
     private <T> T createDynamically( Class<T> requiredClass, Class<?> argumentClass, Object gds )

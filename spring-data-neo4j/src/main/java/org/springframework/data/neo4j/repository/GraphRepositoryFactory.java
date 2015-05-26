@@ -44,7 +44,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     /**
      * Creates a new {@link GraphRepositoryFactory} from the given {@link org.springframework.data.neo4j.support.Neo4jTemplate} and
      * {@link MappingContext}.
-     * 
+     *
      * @param template must not be {@literal null}.
      * @param mappingContext must not be {@literal null}.
      */
@@ -61,14 +61,14 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     /*
      * (non-Javadoc)
      * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getTargetRepository(org.springframework.data.repository.core.RepositoryInformation)
-     */	
+     */
     @Override
     protected Object getTargetRepository(RepositoryInformation information) {
-    		return getTargetRepository(information, template);
+        return getTargetRepository(information, template);
     }
 
     protected Object getTargetRepository(RepositoryInformation metadata, Neo4jTemplate template) {
-    		return getTargetRepositoryViaReflection(metadata, metadata.getDomainType(), template);
+        return getTargetRepositoryViaReflection(metadata, metadata.getDomainType(), template);
     }
 
     @Override

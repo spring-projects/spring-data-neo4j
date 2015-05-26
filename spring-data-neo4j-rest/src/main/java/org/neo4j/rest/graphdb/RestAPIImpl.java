@@ -509,7 +509,7 @@ public class RestAPIImpl implements RestAPI {
         RequestResult response = getRestRequest().with(node.getUri()).post("labels", labels);
 
         if (response.statusOtherThan(Status.NO_CONTENT)) {
-            throw new IllegalStateException("error adding labels, received " + response);
+            throw new IllegalStateException("error adding labels, received " + response.getText());
         }
     }
 
@@ -700,7 +700,9 @@ public class RestAPIImpl implements RestAPI {
         }
         final Map<String, Object> data = map("key", key, "value", value, "uri", uri);
         final RequestResult result = getRestRequest().post(indexPath(index, null, null), data);
-        if (result.statusOtherThan(Status.CREATED)) throw new RuntimeException(String.format("Error adding element %d %s %s to index %s", restEntity.getId(), key, value, index.getIndexName()));
+        if (result.statusOtherThan(Status.CREATED)) {
+            throw new RuntimeException(String.format("Error adding element %d %s %s to index %s status %s\n%s", restEntity.getId(), key, value, index.getIndexName(), result.getStatus(),result.getText()));
+        }
     }
 
     @Override

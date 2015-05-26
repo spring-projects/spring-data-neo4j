@@ -95,10 +95,10 @@ public class EntityTestBase {
 		}
 	}
 
-    @Before
-    public void cleanDbBeforeTest() {
-        Neo4jHelper.cleanDb(template);
-    }
+//    @Before
+//    public void cleanDbBeforeTest() {
+//        Neo4jHelper.cleanDb(template);
+//    }
 
     @BeforeTransaction
     public void cleanDb() {

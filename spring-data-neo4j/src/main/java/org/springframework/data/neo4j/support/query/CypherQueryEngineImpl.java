@@ -65,12 +65,18 @@ public class CypherQueryEngineImpl implements CypherQueryEngine {
     private ExecutionResult parseAndExecuteQuery(String statement, Map<String, Object> params) {
         try {
             final Map<String, Object> queryParams = queryParams(params);
+            statement = addRulePlannerDueToBugInNeo4j22(statement);
             if (log.isDebugEnabled()) log.debug(String.format("Executing cypher query: %s params %s",statement,queryParams));
 
             return executionEngine.execute(statement, queryParams);
         } catch(Exception e) {
             throw new InvalidDataAccessResourceUsageException("Error executing statement " + statement, e);
         }
+    }
+
+    private String addRulePlannerDueToBugInNeo4j22(String statement) {
+//        if (statement.substring(0,5).equalsIgnoreCase("START")) return "PLANNER RULE "+statement;
+        return statement;
     }
 
     private Map<String, Object> queryParams(Map<String, Object> params) {

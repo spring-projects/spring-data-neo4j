@@ -20,8 +20,6 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.kernel.AbstractGraphDatabase;
-import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -81,7 +79,7 @@ public class DataGraphNamespaceHandlerTests {
     public void injectionForExistingGraphDatabaseService() {
         final Config config = assertInjected("-external-embedded");
         final GraphDatabaseAPI gds = (GraphDatabaseAPI) config.graphDatabaseService;
-        assertEquals(EmbeddedGraphDatabase.class, gds.getClass());
+        assertEquals("EmbeddedGraphDatabase", gds.getClass().getSimpleName());
         final org.neo4j.kernel.configuration.Config neoConfig = gds.getDependencyResolver().resolveDependency(org.neo4j.kernel.configuration.Config.class);
         assertEquals("true", neoConfig.getParams().get("allow_store_upgrade"));
     }

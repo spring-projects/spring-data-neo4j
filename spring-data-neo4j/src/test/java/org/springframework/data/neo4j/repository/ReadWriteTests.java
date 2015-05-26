@@ -15,9 +15,9 @@
  */
 package org.springframework.data.neo4j.repository;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Ignore;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.kernel.impl.util.FileUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.neo4j.model.Car;
@@ -54,7 +54,7 @@ public class ReadWriteTests {
         } finally {
             ctx.close();
             if (delete) {
-                FileUtils.deleteRecursively(new File("target/read-write.db"));
+                FileUtils.deleteDirectory(new File("target/read-write.db"));
             }
         }
     }

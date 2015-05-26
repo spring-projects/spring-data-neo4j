@@ -33,7 +33,7 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 
 /**
  * Annotation to enable Neo4j repositories.
- * 
+ *
  * @author Oliver Gierke
  * @author Thomas Darimont
  */
@@ -99,10 +99,10 @@ public @interface EnableNeo4jRepositories {
 	 * {@link GraphRepositoryFactoryBean}.
 	 */
 	Class<?> repositoryFactoryBeanClass() default GraphRepositoryFactoryBean.class;
-	
+
 	/**
 	 * Configure the repository base class to be used to create repository proxies for this particular configuration.
-	 * 
+	 *
 	 * @return
 	 * @since 3.4
 	 */

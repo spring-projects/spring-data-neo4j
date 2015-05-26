@@ -48,4 +48,7 @@ public class NullTransaction implements Transaction {
     public Lock acquireReadLock(PropertyContainer propertyContainer) {
         return null;
     }
+
+    public void terminate() {
+    }
 }

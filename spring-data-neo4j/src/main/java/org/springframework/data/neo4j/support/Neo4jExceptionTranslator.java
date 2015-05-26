@@ -20,7 +20,6 @@ import org.neo4j.graphdb.ConstraintViolationException;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.NotInTransactionException;
 import org.neo4j.graphdb.TransactionFailureException;
-import org.neo4j.index.impl.lucene.QueryNotPossibleException;
 import org.neo4j.kernel.DeadlockDetectedException;
 import org.neo4j.kernel.impl.locking.community.LockException;
 import org.neo4j.kernel.impl.transaction.IllegalResourceException;
@@ -55,18 +54,19 @@ public class Neo4jExceptionTranslator implements PersistenceExceptionTranslator 
             throw new InvalidDataAccessResourceUsageException(ire.getMessage(), ire);
         } catch(NotFoundException nfe) {
             throw new DataRetrievalFailureException(nfe.getMessage(), nfe);
-        } catch(QueryNotPossibleException qnpe) {
-            throw new ConcurrencyFailureException(qnpe.getMessage(),qnpe);
         } catch(DeadlockDetectedException dde) {
             throw new ConcurrencyFailureException(dde.getMessage(),dde);
         } catch(LockException le) {
             throw new ConcurrencyFailureException(le.getMessage(),le);
         } catch(RuntimeException e) {
-            if (e.getClass().getName().equals("org.neo4j.kernel.impl.core.ReadOnlyDbException"))
+            String exceptionName = e.getClass().getName();
+            if (exceptionName.equals("org.neo4j.index.impl.lucene.QueryNotPossibleException"))
+                throw new ConcurrencyFailureException(e.getMessage(),e);
+            if (exceptionName.equals("org.neo4j.kernel.impl.core.ReadOnlyDbException"))
                 throw new InvalidDataAccessResourceUsageException(e.getMessage(), e);
-            if (e.getClass().getName().equals("org.neo4j.kernel.impl.nioneo.store.StoreFailureException"))
+            if (exceptionName.equals("org.neo4j.kernel.impl.nioneo.store.StoreFailureException"))
                 throw new DataAccessResourceFailureException(e.getMessage(), e);
-            if (e.getClass().getName().equals("org.neo4j.kernel.impl.persistence.IdGenerationFailedException"))
+            if (exceptionName.equals("org.neo4j.kernel.impl.persistence.IdGenerationFailedException"))
                 throw new NonTransientDataAccessResourceException(e.getMessage(), e);
             throw e; // exception thrown by the user
         }

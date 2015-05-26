@@ -23,7 +23,6 @@ package org.neo4j.rest.graphdb;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.graphdb.traversal.BidirectionalTraversalDescription;
-import org.neo4j.kernel.impl.nioneo.store.StoreId;
 import org.neo4j.rest.graphdb.entity.RestNode;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
 import org.neo4j.rest.graphdb.query.RestCypherTransactionManager;
@@ -82,14 +81,9 @@ public class CypherRestGraphDatabase extends AbstractRemoteDatabase implements R
     public Relationship getRelationshipById( long id ) {
     	return this.restAPI.getRelationshipById(id);
     }    
-    @Override
+
     public String getStoreDir() {
         return restAPI.getBaseUri();
-    }
-
-    @Override
-    public StoreId storeId() {
-        return null;
     }
 
     @Override
@@ -101,7 +95,6 @@ public class CypherRestGraphDatabase extends AbstractRemoteDatabase implements R
         return restAPI.getTxManager();
     }
 
-    @Override
     public DependencyResolver getDependencyResolver() {
         return new DependencyResolver.Adapter() {
             @Override
@@ -122,6 +115,7 @@ public class CypherRestGraphDatabase extends AbstractRemoteDatabase implements R
         try {
             getTxManager().rollback();
         } catch (SystemException|IllegalStateException e) {
+            e.printStackTrace();
             // ignore
         }
         restAPI.close();
@@ -165,6 +159,26 @@ public class CypherRestGraphDatabase extends AbstractRemoteDatabase implements R
 
     public Collection<String> getAllLabelNames() {
         return restAPI.getAllLabelNames();
+    }
+
+    public ResourceIterator<Node> findNodes(Label label, String s, Object o) {
+        return null;
+    }
+
+    public Node findNode(Label label, String s, Object o) {
+        return null;
+    }
+
+    public ResourceIterator<Node> findNodes(Label label) {
+        return null;
+    }
+
+    public Result execute(String s) {
+        return null;
+    }
+
+    public Result execute(String s, Map<String, Object> map) {
+        return null;
     }
 }
 

@@ -34,6 +34,7 @@ import org.neo4j.rest.graphdb.index.IndexInfo;
 import org.neo4j.rest.graphdb.index.RestIndex;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
 import org.neo4j.rest.graphdb.query.*;
+import org.neo4j.rest.graphdb.transaction.TransactionFinishListener;
 import org.neo4j.rest.graphdb.traversal.RestTraversalDescription;
 import org.neo4j.rest.graphdb.traversal.RestTraverser;
 import org.neo4j.rest.graphdb.util.QueryResult;
@@ -679,8 +680,21 @@ public class RestAPICypherImpl implements RestAPI {
 
 
     @Override
-    public <T extends PropertyContainer> void addToIndex(T entity, RestIndex index, String key, Object value) {
-        restAPI.addToIndex(entity, index, key, value);
+    public <T extends PropertyContainer> void addToIndex(final T entity, final RestIndex index, final String key, final Object value) {
+        if (!getTxManager().isActive()) {
+            restAPI.addToIndex(entity, index, key, value);
+            return;
+        }
+        getTxManager().getRemoteCypherTransaction().registerListener(new TransactionFinishListener() {
+            @Override
+            public void comitted() {
+                restAPI.addToIndex(entity, index, key, value);
+            }
+
+            @Override
+            public void rolledBack() {
+            }
+        });
     }
 
     @Override

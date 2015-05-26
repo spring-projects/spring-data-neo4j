@@ -35,7 +35,7 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTests-context.xml",
-        "classpath:RestTests-context.xml"})
+        "classpath:RestTests-context-index.xml"})
 public class RestNodeEntityTests extends NodeEntityTests {
 
     @BeforeClass
@@ -59,7 +59,7 @@ public class RestNodeEntityTests extends NodeEntityTests {
         // super.testSetShortProperty();
     }
 
-    @Test(expected = CypherTransactionExecutionException.class)
+    @Test(expected = IllegalStateException.class)
     public void testDefaultFailOnDuplicateSetToTrueCausesExceptionWhenAnotherDuplicateEntityCreated() {
         super.testDefaultFailOnDuplicateSetToTrueCausesExceptionWhenAnotherDuplicateEntityCreated();
     }

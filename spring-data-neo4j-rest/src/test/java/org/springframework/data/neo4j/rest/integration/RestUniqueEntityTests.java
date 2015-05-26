@@ -39,7 +39,7 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration(locations = {
         "classpath:unique-legacy-test-context.xml",
         "classpath:RestTests-context.xml"})
-@TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
+
 public class RestUniqueEntityTests extends UniqueLegacyIndexBasedEntityTests {
 
     @BeforeClass

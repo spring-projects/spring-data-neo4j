@@ -54,17 +54,6 @@
 			</exclusions>
 		</dependency>
 
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-kernel</artifactId>
-			<version>${neo4j.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-lucene-index</artifactId>
-			<version>${neo4j.version}</version>
-		</dependency>
-
         <dependency>
             <groupId>com.mysema.querydsl</groupId>
             <artifactId>querydsl-lucene3</artifactId>
@@ -78,14 +67,6 @@
             </exclusions>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-kernel</artifactId>
-			<version>${neo4j.version}</version>
-			<scope>test</scope>
-			<type>test-jar</type>
-		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.data</groupId>
@@ -115,6 +96,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.neo4j.test</groupId>
+			<artifactId>neo4j-harness</artifactId>
+			<version>${neo4j.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.neo4j.app</groupId>
 			<artifactId>neo4j-server</artifactId>
 			<version>${neo4j.version}</version>
@@ -128,6 +115,26 @@
 				<exclusion>
 					<groupId>org.neo4j</groupId>
 					<artifactId>neo4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.neo4j</groupId>
+					<artifactId>neo4j-kernel</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.neo4j</groupId>
+					<artifactId>neo4j-lucene-index</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.neo4j</groupId>
+					<artifactId>neo4j-cypher</artifactId>
+				</exclusion>
+				<!--exclusion>
+					<groupId>org.neo4j</groupId>
+					<artifactId>neo4j-shell</artifactId>
+				</exclusion-->
+				<exclusion>
+					<groupId>org.neo4j.app</groupId>
+					<artifactId>neo4j-browser</artifactId>
 				</exclusion>
 				<exclusion>
 					<groupId>org.mortbay.jetty</groupId>

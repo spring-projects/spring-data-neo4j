@@ -25,6 +25,7 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.index.lucene.ValueContext;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.Traversal;
+import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -232,13 +233,8 @@ public class DelegatingGraphDatabase implements GraphDatabase {
         if (!(delegate instanceof GraphDatabaseAPI)) {
             return true; // assume always running tx (e.g. for REST or other remotes)
         }
-        try {
-            final TransactionManager txManager = ((GraphDatabaseAPI) delegate).getDependencyResolver().resolveDependency(TransactionManager.class);
-            return txManager.getStatus() != Status.STATUS_NO_TRANSACTION;
-        } catch (SystemException e) {
-            log.error("Error accessing TransactionManager", e);
-            return false;
-        }
+        final ThreadToStatementContextBridge txManager = ((GraphDatabaseAPI) delegate).getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
+        return txManager.hasTransaction();
     }
 
     @Override

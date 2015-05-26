@@ -25,11 +25,16 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.neo4j.graphdb.*;
+import org.neo4j.harness.ServerControls;
+import org.neo4j.harness.TestServerBuilders;
+import org.neo4j.harness.internal.InProcessServerControls;
 import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.rest.graphdb.entity.RestNode;
 import org.neo4j.rest.graphdb.util.Config;
+import org.neo4j.server.AbstractNeoServer;
 import org.neo4j.tooling.GlobalGraphOperations;
 
+import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.util.Iterator;
 
@@ -38,28 +43,43 @@ import static org.junit.Assert.assertEquals;
 public class RestTestBase {
 
     private GraphDatabaseService restGraphDb;
-    private static final String HOSTNAME = "localhost";
-    private static final int PORT = 7473;
-    private static LocalTestServer neoServer;
-    public static final String SERVER_ROOT = "http://" + HOSTNAME + ":" + PORT;
-    protected static final String SERVER_ROOT_URI = SERVER_ROOT + "/db/data/";
+    private static String HOSTNAME = "localhost";
+    private static int PORT = 7473;
+    private static ServerControls neoServer;
+    public static String SERVER_ROOT = "http://" + HOSTNAME + ":" + PORT;
+    protected static String SERVER_ROOT_URI = SERVER_ROOT + "/db/data/";
     private long referenceNodeId;
     private Node referenceNode;
+    private static AbstractNeoServer server;
 
     static {
         initServer();
     }
-
     protected static void initServer() {
-        if (neoServer!=null) {
-            neoServer.stop();
+        try {
+            if (neoServer != null) {
+                neoServer.close();
+            }
+            neoServer = TestServerBuilders.newInProcessBuilder()
+                    .withConfig("dbms.security.auth_enabled", "false")
+                    .withExtension("/test", "org.springframework.data.neo4j.rest.support")
+                    .newServer();
+
+            Field field = InProcessServerControls.class.getDeclaredField("server");
+            field.setAccessible(true);
+            server = (AbstractNeoServer) field.get(neoServer);
+            SERVER_ROOT = neoServer.httpURI().toString();
+            SERVER_ROOT = SERVER_ROOT.substring(0, SERVER_ROOT.length() - 1);
+            SERVER_ROOT_URI = SERVER_ROOT + "/db/data/";
+            HOSTNAME = neoServer.httpURI().getHost();
+            PORT = neoServer.httpURI().getPort();
+        } catch (Exception e) {
+            throw new RuntimeException("Error starting in-process server",e);
         }
-        neoServer = new LocalTestServer(HOSTNAME,PORT).withPropertiesFile("server-test-db.properties");
     }
 
     @BeforeClass
     public static void startDb() throws Exception {
-        neoServer.start();
         tryConnect();
     }
 
@@ -81,7 +101,8 @@ public class RestTestBase {
     @Before
     public void setUp() throws Exception {
         System.setProperty(Config.CONFIG_BATCH_TRANSACTION,"false");
-        neoServer.cleanDb();
+        new Neo4jDatabaseCleaner(server.getDatabase().getGraph()).cleanDb();
+//        server.getDatabase().getGraph().cleanDb();
         restGraphDb = createRestGraphDatabase();
 
         GraphDatabaseService db = getGraphDatabase();
@@ -105,8 +126,8 @@ public class RestTestBase {
 
     @AfterClass
     public static void shutdownDb() {
-        neoServer.stop();
-
+//        neoServer.close();
+//        neoServer = null;
     }
 
     protected Relationship relationship() {
@@ -123,7 +144,7 @@ public class RestTestBase {
     }
 
     protected GraphDatabaseService getGraphDatabase() {
-    	return neoServer.getGraphDatabase();
+    	return server.getDatabase().getGraph();
     }
 
 	protected GraphDatabaseService getRestGraphDb() {
@@ -138,6 +159,7 @@ public class RestTestBase {
         return getGraphDatabase().getNodeById(node.getId());
     }
     public String getUserAgent() {
-        return neoServer.getUserAgent();
+        return null; // todo install filter
+//        return neoServer.getUserAgent();
     }
 }

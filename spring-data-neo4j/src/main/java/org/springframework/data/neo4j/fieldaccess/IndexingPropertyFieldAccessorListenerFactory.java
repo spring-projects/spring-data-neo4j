@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.data.neo4j.support.index.IndexType;
 
 
 public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyContainer, T> implements FieldAccessorListenerFactory {
@@ -77,6 +78,7 @@ public class IndexingPropertyFieldAccessorListenerFactory<S extends PropertyCont
             @SuppressWarnings("unchecked") Index<T> index = template.getIndex(property, entity.getClass());
             if (newVal instanceof Number && property.getIndexInfo().isNumeric()) newVal = ValueContext.numeric((Number) newVal);
 
+//            if (property.getIndexInfo().getIndexType().equals(IndexType.POINT)) return;
             final T state = template.getPersistentState(entity);
             index.remove(state, indexKey);
             if (newVal != null) {

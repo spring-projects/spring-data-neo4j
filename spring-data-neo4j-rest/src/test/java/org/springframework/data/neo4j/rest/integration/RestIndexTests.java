@@ -43,7 +43,7 @@ import static org.springframework.data.neo4j.aspects.Person.persistedPerson;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTests-context.xml",
-        "classpath:RestTests-context.xml"})
+        "classpath:RestTests-context-index.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class RestIndexTests extends IndexTests {
 

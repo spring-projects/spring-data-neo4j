@@ -25,12 +25,12 @@ import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
-import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
+import org.springframework.data.neo4j.support.Neo4jEmbeddedTransactionManager;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -47,6 +47,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
+import static org.neo4j.helpers.collection.IteratorUtil.asSet;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 
@@ -83,7 +84,7 @@ public class Neo4jTemplateApiTests {
     }
 
     protected PlatformTransactionManager createTransactionManager() {
-        return new JtaTransactionManager(new SpringTransactionManager((GraphDatabaseAPI)graphDatabaseService));
+        return new JtaTransactionManager(new Neo4jEmbeddedTransactionManager(graphDatabaseService));
     }
 
     private void createData() {
@@ -147,6 +148,8 @@ public class Neo4jTemplateApiTests {
     @Test
     public void testIndexNode() throws Exception {
         template.index("node", node1, "name","node1");
+        transaction.success();transaction.close();
+        transaction = graphDatabase.beginTx();
         Index<Node> index = graphDatabase.getIndex("node");
         Node lookedUpNode= index.get( "name", "node1" ).getSingle();
         assertThat("same node from index", lookedUpNode, is(node1));

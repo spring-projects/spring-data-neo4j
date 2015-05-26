@@ -17,7 +17,6 @@
 package org.springframework.data.neo4j.support;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.neo4j.core.GraphDatabase;
 

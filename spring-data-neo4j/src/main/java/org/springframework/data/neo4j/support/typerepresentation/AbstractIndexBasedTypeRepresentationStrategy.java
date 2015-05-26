@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.support.typerepresentation;
 
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
@@ -89,7 +90,7 @@ public abstract class AbstractIndexBasedTypeRepresentationStrategy<S extends Pro
     private IndexHits<S> get(Object value) {
         try {
             return typesIndex.get(INDEX_KEY, indexValueForType(value));
-        } catch(IllegalStateException ise) {
+        } catch(IllegalStateException | NotFoundException ise) {
             typesIndex=createTypesIndex();
             return typesIndex.get(INDEX_KEY, indexValueForType(value));
         }
@@ -108,7 +109,7 @@ public abstract class AbstractIndexBasedTypeRepresentationStrategy<S extends Pro
     private void remove(S state) {
         try {
             typesIndex.remove(state);
-        } catch(IllegalStateException ise) {
+        } catch(NotFoundException | IllegalStateException ise) {
             typesIndex=createTypesIndex();
             typesIndex.remove(state);
         }
@@ -137,7 +138,7 @@ public abstract class AbstractIndexBasedTypeRepresentationStrategy<S extends Pro
     private void add(S element, Object value) {
         try {
             typesIndex.add(element, INDEX_KEY, indexValueForType(value));
-        } catch(IllegalStateException ise) {
+        } catch(IllegalStateException | NotFoundException ise) {
             typesIndex = createTypesIndex();
             typesIndex.add(element, INDEX_KEY, indexValueForType(value));
         }

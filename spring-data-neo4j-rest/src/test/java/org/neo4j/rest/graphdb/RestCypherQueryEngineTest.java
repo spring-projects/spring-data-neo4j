@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.IteratorUtil;
@@ -40,7 +41,11 @@ public class RestCypherQueryEngineTest extends RestTestBase {
     private RestAPI restAPI;
     private MatrixDataGraph embeddedMatrixdata;
     private MatrixDataGraph restMatrixData;
-    
+
+    protected GraphDatabaseService createRestGraphDatabase() {
+        return new RestGraphDatabase(SERVER_ROOT_URI);
+    }
+
     @Before
     public void init() throws Exception {
         embeddedMatrixdata = new MatrixDataGraph(getGraphDatabase(),nodeId()).createNodespace();

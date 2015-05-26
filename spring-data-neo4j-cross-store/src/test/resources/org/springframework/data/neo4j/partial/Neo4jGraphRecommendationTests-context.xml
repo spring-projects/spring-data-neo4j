@@ -21,9 +21,9 @@
 		<property name="relationshipEntityStateFactory" ref="relationshipEntityStateFactory"/>
 	</bean>
 
-	
-	<bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase"
-			destroy-method="shutdown" scope="singleton">
+
+
+	<bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase" destroy-method="shutdown">
 	</bean>
 
     <bean id="graphDatabase" class="org.springframework.data.neo4j.support.DelegatingGraphDatabase">
