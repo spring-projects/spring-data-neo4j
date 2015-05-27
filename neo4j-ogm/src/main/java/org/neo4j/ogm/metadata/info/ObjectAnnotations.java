@@ -15,6 +15,7 @@ package org.neo4j.ogm.metadata.info;
 import org.neo4j.ogm.annotation.typeconversion.*;
 import org.neo4j.ogm.typeconversion.*;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,6 +42,8 @@ public class ObjectAnnotations {
     public AnnotationInfo get(String key) {
         return annotations.get(key);
     }
+
+    public Collection<AnnotationInfo> getAll() { return annotations.values(); }
 
     public boolean isEmpty() {
         return annotations.isEmpty();

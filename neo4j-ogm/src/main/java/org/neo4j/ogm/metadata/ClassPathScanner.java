@@ -98,6 +98,7 @@ public class ClassPathScanner {
                     }
                 }
             }
+            processor.validate();
             processor.finish();
         } catch (IOException e) {
             throw new RuntimeException(e);
