@@ -2,6 +2,16 @@ Spring Data Neo4j Changelog
 ===========================
 
 
+Changes in version 3.4.0.M1 (2015-06-02)
+----------------------------------------
+* DATAGRAPH-648 - Use property for Commons IO version from Spring Data build parent.
+* DATAGRAPH-647 - Fix formatting in pom.xml.
+* DATAGRAPH-646 - Release 3.4 M1 (Gosling).
+* DATAGRAPH-643 - Support for Neo4j 2.2.
+* DATAGRAPH-625 - REST module's test cases don't work on Spring 4.1.
+* DATAGRAPH-617 - Adapt API changes in Spring Data Commons to simplify custom repository base class registration.
+
+
 Changes in version 3.3.0.RELEASE (2015-03-23)
 ---------------------------------------------
 * DATAGRAPH-576 - Release 3.3 GA.
