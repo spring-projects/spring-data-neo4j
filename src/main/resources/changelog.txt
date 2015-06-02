@@ -61,6 +61,26 @@ Bug Fixes
 * DATAGRAPH-660 - Can't persist multiple Relationship Entities of the same type between 2 instances
 * DATAGRAPH-663 - HttpResponse not being closed properly
 
+Changes in version 3.4.0.M1 (2015-06-02)
+----------------------------------------
+* DATAGRAPH-648 - Use property for Commons IO version from Spring Data build parent.
+* DATAGRAPH-647 - Fix formatting in pom.xml.
+* DATAGRAPH-646 - Release 3.4 M1 (Gosling).
+* DATAGRAPH-643 - Support for Neo4j 2.2.
+* DATAGRAPH-625 - REST module's test cases don't work on Spring 4.1.
+* DATAGRAPH-617 - Adapt API changes in Spring Data Commons to simplify custom repository base class registration.
+
+Changes in version 3.3.0.RELEASE (2015-03-23)
+---------------------------------------------
+* DATAGRAPH-576 - Release 3.3 GA.
+* DATAGRAPH-548 - Fix Caching of IndexInfo for RestIndex.
+* DATAGRAPH-547 - Add Neo4j-Embedded Tx-Manager.
+* DATAGRAPH-546 - Add Neo4jOperations.saveOnly.
+* DATAGRAPH-545 - Add SingleLabelTypeRepresentationStrategy.
+* DATAGRAPH-544 - Relationship Properties are not saved when using new remote implementation.
+* DATAGRAPH-528 - Derived repository query methods not working with Java 8 compile flag '-parameters'.
+* DATAGRAPH-443 - Fix @Param annotation for derived finder methods.
+
 Changes in version 4.0.0.M1 (2015-03-20)
 ----------------------------------------
 
