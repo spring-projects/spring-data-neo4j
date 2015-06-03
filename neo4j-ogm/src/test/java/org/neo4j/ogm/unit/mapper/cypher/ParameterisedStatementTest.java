@@ -181,5 +181,4 @@ public class ParameterisedStatementTest {
         assertEquals("{\"fake-property\":\"none\"}", mapper.writeValueAsString(statement.getParameters()));
 
     }
-
 }

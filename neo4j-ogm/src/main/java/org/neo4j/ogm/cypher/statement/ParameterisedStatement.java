@@ -17,6 +17,7 @@ import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 /**
@@ -27,19 +28,19 @@ import java.util.Map;
  *
  * @author Vince Bickers
  * @author Luanne Misquitta
+ * @author Rene Richter
  */
 public class ParameterisedStatement {
 
     private String statement;
 
-    private int withIndex;
 
     private Map<String, Object> parameters = new HashMap<>();
     private String[] resultDataContents;
     private boolean includeStats = false;
 
     private Pagination paging;
-    private SortOrder sortOrder = new SortOrder();
+    private SortOrder sortOrder;
     private Filters filters = new Filters();
 
 
@@ -58,8 +59,6 @@ public class ParameterisedStatement {
         this.parameters.putAll(parameters);
         this.resultDataContents = resultDataContents;
 
-        parseStatement();
-
     }
 
     protected ParameterisedStatement(String cypher, Map<String, ?> parameters, boolean includeStats, String... resultDataContents) {
@@ -70,48 +69,54 @@ public class ParameterisedStatement {
     }
 
     public String getStatement() {
-
         String stmt = statement.trim();
-        String sorting = sortOrder().toString();
+        if (this.sortOrder != null || this.paging != null) {
+            stmt = augmentStatementWithSortingAndPagination(stmt);
+        }
+        return stmt;
+    }
+
+    private String augmentStatementWithSortingAndPagination(String stmt) {
+        String sorting = sortOrder == null ? "" :sortOrder().toString();
         String pagination = paging == null ? "" : page().toString();
 
-        // these transformations are entirely dependent on the form of our base queries and
-        // binding the sorting properties to the default query variables is a terrible hack. All this
-        // needs refactoring ASAP.
-        if (sorting.length() > 0 || pagination.length() > 0) {
+        StatementParser parser = new StatementParser();
+        LinkedList<String> variables = parser.extractAliases(stmt);
 
-            if (withIndex > -1) {
-                int nextClauseIndex = stmt.indexOf(" MATCH", withIndex);
-                String withClause = stmt.substring(withIndex, nextClauseIndex);
-                String newWithClause = withClause;
-                if (stmt.contains(")-[r")) {
-                    sorting = sorting.replace("$", "r");
-                    if (!withClause.contains(",r")) {
-                        newWithClause = newWithClause + ",r";
-                    }
-                } else {
-                    sorting = sorting.replace("$", "n");
-                }
-                stmt = stmt.replace(withClause, newWithClause + sorting + pagination);
+        if (variables.isEmpty() && sortOrder != null) {
+            throw new RuntimeException("Sorting without alias not possible.");
+        }
+
+        // sort after the first qualifying variable.
+        String mainAlias = variables.getFirst();
+
+
+        LinkedList<String> withClauses = parser.extractWithClauses(stmt);
+
+        if(sortOrder != null) {
+            String withClause;
+            sorting = sorting.replace("$", mainAlias);
+            if(withClauses.isEmpty()) {
+                withClause = String.format("WITH %s%s%s ",mainAlias,sorting,pagination);
+                stmt = stmt.replace("RETURN ",withClause+"RETURN " );
             } else {
-                if (stmt.startsWith("MATCH p=(")) {
-                    String withClause = "WITH p";
-                    if (stmt.contains(")-[r")) {
-                        withClause = withClause + ",r";
-                        sorting = sorting.replace("$", "r");
-                    } else {
-                        sorting = sorting.replace("$", "n");
-                    }
-                    stmt = stmt.replace("RETURN ", withClause + sorting + pagination + " RETURN ");
-                } else {
-                    sorting = sorting.replace("$", "n");
-                    stmt = stmt.replace("RETURN ", "WITH n" + sorting + pagination + " RETURN ");
-                }
+                withClause = withClauses.getLast().trim();
+                stmt = stmt.replace(withClause,withClause+sorting+pagination);
+            }
+        } else {
+            if(withClauses.isEmpty()) {
+                stmt = stmt+pagination;
+            } else {
+                String withClause = withClauses.getFirst();
+                stmt = stmt.replace(withClause,withClause+pagination.trim()+" ");
             }
         }
 
         return stmt;
     }
+
+
+
 
     public Map<String, Object> getParameters() {
         return parameters;
@@ -145,9 +150,6 @@ public class ParameterisedStatement {
         this.filters = filters;
     }
 
-    private void parseStatement() {
-        this.withIndex = statement.indexOf("WITH n");
-    }
 
 }
 
