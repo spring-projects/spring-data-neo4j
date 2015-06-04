@@ -54,7 +54,7 @@ public class Neo4jTemplateTest {
     @Before
     public void setUpOgmSession() {
         SessionFactory sessionFactory = new SessionFactory("org.springframework.data.neo4j.integration.movies.domain");
-        this.template = new Neo4jTemplate(sessionFactory.openSession(neo4jRule.baseNeoUrl()));
+        this.template = new Neo4jTemplate(sessionFactory.openSession(neo4jRule.url()));
         addArbitraryDataToDatabase();
     }
 

@@ -66,7 +66,7 @@ public class DerivedQueryTest {
 
 	@Before
 	public void init() throws IOException {
-		session = new SessionFactory("org.springframework.data.neo4j.integration.movies.domain").openSession(neo4jRule.baseNeoUrl());
+		session = new SessionFactory("org.springframework.data.neo4j.integration.movies.domain").openSession(neo4jRule.url());
 	}
 
 	@After

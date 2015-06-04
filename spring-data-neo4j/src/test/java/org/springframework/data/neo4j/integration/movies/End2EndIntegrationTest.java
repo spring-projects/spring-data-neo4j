@@ -594,7 +594,7 @@ public class End2EndIntegrationTest {
 
         do
         {
-            transaction = new SessionFactory().openSession( neo4jRule.baseNeoUrl() ).beginTransaction();
+            transaction = new SessionFactory().openSession( neo4jRule.url() ).beginTransaction();
         } while ( transaction == null && System.currentTimeMillis() - startTime <= maxTimeToWait );
 
         if ( transaction == null )

@@ -21,8 +21,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.server.InProcessServer;
 import org.springframework.data.neo4j.server.Neo4jServer;
-import org.springframework.data.neo4j.server.RemoteServer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -42,10 +42,10 @@ public class HelloWorldContext extends Neo4jConfiguration {
     @Bean
     @Override
     public Neo4jServer neo4jServer() {
-        //return new InProcessServer();
-        System.setProperty("username", environment.getRequiredProperty("username"));
-        System.setProperty("password", environment.getRequiredProperty("password"));
-        return new RemoteServer(environment.getRequiredProperty("url"));
+        return new InProcessServer();
+//        System.setProperty("username", environment.getRequiredProperty("username"));
+//        System.setProperty("password", environment.getRequiredProperty("password"));
+//        return new RemoteServer(environment.getRequiredProperty("url"));
     }
 
     @Bean
