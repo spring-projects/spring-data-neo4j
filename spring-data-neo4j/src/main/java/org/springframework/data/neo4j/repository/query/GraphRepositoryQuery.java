@@ -12,13 +12,13 @@
 
 package org.springframework.data.neo4j.repository.query;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -49,9 +49,14 @@ public class GraphRepositoryQuery implements RepositoryQuery {
     }
 
     protected Object execute(Class<?> returnType, Class<?> concreteType, String cypherQuery, Map<String, Object> queryParams) {
-        if (returnType.equals(Void.class)) {
+
+        if (returnType.equals(Void.class) || returnType.equals(void.class)) {
             session.execute(cypherQuery, queryParams);
             return null;
+        }
+
+        if (graphQueryMethod.isModifyingQuery()) {
+            return session.execute(cypherQuery, queryParams);
         }
 
         if (Iterable.class.isAssignableFrom(returnType)) {
