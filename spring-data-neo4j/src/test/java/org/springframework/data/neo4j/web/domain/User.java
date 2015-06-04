@@ -12,10 +12,10 @@
 
 package org.springframework.data.neo4j.web.domain;
 
+import org.neo4j.ogm.annotation.Relationship;
+
 import java.util.Collection;
 import java.util.HashSet;
-
-import org.neo4j.ogm.annotation.Relationship;
 
 /**
  * @author Michal Bachman

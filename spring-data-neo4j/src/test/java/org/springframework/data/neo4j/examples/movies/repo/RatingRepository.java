@@ -12,10 +12,10 @@
 
 package org.springframework.data.neo4j.examples.movies.repo;
 
-import java.util.List;
-
 import org.springframework.data.neo4j.examples.movies.domain.Rating;
 import org.springframework.data.neo4j.repository.GraphRepository;
+
+import java.util.List;
 
 /**
  * @author Luanne Misquitta

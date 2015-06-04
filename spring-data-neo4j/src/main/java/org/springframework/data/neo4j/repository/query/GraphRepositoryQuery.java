@@ -12,13 +12,13 @@
 
 package org.springframework.data.neo4j.repository.query;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**

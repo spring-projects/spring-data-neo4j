@@ -13,7 +13,6 @@
 package org.springframework.data.neo4j.template;
 
 import static org.junit.Assert.*;
-import static org.neo4j.ogm.session.Utils.*;
 
 import javax.persistence.PersistenceException;
 import java.util.Collection;
@@ -36,6 +35,7 @@ import org.neo4j.ogm.session.Utils;
 import org.neo4j.ogm.session.result.QueryStatistics;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.data.neo4j.examples.movies.domain.*;
+import static org.neo4j.ogm.session.Utils.map;
 
 /**
  * @author Adam George

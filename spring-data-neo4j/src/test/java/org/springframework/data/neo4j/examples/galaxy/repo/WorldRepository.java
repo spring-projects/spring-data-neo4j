@@ -31,4 +31,7 @@ public interface WorldRepository extends GraphRepository<World> {
     @Query("MATCH (n:World) SET n.updated=timestamp()")
     public QueryStatistics touchAllWorldsWithStatistics();
 
+    @Query("MATCH (n:World)-[:REACHABLE_BY_ROCKET]->(m) SET m.updated=timestamp()")
+    public Void touchOnlyWorldsReachableByRocket();
+
 }
