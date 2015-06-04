@@ -22,9 +22,8 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static java.util.Arrays.*;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
-import static org.neo4j.tooling.GlobalGraphOperations.*;
 import static org.springframework.data.neo4j.util.IterableUtils.*;
 
 /**
@@ -40,6 +39,7 @@ public class IterableUtilsTest {
 
     @Test
     public void checkContainsRealIterables() {
+
         GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
 
         Node node;
@@ -50,7 +50,7 @@ public class IterableUtilsTest {
         }
 
         try (Transaction tx = database.beginTx()) {
-            assertTrue(contains(at(database).getAllNodes(), node));
+            assertTrue(contains(database.getAllNodes(), node));
         }
 
         try (Transaction tx = database.beginTx()) {
@@ -59,7 +59,7 @@ public class IterableUtilsTest {
         }
 
         try (Transaction tx = database.beginTx()) {
-            assertFalse(contains(at(database).getAllNodes(), node));
+            assertFalse(contains(database.getAllNodes(), node));
         }
 
         database.shutdown();

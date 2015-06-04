@@ -40,7 +40,7 @@ public class ProgrammaticRepositoryTest {
     @Test
     public void canInstantiateRepositoryProgrammatically() {
         RepositoryFactorySupport factory = new GraphRepositoryFactory(
-                new SessionFactory("org.springframework.data.neo4j.integration.repositories.domain").openSession(neo4jRule.baseNeoUrl()),new Neo4jMappingContext(new MetaData()));
+                new SessionFactory("org.springframework.data.neo4j.integration.repositories.domain").openSession(neo4jRule.url()),new Neo4jMappingContext(new MetaData()));
         movieRepository = factory.getRepository(MovieRepository.class);
 
         Movie movie = new Movie("PF");

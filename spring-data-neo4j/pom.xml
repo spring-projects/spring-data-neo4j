@@ -11,6 +11,11 @@
 
     <artifactId>spring-data-neo4j</artifactId>
 
+    <properties>
+        <neo4j.version>2.2.2</neo4j.version>
+        <neo4j.ogm.version>1.1.0-SNAPSHOT</neo4j.ogm.version>
+    </properties>
+
     <name>Spring Data Neo4j</name>
 
         <dependencies>
@@ -38,6 +43,13 @@
             </dependency>
 
             <dependency>
+                <groupId>javax.persistence</groupId>
+                <artifactId>com.springsource.javax.persistence</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+
+            <!-- test-scoped jars -->
+            <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-web</artifactId>
                 <scope>test</scope>
@@ -50,18 +62,16 @@
             </dependency>
 
             <dependency>
-                <groupId>org.neo4j.app</groupId>
-                <artifactId>neo4j-server</artifactId>
+                <groupId>org.neo4j</groupId>
+                <artifactId>neo4j-kernel</artifactId>
                 <version>${neo4j.version}</version>
-                <type>test-jar</type>
                 <scope>test</scope>
             </dependency>
 
             <dependency>
-                <groupId>org.neo4j</groupId>
-                <artifactId>neo4j-kernel</artifactId>
+                <groupId>org.neo4j.app</groupId>
+                <artifactId>neo4j-server</artifactId>
                 <version>${neo4j.version}</version>
-                <type>test-jar</type>
                 <scope>test</scope>
             </dependency>
 
@@ -73,20 +83,24 @@
                 <scope>test</scope>
             </dependency>
 
+            <dependency>
+                <groupId>org.neo4j.test</groupId>
+                <artifactId>neo4j-harness</artifactId>
+                <version>${neo4j.version}</version>
+                <scope>test</scope>
+            </dependency>
+
             <!-- jsr 303 tests -->
             <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-validator</artifactId>
+                <scope>test</scope>
             </dependency>
 
             <dependency>
                 <groupId>org.glassfish</groupId>
                 <artifactId>javax.el</artifactId>
-            </dependency>
-            <dependency>
-                <groupId>javax.persistence</groupId>
-                <artifactId>com.springsource.javax.persistence</artifactId>
-                <version>1.0.0</version>
+                <scope>test</scope>
             </dependency>
 
         </dependencies>

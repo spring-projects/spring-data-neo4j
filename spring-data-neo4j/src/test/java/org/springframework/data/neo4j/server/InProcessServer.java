@@ -12,37 +12,21 @@
 
 package org.springframework.data.neo4j.server;
 
-import org.neo4j.server.NeoServer;
-import org.neo4j.server.helpers.CommunityServerBuilder;
-
-import java.io.IOException;
+import org.neo4j.ogm.testutil.TestServer;
 
 /**
  * @author Michal Bachman
  */
 public class InProcessServer implements Neo4jServer {
 
-    private final NeoServer neoServer;
-    protected int neoPort;
+    private TestServer testServer;
 
     public InProcessServer()  {
-        neoPort = TestUtils.getAvailablePort();
-        try {
-            neoServer = CommunityServerBuilder.server().onPort(neoPort).build();
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                public void run() {
-                    neoServer.stop();
-                }
-            });
-            neoServer.start();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
-        }
+        this.testServer = new TestServer();
     }
 
     public String url() {
-        return neoServer.baseUri().toString();
+        return testServer.url();
     }
-
 
 }
