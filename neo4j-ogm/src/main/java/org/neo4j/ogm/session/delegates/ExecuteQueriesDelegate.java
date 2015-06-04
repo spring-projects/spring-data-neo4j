@@ -11,22 +11,29 @@
  */
 package org.neo4j.ogm.session.delegates;
 
+import org.apache.commons.lang.StringUtils;
+import org.neo4j.ogm.cypher.query.GraphModelQuery;
+import org.neo4j.ogm.cypher.query.Pagination;
+import org.neo4j.ogm.cypher.query.Query;
+import org.neo4j.ogm.cypher.query.RowModelQuery;
+import org.neo4j.ogm.cypher.query.SortOrder;
+import org.neo4j.ogm.metadata.info.ClassInfo;
+import org.neo4j.ogm.model.GraphModel;
+import org.neo4j.ogm.session.Capability;
+import org.neo4j.ogm.session.EntityRowModelMapper;
+import org.neo4j.ogm.session.MapRowModelMapper;
+import org.neo4j.ogm.session.Neo4jSession;
+import org.neo4j.ogm.session.RowModelMapper;
+import org.neo4j.ogm.session.Utils;
+import org.neo4j.ogm.session.request.strategy.AggregateStatements;
+import org.neo4j.ogm.session.response.Neo4jResponse;
+import org.neo4j.ogm.session.result.RowModel;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
-import org.neo4j.ogm.cypher.query.GraphModelQuery;
-import org.neo4j.ogm.cypher.query.Query;
-import org.neo4j.ogm.cypher.query.RowModelQuery;
-import org.neo4j.ogm.metadata.info.ClassInfo;
-import org.neo4j.ogm.model.GraphModel;
-import org.neo4j.ogm.session.*;
-import org.neo4j.ogm.session.request.strategy.AggregateStatements;
-import org.neo4j.ogm.session.response.Neo4jResponse;
-import org.neo4j.ogm.session.result.RowModel;
 
 /**
  * @author Vince Bickers
@@ -71,8 +78,28 @@ public class ExecuteQueriesDelegate implements Capability.ExecuteQueries {
         return executeAndMap(type, cypher, parameters, new EntityRowModelMapper<T>());
     }
 
+    @Override
+    public <T> Iterable<T> query(Class<T> objectType, String cypher, Map<String, ?> parameters, SortOrder sortOrder) {
+        return executeAndMap(objectType,cypher,parameters,new EntityRowModelMapper<T>(),sortOrder,null);
+
+    }
+
+    @Override
+    public <T> Iterable<T> query(Class<T> objectType, String cypher, Map<String, ?> parameters, Pagination pagination) {
+        return executeAndMap(objectType,cypher,parameters,new EntityRowModelMapper<T>(),null,pagination);
+    }
+
+    @Override
+    public <T> Iterable<T> query(Class<T> objectType, String cypher, Map<String, ?> parameters, SortOrder sortOrder, Pagination pagination) {
+        return executeAndMap(objectType,cypher,parameters,new EntityRowModelMapper<T>(),sortOrder,pagination);
+    }
+
 
     private <T> Iterable<T> executeAndMap(Class<T> type, String cypher, Map<String, ?> parameters, RowModelMapper<T> rowModelMapper) {
+        return executeAndMap(type,cypher,parameters,rowModelMapper,null,null);
+    }
+
+    private <T> Iterable<T> executeAndMap(Class<T> type, String cypher, Map<String, ?> parameters, RowModelMapper<T> rowModelMapper,SortOrder sortOrder, Pagination pagination) {
         if (StringUtils.isEmpty(cypher)) {
             throw new RuntimeException("Supplied cypher statement must not be null or empty.");
         }
@@ -86,12 +113,12 @@ public class ExecuteQueriesDelegate implements Capability.ExecuteQueries {
         String url = session.ensureTransaction().url();
 
         if (type != null && session.metaData().classInfo(type.getSimpleName()) != null) {
-            Query qry = new GraphModelQuery(cypher, parameters);
+            Query qry = prepareQuery(new GraphModelQuery(cypher, parameters),sortOrder,pagination);
             try (Neo4jResponse<GraphModel> response = session.requestHandler().execute(qry, url)) {
                 return session.responseHandler().loadAll(type, response);
             }
         } else {
-            RowModelQuery qry = new RowModelQuery(cypher, parameters);
+            RowModelQuery qry = (RowModelQuery) prepareQuery(new RowModelQuery(cypher, parameters),sortOrder,pagination);
             try (Neo4jResponse<RowModel> response = session.requestHandler().execute(qry, url)) {
 
                 String[] variables = response.columns();
@@ -105,6 +132,16 @@ public class ExecuteQueriesDelegate implements Capability.ExecuteQueries {
                 return result;
             }
         }
+    }
+
+    private Query prepareQuery(Query query, SortOrder sortOrder, Pagination pagination) {
+        if(sortOrder != null) {
+            query.setSortOrder(sortOrder);
+        }
+        if(pagination != null) {
+            query.setPagination(pagination);
+        }
+        return query;
     }
 
     @Override

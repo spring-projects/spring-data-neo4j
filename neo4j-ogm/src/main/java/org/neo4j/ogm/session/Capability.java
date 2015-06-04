@@ -11,15 +11,15 @@
  */
 package org.neo4j.ogm.session;
 
-import java.util.Collection;
-import java.util.Map;
-
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
 import org.neo4j.ogm.session.result.QueryStatistics;
 import org.neo4j.ogm.session.transaction.Transaction;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author Vince Bickers
@@ -172,6 +172,7 @@ public interface Capability {
          */
         <T> T queryForObject(Class<T> objectType, String cypher,  Map<String, ?> parameters);
 
+
         /**
          * Given a non modifying cypher statement this method will return a collection of domain objects that is hydrated to
          * the level specified in the given cypher query or a collection of scalars (depending on the parametrized type).
@@ -185,6 +186,26 @@ public interface Capability {
          * @return A collection of domain objects or scalars as prescribed by the parametrized type.
          */
         <T> Iterable<T> query(Class<T> objectType, String cypher, Map<String, ?> parameters);
+
+        /**
+         * Given a non modifying cypher statement this method will return a sorted collection of domain objects that is hydrated to
+         * the level specified in the given cypher query or a collection of scalars (depending on the parametrized type). The first alias within
+         * the given cypher query serves as an anchor for sorting.
+         *
+         * @param objectType The type that should be returned from the query.
+         * @param cypher The parametrizable cypher to execute.
+         * @param parameters Any parameters to attach to the cypher.
+         * @param sortOrder The sort operation.
+         *
+         * @param <T> A domain object or scalar.
+         *
+         * @return A sorted collection of domain objects or scalars as prescribed by the parametrized type.
+         */
+        <T> Iterable<T> query(Class<T> objectType, String cypher, Map<String, ?> parameters,SortOrder sortOrder);
+        <T> Iterable<T> query(Class<T> objectType, String cypher, Map<String, ?> parameters, Pagination pagination);
+        <T> Iterable<T> query(Class<T> objectType, String cypher, Map<String, ?> parameters,SortOrder sortOrder, Pagination pagination);
+
+
 
         /**
          * Given a non modifying cypher statement this method will return a collection of Map's which represent Neo4j

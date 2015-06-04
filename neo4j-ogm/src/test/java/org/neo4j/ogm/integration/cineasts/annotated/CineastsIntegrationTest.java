@@ -12,22 +12,38 @@
 
 package org.neo4j.ogm.integration.cineasts.annotated;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.ogm.cypher.Filter;
-import org.neo4j.ogm.domain.cineasts.annotated.*;
+import org.neo4j.ogm.cypher.query.Pagination;
+import org.neo4j.ogm.cypher.query.SortOrder;
+import org.neo4j.ogm.domain.cineasts.annotated.Actor;
+import org.neo4j.ogm.domain.cineasts.annotated.Movie;
+import org.neo4j.ogm.domain.cineasts.annotated.Rating;
+import org.neo4j.ogm.domain.cineasts.annotated.SecurityRole;
+import org.neo4j.ogm.domain.cineasts.annotated.Title;
+import org.neo4j.ogm.domain.cineasts.annotated.User;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Simple integration test based on cineasts that exercises relationship entities.
@@ -196,6 +212,29 @@ public class CineastsIntegrationTest {
                 Collections.<String, Object>singletonMap("param", alec.getId()));
         assertNotNull("The entity wasn't loaded", loadedActor);
         assertEquals("Alec Baldwin", loadedActor.getName());
+    }
+
+    @Test
+    public void shouldQueryForActorByIdUsingCypherQueryAndPagination() {
+        session.save(new Actor("Helen Mirren"));
+        session.save(new Actor("Alec Baldwin"));
+        session.save(new Actor("Matt Damon"));
+        session.save(new Actor("Johnny Depp"));
+        session.save(new Actor("Til Schweiger"));
+        session.save(new Actor("Bruce Willis"));
+
+        Pagination pagination = new Pagination(2,2);
+        SortOrder sortOrder = new SortOrder();
+        sortOrder.add("id");
+        Map<String,Object> parameters = new HashMap<>();
+        Iterable<Actor> loadedActors = session.query(Actor.class, "MATCH (a:Actor) RETURN a",parameters,sortOrder,pagination);
+
+        List<Actor> result = new ArrayList<>();
+        for(Actor actor : loadedActors) {
+            result.add(actor);
+        }
+
+        assertEquals(2,result.size());
     }
 
 }

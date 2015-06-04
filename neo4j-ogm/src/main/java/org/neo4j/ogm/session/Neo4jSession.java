@@ -330,6 +330,21 @@ public class Neo4jSession implements Session {
     }
 
     @Override
+    public <T> Iterable<T> query(Class<T> objectType, String cypher, Map<String, ?> parameters, Pagination pagination) {
+        return executeQueriesDelegate.query(objectType,cypher,parameters,pagination);
+    }
+
+    @Override
+    public <T> Iterable<T> query(Class<T> objectType, String cypher, Map<String, ?> parameters, SortOrder sortOrder) {
+        return executeQueriesDelegate.query(objectType,cypher,parameters,sortOrder);
+    }
+
+    @Override
+    public <T> Iterable<T> query(Class<T> objectType, String cypher, Map<String, ?> parameters, SortOrder sortOrder, Pagination pagination) {
+        return executeQueriesDelegate.query(objectType,cypher,parameters,sortOrder,pagination);
+    }
+
+    @Override
     public long countEntitiesOfType(Class<?> entity) {
         return executeQueriesDelegate.countEntitiesOfType(entity);
     }
