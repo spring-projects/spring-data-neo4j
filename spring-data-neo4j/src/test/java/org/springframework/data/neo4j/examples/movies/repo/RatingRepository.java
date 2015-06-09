@@ -44,6 +44,10 @@ public interface RatingRepository extends GraphRepository<Rating> {
 
 	List<Rating> findByUserNameAndMovieNameAndStars(String userName, String movieName, int stars);
 
+	List<Rating> findByStarsAndMovieTitle(int stars, String title);
+
+	List<Rating> findByUserNameAndMovieTitleAndStars(String name, String title, int stars);
+
 	List<Rating> findByStarsOrUserName(int stars, String username);
 
 	List<Rating> findByUserNameAndUserMiddleName(String username, String middleName);

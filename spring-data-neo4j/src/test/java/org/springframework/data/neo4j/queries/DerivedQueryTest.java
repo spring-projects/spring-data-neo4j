@@ -292,6 +292,7 @@ public class DerivedQueryTest {
 	/**
 	 * @see DATAGRAPH-629
 	 * @see DATAGRAPH-705
+
 	 */
 	@Test
 	public void shouldFindNodeEntititiesWithTwoNestedPropertiesAnded() {
@@ -328,6 +329,7 @@ public class DerivedQueryTest {
 				" CREATE (r)-[:BLOCKBUSTER]->(m2)");
 
 		List<Cinema> theatres = cinemaRepository.findByVisitedNameOrBlockbusterOfTheWeekName("Michal", "San Andreas");
+
 		assertEquals(2, theatres.size());
 		assertTrue(theatres.contains(new Cinema("Picturehouse")));
 		assertTrue(theatres.contains(new Cinema("Ritzy")));
