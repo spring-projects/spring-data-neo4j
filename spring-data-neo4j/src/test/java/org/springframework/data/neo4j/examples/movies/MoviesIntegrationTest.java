@@ -549,7 +549,7 @@ public class MoviesIntegrationTest {
         User michal = ((Iterable<User>)findByProperty(User.class, "name", "Michal" )).iterator().next();
 
         assertSameGraph(getDatabase(), "CREATE (u:User:Person {name:'Michal'})-[:RATED {stars:5, " +
-                "comment:'Best movie ever'}]->(m:Movie {title:'Pulp Fiction'})");
+                "comment:'Best movie ever', ratingTimestamp:0}]->(m:Movie {title:'Pulp Fiction'})");
     }
 
     @Test

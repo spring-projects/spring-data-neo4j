@@ -31,8 +31,6 @@ import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
-import org.springframework.data.neo4j.examples.movies.domain.Rating;
-import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.RatingRepository;
@@ -168,26 +166,6 @@ public class DerivedQueryTest {
 		assertEquals(0, theatres.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
-	public void shouldFindREWithSingleProperty() {
-		User critic = new User("Gary");
-		TempMovie film = new TempMovie("Fast and Furious XVII");
-		Rating filmRating = critic.rate(film, 2, "They've made far too many of these films now!");
-
-
-		userRepository.save(critic);
-
-		List<Rating> ratings = ratingRepository.findByStars(2);
-		assertNotNull(ratings);
-		Rating loadedRating = ratings.get(0);
-		assertNotNull("The loaded rating shouldn't be null", loadedRating);
-		assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), loadedRating.getStars());
-		assertEquals("The rated film wasn't saved correctly", film.getTitle(), loadedRating.getMovie().getTitle());
-		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
-	}
 
 	/**
 	 * @see DATAGRAPH-629
@@ -221,6 +199,43 @@ public class DerivedQueryTest {
 	 * @see DATAGRAPH-629
 	 */
 	@Test
+	public void shouldFindNodeEntititiesWithMultipleComparisonOperatorsAnded() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 4500})" +
+				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
+
+		List<Cinema> theatres = cinemaRepository.findByLocationAndCapacityGreaterThan("London", 3000);
+		assertEquals(2, theatres.size());
+		assertTrue(theatres.contains(new Cinema("Picturehouse")));
+		assertTrue(theatres.contains(new Cinema("Ritzy")));
+
+		theatres = cinemaRepository.findByCapacityLessThanAndLocation(6000, "Bombay");
+		assertEquals(1, theatres.size());
+		assertEquals("Regal", theatres.get(0).getName());
+	}
+
+	/**
+	 * @see DATAGRAPH-629
+	 */
+	@Test
+	public void shouldFindNodeEntititiesWithMultipleComparisonOperatorsOred() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 9000})" +
+				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
+
+		List<Cinema> theatres = cinemaRepository.findByLocationOrCapacityLessThan("London", 100);
+		assertEquals(2, theatres.size());
+		assertTrue(theatres.contains(new Cinema("Picturehouse")));
+		assertTrue(theatres.contains(new Cinema("Ritzy")));
+
+		theatres = cinemaRepository.findByCapacityGreaterThanOrLocation(8000, "Paris");
+		assertEquals(1, theatres.size());
+		assertEquals("Regal", theatres.get(0).getName());
+	}
+
+
+	/**
+	 * @see DATAGRAPH-629
+	 */
+	@Test
 	public void shouldFindNodeEntititiesWithNestedProperty() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
@@ -242,4 +257,116 @@ public class DerivedQueryTest {
 		assertEquals(1, theatres.size());
 		assertTrue(theatres.contains(new Cinema("Ritzy")));
 	}
+
+	/**
+	 * @see DATAGRAPH-662
+	 * //TODO FIXME
+	 */
+	@Test(expected = UnsupportedOperationException.class)
+	public void shouldFindNodeEntititiesWithBaseOrNestedProperty() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'The Old Vic', city:'London', capacity: 5000})" +
+				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(m)");
+
+		List<Cinema> theatres = cinemaRepository.findByLocationOrVisitedName("P", "Michal");
+		assertEquals(2, theatres.size());
+		assertTrue(theatres.contains(new Cinema("Ritzy")));
+		//assertTrue(theatres.contains(new Cinema("Picturehouse")));
+		assertTrue(theatres.contains(new Cinema("The Old Vic")));
+	}
+
+	/**
+	 * @see DATAGRAPH-632
+	 */
+	@Test
+	public void shouldFindNodeEntitiesWithNestedREProperty() {
+		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
+				" CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) " +
+				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->m");
+
+		List<User> users = userRepository.findByRatingsStars(3);
+		assertEquals(2, users.size());
+		assertTrue(users.contains(new User("Michal")));
+		assertTrue(users.contains(new User("Vince")));
+	}
+
+	/**
+	 * @see DATAGRAPH-629
+	 */
+	@Test
+	public void shouldFindNodeEntititiesWithTwoNestedPropertiesAnded() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
+				" CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
+				" CREATE (u:User {name:'Michal'}) " +
+				" CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(p)" +
+				" CREATE (m1:Movie {title:'San Andreas'}) " +
+				" CREATE (m2:Movie {title:'Pitch Perfect 2'})" +
+				" CREATE (p)-[:BLOCKBUSTER]->(m1)" +
+				" CREATE (r)-[:BLOCKBUSTER]->(m2)");
+
+		List<Cinema> theatres = cinemaRepository.findByVisitedNameAndBlockbusterOfTheWeekTitle("Michal", "San Andreas");
+		assertEquals(1, theatres.size());
+		assertTrue(theatres.contains(new Cinema("Picturehouse")));
+
+		theatres = cinemaRepository.findByVisitedNameAndBlockbusterOfTheWeekTitle("Michal", "Tomorrowland");
+		assertEquals(0, theatres.size());
+	}
+
+	/**
+	 * @see DATAGRAPH-662
+	 * //TODO FIXME
+	 */
+	@Test(expected = UnsupportedOperationException.class)
+	public void shouldFindNodeEntititiesWithTwoNestedPropertiesOred() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
+				" CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
+				" CREATE (u:User {name:'Michal'}) " +
+				" CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(p)" +
+				" CREATE (m1:Movie {title:'San Andreas'}) " +
+				" CREATE (m2:Movie {title:'Pitch Perfect 2'})" +
+				" CREATE (p)-[:BLOCKBUSTER]->(m1)" +
+				" CREATE (r)-[:BLOCKBUSTER]->(m2)");
+
+		List<Cinema> theatres = cinemaRepository.findByVisitedNameOrBlockbusterOfTheWeekTitle("Michal", "San Andreas");
+		assertEquals(2, theatres.size());
+		assertTrue(theatres.contains(new Cinema("Picturehouse")));
+		assertTrue(theatres.contains(new Cinema("Ritzy")));
+
+		theatres = cinemaRepository.findByVisitedNameOrBlockbusterOfTheWeekTitle("Vince", "Tomorrowland");
+		assertEquals(0, theatres.size());
+	}
+
+	/**
+	 * @see DATAGRAPH-629
+	 */
+	@Test
+	public void shouldFindNodeEntititiesWithMultipleNestedPropertiesAnded() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
+				" CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
+				" CREATE (u:User {name:'Michal', middleName:'M'}) CREATE (u1:User {name:'Vince', middleName:'M'}) " +
+				" CREATE (u)-[:VISITED]->(p)  CREATE (u1)-[:VISITED]->(r)");
+
+		List<Cinema> theatres = cinemaRepository.findByVisitedNameAndVisitedMiddleName("Michal", "M");
+		assertEquals(1, theatres.size());
+		assertTrue(theatres.contains(new Cinema("Picturehouse")));
+
+		theatres = cinemaRepository.findByVisitedNameAndVisitedMiddleName("Vince", "V");
+		assertEquals(0, theatres.size());
+	}
+
+	/**
+	 * @see DATAGRAPH-629
+	 */
+	@Test
+	public void shouldFindNodeEntititiesWithREAndNestedProperty() {
+		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
+				" CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) CREATE (g:Genre {name:'Thriller'}) CREATE (u)-[:INTERESTED]->(g) " +
+				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->m");
+
+		List<User> users = userRepository.findByRatingsStarsAndInterestedName(3,"Thriller");
+		assertEquals(1, users.size());
+		assertTrue(users.contains(new User("Michal")));
+	}
+
+
+
 }
