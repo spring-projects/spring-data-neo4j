@@ -170,8 +170,8 @@
 		</dependency>
 		<dependency>
 			<groupId>javax.transaction</groupId>
-			<artifactId>transaction-api</artifactId>
-			<version>1.1-rev-1</version>
+			<artifactId>javax.transaction-api</artifactId>
+			<version>1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
