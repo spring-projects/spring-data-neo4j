@@ -33,12 +33,8 @@ import org.springframework.data.neo4j.rest.SpringCypherRestGraphDatabase;
 import org.springframework.data.neo4j.rest.SpringRestGraphDatabase;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
-import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import static org.junit.Assert.assertEquals;
@@ -49,7 +45,6 @@ import static org.junit.Assert.assertEquals;
 */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = RestRelationshipTests.MyConfig.class)
-
 public class RestRelationshipTests {
 
     @Configuration

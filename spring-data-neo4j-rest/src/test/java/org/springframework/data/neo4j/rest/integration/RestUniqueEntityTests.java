@@ -22,12 +22,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
 import org.springframework.data.neo4j.unique.common.CommonUniqueNumericIdClub;
 import org.springframework.data.neo4j.unique.legacy.UniqueLegacyIndexBasedEntityTests;
-import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
 import static org.junit.Assert.assertEquals;
 
@@ -39,7 +35,6 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration(locations = {
         "classpath:unique-legacy-test-context.xml",
         "classpath:RestTests-context.xml"})
-
 public class RestUniqueEntityTests extends UniqueLegacyIndexBasedEntityTests {
 
     @BeforeClass

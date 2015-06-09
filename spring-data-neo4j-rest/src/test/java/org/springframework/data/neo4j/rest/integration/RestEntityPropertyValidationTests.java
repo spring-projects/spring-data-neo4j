@@ -22,10 +22,7 @@ import org.springframework.data.neo4j.aspects.support.EntityPropertyValidationTe
 import org.springframework.data.neo4j.rest.support.RestTestBase;
 import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
 /**
 * @author mh
@@ -34,7 +31,6 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTests-context.xml",
     "classpath:RestTests-context.xml"})
-
 public class RestEntityPropertyValidationTests extends EntityPropertyValidationTests {
 
     @BeforeClass
