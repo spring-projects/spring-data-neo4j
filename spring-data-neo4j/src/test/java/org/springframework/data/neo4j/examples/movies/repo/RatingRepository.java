@@ -24,5 +24,28 @@ public interface RatingRepository extends GraphRepository<Rating> {
 
 	List<Rating> findByStars(int stars);
 
+	List<Rating> findByStarsAndRatingTimestamp(int stars, long ratingTimestamp);
+
+	List<Rating> findByStarsOrRatingTimestamp(int stars, long ratingTimestamp);
+
+	List<Rating> findByStarsAndRatingTimestampLessThan(int stars, long ratingTimestamp);
+
+	List<Rating> findByStarsOrRatingTimestampGreaterThan(int stars, long ratingTimestamp);
+
+	List<Rating> findByUserName(String name);
+
+	List<Rating> findByMovieTitle(String title);
+
+	List<Rating> findByUserNameAndMovieTitle(String name, String title);
+
+	List<Rating> findByUserNameAndStars(String name, int stars);
+
+	List<Rating> findByStarsAndMovieTitle(int stars, String title);
+
+	List<Rating> findByUserNameAndMovieTitleAndStars(String name, String title, int stars);
+
+	List<Rating> findByStarsOrUserName(int stars, String username);
+
+	List<Rating> findByUserNameAndUserMiddleName(String username, String middleName);
 
 }

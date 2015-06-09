@@ -20,7 +20,7 @@ import org.neo4j.ogm.annotation.StartNode;
  * @author Michal Bachman
  */
 @RelationshipEntity(type = "RATED")
-public class Rating {
+public class Rating implements Comparable{
     private Long id;
 
     @StartNode
@@ -29,6 +29,8 @@ public class Rating {
     private TempMovie movie;
     private int stars;
     private String comment;
+
+    private long ratingTimestamp;
 
     public Rating() {}
 
@@ -73,5 +75,22 @@ public class Rating {
 
     public String getComment() {
         return comment;
+    }
+
+    public long getRatingTimestamp() {
+        return ratingTimestamp;
+    }
+
+    public void setRatingTimestamp(long ratingTimestamp) {
+        this.ratingTimestamp = ratingTimestamp;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        Rating other = (Rating) o;
+        if (stars == ((Rating) o).getStars()) {
+            return getUser().getName().compareTo(other.getUser().getName());
+        }
+        return stars - other.getStars();
     }
 }

@@ -35,6 +35,9 @@ public class Cinema {
     @Relationship(direction = Relationship.INCOMING)
     private Set<User> visited = new HashSet<>();
 
+    @Relationship(type = "BLOCKBUSTER", direction = Relationship.OUTGOING)
+    private TempMovie blockbusterOfTheWeek;
+
     private int capacity;
 
     public Cinema() {
@@ -71,6 +74,14 @@ public class Cinema {
 
     public void setCapacity(int capacity) {
         this.capacity = capacity;
+    }
+
+    public TempMovie getBlockbusterOfTheWeek() {
+        return blockbusterOfTheWeek;
+    }
+
+    public void setBlockbusterOfTheWeek(TempMovie blockbusterOfTheWeek) {
+        this.blockbusterOfTheWeek = blockbusterOfTheWeek;
     }
 
     @Override

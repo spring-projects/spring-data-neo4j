@@ -12,17 +12,16 @@
 
 package org.springframework.data.neo4j.examples.movies.repo;
 
-import org.springframework.data.neo4j.annotation.Query;
-import org.springframework.data.neo4j.examples.movies.domain.User;
-import org.springframework.data.neo4j.examples.movies.domain.queryresult.*;
-import org.springframework.data.neo4j.examples.movies.domain.User;
-import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.examples.movies.domain.User;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.*;
+import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Michal Bachman
@@ -33,6 +32,10 @@ public interface UserRepository extends GraphRepository<User> {
     Collection<User> findByName(String name);
 
     Collection<User> findByMiddleName(String middleName);
+
+    List<User> findByRatingsStars(int stars);
+
+    List<User> findByRatingsStarsAndInterestedName(int stars, String name);
 
     @Query("MATCH (user:User) RETURN COUNT(user)")
     int findTotalUsers();
