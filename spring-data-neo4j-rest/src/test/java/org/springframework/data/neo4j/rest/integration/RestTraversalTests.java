@@ -22,12 +22,8 @@ import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.springframework.data.neo4j.aspects.support.TraversalTests;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
-import org.springframework.test.context.CleanContextCacheTestExecutionListener;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
 /**
  * @author mh
