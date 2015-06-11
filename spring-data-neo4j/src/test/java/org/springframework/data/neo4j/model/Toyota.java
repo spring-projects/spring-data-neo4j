@@ -16,7 +16,7 @@
 
 package org.springframework.data.neo4j.model;
 
-public class Toyota extends Car {
+public class Toyota extends Car {	
 	public Toyota() {
 	}
 }
