@@ -58,10 +58,16 @@ public class MetaDataDrivenConversionService extends GenericConversionService {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private void addWrappedConverter(final AttributeConverter attributeConverter) {
-        Converter<?, ?> converter = new Converter() {
+        Converter<?, ?> toGraphConverter = new Converter() {
             @Override
             public Object convert(Object source) {
                 return attributeConverter.toGraphProperty(source);
+            }
+        };
+        Converter<?, ?> toEntityConverter = new Converter() {
+            @Override
+            public Object convert(Object source) {
+                return attributeConverter.toEntityAttribute(source);
             }
         };
 
@@ -69,11 +75,14 @@ public class MetaDataDrivenConversionService extends GenericConversionService {
         Class<?> sourceType = (Class<?>) pt.getActualTypeArguments()[0];
         Class<?> targetType = (Class<?>) pt.getActualTypeArguments()[1];
 
-        if (canConvert(sourceType, targetType)) {
+        if (canConvert(sourceType, targetType) && canConvert(targetType, sourceType)) {
             logger.info("Not adding Spring-compatible converter for " + attributeConverter.getClass()
                     + " because one that does the same job has already been registered with the ConversionService.");
         } else {
-            addConverter(sourceType, targetType, converter);
+            // It could be argued that this is wrong as it potentially overrides a registered converted that doesn't handle
+            // both directions, but I've decided that it's better to ensure the same converter is used for load and save.
+            addConverter(sourceType, targetType, toGraphConverter);
+            addConverter(targetType, sourceType, toEntityConverter);
         }
     }
 

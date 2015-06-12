@@ -20,8 +20,7 @@ import java.util.Arrays;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.cypher.javacompat.ExecutionResult;
+import org.neo4j.graphdb.Result;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
@@ -34,7 +33,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Adam George
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {ConversionServicePersistenceContext.class})
+@ContextConfiguration(classes = { ConversionServicePersistenceContext.class })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ConversionServiceTest {
 
@@ -46,17 +45,25 @@ public class ConversionServiceTest {
     @Autowired
     private ConversionService conversionService;
 
+    /**
+     * This should work by virtue of the fact that there's an OGM-level converter defined on a class we've scanned.
+     */
     @Test
-    public void shouldBeAbleToConvertBytesIntoBase64EncodedDataViaSpringConversionService() {
-        // this should work by virtue of the fact that there's an OGM-level converter defined on a class we've scanned
+    public void shouldBeAbleToConvertBetweenBytesAndBase64EncodedDataViaSpringConversionService() {
+        String base64Representation = "YmNkZWY=";
+        byte[] binaryData = new byte[] { 98, 99, 100, 101, 102 };
+
         assertTrue(this.conversionService.canConvert(byte[].class, String.class));
-        assertEquals("YmNkZWY=", this.conversionService.convert(new byte[] {98, 99, 100, 101, 102}, String.class));
+        assertEquals(base64Representation, this.conversionService.convert(binaryData, String.class));
+
+        assertTrue(this.conversionService.canConvert(String.class, byte[].class));
+        assertTrue(Arrays.equals(binaryData, this.conversionService.convert(base64Representation, byte[].class)));
     }
 
     @Test
-    public void shouldActuallyConvertSomeStuffProperlyOutOfGraphDatabase() {
-        ExecutionEngine execEngine = new ExecutionEngine(testRule.getGraphDatabaseService());
-        ExecutionResult rs = execEngine.execute("CREATE (u:SiteMember {profilePictureData:'MTIzNDU2Nzg5'}) RETURN id(u) AS userId");
+    public void shouldConvertBase64StringOutOfGraphDatabaseBackIntoByteArray() {
+        Result rs = testRule.getGraphDatabaseService().execute(
+                "CREATE (u:SiteMember {profilePictureData:'MTIzNDU2Nzg5'}) RETURN id(u) AS userId");
         Long userId = (Long) rs.columnAs("userId").next();
 
         byte[] expectedData = "123456789".getBytes();
