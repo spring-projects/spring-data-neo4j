@@ -27,7 +27,7 @@ Creating relationships to a target node entity and returning the relationship::
 `nodeEntity.relateTo(targetEntity, relationshipType)`
 
 Retrieving a single relationship::
-`nodeEntity.getRelationshipTo(targetEnttiy, relationshipType)`
+`nodeEntity.getRelationshipTo(targetEntity, relationshipType)`
 
 Removing a single relationship::
 `nodeEntity.removeRelationshipTo(targetEntity, relationshipType)`

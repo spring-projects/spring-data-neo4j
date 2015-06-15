@@ -13,7 +13,7 @@ Those indexes will be automatically used by cypher queries that are generated fo
 
 == Index Creation
 
-Indexes are created and updated upfront, when Spring Data Neo4j scans your entities and detects indexed fields. It will use an instance of `org.springframework.data.neo4j.support.mapping.EntityIndexCreator to create both schema based and legacy indexes.
+Indexes are created and updated upfront, when Spring Data Neo4j scans your entities and detects indexed fields. It will use an instance of `org.springframework.data.neo4j.support.mapping.EntityIndexCreator` to create both schema based and legacy indexes.
 
 For certain setups, e.g. when your system is already set-up with all the indexes or when you run in an HA-cluster against a slave, you can disable this behavior by configuring `<neo4j:config create-index="false" />` or calling `Neo4jConfiguration.setCreateIndex(false)`. The default value is "true".
 
@@ -106,7 +106,7 @@ Person mark = graphRepository.findAllByQuery("people-search", "name", "ma*");
 
 Unique indexing can be applied either via the inbuilt schema (label based) unique constraint for nodes, or, via the legacy `index.putIfAbsent` and `UniqueFactory` code for both nodes and relationships. In Spring Data Neo4j this is done by setting the `unique=true` property on the `@Indexed` annotation. Methods for programmatically getting and/or creating unique entities is available on the `Neo4jTemplate` class, namely `getOrCreateNode` and `getOrCreateRelationship` for legacy indexes, and `merge` for schema based unique entities.
 
-In an entity at most one field can be annotated with `@Indexed(unique=true)` regardless of the index-type used. The uniqueness will be taken into account when creating the entity by reusing an existing entity if that unique key-combination already exists. On saving of the field it will be cross-checked against the schema or legacy index and fail with a DataIntegrityViolationException if the field was changed to an already existing unique value. Null values are no longer allowed for these properties.
+In an entity at most one field can be annotated with `@Indexed(unique=true)` regardless of the index-type used. The uniqueness will be taken into account when creating the entity by reusing an existing entity if that unique key-combination already exists. On saving of the field it will be cross-checked against the schema or legacy index and fail with a `DataIntegrityViolationException` if the field was changed to an already existing unique value. Null values are no longer allowed for these properties.
 
 NOTE: This works for both Node-Entities as well as Relationship-Entities (legacy indexes only). Relationship-Uniqueness in Neo4j is global so that an existing unique instance of this relationship may connect two completely different nodes and might also have a different type.
 
@@ -174,7 +174,7 @@ The legacy index for a domain class is also available from `Neo4jTemplate` via t
 
 // Default index
 Index<Node> personIndex = template.getIndex(null, Person.class);
-personIndex.query(new QueryContext(NumericRangeQuery.newÍntRange("age", 20, 40, true, true))
+personIndex.query(new QueryContext(NumericRangeQuery.newIntRange("age", 20, 40, true, true))
                        .sort(new Sort(new SortField("age", SortField.INT, false))));
 
 // Named index
@@ -197,7 +197,7 @@ It is also possible to pass in the property name of the entity with an `@Indexed
 @Autowired Neo4jTemplate template;
 
 Index<Node> personIndex = template.getIndex(Person.class, "age");
-personIndex.query(new QueryContext(NumericRangeQuery.newÍntRange("age", 20, 40, true, true))
+personIndex.query(new QueryContext(NumericRangeQuery.newIntRange("age", 20, 40, true, true))
                        .sort(new Sort(new SortField("age", SortField.INT, false))));
 
 // Fulltext index

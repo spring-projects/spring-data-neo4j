@@ -1,7 +1,7 @@
 [[reference_spatial]]
 = Geospatial Queries
 
-`SpatialRepository` is a dedicated Repository for spatial queries. Spring Data Neo4j provides an optional dependency to https://github.com/neo4j/spatial[neo4j-spatial] which is an advanced library for GIS operations. So if you include the maven dependency in your `pom.xml`, Neo4j-Spatial and the required `SPATIAL` index provider is available.
+`SpatialRepository` is a dedicated `Repository` for spatial queries. Spring Data Neo4j provides an optional dependency to https://github.com/neo4j/spatial[neo4j-spatial] which is an advanced library for GIS operations. So if you include the maven dependency in your `pom.xml`, Neo4j-Spatial and the required `SPATIAL` index provider is available.
 
 Spring Data Neo4j integrates with the common geo-spatial types in Spring Data Commons, like `Circle, Box, Polygon and Point`. You can use them as parameters for repository finder methods and property values. We also provide converters between WKT and `Shape`/`Point` objects.
 
@@ -17,7 +17,7 @@ Spring Data Neo4j integrates with the common geo-spatial types in Spring Data Co
 ----
 ====
 
-To have your entities available for spatial index queries, please include a String property containing a "well known text", location string. WKT is the http://en.wikipedia.org/wiki/Well-known_text[Well Known Text Spatial Format] eg. `POINT( LON LAT ) or POLYGON (( LON1 LAT1 LON2 LAT2 LON3 LAT3 LON1 LAT1 ))`
+To have your entities available for spatial index queries, please include a String property containing a "well known text", location string. WKT is the http://en.wikipedia.org/wiki/Well-known_text[Well Known Text Spatial Format] e.g. `POINT( LON LAT )` or `POLYGON (( LON1 LAT1 LON2 LAT2 LON3 LAT3 LON1 LAT1 ))`
 
 Alternatively you can also use one of the geo-spatial primitives from Spring Data Commons which are automatically converted to WKT when stored in the graph.
 
@@ -52,7 +52,7 @@ venue.setLocation(new Point(15,56));
 ----
 ====
 
-After adding the `SpatialRepository` to your repository you can use the `findWithinBoundingBox, findWithinDistance, findWithinWellKnownText, findWithinShape` methods. We recommend to use the methods using the geospatial primitives as they are more typesafe and less error-prone in mixing the coordinate order.
+After adding the `SpatialRepository` to your repository you can use the `findWithinBoundingBox`, `findWithinDistance`, `findWithinWellKnownText`, `findWithinShape` methods. We recommend to use the methods using the geospatial primitives as they are more typesafe and less error-prone in mixing the coordinate order.
 
 .Spatial Queries
 ====

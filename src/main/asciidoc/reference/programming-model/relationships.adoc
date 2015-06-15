@@ -23,7 +23,7 @@ public class Movie {
 ----
 ====
 
-It is also possible to have fields that reference a set of node entities (1:N). These fields come in two forms, modifiable or read-only. Modifiable fields are of the type `Set<T>`, and read-only fields are `Iterable<T>`, where T is a @NodeEntity-annotated class.
+It is also possible to have fields that reference a set of node entities (1:N). These fields come in two forms, modifiable or read-only. Modifiable fields are of the type `Set<T>`, and read-only fields are `Iterable<T>`, where T is a `@NodeEntity`-annotated class.
 
 .Node entity with relationships
 ====
@@ -64,9 +64,9 @@ NOTE: Other collection types than `Set` are not supported so far, also currently
 
 To access the full data model of graph relationships, POJOs can also be annotated with `@RelationshipEntity`, making them relationship entities. Just as node entities represent nodes in the graph, relationship entities represent relationships. As described above, fields annotated with `@RelatedTo` provide a way to only link node entities via relationships, but it provides no way of accessing the relationships themselves.
 
-Relationship entities can be accessed via by @RelatedToVia-annotated (<<reference_programming_model:relationships:relatedtovia>>) fields or methods like `entity.getRelationshipTo()` or `template|repository.getRelationship(s)Between()`.
+Relationship entities can be accessed via by `@RelatedToVia`-annotated (<<reference_programming_model:relationships:relatedtovia>>) fields or methods like `entity.getRelationshipTo()` or `template|repository.getRelationship(s)Between()`.
 
-Relationship entities either be instantiated directly and set or added to `@RelatedToVia`-annotated fields or created by the introduced `entity.relateTo(), template|repository.createRelationshipBetween()` methods (see alos <<reference_programming-model_introduced-methods>>)
+Relationship entities either be instantiated directly and set or added to `@RelatedToVia`-annotated fields or created by the introduced `entity.relateTo(), template|repository.createRelationshipBetween()` methods (see also <<reference_programming-model_introduced-methods>>)
 
 Fields in relationship entities are, similarly to node entities, persisted as properties on the relationship. For accessing the two endpoints of the relationship, two special annotations are available: `@StartNode` and `@EndNode`. A field annotated with one of these annotations will provide read-only access to the corresponding endpoint, depending on the chosen annotation.
 
@@ -136,7 +136,7 @@ public class Friendship {
 [[reference_programming_model_relationships_relationshiptypeprecedence]]
 == Relationship Type Precedence
 
-In the example above we show how to specify a default relationship type, and how to provide the relationship type using an annotation property. Here is an example of using the @RelationshipType annotation on a member variable on the relationship entity; we call this dynamic relationship type.
+In the example above we show how to specify a default relationship type, and how to provide the relationship type using an annotation property. Here is an example of using the `@RelationshipType` annotation on a member variable on the relationship entity; we call this dynamic relationship type.
 
 .Dynamic Relationship Type (simple mapping)
 ====

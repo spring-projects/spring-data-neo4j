@@ -7,9 +7,9 @@ So far, the website had only been a plain old movie database. We now wanted to a
 
 == Users
 
-So we started out by taking the User class that we'd already coded and made it a full-fledged Spring Data Neo4j entity. We added the ability to create friends and to rate movies. With that we also added a simple UserRepository that was able to look up users by ID.
+So we started out by taking the `User` class that we'd already coded and made it a full-fledged Spring Data Neo4j entity. We added the ability to create friends and to rate movies. With that we also added a simple `UserRepository` that was able to look up users by ID.
 
-The relationships of the user are his friends and the movie-ratings which is implemented with a `Rating` Relationship-Entity. This time we used a different approach (for educational and curiosity purposes) to create the `Rating` relationships. The `createRelationshipBetween` operation of the Neo4jTemplate was our matchmaker of choice.
+The relationships of the user are his friends and the movie-ratings which is implemented with a `Rating` Relationship-Entity. This time we used a different approach (for educational and curiosity purposes) to create the `Rating` relationships. The `createRelationshipBetween` operation of the `Neo4jTemplate` was our matchmaker of choice.
 
 .Social entities
 ====
@@ -52,7 +52,7 @@ class Rating {
 ----
 ====
 
-We extended the DatabasePopulator to add some users and ratings to the initial setup.
+We extended the `DatabasePopulator` to add some users and ratings to the initial setup.
 
 .Populate users and ratings
 ====
@@ -61,25 +61,25 @@ We extended the DatabasePopulator to add some users and ratings to the initial s
 @Transactional
 public List<Movie> populateDatabase() {
     Actor tomHanks = new Actor("1", "Tom Hanks");
-    Movie forestGump = new Movie("1", "Forrest Gump");
-    tomHanks.playedIn(forestGump, "Forrest");
+    Movie forrestGump = new Movie("1", "Forrest Gump");
+    tomHanks.playedIn(forrestGump, "Forrest");
     template.save(tomHanks);
 
     User me = template.save(new User("micha", "Micha", "password"));
-    Rating awesome = me.rate(template, forestGump, 5, "Awesome");
+    Rating awesome = me.rate(template, forrestGump, 5, "Awesome");
 
     User ollie = template.save(new User("ollie", "Oliver", "password"));
-    ollie.rate(template,forestGump, 2, "ok");
+    ollie.rate(template,forrestGump, 2, "ok");
     me.addFriend(ollie);
     template.save(me);
-    return asList(forestGump);
+    return asList(forrestGump);
 }
 ----
 ====
 
 == Ratings for movies
 
-We also put a ratings field into the Movie class to be able to get a movie's ratings, and also a method to average its star rating.
+We also put a ratings field into the `Movie` class to be able to get a movie's ratings, and also a method to average its star rating.
 
 .Getting the rating of a movie
 ====

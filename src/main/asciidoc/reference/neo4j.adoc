@@ -26,11 +26,11 @@ In addition, Neo4j has ACID transactions, durable persistence, concurrency contr
 
 The API of `org.neo4j.graphdb.GraphDatabaseService` provides access to the storage engine. Its features include creating and retrieving nodes and relationships, managing indexes (via the IndexManager), database life cycle callbacks, transaction management, and more.
 
-The `EmbeddedGraphDatabase` is an implementation of GraphDatabaseService that is used to embed Neo4j in a Java application. This implementation is used so as to provide the highest and tightest integration with the database. Besides the embedded mode, the http://wiki.neo4j.org/content/Getting_Started_With_Neo4j_Server[Neo4j server] provides access to the graph database via an HTTP-based REST API.
+The `EmbeddedGraphDatabase` is an implementation of `GraphDatabaseService` that is used to embed Neo4j in a Java application. This implementation is used so as to provide the highest and tightest integration with the database. Besides the embedded mode, the http://wiki.neo4j.org/content/Getting_Started_With_Neo4j_Server[Neo4j server] provides access to the graph database via an HTTP-based REST API.
 
 == Creating nodes and relationships
 
-Using the API of GraphDatabaseService, it is easy to create nodes and relate them to each other. Relationships are typed and both nodes and relationships can have properties. Property values can be primitive Java types and Strings, or arrays of both. As of Neo4j 2.0, any operation on a node or relationship (creation, modification or simply reading) must happen within a transaction.
+Using the API of `GraphDatabaseService`, it is easy to create nodes and relate them to each other. Relationships are typed and both nodes and relationships can have properties. Property values can be primitive Java types and Strings, or arrays of both. As of Neo4j 2.0, any operation on a node or relationship (creation, modification or simply reading) must happen within a transaction.
 
 .Neo4j usage
 ====

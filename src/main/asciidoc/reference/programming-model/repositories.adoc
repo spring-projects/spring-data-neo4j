@@ -7,7 +7,7 @@ Spring Data Neo4j repositories support annotated and named queries for the Neo4j
 
 Spring Data Neo4j comes with typed repository implementations that provide methods for locating node and relationship entities. There are several types of basic repository interfaces and implementations. `CRUDRepository` provides basic operations, `IndexRepository` and `NamedIndexRepository` delegate to Neo4j's internal indexing subsystem for queries, and `TraversalRepository` handles Neo4j traversals.
 
-With the `RelationshipOperationsRepository` it is possible to access, create and delete relationships between entitites or nodes. The `SpatialRepository` allows geographic searches (<<reference_spatial>>)
+With the `RelationshipOperationsRepository` it is possible to access, create and delete relationships between entities or nodes. The `SpatialRepository` allows geographic searches (<<reference_spatial>>)
 
 `GraphRepository` is a convenience repository interface, combining `CRUDRepository`, `IndexRepository`, and `TraversalRepository`. Generally, it has all the desired repository methods. If other operations are required then the additional repository interfaces should be added to the individual interface declaration.
 
@@ -94,7 +94,7 @@ returns users names and their ratings (>3) of the movie titled 'Matrix'
 `start user=node:User(login='micha') match (user)-[:FRIEND]-(friend)-[r:RATED]->(movie) return movie.title, AVG(r.stars), COUNT(*) order by AVG(r.stars) desc, COUNT(*) desc`::
 returns the movies rated by the friends of the user 'micha', aggregated by movie.title, with averaged ratings and rating-counts sorted by both
 
-.Examples of Cypher queries placed on repository methods with @Query where values are replaced with method parameters, as described in the <<reference_programming-model_annotatedQueries>>) section.
+.Examples of Cypher queries placed on repository methods with `@Query` where values are replaced with method parameters, as described in the <<reference_programming-model_annotatedQueries>>) section.
 ====
 [source,java]
 ----
@@ -275,7 +275,7 @@ To use Cypher-DSL with Query-DSL the Mysema dependencies have to be declared exp
 </dependency>
 ----
 
-It is possible to use the Cypher-DSL along with the predicates and code generation features of the QueryDSL project. This will allow you to use Java objects as part of the query, rather than strings, for the names of properties and such. In order to get this to work you first have to add a code processor to your Maven build, which will parse your domain entities marked with @NodeEntity, and from that generate QPerson-style classes, as shown in the previous section. Here is what you need to include in your Maven POM file.
+It is possible to use the Cypher-DSL along with the predicates and code generation features of the QueryDSL project. This will allow you to use Java objects as part of the query, rather than strings, for the names of properties and such. In order to get this to work you first have to add a code processor to your Maven build, which will parse your domain entities marked with `@NodeEntity`, and from that generate QPerson-style classes, as shown in the previous section. Here is what you need to include in your Maven POM file.
 
 [source,xml]
 ----
@@ -301,7 +301,7 @@ It is possible to use the Cypher-DSL along with the predicates and code generati
 </plugin>
 ----
 
-This custom QueryDSL AnnotationProcessor will generate the query classes that can be used when constructing Cypher-DSL queries, as in the previous section.
+This custom QueryDSL `AnnotationProcessor` will generate the query classes that can be used when constructing Cypher-DSL queries, as in the previous section.
 
 == Creating repositories
 
@@ -410,4 +410,4 @@ Iterable<Person> friends = personRepository.findFriends(dave);
 ----
 ====
 
-NOTE: If you use `<context:component-scan>` in your spring config, please make sure to put it behind `<neo4j:repositories>`, as the RepositoryFactoryBean adds new bean definitions for all the declared repositories, the context scan doesn't pick them up otherwise.
+NOTE: If you use `<context:component-scan>` in your spring config, please make sure to put it behind `<neo4j:repositories>`, as the `RepositoryFactoryBean` adds new bean definitions for all the declared repositories, the context scan doesn't pick them up otherwise.

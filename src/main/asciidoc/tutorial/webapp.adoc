@@ -3,7 +3,7 @@
 
 *_Showing off_*
 
-After having put some data in the graph database, we also wanted to show it to the user. Adding the controller method to show a single movie with its attributes and cast in a JSP was straightforward. It basically just involved using the repository to look the movie up and add it to the model, and then forwarding to the `/movies/show` view and voilá.
+After having put some data in the graph database, we also wanted to show it to the user. Adding the controller method to show a single movie with its attributes and cast in a JSP was straightforward. It basically just involved using the repository to look the movie up and add it to the model, and then forwarding to the `/movies/show` view and voilà.
 
 .Controller for showing movies
 ====

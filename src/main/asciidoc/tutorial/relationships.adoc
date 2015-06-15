@@ -26,7 +26,7 @@ class Role {
 
 When writing a test for the `Role` we tried to create the relationship entity just by instantiating it with `new` and saving it with the template, but we got an exception saying that it misses the relationship-type.
 
-We had to add it to the `@RelationshipEntity` as an attribute (or as a @RelationshipType annotated field in the RelationshipEntity). Another way to create instances of relationship-entities is to use the methods provided by the template, like `createRelationshipBetween`.
+We had to add it to the `@RelationshipEntity` as an attribute (or as a `@RelationshipType` annotated field in the RelationshipEntity). Another way to create instances of relationship-entities is to use the methods provided by the template, like `createRelationshipBetween`.
 
 .Relating actors to movies
 ====
@@ -95,13 +95,13 @@ class Actor {
 
 Changes to the collections of related entities are reflected into the graph on saving of the entity.
 
-We made sure to add some tests for using the relationshhips, so we were assured that the collections worked as advertised.
+We made sure to add some tests for using the relationships, so we were assured that the collections worked as advertised.
 
 == Accessing the relationship entities
 
 But we still couldn't access the Role relationship entities themselves. It turned out that there was a separate annotation `@RelatedToVia` for accessing the actual relationship entities. And we could declare the field as an `Iterable<Role>`, with read-only semantics or on a `Collection` or `Set<Role>` field with modifying semantics.  So off we went, creating our first real relationship (just kidding).
 
-To have the collections of relationships being read eagerly during the loading of the Movie we have to annotate it with the @Fetch annotation. Otherwise Spring Data Neo4j refrains from following relationships automatically. The risk of loading the whole graph into memory would be too high.
+To have the collections of relationships being read eagerly during the loading of the Movie we have to annotate it with the `@Fetch` annotation. Otherwise Spring Data Neo4j refrains from following relationships automatically. The risk of loading the whole graph into memory would be too high.
 
 .@RelatedToVia usage
 ====

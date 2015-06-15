@@ -46,7 +46,7 @@ Neo4jOperations neo = new Neo4jTemplate(graphDatabase);
 
 == Core-Operations
 
-`Neo4jTemplate` provides access to some of the methods of the Neo4j-Core-API directly. So accessing nodes and relationships (`getReferenceNode, getNode, getRelationship, getRelationshipBetween`), creating nodes and relationships (`createNode, createNodeAs, createRelationshipBetween`) and deleting them (`delete, deleteRelationshipBetween`) are supported. It also provides access to the underlying GraphDatabase via `getGraphDatabase`.
+`Neo4jTemplate` provides access to some of the methods of the Neo4j-Core-API directly. So accessing nodes and relationships (`getReferenceNode`, `getNode`, `getRelationship`, `getRelationshipBetween`), creating nodes and relationships (`createNode`, `createNodeAs`, `createRelationshipBetween`) and deleting them (`delete`, `deleteRelationshipBetween`) are supported. It also provides access to the underlying `GraphDatabase` via `getGraphDatabase`.
 
 == Entity-Persistence
 
@@ -85,7 +85,7 @@ The REST-batch-mode of the `SpringRestGraphDatabase` is not yet exposed via the 
 
 == Lifecycle Events
 
-Neo4j Template offers basic lifecycle events via Spring's event mechanism using ApplicationListener and ApplicationEvent. The following hooks are available in the form of types of application event:
+Neo4j Template offers basic lifecycle events via Spring's event mechanism using `ApplicationListener` and `ApplicationEvent`. The following hooks are available in the form of types of application event:
 
 * BeforeSaveEvent
 * AfterSaveEvent

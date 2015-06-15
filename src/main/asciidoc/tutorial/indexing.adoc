@@ -3,7 +3,7 @@
 
 *_Do I know you?_*
 
-There is an @Indexed annotation for fields. We wanted to try this out, and use it to guide the next test. We added @Indexed to the `id` field of the Movie class. This field is intended to represent the external ID that will be used in URIs and will be stable across database imports and updates. That's why we also declare it as unique. This time we went with a simple GraphRepository to retrieve the indexed movie.
+There is an `@Indexed` annotation for fields. We wanted to try this out, and use it to guide the next test. We added `@Indexed` to the `id` field of the Movie class. This field is intended to represent the external ID that will be used in URIs and will be stable across database imports and updates. That's why we also declare it as unique. This time we went with a simple `GraphRepository` to retrieve the indexed movie.
 
 .Exact Indexing for Movie id
 ====

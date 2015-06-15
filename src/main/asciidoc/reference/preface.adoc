@@ -9,7 +9,7 @@ The Spring Data Neo4j project, as part of the Spring Data initiative, aims to si
 
 Spring Data Neo4j allows, at any time, to drop down to the Neo4j-API level, see <<neo4j>> to execute functionality with the highest performance possible.
 
-For integration of Neo4j and Grails/GORM please refer to the Neo4j http://www.grails.org/plugin/neo4j[grails plugin]. There are also http://neo4j.com/docs/milestone/python-embedded.html[Python bindings] as well as community-provided bindings to use Neo4j in http://neo4j.com/docs/milestone/languages.html[embedded] or http://neo4j.com/docs/milestone/tutorials-rest.html[REST mode].
+For integration of Neo4j and Grails/GORM please refer to the Neo4j http://www.grails.org/plugin/neo4j[Grails plugin]. There are also http://neo4j.com/docs/milestone/python-embedded.html[Python bindings] as well as community-provided bindings to use Neo4j in http://neo4j.com/docs/milestone/languages.html[embedded] or http://neo4j.com/docs/milestone/tutorials-rest.html[REST mode].
 
 == Reference Documentation Overview
 
@@ -37,9 +37,9 @@ If you like the ActiveRecord approach that uses persistence methods mixed into t
 
 Neo4j is a fully ACID, enterprise grade database. It uses Java transactions, and internally a 2-phase commit protocol, to guarantee the safety of your data. The implications of that are described in the chapter around transactions. (<<reference_programming-model_transactions>>)
 
-The need of an active transaction for mutating the state of nodes or relationships implies that direct changes to the graph are only possible in a transactional context. Unfortunately many higher level application layers don't want to care about transactions and the open-session-in-view pattern is not widely used. Therefore Spring Data Neo4j's advanced mappings introduced an entity lifecyle and added support for detached entities which can be used for temporary domain objects that are not intended to be stored in the graph or which will be attached to the graph only later. (<<reference_programming-model_lifecycle>>)
+The need of an active transaction for mutating the state of nodes or relationships implies that direct changes to the graph are only possible in a transactional context. Unfortunately many higher level application layers don't want to care about transactions and the open-session-in-view pattern is not widely used. Therefore Spring Data Neo4j's advanced mappings introduced an entity lifecycle and added support for detached entities which can be used for temporary domain objects that are not intended to be stored in the graph or which will be attached to the graph only later. (<<reference_programming-model_lifecycle>>)
 
-For the simple mapping this is not neccessary as domain objects are detached by default and have to be explicitly reattached to the graph to store the changes.
+For the simple mapping this is not necessary as domain objects are detached by default and have to be explicitly reattached to the graph to store the changes.
 
 Unlike Neo4j which is a schema free database, Spring Data Neo4j works on Java domain objects. So it needs to store the type information in the graph to be able to reconstruct the entities when just nodes are retrieved. To achieve that it employs type-representation-strategies which are described in a separate chapter. (see <<reference_programming-model_typerepresentationstrategy>>)
 
