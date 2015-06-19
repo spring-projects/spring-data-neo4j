@@ -20,10 +20,14 @@ import java.util.Arrays;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmount;
+import org.springframework.data.neo4j.integration.conversion.domain.PensionPlan;
 import org.springframework.data.neo4j.integration.conversion.domain.SiteMember;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -40,6 +44,8 @@ public class ConversionServiceTest {
     @ClassRule
     public static final Neo4jIntegrationTestRule testRule = new Neo4jIntegrationTestRule(7879);
 
+    @Autowired
+    private PensionRepository pensionRepository;
     @Autowired
     private SiteMemberRepository siteMemberRepository;
     @Autowired
@@ -70,6 +76,24 @@ public class ConversionServiceTest {
 
         SiteMember siteMember = this.siteMemberRepository.findOne(userId);
         assertTrue("The data wasn't converted correctly", Arrays.equals(expectedData, siteMember.getProfilePictureData()));
+    }
+
+    @Test
+    public void shouldConvertFieldsUsingSpringConvertersAddedDirectlyToConversionService() {
+        ((GenericConversionService) this.conversionService).addConverter(new SpringMonetaryAmountToNumberConverter());
+        ((GenericConversionService) this.conversionService).addConverter(new SpringNumberToMonetaryAmountConverter());
+
+        PensionPlan pensionToSave = new PensionPlan(new MonetaryAmount(16472, 81), "Tightfist Asset Management Ltd");
+
+        this.pensionRepository.save(pensionToSave);
+
+        ResourceIterator<Number> resourceIterator = testRule.getGraphDatabaseService()
+                .execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv").columnAs("fv");
+        assertTrue("Nothing was saved", resourceIterator.hasNext());
+        assertEquals("The amount wasn't converted and persisted correctly", 1647281, resourceIterator.next().intValue());
+
+        PensionPlan reloadedPension = this.pensionRepository.findOne(pensionToSave.getPensionPlanId());
+        assertEquals("The amount was converted incorrectly", pensionToSave.getFundValue(), reloadedPension.getFundValue());
     }
 
 }

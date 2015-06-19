@@ -19,6 +19,8 @@ import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
 import org.neo4j.ogm.metadata.info.MethodInfo;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
+import org.neo4j.ogm.typeconversion.ConversionCallback;
+import org.neo4j.ogm.typeconversion.ProxyAttributeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.converter.Converter;
@@ -30,7 +32,7 @@ import org.springframework.core.convert.support.GenericConversionService;
  *
  * @author Adam George
  */
-public class MetaDataDrivenConversionService extends GenericConversionService {
+public class MetaDataDrivenConversionService extends GenericConversionService implements ConversionCallback {
 
     private static final Logger logger = LoggerFactory.getLogger(MetaDataDrivenConversionService.class);
 
@@ -41,6 +43,8 @@ public class MetaDataDrivenConversionService extends GenericConversionService {
      *        mapping layer
      */
     public MetaDataDrivenConversionService(MetaData metaData) {
+        metaData.registerConversionCallback(this);
+
         for (ClassInfo classInfo : metaData.persistentEntities()) {
             for (FieldInfo fieldInfo : classInfo.propertyFields()) {
                 if (fieldInfo.hasConverter()) {
@@ -58,6 +62,10 @@ public class MetaDataDrivenConversionService extends GenericConversionService {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private void addWrappedConverter(final AttributeConverter attributeConverter) {
+        if (attributeConverter instanceof ProxyAttributeConverter) {
+            return;
+        }
+
         Converter<?, ?> toGraphConverter = new Converter() {
             @Override
             public Object convert(Object source) {
@@ -84,6 +92,15 @@ public class MetaDataDrivenConversionService extends GenericConversionService {
             addConverter(sourceType, targetType, toGraphConverter);
             addConverter(targetType, sourceType, toEntityConverter);
         }
+    }
+
+    @Override
+    public <T> T convert(Class<?> sourceType, Class<T> targetType, Object value) {
+        // FIXME: ahh, the problem is we always need the target type!!
+        // - keep a list of convertible pairs and find one that matches, perhaps?
+        // - or try all possible combinations of stuff you can stick in a graph? (probably not!)
+        // - how about we make you specify the target type instead of the converter in the @Convert annotation?
+        return this.convert(value, targetType);
     }
 
 }
