@@ -30,7 +30,7 @@ Spring Data Neo4j projects can be built using Maven, Gradle or Ant/Ivy.
 == Spring configuration
 
 Users of Spring Data Neo4j 4 can current only configure their applications using Java-based bean configuration. Support
-for XML namespace configuration is expected to be available in Milestone 2
+for XML namespace configuration is expected to be available in a later release.
 
 === Java-based bean configuration
 

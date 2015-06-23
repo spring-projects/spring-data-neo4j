@@ -15,7 +15,7 @@ The "legacy" index framework should only be used for fulltext and spatial indexe
 
 In Spring Data Neo4j 4, index management concerns were removed from the mapping framework entirely.
 Index creation and management is therefore now outside the scope of this document.  
-Please see the Neo4j documention on indexes for for information:  http://neo4j.com/docs/stable/query-schema-index.html
+Please see the Neo4j documentation on indexes for for information:  http://neo4j.com/docs/stable/query-schema-index.html
 
 == Index queries in Neo4jTemplate
 
@@ -29,14 +29,39 @@ It is possible to use the specific index names `node_auto_index` and `relationsh
 == Full-Text Indexes
 
 Previous versions of Spring Data Neo4j offered support for full-text queries using the manual index facilities. 
-However, as of SDN 4 milestone 1 at least, this is no longer supported.
+However, as of SDN 4, this is no longer supported.
+
 To create fulltext entries for an entity you can add the updated nodes within `AfterSaveEvents` to a remote fulltext-index via Neo4j's REST API.
-Fulltext query support is still available via Cypher queries and will be fully addressed by a future Neo4j version.
+If you use the `DefaultRequest` used by the OGM, then authentication will be taken care of as well.
+
+.Indexing Persons upon persistence
+[source,java]
+----
+final CloseableHttpClient httpClient = HttpClients.createDefault();
+
+@Bean
+ApplicationListener<AfterSaveEvent> afterSaveEventApplicationListener() {
+    return new ApplicationListener<AfterSaveEvent>() {
+        @Override
+        public void onApplicationEvent(AfterSaveEvent event) {
+            Neo4jRequest<String> neo4jRequest = new DefaultRequest(httpClient);
+            if(event.getEntity() instanceof Person) {
+                Person person = (Person) event.getEntity();
+                //Construct the JSON statements
+                neo4jRequest.execute(endpoint,json);
+            }
+        }
+    };
+}
+----
+
+Fulltext query support is still available via Cypher queries which can be executed via the `Session` or `Neo4jTemplate`, or as a `@Query` defined in a repository class.
 
 == Spatial Indexes
 
 Previous versions of Spring Data Neo4j offered support for spatial queries using the `neo4j-spatial` library. 
-However, as of SDN 4 milestone 1 at least, this is no longer supported.
-To create spatial entries for an entity you can add the updated nodes within `AfterSaveEvents` to a remote fulltext-index via Neo4j's REST API.
-Spatial query support is still available via Cypher queries and will be fully addressed by a future Neo4j version.
+However, as of SDN 4 at least, this is no longer supported.
+
+A strategy similar to the full-text indexes being updated within `AfterSaveEvents` can be employed to support Spatial Indexes.
+The http://neo4j-contrib.github.io/spatial/#spatial-server-plugin[Neo4j Spatial Plugin] exposes a REST API to interact with the library.
 

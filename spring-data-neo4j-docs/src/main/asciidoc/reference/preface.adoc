@@ -60,7 +60,7 @@ Neo4j uses transactions to guarantee the integrity of your data and Spring Data 
 of this are described in the chapter around transactions. (<<reference_programming_model_transactions>>)
 
 == Configuration
-As of Milestone 1, only Java bean-based configuration is supported. See <<setup>> for more details.
+Spring Data Neo4j 4.0 only supports Java bean-based configuration. See <<setup>> for more details.
 
 == Examples
 The provided samples, which are also publicly hosted on http://spring.neo4j.org/examples[Github], are explained
