@@ -140,8 +140,7 @@ being incompatible with future versions of Neo4j.
 === Graph Traversal and Node/Relationship Manipulation
 These features cannot be supported by Cypher and have therefore been dropped from `Neo4jTemplate`.
 
-== Features not yet included in Milestone 1 but that are on the Roadmap
+== Features not yet included in Spring Data Neo4j 4 but that are on the Roadmap
 
 . Geospatial queries
-. @QueryResult
 

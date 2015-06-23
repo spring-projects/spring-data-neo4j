@@ -89,7 +89,7 @@ public class ApplicationConfig extends Neo4jConfiguration {
                 AcmeEntity entity = (AcmeEntity) event.getEntity();
                 auditLog.onEventSaved(entity);
             }
-        };
+
     }
 
     @Bean
