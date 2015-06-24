@@ -1,6 +1,6 @@
 Spring Data Neo4j Changelog
 ===========================
-Changes in version 4.0.0.RC1 (2015-05-25)
+Changes in version 4.0.0.RC1 (2015-06-25)
 
 New Features and Improvements
 -----------------------------
@@ -10,37 +10,56 @@ New Features and Improvements
 * DATAGRAPH-564 - Integration with Spring Data REST
 * DATAGRAPH-577 - @NodeEntity etc on interfaces
 * DATAGRAPH-579 - Supply User-Agent Header
+* DATAGRAPH-585 - Document how to use fulltext and spatial integration with SDN4
 * DATAGRAPH-587 - @Query results ordering
 * DATAGRAPH-607 - Return stats on Neo4jTemplate execute() methods.
 * DATAGRAPH-608 - Type Conversions in @QueryResult Objects
+* DATAGRAPH-617 - Adapt API changes in Spring Data Commons to simplify custom repository base class registration
 * DATAGRAPH-623 - Documentation
 * DATAGRAPH-629 - Dynamic query improvements
+* DATAGRAPH-632 - Derived finder support for nested properties on relationship entities
+* DATAGRAPH-640 - Split Core OGM from Spring modules
+* DATAGRAPH-645 - Ensure all tests run against 2.2 (authentication)
+* DATAGRAPH-677 - Updates based on the TestServer changes made to the OGM
 
-Bug Fixes: (See JIRAs for details)
+Bug Fixes
 ----------------------------------
-* DATAGRAPH-565
-* DATAGRAPH-568
-* DATAGRAPH-569
-* DATAGRAPH-578
-* DATAGRAPH-582
-* DATAGRAPH-583
-* DATAGRAPH-586
-* DATAGRAPH-589
-* DATAGRAPH-590
-* DATAGRAPH-591
-* DATAGRAPH-594
-* DATAGRAPH-606
-* DATAGRAPH-610
-* DATAGRAPH-611
-* DATAGRAPH-614
-* DATAGRAPH-616
-* DATAGRAPH-628
-* DATAGRAPH-630
-* DATAGRAPH-631
-* DATAGRAPH-634
-* DATAGRAPH-637
-* DATAGRAPH-638
-* DATAGRAPH-639
+* DATAGRAPH-565 - Adding a new relationship entity to a node deletes the previous one
+* DATAGRAPH-568 - A relationship entity is lost when a loaded node entity is persisted
+* DATAGRAPH-569 - Relationship entity not saved when pre existing node entity is saved
+* DATAGRAPH-578 - Fix the pom declaration for neo4j-ogm-test
+* DATAGRAPH-582 - Cannot replace an existing RelationshipEntity
+* DATAGRAPH-583 - Cannot add a new RelationshipEntity to a Set
+* DATAGRAPH-586 - Deleting a relationship entity by id also deletes nodes with the same id
+* DATAGRAPH-588 - Relationship deletion problems
+* DATAGRAPH-589 - Labels and relationship types should be backticked when constructing cypher queries
+* DATAGRAPH-590 - Metadata resolves to an abstract class for an interface
+* DATAGRAPH-591 - Ordering not preserved when loading array properties
+* DATAGRAPH-594 - Hydrating objects ignores relationship direction between objects of the same type.
+* DATAGRAPH-595 - Cannot specify load depth -1 (load all)
+* DATAGRAPH-596 - Unrequested objects being loaded
+* DATAGRAPH-600 - Mapping of numeric values to other numeric types
+* DATAGRAPH-602 - Incorrect propagation of @Transactional
+* DATAGRAPH-604 - Neo4jTemplate.execute() method swallows errors
+* DATAGRAPH-606 - Support for Windows
+* DATAGRAPH-610 - Relationship with null properties causes InvalidSyntax
+* DATAGRAPH-611 - Relation is saved in the wrong direction between entities
+* DATAGRAPH-614 - Character conversions on Windows
+* DATAGRAPH-616 - Relationship entities with the same start and end node type do not load
+* DATAGRAPH-628 - Dynamic queries fail to use the label when defined for a @NodeEntity
+* DATAGRAPH-630 - Cannot use domain models that are subgraphs
+* DATAGRAPH-631 - Property names should be backticked in cypher statements
+* DATAGRAPH-634 - AmbiguousBaseClassException when resolving a hierarchy which contains exactly one superclass and one subclass in a particular order
+* DATAGRAPH-637 - "Cannot map iterable" when a node entity contains simple relations to the same entity type but different relation types
+* DATAGRAPH-638 - No Entities/Relationships found on scan on Windows
+* DATAGRAPH-639 - NullPointer when saving an entity with an undirected relationship
+* DATAGRAPH-641 - Fails to handle responses properly from graphene db installations
+* DATAGRAPH-644 - OGM unable to apply a collection of values from database into a Set
+* DATAGRAPH-652 - Use of query() rather than execute()
+* DATAGRAPH-657 - Node is not an instance of a persistable class
+* DATAGRAPH-658 - Incorrect data type conversion - double comes back as integer
+* DATAGRAPH-660 - Can't persist multiple Relationship Entities of the same type between 2 instances
+* DATAGRAPH-663 - HttpResponse not being closed properly
 
 Changes in version 4.0.0.M1 (2015-03-20)
 ----------------------------------------
