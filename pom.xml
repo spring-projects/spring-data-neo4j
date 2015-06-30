@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.6.1.RELEASE</version>
+		<version>1.6.2.BUILD-SNAPSHOT</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
 
@@ -32,7 +32,7 @@
 	<properties>
 		<project.type>multi</project.type>
 		<dist.id>spring-data-neo4j</dist.id>
-		<springdata.commons>1.10.1.RELEASE</springdata.commons>
+		<springdata.commons>1.10.2.BUILD-SNAPSHOT</springdata.commons>
 
 		<!-- Neo4j 2.0 now requires JDK 7 as a min -->
 		<source.level>1.7</source.level>
@@ -192,9 +192,9 @@
 	</dependencies>
 	<repositories>
 		<repository>
-			<id>spring-libs-releases</id>
+			<id>spring-libs-snapshot</id>
 			<name>Spring</name>
-			<url>https://repo.spring.io/libs-releases</url>
+			<url>https://repo.spring.io/libs-snapshot</url>
 		</repository>
 		<repository>
 			<id>neo4j</id>
