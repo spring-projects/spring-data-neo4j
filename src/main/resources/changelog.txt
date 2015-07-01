@@ -61,6 +61,11 @@ Bug Fixes
 * DATAGRAPH-660 - Can't persist multiple Relationship Entities of the same type between 2 instances
 * DATAGRAPH-663 - HttpResponse not being closed properly
 
+Changes in version 3.1.6.RELEASE (2015-07-01)
+---------------------------------------------
+* DATAGRAPH-686 - Release 3.1.6 (Dijkstra).
+
+
 Changes in version 3.2.3.RELEASE (2015-07-01)
 ---------------------------------------------
 * DATAGRAPH-687 - Release 3.2.3 (Evans).
