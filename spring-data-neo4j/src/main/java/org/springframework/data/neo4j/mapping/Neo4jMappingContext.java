@@ -11,6 +11,10 @@
  */
 package org.springframework.data.neo4j.mapping;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
@@ -21,13 +25,10 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.mapping.context.InvalidPersistentPropertyPath;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.context.PersistentPropertyPath;
 import org.springframework.data.util.TypeInformation;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * This class implements Spring Data's MappingContext interface, scavenging the required data from the
@@ -118,6 +119,12 @@ public class Neo4jMappingContext implements MappingContext<Neo4jPersistentEntity
     @Override
     public PersistentPropertyPath getPersistentPropertyPath(String propertyPath, Class<?> type) {
         logger.warn("[context].getPersistentPropertyPath({}, {}) called but not implemented", propertyPath, type);
+        return null;
+    }
+
+    @Override
+    public PersistentPropertyPath<Neo4jPersistentProperty> getPersistentPropertyPath(InvalidPersistentPropertyPath invalidPersistentPropertyPath) {
+        logger.warn("[context].getPersistentPropertyPath({}) called but not implemented", invalidPersistentPropertyPath);
         return null;
     }
 
