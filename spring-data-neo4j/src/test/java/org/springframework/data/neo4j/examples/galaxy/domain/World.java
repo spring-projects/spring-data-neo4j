@@ -12,10 +12,10 @@
 
 package org.springframework.data.neo4j.examples.galaxy.domain;
 
-import org.neo4j.ogm.annotation.Relationship;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import org.neo4j.ogm.annotation.Relationship;
 
 /**
  * @author Vince Bickers
@@ -80,7 +80,12 @@ public class World {
     }
 
     public boolean canBeReachedFrom(World otherWorld) {
-        return reachableByRocket.contains(otherWorld);
+       for(World world : reachableByRocket) {
+           if(world.equals(otherWorld)) {
+               return true;
+           }
+       }
+        return false;
     }
 
     @Override

@@ -32,7 +32,7 @@ public class Cinema {
     @Property(name = "city")
     private String location;
 
-    @Relationship(direction = Relationship.INCOMING)
+    @Relationship(type = "VISITED", direction = Relationship.INCOMING)
     private Set<User> visited = new HashSet<>();
 
     @Relationship(type = "BLOCKBUSTER", direction = Relationship.OUTGOING)
@@ -64,6 +64,7 @@ public class Cinema {
         return location;
     }
 
+    @Relationship(type = "VISITED", direction = Relationship.INCOMING)
     public Set<User> getVisited() {
         return visited;
     }
