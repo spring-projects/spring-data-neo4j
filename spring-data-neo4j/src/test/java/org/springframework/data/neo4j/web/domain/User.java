@@ -12,10 +12,10 @@
 
 package org.springframework.data.neo4j.web.domain;
 
-import org.neo4j.ogm.annotation.Relationship;
-
 import java.util.Collection;
 import java.util.HashSet;
+
+import org.neo4j.ogm.annotation.Relationship;
 
 /**
  * @author Michal Bachman
@@ -46,7 +46,7 @@ public class User {
 
     public void befriend(User user) {
         friends.add(user);
-        user.friends.add(this);
+        //user.friends.add(this);//TODO this is unnecessary. Since the relationship is undirected, it will be read and assigned to both ends. Uncommenting this causes shouldShareSessionBetweenRequestsDuringSameSession  to fail though.
     }
 
     //this doesn't need to be part of the domain, but this class is for testing
