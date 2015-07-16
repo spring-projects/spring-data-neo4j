@@ -30,8 +30,8 @@ import org.springframework.data.util.TypeInformation;
  * This class implements Spring Data's MappingContext interface, scavenging the required data from the OGM's metadata in order
  * to for SDN to play nicely with Spring Data REST.
  *
- * The main thing to note is that this class is effectively a container shim for ClassInfo objects. We don't reload all the
- * mapping information again.
+ * The main thing to note is that this class is effectively a container shim for {@code ClassInfo} objects.  We don't reload
+ * all the mapping information again.
  *
  * @author Vince Bickers
  * @author Adam George
@@ -43,6 +43,11 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 
     private final MetaData metaData;
 
+    /**
+     * Constructs a new {@link Neo4jMappingContext} based on the persistent entities in the given {@link MetaData}.
+     *
+     * @param metaData The OGM {@link MetaData} from which to extract the persistent entities
+     */
     public Neo4jMappingContext(MetaData metaData) {
         this.metaData = metaData;
         for (ClassInfo classInfo : metaData.persistentEntities()) {

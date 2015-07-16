@@ -32,13 +32,13 @@ import org.springframework.data.neo4j.annotation.QueryResult;
  * all the mapping information again.
  *
  * We do not yet support getter/setter access to entity properties.
- *
+ * <p>
  * These attributes do not appear to be used/needed for SDN 4 to inter-operate correctly with SD-REST:
+ * </p>
  * <ul>
  *   <li>mapValueType</li>
  *   <li>typeInformation</li>
- *   <li>isEntity</li>
- *   <li>isMap</li>
+ *   <li>isVersionProperty (there is no SDN versioning at this stage)</li>
  *   <li>isTransient (we never supply transient classes to the Spring mapping context)</li>
  *   <li>isWritable (we don't currently support read-only fields)</li>
  * </ul>
@@ -55,6 +55,16 @@ public class Neo4jPersistentProperty extends AbstractPersistentProperty<Neo4jPer
 
     private final boolean isIdProperty;
 
+    /**
+     * Constructs a new {@link Neo4jPersistentProperty} based on the given arguments.
+     *
+     * @param owningClassInfo The {@link ClassInfo} of the object of which the property field is a member
+     * @param field The property {@link Field}
+     * @param descriptor The Java bean {@link PropertyDescriptor}
+     * @param owner The owning {@link PersistentEntity} that corresponds to the given {@code ClassInfo}
+     * @param simpleTypeHolder The {@link SimpleTypeHolder} that dictates whether the type of this property is considered simple
+     *        or not
+     */
     public Neo4jPersistentProperty(ClassInfo owningClassInfo, Field field, PropertyDescriptor descriptor,
             PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
         super(field, descriptor, owner, simpleTypeHolder);
@@ -106,15 +116,12 @@ public class Neo4jPersistentProperty extends AbstractPersistentProperty<Neo4jPer
 
     @Override
     public <A extends Annotation> A findPropertyOrOwnerAnnotation(Class<A> annotationType) {
-        logger.warn("[property].findPropertyOrOwnerAnnotation({}) called but not implemented", annotationType);
-        /**
+        logger.debug("[property].findPropertyOrOwnerAnnotation({}) called");
         A annotation = findAnnotation(annotationType);
         if (annotation != null) {
             return annotation;
         }
-        return (A) owner.findAnnotation(annotationType);
-         **/
-        return null;
+        return owner.findAnnotation(annotationType);
     }
 
 }
