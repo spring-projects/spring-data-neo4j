@@ -51,7 +51,8 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     public Neo4jMappingContext(MetaData metaData) {
         this.metaData = metaData;
         for (ClassInfo classInfo : metaData.persistentEntities()) {
-            if (classInfo.isEnum() || classInfo.isInterface() || classInfo.name().matches("java\\.lang\\.(Object|Enum)")) {
+            if (classInfo.isEnum() || classInfo.name().matches("java\\.lang\\.(Object|Enum)")) {
+                logger.debug("Dropping classInfo for " + classInfo.name() + " from Spring Data Commons meta-data.");
                 continue;
             }
 
