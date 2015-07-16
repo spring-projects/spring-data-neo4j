@@ -11,9 +11,10 @@
  */
 package org.springframework.data.neo4j.mapping;
 
-import org.apache.commons.beanutils.BeanUtils;
+import org.neo4j.ogm.entityaccess.EntityFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
@@ -45,13 +46,17 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 
     private static final Logger logger = LoggerFactory.getLogger(Neo4jPersistentEntity.class);
 
+    private final EntityFactory entityFactory;
+
     /**
      * Constructs a new {@link Neo4jPersistentEntity} based on the given type information.
      *
      * @param information The {@link TypeInformation} upon which to base this persistent entity.
+     * @param entityFactory The {@link EntityFactory} to use for cloning entities
      */
-    public Neo4jPersistentEntity(TypeInformation<T> information) {
+    public Neo4jPersistentEntity(TypeInformation<T> information, EntityFactory entityFactory) {
         super(information);
+        this.entityFactory = entityFactory;
     }
 
     /**
@@ -65,13 +70,10 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
      */
     @Override
     public PersistentPropertyAccessor getPropertyAccessor(Object beanToSave) {
-        // XXX ideally we'd use the same infrastructure as the OGM to create the new bean here
-        try {
-            return super.getPropertyAccessor(BeanUtils.cloneBean(beanToSave));
-        } catch (ReflectiveOperationException e) {
-            logger.warn("Couldn't clone bean of " + beanToSave.getClass() + " due to exception: " + e + ".  Proceeding with uncopied bean instead.");
-            return super.getPropertyAccessor(beanToSave);
-        }
+        // XXX: I'm convinced there must be a better way than this - maybe an OGM-level fix?
+        Object clone = this.entityFactory.newObject(beanToSave.getClass());
+        BeanUtils.copyProperties(beanToSave, clone);
+        return super.getPropertyAccessor(clone);
     }
 
     @Override

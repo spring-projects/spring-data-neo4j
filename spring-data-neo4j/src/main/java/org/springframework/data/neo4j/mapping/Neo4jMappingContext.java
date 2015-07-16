@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashSet;
 
+import org.neo4j.ogm.entityaccess.EntityFactory;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
@@ -42,6 +43,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     private static final Logger logger = LoggerFactory.getLogger(Neo4jMappingContext.class);
 
     private final MetaData metaData;
+    private final EntityFactory entityFactory;
 
     /**
      * Constructs a new {@link Neo4jMappingContext} based on the persistent entities in the given {@link MetaData}.
@@ -50,6 +52,8 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
      */
     public Neo4jMappingContext(MetaData metaData) {
         this.metaData = metaData;
+        this.entityFactory = new EntityFactory(metaData);
+
         for (ClassInfo classInfo : metaData.persistentEntities()) {
             if (classInfo.isEnum() || classInfo.name().matches("java\\.lang\\.(Object|Enum)")) {
                 logger.debug("Dropping classInfo for " + classInfo.name() + " from Spring Data Commons meta-data.");
@@ -69,7 +73,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     @Override
     protected <T> Neo4jPersistentEntity<?> createPersistentEntity(TypeInformation<T> typeInformation) {
         logger.debug("Creating Neo4jPersistentEntity from type information: {}", typeInformation);
-        return new Neo4jPersistentEntity<>(typeInformation);
+        return new Neo4jPersistentEntity<>(typeInformation, this.entityFactory);
     }
 
     @Override
