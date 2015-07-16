@@ -23,8 +23,9 @@ import org.springframework.data.util.TypeInformation;
  *
  * The main thing to note is that this class is effectively a shim for ClassInfo. We don't reload all the mapping information
  * again.
- *
+ * <p>
  * These attributes do not appear to be used/needed for SDN 4 to inter-operate correctly with SD-REST:
+ * </p>
  * <ul>
  *   <li>typeAlias</li>
  *   <li>typeInformation</li>
