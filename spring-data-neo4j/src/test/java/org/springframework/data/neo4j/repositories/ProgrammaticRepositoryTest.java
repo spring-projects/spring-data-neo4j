@@ -12,20 +12,18 @@
 
 package org.springframework.data.neo4j.repositories;
 
+import static org.junit.Assert.assertEquals;
+import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
+
 import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
-import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repositories.domain.Movie;
 import org.springframework.data.neo4j.repositories.repo.MovieRepository;
 import org.springframework.data.neo4j.repository.support.GraphRepositoryFactory;
 import org.springframework.data.neo4j.util.IterableUtils;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
-
-import static org.junit.Assert.assertEquals;
-import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 
 /**
  * @author Michal Bachman
@@ -40,7 +38,7 @@ public class ProgrammaticRepositoryTest {
     @Test
     public void canInstantiateRepositoryProgrammatically() {
         RepositoryFactorySupport factory = new GraphRepositoryFactory(
-                new SessionFactory("org.springframework.data.neo4j.repositories.domain").openSession(neo4jRule.url()),new Neo4jMappingContext(new MetaData()));
+                new SessionFactory("org.springframework.data.neo4j.repositories.domain").openSession(neo4jRule.url()));
         movieRepository = factory.getRepository(MovieRepository.class);
 
         Movie movie = new Movie("PF");

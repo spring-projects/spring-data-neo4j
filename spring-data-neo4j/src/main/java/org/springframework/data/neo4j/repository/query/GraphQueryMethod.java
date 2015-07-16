@@ -16,7 +16,6 @@ import org.neo4j.ogm.session.result.QueryStatistics;
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.QueryResult;
-import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.query.derived.DerivedGraphRepositoryQuery;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryMethod;
@@ -35,16 +34,12 @@ public class GraphQueryMethod extends QueryMethod {
     private final Session session;
     private final Method method;
     private final Query queryAnnotation;
-    private final RepositoryMetadata metadata;
-    private final Neo4jMappingContext mappingContext;
 
-    public GraphQueryMethod(Method method, RepositoryMetadata metadata, Session session, Neo4jMappingContext mappingContext) {
+    public GraphQueryMethod(Method method, RepositoryMetadata metadata, Session session) {
         super(method, metadata);
         this.method = method;
         this.session = session;
         this.queryAnnotation = method.getAnnotation(Query.class);
-        this.metadata = metadata;
-        this.mappingContext = mappingContext;
     }
 
     public String getQuery() {
@@ -91,7 +86,7 @@ public class GraphQueryMethod extends QueryMethod {
             }
             return new GraphRepositoryQuery(this, session);
         }
-        return new DerivedGraphRepositoryQuery(this, session, mappingContext);
+        return new DerivedGraphRepositoryQuery(this, session);
 
     }
 

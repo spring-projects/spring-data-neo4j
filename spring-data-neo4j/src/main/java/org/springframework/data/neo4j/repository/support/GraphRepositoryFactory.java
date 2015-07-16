@@ -31,11 +31,9 @@ import org.springframework.data.repository.query.QueryLookupStrategy;
 public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
     private final Session session;
-    private final Neo4jMappingContext mappingContext;
 
-    public GraphRepositoryFactory(Session session, Neo4jMappingContext mappingContext) {
+    public GraphRepositoryFactory(Session session) {
         this.session = session;
-        this.mappingContext = mappingContext;
     }
 
     @Override
@@ -56,7 +54,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     @Override
     protected QueryLookupStrategy getQueryLookupStrategy(QueryLookupStrategy.Key key,
                                                          EvaluationContextProvider evaluationContextProvider) {
-        return new GraphQueryLookupStrategy(session, key, evaluationContextProvider, mappingContext);
+        return new GraphQueryLookupStrategy(session);
     }
 
 }

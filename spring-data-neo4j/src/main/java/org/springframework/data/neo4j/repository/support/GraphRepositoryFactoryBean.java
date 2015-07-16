@@ -29,20 +29,18 @@ public class GraphRepositoryFactoryBean<S extends Repository<T, Long>, T> extend
     private Session session;
 
     @Autowired
-    SessionFactory sessionFactory;
-
-    Neo4jMappingContext neo4jMappingContext;
+    private SessionFactory sessionFactory;
 
     @Override
     protected RepositoryFactorySupport doCreateRepositoryFactory() {
-        return new GraphRepositoryFactory(session, neo4jMappingContext);
+        return new GraphRepositoryFactory(session);
     }
 
     @Override
     public void afterPropertiesSet() {
         Neo4jMappingContext mappingContext = new Neo4jMappingContext(sessionFactory.metaData());
         setMappingContext(mappingContext);
-        this.neo4jMappingContext = mappingContext;
         super.afterPropertiesSet();
     }
+
 }

@@ -15,7 +15,6 @@ import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
-import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -25,18 +24,15 @@ import org.springframework.data.repository.query.parser.Part;
  */
 public class CypherFinderQuery implements DerivedQueryDefinition {
 
-	private final Neo4jMappingContext mappingContext;
-	private Class entityType;
+	private Class<?> entityType;
 	private Part basePart;
 	private Filters parameters = new Filters();
 	private int paramPosition = 0;
 
-	public CypherFinderQuery(Class entityType, Part basePart, Neo4jMappingContext mappingContext) {
+	public CypherFinderQuery(Class<?> entityType, Part basePart) {
 		this.entityType = entityType;
 		this.basePart = basePart;
-		this.mappingContext = mappingContext;
 	}
-
 
 	@Override
 	public Part getBasePart() { //because the OR is handled in a weird way. Luanne, explain better
@@ -68,7 +64,6 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 
 	}
 
-
 	private ComparisonOperator convertToComparisonOperator(Part.Type type) {
 		switch (type) {
 			case GREATER_THAN:
@@ -79,4 +74,5 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 				return ComparisonOperator.EQUALS;
 		}
 	}
+
 }
