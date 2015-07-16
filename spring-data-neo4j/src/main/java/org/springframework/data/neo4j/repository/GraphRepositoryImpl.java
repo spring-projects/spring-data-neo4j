@@ -66,7 +66,6 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public long count() {
         return session.countEntitiesOfType(clazz);
     }

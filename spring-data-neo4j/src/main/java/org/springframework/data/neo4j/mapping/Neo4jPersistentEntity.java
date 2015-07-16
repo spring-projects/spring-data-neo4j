@@ -11,9 +11,11 @@
  */
 package org.springframework.data.neo4j.mapping;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.util.TypeInformation;
 
@@ -50,6 +52,26 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
      */
     public Neo4jPersistentEntity(TypeInformation<T> information) {
         super(information);
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This is overridden in order to clone the given bean before it's saved because it must not be the same instance as the one
+     * in the mapping context.  If it is kept the same, then changes will be lost when the framework reloads the entity prior to
+     * saving changes to it.
+     * </p>
+     * It may well be deemed that this is not the right place for this fix, but it means that PUT requests will succeed for now.
+     */
+    @Override
+    public PersistentPropertyAccessor getPropertyAccessor(Object beanToSave) {
+        // XXX ideally we'd use the same infrastructure as the OGM to create the new bean here
+        try {
+            return super.getPropertyAccessor(BeanUtils.cloneBean(beanToSave));
+        } catch (ReflectiveOperationException e) {
+            logger.warn("Couldn't clone bean of " + beanToSave.getClass() + " due to exception: " + e + ".  Proceeding with uncopied bean instead.");
+            return super.getPropertyAccessor(beanToSave);
+        }
     }
 
     @Override

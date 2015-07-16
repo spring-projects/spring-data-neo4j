@@ -69,8 +69,8 @@ public class Neo4jPersistentProperty extends AbstractPersistentProperty<Neo4jPer
             PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
         super(field, descriptor, owner, simpleTypeHolder);
 
-        if (owningClassInfo.annotationsInfo().get(QueryResult.class.getName()) != null) {
-            // no ID properties on @QueryResult objects
+        if (owningClassInfo.isInterface() || owningClassInfo.annotationsInfo().get(QueryResult.class.getName()) != null) {
+            // no ID properties on @QueryResult or non-concrete objects
             this.isIdProperty = false;
         } else {
             this.isIdProperty = owningClassInfo.getField(owningClassInfo.identityField()).equals(field);
