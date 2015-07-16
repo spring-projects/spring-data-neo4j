@@ -38,12 +38,11 @@ public class GraphRepositoryFactoryTest {
     GraphRepositoryFactory factory;
 
     @Mock org.neo4j.ogm.session.Session session;
-    @Mock org.springframework.data.neo4j.mapping.Neo4jMappingContext mappingContext;
 
     @Before
     public void setUp() {
 
-        factory = new GraphRepositoryFactory(session, mappingContext) {
+        factory = new GraphRepositoryFactory(session) {
 
         };
     }
@@ -76,6 +75,7 @@ public class GraphRepositoryFactoryTest {
     }
 
     private interface ObjectRepository extends GraphRepository<Object> {
+        @Override
         @Transactional
         Object findOne(Long id);
     }

@@ -11,137 +11,88 @@
  */
 package org.springframework.data.neo4j.mapping;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.HashSet;
 
-import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.mapping.context.InvalidPersistentPropertyPath;
-import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.mapping.context.PersistentPropertyPath;
+import org.springframework.data.mapping.context.AbstractMappingContext;
+import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
 
 /**
- * This class implements Spring Data's MappingContext interface, scavenging the required data from the
- * OGM's metadata in order to for SDN to play nicely with Spring Data REST.
+ * This class implements Spring Data's MappingContext interface, scavenging the required data from the OGM's metadata in order
+ * to for SDN to play nicely with Spring Data REST.
  *
- * The main thing to note is that this class is effectively a container shim for ClassInfo objects. We don't reload
- * all the mapping information again. 
+ * The main thing to note is that this class is effectively a container shim for ClassInfo objects. We don't reload all the
+ * mapping information again.
  *
- * @author: Vince Bickers
+ * @author Vince Bickers
+ * @author Adam George
  * @since 4.0.0
- *
  */
-public class Neo4jMappingContext implements MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty>, ApplicationEventPublisherAware, InitializingBean {
+public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> {
 
     private static final Logger logger = LoggerFactory.getLogger(Neo4jMappingContext.class);
 
-    private final Map<Class<?>, Neo4jPersistentEntity> persistentEntities = new HashMap<>();
-
-    private ApplicationEventPublisher applicationEventPublisher;
+    private final MetaData metaData;
 
     public Neo4jMappingContext(MetaData metaData) {
-        logger.debug("[context].Neo4jMappingContext initialised with OGM Metadata: " + metaData.persistentEntities().size() + " classes");
-
+        this.metaData = metaData;
         for (ClassInfo classInfo : metaData.persistentEntities()) {
-            // todo: exclude top level Object class from metadata
-            if (classInfo.name().equals("java.lang.Object")) {
+            if (classInfo.isEnum() || classInfo.isInterface() || classInfo.name().matches("java\\.lang\\.(Object|Enum)")) {
                 continue;
             }
 
             try {
-                FieldInfo identityField = classInfo.identityField();
-                try {
-                    Class<?> clazz = Class.forName(classInfo.name());
-                    Neo4jPersistentEntity neo4jPersistentEntity = new Neo4jPersistentEntity(clazz, classInfo, identityField);
-                    logger.debug("[context].Neo4jMappingContext added persistentEntity for: " + classInfo.name());
-                    persistentEntities.put(clazz, neo4jPersistentEntity);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            } catch (MappingException me) {
-                // a class is in the mapping domain that doesn't have an identity field.
-                // this is not a problem provided the class is not going to be used for entity mapping.
-                // one valid example of such a class is an @QueryResult class. These need to be in
-                // the domain mapping context for now, but don't need an identity field.
-                logger.debug(me.getMessage());
+                addPersistentEntity(Class.forName(classInfo.name()));
+            } catch (ClassNotFoundException e) {
+                logger.error("Failed to load class: " + classInfo.name() + " named in ClassInfo due to exception", e);
             }
         }
 
+        logger.info("Neo4jMappingContext initialisation completed");
     }
 
     @Override
-    public Collection getPersistentEntities() {
-        logger.debug("[context].getPersistentEntities() called");
-        return persistentEntities.values();
+    protected <T> Neo4jPersistentEntity<?> createPersistentEntity(TypeInformation<T> typeInformation) {
+        logger.debug("Creating Neo4jPersistentEntity from type information: {}", typeInformation);
+        return new Neo4jPersistentEntity<>(typeInformation);
     }
 
     @Override
-    public Neo4jPersistentEntity<?> getPersistentEntity(Class<?> type) {
-        logger.debug("[context].getPersistentEntity() called for type {}", type);
-        return persistentEntities.get(type);
+    protected Neo4jPersistentProperty createPersistentProperty(Field field, PropertyDescriptor descriptor, Neo4jPersistentEntity<?> owner,
+            SimpleTypeHolder simpleTypeHolder) {
+
+        ClassInfo owningClassInfo = this.metaData.classInfo(owner.getType().getName());
+
+        Field propertyField = field;
+        if (propertyField == null) {
+            final String fieldName = field != null ? field.getName() : descriptor.getName();
+            FieldInfo fieldInfo = owningClassInfo.propertyFieldByName(fieldName);
+            if (fieldInfo == null) {
+                fieldInfo = owningClassInfo.relationshipFieldByName(fieldName);
+            }
+            if (fieldInfo != null) {
+                propertyField = owningClassInfo.getField(fieldInfo);
+            }
+            else {
+                // there is no field, probably because descriptor gave us a field name derived from a getter
+            }
+        }
+
+        //FIXME: this is filth - there must be a better way to stop this mapping context treating everything as an rich entity
+        // something to do with fieldInfo.isSimple() somewhere along the line, perhaps?
+        SimpleTypeHolder fixedTypeHolder = new SimpleTypeHolder(
+                new HashSet<>(java.util.Arrays.asList(BigDecimal.class, BigInteger.class)), simpleTypeHolder);
+
+        return new Neo4jPersistentProperty(owningClassInfo, propertyField, descriptor, owner, fixedTypeHolder);
     }
 
-    @Override
-    public boolean hasPersistentEntityFor(Class<?> type) {
-        logger.debug("[context].hasPersistentEntity() called for type {}", type);
-        return persistentEntities.containsKey(type);
-    }
-
-    @Override
-    public Neo4jPersistentEntity getPersistentEntity(TypeInformation<?> typeInfo) {
-        logger.warn("[context].getPersistentEntity() called but not implemented");
-        //return persistentEntities.get(typeInfo.getType());
-        return null;
-    }
-
-    @Override
-    public Neo4jPersistentEntity getPersistentEntity(Neo4jPersistentProperty persistentProperty) {
-        logger.warn("[context].getPersistentEntity({}) called but not implemented", persistentProperty.getName());
-        return null;
-    }
-
-    @Override
-    public PersistentPropertyPath getPersistentPropertyPath(PropertyPath propertyPath) {
-        logger.warn("[context].getPersistentPropertyPath({}) called but not implemented", propertyPath);
-        return null;
-    }
-
-    @Override
-    public PersistentPropertyPath getPersistentPropertyPath(String propertyPath, Class<?> type) {
-        logger.warn("[context].getPersistentPropertyPath({}, {}) called but not implemented", propertyPath, type);
-        return null;
-    }
-
-    @Override
-    public PersistentPropertyPath<Neo4jPersistentProperty> getPersistentPropertyPath(InvalidPersistentPropertyPath invalidPersistentPropertyPath) {
-        logger.warn("[context].getPersistentPropertyPath({}) called but not implemented", invalidPersistentPropertyPath);
-        return null;
-    }
-
-    @Override
-    public Collection<TypeInformation<?>> getManagedTypes() {
-        logger.warn("[context].getManagedTypes() called but not implemented");
-        return null;
-    }
-
-    @Override
-    public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-        logger.debug("[context].setApplicationEventPublisher() called");
-        this.applicationEventPublisher = applicationEventPublisher;
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        logger.debug("[context].afterPropertiesSet() called");
-    }
 }

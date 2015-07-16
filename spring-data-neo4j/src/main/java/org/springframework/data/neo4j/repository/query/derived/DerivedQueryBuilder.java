@@ -13,21 +13,19 @@
 package org.springframework.data.neo4j.repository.query.derived;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
-import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
  * The graph query builder.
  *
-/**
  * @author Luanne Misquitta
  */
 public class DerivedQueryBuilder {
 
 	private DerivedQueryDefinition query;
 
-	public DerivedQueryBuilder(Class entityType, Part basePart, Neo4jMappingContext mappingContext) {
-		query = new CypherFinderQuery(entityType, basePart, mappingContext);
+	public DerivedQueryBuilder(Class<?> entityType, Part basePart) {
+		query = new CypherFinderQuery(entityType, basePart);
 	}
 
 	/**
