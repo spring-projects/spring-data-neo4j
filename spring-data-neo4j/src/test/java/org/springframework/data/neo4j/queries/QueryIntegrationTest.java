@@ -12,6 +12,12 @@
 
 package org.springframework.data.neo4j.queries;
 
+import static org.junit.Assert.*;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
+
 import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Ignore;
@@ -30,12 +36,6 @@ import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.*;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Vince Bickers
@@ -93,6 +93,9 @@ public class QueryIntegrationTest {
         executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
         List<Integer> ids = userRepository.getUserIds();
         assertEquals(2, ids.size());
+
+        List<Long> nodeIds = userRepository.getUserNodeIds();
+        assertEquals(2, nodeIds.size());
     }
 
     @Test
@@ -141,6 +144,9 @@ public class QueryIntegrationTest {
         assertEquals(2, i);
     }
 
+    /**
+     * @see DATAGRAPH-698
+     */
     @Test
     public void shouldFindUsersAndMapThemToConcreteQueryResultObjectCollection() {
         executeUpdate("CREATE (g:User {name:'Gary', age:32}), (s:User {name:'Sheila', age:29}), (v:User {name:'Vince', age:66})");
@@ -152,6 +158,9 @@ public class QueryIntegrationTest {
         Iterable<UserQueryResult> queryResult = userRepository.retrieveAllUsersAndTheirAges();
         assertNotNull("The query result shouldn't be null", queryResult);
         assertEquals(expected, queryResult);
+        for(UserQueryResult userQueryResult : queryResult) {
+            assertNotNull(userQueryResult.getUserId());
+        }
     }
 
     /**
