@@ -1,5 +1,8 @@
 package org.springframework.data.neo4j.queries;
 
+import static org.junit.Assert.*;
+
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.session.result.QueryStatistics;
@@ -10,9 +13,6 @@ import org.springframework.data.neo4j.examples.galaxy.repo.WorldRepository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Vince Bickers
@@ -39,6 +39,7 @@ public class QueryReturnTypesTest {
     }
 
     @Test
+    @Ignore //till DATAGRAPH-704 is committed
     public void shouldCallExecuteWhenVoidReturnTypeOnQuery() {
 
         World tatooine = new World("Tatooine", 0);
