@@ -52,9 +52,9 @@ public interface CinemaRepository extends GraphRepository<Cinema> {
 
 	List<Cinema> findByLocationOrVisitedName(String location, String name);
 
-	List<Cinema> findByVisitedNameAndBlockbusterOfTheWeekTitle(String location, String title);
+	List<Cinema> findByVisitedNameAndBlockbusterOfTheWeekName(String location, String name);
 
-	List<Cinema> findByVisitedNameOrBlockbusterOfTheWeekTitle(String location, String title);
+	List<Cinema> findByVisitedNameOrBlockbusterOfTheWeekName(String location, String name);
 
 	List<Cinema> findByVisitedNameAndVisitedMiddleName(String name, String middleName);
 

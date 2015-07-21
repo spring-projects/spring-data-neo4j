@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c)  [2011-2015] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
@@ -12,6 +11,15 @@
  */
 
 package org.springframework.data.neo4j.template;
+
+import static org.junit.Assert.*;
+import static org.neo4j.ogm.session.Utils.*;
+
+import javax.persistence.PersistenceException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.Before;
@@ -28,17 +36,6 @@ import org.neo4j.ogm.session.Utils;
 import org.neo4j.ogm.session.result.QueryStatistics;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.data.neo4j.examples.movies.domain.*;
-import org.springframework.data.neo4j.template.Neo4jOperations;
-import org.springframework.data.neo4j.template.Neo4jTemplate;
-
-import javax.persistence.PersistenceException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-
-import static org.junit.Assert.*;
-import static org.neo4j.ogm.session.Utils.map;
 
 /**
  * @author Adam George
@@ -108,7 +105,7 @@ public class Neo4jTemplateTest {
         Rating loadedRating = this.template.load(Rating.class, filmRating.getId());
         assertNotNull("The loaded rating shouldn't be null", loadedRating);
         assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), loadedRating.getStars());
-        assertEquals("The rated film wasn't saved correctly", film.getTitle(), loadedRating.getMovie().getTitle());
+        assertEquals("The rated film wasn't saved correctly", film.getName(), loadedRating.getMovie().getName());
         assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
     }
 

@@ -151,7 +151,7 @@ public class MoviesIntegrationTest {
         abstractEntityRepository.save( movie );
 
         // byte arrays have to be transferred with a JSON-supported format. Base64 is the default.
-        assertSameGraph( getDatabase(), "CREATE (m:Movie {title:'Pulp Fiction', tags:['cool','classic'], " +
+        assertSameGraph( getDatabase(), "CREATE (m:Movie {name:'Pulp Fiction', tags:['cool','classic'], " +
                 "image:'AQID'})" );
     }
 
@@ -552,7 +552,7 @@ public class MoviesIntegrationTest {
         User michal = ((Iterable<User>)findByProperty(User.class, "name", "Michal" )).iterator().next();
 
         assertSameGraph(getDatabase(), "CREATE (u:User:Person {name:'Michal'})-[:RATED {stars:5, " +
-                "comment:'Best movie ever', ratingTimestamp:0}]->(m:Movie {title:'Pulp Fiction'})");
+                "comment:'Best movie ever', ratingTimestamp:0}]->(m:Movie {name:'Pulp Fiction'})");
     }
 
     @Test
@@ -567,7 +567,7 @@ public class MoviesIntegrationTest {
         user.rate( movie, 5, "Best movie ever" );
         userRepository.save( user );
 
-        TempMovie tempMovie = ((Iterable<TempMovie>) findByProperty(TempMovie.class, "title", "Pulp Fiction")).iterator().next();
+        TempMovie tempMovie = ((Iterable<TempMovie>) findByProperty(TempMovie.class, "name", "Pulp Fiction")).iterator().next();
         assertEquals(1,tempMovie.getRatings().size());
     }
 
@@ -585,7 +585,7 @@ public class MoviesIntegrationTest {
         user.rate( movie, 5, "Best movie ever" );
         userRepository.save(user);
 
-        assertEquals(movie.getTitle(), tempMovieRepository.findOne(movie.getId()).getTitle());
+        assertEquals(movie.getName(), tempMovieRepository.findOne(movie.getId()).getName());
         assertEquals(user.getName(), userRepository.findOne(user.getId()).getName());
         assertEquals(5, ratingRepository.findOne(user.getRatings().iterator().next().getId()).getStars());
 

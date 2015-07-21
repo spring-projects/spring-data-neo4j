@@ -92,7 +92,7 @@ public class DerivedRelationshipEntityQueryTest {
 		Rating loadedRating = ratings.get(0);
 		assertNotNull("The loaded rating shouldn't be null", loadedRating);
 		assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), loadedRating.getStars());
-		assertEquals("The rated film wasn't saved correctly", film.getTitle(), loadedRating.getMovie().getTitle());
+		assertEquals("The rated film wasn't saved correctly", film.getName(), loadedRating.getMovie().getName());
 		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
 	}
 
@@ -114,7 +114,7 @@ public class DerivedRelationshipEntityQueryTest {
 		Rating loadedRating = ratings.get(0);
 		assertNotNull("The loaded rating shouldn't be null", loadedRating);
 		assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), loadedRating.getStars());
-		assertEquals("The rated film wasn't saved correctly", film.getTitle(), loadedRating.getMovie().getTitle());
+		assertEquals("The rated film wasn't saved correctly", film.getName(), loadedRating.getMovie().getName());
 		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
 
 		ratings = ratingRepository.findByStarsAndRatingTimestamp(2,2000);
@@ -139,7 +139,7 @@ public class DerivedRelationshipEntityQueryTest {
 		Rating loadedRating = ratings.get(0);
 		assertNotNull("The loaded rating shouldn't be null", loadedRating);
 		assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), loadedRating.getStars());
-		assertEquals("The rated film wasn't saved correctly", film.getTitle(), loadedRating.getMovie().getTitle());
+		assertEquals("The rated film wasn't saved correctly", film.getName(), loadedRating.getMovie().getName());
 		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
 
 		ratings = ratingRepository.findByStarsAndRatingTimestamp(5,2000);
@@ -164,7 +164,7 @@ public class DerivedRelationshipEntityQueryTest {
 		Rating loadedRating = ratings.get(0);
 		assertNotNull("The loaded rating shouldn't be null", loadedRating);
 		assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), loadedRating.getStars());
-		assertEquals("The rated film wasn't saved correctly", film.getTitle(), loadedRating.getMovie().getTitle());
+		assertEquals("The rated film wasn't saved correctly", film.getName(), loadedRating.getMovie().getName());
 		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
 
 		ratings = ratingRepository.findByStarsAndRatingTimestamp(2,3000);
@@ -190,7 +190,7 @@ public class DerivedRelationshipEntityQueryTest {
 		Rating loadedRating = ratings.get(0);
 		assertNotNull("The loaded rating shouldn't be null", loadedRating);
 		assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), loadedRating.getStars());
-		assertEquals("The rated film wasn't saved correctly", film.getTitle(), loadedRating.getMovie().getTitle());
+		assertEquals("The rated film wasn't saved correctly", film.getName(), loadedRating.getMovie().getName());
 		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
 
 		ratings = ratingRepository.findByStarsAndRatingTimestamp(5, 2000);
@@ -202,14 +202,14 @@ public class DerivedRelationshipEntityQueryTest {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithNestedStartNodeProperty() {
-		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
+		executeUpdate("CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
 		List<Rating> ratings = ratingRepository.findByUserName("Michal");
 		assertEquals(2, ratings.size());
 		Collections.sort(ratings);
-		assertEquals("Speed", ratings.get(0).getMovie().getTitle());
-		assertEquals("The Matrix", ratings.get(1).getMovie().getTitle());
+		assertEquals("Speed", ratings.get(0).getMovie().getName());
+		assertEquals("The Matrix", ratings.get(1).getMovie().getName());
 	}
 
 	/**
@@ -217,18 +217,18 @@ public class DerivedRelationshipEntityQueryTest {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithNestedEndNodeProperty() {
-		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
+		executeUpdate("CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
 
-		List<Rating> ratings = ratingRepository.findByMovieTitle("The Matrix");
+		List<Rating> ratings = ratingRepository.findByMovieName("The Matrix");
 		assertEquals(1, ratings.size());
 		assertEquals("Michal", ratings.get(0).getUser().getName());
-		assertEquals("The Matrix", ratings.get(0).getMovie().getTitle());
+		assertEquals("The Matrix", ratings.get(0).getMovie().getName());
 		assertEquals(4, ratings.get(0).getStars());
 
 
-		ratings = ratingRepository.findByMovieTitle("Chocolat");
+		ratings = ratingRepository.findByMovieName("Chocolat");
 		assertEquals(0, ratings.size());
 	}
 
@@ -237,15 +237,15 @@ public class DerivedRelationshipEntityQueryTest {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithBothStartEndNestedProperty() {
-		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
+		executeUpdate("CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
-		List<Rating> ratings = ratingRepository.findByUserNameAndMovieTitle("Michal", "Speed");
+		List<Rating> ratings = ratingRepository.findByUserNameAndMovieName("Michal", "Speed");
 		assertEquals(1, ratings.size());
 		assertEquals("Michal", ratings.get(0).getUser().getName());
-		assertEquals("Speed", ratings.get(0).getMovie().getTitle());
+		assertEquals("Speed", ratings.get(0).getMovie().getName());
 		assertEquals(3, ratings.get(0).getStars());
 
-		ratings = ratingRepository.findByUserNameAndMovieTitle("Michal", "Chocolat");
+		ratings = ratingRepository.findByUserNameAndMovieName("Michal", "Chocolat");
 		assertEquals(0, ratings.size());
 	}
 
@@ -254,12 +254,12 @@ public class DerivedRelationshipEntityQueryTest {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithBaseAndNestedStartNodePropertyAnded() {
-		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
+		executeUpdate("CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 		List<Rating> ratings = ratingRepository.findByUserNameAndStars("Michal", 3);
 		assertEquals(1, ratings.size());
 		assertEquals("Michal", ratings.get(0).getUser().getName());
-		assertEquals("Speed", ratings.get(0).getMovie().getTitle());
+		assertEquals("Speed", ratings.get(0).getMovie().getName());
 		assertEquals(3, ratings.get(0).getStars());
 
 		ratings = ratingRepository.findByUserNameAndStars("Michal", 1);
@@ -273,16 +273,16 @@ public class DerivedRelationshipEntityQueryTest {
 	 */
 	@Test(expected = UnsupportedOperationException.class)
 	public void shouldFindRelEntitiesWithBaseAndNestedStartNodePropertyOred() {
-		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
+		executeUpdate("CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u2:User {name:'Vince'})  " +
 				" CREATE (u)-[:RATED {stars:2}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)" +
 				" CREATE (u2)-[:RATED {stars:3}]->(m)");
 		List<Rating> ratings = ratingRepository.findByStarsOrUserName(3, "Michal");
 		assertEquals(3, ratings.size());
 		Collections.sort(ratings);
-		assertEquals("Speed", ratings.get(0).getMovie().getTitle());
-		assertEquals("Chocolat", ratings.get(1).getMovie().getTitle());
-		assertEquals("The Matrix", ratings.get(2).getMovie().getTitle());
+		assertEquals("Speed", ratings.get(0).getMovie().getName());
+		assertEquals("Chocolat", ratings.get(1).getMovie().getName());
+		assertEquals("The Matrix", ratings.get(2).getMovie().getName());
 
 
 		ratings = ratingRepository.findByStarsOrUserName(0, "Vince");
@@ -295,17 +295,17 @@ public class DerivedRelationshipEntityQueryTest {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithBaseAndNestedEndNodeProperty() {
-		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
+		executeUpdate("CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u2:User {name:'Vince'}) " +
 				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)" +
 				" CREATE (u2)-[:RATED {stars:4}]->(m2)");
-		List<Rating> ratings = ratingRepository.findByStarsAndMovieTitle(4,"The Matrix");
+		List<Rating> ratings = ratingRepository.findByStarsAndMovieName(4, "The Matrix");
 		assertEquals(2, ratings.size());
 		Collections.sort(ratings);
 		assertEquals("Michal", ratings.get(0).getUser().getName());
 		assertEquals("Vince", ratings.get(1).getUser().getName());
 
-		ratings = ratingRepository.findByStarsAndMovieTitle(5, "The Matrix");
+		ratings = ratingRepository.findByStarsAndMovieName(5, "The Matrix");
 		assertEquals(0, ratings.size());
 	}
 
@@ -314,15 +314,15 @@ public class DerivedRelationshipEntityQueryTest {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithBaseAndBothStartEndNestedProperty() {
-		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
+		executeUpdate("CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
-		List<Rating> ratings = ratingRepository.findByUserNameAndMovieTitleAndStars("Michal", "Speed", 3);
+		List<Rating> ratings = ratingRepository.findByUserNameAndMovieNameAndStars("Michal", "Speed", 3);
 		assertEquals(1, ratings.size());
 		assertEquals("Michal", ratings.get(0).getUser().getName());
-		assertEquals("Speed", ratings.get(0).getMovie().getTitle());
+		assertEquals("Speed", ratings.get(0).getMovie().getName());
 		assertEquals(3, ratings.get(0).getStars());
 
-		ratings = ratingRepository.findByUserNameAndMovieTitleAndStars("Michal", "Speed", 0);
+		ratings = ratingRepository.findByUserNameAndMovieNameAndStars("Michal", "Speed", 0);
 		assertEquals(0, ratings.size());
 
 	}
@@ -332,7 +332,7 @@ public class DerivedRelationshipEntityQueryTest {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithTwoStartNodeNestedProperties() {
-		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
+		executeUpdate("CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal', middleName:'M'}) CREATE (u2:User {name:'Vince', middleName:'M'}) " +
 				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)" +
 				" CREATE (u2)-[:RATED {stars:4}]->(m2)");
@@ -340,9 +340,9 @@ public class DerivedRelationshipEntityQueryTest {
 		assertEquals(2, ratings.size());
 		Collections.sort(ratings);
 		assertEquals("Michal", ratings.get(0).getUser().getName());
-		assertEquals("Speed", ratings.get(0).getMovie().getTitle());
+		assertEquals("Speed", ratings.get(0).getMovie().getName());
 		assertEquals("Michal", ratings.get(1).getUser().getName());
-		assertEquals("The Matrix", ratings.get(1).getMovie().getTitle());
+		assertEquals("The Matrix", ratings.get(1).getMovie().getName());
 
 		ratings = ratingRepository.findByUserNameAndUserMiddleName("Michal", "V");
 		assertEquals(0, ratings.size());

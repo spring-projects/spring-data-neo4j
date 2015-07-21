@@ -50,7 +50,7 @@ public interface UserRepository extends GraphRepository<User> {
     @Query("MATCH (user:User) RETURN user")
     Collection<User> getAllUsers();
 
-    @Query("MATCH (m:Movie)<-[:ACTED_IN]-(a:User) RETURN m.title as movie, collect(a.name) as cast")
+    @Query("MATCH (m:Movie)<-[:ACTED_IN]-(a:User) RETURN m.name as movie, collect(a.name) as cast")
     List<Map<String, Object>> getGraph();
 
     @Query("MATCH (user:User{name:{name}}) RETURN user")
