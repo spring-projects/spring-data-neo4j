@@ -2,7 +2,6 @@ package org.springframework.data.neo4j.queries;
 
 import static org.junit.Assert.*;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.session.result.QueryStatistics;
@@ -16,6 +15,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 @ContextConfiguration(classes = {GalaxyContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -38,8 +38,10 @@ public class QueryReturnTypesTest {
 
     }
 
+    /**
+     * @see DATAGRAPH-704
+     */
     @Test
-    @Ignore //till DATAGRAPH-704 is committed
     public void shouldCallExecuteWhenVoidReturnTypeOnQuery() {
 
         World tatooine = new World("Tatooine", 0);
@@ -48,7 +50,7 @@ public class QueryReturnTypesTest {
         tatooine.addRocketRouteTo(dagobah);
 
         worldRepository.save(tatooine);
-        worldRepository.touchOnlyWorldsReachableByRocket();
+        worldRepository.touchAllWorlds();
 
         tatooine = worldRepository.findOne(tatooine.getId());
 
