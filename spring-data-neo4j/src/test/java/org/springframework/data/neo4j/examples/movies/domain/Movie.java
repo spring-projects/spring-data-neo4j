@@ -17,19 +17,19 @@ package org.springframework.data.neo4j.examples.movies.domain;
  */
 public class Movie extends AbstractEntity {
 
-    private String title;
+    private String name;
     private String[] tags;
     private byte[] image;
 
     public Movie() {
     }
 
-    public Movie(String title) {
-        this.title = title;
+    public Movie(String name) {
+        this.name = name;
     }
 
-    public String getTitle() {
-        return title;
+    public String getName() {
+        return name;
     }
 
     public String[] getTags() {

@@ -68,8 +68,8 @@ public class QueryIntegrationTest {
     public void shouldFindArbitraryGraph() {
         executeUpdate(
                 "CREATE " +
-                        "(dh:Movie {title:'Die Hard'}), " +
-                        "(fe:Movie {title: 'The Fifth Element'}), " +
+                        "(dh:Movie {name:'Die Hard'}), " +
+                        "(fe:Movie {name: 'The Fifth Element'}), " +
                         "(bw:User {name: 'Bruce Willis'}), " +
                         "(ar:User {name: 'Alan Rickman'}), " +
                         "(mj:User {name: 'Milla Jovovich'}), " +

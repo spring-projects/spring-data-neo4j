@@ -291,6 +291,7 @@ public class DerivedQueryTest {
 
 	/**
 	 * @see DATAGRAPH-629
+	 * @see DATAGRAPH-705
 	 */
 	@Test
 	public void shouldFindNodeEntititiesWithTwoNestedPropertiesAnded() {
@@ -298,16 +299,16 @@ public class DerivedQueryTest {
 				" CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
 				" CREATE (u:User {name:'Michal'}) " +
 				" CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(p)" +
-				" CREATE (m1:Movie {title:'San Andreas'}) " +
-				" CREATE (m2:Movie {title:'Pitch Perfect 2'})" +
+				" CREATE (m1:Movie {name:'San Andreas'}) " +
+				" CREATE (m2:Movie {name:'Pitch Perfect 2'})" +
 				" CREATE (p)-[:BLOCKBUSTER]->(m1)" +
 				" CREATE (r)-[:BLOCKBUSTER]->(m2)");
 
-		List<Cinema> theatres = cinemaRepository.findByVisitedNameAndBlockbusterOfTheWeekTitle("Michal", "San Andreas");
+		List<Cinema> theatres = cinemaRepository.findByVisitedNameAndBlockbusterOfTheWeekName("Michal", "San Andreas");
 		assertEquals(1, theatres.size());
 		assertTrue(theatres.contains(new Cinema("Picturehouse")));
 
-		theatres = cinemaRepository.findByVisitedNameAndBlockbusterOfTheWeekTitle("Michal", "Tomorrowland");
+		theatres = cinemaRepository.findByVisitedNameAndBlockbusterOfTheWeekName("Michal", "Tomorrowland");
 		assertEquals(0, theatres.size());
 	}
 
@@ -326,12 +327,12 @@ public class DerivedQueryTest {
 				" CREATE (p)-[:BLOCKBUSTER]->(m1)" +
 				" CREATE (r)-[:BLOCKBUSTER]->(m2)");
 
-		List<Cinema> theatres = cinemaRepository.findByVisitedNameOrBlockbusterOfTheWeekTitle("Michal", "San Andreas");
+		List<Cinema> theatres = cinemaRepository.findByVisitedNameOrBlockbusterOfTheWeekName("Michal", "San Andreas");
 		assertEquals(2, theatres.size());
 		assertTrue(theatres.contains(new Cinema("Picturehouse")));
 		assertTrue(theatres.contains(new Cinema("Ritzy")));
 
-		theatres = cinemaRepository.findByVisitedNameOrBlockbusterOfTheWeekTitle("Vince", "Tomorrowland");
+		theatres = cinemaRepository.findByVisitedNameOrBlockbusterOfTheWeekName("Vince", "Tomorrowland");
 		assertEquals(0, theatres.size());
 	}
 
