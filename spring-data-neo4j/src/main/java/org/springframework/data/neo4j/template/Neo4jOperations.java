@@ -12,13 +12,11 @@
 
 package org.springframework.data.neo4j.template;
 
-import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.session.result.QueryStatistics;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -212,6 +210,7 @@ public interface Neo4jOperations {
      * @return {@link QueryStatistics} representing statistics about graph modifications as a result of the cypher execution.
      */
     QueryStatistics execute(String cypher, Map<String, Object> parameters);
+
     /**
      * Provides the instance count for the given <em>node</em> entity type.  This method is also provided by the
      * corresponding repository.
