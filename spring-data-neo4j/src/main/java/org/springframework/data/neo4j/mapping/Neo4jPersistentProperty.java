@@ -12,15 +12,15 @@
 package org.springframework.data.neo4j.mapping;
 
 import java.beans.PropertyDescriptor;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
+import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.mapping.model.AbstractPersistentProperty;
+import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.annotation.QueryResult;
 
@@ -49,7 +49,7 @@ import org.springframework.data.neo4j.annotation.QueryResult;
  * @author Adam George
  * @since 4.0.0
  */
-public class Neo4jPersistentProperty extends AbstractPersistentProperty<Neo4jPersistentProperty> {
+public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<Neo4jPersistentProperty> {
 
     private static final Logger logger = LoggerFactory.getLogger(Neo4jPersistentProperty.class);
 
@@ -89,39 +89,35 @@ public class Neo4jPersistentProperty extends AbstractPersistentProperty<Neo4jPer
         return false;
     }
 
+    /**
+     * Overridden to force field access as opposed to getter method access for simplicity.
+     *
+     * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#usePropertyAccess()
+     */
     @Override
-    public <A extends Annotation> A findAnnotation(Class<A> annotationType) {
-        logger.debug("[property].getAnnotation({}) returns {}", annotationType, field.getAnnotation(annotationType));
-        return field.getAnnotation(annotationType);
-    }
-
-    @Override
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-        logger.debug("[property].isAnnotationPresent({}) returns {}", annotationType, field.isAnnotationPresent(annotationType));
-        return field.isAnnotationPresent(annotationType);
-    }
-
-    @Override
-    // force to use field access
     public boolean usePropertyAccess() {
-        logger.debug("[property].usePropertyAccess() returns false");  // by design
+        logger.debug("[property].usePropertyAccess() returns false");
         return false;
+    }
+
+    /**
+     * Determines whether or not this property should be considered an association to another entity or whether it's
+     * just a simple property that should be shown as a value.
+     * <p>
+     * This implementation works by looking for non-transient members annotated with <code>@Relationship</code>.
+     * </p>
+     *
+     * @return <code>true</code> if this property is an association to another entity, <code>false</code> if not
+     */
+    @Override
+    public boolean isAssociation() {
+        // TODO: can we also work out whether the target class is a node/relationship entity?
+        return !isTransient() && isAnnotationPresent(Relationship.class);
     }
 
     @Override
     protected Association<Neo4jPersistentProperty> createAssociation() {
-        logger.warn("[property].createAssociation({}) called but not implemented");
-        return null;
-    }
-
-    @Override
-    public <A extends Annotation> A findPropertyOrOwnerAnnotation(Class<A> annotationType) {
-        logger.debug("[property].findPropertyOrOwnerAnnotation({}) called");
-        A annotation = findAnnotation(annotationType);
-        if (annotation != null) {
-            return annotation;
-        }
-        return owner.findAnnotation(annotationType);
+        return new Association<Neo4jPersistentProperty>(this, null);
     }
 
 }
