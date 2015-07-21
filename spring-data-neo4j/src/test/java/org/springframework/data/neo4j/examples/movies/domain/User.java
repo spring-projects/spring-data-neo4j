@@ -68,4 +68,8 @@ public class User extends Person{
     {
         return middleName;
     }
+
+    public Set<Rating> getRatings() {
+        return ratings;
+    }
 }

@@ -80,6 +80,9 @@ public class MoviesIntegrationTest {
     private ActorRepository actorRepository;
 
     @Autowired
+    private RatingRepository ratingRepository;
+
+    @Autowired
     private Session session;
 
     private GraphDatabaseService getDatabase() {
@@ -566,6 +569,31 @@ public class MoviesIntegrationTest {
 
         TempMovie tempMovie = ((Iterable<TempMovie>) findByProperty(TempMovie.class, "title", "Pulp Fiction")).iterator().next();
         assertEquals(1,tempMovie.getRatings().size());
+    }
+
+    /**
+     * @see DATAGRAPH-707
+     */
+    @Test
+    public void findOneShouldConsiderTheEntityType() {
+        TempMovie movie = new TempMovie( "Pulp Fiction" );
+        //Save the movie
+        movie = tempMovieRepository.save(movie);
+
+        //Create a new user and rate an existing movie
+        User user = new User( "Michal" );
+        user.rate( movie, 5, "Best movie ever" );
+        userRepository.save(user);
+
+        assertEquals(movie.getTitle(), tempMovieRepository.findOne(movie.getId()).getTitle());
+        assertEquals(user.getName(), userRepository.findOne(user.getId()).getName());
+        assertEquals(5, ratingRepository.findOne(user.getRatings().iterator().next().getId()).getStars());
+
+        assertNull(tempMovieRepository.findOne(user.getId()));
+        assertNull(userRepository.findOne(movie.getId(),0));
+        assertNull(ratingRepository.findOne(user.getId()));
+
+
     }
 
     private Calendar createDate( int y, int m, int d, String tz )

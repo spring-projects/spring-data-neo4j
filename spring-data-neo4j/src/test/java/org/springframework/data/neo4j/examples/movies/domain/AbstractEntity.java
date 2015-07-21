@@ -14,8 +14,13 @@ package org.springframework.data.neo4j.examples.movies.domain;
 
 /**
  * @author Michal Bachman
+ * @author Luanne Misquitta
  */
 public abstract class AbstractEntity {
 
     Long id;
+
+    public Long getId() {
+        return id;
+    }
 }
