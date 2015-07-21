@@ -25,6 +25,7 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author Michal Bachman
+ * @author Luanne Misquitta
  */
 @Repository
 public interface UserRepository extends GraphRepository<User> {
@@ -72,5 +73,8 @@ public interface UserRepository extends GraphRepository<User> {
 
     @Query("MATCH (user:User) WHERE user.name={0} RETURN user")
     EntityWrappingQueryResult findWrappedUserByName(String userName);
+
+    @Query("MATCH (user:User) RETURN ID(user)")
+    List<Long> getUserNodeIds();
 
 }

@@ -22,10 +22,14 @@ import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
  * the entity classes.
  *
  * @see UserRepository
+ *
+ * @author Adam George
+ * @author Luanne Misquitta
  */
 @QueryResult
 public class UserQueryResult {
 
+    Long userId;
     private String userName;
     private int age;
 
@@ -54,6 +58,10 @@ public class UserQueryResult {
     @Property(name = "user.age")
     public void setAge(int age) {
         this.age = age;
+    }
+
+    public Long getUserId() {
+        return userId;
     }
 
     @Override
