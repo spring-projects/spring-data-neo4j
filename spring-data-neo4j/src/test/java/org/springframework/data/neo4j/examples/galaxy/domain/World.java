@@ -19,6 +19,7 @@ import org.neo4j.ogm.annotation.Relationship;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class World {
 
@@ -89,18 +90,23 @@ public class World {
     }
 
     @Override
-    public int hashCode() {
-        return (id == null) ? 0 : id.hashCode();
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        World world = (World) o;
+
+        if (moons != world.moons) return false;
+        if (id != null ? !id.equals(world.id) : world.id != null) return false;
+        return !(name != null ? !name.equals(world.name) : world.name != null);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-        World other = (World) obj;
-        if (id == null) return other.id == null;
-        return id.equals(other.id);
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + moons;
+        return result;
     }
 
     @Override
