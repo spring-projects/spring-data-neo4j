@@ -13,11 +13,9 @@
 package org.springframework.data.neo4j.examples.friends;
 
 import org.neo4j.ogm.session.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.server.InProcessServer;
 import org.springframework.data.neo4j.server.Neo4jServer;
@@ -27,13 +25,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Luanne Misquitta
  */
 @Configuration
-@ComponentScan({"org.springframework.data.neo4j.examples.friends.*"})
+@ComponentScan("org.springframework.data.neo4j.examples.friends")
 @EnableTransactionManagement
 public class FriendContext extends Neo4jConfiguration {
-
-
-    @Autowired
-    private Environment environment;
 
     @Bean
     @Override

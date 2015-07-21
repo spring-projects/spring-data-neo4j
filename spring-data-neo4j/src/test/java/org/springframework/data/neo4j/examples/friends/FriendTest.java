@@ -12,8 +12,11 @@
 
 package org.springframework.data.neo4j.examples.friends;
 
+import static org.junit.Assert.*;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -27,35 +30,18 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class FriendTest {
 
 	@Autowired Session session;
+	@Autowired FriendService friendService;
 
 	/**
-	 * DATAGRAPH-690
+	 * DATAGRAPH-703
 	 */
 	@Test
-	//@Transactional // This causes the NPE
 	public void savingPersonWhenTransactionalShouldWork() {
-		Person john = new Person();
-		john.setFirstName("John");
-		session.save(john);
+		friendService.createPersonAndFriends();
 
-		Person bob = new Person();
-		bob.setFirstName("Bob");
-		session.save(bob);
-
-		Person bill = new Person();
-		bob.setFirstName("Bill");
-		session.save(bill);
-
-		john = session.load(Person.class, john.getId());
-		bob = session.load(Person.class, bob.getId());
-		Friendship friendship1 = john.addFriend(bob);
-		friendship1.setTimestamp(System.currentTimeMillis());
-		session.save(john);
-
-		john = session.load(Person.class, john.getId());
-		bill = session.load(Person.class, bill.getId());
-		Friendship friendship2 = john.addFriend(bill);
-		friendship2.setTimestamp(System.currentTimeMillis());
-		session.save(john); // throws NPE if annotated with @Transactional
+		session.clear();
+		Person john = session.loadAll(Person.class, new Filter("firstName", "John")).iterator().next();
+		assertNotNull(john);
+		assertEquals(2, john.getFriendships().size());;
 	}
 }
