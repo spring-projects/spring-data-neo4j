@@ -73,7 +73,7 @@
             <roles>
                 <role>Developer</role>
             </roles>
-            <timezone>+7</timezone>
+            <timezone>+5:30</timezone>
         </developer>
         <developer>
             <id>mangrish</id>
