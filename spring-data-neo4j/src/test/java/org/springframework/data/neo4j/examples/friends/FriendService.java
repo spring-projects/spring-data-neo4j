@@ -14,6 +14,8 @@ package org.springframework.data.neo4j.examples.friends;
 
 import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.examples.friends.domain.Friendship;
+import org.springframework.data.neo4j.examples.friends.domain.Person;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -10,13 +10,16 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
 
-package org.springframework.data.neo4j.examples.friends;
+package org.springframework.data.neo4j.examples.friends.context;
 
 import org.neo4j.ogm.session.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.server.InProcessServer;
 import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -25,9 +28,14 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Luanne Misquitta
  */
 @Configuration
-@ComponentScan("org.springframework.data.neo4j.examples.friends")
+@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.friends.repo")
+@ComponentScan({"org.springframework.data.neo4j.examples.friends"})
 @EnableTransactionManagement
 public class FriendContext extends Neo4jConfiguration {
+
+
+    @Autowired
+    private Environment environment;
 
     @Bean
     @Override
@@ -38,7 +46,7 @@ public class FriendContext extends Neo4jConfiguration {
     @Bean
     @Override
     public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.examples.friends");
+        return new SessionFactory("org.springframework.data.neo4j.examples.friends.domain");
     }
 
 }
