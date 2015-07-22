@@ -63,16 +63,24 @@
             <dependency>
                 <groupId>org.springframework.data</groupId>
                 <artifactId>spring-data-rest-webmvc</artifactId>
-                <version>2.4.0.BUILD-SNAPSHOT</version>
-                <!--version>2.3.1.RELEASE</version-->
+                <version>2.4.0.M1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.springframework.data</groupId>
                 <artifactId>spring-data-neo4j-rest</artifactId>
-                <version>3.4.0.BUILD-SNAPSHOT</version>
-                <!--version>3.3.1.RELEASE</version-->
+                <version>3.4.0.M1</version>
                 <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.sun.jersey</groupId>
+                        <artifactId>jersey-client</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sun.jersey</groupId>
+                        <artifactId>jersey-core</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
