@@ -15,6 +15,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 
 import org.neo4j.ogm.annotation.Relationship;
+import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +74,14 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
             // no ID properties on @QueryResult or non-concrete objects
             this.isIdProperty = false;
         } else {
-            this.isIdProperty = owningClassInfo.getField(owningClassInfo.identityField()).equals(field);
+            boolean idProperty = false;
+            try {
+                // crash prevention - hopefully won't be here too long
+                idProperty = owningClassInfo.getField(owningClassInfo.identityField()).equals(field);
+            } catch (MappingException me) {
+                logger.error("Error finding identity field on " + owningClassInfo.name(), me);
+            }
+            this.isIdProperty = idProperty;
         }
     }
 

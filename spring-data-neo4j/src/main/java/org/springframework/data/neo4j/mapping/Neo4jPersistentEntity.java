@@ -11,14 +11,17 @@
  */
 package org.springframework.data.neo4j.mapping;
 
+import java.lang.reflect.Field;
+
 import org.neo4j.ogm.entityaccess.EntityFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.util.ReflectionUtils.FieldCallback;
 
 /**
  * This class implements Spring Data's PersistentEntity interface, scavenging the required data from the OGM's mapping classes
@@ -69,10 +72,19 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
      * It may well be deemed that this is not the right place for this fix, but it means that PUT requests will succeed for now.
      */
     @Override
-    public PersistentPropertyAccessor getPropertyAccessor(Object beanToSave) {
+    public PersistentPropertyAccessor getPropertyAccessor(final Object beanToSave) {
         // XXX: I'm convinced there must be a better way than this - maybe an OGM-level fix?
-        Object clone = this.entityFactory.newObject(beanToSave.getClass());
-        BeanUtils.copyProperties(beanToSave, clone);
+        final Object clone = this.entityFactory.newObject(beanToSave.getClass());
+
+        ReflectionUtils.doWithFields(beanToSave.getClass(), new FieldCallback() {
+            @Override
+            public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
+                ReflectionUtils.makeAccessible(field);
+                Object value = field.get(beanToSave);
+                ReflectionUtils.setField(field, clone, value);
+            }
+        });
+
         return super.getPropertyAccessor(clone);
     }
 
