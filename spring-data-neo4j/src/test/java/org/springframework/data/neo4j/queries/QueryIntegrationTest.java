@@ -219,5 +219,30 @@ public class QueryIntegrationTest {
     }
 
 
+    /**
+     * @see DATAGRAPH-694
+     */
+    @Test
+    public void shouldSubstituteUserId() {
+        executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
+
+        User michal = userRepository.findUserByName("Michal");
+        assertNotNull(michal);
+        User user = userRepository.loadUserById(michal);
+        assertEquals("Michal",user.getName());
+    }
+
+    /**
+     * @see DATAGRAPH-694
+     */
+    @Test
+    public void shouldSubstituteNamedParamUserId() {
+        executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
+
+        User michal = userRepository.findUserByName("Michal");
+        assertNotNull(michal);
+        User user = userRepository.loadUserByNamedId(michal);
+        assertEquals("Michal",user.getName());
+    }
 
 }

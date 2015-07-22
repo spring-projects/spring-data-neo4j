@@ -77,4 +77,11 @@ public interface UserRepository extends GraphRepository<User> {
     @Query("MATCH (user:User) RETURN ID(user)")
     List<Long> getUserNodeIds();
 
+    @Query("MATCH (user:User) WHERE ID(user)={0} return user")
+    User loadUserById(User user);
+
+    @Query("MATCH (user:User) WHERE ID(user)={userId} RETURN user")
+    User loadUserByNamedId(@Param("userId") User user);
+
+
 }

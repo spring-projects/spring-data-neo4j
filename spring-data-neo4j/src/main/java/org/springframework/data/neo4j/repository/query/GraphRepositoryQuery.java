@@ -12,13 +12,13 @@
 
 package org.springframework.data.neo4j.repository.query;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
-
-import java.util.HashMap;
-import java.util.Map;
 
 
 /**
@@ -72,16 +72,23 @@ public class GraphRepositoryQuery implements RepositoryQuery {
     }
 
     private Map<String, Object> resolveParams(Object[] parameters) {
+
         Map<String, Object> params = new HashMap<>();
         Parameters<?, ?> methodParameters = graphQueryMethod.getParameters();
 
         for (int i = 0; i < parameters.length; i++) {
             Parameter parameter = methodParameters.getParameter(i);
 
+            //The parameter might be an entity, try to resolve its id
+            Object parameterValue = session.resolveGraphIdFor(parameters[i]);
+            if(parameterValue == null) { //Either not an entity or not persisted
+                parameterValue = parameters[i];
+            }
+
             if (parameter.isNamedParameter()) {
-                params.put(parameter.getName(), parameters[i]);
+                params.put(parameter.getName(), parameterValue);
             } else {
-                params.put("" + i, parameters[i]);
+                params.put("" + i, parameterValue);
             }
         }
         return params;

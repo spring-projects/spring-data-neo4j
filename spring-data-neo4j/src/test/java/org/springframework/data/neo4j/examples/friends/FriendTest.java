@@ -19,6 +19,10 @@ import org.junit.runner.RunWith;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.examples.friends.context.FriendContext;
+import org.springframework.data.neo4j.examples.friends.domain.Friendship;
+import org.springframework.data.neo4j.examples.friends.domain.Person;
+import org.springframework.data.neo4j.examples.friends.repo.FriendshipRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -30,10 +34,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class FriendTest {
 
 	@Autowired Session session;
+	@Autowired FriendshipRepository friendshipRepository;
 	@Autowired FriendService friendService;
 
 	/**
-	 * DATAGRAPH-703
+	 * @see DATAGRAPH-703
 	 */
 	@Test
 	public void savingPersonWhenTransactionalShouldWork() {
@@ -43,5 +48,29 @@ public class FriendTest {
 		Person john = session.loadAll(Person.class, new Filter("firstName", "John")).iterator().next();
 		assertNotNull(john);
 		assertEquals(2, john.getFriendships().size());;
+	}
+
+	/**
+	 * @see DATAGRAPH-694
+	 */
+	@Test
+	public void circularParamtersShouldNotProduceInfiniteRecursion() {
+		Person john = new Person();
+		john.setFirstName("John");
+		session.save(john);
+
+		Person bob = new Person();
+		bob.setFirstName("Bob");
+		session.save(bob);
+
+		Friendship friendship1 = john.addFriend(bob);
+		friendship1.setTimestamp(System.currentTimeMillis());
+		session.save(john);
+
+		Friendship queriedFriendship = friendshipRepository.getFriendship(john,bob);
+		assertNotNull(queriedFriendship);
+		assertEquals("John",queriedFriendship.getPersonStartNode().getFirstName());
+		assertEquals("Bob",queriedFriendship.getPersonEndNode().getFirstName());
+
 	}
 }

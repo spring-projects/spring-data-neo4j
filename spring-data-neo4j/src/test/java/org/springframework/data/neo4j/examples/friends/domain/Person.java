@@ -10,7 +10,7 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
 
-package org.springframework.data.neo4j.examples.friends;
+package org.springframework.data.neo4j.examples.friends.domain;
 
 import java.util.HashSet;
 import java.util.Set;
