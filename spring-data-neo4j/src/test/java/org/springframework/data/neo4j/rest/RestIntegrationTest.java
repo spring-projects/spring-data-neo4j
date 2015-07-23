@@ -43,7 +43,9 @@ public class RestIntegrationTest {
                 + "(b:Cricketer:Batsman:WicketKeeper {name:'Brendon',battingAverage:'38.91'}), "
                 + "(s:Cricketer:Batsman:Bowler {name:'Shane',battingAverage:'42.79'}), "
                 + "(w:Cricketer:Bowler {name:'Wahab'}), "
-                + "(a:Cricketer:Batsman {name:'Alastair',battingAverage:'45.20'})");
+                + "(a:Cricketer:Batsman {name:'Alastair',battingAverage:'45.20'}), "
+                + "(essex:Team {name:'Essex'}), (lancs:Team {name:'Lancashire'}), (scum:Team {name:'Yorkshire'}) "
+                + "WITH a, essex MERGE (a)-[:PLAYS_FOR]->(essex)");
     }
 
     @Test
@@ -59,6 +61,42 @@ public class RestIntegrationTest {
             e.printStackTrace(System.err);
             org.junit.Assert.fail(e.getMessage());
         }
+    }
+
+    @Ignore
+    @Test
+    public void shouldRetrieveParticularResourceByGraphId() {
+        org.junit.Assert.fail("This test hasn't been written yet");
+    }
+
+    @Ignore
+    @Test
+    public void shouldSupportAdditionAndRemovalOfNewResource() {
+        org.junit.Assert.fail("This test hasn't been written yet");
+    }
+
+    @Ignore
+    @Test
+    public void shouldSupportUpdateOfExistingResourceUsingHttpPut() {
+        org.junit.Assert.fail("This test hasn't been written yet");
+    }
+
+    @Ignore
+    @Test
+    public void shouldSupportUpdateOfExistingResourceUsingHttpPatch() {
+        org.junit.Assert.fail("This test hasn't been written yet");
+    }
+
+    @Ignore
+    @Test
+    public void shouldAllowAdditionOfNewRelationshipsBetweenEntities() {
+        org.junit.Assert.fail("This test hasn't been written yet");
+    }
+
+    @Ignore
+    @Test
+    public void shouldAllowRemovalOfRelationshipBetweenEntities() {
+        org.junit.Assert.fail("This test hasn't been written yet");
     }
 
 }

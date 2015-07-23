@@ -32,6 +32,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 
+/**
+ * Spring configuration bean for testing Spring Data REST integration.
+ *
+ * @see org.springframework.data.neo4j.rest.RestTestServer
+ * @see org.springframework.data.neo4j.rest.RestIntegrationTestRule
+ * @author Adam George
+ */
 @Configuration
 @Import(RepositoryRestMvcConfiguration.class)
 @ComponentScan({"org.springframework.data.neo4j.rest"})

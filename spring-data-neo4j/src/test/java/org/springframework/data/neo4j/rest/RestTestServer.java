@@ -24,17 +24,25 @@ import org.springframework.web.servlet.DispatcherServlet;
 /**
  * Simple server that encapsulates a Neo4j database fronted by an HTTP server exposing repositories over Spring Data REST.
  */
-public class RestServer {
+public class RestTestServer {
 
     private TestServer neo4jDatabase;
     private Server restServer;
     private final int restServerPort;
 
-    public RestServer() {
+    /**
+     * Constructs a new {@link RestTestServer} on localhost:9090.
+     */
+    public RestTestServer() {
         this(9090);
     }
 
-    public RestServer(int restServerPort) {
+    /**
+     * Constructs a new {@link RestTestServer} listening on the specified local TCP port.
+     *
+     * @param restServerPort The TCP port on which the RESTful HTTP server should listen
+     */
+    public RestTestServer(int restServerPort) {
         this.restServerPort = restServerPort;
     }
 
@@ -46,18 +54,18 @@ public class RestServer {
         this.neo4jDatabase = new TestServer(RestTestContext.NEO4J_TEST_PORT);
         this.restServer = new Server(this.restServerPort);
 
-        AnnotationConfigWebApplicationContext springyWac = new AnnotationConfigWebApplicationContext();
-        springyWac.register(RestTestContext.class);
-        springyWac.refresh();
+        AnnotationConfigWebApplicationContext wac = new AnnotationConfigWebApplicationContext();
+        wac.register(RestTestContext.class);
+        wac.refresh();
 
         ServletHolder dispatcherServletHolder = new ServletHolder();
-        dispatcherServletHolder.setServlet(new DispatcherServlet(springyWac));
+        dispatcherServletHolder.setServlet(new DispatcherServlet(wac));
 
         ServletContextHandler handler = new ServletContextHandler();
         handler.addServlet(dispatcherServletHolder, "/*");
         handler.setContextPath("/");
-        handler.setServer(restServer);
-        handler.addEventListener(new ContextLoaderListener(springyWac));
+        handler.setServer(this.restServer);
+        handler.addEventListener(new ContextLoaderListener(wac));
         this.restServer.setHandler(handler);
 
         try {

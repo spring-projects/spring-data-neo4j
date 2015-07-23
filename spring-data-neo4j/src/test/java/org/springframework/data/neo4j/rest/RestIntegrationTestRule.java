@@ -17,18 +17,23 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.neo4j.graphdb.GraphDatabaseService;
 
+/**
+ * JUnit {@link TestRule} that runs a {@link GraphDatabaseService} behind a Spring Data REST API to provide an infrastructure
+ * for testing integration of SDN with Spring Data REST.
+ *
+ * @author Adam George
+ */
 public class RestIntegrationTestRule implements TestRule {
 
     private static final int REST_SERVER_PORT = 9090;
 
-    private final RestServer restServer;
+    private final RestTestServer restServer;
 
     /**
-     * Constructs a new {@link RestIntegrationTestRule} that initialises a test {@link RestServer} listening
-     * on TCP port 9090.
+     * Constructs a new {@link RestIntegrationTestRule} that initialises a test {@link RestTestServer} listening on TCP port 9090.
      */
     public RestIntegrationTestRule() {
-        this.restServer = new RestServer(REST_SERVER_PORT);
+        this.restServer = new RestTestServer(REST_SERVER_PORT);
     }
 
     @Override
