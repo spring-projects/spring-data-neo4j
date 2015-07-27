@@ -27,6 +27,7 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.kernel.Traversal;
 import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.neo4j.config.JtaTransactionManagerFactoryBean;
 import org.springframework.data.neo4j.conversion.ResultConverter;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
@@ -84,7 +85,7 @@ public class Neo4jTemplateApiTests {
     }
 
     protected PlatformTransactionManager createTransactionManager() {
-        return new JtaTransactionManager(new Neo4jEmbeddedTransactionManager(graphDatabaseService));
+        return new JtaTransactionManagerFactoryBean(graphDatabaseService).getObject();
     }
 
     private void createData() {

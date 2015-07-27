@@ -56,8 +56,8 @@
 		<profile>
 			<id>neo22</id>
 			<properties>
-				<neo4j.version>2.2.2</neo4j.version>
-				<neo4j.spatial.version>0.14-neo4j-2.2.0</neo4j.spatial.version>
+				<neo4j.version>2.2.3</neo4j.version>
+				<neo4j.spatial.version>0.14-neo4j-2.2.3</neo4j.spatial.version>
 			</properties>
 			<dependencies>
 				<dependency>

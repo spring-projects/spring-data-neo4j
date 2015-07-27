@@ -64,7 +64,9 @@ public class Neo4jExceptionTranslator implements PersistenceExceptionTranslator 
                 throw new ConcurrencyFailureException(e.getMessage(),e);
             if (exceptionName.equals("org.neo4j.kernel.impl.core.ReadOnlyDbException"))
                 throw new InvalidDataAccessResourceUsageException(e.getMessage(), e);
-            if (exceptionName.equals("org.neo4j.kernel.impl.nioneo.store.StoreFailureException"))
+            if (e.getClass().getName().equals("org.neo4j.index.impl.lucene.QueryNotPossibleException"))
+                throw new ConcurrencyFailureException(e.getMessage(), e);
+            if (e.getClass().getName().equals("org.neo4j.kernel.impl.nioneo.store.StoreFailureException"))
                 throw new DataAccessResourceFailureException(e.getMessage(), e);
             if (exceptionName.equals("org.neo4j.kernel.impl.persistence.IdGenerationFailedException"))
                 throw new NonTransientDataAccessResourceException(e.getMessage(), e);

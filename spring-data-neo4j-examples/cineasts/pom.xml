@@ -4,17 +4,17 @@
 
 	<groupId>org.neo4j.examples</groupId>
 	<artifactId>cineasts</artifactId>
-	<version>3.2.1.RELEASE</version>
+	<version>3.3.2.BUILD-SNAPSHOT</version>
 	<packaging>war</packaging>
 
 	<name>Cineasts.net</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>4.0.7.RELEASE</spring.version>
+		<spring.version>4.0.9.RELEASE</spring.version>
 		<slf4j.version>1.7.10</slf4j.version>
 		<spring-data-neo4j.version>${project.version}</spring-data-neo4j.version>
-        <neo4j.version>2.1.5</neo4j.version>
+        <neo4j.version>2.1.7</neo4j.version>
 		<jetty-args></jetty-args>
 	</properties>
 
@@ -32,6 +32,21 @@
 	</repositories>
 
 	<profiles>
+		<profile>
+			<id>neo22</id>
+			<properties>
+				<neo4j.version>2.2.3</neo4j.version>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.neo4j</groupId>
+					<artifactId>neo4j-io</artifactId>
+					<version>${neo4j.version}</version>
+					<type>test-jar</type>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+		</profile>
 		<profile>
 			<id>rest</id>
 			<properties>
@@ -222,6 +237,12 @@
 			<version>${neo4j.version}</version>
 			<type>test-jar</type>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j</artifactId>
+			<version>${neo4j.version}</version>
 		</dependency>
 
 		<dependency>

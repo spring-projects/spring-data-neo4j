@@ -22,6 +22,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.neo4j.config.JtaTransactionManagerFactoryBean;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.fieldaccess.Neo4jConversionServiceFactoryBean;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
@@ -51,9 +52,8 @@ public abstract class NeoApiTests {
         return new Neo4jConversionServiceFactoryBean().getObject();
     }
 
-    protected PlatformTransactionManager createTransactionManager()
-    {
-        return new JtaTransactionManager(new Neo4jEmbeddedTransactionManager(graphDatabaseService));
+    protected PlatformTransactionManager createTransactionManager() {
+        return new JtaTransactionManagerFactoryBean(graphDatabaseService).getObject();
     }
 
     protected GraphDatabase createGraphDatabase() throws Exception

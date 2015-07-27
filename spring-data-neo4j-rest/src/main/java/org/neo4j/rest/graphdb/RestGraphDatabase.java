@@ -139,6 +139,31 @@ public class RestGraphDatabase extends AbstractRemoteDatabase implements RestAPI
         };
     }
 
+    public ResourceIterator<Node> findNodes(Label label, String property, Object value) {
+        return findNodesByLabelAndProperty(label, property,value).iterator();
+    }
+
+    public Node findNode(Label label, String property, Object value) {
+        return IteratorUtil.single(findNodes(label,property,value));
+    }
+
+    public ResourceIterator<Node> findNodes(Label label) {
+        Iterable<RestNode> nodes = restAPI.getNodesByLabel(label.name());
+        return new ResourceIterableWrapper<Node,RestNode>(nodes) {
+            protected Node underlyingObjectToObject(RestNode node) {
+                return node;
+            }
+        }.iterator();
+    }
+
+    public Result execute(String s) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Result execute(String s, Map<String, Object> map) {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public Schema schema() {
         throw new UnsupportedOperationException();
@@ -158,25 +183,5 @@ public class RestGraphDatabase extends AbstractRemoteDatabase implements RestAPI
         return restAPI.getAllLabelNames();
     }
 
-    public ResourceIterator<Node> findNodes(Label label, String property, Object value) {
-        return findNodesByLabelAndProperty(label,property,value).iterator();
-    }
-
-    public Node findNode(Label label, String property, Object value) {
-        return IteratorUtil.singleOrNull(findNodesByLabelAndProperty(label,property,value));
-    }
-
-    public ResourceIterator<Node> findNodes(Label label) {
-        return null;
-    }
-
-    public Result execute(String statement) {
-        return execute(statement,null);
-    }
-
-    public Result execute(String statement, Map<String, Object> params) {
-//        return cypherQueryEngine.query(statement,params);
-        return null;
-    }
 }
 

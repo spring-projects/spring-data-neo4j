@@ -77,7 +77,7 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
             } catch (Exception e) {
                 // throw new RuntimeException(e);
             }
-        return createNullJtaTransactionManager();
+        return createEmbeddedJtaTransactionManager(gds);
     }
 
     private JtaTransactionManager createJtaTransactionManager(GraphDatabase gdb) {
@@ -98,7 +98,15 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
 
         return new JtaTransactionManager( userTransaction, transactionManager );
     }
-/*
+
+    private JtaTransactionManager createEmbeddedJtaTransactionManager(GraphDatabaseService gds)
+    {
+        TransactionManager transactionManager = new Neo4jEmbeddedTransactionManager(gds);
+        UserTransaction userTransaction = new UserTransactionAdapter( transactionManager );
+
+        return new JtaTransactionManager( userTransaction, transactionManager );
+    }
+
     private JtaTransactionManager createJtaTransactionManager( GraphDatabaseService gds )
     {
         TransactionManager transactionManager = createTransactionManagerForOnePointEight( gds );
@@ -125,7 +133,6 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
         }
     }
 
-*/
     private  boolean classExists(String name) {
         try {
             Class.forName(name);

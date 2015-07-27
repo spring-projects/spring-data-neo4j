@@ -23,6 +23,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.neo4j.model.Car;
 import org.springframework.data.neo4j.model.Volvo;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
+import org.springframework.util.FileSystemUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,7 +55,7 @@ public class ReadWriteTests {
         } finally {
             ctx.close();
             if (delete) {
-                FileUtils.deleteDirectory(new File("target/read-write.db"));
+                FileSystemUtils.deleteRecursively(new File("target/read-write.db"));
             }
         }
     }

@@ -20,10 +20,13 @@
 package org.neo4j.rest.graphdb;
 
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.event.KernelEventHandler;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.rest.graphdb.transaction.NullTransaction;
+import java.util.Map;
+
 
 abstract class AbstractRemoteDatabase implements GraphDatabaseService {
     public Transaction beginTx() {
@@ -45,6 +48,9 @@ abstract class AbstractRemoteDatabase implements GraphDatabaseService {
     public KernelEventHandler unregisterKernelEventHandler( KernelEventHandler kernelEventHandler ) {
         throw new UnsupportedOperationException();
     }
+
+    public abstract Result execute(String s, Map<String, Object> map);
+    public abstract Result execute(String s);
 
     @Override
     public void shutdown() {
