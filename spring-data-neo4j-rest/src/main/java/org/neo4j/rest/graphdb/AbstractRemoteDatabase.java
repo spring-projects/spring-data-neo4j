@@ -22,26 +22,12 @@ package org.neo4j.rest.graphdb;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.event.KernelEventHandler;
 import org.neo4j.graphdb.event.TransactionEventHandler;
-import org.neo4j.kernel.GraphDatabaseAPI;
-import org.neo4j.kernel.IdGeneratorFactory;
-import org.neo4j.kernel.KernelData;
-import org.neo4j.kernel.TransactionBuilder;
-import org.neo4j.kernel.guard.Guard;
-import org.neo4j.kernel.impl.core.KernelPanicEventGenerator;
-import org.neo4j.kernel.impl.core.NodeManager;
-import org.neo4j.kernel.impl.nioneo.store.StoreId;
-import org.neo4j.kernel.impl.persistence.PersistenceSource;
-import org.neo4j.kernel.impl.transaction.LockManager;
-import org.neo4j.kernel.impl.transaction.XaDataSourceManager;
-import org.neo4j.kernel.impl.transaction.xaframework.TxIdGenerator;
-import org.neo4j.kernel.impl.util.StringLogger;
-import org.neo4j.kernel.info.DiagnosticsManager;
 import org.neo4j.rest.graphdb.transaction.NullTransaction;
 
-import javax.transaction.TransactionManager;
-import java.util.Collection;
+import java.util.Map;
 
-abstract class AbstractRemoteDatabase implements GraphDatabaseAPI {
+
+abstract class AbstractRemoteDatabase implements GraphDatabaseService {
     public Transaction beginTx() {
         return new NullTransaction();
     }
@@ -62,11 +48,8 @@ abstract class AbstractRemoteDatabase implements GraphDatabaseAPI {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public TransactionBuilder tx() {
-        throw new UnsupportedOperationException();
-    }
-
+    public abstract Result execute(String s, Map<String, Object> map);
+    public abstract Result execute(String s);
     @Override
     public void shutdown() {
     }

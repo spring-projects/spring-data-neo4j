@@ -68,6 +68,10 @@ public class RemoteCypherTransaction implements Transaction {
         close();
     }
 
+    public void terminate() {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public void close() {
         if (tx() != null && innerCounter.decrementAndGet() > 0) {

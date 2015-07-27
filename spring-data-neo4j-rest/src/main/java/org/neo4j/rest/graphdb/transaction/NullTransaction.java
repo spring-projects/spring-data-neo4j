@@ -39,6 +39,9 @@ public class NullTransaction implements Transaction {
     public void failure() {
     }
 
+    public void terminate() {
+    }
+
     @Override
     public Lock acquireWriteLock(PropertyContainer propertyContainer) {
         return null;

@@ -42,6 +42,8 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Iterator;
+
 import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -97,7 +99,7 @@ public class NoIndexDerivedFinderTests {
         Transaction tx = gdb.beginTx();
         try {
             final ExecutionResult result = new ExecutionEngine(gdb).execute("start n=node:Test('name:*') return n");
-            assertEquals(0,IteratorUtil.count(result));
+            assertEquals(0,IteratorUtil.count((Iterable)result));
             assertEquals("Test", gdb.index().nodeIndexNames()[0]);
         } finally {
             tx.success();tx.close();

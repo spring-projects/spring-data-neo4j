@@ -22,6 +22,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.GraphDatabaseAPI;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.neo4j.core.GraphDatabase;
+import org.springframework.data.neo4j.support.Neo4jEmbeddedTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.jta.UserTransactionAdapter;
 
@@ -70,7 +71,7 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
                     return createJtaTransactionManagerForOnePointSeven( gds );
             }
 
-        return createNullJtaTransactionManager();
+        return createEmbeddedJtaTransactionManager(gds);
     }
 
     private JtaTransactionManager createJtaTransactionManager(GraphDatabase gdb)
@@ -84,6 +85,14 @@ public class JtaTransactionManagerFactoryBean implements FactoryBean<JtaTransact
     private JtaTransactionManager createNullJtaTransactionManager()
     {
         TransactionManager transactionManager = new NullTransactionManager();
+        UserTransaction userTransaction = new UserTransactionAdapter( transactionManager );
+
+        return new JtaTransactionManager( userTransaction, transactionManager );
+    }
+
+    private JtaTransactionManager createEmbeddedJtaTransactionManager(GraphDatabaseService gds)
+    {
+        TransactionManager transactionManager = new Neo4jEmbeddedTransactionManager(gds);
         UserTransaction userTransaction = new UserTransactionAdapter( transactionManager );
 
         return new JtaTransactionManager( userTransaction, transactionManager );

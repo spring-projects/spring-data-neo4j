@@ -23,7 +23,7 @@ package org.neo4j.rest.graphdb;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.graphdb.traversal.BidirectionalTraversalDescription;
-import org.neo4j.kernel.impl.nioneo.store.StoreId;
+import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.rest.graphdb.entity.RestNode;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
@@ -35,6 +35,7 @@ import org.neo4j.rest.graphdb.util.ResourceIterableWrapper;
 import javax.transaction.TransactionManager;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Map;
 
 /**
  * @deprecated use CypherRestGraphDatabase instead
@@ -87,14 +88,9 @@ public class RestGraphDatabase extends AbstractRemoteDatabase implements RestAPI
     public Relationship getRelationshipById( long id ) {
     	return this.restAPI.getRelationshipById(id);
     }    
-    @Override
+
     public String getStoreDir() {
         return restAPI.getBaseUri();
-    }
-
-    @Override
-    public StoreId storeId() {
-        return null;
     }
 
     @Override
@@ -106,7 +102,6 @@ public class RestGraphDatabase extends AbstractRemoteDatabase implements RestAPI
         return new NullTransactionManager();
     }
 
-    @Override
     public DependencyResolver getDependencyResolver() {
         return new DependencyResolver.Adapter() {
             @Override
@@ -142,6 +137,31 @@ public class RestGraphDatabase extends AbstractRemoteDatabase implements RestAPI
                 return node;
             }
         };
+    }
+
+    public ResourceIterator<Node> findNodes(Label label, String property, Object value) {
+        return findNodesByLabelAndProperty(label, property,value).iterator();
+    }
+
+    public Node findNode(Label label, String property, Object value) {
+        return IteratorUtil.single(findNodes(label,property,value));
+    }
+
+    public ResourceIterator<Node> findNodes(Label label) {
+        Iterable<RestNode> nodes = restAPI.getNodesByLabel(label.name());
+        return new ResourceIterableWrapper<Node,RestNode>(nodes) {
+            protected Node underlyingObjectToObject(RestNode node) {
+                return node;
+            }
+        }.iterator();
+    }
+
+    public Result execute(String s) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Result execute(String s, Map<String, Object> map) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

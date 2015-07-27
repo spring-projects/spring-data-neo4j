@@ -19,9 +19,9 @@ package org.springframework.data.neo4j.template;
 import org.junit.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.kernel.GraphDatabaseAPI;
-import org.neo4j.kernel.impl.transaction.SpringTransactionManager;
 import org.neo4j.test.TestGraphDatabaseFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.neo4j.config.JtaTransactionManagerFactoryBean;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.model.Person;
 import org.springframework.data.neo4j.support.DelegatingGraphDatabase;
@@ -102,7 +102,7 @@ public class Neo4jTemplateApiTransactionTests {
     }
 
     protected PlatformTransactionManager createTransactionManager() {
-        return new JtaTransactionManager(new SpringTransactionManager((GraphDatabaseAPI)graphDatabaseService));
+        return new JtaTransactionManagerFactoryBean(graphDatabaseService).getObject();
     }
 
     private void createData() {
