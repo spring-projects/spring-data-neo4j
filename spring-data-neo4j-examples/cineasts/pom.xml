@@ -4,7 +4,7 @@
 
 	<groupId>org.neo4j.examples</groupId>
 	<artifactId>cineasts</artifactId>
-	<version>3.3.2.BUILD-SNAPSHOT</version>
+	<version>3.3.3.BUILD-SNAPSHOT</version>
 	<packaging>war</packaging>
 
 	<name>Cineasts.net</name>
