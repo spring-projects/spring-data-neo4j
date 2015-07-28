@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.3.2.RELEASE (2015-07-28)
+---------------------------------------------
+* DATAGRAPH-716 - Release 3.3.2 (Fowler).
+* DATAGRAPH-713 - Add Support for Neo4j 2.2.3.
+* DATAGRAPH-574 - Defer manual Index Addition to just after the transaction succeeded in REST mode.
+
+
 Changes in version 3.1.6.RELEASE (2015-07-01)
 ---------------------------------------------
 * DATAGRAPH-686 - Release 3.1.6 (Dijkstra).
