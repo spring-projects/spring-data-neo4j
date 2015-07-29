@@ -12,8 +12,6 @@
 
 package org.springframework.data.neo4j.conversion;
 
-import java.lang.reflect.ParameterizedType;
-
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
@@ -25,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
+
+import java.lang.reflect.ParameterizedType;
 
 /**
  * Specialisation of {@link GenericConversionService} that creates Spring-compatible converters from those known by the mapping
@@ -95,7 +95,7 @@ public class MetaDataDrivenConversionService extends GenericConversionService im
     }
 
     @Override
-    public <T> T convert(Class<?> sourceType, Class<T> targetType, Object value) {
+    public <T> T convert(Class<T> targetType, Object value) {
         // FIXME: ahh, the problem is we always need the target type!!
         // - keep a list of convertible pairs and find one that matches, perhaps?
         // - or try all possible combinations of stuff you can stick in a graph? (probably not!)

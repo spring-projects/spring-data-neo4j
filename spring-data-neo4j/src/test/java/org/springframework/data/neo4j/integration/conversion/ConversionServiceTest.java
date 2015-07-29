@@ -67,6 +67,7 @@ public class ConversionServiceTest {
     }
 
     @Test
+
     public void shouldConvertBase64StringOutOfGraphDatabaseBackIntoByteArray() {
         Result rs = testRule.getGraphDatabaseService().execute(
                 "CREATE (u:SiteMember {profilePictureData:'MTIzNDU2Nzg5'}) RETURN id(u) AS userId");
