@@ -96,11 +96,10 @@ public class MetaDataDrivenConversionService extends GenericConversionService im
 
     @Override
     public <T> T convert(Class<T> targetType, Object value) {
-        // FIXME: ahh, the problem is we always need the target type!!
-        // - keep a list of convertible pairs and find one that matches, perhaps?
-        // - or try all possible combinations of stuff you can stick in a graph? (probably not!)
-        // - how about we make you specify the target type instead of the converter in the @Convert annotation?
-        return this.convert(value, targetType);
+        if (value == null) {
+            return null;
+        }
+        return convert(value, targetType);
     }
 
 }
