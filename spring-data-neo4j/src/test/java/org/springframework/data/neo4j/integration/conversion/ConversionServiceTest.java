@@ -15,8 +15,10 @@ package org.springframework.data.neo4j.integration.conversion;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.annotation.ElementType;
 import java.util.Arrays;
 
+import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,8 +26,9 @@ import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.data.neo4j.integration.conversion.domain.JavaElement;
 import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmount;
 import org.springframework.data.neo4j.integration.conversion.domain.PensionPlan;
 import org.springframework.data.neo4j.integration.conversion.domain.SiteMember;
@@ -47,9 +50,16 @@ public class ConversionServiceTest {
     @Autowired
     private PensionRepository pensionRepository;
     @Autowired
+    private JavaElementRepository javaElementRepository;
+    @Autowired
     private SiteMemberRepository siteMemberRepository;
     @Autowired
-    private ConversionService conversionService;
+    private GenericConversionService conversionService;
+
+    @After
+    public void cleanUpDatabase() {
+        testRule.clearDatabase();
+    }
 
     /**
      * This should work by virtue of the fact that there's an OGM-level converter defined on a class we've scanned.
@@ -81,8 +91,8 @@ public class ConversionServiceTest {
 
     @Test
     public void shouldConvertFieldsUsingSpringConvertersAddedDirectlyToConversionService() {
-        ((GenericConversionService) this.conversionService).addConverter(new SpringMonetaryAmountToNumberConverter());
-        ((GenericConversionService) this.conversionService).addConverter(new SpringNumberToMonetaryAmountConverter());
+        this.conversionService.addConverter(new SpringMonetaryAmountToNumberConverter());
+        this.conversionService.addConverter(new SpringNumberToMonetaryAmountConverter());
 
         PensionPlan pensionToSave = new PensionPlan(new MonetaryAmount(16472, 81), "Tightfist Asset Management Ltd");
 
@@ -95,6 +105,44 @@ public class ConversionServiceTest {
 
         PensionPlan reloadedPension = this.pensionRepository.findOne(pensionToSave.getPensionPlanId());
         assertEquals("The amount was converted incorrectly", pensionToSave.getFundValue(), reloadedPension.getFundValue());
+    }
+
+    /**
+     * If target graph type is set to Integer but we have a converter for a Number then it should still save to the graph.
+     */
+    @Test
+    public void shouldConvertFieldsUsingAnAvailableSupertypeConverterIfExactTypesDoNotMatch() {
+        this.conversionService.addConverterFactory(new SpringMonetaryAmountToNumberConverterFactory());
+
+        PensionPlan pension = new PensionPlan(new MonetaryAmount(20_000, 00), "Ashes Assets LLP");
+        this.pensionRepository.save(pension);
+
+        ResourceIterator<Integer> resourceIterator = testRule.getGraphDatabaseService()
+                .execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv").columnAs("fv");
+        assertTrue("Nothing was saved", resourceIterator.hasNext());
+        assertEquals("The amount wasn't converted and persisted correctly", 2000000, resourceIterator.next().intValue());
+    }
+
+    /**
+     * This should fix DATAGRAPH-659 too.
+     */
+    @Test
+    public void shouldOperateWithDefaultSpringConvertersToConvertObjectTypesNotInMetaData() {
+        DefaultConversionService.addDefaultConverters(this.conversionService);
+
+        JavaElement method = new JavaElement();
+        method.setName("toString");
+        method.setElementType(ElementType.METHOD);
+
+        this.javaElementRepository.save(method);
+
+        ResourceIterator<String> resourceIterator = testRule.getGraphDatabaseService()
+                .execute("MATCH (e:JavaElement) RETURN e.elementType AS type").columnAs("type");
+        assertTrue("Nothing was saved", resourceIterator.hasNext());
+        assertEquals("The element type wasn't converted and persisted correctly", "METHOD", resourceIterator.next());
+
+        JavaElement loadedObject = this.javaElementRepository.findAll().iterator().next();
+        assertEquals("The element type wasn't loaded and converted correctly", ElementType.METHOD, loadedObject.getElementType());
     }
 
 }
