@@ -20,7 +20,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,23 +82,22 @@ public class WebIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void shouldShareSessionBetweenRequestsDuringSameSession() throws Exception {
         MockHttpSession session = new MockHttpSession();
 
-        mockMvc.perform(get("/user/{name}/friends", "Adam").session(session))
+        mockMvc.perform(get("/user/{name}/immediateFriends", "Adam").session(session))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("Daniela"));
 
-        mockMvc.perform(get("/user/{name}/friends", "Daniela").session(session))
+        mockMvc.perform(get("/user/{name}/immediateFriends", "Daniela").session(session))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("Adam Michal"));
 
-        mockMvc.perform(get("/user/{name}/friends", "Michal").session(session))
+        mockMvc.perform(get("/user/{name}/immediateFriends", "Michal").session(session))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("Daniela Vince"));
 
-        mockMvc.perform(get("/user/{name}/friends", "Vince").session(session))
+        mockMvc.perform(get("/user/{name}/immediateFriends", "Vince").session(session))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("Michal"));
 

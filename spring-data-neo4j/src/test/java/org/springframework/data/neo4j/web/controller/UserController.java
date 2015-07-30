@@ -12,6 +12,11 @@
 
 package org.springframework.data.neo4j.web.controller;
 
+import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.web.domain.User;
 import org.springframework.data.neo4j.web.service.UserService;
@@ -19,8 +24,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import javax.servlet.http.HttpSession;
 
 /**
  * @author Michal Bachman
@@ -46,6 +49,29 @@ public class UserController {
             result.append(friend.getName()).append(" ");
         }
 
+        return result.toString().trim();
+    }
+
+    @RequestMapping(value = "/user/{name}/immediateFriends")
+    @ResponseBody
+    public String listImmediateFriends(@PathVariable String name, HttpSession session) {
+        System.out.println("Session: " + session);
+        User user = userService.getUserByName(name);
+
+        if (user == null) {
+            return "No such user!";
+        }
+
+        List<String> friends = new ArrayList<>();
+        for (User friend : user.getFriends()) {
+            friends.add(friend.getName());
+        }
+        Collections.sort(friends);
+
+        StringBuilder result = new StringBuilder();
+        for(String friend : friends) {
+            result.append(friend).append(" ");
+        }
         return result.toString().trim();
     }
 }

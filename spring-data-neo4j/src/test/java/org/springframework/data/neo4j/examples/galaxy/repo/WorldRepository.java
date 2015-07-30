@@ -12,7 +12,7 @@
 
 package org.springframework.data.neo4j.examples.galaxy.repo;
 
-import org.neo4j.ogm.session.result.QueryStatistics;
+import org.neo4j.ogm.session.result.Result;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
 import org.springframework.data.neo4j.repository.GraphRepository;
@@ -26,10 +26,10 @@ import org.springframework.stereotype.Repository;
 public interface WorldRepository extends GraphRepository<World> {
 
     @Query("MATCH (n:World) SET n.updated=timestamp()")
-    public void touchAllWorlds();
+    void touchAllWorlds();
 
     @Query("MATCH (n:World) SET n.updated=timestamp()")
-    public QueryStatistics touchAllWorldsWithStatistics();
+    Result touchAllWorldsWithStatistics();
 
     @Query("MATCH (n:World)-[:REACHABLE_BY_ROCKET]->(m) SET m.updated=timestamp()")
     public Void touchOnlyWorldsReachableByRocket();

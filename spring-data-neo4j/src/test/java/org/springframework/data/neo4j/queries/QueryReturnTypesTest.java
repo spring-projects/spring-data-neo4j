@@ -71,7 +71,7 @@ public class QueryReturnTypesTest {
 
         worldRepository.save(tatooine);
 
-        QueryStatistics stats = worldRepository.touchAllWorldsWithStatistics();
+        QueryStatistics stats = worldRepository.touchAllWorldsWithStatistics().queryStatistics();
 
         assertEquals(1, stats.getPropertiesSet());
 

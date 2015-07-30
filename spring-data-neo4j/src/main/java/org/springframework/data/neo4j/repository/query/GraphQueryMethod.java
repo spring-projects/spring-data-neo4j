@@ -12,18 +12,19 @@
 
 package org.springframework.data.neo4j.repository.query;
 
-import org.neo4j.ogm.session.result.QueryStatistics;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
 import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.session.result.QueryStatistics;
+import org.neo4j.ogm.session.result.Result;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.repository.query.derived.DerivedGraphRepositoryQuery;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 
 /**
  * @author Mark Angrish
@@ -92,6 +93,6 @@ public class GraphQueryMethod extends QueryMethod {
 
     @Override
     public boolean isModifyingQuery() {
-        return method.getReturnType().isAssignableFrom(QueryStatistics.class);
+        return (method.getReturnType().isAssignableFrom(QueryStatistics.class) || method.getReturnType().isAssignableFrom(Result.class));
     }
 }

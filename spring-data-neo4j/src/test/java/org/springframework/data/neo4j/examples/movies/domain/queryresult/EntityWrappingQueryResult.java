@@ -14,7 +14,6 @@ package org.springframework.data.neo4j.examples.movies.domain.queryresult;
 
 import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.examples.movies.domain.User;
-import org.springframework.data.neo4j.examples.movies.domain.User;
 
 /**
  * {@link QueryResult} that wraps entity objects.
