@@ -35,30 +35,30 @@ public class Neo4jTransactionManager implements PlatformTransactionManager {
 
     @Override
     public TransactionStatus getTransaction(TransactionDefinition transactionDefinition) throws TransactionException {
-        logger.info("Requesting to create or join a transaction");
+        logger.debug("Requesting to create or join a transaction");
         return new Neo4jTransactionStatus(session, transactionDefinition);
     }
 
     @Override
     public void commit(TransactionStatus transactionStatus) throws TransactionException {
         Transaction tx = ((Neo4jTransactionStatus) transactionStatus).getTransaction();
-        logger.info("Commit requested: " + tx.url() + ", status: " + tx.status().toString());
+        logger.debug("Commit requested: " + tx.url() + ", status: " + tx.status().toString());
         if (transactionStatus.isNewTransaction()) {
             if (tx.status() == (Transaction.Status.PENDING) || tx.status() == (Transaction.Status.OPEN)) {
-                logger.info("Commit invoked");
+                logger.debug("Commit invoked");
                 tx.commit();
             }
         } else {
-            logger.info("Commit deferred");
+            logger.debug("Commit deferred");
         }
     }
 
     @Override
     public void rollback(TransactionStatus transactionStatus) throws TransactionException {
         Transaction tx = ((Neo4jTransactionStatus) transactionStatus).getTransaction();
-        logger.info("Rollback requested: " + tx.url() + ", status: " + tx.status().toString());
+        logger.debug("Rollback requested: " + tx.url() + ", status: " + tx.status().toString());
         if (tx.status() == (Transaction.Status.PENDING) || tx.status() == (Transaction.Status.OPEN)) {
-            logger.info("Rollback invoked");
+            logger.debug("Rollback invoked");
             tx.rollback();
         }
     }
