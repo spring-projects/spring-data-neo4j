@@ -1,6 +1,15 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.4.0.RC1 (2015-08-04)
+-----------------------------------------
+* DATAGRAPH-725 - Release 3.4 RC1 (Gosling).
+* DATAGRAPH-713 - Add Support for Neo4j 2.2.3.
+* DATAGRAPH-664 - Switch to JTA 1.2.
+* DATAGRAPH-580 - Tests fail against Spring Framework 4.1.6.
+* DATAGRAPH-574 - Defer manual Index Addition to just after the transaction succeeded in REST mode.
+
+
 Changes in version 3.3.2.RELEASE (2015-07-28)
 ---------------------------------------------
 * DATAGRAPH-716 - Release 3.3.2 (Fowler).
