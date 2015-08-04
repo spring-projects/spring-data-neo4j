@@ -16,13 +16,22 @@ import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 
+/**
+ * @author Adam George
+ * @author Luanne Misquitta
+ */
 @NodeEntity
 public class PensionPlan {
 
     @GraphId
     private Long pensionPlanId;
-    @Convert
+
+    @Convert(graphPropertyType = Integer.class)
     private MonetaryAmount fundValue;
+
+    @Convert(graphPropertyType = SiteMember.class) //nonsensical conversion for test purposes
+    private JavaElement javaElement;
+
     private String providerName;
 
     PensionPlan() {
@@ -44,5 +53,13 @@ public class PensionPlan {
 
     public MonetaryAmount getFundValue() {
         return fundValue;
+    }
+
+    public JavaElement getJavaElement() {
+        return javaElement;
+    }
+
+    public void setJavaElement(JavaElement javaElement) {
+        this.javaElement = javaElement;
     }
 }

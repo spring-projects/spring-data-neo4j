@@ -12,10 +12,10 @@
 
 package org.springframework.data.neo4j.integration.conversion;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.lang.annotation.ElementType;
+import java.math.BigInteger;
 import java.util.Arrays;
 
 import org.junit.After;
@@ -24,8 +24,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.neo4j.integration.conversion.domain.JavaElement;
@@ -37,7 +39,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
+ * @see DATAGRAPH-624
  * @author Adam George
+ * @author Luanne Misquitta
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { ConversionServicePersistenceContext.class })
@@ -55,6 +59,8 @@ public class ConversionServiceTest {
     private SiteMemberRepository siteMemberRepository;
     @Autowired
     private GenericConversionService conversionService;
+
+    @Autowired Session session;
 
     @After
     public void cleanUpDatabase() {
@@ -143,6 +149,61 @@ public class ConversionServiceTest {
 
         JavaElement loadedObject = this.javaElementRepository.findAll().iterator().next();
         assertEquals("The element type wasn't loaded and converted correctly", ElementType.METHOD, loadedObject.getElementType());
+    }
+
+    @Test(expected = ConverterNotFoundException.class)
+    public void shouldThrowExceptionIfSuitableConverterIsNotFound() {
+        this.conversionService.addConverterFactory(new SpringMonetaryAmountToNumberConverterFactory());
+
+        PensionPlan pension = new PensionPlan(new MonetaryAmount(20_000, 00), "Ashes Assets LLP");
+        pension.setJavaElement(new JavaElement());
+        this.pensionRepository.save(pension);
+    }
+
+    @Test
+    public void shouldUseSpecifiedAttributeConverterInsteadOfSprings() {
+        //We're registering Spring converters as well
+        this.conversionService.addConverter(new SpringIntegerToByteArrayConverter());
+        this.conversionService.addConverter(new SpringByteArrayToIntegerConverter());
+
+        String base64Representation = "YmNkZWY=";
+        byte[] binaryData = new byte[] { 98, 99, 100, 101, 102 };
+
+        assertTrue(this.conversionService.canConvert(byte[].class, String.class));
+        assertEquals(base64Representation, this.conversionService.convert(binaryData, String.class));
+
+        assertTrue(this.conversionService.canConvert(String.class, byte[].class));
+        assertTrue(Arrays.equals(binaryData, this.conversionService.convert(base64Representation, byte[].class)));
+
+        SiteMember siteMember = new SiteMember();
+        siteMember.setProfilePictureData(binaryData);
+        this.siteMemberRepository.save(siteMember);
+
+        session.clear();
+
+        siteMember = session.loadAll(SiteMember.class).iterator().next();
+        assertArrayEquals(binaryData, siteMember.getProfilePictureData());
+    }
+
+    @Test
+    public void shouldUseDefaultAttributeConverterInsteadOfSprings() {
+            //We're registering Spring converters which should not override the default ogm BigInteger converter
+            this.conversionService.addConverter(new SpringBigIntegerToBooleanConverter());
+            this.conversionService.addConverter(new SpringBooleanToBigIntegerConverter());
+
+            byte[] binaryData = new byte[] { 98, 99, 100, 101, 102 };
+
+            SiteMember siteMember = new SiteMember();
+            siteMember.setProfilePictureData(binaryData);
+            siteMember.setYears(BigInteger.valueOf(50));
+            this.siteMemberRepository.save(siteMember);
+
+            session.clear();
+
+            siteMember = session.loadAll(SiteMember.class).iterator().next();
+            assertArrayEquals(binaryData, siteMember.getProfilePictureData());
+            assertEquals(50, siteMember.getYears().intValue());
+
     }
 
 }

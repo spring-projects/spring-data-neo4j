@@ -11,12 +11,15 @@
  */
 package org.springframework.data.neo4j.integration.conversion.domain;
 
+import java.math.BigInteger;
+
 import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.ByteArrayBase64Converter;
 
 /**
  * @author Adam George
+ * @author Luanne Misquitta
  */
 public class SiteMember {
 
@@ -26,8 +29,21 @@ public class SiteMember {
     @Convert(ByteArrayBase64Converter.class)
     private byte[] profilePictureData;
 
+    private BigInteger years;
+
     public byte[] getProfilePictureData() {
         return this.profilePictureData;
     }
 
+    public void setProfilePictureData(byte[] profilePictureData) {
+        this.profilePictureData = profilePictureData;
+    }
+
+    public BigInteger getYears() {
+        return years;
+    }
+
+    public void setYears(BigInteger years) {
+        this.years = years;
+    }
 }
