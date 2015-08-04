@@ -187,23 +187,22 @@ public class ConversionServiceTest {
 
     @Test
     public void shouldUseDefaultAttributeConverterInsteadOfSprings() {
-            //We're registering Spring converters which should not override the default ogm BigInteger converter
-            this.conversionService.addConverter(new SpringBigIntegerToBooleanConverter());
-            this.conversionService.addConverter(new SpringBooleanToBigIntegerConverter());
+        //We're registering Spring converters which should not override the default ogm BigInteger converter
+        this.conversionService.addConverter(new SpringBigIntegerToBooleanConverter());
+        this.conversionService.addConverter(new SpringBooleanToBigIntegerConverter());
 
-            byte[] binaryData = new byte[] { 98, 99, 100, 101, 102 };
+        byte[] binaryData = new byte[] { 98, 99, 100, 101, 102 };
 
-            SiteMember siteMember = new SiteMember();
-            siteMember.setProfilePictureData(binaryData);
-            siteMember.setYears(BigInteger.valueOf(50));
-            this.siteMemberRepository.save(siteMember);
+        SiteMember siteMember = new SiteMember();
+        siteMember.setProfilePictureData(binaryData);
+        siteMember.setYears(BigInteger.valueOf(50));
+        this.siteMemberRepository.save(siteMember);
 
-            session.clear();
+        session.clear();
 
-            siteMember = session.loadAll(SiteMember.class).iterator().next();
-            assertArrayEquals(binaryData, siteMember.getProfilePictureData());
-            assertEquals(50, siteMember.getYears().intValue());
-
+        siteMember = session.loadAll(SiteMember.class).iterator().next();
+        assertArrayEquals(binaryData, siteMember.getProfilePictureData());
+        assertEquals(50, siteMember.getYears().intValue());
     }
 
 }

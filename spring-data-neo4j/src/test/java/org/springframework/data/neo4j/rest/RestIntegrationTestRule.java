@@ -12,6 +12,16 @@
 
 package org.springframework.data.neo4j.rest;
 
+import java.io.IOException;
+import java.util.Arrays;
+
+import junit.framework.AssertionFailedError;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicHeader;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -61,6 +71,17 @@ public class RestIntegrationTestRule implements TestRule {
      */
     public String getRestBaseUrl() {
         return "http://localhost:" + REST_SERVER_PORT;
+    }
+
+    public HttpResponse sendRequest(String urlPath) {
+        HttpClient client = HttpClientBuilder.create()
+                .setDefaultHeaders(Arrays.asList(new BasicHeader("Content-Type", "application/hal+json"))).build();
+        try {
+            return client.execute(new HttpGet(getRestBaseUrl() + urlPath));
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+            throw new AssertionFailedError(e.getMessage());
+        }
     }
 
 }

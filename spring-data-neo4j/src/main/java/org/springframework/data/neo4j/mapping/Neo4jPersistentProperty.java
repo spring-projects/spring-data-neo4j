@@ -15,7 +15,6 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 
 import org.neo4j.ogm.annotation.Relationship;
-import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,14 +73,7 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
             // no ID properties on @QueryResult or non-concrete objects
             this.isIdProperty = false;
         } else {
-            boolean idProperty = false;
-            try {
-                // crash prevention - hopefully won't be here too long
-                idProperty = owningClassInfo.getField(owningClassInfo.identityField()).equals(field);
-            } catch (MappingException me) {
-                logger.error("Error finding identity field on " + owningClassInfo.name(), me);
-            }
-            this.isIdProperty = idProperty;
+            this.isIdProperty = owningClassInfo.getField(owningClassInfo.identityField()).equals(field);
         }
     }
 
@@ -119,7 +111,7 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
      */
     @Override
     public boolean isAssociation() {
-        // TODO: can we also work out whether the target class is a node/relationship entity?
+        // TODO: do we need to also work out whether the target class is a node/relationship entity?
         return !isTransient() && isAnnotationPresent(Relationship.class);
     }
 

@@ -15,17 +15,15 @@ package org.springframework.data.neo4j.rest;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicHeader;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Verifies that Spring Data REST integration is present and correct.
@@ -36,6 +34,8 @@ public class RestIntegrationTest {
 
     @ClassRule
     public static final RestIntegrationTestRule neo4jRule = new RestIntegrationTestRule();
+
+    private final ObjectMapper jsonMapper = new ObjectMapper();
 
     @BeforeClass
     public static void addTestDataIntoNeo4j() {
@@ -49,18 +49,19 @@ public class RestIntegrationTest {
     }
 
     @Test
-    public void shouldRetrieveAllResourcesOfParticularType() {
-        HttpClient client = HttpClientBuilder.create()
-                .setDefaultHeaders(Arrays.asList(new BasicHeader("Content-Type", "application/hal+json"))).build();
+    public void shouldRetrieveAllResourcesOfParticularType() throws IOException {
+        HttpResponse response = neo4jRule.sendRequest("/cricketers");
+        assertEquals(200, response.getStatusLine().getStatusCode());
 
-        try {
-            HttpResponse response = client.execute(new HttpGet(neo4jRule.getRestBaseUrl() + "/cricketers"));
-//            response.getEntity().writeTo(System.out);
-            assertEquals(200, response.getStatusLine().getStatusCode());
-        } catch (IOException e) {
-            e.printStackTrace(System.err);
-            org.junit.Assert.fail(e.getMessage());
-        }
+        JsonNode rootNode = this.jsonMapper.readTree(response.getEntity().getContent());
+        JsonNode cricketers = rootNode.get("_embedded").get("cricketers");
+        assertEquals(5, cricketers.size());
+
+        response = neo4jRule.sendRequest("/teams");
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        rootNode = this.jsonMapper.readTree(response.getEntity().getContent());
+        JsonNode teams = rootNode.get("_embedded").get("teams");
+        assertEquals(3, teams.size());
     }
 
     @Ignore

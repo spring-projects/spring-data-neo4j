@@ -19,6 +19,8 @@ import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 @NodeEntity
 public class Team {
 
@@ -27,6 +29,11 @@ public class Team {
     private String name;
     @Relationship(type = "PLAYS_FOR", direction = Relationship.INCOMING)
     private Set<Cricketer> teamPlayers = Collections.emptySet();
+    private TypeReference<Integer> utterRubbish; // completely irrelevant item from non-local domain
+
+    public Long getId() {
+        return id;
+    }
 
     public String getName() {
         return name;
@@ -44,8 +51,12 @@ public class Team {
         this.teamPlayers = teamPlayers;
     }
 
-    public Long getId() {
-        return id;
+    public TypeReference<Integer> getUtterRubbish() {
+        return utterRubbish;
+    }
+
+    public void setUtterRubbish(TypeReference<Integer> utterRubbish) {
+        this.utterRubbish = utterRubbish;
     }
 
 }

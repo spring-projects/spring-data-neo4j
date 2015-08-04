@@ -11,11 +11,10 @@
  */
 package org.springframework.data.neo4j.mapping;
 
+import static java.util.Collections.singleton;
+
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.HashSet;
 
 import org.neo4j.ogm.entityaccess.EntityFactory;
 import org.neo4j.ogm.metadata.MetaData;
@@ -31,8 +30,8 @@ import org.springframework.data.util.TypeInformation;
  * This class implements Spring Data's MappingContext interface, scavenging the required data from the OGM's metadata in order
  * to for SDN to play nicely with Spring Data REST.
  *
- * The main thing to note is that this class is effectively a container shim for {@code ClassInfo} objects.  We don't reload
- * all the mapping information again.
+ * The main thing to note is that this class is effectively a container shim for {@code ClassInfo} objects. We don't reload all
+ * the mapping information again.
  *
  * @author Vince Bickers
  * @author Adam George
@@ -55,11 +54,11 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
         this.entityFactory = new EntityFactory(metaData);
 
         for (ClassInfo classInfo : metaData.persistentEntities()) {
-            if (classInfo.isEnum() || classInfo.name().matches("java\\.lang\\.(Object|Enum)")) {
+/*            if (classInfo.isEnum() || classInfo.name().matches("java\\.lang\\.(Object|Enum)")) {
                 logger.debug("Dropping classInfo for " + classInfo.name() + " from Spring Data Commons meta-data.");
                 continue;
             }
-
+*/
             try {
                 addPersistentEntity(Class.forName(classInfo.name()));
             } catch (ClassNotFoundException e) {
@@ -91,18 +90,24 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
             }
             if (fieldInfo != null) {
                 propertyField = owningClassInfo.getField(fieldInfo);
-            }
-            else {
+            } else {
                 // there is no field, probably because descriptor gave us a field name derived from a getter
             }
         }
 
-        //FIXME: this is filth - there must be a better way to stop this mapping context treating everything as an rich entity
-        // something to do with fieldInfo.isSimple() somewhere along the line, perhaps?
-        SimpleTypeHolder fixedTypeHolder = new SimpleTypeHolder(
-                new HashSet<>(java.util.Arrays.asList(BigDecimal.class, BigInteger.class)), simpleTypeHolder);
+        return new Neo4jPersistentProperty(owningClassInfo, propertyField, descriptor, owner, updateSimpleTypes(simpleTypeHolder,
+                propertyField.getType()));
+    }
 
-        return new Neo4jPersistentProperty(owningClassInfo, propertyField, descriptor, owner, fixedTypeHolder);
+    private SimpleTypeHolder updateSimpleTypes(SimpleTypeHolder currentSimpleTypeHolder, Class<?> fieldType) {
+        if (!currentSimpleTypeHolder.isSimpleType(fieldType) && this.metaData.classInfo(fieldType.getName()) == null) {
+            logger.info("No class information found in OGM meta-data for {} so treating as simple type for SD Commons", fieldType);
+
+            SimpleTypeHolder updatedSimpleTypeHolder = new SimpleTypeHolder(singleton(fieldType), currentSimpleTypeHolder);
+            setSimpleTypeHolder(updatedSimpleTypeHolder);
+            return updatedSimpleTypeHolder;
+        }
+        return currentSimpleTypeHolder;
     }
 
 }
