@@ -16,6 +16,7 @@ import static java.util.Collections.singleton;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 
+import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.entityaccess.EntityFactory;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
@@ -54,11 +55,6 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
         this.entityFactory = new EntityFactory(metaData);
 
         for (ClassInfo classInfo : metaData.persistentEntities()) {
-/*            if (classInfo.isEnum() || classInfo.name().matches("java\\.lang\\.(Object|Enum)")) {
-                logger.debug("Dropping classInfo for " + classInfo.name() + " from Spring Data Commons meta-data.");
-                continue;
-            }
-*/
             try {
                 addPersistentEntity(Class.forName(classInfo.name()));
             } catch (ClassNotFoundException e) {
@@ -67,6 +63,20 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
         }
 
         logger.info("Neo4jMappingContext initialisation completed");
+    }
+
+    @Override
+    protected Neo4jPersistentEntity<?> addPersistentEntity(TypeInformation<?> type) {
+        if (shouldCreatePersistentEntityFor(type)) {
+            return super.addPersistentEntity(type);
+        }
+        return null;
+    }
+
+    @Override
+    protected boolean shouldCreatePersistentEntityFor(TypeInformation<?> type) {
+        ClassInfo classInfo = this.metaData.classInfo(type.getType().getName());
+        return !classInfo.isInterface() && super.shouldCreatePersistentEntityFor(type);
     }
 
     @Override
@@ -83,31 +93,51 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 
         Field propertyField = field;
         if (propertyField == null) {
-            final String fieldName = field != null ? field.getName() : descriptor.getName();
-            FieldInfo fieldInfo = owningClassInfo.propertyFieldByName(fieldName);
+            FieldInfo fieldInfo = owningClassInfo.propertyFieldByName(descriptor.getName());
             if (fieldInfo == null) {
-                fieldInfo = owningClassInfo.relationshipFieldByName(fieldName);
+                fieldInfo = owningClassInfo.relationshipFieldByName(descriptor.getName());
             }
             if (fieldInfo != null) {
                 propertyField = owningClassInfo.getField(fieldInfo);
             } else {
                 // there is no field, probably because descriptor gave us a field name derived from a getter
+                logger.warn("Couldn't resolve a concrete field corresponding to property {} on {} ",
+                        descriptor.getName(), owningClassInfo.name());
             }
         }
 
-        return new Neo4jPersistentProperty(owningClassInfo, propertyField, descriptor, owner, updateSimpleTypes(simpleTypeHolder,
-                propertyField.getType()));
+        return new Neo4jPersistentProperty(owningClassInfo, propertyField, descriptor, owner,
+                updateSimpleTypeHolder(simpleTypeHolder, propertyField));
     }
 
-    private SimpleTypeHolder updateSimpleTypes(SimpleTypeHolder currentSimpleTypeHolder, Class<?> fieldType) {
-        if (!currentSimpleTypeHolder.isSimpleType(fieldType) && this.metaData.classInfo(fieldType.getName()) == null) {
-            logger.info("No class information found in OGM meta-data for {} so treating as simple type for SD Commons", fieldType);
+    private SimpleTypeHolder updateSimpleTypeHolder(SimpleTypeHolder currentSimpleTypeHolder, Field field) {
+        if (field == null) {
+            return currentSimpleTypeHolder;
+        }
 
+        final Class<?> fieldType = field.getType().isArray() ? field.getType().getComponentType() : field.getType();
+
+        if (shouldUpdateSimpleTypes(currentSimpleTypeHolder, field, fieldType)) {
             SimpleTypeHolder updatedSimpleTypeHolder = new SimpleTypeHolder(singleton(fieldType), currentSimpleTypeHolder);
             setSimpleTypeHolder(updatedSimpleTypeHolder);
             return updatedSimpleTypeHolder;
         }
         return currentSimpleTypeHolder;
+    }
+
+    private boolean shouldUpdateSimpleTypes(SimpleTypeHolder currentSimpleTypeHolder, Field field, Class<?> rawFieldType) {
+        if (field.isAnnotationPresent(Convert.class)) {
+            return true;
+        }
+
+        if (currentSimpleTypeHolder.isSimpleType(rawFieldType)) {
+            return false;
+        }
+        if (this.metaData.classInfo(rawFieldType.getName()) == null) {
+            logger.info("No class information found in OGM meta-data for {} so treating as simple type for SD Commons", rawFieldType);
+            return true;
+        }
+        return false;
     }
 
 }
