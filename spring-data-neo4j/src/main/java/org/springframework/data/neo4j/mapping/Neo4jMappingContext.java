@@ -18,6 +18,8 @@ import java.lang.reflect.Field;
 
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.entityaccess.EntityFactory;
+import org.neo4j.ogm.metadata.ClassUtils;
+import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
@@ -76,6 +78,16 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     @Override
     protected boolean shouldCreatePersistentEntityFor(TypeInformation<?> type) {
         ClassInfo classInfo = this.metaData.classInfo(type.getType().getName());
+        if (classInfo == null) {
+            return false;
+        }
+
+        try {
+            classInfo.identityField();
+        } catch (MappingException noIdentityFieldFoundOnType) {
+            return false;
+        }
+
         return !classInfo.isInterface() && super.shouldCreatePersistentEntityFor(type);
     }
 
