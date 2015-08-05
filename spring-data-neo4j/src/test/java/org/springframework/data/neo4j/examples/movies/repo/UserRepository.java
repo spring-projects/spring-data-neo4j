@@ -84,4 +84,6 @@ public interface UserRepository extends GraphRepository<User> {
     User loadUserByNamedId(@Param("userId") User user);
 
 
+    @Query("MATCH (user:User) RETURN user")
+    Iterable<User> getAllUsersIterable();
 }

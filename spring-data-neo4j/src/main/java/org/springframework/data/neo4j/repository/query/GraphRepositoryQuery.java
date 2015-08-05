@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.session.result.QueryStatistics;
+import org.neo4j.ogm.session.result.Result;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -55,17 +57,17 @@ public class GraphRepositoryQuery implements RepositoryQuery {
             return null;
         }
 
-        if (graphQueryMethod.isModifyingQuery()) {
-            return session.query(cypherQuery, queryParams);
-        }
-
-        if (Iterable.class.isAssignableFrom(returnType)) {
+        if (Iterable.class.isAssignableFrom(returnType) && !queryReturnsStatistics()) {
             // Special method to handle SDN Iterable<Map<String, Object>> behaviour.
             // TODO: Do we really want this method in an OGM? It's a little too low level and/or doesn't really fit.
             if (Map.class.isAssignableFrom(concreteType)) {
                 return session.query(cypherQuery, queryParams).queryResults();
             }
             return session.query(concreteType, cypherQuery, queryParams);
+        }
+
+        if (queryReturnsStatistics()) {
+            return session.query(cypherQuery, queryParams);
         }
 
         return session.queryForObject(returnType, cypherQuery, queryParams);
@@ -101,6 +103,11 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 
     protected String getQueryString() {
         return getQueryMethod().getQuery();
+    }
+
+    private boolean queryReturnsStatistics() {
+        Class<?> returnType = graphQueryMethod.getMethod().getReturnType();
+        return (returnType == QueryStatistics.class|| returnType == Result.class);
     }
 
 }

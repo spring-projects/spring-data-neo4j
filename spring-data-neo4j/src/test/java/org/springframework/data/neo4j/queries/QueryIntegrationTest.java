@@ -245,4 +245,19 @@ public class QueryIntegrationTest {
         assertEquals("Michal",user.getName());
     }
 
+    /**
+     * @see DATAGRAPH-727
+     */
+    @Test
+    public void shouldFindIterableUsers() {
+        executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
+
+        Iterable<User> users = userRepository.getAllUsersIterable();
+        int count=0;
+        for(User user : users) {
+            count++;
+        }
+        assertEquals(2, count);
+    }
+
 }

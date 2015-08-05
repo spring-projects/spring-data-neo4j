@@ -17,8 +17,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.result.QueryStatistics;
-import org.neo4j.ogm.session.result.Result;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.repository.query.derived.DerivedGraphRepositoryQuery;
@@ -91,8 +89,4 @@ public class GraphQueryMethod extends QueryMethod {
 
     }
 
-    @Override
-    public boolean isModifyingQuery() {
-        return (method.getReturnType().isAssignableFrom(QueryStatistics.class) || method.getReturnType().isAssignableFrom(Result.class));
-    }
 }
