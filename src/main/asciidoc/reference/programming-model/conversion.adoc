@@ -85,6 +85,44 @@ public class Invoice {
 }
 ----
 
+== Spring's ConversionService
+It is possible to have Spring Data Neo4j 4 use converters registered with http://docs.spring.io/spring/docs/current/spring-framework-reference/html/validation.html#core-convert[Spring's ConversionService].
+In order to do this, provide `org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService` as a Spring bean.
+
+.Provide MetaDataDrivenConversionService as a Spring bean
+[source,java]
+----
+@Bean
+public ConversionService conversionService() {
+    return new MetaDataDrivenConversionService(getSessionFactory().metaData());
+}
+----
+
+Then, instead of defining an implementation of `org.neo4j.ogm.typeconversion.AttributeConverter` on the `@Convert` annotation,
+use the `graphPropertyType` attribute to define the type to convert to.
+
+.Using graphPropertyType
+[source,java]
+----
+@NodeEntity
+public class MyEntity {
+
+    @Convert(graphPropertyType = Integer.class)
+    private DecimalCurrencyAmount fundValue;
+
+}
+----
+
+Spring Data Neo4j 4 will look for converters registered with Spring's ConversionService that can convert
+both to and from the type specified by `graphPropertyType` and use them if they exist.
+
+[NOTE]
+====
+Default converters and those defined explicitly via an implementation of `org.neo4j.ogm.typeconversion.AttributeConverter`
+will take precedence over converters registered with Spring's ConversionService.
+====
+
+
 [[reference_programming-model_mapresult]]
 == Mapping Query Results
 
