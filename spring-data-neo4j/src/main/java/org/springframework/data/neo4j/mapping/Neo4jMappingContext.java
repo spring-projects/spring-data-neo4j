@@ -17,8 +17,6 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 
 import org.neo4j.ogm.annotation.typeconversion.Convert;
-import org.neo4j.ogm.entityaccess.EntityFactory;
-import org.neo4j.ogm.metadata.ClassUtils;
 import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
@@ -45,7 +43,6 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     private static final Logger logger = LoggerFactory.getLogger(Neo4jMappingContext.class);
 
     private final MetaData metaData;
-    private final EntityFactory entityFactory;
 
     /**
      * Constructs a new {@link Neo4jMappingContext} based on the persistent entities in the given {@link MetaData}.
@@ -54,7 +51,6 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
      */
     public Neo4jMappingContext(MetaData metaData) {
         this.metaData = metaData;
-        this.entityFactory = new EntityFactory(metaData);
 
         for (ClassInfo classInfo : metaData.persistentEntities()) {
             try {
@@ -72,7 +68,8 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
         if (shouldCreatePersistentEntityFor(type)) {
             return super.addPersistentEntity(type);
         }
-        return null;
+        logger.warn("Not creating persistent entity for {} because it's not in the OGM meta-data as an entity", type != null ? type.getActualType() : "null type");
+        return null; // TODO: consider replacing this with a NullPersistentEntity if this causes problems
     }
 
     @Override
@@ -94,7 +91,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     @Override
     protected <T> Neo4jPersistentEntity<?> createPersistentEntity(TypeInformation<T> typeInformation) {
         logger.debug("Creating Neo4jPersistentEntity from type information: {}", typeInformation);
-        return new Neo4jPersistentEntity<>(typeInformation, this.entityFactory);
+        return new Neo4jPersistentEntity<>(typeInformation);
     }
 
     @Override
@@ -113,7 +110,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
                 propertyField = owningClassInfo.getField(fieldInfo);
             } else {
                 // there is no field, probably because descriptor gave us a field name derived from a getter
-                logger.warn("Couldn't resolve a concrete field corresponding to property {} on {} ",
+                logger.debug("Couldn't resolve a concrete field corresponding to property {} on {} ",
                         descriptor.getName(), owningClassInfo.name());
             }
         }
@@ -142,7 +139,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
             return true;
         }
 
-        if (currentSimpleTypeHolder.isSimpleType(rawFieldType)) {
+        if (currentSimpleTypeHolder.isSimpleType(rawFieldType) || rawFieldType.isInterface()) {
             return false;
         }
         if (this.metaData.classInfo(rawFieldType.getName()) == null) {

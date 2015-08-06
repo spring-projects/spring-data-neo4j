@@ -11,17 +11,11 @@
  */
 package org.springframework.data.neo4j.mapping;
 
-import java.lang.reflect.Field;
-
-import org.neo4j.ogm.entityaccess.EntityFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ReflectionUtils.FieldCallback;
 
 /**
  * This class implements Spring Data's PersistentEntity interface, scavenging the required data from the OGM's mapping classes
@@ -49,43 +43,13 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 
     private static final Logger logger = LoggerFactory.getLogger(Neo4jPersistentEntity.class);
 
-    private final EntityFactory entityFactory;
-
     /**
      * Constructs a new {@link Neo4jPersistentEntity} based on the given type information.
      *
      * @param information The {@link TypeInformation} upon which to base this persistent entity.
-     * @param entityFactory The {@link EntityFactory} to use for cloning entities
      */
-    public Neo4jPersistentEntity(TypeInformation<T> information, EntityFactory entityFactory) {
+    public Neo4jPersistentEntity(TypeInformation<T> information) {
         super(information);
-        this.entityFactory = entityFactory;
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * This is overridden in order to clone the given bean before it's saved because it must not be the same instance as the one
-     * in the mapping context.  If it is kept the same, then changes will be lost when the framework reloads the entity prior to
-     * saving changes to it.
-     * </p>
-     * It may well be deemed that this is not the right place for this fix, but it means that PUT requests will succeed for now.
-     */
-    @Override
-    public PersistentPropertyAccessor getPropertyAccessor(final Object beanToSave) {
-        // XXX: I'm convinced there must be a better way than this - maybe an OGM-level fix?
-        final Object clone = this.entityFactory.newObject(beanToSave.getClass());
-
-        ReflectionUtils.doWithFields(beanToSave.getClass(), new FieldCallback() {
-            @Override
-            public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
-                ReflectionUtils.makeAccessible(field);
-                Object value = field.get(beanToSave);
-                ReflectionUtils.setField(field, clone, value);
-            }
-        });
-
-        return super.getPropertyAccessor(clone);
     }
 
     @Override

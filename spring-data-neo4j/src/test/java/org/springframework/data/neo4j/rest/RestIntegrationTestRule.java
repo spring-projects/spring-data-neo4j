@@ -12,6 +12,7 @@
 
 package org.springframework.data.neo4j.rest;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -19,7 +20,14 @@ import junit.framework.AssertionFailedError;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPatch;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.junit.rules.TestRule;
@@ -73,11 +81,50 @@ public class RestIntegrationTestRule implements TestRule {
         return "http://localhost:" + REST_SERVER_PORT;
     }
 
-    public HttpResponse sendRequest(String urlPath) {
+    /**
+     * Sends an HTTP GET request to the REST rest server with the given path, which should include a leading '/' character.
+     * Alternatively you can pass an absolute URL to this method and it will be used as-is.
+     *
+     * @param urlPath The path to the resource to request on the server
+     * @return The resultant {@link HttpResponse}
+     */
+    public HttpResponse sendGetRequest(String urlPath) {
+        return sendRequest(new HttpGet(resolveAbsoluteUrl(urlPath)));
+    }
+
+    public HttpResponse sendPostRequest(byte[] data, String urlPath) {
+        return sendRequestWithData(new HttpPost(resolveAbsoluteUrl(urlPath)), data);
+    }
+
+    public HttpResponse sendPatchRequest(byte[] data, String urlPath) {
+        return sendRequestWithData(new HttpPatch(resolveAbsoluteUrl(urlPath)), data);
+    }
+
+    public HttpResponse sendPutRequest(byte[] data, String urlPath) {
+        return sendRequestWithData(new HttpPut(resolveAbsoluteUrl(urlPath)), data);
+    }
+
+    public HttpResponse sendDeleteRequest(String urlPath) {
+        return sendRequest(new HttpDelete(resolveAbsoluteUrl(urlPath)));
+    }
+
+    private String resolveAbsoluteUrl(String urlPath) {
+        return urlPath.startsWith("http://") ? urlPath : getRestBaseUrl() + urlPath;
+    }
+
+    private static HttpResponse sendRequestWithData(HttpEntityEnclosingRequestBase request, byte[] data) {
+        BasicHttpEntity httpEntity = new BasicHttpEntity();
+        httpEntity.setContent(new ByteArrayInputStream(data));
+        request.setEntity(httpEntity);
+
+        return sendRequest(request);
+    }
+
+    private static HttpResponse sendRequest(HttpUriRequest request) {
         HttpClient client = HttpClientBuilder.create()
                 .setDefaultHeaders(Arrays.asList(new BasicHeader("Content-Type", "application/hal+json"))).build();
         try {
-            return client.execute(new HttpGet(getRestBaseUrl() + urlPath));
+            return client.execute(request);
         } catch (IOException e) {
             e.printStackTrace(System.err);
             throw new AssertionFailedError(e.getMessage());

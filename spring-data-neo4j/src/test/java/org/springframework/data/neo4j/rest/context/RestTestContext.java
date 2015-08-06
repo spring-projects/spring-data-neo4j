@@ -23,11 +23,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
+import org.springframework.data.neo4j.config.Neo4jRepositoryRestMvcConfiguration;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.data.neo4j.server.RemoteServer;
-import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -40,7 +40,7 @@ import org.springframework.web.servlet.ModelAndView;
  * @author Adam George
  */
 @Configuration
-@Import(RepositoryRestMvcConfiguration.class)
+@Import(Neo4jRepositoryRestMvcConfiguration.class)
 @ComponentScan({"org.springframework.data.neo4j.rest"})
 @EnableNeo4jRepositories("org.springframework.data.neo4j.rest.repo")
 @EnableTransactionManagement
