@@ -53,7 +53,12 @@ Relationships are added, removed or updated according to the differences between
 Spring Data Neo4j ensures by default that there is only one relationship of a given type between any two given entities.  
 If you don't care about the direction then you can specify `direction=Relationship.UNDIRECTED` which will guarantee that the path between two node entities is navigable from either side.
 
-== `@RelationshipEntity`: Rich relationships
+[NOTE]
+====
+The direction attribute on a `@Relationship` defaults to `OUTGOING`. Any fields or methods backed by an `INCOMING` relationship must be explicitly annotated with an `INCOMING` direction.
+====
+
+== @RelationshipEntity: Rich relationships
 
 To access the full data model of graph relationships, POJOs can also be annotated with `@RelationshipEntity`, making them relationship entities. 
 Just as node entities represent nodes in the graph, relationship entities represent relationships. Such POJOs allow you access and manage properties on the underlying relationships in the graph.
@@ -63,7 +68,8 @@ For accessing the two endpoints of the relationship, two special annotations are
 A field annotated with one of these annotations will provide access to the corresponding endpoint, depending on the chosen annotation.
 
 For controlling the relationship-type a `String` attribute called `type` is available on the `@RelationshipEntity` annotation.  
-Like the simple strategy for labelling node entities, if this is unset then the name of the class is used to derive the relationship type.  
+Like the simple strategy for labelling node entities, if this is unset then the name of the class is used to derive the relationship type.
+However, if the relationship type is overridden in participating node entities, the `type` *must* be specified on the `@RelationshipEntity`.
 
 [NOTE]
 ====

@@ -55,7 +55,7 @@ Some features of the previous annotations have been dropped.
 Support for overriding property types via arguments to @Property has been dropped. If your attribute requires
 a non-default conversion to and from a database property, you can use a <<custom_converters,Custom Converter>> instead.
 
-=== @Relationship `enforceTargetType`
+=== @Relationship enforceTargetType
 In previous versions of Spring Data Neo4j, you would have to add an `enforceTargetType` attribute into every clashing
 `@Relationship` annotation.  Thanks to changes in the underlying object-graph mapping mechanism, this is no longer
 necessary.

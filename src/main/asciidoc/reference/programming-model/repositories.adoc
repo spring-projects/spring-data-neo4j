@@ -79,7 +79,7 @@ returns the names of the actors that have a ACTS_IN relationship to the movie no
 `MATCH (movie:Movie {title:'Matrix'})<-[r:RATED]-(user) WHERE r.stars > 3 RETURN user.name, r.stars, r.comment`::
 returns users names and their ratings (>3) of the movie titled 'Matrix'
 
-`MATCH (user:User {name='Michael'})-[:FRIEND]-(friend)-[r:RATED]->(movie) RETURN movie.title, AVG(r.stars), COUNT(*) ORDER BY AVG(r.stars) DESC, COUNT(*) DESC`::
+`MATCH (user:User {name='Michael'})-[:FRIEND]-(friend)-[r:RATED]->(movie) RETURN movie.title, AVG(r.stars), COUNT(\*) ORDER BY AVG(r.stars) DESC, COUNT(*) DESC`::
 returns the movies rated by the friends of the user 'Michael', aggregated by `movie.title`, with averaged ratings and rating-counts sorted by both
 
 Examples of Cypher queries placed on repository methods with @Query where values are replaced with method parameters,

@@ -37,17 +37,16 @@ All of these basic CRUD methods just call onto the underlying methods of `Sessio
 
 The `Neo4jTemplate` also allows execution of arbitrary Cypher queries via its `query`, `queryForObject` and `queryForObjects` methods.  
 Cypher queries that return tabular results should be passed into the `query` method. 
-An `Iterable<Map<String,Object>>` containing the raw data is returned, which can be either used as-is or converted into a richer type if needed. 
+An `org.neo4j.ogm.session.result.Result` is returned. This consists of `org.neo4j.ogm.session.result.QueryStatistics` representing statistics of
+modifying cypher statements if applicable, and an `Iterable<Map<String,Object>>` containing the raw data, which can be either used as-is or converted into a richer type if needed.
 The keys in each `Map` correspond to the names listed in the return clause of the executed Cypher query.
 
 For the query methods that retrieve mapped objects, the recommended query format is to return a path, which should ensure that known types get mapped correctly and joined together with relationships as appropriate.
 
-For Cypher update operations, `Neo4jTemplate` provides an `execute` method, to which an arbitrary Cypher update statement (such as CREATE, MERGE or DELETE) can be passed.
-
 == Transactions
 
 The `Neo4jTemplate` provides implicit transactions for some of its methods. 
-For instance `save` uses them. 
+For instance `save`, `delete` and `query` provide auto-commit transactions.
 For other modifying operations please provide Spring Transaction management using `@Transactional` or the `TransactionTemplate`.
 
 == Data Manipulation Events (formerly Lifecycle Events)

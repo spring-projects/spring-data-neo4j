@@ -2,7 +2,7 @@
 = Getting started
 
 Spring Data Neo4j dramatically simplifies development, but some setup is naturally required.
-For building the application, Maven needs to be configured to include the Spring Data Neo4j dependencies and after the build setup is complete, the Spring application needs to be configured to make use of Spring Data Neo4j.
+For building the application, your build automation tool needs to be configured to include the Spring Data Neo4j dependencies and after the build setup is complete, the Spring application needs to be configured to make use of Spring Data Neo4j.
 Examples for these different setups can be found in the http://github.com/neo4j-examples[Spring Data Neo4j examples].
 
 Spring Data Neo4j projects can be built using Maven, Gradle or Ant/Ivy.
@@ -17,6 +17,20 @@ Spring Data Neo4j projects can be built using Maven, Gradle or Ant/Ivy.
     <artifactId>spring-data-neo4j</artifactId>
     <version>{version}</version>
 </dependency>
+----
+
+.Gradle dependencies for Neo4j OGM
+[source,xml]
+----
+dependencies {
+    compile 'org.springframework.data:spring-data-neo4j:{version}'
+}
+----
+
+.Ivy dependencies for Neo4j OGM
+[source,xml]
+----
+<dependency org="org.springframework.data" name="spring-data-neo4j" rev="{version}"/>
 ----
 
 == Spring configuration
@@ -73,7 +87,7 @@ As the above example shows, you simply construct a new instance with the URL of 
 `InProcessServer` is useful for test and development environments, but is not recommended for production use.  
 This implementation will start a new instance of `CommunityNeoServer` running on an available local port and return the URL needed to connect to it. 
 It also registers a shutdown hook so that the underlying Neo4j server exits cleanly when the JVM shuts down, via _Control+C_, for example.
-To use the `InProcessServer` in your tests, you will need to add the following dependencies``:
+To use the `InProcessServer` in your tests, you will need to add the following dependencies:
 
 .Maven dependencies for Spring Data Neo4j Test classes
 [source,xml]
@@ -143,3 +157,30 @@ Either way, if you make sure you load fresh data at the beginning of each unit o
 
 Additional beans can be configured to be included in the Neo4j-Configuration just by defining them in the Spring context in the normal way.
 
+=== Authentication
+If you're running against Neo4j 2.2 or later and authentication is enabled, you will need to supply connection credentials.
+Spring Data Neo4j 4 reads System properties `username` and `password` and supplies them with each request to the Neo4j database.
+An example of setting these via the Environment is provided below
+
+.Setting System properties from the Environment
+[source,java]
+----
+@Configuration
+@EnableNeo4jRepositories(basePackages = "org.neo4j.example.repository")
+@EnableTransactionManagement
+public class MyConfiguration extends Neo4jConfiguration {
+
+    @Autowired
+    private Environment env;
+
+    @Bean
+    public Neo4jServer neo4jServer() {
+        String user = env.getProperty("neo4j.user");
+        System.setProperty("username", user);
+
+        String pass = env.getProperty("neo4j.pass");
+        System.setProperty("password", pass);
+        return new RemoteServer("http://localhost:7474");
+    }
+}
+----

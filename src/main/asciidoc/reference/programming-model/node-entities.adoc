@@ -4,10 +4,10 @@
 Node entities are declared using the `@org.neo4j.ogm.annotation.NodeEntity` annotation. 
 Relationship entities use the `@org.neo4j.ogm.annotation.RelationshipEntity` annotation.
 
-== `@NodeEntity`: The basic building block
+== @NodeEntity: The basic building block
 
 The `@NodeEntity` annotation is used to declare that a POJO class is an entity backed by a node in the graph database. 
-Entities handled by Spring Data Neo4j must have one empty public constructor to allow the library to construct the objects.
+Entities handled by Spring Data Neo4j must have an empty public constructor to allow the library to construct the objects.
 
 Fields on the entity are by default mapped to properties of the node. 
 Fields referencing other node entities (or collections thereof) are linked with relationships. 

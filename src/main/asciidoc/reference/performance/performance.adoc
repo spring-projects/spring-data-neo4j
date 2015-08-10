@@ -5,7 +5,7 @@ As with any other object mapping framework, the domain entities that are created
 This is the set needed for a certain use-case to be displayed, edited or processed in a low throughput fashion.
 The main advantages of using an object mapper in this case are the ease of use of real domain objects in your business logic and also the integration with existing frameworks and libraries that expect Java POJOs as input or create them as results.
 
-Although adding layers of abstraction is a common pattern in software development, each of these layers generally adds overhead and performance penalties. 
+Although adding layers of abstraction is a common pattern in software development, each of these layers generally add overhead and performance penalties.
 This chapter discusses the performance implications of using Spring Data Neo4j.
 
 == Focus on performance

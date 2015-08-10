@@ -18,7 +18,7 @@ The default implementation of this uses the following convention:
 The object graph mapping comes into play whenever an entity is constructed from a node or relationship. 
 This could be done explicitly during the lookup or create operations of the repositories and the `Neo4jTemplate` but also implicitly while executing any graph operation that returns nodes or relationships and expecting mapped entities to be returned.
 
-Entities handled by Spring Data Neo4j must have one empty public constructor to allow the library to construct the objects.
+Entities handled by Spring Data Neo4j must have an empty public constructor to allow the library to construct the objects.
 
 Unless annotations are used to specify otherwise, the framework will attempt to map any of an object's "simple" fields to node properties and any rich composite objects to related nodes.  
 A "simple" field is any primitive, boxed primitive or String or arrays thereof, essentially anything that naturally fits into a Neo4j node property.  

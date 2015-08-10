@@ -1,11 +1,11 @@
 = Good Relationships: The Spring Data Neo4j Guide Book
-Michael Hunger; Oliver Gierke; Vince Bickers; Adam George; Luanne Misquitta, Michal Bachmann
+Michael Hunger; Oliver Gierke; Vince Bickers; Adam George; Luanne Misquitta; Michal Bachman
 :toc:
 :toc-placement!:
 :revnumber: {version}
 :revdate: {localdate}
 
-Spring Data Neo4j Version 4-RC1 (May 2015)
+Spring Data Neo4j Version 4-RC2 (August 2015)
 
 (C) 2010-2015 Graph Aware Ltd - Neo Technology, Inc. - Pivotal Software, Inc.
 
@@ -13,8 +13,6 @@ NOTE: Copies of this document may be made for your own use and for distribution 
 for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
 
 toc::[]
-
-:leveloffset: +1
 
 [[preface]]
 = Preface
@@ -25,8 +23,6 @@ include::introduction/about.adoc[]
 include::introduction/neo4j/neo4j.adoc[]
 
 :leveloffset: -1
-
-<<<
 
 [[reference]]
 = Spring Data Neo4j 4 Reference Documentation
@@ -42,31 +38,14 @@ Whenever you look for the means to employ the full power of the Spring Data Neo4
 your answers in this reference section. If you don't, please inform us about missing or incorrect content.
 
 :leveloffset: +1
-
 include::reference/preface.adoc[]
-
-<<<
-
 include::reference/setup.adoc[]
-
-<<<
-
 include::reference/programming-model/programming-model.adoc[]
-
-<<<
-
 include::reference/performance/performance.adoc[]
-
 :leveloffset: -1
-
-<<<
 
 [[migration]]
 = Migration Guide
 
 :leveloffset: +1
-
 include::reference/migration/migration.adoc[]
-
-:leveloffset: -1
-

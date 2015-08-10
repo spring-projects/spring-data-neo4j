@@ -20,10 +20,10 @@ For integration of Neo4j and other languages, please see http://neo4j.com/develo
 = Overview
 
 The explanation of Spring Data Neo4j's programming model starts with some underlying details.
-The basic concepts of the Object-Graph Mapping (OGM) library used by Spring Data Neo4j internally, is explained in the initial chapter.
+The basic concepts of the http://neo4j.com/docs/ogm/java/stable/[Object-Graph Mapping (OGM) library] used by Spring Data Neo4j internally, is explained in the initial chapter.
 
 == Getting Started
-To get started with a simple application, you need only your domain model and (optionally) the annotations (see <<reference_programming_model_annotations>>) provided by the library. 
+To get started with a simple application, you need only your domain model and (optionally) the annotations (see <<reference_programming-model_annotations>>) provided by the library.
 You use annotations to mark domain objects to be reflected by nodes and relationships of the graph database. 
 For individual fields the annotations allow you to declare how they should be processed and mapped to the graph. 
 For property fields and references to other entities this is straightforward.
@@ -34,7 +34,7 @@ The graph data model is explained in the chapter about Neo4j, see <<neo4j>>.
 
 == Managing Relationships
 Relationships between entities are first class citizens in a graph database and therefore worth a separate chapter
-(<<reference_programming_model_relationships>>) describing their usage in Spring Data Neo4j.
+(<<reference_programming-model_relationships>>) describing their usage in Spring Data Neo4j.
 
 == Repositories
 Spring Data Commons provides a very powerful repository infrastructure that is also leveraged in Spring Data Neo4j.
@@ -58,7 +58,7 @@ Neo4j uses transactions to guarantee the integrity of your data and Spring Data 
 The implications of this are described in the chapter around <<reference_programming_model_transactions,transactions>>.
 
 == Configuration
-As of Release Candidate 1, only Java bean-based configuration is supported. See <<setup>> for more details.
+As of Release Candidate 2, only Java bean-based configuration is supported. See <<reference_setup>> for more details.
 
 ////
 == Examples
@@ -68,4 +68,4 @@ The provided samples, which are also publicly hosted on http://github.com/neo4j-
 == Performance
 Spring Data Neo4j 4 has been rebuilt from the ground up with performance in mind. 
 More information can be found in <<reference_performance,Performance Considerations>>. 
-This chapter also discusses which use cases should not be handled with Spring Data Neo4j.
+//This chapter also discusses which use cases should not be handled with Spring Data Neo4j.
