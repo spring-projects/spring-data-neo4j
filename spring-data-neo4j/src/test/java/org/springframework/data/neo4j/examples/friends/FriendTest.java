@@ -23,6 +23,7 @@ import org.springframework.data.neo4j.examples.friends.context.FriendContext;
 import org.springframework.data.neo4j.examples.friends.domain.Friendship;
 import org.springframework.data.neo4j.examples.friends.domain.Person;
 import org.springframework.data.neo4j.examples.friends.repo.FriendshipRepository;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -34,6 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class FriendTest {
 
 	@Autowired Session session;
+	@Autowired Neo4jOperations neo4jTemplate;
 	@Autowired FriendshipRepository friendshipRepository;
 	@Autowired FriendService friendService;
 
@@ -57,15 +59,15 @@ public class FriendTest {
 	public void circularParamtersShouldNotProduceInfiniteRecursion() {
 		Person john = new Person();
 		john.setFirstName("John");
-		session.save(john);
+		neo4jTemplate.save(john);
 
 		Person bob = new Person();
 		bob.setFirstName("Bob");
-		session.save(bob);
+		neo4jTemplate.save(bob);
 
 		Friendship friendship1 = john.addFriend(bob);
 		friendship1.setTimestamp(System.currentTimeMillis());
-		session.save(john);
+		neo4jTemplate.save(john);
 
 		Friendship queriedFriendship = friendshipRepository.getFriendship(john,bob);
 		assertNotNull(queriedFriendship);

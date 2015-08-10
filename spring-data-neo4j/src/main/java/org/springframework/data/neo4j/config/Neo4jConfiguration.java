@@ -12,6 +12,8 @@
 
 package org.springframework.data.neo4j.config;
 
+import javax.annotation.Resource;
+
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.slf4j.Logger;
@@ -24,11 +26,11 @@ import org.springframework.dao.annotation.PersistenceExceptionTranslationPostPro
 import org.springframework.dao.support.PersistenceExceptionTranslationInterceptor;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.neo4j.server.Neo4jServer;
+import org.springframework.data.neo4j.template.Neo4jOperations;
+import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
-
-import javax.annotation.Resource;
 
 /**
  * The base Spring configuration bean from which users are recommended to inherit when setting up Spring Data Neo4j.
@@ -51,6 +53,11 @@ public abstract class Neo4jConfiguration {
         Neo4jServer neo4jServer = neo4jServer();
         Assert.notNull(neo4jServer, "You must provide a Neo4jServer instance in your Spring configuration classes");
         return getSessionFactory().openSession(neo4jServer().url());
+    }
+
+    @Bean
+    public Neo4jOperations neo4jTemplate() throws Exception {
+        return new Neo4jTemplate(getSession());
     }
 
     @Bean

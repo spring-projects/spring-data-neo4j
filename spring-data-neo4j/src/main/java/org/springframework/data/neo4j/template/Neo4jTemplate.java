@@ -12,6 +12,12 @@
 
 package org.springframework.data.neo4j.template;
 
+import static org.springframework.data.neo4j.util.IterableUtils.*;
+
+import javax.persistence.PersistenceException;
+import java.util.Collection;
+import java.util.Map;
+
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.session.Session;
@@ -20,15 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.data.neo4j.event.*;
-import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
-
-import javax.persistence.PersistenceException;
-import java.util.Collection;
-import java.util.Map;
-
-import static org.springframework.data.neo4j.util.IterableUtils.getSingle;
-import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
 
 /**
  * Spring Data template for Neo4j, which is an implementation of {@link Neo4jOperations}.  Indeed, framework users are encouraged
@@ -46,7 +44,6 @@ import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
  * @author Michal Bachman
  * @author Luanne Misquitta
  */
-@Repository
 public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisherAware {
 
     private final Session session;
