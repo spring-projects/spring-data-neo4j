@@ -12,12 +12,13 @@
 
 package org.springframework.data.neo4j.template;
 
-import org.neo4j.ogm.cypher.Filters;
-import org.neo4j.ogm.session.result.QueryStatistics;
-import org.springframework.stereotype.Repository;
-
 import java.util.Collection;
 import java.util.Map;
+
+import org.neo4j.ogm.cypher.Filters;
+import org.neo4j.ogm.session.result.QueryStatistics;
+import org.neo4j.ogm.session.result.Result;
+import org.springframework.stereotype.Repository;
 
 /**
  * Spring Data operations interface, implemented by {@link Neo4jTemplate}, that provides the API for using
@@ -156,11 +157,10 @@ public interface Neo4jOperations {
      *
      * @param cypherQuery The Cypher query to execute
      * @param params      The parameter to merge into the cypher query or an empty {@link Map} if the given query isn't parameterised
-     * @return An {@link Iterable} of {@link Map}s represening the result of the query or an empty {@link Iterable} if there are
-     *         no results, never <code>null</code>
-     * @throws RuntimeException if the given query is not a valid Cypher <code>MATCH</code> query
+     * @return A {@link Result} containing an {@link Iterable} map representing query results and {@link QueryStatistics} if applicable.
+     * @throws RuntimeException if the given query is not a valid Cypherquery
      */
-    Iterable<Map<String, Object>> query(String cypherQuery, Map<String, ?> params);
+    Result query(String cypherQuery, Map<String, ?> params);
 
     /**
      * Runs the specified Cypher query with the given parameters against the underlying Neo4j database and returns the result
@@ -189,18 +189,38 @@ public interface Neo4jOperations {
     <T> Iterable<T> queryForObjects(Class<T> entityType, String cypherQuery, Map<String, ?> parameters);
 
     /**
+     * Given a cypher statement this method will return a Result object containing a collection of Map's which represent Neo4j
+     * objects as properties, along with query statistics if applicable.
+     *
+     * Each element of the query result is a map which you can access by the name of the returned field
+     *
+     * TODO: Are we going to use the neo4jOperations conversion method to cast the value object to its proper class?
+     *
+     * @param cypher  The parametrisable cypher to execute.
+     * @param parameters Any parameters to attach to the cypher.
+     * @param readOnly true if the query is readOnly, false otherwise
+     *
+     * @return A {@link Result} of {@link Iterable}s with each entry representing a neo4j object's properties.
+     */
+    Result query(String cypher, Map<String, ?> parameters, boolean readOnly);
+
+    /**
+
+    /**
      * Issue a single Cypher update operation (such as a <tt>CREATE</tt>, <tt>MERGE</tt> or <tt>DELETE</tt> statement).
      *
+     * @deprecated Use {@link Neo4jOperations}.query() to return both results as well as query statistics.
      * @param cypherQuery The Cypher query to execute
      * @return {@link QueryStatistics} representing statistics about graph modifications as a result of the cypher execution.
      */
+    @Deprecated
     QueryStatistics execute(String cypherQuery);
 
     /**
      * Allows a cypher statement with a modification statement to be executed.
      *
      * <p>Parameters may be scalars or domain objects themselves.</p>
-     *
+     * @deprecated Use {@link Neo4jOperations}.query() to return both results as well as query statistics.
      * @param cypher The parametrisable cypher to execute.
      * @param parameters Any parameters to attach to the cypher. These may be domain objects or scalars. Note that
      *                   if a complex domain object is provided only the properties of that object will be set.
@@ -209,6 +229,7 @@ public interface Neo4jOperations {
      *
      * @return {@link QueryStatistics} representing statistics about graph modifications as a result of the cypher execution.
      */
+    @Deprecated
     QueryStatistics execute(String cypher, Map<String, Object> parameters);
 
     /**

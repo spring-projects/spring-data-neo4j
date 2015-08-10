@@ -33,6 +33,7 @@ import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.session.Utils;
 import org.neo4j.ogm.session.result.QueryStatistics;
+import org.neo4j.ogm.session.result.Result;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.data.neo4j.examples.movies.domain.*;
 import static org.neo4j.ogm.session.Utils.map;
@@ -167,7 +168,7 @@ public class Neo4jTemplateTest {
     public void shouldExecuteArbitraryUpdateQuery() {
         assertTrue("There shouldn't be any genres in the database", this.template.loadAll(Genre.class).isEmpty());
 
-        this.template.execute("CREATE (:Genre {name:'Comedy'}), (:Genre {name:'Action'})");
+        this.template.query("CREATE (:Genre {name:'Comedy'}), (:Genre {name:'Action'})", Collections.EMPTY_MAP);
 
         Iterator<Genre> genres = this.template.loadAll(Genre.class, 0).iterator();
         assertEquals("There weren't any genres created", 2, Utils.size(genres));
@@ -232,7 +233,7 @@ public class Neo4jTemplateTest {
      */
     @Test(expected = PersistenceException.class)
     public void shouldHandleErrorsOnExecute() {
-        this.template.execute("CREAT (node:NODE)");
+        this.template.query("CREAT (node:NODE)", Collections.EMPTY_MAP);
     }
 
     /**
@@ -240,20 +241,20 @@ public class Neo4jTemplateTest {
      */
     @Test
     public void shouldReturnQueryStats() {
-        QueryStatistics stats = this.template.execute("CREATE (a:Actor {name:'Keanu Reeves'}) CREATE (m:Movie {title:'The Matrix'}) " +
-                "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m)");
+        QueryStatistics stats = this.template.query("CREATE (a:Actor {name:'Keanu Reeves'}) CREATE (m:Movie {title:'The Matrix'}) " +
+                "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m)", Collections.EMPTY_MAP).queryStatistics();
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesCreated());
         assertEquals(3, stats.getPropertiesSet());
         assertEquals(1, stats.getRelationshipsCreated());
         assertEquals(2, stats.getLabelsAdded());
 
-        stats = this.template.execute("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null");
+        stats = this.template.execute("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null"); //keep this till the deprecated execute is removed
         assertTrue(stats.containsUpdates());
         assertEquals(1, stats.getLabelsRemoved());
         assertEquals(1, stats.getPropertiesSet());
 
-        stats = this.template.execute("MATCH n-[r]-(m:Movie) delete n,r,m");
+        stats = this.template.query("MATCH n-[r]-(m:Movie) delete n,r,m",Collections.EMPTY_MAP).queryStatistics();
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesDeleted());
         assertEquals(1, stats.getRelationshipsDeleted());
@@ -290,12 +291,12 @@ public class Neo4jTemplateTest {
         assertEquals(1, stats.getRelationshipsCreated());
         assertEquals(2, stats.getLabelsAdded());
 
-        stats = this.template.execute("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null");
+        stats = this.template.execute("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null"); //keep this till the deprecated execute is deleted
         assertTrue(stats.containsUpdates());
         assertEquals(1, stats.getLabelsRemoved());
         assertEquals(1, stats.getPropertiesSet());
 
-        stats = this.template.execute("MATCH n-[r]-(m:Movie) delete n,r,m");
+        stats = this.template.query("MATCH n-[r]-(m:Movie) delete n,r,m", Collections.EMPTY_MAP).queryStatistics();
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesDeleted());
         assertEquals(1, stats.getRelationshipsDeleted());
@@ -321,6 +322,29 @@ public class Neo4jTemplateTest {
         assertEquals(2, loadedCinemas.size());
         assertTrue(loadedCinemas.contains(new Cinema("Ritzy", 5000)));
         assertTrue(loadedCinemas.contains(new Cinema("Picturehouse", 7500)));
+    }
+
+    /**
+     * @see DATAGRAPH-697
+     */
+    @Test
+    public void shouldAllowResultsToBeReturnedFromModifyingQueries() {
+        Result results = this.template.query("CREATE (a:Actor {name:{actorName}}) CREATE (m:Movie {title:{movieTitle}}) " +
+                "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m) return a.name as actorName, m.title as movieName", map("actorName", "Keanu Reeves", "movieTitle", "The Matrix"));
+
+        QueryStatistics stats = results.queryStatistics();
+        assertTrue(stats.containsUpdates());
+        assertEquals(2, stats.getNodesCreated());
+        assertEquals(3, stats.getPropertiesSet());
+        assertEquals(1, stats.getRelationshipsCreated());
+        assertEquals(2, stats.getLabelsAdded());
+
+        Iterable<Map<String,Object>> iterableResults = results.queryResults();
+        assertNotNull(iterableResults);
+        for(Map<String,Object> row : iterableResults) {
+            assertEquals("Keanu Reeves",row.get("actorName"));
+            assertEquals("The Matrix", row.get("movieName"));
+        }
     }
 
 }

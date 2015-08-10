@@ -22,6 +22,7 @@ import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.result.QueryStatistics;
+import org.neo4j.ogm.session.result.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -256,7 +257,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     }
 
     @Override
-    public Iterable<Map<String, Object>> query(String cypher, Map<String, ?> parameters) {
+    public Result query(String cypher, Map<String, ?> parameters) {
         try {
             return session.query(cypher, parameters);
         } catch (Exception e) {
@@ -268,6 +269,15 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     public <T> Iterable<T> queryForObjects(Class<T> objectType, String cypher, Map<String, ?> parameters) {
         try {
             return session.query(objectType, cypher, parameters);
+        } catch (Exception e) {
+            throw new PersistenceException(e);
+        }
+    }
+
+    @Override
+    public Result query(String cypher, Map<String, ?> parameters, boolean readOnly) {
+        try {
+            return session.query(cypher, parameters, readOnly);
         } catch (Exception e) {
             throw new PersistenceException(e);
         }
