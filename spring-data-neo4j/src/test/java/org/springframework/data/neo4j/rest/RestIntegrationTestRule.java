@@ -43,12 +43,12 @@ import org.neo4j.graphdb.GraphDatabaseService;
  */
 public class RestIntegrationTestRule implements TestRule {
 
-    private static final int REST_SERVER_PORT = 9090;
+    private static final int REST_SERVER_PORT = 61084;
 
     private final RestTestServer restServer;
 
     /**
-     * Constructs a new {@link RestIntegrationTestRule} that initialises a test {@link RestTestServer} listening on TCP port 9090.
+     * Constructs a new {@link RestIntegrationTestRule} that initialises a test {@link RestTestServer} listening on TCP port 61084.
      */
     public RestIntegrationTestRule() {
         this.restServer = new RestTestServer(REST_SERVER_PORT);

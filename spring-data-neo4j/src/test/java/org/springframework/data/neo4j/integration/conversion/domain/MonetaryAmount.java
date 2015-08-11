@@ -14,13 +14,13 @@ package org.springframework.data.neo4j.integration.conversion.domain;
 
 public class MonetaryAmount {
 
-    private final long amount;
+    private final int amount;
 
     public MonetaryAmount(int pounds, int pence) {
         this.amount = pounds * 100 + pence;
     }
 
-    public long getAmountAsSubUnits() {
+    public int getAmountAsSubUnits() {
         return this.amount;
     }
 
@@ -28,7 +28,7 @@ public class MonetaryAmount {
     public int hashCode() {
         final int prime = 17;
         int result = 1;
-        result = prime * result + (int) (amount ^ (amount >>> 32));
+        result = prime * result + (amount ^ (amount >>> 32));
         return result;
     }
 
@@ -47,7 +47,7 @@ public class MonetaryAmount {
 
     @Override
     public String toString() {
-        int pence = (int) this.amount % 100;
+        int pence = this.amount % 100;
         return "£" + (this.amount / 100) + "." + (pence < 10 ? "0" + pence : pence);
     }
 

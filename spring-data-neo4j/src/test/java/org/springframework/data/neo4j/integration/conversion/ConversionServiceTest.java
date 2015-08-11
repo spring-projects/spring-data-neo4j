@@ -83,7 +83,6 @@ public class ConversionServiceTest {
     }
 
     @Test
-
     public void shouldConvertBase64StringOutOfGraphDatabaseBackIntoByteArray() {
         Result rs = testRule.getGraphDatabaseService().execute(
                 "CREATE (u:SiteMember {profilePictureData:'MTIzNDU2Nzg5'}) RETURN id(u) AS userId");
@@ -97,8 +96,8 @@ public class ConversionServiceTest {
 
     @Test
     public void shouldConvertFieldsUsingSpringConvertersAddedDirectlyToConversionService() {
-        this.conversionService.addConverter(new SpringMonetaryAmountToNumberConverter());
-        this.conversionService.addConverter(new SpringNumberToMonetaryAmountConverter());
+        this.conversionService.addConverter(new SpringMonetaryAmountToIntegerConverter());
+        this.conversionService.addConverter(new SpringIntegerToMonetaryAmountConverter());
 
         PensionPlan pensionToSave = new PensionPlan(new MonetaryAmount(16472, 81), "Tightfist Asset Management Ltd");
 

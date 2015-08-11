@@ -9,13 +9,17 @@
  * code for these subcomponents is subject to the terms and
  * conditions of the subcomponent's licence, as noted in the LICENSE file.
  */
-package org.springframework.data.neo4j.extensions.domain;
 
-/**
- * @author: Vince Bickers
- */
-public class User {
+package org.springframework.data.neo4j.integration.conversion;
 
-    Long id;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmount;
+
+public class SpringIntegerToMonetaryAmountConverter implements Converter<Integer, MonetaryAmount> {
+
+    @Override
+    public MonetaryAmount convert(Integer source) {
+        return source != null ? new MonetaryAmount(source.intValue() / 100, source.intValue() % 100) : null;
+    }
 
 }

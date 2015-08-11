@@ -26,7 +26,7 @@ import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmou
  */
 public class SpringMonetaryAmountToNumberConverterFactory implements ConverterFactory<MonetaryAmount, Number>, ConditionalConverter {
 
-    private final SpringMonetaryAmountToNumberConverter wrappedConverter = new SpringMonetaryAmountToNumberConverter();
+    private final SpringMonetaryAmountToIntegerConverter wrappedConverter = new SpringMonetaryAmountToIntegerConverter();
 
     @Override
     public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
