@@ -12,6 +12,13 @@
 
 package org.springframework.data.neo4j.queries;
 
+import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -31,13 +38,6 @@ import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Luanne Misquitta
@@ -292,7 +292,6 @@ public class DerivedQueryTest {
 	/**
 	 * @see DATAGRAPH-629
 	 * @see DATAGRAPH-705
-
 	 */
 	@Test
 	public void shouldFindNodeEntititiesWithTwoNestedPropertiesAnded() {
@@ -329,7 +328,6 @@ public class DerivedQueryTest {
 				" CREATE (r)-[:BLOCKBUSTER]->(m2)");
 
 		List<Cinema> theatres = cinemaRepository.findByVisitedNameOrBlockbusterOfTheWeekName("Michal", "San Andreas");
-
 		assertEquals(2, theatres.size());
 		assertTrue(theatres.contains(new Cinema("Picturehouse")));
 		assertTrue(theatres.contains(new Cinema("Ritzy")));

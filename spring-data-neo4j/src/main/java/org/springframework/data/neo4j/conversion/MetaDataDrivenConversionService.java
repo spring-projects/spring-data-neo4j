@@ -12,7 +12,6 @@
 
 package org.springframework.data.neo4j.conversion;
 
-
 import java.lang.reflect.ParameterizedType;
 
 import org.neo4j.ogm.metadata.MetaData;

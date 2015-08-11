@@ -10,6 +10,7 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
 package org.springframework.data.neo4j.extensions;
+
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

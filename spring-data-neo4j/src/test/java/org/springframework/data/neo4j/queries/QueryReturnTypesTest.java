@@ -51,7 +51,6 @@ public class QueryReturnTypesTest {
 
         worldRepository.save(tatooine);
         worldRepository.touchAllWorlds();
-        worldRepository.touchOnlyWorldsReachableByRocket();
 
         tatooine = worldRepository.findOne(tatooine.getId());
 

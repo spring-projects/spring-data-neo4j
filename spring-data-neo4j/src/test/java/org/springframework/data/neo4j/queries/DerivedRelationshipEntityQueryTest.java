@@ -202,17 +202,14 @@ public class DerivedRelationshipEntityQueryTest {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithNestedStartNodeProperty() {
-		executeUpdate(
-                "CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})" +
+		executeUpdate("CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
 		List<Rating> ratings = ratingRepository.findByUserName("Michal");
 		assertEquals(2, ratings.size());
 		Collections.sort(ratings);
-
 		assertEquals("Speed", ratings.get(0).getMovie().getName());
 		assertEquals("The Matrix", ratings.get(1).getMovie().getName());
-
 	}
 
 	/**
@@ -232,7 +229,6 @@ public class DerivedRelationshipEntityQueryTest {
 
 
 		ratings = ratingRepository.findByMovieName("Chocolat");
-
 		assertEquals(0, ratings.size());
 	}
 
@@ -241,7 +237,6 @@ public class DerivedRelationshipEntityQueryTest {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithBothStartEndNestedProperty() {
-
 		executeUpdate("CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 		List<Rating> ratings = ratingRepository.findByUserNameAndMovieName("Michal", "Speed");
@@ -278,7 +273,6 @@ public class DerivedRelationshipEntityQueryTest {
 	 */
 	@Test(expected = UnsupportedOperationException.class)
 	public void shouldFindRelEntitiesWithBaseAndNestedStartNodePropertyOred() {
-
 		executeUpdate("CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u2:User {name:'Vince'})  " +
 				" CREATE (u)-[:RATED {stars:2}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)" +
@@ -289,6 +283,7 @@ public class DerivedRelationshipEntityQueryTest {
 		assertEquals("Speed", ratings.get(0).getMovie().getName());
 		assertEquals("Chocolat", ratings.get(1).getMovie().getName());
 		assertEquals("The Matrix", ratings.get(2).getMovie().getName());
+
 
 		ratings = ratingRepository.findByStarsOrUserName(0, "Vince");
 		assertEquals(0, ratings.size());
