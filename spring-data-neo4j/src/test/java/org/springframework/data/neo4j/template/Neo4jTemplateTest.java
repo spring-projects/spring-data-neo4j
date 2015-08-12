@@ -15,7 +15,6 @@ package org.springframework.data.neo4j.template;
 import static org.junit.Assert.*;
 import static org.neo4j.ogm.session.Utils.*;
 
-import javax.persistence.PersistenceException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -36,6 +35,7 @@ import org.neo4j.ogm.session.Utils;
 import org.neo4j.ogm.session.result.QueryStatistics;
 import org.neo4j.ogm.session.result.Result;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.neo4j.examples.movies.domain.*;
 
 /**
@@ -223,15 +223,18 @@ public class Neo4jTemplateTest {
         assertEquals("The wrong genre was deleted", "Thriller", allGenres.iterator().next().getName());
     }
 
-    @Test(expected = PersistenceException.class)
+    /**
+     * @see DATAGRAPH-738
+     */
+    @Test(expected = UncategorizedGraphStoreException.class)
     public void shouldConvertOGMExceptionsToPersistenceExceptions() {
         this.template.loadAll(Void.class);
     }
 
     /**
-     * @see DATAGRAPH-604
+     * @see DATAGRAPH-604, DATAGRAPH-738
      */
-    @Test(expected = PersistenceException.class)
+    @Test(expected = DataRetrievalFailureException.class)
     public void shouldHandleErrorsOnExecute() {
         this.template.query("CREAT (node:NODE)", Collections.EMPTY_MAP);
     }

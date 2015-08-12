@@ -14,7 +14,6 @@ package org.springframework.data.neo4j.template;
 
 import static org.springframework.data.neo4j.util.IterableUtils.*;
 
-import javax.persistence.PersistenceException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -26,6 +25,7 @@ import org.neo4j.ogm.session.result.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.event.*;
 import org.springframework.util.Assert;
 
@@ -38,8 +38,8 @@ import org.springframework.util.Assert;
  * Note that this class also implements {@link ApplicationEventPublisherAware} and will publish events before data manipulation
  * operations - specifically delete and save.
  * </p>
- * Please note also that all methods on this class throw a {@link PersistenceException} if any underlying {@code Exception} is
- * thrown. Since {@link PersistenceException} is a runtime exception, this is not documented at the method level.
+ * Please note also that all methods on this class throw a {@link DataAccessException} if any underlying {@code Exception} is
+ * thrown. Since {@link DataAccessException} is a runtime exception, this is not documented at the method level.
  *
  * @author Adam George
  * @author Michal Bachman
@@ -71,7 +71,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.load(type, id);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -80,7 +80,8 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.load(type, id, depth);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
+
         }
     }
 
@@ -88,7 +89,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.loadAll(type, ids);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -96,7 +97,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.loadAll(type, ids, depth);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -105,7 +106,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.loadAll(type);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -113,8 +114,8 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     public <T> Collection<T> loadAll(Class<T> type, int depth) {
         try {
             return session.loadAll(type, depth);
-        } catch (PersistenceException e) {
-            throw new PersistenceException(e);
+        } catch (Exception e) {
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -122,7 +123,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.loadAll(objects);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -131,7 +132,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.loadAll(objects, depth);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -140,7 +141,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return getSingle(loadAllByProperty(type, propertyName, propertyValue));
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -148,7 +149,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return getSingleOrNull(loadAllByProperty(type, propertyName, propertyValue));
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -157,7 +158,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.loadAll(type, new Filter(name, value));
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -166,7 +167,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return getSingle(loadAllByProperties(type, parameters));
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -175,7 +176,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.loadAll(type, parameters);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -183,7 +184,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.loadAll(type, new Filter(name, value), depth);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -194,7 +195,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
             session.delete(entity);
             publishEvent(new AfterDeleteEvent(this, entity));
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -202,7 +203,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             session.deleteAll(type);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -211,7 +212,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.execute(jsonStatements);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -221,7 +222,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
             return session.execute(cypher, parameters);
         }
         catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -229,7 +230,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             session.clear();
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -241,7 +242,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
             publishEvent(new AfterSaveEvent(this, entity));
             return entity;
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -252,7 +253,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
             publishEvent(new AfterSaveEvent(this, entity));
             return entity;
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -261,7 +262,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.query(cypher, parameters);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -270,7 +271,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.query(objectType, cypher, parameters);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -279,7 +280,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.query(cypher, parameters, readOnly);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -288,7 +289,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.queryForObject(objectType, cypher, parameters);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
@@ -297,7 +298,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         try {
             return session.countEntitiesOfType(entityClass);
         } catch (Exception e) {
-            throw new PersistenceException(e);
+            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 

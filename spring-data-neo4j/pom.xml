@@ -42,12 +42,6 @@
                 <artifactId>spring-tx</artifactId>
             </dependency>
 
-            <dependency>
-                <groupId>javax.persistence</groupId>
-                <artifactId>com.springsource.javax.persistence</artifactId>
-                <version>1.0.0</version>
-            </dependency>
-
             <!-- These are needed for SD-REST integration -->
             <dependency>
                 <groupId>org.springframework</groupId>
