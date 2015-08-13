@@ -49,3 +49,7 @@ include::reference/performance/performance.adoc[]
 
 :leveloffset: +1
 include::reference/migration/migration.adoc[]
+:leveloffset: -1
+
+[[Configuration]]
+include::reference/configuration/ha.adoc[]

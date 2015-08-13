@@ -1,0 +1,92 @@
+[[reference_configuration_ha]]
+= Configuring Spring Data Neo4j 4 in an HA environment
+
+[[reference_configuration_transactions]]
+== Transaction Binding in HA mode
+A typical Neo4j HA cluster will consist of a master node and a couple of slave nodes for providing failover capability and optionally for handling reads. (Although it is possible to write to slaves, this is uncommon because it requires additional effort to synchronise a slave with the master node)
+
+image:neo4j-cluster.png[Typical HA Cluster]
+
+When operating in HA mode, Neo4j does not make open transactions available across all nodes in the cluster. This means we must bind every request within a specific transaction to the same node in the cluster, or the commit will fail with `404 Not Found`.
+
+[[reference_configuration_readwrite]]
+== Read-only Transactions
+
+As of version 4 RC2, Spring Data Neo4j does not distinguish between WRITE transactions and READ-ONLY transactions. We cannot therefore bind read-only transactions to slaves and write transactions to master. A future version will address this deficiency, but in the meantime the only way to ensure that everything works as expected is to direct every transaction to master. There are a couple of ways to to achieve this.
+
+[[reference_configuration_staticbinding]]
+== Static binding to a designated master
+
+=== Example cluster:
+
+. master:    192.168.0.55
+. slave1:    192.168.0.56
+. slave2:    192.168.0.67
+
+.SDN4 Binding to master ip address
+[source,java]
+----
+
+    private String url = "http://192.168.0.55:7474"
+    private SessionFactory sessionFactory = new SessionFactory("com.mycompany.myapp.domain");
+    private Session session = sessionFactory.openSession(url);
+
+
+----
+
+[NOTE]
+====
+We don't really recommend this approach, except for testing purposes and non-critical deployments. Firstly, it will only work if you always bring up the designated master first, and secondly, if the master goes down all subsequent transactions will fail until it is restarted. In HA mode, the cluster is able to elect a new master when this happens, but as of version 4 RC2 of Spring Data Neo4j, there is no mechanism for querying the cluster to identify the current master. The solution in this case is to use a load balancer such as HAProxy that can do this for us. This is described in the next section.
+
+====
+
+[[reference_configuration_haproxy]]
+== Dynamic binding via a load balancer
+In the Neo4j HA architecture, a cluster is typically fronted by a load balancer. The following example shows how to configure your application and set up HAProxy as a load balancer to route all requests to whichever machine in the cluster is currently identified as the master. Since only one machine can ever be the elected master, this should work exactly as we would like. Furthermore, should the elected master fail, a new server will be elected from the cluster as master and HAProxy will automatically route transactions to this server.
+
+
+=== Example cluster fronted by HAProxy
+
+. haproxy:          10.0.2.200
+. neo4j-server1:    10.0.1.10
+. neo4j-server2:    10.0.1.11
+. neo4j-server3:    10.0.1.12
+
+.Spring Data Neo4j 4 Binding via HAProxy
+[source,java]
+----
+
+    private String url = "http://10.0.2.200" // haproxy running on the default port 80
+    private SessionFactory sessionFactory = new SessionFactory("com.mycompany.myapp.domain");
+    private Session session = sessionFactory.openSession(url);
+
+
+----
+
+.Sample haproxy.cfg
+
+```
+global
+    daemon
+    maxconn 256
+
+defaults
+    mode http
+    timeout connect 5000ms
+    timeout client 50000ms
+    timeout server 50000ms
+
+frontend http-in
+    bind *:80
+    default_backend neo4j
+
+backend neo4j
+    option httpchk GET /db/manage/server/ha/master
+    server s1 10.0.1.10:7474 maxconn 32
+    server s2 10.0.1.11:7474 maxconn 32
+    server s3 10.0.1.12:7474 maxconn 32
+
+listen admin
+    bind *:8080
+    stats enable
+```
