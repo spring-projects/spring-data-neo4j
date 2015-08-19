@@ -75,7 +75,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
         ClassInfo owningClassInfo = this.metaData.classInfo(owner.getType().getName());
 
         Field propertyField = field;
-        if (propertyField == null) {
+        if (propertyField == null && owningClassInfo != null && descriptor != null) {
             FieldInfo fieldInfo = owningClassInfo.propertyFieldByName(descriptor.getName());
             if (fieldInfo == null) {
                 fieldInfo = owningClassInfo.relationshipFieldByName(descriptor.getName());
