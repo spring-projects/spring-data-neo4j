@@ -15,6 +15,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 
 import org.neo4j.ogm.annotation.Relationship;
+import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,12 +69,25 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
     public Neo4jPersistentProperty(ClassInfo owningClassInfo, Field field, PropertyDescriptor descriptor,
             PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
         super(field, descriptor, owner, simpleTypeHolder);
+        if (owningClassInfo == null) {
+            logger.warn("Owning ClassInfo is null for field: {} and propertyDescriptor: {}", field, descriptor);
+        }
+        this.isIdProperty = resolveWhetherIdProperty(owningClassInfo, field);
+    }
 
-        if (owningClassInfo.isInterface() || owningClassInfo.annotationsInfo().get(QueryResult.class.getName()) != null) {
+    private static boolean resolveWhetherIdProperty(ClassInfo owningClassInfo, Field field) {
+        if (owningClassInfo == null || owningClassInfo.isInterface() || owningClassInfo.annotationsInfo().get(QueryResult.class.getName()) != null) {
             // no ID properties on @QueryResult or non-concrete objects
-            this.isIdProperty = false;
+            return false;
         } else {
-            this.isIdProperty = owningClassInfo.getField(owningClassInfo.identityField()).equals(field);
+            try {
+                return owningClassInfo.getField(owningClassInfo.identityField()).equals(field);
+            }
+            catch (MappingException noIdentityField) {
+                logger.warn("No identity field found for class of type: {} when creating persistent property for field: {}",
+                        owningClassInfo.name(), field);
+                return false;
+            }
         }
     }
 

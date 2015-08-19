@@ -17,7 +17,6 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 
 import org.neo4j.ogm.annotation.typeconversion.Convert;
-import org.neo4j.ogm.metadata.MappingException;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.info.ClassInfo;
 import org.neo4j.ogm.metadata.info.FieldInfo;
@@ -61,31 +60,6 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
         }
 
         logger.info("Neo4jMappingContext initialisation completed");
-    }
-
-    @Override
-    protected Neo4jPersistentEntity<?> addPersistentEntity(TypeInformation<?> type) {
-        if (shouldCreatePersistentEntityFor(type)) {
-            return super.addPersistentEntity(type);
-        }
-        logger.warn("Not creating persistent entity for {} because it's not in the OGM meta-data as an entity", type != null ? type.getActualType() : "null type");
-        return null; // TODO: consider replacing this with a NullPersistentEntity if this causes problems
-    }
-
-    @Override
-    protected boolean shouldCreatePersistentEntityFor(TypeInformation<?> type) {
-        ClassInfo classInfo = this.metaData.classInfo(type.getType().getName());
-        if (classInfo == null) {
-            return false;
-        }
-
-        try {
-            classInfo.identityField();
-        } catch (MappingException noIdentityFieldFoundOnType) {
-            return false;
-        }
-
-        return !classInfo.isInterface() && super.shouldCreatePersistentEntityFor(type);
     }
 
     @Override
