@@ -7,12 +7,12 @@
     <version>4.0.0.BUILD-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>*** Spring Data Neo4j - Parent ***</name>
+    <name>Spring Data Neo4j - Parent</name>
 
     <parent>
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
-        <version>1.7.0.BUILD-SNAPSHOT</version>
+        <version>1.7.0.RC1</version>
     </parent>
 
     <modules>
@@ -24,7 +24,7 @@
 
     <properties>
         <project.type>multi</project.type>
-        <springdata.commons>1.11.0.BUILD-SNAPSHOT</springdata.commons>
+        <springdata.commons>1.11.0.RC1</springdata.commons>
         <source.level>1.7</source.level>
         <commonslang.version>2.6</commonslang.version>
         <bundlor.enabled>false</bundlor.enabled>
@@ -153,9 +153,9 @@
 
     <repositories>
         <repository>
-            <id>spring-libs-snapshot</id>
+            <id>spring-libs-milestone</id>
             <name>Spring</name>
-            <url>http://repo.spring.io/libs-snapshot</url>
+            <url>http://repo.spring.io/libs-milestone</url>
         </repository>
 
         <repository>
@@ -173,7 +173,7 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-        
+
     </repositories>
 
     <pluginRepositories>
