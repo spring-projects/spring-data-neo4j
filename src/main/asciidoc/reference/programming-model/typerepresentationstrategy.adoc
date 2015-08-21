@@ -38,5 +38,6 @@ Collection<Person> people = repository.loadAll(Person.class);
 
 The label applied to a node in the database can be configured by setting the value of the `label` property in the `@NodeEntity` annotation.
 
-For `@RelationshipEntity` classes, the simple name of the class is used to derive the relationship type to use, although it's converted into SNAKE_CASE to honour the naming conventions of Neo4j relationships.  
-Much like node entities, you can configure the relationship type to use by setting the `type` property in the `@RelationshipEntity` annotation.
+//For `@RelationshipEntity` classes, the simple name of the class is used to derive the relationship type to use, although it's converted into SNAKE_CASE to honour the naming conventions of Neo4j relationships.
+//Much like node entities, you can configure the relationship type to use by setting the `type` property in the `@RelationshipEntity` annotation.
+In the current version, it is mandatory to specify the relationship type on a `@RelationshipEntity` annotation.

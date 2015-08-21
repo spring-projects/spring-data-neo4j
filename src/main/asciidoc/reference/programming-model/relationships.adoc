@@ -68,8 +68,9 @@ For accessing the two endpoints of the relationship, two special annotations are
 A field annotated with one of these annotations will provide access to the corresponding endpoint, depending on the chosen annotation.
 
 For controlling the relationship-type a `String` attribute called `type` is available on the `@RelationshipEntity` annotation.  
-Like the simple strategy for labelling node entities, if this is unset then the name of the class is used to derive the relationship type.
-However, if the relationship type is overridden in participating node entities, the `type` *must* be specified on the `@RelationshipEntity`.
+//Like the simple strategy for labelling node entities, if this is unset then the name of the class is used to derive the relationship type.
+//However, if the relationship type is overridden in participating node entities, the `type` *must* be specified on the `@RelationshipEntity`.
+Currently, the `type` must always be specified on the `@RelationshipEntity` annotation.
 
 [NOTE]
 ====
@@ -86,7 +87,7 @@ public class Actor {
     private Role playedIn;
 }
 
-@RelationshipEntity
+@RelationshipEntity(type="PLAYED_IN")
 public class Role {
     @GraphId   private Long relationshipId;
     @Property  private String title;

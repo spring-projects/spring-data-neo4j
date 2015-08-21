@@ -137,6 +137,8 @@ To achieve the old `template.fetch(entity)` equivalent behaviour, you should cal
 It's also worth noting that `exec(GraphCallback)` and the `create...()` methods have been made obsolete by Cypher.
 Instead, you should now issue a Cypher query to the new `execute` method to create the nodes or relationships that you need.
 
+Dynamic labels, properties and relationship types are not supported as of this version, server extensions should be considered instead.
+
 == Indexing
 
 The best way for retrieving start nodes for traversals and queries is by using Neo4j's integrated index facilities.

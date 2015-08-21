@@ -55,10 +55,10 @@ How that works is explained here: <<reference_programming_model_typerepresentati
 
 == Transactional Support
 Neo4j uses transactions to guarantee the integrity of your data and Spring Data Neo4j supports this fully. 
-The implications of this are described in the chapter around <<reference_programming_model_transactions,transactions>>.
+The implications of this are described in the chapter around <<reference_programming-model_transactions>>.
 
 == Configuration
-As of Release Candidate 2, only Java bean-based configuration is supported. See <<reference_setup>> for more details.
+Currently, only Java bean-based configuration is supported. See <<reference_setup>> for more details.
 
 ////
 == Examples

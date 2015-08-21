@@ -137,14 +137,14 @@ public interface MovieRepository extends GraphRepository<Movie> {
 
     @Query("MATCH (movie:Movie)-[r:RATING]->(), (movie)<-[:ACTS_IN]-(actor:Actor) " +
            "WHERE movie.id={0} " +
-           "RETURN movie.id as movieId, COLLECT(actor) AS 'cast', AVG(r.stars) AS 'averageRating'")
+           "RETURN movie.id as movieId, COLLECT(actor.name) AS 'cast', AVG(r.stars) AS 'averageRating'")
     MovieData getMovieData(String movieId);
 
     @QueryResult
     public class MovieData {
         Long movieId;
         Double averageRating;
-        Collection<Actor> cast;
+        Collection<String> cast;
     }
 
 }

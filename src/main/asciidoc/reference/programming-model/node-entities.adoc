@@ -93,13 +93,12 @@ Renaming any of these fields will cause parts of the graph to map incorrectly, h
 
 == @GraphId: Neo4j id field
 
-This is a required field which must be of type `Long`. 
+This is a required field which must be of type `java.lang.Long`.
 It is used by Spring Data Neo4j to store the node or relationship-id to re-connect the entity to the graph.
 
 [NOTE]
 ====
-It must not be a primitive type because then an object in a transient state cannot be represented, as the default value 0 would point to the reference node.  
-Please also make sure that an `equals()` and `hashCode()` method have to be provided which take the `id` field into account (and also handle the "non-attached", null case).
+It must not be a primitive type because then an object in a transient state cannot be represented, as the default value 0 would point to a node with id 0.
 ====
 
 If the field is simply named 'id' then it is not necessary to annotate it with `@GraphId` as the OGM will use it automatically.
@@ -107,7 +106,7 @@ If the field is simply named 'id' then it is not necessary to annotate it with `
 === Entity Equality
 
 Entity equality can be a grey area, and it is debatable whether natural keys or database ids best describe equality, there is the issue of versioning over time, etc.  
-In previous versions of Spring Data Neo4j it was recommended to honour the convention that database-issued ids are the basis for equality, despite the consequences.
+In previous versions of Spring Data Neo4j, it was recommended to honour the convention that database-issued ids are the basis for equality, despite the consequences.
 
 In version 4, the dependency of the framework upon a particular style of `equals()` or `hashCode()` implementation has been removed.  
 The graph-id field is directly checked to see if two entities represent the same node and a 64-bit hash code is used for dirty checking, so you're not forced to write your code in a certain way!
@@ -115,7 +114,7 @@ The graph-id field is directly checked to see if two entities represent the same
 However, we do think it's important to mention that if you use the `@GraphId` field in your `hashCode()` method then this comes with a caveat.  
 When you first persist an entity, its hashcode changes because Spring Data Neo4j populates the database ID on save.
 
-That causes problems if you had inserted the newly created entity into a hash-based collection before saving. 
+This causes problems if you had inserted the newly created entity into a hash-based collection before saving.
 While that can be worked around, we strongly advise you adopt a convention of not relying upon the graph ID for object equality.
 
 

@@ -35,7 +35,7 @@ dependencies {
 
 == Spring configuration
 
-Users of Spring Data Neo4j 4 can current only configure their applications using Java-based bean configuration.
+Users of Spring Data Neo4j 4 can currently only configure their applications using Java-based bean configuration.
 Support for XML namespace configuration is expected to be available in later versions.
 
 === Java-based bean configuration
@@ -132,7 +132,7 @@ To use the `InProcessServer` in your tests, you will need to add the following d
 === SessionFactory Bean
 
 The `SessionFactory` is needed by SDN to create instances of `org.neo4j.ogm.session.Session` as required.  
-This also sets up the object-graph mapping metadata when constructed, which is then used across all `Session` objects that it creates.  
+When constructed, it sets up the object-graph mapping metadata, which is then used across all `Session` objects that it creates.
 As seen in the above example, the packages to scan for domain object metadata should be provided to the `SessionFactory` constructor.
 
 Note that the session factory should typically be application-scoped.
@@ -145,9 +145,9 @@ All repository implementations and `Neo4jTemplate` are driven by the `Session`, 
 
 The life cycle of a `Session` is important to consider because it keeps track of the changes that have been made to entities and their relationships.  
 The reason it does this is so that only entities and relationships that have changed get persisted on save, which is particularly efficient when working with large graphs.  
-Note, however, that the `Session` *doesn't ever return cached objects* so there's no risk of getting stale data on load; it always hits the database.
+Note, however, that the `Session` *does not ever return cached objects* so there's no risk of getting stale data on load; it always hits the database.
 
-If your application relies on long-running sessions and doesn't reload entities then you may not see changes made from other users and find yourself working with outdated objects.  
+If your application relies on long-running sessions and does not reload entities then you may not see changes made from other users and find yourself working with outdated objects.
 On the other hand, if your sessions have too narrow a scope then your save operations can be unnecessarily expensive, as updates will be made to all objects if the session isn't aware of the those that were originally loaded.
 
 There's therefore a trade off between the two approaches.  
