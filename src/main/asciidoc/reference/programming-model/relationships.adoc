@@ -50,8 +50,20 @@ By default, the _related_ node or relationship entities will just be loaded to m
 If this `Set` of related entities is modified, the changes are reflected in the graph once the root object (`Actor`, in this case) is saved. 
 Relationships are added, removed or updated according to the differences between the root object that was loaded and the corresponding one that was saved..
 
-Spring Data Neo4j ensures by default that there is only one relationship of a given type between any two given entities.  
+Spring Data Neo4j ensures by default that there is only one relationship of a given type between any two given entities.
+The exception to this rule is when a relationship is specified as either `OUTGOING` or `INCOMING` between two entities of the same type.
+In this case, it is possible to have two relationships of the given type between the two entities, one relationship in either direction.
+
 If you don't care about the direction then you can specify `direction=Relationship.UNDIRECTED` which will guarantee that the path between two node entities is navigable from either side.
+
+For example, consider the `PARTNER` relationship between two companies, where `(A)-[:PARTNER_OF]->(B)` implies `(B)-[:PARTNER_OF]->(A)`.
+The direction of the relationship does not matter; only the fact that a `PARTNER_OF` relationship exists between these two companies is of importance.
+Hence an `UNDIRECTED` relationship is the correct choice, ensuring that there is only one relationship of this type between two partners and navigating between them from either entity is possible.
+
+[NOTE]
+====
+The direction attribute on a `@Relationship` defaults to `OUTGOING`. Any fields or methods backed by an `INCOMING` relationship must be explicitly annotated with an `INCOMING` direction.
+====
 
 [NOTE]
 ====
