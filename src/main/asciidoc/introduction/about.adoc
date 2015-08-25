@@ -9,14 +9,14 @@ This project is part of the http://projects.spring.io/spring-data[Spring Data pr
 
 == Feedback
 
-It was written by developers for developers. Hopefully we've created a guide that is well received by our peers.
+It was written by developers for developers. Hopefully we've created a guide that is well-received by our peers.
 
 If you have any feedback on Spring Data Neo4j or this book, please provide it via the https://jira.spring.io/browse/DATAGRAPH[SpringSource JIRA],  http://stackoverflow.com/questions/tagged/spring-data-neo4j[StackOverflow] or the http://groups.google.com/group/neo4j[Neo4j Google Group].
 
 == Format of the Book
 
 
-This book is a classic reference documentation, containing detailed information about the library. It discusses the programming model, the underlying assumptions, and internals, as well as the APIs for the object-graph mapping. The reference documentation is typically used to look up concrete bits of information, or to drill down into certain topics. 
+This book is a classic reference document, containing detailed information about the library. It discusses the programming model, the underlying assumptions, and internals, as well as the APIs for the object-graph mapping. The reference documentation is typically used to look up particular pieces of information or to drill down into certain topics. 
 
 == Acknowledgements
 

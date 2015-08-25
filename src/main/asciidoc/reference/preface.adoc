@@ -39,8 +39,7 @@ Relationships between entities are first class citizens in a graph database and 
 == Repositories
 Spring Data Commons provides a very powerful repository infrastructure that is also leveraged in Spring Data Neo4j.
 Those repositories consist of a composition of interfaces that declare the available functionality in each repository.
-The implementation details of commonly used persistence methods are handled by the library.
-At least for typical CRUD and query-operations that is very convenient. 
+The implementation details of commonly-used persistence methods are handled by the library, which makes them very convenient for typical CRUD and query operations. 
 The repositories are extensible by annotated, named or derived finder methods (like in (G)Rails).
 For custom implementations of repository methods you are free to add your own code. (<<reference_programming_model_repositories,CRUD with repositories>>).
 
@@ -48,6 +47,9 @@ For custom implementations of repository methods you are free to add your own co
 Being a Spring Data library, Spring Data Neo4j offers a <<reference_programming_model_template,Neo4jTemplate>> for interacting with the mapped entities and the Neo4j graph database if you don't want to use repositories.
 As of version 4, `Neo4jTemplate` is based on the `org.neo4j.ogm.session.Session` object and adds mostly exception translation around the functionality.
 Support for Spring Data Neo4j Repositories is also based on `Neo4jSession`, so the underlying functionality is identical.
+
+In keeping with the Spring Data ethos, an operations interface is used to define the API exposed by the `Neo4jTemplate`.  This interface is called `Neo4jOperations`, the default implementation of which is `Neo4jTemplate`.  Users of the framework from version 4 are encouraged to code against `Neo4jOperations` instead of the `Neo4jTemplate` directly.
+
 
 == Mapping Strategies
 Because Neo4j is a schema-free database, Spring Data Neo4j uses a simple mechanism to map Java types to Neo4j nodes using labels.

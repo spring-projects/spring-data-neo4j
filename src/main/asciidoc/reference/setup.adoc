@@ -136,7 +136,7 @@ When constructed, it sets up the object-graph mapping metadata, which is then us
 As seen in the above example, the packages to scan for domain object metadata should be provided to the `SessionFactory` constructor.
 
 Note that the session factory should typically be application-scoped.
-While you can use a narrower scope for this if you like, there is typically no advantage in doing so.
+While you can use a narrower scope for this if you like, although there is typically no advantage in doing so.
 
 === Session Bean
 

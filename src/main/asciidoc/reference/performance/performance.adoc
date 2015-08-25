@@ -10,7 +10,7 @@ This chapter discusses the performance implications of using Spring Data Neo4j.
 
 == Focus on performance
 This new version 4 of SDN has been rebuilt from the ground up.
-It is based on the understanding that the majority of users wants to run application servers that connect to remote database instances.
+It is based on the understanding that the majority of users want to run application servers that connect to remote database instances.
 They will therefore need to communicate "over the wire".
 Neo4j provides the capability to do this now with its powerful Cypher language, which is exposed via a remote protocol.
 
@@ -25,14 +25,14 @@ You can now tailor your persistence requests according to the characteristics of
 This means you can choose to make deeper or shallower fetches based on fine tuning the types and amounts of data you want to transfer based on your individual constraints.
 
 If you know that you aren't going to need an object's related objects, you can choose not to fetch them by specifying the fetch-depth as 0. 
-Alternatively if you know that you will always want to a person's complete set of friends-of-friends, you can set the depth to 2.
+Alternatively if you know that you will always want to a person's complete set of friends-of-friends, for example, you can set the depth to 2.
 
 === Smart object-mapping
 SDN 4 introduces smart object-mapping. 
-This means that all other things being equal, it is possible to reliably detect which nodes and relationships needs to be changed in the database, and which don't.
+This means that, all other things being equal, it is possible to reliably detect which nodes and relationships need to be changed in the database and which don't.
 
-Knowing what needs to be changed means we don't need to flood Neo4j with requests to update objects that don't require changing, or create relationships that already exist. 
-We can minimise the amount of data we send across the wire as a result, which results in a faster network interaction, and fewer CPU cycles consumed on the server.
+Knowing what needs to be changed means we don't need to flood Neo4j with requests to update objects that don't require updating, or create relationships that already exist. 
+We can minimise the amount of data we send across the wire as a result, which leads to faster network interaction and fewer CPU cycles consumed on the server.
 
 === User-definable Session lifetime
 Supporting the smart object-mapping capability is the `Neo4jSession`. 

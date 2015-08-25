@@ -107,9 +107,9 @@ Since the `movie.topActor` field has not been modified, it will not cascade the 
 
 [[reference_programming-model_sorting_and_paging]]
 = Sorting and Paging
-Spring Data Neo4j supports Sorting and Paging of results, both when using Spring Data's Pageable and Sort interfaces, and also when using the Session object.
-The syntax for the two is slightly different, the main difference being that the Session object methods take independent arguments for Sorting and Pagination, whereas Spring's Pageable interface embeds an optional Sort object.
-Behind the scenes however, Repository-based paging and sorting delegates to the core OGM equivalents.
+Spring Data Neo4j supports sorting and paging of results, both when using Spring Data's `Pageable` and `Sort` interfaces, and also when using the `Session` object.
+The syntax for the two is slightly different, the main difference being that the `Session` object methods take independent arguments for sorting and pagination, whereas Spring's `Pageable` interface embeds an optional `Sort` object.
+Behind the scenes however, repository-based paging and sorting delegates to the core OGM equivalents.
 
 [NOTE]
 ====

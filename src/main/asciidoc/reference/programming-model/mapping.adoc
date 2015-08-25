@@ -28,10 +28,10 @@ By default, loading an instance will map that object's simple properties and its
 This helps to avoid accidentally loading the entire graph into memory, but allows a single request to fetch not only the object of immediate interest, but also its closest neighbours, which are likely also to be of interest. 
 This strategy attempts to strike a balance between loading too much of the graph into memory and having to make repeated requests for data.
 
-If parts of your graph structure a deep and not broad (for example a linked-list), you can increase the load horizon for those nodes accordingly. 
+If parts of your graph structure are deep and not broad (for example a linked list), you can increase the load horizon for those nodes accordingly. 
 Finally, if your graph will fit into memory, and you'd like to load it all in one go, you can set the depth to -1.
 
-On the other hand when fetching structures which are potentially very "bushy" (e.g. lists of things that themselves have many relationships), you may want to set the load horizon to 0 (depth = 0) to avoid loading thousands of objects most of which you won't actually inspect.
+On the other hand, when fetching structures which are potentially very "bushy" (e.g. lists of things that themselves have many relationships), you may want to set the load horizon to 0 (depth = 0) to avoid loading thousands of objects, most of which you won't actually inspect.
 
 === Default depth for persisting
 When persisting changes to the model, the default depth is -1. 

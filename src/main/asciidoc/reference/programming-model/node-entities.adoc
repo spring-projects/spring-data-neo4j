@@ -7,7 +7,7 @@ Relationship entities use the `@org.neo4j.ogm.annotation.RelationshipEntity` ann
 == @NodeEntity: The basic building block
 
 The `@NodeEntity` annotation is used to declare that a POJO class is an entity backed by a node in the graph database. 
-Entities handled by Spring Data Neo4j must have an empty public constructor to allow the library to construct the objects.
+Entities handled by Spring Data Neo4j must have a zero-argument constructor to allow the library to construct the objects, although it doesn't need to be declared public.
 
 Fields on the entity are by default mapped to properties of the node. 
 Fields referencing other node entities (or collections thereof) are linked with relationships. 
@@ -91,7 +91,7 @@ While this will map successfully to the database, it's important to understand t
 Renaming any of these fields will cause parts of the graph to map incorrectly, hence the recommendation to use annotations. 
 
 
-== @GraphId: Neo4j id field
+== @GraphId: Neo4j ID Field
 
 This is a required field which must be of type `java.lang.Long`.
 It is used by Spring Data Neo4j to store the node or relationship-id to re-connect the entity to the graph.
@@ -105,8 +105,8 @@ If the field is simply named 'id' then it is not necessary to annotate it with `
 
 === Entity Equality
 
-Entity equality can be a grey area, and it is debatable whether natural keys or database ids best describe equality, there is the issue of versioning over time, etc.  
-In previous versions of Spring Data Neo4j, it was recommended to honour the convention that database-issued ids are the basis for equality, despite the consequences.
+Entity equality can be a grey area, and it is debatable whether natural keys or database IDs best describe equality, as there is the issue of versioning over time, etc.  
+In previous versions of Spring Data Neo4j, it was recommended to honour the convention that database-issued IDs are the basis for equality, despite the consequences.
 
 In version 4, the dependency of the framework upon a particular style of `equals()` or `hashCode()` implementation has been removed.  
 The graph-id field is directly checked to see if two entities represent the same node and a 64-bit hash code is used for dirty checking, so you're not forced to write your code in a certain way!
@@ -121,7 +121,7 @@ While that can be worked around, we strongly advise you adopt a convention of no
 == @Property: Optional annotation for property fields
 
 As we touched on earlier, it is not necessary to annotate property fields as they are persisted by default.  
-Fields that are annotated as `@Transient` or with `transient` are exempted from persistence.
+Fields that are annotated as `@Transient` or declared with the `transient` modifier are exempted from persistence.
 All fields that contain primitive values are persisted directly to the graph.
 All fields convertible to a `String` using the Spring conversion services will be stored as a string.  
 Spring Data Neo4j includes default type converters that deal with the following types:

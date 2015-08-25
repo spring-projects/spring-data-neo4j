@@ -5,7 +5,7 @@ The `Neo4jTemplate` offers the convenient API of Spring templates for the Neo4j 
 As of version 4, the Spring Data Neo4j Template wraps the underlying object-graph mapping `Session`, but still provides the core functionality to persist objects to the graph and load them in a variety of ways.  
 Indeed, you can just use the `Session` directly in your code if you need greater control, but the `Neo4jTemplate` may well be easier for general use.
 
-== Basic operations
+== Basic Operations
 
 For Spring Data Neo4j 4, the changes to the underlying architecture have led to the pruning of the `Neo4jTemplate` feature set.  
 Basic operations are now entirely limited to CRUD operations on entities and executing arbitrary Cypher queries; more low-level manipulation of the graph database is not possible.
@@ -25,9 +25,9 @@ Of course, there are pros and cons to both of these approaches, but these are la
 In general, for low-level, very high-performance operations like complex graph traversals you'll get the best performance by writing a server-side extension.  
 For most purposes, though, Cypher will be performant and expressive enough to perform the operations that you need.
 
-== Entity-Persistence
+== Entity Persistence
 
-`Neo4jTemplate` allows to `save`, `load`, `loadAll` and `delete` entities.  
+`Neo4jTemplate` allows you to `save`, `load`, `loadAll` and `delete` entities.  
 However, as of SDN 4, it no longer provides the stored type information via `getStoredJavaType`.  
 The eagerness with which objects are retrieved is controlled by specifying the 'depth' argument to any of the load methods.  
 
@@ -47,7 +47,7 @@ For the query methods that retrieve mapped objects, the recommended query format
 
 The `Neo4jTemplate` provides implicit transactions for some of its methods. 
 For instance `save`, `delete` and `query` provide auto-commit transactions.
-For other modifying operations please provide Spring Transaction management using `@Transactional` or the `TransactionTemplate`.
+For other modifying operations you would need to provide Spring Transaction management using `@Transactional` or the `TransactionTemplate`.
 
 == Data Manipulation Events (formerly Lifecycle Events)
 

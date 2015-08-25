@@ -1,7 +1,7 @@
 [[reference_migration]]
 = Migrating from previous versions of Spring Data Neo4j
 
-== Package changes
+== Package Changes
 Because the Neo4j Object Graph Mapper can be used independently of Spring Data Neo4j, the core annotations have been
 moved out of the spring framework packages:
 
@@ -13,7 +13,7 @@ The `@Query` and `@QueryResult` annotations are only supported in the Spring mod
 mapping framework. These annotations have not changed.
 ====
 
-== Annotation changes
+== Annotation Changes
 There have been some changes to the annotations that were used in previous versions of Spring Data Neo4j.
 Wherever possible we have tried to maintain the previous annotations verbatim, but in a few cases this has not been
 possible, usually for technical reasons but sometimes for aesthetic ones. Our goal has been to minimise the number
@@ -36,7 +36,7 @@ field or method with `@Convert` to specify your own implementation of `org.neo4j
 
 You can find out more about type conversions here: <<reference_programming-model_conversion-custom,Custom Converters>>
 
-== Obsolete annotations
+== Obsolete Annotations
 
 The following annotations are no longer used, either because they are no longer needed, or cannot be supported via Cypher.
 
@@ -47,11 +47,11 @@ The following annotations are no longer used, either because they are no longer 
 * @TypeAlias
 * @Fetch
 
-== Features no longer supported
+== Features No Longer Supported
 
 Some features of the previous annotations have been dropped.
 
-=== Overriding @Property types
+=== Overriding @Property Types
 Support for overriding property types via arguments to @Property has been dropped. If your attribute requires
 a non-default conversion to and from a database property, you can use a <<custom_converters,Custom Converter>> instead.
 
@@ -84,7 +84,7 @@ or entities using `@NodeEntity(label=...)`
 Please refer to <<reference_programming_model_typerepresentationstrategy,Entity Type Representation>> for more details.
 
 === AspectJ Support
-Support for Aspect J based persistence has been removed from SDN 4 as the write- and read-through approach only works with an integrated, embedded database, not Neo4j server. The performance improvements in SDN 4 should make the use as a performance optimization unnecessary.
+Support for AspectJ-based persistence has been removed from SDN 4 as the write-and-read-through approach only works with an integrated, embedded database, not Neo4j server. The performance improvements in SDN 4 should make their use as a performance optimisation unnecessary anyway.
 
 
 == Changes to Neo4jTemplate
@@ -92,6 +92,9 @@ Support for Aspect J based persistence has been removed from SDN 4 as the write-
 The `Neo4jTemplate` has been slimmed-down significantly for SDN 4 with many of the method signatures changed to reflect the updated behaviour.
 
 Many of the operations are no longer needed or can be expressed with a straightforward Cypher query.
+
+Developers are also encouraged to code against its `Neo4jOperations` interface instead of the template class.
+
 
 === API Changes
 
@@ -141,13 +144,13 @@ Dynamic labels, properties and relationship types are not supported as of this v
 
 == Indexing
 
-The best way for retrieving start nodes for traversals and queries is by using Neo4j's integrated index facilities.
-Spring Data Neo4j takes the view that index maintenance should not be part of your application code. For that reason,
-it does not provide any explicit index-related functionality.
+The best way to retrieve start nodes for traversals and queries is by using Neo4j's integrated index facilities.
+Spring Data Neo4j takes the view that index maintenance should not be part of your application code. 
+For that reason, it does not provide any explicit index-related functionality.
 
 However, it is very important that indices are in place for efficient node lookups.
 Make sure those are applied to your test and especially production databases to guarantee efficient query execution.
-Please make sure you read http://neo4j.com/docs/stable/query-schema-index.html[Neo4j Documentation]
+Please make sure you read the http://neo4j.com/docs/stable/query-schema-index.html[Neo4j Documentation]
 on indices.
 
 === Built-In Query DSL Support

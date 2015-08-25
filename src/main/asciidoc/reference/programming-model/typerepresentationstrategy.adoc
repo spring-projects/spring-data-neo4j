@@ -29,7 +29,7 @@ public class Gentleman extends Person {
    ...
 }
 
-// creates a node with labels Gentleman:Person
+// creates a node with labels Gentleman:Person:DomainObject
 repository.save(new Gentleman());
 
 // retrieve all ladies and gentlemen

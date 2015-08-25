@@ -126,9 +126,12 @@ will take precedence over converters registered with Spring's ConversionService.
 [[reference_programming-model_mapresult]]
 == Mapping Query Results
 
-For queries executed via `@Query` repository methods, it's possible to specify a conversion of complex query results to POJOs. These result objects are then populated with the query result data and can be serialized and sent to a different part of the application, e.g. a frontend-ui.
+For queries executed via `@Query` repository methods, it's possible to specify a conversion of complex query results to POJOs. These result objects are then populated with the query result data and can be serialized and sent to a different part of the application, e.g. a frontend-ui.  To take advantage of this feature, use a class annotated with `@QueryResult` as the method return type. 
 
-Use a class annotated with `@QueryResult` as the method return type. Mapping to entities in a `QueryResult` is not yet supported by Spring Data Neo4j 4.
+[NOTE]
+====
+Mapping to entities in a `QueryResult` is not yet supported by Spring Data Neo4j 4.
+====
 
 .Example of query result mapping
 [source,java]

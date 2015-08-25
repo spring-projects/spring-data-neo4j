@@ -1,8 +1,8 @@
 [[reference_programming-model_relationships]]
-= Relating node entities
+= Relating Node Entities
 
 Since relationships are first-class citizens in Neo4j, associations between node entities are represented by relationships. 
-In general, relationships are categorized by a type, and start and end nodes (which imply the direction of the relationship). 
+In general, relationships are categorised by a type, and start and end nodes (which imply the direction of the relationship). 
 Relationships can have an arbitrary number of properties. 
 Spring Data Neo4j has special support to represent Neo4j relationships as entities too, but it is often not needed.
 
@@ -56,7 +56,7 @@ In this case, it is possible to have two relationships of the given type between
 
 If you don't care about the direction then you can specify `direction=Relationship.UNDIRECTED` which will guarantee that the path between two node entities is navigable from either side.
 
-For example, consider the `PARTNER` relationship between two companies, where `(A)-[:PARTNER_OF]->(B)` implies `(B)-[:PARTNER_OF]->(A)`.
+For example, consider the `PARTNER_OF` relationship between two companies, where `(A)-[:PARTNER_OF]->(B)` implies `(B)-[:PARTNER_OF]->(A)`.
 The direction of the relationship does not matter; only the fact that a `PARTNER_OF` relationship exists between these two companies is of importance.
 Hence an `UNDIRECTED` relationship is the correct choice, ensuring that there is only one relationship of this type between two partners and navigating between them from either entity is possible.
 
@@ -65,12 +65,8 @@ Hence an `UNDIRECTED` relationship is the correct choice, ensuring that there is
 The direction attribute on a `@Relationship` defaults to `OUTGOING`. Any fields or methods backed by an `INCOMING` relationship must be explicitly annotated with an `INCOMING` direction.
 ====
 
-[NOTE]
-====
-The direction attribute on a `@Relationship` defaults to `OUTGOING`. Any fields or methods backed by an `INCOMING` relationship must be explicitly annotated with an `INCOMING` direction.
-====
 
-== @RelationshipEntity: Rich relationships
+== @RelationshipEntity: Rich Relationships
 
 To access the full data model of graph relationships, POJOs can also be annotated with `@RelationshipEntity`, making them relationship entities. 
 Just as node entities represent nodes in the graph, relationship entities represent relationships. Such POJOs allow you access and manage properties on the underlying relationships in the graph.
