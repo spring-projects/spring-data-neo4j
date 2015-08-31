@@ -138,6 +138,12 @@ public interface PersonRepository extends GraphRepository<Person> {
 }
 ----
 
+[NOTE]
+====
+In the current version, derived finders do not support paging, sorting or a custom depth.
+====
+
+
 == Creating repositories
 
 The `Repository` instances are only created through Spring and can be auto-wired into your Spring beans as required.
