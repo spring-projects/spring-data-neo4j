@@ -159,7 +159,28 @@ Additional beans can be configured to be included in the Neo4j-Configuration jus
 
 === Authentication
 If you're running against Neo4j 2.2 or later and authentication is enabled, you will need to supply connection credentials.
-Spring Data Neo4j 4 reads System properties `username` and `password` and supplies them with each request to the Neo4j database.
+This can be accomplished by supplying the username and password when constructing a `RemoteServer`,
+or by embedded them into the URL such as `http://username:password@localhost:7474`.
+
+.Passing connection credentials when constructing a RemoteServer
+[source,java]
+----
+@Bean
+public Neo4jServer neo4jServer() {
+    return new RemoteServer("http://localhost:7474",username,password);
+}
+----
+
+.Embedding connection credentials in the URL
+[source,java]
+----
+@Bean
+public Neo4jServer neo4jServer() {
+    return new RemoteServer("http://username:password@localhost:7474",username,password);
+}
+----
+
+Otherwise, Spring Data Neo4j 4 reads System properties `username` and `password` and supplies them with each request to the Neo4j database.
 An example of setting these via the Environment is provided below
 
 .Setting System properties from the Environment

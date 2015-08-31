@@ -14,17 +14,36 @@ package org.springframework.data.neo4j.server;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class RemoteServer implements Neo4jServer {
 
-    private final String url;
+    private String url;
+    private String username;
+    private String password;
 
     public RemoteServer(String url) {
         this.url = url;
     }
 
+    public RemoteServer(String url, String username, String password) {
+        this.url = url;
+        this.username = username;
+        this.password = password;
+    }
+
     public String url() {
         return this.url;
+    }
+
+    @Override
+    public String username() {
+        return username;
+    }
+
+    @Override
+    public String password() {
+        return password;
     }
 
 }

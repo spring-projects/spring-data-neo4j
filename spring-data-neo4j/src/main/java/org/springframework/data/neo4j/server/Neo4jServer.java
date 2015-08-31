@@ -14,7 +14,10 @@ package org.springframework.data.neo4j.server;
 
 /**
  * @author Michal Bachman
+ * @author Luanne Misquitta
  */
 public interface Neo4jServer {
     String url();
+    String username();
+    String password();
 }

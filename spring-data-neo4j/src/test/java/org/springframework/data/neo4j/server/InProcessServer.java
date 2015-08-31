@@ -16,6 +16,7 @@ import org.neo4j.ogm.testutil.TestServer;
 
 /**
  * @author Michal Bachman
+ * @author Luanne Misquitta
  */
 public class InProcessServer implements Neo4jServer {
 
@@ -29,4 +30,13 @@ public class InProcessServer implements Neo4jServer {
         return testServer.url();
     }
 
+    @Override
+    public String username() {
+        return null;
+    }
+
+    @Override
+    public String password() {
+        return null;
+    }
 }

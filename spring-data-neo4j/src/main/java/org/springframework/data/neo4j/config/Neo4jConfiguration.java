@@ -52,7 +52,7 @@ public abstract class Neo4jConfiguration {
         Assert.notNull(sessionFactory, "You must provide a SessionFactory instance in your Spring configuration classes");
         Neo4jServer neo4jServer = neo4jServer();
         Assert.notNull(neo4jServer, "You must provide a Neo4jServer instance in your Spring configuration classes");
-        return getSessionFactory().openSession(neo4jServer().url());
+        return constructSession(neo4jServer);
     }
 
     @Bean
@@ -98,5 +98,10 @@ public abstract class Neo4jConfiguration {
     @Bean
     public abstract SessionFactory getSessionFactory();
 
-
+    private Session constructSession(Neo4jServer server) {
+        if(server.url()!=null && server.username()!=null && server.password()!=null) {
+            return getSessionFactory().openSession(server.url(),server.username(),server.password());
+        }
+        return getSessionFactory().openSession(server.url());
+    }
 }
