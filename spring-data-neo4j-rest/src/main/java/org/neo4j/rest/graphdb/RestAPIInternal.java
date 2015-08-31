@@ -25,8 +25,6 @@ public interface RestAPIInternal {
     // todo add to cache or update data in cache
     RestEntity createRestEntity(Map data);
 
-    void resetIndex(Class type);
-
     public enum Load {
         FromCache,
         FromServer,

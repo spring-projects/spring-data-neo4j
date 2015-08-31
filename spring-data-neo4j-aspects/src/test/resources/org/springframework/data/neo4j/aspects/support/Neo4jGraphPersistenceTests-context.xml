@@ -121,6 +121,7 @@
                 <value>org.springframework.data.neo4j.aspects.Developer</value>
                 <value>org.springframework.data.neo4j.aspects.Person</value>
                 <value>org.springframework.data.neo4j.aspects.Group</value>
+                <value>org.springframework.data.neo4j.aspects.LeadRelationship</value>
                 <value>org.springframework.data.neo4j.aspects.SubGroup</value>
                 <value>org.springframework.data.neo4j.aspects.Toyota</value>
                 <value>org.springframework.data.neo4j.aspects.Volvo</value>

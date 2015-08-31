@@ -32,7 +32,6 @@ import org.neo4j.rest.graphdb.query.CypherTransaction;
 
 
 public class QueryResultBuilder<T> implements QueryResult<T> {
-    private CypherTransaction.Result cypherResult;
     private Iterable<T> result;
     private final ResultConverter defaultConverter;
     private final boolean isClosableIterable;
@@ -44,16 +43,8 @@ public class QueryResultBuilder<T> implements QueryResult<T> {
 
     public QueryResultBuilder(Iterable<T> result, final ResultConverter<T,?> defaultConverter) {
         this.result = result;
-        this.isClosableIterable = result instanceof IndexHits || result instanceof ClosableIterable;
+        this.isClosableIterable = result instanceof IndexHits || result instanceof ClosableIterable  || result instanceof AutoCloseable;;
         this.defaultConverter = defaultConverter;
-    }
-
-    public static String replaceParams(String statement, Map<String, Object> params) {
-        if (params==null || params.isEmpty()) return statement;
-        for (Map.Entry<String, Object> param : params.entrySet()) {
-            statement = statement.replaceAll("%"+param.getKey()+"\\b",""+param.getValue());
-        }
-        return statement;
     }
 
     @Override
@@ -121,9 +112,15 @@ public class QueryResultBuilder<T> implements QueryResult<T> {
     private void closeIfNeeded() {
         if (isClosableIterable && !isClosed) {
             if (result instanceof IndexHits) {
-               ((IndexHits) result).close();
+                ((IndexHits) result).close();
             } else if (result instanceof ClosableIterable) {
-               ((ClosableIterable) result).close();
+                ((ClosableIterable) result).close();
+            } else if (result instanceof AutoCloseable) {
+                try {
+                    ((AutoCloseable)result).close();
+                } catch (Exception e) {
+                    // ignore
+                }
             }
             isClosed=true;
         }

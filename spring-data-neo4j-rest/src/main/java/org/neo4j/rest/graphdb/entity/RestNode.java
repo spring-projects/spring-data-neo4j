@@ -58,6 +58,10 @@ public class RestNode extends RestEntity implements Node {
         super(id,restData,facade);
         setLabels(labels);
     }
+    public RestNode(RestNode node, RestAPI facade) {
+        super(node,facade);
+        setLabels(node.labels);
+    }
 
     public static RestNode fromCypher(long id, Collection<String> labels, Map<String, Object> props, RestAPI facade) {
         Map<String, Object> restData = map("data", props, "self", RestNode.nodeUri(facade, id));//,"metadata",map("id",String.valueOf("id"),"labels",labels)
@@ -73,7 +77,7 @@ public class RestNode extends RestEntity implements Node {
     public void updateFrom(RestEntity entity, RestAPI restApi) {
         super.updateFrom(entity, restApi);
         RestNode node = (RestNode) entity;
-        if (node.lastLabelFetchTime > 0 && node.labels != null) {
+        if (node.lastLabelFetchTime > lastLabelFetchTime && node.labels != null) {
             setLabels(node.labels);
         }
     }

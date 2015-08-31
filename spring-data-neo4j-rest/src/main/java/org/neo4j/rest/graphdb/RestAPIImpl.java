@@ -23,20 +23,16 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.IterableWrapper;
 import org.neo4j.helpers.collection.MapUtil;
-import org.neo4j.index.lucene.ValueContext;
-import org.neo4j.rest.graphdb.entity.RestEntityCache;
-import org.neo4j.rest.graphdb.query.CypherRestResult;
 import org.neo4j.rest.graphdb.converter.RelationshipIterableConverter;
 import org.neo4j.rest.graphdb.converter.RestEntityExtractor;
-import org.neo4j.rest.graphdb.converter.RestIndexHitsConverter;
 import org.neo4j.rest.graphdb.entity.RestEntity;
+import org.neo4j.rest.graphdb.entity.RestEntityCache;
 import org.neo4j.rest.graphdb.entity.RestNode;
 import org.neo4j.rest.graphdb.entity.RestRelationship;
 import org.neo4j.rest.graphdb.index.IndexInfo;
 import org.neo4j.rest.graphdb.index.RestIndex;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
-import org.neo4j.rest.graphdb.index.RetrievedIndexInfo;
-import org.neo4j.rest.graphdb.index.SimpleIndexHits;
+import org.neo4j.rest.graphdb.query.CypherRestResult;
 import org.neo4j.rest.graphdb.query.CypherResult;
 import org.neo4j.rest.graphdb.query.RestQueryResult;
 import org.neo4j.rest.graphdb.transaction.NullTransaction;
@@ -44,19 +40,14 @@ import org.neo4j.rest.graphdb.traversal.RestDirection;
 import org.neo4j.rest.graphdb.traversal.RestTraversal;
 import org.neo4j.rest.graphdb.traversal.RestTraversalDescription;
 import org.neo4j.rest.graphdb.traversal.RestTraverser;
-import org.neo4j.rest.graphdb.util.JsonHelper;
 import org.neo4j.rest.graphdb.util.QueryResult;
 import org.neo4j.rest.graphdb.util.ResultConverter;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static java.lang.String.format;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static org.neo4j.helpers.collection.MapUtil.map;
 import static org.neo4j.rest.graphdb.ExecutingRestRequest.encode;
@@ -72,15 +63,16 @@ public class RestAPIImpl implements RestAPI {
     private long entityRefetchTimeInMillis = TimeUnit.SECONDS.toMillis(1000); //TODO move to cache
     private final RestEntityCache entityCache = new RestEntityCache(this);
     private RestEntityExtractor restEntityExtractor = new RestEntityExtractor(this);
-    private RestIndexManager restIndexManager = new RestIndexManager(this);
-    private Map<String,IndexInfo> indexInfos = new HashMap<>();
 
+    private final RestAPIIndexImpl restIndexAPI;
     public RestAPIImpl(String uri) {
         this.restRequest = createRestRequest(uri, null, null);
+        restIndexAPI = new RestAPIIndexImpl(this);
     }
 
     public RestAPIImpl(String uri, String user, String password) {
         this.restRequest = createRestRequest(uri, user, password);
+        restIndexAPI = new RestAPIIndexImpl(this);
     }
 
     protected RestRequest createRestRequest(String uri, String user, String password) {
@@ -89,7 +81,7 @@ public class RestAPIImpl implements RestAPI {
 
     @Override
     public RestIndexManager index() {
-        return restIndexManager;
+        return restIndexAPI.index();
     }
 
     @Override
@@ -191,20 +183,6 @@ public class RestAPIImpl implements RestAPI {
         return entityCache.addToCache(node);
     }
 
-    @Override
-    public RestNode getOrCreateNode(RestIndex<Node> index, String key, Object value, final Map<String, Object> properties, Collection<String> labels) {
-        if (index==null || key == null || value==null) throw new IllegalArgumentException("Unique index "+index+" key "+key+" value must not be null");
-        final Map<String, Object> data = map("key", key, "value", value, "properties", properties);
-        final RequestResult result = getRestRequest().post(uniqueIndexPath(index), data);
-        if (result.statusIs(Response.Status.CREATED) || result.statusIs(Response.Status.OK)) {
-            RestNode node = (RestNode) getEntityExtractor().convertFromRepresentation(result);
-            addLabels(node, labels);
-            node.setLabels(labels);
-            return entityCache.addToCache(node);
-        }
-        throw new RuntimeException(String.format("Error retrieving or creating node for key %s and value %s with index %s", key, value, index.getIndexName()));
-    }
-
     private String toLabelString(String[] labels) {
         if (labels==null || labels.length == 0) return "";
         StringBuilder sb = new StringBuilder();
@@ -215,7 +193,7 @@ public class RestAPIImpl implements RestAPI {
     }
 
 
-    private RestNode createRestNode(RequestResult result) {
+    public RestNode createRestNode(RequestResult result) {
         if (result.statusIs(Status.NOT_FOUND)) {
             throw new NotFoundException("Node not found");
         }
@@ -229,6 +207,16 @@ public class RestAPIImpl implements RestAPI {
         return entityCache.addToCache(node);
     }
 
+    public RestRelationship createRestRelationship(RequestResult requestResult, PropertyContainer element) {
+        if (requestResult.statusOtherThan(CREATED)) {
+            final int status = requestResult.getStatus();
+            throw new RuntimeException("Error creating relationship " + status+" "+requestResult.getText());
+        }
+        final String location = requestResult.getLocation();
+        if (requestResult.isMap()) return new RestRelationship(requestResult.toMap(), this);
+        return new RestRelationship(location, this);
+    }
+
     @Override
     public RestRelationship createRelationship(Node startNode, Node endNode, RelationshipType type, Map<String, Object> props) {
         // final RestRequest restRequest = ((RestNode) startNode).getRestRequest();
@@ -240,58 +228,6 @@ public class RestAPIImpl implements RestAPI {
         final RestNode start = (RestNode) startNode;
         RequestResult requestResult = getRestRequest().with(start.getUri()).post("relationships", data);
         return createRestRelationship(requestResult, startNode);
-    }
-
-    private RestRelationship createRestRelationship(RequestResult requestResult, PropertyContainer element) {
-        if (requestResult.statusOtherThan(CREATED)) {
-            final int status = requestResult.getStatus();
-            throw new RuntimeException("Error creating relationship " + status+" "+requestResult.getText());
-        }
-        final String location = requestResult.getLocation();
-        if (requestResult.isMap()) return new RestRelationship(requestResult.toMap(), this);
-        return new RestRelationship(location, this);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T extends PropertyContainer> RestIndex<T> getIndex(String indexName) {
-        final RestIndexManager index = this.index();
-        if (index.existsForNodes(indexName)) return (RestIndex<T>) index.forNodes(indexName);
-        if (index.existsForRelationships(indexName)) return (RestIndex<T>) index.forRelationships(indexName);
-        throw new IllegalArgumentException("Index " + indexName + " does not yet exist");
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public void createIndex(String type, String indexName, Map<String, String> config) {
-        Map<String,Object> data=new HashMap<String, Object>();
-        data.put("name",indexName);
-        data.put("config",config);
-        restRequest.post("index/" + type, data);
-        IndexInfo indexInfo = indexInfos.get(type);
-        if (indexInfo!=null) indexInfo.setExpired();
-    }
-
-    public void resetIndex(Class type) {
-        if (Node.class.isAssignableFrom(type)) {
-            indexInfo(RestIndexManager.NODE).setExpired();
-        }
-        if (Relationship.class.isAssignableFrom(type)) {
-            indexInfo(RestIndexManager.RELATIONSHIP).setExpired();
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T extends PropertyContainer> RestIndex<T> createIndex(Class<T> type, String indexName, Map<String, String> config) {
-        resetIndex(type);
-        if (Node.class.isAssignableFrom(type)) {
-            return (RestIndex<T>) index().forNodes( indexName, config);
-        }
-        if (Relationship.class.isAssignableFrom(type)) {
-            return (RestIndex<T>) index().forRelationships(indexName, config);
-        }
-        throw new IllegalArgumentException("Required Node or Relationship types to create index, got " + type);
     }
 
     @Override
@@ -359,56 +295,6 @@ public class RestAPIImpl implements RestAPI {
         }
         return "MERGE (n:`"+labelName+"` {`"+key+"`: {value}}) ON CREATE SET n={props} "+setLabels+ _QUERY_RETURN_NODE;
     }
-
-    @Override
-    public boolean isAutoIndexingEnabled(Class<? extends PropertyContainer> clazz) {
-        RequestResult response = getRestRequest().get(buildPathAutoIndexerStatus(clazz));
-        if (response.statusIs(Response.Status.OK)) {
-            return Boolean.parseBoolean(response.getText());
-        } else {
-            throw new IllegalStateException("received " + response);
-        }
-    }
-
-    @Override
-    public void setAutoIndexingEnabled(Class<? extends PropertyContainer> clazz, boolean enabled) {
-        RequestResult response = getRestRequest().put(buildPathAutoIndexerStatus(clazz), enabled);
-        if (response.statusOtherThan(Status.NO_CONTENT)) {
-            throw new IllegalStateException("received " + response);
-        }
-    }
-
-    @Override
-    public Set<String> getAutoIndexedProperties(Class forClass) {
-        RequestResult response = getRestRequest().get(buildPathAutoIndexerProperties(forClass).toString());
-        Collection<String> autoIndexedProperties = (Collection<String>) JsonHelper.readJson(response.getText());
-        return new HashSet<String>(autoIndexedProperties);
-    }
-
-    @Override
-    public void startAutoIndexingProperty(Class forClass, String s) {
-        try {
-            // we need to use a inputstream instead of the string directly. Otherwise "post" implicitly uses
-            // StreamJsonHelper.writeJsonTo which quotes a given string
-            InputStream stream = new ByteArrayInputStream(s.getBytes("UTF-8"));
-            RequestResult response = getRestRequest().post(buildPathAutoIndexerProperties(forClass).toString(), stream);
-            if (response.statusOtherThan(Status.NO_CONTENT)) {
-                throw new IllegalStateException("received " + response);
-            }
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException(e);
-        }
-
-    }
-
-    @Override
-    public void stopAutoIndexingProperty(Class forClass, String s) {
-        RequestResult response = getRestRequest().delete(buildPathAutoIndexerProperties(forClass).append("/").append(s).toString());
-        if (response.statusOtherThan(Status.NO_CONTENT)) {
-            throw new IllegalStateException("received " + response);
-        }
-    }
-
 
     @Override
     public void removeLabel(RestNode node, String label) {
@@ -513,23 +399,6 @@ public class RestAPIImpl implements RestAPI {
         }
     }
 
-    private String buildPathAutoIndexerStatus(Class<? extends PropertyContainer> clazz) {
-        return buildPathAutoIndexerBase(clazz).append("/status").toString();
-    }
-
-    private StringBuilder buildPathAutoIndexerProperties(Class<? extends PropertyContainer> clazz) {
-        return buildPathAutoIndexerBase(clazz).append("/properties");
-    }
-
-    private StringBuilder buildPathAutoIndexerBase(Class<? extends PropertyContainer> clazz) {
-        return new StringBuilder().append("index/auto/").append(indexTypeName(clazz));
-    }
-
-
-    public RestRequest getRestRequest() {
-        return restRequest;
-    }
-
 
     @Override
     public RestTraversalDescription createTraversalDescription() {
@@ -564,63 +433,12 @@ public class RestAPIImpl implements RestAPI {
     }
 
 
-    public String indexPath( Class entityType, String indexName, String key, Object value ) {
-        String typeName = indexTypeName(entityType);
-        return "index/" + typeName + "/" + encode(indexName) + (key!=null? "/" + encode(key) :"") + (value!=null ? "/" + encode(value):"");
-    }
-
-    private String indexTypeName(Class entityType) {
-        return entityType.getSimpleName().toLowerCase();
-    }
-
-    public String indexPath( Class entityType, String indexName ) {
-        return "index/" + indexTypeName(entityType) + "/" + encode(indexName);
-    }
-
-    private String queryPath(  Class entityType, String indexName, String key, Object value ) {
-        return indexPath( entityType, indexName, key,null) + "?query="+ encode(value);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <S extends PropertyContainer> IndexHits<S> getIndex(Class<S> entityType, String indexName, String key, Object value) {
-        String indexPath = indexPath(entityType, indexName, key, value);
-        RequestResult response = restRequest.get(indexPath);
-        if (response.statusIs(Response.Status.OK)) {
-            return new RestIndexHitsConverter(this, entityType).convertFromRepresentation(response);
-        } else {
-            return new SimpleIndexHits<S>(Collections.emptyList(), 0, entityType, this);
-        }
-    }
-    @Override
-    @SuppressWarnings("unchecked")
-    public <S extends PropertyContainer> IndexHits<S> queryIndex(Class<S> entityType, String indexName, String key, Object value) {
-        String indexPath = queryPath(entityType, indexName, key, value);
-        RequestResult response = restRequest.get(indexPath);
-        if (response.statusIs(Response.Status.OK)) {
-            return new RestIndexHitsConverter(this, entityType).convertFromRepresentation(response);
-        } else {
-            return new SimpleIndexHits<S>(Collections.emptyList(), 0, entityType, this);
-        }
-    }
-
     @Override
     public void deleteEntity(RestEntity entity) {
         getRestRequest().with(entity.getUri()).delete( "" );
         entityCache.removeNode(entity.getId());
     }
-    @Override
-    public IndexInfo indexInfo(final String indexType) {
-        IndexInfo indexInfo = indexInfos.get(indexType);
-        if (indexInfo != null && !indexInfo.isExpired()) {
-            return indexInfo;
-        }
-        RequestResult response = restRequest.get("index/" + encode(indexType));
-        indexInfo = new RetrievedIndexInfo(response);
-        indexInfos.put(indexType,indexInfo);
-        return indexInfo;
-    }
-    
+
     @Override
     public void setPropertyOnEntity(RestEntity entity, String key, Object value) {
         RequestResult result = getRestRequest().with(entity.getUri()).put("properties/" + encode(key), value);
@@ -649,83 +467,6 @@ public class RestAPIImpl implements RestAPI {
         return properties;
     }
 
-    private void deleteIndex(String indexPath) {
-        getRestRequest().delete(indexPath);
-    }
-    
-    @Override
-    public void delete(RestIndex index) {
-        deleteIndex(indexPath(index, null, null));
-        resetIndex(index.getEntityType());
-    }
-    
-    @Override
-    public <T extends PropertyContainer> void removeFromIndex(RestIndex index, T entity, String key, Object value) {
-        String indexPath = indexPath(index, key, value);
-        deleteIndex(indexPath(indexPath, entity));
-        resetIndex(index.getEntityType());
-    }
-
-    protected <T extends PropertyContainer> String indexPath(String indexPath, T restEntity) {
-        return indexPath + "/" + ((RestEntity)restEntity).getId();
-    }
-
-    @Override
-    public <T extends PropertyContainer> void removeFromIndex(RestIndex index, T entity, String key) {
-        String indexPath = indexPath(index, key, null);
-        deleteIndex(indexPath(indexPath, entity));
-        resetIndex(index.getEntityType());
-    }
-
-    private String indexPath(RestIndex index, String key, Object value) {
-        return indexPath(index.getEntityType(), index.getIndexName(), key, value);
-    }
-
-    @Override
-    public <T extends PropertyContainer> void removeFromIndex(RestIndex index, T entity) {
-        deleteIndex(indexPath(indexPath(index, null, null), entity));
-        resetIndex(index.getEntityType());
-    }
-
-    public String uniqueIndexPath(RestIndex index) {
-        return indexPath(index,null,null) + "?uniqueness=get_or_create";
-    }
-
-    @Override
-    public <T extends PropertyContainer> void addToIndex(T entity, RestIndex index, String key, Object value) {
-        final RestEntity restEntity = (RestEntity) entity;
-        String uri = restEntity.getUri();       
-        if (value instanceof ValueContext) {
-            value = ((ValueContext)value).getCorrectValue();
-        }
-        final Map<String, Object> data = map("key", key, "value", value, "uri", uri);
-        final RequestResult result = getRestRequest().post(indexPath(index, null, null), data);
-        if (result.statusOtherThan(Status.CREATED)) {
-            throw new RuntimeException(String.format("Error adding element %d %s %s to index %s status %s\n%s", restEntity.getId(), key, value, index.getIndexName(), result.getStatus(),result.getText()));
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T extends PropertyContainer> T putIfAbsent(T entity, RestIndex index, String key, Object value) {
-        final RestEntity restEntity = (RestEntity) entity;
-        restEntity.flush();
-        String uri = restEntity.getUri();
-        if (value instanceof ValueContext) {
-            value = ((ValueContext)value).getCorrectValue();
-        }
-        final Map<String, Object> data = map("key", key, "value", value, "uri", uri);
-        final RequestResult result = getRestRequest().post(uniqueIndexPath(index), data);
-        if (result.statusIs(Response.Status.CREATED)) {
-            if (index.getEntityType().equals(Node.class)) return (T)createRestNode(result);
-            if (index.getEntityType().equals(Relationship.class)) return (T)createRestRelationship(result,restEntity);
-        }
-        if (result.statusIs(Response.Status.OK)) {
-            return (T) getEntityExtractor().convertFromRepresentation(result);
-        }
-        throw new RuntimeException(String.format("Error adding element %d %s %s to index %s", restEntity.getId(), key, value, index.getIndexName()));
-    }
-
     @Override
     public boolean hasToUpdate(long lastUpdate) {
         return timeElapsed(lastUpdate, getEntityRefetchTimeInMillis());
@@ -738,18 +479,6 @@ public class RestAPIImpl implements RestAPI {
 
     private boolean timeElapsed( long since, long isItGreaterThanThis ) {
         return System.currentTimeMillis() - since > isItGreaterThanThis;
-    }
-
-    @Override
-    public RestRelationship getOrCreateRelationship(RestIndex<Relationship> index, String key, Object value, final RestNode start, final RestNode end, final String type, final Map<String, Object> properties) {
-        if (index==null || key == null || value==null) throw new IllegalArgumentException("Unique index "+index+" key "+key+" value must not be null");
-        if (start == null || end == null || type == null) throw new IllegalArgumentException("Neither start, end nore type must be null");
-        final Map<String, Object> data = map("key", key, "value", value, "properties", properties, "start", start.getUri(), "end", end.getUri(), "type", type);
-        final RequestResult result = getRestRequest().post(uniqueIndexPath(index), data);
-        if (result.statusIs(Response.Status.CREATED) || result.statusIs(Response.Status.OK)) {
-            return (RestRelationship) getEntityExtractor().convertFromRepresentation(result);
-        }
-        throw new RuntimeException(String.format("Error retrieving or creating relationship for key %s and value %s with index %s", key, value, index.getIndexName()));
     }
 
     public org.neo4j.rest.graphdb.query.CypherResult query(String statement, Map<String, Object> params) {
@@ -824,6 +553,11 @@ public class RestAPIImpl implements RestAPI {
         return null;
     }
 
+    @Override
+    public RestRequest getRestRequest() {
+        return restRequest;
+    }
+
     protected long asLong(Map data, String idKey) {
         Object idValue = data.get(idKey);
         return idValue instanceof Number ? ((Number)idValue).longValue() : Long.parseLong(idValue.toString());
@@ -832,4 +566,100 @@ public class RestAPIImpl implements RestAPI {
     public RequestResult batch(Collection<Map<String, Object>> batchRequestData) {
         return restRequest.post("batch",batchRequestData);
     }
+
+    @Override
+    public IndexInfo indexInfo(String indexType) {
+        return restIndexAPI.indexInfo(indexType);
+    }
+
+    @Override
+    public void stopAutoIndexingProperty(Class forClass, String s) {
+        restIndexAPI.stopAutoIndexingProperty(forClass, s);
+    }
+
+    @Override
+    public void startAutoIndexingProperty(Class forClass, String s) {
+        restIndexAPI.startAutoIndexingProperty(forClass, s);
+    }
+
+    @Override
+    public Set<String> getAutoIndexedProperties(Class forClass) {
+        return restIndexAPI.getAutoIndexedProperties(forClass);
+    }
+
+    @Override
+    public void setAutoIndexingEnabled(Class<? extends PropertyContainer> clazz, boolean enabled) {
+        restIndexAPI.setAutoIndexingEnabled(clazz, enabled);
+    }
+
+    @Override
+    public boolean isAutoIndexingEnabled(Class<? extends PropertyContainer> clazz) {
+        return restIndexAPI.isAutoIndexingEnabled(clazz);
+    }
+
+    @Override
+    public <T extends PropertyContainer> RestIndex<T> createIndex(Class<T> type, String indexName, Map<String, String> config) {
+        return restIndexAPI.createIndex(type, indexName, config);
+    }
+
+    @Override
+    public void createIndex(String type, String indexName, Map<String, String> config) {
+        restIndexAPI.createIndex(type, indexName, config);
+    }
+
+    @Override
+    public <T extends PropertyContainer> RestIndex<T> getIndex(String indexName) {
+        return restIndexAPI.getIndex(indexName);
+    }
+
+    @Override
+    public RestRelationship getOrCreateRelationship(RestIndex<Relationship> index, String key, Object value, RestNode start, RestNode end, String type, Map<String, Object> properties) {
+        return restIndexAPI.getOrCreateRelationship(index, key, value, start, end, type, properties);
+    }
+
+    @Override
+    public RestNode getOrCreateNode(RestIndex<Node> index, String key, Object value, Map<String, Object> properties, Collection<String> labels) {
+        return restIndexAPI.getOrCreateNode(index, key, value, properties, labels);
+    }
+
+    @Override
+    public <T extends PropertyContainer> T putIfAbsent(T entity, RestIndex index, String key, Object value) {
+        return restIndexAPI.putIfAbsent(entity, index, key, value);
+    }
+
+    @Override
+    public <T extends PropertyContainer> void addToIndex(T entity, RestIndex index, String key, Object value) {
+        restIndexAPI.addToIndex(entity, index, key, value);
+    }
+
+    @Override
+    public <T extends PropertyContainer> void removeFromIndex(RestIndex index, T entity) {
+        restIndexAPI.removeFromIndex(index, entity);
+    }
+
+    @Override
+    public <T extends PropertyContainer> void removeFromIndex(RestIndex index, T entity, String key) {
+        restIndexAPI.removeFromIndex(index, entity, key);
+    }
+
+    @Override
+    public <T extends PropertyContainer> void removeFromIndex(RestIndex index, T entity, String key, Object value) {
+        restIndexAPI.removeFromIndex(index, entity, key, value);
+    }
+
+    @Override
+    public void delete(RestIndex index) {
+        restIndexAPI.delete(index);
+    }
+
+    @Override
+    public <S extends PropertyContainer> IndexHits<S> queryIndex(Class<S> entityType, String indexName, String key, Object value) {
+        return restIndexAPI.queryIndex(entityType, indexName, key, value);
+    }
+
+    @Override
+    public <S extends PropertyContainer> IndexHits<S> getIndex(Class<S> entityType, String indexName, String key, Object value) {
+        return restIndexAPI.getIndex(entityType, indexName, key, value);
+    }
+
 }

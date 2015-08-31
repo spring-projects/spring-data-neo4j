@@ -28,6 +28,8 @@ import org.neo4j.graphdb.index.*;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.rest.graphdb.RestAPI;
 
+import static org.neo4j.rest.graphdb.ExecutingRestRequest.encode;
+
 public class RestIndexManager implements IndexManager {
     public static final String RELATIONSHIP = "relationship";
     public static final String NODE = "node";

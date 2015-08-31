@@ -27,12 +27,15 @@ import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.index.impl.lucene.AbstractIndexHits;
 import org.neo4j.rest.graphdb.converter.RestEntityExtractor;
+import org.neo4j.rest.graphdb.converter.RestIndexHitsConverter;
 import org.neo4j.rest.graphdb.entity.RestEntity;
+import org.neo4j.rest.graphdb.entity.RestEntityCache;
 import org.neo4j.rest.graphdb.entity.RestNode;
 import org.neo4j.rest.graphdb.entity.RestRelationship;
 import org.neo4j.rest.graphdb.index.IndexInfo;
 import org.neo4j.rest.graphdb.index.RestIndex;
 import org.neo4j.rest.graphdb.index.RestIndexManager;
+import org.neo4j.rest.graphdb.index.SimpleIndexHits;
 import org.neo4j.rest.graphdb.query.*;
 import org.neo4j.rest.graphdb.transaction.TransactionFinishListener;
 import org.neo4j.rest.graphdb.traversal.RestTraversalDescription;
@@ -40,11 +43,14 @@ import org.neo4j.rest.graphdb.traversal.RestTraverser;
 import org.neo4j.rest.graphdb.util.QueryResult;
 import org.neo4j.rest.graphdb.util.QueryResultBuilder;
 import org.neo4j.rest.graphdb.util.ResultConverter;
+import org.springframework.dao.DataIntegrityViolationException;
 
+import javax.ws.rs.core.Response;
 import java.util.*;
 
 import static java.util.Arrays.asList;
 import static org.neo4j.helpers.collection.MapUtil.map;
+import static org.neo4j.rest.graphdb.RestAPIIndexImpl.queryPath;
 import static org.neo4j.rest.graphdb.query.CypherTransaction.ResultType.row;
 import static org.neo4j.rest.graphdb.query.CypherTransaction.Statement;
 
@@ -65,8 +71,9 @@ public class RestAPICypherImpl implements RestAPI {
 
     public static final String GET_REL_TYPES_QUERY = _MATCH_NODE_QUERY + " MATCH (n)-[r]-() RETURN distinct type(r) as relType";
 
-    private RestIndexManager restIndex = new RestIndexManager(this);
-    private RestIndexManager restIndexOld;
+    private RestAPIIndex restAPIIndex;
+    private final RestEntityCache entityCache = new RestEntityCache(this);
+    private RestEntityExtractor restEntityExtractor = new RestEntityExtractor(this);
 
     private String createNodeQuery(Collection<String> labels) {
         String labelString = toLabelString(labels);
@@ -99,7 +106,7 @@ public class RestAPICypherImpl implements RestAPI {
 
     protected RestAPICypherImpl(RestAPI restAPI) {
         this.restAPI = restAPI;
-        restIndexOld = new RestIndexManager(restAPI);
+        restAPIIndex = new RestAPIIndexImpl(this);
     }
 
     @Override
@@ -118,8 +125,41 @@ public class RestAPICypherImpl implements RestAPI {
     }
 
     @Override
-    public RestRelationship addToCache(RestRelationship restRelationship) {
-        return restAPI.addToCache(restRelationship);
+    public RestNode addToCache(RestNode restNode) {
+        return entityCache.addToCache(restNode);
+    }
+
+    @Override
+    public RestRelationship addToCache(RestRelationship rel) {
+        return entityCache.addToCache(rel);
+    }
+
+    @Override
+    public RestNode getNodeFromCache(long id) {
+        return entityCache.getNode(id);
+    }
+
+    @Override
+    public RestRelationship getRelFromCache(long id) {
+        return entityCache.getRelationship(id);
+    }
+
+    @Override
+    public void removeNodeFromCache(long id) {
+        entityCache.removeNode(id);
+    }
+    @Override
+    public void removeRelFromCache(long id) {
+        entityCache.removeRelationship(id);
+    }
+
+    @Override
+    public RestNode getNodeById(long id) {
+        return getNodeById(id, Load.FromServer);
+    }
+    @Override
+    public RestRelationship getRelationshipById(long id) {
+        return getRelationshipById(id, Load.FromServer);
     }
 
     @Override
@@ -145,33 +185,6 @@ public class RestAPICypherImpl implements RestAPI {
             throw ctee;
         }
     }
-
-    public RestNode getNodeFromCache(long id) {
-        return restAPI.getNodeFromCache(id);
-    }
-    public RestRelationship getRelFromCache(long id) {
-        return restAPI.getRelFromCache(id);
-    }
-
-    @Override
-    public void removeNodeFromCache(long id) {
-        restAPI.removeNodeFromCache(id);
-    }
-    @Override
-    public void removeRelFromCache(long id) {
-        restAPI.removeRelFromCache(id);
-    }
-
-    @Override
-    public RestNode getNodeById(long id) {
-        return getNodeById(id, Load.FromServer);
-    }
-
-    @Override
-    public RestRelationship getRelationshipById(long id) {
-        return getRelationshipById(id, Load.FromServer);
-    }
-
 
     private RestNode toNode(List<Object> row) {
         long id = ((Number) row.get(0)).longValue();
@@ -215,10 +228,6 @@ public class RestAPICypherImpl implements RestAPI {
             throw new RuntimeException("Error merging node with labels: " + labelName + " key " + key + " value " + value + " labels " + labels + " and props: " + props + " no data returned");
 
         return addToCache(toNode(result.next()));
-    }
-
-    public RestNode addToCache(RestNode restNode) {
-        return restAPI.addToCache(restNode);
     }
 
     @Override
@@ -337,9 +346,31 @@ public class RestAPICypherImpl implements RestAPI {
         return txManager;
     }
 
+    @SuppressWarnings("unchecked")
+    public <S extends PropertyContainer> IndexHits<S> getIndexQuery(Class<S> entityType, String indexName, String key, Object value) {
+        String indexPath = RestAPIIndexImpl.indexPath(entityType, indexName, key, value);
+        RequestResult response = getRestRequest().get(indexPath);
+        if (response.statusIs(Response.Status.OK)) {
+            return new RestIndexHitsConverter(this, entityType).convertFromRepresentation(response);
+        } else {
+            return new SimpleIndexHits<S>(Collections.emptyList(), 0, entityType, this);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <S extends PropertyContainer> IndexHits<S> queryIndexQuery(Class<S> entityType, String indexName, String key, Object value) {
+        String indexPath = queryPath(entityType, indexName, key, value);
+        RequestResult response = getRestRequest().get(indexPath);
+        if (response.statusIs(Response.Status.OK)) {
+            return new RestIndexHitsConverter(this, entityType).convertFromRepresentation(response);
+        } else {
+            return new SimpleIndexHits<S>(Collections.emptyList(), 0, entityType, this);
+        }
+    }
+
     @Override
     public <S extends PropertyContainer> IndexHits<S> getIndex(Class<S> entityType, String indexName, String key, Object value) {
-        if (value instanceof Query) return restAPI.getIndex(entityType, indexName, key, value);
+        if (value instanceof Query) return getIndexQuery(entityType, indexName, key, value);
         String index = key == null ? ":`" + indexName + "`({query})" : ":`" + indexName + "`(`" + key + "`={query})";
         if (Node.class.isAssignableFrom(entityType)) {
             String statement = "start n=node" + index + _QUERY_RETURN_NODE;
@@ -356,7 +387,7 @@ public class RestAPICypherImpl implements RestAPI {
 
     @Override
     public <S extends PropertyContainer> IndexHits<S> queryIndex(Class<S> entityType, String indexName, String key, Object value) {
-        if (value instanceof Query) return restAPI.queryIndex(entityType,indexName,key,value);
+        if (value instanceof Query) return queryIndexQuery(entityType, indexName, key, value);
         String index = ":`" + indexName + "`({query})";
         if (key != null && !key.isEmpty() && !value.toString().contains(":")) value = key + ":"+value;
         if (Node.class.isAssignableFrom(entityType)) {
@@ -396,7 +427,7 @@ public class RestAPICypherImpl implements RestAPI {
 
     @Override
     public RestIndexManager index() {
-        return restIndex;
+        return restAPIIndex.index();
     }
 
 
@@ -404,10 +435,10 @@ public class RestAPICypherImpl implements RestAPI {
     public void deleteEntity(RestEntity entity) {
         if (entity instanceof Node) {
             runQuery(_MATCH_NODE_QUERY + " DELETE n", map("id", entity.getId()));
-            restAPI.removeNodeFromCache(entity.getId());
+            removeNodeFromCache(entity.getId());
         } else if (entity instanceof Relationship) {
             runQuery(_MATCH_REL_QUERY + " DELETE r", map("id", entity.getId()));
-            restAPI.removeRelFromCache(entity.getId());
+            removeRelFromCache(entity.getId());
         }
     }
 
@@ -442,13 +473,13 @@ public class RestAPICypherImpl implements RestAPI {
     // todo handle within cypher tx
     @Override
     public RestNode getOrCreateNode(RestIndex<Node> index, String key, Object value, final Map<String, Object> properties, Collection<String> labels) {
-        return restAPI.getOrCreateNode(index, key, value, properties, labels);
+        return restAPIIndex.getOrCreateNode(index, key, value, properties, labels);
     }
 
     // todo handle within cypher tx
     @Override
     public RestRelationship getOrCreateRelationship(RestIndex<Relationship> index, String key, Object value, final RestNode start, final RestNode end, final String type, final Map<String, Object> properties) {
-        return restAPI.getOrCreateRelationship(index, key, value, start, end, type, properties);
+        return restAPIIndex.getOrCreateRelationship(index, key, value, start, end, type, properties);
     }
 
     public CypherResult query(String statement, Map<String, Object> params) {
@@ -531,9 +562,15 @@ public class RestAPICypherImpl implements RestAPI {
         }
     }
 
+    private static final String FULLPATH = "fullpath";
+
     @Override
     public RestTraverser traverse(RestNode restNode, Map<String, Object> description) {
-        return restAPI.traverse(restNode, description);
+        final RequestResult result = getRestRequest().with(restNode.getUri()).post("traverse/" + FULLPATH, description);
+        if (result.statusOtherThan(Response.Status.OK)) throw new RuntimeException(String.format("Error executing traversal: %d %s",result.getStatus(), description));
+        final Object col = result.toEntity();
+        if (!(col instanceof Collection)) throw new RuntimeException(String.format("Unexpected traversal result, %s instead of collection", col != null ? col.getClass() : null));
+        return new RestTraverser((Collection) col,restNode.getRestApi());
     }
 
     public RequestResult batch(Collection<Map<String, Object>> batchRequestData) {
@@ -552,25 +589,13 @@ public class RestAPICypherImpl implements RestAPI {
     @Override
     @SuppressWarnings("unchecked")
     public void createIndex(String type, String indexName, Map<String, String> config) {
-        restAPI.createIndex(type, indexName, config);
+        restAPIIndex.createIndex(type, indexName, config);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T extends PropertyContainer> RestIndex<T> createIndex(Class<T> type, String indexName, Map<String, String> config) {
-        resetIndex(type);
-        if (Node.class.isAssignableFrom(type)) {
-            return (RestIndex<T>) index().forNodes( indexName, config);
-        }
-        if (Relationship.class.isAssignableFrom(type)) {
-            return (RestIndex<T>) index().forRelationships(indexName, config);
-        }
-        throw new IllegalArgumentException("Required Node or Relationship types to create index, got " + type);
-    }
-
-    @Override
-    public void resetIndex(Class type) {
-        restAPI.resetIndex(type);
+        return restAPIIndex.createIndex(type,indexName,config);
     }
 
     @Override
@@ -635,60 +660,60 @@ public class RestAPICypherImpl implements RestAPI {
 
     @Override
     public boolean isAutoIndexingEnabled(Class<? extends PropertyContainer> clazz) {
-        return restAPI.isAutoIndexingEnabled(clazz);
+        return restAPIIndex.isAutoIndexingEnabled(clazz);
     }
 
     @Override
     public void setAutoIndexingEnabled(Class<? extends PropertyContainer> clazz, boolean enabled) {
-        restAPI.setAutoIndexingEnabled(clazz, enabled);
+        restAPIIndex.setAutoIndexingEnabled(clazz, enabled);
     }
 
     @Override
     public Set<String> getAutoIndexedProperties(Class forClass) {
-        return restAPI.getAutoIndexedProperties(forClass);
+        return restAPIIndex.getAutoIndexedProperties(forClass);
     }
 
     @Override
     public void startAutoIndexingProperty(Class forClass, String s) {
-        restAPI.startAutoIndexingProperty(forClass, s);
+        restAPIIndex.startAutoIndexingProperty(forClass, s);
     }
 
     @Override
     public void stopAutoIndexingProperty(Class forClass, String s) {
-        restAPI.stopAutoIndexingProperty(forClass, s);
+        restAPIIndex.stopAutoIndexingProperty(forClass, s);
     }
 
     @Override
     public void delete(RestIndex index) {
-        restAPI.delete(index);
+        restAPIIndex.delete(index);
     }
 
     @Override
     public <T extends PropertyContainer> void removeFromIndex(RestIndex index, T entity, String key, Object value) {
-        restAPI.removeFromIndex(index, entity, key, value);
+        restAPIIndex.removeFromIndex(index, entity, key, value);
     }
 
     @Override
     public <T extends PropertyContainer> void removeFromIndex(RestIndex index, T entity, String key) {
-        restAPI.removeFromIndex(index, entity, key);
+        restAPIIndex.removeFromIndex(index, entity, key);
     }
 
     @Override
     public <T extends PropertyContainer> void removeFromIndex(RestIndex index, T entity) {
-        restAPI.removeFromIndex(index, entity);
+        restAPIIndex.removeFromIndex(index, entity);
     }
 
 
     @Override
     public <T extends PropertyContainer> void addToIndex(final T entity, final RestIndex index, final String key, final Object value) {
         if (!getTxManager().isActive()) {
-            restAPI.addToIndex(entity, index, key, value);
+            restAPIIndex.addToIndex(entity, index, key, value);
             return;
         }
         getTxManager().getRemoteCypherTransaction().registerListener(new TransactionFinishListener() {
             @Override
             public void comitted() {
-                restAPI.addToIndex(entity, index, key, value);
+                restAPIIndex.addToIndex(entity, index, key, value);
             }
 
             @Override
@@ -699,8 +724,28 @@ public class RestAPICypherImpl implements RestAPI {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends PropertyContainer> T putIfAbsent(T entity, RestIndex index, String key, Object value) {
-        return restAPI.putIfAbsent(entity, index, key, value);
+    public <T extends PropertyContainer> T putIfAbsent(final T entity, final RestIndex index, final String key, final Object value) {
+        if (!getTxManager().isActive()) {
+            return restAPIIndex.putIfAbsent(entity, index, key, value);
+        }
+        getTxManager().getRemoteCypherTransaction().registerListener(new TransactionFinishListener() {
+            @Override
+            public void comitted() {
+                T result = restAPIIndex.putIfAbsent(entity, index, key, value);
+                if (result == null || result.equals(entity)) return;
+                throw new DataIntegrityViolationException("Unique property "+key+" was to be set to duplicate value "+value);
+            }
+
+            @Override
+            public void rolledBack() {
+            }
+        });
+        return entity;
+    }
+
+    @Override
+    public IndexInfo indexInfo(final String indexType) {
+        return restAPIIndex.indexInfo(indexType);
     }
 
     @Override
@@ -708,10 +753,6 @@ public class RestAPICypherImpl implements RestAPI {
         return restAPI.hasToUpdate(lastUpdate);
     }
 
-    @Override
-    public IndexInfo indexInfo(final String indexType) {
-        return restAPI.indexInfo(indexType);
-    }
 
 
     @Override
@@ -735,14 +776,37 @@ public class RestAPICypherImpl implements RestAPI {
 
     @Override
     public RestEntityExtractor getEntityExtractor() {
-        return restAPI.getEntityExtractor();
+        return restEntityExtractor;
     }
 
     @Override
     public RestEntity createRestEntity(Map data) {
-        return restAPI.createRestEntity(data);
+        if (data.containsKey("id") && data.containsKey("properties")) {
+            long id = asLong(data, "id");
+            Map props = (Map) data.get("properties");
+            if (data.containsKey("type")) {
+                return RestRelationship.fromCypher(id,(String)data.get("type"),props,asLong(data, "startNode"),asLong(data, "endNode"),this);
+            }
+            if (data.containsKey("labels")) {
+                List<String> labels = (List<String>) data.get("labels");
+                return entityCache.addToCache(RestNode.fromCypher(id,labels,props, this));
+            }
+        }
+        final String uri = (String) data.get("self");
+        if (uri == null || uri.isEmpty()) return null;
+        if (uri.contains("/node/")) {
+            return entityCache.addToCache(new RestNode(data, this));
+        }
+        if (uri.contains("/relationship/")) {
+            return new RestRelationship(data, this);
+        }
+        return null;
     }
 
+    protected long asLong(Map data, String idKey) {
+        Object idValue = data.get(idKey);
+        return idValue instanceof Number ? ((Number)idValue).longValue() : Long.parseLong(idValue.toString());
+    }
 
     public Iterable<Node> getAllNodes() {
         String statement = "MATCH (n) " + _QUERY_RETURN_NODE;

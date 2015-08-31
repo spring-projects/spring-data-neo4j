@@ -16,15 +16,21 @@
 
 package org.springframework.data.neo4j.rest.integration;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
+import org.junit.*;
 import org.junit.runner.RunWith;
+import org.springframework.data.neo4j.aspects.LeadRelationship;
 import org.springframework.data.neo4j.aspects.support.RelationshipEntityTests;
+import org.springframework.data.neo4j.aspects.Group;
+import org.springframework.data.neo4j.aspects.Person;
 import org.springframework.data.neo4j.rest.support.RestTestBase;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import javax.transaction.Transactional;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
 
 /**
 * @author mh
@@ -50,6 +56,23 @@ public class RestRelationshipEntityTests extends RelationshipEntityTests {
     public static void shutdownDb() {
         RestTestBase.shutdownDb();
 
+    }
+
+    @Test
+    @Transactional
+    public void testSaveRelationship() throws Exception {
+        Person person = personRepository.save(new Person("Michael", 39));
+        Group group = groupRepository.save(new Group());
+        LeadRelationship rel = new LeadRelationship(person,group);
+        LeadRelationship saved = neo4jTemplate.save(rel);
+        LeadRelationship loaded = neo4jTemplate.findOne(saved.getId(),LeadRelationship.class);
+        assertEquals(saved.getUuid(),loaded.getUuid());
+        saved.setCreatedDate(new Date());
+        LeadRelationship saved2 = neo4jTemplate.save(saved);
+        LeadRelationship loaded2 = neo4jTemplate.findOne(saved2.getId(),LeadRelationship.class);
+        assertEquals(saved.getId(),loaded2.getId());
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+        assertEquals(format.format(saved2.getCreatedDate()),format.format(loaded2.getCreatedDate()));
     }
 
 }

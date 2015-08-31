@@ -25,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.neo4j.mapping.MappingPolicy;
 
+import java.io.Closeable;
 import java.util.*;
 
 /**
@@ -124,6 +125,12 @@ public class QueryResultBuilder<T> implements Result<T> {
                ((IndexHits) result).close();
             } else if (result instanceof ClosableIterable) {
                ((ClosableIterable) result).close();
+            } else if (result instanceof AutoCloseable) {
+                try {
+                    ((AutoCloseable)result).close();
+                } catch (Exception e) {
+                    // ignore
+                }
             }
             isClosed=true;
         }
