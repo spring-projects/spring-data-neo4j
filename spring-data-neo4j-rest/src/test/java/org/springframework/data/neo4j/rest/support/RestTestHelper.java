@@ -41,6 +41,7 @@ public class RestTestHelper
         db = new ImpermanentGraphDatabase();
         final ServerConfigurator configurator = new ServerConfigurator(db);
         configurator.configuration().setProperty(Configurator.WEBSERVER_PORT_PROPERTY_KEY,PORT);
+        configurator.configuration().setProperty("dbms.security.auth_enabled",false);
         final WrappingNeoServerBootstrapper bootstrapper = new WrappingNeoServerBootstrapper(db, configurator);
         bootstrapper.start();
         neoServer = bootstrapper.getServer();

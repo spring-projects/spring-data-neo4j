@@ -22,6 +22,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.rest.graphdb.query.CypherTransactionExecutionException;
 
 import java.util.Arrays;
 
@@ -73,7 +74,7 @@ public class RestEntityTests extends RestTestBase  {
         assertEquals(null, restGraphDatabase.getNodeById(nodeId));
     }
 
-    @Test(expected = NotFoundException.class)
+    @Test(expected = RuntimeException.class)
     public void testRemoveRelationship() {
         Node refNode = createNode();
         Node node = createNode();

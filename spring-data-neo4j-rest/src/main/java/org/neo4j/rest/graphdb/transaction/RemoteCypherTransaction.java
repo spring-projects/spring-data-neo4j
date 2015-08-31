@@ -24,11 +24,16 @@ import org.neo4j.rest.graphdb.query.CypherTransaction;
 
 import javax.transaction.Status;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 public class RemoteCypherTransaction implements Transaction {
+
+    private final List<TransactionFinishListener> listeners = new ArrayList<>();
 
     int status = Status.STATUS_NO_TRANSACTION;
     boolean success, failure;
@@ -44,6 +49,12 @@ public class RemoteCypherTransaction implements Transaction {
                 ", tx=" + tx +
                 ", innerCounter=" + innerCounter +
                 '}';
+    }
+
+    public void registerListener(TransactionFinishListener listener) {
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
+        }
     }
 
     public RemoteCypherTransaction(CypherTransaction tx) {
@@ -68,10 +79,6 @@ public class RemoteCypherTransaction implements Transaction {
         close();
     }
 
-    public void terminate() {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     public void close() {
         if (tx() != null && innerCounter.decrementAndGet() > 0) {
@@ -83,16 +90,25 @@ public class RemoteCypherTransaction implements Transaction {
                 status = Status.STATUS_COMMITTED;
             }
             else {
-                tx().rollback();
+                if (tx()!=null) tx().rollback();
                 status = Status.STATUS_ROLLEDBACK;
             }
         } finally {
             tx = null;
+            notifyFinish();
         }
     }
 
+    private void notifyFinish() {
+        for (TransactionFinishListener listener : listeners) {
+            if (status == Status.STATUS_COMMITTED) listener.comitted();
+            else listener.rolledBack();
+        }
+        listeners.clear();
+    }
+
     private CypherTransaction tx() {
-        if (tx == null) throw new IllegalStateException("No transaction active");
+        if (tx == null && !failure) throw new IllegalStateException("No transaction active");
         return tx;
     }
 
@@ -128,5 +144,10 @@ public class RemoteCypherTransaction implements Transaction {
 
     public boolean isActive() {
         return tx != null;
+    }
+
+    public void terminate() {
+        failure();
+        close();
     }
 }

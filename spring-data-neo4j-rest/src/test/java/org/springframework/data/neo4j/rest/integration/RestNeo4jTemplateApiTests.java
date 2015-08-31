@@ -24,12 +24,16 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.neo4j.config.JtaTransactionManagerFactoryBean;
 import org.springframework.data.neo4j.config.NullTransactionManager;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.rest.support.RestTestHelper;
 import org.springframework.data.neo4j.template.Neo4jTemplateApiTests;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.jta.JtaTransactionManager;
+import org.springframework.transaction.jta.UserTransactionAdapter;
+
+import javax.transaction.TransactionManager;
 
 public class RestNeo4jTemplateApiTests extends Neo4jTemplateApiTests
 {
@@ -64,7 +68,8 @@ public class RestNeo4jTemplateApiTests extends Neo4jTemplateApiTests
     @Override
     protected PlatformTransactionManager createTransactionManager()
     {
-        return new JtaTransactionManager(new NullTransactionManager());
+        TransactionManager txm = graphDatabase.getTransactionManager();
+        return new JtaTransactionManager(new UserTransactionAdapter( txm ), txm);
     }
 
     @Override

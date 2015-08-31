@@ -74,6 +74,7 @@ public class SpringPluginInitializerTests extends SpringPluginInitializer implem
         };
         final Configuration configuration = configurator.configuration();
         configuration.setProperty(Configurator.WEBSERVER_PORT_PROPERTY_KEY, PORT);
+        configuration.setProperty("dbms.security.auth_enabled", false);
         final WrappingNeoServerBootstrapper bootstrapper = new WrappingNeoServerBootstrapper(db, configurator);
         touched=0;
         bootstrapper.start();

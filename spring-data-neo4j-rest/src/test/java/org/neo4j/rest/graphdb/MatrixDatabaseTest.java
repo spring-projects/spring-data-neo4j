@@ -32,9 +32,12 @@ import org.neo4j.rest.graphdb.MatrixDataGraph.RelTypes;
 import org.neo4j.test.ImpermanentGraphDatabase;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.HashSet;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
+import static org.neo4j.helpers.collection.IteratorUtil.addToCollection;
+import static org.neo4j.helpers.collection.IteratorUtil.asCollection;
 
 
 /**
@@ -149,7 +152,7 @@ public class MatrixDatabaseTest {
         	   Index<Node> goodGuys = index.forNodes("heroes");
         	   IndexHits<Node> hits = goodGuys.query( "name", "*" );        	  
         	   Traverser heroesTraverser = getHeroes();               
-               assertEquals( heroesTraverser.nodes().iterator().next().getId(), hits.iterator().next().getId() );
+               assertEquals( addToCollection(heroesTraverser.nodes(), new HashSet<Node>()), addToCollection(hits.iterator() , new HashSet<Node>()));
            }
            
            

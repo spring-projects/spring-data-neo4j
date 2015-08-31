@@ -47,6 +47,9 @@ public class RestRelationship extends RestEntity implements Relationship {
     public RestRelationship( Map<?, ?> data, RestAPI restApi ) {
         super( data, restApi );
     }
+    public RestRelationship( RestRelationship relationship, RestAPI restApi ) {
+        super( relationship, restApi );
+    }
 
     @Override
     protected void doUpdate() {

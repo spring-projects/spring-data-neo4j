@@ -147,6 +147,8 @@ public class Neo4jTemplateApiTests {
     @Test
     public void testIndexNode() throws Exception {
         template.index("node", node1, "name","node1");
+        transaction.success();transaction.close();
+        transaction = graphDatabase.beginTx();
         Index<Node> index = graphDatabase.getIndex("node");
         Node lookedUpNode= index.get( "name", "node1" ).getSingle();
         assertThat("same node from index", lookedUpNode, is(node1));

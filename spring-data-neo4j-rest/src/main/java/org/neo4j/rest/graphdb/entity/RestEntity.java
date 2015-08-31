@@ -69,6 +69,13 @@ public abstract class RestEntity implements PropertyContainer, UpdatableRestResu
         this.id = id;
         setProperties((Map<String, Object>) structuralData.get("data"));
     }
+    public RestEntity(RestEntity entity, RestAPI facade) {
+        this.restApi = facade;
+        this.structuralData = entity.structuralData;
+        this.id = entity.id;
+        this.uri = nodeUri(facade,id);
+        setProperties((Map<String, Object>) structuralData.get("data"));
+    }
 
     public static String nodeUri(RestAPI facade, long id) {
         return facade.getBaseUri()+"/node/" + id;

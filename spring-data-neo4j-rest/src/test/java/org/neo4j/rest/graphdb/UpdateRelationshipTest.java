@@ -67,6 +67,13 @@ public class UpdateRelationshipTest extends RestTestBase {
         updateRelationships();
     }
 
+    /*
+    given
+                   (remove)-[:LIKES]->(node)
+                   (node)-[:KNOWS]->(keep)
+    when update to (node)-->(keep)
+    then
+     */
     @Test(expected = CypherTransactionExecutionException.class)
     public void testUpdateRelationshipsRemoveAddNoType() throws Exception {
         Node node = node();
@@ -74,6 +81,7 @@ public class UpdateRelationshipTest extends RestTestBase {
         node.createRelationshipTo(keep, KNOWS);
         type = null;
         updateTo = asList(keep);
+        expected = asList(remove, keep);
         updateRelationships();
     }
 

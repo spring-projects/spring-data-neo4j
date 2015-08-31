@@ -21,18 +21,16 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.aspects.support.query.QueryEngineTests;
 import org.springframework.data.neo4j.core.GraphDatabase;
 import org.springframework.data.neo4j.rest.SpringCypherRestGraphDatabase;
 import org.springframework.data.neo4j.rest.SpringCypherRestGraphDatabase;
-import org.springframework.test.context.CleanContextCacheTestExecutionListener;
+import org.springframework.data.neo4j.rest.SpringRestGraphDatabase;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.transaction.BeforeTransaction;
-import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
 /**
  * @author mh
@@ -40,12 +38,11 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:org/springframework/data/neo4j/aspects/support/Neo4jGraphPersistenceTests-context.xml",
-    "classpath:RestTests-context.xml"})
-@TestExecutionListeners({CleanContextCacheTestExecutionListener.class, DependencyInjectionTestExecutionListener.class, TransactionalTestExecutionListener.class})
+    "classpath:RestTests-context-index.xml"})
 public class RestQueryEngineTests extends QueryEngineTests {
 
     @Autowired
-    SpringCypherRestGraphDatabase restGraphDatabase;
+    SpringRestGraphDatabase restGraphDatabase;
 
     @BeforeClass
     public static void startDb() throws Exception {
