@@ -1,6 +1,15 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.4.0.RELEASE (2015-09-01)
+---------------------------------------------
+* DATAGRAPH-748 - Release 3.4 GA (Gosling).
+* DATAGRAPH-746 - Update to Neo4j 2.2.5.
+* DATAGRAPH-736 - Upgrade to Neo4j 2.2.4.
+* DATAGRAPH-729 - Make SDN 3.4 support Neo4j 2.2.x only.
+* DATAGRAPH-699 - Implement missing operations for Cypher based REST-API separately.
+
+
 Changes in version 3.4.0.RC1 (2015-08-04)
 -----------------------------------------
 * DATAGRAPH-725 - Release 3.4 RC1 (Gosling).
