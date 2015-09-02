@@ -25,6 +25,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.dao.support.PersistenceExceptionTranslationInterceptor;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
@@ -58,6 +59,11 @@ public abstract class Neo4jConfiguration {
     @Bean
     public Neo4jOperations neo4jTemplate() throws Exception {
         return new Neo4jTemplate(getSession());
+    }
+
+    @Bean
+    public Neo4jMappingContext neo4jMappingContext() throws Exception {
+        return new Neo4jMappingContext(getSessionFactory().metaData());
     }
 
     @Bean
