@@ -117,6 +117,19 @@ public class AuthenticationTest
     }
 
     @Test
+    public void testParseAuthFromUrl() throws Exception {
+        RemoteServer server = new RemoteServer("http://user:pass@host:1000");
+        assertEquals("user",server.username());
+        assertEquals("pass",server.password());
+    }
+    @Test
+    public void testConfigureAuth() throws Exception {
+        RemoteServer server = new RemoteServer("http://host:1000","user","pass");
+        assertEquals("user",server.username());
+        assertEquals("pass",server.password());
+    }
+
+    @Test
     public void testAuthorizedSession() throws Exception {
         assumeTrue(isRunningWithNeo4j2Dot2OrLater());
 
