@@ -24,7 +24,7 @@
 
     <properties>
         <project.type>multi</project.type>
-        <springdata.commons>1.11.0.RC1</springdata.commons>
+        <springdata.commons>1.11.0.RELEASE</springdata.commons>
         <source.level>1.7</source.level>
         <commonslang.version>2.6</commonslang.version>
         <bundlor.enabled>false</bundlor.enabled>
