@@ -12,7 +12,7 @@
     <artifactId>spring-data-neo4j</artifactId>
 
     <properties>
-        <neo4j.version>2.2.3</neo4j.version>
+        <neo4j.version>2.2.5</neo4j.version>
         <neo4j.ogm.version>1.1.2-SNAPSHOT</neo4j.ogm.version>
     </properties>
 
