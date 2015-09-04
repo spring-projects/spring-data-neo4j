@@ -238,7 +238,7 @@ public class RestAPICypherImpl implements RestAPI {
         if (!result.hasData())
             throw new RuntimeException("Error creating relationship from " + startNode + " to " + endNode + " type " + type.name());
         Iterator<List<Object>> it = result.getRows().iterator();
-        return toRel(it.next());
+        return addToCache(toRel(it.next()));
     }
 
 

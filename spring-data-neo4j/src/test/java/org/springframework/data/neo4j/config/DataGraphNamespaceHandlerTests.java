@@ -79,7 +79,7 @@ public class DataGraphNamespaceHandlerTests {
     public void injectionForExistingGraphDatabaseService() {
         final Config config = assertInjected("-external-embedded");
         final GraphDatabaseAPI gds = (GraphDatabaseAPI) config.graphDatabaseService;
-        assertEquals("EmbeddedGraphDatabase", gds.getClass().getSimpleName());
+        assertEquals(true, gds.getClass().getSimpleName().contains("GraphDatabase"));
         final org.neo4j.kernel.configuration.Config neoConfig = gds.getDependencyResolver().resolveDependency(org.neo4j.kernel.configuration.Config.class);
         assertEquals("true", neoConfig.getParams().get("allow_store_upgrade"));
     }

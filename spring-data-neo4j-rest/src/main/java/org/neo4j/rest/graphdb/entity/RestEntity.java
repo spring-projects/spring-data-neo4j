@@ -22,6 +22,7 @@ package org.neo4j.rest.graphdb.entity;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -32,6 +33,7 @@ import org.neo4j.rest.graphdb.*;
 import org.neo4j.rest.graphdb.util.ArrayConverter;
 import org.springframework.data.neo4j.core.UpdateableState;
 
+import static java.util.Arrays.asList;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 public abstract class RestEntity implements PropertyContainer, UpdatableRestResult<RestEntity>, UpdateableState {
@@ -109,6 +111,16 @@ public abstract class RestEntity implements PropertyContainer, UpdatableRestResu
             doUpdate();
         }
         return this.propertyData;
+    }
+
+    public Map<String, Object> getProperties(String... keys) {
+        HashMap<String, Object> map = new HashMap<>(getPropertyData());
+        map.keySet().retainAll(asList(keys));
+        return map;
+    }
+
+    public Map<String, Object> getAllProperties() {
+        return getPropertyData();
     }
 
     protected abstract void doUpdate();

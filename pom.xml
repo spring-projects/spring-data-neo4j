@@ -60,6 +60,12 @@
 			</properties>
 		</profile>
 		<profile>
+			<id>neo4j-23</id>
+			<properties>
+				<neo4j.version>2.3.0-M03</neo4j.version>
+			</properties>
+		</profile>
+		<profile>
 			<id>examples</id>
 			<modules>
 				<module>spring-data-neo4j-examples/hello-worlds</module>

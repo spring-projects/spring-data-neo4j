@@ -120,4 +120,13 @@ public class RestRelationshipTests {
         assertEquals("foo",rel2.prop);
     }
 
+    @Test
+    public void testRelationshipSaveProperty2() {
+        A a1 = neo4jTemplate.save(new A("a1"));
+        A a2 = neo4jTemplate.save(new A("a2"));
+        ARel rel = neo4jTemplate.save(new ARel(a1, a2, "foo"));
+        ARel rel2 = neo4jTemplate.findOne(rel.id, ARel.class);
+        assertEquals("foo",rel2.prop);
+    }
+
 }

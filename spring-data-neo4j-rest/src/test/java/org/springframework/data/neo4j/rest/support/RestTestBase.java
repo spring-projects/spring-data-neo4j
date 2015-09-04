@@ -59,8 +59,8 @@ public class RestTestBase {
         configurator.configuration().setProperty(Configurator.WEBSERVER_PORT_PROPERTY_KEY,PORT);
         configurator.configuration().setProperty("dbms.security.auth_enabled",false);
         final WrappingNeoServerBootstrapper bootstrapper = new WrappingNeoServerBootstrapper(db, configurator);
-        int exit = bootstrapper.start();
-        if (exit != 0 ) throw new IllegalStateException("Server not started correctly.");
+        bootstrapper.start();
+//        if (exit != 0 ) throw new IllegalStateException("Server not started correctly.");
         neoServer = bootstrapper.getServer();
 
         tryConnect();
