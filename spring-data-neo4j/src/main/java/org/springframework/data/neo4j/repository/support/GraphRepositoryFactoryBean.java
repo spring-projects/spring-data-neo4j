@@ -29,9 +29,12 @@ public class GraphRepositoryFactoryBean<S extends Repository<T, Long>, T> extend
     private Session session;
 
     @Autowired
-    public GraphRepositoryFactoryBean(Session session, Neo4jMappingContext mappingContext) {
-        this.session = session;
+    private Neo4jMappingContext mappingContext;
+    
+    @Override
+    public void afterPropertiesSet() {
         setMappingContext(mappingContext);
+        super.afterPropertiesSet();
     }
 
     @Override
