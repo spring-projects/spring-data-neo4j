@@ -592,8 +592,22 @@ public class MoviesIntegrationTest {
         assertNull(tempMovieRepository.findOne(user.getId()));
         assertNull(userRepository.findOne(movie.getId(),0));
         assertNull(ratingRepository.findOne(user.getId()));
+    }
 
+    @Test
+    /**
+     * @see DATAGRAPH-760
+     */
+    public void shouldSaveAndReturnManyEntities() {
+        User michal = new User("Michal");
+        User adam = new User("Adam");
+        User daniela = new User("Daniela");
 
+        List<User> users = Arrays.asList(michal,adam,daniela);
+        Iterable<User> savedUsers = userRepository.save(users);
+        for (User user : savedUsers) {
+            assertNotNull(user.getId());
+        }
     }
 
     private Calendar createDate( int y, int m, int d, String tz )

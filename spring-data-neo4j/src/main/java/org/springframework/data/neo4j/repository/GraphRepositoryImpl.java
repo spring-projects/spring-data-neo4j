@@ -52,7 +52,7 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
         for (S entity : entities) {
             session.save(entity);
         }
-        return null;
+        return entities;
     }
 
     @Override
@@ -104,7 +104,7 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
     @Override
     public <S extends T> Iterable<S> save(Iterable<S> ses, int depth) {
         session.save(ses, depth);
-        return null;
+        return ses;
     }
 
     @Override
