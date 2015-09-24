@@ -113,6 +113,11 @@ public class Movie {
 In previous versions of Spring Data Neo4j, a dynamic relationship type field was supported.  
 However, this has been dropped completely for version 4, since it was not possible to manage it effectively for both reading from and writing to the graph.
 
+[NOTE]
+====
+The `@RelationshipEntity` annotation must appear on all leaf subclasses if they are part of a class hierarchy representing relationship entities.
+This annotation is optional on superclasses.
+====
 
 [[reference_programming_model_relationships_relationshiptypediscrimination]]
 == Discriminating Relationships Based on End Node Type
