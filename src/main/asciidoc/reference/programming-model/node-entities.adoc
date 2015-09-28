@@ -95,6 +95,8 @@ Renaming any of these fields will cause parts of the graph to map incorrectly, h
 
 This is a required field which must be of type `java.lang.Long`.
 It is used by Spring Data Neo4j to store the node or relationship-id to re-connect the entity to the graph.
+As such, user code should _never_ assign a value to it.
+
 
 [NOTE]
 ====
