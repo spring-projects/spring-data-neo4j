@@ -76,8 +76,6 @@ For accessing the two endpoints of the relationship, two special annotations are
 A field annotated with one of these annotations will provide access to the corresponding endpoint, depending on the chosen annotation.
 
 For controlling the relationship-type a `String` attribute called `type` is available on the `@RelationshipEntity` annotation.  
-//Like the simple strategy for labelling node entities, if this is unset then the name of the class is used to derive the relationship type.
-//However, if the relationship type is overridden in participating node entities, the `type` *must* be specified on the `@RelationshipEntity`.
 Currently, the `type` must always be specified on the `@RelationshipEntity` annotation.
 
 [NOTE]
@@ -112,6 +110,8 @@ public class Movie {
 
 Note that the `Actor` also contains a reference to a `Role`.  This is important for persistence, *even when saving the `Role` directly*, because paths in the graph are written starting with nodes first and then relationships are created between them.
 Therefore, you need to structure your domain models so that relationship entities are reachable from node entities for this to work correctly.
+
+Additionally, SDN4 will not persist a relationship entity that doesn't have any properties defined.  If you don't want to include properties in your relationship entity then you should use a plain `@Relationship` instead.
 
 In previous versions of Spring Data Neo4j, a dynamic relationship type field was supported.  
 However, this has been dropped completely for version 4, since it was not possible to manage it effectively for both reading from and writing to the graph.
