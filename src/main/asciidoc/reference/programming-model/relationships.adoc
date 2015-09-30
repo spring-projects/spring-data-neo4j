@@ -110,6 +110,9 @@ public class Movie {
 }
 ----
 
+Note that the `Actor` also contains a reference to a `Role`.  This is important for persistence, *even when saving the `Role` directly*, because paths in the graph are written starting with nodes first and then relationships are created between them.
+Therefore, you need to structure your domain models so that relationship entities are reachable from node entities for this to work correctly.
+
 In previous versions of Spring Data Neo4j, a dynamic relationship type field was supported.  
 However, this has been dropped completely for version 4, since it was not possible to manage it effectively for both reading from and writing to the graph.
 
