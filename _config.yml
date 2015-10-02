@@ -13,7 +13,7 @@ redcarpet:
 baseurl: /spring-data-neo4j
 
 # Name of the project for display in places like page titles
-name: Spring Data Neo4J
+name: Spring Data Neo4j
 
 # ID of the project in the metadata API at spring.io (if this is not a
 # valid project ID the javascript widgets in the home page will not work)
