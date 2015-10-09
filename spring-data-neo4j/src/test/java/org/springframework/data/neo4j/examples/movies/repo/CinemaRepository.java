@@ -58,4 +58,6 @@ public interface CinemaRepository extends GraphRepository<Cinema> {
 
 	List<Cinema> findByVisitedNameAndVisitedMiddleName(String name, String middleName);
 
+	List<Cinema> findByNameMatches(String name);
+
 }

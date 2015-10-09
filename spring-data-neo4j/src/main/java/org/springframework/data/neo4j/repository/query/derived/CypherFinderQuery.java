@@ -70,6 +70,8 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 				return ComparisonOperator.GREATER_THAN;
 			case LESS_THAN:
 				return ComparisonOperator.LESS_THAN;
+			case REGEX:
+			    return ComparisonOperator.MATCHES;
 			default:
 				return ComparisonOperator.EQUALS;
 		}

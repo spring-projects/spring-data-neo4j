@@ -14,19 +14,14 @@ package org.springframework.data.neo4j.queries;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
@@ -47,11 +42,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class DerivedQueryTest {
 
-
 	@ClassRule
 	public static Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule(7879);
-
-	private static Session session;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -62,18 +54,13 @@ public class DerivedQueryTest {
 	@Autowired
 	private RatingRepository ratingRepository;
 
-	@Before
-	public void init() throws IOException {
-		session = new SessionFactory("org.springframework.data.neo4j.examples.movies.domain").openSession(neo4jRule.url());
-	}
-
 	@After
 	public void clearDatabase() {
 		neo4jRule.clearDatabase();
 	}
 
 	private void executeUpdate(String cypher) {
-		new ExecutionEngine(neo4jRule.getGraphDatabaseService()).execute(cypher);
+		neo4jRule.getGraphDatabaseService().execute(cypher);
 	}
 
 	@Test
@@ -152,7 +139,6 @@ public class DerivedQueryTest {
 		List<Cinema> theatres = cinemaRepository.findByNameOrLocation("Ritzy", "London");
 		assertEquals(2, theatres.size());
 	}
-
 
 	/**
 	 * @see DATAGRAPH-629
@@ -278,7 +264,7 @@ public class DerivedQueryTest {
 	 * @see DATAGRAPH-632
 	 */
 	@Test
-	public void shouldFindNodeEntitiesWithNestedREProperty() {
+	public void shouldFindNodeEntitiesWithNestedRelationshipEntityProperty() {
 		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) " +
 				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->m");
@@ -294,7 +280,7 @@ public class DerivedQueryTest {
 	 * @see DATAGRAPH-705
 	 */
 	@Test
-	public void shouldFindNodeEntititiesWithTwoNestedPropertiesAnded() {
+	public void shouldFindNodeEntititiesWithTwoNestedPropertiesAndedAcrossDifferentRelatedNodeEntities() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
 				" CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
 				" CREATE (u:User {name:'Michal'}) " +
@@ -314,8 +300,8 @@ public class DerivedQueryTest {
 
 	/**
 	 * @see DATAGRAPH-662
-	 * //TODO FIXME
 	 */
+	//FIXME: OR is not supported for nested properties on an entity
 	@Test(expected = UnsupportedOperationException.class)
 	public void shouldFindNodeEntititiesWithTwoNestedPropertiesOred() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
@@ -358,7 +344,7 @@ public class DerivedQueryTest {
 	 * @see DATAGRAPH-629
 	 */
 	@Test
-	public void shouldFindNodeEntititiesWithREAndNestedProperty() {
+	public void shouldFindNodeEntititiesWithRelationshipEntityAndNestedProperty() {
 		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) CREATE (g:Genre {name:'Thriller'}) CREATE (u)-[:INTERESTED]->(g) " +
 				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->m");
@@ -368,6 +354,19 @@ public class DerivedQueryTest {
 		assertTrue(users.contains(new User("Michal")));
 	}
 
+	/**
+	 * Relates to DATAGRAPH-601 and, to an extent, DATAGRAPH-761
+	 */
+	@Test
+	public void shouldFindNodeEntitiesByRegularExpressionMatchingOnPropertiesInDerivedFinderMethods() {
+        executeUpdate("CREATE (:Theatre {name:'Odeon', city:'Preston'}), "
+                + "(:Theatre {name:'Vue', city:'Dumfries'}), "
+                + "(:Theatre {name:'PVR', city:'Mumbai'}) ");
 
+        // ideally, I'd name this to be "findWhereNameMatches" or "findByNameMatching"
+        List<Cinema> cinemas = cinemaRepository.findByNameMatches("^[Vv].+$");
+        assertEquals("The wrong number of cinemas was returned", 1, cinemas.size());
+        assertEquals("An unexpected cinema was retrieved", "Dumfries", cinemas.get(0).getLocation());
+	}
 
 }
