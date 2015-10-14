@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.2.4.RELEASE (2015-10-14)
+---------------------------------------------
+* DATAGRAPH-773 - Release 3.2.4 (Evans).
+
+
 Changes in version 4.0.0.RELEASE (2015-09-05)
 ---------------------------------------------
 * DATAGRAPH-627 - SDN 4.0: Allow Credentials to be specified via Context.
