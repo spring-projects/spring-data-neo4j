@@ -1,6 +1,28 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.2.4.RELEASE (2015-10-14)
+---------------------------------------------
+* DATAGRAPH-773 - Release 3.2.4 (Evans).
+
+
+Changes in version 4.0.0.RELEASE (2015-09-05)
+---------------------------------------------
+* DATAGRAPH-627 - SDN 4.0: Allow Credentials to be specified via Context.
+* DATAGRAPH-656 - SDN 4 Migration Notes.
+* DATAGRAPH-682 - GraphRepository finds by Object and not GraphID.
+* DATAGRAPH-683 - Saving @RelationshipEntity.
+* DATAGRAPH-742 - Upgrade neo4j-ogm version to 1.1.2-SNAPSHOT.
+* DATAGRAPH-745 - Username and password for remote server.
+* DATAGRAPH-749 - Upgrade neo4j-ogm to 1.1.2.
+* DATAGRAPH-750 - Upgrade Spring Data Commons to 1.11.0.RELEASE.
+* DATAGRAPH-752 - Add Spring Data Neo4j 4 Example to Spring Data examples.
+* DATAGRAPH-753 - Expose Neo4jMappingContext as Spring Bean.
+* DATAGRAPH-754 - Upgrade to Neo4j 2.2.5.
+* DATAGRAPH-755 - Support for Neo4j 2.2.5 Cypher error response changes.
+* DATAGRAPH-756 - Release 4.0.
+
+
 Changes in version 3.4.0.RELEASE (2015-09-01)
 ---------------------------------------------
 * DATAGRAPH-748 - Release 3.4 GA (Gosling).
