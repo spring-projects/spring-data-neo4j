@@ -86,4 +86,7 @@ public interface UserRepository extends GraphRepository<User> {
 
     @Query("MATCH (user:User) RETURN user")
     Iterable<User> getAllUsersIterable();
+
+    @Query("MATCH (user:User) set user.name={0}")
+    void setNamesNull(String name);
 }

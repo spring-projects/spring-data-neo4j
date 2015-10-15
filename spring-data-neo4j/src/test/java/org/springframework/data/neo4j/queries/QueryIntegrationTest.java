@@ -260,4 +260,37 @@ public class QueryIntegrationTest {
         assertEquals(2, count);
     }
 
+    /**
+     * @see DATAGRAPH-772
+     */
+    @Test
+    public void shouldAllowNullParameters() {
+        executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
+
+        userRepository.setNamesNull(null);
+        Iterable<User> users = userRepository.findAll();
+        for (User u : users) {
+            assertNull(u.getName());
+        }
+    }
+
+    /**
+     * @see DATAGRAPH-772
+     */
+    @Test
+    public void shouldMapNullsToQueryResults() {
+        executeUpdate("CREATE (g:User), (s:User)");
+        assertEquals("There should be some users in the database", 2, userRepository.findTotalUsers());
+
+        Iterable<UserQueryResult> expected = Arrays.asList(new UserQueryResult(null,0),
+                new UserQueryResult(null, 0));
+
+        Iterable<UserQueryResult> queryResult = userRepository.retrieveAllUsersAndTheirAges();
+        assertNotNull("The query result shouldn't be null", queryResult);
+        assertEquals(expected, queryResult);
+        for(UserQueryResult userQueryResult : queryResult) {
+            assertNotNull(userQueryResult.getUserId());
+        }
+    }
+
 }
