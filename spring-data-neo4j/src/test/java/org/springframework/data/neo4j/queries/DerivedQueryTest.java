@@ -369,4 +369,18 @@ public class DerivedQueryTest {
         assertEquals("An unexpected cinema was retrieved", "Dumfries", cinemas.get(0).getLocation());
 	}
 
+	/**
+	 * DATAGRAPH-761
+	 */
+	@Test
+	public void shouldMatchNodeEntitiesUsingCaseInsensitiveLikeWithWildcards() {
+        executeUpdate("CREATE (:Theatre {name:'IMAX', city:'Chesterfield'}), "
+                + "(:Theatre {name:'Odeon', city:'Manchester'}), "
+                + "(:Theatre {name:'IMAX', city:'Edinburgh'}) ");
+
+        List<Cinema> cinemas = cinemaRepository.findByLocationLike("*chest*");
+        assertEquals("The wrong number of cinemas was returned", 2, cinemas.size());
+	}
+
+
 }

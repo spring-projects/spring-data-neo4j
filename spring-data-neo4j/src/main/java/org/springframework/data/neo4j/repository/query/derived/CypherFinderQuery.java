@@ -72,6 +72,8 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 				return ComparisonOperator.LESS_THAN;
 			case REGEX:
 			    return ComparisonOperator.MATCHES;
+			case LIKE:
+			    return ComparisonOperator.LIKE;
 			default:
 				return ComparisonOperator.EQUALS;
 		}
