@@ -52,6 +52,7 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 		parameter.setPropertyName(property);
 		parameter.setOwnerEntityType(entityType);
 		parameter.setComparisonOperator(convertToComparisonOperator(part.getType()));
+		parameter.setNegated(part.getType().name().startsWith("NOT"));
 		parameter.setBooleanOperator(booleanOperator);
 
 		if (part.getProperty().next() != null) {
@@ -73,6 +74,8 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 			case REGEX:
 			    return ComparisonOperator.MATCHES;
 			case LIKE:
+			    return ComparisonOperator.LIKE;
+			case NOT_LIKE:
 			    return ComparisonOperator.LIKE;
 			default:
 				return ComparisonOperator.EQUALS;

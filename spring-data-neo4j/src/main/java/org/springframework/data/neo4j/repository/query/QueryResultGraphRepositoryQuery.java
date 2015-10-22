@@ -29,7 +29,7 @@ import org.neo4j.ogm.session.result.RowModel;
 import org.neo4j.ogm.session.transaction.Transaction;
 
 /**
- * Specialisation of {@link GraphRepositoryQuery} that handles mapping to object annotated with <code>&#064;QueryResult</code>.
+ * Specialisation of {@link GraphRepositoryQuery} that handles mapping to objects annotated with <code>&#064;QueryResult</code>.
  *
  * @author Adam George
  */

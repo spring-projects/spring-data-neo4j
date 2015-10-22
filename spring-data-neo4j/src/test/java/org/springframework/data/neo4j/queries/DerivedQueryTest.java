@@ -382,5 +382,31 @@ public class DerivedQueryTest {
         assertEquals("The wrong number of cinemas was returned", 2, cinemas.size());
 	}
 
+    /**
+     * DATAGRAPH-761
+     */
+    @Test
+    public void shouldMatchNodeEntitiesUsingLikeWithWildcardsAndSpecialCharacters() {
+        executeUpdate("CREATE (:Theatre {name:'IMAX', city:'Kolkata (Calcutta)'}), "
+                + "(:Theatre {name:'PVR', city:'Bengaluru (Bangalore)'}), "
+                + "(:Theatre {name:'Metro Big Cinema', city:'Mumbai (Bombay)'}) ");
+
+        List<Cinema> indianCinemas = cinemaRepository.findByLocationLike("*(B*");
+        assertEquals("The wrong number of cinemas was returned", 2, indianCinemas.size());
+    }
+
+    /**
+     * DATAGRAPH-761
+     */
+    @Test
+    public void shouldMatchNodeEntitiesUsingNotLikeWithAsteriskWildcards() {
+        executeUpdate("CREATE (:User {name:'Jeff'}), "
+                + "(:User {name:'Jeremy'}), "
+                + "(:User {name:'Alan'})");
+
+        List<User> nonMatchingUsers = userRepository.findByNameIsNotLike("Je*");
+        assertEquals("The wrong number of users was returned", 1, nonMatchingUsers.size());
+        assertEquals("The wrong user was returned", "Alan", nonMatchingUsers.get(0).getName());
+    }
 
 }

@@ -83,10 +83,12 @@ public interface UserRepository extends GraphRepository<User> {
     @Query("MATCH (user:User) WHERE ID(user)={userId} RETURN user")
     User loadUserByNamedId(@Param("userId") User user);
 
-
     @Query("MATCH (user:User) RETURN user")
     Iterable<User> getAllUsersIterable();
 
     @Query("MATCH (user:User) set user.name={0}")
     void setNamesNull(String name);
+
+    List<User> findByNameIsNotLike(String name);
+
 }
