@@ -5,7 +5,7 @@ Michael Hunger; Oliver Gierke; Vince Bickers; Adam George; Luanne Misquitta; Mic
 :revnumber: {version}
 :revdate: {localdate}
 
-Spring Data Neo4j Version 4 (September 2015)
+Spring Data Neo4j Version 4.1 (October 2015)
 
 (C) 2010-2015 Graph Aware Ltd - Neo Technology, Inc. - Pivotal Software, Inc.
 

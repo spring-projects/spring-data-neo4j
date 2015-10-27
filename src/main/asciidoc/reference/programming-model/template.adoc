@@ -41,7 +41,9 @@ An `org.neo4j.ogm.session.result.Result` is returned. This consists of `org.neo4
 modifying cypher statements if applicable, and an `Iterable<Map<String,Object>>` containing the raw data, which can be either used as-is or converted into a richer type if needed.
 The keys in each `Map` correspond to the names listed in the return clause of the executed Cypher query.
 
-For the query methods that retrieve mapped objects, the recommended query format is to return a path, which should ensure that known types get mapped correctly and joined together with relationships as appropriate.
+//For the query methods that retrieve mapped objects, the recommended query format is to return a path, which should ensure that known types get mapped correctly and joined together with relationships as appropriate.
+[NOTE]
+Modifications made to the graph via Cypher queries directly will not be reflected in your domain objects within the session.
 
 == Transactions
 

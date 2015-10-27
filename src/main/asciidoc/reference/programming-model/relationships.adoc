@@ -112,6 +112,7 @@ Note that the `Actor` also contains a reference to a `Role`.  This is important 
 Therefore, you need to structure your domain models so that relationship entities are reachable from node entities for this to work correctly.
 
 Additionally, SDN4 will not persist a relationship entity that doesn't have any properties defined.  If you don't want to include properties in your relationship entity then you should use a plain `@Relationship` instead.
+Multiple relationship entities which have the same property values and relate the same nodes are indistinguishable from each other and are represented as a single relationship by SDN 4.
 
 In previous versions of Spring Data Neo4j, a dynamic relationship type field was supported.  
 However, this has been dropped completely for version 4, since it was not possible to manage it effectively for both reading from and writing to the graph.

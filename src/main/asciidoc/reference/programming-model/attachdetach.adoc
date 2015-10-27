@@ -113,7 +113,7 @@ Behind the scenes however, repository-based paging and sorting delegates to the 
 
 [NOTE]
 ====
-Spring Data Neo4j 4 does not yet support sorting and paging on derived query methods.
+Spring Data Neo4j 4 does not yet support sorting and paging on custom queries or derived query methods.
 ====
 
 ====

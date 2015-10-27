@@ -140,7 +140,7 @@ public interface PersonRepository extends GraphRepository<Person> {
 
 [NOTE]
 ====
-In the current version, derived finders do not support paging, sorting or a custom depth.
+In the current version, derived finders and custom queries do not support paging, sorting or a custom depth.
 ====
 
 
