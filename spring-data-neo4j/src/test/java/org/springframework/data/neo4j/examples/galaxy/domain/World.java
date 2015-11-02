@@ -31,6 +31,10 @@ public class World {
 
     private int moons;
 
+    private Float radius;
+
+    private Long updated;
+
     public Long getUpdated() {
         return updated;
     }
@@ -39,7 +43,6 @@ public class World {
         this.updated = updated;
     }
 
-    private Long updated;
 
     private Set<World> reachableByRocket = new HashSet<>();
 
@@ -87,6 +90,14 @@ public class World {
            }
        }
         return false;
+    }
+
+    public Float getRadius() {
+        return radius;
+    }
+
+    public void setRadius(Float radius) {
+        this.radius = radius;
     }
 
     @Override

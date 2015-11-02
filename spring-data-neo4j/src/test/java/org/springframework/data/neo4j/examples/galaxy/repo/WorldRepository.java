@@ -31,4 +31,6 @@ public interface WorldRepository extends GraphRepository<World> {
     @Query("MATCH (n:World) SET n.updated=timestamp()")
     Result touchAllWorldsWithStatistics();
 
+    World findByName(String name);
+
 }

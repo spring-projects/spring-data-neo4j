@@ -289,6 +289,21 @@ public class GalaxyServiceTest {
         assertEquals(0, count);
     }
 
+    /**
+     * @see DATAGRAPH-783
+     */
+    @Test
+    public void shouldFindWorldWithRadius() {
+        galaxyService.deleteAll();
+        World earth = new World("Earth",1);
+        earth.setRadius(6371.0f);
+        galaxyService.create(earth);
+
+        earth = galaxyService.findByName("Earth");
+        assertEquals(Float.valueOf(6371.0f),earth.getRadius());
+
+    }
+
     private String[] getNamesSorted(List<World> worlds) {
         List<String> names = new ArrayList();
 

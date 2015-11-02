@@ -48,6 +48,10 @@ public class GalaxyService {
         return worldRepository.save(new World(name, moons));
     }
 
+    public World create(World world) {
+        return worldRepository.save(world);
+    }
+
     public Iterable<World> getAllWorlds() {
         return worldRepository.findAll();
     }
@@ -175,5 +179,9 @@ public class GalaxyService {
 
     public Iterable<World> findAllWorlds(Sort sort, int depth) {
         return worldRepository.findAll(sort, depth);
+    }
+
+    public World findByName(String name) {
+        return worldRepository.findByName(name);
     }
 }
