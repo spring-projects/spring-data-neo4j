@@ -34,14 +34,30 @@ SDN 4 provides automatic type conversion for the obvious candidates: byte[] and 
 BigInteger types. In order to define bespoke type conversions for particular entity attribute, you can annotate a
 field or method with `@Convert` to specify your own implementation of `org.neo4j.ogm.typeconversion.AttributeConverter`.
 
-
-[NOTE]
-====
-The default Date converter is <<reference_programming-model_conversion-built_in,@DateString>>.
-Use the `@DateLong` annotation when migrating from previous versions of SDN which represented Dates as Long.
-====
-
 You can find out more about type conversions here: <<reference_programming-model_conversion-custom,Custom Converters>>
+
+== Date Format Changes
+The default Date converter is <<reference_programming-model_conversion-built_in,@DateString>>.
+
+SDN 3.x and earlier represented Dates as a String value consisting of the number of milliseconds since January 1, 1970, 00:00:00 GMT.
+
+If you are upgrading to SDN 4.x from these versions and your application used the default, then you need to annotate your `Date`
+properties with `@DateLong`.
+Moreover, the property values in the graph need to be converted to numbers.
+
+.Upgrade Date properties to numbers
+[source,cypher]
+----
+MATCH (n:Foo) //All nodes which contain date properties to be migrated
+WHERE NOT HAS(n.migrated)// Take the first 10k nodes that haven't been migrated yet
+WITH n LIMIT 10000
+SET n.dateProperty = toInt(n.dateProperty),n.migrated=1 //where dateProperty is the date with a String value to be migrated
+RETURN count(n); //Run until the statement returns zero records
+//Similar process to remove the migrated flag
+----
+
+However, if your application already represented Dates as  `@GraphProperty(propertyType = Long.class)` then simply changing this to
+`@DateLong` is sufficient.
 
 == Obsolete Annotations
 
