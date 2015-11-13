@@ -138,8 +138,13 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
 
     @Override
     public <T> T loadByProperty(Class<T> type, String propertyName, Object propertyValue) {
+        return loadByProperty(type, propertyName, propertyValue, 1);
+    }
+
+    @Override
+    public <T> T loadByProperty(Class<T> type, String propertyName, Object propertyValue, int depth) {
         try {
-            return getSingle(loadAllByProperty(type, propertyName, propertyValue));
+            return getSingle(loadAllByProperty(type, propertyName, propertyValue, depth));
         } catch (Exception e) {
             throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
@@ -164,8 +169,13 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
 
     @Override
     public <T> T loadByProperties(Class<T> type, Filters parameters) {
+        return loadByProperties(type, parameters, 1);
+    }
+
+    @Override
+    public <T> T loadByProperties(Class<T> type, Filters parameters, int depth) {
         try {
-            return getSingle(loadAllByProperties(type, parameters));
+            return getSingle(loadAllByProperties(type, parameters, depth));
         } catch (Exception e) {
             throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
@@ -173,8 +183,13 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
 
     @Override
     public <T> Collection<T> loadAllByProperties(Class<T> type, Filters parameters) {
+       return loadAllByProperties(type, parameters, 1);
+    }
+
+    @Override
+    public <T> Collection<T> loadAllByProperties(Class<T> type, Filters parameters, int depth) {
         try {
-            return session.loadAll(type, parameters);
+            return session.loadAll(type, parameters, depth);
         } catch (Exception e) {
             throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }

@@ -27,9 +27,11 @@ import org.junit.Test;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.*;
 import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.session.Utils;
 import org.neo4j.ogm.session.result.QueryStatistics;
@@ -48,11 +50,13 @@ public class Neo4jTemplateTest {
     public static Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule();
 
     private Neo4jOperations template;
+    private Session session;
 
     @Before
     public void setUpOgmSession() {
         SessionFactory sessionFactory = new SessionFactory("org.springframework.data.neo4j.examples.movies.domain");
-        this.template = new Neo4jTemplate(sessionFactory.openSession(neo4jRule.url()));
+        session = sessionFactory.openSession(neo4jRule.url());
+        this.template = new Neo4jTemplate(session);
         addArbitraryDataToDatabase();
     }
 
@@ -162,6 +166,113 @@ public class Neo4jTemplateTest {
         Genre loadedGenre = this.template.loadByProperty(Genre.class, "name", "Horror");
         assertNotNull("No genre was loaded", loadedGenre);
         assertEquals("Horror", loadedGenre.getName());
+    }
+
+	/**
+     * @see DATAGRAPH-685
+     */
+    @Test
+    public void shouldRetrieveEntitiesByMatchingPropertyAndDepth() {
+        User user = new User("Harmanpreet Singh");
+        TempMovie bollywood = new TempMovie("Desi Boyz");
+        TempMovie hollywood = new TempMovie("Mission Impossible");
+        template.save(user.rate(bollywood, 1, "Bakwaas"));
+        template.save(user.rate(hollywood, 4, "Pretty good"));
+
+        session.clear();
+
+        User u = template.loadByProperty(User.class, "name", "Harmanpreet Singh",0);
+        assertEquals(0,u.getRatings().size());
+
+        u = template.loadByProperty(User.class, "name", "Harmanpreet Singh",2);
+        assertEquals(2,u.getRatings().size());
+        assertNotNull(u.getRatings().iterator().next().getMovie().getRatings());
+    }
+
+    /**
+     * @see DATAGRAPH-685
+     */
+    @Test
+    public void shouldRetrieveAllEntitiesByMatchingPropertyAndDepth() {
+        User user = new User("Harmanpreet Singh");
+        TempMovie bollywood = new TempMovie("Desi Boyz");
+        TempMovie hollywood = new TempMovie("Desi Boyz");
+        template.save(user.rate(bollywood, 1, "Bakwaas"));
+        template.save(user.rate(hollywood, 4, "Pretty good"));
+
+        session.clear();
+
+        Collection<TempMovie> m = template.loadAllByProperty(TempMovie.class, "name", "Desi Boyz",0);
+        assertEquals(2,m.size());
+        assertEquals(0, m.iterator().next().getRatings().size());
+
+        m = template.loadAllByProperty(TempMovie.class, "name", "Desi Boyz",1);
+        assertEquals(2,m.size());
+        assertEquals(1, m.iterator().next().getRatings().size());
+    }
+
+
+    /**
+     * @see DATAGRAPH-685
+     */
+    @Test
+    public void shouldRetrieveEntitiesByMatchingPropertiesAndDepth() {
+        User user = new User("Harmanpreet Singh");
+        user.setMiddleName("A");
+        User user2 = new User("Harmanpreet Singh");
+        user2.setMiddleName("B");
+        TempMovie bollywood = new TempMovie("Desi Boyz");
+        TempMovie hollywood = new TempMovie("Mission Impossible");
+        template.save(user.rate(bollywood, 1, "Bakwaas"));
+        template.save(user.rate(hollywood, 4, "Pretty good"));
+        template.save(user2);
+
+        session.clear();
+
+        Filter nameFilter = new Filter("name","Harmanpreet Singh");
+        Filter middleNameFilter = new Filter("middleName","A");
+        middleNameFilter.setBooleanOperator(BooleanOperator.AND);
+        Filters filters = new Filters();
+        filters.add(nameFilter, middleNameFilter);
+
+        User u = template.loadByProperties(User.class,filters,0);
+        assertEquals(0,u.getRatings().size());
+
+        u = template.loadByProperties(User.class, filters,2);
+        assertEquals(2,u.getRatings().size());
+        assertNotNull(u.getRatings().iterator().next().getMovie().getRatings());
+    }
+
+    /**
+     * @see DATAGRAPH-685
+     */
+    @Test
+    public void shouldRetrieveAllEntitiesByMatchingPropertiesAndDepth() {
+        User user = new User("Harmanpreet Singh");
+        user.setMiddleName("A");
+        User user2 = new User("Harmanpreet Singh");
+        user2.setMiddleName("A");
+        TempMovie bollywood = new TempMovie("Desi Boyz");
+        TempMovie hollywood = new TempMovie("Mission Impossible");
+        template.save(user.rate(bollywood, 1, "Bakwaas"));
+        template.save(user.rate(hollywood, 4, "Pretty good"));
+        template.save(user2);
+
+        session.clear();
+
+        Filter nameFilter = new Filter("name","Harmanpreet Singh");
+        Filter middleNameFilter = new Filter("middleName","A");
+        middleNameFilter.setBooleanOperator(BooleanOperator.AND);
+        Filters filters = new Filters();
+        filters.add(nameFilter, middleNameFilter);
+
+        Collection<User> u = template.loadAllByProperties(User.class,filters,0);
+        assertEquals(2,u.size());
+        assertEquals(0,u.iterator().next().getRatings().size());
+
+        u = template.loadAllByProperties(User.class, filters,2);
+        assertEquals(2,u.size());
+        assertNotNull(u.iterator().next().getRatings().iterator().next().getMovie().getRatings());
     }
 
     @Test

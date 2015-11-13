@@ -72,4 +72,8 @@ public class User extends Person{
     public Set<Rating> getRatings() {
         return ratings;
     }
+
+    public void setMiddleName(String middleName) {
+        this.middleName = middleName;
+    }
 }

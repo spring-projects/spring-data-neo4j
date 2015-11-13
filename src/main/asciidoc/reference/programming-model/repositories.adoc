@@ -59,6 +59,11 @@ The named or indexed parameter `{param}` will be substituted by the actual metho
 Node and Relationship-Entities are handled directly and converted into their respective ids, Iterables thereof as well. 
 All other parameters types are provided directly (i.e. Strings, Longs, etc).
 
+[NOTE]
+====
+In the current version, custom queries do not support paging, sorting or a custom depth.
+====
+
 === Query results
 
 Typical results for queries are `Iterable<Type>`, `Iterable<Map<String,Object>>` or simply `Type`.
@@ -140,7 +145,7 @@ public interface PersonRepository extends GraphRepository<Person> {
 
 [NOTE]
 ====
-In the current version, derived finders and custom queries do not support paging, sorting or a custom depth.
+In the current version, derived finders do not support paging, sorting or a custom depth.
 ====
 
 
