@@ -1,6 +1,12 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.4.1.RELEASE (2015-11-15)
+---------------------------------------------
+* DATAGRAPH-786 - Release 3.4.1 (Gosling).
+* DATAGRAPH-766 - Ensure that alle modules compile and test with Neo4j 2.3.
+
+
 Changes in version 3.2.4.RELEASE (2015-10-14)
 ---------------------------------------------
 * DATAGRAPH-773 - Release 3.2.4 (Evans).
