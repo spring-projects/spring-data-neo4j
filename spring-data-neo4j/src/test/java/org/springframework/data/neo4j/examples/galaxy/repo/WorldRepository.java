@@ -12,7 +12,7 @@
 
 package org.springframework.data.neo4j.examples.galaxy.repo;
 
-import org.neo4j.ogm.session.result.Result;
+import org.neo4j.ogm.model.QueryStatistics;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
 import org.springframework.data.neo4j.repository.GraphRepository;
@@ -29,7 +29,7 @@ public interface WorldRepository extends GraphRepository<World> {
     void touchAllWorlds();
 
     @Query("MATCH (n:World) SET n.updated=timestamp()")
-    Result touchAllWorldsWithStatistics();
+    QueryStatistics touchAllWorldsWithStatistics();
 
     World findByName(String name);
 

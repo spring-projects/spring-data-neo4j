@@ -23,7 +23,6 @@ import java.util.Map;
  * @author: Vince Bickers
  */
 @Component
-@Transactional
 public class WrapperService {
 
     private static final Logger log = LoggerFactory.getLogger(BusinessService.class);
@@ -31,18 +30,27 @@ public class WrapperService {
     @Autowired
     BusinessService businessService;
 
+    @Transactional
     public void composeSuccessThenFail() {
         businessService.successMethod();
         businessService.failMethod();
     }
 
+    @Transactional
     public void composeSuccessThenSuccess() {
         businessService.successMethod();
         businessService.successMethod();
     }
 
-    public void composeForceThenFail() {
-        businessService.forceMethod();
+    @Transactional
+    public void composeFailThenSuccess() {
+        businessService.failMethod();
+        businessService.successMethod();
+    }
+
+    @Transactional
+    public void composeFailThenFail() {
+        businessService.failMethod();
         businessService.failMethod();
     }
 

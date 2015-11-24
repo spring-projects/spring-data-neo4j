@@ -12,8 +12,9 @@
 
 package org.springframework.data.neo4j.config;
 
-import javax.annotation.Resource;
 
+import org.neo4j.ogm.driver.Driver;
+import org.neo4j.ogm.service.Components;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.slf4j.Logger;
@@ -26,12 +27,13 @@ import org.springframework.dao.annotation.PersistenceExceptionTranslationPostPro
 import org.springframework.dao.support.PersistenceExceptionTranslationInterceptor;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
+
+import javax.annotation.Resource;
 
 /**
  * The base Spring configuration bean from which users are recommended to inherit when setting up Spring Data Neo4j.
@@ -51,9 +53,9 @@ public abstract class Neo4jConfiguration {
         logger.info("Initialising Neo4jSession");
         SessionFactory sessionFactory = getSessionFactory();
         Assert.notNull(sessionFactory, "You must provide a SessionFactory instance in your Spring configuration classes");
-        Neo4jServer neo4jServer = neo4jServer();
-        Assert.notNull(neo4jServer, "You must provide a Neo4jServer instance in your Spring configuration classes");
-        return constructSession(neo4jServer);
+        Driver driver = driver();
+        Assert.notNull(driver, "You must provide a Driver instance in your Spring configuration classes");
+        return sessionFactory.openSession(driver);
     }
 
     @Bean
@@ -99,15 +101,11 @@ public abstract class Neo4jConfiguration {
     }
 
     @Bean
-    public abstract Neo4jServer neo4jServer();
+    public Driver driver() {
+        return Components.driver();
+    }
 
     @Bean
     public abstract SessionFactory getSessionFactory();
 
-    private Session constructSession(Neo4jServer server) {
-        if(server.url()!=null && server.username()!=null && server.password()!=null) {
-            return getSessionFactory().openSession(server.url(),server.username(),server.password());
-        }
-        return getSessionFactory().openSession(server.url());
-    }
 }

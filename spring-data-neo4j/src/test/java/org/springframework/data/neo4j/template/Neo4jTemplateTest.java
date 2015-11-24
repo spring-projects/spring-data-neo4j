@@ -12,19 +12,11 @@
 
 package org.springframework.data.neo4j.template;
 
-import static org.junit.Assert.*;
-import static org.neo4j.ogm.session.Utils.*;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-
 import org.junit.After;
 import org.junit.Before;
-import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.junit.runner.RunWith;
 import org.neo4j.graphdb.*;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.cypher.BooleanOperator;
@@ -33,46 +25,55 @@ import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.model.QueryStatistics;
+import org.neo4j.ogm.model.Statistics;
 import org.neo4j.ogm.session.Utils;
-import org.neo4j.ogm.session.result.QueryStatistics;
-import org.neo4j.ogm.session.result.Result;
-import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
-import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.domain.*;
+import org.springframework.data.neo4j.template.context.Neo4jTemplateConfiguration;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+import static org.neo4j.ogm.session.Utils.map;
 
 /**
  * @author Adam George
  * @author Luanne Misquitta
+ * @author Vince Bickers
  */
+@ContextConfiguration(classes = {Neo4jTemplateConfiguration.class})
+@RunWith(SpringJUnit4ClassRunner.class)
 public class Neo4jTemplateTest {
 
-    @ClassRule
-    public static Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule();
 
-    private Neo4jOperations template;
-    private Session session;
+    @Autowired private GraphDatabaseService graphDatabaseService;
+    @Autowired private Neo4jOperations template;
+    @Autowired private Session session;
 
     @Before
     public void setUpOgmSession() {
-        SessionFactory sessionFactory = new SessionFactory("org.springframework.data.neo4j.examples.movies.domain");
-        session = sessionFactory.openSession(neo4jRule.url());
-        this.template = new Neo4jTemplate(session);
         addArbitraryDataToDatabase();
     }
 
     @After
     public void clearDatabase() {
-        neo4jRule.clearDatabase();
+        graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
     }
 
     /**
      * While this may seem trivial, some of these tests actually used to fail when run against a database containing unrelated data.
      */
     private void addArbitraryDataToDatabase() {
-        try (Transaction tx = neo4jRule.getGraphDatabaseService().beginTx()) {
-            Node arbitraryNode = neo4jRule.getGraphDatabaseService().createNode(DynamicLabel.label("NotAClass"));
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            Node arbitraryNode = graphDatabaseService.createNode(DynamicLabel.label("NotAClass"));
             arbitraryNode.setProperty("name", "Colin");
-            Node otherNode = neo4jRule.getGraphDatabaseService().createNode(DynamicLabel.label("NotAClass"));
+            Node otherNode = graphDatabaseService.createNode(DynamicLabel.label("NotAClass"));
             otherNode.setProperty("age", 39);
             arbitraryNode.createRelationshipTo(otherNode, DynamicRelationshipType.withName("TEST"));
 
@@ -122,8 +123,8 @@ public class Neo4jTemplateTest {
         template.save(user.rate(bollywood, 1, "Bakwaas"));
         template.save(user.rate(hollywood, 4, "Pretty good"));
 
-        Iterable<Map<String, Object>> queryResults =
-                this.template.query("MATCH (u:User)-[r]->(m:Movie) RETURN AVG(r.stars) AS avg", Collections.<String, Object>emptyMap());
+        QueryStatistics queryResults =
+                this.template.query("MATCH (u:User)-[r]->(m:Movie) RETURN AVG(r.stars) AS avg", Collections.EMPTY_MAP);
         Iterator<Map<String, Object>> queryResultIterator = queryResults.iterator();
         assertTrue("There should've been some query result returned", queryResultIterator.hasNext());
         assertEquals(2.5, (Double) queryResultIterator.next().get("avg"), 0.01);
@@ -176,6 +177,8 @@ public class Neo4jTemplateTest {
         User user = new User("Harmanpreet Singh");
         TempMovie bollywood = new TempMovie("Desi Boyz");
         TempMovie hollywood = new TempMovie("Mission Impossible");
+
+
         template.save(user.rate(bollywood, 1, "Bakwaas"));
         template.save(user.rate(hollywood, 4, "Pretty good"));
 
@@ -200,7 +203,7 @@ public class Neo4jTemplateTest {
         template.save(user.rate(bollywood, 1, "Bakwaas"));
         template.save(user.rate(hollywood, 4, "Pretty good"));
 
-        session.clear();
+        template.clear();
 
         Collection<TempMovie> m = template.loadAllByProperty(TempMovie.class, "name", "Desi Boyz",0);
         assertEquals(2,m.size());
@@ -258,7 +261,7 @@ public class Neo4jTemplateTest {
         template.save(user.rate(hollywood, 4, "Pretty good"));
         template.save(user2);
 
-        session.clear();
+        template.clear();
 
         Filter nameFilter = new Filter("name","Harmanpreet Singh");
         Filter middleNameFilter = new Filter("middleName","A");
@@ -289,13 +292,14 @@ public class Neo4jTemplateTest {
      * @see DATAGRAPH-607
      */
     @Test(expected = java.lang.RuntimeException.class)
+    @Ignore // review 2.0
     public void shouldThrowExeceptionForExecuteQueryThatReturnsResults() {
-        this.template.execute("CREATE (g1:Genre {name:'Comedy'}), (g2:Genre {name:'Action'}) return g1");
+        this.template.query("CREATE (g1:Genre {name:'Comedy'}), (g2:Genre {name:'Action'}) return g1", Collections.EMPTY_MAP);
     }
 
     @Test
     public void shouldCountNumberOfEntitiesOfParticularTypeInGraphDatabase() {
-        GraphDatabaseService database = neo4jRule.getGraphDatabaseService();
+        GraphDatabaseService database = graphDatabaseService;
         try (Transaction tx = database.beginTx()) {
             // create test entities where label matches simple name
             Label genreTypeLabel = DynamicLabel.label(Genre.class.getSimpleName());
@@ -321,8 +325,7 @@ public class Neo4jTemplateTest {
 
     @Test
     public void shouldDeleteExistingEntitiesByGraphId() {
-        ExecutionEngine ee = new ExecutionEngine(neo4jRule.getGraphDatabaseService());
-        Long genreId = ee.execute("CREATE (t:Genre {name:'Thriller'}), (r:Genre {name:'RomCom'}) RETURN id(r) AS gid")
+        Long genreId = graphDatabaseService.execute("CREATE (t:Genre {name:'Thriller'}), (r:Genre {name:'RomCom'}) RETURN id(r) AS gid")
                 .<Long>columnAs("gid").next();
 
         Genre entity = this.template.load(Genre.class, genreId);
@@ -345,7 +348,7 @@ public class Neo4jTemplateTest {
     /**
      * @see DATAGRAPH-604, DATAGRAPH-738
      */
-    @Test(expected = DataRetrievalFailureException.class)
+    @Test(expected = Exception.class)
     public void shouldHandleErrorsOnExecute() {
         this.template.query("CREAT (node:NODE)", Collections.EMPTY_MAP);
     }
@@ -355,20 +358,20 @@ public class Neo4jTemplateTest {
      */
     @Test
     public void shouldReturnQueryStats() {
-        QueryStatistics stats = this.template.query("CREATE (a:Actor {name:'Keanu Reeves'}) CREATE (m:Movie {title:'The Matrix'}) " +
-                "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m)", Collections.EMPTY_MAP).queryStatistics();
+        Statistics stats = this.template.query("CREATE (a:Actor {name:'Keanu Reeves'}) CREATE (m:Movie {title:'The Matrix'}) " +
+                "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m)", Collections.EMPTY_MAP).statistics();
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesCreated());
         assertEquals(3, stats.getPropertiesSet());
         assertEquals(1, stats.getRelationshipsCreated());
         assertEquals(2, stats.getLabelsAdded());
 
-        stats = this.template.execute("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null"); //keep this till the deprecated execute is removed
+        stats = this.template.query("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null", Collections.EMPTY_MAP).statistics(); 
         assertTrue(stats.containsUpdates());
         assertEquals(1, stats.getLabelsRemoved());
         assertEquals(1, stats.getPropertiesSet());
 
-        stats = this.template.query("MATCH n-[r]-(m:Movie) delete n,r,m",Collections.EMPTY_MAP).queryStatistics();
+        stats = this.template.query("MATCH n-[r]-(m:Movie) delete n,r,m",Collections.EMPTY_MAP).statistics();
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesDeleted());
         assertEquals(1, stats.getRelationshipsDeleted());
@@ -379,16 +382,16 @@ public class Neo4jTemplateTest {
      */
     @Test
     public void shouldReturnSchemaQueryStats() {
-        QueryStatistics stats = this.template.execute("CREATE INDEX ON :Actor(name)");
+        Statistics stats = this.template.query("CREATE INDEX ON :Actor(name)", Collections.EMPTY_MAP).statistics();
         assertEquals(1, stats.getIndexesAdded());
 
-        stats = this.template.execute("CREATE CONSTRAINT ON (movie:Movie) ASSERT movie.title IS UNIQUE");
+        stats = this.template.query("CREATE CONSTRAINT ON (movie:Movie) ASSERT movie.title IS UNIQUE", Collections.EMPTY_MAP).statistics();
         assertEquals(1, stats.getConstraintsAdded());
 
-        stats = this.template.execute("DROP CONSTRAINT ON (movie:Movie) ASSERT movie.title is UNIQUE");
+        stats = this.template.query("DROP CONSTRAINT ON (movie:Movie) ASSERT movie.title is UNIQUE", Collections.EMPTY_MAP).statistics();
         assertEquals(1, stats.getConstraintsRemoved());
 
-        stats = this.template.execute("DROP INDEX ON :Actor(name)");
+        stats = this.template.query("DROP INDEX ON :Actor(name)", Collections.EMPTY_MAP).statistics();
         assertEquals(1, stats.getIndexesRemoved());
     }
 
@@ -397,7 +400,7 @@ public class Neo4jTemplateTest {
      */
     @Test
     public void shouldReturnQueryStatsForQueryWithParams() {
-        QueryStatistics stats = this.template.execute("CREATE (a:Actor {name:{actorName}}) CREATE (m:Movie {title:{movieTitle}}) " +
+        Statistics stats = this.template.execute("CREATE (a:Actor {name:{actorName}}) CREATE (m:Movie {title:{movieTitle}}) " +
                 "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m)",map("actorName","Keanu Reeves", "movieTitle","THe Matrix"));
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesCreated());
@@ -410,7 +413,7 @@ public class Neo4jTemplateTest {
         assertEquals(1, stats.getLabelsRemoved());
         assertEquals(1, stats.getPropertiesSet());
 
-        stats = this.template.query("MATCH n-[r]-(m:Movie) delete n,r,m", Collections.EMPTY_MAP).queryStatistics();
+        stats = this.template.query("MATCH n-[r]-(m:Movie) delete n,r,m", Collections.EMPTY_MAP).statistics();
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesDeleted());
         assertEquals(1, stats.getRelationshipsDeleted());
@@ -443,17 +446,17 @@ public class Neo4jTemplateTest {
      */
     @Test
     public void shouldAllowResultsToBeReturnedFromModifyingQueries() {
-        Result results = this.template.query("CREATE (a:Actor {name:{actorName}}) CREATE (m:Movie {title:{movieTitle}}) " +
+        QueryStatistics results = this.template.query("CREATE (a:Actor {name:{actorName}}) CREATE (m:Movie {title:{movieTitle}}) " +
                 "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m) return a.name as actorName, m.title as movieName", map("actorName", "Keanu Reeves", "movieTitle", "The Matrix"));
 
-        QueryStatistics stats = results.queryStatistics();
+        Statistics stats = results.statistics();
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesCreated());
         assertEquals(3, stats.getPropertiesSet());
         assertEquals(1, stats.getRelationshipsCreated());
         assertEquals(2, stats.getLabelsAdded());
 
-        Iterable<Map<String,Object>> iterableResults = results.queryResults();
+        Iterable<Map<String,Object>> iterableResults = results.model();
         assertNotNull(iterableResults);
         for(Map<String,Object> row : iterableResults) {
             assertEquals("Keanu Reeves",row.get("actorName"));

@@ -13,7 +13,6 @@
 package org.springframework.data.neo4j.examples.movies.service;
 
 import org.springframework.data.neo4j.examples.movies.domain.User;
-import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.transaction.annotation.Transactional;
 
 /**

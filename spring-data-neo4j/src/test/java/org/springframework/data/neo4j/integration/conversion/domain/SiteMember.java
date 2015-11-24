@@ -11,11 +11,11 @@
  */
 package org.springframework.data.neo4j.integration.conversion.domain;
 
-import java.math.BigInteger;
-
 import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.ByteArrayBase64Converter;
+
+import java.math.BigInteger;
 
 /**
  * @author Adam George

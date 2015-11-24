@@ -12,6 +12,8 @@
 
 package org.springframework.data.neo4j.server;
 
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.ogm.driver.Driver;
 import org.neo4j.ogm.testutil.TestServer;
 
 /**
@@ -22,21 +24,25 @@ public class InProcessServer implements Neo4jServer {
 
     private TestServer testServer;
 
-    public InProcessServer()  {
-        this.testServer = new TestServer();
+    public InProcessServer(Driver driver)  {
+        this.testServer = new TestServer(driver);
     }
 
     public String url() {
-        return testServer.url();
+        return (String) this.testServer.driver().getConfig("server");
     }
 
     @Override
     public String username() {
-        return null;
+        return (String) testServer.driver().getConfig("username");
     }
 
     @Override
     public String password() {
-        return null;
+        return (String) this.testServer.driver().getConfig("password");
+    }
+
+    public GraphDatabaseService database() {
+        return testServer.getGraphDatabaseService();
     }
 }

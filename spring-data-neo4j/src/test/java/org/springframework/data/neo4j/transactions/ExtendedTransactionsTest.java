@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.transactions.service.WrapperService;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
 
@@ -32,7 +33,8 @@ import static org.junit.Assert.fail;
  */
 @ContextConfiguration(classes = {ApplicationConfig.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class TransactionBoundaryTest {
+
+public class ExtendedTransactionsTest {
 
     @Autowired
     WrapperService wrapperService;
@@ -43,7 +45,7 @@ public class TransactionBoundaryTest {
     }
 
     @Test
-    public void shouldRollbackNestedTransactions() {
+    public void shouldRollbackSuccessThenFail() {
         try {
             wrapperService.composeSuccessThenFail();
             fail("should have thrown exception");
@@ -53,7 +55,7 @@ public class TransactionBoundaryTest {
     }
 
     @Test
-    public void shouldCommitNestedTransactions() {
+    public void shouldCommitSuccessSuccess() {
         try {
             wrapperService.composeSuccessThenSuccess();
             assertEquals(2, countNodes());
@@ -64,15 +66,24 @@ public class TransactionBoundaryTest {
     }
 
     @Test
-    public void shouldAlwaysCommitIfForced() {
+    public void shouldRollbackFailThenSuccess() {
         try {
-            wrapperService.composeForceThenFail();
+            wrapperService.composeFailThenSuccess();
             fail("should have thrown exception");
         } catch (Exception e) {
-            assertEquals(1, countNodes());
+            assertEquals(0, countNodes());
         }
     }
 
+    @Test
+    public void shouldRollbackFailThenFail() {
+        try {
+            wrapperService.composeFailThenFail();
+            fail("should have thrown exception");
+        } catch (Exception e) {
+            assertEquals(0, countNodes());
+        }
+    }
 
     private int countNodes() {
         Iterator iterator = wrapperService.loadNodes().iterator();

@@ -12,9 +12,9 @@
 
 package org.springframework.data.neo4j.repository.support;
 
-import java.io.Serializable;
-
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
+
+import java.io.Serializable;
 
 /**
  * @author Mark Angrish

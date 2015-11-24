@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
@@ -43,11 +42,6 @@ public class BusinessService {
     public void failMethod() {
         insertNode();
         throw new RuntimeException("Deliberate to force rollback of entire transaction");
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void forceMethod() {
-        insertNode();
     }
 
     private void insertNode() {

@@ -12,11 +12,11 @@
 
 package org.springframework.data.neo4j.integration.conversion.domain;
 
-import java.lang.annotation.ElementType;
-
 import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
+
+import java.lang.annotation.ElementType;
 
 /**
  * Models an element of the Java programming language, although more importantly contains an enum that isn't part of the scanned

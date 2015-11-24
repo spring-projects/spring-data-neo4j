@@ -21,8 +21,6 @@ import org.springframework.data.neo4j.event.BeforeDeleteEvent;
 import org.springframework.data.neo4j.event.BeforeSaveEvent;
 import org.springframework.data.neo4j.examples.movies.domain.Actor;
 import org.springframework.data.neo4j.template.context.DataManipulationEventConfiguration;
-import org.springframework.data.neo4j.template.Neo4jOperations;
-import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

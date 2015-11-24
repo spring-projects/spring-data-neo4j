@@ -12,10 +12,10 @@
 
 package org.springframework.data.neo4j.examples.movies.domain.queryresult;
 
+import org.springframework.data.neo4j.annotation.QueryResult;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
-
-import org.springframework.data.neo4j.annotation.QueryResult;
 
 /**
  * A {@link QueryResult} that contains rich types.

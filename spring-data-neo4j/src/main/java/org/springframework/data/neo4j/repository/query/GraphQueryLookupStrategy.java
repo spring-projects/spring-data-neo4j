@@ -12,13 +12,13 @@
 
 package org.springframework.data.neo4j.repository.query;
 
-import java.lang.reflect.Method;
-
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.RepositoryQuery;
+
+import java.lang.reflect.Method;
 
 /**
  * @author Mark Angrish

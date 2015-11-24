@@ -12,14 +12,11 @@
 
 package org.springframework.data.neo4j.examples.movies.service;
 
-import org.springframework.data.neo4j.examples.movies.domain.Genre;
-import org.springframework.data.neo4j.examples.movies.domain.User;
-import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.domain.Genre;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.repo.GenreRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

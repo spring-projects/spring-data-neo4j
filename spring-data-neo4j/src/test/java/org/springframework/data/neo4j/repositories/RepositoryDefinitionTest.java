@@ -15,7 +15,8 @@ package org.springframework.data.neo4j.repositories;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.ogm.testutil.IntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.repositories.context.RepositoriesTestContext;
 import org.springframework.data.neo4j.repositories.domain.Movie;
@@ -24,8 +25,8 @@ import org.springframework.data.neo4j.util.IterableUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.Assert.*;
-import static org.neo4j.ogm.testutil.GraphTestUtils.*;
+import static org.junit.Assert.assertEquals;
+import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 
 /**
  * @author Michal Bachman
@@ -34,8 +35,8 @@ import static org.neo4j.ogm.testutil.GraphTestUtils.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RepositoryDefinitionTest {
 
-    @Rule
-    public final Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule(7879);
+    @Autowired
+    GraphDatabaseService graphDatabaseService;
 
     @Autowired
     private MovieRepository movieRepository;
@@ -45,7 +46,7 @@ public class RepositoryDefinitionTest {
         Movie movie = new Movie("PF");
         movieRepository.save(movie);
 
-        assertSameGraph(neo4jRule.getGraphDatabaseService(), "CREATE (m:Movie {title:'PF'})");
+        assertSameGraph(graphDatabaseService, "CREATE (m:Movie {title:'PF'})");
 
         assertEquals(1, IterableUtils.count(movieRepository.findAll()));
     }

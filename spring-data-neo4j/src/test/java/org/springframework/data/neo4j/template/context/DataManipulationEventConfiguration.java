@@ -16,13 +16,11 @@ import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
+import org.springframework.data.neo4j.configuration.HttpDriverConfiguration;
 import org.springframework.data.neo4j.event.AfterDeleteEvent;
 import org.springframework.data.neo4j.event.AfterSaveEvent;
 import org.springframework.data.neo4j.event.BeforeDeleteEvent;
 import org.springframework.data.neo4j.event.BeforeSaveEvent;
-import org.springframework.data.neo4j.server.InProcessServer;
-import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.data.neo4j.template.TestNeo4jEventListener;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -34,12 +32,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @Configuration
 @EnableTransactionManagement
-public class DataManipulationEventConfiguration extends Neo4jConfiguration {
-
-    @Override
-    public Neo4jServer neo4jServer() {
-        return new InProcessServer();
-    }
+public class DataManipulationEventConfiguration extends HttpDriverConfiguration {
 
     @Override
     public SessionFactory getSessionFactory() {

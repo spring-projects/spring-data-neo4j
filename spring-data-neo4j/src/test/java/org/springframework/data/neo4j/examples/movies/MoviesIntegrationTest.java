@@ -12,25 +12,14 @@
 
 package org.springframework.data.neo4j.examples.movies;
 
-import static org.junit.Assert.*;
-import static org.neo4j.ogm.testutil.GraphTestUtils.*;
-
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
+import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,195 +29,188 @@ import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.*;
 import org.springframework.data.neo4j.examples.movies.repo.*;
 import org.springframework.data.neo4j.examples.movies.service.UserService;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.data.neo4j.server.InProcessServer;
+import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static org.junit.Assert.*;
+import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 
 /**
  * @author Michal Bachman
  * @author Luanne Misquitta
+ * @uathor Vince Bickers
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class MoviesIntegrationTest {
 
-    private final Logger logger = LoggerFactory.getLogger( MoviesIntegrationTest.class );
-
-    @Rule
-    public final Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule(7879);
+    private final Logger logger = LoggerFactory.getLogger(MoviesIntegrationTest.class);
 
     @Autowired
-    private UserRepository userRepository;
+    private Neo4jServer neo4jServer;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    private CinemaRepository cinemaRepository;
-
-    @Autowired
-    private AbstractAnnotatedEntityRepository abstractAnnotatedEntityRepository;
-
-    @Autowired
-    private AbstractEntityRepository abstractEntityRepository;
-
-    @Autowired
-    private TempMovieRepository tempMovieRepository;
-
-    @Autowired
-    private ActorRepository actorRepository;
-
-    @Autowired
-    private RatingRepository ratingRepository;
+    private GraphDatabaseService graphDatabaseService;
 
     @Autowired
     private Session session;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private CinemaRepository cinemaRepository;
+    @Autowired
+    private AbstractAnnotatedEntityRepository abstractAnnotatedEntityRepository;
+    @Autowired
+    private AbstractEntityRepository abstractEntityRepository;
+    @Autowired
+    private TempMovieRepository tempMovieRepository;
+    @Autowired
+    private ActorRepository actorRepository;
+    @Autowired
+    private RatingRepository ratingRepository;
 
-    private GraphDatabaseService getDatabase() {
-        return neo4jRule.getGraphDatabaseService();
+
+
+    @Before
+    public void clear() {
+        session.clear();
+        session.purgeDatabase();
     }
 
     @Test
-    public void shouldSaveUser()
-    {
-        User user = new User( "Michal" );
-        userRepository.save( user );
+    public void shouldSaveUser() {
+        User user = new User("Michal");
+        userRepository.save(user);
 
-        assertSameGraph( getDatabase(), "CREATE (u:User:Person {name:'Michal'})" );
-        assertEquals( 0L, (long) user.getId() );
+        assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Michal'})");
     }
 
     @Test
-    public void shouldSaveUserWithoutName()
-    {
+    public void shouldSaveUserWithoutName() {
         User user = new User();
-        userRepository.save( user );
+        userRepository.save(user);
 
-        assertSameGraph( getDatabase(), "CREATE (u:User:Person)" );
-        assertEquals( 0L, (long) user.getId() );
+        assertSameGraph(graphDatabaseService, "CREATE (u:User:Person)");
     }
 
     @Test
-    public void shouldSaveReleasedMovie()
-    {
+    public void shouldSaveReleasedMovie() {
 
-        Calendar cinemaReleaseDate = createDate( 1994, Calendar.SEPTEMBER, 10, "GMT" );
-        Calendar cannesReleaseDate = createDate( 1994, Calendar.MAY, 12, "GMT" );
+        Calendar cinemaReleaseDate = createDate(1994, Calendar.SEPTEMBER, 10, "GMT");
+        Calendar cannesReleaseDate = createDate(1994, Calendar.MAY, 12, "GMT");
 
-        ReleasedMovie releasedMovie = new ReleasedMovie( "Pulp Fiction", cinemaReleaseDate.getTime(),
-                cannesReleaseDate.getTime() );
+        ReleasedMovie releasedMovie = new ReleasedMovie("Pulp Fiction", cinemaReleaseDate.getTime(),
+                cannesReleaseDate.getTime());
 
-        abstractAnnotatedEntityRepository.save( releasedMovie );
+        abstractAnnotatedEntityRepository.save(releasedMovie);
 
-        assertSameGraph( getDatabase(),
+        assertSameGraph(graphDatabaseService,
                 "CREATE (m:ReleasedMovie:AbstractAnnotatedEntity {cinemaRelease:'1994-09-10T00:00:00.000Z'," +
-                        "cannesRelease:768700800000,title:'Pulp Fiction'})" );
+                        "cannesRelease:768700800000,title:'Pulp Fiction'})");
     }
 
     @Test
-    public void shouldSaveReleasedMovie2()
-    {
+    public void shouldSaveReleasedMovie2() {
 
-        Calendar cannesReleaseDate = createDate( 1994, Calendar.MAY, 12, "GMT" );
+        Calendar cannesReleaseDate = createDate(1994, Calendar.MAY, 12, "GMT");
 
-        ReleasedMovie releasedMovie = new ReleasedMovie( "Pulp Fiction", null, cannesReleaseDate.getTime() );
+        ReleasedMovie releasedMovie = new ReleasedMovie("Pulp Fiction", null, cannesReleaseDate.getTime());
 
-        abstractAnnotatedEntityRepository.save( releasedMovie );
+        abstractAnnotatedEntityRepository.save(releasedMovie);
 
-        assertSameGraph( getDatabase(),
-                "CREATE (m:ReleasedMovie:AbstractAnnotatedEntity {cannesRelease:768700800000,title:'Pulp Fiction'})" );
+        assertSameGraph(graphDatabaseService,
+                "CREATE (m:ReleasedMovie:AbstractAnnotatedEntity {cannesRelease:768700800000,title:'Pulp Fiction'})");
 
     }
 
     @Test
-    public void shouldSaveMovie()
-    {
-        Movie movie = new Movie( "Pulp Fiction" );
-        movie.setTags( new String[]{"cool", "classic"} );
-        movie.setImage( new byte[]{1, 2, 3} );
+    public void shouldSaveMovie() {
+        Movie movie = new Movie("Pulp Fiction");
+        movie.setTags(new String[]{"cool", "classic"});
+        movie.setImage(new byte[]{1, 2, 3});
 
-        abstractEntityRepository.save( movie );
+        abstractEntityRepository.save(movie);
 
         // byte arrays have to be transferred with a JSON-supported format. Base64 is the default.
-        assertSameGraph( getDatabase(), "CREATE (m:Movie {name:'Pulp Fiction', tags:['cool','classic'], " +
-                "image:'AQID'})" );
+        assertSameGraph(graphDatabaseService, "CREATE (m:Movie {name:'Pulp Fiction', tags:['cool','classic'], " +
+                "image:'AQID'})");
     }
 
     @Test
-    public void shouldSaveUsers()
-    {
+    public void shouldSaveUsers() {
         Set<User> set = new HashSet<>();
-        set.add( new User( "Michal" ) );
-        set.add( new User( "Adam" ) );
-        set.add( new User( "Vince" ) );
+        set.add(new User("Michal"));
+        set.add(new User("Adam"));
+        set.add(new User("Vince"));
 
-        userRepository.save( set );
+        userRepository.save(set);
 
-        assertSameGraph( getDatabase(), "CREATE (:User:Person {name:'Michal'})," +
+        assertSameGraph(graphDatabaseService, "CREATE (:User:Person {name:'Michal'})," +
                 "(:User:Person {name:'Vince'})," +
-                "(:User:Person {name:'Adam'})" );
+                "(:User:Person {name:'Adam'})");
 
-        assertEquals( 3, userRepository.count() );
+        assertEquals(3, userRepository.count());
     }
 
     @Test
-    public void shouldSaveUsers2()
-    {
+    public void shouldSaveUsers2() {
         List<User> list = new LinkedList<>();
-        list.add( new User( "Michal" ) );
-        list.add( new User( "Adam" ) );
-        list.add( new User( "Vince" ) );
+        list.add(new User("Michal"));
+        list.add(new User("Adam"));
+        list.add(new User("Vince"));
 
-        userRepository.save( list );
+        userRepository.save(list);
 
-        assertSameGraph( getDatabase(), "CREATE (:User:Person {name:'Michal'})," +
+        assertSameGraph(graphDatabaseService, "CREATE (:User:Person {name:'Michal'})," +
                 "(:User:Person {name:'Vince'})," +
-                "(:User:Person {name:'Adam'})" );
+                "(:User:Person {name:'Adam'})");
 
-        assertEquals( 3, userRepository.count() );
+        assertEquals(3, userRepository.count());
     }
 
     @Test
-    public void shouldUpdateUserUsingRepository()
-    {
-        User user = userRepository.save( new User( "Michal" ) );
-        user.setName( "Adam" );
-        userRepository.save( user );
+    public void shouldUpdateUserUsingRepository() {
+        User user = userRepository.save(new User("Michal"));
+        user.setName("Adam");
+        userRepository.save(user);
 
-        assertSameGraph( getDatabase(), "CREATE (u:User:Person {name:'Adam'})" );
-        assertEquals( 0L, (long) user.getId() );
+        assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Adam'})");
     }
 
     @Test
     @Ignore  // FIXME
     // this test expects the session/tx to check for dirty objects, which it currently does not do
     // you must save objects explicitly.
-    public void shouldUpdateUserUsingTransactionalService()
-    {
-        User user = new User( "Michal" );
-        userRepository.save( user );
+    public void shouldUpdateUserUsingTransactionalService() {
+        User user = new User("Michal");
+        userRepository.save(user);
 
-        userService.updateUser( user, "Adam" ); //notice userRepository.save(..) isn't called,
+        userService.updateUser(user, "Adam"); //notice userRepository.save(..) isn't called,
         // not even in the service impl!
 
-        assertSameGraph( getDatabase(), "CREATE (u:User {name:'Adam'})" );
-        assertEquals( 0L, (long) user.getId() );
+        assertSameGraph(graphDatabaseService, "CREATE (u:User {name:'Adam'})");
     }
 
     @Test
-    public void shouldFindUser()
-    {
-        User user = new User( "Michal" );
-        userRepository.save( user );
+    public void shouldFindUser() {
+        User user = new User("Michal");
+        userRepository.save(user);
 
-        User loaded = userRepository.findOne( 0L );
+        User loaded = userRepository.findOne(user.getId());
 
-        assertEquals( 0L, (long) loaded.getId() );
-        assertEquals( "Michal", loaded.getName() );
+        assertEquals("Michal", loaded.getName());
 
-        assertTrue( loaded.equals( user ) );
-        assertTrue( loaded == user );
+        assertTrue(loaded.equals(user));
+        assertTrue(loaded == user);
     }
 
     @Test
@@ -236,339 +218,294 @@ public class MoviesIntegrationTest {
         Actor actor = new Actor("1", "Tom Hanks");
         actorRepository.save(actor);
 
-        assertNotNull(findByProperty(Actor.class, "id" , "1" ).iterator().next());
+        assertNotNull(findByProperty(Actor.class, "id", "1").iterator().next());
     }
 
     @Test
-    public void shouldFindUserWithoutName()
-    {
+    @Ignore
+    public void shouldFindUserWithoutName() {
         User user = new User();
-        userRepository.save( user );
+        userRepository.save(user);
 
-        User loaded = userRepository.findOne( 0L );
+        User loaded = userRepository.findOne(user.getId());
 
-        assertEquals( 0L, (long) loaded.getId() );
-        assertNull( loaded.getName() );
+        assertNull(loaded.getName());
 
-        assertTrue( loaded.equals( user ) );
-        assertTrue( loaded == user );
+        assertTrue(loaded.equals(user));
+        assertTrue(loaded == user);
     }
 
     @Test
-    public void shouldDeleteUser()
-    {
-        User user = new User( "Michal" );
-        userRepository.save( user );
-        userRepository.delete( user );
+    public void shouldDeleteUser() {
+        User user = new User("Michal");
+        userRepository.save(user);
+        userRepository.delete(user);
 
-        assertFalse( userRepository.findAll().iterator().hasNext() );
-        assertFalse( userRepository.findAll( 1 ).iterator().hasNext() );
-        assertFalse( userRepository.exists( 0L ) );
-        assertEquals( 0, userRepository.count() );
-        assertNull( userRepository.findOne( 0L ) );
-        assertNull( userRepository.findOne( 0L, 10 ) );
+        assertFalse(userRepository.findAll().iterator().hasNext());
+        assertFalse(userRepository.findAll(1).iterator().hasNext());
+        assertFalse(userRepository.exists(user.getId()));
+        assertEquals(0, userRepository.count());
+        assertNull(userRepository.findOne(user.getId()));
+        assertNull(userRepository.findOne(user.getId(), 10));
 
-        try ( Transaction tx = getDatabase().beginTx() )
-        {
-            assertFalse( GlobalGraphOperations.at( getDatabase() ).getAllNodes().iterator().hasNext() );
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            assertFalse(GlobalGraphOperations.at(graphDatabaseService).getAllNodes().iterator().hasNext());
             tx.success();
         }
     }
 
     @Test
-    public void shouldCreateUsersInMultipleThreads() throws InterruptedException, Neo4jFailedToStartException
-    {
-        waitForNeo4jToStart( 5000l );
+    public void shouldHandleMultipleConcurrentRequests() throws InterruptedException, Neo4jFailedToStartException {
 
-        ExecutorService executor = Executors.newFixedThreadPool( 10 );
-        CountDownLatch latch = new CountDownLatch( 100 );
+        ExecutorService executor = Executors.newFixedThreadPool(10);
+        final CountDownLatch latch = new CountDownLatch(100);
 
-        for ( int i = 0; i < 100; i++ )
-        {
-            executor.submit( new UserSaver( latch, i ) );
+        for (int i = 0; i < 100; i++) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    userRepository.save(new User());
+                    latch.countDown();
+                }
+            });
         }
 
         latch.await(); // pause until the count reaches 0
+
+        System.out.println("all threads joined");
         executor.shutdown();
 
         assertEquals( 100, userRepository.count() );
+
     }
 
-    @Test(expected= DataAccessException.class)
+    @Test(expected = DataAccessException.class)
     @Ignore("this isn't working as the docs say it should. We must be doing something wrong")
     public void shouldInterceptOGMExceptions() {
         User user = null;
         userRepository.save(user);
     }
 
-    private class UserSaver implements Runnable
-    {
+    @Test
+    public void shouldSaveUserAndNewGenre() {
+        User user = new User("Michal");
+        user.interestedIn(new Genre("Drama"));
 
-        private final int userNumber;
-        private final CountDownLatch latch;
+        userRepository.save(user);
 
-        public UserSaver( CountDownLatch latch, int userNumber )
-        {
-            this.latch = latch;
-            this.userNumber = userNumber;
-        }
-
-        @Override
-        public void run()
-        {
-            try
-            {
-                logger.info( "Calling userRepository.save() for user #" + this.userNumber );
-                userRepository.save( new User( "User" + this.userNumber ) );
-                logger.info( "Saved user #" + this.userNumber );
-            }
-            finally
-            {
-                latch.countDown();
-            }
-        }
-
+        assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'})");
     }
 
     @Test
-    public void shouldSaveUserAndNewGenre()
-    {
-        User user = new User( "Michal" );
-        user.interestedIn( new Genre( "Drama" ) );
+    public void shouldSaveUserAndNewGenres() {
+        User user = new User("Michal");
+        user.interestedIn(new Genre("Drama"));
+        user.interestedIn(new Genre("Historical"));
+        user.interestedIn(new Genre("Thriller"));
 
-        userRepository.save( user );
+        userRepository.save(user);
 
-        assertSameGraph( getDatabase(), "CREATE (u:User:Person {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'})" );
-    }
-
-    @Test
-    public void shouldSaveUserAndNewGenres()
-    {
-        User user = new User( "Michal" );
-        user.interestedIn( new Genre( "Drama" ) );
-        user.interestedIn( new Genre( "Historical" ) );
-        user.interestedIn( new Genre( "Thriller" ) );
-
-        userRepository.save( user );
-
-        assertSameGraph( getDatabase(), "CREATE " +
+        assertSameGraph(graphDatabaseService, "CREATE " +
                 "(u:User:Person {name:'Michal'})," +
                 "(g1:Genre {name:'Drama'})," +
                 "(g2:Genre {name:'Historical'})," +
                 "(g3:Genre {name:'Thriller'})," +
                 "(u)-[:INTERESTED]->(g1)," +
                 "(u)-[:INTERESTED]->(g2)," +
-                "(u)-[:INTERESTED]->(g3)" );
+                "(u)-[:INTERESTED]->(g3)");
     }
 
     @Test
-    public void shouldSaveUserAndNewGenre2()
-    {
-        User user = new User( "Michal" );
-        user.interestedIn( new Genre( "Drama" ) );
+    public void shouldSaveUserAndNewGenre2() {
+        User user = new User("Michal");
+        user.interestedIn(new Genre("Drama"));
 
-        userRepository.save( user, 1 );
+        userRepository.save(user, 1);
 
-        assertSameGraph( getDatabase(), "CREATE (u:User:Person {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'})" );
+        assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'})");
     }
 
     @Test
-    public void shouldSaveUserAndExistingGenre()
-    {
-        User michal = new User( "Michal" );
-        Genre drama = new Genre( "Drama" );
-        michal.interestedIn( drama );
+    public void shouldSaveUserAndExistingGenre() {
+        User michal = new User("Michal");
+        Genre drama = new Genre("Drama");
+        michal.interestedIn(drama);
 
-        userRepository.save( michal );
+        userRepository.save(michal);
 
-        User vince = new User( "Vince" );
-        vince.interestedIn( drama );
+        User vince = new User("Vince");
+        vince.interestedIn(drama);
 
-        userRepository.save( vince );
+        userRepository.save(vince);
 
-        assertSameGraph( getDatabase(), "CREATE " +
+        assertSameGraph(graphDatabaseService, "CREATE " +
                 "(m:User:Person {name:'Michal'})," +
                 "(v:User:Person {name:'Vince'})," +
                 "(g:Genre {name:'Drama'})," +
                 "(m)-[:INTERESTED]->(g)," +
-                "(v)-[:INTERESTED]->(g)" );
+                "(v)-[:INTERESTED]->(g)");
     }
 
     @Test
-    public void shouldSaveUserButNotGenre()
-    {
-        User user = new User( "Michal" );
-        user.interestedIn( new Genre( "Drama" ) );
+    public void shouldSaveUserButNotGenre() {
+        User user = new User("Michal");
+        user.interestedIn(new Genre("Drama"));
 
-        userRepository.save( user, 0 );
+        userRepository.save(user, 0);
 
-        assertSameGraph( getDatabase(), "CREATE (u:User:Person {name:'Michal'})" );
+        assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Michal'})");
     }
 
     @Test
-    public void shouldUpdateGenreWhenSavedThroughUser()
-    {
-        User michal = new User( "Michal" );
-        Genre drama = new Genre( "Drama" );
-        michal.interestedIn( drama );
+    public void shouldUpdateGenreWhenSavedThroughUser() {
+        User michal = new User("Michal");
+        Genre drama = new Genre("Drama");
+        michal.interestedIn(drama);
 
-        userRepository.save( michal );
+        userRepository.save(michal);
 
-        drama.setName( "New Drama" );
+        drama.setName("New Drama");
 
-        userRepository.save( michal );
+        userRepository.save(michal);
 
-        assertSameGraph( getDatabase(), "CREATE " +
+        assertSameGraph(graphDatabaseService, "CREATE " +
                 "(m:User:Person {name:'Michal'})," +
                 "(g:Genre {name:'New Drama'})," +
-                "(m)-[:INTERESTED]->(g)" );
+                "(m)-[:INTERESTED]->(g)");
     }
 
     @Test
-    public void shouldRemoveGenreFromUser()
-    {
-        User michal = new User( "Michal" );
-        Genre drama = new Genre( "Drama" );
-        michal.interestedIn( drama );
+    public void shouldRemoveGenreFromUser() {
+        User michal = new User("Michal");
+        Genre drama = new Genre("Drama");
+        michal.interestedIn(drama);
 
-        userRepository.save( michal );
+        userRepository.save(michal);
 
-        michal.notInterestedIn( drama );
+        michal.notInterestedIn(drama);
 
-        userRepository.save( michal );
+        userRepository.save(michal);
 
-        assertSameGraph( getDatabase(), "CREATE " +
+        assertSameGraph(graphDatabaseService, "CREATE " +
                 "(m:User:Person {name:'Michal'})," +
-                "(g:Genre {name:'Drama'})" );
+                "(g:Genre {name:'Drama'})");
     }
 
     @Test
-    public void shouldRemoveGenreFromUserUsingService()
-    {
-        User michal = new User( "Michal" );
-        Genre drama = new Genre( "Drama" );
-        michal.interestedIn( drama );
+    public void shouldRemoveGenreFromUserUsingService() {
+        User michal = new User("Michal");
+        Genre drama = new Genre("Drama");
+        michal.interestedIn(drama);
 
-        userRepository.save( michal );
+        userRepository.save(michal);
 
-        userService.notInterestedIn( michal.getId(), drama.getId() );
+        userService.notInterestedIn(michal.getId(), drama.getId());
 
-        assertSameGraph( getDatabase(), "CREATE " +
+        assertSameGraph(graphDatabaseService, "CREATE " +
                 "(m:User:Person {name:'Michal'})," +
-                "(g:Genre {name:'Drama'})" );
+                "(g:Genre {name:'Drama'})");
     }
 
     @Test
-    public void shouldAddNewVisitorToCinema()
-    {
-        Cinema cinema = new Cinema( "Odeon" );
-        cinema.addVisitor( new User( "Michal" ) );
+    public void shouldAddNewVisitorToCinema() {
+        Cinema cinema = new Cinema("Odeon");
+        cinema.addVisitor(new User("Michal"));
 
-        cinemaRepository.save( cinema );
+        cinemaRepository.save(cinema);
 
-        assertSameGraph( getDatabase(), "CREATE " +
+        assertSameGraph(graphDatabaseService, "CREATE " +
                 "(m:User:Person {name:'Michal'})," +
                 "(c:Theatre {name:'Odeon', capacity:0})," +
-                "(m)-[:VISITED]->(c)" );
+                "(m)-[:VISITED]->(c)");
     }
 
     @Test
-    public void shouldAddExistingVisitorToCinema()
-    {
-        User michal = new User( "Michal" );
-        userRepository.save( michal );
+    public void shouldAddExistingVisitorToCinema() {
+        User michal = new User("Michal");
+        userRepository.save(michal);
 
-        Cinema cinema = new Cinema( "Odeon" );
-        cinema.addVisitor( michal );
+        Cinema cinema = new Cinema("Odeon");
+        cinema.addVisitor(michal);
 
-        cinemaRepository.save( cinema );
+        cinemaRepository.save(cinema);
 
-        assertSameGraph( getDatabase(), "CREATE " +
+        assertSameGraph(graphDatabaseService, "CREATE " +
                 "(m:User:Person {name:'Michal'})," +
                 "(c:Theatre {name:'Odeon', capacity:0})," +
-                "(m)-[:VISITED]->(c)" );
+                "(m)-[:VISITED]->(c)");
     }
 
     @Test
-    public void shouldBefriendPeople()
-    {
-        User michal = new User( "Michal" );
-        michal.befriend( new User( "Adam" ) );
-        userRepository.save( michal );
+    public void shouldBefriendPeople() {
+        User michal = new User("Michal");
+        michal.befriend(new User("Adam"));
+        userRepository.save(michal);
 
-        try
-        {
-            assertSameGraph( getDatabase(), "CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User:Person {name:'Adam'})" );
-        }
-        catch ( AssertionError error )
-        {
-            assertSameGraph( getDatabase(), "CREATE (m:User:Person {name:'Michal'})<-[:FRIEND_OF]-(a:User:Person {name:'Adam'})" );
+        try {
+            assertSameGraph(graphDatabaseService, "CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User:Person {name:'Adam'})");
+        } catch (AssertionError error) {
+            assertSameGraph(graphDatabaseService, "CREATE (m:User:Person {name:'Michal'})<-[:FRIEND_OF]-(a:User:Person {name:'Adam'})");
         }
     }
 
     @Test
-    public void shouldLoadFriends()
-    {
-        new ExecutionEngine( getDatabase() ).execute( "CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User " +
-                "{name:'Adam'})" );
+    public void shouldLoadOutgoingFriendsWhenUndirected() {
 
-        User michal = ((Iterable<User>)findByProperty(User.class, "name", "Michal" )).iterator().next();
-        assertEquals( 1, michal.getFriends().size() );
+        graphDatabaseService.execute("CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User {name:'Adam'})");
+
+        User michal = ((Iterable<User>) findByProperty(User.class, "name", "Michal")).iterator().next();
+        assertEquals(1, michal.getFriends().size());
 
         User adam = michal.getFriends().iterator().next();
-        assertEquals( "Adam", adam.getName() );
-        assertEquals( 1, adam.getFriends().size() );
+        assertEquals("Adam", adam.getName());
+        assertEquals(1, adam.getFriends().size());
 
-        assertTrue( michal == adam.getFriends().iterator().next() );
-        assertTrue( michal.equals( adam.getFriends().iterator().next() ) );
+        assertTrue(michal == adam.getFriends().iterator().next());
+        assertTrue(michal.equals(adam.getFriends().iterator().next()));
     }
 
     @Test
-    public void shouldLoadFriends2()
-    {
-        new ExecutionEngine( getDatabase() ).execute( "CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User " +
-                "{name:'Adam'})" );
+    public void shouldLoadIncomingFriendsWhenUndirected() {
 
-        User michal = ((Iterable<User>)findByProperty(User.class, "name", "Michal" )).iterator().next();
-        assertEquals( 1, michal.getFriends().size() );
+        graphDatabaseService.execute("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
+
+        User michal = ((Iterable<User>) findByProperty(User.class, "name", "Michal")).iterator().next();
+        assertEquals(1, michal.getFriends().size());
 
         User adam = michal.getFriends().iterator().next();
-        assertEquals( "Adam", adam.getName() );
-        assertEquals( 1, adam.getFriends().size() );
+        assertEquals("Adam", adam.getName());
+        assertEquals(1, adam.getFriends().size());
 
-        assertTrue( michal == adam.getFriends().iterator().next() );
-        assertTrue( michal.equals( adam.getFriends().iterator().next() ) );
+        assertTrue(michal == adam.getFriends().iterator().next());
+        assertTrue(michal.equals(adam.getFriends().iterator().next()));
     }
 
-
     @Test
-    public void shouldSaveNewUserAndNewMovieWithRatings()
-    {
-        User user = new User( "Michal" );
-        TempMovie movie = new TempMovie( "Pulp Fiction" );
-        user.rate( movie, 5, "Best movie ever" );
-        userRepository.save( user );
+    public void shouldSaveNewUserAndNewMovieWithRatings() {
+        User user = new User("Michal");
+        TempMovie movie = new TempMovie("Pulp Fiction");
+        user.rate(movie, 5, "Best movie ever");
+        userRepository.save(user);
 
-        User michal = ((Iterable<User>)findByProperty(User.class, "name", "Michal" )).iterator().next();
+        User michal = ((Iterable<User>) findByProperty(User.class, "name", "Michal")).iterator().next();
 
-        assertSameGraph(getDatabase(), "CREATE (u:User:Person {name:'Michal'})-[:RATED {stars:5, " +
+        assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Michal'})-[:RATED {stars:5, " +
                 "comment:'Best movie ever', ratingTimestamp:0}]->(m:Movie {name:'Pulp Fiction'})");
     }
 
     @Test
-    public void shouldSaveNewUserRatingsForAnExistingMovie()
-    {
-        TempMovie movie = new TempMovie( "Pulp Fiction" );
+    public void shouldSaveNewUserRatingsForAnExistingMovie() {
+        TempMovie movie = new TempMovie("Pulp Fiction");
         //Save the movie
         movie = tempMovieRepository.save(movie);
 
         //Create a new user and rate an existing movie
-        User user = new User( "Michal" );
-        user.rate( movie, 5, "Best movie ever" );
-        userRepository.save( user );
+        User user = new User("Michal");
+        user.rate(movie, 5, "Best movie ever");
+        userRepository.save(user);
 
         TempMovie tempMovie = ((Iterable<TempMovie>) findByProperty(TempMovie.class, "name", "Pulp Fiction")).iterator().next();
-        assertEquals(1,tempMovie.getRatings().size());
+        assertEquals(1, tempMovie.getRatings().size());
     }
 
     /**
@@ -576,13 +513,13 @@ public class MoviesIntegrationTest {
      */
     @Test
     public void findOneShouldConsiderTheEntityType() {
-        TempMovie movie = new TempMovie( "Pulp Fiction" );
+        TempMovie movie = new TempMovie("Pulp Fiction");
         //Save the movie
         movie = tempMovieRepository.save(movie);
 
         //Create a new user and rate an existing movie
-        User user = new User( "Michal" );
-        user.rate( movie, 5, "Best movie ever" );
+        User user = new User("Michal");
+        user.rate(movie, 5, "Best movie ever");
         userRepository.save(user);
 
         assertEquals(movie.getName(), tempMovieRepository.findOne(movie.getId()).getName());
@@ -590,7 +527,7 @@ public class MoviesIntegrationTest {
         assertEquals(5, ratingRepository.findOne(user.getRatings().iterator().next().getId()).getStars());
 
         assertNull(tempMovieRepository.findOne(user.getId()));
-        assertNull(userRepository.findOne(movie.getId(),0));
+        assertNull(userRepository.findOne(movie.getId(), 0));
         assertNull(ratingRepository.findOne(user.getId()));
     }
 
@@ -603,54 +540,42 @@ public class MoviesIntegrationTest {
         User adam = new User("Adam");
         User daniela = new User("Daniela");
 
-        List<User> users = Arrays.asList(michal,adam,daniela);
+        List<User> users = Arrays.asList(michal, adam, daniela);
         Iterable<User> savedUsers = userRepository.save(users);
         for (User user : savedUsers) {
             assertNotNull(user.getId());
         }
     }
 
-    private Calendar createDate( int y, int m, int d, String tz )
-    {
+    private Calendar createDate(int y, int m, int d, String tz) {
 
         Calendar calendar = Calendar.getInstance();
 
-        calendar.set( y, m, d );
-        calendar.setTimeZone( TimeZone.getTimeZone( tz ) );
+        calendar.set(y, m, d);
+        calendar.setTimeZone(TimeZone.getTimeZone(tz));
 
         // need to do this to ensure the test passes, or the calendar will use the current time's values
         // an alternative (better) would be to specify an date format using one of the @Date converters
-        calendar.set( Calendar.HOUR_OF_DAY, 0 );
-        calendar.set( Calendar.MINUTE, 0 );
-        calendar.set( Calendar.SECOND, 0 );
-        calendar.set( Calendar.MILLISECOND, 0 );
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
 
         return calendar;
     }
 
-
-    private void waitForNeo4jToStart( long maxTimeToWait ) throws Neo4jFailedToStartException
-    {
+    private void waitForNeo4jToStart(long maxTimeToWait) throws Neo4jFailedToStartException {
         long startTime = System.currentTimeMillis();
-        org.neo4j.ogm.session.transaction.Transaction transaction;
 
-        do
-        {
-            transaction = new SessionFactory().openSession( neo4jRule.url() ).beginTransaction();
-        } while ( transaction == null && System.currentTimeMillis() - startTime <= maxTimeToWait );
+        Transaction transaction;
+        do {
+            transaction = graphDatabaseService.beginTx();
+        } while (transaction == null && System.currentTimeMillis() - startTime <= maxTimeToWait);
 
-        if ( transaction == null )
-        {
-            throw new Neo4jFailedToStartException( maxTimeToWait );
+        if (transaction == null) {
+            throw new Neo4jFailedToStartException(maxTimeToWait);
         }
-    }
-
-    private static class Neo4jFailedToStartException extends Exception
-    {
-        private Neo4jFailedToStartException( long timeoutValue )
-        {
-            super( String.format( "Could not start neo4j instance in [%d] ms", timeoutValue ) );
-        }
+        transaction.close();
     }
 
     protected Iterable<?> findByProperty(Class clazz, String propertyName, Object propertyValue) {
@@ -659,6 +584,13 @@ public class MoviesIntegrationTest {
 
     protected Iterable<?> findByProperty(Class clazz, String propertyName, Object propertyValue, int depth) {
         return session.loadAll(clazz, new Filter(propertyName, propertyValue), depth);
+    }
+
+    //
+    private static class Neo4jFailedToStartException extends Exception {
+        private Neo4jFailedToStartException(long timeoutValue) {
+            super(String.format("Could not start neo4j instance in [%d] ms", timeoutValue));
+        }
     }
 
 }

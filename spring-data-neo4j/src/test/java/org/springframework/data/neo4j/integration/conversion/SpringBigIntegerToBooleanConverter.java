@@ -12,9 +12,9 @@
 
 package org.springframework.data.neo4j.integration.conversion;
 
-import java.math.BigInteger;
-
 import org.springframework.core.convert.converter.Converter;
+
+import java.math.BigInteger;
 
 /**
  * Nonsensical Spring converter for test purposes

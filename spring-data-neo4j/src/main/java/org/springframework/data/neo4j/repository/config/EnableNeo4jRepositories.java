@@ -15,8 +15,9 @@ package org.springframework.data.neo4j.repository.config;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.neo4j.repository.support.GraphRepositoryFactoryBean;
-import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
+import org.springframework.data.repository.query.QueryLookupStrategy;
+
 import java.lang.annotation.*;
 
 /**

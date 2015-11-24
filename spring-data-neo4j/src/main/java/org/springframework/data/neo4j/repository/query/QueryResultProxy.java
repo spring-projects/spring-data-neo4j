@@ -12,15 +12,15 @@
 
 package org.springframework.data.neo4j.repository.query;
 
+import org.neo4j.ogm.annotation.Property;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.neo4j.ogm.annotation.Property;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Method {@link InvocationHandler} used for proxy objects that implement arbitrary interfaces annotated with

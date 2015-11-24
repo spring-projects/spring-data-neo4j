@@ -13,7 +13,6 @@
 package org.springframework.data.neo4j.examples.jsr303.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.examples.jsr303.service.AdultService;
 import org.springframework.data.neo4j.examples.jsr303.domain.Adult;
 import org.springframework.data.neo4j.examples.jsr303.service.AdultService;
 import org.springframework.http.HttpStatus;

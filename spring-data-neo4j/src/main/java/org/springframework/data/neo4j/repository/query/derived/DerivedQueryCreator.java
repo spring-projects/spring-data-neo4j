@@ -13,13 +13,13 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
-import java.util.Iterator;
-
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
+
+import java.util.Iterator;
 
 /**
  * An {@link AbstractQueryCreator} that builds a graph query.

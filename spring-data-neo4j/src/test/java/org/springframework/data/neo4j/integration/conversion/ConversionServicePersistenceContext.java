@@ -16,10 +16,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
+import org.springframework.data.neo4j.configuration.HttpDriverConfiguration;
 import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.server.Neo4jServer;
-import org.springframework.data.neo4j.server.RemoteServer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -30,7 +29,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @EnableNeo4jRepositories
 @EnableTransactionManagement
-public class ConversionServicePersistenceContext extends Neo4jConfiguration {
+public class ConversionServicePersistenceContext extends HttpDriverConfiguration {
 
     @Override
     @Bean
@@ -39,14 +38,7 @@ public class ConversionServicePersistenceContext extends Neo4jConfiguration {
     }
 
     @Bean
-    @Override
-    public Neo4jServer neo4jServer() {
-        return new RemoteServer("http://localhost:7879");
-    }
-
-    @Bean
     public ConversionService conversionService() {
         return new MetaDataDrivenConversionService(getSessionFactory().metaData());
     }
-
 }

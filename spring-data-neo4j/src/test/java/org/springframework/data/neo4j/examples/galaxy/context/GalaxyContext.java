@@ -13,16 +13,12 @@
 package org.springframework.data.neo4j.examples.galaxy.context;
 
 import org.neo4j.ogm.session.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
+import org.springframework.data.neo4j.configuration.HttpDriverConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.server.InProcessServer;
-import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -33,17 +29,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @PropertySource("classpath:helloworld.properties")
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.galaxy.repo")
 @EnableTransactionManagement
-public class GalaxyContext extends Neo4jConfiguration {
-
-
-    @Autowired
-    private Environment environment;
-
-    @Bean
-    @Override
-    public Neo4jServer neo4jServer() {
-        return new InProcessServer();
-    }
+public class GalaxyContext extends HttpDriverConfiguration {
 
     @Bean
     @Override

@@ -11,12 +11,9 @@
  */
 package org.springframework.data.neo4j.mapping;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
-
 import org.neo4j.ogm.annotation.Relationship;
-import org.neo4j.ogm.metadata.MappingException;
-import org.neo4j.ogm.metadata.info.ClassInfo;
+import org.neo4j.ogm.metadata.ClassInfo;
+import org.neo4j.ogm.exception.MappingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mapping.Association;
@@ -24,6 +21,9 @@ import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.annotation.QueryResult;
+
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
 
 /**
  * This class implements Spring Data's PersistentProperty interface, scavenging the required data from the

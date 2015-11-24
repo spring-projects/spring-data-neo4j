@@ -12,12 +12,12 @@
 
 package org.springframework.data.neo4j.examples.movies.repo;
 
-import java.util.Collection;
-import java.util.List;
-
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Michal Bachman

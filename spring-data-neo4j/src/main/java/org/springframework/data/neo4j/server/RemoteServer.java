@@ -12,8 +12,10 @@
 
 package org.springframework.data.neo4j.server;
 
-import java.net.URL;
+import org.neo4j.ogm.driver.Driver;
+
 import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * @author Vince Bickers
@@ -25,9 +27,10 @@ public class RemoteServer implements Neo4jServer {
     private String username;
     private String password;
 
-    public RemoteServer(String url) {
-        this.url = url;
-        extractAuth(url);
+    public RemoteServer(Driver driver) {
+        this.url = (String) driver.getConfig("server");
+        //extractAuth(url);
+        throw new RuntimeException("Not working yet, what's the point??");
     }
 
     private void extractAuth(String url) {

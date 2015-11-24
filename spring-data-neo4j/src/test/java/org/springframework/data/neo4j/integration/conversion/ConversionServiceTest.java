@@ -12,20 +12,15 @@
 
 package org.springframework.data.neo4j.integration.conversion;
 
-import static org.junit.Assert.*;
-
-import java.lang.annotation.ElementType;
-import java.math.BigInteger;
-import java.util.Arrays;
-
 import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
+import org.neo4j.ogm.testutil.IntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -38,19 +33,24 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.lang.annotation.ElementType;
+import java.math.BigInteger;
+import java.util.Arrays;
+
+import static org.junit.Assert.*;
+
 /**
  * @see DATAGRAPH-624
  * @author Adam George
  * @author Luanne Misquitta
+ * @author Vince Bickers
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { ConversionServicePersistenceContext.class })
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ConversionServiceTest {
 
-    @ClassRule
-    public static final Neo4jIntegrationTestRule testRule = new Neo4jIntegrationTestRule(7879);
-
+    @Autowired
+    private GraphDatabaseService graphDatabaseService;
     @Autowired
     private PensionRepository pensionRepository;
     @Autowired
@@ -64,7 +64,7 @@ public class ConversionServiceTest {
 
     @After
     public void cleanUpDatabase() {
-        testRule.clearDatabase();
+        session.purgeDatabase();
     }
 
     /**
@@ -84,7 +84,7 @@ public class ConversionServiceTest {
 
     @Test
     public void shouldConvertBase64StringOutOfGraphDatabaseBackIntoByteArray() {
-        Result rs = testRule.getGraphDatabaseService().execute(
+        Result rs = graphDatabaseService.execute(
                 "CREATE (u:SiteMember {profilePictureData:'MTIzNDU2Nzg5'}) RETURN id(u) AS userId");
         Long userId = (Long) rs.columnAs("userId").next();
 
@@ -103,7 +103,7 @@ public class ConversionServiceTest {
 
         this.pensionRepository.save(pensionToSave);
 
-        ResourceIterator<Number> resourceIterator = testRule.getGraphDatabaseService()
+        ResourceIterator<Number> resourceIterator = graphDatabaseService
                 .execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv").columnAs("fv");
         assertTrue("Nothing was saved", resourceIterator.hasNext());
         assertEquals("The amount wasn't converted and persisted correctly", 1647281, resourceIterator.next().intValue());
@@ -122,7 +122,7 @@ public class ConversionServiceTest {
         PensionPlan pension = new PensionPlan(new MonetaryAmount(20_000, 00), "Ashes Assets LLP");
         this.pensionRepository.save(pension);
 
-        ResourceIterator<Integer> resourceIterator = testRule.getGraphDatabaseService()
+        ResourceIterator<Integer> resourceIterator = graphDatabaseService
                 .execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv").columnAs("fv");
         assertTrue("Nothing was saved", resourceIterator.hasNext());
         assertEquals("The amount wasn't converted and persisted correctly", 2000000, resourceIterator.next().intValue());
@@ -141,7 +141,7 @@ public class ConversionServiceTest {
 
         this.javaElementRepository.save(method);
 
-        ResourceIterator<String> resourceIterator = testRule.getGraphDatabaseService()
+        ResourceIterator<String> resourceIterator = graphDatabaseService
                 .execute("MATCH (e:JavaElement) RETURN e.elementType AS type").columnAs("type");
         assertTrue("Nothing was saved", resourceIterator.hasNext());
         assertEquals("The element type wasn't converted and persisted correctly", "METHOD", resourceIterator.next());

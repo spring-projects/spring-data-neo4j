@@ -13,15 +13,11 @@
 package org.springframework.data.neo4j.examples.movies.context;
 
 import org.neo4j.ogm.session.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
+import org.springframework.data.neo4j.configuration.HttpDriverConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.server.Neo4jServer;
-import org.springframework.data.neo4j.server.RemoteServer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -31,18 +27,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ComponentScan({"org.springframework.data.neo4j.examples.movies"})
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
 @EnableTransactionManagement
-public class MoviesContext extends Neo4jConfiguration {
-
-    @Autowired
-    private Environment env;
+public class MoviesContext extends HttpDriverConfiguration {
 
     @Override
+    @Bean
     public SessionFactory getSessionFactory() {
         return new SessionFactory("org.springframework.data.neo4j.examples.movies.domain");
-    }
-
-    @Bean
-    public Neo4jServer neo4jServer() {
-        return new RemoteServer("http://localhost:7879");
     }
 }

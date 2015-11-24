@@ -13,7 +13,7 @@
 package org.springframework.data.neo4j.transaction;
 
 import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.transaction.Transaction;
+import org.neo4j.ogm.transaction.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.TransactionDefinition;

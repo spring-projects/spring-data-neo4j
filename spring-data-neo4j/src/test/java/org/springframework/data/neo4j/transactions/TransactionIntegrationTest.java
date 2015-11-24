@@ -13,19 +13,16 @@
 package org.springframework.data.neo4j.transactions;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
-import org.neo4j.ogm.session.result.ResultProcessingException;
-import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.data.neo4j.examples.movies.service.UserService;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -34,11 +31,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class TransactionIntegrationTest {
 
-    @Rule
-    public final Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule(7879);
+    @Autowired
+    private GraphDatabaseService graphDatabaseService;
 
     @Autowired
     private UserRepository userRepository;
@@ -48,7 +44,7 @@ public class TransactionIntegrationTest {
 
     @Before
     public void populateDatabase() {
-        neo4jRule.getGraphDatabaseService().registerTransactionEventHandler(new TransactionEventHandler.Adapter<Object>() {
+        graphDatabaseService.registerTransactionEventHandler(new TransactionEventHandler.Adapter<Object>() {
             @Override
             public Object beforeCommit(TransactionData data) throws Exception {
                 System.out.println("The request to commit is denied");
@@ -57,17 +53,17 @@ public class TransactionIntegrationTest {
         });
     }
 
-    @Test(expected = ResultProcessingException.class)
+    @Test(expected = Exception.class)
     public void whenImplicitTransactionFailsNothingShouldBeCreated() {
         userRepository.save(new User("Michal"));
     }
 
-    @Test(expected = ResultProcessingException.class)
+    @Test(expected = Exception.class)
     public void whenExplicitTransactionFailsNothingShouldBeCreated() {
         userService.saveWithTxAnnotationOnInterface(new User("Michal"));
     }
 
-    @Test(expected = ResultProcessingException.class)
+    @Test(expected = Exception.class)
     public void whenExplicitTransactionFailsNothingShouldBeCreated2() {
         userService.saveWithTxAnnotationOnImpl(new User("Michal"));
     }

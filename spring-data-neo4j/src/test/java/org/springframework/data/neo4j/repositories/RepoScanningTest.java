@@ -12,13 +12,14 @@
 
 package org.springframework.data.neo4j.repositories;
 
-import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.ogm.testutil.IntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.repositories.repo.PersistenceContextInTheSamePackage;
 import org.springframework.data.neo4j.repositories.domain.User;
+import org.springframework.data.neo4j.repositories.repo.PersistenceContextInTheSamePackage;
 import org.springframework.data.neo4j.repositories.repo.UserRepository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -31,21 +32,20 @@ import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
  */
 @ContextConfiguration(classes = {PersistenceContextInTheSamePackage.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class RepoScanningTest {
-
-    @Rule
-    public final Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule(7879);
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private GraphDatabaseService graphDatabaseService;
 
     @Test
     public void enableNeo4jRepositoriesShouldScanSelfPackageByDefault() {
         User user = new User("Michal");
         userRepository.save(user);
 
-        assertSameGraph(neo4jRule.getGraphDatabaseService(), "CREATE (u:User {name:'Michal'})");
+        assertSameGraph(graphDatabaseService, "CREATE (u:User {name:'Michal'})");
     }
 
 }

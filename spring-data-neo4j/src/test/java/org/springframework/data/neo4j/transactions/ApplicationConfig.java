@@ -16,9 +16,7 @@ import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
-import org.springframework.data.neo4j.server.InProcessServer;
-import org.springframework.data.neo4j.server.Neo4jServer;
+import org.springframework.data.neo4j.configuration.HttpDriverConfiguration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -27,18 +25,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @ComponentScan({"org.springframework.data.neo4j.transactions"})
 @EnableTransactionManagement
-public class ApplicationConfig extends Neo4jConfiguration {
+public class ApplicationConfig extends HttpDriverConfiguration {
 
     @Override
     @Bean
     public SessionFactory getSessionFactory() {
         return new SessionFactory("org.springframework.data.neo4j.transactions");
-    }
-
-    @Bean
-    @Override
-    public Neo4jServer neo4jServer() {
-        return new InProcessServer();
     }
 
 }

@@ -12,19 +12,19 @@
 
 package org.springframework.data.neo4j.conversion;
 
-import java.lang.reflect.ParameterizedType;
-
-import org.neo4j.ogm.metadata.MetaData;
-import org.neo4j.ogm.metadata.info.ClassInfo;
-import org.neo4j.ogm.metadata.info.FieldInfo;
-import org.neo4j.ogm.metadata.info.MethodInfo;
+import org.neo4j.ogm.MetaData;
+import org.neo4j.ogm.metadata.ClassInfo;
+import org.neo4j.ogm.metadata.FieldInfo;
+import org.neo4j.ogm.metadata.MethodInfo;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
 import org.neo4j.ogm.typeconversion.ConversionCallback;
 import org.neo4j.ogm.typeconversion.ProxyAttributeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.core.convert.converter.Converter;
+
+import java.lang.reflect.ParameterizedType;
 
 /**
  * Specialisation of {@link GenericConversionService} that creates Spring-compatible converters from those known by the mapping

@@ -12,12 +12,10 @@
 
 package org.springframework.data.neo4j.template;
 
-import org.neo4j.ogm.exception.InvalidDepthException;
-import org.neo4j.ogm.exception.NotFoundException;
-import org.neo4j.ogm.metadata.MappingException;
-import org.neo4j.ogm.session.result.ResultProcessingException;
-import org.neo4j.ogm.session.transaction.TransactionException;
-import org.springframework.dao.*;
+import org.neo4j.ogm.exception.*;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.transaction.NoTransactionException;
 
 /**

@@ -13,7 +13,7 @@
 package org.springframework.data.neo4j.transaction;
 
 import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.transaction.Transaction;
+import org.neo4j.ogm.transaction.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -42,7 +42,7 @@ public class Neo4jTransactionManager implements PlatformTransactionManager {
     @Override
     public void commit(TransactionStatus transactionStatus) throws TransactionException {
         Transaction tx = ((Neo4jTransactionStatus) transactionStatus).getTransaction();
-        logger.debug("Commit requested: " + tx.url() + ", status: " + tx.status().toString());
+        logger.debug("Commit requested: " + tx + ", status: " + tx.status().toString());
         if (transactionStatus.isNewTransaction()) {
             if (tx.status() == (Transaction.Status.PENDING) || tx.status() == (Transaction.Status.OPEN)) {
                 logger.debug("Commit invoked");
@@ -56,7 +56,7 @@ public class Neo4jTransactionManager implements PlatformTransactionManager {
     @Override
     public void rollback(TransactionStatus transactionStatus) throws TransactionException {
         Transaction tx = ((Neo4jTransactionStatus) transactionStatus).getTransaction();
-        logger.debug("Rollback requested: " + tx.url() + ", status: " + tx.status().toString());
+        logger.debug("Rollback requested: " + tx + ", status: " + tx.status().toString());
         if (tx.status() == (Transaction.Status.PENDING) || tx.status() == (Transaction.Status.OPEN)) {
             logger.debug("Rollback invoked");
             tx.rollback();

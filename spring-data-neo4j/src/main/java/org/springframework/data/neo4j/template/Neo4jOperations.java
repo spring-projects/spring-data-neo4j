@@ -12,13 +12,16 @@
 
 package org.springframework.data.neo4j.template;
 
-import java.util.Collection;
-import java.util.Map;
 
 import org.neo4j.ogm.cypher.Filters;
-import org.neo4j.ogm.session.result.QueryStatistics;
-import org.neo4j.ogm.session.result.Result;
+import org.neo4j.ogm.model.Query;
+import org.neo4j.ogm.model.QueryStatistics;
+import org.neo4j.ogm.model.Statistics;
+import org.neo4j.ogm.exception.NotFoundException;
 import org.springframework.stereotype.Repository;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Spring Data operations interface, implemented by {@link Neo4jTemplate}, that provides the API for using
@@ -206,6 +209,11 @@ public interface Neo4jOperations {
     void delete(Object entity);
 
     /**
+     * Removes all mapping information from the current session
+     */
+    void clear();
+
+    /**
      * Executes the specified Cypher query with the given parameters against the underlying Neo4j database and returns the
      * row-based result in the form of an {@link Iterable} of {@link Map}s.
      * <p>
@@ -215,10 +223,10 @@ public interface Neo4jOperations {
      *
      * @param cypherQuery The Cypher query to execute
      * @param params      The parameter to merge into the cypher query or an empty {@link Map} if the given query isn't parameterised
-     * @return A {@link Result} containing an {@link Iterable} map representing query results and {@link QueryStatistics} if applicable.
+     * @return A {@link Query} containing an {@link Iterable} map representing query results and {@link Statistics} if applicable.
      * @throws RuntimeException if the given query is not a valid Cypherquery
      */
-    Result query(String cypherQuery, Map<String, ?> params);
+    QueryStatistics query(String cypherQuery, Map<String, ?> params);
 
     /**
      * Runs the specified Cypher query with the given parameters against the underlying Neo4j database and returns the result
@@ -247,7 +255,7 @@ public interface Neo4jOperations {
     <T> Iterable<T> queryForObjects(Class<T> entityType, String cypherQuery, Map<String, ?> parameters);
 
     /**
-     * Given a cypher statement this method will return a Result object containing a collection of Map's which represent Neo4j
+     * Given a cypher statement this method will return a {@link Query} object containing a collection of Map's which represent Neo4j
      * objects as properties, along with query statistics if applicable.
      *
      * Each element of the query result is a map which you can access by the name of the returned field
@@ -258,21 +266,29 @@ public interface Neo4jOperations {
      * @param parameters Any parameters to attach to the cypher.
      * @param readOnly true if the query is readOnly, false otherwise
      *
-     * @return A {@link Result} of {@link Iterable}s with each entry representing a neo4j object's properties.
+     * @return A {@link Query} of {@link Iterable}s with each entry representing a neo4j object's properties.
      */
-    Result query(String cypher, Map<String, ?> parameters, boolean readOnly);
+    QueryStatistics query(String cypher, Map<String, ?> parameters, boolean readOnly);
 
     /**
+     * Provides the instance count for the given <em>node</em> entity type.  This method is also provided by the
+     * corresponding repository.
+     *
+     * @param entityClass The {@link Class} representing the type of node entity to count
+     * @return The number of entities in the database of the given type
+     */
+    long count(Class<?> entityClass);
+
 
     /**
      * Issue a single Cypher update operation (such as a <tt>CREATE</tt>, <tt>MERGE</tt> or <tt>DELETE</tt> statement).
      *
      * @deprecated Use {@link Neo4jOperations}.query() to return both results as well as query statistics.
      * @param cypherQuery The Cypher query to execute
-     * @return {@link QueryStatistics} representing statistics about graph modifications as a result of the cypher execution.
+     * @return {@link Statistics} representing statistics about graph modifications as a result of the cypher execution.
      */
     @Deprecated
-    QueryStatistics execute(String cypherQuery);
+    Statistics execute(String cypherQuery);
 
     /**
      * Allows a cypher statement with a modification statement to be executed.
@@ -285,18 +301,9 @@ public interface Neo4jOperations {
      *                   If relationships of a provided object also need to be set then the cypher should reflect this
      *                   and further domain object parameters provided.
      *
-     * @return {@link QueryStatistics} representing statistics about graph modifications as a result of the cypher execution.
+     * @return {@link Statistics} representing statistics about graph modifications as a result of the cypher execution.
      */
     @Deprecated
-    QueryStatistics execute(String cypher, Map<String, Object> parameters);
-
-    /**
-     * Provides the instance count for the given <em>node</em> entity type.  This method is also provided by the
-     * corresponding repository.
-     *
-     * @param entityClass The {@link Class} representing the type of node entity to count
-     * @return The number of entities in the database of the given type
-     */
-    long count(Class<?> entityClass);
+    Statistics execute(String cypher, Map<String, Object> parameters);
 
 }

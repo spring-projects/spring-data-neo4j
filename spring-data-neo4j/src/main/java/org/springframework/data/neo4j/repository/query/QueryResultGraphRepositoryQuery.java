@@ -12,21 +12,24 @@
 
 package org.springframework.data.neo4j.repository.query;
 
-import static java.lang.reflect.Proxy.newProxyInstance;
+
+import org.neo4j.ogm.MetaData;
+import org.neo4j.ogm.cypher.query.DefaultRowModelRequest;
+import org.neo4j.ogm.entityaccess.EntityFactory;
+import org.neo4j.ogm.mapper.SingleUseEntityMapper;
+import org.neo4j.ogm.model.RowModel;
+import org.neo4j.ogm.request.Request;
+import org.neo4j.ogm.request.RowModelRequest;
+import org.neo4j.ogm.response.Response;
+import org.neo4j.ogm.session.GraphCallback;
+import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.transaction.Transaction;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
-import org.neo4j.ogm.cypher.query.RowModelQuery;
-import org.neo4j.ogm.entityaccess.EntityFactory;
-import org.neo4j.ogm.mapper.SingleUseEntityMapper;
-import org.neo4j.ogm.metadata.MetaData;
-import org.neo4j.ogm.session.GraphCallback;
-import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.request.RequestHandler;
-import org.neo4j.ogm.session.response.Neo4jResponse;
-import org.neo4j.ogm.session.result.RowModel;
-import org.neo4j.ogm.session.transaction.Transaction;
+import static java.lang.reflect.Proxy.newProxyInstance;
 
 /**
  * Specialisation of {@link GraphRepositoryQuery} that handles mapping to objects annotated with <code>&#064;QueryResult</code>.
@@ -58,11 +61,13 @@ public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
     }
 
     private Collection<Object> mapToConcreteType(final Class<?> targetType, String cypherQuery, Map<String, Object> queryParams) {
-        final RowModelQuery qry = new RowModelQuery(cypherQuery, queryParams);
+
+        final RowModelRequest qry = new DefaultRowModelRequest(cypherQuery, queryParams);
+
         return this.session.doInTransaction(new GraphCallback<Collection<Object>>() {
             @Override
-            public Collection<Object> apply(RequestHandler requestHandler, Transaction transaction, MetaData metaData) {
-                try (Neo4jResponse<RowModel> response = requestHandler.execute(qry, transaction.url())) {
+            public Collection<Object> apply(Request requestHandler, Transaction transaction, MetaData metaData) {
+                try (Response<RowModel> response = requestHandler.execute(qry)) {
                     Collection<Object> toReturn = new ArrayList<>();
 
                     SingleUseEntityMapper entityMapper = new SingleUseEntityMapper(metaData, new EntityFactory(metaData));

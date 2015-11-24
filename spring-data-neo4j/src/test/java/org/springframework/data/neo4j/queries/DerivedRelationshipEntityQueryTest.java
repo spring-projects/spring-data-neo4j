@@ -12,21 +12,17 @@
 
 package org.springframework.data.neo4j.queries;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.ogm.driver.Driver;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
+import org.neo4j.ogm.testutil.IntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Rating;
@@ -39,18 +35,27 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 /**
  * @author Luanne Misquitta
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class DerivedRelationshipEntityQueryTest {
 
-	@ClassRule
-	public static Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule(7879);
+	@Autowired
+	private GraphDatabaseService graphDatabaseService;
 
-	private static Session session;
+	@Autowired
+	private Driver driver;
+
+	private Session session;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -63,16 +68,16 @@ public class DerivedRelationshipEntityQueryTest {
 
 	@Before
 	public void init() throws IOException {
-		session = new SessionFactory("org.springframework.data.neo4j.examples.movies.domain").openSession(neo4jRule.url());
+		session = new SessionFactory("org.springframework.data.neo4j.examples.movies.domain").openSession(driver);
 	}
 
 	@After
 	public void clearDatabase() {
-		neo4jRule.clearDatabase();
+		session.purgeDatabase();
 	}
 
 	private void executeUpdate(String cypher) {
-		new ExecutionEngine(neo4jRule.getGraphDatabaseService()).execute(cypher);
+		graphDatabaseService.execute(cypher);
 	}
 
 	/**

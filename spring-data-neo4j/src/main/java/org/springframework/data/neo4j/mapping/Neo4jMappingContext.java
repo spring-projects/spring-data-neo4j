@@ -11,20 +11,20 @@
  */
 package org.springframework.data.neo4j.mapping;
 
-import static java.util.Collections.singleton;
-
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
-
 import org.neo4j.ogm.annotation.typeconversion.Convert;
-import org.neo4j.ogm.metadata.MetaData;
-import org.neo4j.ogm.metadata.info.ClassInfo;
-import org.neo4j.ogm.metadata.info.FieldInfo;
+import org.neo4j.ogm.MetaData;
+import org.neo4j.ogm.metadata.ClassInfo;
+import org.neo4j.ogm.metadata.FieldInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
+
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+
+import static java.util.Collections.singleton;
 
 /**
  * This class implements Spring Data's MappingContext interface, scavenging the required data from the OGM's metadata in order

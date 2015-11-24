@@ -12,20 +12,16 @@
 
 package org.springframework.data.neo4j.queries;
 
-import static org.junit.Assert.*;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.*;
-
 import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.ogm.metadata.MappingException;
-import org.neo4j.ogm.testutil.Neo4jIntegrationTestRule;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.ogm.driver.Driver;
+import org.neo4j.ogm.exception.MappingException;
+import org.neo4j.ogm.testutil.IntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.User;
@@ -37,17 +33,25 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
+
+import static org.junit.Assert.*;
+
 /**
  * @author Vince Bickers
  * @author Luanne Misquitta
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class QueryIntegrationTest {
 
-    @ClassRule
-    public static Neo4jIntegrationTestRule neo4jRule = new Neo4jIntegrationTestRule(7879);
+    @Autowired
+    private GraphDatabaseService graphDatabaseService;
+
+    @Autowired
+    private Driver driver;
 
     @Autowired
     private UserRepository userRepository;
@@ -57,11 +61,11 @@ public class QueryIntegrationTest {
 
     @After
     public void clearDatabase() {
-        neo4jRule.clearDatabase();
+        graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
     }
 
     private void executeUpdate(String cypher) {
-        new ExecutionEngine(neo4jRule.getGraphDatabaseService()).execute(cypher);
+        graphDatabaseService.execute(cypher);
     }
 
     @Test

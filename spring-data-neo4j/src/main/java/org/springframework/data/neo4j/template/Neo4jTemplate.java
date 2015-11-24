@@ -12,22 +12,25 @@
 
 package org.springframework.data.neo4j.template;
 
-import static org.springframework.data.neo4j.util.IterableUtils.*;
-
-import java.util.Collection;
-import java.util.Map;
 
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
+import org.neo4j.ogm.model.QueryStatistics;
+import org.neo4j.ogm.model.Statistics;
 import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.result.QueryStatistics;
-import org.neo4j.ogm.session.result.Result;
+import org.neo4j.ogm.session.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.event.*;
 import org.springframework.util.Assert;
+
+import java.util.Collection;
+import java.util.Map;
+
+import static org.springframework.data.neo4j.util.IterableUtils.getSingle;
+import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
 
 /**
  * Spring Data template for Neo4j, which is an implementation of {@link Neo4jOperations}.  Indeed, framework users are encouraged
@@ -214,6 +217,11 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         }
     }
 
+    @Override
+    public void clear() {
+        session.clear();
+    }
+
     public <T> void deleteAll(Class<T> type) {
         try {
             session.deleteAll(type);
@@ -223,18 +231,18 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     }
 
     @Override
-    public QueryStatistics execute(String jsonStatements) {
+    public Statistics execute(String jsonStatements) {
         try {
-            return session.execute(jsonStatements);
+            return session.query(jsonStatements, Utils.map()).statistics();
         } catch (Exception e) {
             throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
     @Override
-    public QueryStatistics execute(String cypher, Map<String, Object> parameters) {
+    public Statistics execute(String cypher, Map<String, Object> parameters) {
         try {
-            return session.execute(cypher, parameters);
+            return session.query(cypher, parameters).statistics();
         }
         catch (Exception e) {
             throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
@@ -273,7 +281,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     }
 
     @Override
-    public Result query(String cypher, Map<String, ?> parameters) {
+    public QueryStatistics query(String cypher, Map<String, ?> parameters) {
         try {
             return session.query(cypher, parameters);
         } catch (Exception e) {
@@ -291,7 +299,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     }
 
     @Override
-    public Result query(String cypher, Map<String, ?> parameters, boolean readOnly) {
+    public QueryStatistics query(String cypher, Map<String, ?> parameters, boolean readOnly) {
         try {
             return session.query(cypher, parameters, readOnly);
         } catch (Exception e) {
