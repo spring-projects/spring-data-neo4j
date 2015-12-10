@@ -104,7 +104,7 @@ public class ExecutingRestRequest implements RestRequest {
     }
 
     private String pathOrAbsolute( String path ) {
-        if ( path.startsWith( "http://" ) ) return path;
+        if ( path.startsWith( "http://" ) || path.startsWith( "https://" ) return path;
         return baseUri + "/" + path;
     }
 
