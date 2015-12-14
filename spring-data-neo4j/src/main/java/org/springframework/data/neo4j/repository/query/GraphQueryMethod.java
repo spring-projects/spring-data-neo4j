@@ -16,6 +16,7 @@ import org.neo4j.ogm.session.Session;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.repository.query.derived.DerivedGraphRepositoryQuery;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -27,6 +28,7 @@ import java.lang.reflect.Type;
 /**
  * @author Mark Angrish
  * @author Luanne Misquitta
+ * @author Oliver Gierke
  */
 public class GraphQueryMethod extends QueryMethod {
 
@@ -34,8 +36,8 @@ public class GraphQueryMethod extends QueryMethod {
     private final Method method;
     private final Query queryAnnotation;
 
-    public GraphQueryMethod(Method method, RepositoryMetadata metadata, Session session) {
-        super(method, metadata);
+    public GraphQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory, Session session) {
+        super(method, metadata, factory);
         this.method = method;
         this.session = session;
         this.queryAnnotation = method.getAnnotation(Query.class);

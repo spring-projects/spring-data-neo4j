@@ -17,8 +17,11 @@ import org.neo4j.ogm.model.QueryStatistics;
 import org.neo4j.ogm.model.Statistics;
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.repository.query.Parameter;
+import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ResultProcessor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,8 +50,13 @@ public class GraphRepositoryQuery implements RepositoryQuery {
         Class<?> concreteType = graphQueryMethod.resolveConcreteReturnType();
 
         Map<String, Object> params = resolveParams(parameters);
-
-        return execute(returnType, concreteType, getQueryString(), params);
+        
+        ParameterAccessor accessor = new ParametersParameterAccessor(graphQueryMethod.getParameters(), parameters);
+        ResultProcessor processor = graphQueryMethod.getResultProcessor();
+        Object result = execute(returnType, concreteType, getQueryString(), params);
+        
+        return QueryStatistics.class.equals(returnType) ? result : 
+        	processor.withDynamicProjection(accessor).processResult(result);
     }
 
     protected Object execute(Class<?> returnType, Class<?> concreteType, String cypherQuery, Map<String, Object> queryParams) {

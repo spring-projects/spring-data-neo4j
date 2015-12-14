@@ -13,6 +13,7 @@
 package org.springframework.data.neo4j.repository.query;
 
 import org.neo4j.ogm.session.Session;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
@@ -23,6 +24,7 @@ import java.lang.reflect.Method;
 /**
  * @author Mark Angrish
  * @author Luanne Misquitta
+ * @author Oliver Gierke
  */
 public class GraphQueryLookupStrategy implements QueryLookupStrategy {
 
@@ -31,10 +33,14 @@ public class GraphQueryLookupStrategy implements QueryLookupStrategy {
     public GraphQueryLookupStrategy(Session session) {
         this.session = session;
     }
-
+    
+    /* 
+     * (non-Javadoc)
+     * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.projection.ProjectionFactory, org.springframework.data.repository.core.NamedQueries)
+     */
     @Override
-    public RepositoryQuery resolveQuery(Method method, RepositoryMetadata repositoryMetadata, NamedQueries namedQueries) {
-        return new GraphQueryMethod(method, repositoryMetadata, session).createQuery();
+    public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+        NamedQueries namedQueries) {
+        return new GraphQueryMethod(method, metadata, factory, session).createQuery();
     }
-
 }
