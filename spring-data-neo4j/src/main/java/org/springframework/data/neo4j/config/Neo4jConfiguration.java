@@ -13,8 +13,6 @@
 package org.springframework.data.neo4j.config;
 
 
-import org.neo4j.ogm.driver.Driver;
-import org.neo4j.ogm.service.Components;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.slf4j.Logger;
@@ -53,8 +51,6 @@ public abstract class Neo4jConfiguration {
         logger.info("Initialising Neo4jSession");
         SessionFactory sessionFactory = getSessionFactory();
         Assert.notNull(sessionFactory, "You must provide a SessionFactory instance in your Spring configuration classes");
-        Driver driver = driver();
-        Assert.notNull(driver, "You must provide a Driver instance in your Spring configuration classes");
         return sessionFactory.openSession();
     }
 
@@ -98,11 +94,6 @@ public abstract class Neo4jConfiguration {
     PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor() {
         logger.info("Initialising PersistenceExceptionTranslationPostProcessor");
         return new PersistenceExceptionTranslationPostProcessor();
-    }
-
-    @Bean
-    public Driver driver() {
-        return Components.driver();
     }
 
     @Bean

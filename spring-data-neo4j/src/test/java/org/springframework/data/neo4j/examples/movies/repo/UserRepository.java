@@ -41,10 +41,10 @@ public interface UserRepository extends GraphRepository<User> {
     @Query("MATCH (user:User) RETURN COUNT(user)")
     int findTotalUsers();
 
-    @Query("MATCH (user:User) RETURN user.id")
+    @Query("MATCH (user:User) RETURN id(user)")
     List<Integer> getUserIds();
 
-    @Query("MATCH (user:User) RETURN user.name, user.id")
+    @Query("MATCH (user:User) RETURN user.name, id(user)")
     Iterable<Map<String,Object>> getUsersAsProperties();
 
     @Query("MATCH (user:User) RETURN user")

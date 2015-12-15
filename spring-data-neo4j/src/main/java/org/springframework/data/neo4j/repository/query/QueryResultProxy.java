@@ -13,6 +13,7 @@
 package org.springframework.data.neo4j.repository.query;
 
 import org.neo4j.ogm.annotation.Property;
+import org.neo4j.ogm.session.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,17 +50,17 @@ class QueryResultProxy implements InvocationHandler {
 
         if (method.isAnnotationPresent(Property.class)) {
             Property annotation = method.getAnnotation(Property.class);
-            return data.get(annotation.name());
+            return Utils.coerceTypes(method.getReturnType(), data.get(annotation.name()));
         }
 
         Matcher matcher = beanGetterPattern.matcher(method.getName());
         if (matcher.matches()) {
             String propertyKey = matcher.group(2);
             propertyKey = propertyKey.substring(0, 1).toLowerCase().concat(propertyKey.substring(1));
-            return data.get(propertyKey);
+            return Utils.coerceTypes(method.getReturnType(),data.get(propertyKey));
         }
 
-        return data.get(method.getName());
+        return Utils.coerceTypes(method.getReturnType(), data.get(method.getName()));
     }
 
     private boolean isNotTraditionalGetter(Method method) {

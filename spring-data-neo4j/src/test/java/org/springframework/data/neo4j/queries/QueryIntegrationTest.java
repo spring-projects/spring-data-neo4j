@@ -13,11 +13,11 @@
 package org.springframework.data.neo4j.queries;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.ogm.driver.Driver;
 import org.neo4j.ogm.exception.MappingException;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +51,11 @@ public class QueryIntegrationTest extends MultiDriverTestClass {
 
     @Autowired
     private CinemaRepository cinemaRepository;
+
+    @Before
+    public void init() {
+        clearDatabase();
+    }
 
     @After
     public void clearDatabase() {
