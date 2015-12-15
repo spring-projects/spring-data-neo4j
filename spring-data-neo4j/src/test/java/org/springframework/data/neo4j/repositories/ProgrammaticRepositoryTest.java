@@ -41,7 +41,7 @@ public class ProgrammaticRepositoryTest {
 
 
         RepositoryFactorySupport factory = new GraphRepositoryFactory(
-                new SessionFactory("org.springframework.data.neo4j.repositories.domain").openSession(driver));
+                new SessionFactory("org.springframework.data.neo4j.repositories.domain").openSession());
 
         movieRepository = factory.getRepository(MovieRepository.class);
 

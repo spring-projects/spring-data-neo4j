@@ -53,8 +53,6 @@ public class MoviesIntegrationTest {
 
     private final Logger logger = LoggerFactory.getLogger(MoviesIntegrationTest.class);
 
-    @Autowired
-    private Neo4jServer neo4jServer;
 
     @Autowired
     private GraphDatabaseService graphDatabaseService;

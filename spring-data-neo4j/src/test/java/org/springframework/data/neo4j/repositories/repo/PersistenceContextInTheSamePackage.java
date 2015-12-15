@@ -12,7 +12,9 @@
 
 package org.springframework.data.neo4j.repositories.repo;
 
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.configuration.HttpDriverConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -28,7 +30,12 @@ public class PersistenceContextInTheSamePackage extends HttpDriverConfiguration 
 
     @Override
     public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.repositories.domain");
+        return new SessionFactory(getConfiguration(), "org.springframework.data.neo4j.repositories.domain");
     }
 
+    @Override
+    @Bean
+    public Session getSession() throws Exception {
+        return super.getSession();
+    }
 }

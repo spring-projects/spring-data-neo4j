@@ -24,22 +24,22 @@ public class InProcessServer implements Neo4jServer {
 
     private TestServer testServer;
 
-    public InProcessServer(Driver driver)  {
-        this.testServer = new TestServer(driver);
+    public InProcessServer(TestServer testServer)  {
+        this.testServer = testServer;
     }
 
     public String url() {
-        return (String) this.testServer.driver().getConfig("server");
+        return this.testServer.url();
     }
 
     @Override
     public String username() {
-        return (String) testServer.driver().getConfig("username");
+        return "neo4j";
     }
 
     @Override
     public String password() {
-        return (String) this.testServer.driver().getConfig("password");
+        return "password";
     }
 
     public GraphDatabaseService database() {

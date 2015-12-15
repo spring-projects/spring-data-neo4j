@@ -55,7 +55,7 @@ public abstract class Neo4jConfiguration {
         Assert.notNull(sessionFactory, "You must provide a SessionFactory instance in your Spring configuration classes");
         Driver driver = driver();
         Assert.notNull(driver, "You must provide a Driver instance in your Spring configuration classes");
-        return sessionFactory.openSession(driver);
+        return sessionFactory.openSession();
     }
 
     @Bean

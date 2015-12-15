@@ -34,7 +34,7 @@ public class GalaxyContext extends HttpDriverConfiguration {
     @Bean
     @Override
     public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.examples.galaxy.domain");
+        return new SessionFactory(getConfiguration(), "org.springframework.data.neo4j.examples.galaxy.domain");
     }
 
 }

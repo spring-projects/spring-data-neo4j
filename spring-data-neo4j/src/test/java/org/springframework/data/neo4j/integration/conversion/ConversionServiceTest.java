@@ -12,15 +12,19 @@
 
 package org.springframework.data.neo4j.integration.conversion;
 
+import static org.junit.Assert.*;
+
+import java.lang.annotation.ElementType;
+import java.math.BigInteger;
+import java.util.Arrays;
+
 import org.junit.After;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.testutil.IntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -29,15 +33,8 @@ import org.springframework.data.neo4j.integration.conversion.domain.JavaElement;
 import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmount;
 import org.springframework.data.neo4j.integration.conversion.domain.PensionPlan;
 import org.springframework.data.neo4j.integration.conversion.domain.SiteMember;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.lang.annotation.ElementType;
-import java.math.BigInteger;
-import java.util.Arrays;
-
-import static org.junit.Assert.*;
 
 /**
  * @see DATAGRAPH-624

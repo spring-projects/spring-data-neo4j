@@ -31,7 +31,7 @@ public class JSR303Context extends HttpDriverConfiguration {
     @Bean
     @Override
     public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.examples.jsr303.domain");
+        return new SessionFactory(getConfiguration(), "org.springframework.data.neo4j.examples.jsr303.domain");
     }
 
     @Override

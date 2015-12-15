@@ -75,7 +75,7 @@ public class DerivedQueryTest {
 	@Before
 	public void init() throws IOException {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-		session = new SessionFactory("org.springframework.data.neo4j.examples.movies.domain").openSession(driver);
+		session = new SessionFactory("org.springframework.data.neo4j.examples.movies.domain").openSession();
 	}
 
 	@After

@@ -28,7 +28,7 @@ public class RemoteServer implements Neo4jServer {
     private String password;
 
     public RemoteServer(Driver driver) {
-        this.url = (String) driver.getConfig("server");
+        this.url = driver.getConfiguration().getURI();
         //extractAuth(url);
         throw new RuntimeException("Not working yet, what's the point??");
     }

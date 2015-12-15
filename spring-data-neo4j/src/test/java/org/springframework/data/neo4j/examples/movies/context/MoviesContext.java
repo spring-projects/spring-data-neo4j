@@ -12,6 +12,7 @@
 
 package org.springframework.data.neo4j.examples.movies.context;
 
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -32,6 +33,12 @@ public class MoviesContext extends HttpDriverConfiguration {
     @Override
     @Bean
     public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.examples.movies.domain");
+        return new SessionFactory(getConfiguration(), "org.springframework.data.neo4j.examples.movies.domain");
+    }
+
+    @Override
+    @Bean
+    public Session getSession() throws Exception {
+        return super.getSession();
     }
 }

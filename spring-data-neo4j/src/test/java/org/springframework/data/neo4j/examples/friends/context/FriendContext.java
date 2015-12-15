@@ -32,7 +32,7 @@ public class FriendContext extends HttpDriverConfiguration {
     @Bean
     @Override
     public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.examples.friends.domain");
+        return new SessionFactory(getConfiguration(), "org.springframework.data.neo4j.examples.friends.domain");
     }
 
 }

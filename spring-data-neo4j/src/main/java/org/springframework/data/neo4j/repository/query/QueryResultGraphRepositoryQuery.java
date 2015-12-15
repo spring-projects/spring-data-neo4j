@@ -14,9 +14,9 @@ package org.springframework.data.neo4j.repository.query;
 
 
 import org.neo4j.ogm.MetaData;
+import org.neo4j.ogm.annotations.EntityFactory;
+import org.neo4j.ogm.context.SingleUseEntityMapper;
 import org.neo4j.ogm.cypher.query.DefaultRowModelRequest;
-import org.neo4j.ogm.entityaccess.EntityFactory;
-import org.neo4j.ogm.mapper.SingleUseEntityMapper;
 import org.neo4j.ogm.model.RowModel;
 import org.neo4j.ogm.request.Request;
 import org.neo4j.ogm.request.RowModelRequest;

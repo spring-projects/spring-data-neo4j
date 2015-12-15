@@ -32,7 +32,7 @@ public class RepositoriesTestContext extends HttpDriverConfiguration {
     @Override
     @Bean
     public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.repositories.domain");
+        return new SessionFactory(getConfiguration(), "org.springframework.data.neo4j.repositories.domain");
     }
 
 }

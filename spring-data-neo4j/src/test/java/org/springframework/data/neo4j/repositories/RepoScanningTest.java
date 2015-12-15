@@ -12,20 +12,17 @@
 
 package org.springframework.data.neo4j.repositories;
 
-import org.junit.Rule;
+import static org.neo4j.ogm.testutil.GraphTestUtils.*;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.ogm.testutil.IntegrationTestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.repositories.domain.User;
 import org.springframework.data.neo4j.repositories.repo.PersistenceContextInTheSamePackage;
 import org.springframework.data.neo4j.repositories.repo.UserRepository;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 
 /**
  * @author Michal Bachman
