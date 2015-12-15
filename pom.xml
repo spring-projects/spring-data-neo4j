@@ -38,10 +38,10 @@
 		<source.level>1.7</source.level>
 		<target.level>1.7</target.level>
 
-		<neo4j.version>2.2.5</neo4j.version>
-		<neo4j.spatial.version>0.14-neo4j-2.2.3</neo4j.spatial.version>
+		<neo4j.version>2.3.1</neo4j.version>
+		<neo4j.spatial.version>0.15-neo4j-2.3.0</neo4j.spatial.version>
 
-		<neo4j-cypher-dsl.version>2.0.1</neo4j-cypher-dsl.version>
+		<neo4j-cypher-dsl.version>2.3-SNAPSHOT</neo4j-cypher-dsl.version>
 		<bundlor.failOnWarnings>false</bundlor.failOnWarnings>
 	</properties>
 
@@ -60,9 +60,10 @@
 			</properties>
 		</profile>
 		<profile>
-			<id>neo4j-23</id>
+			<id>neo4j-22</id>
 			<properties>
-				<neo4j.version>2.3.0-M03</neo4j.version>
+				<neo4j.version>2.2.7</neo4j.version>
+				<neo4j.spatial.version>0.14-neo4j-2.2.3</neo4j.spatial.version>
 			</properties>
 		</profile>
 		<profile>
@@ -190,10 +191,17 @@
 			<url>https://repo.spring.io/libs-snapshot</url>
 		</repository>
 		<repository>
-			<id>neo4j</id>
+			<id>neo4j-releases</id>
 			<url>http://m2.neo4j.org/content/repositories/releases</url>
 			<snapshots>
 				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>neo4j-snapshots</id>
+			<url>http://m2.neo4j.org/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
 			</snapshots>
 		</repository>
 		<repository>
@@ -213,6 +221,10 @@
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
+		</repository>
+		<repository>
+			<id>oss-nexus-snapshots</id>
+			<url>http://oss.sonatype.org/content/repositories/snapshots</url>
 		</repository>
 	</repositories>
 	<pluginRepositories>

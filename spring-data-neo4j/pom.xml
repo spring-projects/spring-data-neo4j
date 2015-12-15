@@ -67,7 +67,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.mysema.querydsl</groupId>
+			<groupId>com.querydsl</groupId>
 			<artifactId>querydsl-lucene3</artifactId>
 			<version>${querydsl}</version>
 			<optional>true</optional>
@@ -77,12 +77,17 @@
 					<artifactId>lucene-core</artifactId>
 				</exclusion>
 			</exclusions>
-
 		</dependency>
 
 		<dependency>
-			<groupId>com.mysema.querydsl</groupId>
+			<groupId>com.querydsl</groupId>
 			<artifactId>querydsl-apt</artifactId>
+			<version>${querydsl}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-core</artifactId>
 			<version>${querydsl}</version>
 			<scope>provided</scope>
 		</dependency>
@@ -225,7 +230,7 @@
 				<version>${apt}</version>
 				<dependencies>
 					<dependency>
-						<groupId>com.mysema.querydsl</groupId>
+						<groupId>com.querydsl</groupId>
 						<artifactId>querydsl-apt</artifactId>
 						<version>${querydsl}</version>
 					</dependency>
