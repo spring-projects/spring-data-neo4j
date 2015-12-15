@@ -55,7 +55,7 @@
 		</dependency>
 
         <dependency>
-            <groupId>com.mysema.querydsl</groupId>
+            <groupId>com.querydsl</groupId>
             <artifactId>querydsl-lucene3</artifactId>
             <version>${querydsl}</version>
             <optional>true</optional>

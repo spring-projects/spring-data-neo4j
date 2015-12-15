@@ -20,6 +20,7 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.repository.query.GraphQueryMethod;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryInformation;
@@ -98,8 +99,8 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
     protected QueryLookupStrategy getQueryLookupStrategy(QueryLookupStrategy.Key key) {
         return new QueryLookupStrategy() {
             @Override
-            public RepositoryQuery resolveQuery(Method method, RepositoryMetadata repositoryMetadata, NamedQueries namedQueries) {
-                final GraphQueryMethod queryMethod = new GraphQueryMethod(method,repositoryMetadata,namedQueries,mappingContext);
+            public RepositoryQuery resolveQuery(Method method, RepositoryMetadata repositoryMetadata, ProjectionFactory factory, NamedQueries namedQueries) {
+                final GraphQueryMethod queryMethod = new GraphQueryMethod(method,repositoryMetadata,namedQueries,mappingContext, factory);
                 return queryMethod.createQuery(GraphRepositoryFactory.this.template);
             }
         };

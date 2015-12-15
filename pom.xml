@@ -41,7 +41,7 @@
 		<neo4j.version>2.2.5</neo4j.version>
 		<neo4j.spatial.version>0.14-neo4j-2.2.3</neo4j.spatial.version>
 
-		<neo4j-cypher-dsl.version>2.0.1</neo4j-cypher-dsl.version>
+		<neo4j-cypher-dsl.version>2.3-SNAPSHOT</neo4j-cypher-dsl.version>
 		<bundlor.failOnWarnings>false</bundlor.failOnWarnings>
 	</properties>
 
