@@ -12,17 +12,13 @@
 
 package org.springframework.data.neo4j.queries;
 
-import static org.junit.Assert.*;
-
-import java.util.Collections;
-import java.util.List;
-
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.driver.Driver;
 import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Rating;
@@ -34,18 +30,20 @@ import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 /**
  * @author Luanne Misquitta
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class DerivedRelationshipEntityQueryTest {
+public class DerivedRelationshipEntityQueryTest extends MultiDriverTestClass {
 
-	@Autowired
-	private GraphDatabaseService graphDatabaseService;
-
-	@Autowired
-	private Driver driver;
+	private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
 
 	@Autowired
 	private Session session;

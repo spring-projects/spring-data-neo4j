@@ -14,7 +14,7 @@ package org.springframework.data.neo4j.extensions;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.configuration.HttpDriverConfiguration;
+import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -30,7 +30,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @EnableNeo4jRepositories(repositoryBaseClass = CustomGraphRepositoryImpl.class)
 @EnableTransactionManagement
-public class CustomPersistenceContext extends HttpDriverConfiguration {
+public class CustomPersistenceContext extends Neo4jConfiguration {
 
     @Override
     @Bean

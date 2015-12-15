@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.User;
@@ -31,10 +32,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class TransactionIntegrationTest {
+public class TransactionIntegrationTest extends MultiDriverTestClass {
 
-    @Autowired
-    private GraphDatabaseService graphDatabaseService;
+
+    private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
 
     @Autowired
     private UserRepository userRepository;

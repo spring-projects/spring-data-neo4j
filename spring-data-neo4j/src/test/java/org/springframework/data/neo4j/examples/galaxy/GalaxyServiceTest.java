@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.cypher.query.Pagination;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -46,7 +47,7 @@ import static org.junit.Assert.*;
 @ContextConfiguration(classes = {GalaxyContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
-public class GalaxyServiceTest {
+public class GalaxyServiceTest extends MultiDriverTestClass {
 
     @Autowired
     private GalaxyService galaxyService;

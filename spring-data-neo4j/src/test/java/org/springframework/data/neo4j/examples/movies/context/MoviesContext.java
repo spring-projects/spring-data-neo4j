@@ -17,7 +17,7 @@ import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.configuration.HttpDriverConfiguration;
+import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -28,12 +28,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ComponentScan({"org.springframework.data.neo4j.examples.movies"})
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
 @EnableTransactionManagement
-public class MoviesContext extends HttpDriverConfiguration {
+public class MoviesContext extends Neo4jConfiguration {
 
     @Override
     @Bean
     public SessionFactory getSessionFactory() {
-        return new SessionFactory(getConfiguration(), "org.springframework.data.neo4j.examples.movies.domain");
+        return new SessionFactory("org.springframework.data.neo4j.examples.movies.domain");
     }
 
     @Override

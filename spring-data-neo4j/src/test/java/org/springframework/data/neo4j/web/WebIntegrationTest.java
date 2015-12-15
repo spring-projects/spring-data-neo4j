@@ -15,6 +15,8 @@ package org.springframework.data.neo4j.web;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.web.context.WebAppContext;
 import org.springframework.data.neo4j.web.context.WebPersistenceContext;
@@ -42,18 +44,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {WebAppContext.class, WebPersistenceContext.class})
 @WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class WebIntegrationTest {
+public class WebIntegrationTest extends MultiDriverTestClass {
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
-    WebApplicationContext wac;
+    private WebApplicationContext wac;
+
+    @Autowired
+    private Session session;
 
     private MockMvc mockMvc;
 
     @Before
     public void setUp() {
+
+        session.purgeDatabase();
+
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
 
         User adam = new User("Adam");

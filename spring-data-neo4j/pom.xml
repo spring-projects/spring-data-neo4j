@@ -14,6 +14,7 @@
     <properties>
         <neo4j.version>2.2.5</neo4j.version>
         <neo4j.ogm.version>2.0.0-SNAPSHOT</neo4j.ogm.version>
+        <ogm.properties>ogm-http.properties</ogm.properties>
     </properties>
 
     <name>Spring Data Neo4j</name>
@@ -113,6 +114,11 @@
                             <includes>
                                 <include>**/*.java</include>
                             </includes>
+
+                            <systemPropertyVariables>
+                                <ogm.properties>${ogm.properties}</ogm.properties>
+                            </systemPropertyVariables>
+
                         </configuration>
                     </execution>
 
@@ -134,5 +140,14 @@
 
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>embedded</id>
+            <properties>
+                <ogm.properties>ogm-embedded.properties</ogm.properties>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>

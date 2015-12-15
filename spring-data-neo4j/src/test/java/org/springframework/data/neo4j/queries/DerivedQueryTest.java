@@ -12,25 +12,15 @@
 
 package org.springframework.data.neo4j.queries;
 
-import static org.junit.Assert.*;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import org.junit.After;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.driver.Driver;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
@@ -53,13 +43,9 @@ import static org.junit.Assert.*;
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class DerivedQueryTest {
+public class DerivedQueryTest extends MultiDriverTestClass {
 
-	@Autowired
-	private GraphDatabaseService graphDatabaseService;
-
-	@Autowired
-	private Driver driver;
+	private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
 
 	private Session session;
 

@@ -14,6 +14,7 @@ package org.springframework.data.neo4j.template;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.event.AfterDeleteEvent;
 import org.springframework.data.neo4j.event.AfterSaveEvent;
@@ -31,7 +32,7 @@ import static org.junit.Assert.*;
  */
 @ContextConfiguration(classes = DataManipulationEventConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-public class TemplateApplicationEventTest {
+public class TemplateApplicationEventTest extends MultiDriverTestClass {
 
     @Autowired
     private Neo4jOperations neo4jTemplate;

@@ -16,6 +16,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.jsr303.domain.Adult;
 import org.springframework.data.neo4j.examples.jsr303.service.AdultService;
@@ -36,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {WebConfiguration.class, JSR303Context.class})
 @WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class JSR303Test {
+public class JSR303Test extends MultiDriverTestClass {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 

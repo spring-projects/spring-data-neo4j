@@ -12,11 +12,12 @@
 
 package org.springframework.data.neo4j.repositories;
 
-import static org.neo4j.ogm.testutil.GraphTestUtils.*;
-
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.repositories.domain.User;
 import org.springframework.data.neo4j.repositories.repo.PersistenceContextInTheSamePackage;
@@ -24,18 +25,27 @@ import org.springframework.data.neo4j.repositories.repo.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
+
 /**
  * @author Michal Bachman
  */
 @ContextConfiguration(classes = {PersistenceContextInTheSamePackage.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RepoScanningTest {
+public class RepoScanningTest extends MultiDriverTestClass {
+
+    @Autowired
+    private Session session;
 
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private GraphDatabaseService graphDatabaseService;
+    private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
+
+    @Before
+    public void init() {
+        session.purgeDatabase();
+    }
 
     @Test
     public void enableNeo4jRepositoriesShouldScanSelfPackageByDefault() {

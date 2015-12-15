@@ -15,11 +15,11 @@ package org.springframework.data.neo4j.transactions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.transactions.service.WrapperService;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
 
@@ -34,7 +34,7 @@ import static org.junit.Assert.fail;
 @ContextConfiguration(classes = {ApplicationConfig.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 
-public class ExtendedTransactionsTest {
+public class ExtendedTransactionsTest extends MultiDriverTestClass {
 
     @Autowired
     WrapperService wrapperService;

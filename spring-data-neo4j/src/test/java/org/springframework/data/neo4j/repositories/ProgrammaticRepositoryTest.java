@@ -12,12 +12,11 @@
 
 package org.springframework.data.neo4j.repositories;
 
+import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.ogm.driver.Driver;
-import org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.data.neo4j.repositories.domain.Movie;
 import org.springframework.data.neo4j.repositories.repo.MovieRepository;
 import org.springframework.data.neo4j.repository.support.GraphRepositoryFactory;
@@ -30,25 +29,29 @@ import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 /**
  * @author Michal Bachman
  */
-public class ProgrammaticRepositoryTest {
+public class ProgrammaticRepositoryTest extends MultiDriverTestClass {
 
     private MovieRepository movieRepository;
-    private GraphDatabaseService graphDatabaseService = new TestGraphDatabaseFactory().newImpermanentDatabase();
-    private Driver driver = new EmbeddedDriver(graphDatabaseService);
+    private SessionFactory sessionFactory = new SessionFactory("org.springframework.data.neo4j.repositories.domain");
+    private Session session;
+
+    @Before
+    public void init() {
+        session = sessionFactory.openSession();
+        session.purgeDatabase();
+    }
 
     @Test
     public void canInstantiateRepositoryProgrammatically() {
 
-
-        RepositoryFactorySupport factory = new GraphRepositoryFactory(
-                new SessionFactory("org.springframework.data.neo4j.repositories.domain").openSession());
+        RepositoryFactorySupport factory = new GraphRepositoryFactory(session);
 
         movieRepository = factory.getRepository(MovieRepository.class);
 
         Movie movie = new Movie("PF");
         movieRepository.save(movie);
 
-        assertSameGraph(graphDatabaseService, "CREATE (m:Movie {title:'PF'})");
+        assertSameGraph(getGraphDatabaseService(), "CREATE (m:Movie {title:'PF'})");
 
         assertEquals(1, IterableUtils.count(movieRepository.findAll()));
     }

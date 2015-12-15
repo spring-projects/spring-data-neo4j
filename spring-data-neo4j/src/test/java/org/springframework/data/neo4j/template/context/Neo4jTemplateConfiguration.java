@@ -3,7 +3,7 @@ package org.springframework.data.neo4j.template.context;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.configuration.HttpDriverConfiguration;
+import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @Configuration
 @EnableTransactionManagement
-public class Neo4jTemplateConfiguration extends HttpDriverConfiguration {
+public class Neo4jTemplateConfiguration extends Neo4jConfiguration {
 
     @Override
     @Bean

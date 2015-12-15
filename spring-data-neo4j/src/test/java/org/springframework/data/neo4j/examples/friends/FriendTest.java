@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.friends.context.FriendContext;
 import org.springframework.data.neo4j.examples.friends.domain.Friendship;
@@ -32,7 +33,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration(classes = {FriendContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class FriendTest {
+public class FriendTest extends MultiDriverTestClass {
 
 	@Autowired Session session;
 	@Autowired Neo4jOperations neo4jTemplate;

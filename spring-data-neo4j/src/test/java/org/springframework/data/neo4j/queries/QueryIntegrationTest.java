@@ -19,6 +19,7 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.driver.Driver;
 import org.neo4j.ogm.exception.MappingException;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.User;
@@ -41,13 +42,9 @@ import static org.junit.Assert.*;
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class QueryIntegrationTest {
+public class QueryIntegrationTest extends MultiDriverTestClass {
 
-    @Autowired
-    private GraphDatabaseService graphDatabaseService;
-
-    @Autowired
-    private Driver driver;
+    private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
 
     @Autowired
     private UserRepository userRepository;

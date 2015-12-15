@@ -12,12 +12,6 @@
 
 package org.springframework.data.neo4j.integration.conversion;
 
-import static org.junit.Assert.*;
-
-import java.lang.annotation.ElementType;
-import java.math.BigInteger;
-import java.util.Arrays;
-
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,6 +19,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -36,6 +31,12 @@ import org.springframework.data.neo4j.integration.conversion.domain.SiteMember;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.lang.annotation.ElementType;
+import java.math.BigInteger;
+import java.util.Arrays;
+
+import static org.junit.Assert.*;
+
 /**
  * @see DATAGRAPH-624
  * @author Adam George
@@ -44,10 +45,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { ConversionServicePersistenceContext.class })
-public class ConversionServiceTest {
+public class ConversionServiceTest extends MultiDriverTestClass {
 
-    @Autowired
-    private GraphDatabaseService graphDatabaseService;
+    private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
     @Autowired
     private PensionRepository pensionRepository;
     @Autowired

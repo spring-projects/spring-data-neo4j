@@ -12,29 +12,40 @@
 
 package org.springframework.data.neo4j.repositories;
 
-import static org.junit.Assert.*;
-import static org.neo4j.ogm.testutil.GraphTestUtils.*;
-
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.repositories.context.RepositoriesTestContext;
 import org.springframework.data.neo4j.repositories.domain.Movie;
 import org.springframework.data.neo4j.repositories.repo.MovieRepository;
+import org.springframework.data.neo4j.repositories.repo.UserRepository;
 import org.springframework.data.neo4j.util.IterableUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.assertEquals;
+import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 
 /**
  * @author Michal Bachman
  */
 @ContextConfiguration(classes = {RepositoriesTestContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RepositoryDefinitionTest {
+public class RepositoryDefinitionTest extends MultiDriverTestClass {
+
+    private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
 
     @Autowired
-    GraphDatabaseService graphDatabaseService;
+    private Session session;
+
+    @Before
+    public void init() {
+        session.purgeDatabase();
+    }
 
     @Autowired
     private MovieRepository movieRepository;

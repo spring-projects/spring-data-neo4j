@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.data.neo4j.configuration.HttpDriverConfiguration;
+import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -29,12 +29,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @PropertySource("classpath:helloworld.properties")
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.galaxy.repo")
 @EnableTransactionManagement
-public class GalaxyContext extends HttpDriverConfiguration {
+public class GalaxyContext extends Neo4jConfiguration {
 
     @Bean
     @Override
     public SessionFactory getSessionFactory() {
-        return new SessionFactory(getConfiguration(), "org.springframework.data.neo4j.examples.galaxy.domain");
+        return new SessionFactory("org.springframework.data.neo4j.examples.galaxy.domain");
     }
 
 }
