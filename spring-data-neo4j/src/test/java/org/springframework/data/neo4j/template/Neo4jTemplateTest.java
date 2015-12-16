@@ -64,7 +64,10 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
 
     @After
     public void clearDatabase() {
-        graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+        try (Transaction tx = graphDatabaseService.beginTx()) {
+            graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+            tx.success();
+        }
     }
 
     /**
@@ -369,12 +372,12 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
         assertEquals(2, stats.getLabelsAdded());
 
         stats = this.template.query("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null", Collections.EMPTY_MAP).statistics(); 
-        //assertTrue(stats.containsUpdates());   not available in embedded driver stats :(
+        assertTrue(stats.containsUpdates());
         assertEquals(1, stats.getLabelsRemoved());
         assertEquals(1, stats.getPropertiesSet());
 
         stats = this.template.query("MATCH n-[r]-(m:Movie) delete n,r,m",Collections.EMPTY_MAP).statistics();
-        //assertTrue(stats.containsUpdates());
+        assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesDeleted());
         assertEquals(1, stats.getRelationshipsDeleted());
     }
@@ -404,19 +407,19 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
     public void shouldReturnQueryStatsForQueryWithParams() {
         Statistics stats = this.template.execute("CREATE (a:Actor {name:{actorName}}) CREATE (m:Movie {title:{movieTitle}}) " +
                 "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m)",map("actorName","Keanu Reeves", "movieTitle","THe Matrix"));
-        //assertTrue(stats.containsUpdates());
+        assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesCreated());
         assertEquals(3, stats.getPropertiesSet());
         assertEquals(1, stats.getRelationshipsCreated());
         assertEquals(2, stats.getLabelsAdded());
 
         stats = this.template.execute("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null"); //keep this till the deprecated execute is deleted
-        //assertTrue(stats.containsUpdates());
+        assertTrue(stats.containsUpdates());
         assertEquals(1, stats.getLabelsRemoved());
         assertEquals(1, stats.getPropertiesSet());
 
         stats = this.template.query("MATCH n-[r]-(m:Movie) delete n,r,m", Collections.EMPTY_MAP).statistics();
-        //assertTrue(stats.containsUpdates());
+        assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesDeleted());
         assertEquals(1, stats.getRelationshipsDeleted());
     }

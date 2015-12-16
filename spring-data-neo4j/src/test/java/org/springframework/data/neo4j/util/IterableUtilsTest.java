@@ -43,18 +43,20 @@ public class IterableUtilsTest extends MultiDriverTestClass {
         GraphDatabaseService database = getGraphDatabaseService();
 
         Node node;
-
+        Long nodeId;
         try (Transaction tx = database.beginTx()) {
             node = database.createNode();
+            nodeId = node.getId();
             tx.success();
         }
 
         try (Transaction tx = database.beginTx()) {
             assertTrue(contains(database.getAllNodes(), node));
+            tx.success();
         }
 
         try (Transaction tx = database.beginTx()) {
-            database.getNodeById(0).delete();
+            database.getNodeById(nodeId).delete();
             tx.success();
         }
 
