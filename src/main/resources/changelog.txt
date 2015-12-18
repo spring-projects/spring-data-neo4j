@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.4.2.RELEASE (2015-12-18)
+---------------------------------------------
+* DATAGRAPH-799 - Release 3.4.2 (Gosling).
+
+
 Changes in version 3.4.1.RELEASE (2015-11-15)
 ---------------------------------------------
 * DATAGRAPH-786 - Release 3.4.1 (Gosling).
