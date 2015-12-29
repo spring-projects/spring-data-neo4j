@@ -10,32 +10,29 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
 
-package org.springframework.data.neo4j.template;
+package org.springframework.data.neo4j.event;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.event.AfterDeleteEvent;
-import org.springframework.data.neo4j.event.AfterSaveEvent;
-import org.springframework.data.neo4j.event.BeforeDeleteEvent;
-import org.springframework.data.neo4j.event.BeforeSaveEvent;
+import org.springframework.data.neo4j.event.context.DataManipulationEventConfiguration;
+import org.springframework.data.neo4j.event.context.TestNeo4jEventListener;
+import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Actor;
-import org.springframework.data.neo4j.template.context.DataManipulationEventConfiguration;
+import org.springframework.data.neo4j.examples.movies.repo.ActorRepository;
+import org.springframework.data.neo4j.util.IterableUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.junit.Assert.*;
-/**
- * Test to assert the behaviour of {@link Neo4jTemplate}'s interaction with Spring application events.
- * @author Adam George
- */
-@ContextConfiguration(classes = DataManipulationEventConfiguration.class)
+
+@ContextConfiguration(classes = {MoviesContext.class, DataManipulationEventConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class TemplateApplicationEventTest extends MultiDriverTestClass {
+public class RepositoryApplicationEventTest extends MultiDriverTestClass {
 
     @Autowired
-    private Neo4jOperations neo4jTemplate;
+    private ActorRepository actorRepository;
 
     @Autowired
     private TestNeo4jEventListener<BeforeSaveEvent> beforeSaveEventListener;
@@ -47,15 +44,15 @@ public class TemplateApplicationEventTest extends MultiDriverTestClass {
     private TestNeo4jEventListener<AfterDeleteEvent> afterDeleteEventListener;
 
     @Test
-    public void shouldCreateTemplateAndPublishAppropriateApplicationEventsOnSaveAndOnDelete() {
-        assertNotNull("The Neo4jTemplate wasn't autowired into this test", this.neo4jTemplate);
-
+    public void shouldSaveGraphBackedEntityAndPublishAppropriateApplicationEventsOnSaveAndOnDelete() {
         Actor entity = new Actor();
         entity.setName("John Abraham");
-
+        
+        assertEquals(0, IterableUtils.count(actorRepository.findAll()));
         assertFalse(this.beforeSaveEventListener.hasReceivedAnEvent());
         assertFalse(this.afterSaveEventListener.hasReceivedAnEvent());
-        this.neo4jTemplate.save(entity);
+        actorRepository.save(entity);
+        assertEquals(1, IterableUtils.count(actorRepository.findAll()));
         assertTrue(this.beforeSaveEventListener.hasReceivedAnEvent());
         assertSame(entity, this.beforeSaveEventListener.getEvent().getEntity());
         assertTrue(this.afterSaveEventListener.hasReceivedAnEvent());
@@ -63,7 +60,7 @@ public class TemplateApplicationEventTest extends MultiDriverTestClass {
 
         assertFalse(this.beforeDeleteEventListener.hasReceivedAnEvent());
         assertFalse(this.afterDeleteEventListener.hasReceivedAnEvent());
-        this.neo4jTemplate.delete(entity);
+        actorRepository.delete(entity);
         assertTrue(this.beforeDeleteEventListener.hasReceivedAnEvent());
         assertSame(entity, this.beforeDeleteEventListener.getEvent().getEntity());
         assertTrue(this.afterDeleteEventListener.hasReceivedAnEvent());

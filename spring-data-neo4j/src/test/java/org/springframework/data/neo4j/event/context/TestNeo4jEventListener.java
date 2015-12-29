@@ -10,7 +10,7 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
 
-package org.springframework.data.neo4j.template;
+package org.springframework.data.neo4j.event.context;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.neo4j.event.Neo4jDataManipulationEvent;

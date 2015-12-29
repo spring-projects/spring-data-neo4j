@@ -8,6 +8,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.aop.framework.Advised;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.GraphRepositoryImpl;
 import org.springframework.data.neo4j.repository.support.GraphRepositoryFactory;
@@ -43,7 +44,7 @@ public class GraphRepositoryFactoryTest extends MultiDriverTestClass {
     @Before
     public void setUp() {
 
-        factory = new GraphRepositoryFactory(session) {
+        factory = new GraphRepositoryFactory(session, null) {
 
         };
     }
@@ -82,8 +83,8 @@ public class GraphRepositoryFactoryTest extends MultiDriverTestClass {
     }
 
     static class CustomGraphRepository<T> extends GraphRepositoryImpl<T> {
-        public CustomGraphRepository(Class<T> clazz, Session session) {
-            super(clazz, session);
+        public CustomGraphRepository(Class<T> clazz, Session session, ApplicationEventPublisher applicationEventPublisher) {
+            super(clazz, session, applicationEventPublisher);
         }
     }
 }

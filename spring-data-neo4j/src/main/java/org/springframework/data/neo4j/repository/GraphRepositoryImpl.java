@@ -15,10 +15,12 @@ package org.springframework.data.neo4j.repository;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
 import org.neo4j.ogm.session.Session;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.event.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -35,22 +37,28 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
     private final Class<T> clazz;
     private final Session session;
+    private ApplicationEventPublisher applicationEventPublisher;
 
-    public GraphRepositoryImpl(Class<T> clazz, Session session) {
+    public GraphRepositoryImpl(Class<T> clazz, Session session, ApplicationEventPublisher applicationEventPublisher) {
         this.clazz = clazz;
         this.session = session;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override
     public <S extends T> S save(S entity) {
+        publishEvent(new BeforeSaveEvent(this, entity));
         session.save(entity);
+        publishEvent(new AfterSaveEvent(this, entity));
         return entity;
     }
 
     @Override
     public <S extends T> Iterable<S> save(Iterable<S> entities) {
         for (S entity : entities) {
+            publishEvent(new BeforeSaveEvent(this, entity));
             session.save(entity);
+            publishEvent(new AfterSaveEvent(this, entity));
         }
         return entities;
     }
@@ -72,21 +80,25 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
     @Override
     public void delete(Long id) {
-        Object o = findOne(id);
+        T o = findOne(id);
         if (o != null) {
-            session.delete(o);
+            delete(o);
         }
     }
 
     @Override
     public void delete(T t) {
+        publishEvent(new BeforeDeleteEvent(this, t));
         session.delete(t);
+        publishEvent(new AfterDeleteEvent(this, t));
     }
 
     @Override
     public void delete(Iterable<? extends T> ts) {
         for (T t : ts) {
+            publishEvent(new BeforeDeleteEvent(this, t));
             session.delete(t);
+            publishEvent(new AfterDeleteEvent(this, t));
         }
     }
 
@@ -97,13 +109,17 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
     @Override
     public <S extends T> S save(S s, int depth) {
+        publishEvent(new BeforeSaveEvent(this, s));
         session.save(s, depth);
+        publishEvent(new AfterSaveEvent(this, s));
         return s;
     }
 
     @Override
     public <S extends T> Iterable<S> save(Iterable<S> ses, int depth) {
+        publishEvent(new BeforeSaveEvent(this, ses));
         session.save(ses, depth);
+        publishEvent(new AfterSaveEvent(this, ses));
         return ses;
     }
 
@@ -198,4 +214,11 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
         return new PageImpl<T>(results, pageable, total);
     }
+
+    private void publishEvent(Neo4jDataManipulationEvent event) {
+        if (this.applicationEventPublisher != null) {
+            this.applicationEventPublisher.publishEvent(event);
+        }
+    }
+
 }

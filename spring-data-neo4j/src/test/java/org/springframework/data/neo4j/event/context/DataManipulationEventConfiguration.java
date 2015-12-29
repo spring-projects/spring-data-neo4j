@@ -10,7 +10,7 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
 
-package org.springframework.data.neo4j.template.context;
+package org.springframework.data.neo4j.event.context;
 
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.ApplicationListener;
@@ -21,7 +21,6 @@ import org.springframework.data.neo4j.event.AfterDeleteEvent;
 import org.springframework.data.neo4j.event.AfterSaveEvent;
 import org.springframework.data.neo4j.event.BeforeDeleteEvent;
 import org.springframework.data.neo4j.event.BeforeSaveEvent;
-import org.springframework.data.neo4j.template.TestNeo4jEventListener;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**

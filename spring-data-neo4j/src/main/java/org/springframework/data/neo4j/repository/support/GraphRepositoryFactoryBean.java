@@ -14,6 +14,8 @@ package org.springframework.data.neo4j.repository.support;
 
 import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
@@ -23,14 +25,17 @@ import org.springframework.data.repository.core.support.TransactionalRepositoryF
 /**
  * @author Vince Bickers
  */
-public class GraphRepositoryFactoryBean<S extends Repository<T, Long>, T> extends TransactionalRepositoryFactoryBeanSupport<S, T, Long> {
+public class GraphRepositoryFactoryBean<S extends Repository<T, Long>, T> extends TransactionalRepositoryFactoryBeanSupport<S, T, Long>
+        implements ApplicationEventPublisherAware {
 
     @Autowired
     private Session session;
 
     @Autowired
     private Neo4jMappingContext mappingContext;
-    
+
+    private ApplicationEventPublisher applicationEventPublisher;
+
     @Override
     public void afterPropertiesSet() {
         setMappingContext(mappingContext);
@@ -39,6 +44,12 @@ public class GraphRepositoryFactoryBean<S extends Repository<T, Long>, T> extend
 
     @Override
     protected RepositoryFactorySupport doCreateRepositoryFactory() {
-        return new GraphRepositoryFactory(session);
+        return new GraphRepositoryFactory(session, applicationEventPublisher);
     }
+
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
+    }
+
 }

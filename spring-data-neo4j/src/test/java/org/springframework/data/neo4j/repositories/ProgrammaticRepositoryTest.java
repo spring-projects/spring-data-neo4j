@@ -44,7 +44,7 @@ public class ProgrammaticRepositoryTest extends MultiDriverTestClass {
     @Test
     public void canInstantiateRepositoryProgrammatically() {
 
-        RepositoryFactorySupport factory = new GraphRepositoryFactory(session);
+        RepositoryFactorySupport factory = new GraphRepositoryFactory(session, null);
 
         movieRepository = factory.getRepository(MovieRepository.class);
 
