@@ -23,7 +23,7 @@ import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
-import org.neo4j.ogm.model.QueryStatistics;
+import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.model.Statistics;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.Utils;
@@ -128,7 +128,7 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
         template.save(user.rate(bollywood, 1, "Bakwaas"));
         template.save(user.rate(hollywood, 4, "Pretty good"));
 
-        QueryStatistics queryResults =
+        Result queryResults =
                 this.template.query("MATCH (u:User)-[r]->(m:Movie) RETURN AVG(r.stars) AS avg", Collections.EMPTY_MAP);
         Iterator<Map<String, Object>> queryResultIterator = queryResults.iterator();
         assertTrue("There should've been some query result returned", queryResultIterator.hasNext());
@@ -451,7 +451,7 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
      */
     @Test
     public void shouldAllowResultsToBeReturnedFromModifyingQueries() {
-        QueryStatistics results = this.template.query(
+        Result results = this.template.query(
                 "CREATE (a:Actor {name:{actorName}}) CREATE (m:Movie {title:{movieTitle}}) " +
                 "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m) return a.name as actorName, m.title as movieName", map("actorName", "Keanu Reeves", "movieTitle", "The Matrix"));
 

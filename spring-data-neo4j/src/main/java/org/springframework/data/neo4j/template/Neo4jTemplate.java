@@ -15,7 +15,7 @@ package org.springframework.data.neo4j.template;
 
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
-import org.neo4j.ogm.model.QueryStatistics;
+import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.model.Statistics;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.Utils;
@@ -281,7 +281,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     }
 
     @Override
-    public QueryStatistics query(String cypher, Map<String, ?> parameters) {
+    public Result query(String cypher, Map<String, ?> parameters) {
         try {
             return session.query(cypher, parameters);
         } catch (Exception e) {
@@ -299,7 +299,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     }
 
     @Override
-    public QueryStatistics query(String cypher, Map<String, ?> parameters, boolean readOnly) {
+    public Result query(String cypher, Map<String, ?> parameters, boolean readOnly) {
         try {
             return session.query(cypher, parameters, readOnly);
         } catch (Exception e) {
