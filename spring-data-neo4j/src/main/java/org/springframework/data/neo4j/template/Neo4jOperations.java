@@ -14,10 +14,10 @@ package org.springframework.data.neo4j.template;
 
 
 import org.neo4j.ogm.cypher.Filters;
-import org.neo4j.ogm.model.Query;
-import org.neo4j.ogm.model.QueryStatistics;
-import org.neo4j.ogm.model.Statistics;
 import org.neo4j.ogm.exception.NotFoundException;
+import org.neo4j.ogm.model.Query;
+import org.neo4j.ogm.model.Result;
+import org.neo4j.ogm.model.Statistics;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -226,7 +226,7 @@ public interface Neo4jOperations {
      * @return A {@link Query} containing an {@link Iterable} map representing query results and {@link Statistics} if applicable.
      * @throws RuntimeException if the given query is not a valid Cypherquery
      */
-    QueryStatistics query(String cypherQuery, Map<String, ?> params);
+    Result query(String cypherQuery, Map<String, ?> params);
 
     /**
      * Runs the specified Cypher query with the given parameters against the underlying Neo4j database and returns the result
@@ -268,7 +268,7 @@ public interface Neo4jOperations {
      *
      * @return A {@link Query} of {@link Iterable}s with each entry representing a neo4j object's properties.
      */
-    QueryStatistics query(String cypher, Map<String, ?> parameters, boolean readOnly);
+    Result query(String cypher, Map<String, ?> parameters, boolean readOnly);
 
     /**
      * Provides the instance count for the given <em>node</em> entity type.  This method is also provided by the
