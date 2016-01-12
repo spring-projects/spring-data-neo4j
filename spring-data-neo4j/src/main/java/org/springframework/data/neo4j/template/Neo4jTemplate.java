@@ -16,7 +16,7 @@ package org.springframework.data.neo4j.template;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.model.Result;
-import org.neo4j.ogm.model.Statistics;
+import org.neo4j.ogm.model.QueryStatistics;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -231,18 +231,18 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     }
 
     @Override
-    public Statistics execute(String jsonStatements) {
+    public QueryStatistics execute(String jsonStatements) {
         try {
-            return session.query(jsonStatements, Utils.map()).statistics();
+            return session.query(jsonStatements, Utils.map()).queryStatistics();
         } catch (Exception e) {
             throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
         }
     }
 
     @Override
-    public Statistics execute(String cypher, Map<String, Object> parameters) {
+    public QueryStatistics execute(String cypher, Map<String, Object> parameters) {
         try {
-            return session.query(cypher, parameters).statistics();
+            return session.query(cypher, parameters).queryStatistics();
         }
         catch (Exception e) {
             throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);

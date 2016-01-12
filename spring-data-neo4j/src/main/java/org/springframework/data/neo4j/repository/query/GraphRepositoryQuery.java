@@ -13,8 +13,8 @@
 package org.springframework.data.neo4j.repository.query;
 
 
+import org.neo4j.ogm.model.QueryStatistics;
 import org.neo4j.ogm.model.Result;
-import org.neo4j.ogm.model.Statistics;
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.repository.query.*;
 
@@ -65,7 +65,7 @@ public class GraphRepositoryQuery implements RepositoryQuery {
             // Special method to handle SDN Iterable<Map<String, Object>> behaviour.
             // TODO: Do we really want this method in an OGM? It's a little too low level and/or doesn't really fit.
             if (Map.class.isAssignableFrom(concreteType)) {
-                return session.query(cypherQuery, queryParams).model();
+                return session.query(cypherQuery, queryParams).queryResults();
             }
             return session.query(concreteType, cypherQuery, queryParams);
         }
@@ -111,7 +111,7 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 
     private boolean queryReturnsStatistics() {
         Class returnType = graphQueryMethod.getMethod().getReturnType();
-        return Statistics.class.isAssignableFrom(returnType) || Result.class.isAssignableFrom(returnType);
+        return QueryStatistics.class.isAssignableFrom(returnType) || Result.class.isAssignableFrom(returnType);
     }
 
 }

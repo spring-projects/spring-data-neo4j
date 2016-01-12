@@ -25,6 +25,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.examples.galaxy.context.GalaxyContext;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
 import org.springframework.data.neo4j.examples.galaxy.service.GalaxyService;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +48,7 @@ import static org.junit.Assert.*;
 @ContextConfiguration(classes = {GalaxyContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
+@DirtiesContext
 public class GalaxyServiceTest extends MultiDriverTestClass {
 
     @Autowired

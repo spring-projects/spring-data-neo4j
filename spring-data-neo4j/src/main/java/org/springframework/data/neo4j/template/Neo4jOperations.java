@@ -17,7 +17,7 @@ import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.exception.NotFoundException;
 import org.neo4j.ogm.model.Query;
 import org.neo4j.ogm.model.Result;
-import org.neo4j.ogm.model.Statistics;
+import org.neo4j.ogm.model.QueryStatistics;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -223,7 +223,7 @@ public interface Neo4jOperations {
      *
      * @param cypherQuery The Cypher query to execute
      * @param params      The parameter to merge into the cypher query or an empty {@link Map} if the given query isn't parameterised
-     * @return A {@link Query} containing an {@link Iterable} map representing query results and {@link Statistics} if applicable.
+     * @return A {@link Query} containing an {@link Iterable} map representing query results and {@link QueryStatistics} if applicable.
      * @throws RuntimeException if the given query is not a valid Cypherquery
      */
     Result query(String cypherQuery, Map<String, ?> params);
@@ -285,10 +285,10 @@ public interface Neo4jOperations {
      *
      * @deprecated Use {@link Neo4jOperations}.query() to return both results as well as query statistics.
      * @param cypherQuery The Cypher query to execute
-     * @return {@link Statistics} representing statistics about graph modifications as a result of the cypher execution.
+     * @return {@link QueryStatistics} representing statistics about graph modifications as a result of the cypher execution.
      */
     @Deprecated
-    Statistics execute(String cypherQuery);
+    QueryStatistics execute(String cypherQuery);
 
     /**
      * Allows a cypher statement with a modification statement to be executed.
@@ -301,9 +301,9 @@ public interface Neo4jOperations {
      *                   If relationships of a provided object also need to be set then the cypher should reflect this
      *                   and further domain object parameters provided.
      *
-     * @return {@link Statistics} representing statistics about graph modifications as a result of the cypher execution.
+     * @return {@link QueryStatistics} representing statistics about graph modifications as a result of the cypher execution.
      */
     @Deprecated
-    Statistics execute(String cypher, Map<String, Object> parameters);
+    QueryStatistics execute(String cypher, Map<String, Object> parameters);
 
 }

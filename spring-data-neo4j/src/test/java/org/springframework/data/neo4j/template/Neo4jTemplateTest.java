@@ -23,8 +23,8 @@ import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
+import org.neo4j.ogm.model.QueryStatistics;
 import org.neo4j.ogm.model.Result;
-import org.neo4j.ogm.model.Statistics;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.Utils;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
@@ -363,20 +363,20 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
      */
     @Test
     public void shouldReturnQueryStats() {
-        Statistics stats = this.template.query("CREATE (a:Actor {name:'Keanu Reeves'}) CREATE (m:Movie {title:'The Matrix'}) " +
-                "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m)", Collections.EMPTY_MAP).statistics();
+        QueryStatistics stats = this.template.query("CREATE (a:Actor {name:'Keanu Reeves'}) CREATE (m:Movie {title:'The Matrix'}) " +
+                "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m)", Collections.EMPTY_MAP).queryStatistics();
 
         assertEquals(2, stats.getNodesCreated());
         assertEquals(3, stats.getPropertiesSet());
         assertEquals(1, stats.getRelationshipsCreated());
         assertEquals(2, stats.getLabelsAdded());
 
-        stats = this.template.query("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null", Collections.EMPTY_MAP).statistics(); 
+        stats = this.template.query("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null", Collections.EMPTY_MAP).queryStatistics(); 
         assertTrue(stats.containsUpdates());
         assertEquals(1, stats.getLabelsRemoved());
         assertEquals(1, stats.getPropertiesSet());
 
-        stats = this.template.query("MATCH n-[r]-(m:Movie) delete n,r,m",Collections.EMPTY_MAP).statistics();
+        stats = this.template.query("MATCH n-[r]-(m:Movie) delete n,r,m",Collections.EMPTY_MAP).queryStatistics();
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesDeleted());
         assertEquals(1, stats.getRelationshipsDeleted());
@@ -387,16 +387,16 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
      */
     @Test
     public void shouldReturnSchemaQueryStats() {
-        Statistics stats = this.template.query("CREATE INDEX ON :Actor(name)", Collections.EMPTY_MAP).statistics();
+        QueryStatistics stats = this.template.query("CREATE INDEX ON :Actor(name)", Collections.EMPTY_MAP).queryStatistics();
         assertEquals(1, stats.getIndexesAdded());
 
-        stats = this.template.query("CREATE CONSTRAINT ON (movie:Movie) ASSERT movie.title IS UNIQUE", Collections.EMPTY_MAP).statistics();
+        stats = this.template.query("CREATE CONSTRAINT ON (movie:Movie) ASSERT movie.title IS UNIQUE", Collections.EMPTY_MAP).queryStatistics();
         assertEquals(1, stats.getConstraintsAdded());
 
-        stats = this.template.query("DROP CONSTRAINT ON (movie:Movie) ASSERT movie.title is UNIQUE", Collections.EMPTY_MAP).statistics();
+        stats = this.template.query("DROP CONSTRAINT ON (movie:Movie) ASSERT movie.title is UNIQUE", Collections.EMPTY_MAP).queryStatistics();
         assertEquals(1, stats.getConstraintsRemoved());
 
-        stats = this.template.query("DROP INDEX ON :Actor(name)", Collections.EMPTY_MAP).statistics();
+        stats = this.template.query("DROP INDEX ON :Actor(name)", Collections.EMPTY_MAP).queryStatistics();
         assertEquals(1, stats.getIndexesRemoved());
     }
 
@@ -405,7 +405,7 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
      */
     @Test
     public void shouldReturnQueryStatsForQueryWithParams() {
-        Statistics stats = this.template.execute("CREATE (a:Actor {name:{actorName}}) CREATE (m:Movie {title:{movieTitle}}) " +
+        QueryStatistics stats = this.template.execute("CREATE (a:Actor {name:{actorName}}) CREATE (m:Movie {title:{movieTitle}}) " +
                 "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m)",map("actorName","Keanu Reeves", "movieTitle","THe Matrix"));
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesCreated());
@@ -418,7 +418,7 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
         assertEquals(1, stats.getLabelsRemoved());
         assertEquals(1, stats.getPropertiesSet());
 
-        stats = this.template.query("MATCH n-[r]-(m:Movie) delete n,r,m", Collections.EMPTY_MAP).statistics();
+        stats = this.template.query("MATCH n-[r]-(m:Movie) delete n,r,m", Collections.EMPTY_MAP).queryStatistics();
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesDeleted());
         assertEquals(1, stats.getRelationshipsDeleted());
@@ -455,13 +455,13 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
                 "CREATE (a:Actor {name:{actorName}}) CREATE (m:Movie {title:{movieTitle}}) " +
                 "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m) return a.name as actorName, m.title as movieName", map("actorName", "Keanu Reeves", "movieTitle", "The Matrix"));
 
-        Statistics stats = results.statistics();
+        QueryStatistics stats = results.queryStatistics();
         assertEquals(2, stats.getNodesCreated());
         assertEquals(3, stats.getPropertiesSet());
         assertEquals(1, stats.getRelationshipsCreated());
         assertEquals(2, stats.getLabelsAdded());
 
-        Iterable<Map<String,Object>> iterableResults = results.model();
+        Iterable<Map<String,Object>> iterableResults = results.queryResults();
         assertNotNull(iterableResults);
         for(Map<String,Object> row : iterableResults) {
             assertEquals("Keanu Reeves",row.get("actorName"));

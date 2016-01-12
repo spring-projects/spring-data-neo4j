@@ -27,6 +27,7 @@ import org.springframework.data.neo4j.examples.movies.domain.queryresult.*;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UnmanagedUserPojo;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -42,9 +43,10 @@ import static org.junit.Assert.*;
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class QueryIntegrationTest extends MultiDriverTestClass {
 
-    private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
+    private static GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
 
     @Autowired
     private UserRepository userRepository;

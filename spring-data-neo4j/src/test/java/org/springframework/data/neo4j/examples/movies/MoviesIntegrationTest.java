@@ -31,6 +31,7 @@ import org.springframework.data.neo4j.examples.movies.repo.*;
 import org.springframework.data.neo4j.examples.movies.service.UserService;
 import org.springframework.data.neo4j.server.InProcessServer;
 import org.springframework.data.neo4j.server.Neo4jServer;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -49,6 +50,7 @@ import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class MoviesIntegrationTest extends MultiDriverTestClass {
 
     private final Logger logger = LoggerFactory.getLogger(MoviesIntegrationTest.class);

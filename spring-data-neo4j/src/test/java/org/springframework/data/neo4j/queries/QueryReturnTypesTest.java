@@ -2,12 +2,13 @@ package org.springframework.data.neo4j.queries;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.model.Statistics;
+import org.neo4j.ogm.model.QueryStatistics;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.galaxy.context.GalaxyContext;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
 import org.springframework.data.neo4j.examples.galaxy.repo.WorldRepository;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -20,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
  */
 @ContextConfiguration(classes = {GalaxyContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class QueryReturnTypesTest extends MultiDriverTestClass {
 
     @Autowired
@@ -70,7 +72,7 @@ public class QueryReturnTypesTest extends MultiDriverTestClass {
 
         worldRepository.save(tatooine);
 
-        Statistics stats = worldRepository.touchAllWorldsWithStatistics().statistics();
+        QueryStatistics stats = worldRepository.touchAllWorldsWithStatistics().queryStatistics();
 
         assertEquals(1, stats.getPropertiesSet());
 
