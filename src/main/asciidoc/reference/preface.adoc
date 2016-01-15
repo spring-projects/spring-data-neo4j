@@ -11,9 +11,11 @@ Like JPA, it uses annotations on simple POJO domain objects.
 Together with metadata, the annotations drive mapping the POJO entities and their fields to nodes, relationships, and properties in the graph database.
 
 == About Spring Data Neo4j 4
-For version 4, Spring Data Neo4j has been rewritten from scratch to natively support Neo4j deployments in standalone server mode. 
+For version 4.0, Spring Data Neo4j was rewritten from scratch to natively support Neo4j deployments in standalone server mode.
 It uses Cypher, the Neo4j query language, and the HTTP protocol to communicate with the database.
 It's therefore worth noting that there *will be backward compatibility issues* when migrating to version 4, so be sure to check the <<migration,Migration Guide>> to avoid any unwanted surprises.
+
+Version 4.1 introduces support for connecting to an embedded instance of Neo4j.
 
 For integration of Neo4j and other languages, please see http://neo4j.com/developer/language-guides/[Language Guides].
 

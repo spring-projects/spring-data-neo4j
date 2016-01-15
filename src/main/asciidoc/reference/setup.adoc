@@ -43,7 +43,7 @@ Support for XML namespace configuration is expected to be available in later ver
 In order to configure Spring Data Neo4j with Java-based bean config, your Spring context must extend the core `Neo4jConfiguration` class that comes with Spring Data Neo4j. 
 The example below shows how this can be done.
 
-NOTE:   You will need to override the `neo4jServer()`, `getSessionFactory()` and `getSession()` bean definitions to provide
+NOTE:   You will need to override `getSessionFactory()` and `getSession()` bean definitions to provide
 the required context for your own application. This is explained in more detail below.
 
 .Pure Java Configuration
@@ -53,11 +53,6 @@ the required context for your own application. This is explained in more detail 
 @EnableNeo4jRepositories(basePackages = "org.neo4j.example.repository")
 @EnableTransactionManagement
 public class MyConfiguration extends Neo4jConfiguration {
-
-    @Bean
-    public Neo4jServer neo4jServer() {
-        return new RemoteServer("http://localhost:7474");
-    }
 
     @Bean
     public SessionFactory getSessionFactory() {
@@ -75,43 +70,188 @@ public class MyConfiguration extends Neo4jConfiguration {
 }
 ----
 
-=== Neo4jServer Bean
+== Drivers
 
-The `Neo4jServer` interface simply provides a URL with which to access the database.  
-The default implementations are `RemoteServer` and `InProcessServer` (for testing).
+As of 4.1, Spring Data Neo4j provides suppport for connecting to Neo4j using different drivers. As a result, the `RemoteServer` and `InProcessServer` classes should not be used, and are no longer directly supported in the configuration. The following drivers are available.
 
-As the name implies, `RemoteServer` is used to provide the URL of a remote Neo4j server.  
-This will be the most typical use case for deployed applications.  
-As the above example shows, you simply construct a new instance with the URL of the server that you want to use.
+- Http driver
+- Embedded driver
 
-`InProcessServer` is useful for test and development environments, but is not recommended for production use.  
-This implementation will start a new instance of `CommunityNeoServer` running on an available local port and return the URL needed to connect to it. 
-It also registers a shutdown hook so that the underlying Neo4j server exits cleanly when the JVM shuts down, via _Control+C_, for example.
-To use the `InProcessServer` in your tests, you will need to add the following dependencies:
+You must configure your application by specifying which driver you want to use to connect to Neo4j.
+There are two basic ways to do this: using a single properties file, or programmatically.
+
+=== Properties file
+
+Unless you supply an explicit Configuration object to the SessionFactory (see Java Configuration, below), Spring Data Neo4j will attempt to auto-configure itself using a file called `ogm.properties`, which it expects to find on the classpath.
+
+If you want to configure your application using a _different_ properties file, you must either set a System property or Environment variable called 'ogm.properties' pointing to the alternative configuration file you want to use.
+
+=== Java Configuration
+
+In many cases you won't want to, or will not be able to provide configuration information via a properties file.
+In these cases you can configure your application programmatically instead.
+
+The following sections describe how to configure Spring Data Neo4j using either a properties file or via Java Configuration.
+
+==== Configuring the Http Driver
+
+The Http Driver connects to and communicates with a Neo4j server over Http. An Http Driver must be used if your application is running in client-server mode. Please note the Http Driver can't be used for spinning up an in-process server.
+
+.Properties file
+
+```
+driver=org.neo4j.ogm.drivers.http.driver.HttpDriver
+URI=http://user:password@localhost:7474
+```
+
+.Java Configuration
+
+The simplest way to configure the Driver is to create a Configuration bean and pass it as the first argument to the SessionFactory constructor in your Spring configuration:
+
+[source,java]
+----
+import org.neo4j.ogm.config.Configuration;
+...
+
+@Bean
+public Configuration getConfiguration() {
+   Configuration config = new Configuration();
+   config
+       .driverConfiguration()
+       .setDriverClassName
+        ("org.neo4j.ogm.drivers.http.driver.HttpDriver")
+       .setURI("http://user:password@localhost:7474");
+   return config;
+}
+
+@Bean
+public SessionFactory getSessionFactory() {
+    return new SessionFactory(getConfiguration(), <packages> );
+}
+----
+
+_Note: Please see the section below describing the different ways you can pass credentials to the Http Driver_
+
+==== Configuring the Embedded Driver
+
+The Embedded Driver connects directly to the Neo4j database engine. There is no server involved, therefore no network overhead between your application code and the database.
+You should use the Embedded driver if you don't want to use a client-server model, or if your application is running as a Neo4j Unmanaged Extension.
+You can specify a permanent data store location to provide durability of your data after your application shuts down, or you can use an impermanent data store, which will only exist while your application is running.
+
+.Properties file (permanent data store)
+```
+driver=org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver
+URI=file:///var/tmp/graph.db
+```
+
+.Properties file (impermanent data store)
+```
+driver=org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver
+```
+
+.Java Configuration (permanent data store)
+
+The same technique is used for configuring the Embedded driver as for the Http Driver.
+Set up a Configuration bean and pass it as the first argument to the SessionFactory constructor:
+
+[source,java]
+----
+import org.neo4j.ogm.config.Configuration;
+...
+
+@Bean
+public Configuration getConfiguration() {
+   Configuration config = new Configuration();
+   config
+       .driverConfiguration()
+       .setDriverClassName
+        ("org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver")
+       .setURI("file:///var/tmp/graph.db");
+   return config;
+}
+
+@Bean
+public SessionFactory getSessionFactory() {
+    return new SessionFactory(getConfiguration(), <packages> );
+}
+----
+
+If you want to use an impermanent data store (e.g. for testing) simply omit the URI attribute from the Configuration:
+
+[source,java]
+----
+@Bean
+public Configuration getConfiguration() {
+   Configuration config = new Configuration();
+   config
+       .driverConfiguration()
+       .setDriverClassName
+        ("org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver")
+   return config;
+}
+----
+
+==== Authentication
+
+If you are using the Http Driver you have a number of different ways to supply credentials to the Driver Configuration.
+
+.Properties file options:
+```
+# embedded in the URI
+URI=http://user:password@localhost:7474
+
+# as separate attributes
+username="user"
+password="password"
+```
+
+.Java Configuration options
+[source,java]
+----
+// embedded
+Components.configuration()
+             .driverConfiguration()
+             .setURI("bolt://user:password@localhost");
+
+// separately as plain text
+Components.configuration()
+             .driverConfiguration()
+             .setCredentials("user", "password);
+
+// using a Credentials object
+Credentials credentials = new UsernameAndPasswordCredentials("user", "password");
+Components.configuration()
+             .driverConfiguration()
+             .setCredentials(credentials);
+----
+
+_Note: Currently only Basic Authentication is supported by Neo4j, so the only Credentials implementation available is `UsernameAndPasswordCredentials`_
+
+=== Testing
 
 .Maven dependencies for Spring Data Neo4j Test classes
 [source,xml]
 ----
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-neo4j</artifactId>
-            <version>${sdn.version}</version>
-            <type>test-jar</type>
-        </dependency>
+       <dependency>
+           <groupId>org.springframework.data</groupId>
+           <artifactId>spring-data-neo4j</artifactId>
+           <version>${sdn.version}</version>
+           <type>test-jar</type>
+       </dependency>
 
-        <dependency>
-            <groupId>org.neo4j</groupId>
+       <dependency>
+           <groupId>org.neo4j</groupId>
             <artifactId>neo4j-kernel</artifactId>
             <version>${neo4j.version}</version>
             <type>test-jar</type>
-        </dependency>
+       </dependency>
 
-        <dependency>
+       <dependency>
             <groupId>org.neo4j.app</groupId>
             <artifactId>neo4j-server</artifactId>
             <version>${neo4j.version}</version>
             <type>test-jar</type>
-        </dependency>
+       </dependency>
 
        <dependency>
           <groupId>org.neo4j</groupId>
@@ -128,6 +268,8 @@ To use the `InProcessServer` in your tests, you will need to add the following d
           <scope>test</scope>
       </dependency>
 ----
+
+Please note: In SDN 4.1, the `InProcessServer` has been deprecated. This class was used to set up an in-memory Http server so that you could run your tests. This is no longer appropriate given the new Driver mechanism, and we recommend you configure an Embedded Driver for your integration tests.
 
 === SessionFactory Bean
 
@@ -157,51 +299,3 @@ Either way, if you make sure you load fresh data at the beginning of each unit o
 
 Additional beans can be configured to be included in the Neo4j-Configuration just by defining them in the Spring context in the normal way.
 
-=== Authentication
-If you're running against Neo4j 2.2 or later and authentication is enabled, you will need to supply connection credentials.
-This can be accomplished by supplying the username and password when constructing a `RemoteServer`,
-or by embedded them into the URL such as `http://username:password@localhost:7474`.
-
-.Passing connection credentials when constructing a RemoteServer
-[source,java]
-----
-@Bean
-public Neo4jServer neo4jServer() {
-    return new RemoteServer("http://localhost:7474",username,password);
-}
-----
-
-.Embedding connection credentials in the URL
-[source,java]
-----
-@Bean
-public Neo4jServer neo4jServer() {
-    return new RemoteServer("http://username:password@localhost:7474",username,password);
-}
-----
-
-Otherwise, Spring Data Neo4j 4 reads System properties `username` and `password` and supplies them with each request to the Neo4j database.
-An example of setting these via the Environment is provided below
-
-.Setting System properties from the Environment
-[source,java]
-----
-@Configuration
-@EnableNeo4jRepositories(basePackages = "org.neo4j.example.repository")
-@EnableTransactionManagement
-public class MyConfiguration extends Neo4jConfiguration {
-
-    @Autowired
-    private Environment env;
-
-    @Bean
-    public Neo4jServer neo4jServer() {
-        String user = env.getProperty("neo4j.user");
-        System.setProperty("username", user);
-
-        String pass = env.getProperty("neo4j.pass");
-        System.setProperty("password", pass);
-        return new RemoteServer("http://localhost:7474");
-    }
-}
-----
