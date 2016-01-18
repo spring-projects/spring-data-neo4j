@@ -275,10 +275,8 @@ public class MoviesIntegrationTest extends MultiDriverTestClass {
     }
 
     @Test(expected = DataAccessException.class)
-    @Ignore("this isn't working as the docs say it should. We must be doing something wrong")
     public void shouldInterceptOGMExceptions() {
-        User user = null;
-        userRepository.save(user);
+        ratingRepository.findAll(0);  // ratings are REs and must be found to at least depth 1 in order to get the start and end nodes
     }
 
     @Test

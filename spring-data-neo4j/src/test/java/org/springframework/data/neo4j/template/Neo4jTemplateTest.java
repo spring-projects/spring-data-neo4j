@@ -29,6 +29,7 @@ import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.Utils;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.examples.movies.domain.*;
 import org.springframework.data.neo4j.template.context.Neo4jTemplateConfiguration;
 import org.springframework.test.context.ContextConfiguration;
@@ -298,7 +299,7 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
      */
     @Test(expected = java.lang.RuntimeException.class)
     @Ignore // review 2.0
-    public void shouldThrowExeceptionForExecuteQueryThatReturnsResults() {
+    public void shouldThrowExceptionForExecuteQueryThatReturnsResults() {
         this.template.query("CREATE (g1:Genre {name:'Comedy'}), (g2:Genre {name:'Action'}) return g1", Collections.EMPTY_MAP);
     }
 
@@ -345,9 +346,9 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
     /**
      * @see DATAGRAPH-738
      */
-    @Test(expected = UncategorizedGraphStoreException.class)
+    @Test(expected = InvalidDataAccessApiUsageException.class)
     public void shouldConvertOGMExceptionsToPersistenceExceptions() {
-        this.template.loadAll(Void.class);
+        this.template.loadAll(Rating.class, 0);
     }
 
     /**

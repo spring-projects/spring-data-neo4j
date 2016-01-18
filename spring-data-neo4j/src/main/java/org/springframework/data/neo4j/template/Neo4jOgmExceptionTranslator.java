@@ -12,7 +12,10 @@
 
 package org.springframework.data.neo4j.template;
 
-import org.neo4j.ogm.exception.*;
+import org.neo4j.ogm.exception.InvalidDepthException;
+import org.neo4j.ogm.exception.NotFoundException;
+import org.neo4j.ogm.exception.ResultProcessingException;
+import org.neo4j.ogm.exception.TransactionException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -25,22 +28,27 @@ public class Neo4jOgmExceptionTranslator {
 
 	public static DataAccessException translateExceptionIfPossible(Exception ex) {
 		try {
-			throw ex;
-		}  catch(NotFoundException nfe) {
-			throw new DataRetrievalFailureException(nfe.getMessage(), nfe);
-		} catch(InvalidDepthException ide) {
-			throw new InvalidDataAccessApiUsageException(ide.getMessage(), ide);
-		} catch(MappingException me) {
-			throw new UncategorizedGraphStoreException(me.getMessage(), me);
-		} catch(ResultProcessingException rpe) {
-			throw new DataRetrievalFailureException(rpe.getMessage(), rpe);
-		} catch(TransactionException te) {
-			throw new NoTransactionException(te.getMessage(), te);
-		} catch(RuntimeException re) {
-			throw new UncategorizedGraphStoreException(re.getMessage(),re);
+			throw (RuntimeException) ex;
 		}
-		catch(Exception e) {
-			throw new RuntimeException(e);
+
+		catch(NotFoundException nfe) {
+			throw new DataRetrievalFailureException(nfe.getMessage(), nfe);
+		}
+
+		catch(InvalidDepthException ide) {
+			throw new InvalidDataAccessApiUsageException(ide.getMessage(), ide);
+		}
+
+		catch(ResultProcessingException rpe) {
+			throw new DataRetrievalFailureException(rpe.getMessage(), rpe);
+		}
+
+		catch(TransactionException te) {
+			throw new NoTransactionException(te.getMessage(), te);
+		}
+
+		catch(RuntimeException e) {
+			throw e;
 		}
 	}
 

@@ -25,6 +25,7 @@ import org.springframework.dao.annotation.PersistenceExceptionTranslationPostPro
 import org.springframework.dao.support.PersistenceExceptionTranslationInterceptor;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.template.Neo4jOgmExceptionTranslator;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
@@ -71,7 +72,7 @@ public abstract class Neo4jConfiguration {
             @Override
             public DataAccessException translateExceptionIfPossible(RuntimeException e) {
                 logger.info("Intercepted exception");
-                throw e;
+                throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
             }
         };
     }
