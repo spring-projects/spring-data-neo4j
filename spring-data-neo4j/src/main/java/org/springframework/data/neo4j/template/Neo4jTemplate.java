@@ -15,8 +15,8 @@ package org.springframework.data.neo4j.template;
 
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
-import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.model.QueryStatistics;
+import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,72 +71,39 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
 
     @Override
     public <T> T load(Class<T> type, Long id) {
-        try {
-            return session.load(type, id);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.load(type, id);
     }
 
     @Override
     public <T> T load(Class<T> type, Long id, int depth) {
-        try {
-            return session.load(type, id, depth);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-
-        }
+        return session.load(type, id, depth);
     }
 
     public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids) {
-        try {
-            return session.loadAll(type, ids);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.loadAll(type, ids);
     }
 
     public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, int depth) {
-        try {
-            return session.loadAll(type, ids, depth);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.loadAll(type, ids, depth);
     }
 
     @Override
     public <T> Collection<T> loadAll(Class<T> type) {
-        try {
-            return session.loadAll(type);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.loadAll(type);
     }
 
     @Override
     public <T> Collection<T> loadAll(Class<T> type, int depth) {
-        try {
-            return session.loadAll(type, depth);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.loadAll(type, depth);
     }
 
     public <T> Collection<T> loadAll(Collection<T> objects) {
-        try {
-            return session.loadAll(objects);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.loadAll(objects);
     }
 
     @Override
     public <T> Collection<T> loadAll(Collection<T> objects, int depth) {
-        try {
-            return session.loadAll(objects, depth);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.loadAll(objects, depth);
     }
 
     @Override
@@ -146,28 +113,16 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
 
     @Override
     public <T> T loadByProperty(Class<T> type, String propertyName, Object propertyValue, int depth) {
-        try {
-            return getSingle(loadAllByProperty(type, propertyName, propertyValue, depth));
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return getSingle(loadAllByProperty(type, propertyName, propertyValue, depth));
     }
 
     public <T> T loadByPropertyOrNull(Class<T> type, String propertyName, Object propertyValue) {
-        try {
-            return getSingleOrNull(loadAllByProperty(type, propertyName, propertyValue));
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return getSingleOrNull(loadAllByProperty(type, propertyName, propertyValue));
     }
 
     @Override
     public <T> Collection<T> loadAllByProperty(Class<T> type, String name, Object value) {
-        try {
-            return session.loadAll(type, new Filter(name, value));
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.loadAll(type, new Filter(name, value));
     }
 
     @Override
@@ -177,11 +132,7 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
 
     @Override
     public <T> T loadByProperties(Class<T> type, Filters parameters, int depth) {
-        try {
-            return getSingle(loadAllByProperties(type, parameters, depth));
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return getSingle(loadAllByProperties(type, parameters, depth));
     }
 
     @Override
@@ -191,30 +142,18 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
 
     @Override
     public <T> Collection<T> loadAllByProperties(Class<T> type, Filters parameters, int depth) {
-        try {
-            return session.loadAll(type, parameters, depth);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.loadAll(type, parameters, depth);
     }
 
     public <T> Collection<T> loadAllByProperty(Class<T> type, String name, Object value, int depth) {
-        try {
-            return session.loadAll(type, new Filter(name, value), depth);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.loadAll(type, new Filter(name, value), depth);
     }
 
     @Override
     public void delete(Object entity) {
-        try {
-            publishEvent(new BeforeDeleteEvent(this, entity));
-            session.delete(entity);
-            publishEvent(new AfterDeleteEvent(this, entity));
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        publishEvent(new BeforeDeleteEvent(this, entity));
+        session.delete(entity);
+        publishEvent(new AfterDeleteEvent(this, entity));
     }
 
     @Override
@@ -223,106 +162,61 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     }
 
     public <T> void deleteAll(Class<T> type) {
-        try {
-            session.deleteAll(type);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        session.deleteAll(type);
     }
 
     @Override
     public QueryStatistics execute(String jsonStatements) {
-        try {
-            return session.query(jsonStatements, Utils.map()).queryStatistics();
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.query(jsonStatements, Utils.map()).queryStatistics();
     }
 
     @Override
     public QueryStatistics execute(String cypher, Map<String, Object> parameters) {
-        try {
-            return session.query(cypher, parameters).queryStatistics();
-        }
-        catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.query(cypher, parameters).queryStatistics();
     }
 
     public void purgeSession() {
-        try {
-            session.clear();
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        session.clear();
     }
 
     @Override
     public <T> T save(T entity) {
-        try {
-            publishEvent(new BeforeSaveEvent(this, entity));
-            session.save(entity);
-            publishEvent(new AfterSaveEvent(this, entity));
-            return entity;
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        publishEvent(new BeforeSaveEvent(this, entity));
+        session.save(entity);
+        publishEvent(new AfterSaveEvent(this, entity));
+        return entity;
     }
 
     public <T> T save(T entity, int depth) {
-        try {
-            publishEvent(new BeforeSaveEvent(this, entity));
-            session.save(entity, depth);
-            publishEvent(new AfterSaveEvent(this, entity));
-            return entity;
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        publishEvent(new BeforeSaveEvent(this, entity));
+        session.save(entity, depth);
+        publishEvent(new AfterSaveEvent(this, entity));
+        return entity;
     }
 
     @Override
     public Result query(String cypher, Map<String, ?> parameters) {
-        try {
-            return session.query(cypher, parameters);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.query(cypher, parameters);
     }
 
     @Override
     public <T> Iterable<T> queryForObjects(Class<T> objectType, String cypher, Map<String, ?> parameters) {
-        try {
-            return session.query(objectType, cypher, parameters);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.query(objectType, cypher, parameters);
     }
 
     @Override
     public Result query(String cypher, Map<String, ?> parameters, boolean readOnly) {
-        try {
-            return session.query(cypher, parameters, readOnly);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.query(cypher, parameters, readOnly);
     }
 
     @Override
     public <T> T queryForObject(Class<T> objectType, String cypher, Map<String, ?> parameters) {
-        try {
-            return session.queryForObject(objectType, cypher, parameters);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.queryForObject(objectType, cypher, parameters);
     }
 
     @Override
     public long count(Class<?> entityClass) {
-        try {
-            return session.countEntitiesOfType(entityClass);
-        } catch (Exception e) {
-            throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-        }
+        return session.countEntitiesOfType(entityClass);
     }
 
     private void publishEvent(Neo4jDataManipulationEvent event) {
