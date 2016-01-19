@@ -186,7 +186,7 @@ public Configuration getConfiguration() {
    config
        .driverConfiguration()
        .setDriverClassName
-        ("org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver")
+        ("org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver");
    return config;
 }
 ----
@@ -269,8 +269,10 @@ _Note: Currently only Basic Authentication is supported by Neo4j, so the only Cr
       </dependency>
 ----
 
-Please note: In SDN 4.1, the `InProcessServer` has been deprecated. This class was used to set up an in-memory Http server so that you could run your tests. This is no longer appropriate given the new Driver mechanism, and we recommend you configure an Embedded Driver for your integration tests.
-
+[NOTE]
+====
+In SDN 4.1, the `InProcessServer` has been deprecated. This class was used to set up an in-memory Http server so that you could run your tests. This is no longer appropriate given the new Driver mechanism, and we recommend you configure an Embedded Driver for your integration tests.
+====
 === SessionFactory Bean
 
 The `SessionFactory` is needed by SDN to create instances of `org.neo4j.ogm.session.Session` as required.  
