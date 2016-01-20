@@ -26,6 +26,7 @@ import org.springframework.data.neo4j.annotation.NodeEntity;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.index.IndexType;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.DefaultParameters;
 import org.springframework.data.repository.query.Parameters;
@@ -425,7 +426,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
 
     protected void assertRepositoryQueryMethod(Class<ThingRepository> repositoryClass, String methodName, Object[] paramValues, String expectedQuery, Object...expectedParam) {
         Method method = methodFor(repositoryClass, methodName);
-        DerivedCypherRepositoryQuery derivedCypherRepositoryQuery = new DerivedCypherRepositoryQuery(ctx, new GraphQueryMethod(method, new DefaultRepositoryMetadata(repositoryClass), null, ctx, null), template);
+        DerivedCypherRepositoryQuery derivedCypherRepositoryQuery = new DerivedCypherRepositoryQuery(ctx, new GraphQueryMethod(method, new DefaultRepositoryMetadata(repositoryClass), null, ctx, new SpelAwareProxyProjectionFactory()), template);
         Parameters<?, ?> parameters = new DefaultParameters(method);
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, paramValues);
         String query = derivedCypherRepositoryQuery.createQueryWithPagingAndSorting(accessor);
