@@ -39,7 +39,7 @@ public class CypherMessageSource extends AbstractMessageSource {
 
     public void initialize() {
 
-        if (!initialized) {
+        if (!initialized && neo4jOperations != null) {
 
             initialized = true;
 
