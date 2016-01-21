@@ -15,8 +15,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.8.0.BUILD-SNAPSHOT</version>
-		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
+		<version>1.7.2.RELEASE</version>
 	</parent>
 
 	<modules>
@@ -32,16 +31,16 @@
 	<properties>
 		<project.type>multi</project.type>
 		<dist.id>spring-data-neo4j</dist.id>
-		<springdata.commons>1.12.0.BUILD-SNAPSHOT</springdata.commons>
+		<springdata.commons>1.11.2.RELEASE</springdata.commons>
 
 		<!-- Neo4j 2.0 now requires JDK 7 as a min -->
 		<source.level>1.7</source.level>
 		<target.level>1.7</target.level>
 
-		<neo4j.version>2.2.5</neo4j.version>
-		<neo4j.spatial.version>0.14-neo4j-2.2.3</neo4j.spatial.version>
+		<neo4j.version>2.3.2</neo4j.version>
+		<neo4j.spatial.version>0.15-neo4j-2.3.1</neo4j.spatial.version>
 
-		<neo4j-cypher-dsl.version>2.0.1</neo4j-cypher-dsl.version>
+		<neo4j-cypher-dsl.version>2.3.1</neo4j-cypher-dsl.version>
 		<bundlor.failOnWarnings>false</bundlor.failOnWarnings>
 	</properties>
 
