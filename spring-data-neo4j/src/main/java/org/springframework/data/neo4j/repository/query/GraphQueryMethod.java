@@ -19,7 +19,6 @@ import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.support.GenericTypeExtractor;
 import org.springframework.data.neo4j.support.Neo4jTemplate;
 import org.springframework.data.neo4j.support.mapping.Neo4jMappingContext;
-import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameter;
@@ -42,8 +41,8 @@ public class GraphQueryMethod extends QueryMethod {
     private final Neo4jMappingContext mappingContext;
     private final Query queryAnnotation;
 
-    public GraphQueryMethod(Method method, RepositoryMetadata metadata, NamedQueries namedQueries, Neo4jMappingContext mappingContext, ProjectionFactory factory) {
-        super(method, metadata, factory);
+    public GraphQueryMethod(Method method, RepositoryMetadata metadata, NamedQueries namedQueries, Neo4jMappingContext mappingContext) {
+        super(method, metadata);
         this.method = method;
         this.namedQueries = namedQueries;
         this.mappingContext = mappingContext;

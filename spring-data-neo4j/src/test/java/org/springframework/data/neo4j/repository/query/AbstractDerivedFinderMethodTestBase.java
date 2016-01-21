@@ -34,6 +34,7 @@ import org.springframework.data.repository.query.parser.Part;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -425,7 +426,7 @@ public abstract class AbstractDerivedFinderMethodTestBase {
 
     protected void assertRepositoryQueryMethod(Class<ThingRepository> repositoryClass, String methodName, Object[] paramValues, String expectedQuery, Object...expectedParam) {
         Method method = methodFor(repositoryClass, methodName);
-        DerivedCypherRepositoryQuery derivedCypherRepositoryQuery = new DerivedCypherRepositoryQuery(ctx, new GraphQueryMethod(method, new DefaultRepositoryMetadata(repositoryClass), null, ctx, null), template);
+        DerivedCypherRepositoryQuery derivedCypherRepositoryQuery = new DerivedCypherRepositoryQuery(ctx, new GraphQueryMethod(method, new DefaultRepositoryMetadata(repositoryClass), null, ctx), template);
         Parameters<?, ?> parameters = new DefaultParameters(method);
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, paramValues);
         String query = derivedCypherRepositoryQuery.createQueryWithPagingAndSorting(accessor);
