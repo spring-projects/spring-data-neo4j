@@ -15,6 +15,7 @@ package org.springframework.data.neo4j.examples.movies.domain.queryresult;
 
 import org.neo4j.ogm.annotation.Property;
 import org.springframework.data.neo4j.annotation.QueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 
 /**
@@ -30,5 +31,7 @@ public interface UserQueryResultInterface {
     String getNameOfUser();
 
     int getAgeOfUser();
+
+    User getUser();
 
 }

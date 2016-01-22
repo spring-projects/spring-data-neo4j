@@ -46,11 +46,11 @@ public class BusinessService {
     }
 
     private void insertNode() {
-        new Neo4jTemplate(session).execute("CREATE node");
+        new Neo4jTemplate(session).execute("CREATE (node {name: 'n'})");
     }
 
     public Iterable<Map<String, Object>> loadNodes() {
-        return new Neo4jTemplate(session).query("MATCH n RETURN n", new HashMap<String, Object>());
+        return new Neo4jTemplate(session).query("MATCH n RETURN n.name", new HashMap<String, Object>());
     }
 
     public void purge() {

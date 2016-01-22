@@ -69,11 +69,26 @@ public interface UserRepository extends GraphRepository<User> {
     @Query("MATCH (user:User) WHERE user.name={0} RETURN user.name, user.age AS ageOfUser")
     UserQueryResultInterface findIndividualUserAsProxiedObject(String name);
 
+    @Query("MATCH (user:User) WHERE user.name={0} RETURN user as user, user.age AS ageOfUser")
+    UserQueryResultInterface findWrappedUserAsProxiedObject(String name);
+
     @Query("MATCH (user:User) WHERE user.gender={0} RETURN user.name AS UserName, user.gender AS UserGender, user.account as UserAccount, user.deposits as UserDeposits")
     Iterable<RichUserQueryResult> findUsersByGender(Gender gender);
 
     @Query("MATCH (user:User) WHERE user.name={0} RETURN user")
     EntityWrappingQueryResult findWrappedUserByName(String userName);
+
+    @Query("MATCH (user:User)-[:FRIEND_OF]->(f) WHERE user.name={0} RETURN user, collect(f) as friends")
+    EntityWrappingQueryResult findWrappedUserAndFriendsDepth0(String userName);
+
+    @Query("MATCH (user:User)-[r:FRIEND_OF]->(f) WHERE user.name={0} RETURN user, collect(r) as rels, collect(f) as friends")
+    EntityWrappingQueryResult findWrappedUserAndFriendsDepth1(String userName);
+
+    @Query("MATCH (user:User)-[r:RATED]->(m) WHERE user.name={0} RETURN user, collect(r) as ratings, collect(m) as movies, avg(r.stars) as avgRating")
+    EntityWrappingQueryResult findWrappedUserAndRatingsByName(String userName);
+
+    @Query("MATCH (user:User)-[r:RATED]->(m) RETURN user, collect(r) as ratings, collect(m) as movies, avg(r.stars) as avgRating order by user.name desc")
+    List<EntityWrappingQueryResult> findAllUserRatings();
 
     @Query("MATCH (user:User) RETURN ID(user)")
     List<Long> getUserNodeIds();

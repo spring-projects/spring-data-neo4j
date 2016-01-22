@@ -13,9 +13,24 @@
 
 package org.springframework.data.neo4j.queries;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -23,20 +38,20 @@ import org.neo4j.ogm.exception.MappingException;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
+import org.springframework.data.neo4j.examples.movies.domain.Rating;
+import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
 import org.springframework.data.neo4j.examples.movies.domain.User;
-import org.springframework.data.neo4j.examples.movies.domain.queryresult.*;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.EntityWrappingQueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.Gender;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.RichUserQueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.UserQueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.UserQueryResultInterface;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UnmanagedUserPojo;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.*;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Vince Bickers
@@ -210,21 +225,6 @@ public class QueryIntegrationTest extends MultiDriverTestClass {
     }
 
     /**
-     * I'm not sure whether we should actually support this because you could just return an entity!
-     */
-    @Ignore
-    @Test
-    public void shouldMapNodeEntitiesIntoQueryResultObjects() {
-        executeUpdate("CREATE (:User {name:'Abraham'}), (:User {name:'Barry'}), (:User {name:'Colin'})");
-
-        EntityWrappingQueryResult wrappedUser = userRepository.findWrappedUserByName("Barry");
-        assertNotNull("The loaded wrapper object shouldn't be null", wrappedUser);
-        assertNotNull("The enclosed user shouldn't be null", wrappedUser.getUser());
-        assertEquals("Barry", wrappedUser.getUser().getName());
-    }
-
-
-    /**
      * @see DATAGRAPH-694
      */
     @Test
@@ -296,6 +296,152 @@ public class QueryIntegrationTest extends MultiDriverTestClass {
         for(UserQueryResult userQueryResult : queryResult) {
             assertNotNull(userQueryResult.getUserId());
         }
+    }
+
+    /**
+     * @see DATAGRAPH-700
+     */
+    @Test
+    public void shouldMapNodeEntitiesIntoQueryResultObjects() {
+        executeUpdate("CREATE (:User {name:'Abraham'}), (:User {name:'Barry'}), (:User {name:'Colin'})");
+
+        EntityWrappingQueryResult wrappedUser = userRepository.findWrappedUserByName("Barry");
+        assertNotNull("The loaded wrapper object shouldn't be null", wrappedUser);
+        assertNotNull("The enclosed user shouldn't be null", wrappedUser.getUser());
+        assertEquals("Barry", wrappedUser.getUser().getName());
+    }
+
+    /**
+     * @see DATAGRAPH-700
+     */
+    @Test
+    public void shouldMapNodeCollectionsIntoQueryResultObjects() {
+        executeUpdate("CREATE (d:User {name:'Daniela'}),  (e:User {name:'Ethan'}), (f:User {name:'Finn'}), (d)-[:FRIEND_OF]->(e), (d)-[:FRIEND_OF]->(f)");
+
+        EntityWrappingQueryResult result = userRepository.findWrappedUserAndFriendsDepth1("Daniela");
+        assertNotNull("The result shouldn't be null", result);
+        assertNotNull("The enclosed user shouldn't be null", result.getUser());
+        assertEquals("Daniela", result.getUser().getName());
+        assertEquals(2, result.getFriends().size());
+        List<String> friends = new ArrayList<>();
+        for (User u : result.getFriends()) {
+            friends.add(u.getName());
+        }
+        assertTrue(friends.contains("Ethan"));
+        assertTrue(friends.contains("Finn"));
+        assertEquals(2, result.getUser().getFriends().size()); //we expect friends to be mapped since the relationships were returned
+    }
+
+    /**
+     * @see DATAGRAPH-700
+     */
+    @Test
+    public void shouldMapRECollectionsIntoQueryResultObjects() {
+        executeUpdate("CREATE (g:User {name:'Gary'}), (sw:Movie {name: 'Star Wars: The Force Awakens'}), (hob:Movie {name:'The Hobbit: An Unexpected Journey'}), (g)-[:RATED {stars : 5}]->(sw), (g)-[:RATED {stars: 4}]->(hob) ");
+
+        EntityWrappingQueryResult result = userRepository.findWrappedUserAndRatingsByName("Gary");
+        assertNotNull("The loaded wrapper object shouldn't be null", result);
+        assertNotNull("The enclosed user shouldn't be null", result.getUser());
+        assertEquals("Gary", result.getUser().getName());
+        assertEquals(2, result.getRatings().size());
+        for (Rating rating : result.getRatings()) {
+            if (rating.getStars() == 4) {
+                assertEquals("The Hobbit: An Unexpected Journey", rating.getMovie().getName());
+            }
+            else {
+                assertEquals("Star Wars: The Force Awakens", rating.getMovie().getName());
+            }
+        }
+
+        assertEquals(4.5f, result.getAvgRating(),0);
+        assertEquals(2, result.getMovies().length);
+        List<String> titles = new ArrayList<>();
+        for (TempMovie movie : result.getMovies()) {
+            titles.add(movie.getName());
+        }
+        assertTrue(titles.contains("The Hobbit: An Unexpected Journey"));
+        assertTrue(titles.contains("Star Wars: The Force Awakens"));
+    }
+
+    /**
+     * @see DATAGRAPH-700
+     */
+    @Test
+    public void shouldMapRelationshipCollectionsWithDepth0IntoQueryResultObjects() {
+        executeUpdate("CREATE (i:User {name:'Ingrid'}),  (j:User {name:'Jake'}), (k:User {name:'Kate'}), (i)-[:FRIEND_OF]->(j), (i)-[:FRIEND_OF]->(k)");
+
+        EntityWrappingQueryResult result = userRepository.findWrappedUserAndFriendsDepth0("Ingrid");
+        assertNotNull("The result shouldn't be null", result);
+        assertNotNull("The enclosed user shouldn't be null", result.getUser());
+        assertEquals("Ingrid", result.getUser().getName());
+        assertEquals(2, result.getFriends().size());
+        List<String> friends = new ArrayList<>();
+        for (User u : result.getFriends()) {
+            friends.add(u.getName());
+        }
+        assertTrue(friends.contains("Kate"));
+        assertTrue(friends.contains("Jake"));
+        assertEquals(0, result.getUser().getFriends().size()); //we do not expect friends to be mapped since the relationships were not returned
+
+    }
+
+    /**
+     * @see DATAGRAPH-700
+     */
+    @Test
+    public void shouldReturnMultipleQueryResultObjects() {
+        executeUpdate("CREATE (g:User {name:'Gary'}), (h:User {name:'Harry'}), (sw:Movie {name: 'Star Wars: The Force Awakens'}), (hob:Movie {name:'The Hobbit: An Unexpected Journey'}), (g)-[:RATED {stars : 5}]->(sw), (g)-[:RATED {stars: 4}]->(hob), (h)-[:RATED {stars: 3}]->(hob) ");
+
+        List<EntityWrappingQueryResult> results = userRepository.findAllUserRatings();
+        assertEquals(2, results.size());
+        EntityWrappingQueryResult result = results.get(0);
+
+        assertNotNull("The loaded wrapper object shouldn't be null", result);
+        assertNotNull("The enclosed user shouldn't be null", result.getUser());
+        assertEquals("Harry", result.getUser().getName());
+        assertEquals(1, result.getRatings().size());
+        Rating rating = result.getRatings().get(0);
+        assertEquals("The Hobbit: An Unexpected Journey", rating.getMovie().getName());
+        assertEquals(3, rating.getStars());
+        assertEquals(3f, result.getAvgRating(),0);
+        assertEquals(1, result.getMovies().length);
+        assertEquals("The Hobbit: An Unexpected Journey", result.getMovies()[0].getName());
+
+        result = results.get(1);
+        assertNotNull("The loaded wrapper object shouldn't be null", result);
+        assertNotNull("The enclosed user shouldn't be null", result.getUser());
+        assertEquals("Gary", result.getUser().getName());
+        for (Rating r : result.getRatings()) {
+            if (r.getStars() == 4) {
+                assertEquals("The Hobbit: An Unexpected Journey", r.getMovie().getName());
+            }
+            else {
+                assertEquals("Star Wars: The Force Awakens", r.getMovie().getName());
+            }
+        }
+
+        assertEquals(4.5f, result.getAvgRating(),0);
+        assertEquals(2, result.getMovies().length);
+        List<String> titles = new ArrayList<>();
+        for (TempMovie movie : result.getMovies()) {
+            titles.add(movie.getName());
+        }
+        assertTrue(titles.contains("The Hobbit: An Unexpected Journey"));
+        assertTrue(titles.contains("Star Wars: The Force Awakens"));
+    }
+
+	/**
+     * @see DATAGRAPH-700
+     */
+    @Test
+    public void shouldMapEntitiesToProxiedQueryResultInterface() {
+        executeUpdate("CREATE (:User {name:'Morne', age:30}), (:User {name:'Abraham', age:31}), (:User {name:'Virat', age:27})");
+
+        UserQueryResultInterface result = userRepository.findWrappedUserAsProxiedObject("Abraham");
+        assertNotNull("The query result shouldn't be null", result);
+        assertNotNull("The mapped user shouldn't be null", result.getUser());
+        assertEquals("The wrong user was returned", "Abraham", result.getUser().getName());
+        assertEquals("The wrong user was returned", 31, result.getAgeOfUser());
     }
 
 }

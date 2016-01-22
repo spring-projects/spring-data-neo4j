@@ -13,7 +13,12 @@
 
 package org.springframework.data.neo4j.examples.movies.domain.queryresult;
 
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.data.neo4j.annotation.QueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.Rating;
+import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 
 /**
@@ -23,9 +28,28 @@ import org.springframework.data.neo4j.examples.movies.domain.User;
 public class EntityWrappingQueryResult {
 
     private User user;
+    private Set<User> friends;
+    private List<Rating> ratings;
+    private TempMovie[] movies;
+    private float avgRating;
 
     public User getUser() {
         return user;
     }
 
+    public Set<User> getFriends() {
+        return friends;
+    }
+
+    public List<Rating> getRatings() {
+        return ratings;
+    }
+
+    public float getAvgRating() {
+        return avgRating;
+    }
+
+    public TempMovie[] getMovies() {
+        return movies;
+    }
 }

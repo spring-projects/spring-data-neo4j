@@ -14,23 +14,19 @@
 package org.springframework.data.neo4j.repository.query;
 
 
-import org.neo4j.ogm.MetaData;
-import org.neo4j.ogm.annotations.EntityFactory;
-import org.neo4j.ogm.context.SingleUseEntityMapper;
-import org.neo4j.ogm.cypher.query.DefaultRowModelRequest;
-import org.neo4j.ogm.model.RowModel;
-import org.neo4j.ogm.request.Request;
-import org.neo4j.ogm.request.RowModelRequest;
-import org.neo4j.ogm.response.Response;
-import org.neo4j.ogm.session.GraphCallback;
-import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.transaction.Transaction;
+import static java.lang.reflect.Proxy.newProxyInstance;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
-import static java.lang.reflect.Proxy.newProxyInstance;
+import org.neo4j.ogm.MetaData;
+import org.neo4j.ogm.annotations.EntityFactory;
+import org.neo4j.ogm.context.SingleUseEntityMapper;
+import org.neo4j.ogm.request.Request;
+import org.neo4j.ogm.session.GraphCallback;
+import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.transaction.Transaction;
 
 /**
  * Specialisation of {@link GraphRepositoryQuery} that handles mapping to objects annotated with <code>&#064;QueryResult</code>.
@@ -61,22 +57,20 @@ public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
         return resultObjects.isEmpty() ? null : resultObjects.iterator().next();
     }
 
-    private Collection<Object> mapToConcreteType(final Class<?> targetType, String cypherQuery, Map<String, Object> queryParams) {
+    private Collection<Object> mapToConcreteType(final Class<?> targetType, final String cypherQuery, final Map<String, Object> queryParams) {
 
-        final RowModelRequest qry = new DefaultRowModelRequest(cypherQuery, queryParams);
+
 
         return this.session.doInTransaction(new GraphCallback<Collection<Object>>() {
             @Override
             public Collection<Object> apply(Request requestHandler, Transaction transaction, MetaData metaData) {
-                try (Response<RowModel> response = requestHandler.execute(qry)) {
-                    Collection<Object> toReturn = new ArrayList<>();
-
-                    SingleUseEntityMapper entityMapper = new SingleUseEntityMapper(metaData, new EntityFactory(metaData));
-                    for (RowModel rowModel = response.next(); rowModel != null; rowModel = response.next()) {
-                        toReturn.add(entityMapper.map(targetType, response.columns(), rowModel));
-                    }
-                    return toReturn;
+                Collection<Object> toReturn = new ArrayList<>();
+                SingleUseEntityMapper entityMapper = new SingleUseEntityMapper(metaData, new EntityFactory(metaData));
+                Iterable<Map<String,Object>> results = session.query(cypherQuery, queryParams);
+                for (Map<String,Object> result : results) {
+                  toReturn.add(entityMapper.map(targetType, result));
                 }
+                return toReturn;
             }
         });
     }
