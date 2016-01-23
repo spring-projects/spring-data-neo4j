@@ -16,14 +16,41 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 /**
- * Simple implementation of {@link org.springframework.context.MessageSource}
- * which allows messages to be loaded from the graph database using Cypher. 
- * This MessageSource supports basic internationalization.
+ * <p>
+ * An implementation of {@link org.springframework.context.MessageSource}
+ * which loads messages from a graph database using Cypher, 
+ * supporting basic localization and internationalization.
+ * </p>
+ * <p>
+ * The Cypher query used to retrieve localized messages from the database can be 
+ * overridden by using <code>setQueryCypher()</code>. Messages can be created within 
+ * the database by using Cypher statements such as:
  * <br/>
- * The Cypher query used to retrieve localized text from the database can be 
- * overridden by using <code>setQueryCypher</code>.
- * 
- * @author Eric Spiegelberg eric <at> miletwentyfour [dot] com
+ * <br/>
+ * <blockquote>
+ * <pre>
+ * CREATE (n1:LocalizedMessage { code: 'goodbye', en_US: 'Goodbye', en_GB: 'Cheerio'})
+ * </pre>
+ * </blockquote>
+ * </p>
+ * <p>
+ * Should your application make use of JavaConfig, this class can be registered within 
+ * your <code>ApplicationContext</code> by using the following configuration:
+ * </p>
+ * <blockquote>
+ * <pre>
+ * {@literal @}Bean
+ *   public MessageSource messageSource() {
+ *
+ *        MessageSource cypherMessageSource = new CypherMessageSource();
+ *
+ *        return cypherMessageSource;
+ *
+ *    }
+ * }
+ * </pre>
+ * </blockquote>
+ * @author Eric Spiegelberg - eric [at] miletwentyfour [dot] com
  */
 @Service
 public class CypherMessageSource extends AbstractMessageSource {
@@ -33,7 +60,7 @@ public class CypherMessageSource extends AbstractMessageSource {
 
     private boolean initialized;
 
-    private String queryCypher = "match (n:LocalizedText) return n";
+    private String queryCypher = "match (n:LocalizedMessage) return n";
 
     private Map<String, Map<Locale, String>> messages = new HashMap<String, Map<Locale, String>>();
 
