@@ -62,6 +62,8 @@ All other parameters types are provided directly (i.e. Strings, Longs, etc).
 [NOTE]
 ====
 In the current version, custom queries do not support paging, sorting or a custom depth.
+`@Query` does not support mapping a path to domain entities, as such, a path should not be returned from a Cypher query.
+Instead, return nodes and relationships to have them mapped to domain entities.
 ====
 
 === Query results
