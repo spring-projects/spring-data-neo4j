@@ -128,11 +128,6 @@ will take precedence over converters registered with Spring's ConversionService.
 
 For queries executed via `@Query` repository methods, it's possible to specify a conversion of complex query results to POJOs. These result objects are then populated with the query result data and can be serialized and sent to a different part of the application, e.g. a frontend-ui.  To take advantage of this feature, use a class annotated with `@QueryResult` as the method return type. 
 
-[NOTE]
-====
-Mapping to entities in a `QueryResult` is not yet supported by Spring Data Neo4j 4.
-====
-
 .Example of query result mapping
 [source,java]
 ----
@@ -140,14 +135,14 @@ public interface MovieRepository extends GraphRepository<Movie> {
 
     @Query("MATCH (movie:Movie)-[r:RATING]->(), (movie)<-[:ACTS_IN]-(actor:Actor) " +
            "WHERE movie.id={0} " +
-           "RETURN movie.id as movieId, COLLECT(actor.name) AS 'cast', AVG(r.stars) AS 'averageRating'")
+           "RETURN movie as movie, COLLECT(actor) AS 'cast', AVG(r.stars) AS 'averageRating'")
     MovieData getMovieData(String movieId);
 
     @QueryResult
     public class MovieData {
-        Long movieId;
+        Movie movie;
         Double averageRating;
-        Collection<String> cast;
+        Set<Actor> cast;
     }
 
 }

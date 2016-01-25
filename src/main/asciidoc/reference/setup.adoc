@@ -225,7 +225,10 @@ Components.configuration()
              .setCredentials(credentials);
 ----
 
-_Note: Currently only Basic Authentication is supported by Neo4j, so the only Credentials implementation available is `UsernameAndPasswordCredentials`_
+[NOTE]
+====
+Currently only Basic Authentication is supported by Neo4j, so the only Credentials implementation available is `UsernameAndPasswordCredentials`
+====
 
 === Testing
 
@@ -271,7 +274,8 @@ _Note: Currently only Basic Authentication is supported by Neo4j, so the only Cr
 
 [NOTE]
 ====
-In SDN 4.1, the `InProcessServer` has been deprecated. This class was used to set up an in-memory Http server so that you could run your tests. This is no longer appropriate given the new Driver mechanism, and we recommend you configure an Embedded Driver for your integration tests.
+In SDN 4.1, the `InProcessServer` has been deprecated. This class was used to set up an in-memory Http server so that you could run your tests.
+This is no longer appropriate given the new Driver mechanism, and we recommend you configure an Embedded Driver (impermanent data store) for your integration tests.
 ====
 === SessionFactory Bean
 
