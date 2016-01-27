@@ -1,0 +1,45 @@
+[[reference_appendix]]
+= Appendix
+
+== Repository Query Keywords
+
+The following table lists the keywords generally supported by the Spring Data Neo4j repository query derivation mechanism.
+
+[cols="1,1,2"]
+.Query Keywords
+|===
+|Logical keyword|Keyword expressions|Restrictions
+
+|`AND`
+|`and`
+|
+
+|`OR`
+|`or`
+|Cannot be used to OR nested properties
+
+|`GREATER_THAN`
+|`GreaterThan`
+|
+
+|`LESS_THAN`
+|`LessThan`
+|
+
+|`LIKE`
+|`Like`, `IsLike`
+|
+
+|`NOT`
+|`Not`
+|
+
+|`NOT_LIKE`
+|`NotLike`, `IsNotLike`
+|
+
+|`REGEX`
+|`Matches`
+|
+
+|===

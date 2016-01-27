@@ -53,4 +53,15 @@ include::reference/migration/migration.adoc[]
 :leveloffset: -1
 
 [[Configuration]]
+= Configuration in an HA Environment
+
+:leveloffset: +1
 include::reference/configuration/ha.adoc[]
+:leveloffset: -1
+
+[appendix]]
+= Appendix
+:leveloffset: +1
+include::reference/appendix/appendix.adoc[]
+:leveloffset: -1
+
