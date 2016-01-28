@@ -90,6 +90,7 @@ It is not possible to use relationship entities in a non-annotated domain model.
 @NodeEntity
 public class Actor {
     Long id;
+    @Relationship(type="PLAYED_IN")
     private Role playedIn;
 }
 
