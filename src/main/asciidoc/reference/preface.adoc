@@ -55,7 +55,7 @@ In keeping with the Spring Data ethos, an operations interface is used to define
 
 == Mapping Strategies
 Because Neo4j is a schema-free database, Spring Data Neo4j uses a simple mechanism to map Java types to Neo4j nodes using labels.
-How that works is explained here: <<reference_programming_model_typerepresentationstrategy,Entity Type Representation>>.
+How that works is explained here: <<reference_programming-model_simple-mapping,Simplified Object Graph Mapping>>.
 
 == Transactional Support
 Neo4j uses transactions to guarantee the integrity of your data and Spring Data Neo4j supports this fully. 

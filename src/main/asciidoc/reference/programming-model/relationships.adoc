@@ -151,3 +151,13 @@ Thanks to changes in the underlying object-graph mapping mechanism, this is no l
 
 However, please be aware that this will only work because the end node types (Car and Pet) are different types.
 If you wanted a person to own two cars, for example, then you'd have to use a `Collection` of cars or use differently-named relationship types.
+
+[[reference_programming_model_relationships_ambiguity]]
+== Ambiguity in relationships
+
+In cases where the relationship mappings could be ambiguous, the recommendation is that
+
+* the objects be navigable in both directions and
+* the @Relationship annotations are explicit. This means if the entity has setter methods, they must be annotated
+
+Examples of ambiguous relationship mappings are multiple relationship types that resolve to the same types of entities, in a given direction, but whose domain objects are not navigable in both directions.
