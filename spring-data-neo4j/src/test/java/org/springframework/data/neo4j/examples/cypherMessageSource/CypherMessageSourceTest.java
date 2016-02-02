@@ -18,6 +18,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.session.Session;
@@ -38,47 +39,97 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = { CypherMessageSourceContext.class })
 public class CypherMessageSourceTest extends MultiDriverTestClass {
 
-    @Autowired
-    Session session;
+	@Autowired
+	Session session;
 
-    @Autowired
-    Neo4jOperations neo4jTemplate;
+	@Autowired
+	Neo4jOperations neo4jTemplate;
 
-    @Autowired
-    CypherMessageSource messageSource;
+	@Autowired
+	CypherMessageSource cypherMessageSource;
 
-    @Test
-    public void unitTest() {
+	/**
+	 * Reinitialize the CypherMessageSource between each test. This allows each
+	 * test to populate the CypherMessageSource with its own desired messages.
+	 */
+	@Before
+	public void setUp() {
 
-    }
+		cypherMessageSource.setUninitialized();
 
-    /**
-     * This integration test populates the underlying Neo4j instance with messages codes. The 
-     * autowired <code>CypherMessageSource</code> is used to retreive the internationalized messages.
-     */
-    @Test
-    public void integrationTest() {
+	}
 
-        Map<String, Object> params = new HashMap<String, Object>();
+	@Test
+	public void testLocalizedMessage() {
 
-        String createCypher = "CREATE (n1:LocalizedMessage { code: 'hello', en_US: 'Hello', en_GB: 'Greetings'})";
-        neo4jTemplate.query(createCypher, params);
+		String code = "description";
 
-        createCypher = "CREATE (n1:LocalizedMessage { code: 'goodbye', en_US: 'Goodbye', en_GB: 'Cheerio'})";
-        neo4jTemplate.query(createCypher, params);
+		String textUS = "This is the US description";
+		cypherMessageSource.addMessage(code, Locale.US, textUS);
+		String localizedText = cypherMessageSource.getMessage(code, new Object[] {}, Locale.US);
+		Assert.assertEquals(textUS, localizedText);
 
-        String message = messageSource.getMessage("hello", new String[] {}, Locale.US);
-        Assert.assertEquals("Hello", message);
+		localizedText = cypherMessageSource.getMessage(code, new Object[] {}, Locale.UK);
+		Assert.assertEquals("", localizedText);
+		String textUK = "This is the UK description";
+		cypherMessageSource.addMessage(code, Locale.UK, textUK);
+		localizedText = cypherMessageSource.getMessage(code, new Object[] {}, Locale.UK);
+		Assert.assertEquals(textUK, localizedText);
 
-        message = messageSource.getMessage("hello", new String[] {}, Locale.UK);
-        Assert.assertEquals("Greetings", message);
+	}
 
-        message = messageSource.getMessage("goodbye", new String[] {}, Locale.US);
-        Assert.assertEquals("Goodbye", message);
+	/**
+	 * This integration test populates the underlying Neo4j instance with
+	 * messages codes. The autowired <code>CypherMessageSource</code> is used to
+	 * retreive the internationalized messages.
+	 */
+	@Test
+	public void integrationTest() {
 
-        message = messageSource.getMessage("goodbye", new String[] {}, Locale.UK);
-        Assert.assertEquals("Cheerio", message);
+		Map<String, Object> params = new HashMap<String, Object>();
 
-    }
+		// Delete any previously existing LocalizedMessage's
+		Map<String, Object> parameters = new HashMap<String, Object>(0);
+		String deleteLocalizedMessagesCypher = "match (n:LocalizedMessage) delete n";
+		neo4jTemplate.query(deleteLocalizedMessagesCypher, parameters);
 
+		String createCypher = "CREATE (n1:LocalizedMessage { code: 'hello', en_US: 'Hello', en_GB: 'Greetings'})";
+		neo4jTemplate.query(createCypher, params);
+
+		createCypher = "CREATE (n1:LocalizedMessage { code: 'goodbye', en_US: 'Goodbye', en_GB: 'Cheerio'})";
+		neo4jTemplate.query(createCypher, params);
+
+		String message = cypherMessageSource.getMessage("hello", new String[] {}, Locale.US);
+		Assert.assertEquals("Hello", message);
+
+		message = cypherMessageSource.getMessage("hello", new String[] {}, Locale.UK);
+		Assert.assertEquals("Greetings", message);
+
+		message = cypherMessageSource.getMessage("goodbye", new String[] {}, Locale.US);
+		Assert.assertEquals("Goodbye", message);
+
+		message = cypherMessageSource.getMessage("goodbye", new String[] {}, Locale.UK);
+		Assert.assertEquals("Cheerio", message);
+
+	}
+
+	/**
+	 * Test/demonstrate the changing of the <code>CypherMessageSource</code> query.
+	 */
+	//@Test
+	public void testSetQueryCypher() {
+
+		Map<String, Object> parameters = new HashMap<String, Object>(0);
+		String createLocalizedMessageCypher = "CREATE (n:LocalizedMessage { custom_code: 'beverage', en_US: 'Coffee', en_GB: 'Tea'})";
+		neo4jTemplate.query(createLocalizedMessageCypher, parameters);
+
+		String queryCypher = "match (n:LocalizedMessage) return n.custom_code as code, n.en_US as en_US, n.en_GB as en_GB";
+		cypherMessageSource.setQueryCypher(queryCypher);
+
+		String args[] = new String[] {};
+
+		String beverage = cypherMessageSource.getMessage("beverage", args, Locale.US);
+		Assert.assertEquals("Coffee", beverage);
+
+	}
 }
