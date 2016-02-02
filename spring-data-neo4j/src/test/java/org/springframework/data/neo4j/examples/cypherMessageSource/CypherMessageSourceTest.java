@@ -113,23 +113,4 @@ public class CypherMessageSourceTest extends MultiDriverTestClass {
 
 	}
 
-	/**
-	 * Test/demonstrate the changing of the <code>CypherMessageSource</code> query.
-	 */
-	//@Test
-	public void testSetQueryCypher() {
-
-		Map<String, Object> parameters = new HashMap<String, Object>(0);
-		String createLocalizedMessageCypher = "CREATE (n:LocalizedMessage { custom_code: 'beverage', en_US: 'Coffee', en_GB: 'Tea'})";
-		neo4jTemplate.query(createLocalizedMessageCypher, parameters);
-
-		String queryCypher = "match (n:LocalizedMessage) return n.custom_code as code, n.en_US as en_US, n.en_GB as en_GB";
-		cypherMessageSource.setQueryCypher(queryCypher);
-
-		String args[] = new String[] {};
-
-		String beverage = cypherMessageSource.getMessage("beverage", args, Locale.US);
-		Assert.assertEquals("Coffee", beverage);
-
-	}
 }
