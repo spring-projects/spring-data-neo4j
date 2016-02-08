@@ -24,8 +24,10 @@ import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
+import org.springframework.data.neo4j.examples.movies.domain.Director;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
+import org.springframework.data.neo4j.examples.movies.repo.DirectorRepository;
 import org.springframework.data.neo4j.examples.movies.repo.RatingRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.test.annotation.DirtiesContext;
@@ -59,6 +61,9 @@ public class DerivedQueryTest extends MultiDriverTestClass {
 
 	@Autowired
 	private RatingRepository ratingRepository;
+
+	@Autowired
+	private DirectorRepository directorRepository;
 
 	@Before
 	public void init() throws IOException {
@@ -420,5 +425,25 @@ public class DerivedQueryTest extends MultiDriverTestClass {
         assertEquals("The wrong number of users was returned", 1, nonMatchingUsers.size());
         assertEquals("The wrong user was returned", "Alan", nonMatchingUsers.get(0).getName());
     }
+
+	/**
+	 * @see DATAGRAPH-787
+	 */
+	@Test
+	public void shouldFindDirectorsByName() {
+		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'}) CREATE (d:Director {name:'Vince'})");
+
+		Collection<Director> directors = directorRepository.findByName("Vince");
+		Iterator<Director> iterator = directors.iterator();
+		assertTrue(iterator.hasNext());
+		Director director = iterator.next();
+		assertEquals("Vince", director.getName());
+		assertFalse(iterator.hasNext());
+
+		directors = directorRepository.findByName("Michal");
+		iterator = directors.iterator();
+		assertFalse(iterator.hasNext());
+
+	}
 
 }

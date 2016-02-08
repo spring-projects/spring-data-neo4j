@@ -25,6 +25,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 
 /**
  * @author Mark Angrish
@@ -70,6 +71,9 @@ public class GraphQueryMethod extends QueryMethod {
                 ParameterizedType returnType = (ParameterizedType) genericType;
                 Type componentType = returnType.getActualTypeArguments()[0];
 
+                if (componentType instanceof TypeVariable) {
+                    return this.getDomainClass();
+                }
                 return componentType instanceof ParameterizedType ?
                         (Class<?>) ((ParameterizedType) componentType).getRawType() :
                         (Class<?>) componentType;
