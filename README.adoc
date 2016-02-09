@@ -95,14 +95,14 @@ It supports:
 [source,java]
 ----
 @Configuration
-@EnableNeo4jRepositories(basePackages = "org.neo4j.example.repository")
+@EnableNeo4jRepositories(basePackages = "com.example.person.repository",...)
 @EnableTransactionManagement
 public class MyConfiguration extends Neo4jConfiguration {
 
     @Bean
     public SessionFactory getSessionFactory() {
         // with domain entity base package(s)
-        return new SessionFactory("org.neo4j.example.domain");
+        return new SessionFactory("com.example.person.domain",...);
     }
 
     // needed for session in view in web-applications
@@ -134,6 +134,8 @@ The application can be configured programmatically as well, please http://docs.s
 
 [source,java]
 ----
+package com.example.person.domain;
+
 @NodeEntity
 class Person {
     private Long id;
@@ -156,14 +158,18 @@ The complete functionality is covered in the http://docs.spring.io/spring-data/d
 
 [source,java]
 ----
+package com.example.person.repository;
+
 public interface PersonRepository extends GraphRepository<Person> {
 
    // derived finder method
    Person findByName(String name);
  
-   @Query("MATCH (:Company)<-[:WORKS_AT]-(p:Person) WHERE id(c) = {company} RETURN p")
+   @Query("MATCH (c:Company)<-[:WORKS_AT]-(p:Person) WHERE id(c) = {company} RETURN p")
    List<Person> findEmployees(Company company);
 }
+
+package com.example.person.service;
 
 @Service
 @Transactional
