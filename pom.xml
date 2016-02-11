@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-parent</artifactId>
-	<version>3.4.3.BUILD-SNAPSHOT</version>
+	<version>3.4.4.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Data Neo4j - Parent</name>
@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.7.3.BUILD-SNAPSHOT</version>
+		<version>1.7.4.BUILD-SNAPSHOT</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
 
@@ -31,7 +31,7 @@
 	<properties>
 		<project.type>multi</project.type>
 		<dist.id>spring-data-neo4j</dist.id>
-		<springdata.commons>1.11.3.BUILD-SNAPSHOT</springdata.commons>
+		<springdata.commons>1.11.4.BUILD-SNAPSHOT</springdata.commons>
 
 		<!-- Neo4j 2.0 now requires JDK 7 as a min -->
 		<source.level>1.7</source.level>
