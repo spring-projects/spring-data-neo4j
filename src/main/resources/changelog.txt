@@ -1,6 +1,44 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.1.0.M1 (2016-02-12)
+----------------------------------------
+* DATAGRAPH-824 - Upgrade to neo4j-ogm 2.0.0-M02.
+* DATAGRAPH-820 - Add code of conduct.
+* DATAGRAPH-816 - Release 4.1 M1 (Hopper).
+* DATAGRAPH-815 - Upgrade to Neo4j-OGM 2.0.0-M01.
+* DATAGRAPH-810 - Upgrade Neo4j to 2.3.2.
+* DATAGRAPH-809 - Extend copyright to 2016.
+* DATAGRAPH-808 - ExceptionTranslation is not implemented consistently.
+* DATAGRAPH-803 - Avoid breaking backward compatibility when using @Query.
+* DATAGRAPH-798 - Upgrade to neo4j-ogm 1.1.5-SNAPSHOT.
+* DATAGRAPH-796 - Fix tests to work with ogm 2.0 drivers.
+* DATAGRAPH-795 - Adapt to Spring Data Commons changes needed for projection support.
+* DATAGRAPH-789 - 4.1 must support OGM 2.0 (pluggable drivers).
+* DATAGRAPH-787 - Derived finders use an incorrect return type and target entity when the finder is defined in a hierarchy.
+* DATAGRAPH-783 - Argument type mismatch (int to Float) with derived finders.
+* DATAGRAPH-782 - Support mapping of custom query results to entities.
+* DATAGRAPH-781 - No identity field found when it is defined in a superclass.
+* DATAGRAPH-777 - OGM caches deleted relationships in node entity object.
+* DATAGRAPH-775 - Update dependency versions.
+* DATAGRAPH-772 - NullPointers with null params to @Query and null values returned to @QueryResult.
+* DATAGRAPH-770 - @Query should allow update CQL with additional parameter flag updates=true.
+* DATAGRAPH-765 - Documentation updates.
+* DATAGRAPH-764 - Upgrade to neo4j-ogm 1.1.3-SNAPSHOT.
+* DATAGRAPH-763 - SDN4: Unable to persist rich relationship.
+* DATAGRAPH-762 - Unidirectional Relation goes to infinite loop.
+* DATAGRAPH-761 - Cannot issue "like" cypher queries via OGM.
+* DATAGRAPH-760 - Ensure save methods use consistent return strategy.
+* DATAGRAPH-757 - DomainInfo class load method incorrect regex.
+* DATAGRAPH-743 - Potential memory leak during large savings.
+* DATAGRAPH-730 - Persisting relationship entities with depth 0 persists only the start node with depth 0.
+* DATAGRAPH-712 - AspectJ Closure inner class does not contain identityField.
+* DATAGRAPH-700 - Support mapping of domain entities in @QueryResults.
+* DATAGRAPH-685 - LoadByProperty depth support.
+* DATAGRAPH-678 - HttpResponseException inserting a node with 899 relationship.
+* DATAGRAPH-615 - Relationship entities not annotated with type do not get loaded.
+
+
 Changes in version 3.4.2.RELEASE (2015-12-18)
 ---------------------------------------------
 * DATAGRAPH-799 - Release 3.4.2 (Gosling).
