@@ -1,6 +1,9 @@
 [NOTE]
 This branch (master) now points to Spring Data Neo4j 4.x the *new* implementation that is based on http://github.com/neo4j/neo4j-ogm[Neo4j-OGM].
 
+[CAUTION]
+If you are using Spring Data Neo4j *4.0* please update the underlying dependeny on Neo4j-OGM to `org.neo4j:neo4j-ogm:1.1.5` to get the latest and greatest performance updates and bug-fixes. Using the latest Neo4j-OGM version is also recommended in general.
+
 = Spring Data Neo4j 4.x - Quick start
 
 [source,java]
