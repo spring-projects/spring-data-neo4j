@@ -77,7 +77,6 @@ As of 4.1, Spring Data Neo4j provides suppport for connecting to Neo4j using dif
 - Http driver
 - Embedded driver
 
-You must configure your application by specifying which driver you want to use to connect to Neo4j.
 There are two basic ways to do this: using a single properties file, or programmatically.
 
 === Properties file
@@ -96,6 +95,7 @@ The following sections describe how to configure Spring Data Neo4j using either 
 ==== Configuring the Http Driver
 
 The Http Driver connects to and communicates with a Neo4j server over Http. An Http Driver must be used if your application is running in client-server mode. Please note the Http Driver can't be used for spinning up an in-process server.
+The Http Driver is the default driver for SDN 4.1, and doesn't need to be explicitly declared in your pom file.
 
 .Properties file
 
@@ -136,6 +136,18 @@ _Note: Please see the section below describing the different ways you can pass c
 
 The Embedded Driver connects directly to the Neo4j database engine. There is no server involved, therefore no network overhead between your application code and the database.
 You should use the Embedded driver if you don't want to use a client-server model, or if your application is running as a Neo4j Unmanaged Extension.
+
+*Please note, if you want to use the Embedded driver in your deployed application, you will need to explicitly declare the required driver dependency in your project's pom file:
+*
+[source,xml]
+----
+    <dependency>
+      <groupId>org.neo4j</groupId>
+      <artifactId>neo4j-ogm-embedded-driver</artifactId>
+      <version>${ogm-version}</version>
+    </dependency>
+----
+
 You can specify a permanent data store location to provide durability of your data after your application shuts down, or you can use an impermanent data store, which will only exist while your application is running.
 
 .Properties file (permanent data store)
@@ -176,7 +188,7 @@ public SessionFactory getSessionFactory() {
 }
 ----
 
-If you want to use an impermanent data store (e.g. for testing) simply omit the URI attribute from the Configuration:
+If you want to use an impermanent data store simply omit the URI attribute from the Configuration:
 
 [source,java]
 ----

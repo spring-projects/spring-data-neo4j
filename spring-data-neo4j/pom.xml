@@ -26,7 +26,7 @@
 
     <properties>
         <neo4j.version>2.3.2</neo4j.version>
-        <neo4j.ogm.version>2.0.0-M02</neo4j.ogm.version>
+        <neo4j.ogm.version>2.0.0-SNAPSHOT</neo4j.ogm.version>
         <ogm.properties>ogm-http.properties</ogm.properties>
     </properties>
 
@@ -36,15 +36,17 @@
 
             <dependency>
                 <groupId>org.neo4j</groupId>
-                <artifactId>neo4j-ogm-api</artifactId>
-                <version>${neo4j.ogm.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.neo4j</groupId>
                 <artifactId>neo4j-ogm-core</artifactId>
                 <version>${neo4j.ogm.version}</version>
             </dependency>
+
+
+            <dependency>
+                <groupId>org.neo4j</groupId>
+                <artifactId>neo4j-ogm-http-driver</artifactId>
+                <version>${neo4j.ogm.version}</version>
+            </dependency>
+
 
             <dependency>
                 <groupId>org.springframework.data</groupId>
@@ -83,6 +85,7 @@
                 <scope>test</scope>
             </dependency>
 
+            <!-- this test dependency also brings in all the drivers -->
             <dependency>
                 <groupId>org.neo4j</groupId>
                 <artifactId>neo4j-ogm-test</artifactId>

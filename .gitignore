@@ -5,6 +5,7 @@ spring-data-neo4j-examples/sdn-boot/bower_components/
 .buildpath
 .project
 .settings
+*/neo4j-home/
 target/
 .idea/
 *.class
