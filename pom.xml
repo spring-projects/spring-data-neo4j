@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.7.4.BUILD-SNAPSHOT</version>
+		<version>1.7.4.RELEASE</version>
 		<relativePath>../spring-data-build/parent/pom.xml</relativePath>
 	</parent>
 
@@ -31,7 +31,7 @@
 	<properties>
 		<project.type>multi</project.type>
 		<dist.id>spring-data-neo4j</dist.id>
-		<springdata.commons>1.11.4.BUILD-SNAPSHOT</springdata.commons>
+		<springdata.commons>1.11.4.RELEASE</springdata.commons>
 
 		<!-- Neo4j 2.0 now requires JDK 7 as a min -->
 		<source.level>1.7</source.level>
@@ -177,9 +177,9 @@
 	</dependencies>
 	<repositories>
 		<repository>
-			<id>spring-libs-snapshot</id>
+			<id>spring-libs-release</id>
 			<name>Spring</name>
-			<url>https://repo.spring.io/libs-snapshot</url>
+			<url>https://repo.spring.io/libs-release</url>
 		</repository>
 		<repository>
 			<id>neo4j</id>
