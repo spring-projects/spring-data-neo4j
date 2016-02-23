@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-neo4j-parent</artifactId>
-		<version>3.4.4.BUILD-SNAPSHOT</version>
+		<version>3.4.4.RELEASE</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -71,12 +71,12 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
-			<version>3.4.4.BUILD-SNAPSHOT</version>
+			<version>3.4.4.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
-            <version>3.4.4.BUILD-SNAPSHOT</version>
+            <version>3.4.4.RELEASE</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
