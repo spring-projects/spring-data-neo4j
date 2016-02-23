@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.4.4.RELEASE (2016-02-23)
+---------------------------------------------
+* DATAGRAPH-825 - Release 3.4.4 (Gosling SR4).
+
+
 Changes in version 4.1.0.M1 (2016-02-12)
 ----------------------------------------
 * DATAGRAPH-824 - Upgrade to neo4j-ogm 2.0.0-M02.
