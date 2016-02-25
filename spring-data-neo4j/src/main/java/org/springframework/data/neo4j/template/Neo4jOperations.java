@@ -15,6 +15,8 @@ package org.springframework.data.neo4j.template;
 
 
 import org.neo4j.ogm.cypher.Filters;
+import org.neo4j.ogm.cypher.query.Pagination;
+import org.neo4j.ogm.cypher.query.SortOrder;
 import org.neo4j.ogm.exception.NotFoundException;
 import org.neo4j.ogm.model.Query;
 import org.neo4j.ogm.model.Result;
@@ -75,6 +77,43 @@ public interface Neo4jOperations {
     <T> Collection<T> loadAll(Class<T> type, int depth);
 
     /**
+     * Retrieves all the entities of the given class in the database hydrated to the specified depth, with Sorting.
+     *
+     * @param type          The type of entity to return.
+     * @param sortOrder     The SortOrder to be applied
+     * @param depth         The maximum number of relationships away from each loaded object to follow when loading related entities.
+     *                      A value of 0 just loads the object's properties and no related entities.  A value of -1 implies no depth limit.
+     * @return A {@link Collection} containing all instances of the given type in the database or an empty collection if none
+     *         are found, never <code>null</code>
+     */
+    <T> Collection<T> loadAll(Class<T> type, SortOrder sortOrder, int depth);
+
+    /**
+     * Retrieves all the entities of the given class in the database hydrated to the specified depth, with Sorting and Pagination.
+     *
+     * @param type          The type of entity to return.
+     * @param sortOrder     The SortOrder to be applied
+     * @param pagination    The Pagination to be applied
+     * @param depth         The maximum number of relationships away from each loaded object to follow when loading related entities.
+     *                      A value of 0 just loads the object's properties and no related entities.  A value of -1 implies no depth limit.
+     * @return A {@link Collection} containing all instances of the given type in the database or an empty collection if none
+     *         are found, never <code>null</code>
+     */
+    <T> Collection<T> loadAll(Class<T> type, SortOrder sortOrder, Pagination pagination, int depth);
+
+
+    /**
+     * Reloads all of the entities which match IDs in the given {@link Collection} to the specified depth.  Of course, this will
+     * only work for persistent objects (i.e., those with a non-null <code>@GraphId</code> field).
+     *
+     * @param type  The type of entity to return.
+     * @param ids     The IDs of objects to re-hydrate
+     * @param depth   The depth to which the objects should be hydrated
+     * @return A new {@link Collection} of entities matching those in the given collection hydrated to the given depth
+     */
+    <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, int depth);
+
+    /**
      * Reloads all of the entities in the given {@link Collection} to the specified depth.  Of course, this will
      * only work for persistent objects (i.e., those with a non-null <code>@GraphId</code> field).
      *
@@ -83,6 +122,17 @@ public interface Neo4jOperations {
      * @return A new {@link Collection} of entities matching those in the given collection hydrated to the given depth
      */
     <T> Collection<T> loadAll(Collection<T> objects, int depth);
+
+    /**
+     * Reloads all of the entities in the given {@link Collection} to the specified depth, sorted by the sprcified SortOrder  Of course, this will
+     * only work for persistent objects (i.e., those with a non-null <code>@GraphId</code> field).
+     *
+     * @param ids       The IDs of objects to re-hydrate
+     * @param sortOrder The SortOrder to be used
+     * @param depth     The depth to which the objects should be hydrated
+     * @return A new {@link Collection} of entities matching those in the given collection hydrated to the given depth
+     */
+    <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, SortOrder sortOrder, int depth);
 
     /**
      * Retrieves the entity of the specified type that contains a property matching the given name with the given value.
@@ -200,6 +250,18 @@ public interface Neo4jOperations {
      * @return The saved entity
      */
     <T> T save(T entity);
+
+    /**
+     * Saves the specified entity in the graph database to a custom depth.  If the entity is currently transient then the persistent version of
+     * the entity will be returned, containing its new graph ID.
+     *
+     * @param entity The entity to save
+     * @param depth  The maximum number of relationships away from the entity to follow when saving related entities.
+     *               A value of 0 just saves the object's properties and no related entities.  A value of -1 implies no depth limit.
+     * @return The saved entity
+     */
+    <T> T save(T entity, int depth);
+
 
     /**
      * Removes the given node or relationship entity from the graph.  The entity is first removed

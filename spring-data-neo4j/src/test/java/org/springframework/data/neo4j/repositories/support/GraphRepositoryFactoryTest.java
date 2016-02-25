@@ -18,12 +18,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.aop.framework.Advised;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.GraphRepositoryImpl;
 import org.springframework.data.neo4j.repository.support.GraphRepositoryFactory;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
@@ -32,7 +32,8 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Unit tests for {@code GraphRepositoryFactory}.
  *
- * @author: Vince Bickers
+ * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 @RunWith(MockitoJUnitRunner.class)
 public class GraphRepositoryFactoryTest extends MultiDriverTestClass {
@@ -40,11 +41,12 @@ public class GraphRepositoryFactoryTest extends MultiDriverTestClass {
     GraphRepositoryFactory factory;
 
     @Mock org.neo4j.ogm.session.Session session;
+    @Mock Neo4jOperations neo4jOperations;
 
     @Before
     public void setUp() {
 
-        factory = new GraphRepositoryFactory(session) {
+        factory = new GraphRepositoryFactory(session, neo4jOperations) {
 
         };
     }
@@ -83,8 +85,8 @@ public class GraphRepositoryFactoryTest extends MultiDriverTestClass {
     }
 
     static class CustomGraphRepository<T> extends GraphRepositoryImpl<T> {
-        public CustomGraphRepository(Class<T> clazz, Session session) {
-            super(clazz, session);
+        public CustomGraphRepository(Class<T> clazz, Neo4jOperations neo4jOperations) {
+            super(clazz, neo4jOperations);
         }
     }
 }

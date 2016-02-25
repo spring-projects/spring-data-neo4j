@@ -16,6 +16,7 @@ package org.springframework.data.neo4j.repository.support;
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.neo4j.repository.GraphRepositoryImpl;
 import org.springframework.data.neo4j.repository.query.GraphQueryLookupStrategy;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -27,13 +28,16 @@ import java.io.Serializable;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
     private final Session session;
+    private final Neo4jOperations neo4jOperations;
 
-    public GraphRepositoryFactory(Session session) {
+    public GraphRepositoryFactory(Session session, Neo4jOperations neo4jOperations) {
         this.session = session;
+        this.neo4jOperations = neo4jOperations;
     }
 
     @Override
@@ -43,7 +47,7 @@ public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
     @Override
     protected Object getTargetRepository(RepositoryInformation information) {
-        return getTargetRepositoryViaReflection(information, information.getDomainType(), session);
+        return getTargetRepositoryViaReflection(information, information.getDomainType(), neo4jOperations);
     }
 
     @Override

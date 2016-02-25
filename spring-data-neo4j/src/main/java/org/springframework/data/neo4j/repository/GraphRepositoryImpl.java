@@ -15,11 +15,11 @@ package org.springframework.data.neo4j.repository;
 
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
-import org.neo4j.ogm.session.Session;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -28,6 +28,7 @@ import java.util.List;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 @Repository
 public class GraphRepositoryImpl<T> implements GraphRepository<T> {
@@ -35,30 +36,30 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
     private static final int DEFAULT_QUERY_DEPTH = 1;
 
     private final Class<T> clazz;
-    private final Session session;
+    private final Neo4jOperations neo4jOperations;
 
-    public GraphRepositoryImpl(Class<T> clazz, Session session) {
+    public GraphRepositoryImpl(Class<T> clazz, Neo4jOperations neo4jOperations) {
         this.clazz = clazz;
-        this.session = session;
+        this.neo4jOperations = neo4jOperations;
     }
 
     @Override
     public <S extends T> S save(S entity) {
-        session.save(entity);
+        neo4jOperations.save(entity);
         return entity;
     }
 
     @Override
     public <S extends T> Iterable<S> save(Iterable<S> entities) {
         for (S entity : entities) {
-            session.save(entity);
+            neo4jOperations.save(entity);
         }
         return entities;
     }
 
     @Override
     public T findOne(Long id) {
-        return session.load(clazz, id);
+        return neo4jOperations.load(clazz, id);
     }
 
     @Override
@@ -68,49 +69,49 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
     @Override
     public long count() {
-        return session.countEntitiesOfType(clazz);
+        return neo4jOperations.count(clazz);
     }
 
     @Override
     public void delete(Long id) {
         Object o = findOne(id);
         if (o != null) {
-            session.delete(o);
+            neo4jOperations.delete(o);
         }
     }
 
     @Override
     public void delete(T t) {
-        session.delete(t);
+        neo4jOperations.delete(t);
     }
 
     @Override
     public void delete(Iterable<? extends T> ts) {
         for (T t : ts) {
-            session.delete(t);
+            neo4jOperations.delete(t);
         }
     }
 
     @Override
     public void deleteAll() {
-        session.deleteAll(clazz);
+        neo4jOperations.delete(clazz);
     }
 
     @Override
     public <S extends T> S save(S s, int depth) {
-        session.save(s, depth);
+        neo4jOperations.save(s, depth);
         return s;
     }
 
     @Override
     public <S extends T> Iterable<S> save(Iterable<S> ses, int depth) {
-        session.save(ses, depth);
+        neo4jOperations.save(ses, depth);
         return ses;
     }
 
     @Override
     public T findOne(Long id, int depth) {
-        return session.load(clazz, id, depth);
+        return neo4jOperations.load(clazz, id, depth);
     }
 
     // findAll and variants
@@ -121,7 +122,7 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
     @Override
     public Iterable<T> findAll(int depth) {
-        return session.loadAll(clazz, depth);
+        return neo4jOperations.loadAll(clazz, depth);
     }
 
     @Override
@@ -131,7 +132,7 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
     @Override
     public Iterable<T> findAll(Iterable<Long> ids, int depth) {
-        return session.loadAll(clazz, (Collection<Long>) ids, depth);
+        return neo4jOperations.loadAll(clazz, (Collection<Long>) ids, depth);
     }
 
     @Override
@@ -141,7 +142,7 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
     @Override
     public Iterable<T> findAll(Sort sort, int depth) {
-        return session.loadAll(clazz, convert(sort), depth);
+        return neo4jOperations.loadAll(clazz, convert(sort), depth);
     }
 
     @Override
@@ -151,9 +152,8 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
     @Override
     public Iterable<T> findAll(Iterable<Long> ids, Sort sort, int depth) {
-        return session.loadAll(clazz, (Collection<Long>) ids, convert(sort), depth);
+        return neo4jOperations.loadAll(clazz, (Collection<Long>) ids, convert(sort), depth);
     }
-
 
     @Override
     public Page<T> findAll(Pageable pageable) {
@@ -162,7 +162,7 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
     @Override
     public Page<T> findAll(Pageable pageable, int depth) {
-        Collection<T> data = session.loadAll(clazz, convert(pageable.getSort()), new Pagination(pageable.getPageNumber(), pageable.getPageSize()), depth);
+        Collection<T> data = neo4jOperations.loadAll(clazz, convert(pageable.getSort()), new Pagination(pageable.getPageNumber(), pageable.getPageSize()), depth);
         return updatePage(pageable, new ArrayList<T>(data));
     }
 

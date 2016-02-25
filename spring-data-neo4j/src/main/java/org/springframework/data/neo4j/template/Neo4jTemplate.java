@@ -16,6 +16,8 @@ package org.springframework.data.neo4j.template;
 
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
+import org.neo4j.ogm.cypher.query.Pagination;
+import org.neo4j.ogm.cypher.query.SortOrder;
 import org.neo4j.ogm.model.QueryStatistics;
 import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
@@ -98,6 +100,16 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         return session.loadAll(type, depth);
     }
 
+    @Override
+    public <T> Collection<T> loadAll(Class<T> type, SortOrder sortOrder, int depth) {
+        return session.loadAll(type, sortOrder, depth);
+    }
+
+    @Override
+    public <T> Collection<T> loadAll(Class<T> type, SortOrder sortOrder, Pagination pagination, int depth) {
+        return session.loadAll(type, sortOrder, pagination, depth);
+    }
+
     public <T> Collection<T> loadAll(Collection<T> objects) {
         return session.loadAll(objects);
     }
@@ -105,6 +117,11 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     @Override
     public <T> Collection<T> loadAll(Collection<T> objects, int depth) {
         return session.loadAll(objects, depth);
+    }
+
+    @Override
+    public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, SortOrder sortOrder, int depth) {
+        return session.loadAll(type, ids, sortOrder, depth);
     }
 
     @Override
