@@ -32,9 +32,9 @@ Previous versions of Spring Data Neo4j offered support for full-text queries usi
 However, as of SDN 4, this is no longer supported.
 
 To create fulltext entries for an entity you can add the updated nodes within `AfterSaveEvents` to a remote fulltext-index via Neo4j's REST API.
-If you use the `DefaultRequest` used by the OGM, then authentication will be taken care of as well.
+If you use Http Driver and the `HttpRequest` used by the OGM, then authentication will be taken care of as well.
 
-.Indexing Persons upon persistence
+.Indexing Persons upon persistence with the HTTP Driver
 [source,java]
 ----
 final CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -44,11 +44,44 @@ ApplicationListener<AfterSaveEvent> afterSaveEventApplicationListener() {
     return new ApplicationListener<AfterSaveEvent>() {
         @Override
         public void onApplicationEvent(AfterSaveEvent event) {
-            Neo4jRequest<String> neo4jRequest = new DefaultRequest(httpClient);
             if(event.getEntity() instanceof Person) {
+                String uri = Components.driver().getConfiguration().getURI() +
+                            "/db/data/index/node/" + indexName;
+                HttpPost httpPost = new HttpPost(uri);
                 Person person = (Person) event.getEntity();
                 //Construct the JSON statements
-                neo4jRequest.execute(endpoint,json);
+                try {
+                    httpPost.setEntity(new StringEntity(json.toString()));
+                    HttpRequest.execute(httpClient, httpPost,
+                                        Components.driver().getConfiguration().getCredentials());
+                } catch (Exception e) {
+                    //Handle any exceptions
+                }
+            }
+        }
+    };
+}
+----
+
+.Indexing Persons upon persistence with the Embedded Driver
+[source,java]
+----
+
+@Bean
+ApplicationListener<AfterSaveEvent> afterSaveEventApplicationListener() {
+    return new ApplicationListener<AfterSaveEvent>() {
+        @Override
+        public void onApplicationEvent(AfterSaveEvent event) {
+
+            if(event.getEntity() instanceof Person) {
+                EmbeddedDriver embeddedDriver = (EmbeddedDriver) Components.driver();
+                GraphDatabaseService databaseService = embeddedDriver.getGraphDatabaseService();
+                Person person = (Person) event.getEntity();
+                try (Transaction tx = databaseService.beginTx()) {
+                    Node node = databaseService.getNodeById(person.getNodeId());
+                    databaseService.index().forNodes(indexName).add(node, key, value);
+                    tx.success();
+                }
             }
         }
     };
