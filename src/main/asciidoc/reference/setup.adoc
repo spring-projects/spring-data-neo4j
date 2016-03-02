@@ -19,11 +19,27 @@ Spring Data Neo4j projects can be built using Maven, Gradle or Ant/Ivy.
 </dependency>
 ----
 
+By default, SDN will use the Http driver to connect to Neo4j and you don't need to declare it as a separate dependency in your pom.
+If you want to use the embedded driver in your production application, you must add the following dependency as well.
+(This dependency is not required if you only want to use the embedded driver for testing. See the section on <<testing,Testing>> below for more information).
+
+[source,xml]
+----
+<!-- add this dependency if you want to use the embedded driver -->
+<dependency>
+    <groupId>org.neo4j</groupId>
+    <artifactId>neo4j-ogm-embedded-driver</artifactId>
+    <version>{ogm-version}</version>
+</dependency>
+----
+
 .Gradle dependencies for Neo4j OGM
 [source,xml]
 ----
 dependencies {
     compile 'org.springframework.data:spring-data-neo4j:{version}'
+    # add this dependency if you want to use the embedded driver
+    compile 'org.neo4j:neo4j-ogm-embedded-driver:{ogm-version}'
 }
 ----
 
@@ -31,6 +47,8 @@ dependencies {
 [source,xml]
 ----
 <dependency org="org.springframework.data" name="spring-data-neo4j" rev="{version}"/>
+<!-- add this dependency if you want to use the embedded driver -->
+<dependency org="org.neo4j" name="neo4j-ogm-embedded-driver" rev="{ogm-version}"/>
 ----
 
 == Spring configuration
@@ -77,20 +95,11 @@ As of 4.1, Spring Data Neo4j provides suppport for connecting to Neo4j using dif
 - Http driver
 - Embedded driver
 
-There are two basic ways to do this: using a single properties file, or programmatically.
-
-=== Properties file
-
-Unless you supply an explicit Configuration object to the SessionFactory (see Java Configuration, below), Spring Data Neo4j will attempt to auto-configure itself using a file called `ogm.properties`, which it expects to find on the classpath.
-
-If you want to configure your application using a _different_ properties file, you must either set a System property or Environment variable called 'ogm.properties' pointing to the alternative configuration file you want to use.
-
-=== Java Configuration
-
+By default, Spring Data Neo4j will try to configure the driver from properties file `ogm.properties`, which it expects to find on the classpath.
 In many cases you won't want to, or will not be able to provide configuration information via a properties file.
-In these cases you can configure your application programmatically instead.
+In these cases you can configure your application programmatically instead, using a `Configuration` bean.
 
-The following sections describe how to configure Spring Data Neo4j using either a properties file or via Java Configuration.
+The following sections describe how to setup Spring Data Neo4j using both techniques.
 
 ==== Configuring the Http Driver
 
@@ -104,9 +113,12 @@ driver=org.neo4j.ogm.drivers.http.driver.HttpDriver
 URI=http://user:password@localhost:7474
 ```
 
+NOTE:   SDN expects the properties file to be called "ogm.properties". If you want to configure your application using a _different_ properties file, you must either set a System property or Environment variable called "ogm.properties" pointing to the alternative configuration file you want to use.
+
+
 .Java Configuration
 
-The simplest way to configure the Driver is to create a Configuration bean and pass it as the first argument to the SessionFactory constructor in your Spring configuration:
+To configure the Driver programmatically, create a Configuration bean and pass it as the first argument to the SessionFactory constructor in your Spring configuration:
 
 [source,java]
 ----
@@ -118,8 +130,7 @@ public Configuration getConfiguration() {
    Configuration config = new Configuration();
    config
        .driverConfiguration()
-       .setDriverClassName
-        ("org.neo4j.ogm.drivers.http.driver.HttpDriver")
+       .setDriverClassName("org.neo4j.ogm.drivers.http.driver.HttpDriver")
        .setURI("http://user:password@localhost:7474");
    return config;
 }
@@ -137,8 +148,8 @@ _Note: Please see the section below describing the different ways you can pass c
 The Embedded Driver connects directly to the Neo4j database engine. There is no server involved, therefore no network overhead between your application code and the database.
 You should use the Embedded driver if you don't want to use a client-server model, or if your application is running as a Neo4j Unmanaged Extension.
 
-*Please note, if you want to use the Embedded driver in your deployed application, you will need to explicitly declare the required driver dependency in your project's pom file:
-*
+Please note, if you want to use the Embedded driver in your deployed application, you will need to explicitly declare the required driver dependency in your project's pom file:
+
 [source,xml]
 ----
     <dependency>
@@ -176,8 +187,7 @@ public Configuration getConfiguration() {
    Configuration config = new Configuration();
    config
        .driverConfiguration()
-       .setDriverClassName
-        ("org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver")
+       .setDriverClassName("org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver")
        .setURI("file:///var/tmp/graph.db");
    return config;
 }
@@ -197,8 +207,7 @@ public Configuration getConfiguration() {
    Configuration config = new Configuration();
    config
        .driverConfiguration()
-       .setDriverClassName
-        ("org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver");
+       .setDriverClassName("org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver");
    return config;
 }
 ----
@@ -220,21 +229,47 @@ password="password"
 .Java Configuration options
 [source,java]
 ----
-// embedded
-Components.configuration()
-             .driverConfiguration()
-             .setURI("bolt://user:password@localhost");
+// embedded in the driver URI
+@Bean
+public Configuration getConfiguration() {
+   Configuration config = new Configuration();
+   config
+       .driverConfiguration()
+       .setDriverClassName("org.neo4j.ogm.drivers.http.driver.HttpDriver")
+       .setURI("http://user:password@localhost:7474");
+   return config;
+}
 
-// separately as plain text
-Components.configuration()
-             .driverConfiguration()
-             .setCredentials("user", "password);
+// separately, as plain text credentials
+@Bean
+public Configuration getConfiguration() {
+   Configuration config = new Configuration();
+   config
+       .driverConfiguration()
+       .setDriverClassName("org.neo4j.ogm.drivers.http.driver.HttpDriver")
+       .setCredentials("user", "password")
+       .setURI("http://localhost:7474");
+   return config;
+}
 
-// using a Credentials object
-Credentials credentials = new UsernameAndPasswordCredentials("user", "password");
-Components.configuration()
-             .driverConfiguration()
-             .setCredentials(credentials);
+
+// using a Credentials instance:
+
+@Bean
+public Credentials credentials() {
+    return new UsernameAndPasswordCredentials(...);
+}
+
+@Bean
+public Configuration getConfiguration() {
+   Configuration config = new Configuration();
+   config
+       .driverConfiguration()
+       .setDriverClassName("org.neo4j.ogm.drivers.http.driver.HttpDriver")
+       .setCredentials(credentials())
+       .setURI("http://localhost:7474");
+   return config;
+}
 ----
 
 [NOTE]
@@ -242,6 +277,7 @@ Components.configuration()
 Currently only Basic Authentication is supported by Neo4j, so the only Credentials implementation available is `UsernameAndPasswordCredentials`
 ====
 
+[[testing]]
 === Testing
 
 .Maven dependencies for Spring Data Neo4j Test classes
@@ -253,6 +289,15 @@ Currently only Basic Authentication is supported by Neo4j, so the only Credentia
            <version>${sdn.version}</version>
            <type>test-jar</type>
        </dependency>
+
+       <!-- the neo4j-ogm-test jar provides access to the http and embedded drivers for testing purposes -->
+       <dependency>
+          <groupId>org.neo4j</groupId>
+          <artifactId>neo4j-ogm-test</artifactId>
+          <version>${neo4j-ogm.version}</version>
+          <type>test-jar</type>
+          <scope>test</scope>
+      </dependency>
 
        <dependency>
            <groupId>org.neo4j</groupId>
@@ -267,14 +312,6 @@ Currently only Basic Authentication is supported by Neo4j, so the only Credentia
             <version>${neo4j.version}</version>
             <type>test-jar</type>
        </dependency>
-
-       <dependency>
-          <groupId>org.neo4j</groupId>
-          <artifactId>neo4j-ogm</artifactId>
-          <version>${neo4j-ogm.version}</version>
-          <type>test-jar</type>
-          <scope>test</scope>
-      </dependency>
 
       <dependency>
           <groupId>org.neo4j.test</groupId>
