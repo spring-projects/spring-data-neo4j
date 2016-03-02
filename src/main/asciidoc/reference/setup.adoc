@@ -1,15 +1,15 @@
 [[reference_setup]]
 = Getting started
 
-Spring Data Neo4j dramatically simplifies development, but some setup is naturally required.
+Spring Data Neo4j 4.1 (SDN 4.1) dramatically simplifies development, but some setup is naturally required.
 For building the application, your build automation tool needs to be configured to include the Spring Data Neo4j dependencies and after the build setup is complete, the Spring application needs to be configured to make use of Spring Data Neo4j.
 Examples for these different setups can be found in the http://github.com/neo4j-examples[Spring Data Neo4j examples].
 
 Spring Data Neo4j projects can be built using Maven, Gradle or Ant/Ivy.
 
-== Dependencies for Spring Data Neo4j
+== Dependencies for Spring Data Neo4j 4.1
 
-.Maven dependencies for Spring Data Neo4j
+.Maven dependencies
 [source,xml]
 ----
 <dependency>
@@ -19,7 +19,7 @@ Spring Data Neo4j projects can be built using Maven, Gradle or Ant/Ivy.
 </dependency>
 ----
 
-By default, SDN will use the Http driver to connect to Neo4j and you don't need to declare it as a separate dependency in your pom.
+By default, SDN 4.1 will use the Http driver to connect to Neo4j and you don't need to declare it as a separate dependency in your pom.
 If you want to use the embedded driver in your production application, you must add the following dependency as well.
 (This dependency is not required if you only want to use the embedded driver for testing. See the section on <<testing,Testing>> below for more information).
 
@@ -33,7 +33,7 @@ If you want to use the embedded driver in your production application, you must 
 </dependency>
 ----
 
-.Gradle dependencies for Neo4j OGM
+.Gradle dependencies
 [source,xml]
 ----
 dependencies {
@@ -43,7 +43,7 @@ dependencies {
 }
 ----
 
-.Ivy dependencies for Neo4j OGM
+.Ivy dependencies
 [source,xml]
 ----
 <dependency org="org.springframework.data" name="spring-data-neo4j" rev="{version}"/>
@@ -53,12 +53,11 @@ dependencies {
 
 == Spring configuration
 
-Users of Spring Data Neo4j 4 can currently only configure their applications using Java-based bean configuration.
-Support for XML namespace configuration is expected to be available in later versions.
+Users of SDN 4.1 can configure their applications using Java-based bean configuration.
 
 === Java-based bean configuration
 
-In order to configure Spring Data Neo4j with Java-based bean config, your Spring context must extend the core `Neo4jConfiguration` class that comes with Spring Data Neo4j. 
+We recommend that your Spring context should extend the core `Neo4jConfiguration` class that comes with Spring Data Neo4j.
 The example below shows how this can be done.
 
 NOTE:   You will need to override `getSessionFactory()` and `getSession()` bean definitions to provide
@@ -90,21 +89,26 @@ public class MyConfiguration extends Neo4jConfiguration {
 
 == Drivers
 
-As of 4.1, Spring Data Neo4j provides suppport for connecting to Neo4j using different drivers. As a result, the `RemoteServer` and `InProcessServer` classes should not be used, and are no longer directly supported in the configuration. The following drivers are available.
+SDN 4.1 now provides support for connecting to Neo4j using different drivers.
+As a result, the `RemoteServer` and `InProcessServer` classes from previous versions should not be used, and are no longer supported.
+
+The following drivers are available.
 
 - Http driver
 - Embedded driver
 
-By default, Spring Data Neo4j will try to configure the driver from properties file `ogm.properties`, which it expects to find on the classpath.
+By default, SDN 4.1 will try to configure the driver from a file `ogm.properties`, which it expects to find on the classpath.
 In many cases you won't want to, or will not be able to provide configuration information via a properties file.
 In these cases you can configure your application programmatically instead, using a `Configuration` bean.
 
-The following sections describe how to setup Spring Data Neo4j using both techniques.
+The following sections describe how to setup Spring Data Neo4j 4.1 using both techniques.
 
 ==== Configuring the Http Driver
 
-The Http Driver connects to and communicates with a Neo4j server over Http. An Http Driver must be used if your application is running in client-server mode. Please note the Http Driver can't be used for spinning up an in-process server.
-The Http Driver is the default driver for SDN 4.1, and doesn't need to be explicitly declared in your pom file.
+The Http Driver connects to and communicates with a Neo4j server over Http.
+An Http Driver must be used if your application is running in client-server mode.
+
+NOTE:   The Http Driver is the default driver for SDN 4.1, and doesn't need to be explicitly declared in your pom file.
 
 .Properties file
 
@@ -145,10 +149,11 @@ _Note: Please see the section below describing the different ways you can pass c
 
 ==== Configuring the Embedded Driver
 
-The Embedded Driver connects directly to the Neo4j database engine. There is no server involved, therefore no network overhead between your application code and the database.
+The Embedded Driver connects directly to the Neo4j database engine.
+There is no server involved, therefore no network overhead between your application code and the database.
 You should use the Embedded driver if you don't want to use a client-server model, or if your application is running as a Neo4j Unmanaged Extension.
 
-Please note, if you want to use the Embedded driver in your deployed application, you will need to explicitly declare the required driver dependency in your project's pom file:
+If you want to use the Embedded driver in your production application, you will need to explicitly declare the required driver dependency in your project's pom file:
 
 [source,xml]
 ----
@@ -280,7 +285,7 @@ Currently only Basic Authentication is supported by Neo4j, so the only Credentia
 [[testing]]
 === Testing
 
-.Maven dependencies for Spring Data Neo4j Test classes
+.Maven dependencies for testing SDN 4.1 applications
 [source,xml]
 ----
        <dependency>
@@ -323,22 +328,23 @@ Currently only Basic Authentication is supported by Neo4j, so the only Credentia
 
 [NOTE]
 ====
-In SDN 4.1, the `InProcessServer` has been deprecated. This class was used to set up an in-memory Http server so that you could run your tests.
-This is no longer appropriate given the new Driver mechanism, and we recommend you configure an Embedded Driver (impermanent data store) for your integration tests.
+In SDN 4.1, the `InProcessServer` has been deprecated. This class was used in previous versions to set up an in-memory Http server so that you could run your tests.
+This is no longer appropriate given the new Driver mechanism, and we recommend you configure an Embedded Driver (impermanent data store) for your integration tests instead.
 ====
 === SessionFactory Bean
 
-The `SessionFactory` is needed by SDN to create instances of `org.neo4j.ogm.session.Session` as required.  
+The `SessionFactory` is needed by SDN 4.1 to create instances of `org.neo4j.ogm.session.Session` as required.
 When constructed, it sets up the object-graph mapping metadata, which is then used across all `Session` objects that it creates.
 As seen in the above example, the packages to scan for domain object metadata should be provided to the `SessionFactory` constructor.
 
 Note that the session factory should typically be application-scoped.
-While you can use a narrower scope for this if you like, although there is typically no advantage in doing so.
+While you can use a narrower scope for this if you like, there is typically no advantage in doing so.
 
 === Session Bean
 
 A `Session` is used to drive the object-graph mapping framework on which Spring Data Neo4j is based.  
-All repository implementations and `Neo4jTemplate` are driven by the `Session`, and you can also auto-wire it into your Spring beans and code against it directly if you wish.
+All repository implementations and `Neo4jTemplate` are driven by the `Session`.
+You can also auto-wire it into your Spring beans and code against it directly if you wish.
 
 The life cycle of a `Session` is important to consider because it keeps track of the changes that have been made to entities and their relationships.  
 The reason it does this is so that only entities and relationships that have changed get persisted on save, which is particularly efficient when working with large graphs.  
@@ -352,5 +358,5 @@ In general, the scope of a `Session` should correspond to a "unit of work" in yo
 What this means depends on the usage scenario, but in a typical web-based Spring application we recommend using a request-scoped or HTTP-session-scoped `Session`.  
 Either way, if you make sure you load fresh data at the beginning of each unit of work then data integrity shouldn't be a problem.
 
-Additional beans can be configured to be included in the Neo4j-Configuration just by defining them in the Spring context in the normal way.
+Additional beans can be configured just by defining them in the Spring context in the normal way.
 

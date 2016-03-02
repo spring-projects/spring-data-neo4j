@@ -1,5 +1,5 @@
 [[reference_configuration_ha]]
-= Configuring Spring Data Neo4j 4 in an HA Environment
+= Configuring Spring Data Neo4j 4.1 in an HA Environment
 
 [[reference_configuration_transactions]]
 == Transaction Binding in HA Mode
@@ -27,9 +27,7 @@ As of version 4, Spring Data Neo4j does not distinguish between WRITE transactio
 [source,java]
 ----
 
-    private String url = "http://192.168.0.55:7474"
-    private SessionFactory sessionFactory = new SessionFactory("com.mycompany.myapp.domain");
-    private Session session = sessionFactory.openSession(url);
+    Components.driver().setURI("http://192.168.0.55:7474");
 
 ----
 
@@ -55,10 +53,7 @@ In the Neo4j HA architecture, a cluster is typically fronted by a load balancer.
 [source,java]
 ----
 
-    private String url = "http://10.0.2.200" // haproxy running on the default port 80
-    private SessionFactory sessionFactory = new SessionFactory("com.mycompany.myapp.domain");
-    private Session session = sessionFactory.openSession(url);
-
+    Components.driver().setURI("http://10.0.2.200");
 
 ----
 
