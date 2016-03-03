@@ -5,7 +5,7 @@ Michael Hunger; Oliver Gierke; Vince Bickers; Adam George; Luanne Misquitta; Mic
 :revnumber: {version}
 :revdate: {localdate}
 
-Spring Data Neo4j Version 4.1 (February 2016)
+Spring Data Neo4j Version 4.1 (March 2016)
 
 (C) 2010-2016 Graph Aware Ltd - Neo Technology, Inc. - Pivotal Software, Inc.
 
@@ -29,10 +29,10 @@ include::introduction/neo4j/neo4j.adoc[]
 
 image::springdatagraph.png[]
 
-This part of the Spring Data Neo4j (SDN) Guide book provides the reference documentation for SDN 4.
+This part of the Spring Data Neo4j (SDN) Guide book provides the reference documentation for SDN 4.1.
 
 Its content covers information about the programming model, APIs, concepts, annotations and technical details of
-Spring Data Neo4j, version 4.
+Spring Data Neo4j, version 4.1.
 
 Whenever you look for the means to employ the full power of the Spring Data Neo4j library, you should be able to find
 your answers in this reference section. If you don't, please inform us about missing or incorrect content.

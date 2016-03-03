@@ -13,7 +13,7 @@ Together with metadata, the annotations drive mapping the POJO entities and thei
 == About Spring Data Neo4j 4
 For version 4.0, Spring Data Neo4j was rewritten from scratch to natively support Neo4j deployments in standalone server mode.
 It uses Cypher, the Neo4j query language, and the HTTP protocol to communicate with the database.
-It's therefore worth noting that there *will be backward compatibility issues* when migrating to version 4, so be sure to check the <<migration,Migration Guide>> to avoid any unwanted surprises.
+It's therefore worth noting that there *will be backward compatibility issues* when migrating to version 4.x, so be sure to check the <<migration,Migration Guide>> to avoid any unwanted surprises.
 
 Version 4.1 introduces support for connecting to an embedded instance of Neo4j.
 
@@ -48,7 +48,7 @@ For custom implementations of repository methods you are free to add your own co
 == Neo4jTemplate
 Being a Spring Data library, Spring Data Neo4j offers a <<reference_programming_model_template,Neo4jTemplate>> for interacting with the mapped entities and the Neo4j graph database if you don't want to use repositories.
 As of version 4, `Neo4jTemplate` is based on the `org.neo4j.ogm.session.Session` object and adds mostly exception translation around the functionality.
-Support for Spring Data Neo4j Repositories is also based on `Neo4jSession`, so the underlying functionality is identical.
+Support for Spring Data Neo4j Repositories is also based on `Neo4jTemplate`, so the underlying functionality is identical.
 
 In keeping with the Spring Data ethos, an operations interface is used to define the API exposed by the `Neo4jTemplate`.  This interface is called `Neo4jOperations`, the default implementation of which is `Neo4jTemplate`.  Users of the framework from version 4 are encouraged to code against `Neo4jOperations` instead of the `Neo4jTemplate` directly.
 
