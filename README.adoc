@@ -207,7 +207,7 @@ More example projects for Spring Data Neo4j 4 are available in the https://githu
 
 This README and the http://static.springsource.org/spring-data/data-neo4j/docs/current/reference/html/[Reference Manual] are the best places to start learning about Spring Data Neo4j 4.
 
-The main http://projects.spring.io.org/spring-data-neo4j[SpringSource project site] contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
+The main http://projects.spring.io/spring-data-neo4j[SpringSource project site] contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
 
 For more detailed questions, use the "forum":http://forum.springsource.org/forumdisplay.php?f=80. If you are new to Spring as well as to Spring Data, look for information about "Spring projects":http://www.springsource.org/projects.
 
