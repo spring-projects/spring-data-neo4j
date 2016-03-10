@@ -51,6 +51,7 @@ public class ExtendedTransactionsTest extends MultiDriverTestClass {
             wrapperService.composeSuccessThenFail();
             fail("should have thrown exception");
         } catch (Exception e) {
+            assertEquals("Deliberately throwing exception", e.getLocalizedMessage());
             assertEquals(0, countNodes());
         }
     }
@@ -72,6 +73,7 @@ public class ExtendedTransactionsTest extends MultiDriverTestClass {
             wrapperService.composeFailThenSuccess();
             fail("should have thrown exception");
         } catch (Exception e) {
+            assertEquals("Deliberately throwing exception", e.getLocalizedMessage());
             assertEquals(0, countNodes());
         }
     }
@@ -82,6 +84,18 @@ public class ExtendedTransactionsTest extends MultiDriverTestClass {
             wrapperService.composeFailThenFail();
             fail("should have thrown exception");
         } catch (Exception e) {
+            assertEquals("Deliberately throwing exception", e.getLocalizedMessage());
+            assertEquals(0, countNodes());
+        }
+    }
+
+    @Test
+    public void shouldRollbackWithCheckedException() {
+        try {
+            wrapperService.rollbackWithCheckedException();
+            fail ("should have thrown exception");
+        } catch (Exception e) {
+            assertEquals("Deliberately throwing exception", e.getLocalizedMessage());
             assertEquals(0, countNodes());
         }
     }

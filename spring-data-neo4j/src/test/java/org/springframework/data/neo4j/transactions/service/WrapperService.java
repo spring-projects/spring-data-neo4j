@@ -12,13 +12,13 @@
  */
 package org.springframework.data.neo4j.transactions.service;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Map;
 
 /**
  * @author: Vince Bickers
@@ -53,6 +53,11 @@ public class WrapperService {
     public void composeFailThenFail() {
         businessService.failMethod();
         businessService.failMethod();
+    }
+
+    @Transactional(rollbackFor=Exception.class)
+    public void rollbackWithCheckedException() throws Exception {
+        businessService.throwsException();
     }
 
     public Iterable<Map<String, Object>> loadNodes() {

@@ -12,6 +12,9 @@
  */
 package org.springframework.data.neo4j.transactions.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.neo4j.ogm.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author: Vince Bickers
@@ -39,10 +39,16 @@ public class BusinessService {
         insertNode();
     }
 
-    @Transactional
+    @Transactional // throws unchecked exception
     public void failMethod() {
         insertNode();
-        throw new RuntimeException("Deliberate to force rollback of entire transaction");
+        throw new RuntimeException("Deliberately throwing exception");
+    }
+
+    // transactional only from service wrapper, throws checked exception
+    public void throwsException() throws Exception {
+        insertNode();
+        throw new Exception("Deliberately throwing exception");
     }
 
     private void insertNode() {
@@ -57,4 +63,5 @@ public class BusinessService {
         new Neo4jTemplate(session).execute("MATCH n DELETE n");
 
     }
+
 }
