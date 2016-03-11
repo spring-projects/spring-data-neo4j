@@ -14,8 +14,6 @@ package org.springframework.data.neo4j.transactions.service;
 
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,33 +24,31 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class WrapperService {
 
-    private static final Logger log = LoggerFactory.getLogger(BusinessService.class);
-
     @Autowired
     BusinessService businessService;
 
     @Transactional
     public void composeSuccessThenFail() {
-        businessService.successMethod();
-        businessService.failMethod();
+        businessService.successMethodInTransaction();
+        businessService.failMethodInTransaction();
     }
 
     @Transactional
     public void composeSuccessThenSuccess() {
-        businessService.successMethod();
-        businessService.successMethod();
+        businessService.successMethodInTransaction();
+        businessService.successMethodInTransaction();
     }
 
     @Transactional
     public void composeFailThenSuccess() {
-        businessService.failMethod();
-        businessService.successMethod();
+        businessService.failMethodInTransaction();
+        businessService.successMethodInTransaction();
     }
 
     @Transactional
     public void composeFailThenFail() {
-        businessService.failMethod();
-        businessService.failMethod();
+        businessService.failMethodInTransaction();
+        businessService.failMethodInTransaction();
     }
 
     @Transactional(rollbackFor=Exception.class)
@@ -60,8 +56,8 @@ public class WrapperService {
         businessService.throwsException();
     }
 
-    public Iterable<Map<String, Object>> loadNodes() {
-        return businessService.loadNodes();
+    public Iterable<Map<String, Object>> fetch() {
+        return businessService.fetch();
     }
 
     public void purge() {

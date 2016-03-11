@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @ComponentScan({"org.springframework.data.neo4j.transactions"})
 @EnableTransactionManagement
+@EnableNeo4jRepositories
 public class ApplicationConfig extends Neo4jConfiguration {
 
     @Override

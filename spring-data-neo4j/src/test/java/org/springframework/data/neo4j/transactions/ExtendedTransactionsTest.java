@@ -13,18 +13,21 @@
 
 package org.springframework.data.neo4j.transactions;
 
+import java.util.Iterator;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.transactions.service.ServiceA;
+import org.springframework.data.neo4j.transactions.service.ServiceB;
 import org.springframework.data.neo4j.transactions.service.WrapperService;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Iterator;
-
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 /**
@@ -36,6 +39,12 @@ import static org.junit.Assert.fail;
 @RunWith(SpringJUnit4ClassRunner.class)
 
 public class ExtendedTransactionsTest extends MultiDriverTestClass {
+
+    @Autowired
+    ServiceA serviceA;
+
+    @Autowired
+    ServiceB serviceB;
 
     @Autowired
     WrapperService wrapperService;
@@ -100,8 +109,17 @@ public class ExtendedTransactionsTest extends MultiDriverTestClass {
         }
     }
 
+    @Test
+    public void shouldRollbackRepositoryMethodOnCheckedException() {
+        try {
+            serviceA.run();
+        } catch (Exception e) {
+            assertNull(serviceB.getBilbo());
+        }
+    }
+
     private int countNodes() {
-        Iterator iterator = wrapperService.loadNodes().iterator();
+        Iterator iterator = wrapperService.fetch().iterator();
         int i = 0;
         while (iterator.hasNext()) {
             iterator.next();

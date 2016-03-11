@@ -23,6 +23,8 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 
 /**
+ * This class is a wrapper around the OGM TransactionManager.
+ *
  * @author Vince Bickers
  */
 public class Neo4jTransactionManager implements PlatformTransactionManager {
@@ -43,24 +45,37 @@ public class Neo4jTransactionManager implements PlatformTransactionManager {
     @Override
     public void commit(TransactionStatus transactionStatus) throws TransactionException {
         Transaction tx = ((Neo4jTransactionStatus) transactionStatus).getTransaction();
-        logger.debug("Commit requested: " + tx + ", status: " + tx.status().toString());
-        if (transactionStatus.isNewTransaction()) {
-            if (tx.status() == (Transaction.Status.PENDING) || tx.status() == (Transaction.Status.OPEN)) {
-                logger.debug("Commit invoked");
-                tx.commit();
-            }
-        } else {
-            logger.debug("Commit deferred");
+        if (transactionStatus.isNewTransaction() && canCommit(tx)) {
+            logger.debug("Commit requested: " + tx + ", status: " + tx.status().toString());
+            tx.commit();
+            tx.close();
         }
     }
 
     @Override
     public void rollback(TransactionStatus transactionStatus) throws TransactionException {
         Transaction tx = ((Neo4jTransactionStatus) transactionStatus).getTransaction();
-        logger.debug("Rollback requested: " + tx + ", status: " + tx.status().toString());
-        if (tx.status() == (Transaction.Status.PENDING) || tx.status() == (Transaction.Status.OPEN)) {
-            logger.debug("Rollback invoked");
+        if (transactionStatus.isNewTransaction() && canRollback(tx)) {
+            logger.debug("Rollback requested: " + tx + ", status: " + tx.status().toString());
             tx.rollback();
+            tx.close();
+        }
+    }
+
+
+    private boolean canCommit(Transaction tx) {
+        switch (tx.status()) {
+            case COMMIT_PENDING: return true;
+            case OPEN: return true;
+            default: return false;
+        }
+    }
+
+    private boolean canRollback(Transaction tx) {
+        switch (tx.status()) {
+            case OPEN: return true;
+            case ROLLBACK_PENDING:return true;
+            default:return false;
         }
     }
 }

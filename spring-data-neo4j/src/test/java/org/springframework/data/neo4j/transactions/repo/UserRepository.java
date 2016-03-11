@@ -11,10 +11,12 @@
  *
  */
 
-package org.springframework.data.neo4j.web.repo;
+package org.springframework.data.neo4j.transactions.repo;
+
+import java.util.Collection;
 
 import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.web.domain.User;
+import org.springframework.data.neo4j.transactions.domain.User;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -23,4 +25,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends GraphRepository<User> {
 
+    Collection<User> findUserByName(String name);
 }

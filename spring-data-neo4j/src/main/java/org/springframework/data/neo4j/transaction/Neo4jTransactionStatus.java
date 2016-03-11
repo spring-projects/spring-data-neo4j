@@ -35,7 +35,9 @@ public class Neo4jTransactionStatus implements TransactionStatus {
 
         Transaction tx;
         int propagation = transactionDefinition.getPropagationBehavior();
+
         if (propagation == TransactionDefinition.PROPAGATION_REQUIRES_NEW)  {
+            logger.debug("Creating new transaction or extending existing one");
             tx = session.beginTransaction();
             newTransaction = true;
         } else if (propagation == TransactionDefinition.PROPAGATION_REQUIRED) {
@@ -46,6 +48,9 @@ public class Neo4jTransactionStatus implements TransactionStatus {
                     || tx.status().equals(Transaction.Status.ROLLEDBACK)) {
                 tx = session.beginTransaction();
                 newTransaction = true;
+                logger.debug("Creating new transaction");
+            } else {
+                logger.debug("Joining existing transaction");
             }
         } else {
             throw new RuntimeException("Transaction propagation type not supported: " + transactionDefinition.getPropagationBehavior());
@@ -56,6 +61,7 @@ public class Neo4jTransactionStatus implements TransactionStatus {
 
     @Override
     public boolean isNewTransaction() {
+        logger.debug("isNewTransaction? " + newTransaction);
         return newTransaction;
     }
 
@@ -83,9 +89,14 @@ public class Neo4jTransactionStatus implements TransactionStatus {
 
     @Override
     public boolean isCompleted() {
-        return transaction.status().equals(Transaction.Status.ROLLEDBACK) ||
+        boolean completed = transaction.status().equals(Transaction.Status.ROLLEDBACK) ||
                 transaction.status().equals(Transaction.Status.COMMITTED) ||
                 transaction.status().equals(Transaction.Status.CLOSED);
+
+        logger.debug("isCompleted? " + completed);
+
+        return completed;
+
 
     }
 

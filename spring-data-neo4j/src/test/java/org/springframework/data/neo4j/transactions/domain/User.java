@@ -11,16 +11,28 @@
  *
  */
 
-package org.springframework.data.neo4j.web.repo;
-
-import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.web.domain.User;
-import org.springframework.stereotype.Repository;
+package org.springframework.data.neo4j.transactions.domain;
 
 /**
  * @author Michal Bachman
  */
-@Repository
-public interface UserRepository extends GraphRepository<User> {
+public class User {
 
+    private Long id;
+    private String name;
+
+    public User() {
+    }
+
+    public User(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }

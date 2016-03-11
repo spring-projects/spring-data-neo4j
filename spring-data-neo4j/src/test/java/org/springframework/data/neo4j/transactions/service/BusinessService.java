@@ -16,8 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.neo4j.ogm.session.Session;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.stereotype.Component;
@@ -29,33 +27,31 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class BusinessService {
 
-    private static final Logger log = LoggerFactory.getLogger(BusinessService.class);
-
     @Autowired
     private Session session;
 
     @Transactional
-    public void successMethod() {
-        insertNode();
+    public void successMethodInTransaction() {
+        insert();
     }
 
     @Transactional // throws unchecked exception
-    public void failMethod() {
-        insertNode();
+    public void failMethodInTransaction() {
+        insert();
         throw new RuntimeException("Deliberately throwing exception");
     }
 
     // transactional only from service wrapper, throws checked exception
     public void throwsException() throws Exception {
-        insertNode();
+        insert();
         throw new Exception("Deliberately throwing exception");
     }
 
-    private void insertNode() {
+    public void insert() {
         new Neo4jTemplate(session).execute("CREATE (node {name: 'n'})");
     }
 
-    public Iterable<Map<String, Object>> loadNodes() {
+    public Iterable<Map<String, Object>> fetch() {
         return new Neo4jTemplate(session).query("MATCH n RETURN n.name", new HashMap<String, Object>());
     }
 
