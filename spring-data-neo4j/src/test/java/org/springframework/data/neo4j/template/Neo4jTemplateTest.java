@@ -378,7 +378,7 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
         assertEquals(1, stats.getLabelsRemoved());
         assertEquals(1, stats.getPropertiesSet());
 
-        stats = this.template.query("MATCH n-[r]-(m:Movie) delete n,r,m",Collections.EMPTY_MAP).queryStatistics();
+        stats = this.template.query("MATCH (n)-[r]-(m:Movie) delete n,r,m",Collections.EMPTY_MAP).queryStatistics();
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesDeleted());
         assertEquals(1, stats.getRelationshipsDeleted());
@@ -420,7 +420,7 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
         assertEquals(1, stats.getLabelsRemoved());
         assertEquals(1, stats.getPropertiesSet());
 
-        stats = this.template.query("MATCH n-[r]-(m:Movie) delete n,r,m", Collections.EMPTY_MAP).queryStatistics();
+        stats = this.template.query("MATCH (n)-[r]-(m:Movie) delete n,r,m", Collections.EMPTY_MAP).queryStatistics();
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesDeleted());
         assertEquals(1, stats.getRelationshipsDeleted());

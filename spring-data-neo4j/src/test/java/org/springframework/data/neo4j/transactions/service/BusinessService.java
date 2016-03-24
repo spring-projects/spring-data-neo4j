@@ -52,11 +52,11 @@ public class BusinessService {
     }
 
     public Iterable<Map<String, Object>> fetch() {
-        return new Neo4jTemplate(session).query("MATCH n RETURN n.name", new HashMap<String, Object>());
+        return new Neo4jTemplate(session).query("MATCH (n) RETURN n.name", new HashMap<String, Object>());
     }
 
     public void purge() {
-        new Neo4jTemplate(session).execute("MATCH n DELETE n");
+        new Neo4jTemplate(session).execute("MATCH (n) DELETE n");
 
     }
 

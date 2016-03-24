@@ -284,7 +284,7 @@ public class DerivedQueryTest extends MultiDriverTestClass {
 	public void shouldFindNodeEntitiesWithNestedRelationshipEntityProperty() {
 		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) " +
-				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->m");
+				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->(m)");
 
 		List<User> users = userRepository.findByRatingsStars(3);
 		assertEquals(2, users.size());
@@ -364,7 +364,7 @@ public class DerivedQueryTest extends MultiDriverTestClass {
 	public void shouldFindNodeEntititiesWithRelationshipEntityAndNestedProperty() {
 		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) CREATE (g:Genre {name:'Thriller'}) CREATE (u)-[:INTERESTED]->(g) " +
-				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->m");
+				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->(m)");
 
 		List<User> users = userRepository.findByRatingsStarsAndInterestedName(3,"Thriller");
 		assertEquals(1, users.size());

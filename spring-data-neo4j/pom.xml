@@ -26,7 +26,7 @@
 
     <properties>
         <neo4j.version>2.3.2</neo4j.version>
-        <neo4j.ogm.version>2.0.0-M04</neo4j.ogm.version>
+        <neo4j.ogm.version>2.0.0-SNAPSHOT</neo4j.ogm.version>
         <ogm.properties>ogm-http.properties</ogm.properties>
     </properties>
 
@@ -68,20 +68,6 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-webmvc</artifactId>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.neo4j</groupId>
-                <artifactId>neo4j-kernel</artifactId>
-                <version>${neo4j.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.neo4j.app</groupId>
-                <artifactId>neo4j-server</artifactId>
-                <version>${neo4j.version}</version>
                 <scope>test</scope>
             </dependency>
 

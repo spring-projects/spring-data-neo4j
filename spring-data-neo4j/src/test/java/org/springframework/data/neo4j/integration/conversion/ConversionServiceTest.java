@@ -17,7 +17,6 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
@@ -101,10 +100,11 @@ public class ConversionServiceTest extends MultiDriverTestClass {
 
         this.pensionRepository.save(pensionToSave);
 
-        ResourceIterator<Number> resourceIterator = graphDatabaseService
-                .execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv").columnAs("fv");
-        assertTrue("Nothing was saved", resourceIterator.hasNext());
-        assertEquals("The amount wasn't converted and persisted correctly", 1647281, resourceIterator.next().intValue());
+        Result result = graphDatabaseService
+                .execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
+        assertTrue("Nothing was saved", result.hasNext());
+        assertEquals("The amount wasn't converted and persisted correctly", 1647281, result.next().get("fv"));
+        result.close();
 
         PensionPlan reloadedPension = this.pensionRepository.findOne(pensionToSave.getPensionPlanId());
         assertEquals("The amount was converted incorrectly", pensionToSave.getFundValue(), reloadedPension.getFundValue());
@@ -119,11 +119,11 @@ public class ConversionServiceTest extends MultiDriverTestClass {
 
         PensionPlan pension = new PensionPlan(new MonetaryAmount(20_000, 00), "Ashes Assets LLP");
         this.pensionRepository.save(pension);
-
-        ResourceIterator<Integer> resourceIterator = graphDatabaseService
-                .execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv").columnAs("fv");
-        assertTrue("Nothing was saved", resourceIterator.hasNext());
-        assertEquals("The amount wasn't converted and persisted correctly", 2000000, resourceIterator.next().intValue());
+        Result result = graphDatabaseService
+                .execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
+        assertTrue("Nothing was saved", result.hasNext());
+        assertEquals("The amount wasn't converted and persisted correctly", 2000000, result.next().get("fv"));
+        result.close();
     }
 
     /**
@@ -139,10 +139,11 @@ public class ConversionServiceTest extends MultiDriverTestClass {
 
         this.javaElementRepository.save(method);
 
-        ResourceIterator<String> resourceIterator = graphDatabaseService
-                .execute("MATCH (e:JavaElement) RETURN e.elementType AS type").columnAs("type");
-        assertTrue("Nothing was saved", resourceIterator.hasNext());
-        assertEquals("The element type wasn't converted and persisted correctly", "METHOD", resourceIterator.next());
+        Result result = graphDatabaseService
+                .execute("MATCH (e:JavaElement) RETURN e.elementType AS type");
+        assertTrue("Nothing was saved", result.hasNext());
+        assertEquals("The element type wasn't converted and persisted correctly", "METHOD", result.next().get("type"));
+        result.close();
 
         JavaElement loadedObject = this.javaElementRepository.findAll().iterator().next();
         assertEquals("The element type wasn't loaded and converted correctly", ElementType.METHOD, loadedObject.getElementType());
