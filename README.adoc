@@ -63,6 +63,11 @@ It supports:
 * integration into Spring Data REST
 * works well within Spring Boot
 
+== License
+
+Spring Data Neo4j is licensed under the Apache License v 2.0.
+The underlying technology, neo4j-ogm-core, -compiler, -http-driver, -bolt-driver and the neo4j-java-driver are Apache licensed too.
+
 == Using Spring Data Neo4j
 
 === Maven configuration
