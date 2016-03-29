@@ -16,11 +16,11 @@ package org.springframework.data.neo4j.integration.conversion;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmount;
 
-public class SpringMonetaryAmountToIntegerConverter implements Converter<MonetaryAmount, Integer> {
+public class SpringMonetaryAmountToLongConverter implements Converter<MonetaryAmount, Long> {
 
     @Override
-    public Integer convert(MonetaryAmount source) {
-        return source != null ? (int) source.getAmountAsSubUnits() : null;
+    public Long convert(MonetaryAmount source) {
+        return source != null ? (long) source.getAmountAsSubUnits() : null;
     }
 
 }

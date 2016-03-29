@@ -150,6 +150,44 @@
                 <ogm.properties>ogm-embedded.properties</ogm.properties>
             </properties>
         </profile>
+
+        <profile>
+            <id>bolt</id>
+            <properties>
+                <ogm.properties>ogm-bolt.properties</ogm.properties>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>http</id>
+            <properties>
+                <ogm.properties>ogm-http.properties</ogm.properties>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>3.0</id>
+            <properties>
+                <neo4j.version>3.0.0-M05</neo4j.version>
+            </properties>
+        </profile>
+
+
+        <profile>
+            <id>2.3</id>
+            <properties>
+                <neo4j.version>2.3.2</neo4j.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>2.2</id>
+            <properties>
+                <neo4j.version>2.2.8</neo4j.version>
+            </properties>
+        </profile>
+
     </profiles>
+
 
 </project>

@@ -93,8 +93,11 @@ public class ConversionServiceTest extends MultiDriverTestClass {
 
     @Test
     public void shouldConvertFieldsUsingSpringConvertersAddedDirectlyToConversionService() {
+
         this.conversionService.addConverter(new SpringMonetaryAmountToIntegerConverter());
         this.conversionService.addConverter(new SpringIntegerToMonetaryAmountConverter());
+        this.conversionService.addConverter(new SpringMonetaryAmountToLongConverter());
+        this.conversionService.addConverter(new SpringLongToMonetaryAmountConverter());
 
         PensionPlan pensionToSave = new PensionPlan(new MonetaryAmount(16472, 81), "Tightfist Asset Management Ltd");
 
@@ -103,7 +106,7 @@ public class ConversionServiceTest extends MultiDriverTestClass {
         Result result = graphDatabaseService
                 .execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
         assertTrue("Nothing was saved", result.hasNext());
-        assertEquals("The amount wasn't converted and persisted correctly", 1647281, result.next().get("fv"));
+        assertEquals("The amount wasn't converted and persisted correctly", "1647281", String.valueOf(result.next().get("fv")));
         result.close();
 
         PensionPlan reloadedPension = this.pensionRepository.findOne(pensionToSave.getPensionPlanId());
@@ -115,14 +118,16 @@ public class ConversionServiceTest extends MultiDriverTestClass {
      */
     @Test
     public void shouldConvertFieldsUsingAnAvailableSupertypeConverterIfExactTypesDoNotMatch() {
+
         this.conversionService.addConverterFactory(new SpringMonetaryAmountToNumberConverterFactory());
+        //this.conversionService.addConverter(new SpringIntegerToMonetaryAmountConverter());
 
         PensionPlan pension = new PensionPlan(new MonetaryAmount(20_000, 00), "Ashes Assets LLP");
         this.pensionRepository.save(pension);
         Result result = graphDatabaseService
                 .execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
         assertTrue("Nothing was saved", result.hasNext());
-        assertEquals("The amount wasn't converted and persisted correctly", 2000000, result.next().get("fv"));
+        assertEquals("The amount wasn't converted and persisted correctly", "2000000", String.valueOf(result.next().get("fv")));
         result.close();
     }
 
