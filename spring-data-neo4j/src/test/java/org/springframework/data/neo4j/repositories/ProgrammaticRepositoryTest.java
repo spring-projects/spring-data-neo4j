@@ -19,7 +19,9 @@ import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.data.neo4j.repositories.domain.Movie;
+import org.springframework.data.neo4j.repositories.domain.User;
 import org.springframework.data.neo4j.repositories.repo.MovieRepository;
+import org.springframework.data.neo4j.repositories.repo.UserRepository;
 import org.springframework.data.neo4j.repository.support.GraphRepositoryFactory;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
@@ -60,6 +62,27 @@ public class ProgrammaticRepositoryTest extends MultiDriverTestClass {
         assertSameGraph(getGraphDatabaseService(), "CREATE (m:Movie {title:'PF'})");
 
         assertEquals(1, IterableUtils.count(movieRepository.findAll()));
+    }
+
+	/**
+     * @see DATAGRAPH-847
+     */
+    @Test
+    public void shouldBeAbleToDeleteAllViaRepository() {
+
+        RepositoryFactorySupport factory = new GraphRepositoryFactory(session, neo4jOperations);
+
+        UserRepository userRepository = factory.getRepository(UserRepository.class);
+
+        User userA = new User("A");
+        User userB = new User("B");
+        userRepository.save(userA);
+        userRepository.save(userB);
+
+        assertEquals(2, userRepository.count());
+
+        userRepository.deleteAll();
+        assertEquals(0, userRepository.count());
     }
 
 }

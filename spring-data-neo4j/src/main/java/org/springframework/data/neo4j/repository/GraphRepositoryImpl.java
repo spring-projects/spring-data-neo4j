@@ -94,7 +94,7 @@ public class GraphRepositoryImpl<T> implements GraphRepository<T> {
 
     @Override
     public void deleteAll() {
-        neo4jOperations.delete(clazz);
+        neo4jOperations.deleteAll(clazz);
     }
 
     @Override

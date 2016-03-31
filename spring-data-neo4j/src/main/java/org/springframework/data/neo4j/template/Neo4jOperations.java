@@ -271,6 +271,12 @@ public interface Neo4jOperations {
      */
     void delete(Object entity);
 
+	/**
+     * Removes all nodes or relationship entities of a specific type from the graph.
+     * @param type the type of entity to delete
+     */
+    <T> void deleteAll(Class<T> type);
+
     /**
      * Removes all mapping information from the current session
      */
