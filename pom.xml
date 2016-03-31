@@ -169,12 +169,6 @@
     <repositories>
 
         <repository>
-            <id>spring-libs-release</id>
-            <name>Spring</name>
-            <url>http://repo.spring.io/libs-release</url>
-        </repository>
-
-        <repository>
             <id>neo4j</id>
             <url>http://m2.neo4j.org/content/repositories/releases</url>
             <snapshots>
