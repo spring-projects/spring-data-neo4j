@@ -50,7 +50,7 @@ public abstract class Neo4jConfiguration {
 
     @Bean
     public Session getSession() throws Exception {
-        logger.info("Initialising Neo4jSession");
+        logger.debug("Initialising Neo4jSession");
         SessionFactory sessionFactory = getSessionFactory();
         Assert.notNull(sessionFactory, "You must provide a SessionFactory instance in your Spring configuration classes");
         return sessionFactory.openSession();
