@@ -43,7 +43,7 @@ Spring Data Commons provides a very powerful repository infrastructure that is a
 Those repositories consist of a composition of interfaces that declare the available functionality in each repository.
 The implementation details of commonly-used persistence methods are handled by the library, which makes them very convenient for typical CRUD and query operations. 
 The repositories are extensible by annotated, named or derived finder methods (like in (G)Rails).
-For custom implementations of repository methods you are free to add your own code. (<<reference_programming_model_repositories,CRUD with repositories>>).
+For custom implementations of repository methods you are free to add your own code. (<<reference_programming-model_repositories,CRUD with repositories>>).
 
 == Neo4jTemplate
 Being a Spring Data library, Spring Data Neo4j offers a <<reference_programming_model_template,Neo4jTemplate>> for interacting with the mapped entities and the Neo4j graph database if you don't want to use repositories.

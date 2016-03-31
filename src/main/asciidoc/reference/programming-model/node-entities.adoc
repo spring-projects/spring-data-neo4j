@@ -141,3 +141,7 @@ Custom converters are also specified by using `@Convert` - this is discussed in 
 Node property names can be explicitly assigned by setting the `name` attribute.  
 For example `@Property(name="last_name") String lastName`.  The node property name defaults to the field name when not specified.
 
+[NOTE]
+====
+Property fields to be persisted to the graph must not be declared `final`.
+====
