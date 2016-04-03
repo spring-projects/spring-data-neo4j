@@ -172,7 +172,7 @@
             <id>neo4j</id>
             <url>http://m2.neo4j.org/content/repositories/releases</url>
             <snapshots>
-                <enabled>false</enabled>
+                <enabled>true</enabled>
             </snapshots>
         </repository>
 
@@ -180,7 +180,7 @@
             <id>neo4j-snapshots</id>
             <url>http://m2.neo4j.org/content/repositories/snapshots</url>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
             </snapshots>
         </repository>
 
