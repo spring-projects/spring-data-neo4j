@@ -1,6 +1,17 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.1.0.RELEASE (2016-04-06)
+---------------------------------------------
+* DATAGRAPH-850 - Add pull request template.
+* DATAGRAPH-848 - Upgrade to Neo4j OGM 2.0.0 GA.
+* DATAGRAPH-847 - DeleteDelegate can not find ClassInfo for my object.
+* DATAGRAPH-846 - Release 4.1 GA (Hopper).
+* DATAGRAPH-845 - Add explicit Apache 2.0 license file and mention.
+* DATAGRAPH-844 - Remove deprecated Neo4j api usage.
+* DATAGRAPH-842 - Documentation updates.
+
+
 Changes in version 4.1.0.RC1 (2016-03-18)
 -----------------------------------------
 * DATAGRAPH-838 - Release 4.1 RC1 (Hopper).
