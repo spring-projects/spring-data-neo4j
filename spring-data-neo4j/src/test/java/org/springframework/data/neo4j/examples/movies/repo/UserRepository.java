@@ -14,6 +14,7 @@
 package org.springframework.data.neo4j.examples.movies.repo;
 
 import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.*;
 import org.springframework.data.repository.query.Param;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Michal Bachman
@@ -103,5 +105,13 @@ public interface UserRepository extends PersonRepository<User> {
     void setNamesNull(String name);
 
     List<User> findByNameIsNotLike(String name);
+
+    Optional<User> findDerivedOptionalByName(String name);
+
+    @Query("MATCH (user:User {name:{0}}) RETURN user")
+    Optional<User> findQueryOptionalByName(String name);
+
+    @Query("MATCH (user:User {name:{0}}) RETURN id(user) AS userId, user.name AS userName, user.age")
+    Optional<UserQueryResult> findQueryResultOptionalByName(String name);
 
 }
