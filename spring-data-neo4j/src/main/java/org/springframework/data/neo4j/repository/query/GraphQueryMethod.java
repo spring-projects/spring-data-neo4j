@@ -21,11 +21,9 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.util.ClassUtils;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
+import java.lang.reflect.*;
 
 /**
  * @author Mark Angrish
@@ -37,6 +35,21 @@ public class GraphQueryMethod extends QueryMethod {
     private final Session session;
     private final Method method;
     private final Query queryAnnotation;
+
+    private static Class<?> javaUtilOptionalClass = null;
+    private static Method javaUtilOptionalOfNullable = null;
+
+    static {
+        try {
+            javaUtilOptionalClass =
+                    ClassUtils.forName("java.util.Optional", GraphQueryMethod.class.getClassLoader());
+            javaUtilOptionalOfNullable = javaUtilOptionalClass.getMethod("ofNullable", Object.class);
+        }
+        catch (Exception ex) {
+            // Java 8 not available - Optional references simply not supported then.
+        }
+    }
+
 
     public GraphQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory, Session session) {
         super(method, metadata, factory);
@@ -66,7 +79,7 @@ public class GraphQueryMethod extends QueryMethod {
         Class<?> type = this.method.getReturnType();
         Type genericType = this.method.getGenericReturnType();
 
-        if (Iterable.class.isAssignableFrom(type)) {
+        if (Iterable.class.isAssignableFrom(type) || type == javaUtilOptionalClass) {
             if (genericType instanceof ParameterizedType) {
                 ParameterizedType returnType = (ParameterizedType) genericType;
                 Type componentType = returnType.getActualTypeArguments()[0];
@@ -96,4 +109,19 @@ public class GraphQueryMethod extends QueryMethod {
 
     }
 
+    public Object wrapIfOptional(Object object) {
+        if (method.getReturnType().getName().equals("java.util.Optional")) {
+            return optionalOf(object);
+        }
+        return object;
+    }
+
+    private static Object optionalOf(Object object) {
+        try {
+            return javaUtilOptionalOfNullable == null ? object : javaUtilOptionalOfNullable.invoke(null, object);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            // should not happen
+        }
+        return object;
+    }
 }
