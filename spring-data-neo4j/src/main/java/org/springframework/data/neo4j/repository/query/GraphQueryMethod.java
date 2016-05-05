@@ -13,8 +13,8 @@
 
 package org.springframework.data.neo4j.repository.query;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -120,7 +120,24 @@ public class GraphQueryMethod extends QueryMethod {
     }
 
     private Integer getQueryDepthParamIndex(Method method) {
-        Parameter[] parameters = method.getParameters();
+        Annotation[][] annotations = method.getParameterAnnotations();
+        for (int i = 0; i < annotations.length; i++) {
+            if (annotations[i].length > 0) {
+                for (Annotation annotation : annotations[i]) {
+                    if (annotation.annotationType() == Depth.class) {
+                        if (method.getParameterTypes()[i] == Integer.class || method.getParameterTypes()[i] == int.class) {
+                            return i;
+                        }
+                        else {
+                            throw new IllegalArgumentException("Depth parameter in " + method.getName() + " must be an integer");
+                        }
+                    }
+                }
+            }
+        }
+       /*
+       //Java 8 only
+       Parameter[] parameters = method.getParameters();
         for (int i = 0; i < method.getParameterCount(); i++) {
             if (parameters[i].isAnnotationPresent(Depth.class)) {
                 if (parameters[i].getType() == Integer.class || parameters[i].getType() == int.class) {
@@ -130,14 +147,14 @@ public class GraphQueryMethod extends QueryMethod {
                     throw new IllegalArgumentException("Depth parameter in " + method.getName() + " must be an integer");
                 }
             }
-        }
+        }*/
         return null;
     }
 
     private Integer getStaticQueryDepth(Method method) {
         if (method.isAnnotationPresent(Depth.class)) {
             staticDepth = true;
-            return method.getDeclaredAnnotation(Depth.class).value();
+            return method.getAnnotation(Depth.class).value();
         }
         return null;
     }
