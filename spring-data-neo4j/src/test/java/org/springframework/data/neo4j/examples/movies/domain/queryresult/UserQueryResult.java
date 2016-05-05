@@ -30,6 +30,7 @@ import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 @QueryResult
 public class UserQueryResult {
 
+    private Long id;
     Long userId;
     private String userName;
     private int age;
@@ -63,6 +64,15 @@ public class UserQueryResult {
 
     public Long getUserId() {
         return userId;
+    }
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     @Override

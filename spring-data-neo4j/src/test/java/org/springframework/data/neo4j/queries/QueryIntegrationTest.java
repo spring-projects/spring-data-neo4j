@@ -165,7 +165,7 @@ public class QueryIntegrationTest extends MultiDriverTestClass {
     }
 
     /**
-     * @see DATAGRAPH-698
+     * @see DATAGRAPH-698, DATAGRAPH-861
      */
     @Test
     public void shouldFindUsersAndMapThemToConcreteQueryResultObjectCollection() {
@@ -180,6 +180,7 @@ public class QueryIntegrationTest extends MultiDriverTestClass {
         assertEquals(expected, queryResult);
         for(UserQueryResult userQueryResult : queryResult) {
             assertNotNull(userQueryResult.getUserId());
+            assertNotNull(userQueryResult.getId());
         }
     }
 
