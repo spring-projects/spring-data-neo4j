@@ -23,6 +23,8 @@ import org.springframework.data.neo4j.examples.movies.domain.User;
 
 /**
  * {@link QueryResult} that wraps entity objects.
+ *
+ * @author Luanne Misquitta
  */
 @QueryResult
 public class EntityWrappingQueryResult {
@@ -32,6 +34,7 @@ public class EntityWrappingQueryResult {
     private List<Rating> ratings;
     private TempMovie[] movies;
     private float avgRating;
+    private List<Float> allRatings;
 
     public User getUser() {
         return user;
@@ -51,5 +54,9 @@ public class EntityWrappingQueryResult {
 
     public TempMovie[] getMovies() {
         return movies;
+    }
+
+    public List<Float> getAllRatings() {
+        return allRatings;
     }
 }

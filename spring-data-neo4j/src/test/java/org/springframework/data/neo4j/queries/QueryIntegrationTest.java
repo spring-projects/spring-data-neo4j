@@ -444,4 +444,14 @@ public class QueryIntegrationTest extends MultiDriverTestClass {
         assertEquals("The wrong user was returned", 31, result.getAgeOfUser());
     }
 
+    /**
+     * @see DATAGRAPH-860
+     */
+    @Test
+    public void shouldMapEmptyNullCollectionsToQueryResultInterface() {
+        executeUpdate("CREATE (g:User {name:'Gary'})");
+        EntityWrappingQueryResult result = userRepository.findAllRatingsNull();
+        assertNotNull(result);
+        assertEquals(0, result.getAllRatings().size());
+    }
 }
