@@ -104,4 +104,6 @@ public interface UserRepository extends PersonRepository<User> {
 
     List<User> findByNameIsNotLike(String name);
 
+    @Query("MATCH (user:User) RETURN user.unknown as allRatings")
+    EntityWrappingQueryResult findAllRatingsNull();
 }
