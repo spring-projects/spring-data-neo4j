@@ -13,6 +13,7 @@
 
 package org.springframework.data.neo4j.examples.movies.repo;
 
+import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.stereotype.Repository;
@@ -62,5 +63,7 @@ public interface CinemaRepository extends GraphRepository<Cinema> {
 	List<Cinema> findByVisitedNameAndVisitedMiddleName(String name, String middleName);
 
 	List<Cinema> findByNameMatches(String name);
+
+	Cinema findByName(String name, @Depth int depth);
 
 }

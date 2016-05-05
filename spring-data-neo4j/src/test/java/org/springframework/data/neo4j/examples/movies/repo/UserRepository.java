@@ -13,6 +13,7 @@
 
 package org.springframework.data.neo4j.examples.movies.repo;
 
+import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.*;
@@ -103,6 +104,9 @@ public interface UserRepository extends PersonRepository<User> {
     void setNamesNull(String name);
 
     List<User> findByNameIsNotLike(String name);
+
+    @Depth(value = 0)
+    User findBySurname(String surname);
 
     @Query("MATCH (user:User) RETURN user.unknown as allRatings")
     EntityWrappingQueryResult findAllRatingsNull();

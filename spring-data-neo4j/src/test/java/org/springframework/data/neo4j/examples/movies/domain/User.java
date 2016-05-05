@@ -25,6 +25,8 @@ import java.util.Set;
 public class User extends Person{
 
     private String middleName;
+    private String surname;
+
     private Collection<Genre> interested = new HashSet<>();
 
     @Relationship(type = "FRIEND_OF", direction = Relationship.UNDIRECTED)
@@ -76,5 +78,9 @@ public class User extends Person{
 
     public void setMiddleName(String middleName) {
         this.middleName = middleName;
+    }
+
+    public String getSurname() {
+        return surname;
     }
 }

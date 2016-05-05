@@ -447,6 +447,59 @@ public class DerivedQueryTest extends MultiDriverTestClass {
 
 	}
 
+
+	/**
+	 * @see DATAGRAPH-744
+	 */
+	@Test
+	public void shouldFindUserWithCustomDepth() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
+				" CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
+				" CREATE (u:User {name:'Michal'}) " +
+				" CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(p)" +
+				" CREATE (m1:Movie {name:'San Andreas'}) " +
+				" CREATE (m2:Movie {name:'Pitch Perfect 2'})" +
+				" CREATE (p)-[:BLOCKBUSTER]->(m1)" +
+				" CREATE (r)-[:BLOCKBUSTER]->(m2)" +
+				" CREATE (u)-[:RATED {stars :3}]->(m1)");
+
+		Cinema cinema = cinemaRepository.findByName("Picturehouse", 0);
+		assertNotNull(cinema);
+		assertEquals("Picturehouse", cinema.getName());
+		assertEquals(0, cinema.getVisited().size());
+		assertEquals(null, cinema.getBlockbusterOfTheWeek());
+
+		cinema = cinemaRepository.findByName("Picturehouse", 1);
+		assertNotNull(cinema);
+		assertEquals("Picturehouse", cinema.getName());
+		assertEquals(1, cinema.getVisited().size());
+		assertEquals(0, cinema.getVisited().iterator().next().getRatings().size());
+		assertEquals("San Andreas", cinema.getBlockbusterOfTheWeek().getName());
+
+		session.clear();
+
+		cinema = cinemaRepository.findByName("Picturehouse", 2);
+		assertNotNull(cinema);
+		assertEquals("Picturehouse", cinema.getName());
+		assertEquals(1, cinema.getVisited().size());
+		assertEquals(1, cinema.getVisited().iterator().next().getRatings().size());
+		assertEquals("San Andreas", cinema.getBlockbusterOfTheWeek().getName());
+	}
+
+
+	/**
+	 * @see DATAGRAPH-744
+	 */
+	@Test
+	public void shouldFindUsersByNameWithStaticDepth() {
+		executeUpdate("CREATE (m:User {name:'Michal', surname:'Bachman'})<-[:FRIEND_OF]-(a:User {name:'Adam', surname:'George'})");
+
+		User user = userRepository.findBySurname("Bachman");
+		assertNotNull(user);
+		assertEquals("Michal", user.getName());
+		assertEquals("Bachman", user.getSurname());
+		assertEquals(0, user.getFriends().size());
+	}
 	/**
 	 * @see DATAGRAPH-864
 	 */

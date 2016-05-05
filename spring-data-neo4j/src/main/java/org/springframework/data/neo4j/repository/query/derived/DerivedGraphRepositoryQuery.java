@@ -40,6 +40,8 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 
 	protected final Session session;
 
+	private final int DEFAULT_QUERY_DEPTH = 1;
+
 	public DerivedGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session) {
 		this.graphQueryMethod = graphQueryMethod;
 		this.session = session;
@@ -52,6 +54,16 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 	public Object execute(Object[] parameters) {
 		Class<?> returnType = graphQueryMethod.getMethod().getReturnType();
 		Class<?> concreteType = graphQueryMethod.resolveConcreteReturnType();
+		int queryDepth = DEFAULT_QUERY_DEPTH;
+
+		if (graphQueryMethod.hasStaticDepth()) {
+			queryDepth = graphQueryMethod.getQueryDepth();
+		}
+		else {
+			if (graphQueryMethod.getQueryDepthParamIndex() != null) {
+				queryDepth = (int) parameters[graphQueryMethod.getQueryDepthParamIndex()];
+			}
+		}
 
 		Filters params = resolveParams(parameters);
 		if (returnType.equals(Void.class)) {
@@ -59,10 +71,10 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		}
 
 		if (Iterable.class.isAssignableFrom(returnType)) {
-			return session.loadAll(concreteType, params);
+			return session.loadAll(concreteType, params, queryDepth);
 		}
 
-		Iterator<?> objectIterator = session.loadAll(returnType, params).iterator();
+		Iterator<?> objectIterator = session.loadAll(returnType, params, queryDepth).iterator();
 		if(objectIterator.hasNext()) {
 			return objectIterator.next();
 		}
@@ -78,7 +90,9 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		Map<Integer, Object> params = new HashMap<>();
 
 		for (int i = 0; i < parameters.length; i++) {
-			params.put(i, parameters[i]);
+			if (graphQueryMethod.getQueryDepthParamIndex() == null || (graphQueryMethod.getQueryDepthParamIndex() != null && graphQueryMethod.getQueryDepthParamIndex() != i)) {
+				params.put(i, parameters[i]);
+			}
 		}
 
 		Filters queryParams = queryDefinition.getFilters();

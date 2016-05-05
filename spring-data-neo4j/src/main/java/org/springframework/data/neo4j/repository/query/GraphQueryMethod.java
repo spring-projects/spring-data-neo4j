@@ -13,7 +13,14 @@
 
 package org.springframework.data.neo4j.repository.query;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+
 import org.neo4j.ogm.session.Session;
+import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.repository.query.derived.DerivedGraphRepositoryQuery;
@@ -21,11 +28,6 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 
 /**
  * @author Mark Angrish
@@ -37,12 +39,21 @@ public class GraphQueryMethod extends QueryMethod {
     private final Session session;
     private final Method method;
     private final Query queryAnnotation;
+    private final Integer queryDepthParamIndex;
+    private final Integer queryDepth;
+    private boolean staticDepth;
 
     public GraphQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory, Session session) {
         super(method, metadata, factory);
         this.method = method;
         this.session = session;
         this.queryAnnotation = method.getAnnotation(Query.class);
+        this.queryDepthParamIndex = getQueryDepthParamIndex(method);
+        this.queryDepth = getStaticQueryDepth(method);
+        if (queryDepth!=null && queryDepthParamIndex!=null) {
+            throw new IllegalArgumentException(method.getName() + " cannot have both a method @Depth and a parameter @Depth");
+        }
+
     }
 
     public String getQuery() {
@@ -95,5 +106,42 @@ public class GraphQueryMethod extends QueryMethod {
         return new DerivedGraphRepositoryQuery(this, session);
 
     }
+
+    public Integer getQueryDepthParamIndex() {
+        return queryDepthParamIndex;
+    }
+
+    public Integer getQueryDepth() {
+        return queryDepth;
+    }
+
+    public boolean hasStaticDepth() {
+        return staticDepth;
+    }
+
+    private Integer getQueryDepthParamIndex(Method method) {
+        Parameter[] parameters = method.getParameters();
+        for (int i = 0; i < method.getParameterCount(); i++) {
+            if (parameters[i].isAnnotationPresent(Depth.class)) {
+                if (parameters[i].getType() == Integer.class || parameters[i].getType() == int.class) {
+                    return i;
+                }
+                else {
+                    throw new IllegalArgumentException("Depth parameter in " + method.getName() + " must be an integer");
+                }
+            }
+        }
+        return null;
+    }
+
+    private Integer getStaticQueryDepth(Method method) {
+        if (method.isAnnotationPresent(Depth.class)) {
+            staticDepth = true;
+            return method.getDeclaredAnnotation(Depth.class).value();
+        }
+        return null;
+    }
+
+
 
 }
