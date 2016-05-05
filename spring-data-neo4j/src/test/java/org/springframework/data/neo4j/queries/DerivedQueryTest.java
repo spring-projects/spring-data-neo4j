@@ -26,6 +26,7 @@ import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.examples.movies.domain.Director;
 import org.springframework.data.neo4j.examples.movies.domain.User;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.EntityWrappingQueryResult;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.DirectorRepository;
 import org.springframework.data.neo4j.examples.movies.repo.RatingRepository;
@@ -446,4 +447,26 @@ public class DerivedQueryTest extends MultiDriverTestClass {
 
 	}
 
+	/**
+	 * @see DATAGRAPH-864
+	 */
+	@Test
+	public void shouldSupportLiteralMapsInQueryResults() {
+		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
+				" CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) " +
+				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->m");
+
+		List<EntityWrappingQueryResult> result = userRepository.findRatingsWithLiteralMap();
+		assertNotNull(result);
+		assertEquals(2, result.size());
+		EntityWrappingQueryResult row = result.get(0);
+		if (row.getUser().getName().equals("Vince")) {
+			assertEquals(1, row.getLiteralMap().size());
+			assertEquals("Chocolat", row.getLiteralMap().iterator().next().get("movietitle"));
+			assertEquals(3, row.getLiteralMap().iterator().next().get("stars"));
+		}
+		else {
+			assertEquals(2, row.getLiteralMap().size());
+		}
+	}
 }

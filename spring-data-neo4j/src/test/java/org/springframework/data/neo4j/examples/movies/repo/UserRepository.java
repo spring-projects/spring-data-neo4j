@@ -106,4 +106,8 @@ public interface UserRepository extends PersonRepository<User> {
 
     @Query("MATCH (user:User) RETURN user.unknown as allRatings")
     EntityWrappingQueryResult findAllRatingsNull();
+
+    @Query("match (u:User)-[r:RATED]->(m:Movie) return  u as user, collect({username: u.name, movietitle: m.title, stars:r.stars}) as literalMap")
+    List<EntityWrappingQueryResult> findRatingsWithLiteralMap();
+
 }
