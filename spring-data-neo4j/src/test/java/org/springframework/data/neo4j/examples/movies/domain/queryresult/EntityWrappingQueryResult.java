@@ -13,7 +13,9 @@
 
 package org.springframework.data.neo4j.examples.movies.domain.queryresult;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.neo4j.annotation.QueryResult;
@@ -35,6 +37,8 @@ public class EntityWrappingQueryResult {
     private TempMovie[] movies;
     private float avgRating;
     private List<Float> allRatings;
+    private Collection<Map<String, Object>> literalMap;
+
 
     public User getUser() {
         return user;
@@ -59,4 +63,9 @@ public class EntityWrappingQueryResult {
     public List<Float> getAllRatings() {
         return allRatings;
     }
+
+    public Collection<Map<String, Object>> getLiteralMap() {
+        return literalMap;
+    }
+
 }
