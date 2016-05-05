@@ -57,7 +57,7 @@ public interface UserRepository extends PersonRepository<User> {
     @Query("MATCH (user:User{name:{0}}) RETURN user")
     User findUserByName(String name);
 
-    @Query("MATCH (user:User) RETURN id(user) AS userId, user.name AS userName, user.age ORDER BY user.age")
+    @Query("MATCH (user:User) RETURN id(user) AS userId, id(user) as id, user.name AS userName, user.age ORDER BY user.age")
     Iterable<UserQueryResult> retrieveAllUsersAndTheirAges();
 
     @Query("MATCH (user:User{name:{0}}) RETURN user.name AS name")
