@@ -471,4 +471,29 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
         }
     }
 
+    /**
+     * @see DATAGRAPH-863
+     */
+    @Test
+    public void shouldAllowDeletionOfNodeEntityAgainstEmptyDatabase() {
+        try {
+            clearDatabase();
+            this.template.deleteAll(Movie.class);
+        } catch (Exception e) {
+            fail("Should not have thrown exception: " + e.getLocalizedMessage());
+        }
+    }
+
+    /**
+     * @see DATAGRAPH-863
+     */
+    @Test
+    public void shouldAllowDeletionOfRelationshipEntityAgainstEmptyDatabase() {
+        try {
+            clearDatabase();
+            this.template.deleteAll(Rating.class);
+        } catch (Exception e) {
+            fail("Should not have thrown exception: " + e.getLocalizedMessage());
+        }
+    }
 }
