@@ -33,6 +33,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.lang.annotation.ElementType;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.Arrays;
 
 import static org.junit.Assert.*;
@@ -206,6 +207,23 @@ public class ConversionServiceTest extends MultiDriverTestClass {
         siteMember = session.loadAll(SiteMember.class).iterator().next();
         assertArrayEquals(binaryData, siteMember.getProfilePictureData());
         assertEquals(50, siteMember.getYears().intValue());
+    }
+
+	/**
+     * @see DATAGRAPH-659
+     */
+    @Test
+    public void shouldRecognizeJavaEnums() {
+        SiteMember siteMember = new SiteMember();
+        siteMember.setRoundingModes(Arrays.asList(RoundingMode.DOWN, RoundingMode.FLOOR));
+        this.siteMemberRepository.save(siteMember);
+
+        session.clear();
+
+        siteMember = session.loadAll(SiteMember.class).iterator().next();
+        assertEquals(2, siteMember.getRoundingModes().size());
+        assertTrue(siteMember.getRoundingModes().contains(RoundingMode.DOWN));
+        assertTrue(siteMember.getRoundingModes().contains(RoundingMode.FLOOR));
     }
 
 }
