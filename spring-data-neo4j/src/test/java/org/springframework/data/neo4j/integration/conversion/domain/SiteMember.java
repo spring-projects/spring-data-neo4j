@@ -12,11 +12,14 @@
  */
 package org.springframework.data.neo4j.integration.conversion.domain;
 
+import java.math.BigInteger;
+import java.math.RoundingMode;
+import java.util.List;
+
 import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.ByteArrayBase64Converter;
-
-import java.math.BigInteger;
 
 /**
  * @author Adam George
@@ -32,6 +35,9 @@ public class SiteMember {
 
     private BigInteger years;
 
+    @Property(name = "rounding")
+    private List<RoundingMode> roundingModes;
+
     public byte[] getProfilePictureData() {
         return this.profilePictureData;
     }
@@ -46,5 +52,13 @@ public class SiteMember {
 
     public void setYears(BigInteger years) {
         this.years = years;
+    }
+
+    public List<RoundingMode> getRoundingModes() {
+        return roundingModes;
+    }
+
+    public void setRoundingModes(List<RoundingMode> roundingModes) {
+        this.roundingModes = roundingModes;
     }
 }

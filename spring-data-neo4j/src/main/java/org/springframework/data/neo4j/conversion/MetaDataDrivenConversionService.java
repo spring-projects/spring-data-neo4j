@@ -32,6 +32,7 @@ import java.lang.reflect.ParameterizedType;
  * {@link MetaData}, allowing the OGM type converters to be reused throughout a Spring application.
  *
  * @author Adam George
+ * @author Luanne Misquitta
  */
 public class MetaDataDrivenConversionService extends GenericConversionService implements ConversionCallback {
 
@@ -80,9 +81,23 @@ public class MetaDataDrivenConversionService extends GenericConversionService im
             }
         };
 
+
         ParameterizedType pt = (ParameterizedType) attributeConverter.getClass().getGenericInterfaces()[0];
-        Class<?> sourceType = (Class<?>) pt.getActualTypeArguments()[0];
-        Class<?> targetType = (Class<?>) pt.getActualTypeArguments()[1];
+        Class<?> sourceType, targetType;
+        if (pt.getActualTypeArguments()[0] instanceof Class) {
+            sourceType = (Class<?>) pt.getActualTypeArguments()[0];
+        }
+        else { //the argument may be a Collection for example
+            sourceType = (Class<?>)((ParameterizedType) pt.getActualTypeArguments()[0]).getActualTypeArguments()[0];
+        }
+
+        if (pt.getActualTypeArguments()[1] instanceof Class) {
+            targetType = (Class<?>) pt.getActualTypeArguments()[1];
+        }
+        else {
+            targetType = (Class<?>)((ParameterizedType) pt.getActualTypeArguments()[1]).getActualTypeArguments()[1];
+
+        }
 
         if (canConvert(sourceType, targetType) && canConvert(targetType, sourceType)) {
             logger.info("Not adding Spring-compatible converter for " + attributeConverter.getClass()
