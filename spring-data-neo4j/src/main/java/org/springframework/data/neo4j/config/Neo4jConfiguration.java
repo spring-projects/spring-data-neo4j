@@ -87,9 +87,9 @@ public abstract class Neo4jConfiguration {
     @Bean
     public PlatformTransactionManager transactionManager() throws Exception {
         logger.info("Initialising Neo4jTransactionManager");
-        Session session = getSession();
-        Assert.notNull(session, "You must provide a Session instance in your Spring configuration classes");
-        return new Neo4jTransactionManager(session);
+        SessionFactory sessionFactory = getSessionFactory();
+        Assert.notNull(sessionFactory, "You must provide a SessionFactory instance in your Spring configuration classes");
+        return new Neo4jTransactionManager(sessionFactory);
     }
 
     @Bean
