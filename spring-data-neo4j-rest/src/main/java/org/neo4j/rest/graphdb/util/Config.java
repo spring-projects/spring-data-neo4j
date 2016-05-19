@@ -27,6 +27,7 @@ public class Config {
     public static final String CONFIG_BATCH_TRANSACTION = CONFIG_PREFIX+"batch_transaction";
     public static final String CONFIG_LOG_REQUESTS = CONFIG_PREFIX+"logging_filter";
     public static final String WRITE_THREADS = "write_threads";
+    public static final String IGNORE_SSL_HANDSHAKE = CONFIG_PREFIX+"ignore_ssl_handshake";
 
     public static int getConnectTimeout() {
         return getTimeout("connect_timeout", 30);
@@ -54,5 +55,9 @@ public class Config {
     
     public static int getWriterThreads() {
         return Integer.parseInt(System.getProperty(CONFIG_PREFIX + WRITE_THREADS, "" + 10));
+    }
+
+    public static boolean ignoreSSLHandshake() {
+        return System.getProperty(IGNORE_SSL_HANDSHAKE, "false").equalsIgnoreCase("true");
     }
 }
