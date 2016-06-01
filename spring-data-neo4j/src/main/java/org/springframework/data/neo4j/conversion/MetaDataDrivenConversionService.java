@@ -68,13 +68,13 @@ public class MetaDataDrivenConversionService extends GenericConversionService im
             return;
         }
 
-        Converter<?, ?> toGraphConverter = new Converter() {
+        Converter toGraphConverter = new Converter() {
             @Override
             public Object convert(Object source) {
                 return attributeConverter.toGraphProperty(source);
             }
         };
-        Converter<?, ?> toEntityConverter = new Converter() {
+        Converter toEntityConverter = new Converter() {
             @Override
             public Object convert(Object source) {
                 return attributeConverter.toEntityAttribute(source);
