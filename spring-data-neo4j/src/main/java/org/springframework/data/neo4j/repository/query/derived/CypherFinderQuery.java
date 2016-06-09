@@ -12,9 +12,11 @@
  */
 package org.springframework.data.neo4j.repository.query.derived;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
-import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -27,7 +29,7 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 
 	private Class<?> entityType;
 	private Part basePart;
-	private Filters parameters = new Filters();
+	private List<CypherFilter> cypherFilters = new ArrayList<>();
 	private int paramPosition = 0;
 
 	public CypherFinderQuery(Class<?> entityType, Part basePart) {
@@ -42,13 +44,22 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 
 	@Override
 	public Filters getFilters() {
-		return parameters;
+		Filters filters = new Filters();
+		for (CypherFilter cypherFilter : cypherFilters) {
+			filters.add(cypherFilter.toFilter());
+		}
+		return filters;
+	}
+
+	@Override
+	public List<CypherFilter> getCypherFilters() {
+		return cypherFilters;
 	}
 
 	@Override
 	public void addPart(Part part, BooleanOperator booleanOperator) {
 		String property = part.getProperty().getSegment();
-		Filter parameter = new Filter();
+		CypherFilter parameter = new CypherFilter();
 		parameter.setPropertyPosition(paramPosition++);
 		parameter.setPropertyName(property);
 		parameter.setOwnerEntityType(entityType);
@@ -62,7 +73,7 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 			parameter.setPropertyName(part.getProperty().getLeafProperty().getSegment());
 			parameter.setNestedPropertyName(part.getProperty().getSegment());
 		}
-		parameters.add(parameter);
+		cypherFilters.add(parameter);
 
 	}
 

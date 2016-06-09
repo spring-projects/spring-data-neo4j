@@ -24,6 +24,7 @@ import org.springframework.data.repository.query.parser.PartTree;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -94,10 +95,12 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 				params.put(i, parameters[i]);
 			}
 		}
-
-		Filters queryParams = queryDefinition.getFilters();
-		for(Filter queryParam : queryParams) {
-			queryParam.setPropertyValue(params.get(queryParam.getPropertyPosition()));
+		List<CypherFilter> cypherFilters = queryDefinition.getCypherFilters();
+		Filters queryParams = new Filters();
+		for(CypherFilter cypherFilter : cypherFilters) {
+			Filter filter = cypherFilter.toFilter();
+			filter.setPropertyValue(params.get(cypherFilter.getPropertyPosition()));
+			queryParams.add(filter);
 		}
 		return queryParams;
 	}

@@ -39,6 +39,9 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.Assert.*;
 
@@ -520,6 +523,62 @@ public class DerivedQueryTest extends MultiDriverTestClass {
 		}
 		else {
 			assertEquals(2, row.getLiteralMap().size());
+		}
+	}
+
+	/**
+	 * @see DATAGRAPH-876
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void shouldAllowMultiThreadedDerivedFinderExecution() throws InterruptedException {
+		int numThreads = 3;
+		executeUpdate("CREATE (m:User {name:'Michal', surname:'Bachman'}), (a:User {name:'Adam', surname:'George'}), (l:User {name:'Luanne', surname:'Misquitta'})");
+
+		session.clear();
+
+		String[] firstNames = new String[] {"Michal", "Adam", "Luanne"};
+		String[] lastNames = new String[] {"Bachman", "George", "Misquitta"};
+
+
+		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+		CountDownLatch latch = new CountDownLatch(numThreads);
+
+		for (int i = 0; i < numThreads; i++) {
+			executor.submit(new DerivedQueryRunner(latch, firstNames[i], lastNames[i]));
+		}
+		latch.await(); // pause until the count reaches 0
+
+		// force termination of all threads
+		executor.shutdownNow();
+
+
+	}
+
+
+	class DerivedQueryRunner implements Runnable {
+
+		private final CountDownLatch latch;
+		private final String firstName;
+		private final String lastName;
+
+		public DerivedQueryRunner(CountDownLatch latch, String firstName, String lastName ) {
+			this.latch = latch;
+			this.firstName = firstName;
+			this.lastName = lastName;
+		}
+
+		@Override
+		public void run() {
+			try
+			{
+				User user = userRepository.findBySurname(lastName);
+				assertNotNull(user);
+				assertEquals(firstName, user.getName());
+				assertEquals(lastName, user.getSurname());
+			} finally {
+				latch.countDown();
+			}
 		}
 	}
 }
