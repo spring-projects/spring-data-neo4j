@@ -26,7 +26,7 @@
 
     <properties>
         <neo4j.version>2.3.3</neo4j.version>
-        <neo4j.ogm.version>2.0.3-SNAPSHOT</neo4j.ogm.version>
+        <neo4j.ogm.version>2.0.4-SNAPSHOT</neo4j.ogm.version>
         <ogm.properties>ogm-http.properties</ogm.properties>
     </properties>
 
@@ -177,7 +177,7 @@
         <profile>
             <id>3.0</id>
             <properties>
-                <neo4j.version>3.0.0-M05</neo4j.version>
+                <neo4j.version>3.0.2</neo4j.version>
             </properties>
         </profile>
 
@@ -185,7 +185,7 @@
         <profile>
             <id>2.3</id>
             <properties>
-                <neo4j.version>2.3.3</neo4j.version>
+                <neo4j.version>2.3.4</neo4j.version>
             </properties>
         </profile>
 
