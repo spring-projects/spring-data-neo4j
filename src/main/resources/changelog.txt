@@ -1,6 +1,23 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.1.2.RELEASE (2016-06-15)
+---------------------------------------------
+* DATAGRAPH-876 - Derived finder filter values are not thread safe.
+* DATAGRAPH-874 - Upgrade to Neo4j OGM 2.0.3.
+* DATAGRAPH-873 - Fix MetaDataDrivenConversionService to compile against Spring Framework 4.3.
+* DATAGRAPH-869 - Support disabling SSL handshaking.
+* DATAGRAPH-868 - Upgrade to Neo4j OGM 2.0.3 snapshot.
+* DATAGRAPH-867 - Upgrade to Neo4j OGM 2.0.2.
+* DATAGRAPH-864 - OGM can't map Collection<Map> any more.
+* DATAGRAPH-861 - @QueryResult is not working for field "id".
+* DATAGRAPH-860 - EntityAccess::boxPrimitiveArray throws NPE.
+* DATAGRAPH-855 - Upgrade to Neo4j OGM 2.0.2 snapshot.
+* DATAGRAPH-853 - Release 4.1.2 (Hopper SR2).
+* DATAGRAPH-840 - Set<Long> getting persisted as Set<Integer>.
+* DATAGRAPH-659 - Persisting Enum lists annotated with @Property doesn't always work.
+
+
 Changes in version 4.1.1.RELEASE (2016-04-06)
 ---------------------------------------------
 * DATAGRAPH-851 - Release 4.1.1 (Hopper SR1).
