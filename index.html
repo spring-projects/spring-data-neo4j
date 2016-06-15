@@ -5,7 +5,7 @@ title: Spring Data Neo4j
 badges:
 
   # Specify your project's twitter handle, if any. Delete if none.
-  twitter: SpringData
+  twitter: Neo4j
 
   # Customize your project's badges. Delete any entries that do not apply.
   custom:
@@ -39,30 +39,27 @@ badges:
 
 
 {% capture billboard_description %}
-Enables POJO based development for the [Neo4j](http://neo4j.org/) Graph Database and with Spring's familiar template programming model.
+This project provides Spring Data support for the [Neo4j](http://neo4j.com/developer/) Graph Database, including annotated POJOs, SD-Repositories and Neo4j-Template.
 {% endcapture %}
 
 {% capture main_content %}
 
-Spring Data Neo4j offers advanced features to map annotated entity classes to the Neo4j Graph Database. The template programming model is equivalent to well known Spring templates and builds the basis for interaction with the graph and is also used for the advanced repository support.
-Spring Data Neo4j is part of the Spring Data project which aims to provide convenient support for NoSQL databases.
+Spring Data Neo4j offers advanced features to map annotated entity classes to the Neo4j Graph Database.
+The template programming model is equivalent to other Spring templates and builds the basis for interaction with the graph and is also used for the Spring Data repository support.
+Spring Data Neo4j is core part of the Spring Data project which aims to provide convenient data access for NoSQL databases.
 
 
 ## Features
 
 - Support for property graphs (nodes connected via relationships, each with arbitrary properties)
 - Object-Graph-Mapping of annotated POJO entities
-- additional advanced mapping mode via AspectJ
-- Neo4jTemplate with convenient API, exception translation and optional transaction - management
-- extensive Spring Data Commons Repositories Support, including annotated, derived - and geospatial finder methods
-- Dynamic type projections (duck typing)
-- Supports the Cypher and Gremlin query languages
-- Different type representation strategies for keeping type information in the graph
-- Cross-store support for partial JPA - Graph Entities
-- Neo4j Traversal support on dynamic fields and via repository methods
-- Neo4j Indexing support (including unique entities, full-text, spatial and numeric - range queries)
-- Support for transparently accessing the Neo4j Server via its REST API
-- Support for running as extensions in the Neo4j Server
+- Neo4jTemplate with convenient API, exception translation and optional transaction management
+- extensive Spring Data Commons Repositories Support, including annotated and derived finder methods
+- Arbitrary result projections for finder methods
+- Supports the Cypher Graph Quey Language
+- Based on the Neo4j-OGM library
+- Supports binary (bolt), http and embedded transports to connect to Neo4j
+- Available with Spring Boot (since 1.4.0-M3)
 
 <span id="quick-start"></span>
 
@@ -77,21 +74,15 @@ Spring Data Neo4j is part of the Spring Data project which aims to provide conve
 public class Movie {
 
   @GraphId Long id;
-
-  @Indexed(type = FULLTEXT, indexName = "search")
   String title;
 
   Person director;
 
-  @RelatedTo(type="ACTS_IN", direction = INCOMING)
+  @Relationship(type="ACTS_IN", direction = Relationship.INCOMING)
   Set<Person> actors;
 
-  @RelatedToVia(type = "RATED")
-  Iterable<Rating> ratings;
-
-  @Query("start movie=node({self}) match 
-          movie-->genre<--similar return similar")
-  Iterable<Movie> similarMovies;
+  @Relationship(type = "RATED")
+  List<Rating> ratings;
 }
 ```
 
@@ -102,19 +93,35 @@ Declare a repository interface
 ```java
 interface MovieRepository extends GraphRepository<Movie> {
   
-  @Query("start movie={0} match m<-[rating:RATED]-user
-          return rating")
-  Iterable<Rating> getRatings(Movie movie);
+  // derived finder
+  Movie findByTitle(String title);
+
+  @Query("MATCH (m:Movie)<-[rating:RATED]-(user) WHERE id(movie)={movie} return rating")
+  List<Rating> getRatings(@Param("movie") Movie movie);
   
   // Co-Actors
-  Iterable<Person> findByActorsMoviesActorName(name)
+  Set<Person> findByActorsMoviesActorName(String name);
+	
+  @Query("MATCH (movie:Movie)-[:HAS_GENRE]->(genre)<-[:HAS_GENRE]-(similar)
+          WHERE id(movie) = {0} RETURN similar")
+  List<Movie> findSimilarMovies(Movie movie);
 }
 ```
 
-Activate Spring Data Neo4j repositories
+Enable Spring Data Neo4j repositories
 
-```xml
-<neo4j:repositories base-package="com.example.dao"/>
+```java
+@Configuration
+@EnableTransactionManagement
+@ComponentScan("org.neo4j.cineasts")
+@EnableNeo4jRepositories("org.neo4j.cineasts.repository")
+public class PersistenceContext extends Neo4jConfiguration {
+
+    @Override
+    public SessionFactory getSessionFactory() {
+        return new SessionFactory("org.neo4j.cineasts.domain");
+    }
+}
 ```
 
 Use the repository
@@ -123,28 +130,31 @@ Use the repository
 @Autowired MovieRepository repo;
   
 Iterable<Movie> movies = repo.findAll();
-Movie movie = repo.findByPropertyValue("title","Matrix");
+Movie movie = repo.findByTitle("The Matrix");
 repo.save(movie);
 
-Iterable<Rating> ratings = repo.getRatings(movie);
+List<Rating> ratings = repo.getRatings(movie);
 ```
 
 {% endcapture %}
 
-{% capture related_resources %}
+{% capture Relationship_resources %}
 
-### Sample Projects
+### Example Projects
 
-* [Spring Data Book - Neo4j](https://github.com/SpringSource/spring-data-book/tree/master/neo4j)
+* [From the Spring Data Book - Neo4j](https://github.com/SpringSource/spring-data-book/tree/master/neo4j)
+* [Spring Data Neo4j - Example Projects](https://github.com/neo4j-examples?query=sdn)
 
 ### Getting Started Guides
 
 * [Accessing Data with Neo4j]({{site.main_site_url}}/guides/gs/accessing-data-neo4j)
+* [Accessing Neo4j Data with REST]({{site.main_site_url}}/guides/gs/accessing-neo4j-data-rest)
 
 ### Tutorials
 
-* [Social Movie Database Tutorial](http://spring.neo4j.org/guide)
-* [Spring Data Neo4j](http://docs.spring.io/spring-data/data-neo4j/docs/current/reference/htmlsingle/)
+* [Social Movie Database Tutorial](https://github.com/neo4j-examples/sdn4-cineasts/wiki)
+* [Social Movie Database Repository](https://github.com/neo4j-examples/sdn4-cineasts)
+* [Spring Data Neo4j Reference](http://docs.spring.io/spring-data/data-neo4j/docs/current/reference/html/)
 
 {% endcapture %}
 
