@@ -25,7 +25,7 @@
     <artifactId>spring-data-neo4j</artifactId>
 
     <properties>
-        <neo4j.version>2.3.5</neo4j.version>
+        <neo4j.version>2.3.3</neo4j.version>
         <neo4j.ogm.version>2.0.4-SNAPSHOT</neo4j.ogm.version>
         <ogm.properties>ogm-http.properties</ogm.properties>
     </properties>
@@ -108,28 +108,6 @@
                 <version>3.1.0</version>
             </dependency>
 
-            <dependency>
-                <groupId>javax.el</groupId>
-                <artifactId>el-api</artifactId>
-                <version>${cdi}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <!-- CDI -->
-            <dependency>
-                <groupId>javax.enterprise</groupId>
-                <artifactId>cdi-api</artifactId>
-                <version>${cdi}</version>
-                <scope>provided</scope>
-                <optional>true</optional>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.openwebbeans.test</groupId>
-                <artifactId>cditest-owb</artifactId>
-                <version>${webbeans}</version>
-                <scope>test</scope>
-            </dependency>
         </dependencies>
 
     <build>
@@ -199,7 +177,7 @@
         <profile>
             <id>3.0</id>
             <properties>
-                <neo4j.version>3.0.3</neo4j.version>
+                <neo4j.version>3.0.2</neo4j.version>
             </properties>
         </profile>
 
@@ -207,14 +185,14 @@
         <profile>
             <id>2.3</id>
             <properties>
-                <neo4j.version>2.3.5</neo4j.version>
+                <neo4j.version>2.3.4</neo4j.version>
             </properties>
         </profile>
 
         <profile>
             <id>2.2</id>
             <properties>
-                <neo4j.version>2.2.10</neo4j.version>
+                <neo4j.version>2.2.9</neo4j.version>
             </properties>
         </profile>
 
