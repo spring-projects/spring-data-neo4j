@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.transactions.domain.User;
 import org.springframework.test.context.ContextConfiguration;
@@ -14,7 +15,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration(classes = {ProxiedPrototypeSessionBeanContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class ProxiedPrototypeScopeSessionBeanTest {
+public class ProxiedPrototypeScopeSessionBeanTest extends MultiDriverTestClass {
 
     @Autowired
     Session session; // proxied prototype
