@@ -14,23 +14,21 @@
 package org.springframework.data.neo4j.template;
 
 
+import java.util.Collection;
+import java.util.Map;
+
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
-import org.neo4j.ogm.model.QueryStatistics;
 import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.event.*;
 import org.springframework.util.Assert;
-
-import java.util.Collection;
-import java.util.Map;
 
 import static org.springframework.data.neo4j.util.IterableUtils.getSingle;
 import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
@@ -183,15 +181,15 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
         session.deleteAll(type);
     }
 
-    @Override
-    public QueryStatistics execute(String jsonStatements) {
-        return session.query(jsonStatements, Utils.map()).queryStatistics();
-    }
-
-    @Override
-    public QueryStatistics execute(String cypher, Map<String, Object> parameters) {
-        return session.query(cypher, parameters).queryStatistics();
-    }
+//    @Override
+//    public QueryStatistics execute(String jsonStatements) {
+//        return session.query(jsonStatements, Utils.map()).queryStatistics();
+//    }
+//
+//    @Override
+//    public QueryStatistics execute(String cypher, Map<String, Object> parameters) {
+//        return session.query(cypher, parameters).queryStatistics();
+//    }
 
     public void purgeSession() {
         session.clear();

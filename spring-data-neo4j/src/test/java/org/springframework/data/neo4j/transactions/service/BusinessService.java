@@ -12,6 +12,7 @@
  */
 package org.springframework.data.neo4j.transactions.service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,7 +49,7 @@ public class BusinessService {
     }
 
     public void insert() {
-        new Neo4jTemplate(session).execute("CREATE (node {name: 'n'})");
+        new Neo4jTemplate(session).query("CREATE (node {name: 'n'})", Collections.EMPTY_MAP);
     }
 
     public Iterable<Map<String, Object>> fetch() {
@@ -56,7 +57,7 @@ public class BusinessService {
     }
 
     public void purge() {
-        new Neo4jTemplate(session).execute("MATCH (n) DELETE n");
+        new Neo4jTemplate(session).query("MATCH (n) DELETE n", Collections.EMPTY_MAP);
 
     }
 

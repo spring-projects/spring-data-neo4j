@@ -17,7 +17,6 @@ import java.util.List;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
-import org.neo4j.ogm.cypher.Filters;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -42,15 +41,15 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 		return basePart;
 	}
 
-	@Override
-	public Filters getFilters() {
-		Filters filters = new Filters();
-		for (CypherFilter cypherFilter : cypherFilters) {
-			filters.add(cypherFilter.toFilter());
-		}
-		return filters;
-	}
-
+//	@Override
+//	public Filters getFilters() {
+//		Filters filters = new Filters();
+//		for (CypherFilter cypherFilter : cypherFilters) {
+//			filters.add(cypherFilter.toFilter());
+//		}
+//		return filters;
+//	}
+//
 	@Override
 	public List<CypherFilter> getCypherFilters() {
 		return cypherFilters;

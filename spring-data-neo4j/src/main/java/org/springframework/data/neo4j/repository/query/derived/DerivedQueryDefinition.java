@@ -16,7 +16,6 @@ package org.springframework.data.neo4j.repository.query.derived;
 import java.util.List;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
-import org.neo4j.ogm.cypher.Filters;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -39,14 +38,6 @@ public interface DerivedQueryDefinition {
 	 * @return Part representing the base of the query.
 	 */
 	Part getBasePart();
-
-	/**
-	 * Gets all parameters.
-	 * @deprecated  As of release 4.2.1, replaced by {@link #getCypherFilters()} ()}
-	 * @return List of Filters
-	 */
-	@Deprecated
-	Filters getFilters();
 
 	/**
 	 * Gets all cypher filters for this query

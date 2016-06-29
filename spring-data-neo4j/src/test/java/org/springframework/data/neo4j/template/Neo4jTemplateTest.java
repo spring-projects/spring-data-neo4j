@@ -407,15 +407,15 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
      */
     @Test
     public void shouldReturnQueryStatsForQueryWithParams() {
-        QueryStatistics stats = this.template.execute("CREATE (a:Actor {name:{actorName}}) CREATE (m:Movie {title:{movieTitle}}) " +
-                "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m)",map("actorName","Keanu Reeves", "movieTitle","THe Matrix"));
+        QueryStatistics stats = this.template.query("CREATE (a:Actor {name:{actorName}}) CREATE (m:Movie {title:{movieTitle}}) " +
+                "CREATE (a)-[:ACTED_IN {role:'Neo'}]->(m)", map("actorName", "Keanu Reeves", "movieTitle", "THe Matrix")).queryStatistics();
         assertTrue(stats.containsUpdates());
         assertEquals(2, stats.getNodesCreated());
         assertEquals(3, stats.getPropertiesSet());
         assertEquals(1, stats.getRelationshipsCreated());
         assertEquals(2, stats.getLabelsAdded());
 
-        stats = this.template.execute("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null"); //keep this till the deprecated execute is deleted
+        stats = this.template.query("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null", Collections.EMPTY_MAP).queryStatistics();
         assertTrue(stats.containsUpdates());
         assertEquals(1, stats.getLabelsRemoved());
         assertEquals(1, stats.getPropertiesSet());
