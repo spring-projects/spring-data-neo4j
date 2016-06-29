@@ -13,6 +13,8 @@
 
 package org.springframework.data.neo4j.transactions.domain;
 
+import org.neo4j.ogm.annotation.Transient;
+
 /**
  * @author Michal Bachman
  */
@@ -20,8 +22,14 @@ public class User {
 
     private Long id;
     private String name;
+    @Transient
+    private String species;
 
     public User() {
+    }
+
+    public Long id() {
+        return this.id;
     }
 
     public User(String name) {
@@ -35,4 +43,14 @@ public class User {
     public void setName(String name) {
         this.name = name;
     }
+
+
+    public String getSpecies() {
+        return species;
+    }
+
+    public void setSpecies(String species) {
+        this.species = species;
+    }
+
 }
