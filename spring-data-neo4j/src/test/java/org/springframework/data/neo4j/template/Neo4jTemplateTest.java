@@ -56,7 +56,6 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
     private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
 
     @Autowired private Neo4jOperations template;
-    @Autowired private Session session;
 
     @Before
     public void setUpOgmSession() {
@@ -189,7 +188,7 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
         template.save(user.rate(bollywood, 1, "Bakwaas"));
         template.save(user.rate(hollywood, 4, "Pretty good"));
 
-        session.clear();
+        template.clear();
 
         User u = template.loadByProperty(User.class, "name", "Harmanpreet Singh",0);
         assertEquals(0,u.getRatings().size());
@@ -237,7 +236,7 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
         template.save(user.rate(hollywood, 4, "Pretty good"));
         template.save(user2);
 
-        session.clear();
+        template.clear();
 
         Filter nameFilter = new Filter("name","Harmanpreet Singh");
         Filter middleNameFilter = new Filter("middleName","A");
@@ -373,7 +372,7 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
         assertEquals(1, stats.getRelationshipsCreated());
         assertEquals(2, stats.getLabelsAdded());
 
-        stats = this.template.query("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null", Collections.EMPTY_MAP).queryStatistics(); 
+        stats = this.template.query("MATCH (a:Actor)-->(m:Movie) REMOVE a:Actor SET m.title=null", Collections.EMPTY_MAP).queryStatistics();
         assertTrue(stats.containsUpdates());
         assertEquals(1, stats.getLabelsRemoved());
         assertEquals(1, stats.getPropertiesSet());

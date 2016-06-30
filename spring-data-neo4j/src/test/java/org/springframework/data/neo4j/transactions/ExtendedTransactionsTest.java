@@ -37,7 +37,6 @@ import static org.junit.Assert.fail;
  */
 @ContextConfiguration(classes = {ApplicationConfig.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-
 public class ExtendedTransactionsTest extends MultiDriverTestClass {
 
     @Autowired

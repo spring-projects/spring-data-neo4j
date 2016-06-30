@@ -13,10 +13,10 @@
 
 package org.springframework.data.neo4j.examples.friends;
 
-import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.friends.domain.Friendship;
 import org.springframework.data.neo4j.examples.friends.domain.Person;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,31 +27,31 @@ import org.springframework.transaction.annotation.Transactional;
 public class FriendService {
 
 	@Autowired
-	Session session;
+	Neo4jOperations neo4jOperations;
 
 	@Transactional
 	public void createPersonAndFriends() {
 		Person john = new Person();
 		john.setFirstName("John");
-		session.save(john);
+		neo4jOperations.save(john);
 
 		Person bob = new Person();
 		bob.setFirstName("Bob");
-		session.save(bob);
+		neo4jOperations.save(bob);
 
 		Person bill = new Person();
 		bill.setFirstName("Bill");
-		session.save(bill);
+		neo4jOperations.save(bill);
 
-		john = session.load(Person.class, john.getId());
-		bob = session.load(Person.class, bob.getId());
+		john = neo4jOperations.load(Person.class, john.getId());
+		bob = neo4jOperations.load(Person.class, bob.getId());
 		Friendship friendship1 = john.addFriend(bob);
 		friendship1.setTimestamp(System.currentTimeMillis());
-		session.save(john);
-		john = session.load(Person.class, john.getId());
-		bill = session.load(Person.class, bill.getId());
+		neo4jOperations.save(john);
+		john = neo4jOperations.load(Person.class, john.getId());
+		bill = neo4jOperations.load(Person.class, bill.getId());
 		Friendship friendship2 = john.addFriend(bill);
 		friendship2.setTimestamp(System.currentTimeMillis());
-		session.save(john);
+		neo4jOperations.save(john);
 	}
 }

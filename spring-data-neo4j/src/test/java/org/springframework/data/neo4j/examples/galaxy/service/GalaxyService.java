@@ -15,13 +15,13 @@ package org.springframework.data.neo4j.examples.galaxy.service;
 
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.query.Pagination;
-import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
 import org.springframework.data.neo4j.examples.galaxy.repo.WorldRepository;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +39,7 @@ public class GalaxyService {
     private WorldRepository worldRepository;
 
     @Autowired
-    Session session;
+    Neo4jOperations neo4jOperations;
 
     public long getNumberOfWorlds() {
         return worldRepository.count();
@@ -119,9 +119,9 @@ public class GalaxyService {
     public Collection<World> makeAllWorldsAtOnce() {
 
         Collection<World> worlds = new ArrayList<World>();
-        
+
         // Solar worlds
-        
+
         worlds.add(new World("Mercury", 0));
         worlds.add(new World("Venus", 0));
 
@@ -150,22 +150,22 @@ public class GalaxyService {
 
         return worlds;
     }
-    
+
     public void deleteAll() {
         worldRepository.deleteAll();
     }
 
     private Iterable<World> findByProperty(String propertyName, Object propertyValue) {
-        return session.loadAll(World.class, new Filter(propertyName, propertyValue));
+        return neo4jOperations.loadAll(World.class, new Filter(propertyName, propertyValue));
     }
 
     public Iterable<World> findByProperty(String propertyName, Object propertyValue, int depth) {
-        return session.loadAll(World.class, new Filter(propertyName, propertyValue), depth);
+        return neo4jOperations.loadAll(World.class, new Filter(propertyName, propertyValue), depth);
     }
 
 
     public Iterable<World> findAllWorlds(Pagination paging) {
-        return session.loadAll(World.class, paging, 0);
+        return neo4jOperations.loadAll(World.class, paging, 0);
 
     }
 

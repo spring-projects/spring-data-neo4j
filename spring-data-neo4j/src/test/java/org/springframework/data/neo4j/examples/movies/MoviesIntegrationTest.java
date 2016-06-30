@@ -19,9 +19,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.ogm.cypher.Filter;
-import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
-import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +28,7 @@ import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.*;
 import org.springframework.data.neo4j.examples.movies.repo.*;
 import org.springframework.data.neo4j.examples.movies.service.UserService;
-import org.springframework.data.neo4j.server.InProcessServer;
-import org.springframework.data.neo4j.server.Neo4jServer;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -58,7 +55,7 @@ public class MoviesIntegrationTest extends MultiDriverTestClass {
 
 
     @Autowired
-    private Session session;
+    private Neo4jOperations neo4jOperations;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -78,8 +75,8 @@ public class MoviesIntegrationTest extends MultiDriverTestClass {
 
     @Before
     public void clear() {
-        session.clear();
-        session.purgeDatabase();
+        neo4jOperations.clear();
+        getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
     }
 
     @Test
@@ -184,7 +181,7 @@ public class MoviesIntegrationTest extends MultiDriverTestClass {
 
     @Test
     @Ignore  // FIXME
-    // this test expects the session/tx to check for dirty objects, which it currently does not do
+    // this test expects the neo4jOperations/tx to check for dirty objects, which it currently does not do
     // you must save objects explicitly.
     public void shouldUpdateUserUsingTransactionalService() {
         User user = new User("Michal");
@@ -245,7 +242,7 @@ public class MoviesIntegrationTest extends MultiDriverTestClass {
         assertNull(userRepository.findOne(user.getId(), 10));
 
         try (Transaction tx = getGraphDatabaseService().beginTx()) {
-            assertFalse(GlobalGraphOperations.at(getGraphDatabaseService()).getAllNodes().iterator().hasNext());
+            assertFalse(getGraphDatabaseService().getAllNodes().iterator().hasNext());
             tx.success();
         }
     }
@@ -573,11 +570,11 @@ public class MoviesIntegrationTest extends MultiDriverTestClass {
     }
 
     protected Iterable<?> findByProperty(Class clazz, String propertyName, Object propertyValue) {
-        return session.loadAll(clazz, new Filter(propertyName, propertyValue));
+        return neo4jOperations.loadAll(clazz, new Filter(propertyName, propertyValue));
     }
 
     protected Iterable<?> findByProperty(Class clazz, String propertyName, Object propertyValue, int depth) {
-        return session.loadAll(clazz, new Filter(propertyName, propertyValue), depth);
+        return neo4jOperations.loadAll(clazz, new Filter(propertyName, propertyValue), depth);
     }
 
     //

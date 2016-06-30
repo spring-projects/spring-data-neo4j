@@ -13,6 +13,7 @@
 
 package org.springframework.data.neo4j.repositories;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,12 +41,9 @@ public class RepositoryDefinitionTest extends MultiDriverTestClass {
 
     private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
 
-    @Autowired
-    private Session session;
-
-    @Before
-    public void init() {
-        session.purgeDatabase();
+    @After
+    public void clearDatabase() {
+        graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
     }
 
     @Autowired

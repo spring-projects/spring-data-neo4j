@@ -15,10 +15,10 @@ package org.springframework.data.neo4j.examples.friends;
 
 import static org.junit.Assert.*;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.cypher.Filter;
-import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.friends.context.FriendContext;
@@ -36,10 +36,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FriendTest extends MultiDriverTestClass {
 
-	@Autowired Session session;
 	@Autowired Neo4jOperations neo4jTemplate;
 	@Autowired FriendshipRepository friendshipRepository;
 	@Autowired FriendService friendService;
+
+
+	@After
+	public void cleanUpDatabase() {
+		neo4jTemplate.clear();
+		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+	}
 
 	/**
 	 * @see DATAGRAPH-703
@@ -48,17 +54,17 @@ public class FriendTest extends MultiDriverTestClass {
 	public void savingPersonWhenTransactionalShouldWork() {
 		friendService.createPersonAndFriends();
 
-		session.clear();
-		Person john = session.loadAll(Person.class, new Filter("firstName", "John")).iterator().next();
+		neo4jTemplate.clear();
+		Person john = neo4jTemplate.loadAll(Person.class, new Filter("firstName", "John")).iterator().next();
 		assertNotNull(john);
-		assertEquals(2, john.getFriendships().size());;
+		assertEquals(2, john.getFriendships().size());
 	}
 
 	/**
 	 * @see DATAGRAPH-694
 	 */
 	@Test
-	public void circularParamtersShouldNotProduceInfiniteRecursion() {
+	public void circularParametersShouldNotProduceInfiniteRecursion() {
 		Person john = new Person();
 		john.setFirstName("John");
 		neo4jTemplate.save(john);
@@ -71,10 +77,10 @@ public class FriendTest extends MultiDriverTestClass {
 		friendship1.setTimestamp(System.currentTimeMillis());
 		neo4jTemplate.save(john);
 
-		Friendship queriedFriendship = friendshipRepository.getFriendship(john,bob);
-		assertNotNull(queriedFriendship);
-		assertEquals("John",queriedFriendship.getPersonStartNode().getFirstName());
-		assertEquals("Bob",queriedFriendship.getPersonEndNode().getFirstName());
+		Friendship queriedFriendship = friendshipRepository.getFriendship(john, bob);
 
+		assertNotNull(queriedFriendship);
+		assertEquals("John", queriedFriendship.getPersonStartNode().getFirstName());
+		assertEquals("Bob", queriedFriendship.getPersonEndNode().getFirstName());
 	}
 }

@@ -123,6 +123,21 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
     }
 
     @Override
+    public <T> Collection<T> loadAll(Class<T> type, Filter filter) {
+        return session.loadAll(type, filter);
+    }
+
+    @Override
+    public <T> Collection<T> loadAll(Class<T> type, Pagination pagination, int depth) {
+        return session.loadAll(type, pagination, depth);
+    }
+
+    @Override
+    public <T> Collection<T> loadAll(Class<T> type, Filter filter, int depth) {
+        return session.loadAll(type, filter, depth);
+    }
+
+    @Override
     public <T> T loadByProperty(Class<T> type, String propertyName, Object propertyValue) {
         return loadByProperty(type, propertyName, propertyValue, 1);
     }

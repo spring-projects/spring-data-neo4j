@@ -52,15 +52,12 @@ public class WebIntegrationTest extends MultiDriverTestClass {
 	@Autowired
 	private WebApplicationContext wac;
 
-	@Autowired
-	private Session session;
-
 	private MockMvc mockMvc;
 
 	@Before
 	public void setUp() {
 
-		session.purgeDatabase();
+		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 
 		this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
 

@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
@@ -56,6 +57,11 @@ public class WebAppContext extends WebMvcConfigurerAdapter {
 			throw new RuntimeException(e);
 		}
 		registry.addWebRequestInterceptor(interceptor);
+	}
+
+	@Bean
+	public Neo4jMappingContext neo4jMappingContext() throws Exception {
+		return new Neo4jMappingContext(sessionFactory().metaData());
 	}
 
 	@Bean

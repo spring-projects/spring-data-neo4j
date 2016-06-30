@@ -32,7 +32,7 @@ public class ServiceA {
     @Autowired
     private ServiceB serviceB;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = java.lang.Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void run() throws Exception {
         saveBilbo();
         serviceB.update();

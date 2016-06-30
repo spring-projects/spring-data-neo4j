@@ -14,9 +14,7 @@
 package org.springframework.data.neo4j.template;
 
 
-import java.util.Collection;
-import java.util.Map;
-
+import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
@@ -25,6 +23,9 @@ import org.neo4j.ogm.model.Query;
 import org.neo4j.ogm.model.QueryStatistics;
 import org.neo4j.ogm.model.Result;
 import org.springframework.stereotype.Repository;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Spring Data operations interface, implemented by {@link Neo4jTemplate}, that provides the API for using
@@ -133,6 +134,44 @@ public interface Neo4jOperations {
      * @return A new {@link Collection} of entities matching those in the given collection hydrated to the given depth
      */
     <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, SortOrder sortOrder, int depth);
+
+
+    /**
+     * Retrieves all the entities of the given class in the database hydrated to the default depth conforming to the specified
+     * filter criteria.
+     *
+     * @param type 		The type of entity to return.
+     * @param filter 	The filter to constrain entities with.
+     * @return A {@link Collection} containing all matching instances of the given type in the database or an empty collection if none
+     *         are found, never <code>null</code>
+     */
+    <T> Collection<T> loadAll(Class<T> type, Filter filter);
+
+
+    /**
+     * Retrieves all the entities of the given class in the database hydrated to the specified depth, with Pagination.
+     *
+     * @param type          The type of entity to return.
+     * @param pagination    The Pagination to be applied
+     * @param depth         The maximum number of relationships away from each loaded object to follow when loading related entities.
+     *                      A value of 0 just loads the object's properties and no related entities.  A value of -1 implies no depth limit.
+     * @return A {@link Collection} containing all instances of the given type in the database or an empty collection if none
+     *         are found, never <code>null</code>
+     */
+    <T> Collection<T> loadAll(Class<T> type, Pagination pagination, int depth);
+
+    /**
+     * Retrieves all the entities of the given class in the database hydrated to the default depth conforming to the specified
+     * filter criteria.
+     *
+     * @param type 		The type of entity to return.
+     * @param filter 	The filter to constrain entities with.
+     * @param depth     The depth to which the objects should be hydrated
+     * @return A {@link Collection} containing all matching instances of the given type in the database or an empty collection if none
+     *         are found, never <code>null</code>
+     */
+    <T> Collection<T> loadAll(Class<T> type, Filter filter, int depth);
+
 
     /**
      * Retrieves the entity of the specified type that contains a property matching the given name with the given value.

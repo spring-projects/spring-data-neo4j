@@ -31,7 +31,7 @@ public class ServiceB {
     @Autowired
     private UserRepository userRepository;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = java.lang.Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void update() throws Exception {
         getBilbo();
         throw new Exception();

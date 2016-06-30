@@ -16,9 +16,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.template.Neo4jTemplate;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class BusinessService {
 
     @Autowired
-    private Session session;
+    private Neo4jOperations neo4jOperations;
 
     @Transactional
     public void successMethodInTransaction() {
@@ -49,15 +48,15 @@ public class BusinessService {
     }
 
     public void insert() {
-        new Neo4jTemplate(session).query("CREATE (node {name: 'n'})", Collections.EMPTY_MAP);
+        neo4jOperations.query("CREATE (node {name: 'n'})", Collections.EMPTY_MAP);
     }
 
     public Iterable<Map<String, Object>> fetch() {
-        return new Neo4jTemplate(session).query("MATCH (n) RETURN n.name", new HashMap<String, Object>());
+        return neo4jOperations.query("MATCH (n) RETURN n.name", new HashMap<String, Object>());
     }
 
     public void purge() {
-        new Neo4jTemplate(session).query("MATCH (n) DELETE n", Collections.EMPTY_MAP);
+        neo4jOperations.query("MATCH (n) DELETE n", Collections.EMPTY_MAP);
 
     }
 
