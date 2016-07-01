@@ -13,7 +13,7 @@
 
 package org.springframework.data.neo4j.integration.conversion;
 
-import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -60,7 +60,7 @@ public class ConversionServiceTest extends MultiDriverTestClass {
 
     @Autowired Neo4jOperations neo4jOperations;
 
-    @After
+    @Before
     public void cleanUpDatabase() {
         getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
     }

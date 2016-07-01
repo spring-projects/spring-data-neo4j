@@ -49,6 +49,7 @@ import org.springframework.data.neo4j.examples.movies.domain.queryresult.UserQue
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UnmanagedUserPojo;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -70,14 +71,18 @@ public class QueryIntegrationTest extends MultiDriverTestClass {
     @Autowired
     private CinemaRepository cinemaRepository;
 
+    @Autowired
+    private Neo4jOperations neo4jOperations;
+
     @Before
     public void init() {
         clearDatabase();
     }
 
-    @After
+    @Before
     public void clearDatabase() {
         graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+        neo4jOperations.clear();
     }
 
     private void executeUpdate(String cypher) {

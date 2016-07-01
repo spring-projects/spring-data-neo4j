@@ -70,9 +70,10 @@ public class DerivedQueryTest extends MultiDriverTestClass {
 	@Autowired
 	private DirectorRepository directorRepository;
 
-	@After
+	@Before
 	public void clearDatabase() {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		neo4jOperations.clear();
 	}
 
 	private void executeUpdate(String cypher) {

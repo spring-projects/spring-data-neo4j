@@ -16,6 +16,7 @@ package org.springframework.data.neo4j.examples.friends;
 import static org.junit.Assert.*;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.cypher.Filter;
@@ -41,7 +42,7 @@ public class FriendTest extends MultiDriverTestClass {
 	@Autowired FriendService friendService;
 
 
-	@After
+	@Before
 	public void cleanUpDatabase() {
 		neo4jTemplate.clear();
 		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");

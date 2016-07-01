@@ -57,6 +57,7 @@ public class BusinessService {
 
     public void purge() {
         neo4jOperations.query("MATCH (n) DELETE n", Collections.EMPTY_MAP);
+        neo4jOperations.clear();
 
     }
 

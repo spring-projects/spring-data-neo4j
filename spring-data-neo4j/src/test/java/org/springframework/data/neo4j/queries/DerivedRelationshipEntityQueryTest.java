@@ -13,7 +13,7 @@
 
 package org.springframework.data.neo4j.queries;
 
-import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -60,7 +60,7 @@ public class DerivedRelationshipEntityQueryTest extends MultiDriverTestClass {
 	@Autowired
 	private Neo4jOperations neo4jOperations;
 
-	@After
+	@Before
 	public void clearDatabase() {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 		neo4jOperations.clear();

@@ -60,10 +60,10 @@ public class Neo4jTemplateTest extends MultiDriverTestClass {
     @Before
     public void setUpOgmSession() {
         clearDatabase();
+        template.clear();
         addArbitraryDataToDatabase();
     }
 
-    @After
     public void clearDatabase() {
         try (Transaction tx = graphDatabaseService.beginTx()) {
             graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");

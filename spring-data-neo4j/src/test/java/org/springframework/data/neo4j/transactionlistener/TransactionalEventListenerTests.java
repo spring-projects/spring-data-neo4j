@@ -9,7 +9,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.*;
 
-import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -55,7 +55,7 @@ public class TransactionalEventListenerTests extends MultiDriverTestClass {
 	public final ExpectedException thrown = ExpectedException.none();
 
 
-	@After
+	@Before
 	public void closeContext() {
 		if (this.context != null) {
 			this.context.close();
