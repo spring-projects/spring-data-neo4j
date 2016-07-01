@@ -57,14 +57,14 @@ public class DerivedRelationshipEntityQueryTest extends MultiDriverTestClass {
 	@Autowired
 	private RatingRepository ratingRepository;
 
-	/*@Before
-	public void init() throws IOException {
-		neo4jOperations = new SessionFactory("org.springframework.data.neo4j.examples.movies.domain").openSession();
-	}*/
+	@Autowired
+	private Neo4jOperations neo4jOperations;
 
 	@After
 	public void clearDatabase() {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		neo4jOperations.clear();
+
 	}
 
 	private void executeUpdate(String cypher) {
