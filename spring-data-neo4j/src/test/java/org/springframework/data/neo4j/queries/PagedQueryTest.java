@@ -30,6 +30,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
+import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -48,6 +49,8 @@ public class PagedQueryTest extends MultiDriverTestClass {
 	@Autowired
 	private CinemaRepository cinemaRepository;
 
+	@Autowired Neo4jOperations neo4jOperations;
+
 	@Before
 	public void init() {
 		clearDatabase();
@@ -59,9 +62,10 @@ public class PagedQueryTest extends MultiDriverTestClass {
 		}
 	}
 
-	@After
+	@Before
 	public void clearDatabase() {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		neo4jOperations.clear();
 	}
 
 	@Test
