@@ -86,6 +86,10 @@ public class Cinema {
         this.blockbusterOfTheWeek = blockbusterOfTheWeek;
     }
 
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

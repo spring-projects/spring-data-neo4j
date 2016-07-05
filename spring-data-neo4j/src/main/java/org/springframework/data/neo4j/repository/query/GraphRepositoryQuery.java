@@ -14,13 +14,23 @@
 package org.springframework.data.neo4j.repository.query;
 
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.neo4j.ogm.model.QueryStatistics;
 import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
-import org.springframework.data.repository.query.*;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.repository.query.Parameter;
+import org.springframework.data.repository.query.ParameterAccessor;
+import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -34,6 +44,10 @@ public class GraphRepositoryQuery implements RepositoryQuery {
     private final GraphQueryMethod graphQueryMethod;
 
     protected final Session session;
+
+    private final String SKIP = "sdnSkip";
+    private final String LIMIT = "sdnLimit";
+    private final String SKIP_LIMIT = " SKIP {" + SKIP + "} LIMIT {" + LIMIT + "}";
 
     public GraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session) {
         this.graphQueryMethod = graphQueryMethod;
@@ -49,13 +63,13 @@ public class GraphRepositoryQuery implements RepositoryQuery {
         
         ParameterAccessor accessor = new ParametersParameterAccessor(graphQueryMethod.getParameters(), parameters);
         ResultProcessor processor = graphQueryMethod.getResultProcessor();
-        Object result = execute(returnType, concreteType, getQueryString(), params);
+        Object result = execute(returnType, concreteType, getQueryString(), params, accessor.getPageable());
         
         return Result.class.equals(returnType) ? result :
         	processor.withDynamicProjection(accessor).processResult(result);
     }
 
-    protected Object execute(Class<?> returnType, Class<?> concreteType, String cypherQuery, Map<String, Object> queryParams) {
+    protected Object execute(Class<?> returnType, Class<?> concreteType, String cypherQuery, Map<String, Object> queryParams, Pageable pageable) {
 
         if (returnType.equals(Void.class) || returnType.equals(void.class)) {
             session.query(cypherQuery, queryParams);
@@ -68,7 +82,25 @@ public class GraphRepositoryQuery implements RepositoryQuery {
             if (Map.class.isAssignableFrom(concreteType)) {
                 return session.query(cypherQuery, queryParams).queryResults();
             }
-            return session.query(concreteType, cypherQuery, queryParams);
+            List resultList;
+            if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
+                //Custom queries in the OGM do not support pageable
+                cypherQuery = cypherQuery + SKIP_LIMIT;
+                queryParams.put(SKIP, pageable.getPageNumber() * pageable.getPageSize());
+                if (graphQueryMethod.isSliceQuery()) {
+                    queryParams.put(LIMIT, pageable.getPageSize() + 1);
+                }
+                else {
+                    queryParams.put(LIMIT, pageable.getPageSize());
+                }
+                resultList = (List) session.query(concreteType, cypherQuery, queryParams);
+                return createPage(graphQueryMethod, resultList, pageable, computeCount(queryParams));
+            }
+            else {
+               resultList = (List) session.query(concreteType, cypherQuery, queryParams);
+            }
+            return resultList;
+
         }
 
         if (queryReturnsStatistics()) {
@@ -113,6 +145,38 @@ public class GraphRepositoryQuery implements RepositoryQuery {
     private boolean queryReturnsStatistics() {
         Class returnType = graphQueryMethod.getMethod().getReturnType();
         return QueryStatistics.class.isAssignableFrom(returnType) || Result.class.isAssignableFrom(returnType);
+    }
+
+    protected Object createPage(GraphQueryMethod graphQueryMethod, List resultList, Pageable pageable, Long count) {
+        if (pageable == null) {
+            return graphQueryMethod.isPageQuery() ? new PageImpl(resultList) : new SliceImpl(resultList);
+        }
+        int currentTotal;
+        if (count != null) {
+            currentTotal = count.intValue();
+        } else {
+            int pageOffset = pageable.getOffset();
+            currentTotal = pageOffset + resultList.size() + (resultList.size() == pageable.getPageSize() ? pageable.getPageSize() : 0);
+        }
+        int resultWindowSize = Math.min(resultList.size(), pageable.getPageSize());
+        boolean hasNext = resultWindowSize < resultList.size();
+        List resultListPage = resultList.subList(0, resultWindowSize);
+
+        return graphQueryMethod.isPageQuery() ?
+                new PageImpl(resultListPage, pageable, currentTotal) :
+                new SliceImpl(resultListPage,pageable, hasNext);
+    }
+
+    private Long computeCount(Map<String, Object> params) {
+        String countQuery = graphQueryMethod.getCountQueryString();
+        if (countQuery == null || !StringUtils.hasText(countQuery)) {
+            return null;
+        }
+        Result countResult = session.query(countQuery, params);
+        if (countResult!=null && countResult.iterator().hasNext()) {
+            return ((Number)countResult.iterator().next().values().iterator().next()).longValue();
+        }
+        return null;
     }
 
 }

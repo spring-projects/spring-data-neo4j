@@ -49,9 +49,21 @@ public interface GraphRepository<T> extends PagingAndSortingRepository<T, Long> 
 
     Iterable<T> findAll(Iterable<Long> ids, Sort sort, int depth);
 
-
+    /**
+     * Returns a {@link Page} of entities meeting the paging restriction provided in the {@code Pageable} object.
+     * {@link Page#getTotalPages()} returns an estimation of the total number of pages and should not be relied upon for accuracy.
+     * @param pageable
+     * @return a page of entities
+     */
     Page<T> findAll(Pageable pageable);
 
+    /**
+     * Returns a {@link Page} of entities meeting the paging restriction provided in the {@code Pageable} object.
+     * {@link Page#getTotalPages()} returns an estimation of the total number of pages and should not be relied upon for accuracy.
+     * @param pageable
+     * @param depth
+     * @return a page of entities
+     */
     Page<T> findAll(Pageable pageable, int depth);
 
 }

@@ -13,17 +13,32 @@
 
 package org.springframework.data.neo4j.queries;
 
-import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.examples.movies.domain.Director;
+import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.EntityWrappingQueryResult;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
@@ -34,16 +49,6 @@ import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Luanne Misquitta
@@ -550,6 +555,74 @@ public class DerivedQueryTest extends MultiDriverTestClass {
 
 
 	}
+
+	/**
+	 * @see DATAGRAPH-680
+	 */
+	@Test
+	public void shouldPageDerivedFinderQueries() {
+		for (int i = 0; i< 10; i++) {
+			userRepository.save(new User("A","B"));
+		}
+		userRepository.save(new User("A","C"));
+
+		Pageable pageable = new PageRequest(0,4);
+		Page<User> page = userRepository.findByNameAndSurname("A","B", pageable);
+		assertEquals(4, page.getNumberOfElements());
+		assertEquals(8, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertTrue(page.hasNext());
+
+		page = userRepository.findByNameAndSurname("A","B", page.nextPageable());
+		assertEquals(4, page.getNumberOfElements());
+		assertEquals(12, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertTrue(page.hasNext());
+
+		page = userRepository.findByNameAndSurname("A","B", page.nextPageable());
+		assertEquals(2, page.getNumberOfElements());
+		assertEquals(10, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertFalse(page.hasNext());
+
+		page = userRepository.findByNameAndSurname("A","B",new PageRequest(0,10));
+		assertEquals(10, page.getNumberOfElements());
+		assertEquals(20, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertTrue(page.hasNext()); //this cannot be relied upon because the total number of elements is an estimate
+
+		page = userRepository.findByNameAndSurname("A","B", page.nextPageable());
+		assertEquals(0, page.getNumberOfElements());
+		assertFalse(page.hasNext());
+
+	}
+
+	/**
+	 * @see DATAGRAPH-680
+	 */
+	@Test
+	public void shouldSliceDerivedFinderQueries() {
+		for (int i = 0; i< 10; i++) {
+			User user = new User("A");
+			user.rate(new TempMovie("Temp"), 5, "just okay");
+			userRepository.save(user);
+		}
+		userRepository.save(new User("A","C"));
+
+		Pageable pageable = new PageRequest(0,4);
+		Slice<User> page = userRepository.findByNameAndRatingsStars("A",5, pageable);
+		assertEquals(4, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+
+		page = userRepository.findByNameAndRatingsStars("A",5, page.nextPageable());
+		assertEquals(4, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+
+		page = userRepository.findByNameAndRatingsStars("A",5, page.nextPageable());
+		assertEquals(2, page.getNumberOfElements());
+		assertFalse(page.hasNext());
+
+		page = userRepository.findByNameAndRatingsStars("A",5,new PageRequest(0,10));
+		assertEquals(10, page.getNumberOfElements());
+		assertFalse(page.hasNext());
+	}
+
 
 
 	class DerivedQueryRunner implements Runnable {

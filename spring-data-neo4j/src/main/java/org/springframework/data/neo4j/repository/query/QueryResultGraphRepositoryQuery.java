@@ -27,11 +27,13 @@ import org.neo4j.ogm.request.Request;
 import org.neo4j.ogm.session.GraphCallback;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.transaction.Transaction;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Specialisation of {@link GraphRepositoryQuery} that handles mapping to objects annotated with <code>&#064;QueryResult</code>.
  *
  * @author Adam George
+ * @author Luanne Misquitta
  */
 public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
 
@@ -46,7 +48,7 @@ public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
     }
 
     @Override
-    protected Object execute(Class<?> returnType, final Class<?> concreteReturnType, String cypherQuery, Map<String, Object> queryParams) {
+    protected Object execute(Class<?> returnType, final Class<?> concreteReturnType, String cypherQuery, Map<String, Object> queryParams, Pageable pageable) {
         Collection<Object> resultObjects = concreteReturnType.isInterface()
                 ? mapToProxy(concreteReturnType, cypherQuery, queryParams)
                 : mapToConcreteType(concreteReturnType, cypherQuery, queryParams);

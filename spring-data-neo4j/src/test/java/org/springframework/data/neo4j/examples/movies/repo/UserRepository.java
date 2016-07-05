@@ -13,6 +13,9 @@
 
 package org.springframework.data.neo4j.examples.movies.repo;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.movies.domain.User;
@@ -113,5 +116,9 @@ public interface UserRepository extends PersonRepository<User> {
 
     @Query("match (u:User)-[r:RATED]->(m:Movie) return  u as user, collect({username: u.name, movietitle: m.title, stars:r.stars}) as literalMap")
     List<EntityWrappingQueryResult> findRatingsWithLiteralMap();
+
+    Page<User> findByNameAndSurname(String name, String surname, Pageable pageable);
+
+    Slice<User> findByNameAndRatingsStars(String name, int stars, Pageable pageable);
 
 }

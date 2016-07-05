@@ -13,19 +13,25 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
-import org.neo4j.ogm.cypher.Filter;
-import org.neo4j.ogm.cypher.Filters;
-import org.neo4j.ogm.session.Session;
-import org.springframework.data.neo4j.repository.query.GraphQueryMethod;
-import org.springframework.data.repository.core.EntityMetadata;
-import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.query.RepositoryQuery;
-import org.springframework.data.repository.query.parser.PartTree;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.cypher.Filters;
+import org.neo4j.ogm.cypher.query.Pagination;
+import org.neo4j.ogm.session.Session;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.neo4j.repository.query.GraphQueryMethod;
+import org.springframework.data.repository.core.EntityMetadata;
+import org.springframework.data.repository.query.ParameterAccessor;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.parser.PartTree;
 
 /**
  * Specialisation of {@link RepositoryQuery} that handles mapping of derived finders.
@@ -53,6 +59,10 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 
 	@Override
 	public Object execute(Object[] parameters) {
+
+		ParameterAccessor accessor = new ParametersParameterAccessor(graphQueryMethod.getParameters(), parameters);
+		Pageable pageable = accessor.getPageable();
+
 		Class<?> returnType = graphQueryMethod.getMethod().getReturnType();
 		Class<?> concreteType = graphQueryMethod.resolveConcreteReturnType();
 		int queryDepth = DEFAULT_QUERY_DEPTH;
@@ -72,7 +82,23 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		}
 
 		if (Iterable.class.isAssignableFrom(returnType)) {
-			return session.loadAll(concreteType, params, queryDepth);
+			List resultList;
+			if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
+				Pagination pagination;
+				if (graphQueryMethod.isSliceQuery()) {
+					pagination = new Pagination(pageable.getPageNumber(), pageable.getPageSize()+1);
+					pagination.setOffset(pageable.getPageNumber() * pageable.getPageSize()); //For a slice, need one extra result to determine if there is a next page
+				}
+				else {
+					pagination = new Pagination(pageable.getPageNumber(), pageable.getPageSize());
+				}
+				resultList = (List) session.loadAll(concreteType, params, pagination, queryDepth);
+				return createPage(graphQueryMethod, resultList, pageable);
+			}
+			else {
+				resultList = (List) session.loadAll(concreteType, params, queryDepth);
+			}
+			return resultList;
 		}
 
 		Iterator<?> objectIterator = session.loadAll(returnType, params, queryDepth).iterator();
@@ -108,5 +134,21 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 	@Override
 	public QueryMethod getQueryMethod() {
 		return graphQueryMethod;
+	}
+
+	protected Object createPage(GraphQueryMethod graphQueryMethod, List resultList, Pageable pageable) {
+		if (pageable == null) {
+			return graphQueryMethod.isPageQuery() ? new PageImpl(resultList) : new SliceImpl(resultList);
+		}
+		int currentTotal = pageable.getOffset() + resultList.size() +
+				(resultList.size() == pageable.getPageSize() ? pageable.getPageSize() : 0);
+
+		int resultWindowSize = Math.min(resultList.size(), pageable.getPageSize());
+		boolean hasNext = resultWindowSize < resultList.size();
+		List resultListPage = resultList.subList(0, resultWindowSize);
+
+		return graphQueryMethod.isPageQuery() ?
+				new PageImpl(resultListPage, pageable, currentTotal) :
+				new SliceImpl(resultListPage, pageable, hasNext);
 	}
 }

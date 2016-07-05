@@ -160,5 +160,7 @@ public class GraphQueryMethod extends QueryMethod {
     }
 
 
-
+    public String getCountQueryString() {
+        return queryAnnotation != null ? queryAnnotation.countQuery() : null;
+    }
 }

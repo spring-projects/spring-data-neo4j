@@ -21,6 +21,7 @@ import java.util.Set;
 
 /**
  * @author Michal Bachman
+ * @author Luanne Misquitta
  */
 public class User extends Person{
 
@@ -40,6 +41,11 @@ public class User extends Person{
 
     public User(String name) {
         setName(name);
+    }
+
+    public User(String name, String surname) {
+        setName(name);
+        this.surname = surname;
     }
 
     public void interestedIn(Genre genre) {

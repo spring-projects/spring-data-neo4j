@@ -56,13 +56,18 @@ That means a repository method annotated with +
 will use the supplied query query to retrieve data from Neo4j. 
 
 The named or indexed parameter `{param}` will be substituted by the actual method parameter. 
-Node and Relationship-Entities are handled directly and converted into their respective ids, Iterables thereof as well. 
+Node and Relationship-Entities are handled directly and converted into their respective ids.
 All other parameters types are provided directly (i.e. Strings, Longs, etc).
+
+There is special support for the Pageable parameter from Spring Data Commons, which is supported to add programmatic paging and slicing(alternatively static paging and sorting can be supplied in the query string itself).
+
+If it is required that paged results return the correct total count, the @Query annotation can be supplied with a count query in the countQuery attribute.
+This query is executed separately after the result query and its result is used to populate the number of elements on the Page.
 
 [NOTE]
 ====
-In the current version, custom queries do not support paging, sorting or a custom depth.
-`@Query` does not support mapping a path to domain entities, as such, a path should not be returned from a Cypher query.
+In the current version, custom queries do not support sorting or a custom depth.
+Additionally, `@Query` does not support mapping a path to domain entities, as such, a path should not be returned from a Cypher query.
 Instead, return nodes and relationships to have them mapped to domain entities.
 ====
 
@@ -104,10 +109,17 @@ public interface MovieRepository extends GraphRepository<Movie> {
     @Query("MATCH (movie:Movie {title={0}}) RETURN movie")
     Movie getMovieFromTitle(String movieTitle);
 
-	// returns the Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter. 
-	// (The parenthesis around 'movie' and 'actor' in the match clause are optional.)                       
+	// returns a Page of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter.
 	@Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor")
 	Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, PageRequest page);
+
+    // returns a Page of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter with an accurate total count
+	@Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor", countQuery = "MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN count(*)")
+	Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, Pageable page);
+
+    // returns a Slice of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter.
+	@Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor")
+	Slice<Actor> getActorsThatActInMovieFromTitle(String movieTitle, Pageable page);
 
     // returns users who rated a movie (movie parameter) higher than rating (rating parameter)
     @Query("MATCH (movie:Movie)<-[r:RATED]-(user) " +
@@ -142,12 +154,14 @@ public interface PersonRepository extends GraphRepository<Person> {
     // RETURN person
     Iterable<Person> findByAgeAndMarried(int age, boolean married)
 
+    Page<Person> findByAge(int age, Pageable pageable)
+
 }
 ----
 
 [NOTE]
 ====
-In the current version, derived finders do not support paging, sorting or a custom depth.
+In the current version, derived finders do not support sorting or a custom depth.
 ====
 
 

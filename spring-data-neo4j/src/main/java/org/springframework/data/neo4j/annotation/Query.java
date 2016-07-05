@@ -21,6 +21,7 @@ import java.lang.annotation.*;
  * Annotation to declare finder queries directly on repository methods.
  *
  * @author Mark Angrish
+ * @author Luanne Misquitta
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
@@ -35,4 +36,9 @@ public @interface Query {
      * Defines the Cypher query to be executed when the annotated method is called.
      */
     String value() default "";
+
+    /**
+     * @return simpler count-query to be executed for @{see Pageable}-support
+     */
+    String countQuery() default "";
 }
