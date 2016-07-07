@@ -16,6 +16,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
@@ -58,15 +61,21 @@ public class PagedQueryTest extends MultiDriverTestClass {
 		for (String name : names) {
 			Cinema cinema = new Cinema(name);
 			cinema.setLocation("London");
+			cinema.setCapacity(500);
 			cinemaRepository.save(cinema);
 		}
 	}
 
-	@Before
+	@After
 	public void clearDatabase() {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 		neo4jOperations.clear();
 	}
+
+	private void executeUpdate(String cypher) {
+		graphDatabaseService.execute(cypher);
+	}
+
 
 	@Test
 	public void shouldFindPagedCinemas() {
@@ -189,6 +198,131 @@ public class PagedQueryTest extends MultiDriverTestClass {
 		slice = cinemaRepository.getSlicedCinemasByName(slice.nextPageable());
 		assertEquals(5, slice.getNumberOfElements());
 		assertFalse(slice.hasNext());
+	}
+
+
+	/**
+	 * @see DATAGRAPH-887
+	 */
+	@Test
+	public void shouldFindPagedAndSortedCinemas() {
+		Pageable pageable = new PageRequest(0,4, Sort.Direction.ASC, "name");
+
+		Page<Cinema> page = cinemaRepository.findByLocation("London", pageable);
+		assertEquals(4, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+		assertEquals(8, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals("Cineplex", page.getContent().get(0).getName());
+		assertEquals("Inox", page.getContent().get(1).getName());
+		assertEquals("Landmark", page.getContent().get(2).getName());
+		assertEquals("Metro", page.getContent().get(3).getName());
+
+		page = cinemaRepository.findByLocation("London", page.nextPageable());
+		assertEquals(4, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+		assertEquals(12, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals("Movietime", page.getContent().get(0).getName());
+		assertEquals("PVR", page.getContent().get(1).getName());
+		assertEquals("Picturehouse", page.getContent().get(2).getName());
+		assertEquals("Rainbow", page.getContent().get(3).getName());
+
+		page = cinemaRepository.findByLocation("London", page.nextPageable());
+		assertEquals(2, page.getNumberOfElements());
+		assertFalse(page.hasNext());
+		assertEquals(10, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals("Regal", page.getContent().get(0).getName());
+		assertEquals("Ritzy", page.getContent().get(1).getName());
+	}
+
+	/**
+	 * @see DATAGRAPH-887
+	 */
+	@Test
+	public void shouldSortPageWhenNestedPropertyIsInvolved() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
+				"CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
+				"CREATE (m:Theatre {name:'Picturehouse', city:'London', capacity: 5000}) " +
+				"CREATE (u:User {name:'Michal'}) " +
+				"CREATE (u)-[:VISITED]->(r)  " +
+				"CREATE (u)-[:VISITED]->(m)");
+
+		Page<Cinema> page = cinemaRepository.findByLocationAndVisitedName("London", "Michal", new PageRequest(0,1, Sort.Direction.DESC, "name"));
+		assertEquals(1, page.getNumberOfElements());
+		assertEquals("Ritzy", page.getContent().get(0).getName());
+
+		page = cinemaRepository.findByLocationAndVisitedName("London", "Michal", new PageRequest(1,1, Sort.Direction.DESC, "name"));
+		assertEquals(1, page.getNumberOfElements());
+		assertEquals("Picturehouse", page.getContent().get(0).getName());
+	}
+
+	/**
+	 * @see DATAGRAPH-887
+	 */
+	@Test
+	public void shouldSortPageByNestedPropertyIsInvolved() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
+				"CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
+				"CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 5000}) " +
+				"CREATE (u:User {name:'Michal'}) " +
+				"CREATE (u)-[:VISITED]->(r)  " +
+				"CREATE (u)-[:VISITED]->(m)");
+
+		Page<Cinema> page = cinemaRepository.findByVisitedName("Michal", new PageRequest(0,1, Sort.Direction.ASC, "location"));
+		assertEquals(1, page.getNumberOfElements());
+		assertEquals("Regal", page.getContent().get(0).getName());
+
+		page = cinemaRepository.findByVisitedName("Michal", new PageRequest(1,1, Sort.Direction.DESC, "location"));
+		assertEquals(1, page.getNumberOfElements());
+		assertEquals("Regal", page.getContent().get(0).getName());
+	}
+
+	/**
+	 * @see DATAGRAPH-887
+	 */
+	@Test
+	public void shouldFindSortedCinemas() {
+		Sort sort = new Sort(Sort.Direction.ASC, "name");
+		List<Cinema> cinemas = cinemaRepository.findByLocation("London", sort);
+		assertEquals(10, cinemas.size());
+		assertEquals("Cineplex", cinemas.get(0).getName());
+		assertEquals("Inox", cinemas.get(1).getName());
+		assertEquals("Landmark", cinemas.get(2).getName());
+		assertEquals("Metro", cinemas.get(3).getName());
+		assertEquals("Movietime", cinemas.get(4).getName());
+		assertEquals("PVR", cinemas.get(5).getName());
+		assertEquals("Picturehouse", cinemas.get(6).getName());
+		assertEquals("Rainbow", cinemas.get(7).getName());
+		assertEquals("Regal", cinemas.get(8).getName());
+		assertEquals("Ritzy", cinemas.get(9).getName());
+	}
+
+	/**
+	 * @see DATAGRAPH-887
+	 */
+	@Test
+	public void shouldFindPagedAndSortedCinemasByCapavity() {
+		Pageable pageable = new PageRequest(0,4, Sort.Direction.ASC, "name");
+
+		List<Cinema> page = cinemaRepository.findByCapacity(500, pageable);
+		assertEquals(4, page.size());
+		assertEquals("Cineplex", page.get(0).getName());
+		assertEquals("Inox", page.get(1).getName());
+		assertEquals("Landmark", page.get(2).getName());
+		assertEquals("Metro", page.get(3).getName());
+
+		pageable = new PageRequest(1,4, Sort.Direction.ASC, "name");
+		page = cinemaRepository.findByCapacity(500, pageable);
+		assertEquals(4, page.size());
+		assertEquals("Movietime", page.get(0).getName());
+		assertEquals("PVR", page.get(1).getName());
+		assertEquals("Picturehouse", page.get(2).getName());
+		assertEquals("Rainbow", page.get(3).getName());
+
+		pageable = new PageRequest(2,4, Sort.Direction.ASC, "name");
+		page = cinemaRepository.findByCapacity(500, pageable);
+		assertEquals(2, page.size());
+		assertEquals("Regal", page.get(0).getName());
+		assertEquals("Ritzy", page.get(1).getName());
 	}
 
 }

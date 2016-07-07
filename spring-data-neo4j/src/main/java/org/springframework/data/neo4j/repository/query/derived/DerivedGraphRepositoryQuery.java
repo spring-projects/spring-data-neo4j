@@ -21,10 +21,12 @@ import java.util.Map;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.cypher.query.Pagination;
+import org.neo4j.ogm.cypher.query.SortOrder;
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.repository.query.GraphQueryMethod;
 import org.springframework.data.repository.core.EntityMetadata;
 import org.springframework.data.repository.query.ParameterAccessor;
@@ -62,19 +64,12 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 
 		ParameterAccessor accessor = new ParametersParameterAccessor(graphQueryMethod.getParameters(), parameters);
 		Pageable pageable = accessor.getPageable();
+		Sort sort = accessor.getSort();
 
 		Class<?> returnType = graphQueryMethod.getMethod().getReturnType();
 		Class<?> concreteType = graphQueryMethod.resolveConcreteReturnType();
-		int queryDepth = DEFAULT_QUERY_DEPTH;
 
-		if (graphQueryMethod.hasStaticDepth()) {
-			queryDepth = graphQueryMethod.getQueryDepth();
-		}
-		else {
-			if (graphQueryMethod.getQueryDepthParamIndex() != null) {
-				queryDepth = (int) parameters[graphQueryMethod.getQueryDepthParamIndex()];
-			}
-		}
+		int queryDepth = calculateQueryDepth(parameters);
 
 		Filters params = resolveParams(parameters);
 		if (returnType.equals(Void.class)) {
@@ -82,34 +77,69 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		}
 
 		if (Iterable.class.isAssignableFrom(returnType)) {
-			List resultList;
+			PagingAndSorting pagingAndSorting = configurePagingAndSorting(pageable, sort);
+			List resultList = queryResults(concreteType, queryDepth, params, pagingAndSorting);
+
 			if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
-				Pagination pagination;
-				if (graphQueryMethod.isSliceQuery()) {
-					pagination = new Pagination(pageable.getPageNumber(), pageable.getPageSize()+1);
-					pagination.setOffset(pageable.getPageNumber() * pageable.getPageSize()); //For a slice, need one extra result to determine if there is a next page
-				}
-				else {
-					pagination = new Pagination(pageable.getPageNumber(), pageable.getPageSize());
-				}
-				resultList = (List) session.loadAll(concreteType, params, pagination, queryDepth);
 				return createPage(graphQueryMethod, resultList, pageable);
+			} else {
+				return resultList;
 			}
-			else {
-				resultList = (List) session.loadAll(concreteType, params, queryDepth);
-			}
-			return resultList;
 		}
 
 		Iterator<?> objectIterator = session.loadAll(returnType, params, queryDepth).iterator();
-		if(objectIterator.hasNext()) {
+		if (objectIterator.hasNext()) {
 			return objectIterator.next();
 		}
 		return null;
 	}
 
+
+	@Override
+	public QueryMethod getQueryMethod() {
+		return graphQueryMethod;
+	}
+
+	private List queryResults(Class<?> concreteType, int queryDepth, Filters params, PagingAndSorting pagingAndSorting) {
+		List resultList;
+		switch (pagingAndSorting.configuration()) {
+			case PagingAndSorting.PAGING_AND_SORTING:
+				resultList = (List) session.loadAll(concreteType, params, pagingAndSorting.sortOrder, pagingAndSorting.pagination, queryDepth);
+				break;
+
+			case PagingAndSorting.PAGING_ONLY:
+				resultList = (List) session.loadAll(concreteType, params, pagingAndSorting.pagination, queryDepth);
+				break;
+
+			case PagingAndSorting.SORTING_ONLY:
+				resultList = (List) session.loadAll(concreteType, params, pagingAndSorting.sortOrder, queryDepth);
+				break;
+
+			case PagingAndSorting.NO_PAGING_OR_SORTING:
+				resultList = (List) session.loadAll(concreteType, params, queryDepth);
+				break;
+
+			default:
+				resultList = (List) session.loadAll(concreteType, params, queryDepth);
+		}
+		return resultList;
+	}
+
+	private int calculateQueryDepth(Object[] parameters) {
+		int queryDepth = DEFAULT_QUERY_DEPTH;
+		if (graphQueryMethod.hasStaticDepth()) {
+			queryDepth = graphQueryMethod.getQueryDepth();
+		} else {
+			if (graphQueryMethod.getQueryDepthParamIndex() != null) {
+				queryDepth = (int) parameters[graphQueryMethod.getQueryDepthParamIndex()];
+			}
+		}
+		return queryDepth;
+	}
+
 	/**
 	 * Sets values from  parameters supplied by the finder on {@link org.neo4j.ogm.cypher.Filter} built by the {@link GraphQueryMethod}
+	 *
 	 * @param parameters parameter values supplied by the finder method
 	 * @return List of Parameter with values set
 	 */
@@ -123,7 +153,7 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		}
 		List<CypherFilter> cypherFilters = queryDefinition.getCypherFilters();
 		Filters queryParams = new Filters();
-		for(CypherFilter cypherFilter : cypherFilters) {
+		for (CypherFilter cypherFilter : cypherFilters) {
 			Filter filter = cypherFilter.toFilter();
 			filter.setPropertyValue(params.get(cypherFilter.getPropertyPosition()));
 			queryParams.add(filter);
@@ -131,10 +161,6 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		return queryParams;
 	}
 
-	@Override
-	public QueryMethod getQueryMethod() {
-		return graphQueryMethod;
-	}
 
 	protected Object createPage(GraphQueryMethod graphQueryMethod, List resultList, Pageable pageable) {
 		if (pageable == null) {
@@ -150,5 +176,77 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		return graphQueryMethod.isPageQuery() ?
 				new PageImpl(resultListPage, pageable, currentTotal) :
 				new SliceImpl(resultListPage, pageable, hasNext);
+	}
+
+	private SortOrder convert(Sort sort) {
+
+		SortOrder sortOrder = new SortOrder();
+
+		if (sort != null) {
+			for (Sort.Order order : sort) {
+				if (order.isAscending()) {
+					sortOrder.add(order.getProperty());
+				} else {
+					sortOrder.add(SortOrder.Direction.DESC, order.getProperty());
+				}
+			}
+		}
+		return sortOrder;
+	}
+
+	private PagingAndSorting configurePagingAndSorting(Pageable pageable, Sort sort) {
+		SortOrder sortOrder = null;
+		Pagination pagination = null;
+
+		if (pageable != null) {
+			pagination = new Pagination(pageable.getPageNumber(), pageable.getPageSize());
+			if (pageable.getSort() != null) {
+				sortOrder = convert(pageable.getSort());
+			}
+		}
+		if (sort != null) {
+			sortOrder = convert(sort);
+		}
+
+		if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
+			if (graphQueryMethod.isSliceQuery()) {
+				pagination = new Pagination(pageable.getPageNumber(), pageable.getPageSize() + 1);
+				pagination.setOffset(pageable.getPageNumber() * pageable.getPageSize()); //For a slice, need one extra result to determine if there is a next page
+			} else {
+				pagination = new Pagination(pageable.getPageNumber(), pageable.getPageSize());
+			}
+		}
+
+		PagingAndSorting pagingAndSorting = new PagingAndSorting(pagination, sortOrder);
+		return pagingAndSorting;
+	}
+
+	class PagingAndSorting {
+
+		static final int PAGING_AND_SORTING = 0;
+		static final int PAGING_ONLY = 1;
+		static final int SORTING_ONLY = 2;
+		static final int NO_PAGING_OR_SORTING = 3;
+
+		Pagination pagination;
+		SortOrder sortOrder;
+
+		public PagingAndSorting(Pagination pagination, SortOrder sortOrder) {
+			this.pagination = pagination;
+			this.sortOrder = sortOrder;
+		}
+
+		int configuration() {
+			if (pagination != null && sortOrder != null) {
+				return PAGING_AND_SORTING;
+			}
+			if (pagination != null && sortOrder == null) {
+				return PAGING_ONLY;
+			}
+			if (pagination == null && sortOrder != null) {
+				return SORTING_ONLY;
+			}
+			return NO_PAGING_OR_SORTING;
+		}
 	}
 }

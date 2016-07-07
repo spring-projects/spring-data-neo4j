@@ -16,6 +16,7 @@ package org.springframework.data.neo4j.examples.movies.repo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
@@ -82,5 +83,15 @@ public interface CinemaRepository extends GraphRepository<Cinema> {
 
 	@Query("MATCH (n:Theatre) RETURN n ORDER BY n.name")
 	Slice<Cinema> getSlicedCinemasByName(Pageable pageable);
+
+	Page<Cinema> findByLocation(String city, Pageable pageable);
+
+	Page<Cinema> findByLocationAndVisitedName(String location, String name, Pageable pageable);
+
+	Page<Cinema> findByVisitedName(String name, Pageable pageable);
+
+	List<Cinema> findByLocation(String city, Sort sort);
+
+	List<Cinema> findByCapacity(int capacity, Pageable pageable);
 
 }

@@ -152,16 +152,24 @@ public interface PersonRepository extends GraphRepository<Person> {
     // MATCH (person:Person)
     // WHERE person.age = {0} AND person.married = {1}
     // RETURN person
-    Iterable<Person> findByAgeAndMarried(int age, boolean married)
+    Iterable<Person> findByAgeAndMarried(int age, boolean married);
 
-    Page<Person> findByAge(int age, Pageable pageable)
+    // MATCH (person:Person)
+    // WHERE person.age = {0}
+    // RETURN person ORDER BY person.name SKIP {skip} LIMIT {limit}
+    Page<Person> findByAge(int age, Pageable pageable);
+
+    // MATCH (person:Person)
+    // WHERE person.age = {0}
+    // RETURN person ORDER BY person.name
+    List<Person> findByAge(int age, Sort sort);
 
 }
 ----
 
 [NOTE]
 ====
-In the current version, derived finders do not support sorting or a custom depth.
+In the current version, derived finders do not support a custom depth.
 ====
 
 

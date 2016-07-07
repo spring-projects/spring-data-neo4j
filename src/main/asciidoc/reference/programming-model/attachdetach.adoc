@@ -107,13 +107,11 @@ Since the `movie.topActor` field has not been modified, it will not cascade the 
 
 [[reference_programming-model_sorting_and_paging]]
 = Sorting and Paging
-Spring Data Neo4j supports sorting and paging of results, both when using Spring Data's `Pageable` and `Sort` interfaces, and also when using the `Session` object.
-The syntax for the two is slightly different, the main difference being that the `Session` object methods take independent arguments for sorting and pagination, whereas Spring's `Pageable` interface embeds an optional `Sort` object.
-Behind the scenes however, repository-based paging and sorting delegates to the core OGM equivalents.
+Spring Data Neo4j supports sorting and paging of results when using Spring Data's `Pageable` and `Sort` interfaces.
 
 [NOTE]
 ====
-Spring Data Neo4j 4 does not yet support sorting on custom queries or derived query methods.
+Spring Data Neo4j 4 does not yet support sorting on custom queries.
 ====
 
 ====
@@ -136,24 +134,6 @@ Iterable<World> worlds = worldRepository.findAll(sort, 0)) {
 ----
 Pageable pageable = new PageRequest(0, 3, Sort.Direction.ASC, "name");
 Page<World> page = worldRepository.findAll(pageable, 0);
-----
-
-.Core OGM-based paging
-[source,java]
-----
-Iterable<World> worlds = loadAll(World.class, new Pagination(0,3), 0)
-----
-
-.Core OGM-based sorting
-[source,java]
-----
-Iterable<World> worlds = loadAll(World.class, new SortOrder().add("name"), 0)
-----
-
-.Core OGM-based sorting with paging
-[source,java]
-----
-Iterable<World> worlds = loadAll(World.class, new SortOrder().add("name"), new Pagination(0,3), 0)
 ----
 ====
 
