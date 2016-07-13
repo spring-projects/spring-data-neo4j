@@ -300,7 +300,7 @@ public class PagedQueryTest extends MultiDriverTestClass {
 	 * @see DATAGRAPH-887
 	 */
 	@Test
-	public void shouldFindPagedAndSortedCinemasByCapavity() {
+	public void shouldFindPagedAndSortedCinemasByCapacity() {
 		Pageable pageable = new PageRequest(0,4, Sort.Direction.ASC, "name");
 
 		List<Cinema> page = cinemaRepository.findByCapacity(500, pageable);
@@ -323,6 +323,89 @@ public class PagedQueryTest extends MultiDriverTestClass {
 		assertEquals(2, page.size());
 		assertEquals("Regal", page.get(0).getName());
 		assertEquals("Ritzy", page.get(1).getName());
+	}
+
+	/**
+	 * @see DATAGRAPH-653
+	 */
+	@Test
+	public void shouldFindPagedCinemasSortedWithCustomQuery() {
+		Pageable pageable = new PageRequest(0,4, Sort.Direction.ASC, "n.name");
+
+		Page<Cinema> page = cinemaRepository.getPagedCinemasByName(pageable);
+		assertEquals(4, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+		assertEquals(8, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals("Cineplex", page.getContent().get(0).getName());
+		assertEquals("Inox", page.getContent().get(1).getName());
+		assertEquals("Landmark", page.getContent().get(2).getName());
+		assertEquals("Metro", page.getContent().get(3).getName());
+
+		page = cinemaRepository.getPagedCinemasByName(page.nextPageable());
+		assertEquals(4, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+		assertEquals(12, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals("Movietime", page.getContent().get(0).getName());
+		assertEquals("PVR", page.getContent().get(1).getName());
+		assertEquals("Picturehouse", page.getContent().get(2).getName());
+		assertEquals("Rainbow", page.getContent().get(3).getName());
+
+		page = cinemaRepository.getPagedCinemasByName(page.nextPageable());
+		assertEquals(2, page.getNumberOfElements());
+		assertFalse(page.hasNext());
+		assertEquals(10, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals("Regal", page.getContent().get(0).getName());
+		assertEquals("Ritzy", page.getContent().get(1).getName());
+	}
+
+	/**
+	 * @see DATAGRAPH-653
+	 */
+	@Test
+	public void shouldFindSlicedCinemasSortedWithCustomQuery() {
+		Pageable pageable = new PageRequest(0,4, Sort.Direction.ASC, "n.name");
+
+		Slice<Cinema> slice = cinemaRepository.getSlicedCinemasByName(pageable);
+		assertEquals(4, slice.getNumberOfElements());
+		assertTrue(slice.hasNext());
+		assertEquals("Cineplex", slice.getContent().get(0).getName());
+		assertEquals("Inox", slice.getContent().get(1).getName());
+		assertEquals("Landmark", slice.getContent().get(2).getName());
+		assertEquals("Metro", slice.getContent().get(3).getName());
+
+		slice = cinemaRepository.getSlicedCinemasByName(slice.nextPageable());
+		assertEquals(4, slice.getNumberOfElements());
+		assertTrue(slice.hasNext());
+		assertEquals("Movietime", slice.getContent().get(0).getName());
+		assertEquals("PVR", slice.getContent().get(1).getName());
+		assertEquals("Picturehouse", slice.getContent().get(2).getName());
+		assertEquals("Rainbow", slice.getContent().get(3).getName());
+
+		slice = cinemaRepository.getSlicedCinemasByName(slice.nextPageable());
+		assertEquals(2, slice.getNumberOfElements());
+		assertFalse(slice.hasNext());
+		assertEquals("Regal", slice.getContent().get(0).getName());
+		assertEquals("Ritzy", slice.getContent().get(1).getName());
+	}
+
+	/**
+	 * @see DATAGRAPH-653
+	 */
+	@Test
+	public void shouldFindCinemasSortedByNameWithCustomQuery() {
+		Sort sort = new Sort(Sort.Direction.ASC, "n.name");
+		List<Cinema> cinemas = cinemaRepository.getCinemasSortedByName(sort);
+		assertEquals(10, cinemas.size());
+		assertEquals("Cineplex", cinemas.get(0).getName());
+		assertEquals("Inox", cinemas.get(1).getName());
+		assertEquals("Landmark", cinemas.get(2).getName());
+		assertEquals("Metro", cinemas.get(3).getName());
+		assertEquals("Movietime", cinemas.get(4).getName());
+		assertEquals("PVR", cinemas.get(5).getName());
+		assertEquals("Picturehouse", cinemas.get(6).getName());
+		assertEquals("Rainbow", cinemas.get(7).getName());
+		assertEquals("Regal", cinemas.get(8).getName());
+		assertEquals("Ritzy", cinemas.get(9).getName());
 	}
 
 }

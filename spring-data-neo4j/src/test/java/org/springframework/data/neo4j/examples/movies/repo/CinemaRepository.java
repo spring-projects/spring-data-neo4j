@@ -72,7 +72,7 @@ public interface CinemaRepository extends GraphRepository<Cinema> {
 
 	Cinema findByName(String name, @Depth int depth);
 
-	@Query("MATCH (n:Theatre) RETURN n ORDER BY n.name")
+	@Query("MATCH (n:Theatre) RETURN n")
 	Page<Cinema> getPagedCinemasByName(Pageable pageable);
 
 	@Query(value = "MATCH (n:Theatre) RETURN n ORDER BY n.name", countQuery = "MATCH (n:Theatre) return count(*)")
@@ -81,7 +81,7 @@ public interface CinemaRepository extends GraphRepository<Cinema> {
 	@Query(value = "MATCH (n:Theatre {city:{city}}) RETURN n ORDER BY n.name", countQuery = "MATCH (n:Theatre {city:{city}}) return count(*)")
 	Page<Cinema> getPagedCinemasByCityWithPageCount(@Param("city") String city, Pageable pageable);
 
-	@Query("MATCH (n:Theatre) RETURN n ORDER BY n.name")
+	@Query("MATCH (n:Theatre) RETURN n")
 	Slice<Cinema> getSlicedCinemasByName(Pageable pageable);
 
 	Page<Cinema> findByLocation(String city, Pageable pageable);
@@ -94,4 +94,6 @@ public interface CinemaRepository extends GraphRepository<Cinema> {
 
 	List<Cinema> findByCapacity(int capacity, Pageable pageable);
 
+	@Query("MATCH (n:Theatre) RETURN n")
+	List<Cinema> getCinemasSortedByName(Sort sort);
 }

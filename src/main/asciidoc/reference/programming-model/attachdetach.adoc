@@ -109,11 +109,6 @@ Since the `movie.topActor` field has not been modified, it will not cascade the 
 = Sorting and Paging
 Spring Data Neo4j supports sorting and paging of results when using Spring Data's `Pageable` and `Sort` interfaces.
 
-[NOTE]
-====
-Spring Data Neo4j 4 does not yet support sorting on custom queries.
-====
-
 ====
 .Repository-based paging
 [source,java]

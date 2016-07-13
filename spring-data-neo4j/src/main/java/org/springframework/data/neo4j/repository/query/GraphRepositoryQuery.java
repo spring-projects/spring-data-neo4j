@@ -24,6 +24,7 @@ import org.neo4j.ogm.session.Session;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
@@ -45,9 +46,10 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 
     protected final Session session;
 
-    private final String SKIP = "sdnSkip";
-    private final String LIMIT = "sdnLimit";
-    private final String SKIP_LIMIT = " SKIP {" + SKIP + "} LIMIT {" + LIMIT + "}";
+    private static final String SKIP = "sdnSkip";
+    private static final String LIMIT = "sdnLimit";
+    private static final String SKIP_LIMIT = " SKIP {" + SKIP + "} LIMIT {" + LIMIT + "}";
+    private static final String ORDER_BY_CLAUSE = " ORDER BY %s";
 
     public GraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session) {
         this.graphQueryMethod = graphQueryMethod;
@@ -63,13 +65,22 @@ public class GraphRepositoryQuery implements RepositoryQuery {
         
         ParameterAccessor accessor = new ParametersParameterAccessor(graphQueryMethod.getParameters(), parameters);
         ResultProcessor processor = graphQueryMethod.getResultProcessor();
-        Object result = execute(returnType, concreteType, getQueryString(), params, accessor.getPageable());
+        Object result = execute(returnType, concreteType, getQueryString(), params, accessor);
         
         return Result.class.equals(returnType) ? result :
         	processor.withDynamicProjection(accessor).processResult(result);
     }
 
-    protected Object execute(Class<?> returnType, Class<?> concreteType, String cypherQuery, Map<String, Object> queryParams, Pageable pageable) {
+    protected Object execute(Class<?> returnType, Class<?> concreteType, String cypherQuery, Map<String, Object> queryParams, ParameterAccessor parameterAccessor) {
+        Pageable pageable = parameterAccessor.getPageable();
+        Sort sort = parameterAccessor.getSort();
+        if (pageable!= null && pageable.getSort() != null) {
+            sort = pageable.getSort();
+        }
+        if (sort != null) {
+            //Custom queries in the OGM do not support pageable
+            cypherQuery = addSorting(cypherQuery,sort);
+        }
 
         if (returnType.equals(Void.class) || returnType.equals(void.class)) {
             session.query(cypherQuery, queryParams);
@@ -177,6 +188,29 @@ public class GraphRepositoryQuery implements RepositoryQuery {
             return ((Number)countResult.iterator().next().values().iterator().next()).longValue();
         }
         return null;
+    }
+
+    private String addSorting(String baseQuery, Sort sort) {
+        if (sort==null)
+        {
+            return baseQuery;
+        }
+        final String sortOrder = getSortOrder(sort);
+        if (sortOrder.isEmpty()) {
+            return baseQuery;
+        }
+        return baseQuery + String.format(ORDER_BY_CLAUSE, sortOrder);
+    }
+
+    private String getSortOrder(Sort sort) {
+        String result = "";
+        for (Sort.Order order : sort) {
+            if (!result.isEmpty()) {
+                result += ", ";
+            }
+            result += order.getProperty() + " " + order.getDirection();
+        }
+        return result;
     }
 
 }
