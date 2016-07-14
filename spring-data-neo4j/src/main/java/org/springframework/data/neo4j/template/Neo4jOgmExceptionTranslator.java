@@ -25,6 +25,7 @@ import org.springframework.transaction.NoTransactionException;
 /**
  * @author Luanne Misquitta
  */
+@Deprecated
 public class Neo4jOgmExceptionTranslator {
 
 	public static DataAccessException translateExceptionIfPossible(Exception ex) {

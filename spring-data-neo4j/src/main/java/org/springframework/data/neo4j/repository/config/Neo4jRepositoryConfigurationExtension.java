@@ -13,22 +13,145 @@
 
 package org.springframework.data.neo4j.repository.config;
 
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
+import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.annotation.RelationshipEntity;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.support.GraphRepositoryFactoryBean;
+import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
+import org.springframework.data.neo4j.repository.support.SessionBeanDefinitionRegistrarPostProcessor;
+import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
+import org.springframework.data.repository.config.RepositoryConfigurationSource;
+import org.springframework.data.repository.config.XmlRepositoryConfigurationSource;
+import org.springframework.util.StringUtils;
 
 /**
+ * Neo4j specific configuration extension parsing custom attributes from the XML namespace and
+ * {@link EnableExperimentalNeo4jRepositories} annotation. Also, it registers a bean definition for a
+ * {@link PersistenceExceptionTranslationPostProcessor} to enable exception translation of persistence specific
+ * exceptions into Spring's {@link DataAccessException} hierarchy.
+ *
  * @author Vince Bickers
+ * @author Mark Angrish
  */
 public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
 
-    @Override
-    public String getRepositoryFactoryClassName() {
-        return GraphRepositoryFactoryBean.class.getName();
-    }
+	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
+	private static final String NEO4J_MAPPING_CONTEXT_BEAN_NAME = "neo4jMappingContext";
+	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
+	private static final String SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME = "sessionBeanDefinitionRegistrarPostProcessor";
 
-    @Override
-    protected String getModulePrefix() {
-        return "neo4j";
-    }
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getModuleName()
+	 */
+	@Override
+	public String getModuleName() {
+		return "Neo4j";
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config14.RepositoryConfigurationExtension#getRepositoryInterface()
+	 */
+	@Override
+	public String getRepositoryFactoryClassName() {
+		return Neo4jRepositoryFactoryBean.class.getName();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config14.RepositoryConfigurationExtensionSupport#getModulePrefix()
+	 */
+	@Override
+	protected String getModulePrefix() {
+		return "neo4j";
+	}
+
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getIdentifyingAnnotations()
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	protected Collection<Class<? extends Annotation>> getIdentifyingAnnotations() {
+		return Arrays.asList(NodeEntity.class, RelationshipEntity.class);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getIdentifyingTypes()
+	 */
+	@Override
+	protected Collection<Class<?>> getIdentifyingTypes() {
+		return Collections.<Class<?>>singleton(Neo4jRepository.class);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#postProcess(org.springframework.beans.factory.support.BeanDefinitionBuilder, org.springframework.data.repository.config.RepositoryConfigurationSource)
+	 */
+	@Override
+	public void postProcess(BeanDefinitionBuilder builder, RepositoryConfigurationSource source) {
+
+		String transactionManagerRef = source.getAttribute("transactionManagerRef");
+		builder.addPropertyValue("transactionManager",
+				transactionManagerRef == null ? DEFAULT_TRANSACTION_MANAGER_BEAN_NAME : transactionManagerRef);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#postProcess(org.springframework.beans.factory.support.BeanDefinitionBuilder, org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource)
+	 */
+	@Override
+	public void postProcess(BeanDefinitionBuilder builder, AnnotationRepositoryConfigurationSource config) {
+
+		AnnotationAttributes attributes = config.getAttributes();
+
+		builder.addPropertyValue(ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE,
+				attributes.getBoolean(ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#postProcess(org.springframework.beans.factory.support.BeanDefinitionBuilder, org.springframework.data.repository.config.XmlRepositoryConfigurationSource)
+	 */
+	@Override
+	public void postProcess(BeanDefinitionBuilder builder, XmlRepositoryConfigurationSource config) {
+
+		String enableDefaultTransactions = config.getAttribute(ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE);
+
+		if (StringUtils.hasText(enableDefaultTransactions)) {
+			builder.addPropertyValue(ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE, enableDefaultTransactions);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#registerBeansForRoot(org.springframework.beans.factory.support.BeanDefinitionRegistry, org.springframework.data.repository.config.RepositoryConfigurationSource)
+	 */
+	@Override
+	public void registerBeansForRoot(BeanDefinitionRegistry registry, RepositoryConfigurationSource config) {
+
+		super.registerBeansForRoot(registry, config);
+
+		Object source = config.getSource();
+
+		registerIfNotAlreadyRegistered(new RootBeanDefinition(SessionBeanDefinitionRegistrarPostProcessor.class),
+				registry, SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME, source);
+		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jMappingContextFactoryBean.class), registry,
+				NEO4J_MAPPING_CONTEXT_BEAN_NAME, source);
+	}
 }

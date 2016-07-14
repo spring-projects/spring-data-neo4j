@@ -173,6 +173,7 @@
             <url>http://m2.neo4j.org/content/repositories/releases</url>
             <snapshots>
                 <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
             </snapshots>
         </repository>
 
@@ -181,6 +182,7 @@
             <url>http://m2.neo4j.org/content/repositories/snapshots</url>
             <snapshots>
                 <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
             </snapshots>
         </repository>
 

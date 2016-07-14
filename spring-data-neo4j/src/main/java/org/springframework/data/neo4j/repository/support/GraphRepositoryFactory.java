@@ -29,7 +29,9 @@ import java.io.Serializable;
 /**
  * @author Vince Bickers
  * @author Luanne Misquitta
+ * @deprecated See {@link Neo4jRepositoryFactory}
  */
+@Deprecated
 public class GraphRepositoryFactory extends RepositoryFactorySupport {
 
     private final Session session;

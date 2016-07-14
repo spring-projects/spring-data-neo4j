@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.web.domain.User;
 import org.springframework.data.neo4j.web.service.UserService;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -37,6 +38,7 @@ public class UserController {
 
     @RequestMapping(value = "/user/{name}/friends")
     @ResponseBody
+    @Transactional
     public String listFriends(@PathVariable String name, HttpSession session) {
         System.out.println("Session: " + session);
         User user = userService.getUserByName(name);
@@ -55,6 +57,7 @@ public class UserController {
 
     @RequestMapping(value = "/user/{name}/immediateFriends")
     @ResponseBody
+    @Transactional
     public String listImmediateFriends(@PathVariable String name, HttpSession session) {
         System.out.println("Session: " + session);
         User user = userService.getUserByName(name);

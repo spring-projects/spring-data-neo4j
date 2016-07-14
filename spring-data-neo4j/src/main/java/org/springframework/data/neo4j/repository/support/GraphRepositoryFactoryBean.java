@@ -25,7 +25,9 @@ import org.springframework.data.repository.core.support.TransactionalRepositoryF
 /**
  * @author Vince Bickers
  * @author Luanne Misquitta
+ * @deprecated See {@link Neo4jRepositoryFactoryBean}
  */
+@Deprecated
 public class GraphRepositoryFactoryBean<S extends Repository<T, Long>, T> extends TransactionalRepositoryFactoryBeanSupport<S, T, Long> {
 
     @Autowired

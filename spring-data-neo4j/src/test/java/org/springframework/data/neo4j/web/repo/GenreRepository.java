@@ -13,7 +13,7 @@
 
 package org.springframework.data.neo4j.web.repo;
 
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.web.domain.Genre;
 import org.springframework.stereotype.Repository;
 
@@ -21,5 +21,6 @@ import org.springframework.stereotype.Repository;
  * @author Michal Bachman
  */
 @Repository
-public interface GenreRepository extends GraphRepository<Genre> {
+public interface GenreRepository extends Neo4jRepository<Genre> {
+
 }

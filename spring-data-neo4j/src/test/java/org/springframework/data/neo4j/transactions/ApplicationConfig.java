@@ -13,14 +13,12 @@
 
 package org.springframework.data.neo4j.transactions;
 
-import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.support.SpringSessionProxyBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -38,13 +36,5 @@ public class ApplicationConfig extends Neo4jConfiguration {
 		return new SessionFactory("org.springframework.data.neo4j.transactions");
 	}
 
-	@Override
-	@Bean
-	public Session getSession() throws Exception {
-		SpringSessionProxyBean proxy = new SpringSessionProxyBean();
-		proxy.setSessionFactory(getSessionFactory());
-		proxy.afterPropertiesSet();
-		return proxy.getObject();
-	}
 
 }

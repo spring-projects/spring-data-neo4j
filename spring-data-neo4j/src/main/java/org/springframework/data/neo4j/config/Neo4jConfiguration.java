@@ -14,6 +14,8 @@
 package org.springframework.data.neo4j.config;
 
 
+import javax.annotation.Resource;
+
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.slf4j.Logger;
@@ -26,6 +28,7 @@ import org.springframework.dao.annotation.PersistenceExceptionTranslationPostPro
 import org.springframework.dao.support.PersistenceExceptionTranslationInterceptor;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.repository.config.EnableExperimentalNeo4jRepositories;
 import org.springframework.data.neo4j.template.Neo4jOgmExceptionTranslator;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
@@ -33,72 +36,73 @@ import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 
-import javax.annotation.Resource;
-
 /**
  * The base Spring configuration bean from which users are recommended to inherit when setting up Spring Data Neo4j.
  *
  * @author Vince Bickers
+ * @deprecated Users should migrate to the new annotation {@link EnableExperimentalNeo4jRepositories}
+ * and also only declare a {@link SessionFactory} and a {@link org.springframework.ogm.neo4j.Neo4jTransactionManager} to
+ * get a base configuration working. See the Spring Data Neo4j documentation for more information.
  */
 @Configuration
+@Deprecated
 public abstract class Neo4jConfiguration {
 
-    private final Logger logger = LoggerFactory.getLogger(Neo4jConfiguration.class);
+	private final Logger logger = LoggerFactory.getLogger(Neo4jConfiguration.class);
 
-    @Resource
-    private Environment environment;
+	@Resource
+	private Environment environment;
 
-    @Bean
-    public Session getSession() throws Exception {
-        logger.info("Initialising Neo4jSession");
-        SessionFactory sessionFactory = getSessionFactory();
-        Assert.notNull(sessionFactory, "You must provide a SessionFactory instance in your Spring configuration classes");
-        return sessionFactory.openSession();
-    }
+	@Bean
+	public Session getSession() throws Exception {
+		logger.info("Initialising Neo4jSession");
+		SessionFactory sessionFactory = getSessionFactory();
+		Assert.notNull(sessionFactory, "You must provide a SessionFactory instance in your Spring configuration classes");
+		return sessionFactory.openSession();
+	}
 
-    @Bean
-    public Neo4jOperations neo4jTemplate() throws Exception {
-        return new Neo4jTemplate(getSession());
-    }
+	@Bean
+	public Neo4jOperations neo4jTemplate() throws Exception {
+		return new Neo4jTemplate(getSession());
+	}
 
-    @Bean
-    public Neo4jMappingContext neo4jMappingContext() throws Exception {
-        return new Neo4jMappingContext(getSessionFactory().metaData());
-    }
+	@Bean
+	public Neo4jMappingContext neo4jMappingContext() throws Exception {
+		return new Neo4jMappingContext(getSessionFactory().metaData());
+	}
 
-    @Bean
-    public PersistenceExceptionTranslator persistenceExceptionTranslator() {
-        logger.info("Initialising PersistenceExceptionTranslator");
-        return new PersistenceExceptionTranslator() {
-            @Override
-            public DataAccessException translateExceptionIfPossible(RuntimeException e) {
-                logger.info("Intercepted exception");
-                throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
-            }
-        };
-    }
+	@Bean
+	public PersistenceExceptionTranslator persistenceExceptionTranslator() {
+		logger.info("Initialising PersistenceExceptionTranslator");
+		return new PersistenceExceptionTranslator() {
+			@Override
+			public DataAccessException translateExceptionIfPossible(RuntimeException e) {
+				logger.info("Intercepted exception");
+				throw Neo4jOgmExceptionTranslator.translateExceptionIfPossible(e);
+			}
+		};
+	}
 
-    @Bean
-    public PersistenceExceptionTranslationInterceptor translationInterceptor() {
-        logger.info("Initialising PersistenceExceptionTranslationInterceptor");
-        return new PersistenceExceptionTranslationInterceptor(persistenceExceptionTranslator());
-    }
+	@Bean
+	public PersistenceExceptionTranslationInterceptor translationInterceptor() {
+		logger.info("Initialising PersistenceExceptionTranslationInterceptor");
+		return new PersistenceExceptionTranslationInterceptor(persistenceExceptionTranslator());
+	}
 
-    @Bean
-    public PlatformTransactionManager transactionManager() throws Exception {
-        logger.info("Initialising Neo4jTransactionManager");
-        SessionFactory sessionFactory = getSessionFactory();
-        Assert.notNull(sessionFactory, "You must provide a SessionFactory instance in your Spring configuration classes");
-        return new Neo4jTransactionManager(sessionFactory);
-    }
+	@Bean
+	public PlatformTransactionManager transactionManager() throws Exception {
+		logger.info("Initialising Neo4jTransactionManager");
+		Session session = getSession();
+		Assert.notNull(session, "You must provide a Session instance in your Spring configuration classes");
+		return new Neo4jTransactionManager(session);
+	}
 
-    @Bean
-    PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor() {
-        logger.info("Initialising PersistenceExceptionTranslationPostProcessor");
-        return new PersistenceExceptionTranslationPostProcessor();
-    }
+	@Bean
+	PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor() {
+		logger.info("Initialising PersistenceExceptionTranslationPostProcessor");
+		return new PersistenceExceptionTranslationPostProcessor();
+	}
 
-    @Bean
-    public abstract SessionFactory getSessionFactory();
-
+	@Bean
+	public abstract SessionFactory getSessionFactory();
 }

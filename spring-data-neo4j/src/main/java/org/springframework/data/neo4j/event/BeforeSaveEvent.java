@@ -17,7 +17,9 @@ package org.springframework.data.neo4j.event;
  * {@link Neo4jDataManipulationEvent} published before a particular entity is saved.
  *
  * @author Adam George
+ * @deprecated Now automatically handled in {@link org.springframework.ogm.neo4j.Neo4jTransactionManager}.
  */
+@Deprecated
 public class BeforeSaveEvent extends Neo4jDataManipulationEvent {
 
     private static final long serialVersionUID = -2413703447883120441L;

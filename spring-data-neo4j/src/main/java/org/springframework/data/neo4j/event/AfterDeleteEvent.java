@@ -17,7 +17,9 @@ package org.springframework.data.neo4j.event;
  * {@link Neo4jDataManipulationEvent} published after a particular entity is deleted.
  *
  * @author Adam George
+ * @deprecated Now automatically handled in {@link org.springframework.ogm.neo4j.Neo4jTransactionManager}.
  */
+@Deprecated
 public class AfterDeleteEvent extends Neo4jDataManipulationEvent {
 
     private static final long serialVersionUID = 1185473862611150682L;

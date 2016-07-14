@@ -23,12 +23,15 @@ import java.lang.annotation.*;
 
 /**
  * @author Vince Bickers
+ *
+ * @deprecated See {@link EnableExperimentalNeo4jRepositories}}.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Import(Neo4jRepositoriesRegistrar.class)
+@Import(GraphRepositoriesRegistrar.class)
+@Deprecated
 public @interface EnableNeo4jRepositories {
 
     /**

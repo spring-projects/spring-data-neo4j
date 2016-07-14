@@ -64,6 +64,21 @@
                 <artifactId>spring-tx</artifactId>
             </dependency>
 
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-web</artifactId>
+                <scope>compile</scope>
+                <optional>true</optional>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>3.1.0</version>
+                <scope>compile</scope>
+                <optional>true</optional>
+            </dependency>
+
             <!-- test-scoped jars -->
             <dependency>
                 <groupId>org.springframework</groupId>
@@ -98,15 +113,6 @@
                 <artifactId>javax.el</artifactId>
                 <scope>test</scope>
             </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-web</artifactId>
-            </dependency>
-            <dependency>
-                <groupId>javax.servlet</groupId>
-                <artifactId>javax.servlet-api</artifactId>
-                <version>3.1.0</version>
-            </dependency>
 
         </dependencies>
 
@@ -116,23 +122,25 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>default-test</id>
+                        <id>integration-test</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
                         <configuration>
                             <forkMode>once</forkMode>
-                            <includes>
-                                <include>**/*.java</include>
-                            </includes>
-
                             <systemPropertyVariables>
                                 <ogm.properties>${ogm.properties}</ogm.properties>
                             </systemPropertyVariables>
-
                         </configuration>
                     </execution>
-
                 </executions>
             </plugin>
 
