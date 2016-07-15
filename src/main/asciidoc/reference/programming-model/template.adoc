@@ -38,7 +38,7 @@ All of these basic CRUD methods just call onto the underlying methods of `Sessio
 The `Neo4jTemplate` also allows execution of arbitrary Cypher queries via its `query`, `queryForObject` and `queryForObjects` methods.  
 Cypher queries that return tabular results should be passed into the `query` method. 
 An `org.neo4j.ogm.session.result.Result` is returned. This consists of `org.neo4j.ogm.session.result.QueryStatistics` representing statistics of
-modifying cypher statements if applicable, and an `Iterable<Map<String,Object>>` containing the raw data, which can be either used as-is or converted into a richer type if needed.
+modifying cypher statements if applicable, and an `Iterable<Map<String,Object>>` containing the raw data, of which nodes and relationships are mapped to domain entities if possible.
 The keys in each `Map` correspond to the names listed in the return clause of the executed Cypher query.
 
 //For the query methods that retrieve mapped objects, the recommended query format is to return a path, which should ensure that known types get mapped correctly and joined together with relationships as appropriate.

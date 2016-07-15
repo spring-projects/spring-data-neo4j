@@ -47,7 +47,7 @@ The `RETURN` clause defines which part of the query result will be available to 
 Aggregation also happens in the return clause by using aggregation functions on some of the returned values. 
 Sorting can happen in the `ORDER BY` clause and the `SKIP` and `LIMIT` parts restrict the result set to a certain window.
 
-Cypher statements are executed against Neo4j Server using an HTTP-based protocol, which is utilised by Spring Data Neo4j.
+Cypher statements are executed against Neo4j Server using an HTTP-based or Bolt protocol, which is utilised by Spring Data Neo4j.
 
 .Cypher Examples on the Movies Dataset
 [source,cypher]

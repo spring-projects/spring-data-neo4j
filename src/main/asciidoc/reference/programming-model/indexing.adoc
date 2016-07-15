@@ -34,6 +34,12 @@ However, as of SDN 4, this is no longer supported.
 To create fulltext entries for an entity you can add the updated nodes within `AfterSaveEvents` to a remote fulltext-index via Neo4j's REST API.
 If you use Http Driver and the `HttpRequest` used by the OGM, then authentication will be taken care of as well.
 
+[NOTE]
+====
+These methods work only with the HTTP and Embedded drivers. The Bolt driver does not support updates to legacy indexes.
+If any of the methods below are employed, the user is responsible for managing resources such as the underlying GraphDatabaseService if the Driver used to get hold of the underlying implementation.
+====
+
 .Indexing Persons upon persistence with the HTTP Driver
 [source,java]
 ----

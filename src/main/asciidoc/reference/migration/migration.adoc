@@ -25,6 +25,8 @@ h| Old h| New
 m| @RelatedTo m| @Relationship
 m| @RelatedToVia m| @Relationship
 m| @GraphProperty m| @Property
+m| @MapResult m| @QueryResult
+m| @ResultColumn m| @Property
 m| Relationship Direction.BOTH m| Relationship.UNDIRECTED
 |===
 

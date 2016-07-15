@@ -164,13 +164,15 @@ public interface PersonRepository extends GraphRepository<Person> {
     // RETURN person ORDER BY person.name
     List<Person> findByAge(int age, Sort sort);
 
+    //Allow a custom depth as a parameter
+    Person findByName(String name, @Depth int depth);
+
+    //Fix the depth for the query
+    @Depth(value = 0)
+    Person findBySurname(String surname);
+
 }
 ----
-
-[NOTE]
-====
-In the current version, derived finders do not support a custom depth.
-====
 
 
 == Creating repositories

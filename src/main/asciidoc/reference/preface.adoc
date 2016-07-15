@@ -15,7 +15,7 @@ For version 4.0, Spring Data Neo4j was rewritten from scratch to natively suppor
 It uses Cypher, the Neo4j query language, and the HTTP protocol to communicate with the database.
 It's therefore worth noting that there *will be backward compatibility issues* when migrating to version 4.x, so be sure to check the <<migration,Migration Guide>> to avoid any unwanted surprises.
 
-Version 4.1 introduces support for connecting to an embedded instance of Neo4j.
+Version 4.1 introduces support for connecting to an embedded instance of Neo4j and connecting to a remote instance using the Bolt protocol introduced by Neo4j 3.0.
 
 For integration of Neo4j and other languages, please see http://neo4j.com/developer/language-guides/[Language Guides].
 
