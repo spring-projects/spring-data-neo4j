@@ -19,7 +19,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.TransactionManagementConfigurer;
 
 /**
  * @author Vince Bickers
@@ -28,13 +30,27 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ComponentScan({"org.springframework.data.neo4j.transactions"})
 @EnableTransactionManagement
 @EnableNeo4jRepositories
-public class ApplicationConfig extends Neo4jConfiguration {
+public class ApplicationConfig extends Neo4jConfiguration implements TransactionManagementConfigurer
+{
 
-	@Override
-	@Bean
-	public SessionFactory getSessionFactory() {
-		return new SessionFactory("org.springframework.data.neo4j.transactions");
-	}
+    @Override
+    @Bean
+    public SessionFactory getSessionFactory()
+    {
+        return new SessionFactory("org.springframework.data.neo4j.transactions");
+    }
 
 
+    @Override
+    public PlatformTransactionManager annotationDrivenTransactionManager()
+    {
+        try
+        {
+            return transactionManager();
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
 }
