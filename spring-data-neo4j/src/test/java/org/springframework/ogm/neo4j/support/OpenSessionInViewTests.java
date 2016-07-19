@@ -1,29 +1,21 @@
 package org.springframework.ogm.neo4j.support;
 
 
+import static org.junit.Assert.*;
+import static org.mockito.BDDMockito.*;
+
+import javax.servlet.*;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.servlet.AsyncEvent;
-import javax.servlet.AsyncListener;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockAsyncContext;
-import org.springframework.mock.web.MockFilterConfig;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.mock.web.MockServletContext;
-import org.springframework.mock.web.PassThroughFilterChain;
+import org.springframework.mock.web.*;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -33,11 +25,8 @@ import org.springframework.web.context.request.async.WebAsyncManager;
 import org.springframework.web.context.request.async.WebAsyncUtils;
 import org.springframework.web.context.support.StaticWebApplicationContext;
 
-import static org.junit.Assert.*;
-import static org.mockito.BDDMockito.*;
-
 /**
- * Created by markangrish on 14/05/2016.
+ * @author Mark Angrish
  */
 public class OpenSessionInViewTests {
 
@@ -353,5 +342,4 @@ public class OpenSessionInViewTests {
 			task.run();
 		}
 	}
-
 }

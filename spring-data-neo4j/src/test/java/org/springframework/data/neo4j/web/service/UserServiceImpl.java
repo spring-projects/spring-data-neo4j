@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * @author Michal Bachman
+ * @author Mark Angrish
  */
 @Service
 public class UserServiceImpl implements UserService {

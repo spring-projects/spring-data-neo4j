@@ -18,15 +18,12 @@ import org.apache.commons.logging.LogFactory;
 import org.neo4j.ogm.exception.InvalidDepthException;
 import org.neo4j.ogm.exception.NotFoundException;
 import org.neo4j.ogm.exception.ResultProcessingException;
-import org.neo4j.ogm.exception.TransactionException;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.core.Ordered;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.transaction.NoTransactionException;
-import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.support.ResourceHolderSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
@@ -83,7 +80,7 @@ public class SessionFactoryUtils {
 
 		if (TransactionSynchronizationManager.isSynchronizationActive()) {
 			logger.debug("Registering transaction synchronization for Neo4j Session");
-			// Use same PersistenceManager for further Neo4j actions within the transaction.
+			// Use same Session for further Neo4j actions within the transaction.
 			// Thread object will get removed by synchronization at transaction completion.
 			sessionHolder = new SessionHolder(session);
 			sessionHolder.setSynchronizedWithTransaction(true);

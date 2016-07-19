@@ -13,6 +13,8 @@
 
 package org.springframework.data.neo4j.repository.support;
 
+import java.io.Serializable;
+
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.neo4j.repository.query.GraphQueryLookupStrategy;
 import org.springframework.data.repository.core.EntityInformation;
@@ -22,8 +24,6 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.util.Assert;
-
-import java.io.Serializable;
 
 /**
  * Neo4j OGM specific generic repository factory.
@@ -62,5 +62,4 @@ public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 														 EvaluationContextProvider evaluationContextProvider) {
 		return new GraphQueryLookupStrategy(session);
 	}
-
 }

@@ -40,6 +40,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 /**
  * @author Michal Bachman
+ * @author Mark Angrish
  */
 @ContextConfiguration(classes = {WebAppContext.class})
 @WebAppConfiguration

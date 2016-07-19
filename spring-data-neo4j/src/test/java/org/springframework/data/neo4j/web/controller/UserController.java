@@ -29,6 +29,7 @@ import java.util.List;
 
 /**
  * @author Michal Bachman
+ * @author Mark ANgrish
  */
 @Controller
 public class UserController {
@@ -40,7 +41,6 @@ public class UserController {
     @ResponseBody
     @Transactional
     public String listFriends(@PathVariable String name, HttpSession session) {
-        System.out.println("Session: " + session);
         User user = userService.getUserByName(name);
 
         if (user == null) {
@@ -59,7 +59,6 @@ public class UserController {
     @ResponseBody
     @Transactional
     public String listImmediateFriends(@PathVariable String name, HttpSession session) {
-        System.out.println("Session: " + session);
         User user = userService.getUserByName(name);
 
         if (user == null) {

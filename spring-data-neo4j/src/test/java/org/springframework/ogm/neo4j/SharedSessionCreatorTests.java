@@ -10,7 +10,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Created by markangrish on 08/07/2016.
+ * @author Mark Angrish
  */
 public class SharedSessionCreatorTests {
 

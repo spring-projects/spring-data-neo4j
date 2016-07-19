@@ -25,9 +25,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * TODO: (mangrish) Still adding more tests.
+ * @author Mark Angrish
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
 public class Neo4jTransactionManagerTests {
 
 	private SessionFactory sf;
