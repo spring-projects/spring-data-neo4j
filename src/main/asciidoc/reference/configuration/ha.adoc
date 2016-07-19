@@ -1,5 +1,5 @@
 [[reference_configuration_ha]]
-= Configuring Spring Data Neo4j 4.1 in an HA Environment
+= Configuring Spring Data Neo4j 4.2 in an HA Environment
 
 [[reference_configuration_transactions]]
 == Transaction Binding in HA Mode

@@ -1,25 +1,24 @@
 [[reference_programming-model_repositories]]
 = CRUD with repositories
 
-The repositories provided by Spring Data Neo4j build on the composable repository infrastructure in http://static.springsource.org/spring-data/data-commons/docs/current/reference/html/#repositories[Spring Data Commons]. 
+The repositories provided by Spring Data Neo4j build on the composable repository infrastructure in http://static.springsource.org/spring-data/data-commons/docs/current/reference/html/#repositories[Spring Data Commons].
 These allow for interface-based composition of repositories consisting of provided default implementations for certain interfaces and additional custom implementations for other methods.
 
 Spring Data Neo4j comes with a single `org.springframework.data.repository.PagingAndSortingRepository` specialisation called
-`GraphRepository<T>` used for all object-graph mapping repositories.  
+`Neo4jRepository<T>` used for all object-graph mapping repositories.
 This sub-interface also adds specific finder methods that take a _depth_ argument to control the horizon with which related entities are fetched and saved.
-Generally, it provides all the desired repository methods. 
+Generally, it provides all the desired repository methods.
 If other operations are required then the additional repository interfaces should be added to the individual interface declaration.
 
 [NOTE]
 ====
-`GraphRepository` no longer combines `IndexRepository` and `TraversalRepository` because, for reasons explained
+`Neo4jRepository` no longer combines `IndexRepository` and `TraversalRepository` because, for reasons explained
 earlier, these features are no longer supported in Spring Data Neo4j as of version 4.
 ====
 
+== Neo4jRepository
 
-== GraphRepository
-
-As of SDN 4, this `GraphRepository<T>` should be the interface from which your entity repository interfaces inherit, with `T` being specified as the domain entity type to persist.
+As of SDN 4, this `Neo4jRepository<T>` should be the interface from which your entity repository interfaces inherit, with `T` being specified as the domain entity type to persist.
 
 Examples of methods you get for free out of `GraphRepository` are as follows.
 For all of these examples the ID parameter is a `Long` that matches the graph ID:
@@ -44,18 +43,24 @@ Save entities::
 Delete graph entities::
 `void delete(T)`, `void delete(Iterable<T>)`, and `void deleteAll()`
 
+
+== GraphRepository (Version 4.0.x - 4.1.x)
+
+`Neo4jRepository` has replaced `GraphRepository` but essentially have the same features. This is only provided for legacy reasons
+and has been deprecated.
+
 == Query and Finder Methods
 
 [[reference_programming_model_annotatedQueries]]
 === Annotated queries
 
-Queries using the Cypher graph query language can be supplied with the `@Query` annotation. 
+Queries using the Cypher graph query language can be supplied with the `@Query` annotation.
 
 That means a repository method annotated with +
 `@Query("MATCH (:Actor {name:{name}})-[:ACTED_IN]->(m:Movie) return m")` +
-will use the supplied query query to retrieve data from Neo4j. 
+will use the supplied query query to retrieve data from Neo4j.
 
-The named or indexed parameter `{param}` will be substituted by the actual method parameter. 
+The named or indexed parameter `{param}` will be substituted by the actual method parameter.
 Node and Relationship-Entities are handled directly and converted into their respective ids.
 All other parameters types are provided directly (i.e. Strings, Longs, etc).
 
@@ -74,7 +79,7 @@ Instead, return nodes and relationships to have them mapped to domain entities.
 === Query results
 
 Typical results for queries are `Iterable<Type>`, `Iterable<Map<String,Object>>` or simply `Type`.
-Nodes and relationships are converted to their respective entities (if they exist). 
+Nodes and relationships are converted to their respective entities (if they exist).
 Other values are converted using the registered <<reference_programming-model_conversion,conversion services>> (e.g. enums).
 
 === Cypher examples
@@ -99,9 +104,9 @@ as described in the <<reference_programming_model_annotatedQueries>>) section.
 
 [source,java]
 ----
-public interface MovieRepository extends GraphRepository<Movie> {
-    
-    // returns the node with id equal to idOfMovie parameter  
+public interface MovieRepository extends Neo4jRepository<Movie> {
+
+    // returns the node with id equal to idOfMovie parameter
     @Query("MATCH (n) WHERE id(n)={0} RETURN n")
     Movie getMovieFromId(Integer idOfMovie);
 
@@ -138,13 +143,13 @@ public interface MovieRepository extends GraphRepository<Movie> {
 === Queries derived from finder-method names
 
 Using the metadata infrastructure in the underlying object-graph mapper, a finder method name can be split into its semantic parts and converted into a cypher query.
-Navigation along relationships will be reflected in the generated `MATCH` clause and properties with operators will end up as expressions in the `WHERE` clause.  
+Navigation along relationships will be reflected in the generated `MATCH` clause and properties with operators will end up as expressions in the `WHERE` clause.
 The parameters will be used in the order they appear in the method signature so they should align with the expressions stated in the method name.
 
 .Some examples of methods and corresponding Cypher queries of a PersonRepository
 [source,java]
 ----
-public interface PersonRepository extends GraphRepository<Person> {
+public interface PersonRepository extends Neo4jRepository<Person> {
 
     // MATCH (person:Person {name={0}}) RETURN person
     Person findByName(String name);
@@ -179,14 +184,14 @@ public interface PersonRepository extends GraphRepository<Person> {
 
 The `Repository` instances are only created through Spring and can be auto-wired into your Spring beans as required.
 
-.Using basic GraphRepository CRUD-methods
+.Using basic Neo4jRepository CRUD-methods
 [source,java]
 ----
 @Repository
-public interface PersonRepository extends GraphRepository<Person> {}
+public interface PersonRepository extends Neo4jRepository<Person> {}
 
 public class MySpringBean {
-   @Autowired 
+   @Autowired
    private PersonRepository repo;
    ...
 }
@@ -199,24 +204,6 @@ Person dave = repo.load(123);
 long numberOfPeople = repo.count();
 ----
 
-The recommended way of providing repositories is to define a repository interface per domain class. 
+The recommended way of providing repositories is to define a repository interface per domain class.
 The underlying Spring repository infrastructure will automatically detect these repositories, along with additional implementation classes,
 and create an injectable repository implementation to be used in services or other spring beans.
-
-.Example Spring configuration bean
-[source,java]
-----
-@Configuration
-@ComponentScan({"com.example.sdn"})
-@EnableNeo4jRepositories("com.example.sdn.repo")
-@EnableTransactionManagement
-public class PersistenceContext {
-
-   @Bean
-   public SessionFactory getSessionFactory() {
-      return new SessionFactory("com.example.sdn.domain");
-   }
-   // more bean definition methods here
-}
-----
-

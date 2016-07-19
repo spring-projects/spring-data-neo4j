@@ -2,12 +2,12 @@
 = About the Spring Data Project
 
 http://projects.spring.io/spring-data/[Spring Data] is a SpringSource project that aims to provide Spring's convenient
-programming model and well known conventions for NOSQL databases. 
+programming model and well known conventions for NOSQL databases.
 Currently there is support for graph (Neo4j), key-value (Redis), document (MongoDB) and relational (JPA) databases.
 
 The Spring Data Neo4j project, as part of the Spring Data initiative, aims to simplify development with the Neo4j graph
-database. 
-Like JPA, it uses annotations on simple POJO domain objects. 
+database.
+Like JPA, it uses annotations on simple POJO domain objects.
 Together with metadata, the annotations drive mapping the POJO entities and their fields to nodes, relationships, and properties in the graph database.
 
 == About Spring Data Neo4j 4
@@ -15,7 +15,8 @@ For version 4.0, Spring Data Neo4j was rewritten from scratch to natively suppor
 It uses Cypher, the Neo4j query language, and the HTTP protocol to communicate with the database.
 It's therefore worth noting that there *will be backward compatibility issues* when migrating to version 4.x, so be sure to check the <<migration,Migration Guide>> to avoid any unwanted surprises.
 
-Version 4.1 introduces support for connecting to an embedded instance of Neo4j and connecting to a remote instance using the Bolt protocol introduced by Neo4j 3.0.
+Version 4.1 introduced support for connecting to an embedded instance of Neo4j and connecting to a remote instance using the Bolt protocol introduced by Neo4j 3.0.
+Version 4.2 introduces an updated developer API more akin to other Spring Data Projects.
 
 For integration of Neo4j and other languages, please see http://neo4j.com/developer/language-guides/[Language Guides].
 
@@ -26,13 +27,13 @@ The basic concepts of the http://neo4j.com/docs/ogm/java/stable/[Object-Graph Ma
 
 == Getting Started
 To get started with a simple application, you need only your domain model and (optionally) the annotations (see <<reference_programming-model_annotations>>) provided by the library.
-You use annotations to mark domain objects to be reflected by nodes and relationships of the graph database. 
-For individual fields the annotations allow you to declare how they should be processed and mapped to the graph. 
+You use annotations to mark domain objects to be reflected by nodes and relationships of the graph database.
+For individual fields the annotations allow you to declare how they should be processed and mapped to the graph.
 For property fields and references to other entities this is straightforward.
 
 == Adding Neo4j Graph Queries
 To use advanced functionality like Cypher queries, a basic understanding of the graph data model is required.
-The graph data model is explained in the chapter about Neo4j, see <<neo4j>>. 
+The graph data model is explained in the chapter about Neo4j, see <<neo4j>>.
 
 == Managing Relationships
 Relationships between entities are first class citizens in a graph database and therefore worth a separate chapter
@@ -41,7 +42,7 @@ Relationships between entities are first class citizens in a graph database and 
 == Repositories
 Spring Data Commons provides a very powerful repository infrastructure that is also leveraged in Spring Data Neo4j.
 Those repositories consist of a composition of interfaces that declare the available functionality in each repository.
-The implementation details of commonly-used persistence methods are handled by the library, which makes them very convenient for typical CRUD and query operations. 
+The implementation details of commonly-used persistence methods are handled by the library, which makes them very convenient for typical CRUD and query operations.
 The repositories are extensible by annotated, named or derived finder methods (like in (G)Rails).
 For custom implementations of repository methods you are free to add your own code. (<<reference_programming-model_repositories,CRUD with repositories>>).
 
@@ -58,7 +59,7 @@ Because Neo4j is a schema-free database, Spring Data Neo4j uses a simple mechani
 How that works is explained here: <<reference_programming-model_simple-mapping,Simplified Object Graph Mapping>>.
 
 == Transactional Support
-Neo4j uses transactions to guarantee the integrity of your data and Spring Data Neo4j supports this fully. 
+Neo4j uses transactions to guarantee the integrity of your data and Spring Data Neo4j supports this fully.
 The implications of this are described in the chapter around <<reference_programming-model_transactions>>.
 
 == Configuration
@@ -70,6 +71,6 @@ The provided samples, which are also publicly hosted on http://github.com/neo4j-
 ////
 
 == Performance
-Spring Data Neo4j 4 has been rebuilt from the ground up with performance in mind. 
-More information can be found in <<reference_performance,Performance Considerations>>. 
+Spring Data Neo4j 4 has been rebuilt from the ground up with performance in mind.
+More information can be found in <<reference_performance,Performance Considerations>>.
 //This chapter also discusses which use cases should not be handled with Spring Data Neo4j.

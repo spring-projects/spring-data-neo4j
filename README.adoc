@@ -1,15 +1,130 @@
-[NOTE]
-This branch (master) now points to Spring Data Neo4j 4.x the *new* implementation that is based on http://github.com/neo4j/neo4j-ogm[Neo4j-OGM].
+= Spring Data Neo4j
 
-[CAUTION]
-If you are using Spring Data Neo4j *4.0* please update the underlying dependeny on Neo4j-OGM to `org.neo4j:neo4j-ogm:1.1.5` to get the latest and greatest performance updates and bug-fixes. Using the latest Neo4j-OGM version is also recommended in general.
+The primary goal of the http://projects.spring.io/spring-data[Spring Data] project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
 
-= Spring Data Neo4j 4.x - Quick start
+The Spring Data Neo4j project aims to provide a familiar and consistent Spring-based programming model for integrating with the http://neo4j.com/[Neo4j] Graph Database.
 
+=== Features
+
+* Automatic mapping of annotated domain entities for nodes and relationships;
+* Powerful CRUD based repositories with provided, derived, and annotated finder methods;
+* Integration with Spring's comprehensive Transaction management;
+* Agnostic communication with Neo4j through a variety of transport mechanisms (embedded, http, https://neo4j.com/developer/language-guides/#bolt-drivers[bolt]);
+* Integration into Spring Data REST;
+* Seamless integration with Spring Boot.
+
+
+
+== Getting Help
+
+This README is the best place to start learning about the features of Spring Data Neo4j.
+
+To learn more refer to:
+
+* the http://static.springsource.org/spring-data/data-neo4j/docs/current/reference/html/[Reference Manual];
+* the https://github.com/neo4j-examples/sdn4-university/tree/4.1[sample project: SDN Univeristy].  More example projects for Spring Data Neo4j 4 are available in the https://github.com/neo4j-examples?query=sdn4[Neo4j-Examples] repository
+* The main http://projects.spring.io/spring-data-neo4j[SpringSource project site] contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
+* the http://docs.spring.io/spring-data/neo4j/docs/current/api[Javadocs];
+* for more detailed questions, use http://stackoverflow.com/questions/tagged/spring-data-neo4j[Spring Data Neo4j on StackOverflow]
+
+If you are new to Spring as well as to Spring Data, look for information about http://www.springsource.org/projects[Spring projects].
+
+
+
+== Quick start (SDN Version 4.2+)
+
+
+Add the Maven dependency:
+
+[source,xml]
+----
+
+    <dependency>
+        <groupId>org.springframework.data</groupId>
+        <artifactId>spring-data-neo4j</artifactId>
+        <version>4.2.0.RELEASE</version>
+    </dependency>
+
+----
+
+If you'd rather like the latest snapshots of the upcoming major version, use our Maven snapshot repository and declare the appropriate dependency version.
+
+[source,xml]
+----
+
+    <dependency>
+        <groupId>org.springframework.data</groupId>
+        <artifactId>spring-data-neo4j</artifactId>
+        <version>4.2.1.BUILD-SNAPSHOT</version>
+    </dependency>
+
+    <!-- used for nightly builds -->
+    <repository>
+      <id>spring-maven-snapshot</id>
+      <snapshots><enabled>true</enabled></snapshots>
+      <name>Springframework Maven SNAPSHOT Repository</name>
+      <url>http://repo.spring.io/libs-release</url>
+    </repository>
+
+    <!-- used for milestone/rc releases -->
+    <repository>
+      <id>spring-maven-milestone</id>
+      <name>Springframework Maven Milestone Repository</name>
+      <url>http://repo.spring.io/libs-milestone</url>
+    </repository>
+
+----
+
+
+Configure Spring Data Neo4j in your application using Java-based bean configuration
+
+.MyConfiguration.java
+[source,java]
+----
+@Configuration
+@ComponentScan(basePackages = "org.example.person.services",...)
+@EnableExperimentalNeo4jRepositories(basePackages = "com.example.person.repository",...)
+@EnableTransactionManagement
+public class MyConfiguration {
+
+    @Bean
+    public SessionFactory sessionFactory() {
+        // with domain entity base package(s)
+        return new SessionFactory("com.example.person.domain",...);
+    }
+
+	@Bean
+	public Neo4jTransactionManager transactionManager() {
+		return new Neo4jTransactionManager(sessionFactory());
+	}
+
+}
+----
+
+Spring Data Neo4j provides support for connecting to all of Neo4j's java drivers:
+* Bolt
+* HTTP
+* Embedded
+
+Spring Data Neo4j will attempt to auto-configure itself using a file called `ogm.properties`, which it expects to find on root of the classpath.
+
+.ogm.properties
+[source,java]
+----
+driver=org.neo4j.ogm.drivers.http.driver.HttpDriver
+URI=http://user:password@localhost:7474
+----
+
+The application can be configured programmatically as well, please consult http://docs.spring.io/spring-data/data-neo4j/docs/current/reference/html/#_spring_configuration[the reference guide] for more information.
+
+
+Annotate an entity:
+
+.Person.java
 [source,java]
 ----
 @NodeEntity
-class Person {
+public class Person {
     private Long id;
     private String name;
 
@@ -21,88 +136,87 @@ class Person {
 
     private void knows(Person friend) { friends.add(friend); }
 }
+----
 
-public interface PersonRepository extends GraphRepository<Person> {
-}
 
-Person jon = new Person("Jon");
-Person emil = new Person("Emil");
-Person rod = new Person("Rod");
+To simplify the creation of data repositories Spring Data Neo4j provides a generic repository programming model. It will automatically create a repository proxy for you that adds implementations of finder methods you specify on an interface.
 
-emil.knows(jon);
-emil.knows(rod);
+For example, given the Person class above, a PersonRepository interface that can query for Person by name and when the name matches a like expression is shown below:
 
-// Persist entities and relationships to graph database
-personRepository.save(emil);
+.PersonRepository.java
+[source,java]
+----
+public interface PersonRepository extends Neo4jRepository<Person> {
 
-for (Person friend : emil.getFriends()) {
-    System.out.println("Friend: " + friend);
-}
+  List<Person> findByName(String name);
 
-// Control loading depth
-jon = personRepository.findOne(id, 2);
-for (Person friend : jon.getFriends()) {
-    System.out.println("Jon's friends to depth 2: " + friend);
+  List<Person> findByNameLike(String name);
+
 }
 ----
 
-== About
+The queries issued on execution will be derived from the method name.
 
-The primary goal of the http://projects.spring.io/spring-data[Spring Data] project is to make it more convenient and consistent to build Spring-based applications that use modern data technologies.
-Spring Data Neo4j integrates the leading http://neo4j.com/[Neo4j] Graph Database.
+Typically you will want to call your domain objects and repositories from services.  In this Service we find the repository interface and register a proxy object in the container:
 
-The Spring Data Neo4j project provides a simplified POJO based programming model that reduces that amount of boilerplate code needed to create Neo4j applications.
+.MyService.java
+[source,java]
+----
+public class MyService {
 
-It supports:
+    @Autowired
+    private final PersonRepository repository;
 
-* automatic mapping annotated domain entities for nodes and relationships
-* interface based repositories with provided, derived, and annotated finder methods
-* transaction control
-* multi-transport (embedded, http, [bolt])
-* exception translation
-* integration into Spring Data REST
-* works well within Spring Boot
+    @Transactional
+    public void doWork() {
 
-== License
+        Person jon = new Person("Jon");
+        Person emil = new Person("Emil");
+        Person rod = new Person("Rod");
 
-Spring Data Neo4j is licensed under the Apache License v 2.0.
-The underlying technology, neo4j-ogm-core, -compiler, -http-driver, -bolt-driver and the neo4j-java-driver are Apache licensed too.
+        emil.knows(jon);
+        emil.knows(rod);
 
-== Using Spring Data Neo4j
+        // Persist entities and relationships to graph database
+        personRepository.save(emil);
 
-=== Maven configuration
+        for (Person friend : emil.getFriends()) {
+            System.out.println("Friend: " + friend);
+        }
 
-* Add the maven repository and dependency:
+        // Control loading depth
+        jon = personRepository.findOne(id, 2);
+        for (Person friend : jon.getFriends()) {
+            System.out.println("Jon's friends to depth 2: " + friend);
+        }
+    }
+}
+----
 
-.pom.xml
+
+== Quick start (SDN Version 4.0.x - 4.1.x)
+
+Add the Maven dependency:
+
 [source,xml]
 ----
-<dependencies>
+
     <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j</artifactId>
-        <version>4.1.0.BUILD-SNAPSHOT</version> <!-- or .M1 when released -->
+        <version>4.1.2.RELEASE</version>
     </dependency>
-</dependencies>
-<repositories>
-    <repository>
-        <id>spring-maven-snapshot</id>
-        <snapshots><enabled>true</enabled></snapshots>
-        <name>Springframework Maven MILESTONE Repository</name>
-        <url>http://maven.springframework.org/milestone</url>
-    </repository>
-</repositories>
+
 ----
 
 
-=== Spring configuration
-
-* Configure Spring Data Neo4j 4.1 in your application using Java-based bean configuration
+Configure Spring Data Neo4j in your application using Java-based bean configuration
 
 .MyConfiguration.java
 [source,java]
 ----
 @Configuration
+@ComponentScan(basePackages = "org.example.person.services",...)
 @EnableNeo4jRepositories(basePackages = "com.example.person.repository",...)
 @EnableTransactionManagement
 public class MyConfiguration extends Neo4jConfiguration {
@@ -123,9 +237,12 @@ public class MyConfiguration extends Neo4jConfiguration {
 }
 ----
 
-Spring Data Neo4j 4.1 provides support for connecting to Neo4j using different drivers.
-HTTP and Embedded drivers are available. 
-Spring Data Neo4j will attempt to auto-configure itself using a file called `ogm.properties`, which it expects to find on the classpath.
+Spring Data Neo4j provides support for connecting to all of Neo4j's java drivers:
+* Bolt
+* HTTP
+* Embedded
+
+Spring Data Neo4j will attempt to auto-configure itself using a file called `ogm.properties`, which it expects to find on root of the classpath.
 
 .ogm.properties
 [source,java]
@@ -134,11 +251,10 @@ driver=org.neo4j.ogm.drivers.http.driver.HttpDriver
 URI=http://user:password@localhost:7474
 ----
 
-The application can be configured programmatically as well, please http://docs.spring.io/spring-data/data-neo4j/docs/current/reference/html/#_spring_configuration[read the reference guide] for more information.
+The application can be configured programmatically as well, please consult http://docs.spring.io/spring-data/data-neo4j/docs/current/reference/html/#_spring_configuration[the reference guide] for more information.
 
-=== Graph entities
 
-* Annotate your entity class.  In this case it is a 'Person' class that has a relationship to the 'Company' they work at :
+Annotate an entity: In this case a 'Person' class has a relationship to the 'Company' they work at :
 
 [source,java]
 ----
@@ -159,10 +275,8 @@ class Person {
 }
 ----
 
-=== Transactional services
 
-Create a repository or service to perform typical operations on your entities. 
-The complete functionality is covered in the http://docs.spring.io/spring-data/data-neo4j/docs/current/reference/html/#reference_programming-model[reference manual]
+Create a repository or service to perform typical operations on your entities.
 
 [source,java]
 ----
@@ -172,13 +286,18 @@ public interface PersonRepository extends GraphRepository<Person> {
 
    // derived finder method
    Person findByName(String name);
- 
+
    @Query("MATCH (c:Company)<-[:WORKS_AT]-(p:Person) WHERE id(c) = {company} RETURN p")
    List<Person> findEmployees(Company company);
 }
 
 package com.example.person.service;
+----
 
+Wire up the repository into a service:
+
+[source,java]
+----
 @Service
 @Transactional
 public class EmployeeService {
@@ -204,20 +323,6 @@ public class EmployeeService {
 }
 ----
 
-Please see the https://github.com/neo4j-examples/sdn4-university/tree/4.1[SDN University sample project] for more information.
-
-More example projects for Spring Data Neo4j 4 are available in the https://github.com/neo4j-examples?query=sdn4[Neo4j-Examples] repository
-
-== Getting Help
-
-This README and the http://static.springsource.org/spring-data/data-neo4j/docs/current/reference/html/[Reference Manual] are the best places to start learning about Spring Data Neo4j 4.
-
-The main http://projects.spring.io/spring-data-neo4j[SpringSource project site] contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
-
-For more detailed questions, use the "forum":http://forum.springsource.org/forumdisplay.php?f=80. If you are new to Spring as well as to Spring Data, look for information about "Spring projects":http://www.springsource.org/projects.
-
-
-You will also find help on http://stackoverflow.com/questions/tagged/spring-data-neo4j[StackOverflow]
 
 == Contributing to Spring Data Neo4j
 

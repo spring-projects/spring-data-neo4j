@@ -1,13 +1,13 @@
 [[reference_setup]]
 = Getting started
 
-Spring Data Neo4j 4.1 (SDN 4.1) dramatically simplifies development, but some setup is naturally required.
+Spring Data Neo4j 4.2 (SDN 4.2) dramatically simplifies development, but some setup is naturally required.
 For building the application, your build automation tool needs to be configured to include the Spring Data Neo4j dependencies and after the build setup is complete, the Spring application needs to be configured to make use of Spring Data Neo4j.
 Examples for these different setups can be found in the http://github.com/neo4j-examples[Spring Data Neo4j examples].
 
 Spring Data Neo4j projects can be built using Maven, Gradle or Ant/Ivy.
 
-== Dependencies for Spring Data Neo4j 4.1
+== Dependencies for Spring Data Neo4j 4.2
 
 .Maven dependencies
 [source,xml]
@@ -19,7 +19,7 @@ Spring Data Neo4j projects can be built using Maven, Gradle or Ant/Ivy.
 </dependency>
 ----
 
-By default, SDN 4.1 will use the Http driver to connect to Neo4j and you don't need to declare it as a separate dependency in your pom.
+By default, SDN 4.2 will use the Http driver to connect to Neo4j and you don't need to declare it as a separate dependency in your pom.
 If you want to use the embedded or Bolt drivers in your production application, you must add the following dependencies as well.
 (This dependency on the embedded driver is not required if you only want to use the embedded driver for testing. See the section on <<testing,Testing>> below for more information).
 
@@ -71,9 +71,115 @@ dependencies {
 
 == Spring configuration
 
-Users of SDN 4.1 can configure their applications using Java-based bean configuration.
+=== JavaConfig configuration
 
-=== Java-based bean configuration
+Version 4.2 significantly reduces the complexity of configuration for the application developer.
+
+==== Pure Java Applications
+
+For most applications the following configuration is all that's needed to get up and running.
+
+.Pure Java Configuration
+[source,java]
+----
+@Configuration
+@EnableNeo4jExperimentalRepositories(basePackages = "org.neo4j.example.repository")
+@EnableTransactionManagement
+public class MyConfiguration {
+
+    @Bean
+    public SessionFactory getSessionFactory() {
+        // with domain entity base package(s)
+        return new SessionFactory("org.neo4j.example.domain");
+    }
+
+	@Bean
+	public Neo4jTransactionManager transactionManager() {
+		return new Neo4jTransactionManager(sessionFactory());
+	}
+
+}
+----
+
+==== Spring WebMVC Applications
+
+If you are using a Spring WebMVC application the following configuration is all that's required:
+
+.WebMVC Configuration
+[source,java]
+----
+@Configuration
+@EnableWebMvc
+@ComponentScan({"org.neo4j.example.web"})
+@EnableExperimentalNeo4jRepositories("org.neo4j.example.repository")
+@EnableTransactionManagement
+public class WebAppContext extends WebMvcConfigurerAdapter {
+
+	@Bean
+	public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
+		OpenSessionInViewInterceptor openSessionInViewInterceptor = new OpenSessionInViewInterceptor();
+		openSessionInViewInterceptor.setSessionFactory(sessionFactory());
+		return openSessionInViewInterceptor;
+	}
+
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addWebRequestInterceptor(openSessionInViewInterceptor());
+	}
+
+	@Bean
+	public SessionFactory sessionFactory() {
+        // with domain entity base package(s)
+		return new SessionFactory("org.neo4j.example.domain");
+	}
+
+    @Bean
+    public Neo4jTransactionManager transactionManager() throws Exception {
+        return new Neo4jTransactionManager(sessionFactory());
+    }
+}
+----
+
+==== Java Servlet Container based Applications
+
+If you are using a Java Servlet 3.x+ Container you can configure a filter in Spring's `WebAppInitializer` to load SDN and
+process requests through a Servlet Filter. SDN provides the `OpenSessionInViewFilter` to do this:
+
+.Web Application Initializer
+[source,java]
+----
+public class MyAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+  @Override
+  protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+      registration.setInitParameter("throwExceptionIfNoHandlerFound", "true");
+  }
+
+  @Override
+  protected Class<?>[] getRootConfigClasses() {
+      return new Class[] {ApplicationConfiguration.class}
+  }
+
+  @Override
+  protected Class<?>[] getServletConfigClasses() {
+      throw new Class[] {WebConfiguration.class};
+  }
+
+  @Override
+  protected String[] getServletMappings() {
+    return new String[] {"/"};
+  }
+
+  protected Filter[] getServletFilters() {
+    return return new Filter[] {new OpenSessionInViewFilter()};
+  }
+
+}
+----
+
+
+
+=== Java-based bean configuration (Version 4.0.x - 4.1.x)
 
 We recommend that your Spring context should extend the core `Neo4jConfiguration` class that comes with Spring Data Neo4j.
 The example below shows how this can be done.
@@ -107,7 +213,7 @@ public class MyConfiguration extends Neo4jConfiguration {
 
 == Drivers
 
-SDN 4.1 now provides support for connecting to Neo4j using different drivers.
+SDN 4 provides support for connecting to Neo4j using different drivers.
 As a result, the `RemoteServer` and `InProcessServer` classes from previous versions should not be used, and are no longer supported.
 
 The following drivers are available.
@@ -116,18 +222,18 @@ The following drivers are available.
 - Embedded driver
 - Bolt driver
 
-By default, SDN 4.1 will try to configure the driver from a file `ogm.properties`, which it expects to find on the classpath.
+By default, SDN will try to configure the driver from a file `ogm.properties`, which it expects to find on the classpath.
 In many cases you won't want to, or will not be able to provide configuration information via a properties file.
 In these cases you can configure your application programmatically instead, using a `Configuration` bean.
 
-The following sections describe how to setup Spring Data Neo4j 4.1 using both techniques.
+The following sections describe how to setup Spring Data Neo4j using both techniques.
 
 ==== Configuring the Http Driver
 
 The Http Driver connects to and communicates with a Neo4j server over Http.
 An Http Driver must be used if your application is running in client-server mode.
 
-NOTE:   The Http Driver is the default driver for SDN 4.1, and doesn't need to be explicitly declared in your pom file.
+NOTE:   The Http Driver is the default driver for SDN and doesn't need to be explicitly declared in your pom file.
 
 .Properties file
 
@@ -347,7 +453,7 @@ Currently only Basic Authentication is supported by Neo4j, so the only Credentia
 [[testing]]
 === Testing
 
-.Maven dependencies for testing SDN 4.1 applications
+.Maven dependencies for testing SDN 4 applications
 [source,xml]
 ----
        <dependency>
@@ -390,23 +496,45 @@ Currently only Basic Authentication is supported by Neo4j, so the only Credentia
 
 [NOTE]
 ====
-In SDN 4.1, the `InProcessServer` has been deprecated. This class was used in previous versions to set up an in-memory Http server so that you could run your tests.
+Since SDN 4.1, the `InProcessServer` has been deprecated. This class was used in previous versions to set up an in-memory Http server so that you could run your tests.
 This is no longer appropriate given the new Driver mechanism, and we recommend you configure an Embedded Driver (impermanent data store) for your integration tests instead.
 ====
-=== SessionFactory Bean
 
-The `SessionFactory` is needed by SDN 4.1 to create instances of `org.neo4j.ogm.session.Session` as required.
+== Architectural Considerations
+
+While SDN 4 has been built from the ground up it is important to understand a little about it's architecture as it has significantly
+diverged from SDN 3 and could have implications in how you design your application.
+
+SDN 3 was monolithic in a sense that all mapping code, database drivers and Spring integrations were all in one.  SDN 4 has decided to
+break these components up into:
+* Drivers: At the moment these come in 3 variants: Embedded, HTTP and the binary protocol Bolt.
+* The Object Graph Mapper (OGM): This is similar to an ORM in that it maps database nodes to java objects. This library is agnostic of any framework (including Spring).
+* Spring Data Neo4j 4: Provides syntactic sugar and code on top of the OGM to help quickly built Spring Based Neo4j OGM apps.
+
+Those coming from other Spring Data projects or are familiar with ORM products like JPA or Hibernate may quickly recognise this architecture.
+A bulk of the heavy lifting has been moved into the OGM. The OGM's key interfaces that you will deal with regularly are the `Session` and
+`SessionFactory`. It is worth understanding a little more about them:
+
+=== SessionFactory
+
+The `SessionFactory` is needed by SDN to create instances of `org.neo4j.ogm.session.Session` as required.
 When constructed, it sets up the object-graph mapping metadata, which is then used across all `Session` objects that it creates.
 As seen in the above example, the packages to scan for domain object metadata should be provided to the `SessionFactory` constructor.
 
 Note that the session factory should typically be application-scoped.
 While you can use a narrower scope for this if you like, there is typically no advantage in doing so.
 
-=== Session Bean
+=== Session
 
-A `Session` is used to drive the object-graph mapping framework. All repository implementations and `Neo4jTemplate` are driven by the `Session`.
+A `Session` is used to drive the object-graph mapping framework. All repository implementations are driven by the `Session`.
 It keeps track of the changes that have been made to entities and their relationships.
 The reason it does this is so that only entities and relationships that have changed get persisted on save, which is particularly efficient when working with large graphs.
+
+For most request/response type applications SDN will take care of Session management for you (as defined in the Configuration section above).
+If you have a batch or long running desktop type application you may want to know how you can control using the session a bit more.
+
+==== Session caching
+
 Once an entity is tracked by the session, reloading this entity within the scope of the same session will result in the session cache
 returning the previously loaded entity. However, the subgraph in the session will expand if the entity or its related
 entities retrieve additional relationships from the graph.
@@ -422,4 +550,3 @@ On the other hand, if your sessions have too narrow a scope then your save opera
 There's therefore a trade off between the two approaches.
 In general, the scope of a `Session` should correspond to a "unit of work" in your application.
 
-Additional beans can be configured just by defining them in the Spring context in the normal way.

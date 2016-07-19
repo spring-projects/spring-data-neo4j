@@ -1,11 +1,11 @@
 = Good Relationships: The Spring Data Neo4j Guide Book
-Michael Hunger; Oliver Gierke; Vince Bickers; Adam George; Luanne Misquitta; Michal Bachman
+Michael Hunger; Oliver Gierke; Vince Bickers; Adam George; Luanne Misquitta; Michal Bachman; Mark Angrish
 :toc:
 :toc-placement!:
 :revnumber: {version}
 :revdate: {localdate}
 
-Spring Data Neo4j Version 4.1 (April 2016)
+Spring Data Neo4j Version 4.2 (July 2016)
 
 (C) 2010-2016 Graph Aware Ltd - Neo Technology, Inc. - Pivotal Software, Inc.
 
@@ -25,14 +25,14 @@ include::introduction/neo4j/neo4j.adoc[]
 :leveloffset: -1
 
 [[reference]]
-= Spring Data Neo4j 4.1 Reference Documentation
+= Spring Data Neo4j 4.2 Reference Documentation
 
 image::springdatagraph.png[]
 
-This part of the Spring Data Neo4j (SDN) Guide book provides the reference documentation for SDN 4.1.
+This part of the Spring Data Neo4j (SDN) Guide book provides the reference documentation for SDN 4.2.
 
 Its content covers information about the programming model, APIs, concepts, annotations and technical details of
-Spring Data Neo4j, version 4.1.
+Spring Data Neo4j, version 4.2.
 
 Whenever you look for the means to employ the full power of the Spring Data Neo4j library, you should be able to find
 your answers in this reference section. If you don't, please inform us about missing or incorrect content.

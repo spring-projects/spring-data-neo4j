@@ -1,14 +1,52 @@
 [[reference_programming-model_transactions]]
 = Transactions
 
-Neo4j is a transactional database, only allowing operations to be performed within transaction boundaries. 
-Spring Data Neo4j integrates nicely with both the declarative transaction support with `@Transactional` as well as the manual transaction handling with `TransactionTemplate`. 
-It also supports the rollback mechanisms of the Spring Testing library.
+Neo4j is a transactional database, only allowing operations to be performed within transaction boundaries.
+Spring Data Neo4j integrates nicely with both the declarative transaction support with `@Transactional` as well as the manual transaction handling with `TransactionTemplate`.
 
-As of version 4.0, the classes used to perform transaction management have been rewritten.  
-Instead of using `SpringTransactionManager` provided by the Neo4j kernel alongside Spring's `JtaTransactionManager`, the transaction management is performed by `Neo4jTransactionManager`, which implements Spring's `PlatformTransactionManager`. 
- 
-This `Neo4jTransactionManager` is based on an OGM `Session`, on which the `beginTransaction()` method gets called, and this in turn delegates onto the underlying OGM's `TransactionManager` implementation.
+CRUD methods on repository instances are transactional by default. If you are simply just looking up an object through a repository for example,
+then you do not need to define anything else: SDN will take of everything for you.
 
-The `Neo4jConfiguration` Spring configuration bean will create an instance of this `Neo4jTransactionManager` for use in Spring Data Neo4j.  
-It is made available under the name "transactionManager" in the Spring application context.
+More standard behaviour with Transactions is using a facade or service implementation that typically covers more than one repository or database call as part of a 'Unit of Work'. Its purpose is to define transactional boundaries for non-CRUD operations:
+
+[NOTE]
+SDN only supports PROPAGATION_REQUIRED and ISOLATION_DEFAULT type transactions.
+
+.Using a facade to define transactions for multiple repository calls
+[source,java]
+----
+@Service
+class UserManagementImpl implements UserManagement {
+
+  private final UserRepository userRepository;
+  private final RoleRepository roleRepository;
+
+  @Autowired
+  public UserManagementImpl(UserRepository userRepository,
+    RoleRepository roleRepository) {
+    this.userRepository = userRepository;
+    this.roleRepository = roleRepository;
+  }
+
+  @Transactional
+  public void addRoleToAllUsers(String roleName) {
+
+    Role role = roleRepository.findByName(roleName);
+
+    for (User user : userRepository.findAll()) {
+      user.addRole(role);
+      userRepository.save(user);
+    }
+}
+----
+This will cause call to addRoleToAllUsers(…) to run inside a transaction (participating in an existing one or create a new one if
+none already running). The transaction configuration at the repositories will be neglected then as the outer transaction configuration
+determines the actual one used. Note that you will have to activate @EnableTransactionManagement explicitly to get annotation based
+configuration at facades working as well as define an instance of this `Neo4jTransactionManager` with the bean name "transactionManager".
+The example above assumes you are using component scanning.
+
+To allow your query methods to be transactional simply use @Transactional at the repository interface you define.
+
+[NOTE]
+It is important to know that if you enable Transactions ALL code that uses the `Session` or a `Repository` must have an @Transactional
+annotation.
