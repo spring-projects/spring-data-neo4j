@@ -42,12 +42,6 @@ A depth of 0 will persist only the properties of the specified entity to the dat
 
 Specifying the save depth is handy when it comes to dealing with complex collections, that could potentially be very expensive to load.
 
-[NOTE]
-====
-If you're using this overloaded method rather than the repositories, it's *strongly* recommended to use depth consistently between load and save invocations.  
-If you don't then you may unexpectedly see relationships deleted or updates not persisting as you expect.
-====
-
 .Relationship save cascading
 ====
 [source,java]

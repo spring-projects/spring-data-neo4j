@@ -33,6 +33,13 @@ Finally, if your graph will fit into memory, and you'd like to load it all in on
 
 On the other hand, when fetching structures which are potentially very "bushy" (e.g. lists of things that themselves have many relationships), you may want to set the load horizon to 0 (depth = 0) to avoid loading thousands of objects, most of which you won't actually inspect.
 
+[NOTE]
+====
+When loading entities with a custom depth less than the one used previously to load the entity within the session, existing relationships will not be flushed from the session;
+only new entities and relationships are added. This means that reloading entities will always result in retaining related objects loaded at the highest depth within the session for those entities.
+If it is required to load entities with a lower depth than previously requested, this must be done on a new session, or after clearing your current session with `org.neo4j.ogm.session.Session.clear()`.
+====
+
 === Default depth for persisting
 When persisting changes to the model, the default depth is -1. 
 This means that *all affected* objects in the entity model that are reachable from the root object being persisted will be modified in the graph. 

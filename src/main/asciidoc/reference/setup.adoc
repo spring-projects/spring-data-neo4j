@@ -404,21 +404,22 @@ While you can use a narrower scope for this if you like, there is typically no a
 
 === Session Bean
 
-A `Session` is used to drive the object-graph mapping framework on which Spring Data Neo4j is based.  
-All repository implementations and `Neo4jTemplate` are driven by the `Session`.
-You can also auto-wire it into your Spring beans and code against it directly if you wish.
-
-The life cycle of a `Session` is important to consider because it keeps track of the changes that have been made to entities and their relationships.  
+A `Session` is used to drive the object-graph mapping framework. All repository implementations and `Neo4jTemplate` are driven by the `Session`.
+It keeps track of the changes that have been made to entities and their relationships.
 The reason it does this is so that only entities and relationships that have changed get persisted on save, which is particularly efficient when working with large graphs.
-Note, however, that the `Session` *does not ever return cached objects* so there's no risk of getting stale data on load; it always hits the database.
+Once an entity is tracked by the session, reloading this entity within the scope of the same session will result in the session cache
+returning the previously loaded entity. However, the subgraph in the session will expand if the entity or its related
+entities retrieve additional relationships from the graph.
 
-If your application relies on long-running sessions and does not reload entities then you may not see changes made from other users and find yourself working with outdated objects.
+If you want to fetch fresh data from the graph, then this can be achieved by using a new session or clearing the current
+sessions context using `org.neo4j.ogm.session.Session.clear()`.
+
+The lifetime of the `Session` can be managed in code. For example, associated with single _fetch-update-save_ cycle or unit of work.
+
+If your application relies on long-running sessions then you may not see changes made from other users and find yourself working with outdated objects.
 On the other hand, if your sessions have too narrow a scope then your save operations can be unnecessarily expensive, as updates will be made to all objects if the session isn't aware of the those that were originally loaded.
 
-There's therefore a trade off between the two approaches.  
-In general, the scope of a `Session` should correspond to a "unit of work" in your application.  
-What this means depends on the usage scenario, but in a typical web-based Spring application we recommend using a request-scoped or HTTP-session-scoped `Session`.  
-Either way, if you make sure you load fresh data at the beginning of each unit of work then data integrity shouldn't be a problem.
+There's therefore a trade off between the two approaches.
+In general, the scope of a `Session` should correspond to a "unit of work" in your application.
 
 Additional beans can be configured just by defining them in the Spring context in the normal way.
-
