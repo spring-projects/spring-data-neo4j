@@ -33,6 +33,7 @@ import org.springframework.data.neo4j.template.Neo4jOgmExceptionTranslator;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.transaction.GraphTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 
@@ -41,7 +42,7 @@ import org.springframework.util.Assert;
  *
  * @author Vince Bickers
  * @deprecated Users should migrate to the new annotation {@link EnableExperimentalNeo4jRepositories}
- * and also only declare a {@link SessionFactory} and a {@link org.springframework.ogm.neo4j.Neo4jTransactionManager} to
+ * and also only declare a {@link SessionFactory} and a {@link Neo4jTransactionManager} to
  * get a base configuration working. See the Spring Data Neo4j documentation for more information.
  */
 @Configuration
@@ -91,10 +92,10 @@ public abstract class Neo4jConfiguration {
 
 	@Bean
 	public PlatformTransactionManager transactionManager() throws Exception {
-		logger.info("Initialising Neo4jTransactionManager");
+		logger.info("Initialising GraphTransactionManager");
 		Session session = getSession();
 		Assert.notNull(session, "You must provide a Session instance in your Spring configuration classes");
-		return new Neo4jTransactionManager(session);
+		return new GraphTransactionManager(session);
 	}
 
 	@Bean

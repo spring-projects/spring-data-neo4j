@@ -15,6 +15,7 @@ package org.springframework.data.neo4j.event;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 
 /**
  * A Spring {@link ApplicationEvent} that gets published by {@link Neo4jTemplate} to notify interested parties about data
@@ -22,7 +23,7 @@ import org.springframework.data.neo4j.template.Neo4jTemplate;
  * has been renamed to better describe the nature of the events.
  *
  * @author Adam George
- * @deprecated Now automatically handled in {@link org.springframework.ogm.neo4j.Neo4jTransactionManager}.
+ * @deprecated Now automatically handled in {@link Neo4jTransactionManager}.
  */
 @Deprecated
 public class Neo4jDataManipulationEvent extends ApplicationEvent {

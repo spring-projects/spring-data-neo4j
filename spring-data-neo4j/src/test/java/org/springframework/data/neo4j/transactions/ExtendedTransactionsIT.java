@@ -52,6 +52,7 @@ public class ExtendedTransactionsIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldRollbackSuccessThenFail() {
+
 		try {
 			wrapperService.composeSuccessThenFail();
 			fail("should have thrown exception");
@@ -63,6 +64,7 @@ public class ExtendedTransactionsIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldCommitSuccessSuccess() {
+
 		try {
 			wrapperService.composeSuccessThenSuccess();
 			assertEquals(2, countNodes());

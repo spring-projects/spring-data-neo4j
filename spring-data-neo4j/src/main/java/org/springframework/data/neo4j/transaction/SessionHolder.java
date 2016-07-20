@@ -11,7 +11,7 @@
  *
  */
 
-package org.springframework.ogm.neo4j;
+package org.springframework.data.neo4j.transaction;
 
 import org.neo4j.ogm.session.Session;
 import org.springframework.transaction.support.ResourceHolderSupport;

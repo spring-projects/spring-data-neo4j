@@ -11,7 +11,7 @@
  *
  */
 
-package org.springframework.ogm.neo4j.support;
+package org.springframework.data.neo4j.web.support;
 
 
 import org.apache.commons.logging.Log;
@@ -22,9 +22,9 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.dao.DataAccessException;
-import org.springframework.ogm.neo4j.Neo4jTransactionManager;
-import org.springframework.ogm.neo4j.SessionFactoryUtils;
-import org.springframework.ogm.neo4j.SessionHolder;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.transaction.SessionFactoryUtils;
+import org.springframework.data.neo4j.transaction.SessionHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.context.request.AsyncWebRequestInterceptor;

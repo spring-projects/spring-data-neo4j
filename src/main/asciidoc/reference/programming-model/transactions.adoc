@@ -50,3 +50,40 @@ To allow your query methods to be transactional simply use @Transactional at the
 [NOTE]
 It is important to know that if you enable Transactions ALL code that uses the `Session` or a `Repository` must have an @Transactional
 annotation.
+
+== Transaction Bound Events
+_Formally Data Manipulation Events/ Lifecycle Events_
+
+
+SDN provides the ability to bind the listener of an event to a phase of the transaction. The typical example is to handle the event
+when the transaction has completed successfully: this allows events to be used with more flexibility when the outcome of the current
+transaction actually matters to the listener.
+
+Spring Framework is currently structured in such a way that the context is not aware of the transaction support and has an open infrastructure to allow additional components to be registered and influence the way event listeners are created.
+
+The transaction module implements an `EventListenerFactory` that looks for the new `@TransactionalEventListener` (as of Spring 4.2) annotation. When this one is present, an extended event listener that is aware of the transaction is registered instead of the default.
+
+.Example: An order creation listener.
+[source,java]
+----
+@Component
+public class MyComponent {
+
+  @TransactionalEventListener(condition = "#creationEvent.awesome")
+  public void handleOrderCreatedEvent(CreationEvent<Order> creationEvent) {
+    ...
+  }
+
+}
+----
+
+`@TransactionalEventListener` is a regular `@EventListener` and also exposes a `TransactionPhase`, the default being `AFTER_COMMIT`. You can also hook other phases of the transaction (`BEFORE_COMMIT`, `AFTER_ROLLBACK` and `AFTER_COMPLETION` that is just an alias for `AFTER_COMMIT` and `AFTER_ROLLBACK`).
+
+By default, if no transaction is running the event isn’t sent at all as we can’t obviously honor the requested phase, but there is a fallbackExecution attribute in `@TransactionalEventListener` that tells Spring to invoke the listener immediately if there is no transaction.
+
+[NOTE]
+Only public methods in a managed bean can be annotated with `@EventListener` to consume events.
+`@TransactionalEventListener` is the annotation that provides transaction-bound event support described here.
+
+To find out more about Spring's Event listening capabilities see http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#context-functionality-events-annotation[the Spring reference manual] and https://spring.io/blog/2015/02/11/better-application-events-in-spring-framework-4-2[How to build Transaction aware Eventing with Spring 4.2].
+

@@ -25,14 +25,14 @@ import org.springframework.transaction.TransactionStatus;
  * @author Vince Bickers
  */
 @Deprecated
-public class Neo4jTransactionStatus implements TransactionStatus {
+public class GraphTransactionStatus implements TransactionStatus {
 
-	private final Logger logger = LoggerFactory.getLogger(Neo4jTransactionStatus.class);
+	private final Logger logger = LoggerFactory.getLogger(GraphTransactionStatus.class);
 
 	private final Transaction transaction;
 	private boolean newTransaction = false;
 
-	public Neo4jTransactionStatus(Session session, TransactionDefinition transactionDefinition) {
+	public GraphTransactionStatus(Session session, TransactionDefinition transactionDefinition) {
 
 		Transaction tx;
 		int propagation = transactionDefinition.getPropagationBehavior();

@@ -1,4 +1,4 @@
-package org.springframework.ogm.neo4j;
+package org.springframework.data.neo4j.transactions;
 
 import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
@@ -12,15 +12,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.InOrder;
-import org.neo4j.ogm.model.Query;
 import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.transaction.Transaction;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.transaction.SessionHolder;
 import org.springframework.transaction.*;
 import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 

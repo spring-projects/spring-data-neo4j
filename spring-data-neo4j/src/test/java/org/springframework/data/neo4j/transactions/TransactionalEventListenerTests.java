@@ -1,4 +1,4 @@
-package org.springframework.ogm.neo4j;
+package org.springframework.data.neo4j.transactions;
 
 import static org.junit.Assert.*;
 import static org.springframework.transaction.event.TransactionPhase.*;

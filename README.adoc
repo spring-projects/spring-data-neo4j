@@ -15,7 +15,7 @@ The Spring Data Neo4j project aims to provide a familiar and consistent Spring-b
 
 
 
-== Getting Help
+== Documentation & Getting Help
 
 This README is the best place to start learning about the features of Spring Data Neo4j.
 
@@ -31,7 +31,7 @@ If you are new to Spring as well as to Spring Data, look for information about h
 
 
 
-== Quick start (SDN Version 4.2+)
+== Quick start
 
 
 Add the Maven dependency:
@@ -76,9 +76,8 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
 ----
 
 
-Configure Spring Data Neo4j in your application using Java-based bean configuration
+Configure Spring Data Neo4j in your application using JavaConfig bean configuration
 
-.MyConfiguration.java
 [source,java]
 ----
 @Configuration
@@ -102,13 +101,13 @@ public class MyConfiguration {
 ----
 
 Spring Data Neo4j provides support for connecting to all of Neo4j's java drivers:
+
 * Bolt
 * HTTP
 * Embedded
 
 Spring Data Neo4j will attempt to auto-configure itself using a file called `ogm.properties`, which it expects to find on root of the classpath.
 
-.ogm.properties
 [source,java]
 ----
 driver=org.neo4j.ogm.drivers.http.driver.HttpDriver
@@ -120,7 +119,6 @@ The application can be configured programmatically as well, please consult http:
 
 Annotate an entity:
 
-.Person.java
 [source,java]
 ----
 @NodeEntity
@@ -143,7 +141,6 @@ To simplify the creation of data repositories Spring Data Neo4j provides a gener
 
 For example, given the Person class above, a PersonRepository interface that can query for Person by name and when the name matches a like expression is shown below:
 
-.PersonRepository.java
 [source,java]
 ----
 public interface PersonRepository extends Neo4jRepository<Person> {
@@ -159,7 +156,6 @@ The queries issued on execution will be derived from the method name.
 
 Typically you will want to call your domain objects and repositories from services.  In this Service we find the repository interface and register a proxy object in the container:
 
-.MyService.java
 [source,java]
 ----
 public class MyService {
@@ -194,7 +190,7 @@ public class MyService {
 ----
 
 
-== Quick start (SDN Version 4.0.x - 4.1.x)
+== Quick start (SDN Version 4.1.x)
 
 Add the Maven dependency:
 
@@ -212,7 +208,6 @@ Add the Maven dependency:
 
 Configure Spring Data Neo4j in your application using Java-based bean configuration
 
-.MyConfiguration.java
 [source,java]
 ----
 @Configuration
@@ -237,21 +232,14 @@ public class MyConfiguration extends Neo4jConfiguration {
 }
 ----
 
-Spring Data Neo4j provides support for connecting to all of Neo4j's java drivers:
-* Bolt
-* HTTP
-* Embedded
 
 Spring Data Neo4j will attempt to auto-configure itself using a file called `ogm.properties`, which it expects to find on root of the classpath.
 
-.ogm.properties
 [source,java]
 ----
 driver=org.neo4j.ogm.drivers.http.driver.HttpDriver
 URI=http://user:password@localhost:7474
 ----
-
-The application can be configured programmatically as well, please consult http://docs.spring.io/spring-data/data-neo4j/docs/current/reference/html/#_spring_configuration[the reference guide] for more information.
 
 
 Annotate an entity: In this case a 'Person' class has a relationship to the 'Company' they work at :

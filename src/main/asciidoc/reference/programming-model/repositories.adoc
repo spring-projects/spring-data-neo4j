@@ -20,7 +20,7 @@ earlier, these features are no longer supported in Spring Data Neo4j as of versi
 
 As of SDN 4, this `Neo4jRepository<T>` should be the interface from which your entity repository interfaces inherit, with `T` being specified as the domain entity type to persist.
 
-Examples of methods you get for free out of `GraphRepository` are as follows.
+Examples of methods you get for free out of `Neo4jRepository` are as follows.
 For all of these examples the ID parameter is a `Long` that matches the graph ID:
 
 Load an entity instance via an id::

@@ -1,4 +1,4 @@
-package org.springframework.ogm.neo4j.support;
+package org.springframework.data.neo4j.web.support;
 
 
 import static org.junit.Assert.*;
@@ -15,6 +15,8 @@ import org.junit.Test;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.data.neo4j.web.support.OpenSessionInViewFilter;
+import org.springframework.data.neo4j.web.support.OpenSessionInViewInterceptor;
 import org.springframework.mock.web.*;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.context.WebApplicationContext;

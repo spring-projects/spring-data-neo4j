@@ -11,15 +11,15 @@
  *
  */
 
-package org.springframework.ogm.neo4j.support;
+package org.springframework.data.neo4j.web.support;
 
 import java.util.concurrent.Callable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.ogm.session.SessionFactory;
-import org.springframework.ogm.neo4j.SessionFactoryUtils;
-import org.springframework.ogm.neo4j.SessionHolder;
+import org.springframework.data.neo4j.transaction.SessionFactoryUtils;
+import org.springframework.data.neo4j.transaction.SessionHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.async.CallableProcessingInterceptorAdapter;

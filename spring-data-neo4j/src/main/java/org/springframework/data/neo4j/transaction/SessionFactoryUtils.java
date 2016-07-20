@@ -11,7 +11,7 @@
  *
  */
 
-package org.springframework.ogm.neo4j;
+package org.springframework.data.neo4j.transaction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

@@ -48,7 +48,9 @@ import static org.springframework.data.neo4j.util.IterableUtils.getSingleOrNull;
  * @author Adam George
  * @author Michal Bachman
  * @author Luanne Misquitta
+ * @deprecated Use {@link org.neo4j.ogm.session.Session}
  */
+@Deprecated
 public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisherAware {
 
     private final Session session;

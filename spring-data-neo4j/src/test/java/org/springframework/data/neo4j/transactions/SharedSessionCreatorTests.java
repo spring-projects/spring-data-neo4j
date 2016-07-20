@@ -1,9 +1,10 @@
-package org.springframework.ogm.neo4j;
+package org.springframework.data.neo4j.transactions;
 
 
 import org.junit.Test;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.springframework.data.neo4j.transaction.SharedSessionCreator;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;

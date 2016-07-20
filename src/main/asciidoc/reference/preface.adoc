@@ -46,12 +46,9 @@ The implementation details of commonly-used persistence methods are handled by t
 The repositories are extensible by annotated, named or derived finder methods (like in (G)Rails).
 For custom implementations of repository methods you are free to add your own code. (<<reference_programming-model_repositories,CRUD with repositories>>).
 
-== Neo4jTemplate
-Being a Spring Data library, Spring Data Neo4j offers a <<reference_programming_model_template,Neo4jTemplate>> for interacting with the mapped entities and the Neo4j graph database if you don't want to use repositories.
-As of version 4, `Neo4jTemplate` is based on the `org.neo4j.ogm.session.Session` object and adds mostly exception translation around the functionality.
-Support for Spring Data Neo4j Repositories is also based on `Neo4jTemplate`, so the underlying functionality is identical.
-
-In keeping with the Spring Data ethos, an operations interface is used to define the API exposed by the `Neo4jTemplate`.  This interface is called `Neo4jOperations`, the default implementation of which is `Neo4jTemplate`.  Users of the framework from version 4 are encouraged to code against `Neo4jOperations` instead of the `Neo4jTemplate` directly.
+== Sessions
+Spring Data Neo4j supports the usage of OGM <<reference_programming_model_template,Session>>s for interacting with the mapped entities and the Neo4j graph database if you don't want to use repositories.
+Support for Spring Data Neo4j Repositories is also based on `Session`s, so the underlying functionality is identical.
 
 
 == Mapping Strategies
@@ -63,7 +60,7 @@ Neo4j uses transactions to guarantee the integrity of your data and Spring Data 
 The implications of this are described in the chapter around <<reference_programming-model_transactions>>.
 
 == Configuration
-Currently, only Java bean-based configuration is supported. See <<reference_setup>> for more details.
+Currently, only JavaConfig configuration is supported. XML based configuration has experimental support.  See <<reference_setup>> for more details.
 
 ////
 == Examples

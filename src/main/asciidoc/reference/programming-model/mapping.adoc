@@ -10,11 +10,9 @@ This metadata is discovered at start-up by specifying a list of packages in whic
 In order to omit a class from being metadata-mapped you should annotate it with `@org.neo4j.ogm.annotation.Transient`.
 
 == The Session object
-The Spring repositories and `Neo4jTemplate` are both backed by `org.neo4j.ogm.session.Session`, which is a key component of the framework.
+The Spring repositories are backed by `org.neo4j.ogm.session.Session`, which is a key component of the framework.
 The Session provides methods to load, save or delete object graphs from the database and also provides transaction support.
-SDN 4.2 allows users to `@Autowire Session` into Spring managed services directly to get access to a contextual Session bean in that current Thread's scope.  It is easier and recommended
-to use the `Session` rather than the `Neo4jTemplate`, especially when being used in Transactions.
-The new `Neo4jTemplate` is essentially a wrapper around this `Session`, which exposes all of its useful methods but handles transactions and provides the traditional Spring Data operations and exception translation.
+SDN 4.2 allows users to `@Autowire Session` into Spring managed services directly to get access to a contextual Session bean in that current Thread's scope.
 
 == Explicit save
 Unlike the previous AspectJ-driven mapping, Spring Data Neo4j 4 doesn't automatically commit when a transaction closes, so an explicit call to `save(...)` is required in order to persist changes to the database.

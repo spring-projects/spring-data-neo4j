@@ -47,7 +47,7 @@ public class SessionBeanDefinitionRegistrarPostProcessor implements BeanFactoryP
 		SessionFactoryBeanDefinition sfbd = new SessionFactoryBeanDefinition(transformedBeanName(getSessionFactoryBeanRef(beanFactory)), beanFactory);
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.rootBeanDefinition("org.springframework.ogm.neo4j.SharedSessionCreator");
+				.rootBeanDefinition("org.springframework.data.neo4j.transaction.SharedSessionCreator");
 		builder.setFactoryMethod("createSharedSession");
 		builder.addConstructorArgReference(sfbd.getBeanName());
 

@@ -33,8 +33,10 @@ import java.util.Map;
  *
  * @author Adam George
  * @author Luanne Misquitta
+ * @deprecated Use {@link org.neo4j.ogm.session.Session}
  */
 @Repository
+@Deprecated
 public interface Neo4jOperations {
 
     /**

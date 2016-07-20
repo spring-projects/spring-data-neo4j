@@ -7,7 +7,9 @@ Examples for these different setups can be found in the http://github.com/neo4j-
 
 Spring Data Neo4j projects can be built using Maven, Gradle or Ant/Ivy.
 
-== Dependencies for Spring Data Neo4j 4.2
+== Dependencies
+
+=== Maven
 
 .Maven dependencies
 [source,xml]
@@ -19,10 +21,11 @@ Spring Data Neo4j projects can be built using Maven, Gradle or Ant/Ivy.
 </dependency>
 ----
 
-By default, SDN 4.2 will use the Http driver to connect to Neo4j and you don't need to declare it as a separate dependency in your pom.
+By default, SDN will use the Http driver to connect to Neo4j and you don't need to declare it as a separate dependency in your pom.
 If you want to use the embedded or Bolt drivers in your production application, you must add the following dependencies as well.
 (This dependency on the embedded driver is not required if you only want to use the embedded driver for testing. See the section on <<testing,Testing>> below for more information).
 
+.Maven dependencies
 [source,xml]
 ----
 <!-- add this dependency if you want to use the embedded driver -->
@@ -41,6 +44,37 @@ If you want to use the embedded or Bolt drivers in your production application, 
 
 ----
 
+If you'd rather like the latest snapshots of the upcoming major version, use our Maven snapshot repository and declare the appropriate dependency version.
+
+.Maven dependencies
+[source,xml]
+----
+
+    <dependency>
+        <groupId>org.springframework.data</groupId>
+        <artifactId>spring-data-neo4j</artifactId>
+        <version>4.2.1.BUILD-SNAPSHOT</version>
+    </dependency>
+
+    <!-- used for nightly builds -->
+    <repository>
+      <id>spring-maven-snapshot</id>
+      <snapshots><enabled>true</enabled></snapshots>
+      <name>Springframework Maven SNAPSHOT Repository</name>
+      <url>http://repo.spring.io/libs-release</url>
+    </repository>
+
+    <!-- used for milestone/rc releases -->
+    <repository>
+      <id>spring-maven-milestone</id>
+      <name>Springframework Maven Milestone Repository</name>
+      <url>http://repo.spring.io/libs-milestone</url>
+    </repository>
+
+----
+
+=== Gradle
+
 .Gradle dependencies
 [source,xml]
 ----
@@ -55,6 +89,23 @@ dependencies {
 
 }
 ----
+
+Similar to maven, if you want to use either the latest snapshots or milestones, you will need to add the following:
+
+.Gradle dependencies
+[source,xml]
+----
+repositories {
+   # used for milestone/rc releases
+   maven { url "http://repo.spring.io/libs-milestone" }
+
+   # used for nightly builds
+   maven { url "http://repo.spring.io/libs-snapshot" }
+}
+----
+
+
+=== Ivy
 
 .Ivy dependencies
 [source,xml]
@@ -71,41 +122,42 @@ dependencies {
 
 == Spring configuration
 
-=== JavaConfig configuration
+=== JavaConfig
 
 Version 4.2 significantly reduces the complexity of configuration for the application developer.
 
-==== Pure Java Applications
+[NOTE]
+If you have come from Version 4.1 or earlier you no longer need to define a `Session` bean and Spring `Scope` or
+extend from `Neo4jConfiguration`. This is now all taken care for you by SDN.
 
 For most applications the following configuration is all that's needed to get up and running.
 
-.Pure Java Configuration
+.Spring Pure Java Applications
 [source,java]
 ----
 @Configuration
-@EnableNeo4jExperimentalRepositories(basePackages = "org.neo4j.example.repository")
+@EnableExperimentalNeo4jRepositories(basePackages = "org.neo4j.example.repository")
 @EnableTransactionManagement
 public class MyConfiguration {
 
     @Bean
-    public SessionFactory getSessionFactory() {
+    public SessionFactory sessionFactory() {
         // with domain entity base package(s)
         return new SessionFactory("org.neo4j.example.domain");
     }
 
-	@Bean
-	public Neo4jTransactionManager transactionManager() {
-		return new Neo4jTransactionManager(sessionFactory());
-	}
+    @Bean
+    public Neo4jTransactionManager transactionManager() {
+        return new Neo4jTransactionManager(sessionFactory());
+    }
 
 }
 ----
 
-==== Spring WebMVC Applications
 
-If you are using a Spring WebMVC application the following configuration is all that's required:
+If you are using a Spring WebMVC application, the following configuration is all that's required:
 
-.WebMVC Configuration
+.Spring WebMVC Applications
 [source,java]
 ----
 @Configuration
@@ -115,23 +167,23 @@ If you are using a Spring WebMVC application the following configuration is all 
 @EnableTransactionManagement
 public class WebAppContext extends WebMvcConfigurerAdapter {
 
-	@Bean
-	public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
-		OpenSessionInViewInterceptor openSessionInViewInterceptor = new OpenSessionInViewInterceptor();
-		openSessionInViewInterceptor.setSessionFactory(sessionFactory());
-		return openSessionInViewInterceptor;
-	}
+    @Bean
+    public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
+        OpenSessionInViewInterceptor openSessionInViewInterceptor = new OpenSessionInViewInterceptor();
+        openSessionInViewInterceptor.setSessionFactory(sessionFactory());
+        return openSessionInViewInterceptor;
+    }
 
-	@Override
-	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addWebRequestInterceptor(openSessionInViewInterceptor());
-	}
+    @Override
+        public void addInterceptors(InterceptorRegistry registry) {
+        registry.addWebRequestInterceptor(openSessionInViewInterceptor());
+    }
 
-	@Bean
-	public SessionFactory sessionFactory() {
+    @Bean
+    public SessionFactory sessionFactory() {
         // with domain entity base package(s)
-		return new SessionFactory("org.neo4j.example.domain");
-	}
+        return new SessionFactory("org.neo4j.example.domain");
+    }
 
     @Bean
     public Neo4jTransactionManager transactionManager() throws Exception {
@@ -140,12 +192,11 @@ public class WebAppContext extends WebMvcConfigurerAdapter {
 }
 ----
 
-==== Java Servlet Container based Applications
 
-If you are using a Java Servlet 3.x+ Container you can configure a filter in Spring's `WebAppInitializer` to load SDN and
-process requests through a Servlet Filter. SDN provides the `OpenSessionInViewFilter` to do this:
+If you are using a Java Servlet 3.x+ Container, you can configure a Servlet filter with Spring's `AbstractAnnotationConfigDispatcherServletInitializer`.  The configuration below will open a new
+session for every web request then automatically close it on completion. SDN provides the `org.springframework.data.neo4j.web.support.OpenSessionInViewFilter` to do this:
 
-.Web Application Initializer
+.Java Servlet Container Applications
 [source,java]
 ----
 public class MyAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
@@ -178,8 +229,10 @@ public class MyAppInitializer extends AbstractAnnotationConfigDispatcherServletI
 ----
 
 
+=== JavaConfig (Version 4.0.x - 4.1.x)
 
-=== Java-based bean configuration (Version 4.0.x - 4.1.x)
+[WARNING]
+This functionality is deprecated and only intended for users on versions of SDN prior to 4.2.x.
 
 We recommend that your Spring context should extend the core `Neo4jConfiguration` class that comes with Spring Data Neo4j.
 The example below shows how this can be done.
@@ -228,7 +281,7 @@ In these cases you can configure your application programmatically instead, usin
 
 The following sections describe how to setup Spring Data Neo4j using both techniques.
 
-==== Configuring the Http Driver
+=== Configuring the Http Driver
 
 The Http Driver connects to and communicates with a Neo4j server over Http.
 An Http Driver must be used if your application is running in client-server mode.
@@ -255,7 +308,7 @@ import org.neo4j.ogm.config.Configuration;
 ...
 
 @Bean
-public Configuration getConfiguration() {
+public Configuration configuration() {
    Configuration config = new Configuration();
    config
        .driverConfiguration()
@@ -265,14 +318,14 @@ public Configuration getConfiguration() {
 }
 
 @Bean
-public SessionFactory getSessionFactory() {
-    return new SessionFactory(getConfiguration(), <packages> );
+public SessionFactory sessionFactory() {
+    return new SessionFactory(configuration(), <packages> );
 }
 ----
 
 _Note: Please see the section below describing the different ways you can pass credentials to the Http Driver_
 
-==== Configuring the Bolt Driver
+=== Configuring the Bolt Driver
 
 The Bolt Driver connects to and communicates with a Neo4j server via the binary Bolt protocol. If your application is running in client-server mode, you must use either the HTTP or Bolt driver.
 
@@ -315,7 +368,7 @@ new SessionFactory(configuration, packages...);
 
 _Note: Please see the section below describing the different ways you can pass credentials to the HTTP/Bolt Drivers_
 
-==== Configuring the Embedded Driver
+=== Configuring the Embedded Driver
 
 The Embedded Driver connects directly to the Neo4j database engine.
 There is no server involved, therefore no network overhead between your application code and the database.
@@ -356,7 +409,7 @@ import org.neo4j.ogm.config.Configuration;
 ...
 
 @Bean
-public Configuration getConfiguration() {
+public Configuration configuration() {
    Configuration config = new Configuration();
    config
        .driverConfiguration()
@@ -366,8 +419,8 @@ public Configuration getConfiguration() {
 }
 
 @Bean
-public SessionFactory getSessionFactory() {
-    return new SessionFactory(getConfiguration(), <packages> );
+public SessionFactory sessionFactory() {
+    return new SessionFactory(configuration(), <packages> );
 }
 ----
 
@@ -376,7 +429,7 @@ If you want to use an impermanent data store simply omit the URI attribute from 
 [source,java]
 ----
 @Bean
-public Configuration getConfiguration() {
+public Configuration configuration() {
    Configuration config = new Configuration();
    config
        .driverConfiguration()
@@ -385,7 +438,7 @@ public Configuration getConfiguration() {
 }
 ----
 
-==== Authentication
+=== Authentication
 
 If you are using the Http or Bolt Driver you have a number of different ways to supply credentials to the Driver Configuration.
 
@@ -404,7 +457,7 @@ password="password"
 ----
 // embedded in the driver URI
 @Bean
-public Configuration getConfiguration() {
+public Configuration configuration() {
    Configuration config = new Configuration();
    config
        .driverConfiguration()
@@ -415,7 +468,7 @@ public Configuration getConfiguration() {
 
 // separately, as plain text credentials
 @Bean
-public Configuration getConfiguration() {
+public Configuration cnfiguration() {
    Configuration config = new Configuration();
    config
        .driverConfiguration()
@@ -434,7 +487,7 @@ public Credentials credentials() {
 }
 
 @Bean
-public Configuration getConfiguration() {
+public Configuration cnfiguration() {
    Configuration config = new Configuration();
    config
        .driverConfiguration()
@@ -451,7 +504,7 @@ Currently only Basic Authentication is supported by Neo4j, so the only Credentia
 ====
 
 [[testing]]
-=== Testing
+== Testing
 
 .Maven dependencies for testing SDN 4 applications
 [source,xml]
