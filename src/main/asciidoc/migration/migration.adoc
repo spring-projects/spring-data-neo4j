@@ -1,4 +1,11 @@
 [[reference.migration]]
+
+= Migrating from Spring Data Neo4j 4.0 or 4.1 to Spring Data Neo4j 4.2
+Spring Data Neo4j 4.2 significantly reduces complexity of configuration for application developers.
+There is no longer a need to extend from `Neo4jConfiguration` or define a `Session` bean. Configuration for various types
+of applications are described <<reference.getting_started.spring-configuration,here>>
+
+
 = Migrating from previous versions of Spring Data Neo4j
 
 == Package Changes

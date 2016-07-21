@@ -1,5 +1,5 @@
 [[reference_programming-model_template]]
-= Using the OGM Session.
+= Using the OGM Session
 
 [WARNING]
 `Session` now replaces `Neo4jTemplate` functionality as all functionality can be found on the OGM `Session` object.
@@ -52,6 +52,7 @@ Modifications made to the graph via Cypher queries directly will not be reflecte
 If you configured the `Neo4jTransactionManager` bean, any `Session` that is managed by Spring will automatically take part in Thread contextual Transactions.
 In order to do this you will need to wrap your service code using `@Transactional` or the `TransactionTemplate`.
 
+[NOTE]
 It is important to know that if you enable Transactions *ALL* code that uses the `Session` or a `Repository` must be enclosed in a @Transactional annotation.
 
 For more details see <<reference_programming-model_transactions,Transactions>>

@@ -14,7 +14,7 @@ Version 4.2 introduces an updated developer API more akin to other Spring Data P
 For integration of Neo4j and other languages, please see http://neo4j.com/developer/language-guides/[Language Guides].
 
 The explanation of Spring Data Neo4j's programming model starts with some underlying details.
-The basic concepts of the http://neo4j.com/docs/ogm/java/stable/[Object-Graph Mapping (OGM) library] used by Spring Data Neo4j internally, is explained in the initial chapter.
+The basic concepts of the http://neo4j.com/docs/ogm-manual/current/ (OGM) library] used by Spring Data Neo4j internally, is explained in the initial chapter.
 
 [[reference.overview.features]]
 == Features
@@ -41,8 +41,8 @@ For custom implementations of repository methods you are free to add your own co
 
 === Sessions
 
-Spring Data Neo4j supports the usage of OGM <<reference_programming_model_template,Session>>s for interacting with the mapped entities and the Neo4j graph database if you don't want to use repositories.
-Support for Spring Data Neo4j Repositories is also based on `Session`s, so the underlying functionality is identical.
+Spring Data Neo4j supports the usage of OGM <<reference.architecture.session,Session>>s for interacting with the mapped entities and the Neo4j graph database if you don't want to use repositories.
+Support for Spring Data Neo4j Repositories is also based on the `Session`, so the underlying functionality is identical.
 
 
 === Mapping Strategies

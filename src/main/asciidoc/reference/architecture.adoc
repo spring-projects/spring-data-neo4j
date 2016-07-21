@@ -25,10 +25,6 @@ image::SDN-Architecture.png[Spring Data Neo4j Architecture,align="center"]
 
 == Neo4j OGM
 
-=== Configuration
-
-See Configuration.
-
 === SessionFactory
 
 The `SessionFactory` is needed by SDN to create instances of `org.neo4j.ogm.session.Session` as required.
@@ -38,6 +34,7 @@ As seen in the above example, the packages to scan for domain object metadata sh
 Note that the session factory should typically be application-scoped.
 While you can use a narrower scope for this if you like, there is typically no advantage in doing so.
 
+[[reference.architecture.session]]
 === Session
 
 A `Session` is used to drive the object-graph mapping framework. All repository implementations are driven by the `Session`.
@@ -64,15 +61,3 @@ On the other hand, if your sessions have too narrow a scope then your save opera
 There's therefore a trade off between the two approaches.
 In general, the scope of a `Session` should correspond to a "unit of work" in your application.
 
-
-
-== Spring Data Neo4j
-
-
-=== Neo4jRepository
-
-See Repositories.
-
-=== Neo4jTransactionManager
-
-See Transactions.

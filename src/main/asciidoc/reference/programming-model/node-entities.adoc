@@ -145,3 +145,24 @@ For example `@Property(name="last_name") String lastName`.  The node property na
 ====
 Property fields to be persisted to the graph must not be declared `final`.
 ====
+
+== Runtime Managed Labels
+
+The label applied to a node is the contents of the `@NodeEntity` label property, or if not specified,
+it will default to the simple class name of the entity. Sometimes it might be necessary to add and remove additional
+labels to a node at _runtime_. We can do this using the `@Labels` annotation. Let's provide a facility for adding
+additional labels to the `Student` entity:
+
+```
+@NodeEntity
+public class Student {
+
+    @Labels
+    private List<String> labels = new ArrayList<>();
+
+}
+```
+
+Now, upon save, the node's labels will correspond to the entity's class hierarchy _plus_ whatever the contents of the
+backing field are. We can use one `@Labels` field per class hierarchy - it should be exposed or hidden from sub-classes
+as appropriate.

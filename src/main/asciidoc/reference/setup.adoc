@@ -233,7 +233,8 @@ public class WebAppContext extends WebMvcConfigurerAdapter {
 
     @Bean
     public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
-        OpenSessionInViewInterceptor openSessionInViewInterceptor = new OpenSessionInViewInterceptor();
+        OpenSessionInViewInterceptor openSessionInViewInterceptor =
+            new OpenSessionInViewInterceptor();
         openSessionInViewInterceptor.setSessionFactory(sessionFactory());
         return openSessionInViewInterceptor;
     }
@@ -294,10 +295,14 @@ public class MyAppInitializer extends AbstractAnnotationConfigDispatcherServletI
 }
 ----
 
+
+////
 [[reference.getting_started.spring-configuration.boot]]
 === Spring Boot Applications
 
 Coming Soon.
+////
+
 
 [[reference.getting_started.spring-configuration.legacy]]
 === Spring Data Neo4j 4.0 - 4.1 Applications (Deprecated)
