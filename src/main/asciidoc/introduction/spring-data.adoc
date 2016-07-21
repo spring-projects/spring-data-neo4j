@@ -1,0 +1,11 @@
+[[spring-data]]
+= Spring Data
+
+http://projects.spring.io/spring-data/[Spring Data] is a SpringSource project that aims to provide Spring's convenient
+programming model and well known conventions for NOSQL databases.
+Currently there is support for graph (Neo4j), key-value (Redis), document (MongoDB) and relational (JPA) databases.
+
+The Spring Data Neo4j (SDN for short) project, as part of the Spring Data initiative, aims to simplify development with the Neo4j graph
+database.
+Like JPA, SDN uses annotations on simple POJO domain objects which it then stores as metadata which in turn helps it to drive
+mapping into entities and their fields to nodes, relationships, and properties into and from the graph database.

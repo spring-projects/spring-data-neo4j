@@ -1,7 +1,4 @@
-[[reference_appendix]]
-= Appendix
-
-== Repository Query Keywords
+= Appendix A: Repository Query Keywords
 
 The following table lists the keywords generally supported by the Spring Data Neo4j repository query derivation mechanism.
 

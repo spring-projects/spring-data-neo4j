@@ -1,0 +1,78 @@
+[[reference.architecture]]
+= Architecture
+
+While SDN 4 has been built from the ground up it is important to understand a little about it's architecture as it has significantly
+diverged from SDN 3 and could have implications in how you design your application.
+
+
+== Overview
+
+SDN 3.x was monolithic in a sense that all mapping code, database drivers and Spring integrations were all in one.  SDN 4 has decided to
+break these components up into:
+
+* Drivers: At the moment these come in 3 variants: Embedded, HTTP and the binary protocol Bolt.
+* The Object Graph Mapper (OGM): This is similar to an ORM in that it maps database nodes to java objects. This library is agnostic of any framework (including Spring).
+* Spring Data Neo4j 4: Provides syntactic sugar and code on top of the OGM to help quickly build Spring Based Neo4j OGM apps.
+
+Those coming from other Spring Data projects or are familiar with ORM products like JPA or Hibernate may quickly recognise this architecture.
+A bulk of the heavy lifting has been moved into the OGM. The OGM's key interfaces that you will deal with regularly are the `Session` and
+`SessionFactory`. It is worth understanding a little more about them.
+
+The following diagram outlines how the components defined above:
+
+image::SDN-Architecture.png[Spring Data Neo4j Architecture,align="center"]
+
+
+== Neo4j OGM
+
+=== Configuration
+
+See Configuration.
+
+=== SessionFactory
+
+The `SessionFactory` is needed by SDN to create instances of `org.neo4j.ogm.session.Session` as required.
+When constructed, it sets up the object-graph mapping metadata, which is then used across all `Session` objects that it creates.
+As seen in the above example, the packages to scan for domain object metadata should be provided to the `SessionFactory` constructor.
+
+Note that the session factory should typically be application-scoped.
+While you can use a narrower scope for this if you like, there is typically no advantage in doing so.
+
+=== Session
+
+A `Session` is used to drive the object-graph mapping framework. All repository implementations are driven by the `Session`.
+It keeps track of the changes that have been made to entities and their relationships.
+The reason it does this is so that only entities and relationships that have changed get persisted on save, which is particularly efficient when working with large graphs.
+
+For most request/response type applications SDN will take care of Session management for you (as defined in the Configuration section above).
+If you have a batch or long running desktop type application you may want to know how you can control using the session a bit more.
+
+==== Design Consideration: Session caching
+
+Once an entity is tracked by the session, reloading this entity within the scope of the same session will result in the session cache
+returning the previously loaded entity. However, the subgraph in the session will expand if the entity or its related
+entities retrieve additional relationships from the graph.
+
+If you want to fetch fresh data from the graph, then this can be achieved by using a new session or clearing the current
+sessions context using `org.neo4j.ogm.session.Session.clear()`.
+
+The lifetime of the `Session` can be managed in code. For example, associated with single _fetch-update-save_ cycle or unit of work.
+
+If your application relies on long-running sessions then you may not see changes made from other users and find yourself working with outdated objects.
+On the other hand, if your sessions have too narrow a scope then your save operations can be unnecessarily expensive, as updates will be made to all objects if the session isn't aware of the those that were originally loaded.
+
+There's therefore a trade off between the two approaches.
+In general, the scope of a `Session` should correspond to a "unit of work" in your application.
+
+
+
+== Spring Data Neo4j
+
+
+=== Neo4jRepository
+
+See Repositories.
+
+=== Neo4jTransactionManager
+
+See Transactions.

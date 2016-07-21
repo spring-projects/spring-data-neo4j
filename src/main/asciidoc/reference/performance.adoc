@@ -1,4 +1,4 @@
-[[reference_performance]]
+[[reference.performance]]
 = Performance Considerations
 
 As with any other object mapping framework, the domain entities that are created, read, or persisted potentially represent only a small fraction of the data stored in the database.

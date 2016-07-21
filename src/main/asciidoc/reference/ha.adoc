@@ -1,8 +1,11 @@
+[[reference.ha]]
+= High Availability (HA) Environments
+
 [[reference_configuration_ha]]
-= Configuring Spring Data Neo4j 4.2 in an HA Environment
+== Configuring Spring Data Neo4j 4.2 in an HA Environment
 
 [[reference_configuration_transactions]]
-== Transaction Binding in HA Mode
+=== Transaction Binding in HA Mode
 A typical Neo4j HA cluster will consist of a master node and a couple of slave nodes for providing failover capability and optionally for handling reads. (Although it is possible to write to slaves, this is uncommon because it requires additional effort to synchronise a slave with the master node)
 
 image:neo4j-cluster.png[Typical HA Cluster]
@@ -10,14 +13,14 @@ image:neo4j-cluster.png[Typical HA Cluster]
 When operating in HA mode, Neo4j does not make open transactions available across all nodes in the cluster. This means we must bind every request within a specific transaction to the same node in the cluster, or the commit will fail with `404 Not Found`.
 
 [[reference_configuration_readwrite]]
-== Read-only Transactions
+=== Read-only Transactions
 
 As of version 4, Spring Data Neo4j does not distinguish between WRITE transactions and READ-ONLY transactions. We cannot therefore bind read-only transactions to slaves and write transactions to master. A future version will address this deficiency, but in the meantime the only way to ensure that everything works as expected is to direct every transaction to master. There are a couple of ways to to achieve this.
 
 [[reference_configuration_staticbinding]]
-== Static Binding to a Designated Master
+=== Static Binding to a Designated Master
 
-=== Example cluster:
+==== Example cluster:
 
 . master:    192.168.0.55
 . slave1:    192.168.0.56
@@ -38,11 +41,11 @@ We don't really recommend this approach, except for testing purposes and non-cri
 ====
 
 [[reference_configuration_haproxy]]
-== Dynamic Binding via a Load Balancer
+=== Dynamic Binding via a Load Balancer
 In the Neo4j HA architecture, a cluster is typically fronted by a load balancer. The following example shows how to configure your application and set up HAProxy as a load balancer to route all requests to whichever machine in the cluster is currently identified as the master. Since only one machine can ever be the elected master, this should work exactly as we would like. Furthermore, should the elected master fail, a new server will be elected from the cluster as master and HAProxy will automatically route transactions to this server.
 
 
-=== Example cluster fronted by HAProxy
+==== Example cluster fronted by HAProxy
 
 . haproxy:          10.0.2.200
 . neo4j-server1:    10.0.1.10

@@ -1,27 +1,27 @@
 [[neo4j]]
-= Introduction to Neo4j
+= Neo4j
 
 == What is a graph database?
 
 A graph database is a storage engine that is specialised in storing and retrieving vast networks of information.
 It efficiently stores data as nodes and relationships and allows high performance retrieval and querying of those structures.
-Properties can be added to both nodes and relationships. 
+Properties can be added to both nodes and relationships.
 Nodes can be labelled by zero or more labels, relationships are always directed and named.
 
-Graph databases are well suited for storing most kinds of domain models. 
-In almost all domains, there are certain things connected to other things. 
-In most other modelling approaches, the relationships between things are reduced to a single link without identity and attributes. 
-Graph databases support keeping the rich relationships that originate from the domain equally well-represented in the database without resorting to also modelling the relationships as "things". 
+Graph databases are well suited for storing most kinds of domain models.
+In almost all domains, there are certain things connected to other things.
+In most other modelling approaches, the relationships between things are reduced to a single link without identity and attributes.
+Graph databases support keeping the rich relationships that originate from the domain equally well-represented in the database without resorting to also modelling the relationships as "things".
 There is very little "impedance mismatch" when putting real-life domains into a graph database.
 
 == About Neo4j
 
-http://neo4j.com/[Neo4j] is an open source NOSQL graph database. 
-It is a fully transactional database (ACID) that stores data structured as graphs consisting of nodes connected by relationships. 
+http://neo4j.com/[Neo4j] is an open source NOSQL graph database.
+It is a fully transactional database (ACID) that stores data structured as graphs consisting of nodes connected by relationships.
 Inspired by the structure of the real world, it allows for high query performance on complex data while remaining intuitive and simple for the developer.
 
-Neo4j is very well-established.  
-It has been in commercial development for 15 years and in production for over 12 years. 
+Neo4j is very well-established.
+It has been in commercial development for 15 years and been used in production for over 12 years.
 Most importantly, it has an active and contributing community surrounding it, but it also:
 
 * has an intuitive, rich, graph-oriented model for data representation. Instead of tables, rows, and columns, you work with a graph consisting of http://neo4j.com/docs/stable/what-is-a-graphdb.html[nodes, relationships, and properties].
@@ -32,22 +32,20 @@ Most importantly, it has an active and contributing community surrounding it, bu
 * can be deployed as a standalone server, which is the recommended way of using Neo4j
 * can be deployed as an embedded (in-process) database, giving developers access to its core Java http://api.neo4j.org/[API]
 
-In addition, Neo4j provides ACID transactions, durable persistence, concurrency control, transaction recovery, high availability, and more. 
+In addition, Neo4j provides ACID transactions, durable persistence, concurrency control, transaction recovery, high availability, and more.
 Neo4j is released under a dual free software/commercial licence model.
 
 == Querying the Graph with Cypher
 
-Neo4j provides a graph query language called http://neo4j.com/docs/stable/cypher-query-lang.html[Cypher] which draws from many sources. 
+Neo4j provides a graph query language called http://neo4j.com/docs/stable/cypher-query-lang.html[Cypher] which draws from many sources.
 It resembles SQL clauses but is centred around matching iconic representation of patterns in the graph.
 
-Cypher queries typically begin with a `MATCH` clause, which can be used to provide a way to pattern match against the graph. 
+Cypher queries typically begin with a `MATCH` clause, which can be used to provide a way to pattern match against the graph.
 Match clauses can introduce new identifiers for nodes and relationships.
-In the `WHERE` clause additional filtering of the result set is applied by evaluating expressions. 
+In the `WHERE` clause additional filtering of the result set is applied by evaluating expressions.
 The `RETURN` clause defines which part of the query result will be available to the caller.
-Aggregation also happens in the return clause by using aggregation functions on some of the returned values. 
+Aggregation also happens in the return clause by using aggregation functions on some of the returned values.
 Sorting can happen in the `ORDER BY` clause and the `SKIP` and `LIMIT` parts restrict the result set to a certain window.
-
-Cypher statements are executed against Neo4j Server using an HTTP-based or Bolt protocol, which is utilised by Spring Data Neo4j.
 
 .Cypher Examples on the Movies Dataset
 [source,cypher]
@@ -58,12 +56,12 @@ WHERE movie.title =~ 'Matrix.*'
 RETURN actor.name, actor.birthplace
 
 // User-Ratings:
-MATCH (user:User {login:'micha'})-[r:RATED]->(movie) 
+MATCH (user:User {login:'micha'})-[r:RATED]->(movie)
 WHERE r.stars > 3
 RETURN movie.title, r.stars, r.comment
 
 // Mutual Friend recommendations:
-MATCH (user:User {login:'micha'})-[:FRIEND]-(friend)-[r:RATED]->(movie) 
+MATCH (user:User {login:'micha'})-[:FRIEND]-(friend)-[r:RATED]->(movie)
 WHERE r.stars > 3
 RETURN friend.name, movie.title, r.stars, r.comment
 ----
@@ -72,23 +70,27 @@ RETURN friend.name, movie.title, r.stars, r.comment
 [source,cypher]
 ----
 // Movie suggestions based on an actor:
-MATCH (movie:Movie)<-[:ACTS_IN]-()-[:ACTS_IN]->(suggestion:Movie) 
+MATCH (movie:Movie)<-[:ACTS_IN]-()-[:ACTS_IN]->(suggestion:Movie)
 WHERE id(movie)=13
 RETURN suggestion.title, count(*) ORDER BY count(*) DESC LIMIT 5
 
 // Co-Actors, sorted by count and name of Lucy Liu
-MATCH (lucy)-[:ACTS_IN]->(movie)<-[:ACTS_IN]-(co_actor) 
+MATCH (lucy)-[:ACTS_IN]->(movie)<-[:ACTS_IN]-(co_actor)
 WHERE lucy.name='Lucy Liu'
 RETURN count(*), co_actor.name ORDER BY count(*) DESC, co_actor.name LIMIT 20
 
 // Recommendations including counts, grouping and sorting
-MATCH (:User {login:'micha'})-[:FRIEND]-()-[r:RATED]->(movie) 
+MATCH (:User {login:'micha'})-[:FRIEND]-()-[r:RATED]->(movie)
 RETURN movie.title, avg(r.stars), count(*) ORDER BY avg(r.stars) DESC, count(*) DESC
 ----
 
 == Indexing
 
 Neo4j's schema indexes are used automatically by Cypher when set up in your database.
-Spring Data Neo4j (version 4) does not provide facilities for handling that setup out of the box.
-This is a seeding, migration or maintenance effort handled by the group responsible for the database maintenance.
+Spring Data Neo4j (version 4) does not currently provide facilities for handling that setup out of the box.
 
+
+As this is a seeding, migration or maintenance effort, it should be handled as part of managing your Neo4j environment or
+by the group responsible for the database maintenance.
+
+To find out more about how to set up and maintain Indexes and Constrains in Neo4j see the http://neo4j.com/docs/developer-manual/current/#cypherdoc-labels-constraints-and-indexes[Neo4j Reference Manual].

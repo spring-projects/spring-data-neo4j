@@ -1,0 +1,20 @@
+
+Welcome to the http://projects.spring.io/spring-data-neo4j/[Spring Data Neo4j] Guide Book.
+
+This is a classic reference document, containing detailed information about the library. It discusses the programming model, the underlying assumptions, and internals, as well as the APIs for the object-graph mapping. The reference documentation is typically used to look up particular pieces of information or to drill down into certain topics.
+
+This project is part of the http://projects.spring.io/spring-data[Spring Data project], which brings the convenient programming model of the Spring Framework to modern NOSQL databases. Spring Data Neo4j, as the name alludes to, aims to provide support for the graph database http://neo4j.com[Neo4j].
+
+It is written by developers for developers. Enjoy the book!
+
+[preface.acknowledgements]
+== Acknowledgements
+
+We would like to thank everyone who contributed to this book, especially Oliver Gierke, the lead of the Spring Data Project.
+
+Many thanks to our colleagues at Neo Technology and Graph Aware who not only contributed to Spring Data Neo4j but also provided content and feedback for this book.
+
+We also appreciate very much the foresight of Rod Johnson and Emil Eifrem to initiate the original project. Their leadership inspired collaboration between the engineering teams at SpringSource and Neo Technology, a tremendous help during the making of Spring Data Neo4j.
+
+Last but not least we thank our vibrant community for giving us feedback, reporting issues and suggesting improvements. Without that important feedback we wouldn't be where we are today.
+

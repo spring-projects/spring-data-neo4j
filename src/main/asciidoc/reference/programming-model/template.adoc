@@ -1,16 +1,16 @@
 [[reference_programming-model_template]]
 = Using the OGM Session.
 
-[Warning]
-`Session` now replaces `Neo4jTemplate`'s functionality as all functionality can be found on the OGM `Session` object.
+[WARNING]
+`Session` now replaces `Neo4jTemplate` functionality as all functionality can be found on the OGM `Session` object.
 
 SDN now allows you to wire up the OGM `Session` directly into your Spring managed beans.
 
-While SDN `Repository`'s will cover a majority of user scenarios sometimes it doesn't offer enough depth. The OGM's `Session` offers a convenient API to interact more tightly with a Neo4j graph database.
+While SDN `Repository` will cover a majority of user scenarios sometimes it doesn't offer enough options. The OGM's `Session` offers a convenient API to interact more tightly with a Neo4j graph database.
 
 == Basic Operations
 
-For Spring Data Neo4j 4, the changes to the underlying architecture have led to the pruning of the `Neo4jTemplate` feature set.
+For Spring Data Neo4j 4, low level operations are handled by the OGM `Session`.
 Basic operations are now entirely limited to CRUD operations on entities and executing arbitrary Cypher queries; more low-level manipulation of the graph database is not possible.
 
 [NOTE]
@@ -49,7 +49,9 @@ Modifications made to the graph via Cypher queries directly will not be reflecte
 
 == Transactions
 
-If you configured the `Neo4jTransactionManager` bean, `Session`s that are managed by Spring will automatically take part in Thread contextual Transactions.
+If you configured the `Neo4jTransactionManager` bean, any `Session` that is managed by Spring will automatically take part in Thread contextual Transactions.
 In order to do this you will need to wrap your service code using `@Transactional` or the `TransactionTemplate`.
+
+It is important to know that if you enable Transactions *ALL* code that uses the `Session` or a `Repository` must be enclosed in a @Transactional annotation.
 
 For more details see <<reference_programming-model_transactions,Transactions>>

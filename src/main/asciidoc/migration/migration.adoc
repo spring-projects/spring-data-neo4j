@@ -1,4 +1,4 @@
-[[reference_migration]]
+[[reference.migration]]
 = Migrating from previous versions of Spring Data Neo4j
 
 == Package Changes
@@ -159,7 +159,7 @@ The following table shows the `Neo4jTemplate` functions that have been retained 
 |Indexes are not supported natively, but you can index node properties in your database setup and use this method to find by them
 
 |===
- 
+
 To achieve the old `template.fetch(entity)` equivalent behaviour, you should call one of the load methods specifying the fetch depth as a parameter.
 
 It's also worth noting that `exec(GraphCallback)` and the `create...()` methods have been made obsolete by Cypher.
@@ -170,7 +170,7 @@ Dynamic labels, properties and relationship types are not supported as of this v
 == Indexing
 
 The best way to retrieve start nodes for traversals and queries is by using Neo4j's integrated index facilities.
-Spring Data Neo4j takes the view that index maintenance should not be part of your application code. 
+Spring Data Neo4j takes the view that index maintenance should not be part of your application code.
 For that reason, it does not provide any explicit index-related functionality.
 
 However, it is very important that indices are in place for efficient node lookups.
