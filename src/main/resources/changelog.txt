@@ -1,6 +1,35 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.2.0.M1 (2016-07-27)
+----------------------------------------
+* DATAGRAPH-889 - Upgrade to Neo4j OGM 2.0.4.
+* DATAGRAPH-888 - Documentation updates for 4.2 M1.
+* DATAGRAPH-887 - Support sorting in derived repository query methods.
+* DATAGRAPH-886 - Fix faulty test which does not clear the session and uses an incorrect relationship direction.
+* DATAGRAPH-885 - Add tests for thread-scoped beans running in a non-WebMVC context.
+* DATAGRAPH-884 - Additional tests required for proxied prototype scoped Session beans.
+* DATAGRAPH-882 - Upgrade Neo4j to 2.3.5.
+* DATAGRAPH-877 - Upgrade to Neo4j OGM 2.0.4-snapshot.
+* DATAGRAPH-876 - Derived finder filter values are not thread safe.
+* DATAGRAPH-873 - Fix MetaDataDrivenConversionService to compile against Spring Framework 4.3.
+* DATAGRAPH-872 - Better compliance with Spring's Transaction Manager.
+* DATAGRAPH-868 - Upgrade to Neo4j OGM 2.0.3 snapshot.
+* DATAGRAPH-867 - Upgrade to Neo4j OGM 2.0.2.
+* DATAGRAPH-864 - OGM can't map Collection<Map> any more.
+* DATAGRAPH-861 - @QueryResult is not working for field "id".
+* DATAGRAPH-860 - EntityAccess::boxPrimitiveArray throws NPE.
+* DATAGRAPH-857 - Remove methods deprecated in 4.1.
+* DATAGRAPH-855 - Upgrade to Neo4j OGM 2.0.2 snapshot.
+* DATAGRAPH-852 - Release 4.2 M1 (Ingalls).
+* DATAGRAPH-840 - Set<Long> getting persisted as Set<Integer>.
+* DATAGRAPH-833 - @TransactionalEventListener not working.
+* DATAGRAPH-744 - Support a depth param on derived repository query methods.
+* DATAGRAPH-680 - Page queries report incorrect total pages and total elements.
+* DATAGRAPH-659 - Persisting Enum lists annotated with @Property doesn't always work.
+* DATAGRAPH-653 - Support paging and sorting for custom queries.
+
+
 Changes in version 4.1.2.RELEASE (2016-06-15)
 ---------------------------------------------
 * DATAGRAPH-876 - Derived finder filter values are not thread safe.
