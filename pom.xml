@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
-        <version>1.9.0.BUILD-SNAPSHOT</version>
+        <version>1.9.0.M1</version>
     </parent>
 
     <modules>
@@ -24,7 +24,7 @@
 
     <properties>
         <project.type>multi</project.type>
-        <springdata.commons>1.13.0.BUILD-SNAPSHOT</springdata.commons>
+        <springdata.commons>1.13.0.M1</springdata.commons>
         <source.level>1.7</source.level>
         <commonslang.version>2.6</commonslang.version>
         <bundlor.enabled>false</bundlor.enabled>
@@ -187,9 +187,9 @@
         </repository>
 
         <repository>
-            <id>spring-libs-snapshot</id>
+            <id>spring-libs-milestone</id>
             <name>Spring</name>
-            <url>https://repo.spring.io/libs-snapshot</url>
+            <url>https://repo.spring.io/libs-milestone</url>
         </repository>
 
     </repositories>
