@@ -11,38 +11,29 @@
  *
  */
 
-package org.springframework.data.neo4j.web.domain;
+package org.springframework.data.neo4j.examples.movies.domain.queryresult;
 
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Relationship;
-
-import java.util.HashSet;
-import java.util.Set;
-
-/**
- * @author Michal Bachman
- */
-@NodeEntity
-public class Cinema {
+public class CinemaQueryResultInterfaceImpl implements CinemaQueryResultInterface {
 
     private Long id;
     private String name;
 
-    @Relationship(direction = Relationship.INCOMING)
-    private Set<User> visited = new HashSet<>();
-
-    public Cinema() {
+    public CinemaQueryResultInterfaceImpl() {
     }
 
-    public Cinema(String name) {
-        this.name = name;
+    public Long getId() {
+        return id;
     }
 
-    public void addVisitor(User user) {
-        visited.add(user);
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
