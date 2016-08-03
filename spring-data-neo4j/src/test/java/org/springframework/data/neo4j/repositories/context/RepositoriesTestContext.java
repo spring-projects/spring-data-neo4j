@@ -25,7 +25,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Michal Bachman
  */
 @Configuration
-@ComponentScan({"org.springframework.data.neo4j.repositories"})
 @EnableNeo4jRepositories("org.springframework.data.neo4j.repositories.repo")
 @EnableTransactionManagement
 public class RepositoriesTestContext extends Neo4jConfiguration {

@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Vince Bickers
  */
 @Configuration
-@ComponentScan({"org.springframework.data.neo4j.examples.galaxy.*"})
+@ComponentScan({"org.springframework.data.neo4j.examples.galaxy.service"})
 @PropertySource("classpath:helloworld.properties")
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.galaxy.repo")
 @EnableTransactionManagement

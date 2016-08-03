@@ -12,10 +12,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author vince
  */
 @Configuration
-@ComponentScan(basePackages = "org.springframework.data.neo4j.transactions",
-        excludeFilters =@ComponentScan.Filter(
-                type = FilterType.REGEX,
-                pattern = "org\\.springframework\\.data\\.neo4j\\.transactions\\.TransactionalEventListenerTests.*"))
+@ComponentScan(basePackages = "org.springframework.data.neo4j.transactions.service")
 @EnableTransactionManagement
 @EnableNeo4jRepositories
 public class PrototypeSessionBeanContext extends Neo4jConfiguration {

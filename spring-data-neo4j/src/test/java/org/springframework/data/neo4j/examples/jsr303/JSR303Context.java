@@ -17,6 +17,8 @@ import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.*;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
+import org.springframework.data.neo4j.examples.jsr303.controller.AdultController;
+import org.springframework.data.neo4j.examples.jsr303.service.AdultService;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -24,7 +26,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Vince Bickers
  */
 @Configuration
-@ComponentScan
+@ComponentScan(basePackageClasses = { AdultService.class })
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.jsr303.repo")
 @EnableTransactionManagement
 public class JSR303Context extends Neo4jConfiguration {

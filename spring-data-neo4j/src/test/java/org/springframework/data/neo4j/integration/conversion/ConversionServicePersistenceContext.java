@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Adam George
  */
 @Configuration
-@EnableNeo4jRepositories
+@EnableNeo4jRepositories(basePackageClasses = {SiteMemberRepository.class, PensionRepository.class, JavaElementRepository.class})
 @EnableTransactionManagement
 public class ConversionServicePersistenceContext extends Neo4jConfiguration {
 
