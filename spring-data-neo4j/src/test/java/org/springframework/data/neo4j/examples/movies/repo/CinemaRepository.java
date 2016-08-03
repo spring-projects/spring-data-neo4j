@@ -82,6 +82,9 @@ public interface CinemaRepository extends GraphRepository<Cinema> {
 	Page<CinemaQueryResult> getPagedCinemaQueryResults(Pageable pageable);
 
 	@Query("MATCH (n:Theatre) RETURN n")
+	Slice<CinemaQueryResult> getSlicedCinemaQueryResults(Pageable pageable);
+
+	@Query("MATCH (n:Theatre) RETURN n")
 	Page<CinemaQueryResultInterface> getPagedCinemaQueryResultInterfaces(Pageable pageable);
 
 	@Query(value = "MATCH (n:Theatre) RETURN n ORDER BY n.name", countQuery = "MATCH (n:Theatre) return count(*)")

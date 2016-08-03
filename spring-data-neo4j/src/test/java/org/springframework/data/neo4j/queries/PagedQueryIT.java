@@ -134,6 +134,30 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	}
 
 	/**
+	 * @see DATAGRAPH-893
+	 */
+	@Test
+	public void shouldFindSlicedQueryResults() {
+		Pageable pageable = new PageRequest(0, 3);
+		Slice<CinemaQueryResult> page = cinemaRepository.getSlicedCinemaQueryResults(pageable);
+
+		assertEquals(3, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+
+		page = cinemaRepository.getSlicedCinemaQueryResults(page.nextPageable());
+		assertEquals(3, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+
+		page = cinemaRepository.getSlicedCinemaQueryResults(page.nextPageable());
+		assertEquals(3, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+
+		page = cinemaRepository.getSlicedCinemaQueryResults(page.nextPageable());
+		assertEquals(1, page.getNumberOfElements());
+		assertFalse(page.hasNext());
+	}
+
+	/**
 	 * Repeats shouldFindPagedCinemas for query results - interfaces
 	 * * @see DATAGRAPH-893
 	 */
