@@ -39,6 +39,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Angrish
  * @author Luanne Misquitta
+ * @author Japer Blues
  */
 public class GraphRepositoryQuery implements RepositoryQuery {
 

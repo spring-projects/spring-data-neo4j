@@ -23,6 +23,7 @@ import java.util.Set;
 /**
  * @author Michal Bachman
  * @author Luanne Misquitta
+ * @author Jasper Blues
  */
 @NodeEntity(label = "Theatre")
 public class Cinema {

@@ -43,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @see DATAGRAPH-680
  * @author Luanne Misquitta
+ * @author Japer Blues
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -104,6 +105,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 
 	/**
 	 * Repeats shouldFindPagedCinemas for query results - concrete classes.
+	 * @see DATAGRAPH-893
      */
 	@Test
 	public void shouldFindPagedQueryResults() {
@@ -132,6 +134,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 
 	/**
 	 * Repeats shouldFindPagedCinemas for query results - interfaces
+	 * * @see DATAGRAPH-893
 	 */
 	@Test
 	public void shouldFindPagedQueryInterfaceResults() {

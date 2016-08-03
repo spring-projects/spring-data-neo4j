@@ -13,6 +13,9 @@
 
 package org.springframework.data.neo4j.examples.movies.domain.queryresult;
 
+/**
+ * @author Jasper Blues
+ */
 public class CinemaQueryResultInterfaceImpl implements CinemaQueryResultInterface {
 
     private Long id;

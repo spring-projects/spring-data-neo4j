@@ -32,6 +32,7 @@ import java.util.List;
 /**
  * @author Michal Bachman
  * @author Luanne Misquitta
+ * @author Jasper Blues
  */
 @Repository
 public interface CinemaRepository extends GraphRepository<Cinema> {
