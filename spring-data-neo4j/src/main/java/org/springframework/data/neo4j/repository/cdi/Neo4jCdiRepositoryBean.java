@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.cdi;
 
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.neo4j.repository.support.GraphRepositoryFactory;
+import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactory;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.data.repository.cdi.CdiRepositoryBean;
 import org.springframework.data.repository.config.CustomRepositoryImplementationDetector;
@@ -57,9 +58,8 @@ public class Neo4jCdiRepositoryBean<T> extends CdiRepositoryBean<T> {
     protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType, Object customImplementation) {
 
         Session session = getDependencyInstance(sessionBean, Session.class);
-        Neo4jTemplate neo4jTemplate = new Neo4jTemplate(session);
 
-        GraphRepositoryFactory factory = new GraphRepositoryFactory(session, neo4jTemplate);
+        Neo4jRepositoryFactory factory = new Neo4jRepositoryFactory(session);
         return factory.getRepository(repositoryType, customImplementation);
     }
 }

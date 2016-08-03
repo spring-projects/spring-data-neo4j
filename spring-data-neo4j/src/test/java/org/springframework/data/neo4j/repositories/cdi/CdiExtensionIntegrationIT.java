@@ -34,7 +34,7 @@ import org.springframework.data.neo4j.examples.friends.domain.Person;
  * @author Mark Paluch
  * @see DATAGRAPH-879
  */
-public class CdiExtensionIntegrationTests extends MultiDriverTestClass {
+public class CdiExtensionIntegrationIT extends MultiDriverTestClass {
 
     static CdiTestContainer container;
 
