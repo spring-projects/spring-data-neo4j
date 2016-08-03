@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.repositories.cdi;
+package org.springframework.data.neo4j.repository.cdi;
 
-import javax.inject.Qualifier;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.springframework.data.neo4j.examples.friends.domain.Person;
+import org.springframework.data.repository.CrudRepository;
 
 /**
  * @author Mark Paluch
  * @see DATAGRAPH-879
  */
-@Qualifier
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
-@interface OtherQualifier {
+@OtherQualifier
+@PersonDB
+public interface QualifiedPersonRepository extends CrudRepository<Person, Long> {
 
 }

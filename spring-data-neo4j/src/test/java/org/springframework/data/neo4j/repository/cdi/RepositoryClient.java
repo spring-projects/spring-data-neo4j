@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.repositories.cdi;
+package org.springframework.data.neo4j.repository.cdi;
 
 import javax.inject.Inject;
 

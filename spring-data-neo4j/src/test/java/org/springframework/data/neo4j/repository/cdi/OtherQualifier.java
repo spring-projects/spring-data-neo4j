@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.repositories.cdi;
+package org.springframework.data.neo4j.repository.cdi;
 
-import org.springframework.data.neo4j.examples.friends.domain.Person;
-import org.springframework.data.repository.Repository;
+import javax.inject.Qualifier;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author Mark Paluch
  * @see DATAGRAPH-879
  */
-public interface SamplePersonRepository extends Repository<Person, Long>, SamplePersonRepositoryCustom {
+@Qualifier
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
+@interface OtherQualifier {
 
 }

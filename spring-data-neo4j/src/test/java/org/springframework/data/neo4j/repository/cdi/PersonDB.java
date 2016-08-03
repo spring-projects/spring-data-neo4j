@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.neo4j.repository.cdi;
 
-package org.springframework.data.neo4j.repositories.cdi;
-
-import org.springframework.data.neo4j.examples.friends.domain.Person;
-import org.springframework.data.repository.Repository;
+import javax.inject.Qualifier;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author Mark Paluch
  * @see DATAGRAPH-879
  */
-public interface CdiPersonRepository extends Repository<Person, Long> {
+@Qualifier
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
+@interface PersonDB {
 
-    void deleteAll();
-
-    Person save(Person person);
-
-    Person findOne(Long id);
 }

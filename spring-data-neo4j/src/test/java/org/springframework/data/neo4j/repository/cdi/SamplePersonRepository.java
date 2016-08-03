@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.data.neo4j.repositories.cdi;
+package org.springframework.data.neo4j.repository.cdi;
+
+import org.springframework.data.neo4j.examples.friends.domain.Person;
+import org.springframework.data.repository.Repository;
 
 /**
  * @author Mark Paluch
  * @see DATAGRAPH-879
  */
-class SamplePersonRepositoryImpl implements SamplePersonRepositoryCustom {
+public interface SamplePersonRepository extends Repository<Person, Long>, SamplePersonRepositoryCustom {
 
-    @Override
-    public int returnOne() {
-        return 1;
-    }
 }
