@@ -20,7 +20,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResultInterface;
 import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResult;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -30,6 +32,7 @@ import java.util.List;
 /**
  * @author Michal Bachman
  * @author Luanne Misquitta
+ * @author Jasper Blues
  */
 @Repository
 public interface CinemaRepository extends GraphRepository<Cinema> {
@@ -73,7 +76,16 @@ public interface CinemaRepository extends GraphRepository<Cinema> {
 	Cinema findByName(String name, @Depth int depth);
 
 	@Query("MATCH (n:Theatre) RETURN n")
-	Page<Cinema> getPagedCinemasByName(Pageable pageable);
+	Page<Cinema> getPagedCinemas(Pageable pageable);
+
+	@Query("MATCH (n:Theatre) RETURN n")
+	Page<CinemaQueryResult> getPagedCinemaQueryResults(Pageable pageable);
+
+	@Query("MATCH (n:Theatre) RETURN n")
+	Slice<CinemaQueryResult> getSlicedCinemaQueryResults(Pageable pageable);
+
+	@Query("MATCH (n:Theatre) RETURN n")
+	Page<CinemaQueryResultInterface> getPagedCinemaQueryResultInterfaces(Pageable pageable);
 
 	@Query(value = "MATCH (n:Theatre) RETURN n ORDER BY n.name", countQuery = "MATCH (n:Theatre) return count(*)")
 	Page<Cinema> getPagedCinemasWithPageCount(Pageable pageable);

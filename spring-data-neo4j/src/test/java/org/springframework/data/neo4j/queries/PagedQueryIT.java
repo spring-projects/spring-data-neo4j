@@ -21,7 +21,6 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
@@ -33,15 +32,18 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResultInterface;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.template.Neo4jOperations;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResult;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * @see DATAGRAPH-680
  * @author Luanne Misquitta
+ * @author Japer Blues
+ * @see DATAGRAPH-680
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -58,7 +60,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	@Before
 	public void init() {
 		clearDatabase();
-		String[] names = new String[] {"Picturehouse", "Regal", "Ritzy", "Metro", "Inox", "PVR", "Cineplex", "Landmark", "Rainbow", "Movietime"};
+		String[] names = new String[]{"Picturehouse", "Regal", "Ritzy", "Metro", "Inox", "PVR", "Cineplex", "Landmark", "Rainbow", "Movietime"};
 		for (String name : names) {
 			Cinema cinema = new Cinema(name);
 			cinema.setLocation("London");
@@ -80,46 +82,129 @@ public class PagedQueryIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldFindPagedCinemas() {
-		Pageable pageable = new PageRequest(0,3);
-		Page<Cinema> page = cinemaRepository.getPagedCinemasByName(pageable);
+		Pageable pageable = new PageRequest(0, 3);
+		Page<Cinema> page = cinemaRepository.getPagedCinemas(pageable);
 		assertEquals(3, page.getNumberOfElements());
 		assertTrue(page.hasNext());
 		assertEquals(6, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
 
-		page = cinemaRepository.getPagedCinemasByName(page.nextPageable());
+		page = cinemaRepository.getPagedCinemas(page.nextPageable());
 		assertEquals(3, page.getNumberOfElements());
 		assertTrue(page.hasNext());
 		assertEquals(9, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
 
-		page = cinemaRepository.getPagedCinemasByName(page.nextPageable());
+		page = cinemaRepository.getPagedCinemas(page.nextPageable());
 		assertEquals(3, page.getNumberOfElements());
 		assertTrue(page.hasNext());
 		assertEquals(12, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
 
-		page = cinemaRepository.getPagedCinemasByName(page.nextPageable());
+		page = cinemaRepository.getPagedCinemas(page.nextPageable());
+		assertEquals(1, page.getNumberOfElements());
+		assertFalse(page.hasNext());
+	}
+
+	/**
+	 * Repeats shouldFindPagedCinemas for query results - concrete classes.
+	 *
+	 * @see DATAGRAPH-893
+	 */
+	@Test
+	public void shouldFindPagedQueryResults() {
+		Pageable pageable = new PageRequest(0, 3);
+		Page<CinemaQueryResult> page = cinemaRepository.getPagedCinemaQueryResults(pageable);
+		System.out.println(page);
+
+		assertEquals(3, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+		assertEquals(6, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+
+		page = cinemaRepository.getPagedCinemaQueryResults(page.nextPageable());
+		assertEquals(3, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+		assertEquals(9, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+
+		page = cinemaRepository.getPagedCinemaQueryResults(page.nextPageable());
+		assertEquals(3, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+		assertEquals(12, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+
+		page = cinemaRepository.getPagedCinemaQueryResults(page.nextPageable());
+		assertEquals(1, page.getNumberOfElements());
+		assertFalse(page.hasNext());
+	}
+
+	/**
+	 * @see DATAGRAPH-893
+	 */
+	@Test
+	public void shouldFindSlicedQueryResults() {
+		Pageable pageable = new PageRequest(0, 3);
+		Slice<CinemaQueryResult> page = cinemaRepository.getSlicedCinemaQueryResults(pageable);
+
+		assertEquals(3, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+
+		page = cinemaRepository.getSlicedCinemaQueryResults(page.nextPageable());
+		assertEquals(3, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+
+		page = cinemaRepository.getSlicedCinemaQueryResults(page.nextPageable());
+		assertEquals(3, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+
+		page = cinemaRepository.getSlicedCinemaQueryResults(page.nextPageable());
+		assertEquals(1, page.getNumberOfElements());
+		assertFalse(page.hasNext());
+	}
+
+	/**
+	 * Repeats shouldFindPagedCinemas for query results - interfaces
+	 * * @see DATAGRAPH-893
+	 */
+	@Test
+	public void shouldFindPagedQueryInterfaceResults() {
+		Pageable pageable = new PageRequest(0, 3);
+		Page<CinemaQueryResultInterface> page = cinemaRepository.getPagedCinemaQueryResultInterfaces(pageable);
+		System.out.println(page);
+
+		assertEquals(3, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+		assertEquals(6, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+
+		page = cinemaRepository.getPagedCinemaQueryResultInterfaces(page.nextPageable());
+		assertEquals(3, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+		assertEquals(9, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+
+		page = cinemaRepository.getPagedCinemaQueryResultInterfaces(page.nextPageable());
+		assertEquals(3, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+		assertEquals(12, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+
+		page = cinemaRepository.getPagedCinemaQueryResultInterfaces(page.nextPageable());
 		assertEquals(1, page.getNumberOfElements());
 		assertFalse(page.hasNext());
 	}
 
 	@Test
 	public void shouldNotRelyOnTotalElementsToFindPagedCinemas() {
-		Pageable pageable = new PageRequest(0,5);
-		Page<Cinema> page = cinemaRepository.getPagedCinemasByName(pageable);
+		Pageable pageable = new PageRequest(0, 5);
+		Page<Cinema> page = cinemaRepository.getPagedCinemas(pageable);
 		assertEquals(5, page.getNumberOfElements());
 		assertTrue(page.hasNext());
 
-		page = cinemaRepository.getPagedCinemasByName(page.nextPageable());
+		page = cinemaRepository.getPagedCinemas(page.nextPageable());
 		assertEquals(5, page.getNumberOfElements());
 		assertTrue(page.hasNext()); //this is an estimate and so for the last page, page.hasNext() is true when the total number of elements / total number of pages=0
 
-		page = cinemaRepository.getPagedCinemasByName(page.nextPageable());
+		page = cinemaRepository.getPagedCinemas(page.nextPageable());
 		assertEquals(0, page.getNumberOfElements());
 		assertFalse(page.hasNext());
 	}
 
 	@Test
 	public void shouldFindPagedCinemasWithAccurateTotalCount() {
-		Pageable pageable = new PageRequest(0,3);
+		Pageable pageable = new PageRequest(0, 3);
 		Page<Cinema> page = cinemaRepository.getPagedCinemasWithPageCount(pageable);
 		assertEquals(3, page.getNumberOfElements());
 		assertEquals(10, page.getTotalElements()); //With a count query, the total elements should equal the number returned by the count query
@@ -143,7 +228,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldRelyOnTotalElementsToFindPagedCinemasWithCountQuery() {
-		Pageable pageable = new PageRequest(0,5);
+		Pageable pageable = new PageRequest(0, 5);
 		Page<Cinema> page = cinemaRepository.getPagedCinemasWithPageCount(pageable);
 		assertEquals(5, page.getNumberOfElements());
 		assertEquals(10, page.getTotalElements()); //With a count query, the total elements should equal the number returned by the count query
@@ -157,7 +242,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldUseQueryParametersInCountQuery() {
-		Pageable pageable = new PageRequest(0,5);
+		Pageable pageable = new PageRequest(0, 5);
 		Page<Cinema> page = cinemaRepository.getPagedCinemasByCityWithPageCount("London", pageable);
 		assertEquals(5, page.getNumberOfElements());
 		assertEquals(10, page.getTotalElements()); //With a count query, the total elements should equal the number returned by the count query
@@ -171,7 +256,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldFindSlicedCinemas() {
-		Pageable pageable = new PageRequest(0,3);
+		Pageable pageable = new PageRequest(0, 3);
 		Slice<Cinema> slice = cinemaRepository.getSlicedCinemasByName(pageable);
 		assertEquals(3, slice.getNumberOfElements());
 		assertTrue(slice.hasNext());
@@ -191,7 +276,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldCorrectlyCalculateWhetherNextSliceExists() {
-		Pageable pageable = new PageRequest(0,5);
+		Pageable pageable = new PageRequest(0, 5);
 		Slice<Cinema> slice = cinemaRepository.getSlicedCinemasByName(pageable);
 		assertEquals(5, slice.getNumberOfElements());
 		assertTrue(slice.hasNext());
@@ -207,7 +292,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindPagedAndSortedCinemas() {
-		Pageable pageable = new PageRequest(0,4, Sort.Direction.ASC, "name");
+		Pageable pageable = new PageRequest(0, 4, Sort.Direction.ASC, "name");
 
 		Page<Cinema> page = cinemaRepository.findByLocation("London", pageable);
 		assertEquals(4, page.getNumberOfElements());
@@ -247,11 +332,11 @@ public class PagedQueryIT extends MultiDriverTestClass {
 				"CREATE (u)-[:VISITED]->(r)  " +
 				"CREATE (u)-[:VISITED]->(m)");
 
-		Page<Cinema> page = cinemaRepository.findByLocationAndVisitedName("London", "Michal", new PageRequest(0,1, Sort.Direction.DESC, "name"));
+		Page<Cinema> page = cinemaRepository.findByLocationAndVisitedName("London", "Michal", new PageRequest(0, 1, Sort.Direction.DESC, "name"));
 		assertEquals(1, page.getNumberOfElements());
 		assertEquals("Ritzy", page.getContent().get(0).getName());
 
-		page = cinemaRepository.findByLocationAndVisitedName("London", "Michal", new PageRequest(1,1, Sort.Direction.DESC, "name"));
+		page = cinemaRepository.findByLocationAndVisitedName("London", "Michal", new PageRequest(1, 1, Sort.Direction.DESC, "name"));
 		assertEquals(1, page.getNumberOfElements());
 		assertEquals("Picturehouse", page.getContent().get(0).getName());
 	}
@@ -268,11 +353,11 @@ public class PagedQueryIT extends MultiDriverTestClass {
 				"CREATE (u)-[:VISITED]->(r)  " +
 				"CREATE (u)-[:VISITED]->(m)");
 
-		Page<Cinema> page = cinemaRepository.findByVisitedName("Michal", new PageRequest(0,1, Sort.Direction.ASC, "location"));
+		Page<Cinema> page = cinemaRepository.findByVisitedName("Michal", new PageRequest(0, 1, Sort.Direction.ASC, "location"));
 		assertEquals(1, page.getNumberOfElements());
 		assertEquals("Regal", page.getContent().get(0).getName());
 
-		page = cinemaRepository.findByVisitedName("Michal", new PageRequest(1,1, Sort.Direction.DESC, "location"));
+		page = cinemaRepository.findByVisitedName("Michal", new PageRequest(1, 1, Sort.Direction.DESC, "location"));
 		assertEquals(1, page.getNumberOfElements());
 		assertEquals("Regal", page.getContent().get(0).getName());
 	}
@@ -302,7 +387,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindPagedAndSortedCinemasByCapacity() {
-		Pageable pageable = new PageRequest(0,4, Sort.Direction.ASC, "name");
+		Pageable pageable = new PageRequest(0, 4, Sort.Direction.ASC, "name");
 
 		List<Cinema> page = cinemaRepository.findByCapacity(500, pageable);
 		assertEquals(4, page.size());
@@ -311,7 +396,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 		assertEquals("Landmark", page.get(2).getName());
 		assertEquals("Metro", page.get(3).getName());
 
-		pageable = new PageRequest(1,4, Sort.Direction.ASC, "name");
+		pageable = new PageRequest(1, 4, Sort.Direction.ASC, "name");
 		page = cinemaRepository.findByCapacity(500, pageable);
 		assertEquals(4, page.size());
 		assertEquals("Movietime", page.get(0).getName());
@@ -319,7 +404,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 		assertEquals("Picturehouse", page.get(2).getName());
 		assertEquals("Rainbow", page.get(3).getName());
 
-		pageable = new PageRequest(2,4, Sort.Direction.ASC, "name");
+		pageable = new PageRequest(2, 4, Sort.Direction.ASC, "name");
 		page = cinemaRepository.findByCapacity(500, pageable);
 		assertEquals(2, page.size());
 		assertEquals("Regal", page.get(0).getName());
@@ -331,9 +416,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindPagedCinemasSortedWithCustomQuery() {
-		Pageable pageable = new PageRequest(0,4, Sort.Direction.ASC, "n.name");
+		Pageable pageable = new PageRequest(0, 4, Sort.Direction.ASC, "n.name");
 
-		Page<Cinema> page = cinemaRepository.getPagedCinemasByName(pageable);
+		Page<Cinema> page = cinemaRepository.getPagedCinemas(pageable);
 		assertEquals(4, page.getNumberOfElements());
 		assertTrue(page.hasNext());
 		assertEquals(8, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
@@ -342,7 +427,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 		assertEquals("Landmark", page.getContent().get(2).getName());
 		assertEquals("Metro", page.getContent().get(3).getName());
 
-		page = cinemaRepository.getPagedCinemasByName(page.nextPageable());
+		page = cinemaRepository.getPagedCinemas(page.nextPageable());
 		assertEquals(4, page.getNumberOfElements());
 		assertTrue(page.hasNext());
 		assertEquals(12, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
@@ -351,7 +436,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 		assertEquals("Picturehouse", page.getContent().get(2).getName());
 		assertEquals("Rainbow", page.getContent().get(3).getName());
 
-		page = cinemaRepository.getPagedCinemasByName(page.nextPageable());
+		page = cinemaRepository.getPagedCinemas(page.nextPageable());
 		assertEquals(2, page.getNumberOfElements());
 		assertFalse(page.hasNext());
 		assertEquals(10, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
@@ -364,7 +449,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindSlicedCinemasSortedWithCustomQuery() {
-		Pageable pageable = new PageRequest(0,4, Sort.Direction.ASC, "n.name");
+		Pageable pageable = new PageRequest(0, 4, Sort.Direction.ASC, "n.name");
 
 		Slice<Cinema> slice = cinemaRepository.getSlicedCinemasByName(pageable);
 		assertEquals(4, slice.getNumberOfElements());
@@ -408,5 +493,4 @@ public class PagedQueryIT extends MultiDriverTestClass {
 		assertEquals("Regal", cinemas.get(8).getName());
 		assertEquals("Ritzy", cinemas.get(9).getName());
 	}
-
 }
