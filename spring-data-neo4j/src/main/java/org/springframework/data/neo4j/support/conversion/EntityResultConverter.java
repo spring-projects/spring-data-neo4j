@@ -35,6 +35,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 /**
@@ -98,7 +101,7 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implemen
         try {
             newThing = returnType.newInstance();
             BeanWrapper wrapper = new BeanWrapperImpl( newThing );
-            for (Field field: returnType.getDeclaredFields()) {
+            for (Field field: inheritedMappableFields(returnType)) {
                 extractAndSetValueOfField(wrapper, field, resultColumnValueExtractor);
             }
         } catch (IllegalAccessException e1) {
@@ -119,8 +122,6 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implemen
     private void extractAndSetValueOfField(BeanWrapper wrapper, Field field,
                                            ResultColumnValueExtractor resultColumnValueExtractor)
         throws InvocationTargetException , NoSuchMethodException , ClassNotFoundException , IllegalAccessException{
-        if (!isPOJOMappableField(field))
-            return;
 
         Object val = resultColumnValueExtractor.extractFromField(field);
         if (val != null) {
@@ -131,17 +132,6 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implemen
             wrapper.setPropertyValue( field.getName(), val );
         }
 
-    }
-
-    /**
-     * At present, the only fields which can be mapped to a POJO are those
-     * annotated with the ResultColumn annotation
-     *
-     * @param field
-     * @return
-     */
-    private boolean isPOJOMappableField(Field field) {
-        return field.getAnnotation(ResultColumn.class) != null;
     }
 
     @SuppressWarnings("unchecked")
@@ -159,10 +149,11 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implemen
     public R convert(Object value, Class type, MappingPolicy mappingPolicy) {
         if (isInterfaceBasedMappingRequest(type)) {
             return extractProxyBasedResult(value, type, mappingPolicy);
-        } else if (isPojoBasedMappingReqest(type)) {
+        }
+        if (isPojoBasedMappingRequest(type)) {
             return extractPOJOResult(value, type,mappingPolicy);
-        } else
-            return super.convert(value, type,mappingPolicy);
+        }
+        return super.convert(value, type,mappingPolicy);
     }
 
     boolean isInterfaceBasedMappingRequest(Class type) {
@@ -172,8 +163,33 @@ public class EntityResultConverter<T, R> extends DefaultConverter<T, R> implemen
                  type.isAnnotationPresent(QueryResult.class));
     }
 
-    boolean isPojoBasedMappingReqest(Class type) {
+    boolean isPojoBasedMappingRequest(Class type) {
         return !type.isInterface() && type.isAnnotationPresent(QueryResult.class);
+    }
+
+    private Collection<Field> inheritedMappableFields(Class<?> type) {
+        if (type.isAssignableFrom(Object.class)) {
+            return Collections.emptyList();
+        }
+        Collection<Field> fields = new LinkedHashSet<>();
+        for (Field field : type.getDeclaredFields()) {
+            if (isMappableField(field)) {
+                fields.add(field);
+            }
+        }
+        fields.addAll(inheritedMappableFields(type.getSuperclass()));
+        return fields;
+    }
+
+    /**
+     * At present, the only fields which can be mapped to a POJO are those
+     * annotated with the ResultColumn annotation
+     *
+     * @param field
+     * @return
+     */
+    private boolean isMappableField(Field field) {
+        return field.getAnnotation(ResultColumn.class) != null;
     }
 
 }
