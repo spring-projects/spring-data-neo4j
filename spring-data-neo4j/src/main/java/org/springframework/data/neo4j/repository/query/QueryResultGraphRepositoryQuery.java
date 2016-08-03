@@ -41,88 +41,86 @@ import org.springframework.data.repository.query.ParameterAccessor;
  */
 public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
 
-    /**
-     * Constructs a new {@link QueryResultGraphRepositoryQuery} based on the given arguments.
-     *
-     * @param graphQueryMethod The {@link GraphQueryMethod} to which this repository query corresponds
-     * @param session          The OGM {@link Session} used to execute the query
-     */
-    public QueryResultGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session) {
-        super(graphQueryMethod, session);
-    }
+	/**
+	 * Constructs a new {@link QueryResultGraphRepositoryQuery} based on the given arguments.
+	 *
+	 * @param graphQueryMethod The {@link GraphQueryMethod} to which this repository query corresponds
+	 * @param session The OGM {@link Session} used to execute the query
+	 */
+	public QueryResultGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session) {
+		super(graphQueryMethod, session);
+	}
 
-    @Override
-    protected Object execute(Class<?> returnType, final Class<?> concreteReturnType, String cypherQuery,
-                             Map<String, Object> queryParams, ParameterAccessor parameterAccessor) {
+	@Override
+	protected Object execute(Class<?> returnType, final Class<?> concreteReturnType, String cypherQuery,
+							 Map<String, Object> queryParams, ParameterAccessor parameterAccessor) {
 
-        Pageable pageable = parameterAccessor.getPageable();
-        Sort sort = parameterAccessor.getSort();
-        if (pageable != null && pageable.getSort() != null) {
-            sort = pageable.getSort();
-        }
-        if (sort != null) {
-            //Custom queries in the OGM do not support pageable
-            cypherQuery = addSorting(cypherQuery, sort);
-        }
+		Pageable pageable = parameterAccessor.getPageable();
+		Sort sort = parameterAccessor.getSort();
+		if (pageable != null && pageable.getSort() != null) {
+			sort = pageable.getSort();
+		}
+		if (sort != null) {
+			//Custom queries in the OGM do not support pageable
+			cypherQuery = addSorting(cypherQuery, sort);
+		}
 
-        Object resultObjects = concreteReturnType.isInterface()
-                ? mapToProxy(concreteReturnType, cypherQuery, queryParams, pageable)
-                : mapToConcreteType(concreteReturnType, cypherQuery, queryParams, pageable);
+		Object resultObjects = concreteReturnType.isInterface()
+				? mapToProxy(concreteReturnType, cypherQuery, queryParams, pageable)
+				: mapToConcreteType(concreteReturnType, cypherQuery, queryParams, pageable);
 
-        if (Iterable.class.isAssignableFrom(returnType)) {
-            return resultObjects;
-        } else {
-            Collection<Object> objects = (Collection<Object>) resultObjects;
-            return objects.isEmpty() ? null : objects.iterator().next();
-        }
+		if (Iterable.class.isAssignableFrom(returnType)) {
+			return resultObjects;
+		} else {
+			Collection<Object> objects = (Collection<Object>) resultObjects;
+			return objects.isEmpty() ? null : objects.iterator().next();
+		}
+	}
 
-    }
+	private Object mapToConcreteType(final Class<?> targetType, final String cypherQuery,
+									 final Map<String, Object> queryParams, Pageable pageable) {
 
-    private Object mapToConcreteType(final Class<?> targetType, final String cypherQuery,
-                                     final Map<String, Object> queryParams, Pageable pageable) {
+		if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
+			final String query = makePageable(cypherQuery, queryParams, pageable.getPageNumber(), pageable.getPageSize());
+			List resultList = mappedConcreteResults(targetType, query, queryParams);
+			return createPage(graphQueryMethod, resultList, pageable, computeCount(queryParams));
+		} else {
+			return mappedConcreteResults(targetType, cypherQuery, queryParams);
+		}
+	}
 
-        if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
-            final String query = makePageable(cypherQuery, queryParams, pageable.getPageNumber(), pageable.getPageSize());
-            List resultList = mappedConcreteResults(targetType, query, queryParams);
-            return createPage(graphQueryMethod, resultList, pageable, computeCount(queryParams));
-        } else {
-            return mappedConcreteResults(targetType, cypherQuery, queryParams);
-        }
-    }
+	private Object mapToProxy(Class<?> targetType, String cypherQuery, Map<String, Object> queryParams,
+							  Pageable pageable) {
+		if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
+			final String query = makePageable(cypherQuery, queryParams, pageable.getPageNumber(), pageable.getPageSize());
+			List<Object> objects = mappedProxyResults(targetType, this.session.query(query, queryParams));
+			return createPage(graphQueryMethod, objects, pageable, computeCount(queryParams));
+		} else {
+			return mappedProxyResults(targetType, this.session.query(cypherQuery, queryParams));
+		}
+	}
 
-    private Object mapToProxy(Class<?> targetType, String cypherQuery, Map<String, Object> queryParams,
-                              Pageable pageable) {
-        if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
-            final String query = makePageable(cypherQuery, queryParams, pageable.getPageNumber(), pageable.getPageSize());
-            List<Object> objects = mappedProxyResults(targetType, this.session.query(query, queryParams));
-            return createPage(graphQueryMethod, objects, pageable, computeCount(queryParams));
-        } else {
-            return mappedProxyResults(targetType, this.session.query(cypherQuery, queryParams));
-        }
-    }
+	private List mappedConcreteResults(final Class<?> targetType, final String query, final Map<String, Object> queryParams) {
+		return (List) this.session.doInTransaction(new GraphCallback<Collection<Object>>() {
+			@Override
+			public Collection<Object> apply(Request requestHandler, Transaction transaction, MetaData metaData) {
+				Collection<Object> toReturn = new ArrayList<>();
+				SingleUseEntityMapper entityMapper = new SingleUseEntityMapper(metaData, new EntityFactory(metaData));
+				Iterable<Map<String, Object>> results = session.query(query, queryParams);
+				for (Map<String, Object> result : results) {
+					toReturn.add(entityMapper.map(targetType, result));
+				}
+				return toReturn;
+			}
+		});
+	}
 
-    private List mappedConcreteResults(final Class<?> targetType, final String query, final Map<String, Object> queryParams) {
-        return (List) this.session.doInTransaction(new GraphCallback<Collection<Object>>() {
-            @Override
-            public Collection<Object> apply(Request requestHandler, Transaction transaction, MetaData metaData) {
-                Collection<Object> toReturn = new ArrayList<>();
-                SingleUseEntityMapper entityMapper = new SingleUseEntityMapper(metaData, new EntityFactory(metaData));
-                Iterable<Map<String, Object>> results = session.query(query, queryParams);
-                for (Map<String, Object> result : results) {
-                    toReturn.add(entityMapper.map(targetType, result));
-                }
-                return toReturn;
-            }
-        });
-    }
-
-    private List mappedProxyResults(Class<?> targetType, Iterable<Map<String, Object>> queryResults) {
-        List<Object> resultObjects = new ArrayList<>();
-        Class<?>[] interfaces = new Class<?>[]{targetType};
-        for (Map<String, Object> map : queryResults) {
-            resultObjects.add(newProxyInstance(targetType.getClassLoader(), interfaces, new QueryResultProxy(map)));
-        }
-        return resultObjects;
-    }
-
+	private List mappedProxyResults(Class<?> targetType, Iterable<Map<String, Object>> queryResults) {
+		List<Object> resultObjects = new ArrayList<>();
+		Class<?>[] interfaces = new Class<?>[]{targetType};
+		for (Map<String, Object> map : queryResults) {
+			resultObjects.add(newProxyInstance(targetType.getClassLoader(), interfaces, new QueryResultProxy(map)));
+		}
+		return resultObjects;
+	}
 }

@@ -28,81 +28,81 @@ import java.util.Set;
 @NodeEntity(label = "Theatre")
 public class Cinema {
 
-    private Long id;
-    private String name;
+	private Long id;
+	private String name;
 
-    @Property(name = "city")
-    private String location;
+	@Property(name = "city")
+	private String location;
 
-    @Relationship(type = "VISITED", direction = Relationship.INCOMING)
-    private Set<User> visited = new HashSet<>();
+	@Relationship(type = "VISITED", direction = Relationship.INCOMING)
+	private Set<User> visited = new HashSet<>();
 
-    @Relationship(type = "BLOCKBUSTER", direction = Relationship.OUTGOING)
-    private TempMovie blockbusterOfTheWeek;
+	@Relationship(type = "BLOCKBUSTER", direction = Relationship.OUTGOING)
+	private TempMovie blockbusterOfTheWeek;
 
-    private int capacity;
+	private int capacity;
 
-    public Cinema() {
-    }
+	public Cinema() {
+	}
 
-    public Cinema(String name) {
-        this.name = name;
-    }
+	public Cinema(String name) {
+		this.name = name;
+	}
 
-    public Cinema(String name, int capacity) {
-        this.name = name;
-        this.capacity = capacity;
-    }
+	public Cinema(String name, int capacity) {
+		this.name = name;
+		this.capacity = capacity;
+	}
 
-    public void addVisitor(User user) {
-        visited.add(user);
-    }
+	public void addVisitor(User user) {
+		visited.add(user);
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public String getLocation() {
-        return location;
-    }
+	public String getLocation() {
+		return location;
+	}
 
-    @Relationship(type = "VISITED", direction = Relationship.INCOMING)
-    public Set<User> getVisited() {
-        return visited;
-    }
+	@Relationship(type = "VISITED", direction = Relationship.INCOMING)
+	public Set<User> getVisited() {
+		return visited;
+	}
 
-    public int getCapacity() {
-        return capacity;
-    }
+	public int getCapacity() {
+		return capacity;
+	}
 
-    public void setCapacity(int capacity) {
-        this.capacity = capacity;
-    }
+	public void setCapacity(int capacity) {
+		this.capacity = capacity;
+	}
 
-    public TempMovie getBlockbusterOfTheWeek() {
-        return blockbusterOfTheWeek;
-    }
+	public TempMovie getBlockbusterOfTheWeek() {
+		return blockbusterOfTheWeek;
+	}
 
-    public void setBlockbusterOfTheWeek(TempMovie blockbusterOfTheWeek) {
-        this.blockbusterOfTheWeek = blockbusterOfTheWeek;
-    }
+	public void setBlockbusterOfTheWeek(TempMovie blockbusterOfTheWeek) {
+		this.blockbusterOfTheWeek = blockbusterOfTheWeek;
+	}
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
+	public void setLocation(String location) {
+		this.location = location;
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
 
-        Cinema cinema = (Cinema) o;
+		Cinema cinema = (Cinema) o;
 
-        return !(name != null ? !name.equals(cinema.name) : cinema.name != null);
-    }
+		return !(name != null ? !name.equals(cinema.name) : cinema.name != null);
+	}
 
-    @Override
-    public int hashCode() {
-        return name != null ? name.hashCode() : 0;
-    }
+	@Override
+	public int hashCode() {
+		return name != null ? name.hashCode() : 0;
+	}
 }

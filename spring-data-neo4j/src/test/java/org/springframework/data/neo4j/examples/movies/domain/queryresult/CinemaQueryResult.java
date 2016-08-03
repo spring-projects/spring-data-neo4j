@@ -17,6 +17,7 @@ import org.springframework.data.neo4j.annotation.QueryResult;
 
 /**
  * A partial representation of Cinema returned as an @QueryResult. For testing DATAGRAPH-893
+ *
  * @author Jasper Blues
  */
 @QueryResult
