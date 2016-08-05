@@ -49,6 +49,7 @@ import java.lang.reflect.Field;
  *
  * @author Vince Bickers
  * @author Adam George
+ * @author Luanne Misquitta
  * @since 4.0.0
  */
 public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<Neo4jPersistentProperty> {
@@ -73,11 +74,16 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
         if (owningClassInfo == null) {
             logger.warn("Owning ClassInfo is null for field: {} and propertyDescriptor: {}", field, descriptor);
         }
-        this.isIdProperty = resolveWhetherIdProperty(owningClassInfo, field);
+        if (!simpleTypeHolder.isSimpleType(Enum.class) || owner.getType().isEnum()) {
+            this.isIdProperty = resolveWhetherIdProperty(owningClassInfo, field);
+        }
+        else {
+            this.isIdProperty = false;
+        }
     }
 
     private static boolean resolveWhetherIdProperty(ClassInfo owningClassInfo, Field field) {
-        if (owningClassInfo == null || owningClassInfo.isInterface() || owningClassInfo.annotationsInfo().get(QueryResult.class.getName()) != null) {
+        if (owningClassInfo == null || owningClassInfo.isInterface() || owningClassInfo.annotationsInfo().get(QueryResult.class.getName()) != null || owningClassInfo.isEnum()) {
             // no ID properties on @QueryResult or non-concrete objects
             return false;
         } else {
