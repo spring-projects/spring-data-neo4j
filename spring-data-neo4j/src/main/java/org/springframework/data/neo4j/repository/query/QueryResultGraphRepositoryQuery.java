@@ -81,7 +81,7 @@ public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
 									 final Map<String, Object> queryParams, Pageable pageable) {
 
 		if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
-			final String query = makePageable(cypherQuery, queryParams, pageable.getPageNumber(), pageable.getPageSize());
+			final String query = addPaging(cypherQuery, queryParams, pageable.getPageNumber(), pageable.getPageSize());
 			List resultList = mappedConcreteResults(targetType, query, queryParams);
 			return createPage(graphQueryMethod, resultList, pageable, computeCount(queryParams));
 		} else {
@@ -92,7 +92,7 @@ public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
 	private Object mapToProxy(Class<?> targetType, String cypherQuery, Map<String, Object> queryParams,
 							  Pageable pageable) {
 		if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
-			final String query = makePageable(cypherQuery, queryParams, pageable.getPageNumber(), pageable.getPageSize());
+			final String query = addPaging(cypherQuery, queryParams, pageable.getPageNumber(), pageable.getPageSize());
 			List<Object> objects = mappedProxyResults(targetType, this.session.query(query, queryParams));
 			return createPage(graphQueryMethod, objects, pageable, computeCount(queryParams));
 		} else {
