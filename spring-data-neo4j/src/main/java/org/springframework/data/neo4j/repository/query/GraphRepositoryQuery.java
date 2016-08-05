@@ -131,6 +131,7 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 	}
 
 	protected String addSorting(String baseQuery, Sort sort) {
+		baseQuery = formatBaseQuery(baseQuery);
 		if (sort == null) {
 			return baseQuery;
 		}
@@ -141,12 +142,9 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 		return baseQuery + String.format(ORDER_BY_CLAUSE, sortOrder);
 	}
 
-	protected String makePageable(String cypherQuery, Map<String, Object> queryParams, int pageNumber, int pageSize) {
+	protected String addPaging(String cypherQuery, Map<String, Object> queryParams, int pageNumber, int pageSize) {
 		//Custom queries in the OGM do not support pageable
-		cypherQuery = cypherQuery.trim();
-		if (cypherQuery.endsWith(";")) {
-			cypherQuery = cypherQuery.substring(0, cypherQuery.length() - 1);
-		}
+		cypherQuery = formatBaseQuery(cypherQuery);
 		cypherQuery = cypherQuery + SKIP_LIMIT;
 		queryParams.put(SKIP, pageNumber * pageSize);
 		if (graphQueryMethod.isSliceQuery()) {
@@ -204,7 +202,7 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 		}
 		List resultList;
 		if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
-			cypherQuery = makePageable(cypherQuery, queryParams, pageable.getPageNumber(), pageable.getPageSize());
+			cypherQuery = addPaging(cypherQuery, queryParams, pageable.getPageNumber(), pageable.getPageSize());
 			resultList = (List) session.query(concreteType, cypherQuery, queryParams);
 			return createPage(graphQueryMethod, resultList, pageable, computeCount(queryParams));
 		} else {
@@ -212,7 +210,6 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 		}
 		return resultList;
 	}
-
 
 	private String getSortOrder(Sort sort) {
 		String result = "";
@@ -223,5 +220,13 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 			result += order.getProperty() + " " + order.getDirection();
 		}
 		return result;
+	}
+
+	private String formatBaseQuery(String cypherQuery) {
+		cypherQuery = cypherQuery.trim();
+		if (cypherQuery.endsWith(";")) {
+			cypherQuery = cypherQuery.substring(0, cypherQuery.length() - 1);
+		}
+		return cypherQuery;
 	}
 }
