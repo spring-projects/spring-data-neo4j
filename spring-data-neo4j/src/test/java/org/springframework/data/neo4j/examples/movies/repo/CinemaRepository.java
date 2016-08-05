@@ -75,7 +75,7 @@ public interface CinemaRepository extends GraphRepository<Cinema> {
 
 	Cinema findByName(String name, @Depth int depth);
 
-	@Query("MATCH (n:Theatre) RETURN n")
+	@Query("MATCH (n:Theatre) RETURN n;")
 	Page<Cinema> getPagedCinemas(Pageable pageable);
 
 	@Query("MATCH (n:Theatre) RETURN n")

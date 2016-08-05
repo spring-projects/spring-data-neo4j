@@ -143,6 +143,10 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 
 	protected String makePageable(String cypherQuery, Map<String, Object> queryParams, int pageNumber, int pageSize) {
 		//Custom queries in the OGM do not support pageable
+		cypherQuery = cypherQuery.trim();
+		if (cypherQuery.endsWith(";")) {
+			cypherQuery = cypherQuery.substring(0, cypherQuery.length() - 1);
+		}
 		cypherQuery = cypherQuery + SKIP_LIMIT;
 		queryParams.put(SKIP, pageNumber * pageSize);
 		if (graphQueryMethod.isSliceQuery()) {
