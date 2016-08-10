@@ -74,11 +74,11 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
         if (owningClassInfo == null) {
             logger.warn("Owning ClassInfo is null for field: {} and propertyDescriptor: {}", field, descriptor);
         }
-        if (!simpleTypeHolder.isSimpleType(Enum.class) || owner.getType().isEnum()) {
-            this.isIdProperty = resolveWhetherIdProperty(owningClassInfo, field);
+        if ((owningClassInfo.getUnderlyingClass()!=null && simpleTypeHolder.isSimpleType(owningClassInfo.getUnderlyingClass())) || owner.getType().isEnum()) {
+            this.isIdProperty = false;
         }
         else {
-            this.isIdProperty = false;
+            this.isIdProperty = resolveWhetherIdProperty(owningClassInfo, field);
         }
     }
 
