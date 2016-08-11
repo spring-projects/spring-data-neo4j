@@ -42,7 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Luanne Misquitta
- * @author Japer Blues
+ * @author Jasper Blues
  * @see DATAGRAPH-680
  */
 @ContextConfiguration(classes = {MoviesContext.class})

@@ -37,7 +37,7 @@ import org.springframework.data.repository.query.ParameterAccessor;
  *
  * @author Adam George
  * @author Luanne Misquitta
- * @author Japer Blues
+ * @author Jasper Blues
  */
 public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
 
