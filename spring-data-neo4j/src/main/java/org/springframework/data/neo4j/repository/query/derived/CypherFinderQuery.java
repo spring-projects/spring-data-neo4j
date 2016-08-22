@@ -12,11 +12,14 @@
  */
 package org.springframework.data.neo4j.repository.query.derived;
 
+import static org.springframework.data.repository.query.parser.Part.Type.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
+import org.neo4j.ogm.cypher.FilterFunction;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -65,6 +68,12 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 		parameter.setComparisonOperator(convertToComparisonOperator(part.getType()));
 		parameter.setNegated(part.getType().name().startsWith("NOT"));
 		parameter.setBooleanOperator(booleanOperator);
+
+		if (part.getType() == NEAR) {
+			parameter.setFunction(FilterFunction.DISTANCE);
+			parameter.setComparisonOperator(ComparisonOperator.LESS_THAN);
+			paramPosition++;
+		}
 
 		if (part.getProperty().next() != null) {
 			parameter.setOwnerEntityType(part.getProperty().getOwningType().getType());
