@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -55,7 +56,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext
 public class DerivedQueryIT extends MultiDriverTestClass {
 
-	private static GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
+	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired
 	private Neo4jOperations neo4jOperations;
@@ -71,6 +72,11 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 
 	@Autowired
 	private DirectorRepository directorRepository;
+
+	@BeforeClass
+	public static void beforeClass(){
+		graphDatabaseService = getGraphDatabaseService();
+	}
 
 	@Before
 	public void clearDatabase() {

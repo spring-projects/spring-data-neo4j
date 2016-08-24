@@ -16,8 +16,10 @@ package org.springframework.data.neo4j.examples.friends;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,15 +38,22 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FriendIT extends MultiDriverTestClass {
 
+	private static GraphDatabaseService graphDatabaseService;
+
 	@Autowired Neo4jOperations neo4jTemplate;
 	@Autowired FriendshipRepository friendshipRepository;
 	@Autowired FriendService friendService;
+
+	@BeforeClass
+	public static void beforeClass(){
+		graphDatabaseService = getGraphDatabaseService();
+	}
 
 
 	@Before
 	public void cleanUpDatabase() {
 		neo4jTemplate.clear();
-		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	/**

@@ -20,6 +20,9 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import org.apache.webbeans.cditest.CdiTestContainer;
+import org.apache.webbeans.cditest.CdiTestContainerLoader;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
@@ -35,32 +38,30 @@ public class CdiExtensionIT extends MultiDriverTestClass {
 
 	static CdiTestContainer container;
 
-//    @BeforeClass
-//    public static void setUp() throws Exception {
-//
-//        // Prevent the Jersey extension to interact with the InitialContext
-//        System.setProperty("com.sun.jersey.server.impl.cdi.lookupExtensionInBeanManager", "true");
-//
-//        setupMultiDriverTestEnvironment();
-//
-//        container = CdiTestContainerLoader.getCdiContainer();
-//        container.bootContainer();
-//    }
-//
-//    @AfterClass
-//    public static void tearDown() throws Exception {
-//
-//        container.shutdownContainer();
-//
-//        tearDownMultiDriverTestEnvironment();
-//    }
+    @BeforeClass
+    public static void setUp() throws Exception {
+
+        // Prevent the Jersey extension to interact with the InitialContext
+        System.setProperty("com.sun.jersey.server.impl.cdi.lookupExtensionInBeanManager", "true");
+
+        setupMultiDriverTestEnvironment();
+
+        container = CdiTestContainerLoader.getCdiContainer();
+        container.bootContainer();
+    }
+
+    @AfterClass
+    public static void tearDown() throws Exception {
+
+        container.shutdownContainer();
+
+        tearDownMultiDriverTestEnvironment();
+    }
 
 	/**
 	 * @see DATAGRAPH-879
 	 */
 	@Test
-	@Ignore
-	@SuppressWarnings("null")
 	public void regularRepositoryShouldWork() {
 
 		RepositoryClient client = container.getInstance(RepositoryClient.class);
@@ -90,7 +91,6 @@ public class CdiExtensionIT extends MultiDriverTestClass {
 	 */
 	@Test
 	@Ignore
-	@SuppressWarnings("null")
 	public void repositoryWithQualifiersShouldWork() {
 
 		RepositoryClient client = container.getInstance(RepositoryClient.class);
@@ -103,8 +103,6 @@ public class CdiExtensionIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-879
 	 */
 	@Test
-	@Ignore
-	@SuppressWarnings("null")
 	public void repositoryWithCustomImplementationShouldWork() {
 
 		RepositoryClient client = container.getInstance(RepositoryClient.class);

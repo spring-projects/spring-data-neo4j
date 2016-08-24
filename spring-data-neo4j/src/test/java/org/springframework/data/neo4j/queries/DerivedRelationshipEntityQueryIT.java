@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -44,8 +45,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext
 public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 
-	private static GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
-
+	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -58,6 +58,11 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 
 	@Autowired
 	private Neo4jOperations neo4jOperations;
+
+	@BeforeClass
+	public static void beforeClass(){
+		graphDatabaseService = getGraphDatabaseService();
+	}
 
 	@Before
 	public void clearDatabase() {

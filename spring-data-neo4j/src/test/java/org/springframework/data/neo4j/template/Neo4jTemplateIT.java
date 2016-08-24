@@ -14,6 +14,7 @@
 package org.springframework.data.neo4j.template;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -52,9 +53,14 @@ import static org.neo4j.ogm.session.Utils.map;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class Neo4jTemplateIT extends MultiDriverTestClass {
 
-    private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
+    private static GraphDatabaseService graphDatabaseService;
 
     @Autowired private Neo4jOperations template;
+
+    @BeforeClass
+    public static void beforeClass(){
+        graphDatabaseService = getGraphDatabaseService();
+    }
 
     @Before
     public void setUpOgmSession() {

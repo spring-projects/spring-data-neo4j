@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -50,12 +51,17 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext
 public class PagedQueryIT extends MultiDriverTestClass {
 
-	private static GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
+	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired
 	private CinemaRepository cinemaRepository;
 
 	@Autowired Neo4jOperations neo4jOperations;
+
+	@BeforeClass
+	public static void beforeClass(){
+		graphDatabaseService = getGraphDatabaseService();
+	}
 
 	@Before
 	public void init() {
