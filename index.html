@@ -4,30 +4,26 @@ title: Spring Data Neo4j
 
 badges:
 
-  # Specify your project's twitter handle, if any. Delete if none.
-  twitter: Neo4j
+# Specify your project's twitter handle, if any. Delete if none.
+twitter: Neo4j
 
-  # Customize your project's badges. Delete any entries that do not apply.
-  custom:
-    - name: Source (GitHub)
-      url:  https://github.com/SpringSource/spring-data-neo4j
-      icon: github
+# Customize your project's badges. Delete any entries that do not apply.
+custom:
+- name: Source (GitHub)
+url:  https://github.com/SpringSource/spring-data-neo4j
+icon: github
 
-    - name: Issues (JIRA)
-      url:  http://jira.springsource.org/browse/DATAGRAPH
-      icon: tracking
+- name: Issues (JIRA)
+url:  http://jira.springsource.org/browse/DATAGRAPH
+icon: tracking
 
-    - name: CI (Bamboo)
-      url:  https://build.springsource.org/browse/SPRINGDATA
-      icon: ci
+- name: CI (Bamboo)
+url:  https://build.springsource.org/browse/SPRINGDATA
+icon: ci
 
-    - name: StackOverflow
-      url:  http://stackoverflow.com/questions/tagged/spring-data-neo4j
-      icon: stackoverflow
-
-#   - name: Metrics (SonarQube)
-#     url:  https://sonar.springsource.org/dashboard/index/org.springframework.data:spring-data-jpa
-#     icon: metrics
+- name: StackOverflow
+url:  http://stackoverflow.com/questions/tagged/spring-data-neo4j-4
+icon: stackoverflow
 ---
 <!DOCTYPE HTML>
 <html lang="en-US">
@@ -39,7 +35,9 @@ badges:
 
 
 {% capture billboard_description %}
+
 This project provides Spring Data support for the [Neo4j](http://neo4j.com/developer/) Graph Database, including annotated POJOs, SD-Repositories and Neo4j-Template.
+
 {% endcapture %}
 
 {% capture main_content %}
@@ -51,15 +49,15 @@ Spring Data Neo4j is core part of the Spring Data project which aims to provide 
 
 ## Features
 
-- Support for property graphs (nodes connected via relationships, each with arbitrary properties)
-- Object-Graph-Mapping of annotated POJO entities
-- Neo4jTemplate with convenient API, exception translation and optional transaction management
-- extensive Spring Data Commons Repositories Support, including annotated and derived finder methods
-- Arbitrary result projections for finder methods
-- Supports the Cypher Graph Quey Language
-- Based on the Neo4j-OGM library
-- Supports binary (bolt), http and embedded transports to connect to Neo4j
-- Available with Spring Boot (since 1.4.0-M3)
+* Support for property graphs (nodes connected via relationships, each with arbitrary properties)
+* Object-Graph-Mapping of annotated POJO entities
+* Neo4jTemplate with convenient API, exception translation and optional transaction management
+* extensive Spring Data Commons Repositories Support, including annotated and derived finder methods
+* Arbitrary result projections for finder methods
+* Supports the Cypher Graph Quey Language
+* Based on the Neo4j-OGM library
+* Supports binary (bolt), http and embedded transports to connect to Neo4j
+* Available with Spring Boot (since 1.4.0-M3)
 
 <span id="quick-start"></span>
 
@@ -67,7 +65,9 @@ Spring Data Neo4j is core part of the Spring Data project which aims to provide 
 
 {% include download_widget.md %}
 
-## Example
+### Domain Entities
+
+Annotate your domain objects.
 
 ```java
 @NodeEntity
@@ -86,29 +86,31 @@ public class Movie {
 }
 ```
 
-## Repositories
+### Repositories
 
-Declare a repository interface
+Declare a repository interface.
 
 ```java
 interface MovieRepository extends GraphRepository<Movie> {
-  
+
   // derived finder
   Movie findByTitle(String title);
 
   @Query("MATCH (m:Movie)<-[rating:RATED]-(user) WHERE id(movie)={movie} return rating")
   List<Rating> getRatings(@Param("movie") Movie movie);
-  
+
   // Co-Actors
   Set<Person> findByActorsMoviesActorName(String name);
-	
+
   @Query("MATCH (movie:Movie)-[:HAS_GENRE]->(genre)<-[:HAS_GENRE]-(similar)
           WHERE id(movie) = {0} RETURN similar")
   List<Movie> findSimilarMovies(Movie movie);
 }
 ```
 
-Enable Spring Data Neo4j repositories
+### Configuration
+
+Enable Spring Data Neo4j repositories.
 
 ```java
 @Configuration
@@ -124,11 +126,13 @@ public class PersistenceContext extends Neo4jConfiguration {
 }
 ```
 
+### Example
+
 Use the repository
 
-```java    
+```java
 @Autowired MovieRepository repo;
-  
+
 Iterable<Movie> movies = repo.findAll();
 Movie movie = repo.findByTitle("The Matrix");
 repo.save(movie);
@@ -138,7 +142,7 @@ List<Rating> ratings = repo.getRatings(movie);
 
 {% endcapture %}
 
-{% capture Relationship_resources %}
+{% capture related_resources %}
 
 ### Example Projects
 
@@ -157,6 +161,7 @@ List<Rating> ratings = repo.getRatings(movie);
 * [Spring Data Neo4j Reference](http://docs.spring.io/spring-data/neo4j/docs/current/reference/html/)
 
 {% endcapture %}
+
 
 {% include project_page.html %}
 </html>

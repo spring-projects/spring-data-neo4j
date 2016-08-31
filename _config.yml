@@ -7,8 +7,6 @@ encoding: UTF-8
 github: [metadata]
 kramdown:
   input: GFM
-  auto_ids: true
-  syntax_highlighter: rouge
   hard_wrap: false
   smart_quotes: ["apos", "apos", "quot", "quot"]
 gems:
