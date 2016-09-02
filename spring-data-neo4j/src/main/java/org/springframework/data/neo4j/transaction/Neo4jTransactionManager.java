@@ -164,7 +164,12 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 						"Neo4jTransactionManager only supports 'required' propagation.");
 			}
 
-			Transaction transactionData = session.beginTransaction();
+			Transaction transactionData;
+			if (definition.isReadOnly()) {
+				transactionData = session.beginTransaction(Transaction.Type.READ_ONLY);
+			} else {
+				transactionData = session.beginTransaction(Transaction.Type.READ_WRITE);
+			}
 
 			txObject.setTransactionData(transactionData);
 			if (logger.isDebugEnabled()) {

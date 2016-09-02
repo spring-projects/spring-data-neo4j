@@ -39,7 +39,16 @@ public class GraphTransactionStatus implements TransactionStatus {
 
 		if (propagation == TransactionDefinition.PROPAGATION_REQUIRES_NEW)  {
 			logger.debug("Creating new transaction or extending existing one");
-			tx = session.beginTransaction();
+			if (transactionDefinition.isReadOnly()) {
+				tx = session.beginTransaction(Transaction.Type.READ_ONLY);
+			} else {
+				tx = session.getTransaction();
+				if (tx == null) {
+					tx = session.beginTransaction(Transaction.Type.READ_WRITE);
+				} else {
+					tx = session.beginTransaction(); // use type of existing transaction
+				}
+			}
 			newTransaction = true;
 		} else if (propagation == TransactionDefinition.PROPAGATION_REQUIRED) {
 			tx = session.getTransaction();
@@ -47,7 +56,11 @@ public class GraphTransactionStatus implements TransactionStatus {
 					|| tx.status().equals(Transaction.Status.CLOSED)
 					|| tx.status().equals(Transaction.Status.COMMITTED)
 					|| tx.status().equals(Transaction.Status.ROLLEDBACK)) {
-				tx = session.beginTransaction();
+				if (transactionDefinition.isReadOnly()) {
+					tx = session.beginTransaction(Transaction.Type.READ_ONLY);
+				} else {
+					tx = session.beginTransaction(Transaction.Type.READ_WRITE);
+				}
 				newTransaction = true;
 				logger.debug("Creating new transaction");
 			} else {

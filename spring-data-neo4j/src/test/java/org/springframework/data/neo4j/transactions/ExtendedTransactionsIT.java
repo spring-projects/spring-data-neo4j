@@ -13,20 +13,34 @@
 
 package org.springframework.data.neo4j.transactions;
 
-import static org.junit.Assert.*;
-
 import java.util.Iterator;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.driver.v1.Transaction;
+import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.template.Neo4jOperations;
+import org.springframework.data.neo4j.transaction.GraphTransactionManager;
+import org.springframework.data.neo4j.transaction.SessionHolder;
 import org.springframework.data.neo4j.transactions.service.ServiceA;
 import org.springframework.data.neo4j.transactions.service.ServiceB;
 import org.springframework.data.neo4j.transactions.service.WrapperService;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.transaction.support.AbstractPlatformTransactionManager;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import static org.junit.Assert.*;
 
 /**
  * @author: Vince Bickers
@@ -45,8 +59,14 @@ public class ExtendedTransactionsIT extends MultiDriverTestClass {
 	@Autowired
 	WrapperService wrapperService;
 
+	@Autowired
+	SessionFactory sessionFactory;
+
+	@Autowired
+	PlatformTransactionManager annotationDrivenTransactionManager;
+
 	@Before
-	public void tearDown() {
+	public void init() {
 		wrapperService.purge();
 	}
 
@@ -115,6 +135,23 @@ public class ExtendedTransactionsIT extends MultiDriverTestClass {
 		}
 	}
 
+
+	@Transactional(readOnly = true)
+	@Test
+	public void shouldCreateReadOnlyTransaction() {
+
+		assertTrue(((DelegatingTransactionManager) annotationDrivenTransactionManager).getTransactionDefinition().isReadOnly());
+
+	}
+
+
+	@Transactional(readOnly = false)
+	@Test
+	public void shouldCreateReadWriteTransaction() {
+
+		assertFalse(((DelegatingTransactionManager) annotationDrivenTransactionManager).getTransactionDefinition().isReadOnly());
+
+	}
 	private int countNodes() {
 		Iterator iterator = wrapperService.fetch().iterator();
 		int i = 0;
@@ -124,4 +161,5 @@ public class ExtendedTransactionsIT extends MultiDriverTestClass {
 		}
 		return i;
 	}
+
 }
