@@ -13,6 +13,7 @@
 
 package org.springframework.data.neo4j.examples.galaxy.context;
 
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Vince Bickers
+ * @author Luanne Misquitta
  */
 @Configuration
 @ComponentScan({"org.springframework.data.neo4j.examples.galaxy.*"})
@@ -38,4 +40,9 @@ public class GalaxyContext extends Neo4jConfiguration {
         return new SessionFactory("org.springframework.data.neo4j.examples.galaxy.domain");
     }
 
+    @Bean
+    @Override
+    public Session getSession() throws Exception {
+        return super.getSession();
+    }
 }

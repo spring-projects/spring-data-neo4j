@@ -13,6 +13,24 @@
 
 package org.springframework.data.neo4j.examples.movies;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
+
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -21,28 +39,29 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
-import org.neo4j.tooling.GlobalGraphOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
-import org.springframework.data.neo4j.examples.movies.domain.*;
-import org.springframework.data.neo4j.examples.movies.repo.*;
+import org.springframework.data.neo4j.examples.movies.domain.Actor;
+import org.springframework.data.neo4j.examples.movies.domain.Cinema;
+import org.springframework.data.neo4j.examples.movies.domain.Genre;
+import org.springframework.data.neo4j.examples.movies.domain.Movie;
+import org.springframework.data.neo4j.examples.movies.domain.ReleasedMovie;
+import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
+import org.springframework.data.neo4j.examples.movies.domain.User;
+import org.springframework.data.neo4j.examples.movies.repo.AbstractAnnotatedEntityRepository;
+import org.springframework.data.neo4j.examples.movies.repo.AbstractEntityRepository;
+import org.springframework.data.neo4j.examples.movies.repo.ActorRepository;
+import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
+import org.springframework.data.neo4j.examples.movies.repo.RatingRepository;
+import org.springframework.data.neo4j.examples.movies.repo.TempMovieRepository;
+import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.data.neo4j.examples.movies.service.UserService;
-import org.springframework.data.neo4j.server.InProcessServer;
-import org.springframework.data.neo4j.server.Neo4jServer;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import static org.junit.Assert.*;
-import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 
 /**
  * @author Michal Bachman
@@ -245,7 +264,7 @@ public class MoviesIntegrationTest extends MultiDriverTestClass {
         assertNull(userRepository.findOne(user.getId(), 10));
 
         try (Transaction tx = getGraphDatabaseService().beginTx()) {
-            assertFalse(GlobalGraphOperations.at(getGraphDatabaseService()).getAllNodes().iterator().hasNext());
+            assertFalse(getGraphDatabaseService().getAllNodes().iterator().hasNext());
             tx.success();
         }
     }

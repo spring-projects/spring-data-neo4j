@@ -73,12 +73,12 @@ public class World {
         otherWorld.reachableByRocket.add(this); // bi-directional in domain.
     }
 
-    @Relationship(type=REACHABLE_BY_ROCKET)
+    @Relationship(type=REACHABLE_BY_ROCKET, direction = "UNDIRECTED")
     public Set<World> getReachableByRocket() {
         return this.reachableByRocket;
     }
 
-    @Relationship(type=REACHABLE_BY_ROCKET)
+    @Relationship(type=REACHABLE_BY_ROCKET, direction = "UNDIRECTED")
     public void setReachableByRocket(Set<World> reachableByRocket) {
         this.reachableByRocket.clear();
         this.reachableByRocket = reachableByRocket;

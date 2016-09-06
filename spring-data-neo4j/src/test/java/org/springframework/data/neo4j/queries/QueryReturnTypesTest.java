@@ -16,6 +16,7 @@ package org.springframework.data.neo4j.queries;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.model.QueryStatistics;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.galaxy.context.GalaxyContext;
@@ -40,6 +41,8 @@ public class QueryReturnTypesTest extends MultiDriverTestClass {
     @Autowired
     WorldRepository worldRepository;
 
+    @Autowired Session session;
+
     @Test
     public void shouldCallExecuteWhenPrimitiveVoidReturnTypeOnQuery() {
 
@@ -48,6 +51,7 @@ public class QueryReturnTypesTest extends MultiDriverTestClass {
         worldRepository.save(world);
         worldRepository.touchAllWorlds();
 
+        session.clear();
         world = worldRepository.findOne(world.getId());
         assertNotNull(world.getUpdated());
 
@@ -67,6 +71,7 @@ public class QueryReturnTypesTest extends MultiDriverTestClass {
         worldRepository.save(tatooine);
         worldRepository.touchAllWorlds();
 
+        session.clear();
         tatooine = worldRepository.findOne(tatooine.getId());
 
         assertNotNull(tatooine.getUpdated());
