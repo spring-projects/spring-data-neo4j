@@ -586,3 +586,30 @@ public Configuration cnfiguration() {
 Currently only Basic Authentication is supported by Neo4j, so the only Credentials implementation available is `UsernameAndPasswordCredentials`
 ====
 
+== Transport Layer Security
+
+The Bolt and Http drivers allow you to connect to Neo4j over a secure channel. These rely on Transport Layer Security (aka SSL) and require the installation of a signed certificate on the server.
+
+In certain situations (e.g. some cloud environments) it may not be possible to install a signed certificate even though you still want to use an encrypted connection.
+
+To support this, both drivers have configuration settings allowing you to bypass certificate checking, although they differ in their implementation.
+
+.ogm.properties (bolt):
+[source, properties]
+----
+encryption.level=REQUIRED
+trust.strategy=TRUST_ON_FIRST_USE
+trust.certificate.file=/tmp/cert
+----
+
+TRUST_ON_FIRST_USE means that the Bolt Driver will trust the first connection to a host to be safe and intentional. On subsequent connections, the driver will verify that the host is the same as on that first connection.
+
+.ogm.properties (driver):
+[source, properties]
+----
+trust.trategy = ACCEPT_UNSIGNED
+----
+
+The ACCEPT_UNSIGNED strategy permits the Http Driver to accept Neo4j's default `snakeoil.cert` (and any other) unsigned certificate when connecting over HTTPS.
+
+_Note: Both these strategies leave you vulnerable to a MITM attack. You should probably not use them unless your servers are behind a secure firewall.
