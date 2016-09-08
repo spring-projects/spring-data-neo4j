@@ -1,4 +1,7 @@
-package org.springframework.data.neo4j.transactions;
+package org.springframework.data.neo4j.transaction;
+
+import static org.junit.Assert.*;
+import static org.mockito.BDDMockito.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,16 +16,11 @@ import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.transaction.Transaction;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
-import org.springframework.data.neo4j.transaction.SessionHolder;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import static org.junit.Assert.*;
-import static org.mockito.BDDMockito.*;
 
 /**
  * @author Mark Angrish
@@ -51,7 +49,6 @@ public class Neo4jTransactionManagerTests {
 
 		given(session.getTransaction()).willReturn(tx);
 		given(sf.openSession()).willReturn(session);
-
 
 		tm.setSessionFactory(sf);
 		tt.setTransactionManager(tm);
@@ -96,7 +93,7 @@ public class Neo4jTransactionManagerTests {
 		assertTrue("Transaction Synchronization still has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
 		assertTrue("Synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
 
-		verify(session).beginTransaction(Transaction.Type.READ_WRITE);
+		verify(session).beginTransaction();
 		verify(tx).commit();
 		verify(tx).close();
 	}
@@ -116,15 +113,14 @@ public class Neo4jTransactionManagerTests {
 				}
 			});
 			fail("Should have thrown RuntimeException");
-		}
-		catch (RuntimeException ex) {
+		} catch (RuntimeException ex) {
 			// expected
 		}
 
 		assertTrue("Transaction Synchronization still has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
 		assertTrue("Synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
 
-		verify(session).beginTransaction(Transaction.Type.READ_WRITE);
+		verify(session).beginTransaction();
 		verify(tx).rollback();
 		verify(tx).close();
 	}
@@ -145,7 +141,7 @@ public class Neo4jTransactionManagerTests {
 
 		assertTrue("Transaction Synchronization still has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
 
-		verify(session).beginTransaction(Transaction.Type.READ_WRITE);
+		verify(session).beginTransaction();
 		verify(tx).rollback();
 		verify(tx).close();
 	}
@@ -168,10 +164,9 @@ public class Neo4jTransactionManagerTests {
 		});
 		assertTrue("Correct result list", result == l);
 
-		verify(session).beginTransaction(Transaction.Type.READ_WRITE);
+		verify(session).beginTransaction();
 		verify(tx).commit();
 		verify(tx).close();
-
 	}
 
 	@Test
@@ -190,16 +185,14 @@ public class Neo4jTransactionManagerTests {
 				}
 			});
 			fail("Should have thrown RuntimeException");
-		}
-		catch (RuntimeException ex) {
+		} catch (RuntimeException ex) {
 			// expected
 		}
 
-		verify(session).beginTransaction(Transaction.Type.READ_WRITE);
+		verify(session).beginTransaction();
 		verify(tx).rollback();
 		verify(tx).close();
 	}
-
 
 	@Test
 	@Ignore("Still being tested. Not sure why this is failing.")
@@ -219,16 +212,14 @@ public class Neo4jTransactionManagerTests {
 				}
 			});
 			fail("Should have thrown UnexpectedRollbackException");
-		}
-		catch (UnexpectedRollbackException ex) {
+		} catch (UnexpectedRollbackException ex) {
 			// expected
 		}
 
-		verify(session).beginTransaction(Transaction.Type.READ_WRITE);
+		verify(session).beginTransaction();
 		verify(tx).rollback();
 		verify(tx).close();
 	}
-
 
 //
 //	@Test
@@ -419,5 +410,4 @@ public class Neo4jTransactionManagerTests {
 //		assertTrue(!TransactionSynchronizationManager.isSynchronizationActive());
 //	}
 //
-
 }

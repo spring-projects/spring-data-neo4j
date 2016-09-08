@@ -13,18 +13,19 @@
 
 package org.springframework.data.neo4j.web;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.transactions.DelegatingTransactionManager;
 import org.springframework.data.neo4j.web.context.WebAppContext;
 import org.springframework.data.neo4j.web.domain.User;
 import org.springframework.data.neo4j.web.repo.UserRepository;
@@ -36,12 +37,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.web.context.WebApplicationContext;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author Michal Bachman
@@ -87,11 +86,9 @@ public class WebIntegrationIT extends MultiDriverTestClass {
 		// to the transaction
 
 		userRepository.save(adam);
-
 	}
 
 	@Test
-
 	public void shouldNotShareSessionBetweenRequestsWithDifferentSession() throws Exception {
 		mockMvc.perform(get("/user/{name}/friends", "Adam"))
 				.andExpect(status().isOk())
@@ -126,12 +123,6 @@ public class WebIntegrationIT extends MultiDriverTestClass {
 
 	}
 
-	@Test
-	@Transactional(readOnly = true)
-	@Ignore("this isn't working the way I'd expect. The initial tx is readonly, but another one gets created when the save executes in the before method, which isn't released. It then doesn't re-use the tx from this method")
-	public void shouldCreateReadOnlyTransaction() {
-		Assert.assertTrue(((DelegatingTransactionManager) transactionManager).getTransactionDefinition().isReadOnly());
-	}
 
 	@Test
 	public void shouldNotShareSessionBetweenMultiThreadedRequests() throws Exception {
@@ -165,5 +156,35 @@ public class WebIntegrationIT extends MultiDriverTestClass {
 
 		executor.shutdown();
 		executor.awaitTermination(1, TimeUnit.MINUTES);
+	}
+
+	public static class DelegatingTransactionManager implements PlatformTransactionManager {
+
+		private PlatformTransactionManager transactionManager;
+		private TransactionDefinition transactionDefinition;
+
+		public DelegatingTransactionManager(PlatformTransactionManager platformTransactionManager) {
+			this.transactionManager = platformTransactionManager;
+		}
+
+		@Override
+		public TransactionStatus getTransaction(TransactionDefinition transactionDefinition) throws TransactionException {
+			this.transactionDefinition = transactionDefinition;
+			return transactionManager.getTransaction(transactionDefinition);
+		}
+
+		@Override
+		public void commit(TransactionStatus transactionStatus) throws TransactionException {
+			transactionManager.commit(transactionStatus);
+		}
+
+		@Override
+		public void rollback(TransactionStatus transactionStatus) throws TransactionException {
+			transactionManager.rollback(transactionStatus);
+		}
+
+		public TransactionDefinition getTransactionDefinition() {
+			return transactionDefinition;
+		}
 	}
 }

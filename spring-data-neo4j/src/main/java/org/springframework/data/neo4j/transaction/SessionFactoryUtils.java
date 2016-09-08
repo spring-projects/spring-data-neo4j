@@ -13,6 +13,9 @@
 
 package org.springframework.data.neo4j.transaction;
 
+import java.lang.reflect.Method;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.ogm.exception.InvalidDepthException;
@@ -27,6 +30,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.transaction.support.ResourceHolderSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Helper class featuring methods for Neo4j OGM Session handling,
@@ -41,10 +45,8 @@ public class SessionFactoryUtils {
 
 	private static final Log logger = LogFactory.getLog(SessionFactoryUtils.class);
 
-	private static ThreadLocal<Session> sessions = new ThreadLocal<>();
 
-	public static void closeSession() {
-		sessions.remove();
+	public static void closeSession(Session session) {
 	}
 
 	public static Session getSession(SessionFactory sessionFactory) throws IllegalStateException {
@@ -63,31 +65,24 @@ public class SessionFactoryUtils {
 		}
 
 		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-			throw new IllegalStateException("No Neo4j Session bound to thread, " +
-					"and configuration does not allow creation of non-transactional one here");
+			return null;
 		}
 
-		Session session = sessions.get();
+		Session session = sessionFactory.openSession();
 
-		logger.debug("Found existing Neo4j Session [" + session + "]");
-
-		if (session == null) {
-			session = sessionFactory.openSession();
-			logger.debug("Opening Neo4j Session [" + session + "]");
-			sessions.set(session);
+		if (TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
+			System.out.println("hitting read only txn.");
 		}
 
+		logger.debug("Registering transaction synchronization for Neo4j Session");
+		// Use same Session for further Neo4j actions within the transaction.
+		// Thread object will get removed by synchronization at transaction completion.
 
-		if (TransactionSynchronizationManager.isSynchronizationActive()) {
-			logger.debug("Registering transaction synchronization for Neo4j Session");
-			// Use same Session for further Neo4j actions within the transaction.
-			// Thread object will get removed by synchronization at transaction completion.
-			sessionHolder = new SessionHolder(session);
-			sessionHolder.setSynchronizedWithTransaction(true);
-			TransactionSynchronizationManager.registerSynchronization(
-					new SessionSynchronization(sessionHolder, sessionFactory, true));
-			TransactionSynchronizationManager.bindResource(sessionFactory, sessionHolder);
-		}
+		sessionHolder = new SessionHolder(session);
+		sessionHolder.setSynchronizedWithTransaction(true);
+		TransactionSynchronizationManager.registerSynchronization(
+				new SessionSynchronization(sessionHolder, sessionFactory, true));
+		TransactionSynchronizationManager.bindResource(sessionFactory, sessionHolder);
 
 		return session;
 	}
@@ -146,7 +141,6 @@ public class SessionFactoryUtils {
 
 		@Override
 		public void flushResource(SessionHolder resourceHolder) {
-//			resourceHolder.getSession().clear();
 		}
 
 		@Override

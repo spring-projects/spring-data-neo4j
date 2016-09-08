@@ -81,7 +81,7 @@ class AsyncRequestInterceptor extends CallableProcessingInterceptorAdapter imple
 		if (this.timeoutInProgress) {
 			logger.debug("Closing Neo4j OGM Session after async request timeout");
 			// close session.
-			SessionFactoryUtils.closeSession();
+//			SessionFactoryUtils.closeSession(session);
 		}
 	}
 

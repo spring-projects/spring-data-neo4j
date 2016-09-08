@@ -46,7 +46,7 @@ public class ApplicationConfig extends Neo4jConfiguration implements Transaction
     {
         try
         {
-            return new DelegatingTransactionManager(transactionManager());
+            return new ExtendedTransactionsIT.DelegatingTransactionManager(transactionManager());
         }
         catch (Exception e)
         {

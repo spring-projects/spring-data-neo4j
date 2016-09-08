@@ -26,6 +26,9 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.support.PersistenceExceptionTranslator;
+import org.springframework.data.neo4j.transaction.SessionFactoryUtils;
 
 /**
  * {@link BeanFactoryPostProcessor} to register a {@link SessionFactoryBeanDefinition} for the
@@ -34,7 +37,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
  *
  * @author Mark Angrish
  */
-public class SessionBeanDefinitionRegistrarPostProcessor implements BeanFactoryPostProcessor {
+public class SessionBeanDefinitionRegistrarPostProcessor implements BeanFactoryPostProcessor, PersistenceExceptionTranslator {
 
 	private static String getSessionFactoryBeanRef(ConfigurableListableBeanFactory beanFactory) {
 
@@ -58,6 +61,11 @@ public class SessionBeanDefinitionRegistrarPostProcessor implements BeanFactoryP
 		emBeanDefinition.setAutowireCandidate(true);
 		BeanDefinitionReaderUtils.registerWithGeneratedName(emBeanDefinition,
 				(BeanDefinitionRegistry) sfbd.getBeanFactory());
+	}
+
+	@Override
+	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
+		return SessionFactoryUtils.convertOgmAccessException(ex);
 	}
 
 	private static class SessionFactoryBeanDefinition {

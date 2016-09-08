@@ -13,28 +13,46 @@
 
 package org.springframework.data.neo4j.transaction;
 
+import static org.neo4j.ogm.transaction.Transaction.Status.*;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.ClassUtils;
 
 /**
  * Delegate for creating a shareable Neo4j OGM {@link Session}
  * reference for a given {@link SessionFactory}.
- *
  * <p>A shared Session will behave just like a Session fetched from
  * an application SessionFactory.
  * It will delegate all calls to the current transactional Session, if any;
  * otherwise it will fall back to a newly created Session per operation.
  *
- *
  * @author Mark Angrish
  * @see Neo4jTransactionManager
  */
 public class SharedSessionCreator {
+
+	private static final Set<String> transactionRequiringMethods = new HashSet<>(6);
+
+	static {
+		transactionRequiringMethods.add("deleteAll");
+		transactionRequiringMethods.add("save");
+		transactionRequiringMethods.add("clear");
+		transactionRequiringMethods.add("delete");
+		transactionRequiringMethods.add("purgeDatabase");
+	}
 
 	/**
 	 * Create a transactional Session proxy for the given SessionFactory.
@@ -59,10 +77,14 @@ public class SharedSessionCreator {
 	 */
 	private static class SharedSessionInvocationHandler implements InvocationHandler {
 
+		private final Log logger = LogFactory.getLog(getClass());
+
 		private final SessionFactory targetFactory;
+		private final ClassLoader proxyClassLoader;
 
 		public SharedSessionInvocationHandler(SessionFactory target) {
 			this.targetFactory = target;
+			this.proxyClassLoader = this.targetFactory.getClass().getClassLoader();
 		}
 
 
@@ -74,12 +96,12 @@ public class SharedSessionCreator {
 				// Only consider equal when proxies are identical.
 				return (proxy == args[0]);
 			} else if (method.getName().equals("hashCode")) {
-				// Use hashCode of PersistenceManager proxy.
-				return System.identityHashCode(proxy);
+				// Use hashCode of Session proxy.
+				return hashCode();
 			} else if (method.getName().equals("toString")) {
 				// Deliver toString without touching a target Session.
-				return "Spring Session proxy for target factory [" + targetFactory + "]";
-			}  else if (method.getName().equals("beginTransaction")) {
+				return "Shared Session proxy for target factory [" + targetFactory + "]";
+			} else if (method.getName().equals("beginTransaction")) {
 				throw new IllegalStateException(
 						"Not allowed to create transaction on shared Session - " +
 								"use Spring transactions instead");
@@ -89,20 +111,36 @@ public class SharedSessionCreator {
 			// managed by the factory or a temporary one for the given invocation.
 			Session target = SessionFactoryUtils.getSession(this.targetFactory);
 
+			if (transactionRequiringMethods.contains(method.getName())) {
+				if (target == null || (!TransactionSynchronizationManager.isActualTransactionActive() &&
+						EnumSet.of(CLOSED, COMMITTED,ROLLEDBACK).contains(target.getTransaction().status()))) {
+					throw new IllegalStateException("No Session with actual transaction available " +
+							"for current thread - cannot reliably process '" + method.getName() + "' call");
+				}
+			}
+
 			// Regular Session operations.
+			boolean isNewSession = false;
 			if (target == null) {
+				logger.debug("Creating new Session for shared Session invocation");
 				target = this.targetFactory.openSession();
+				isNewSession = true;
 			}
 
 			// Invoke method on current Session.
 			try {
+
 				return method.invoke(target, args);
-			} catch (InvocationTargetException ex) {
+			}
+			catch (InvocationTargetException ex) {
 				throw ex.getTargetException();
-			}finally {
-				//TODO: (mangrish) check if this is a new session and only then close.
-				SessionFactoryUtils.closeSession();
+			}
+			finally {
+				if (isNewSession) {
+					SessionFactoryUtils.closeSession(target);
+				}
 			}
 		}
 	}
+
 }

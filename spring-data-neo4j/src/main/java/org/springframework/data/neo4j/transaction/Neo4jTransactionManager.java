@@ -165,10 +165,10 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 			}
 
 			Transaction transactionData;
-			if (definition.isReadOnly()) {
+			if (definition.isReadOnly()  && txObject.isNewSessionHolder()) {
 				transactionData = session.beginTransaction(Transaction.Type.READ_ONLY);
 			} else {
-				transactionData = session.beginTransaction(Transaction.Type.READ_WRITE);
+				transactionData = session.beginTransaction();
 			}
 
 			txObject.setTransactionData(transactionData);
@@ -180,6 +180,11 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 			if (txObject.isNewSessionHolder()) {
 				TransactionSynchronizationManager.bindResource(getSessionFactory(), txObject.getSessionHolder());
 			}
+
+			if (definition.isReadOnly()) {
+				TransactionSynchronizationManager.setCurrentTransactionReadOnly(true);
+			}
+
 			txObject.getSessionHolder().setSynchronizedWithTransaction(true);
 		} catch (TransactionException ex) {
 			closeSessionAfterFailedBegin(txObject);
@@ -206,7 +211,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 				logger.debug("Could not rollback Session after failed transaction begin", ex);
 			} finally {
 				// close session.
-				SessionFactoryUtils.closeSession();
+				SessionFactoryUtils.closeSession(session);
 			}
 			txObject.setSessionHolder(null, false);
 		}
@@ -313,7 +318,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 				logger.debug("Closing Neo4j Session [" + session + "] after transaction");
 			}
 			// close session.
-			SessionFactoryUtils.closeSession();
+			SessionFactoryUtils.closeSession(session);
 		} else {
 			logger.debug("Not closing pre-bound Neo4j Session after transaction");
 		}

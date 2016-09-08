@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  * @author Mark Angrish
  */
 @Repository
-@Transactional
+@Transactional(readOnly = true)
 public class SimpleNeo4jRepository<T> implements Neo4jRepository<T> {
 
 	private static final int DEFAULT_QUERY_DEPTH = 1;
@@ -63,12 +63,14 @@ public class SimpleNeo4jRepository<T> implements Neo4jRepository<T> {
 		return clazz;
 	}
 
+	@Transactional
 	@Override
 	public <S extends T> S save(S entity) {
 		session.save(entity);
 		return entity;
 	}
 
+	@Transactional
 	@Override
 	public <S extends T> Iterable<S> save(Iterable<S> entities) {
 		for (S entity : entities) {
@@ -93,6 +95,7 @@ public class SimpleNeo4jRepository<T> implements Neo4jRepository<T> {
 		return session.countEntitiesOfType(clazz);
 	}
 
+	@Transactional
 	@Override
 	public void delete(Long id) {
 		Object o = findOne(id);
@@ -101,11 +104,13 @@ public class SimpleNeo4jRepository<T> implements Neo4jRepository<T> {
 		}
 	}
 
+	@Transactional
 	@Override
 	public void delete(T t) {
 		session.delete(t);
 	}
 
+	@Transactional
 	@Override
 	public void delete(Iterable<? extends T> ts) {
 		for (T t : ts) {
@@ -113,17 +118,20 @@ public class SimpleNeo4jRepository<T> implements Neo4jRepository<T> {
 		}
 	}
 
+	@Transactional
 	@Override
 	public void deleteAll() {
 		session.deleteAll(clazz);
 	}
 
+	@Transactional
 	@Override
 	public <S extends T> S save(S s, int depth) {
 		session.save(s, depth);
 		return s;
 	}
 
+	@Transactional
 	@Override
 	public <S extends T> Iterable<S> save(Iterable<S> ses, int depth) {
 		session.save(ses, depth);

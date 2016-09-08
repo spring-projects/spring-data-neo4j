@@ -10,7 +10,6 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  *
  */
-
 package org.springframework.data.neo4j.repository.config;
 
 import java.lang.annotation.Annotation;
@@ -27,7 +26,6 @@ import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.data.neo4j.repository.support.GraphRepositoryFactoryBean;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
 import org.springframework.data.neo4j.repository.support.SessionBeanDefinitionRegistrarPostProcessor;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
