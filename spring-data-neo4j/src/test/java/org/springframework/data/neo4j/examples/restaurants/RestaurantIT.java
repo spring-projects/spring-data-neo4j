@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 
 import java.util.Collection;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
@@ -41,10 +42,17 @@ public class RestaurantIT extends MultiDriverTestClass {
 	@Autowired
 	private RestaurantRepository restaurantRepository;
 
+	@After
+	public void tearDown()
+	{
+		restaurantRepository.deleteAll();
+	}
+
 
 	@Test
 	public void shouldFindRestaurantsNear_nameParameterFirst() {
-		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 37.61649, -122.38681, 94128);
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
+				new Point(37.61649, -122.38681), 94128);
 		restaurantRepository.save(restaurant);
 
 		Collection<Restaurant> results = restaurantRepository.findByNameAndLocationNear(
@@ -57,7 +65,8 @@ public class RestaurantIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldFindRestaurantsNear_locationFirst() {
-		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 37.61649, -122.38681, 94128);
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
+				new Point(37.61649, -122.38681), 94128);
 		restaurantRepository.save(restaurant);
 
 		Collection<Restaurant> results = restaurantRepository.findByLocationNearAndName(
