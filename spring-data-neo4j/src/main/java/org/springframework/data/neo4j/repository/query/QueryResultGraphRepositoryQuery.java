@@ -21,8 +21,8 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.neo4j.ogm.MetaData;
-import org.neo4j.ogm.annotations.EntityFactory;
 import org.neo4j.ogm.context.SingleUseEntityMapper;
+import org.neo4j.ogm.entity.io.EntityFactory;
 import org.neo4j.ogm.request.Request;
 import org.neo4j.ogm.session.GraphCallback;
 import org.neo4j.ogm.session.Session;
