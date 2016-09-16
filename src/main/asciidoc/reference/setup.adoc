@@ -337,7 +337,6 @@ Currently only Basic Authentication is supported by Neo4j, so the only Credentia
            <groupId>org.springframework.data</groupId>
            <artifactId>spring-data-neo4j</artifactId>
            <version>${sdn.version}</version>
-           <type>test-jar</type>
        </dependency>
 
        <!-- the neo4j-ogm-test jar provides access to the http and embedded drivers for testing purposes -->
@@ -345,7 +344,6 @@ Currently only Basic Authentication is supported by Neo4j, so the only Credentia
           <groupId>org.neo4j</groupId>
           <artifactId>neo4j-ogm-test</artifactId>
           <version>${neo4j-ogm.version}</version>
-          <type>test-jar</type>
           <scope>test</scope>
       </dependency>
 
@@ -353,14 +351,12 @@ Currently only Basic Authentication is supported by Neo4j, so the only Credentia
            <groupId>org.neo4j</groupId>
             <artifactId>neo4j-kernel</artifactId>
             <version>${neo4j.version}</version>
-            <type>test-jar</type>
        </dependency>
 
        <dependency>
             <groupId>org.neo4j.app</groupId>
             <artifactId>neo4j-server</artifactId>
             <version>${neo4j.version}</version>
-            <type>test-jar</type>
        </dependency>
 
       <dependency>
