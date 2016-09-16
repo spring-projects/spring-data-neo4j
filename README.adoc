@@ -58,7 +58,7 @@ It supports:
 * automatic mapping annotated domain entities for nodes and relationships
 * interface based repositories with provided, derived, and annotated finder methods
 * transaction control
-* multi-transport (embedded, http, [bolt])
+* multi-transport (HTTP, Embedded, Bolt)
 * exception translation
 * integration into Spring Data REST
 * works well within Spring Boot
@@ -124,7 +124,7 @@ public class MyConfiguration extends Neo4jConfiguration {
 ----
 
 Spring Data Neo4j 4.1 provides support for connecting to Neo4j using different drivers.
-HTTP and Embedded drivers are available. 
+HTTP, Embedded and Bolt drivers are available.
 Spring Data Neo4j will attempt to auto-configure itself using a file called `ogm.properties`, which it expects to find on the classpath.
 
 .ogm.properties

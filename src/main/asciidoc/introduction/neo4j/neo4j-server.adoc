@@ -3,7 +3,7 @@
 [[reference_neo4j-server]]
 = Neo4j Server
 
-Neo4j is not only available in embedded mode. It can also be installed and run as a stand-alone server accessible via a HTTP API.
+Neo4j is not only available in embedded mode. It can also be installed and run as a stand-alone server accessible via an HTTP API or the Bolt binary protocol.
 Developers can integrate Spring Data Neo4j into the Neo4j server infrastructure in two ways: as a server extension, or remotely via the HTTP API.
 
 Spring Data Neo4j was historically built around the Neo4j embedded Java APIs, but are not optimized for remote usage.

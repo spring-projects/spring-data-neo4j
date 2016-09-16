@@ -31,6 +31,13 @@ If you want to use the embedded driver in your production application, you must 
     <artifactId>neo4j-ogm-embedded-driver</artifactId>
     <version>{ogm-version}</version>
 </dependency>
+
+<!-- add this dependency if you want to use the Bolt driver -->
+<dependency>
+    <groupId>org.neo4j</groupId>
+    <artifactId>neo4j-ogm-bolt-driver</artifactId>
+    <version>{ogm-version}</version>
+</dependency>
 ----
 
 .Gradle dependencies
@@ -40,6 +47,8 @@ dependencies {
     compile 'org.springframework.data:spring-data-neo4j:{version}'
     # add this dependency if you want to use the embedded driver
     compile 'org.neo4j:neo4j-ogm-embedded-driver:{ogm-version}'
+    # add this dependency if you want to use the Bolt driver
+    compile 'org.neo4j:neo4j-ogm-bolt-driver:{version}'
 }
 ----
 
@@ -49,6 +58,9 @@ dependencies {
 <dependency org="org.springframework.data" name="spring-data-neo4j" rev="{version}"/>
 <!-- add this dependency if you want to use the embedded driver -->
 <dependency org="org.neo4j" name="neo4j-ogm-embedded-driver" rev="{ogm-version}"/>
+<!-- add this dependency if you want to use the Bolt driver -->
+<dependency org="org.neo4j" name="neo4j-ogm-bolt-driver" rev="{version}"/>
+
 ----
 
 == Spring configuration
@@ -96,6 +108,7 @@ The following drivers are available.
 
 - Http driver
 - Embedded driver
+- Bolt driver
 
 By default, SDN 4.1 will try to configure the driver from a file `ogm.properties`, which it expects to find on the classpath.
 In many cases you won't want to, or will not be able to provide configuration information via a properties file.
@@ -147,7 +160,7 @@ public SessionFactory getSessionFactory() {
 
 _Note: Please see the section below describing the different ways you can pass credentials to the Http Driver_
 
-=== Configuring the Bolt Driver
+==== Configuring the Bolt Driver
 
 The Bolt Driver connects to and communicates with a Neo4j server via the binary Bolt protocol. If your application is running in client-server mode, you must use either the HTTP or Bolt driver.
 
