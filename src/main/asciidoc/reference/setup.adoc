@@ -147,6 +147,51 @@ public SessionFactory getSessionFactory() {
 
 _Note: Please see the section below describing the different ways you can pass credentials to the Http Driver_
 
+=== Configuring the Bolt Driver
+
+The Bolt Driver connects to and communicates with a Neo4j server via the binary Bolt protocol. If your application is running in client-server mode, you must use either the HTTP or Bolt driver.
+
+.ogm.properties
+[source, properties]
+----
+#Driver, required
+driver=org.neo4j.ogm.drivers.bolt.driver.BoltDriver
+
+#URI of the Neo4j database, required. If no port is specified, the default port 7687 is used. Otherwise, a port can be specified with bolt://neo4j:password@localhost:1234
+URI=bolt://neo4j:password@localhost
+
+#Connection pool size (the maximum number of sessions per URL), optional, defaults to 50
+connection.pool.size=150
+
+#Encryption level (TLS), optional, defaults to REQUIRED. Valid values are NONE,REQUIRED
+encryption.level=NONE
+
+#Trust strategy, optional, not used if not specified. Valid values are TRUST_ON_FIRST_USE,TRUST_SIGNED_CERTIFICATES
+trust.strategy=TRUST_ON_FIRST_USE
+
+#Trust certificate file, required if trust.strategy is specified
+trust.certificate.file=/tmp/cert
+----
+
+.Java Configuration
+[source, java]
+----
+Configuration configuration = new Configuration();
+                configuration.driverConfiguration()
+                .setDriverClassName("org.neo4j.ogm.drivers.bolt.driver.BoltDriver")
+                .setURI("bolt://neo4j:password@localhost")
+                .setEncryptionLevel("NONE")
+                .setTrustStrategy("TRUST_ON_FIRST_USE")
+                .setTrustCertFile("/tmp/cert");
+
+
+new SessionFactory(configuration, packages...);
+----
+
+
+_Note: Please see the Authentication section to see the different ways you can pass credentials to the HTTP/Bolt Drivers_
+
+
 ==== Configuring the Embedded Driver
 
 The Embedded Driver connects directly to the Neo4j database engine.
@@ -342,20 +387,20 @@ While you can use a narrower scope for this if you like, there is typically no a
 
 === Session Bean
 
-A `Session` is used to drive the object-graph mapping framework on which Spring Data Neo4j is based.  
+A `Session` is used to drive the object-graph mapping framework on which Spring Data Neo4j is based.
 All repository implementations and `Neo4jTemplate` are driven by the `Session`.
 You can also auto-wire it into your Spring beans and code against it directly if you wish.
 
-The life cycle of a `Session` is important to consider because it keeps track of the changes that have been made to entities and their relationships.  
-The reason it does this is so that only entities and relationships that have changed get persisted on save, which is particularly efficient when working with large graphs.  
+The life cycle of a `Session` is important to consider because it keeps track of the changes that have been made to entities and their relationships.
+The reason it does this is so that only entities and relationships that have changed get persisted on save, which is particularly efficient when working with large graphs.
 Note, however, that the `Session` *does not ever return cached objects* so there's no risk of getting stale data on load; it always hits the database.
 
 If your application relies on long-running sessions and does not reload entities then you may not see changes made from other users and find yourself working with outdated objects.
 On the other hand, if your sessions have too narrow a scope then your save operations can be unnecessarily expensive, as updates will be made to all objects if the session isn't aware of the those that were originally loaded.
 
-There's therefore a trade off between the two approaches.  
-In general, the scope of a `Session` should correspond to a "unit of work" in your application.  
-What this means depends on the usage scenario, but in a typical web-based Spring application we recommend using a request-scoped or HTTP-session-scoped `Session`.  
+There's therefore a trade off between the two approaches.
+In general, the scope of a `Session` should correspond to a "unit of work" in your application.
+What this means depends on the usage scenario, but in a typical web-based Spring application we recommend using a request-scoped or HTTP-session-scoped `Session`.
 Either way, if you make sure you load fresh data at the beginning of each unit of work then data integrity shouldn't be a problem.
 
 Additional beans can be configured just by defining them in the Spring context in the normal way.
