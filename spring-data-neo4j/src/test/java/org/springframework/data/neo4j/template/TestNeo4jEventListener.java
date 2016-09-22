@@ -14,9 +14,7 @@
 package org.springframework.data.neo4j.template;
 
 import org.neo4j.ogm.session.event.Event;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
+import org.springframework.data.neo4j.events.ModificationEvent;
 
 /**
  * Spring {@code ApplicationListener} used to capture {@link Event}s that occur during a test run.
@@ -25,12 +23,10 @@ import org.springframework.stereotype.Component;
  *
  * @author Adam George
  */
-@Component
-public abstract class TestNeo4jEventListener<E extends Event> {
+public abstract class TestNeo4jEventListener<E extends ModificationEvent> {
 
-	private Event event;
+	private ModificationEvent event;
 
-	@EventListener
 	public void onApplicationEvent(E event) {
 		this.event = event;
 	}
@@ -39,7 +35,7 @@ public abstract class TestNeo4jEventListener<E extends Event> {
 		return this.event != null;
 	}
 
-	public Event getEvent() {
+	public ModificationEvent getEvent() {
 		return event;
 	}
 }

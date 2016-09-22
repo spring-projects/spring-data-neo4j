@@ -31,7 +31,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class PersistenceContextInTheSamePackage {
 
 	@Bean
-	public PlatformTransactionManager transactionManager() throws Exception {
+	public PlatformTransactionManager transactionManager() {
 		return new Neo4jTransactionManager(sessionFactory());
 	}
 

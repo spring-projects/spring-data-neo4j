@@ -15,13 +15,10 @@ package org.springframework.data.neo4j.template.context;
 
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.session.event.Event;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.events.EventPublisher;
+import org.springframework.data.neo4j.events.*;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.template.TestNeo4jEventListener;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -39,7 +36,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class DataManipulationEventConfiguration {
 
 	@Bean
-	public PlatformTransactionManager transactionManager() throws Exception {
+	public PlatformTransactionManager transactionManager() {
 		return new Neo4jTransactionManager(sessionFactory());
 	}
 
@@ -53,7 +50,6 @@ public class DataManipulationEventConfiguration {
 				session.register(eventPublisher());
 				return session;
 			}
-
 		};
 	}
 
@@ -63,26 +59,7 @@ public class DataManipulationEventConfiguration {
 	}
 
 	@Bean
-	public TestNeo4jEventListener<Event> beforeSaveEventListener() {
-		return new TestNeo4jEventListener<Event>() {
-		};
-	}
-
-	@Bean
-	public TestNeo4jEventListener<Event> afterSaveEventListener() {
-		return new TestNeo4jEventListener<Event>() {
-		};
-	}
-
-	@Bean
-	public TestNeo4jEventListener<Event> beforeDeleteEventListener() {
-		return new TestNeo4jEventListener<Event>() {
-		};
-	}
-
-	@Bean
-	public TestNeo4jEventListener<Event> afterDeleteEventListener() {
-		return new TestNeo4jEventListener<Event>() {
-		};
+	public Neo4jModificationEventListener eventListener() {
+		return new Neo4jModificationEventListener();
 	}
 }

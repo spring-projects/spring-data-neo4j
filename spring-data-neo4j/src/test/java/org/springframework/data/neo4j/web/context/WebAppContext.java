@@ -51,7 +51,7 @@ public class WebAppContext extends WebMvcConfigurerAdapter {
 	}
 
 	@Bean
-	public PlatformTransactionManager transactionManager() throws Exception {
+	public PlatformTransactionManager transactionManager() {
 		return new WebIntegrationIT.DelegatingTransactionManager(new Neo4jTransactionManager(sessionFactory()));
 	}
 

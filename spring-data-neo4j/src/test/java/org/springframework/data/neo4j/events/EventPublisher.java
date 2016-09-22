@@ -17,21 +17,21 @@ public class EventPublisher extends EventListenerAdapter {
 
 	@Override
 	public void onPreSave(Event event) {
-		this.publisher.publishEvent(event);
+		this.publisher.publishEvent(new PreSaveEvent(event));
 	}
 
 	@Override
 	public void onPostSave(Event event) {
-		this.publisher.publishEvent(event);
+		this.publisher.publishEvent(new PostSaveEvent(event));
 	}
 
 	@Override
 	public void onPreDelete(Event event) {
-		this.publisher.publishEvent(event);
+		this.publisher.publishEvent(new PreDeleteEvent(event));
 	}
 
 	@Override
 	public void onPostDelete(Event event) {
-		this.publisher.publishEvent(event);
+		this.publisher.publishEvent(new PostDeleteEvent(event));
 	}
 }
