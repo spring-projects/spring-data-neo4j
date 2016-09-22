@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,19 +39,20 @@ import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.*;
 import org.springframework.data.neo4j.examples.movies.repo.*;
 import org.springframework.data.neo4j.examples.movies.service.UserService;
-import org.springframework.data.neo4j.template.Neo4jOperations;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Michal Bachman
  * @author Luanne Misquitta
- * @uathor Vince Bickers
+ * @author Vince Bickers
+ * @author Mark Angrish
+
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext
+@Transactional
 public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	private final Logger logger = LoggerFactory.getLogger(MoviesIntegrationIT.class);
@@ -58,7 +60,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired
-	private Neo4jOperations neo4jOperations;
+	private Session session;
 	@Autowired
 	private UserRepository userRepository;
 	@Autowired
@@ -77,13 +79,13 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 	private RatingRepository ratingRepository;
 
 	@BeforeClass
-	public static void beforeClass(){
+	public static void beforeClass() {
 		graphDatabaseService = getGraphDatabaseService();
 	}
 
 	@Before
 	public void clear() {
-		neo4jOperations.clear();
+		session.clear();
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
@@ -188,7 +190,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	@Test
 	@Ignore  // FIXME
-	// this test expects the neo4jOperations/tx to check for dirty objects, which it currently does not do
+	// this test expects the session/tx to check for dirty objects, which it currently does not do
 	// you must save objects explicitly.
 	public void shouldUpdateUserUsingTransactionalService() {
 		User user = new User("Michal");
@@ -576,11 +578,11 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 	}
 
 	protected Iterable<?> findByProperty(Class clazz, String propertyName, Object propertyValue) {
-		return neo4jOperations.loadAll(clazz, new Filter(propertyName, propertyValue));
+		return session.loadAll(clazz, new Filter(propertyName, propertyValue));
 	}
 
 	protected Iterable<?> findByProperty(Class clazz, String propertyName, Object propertyValue, int depth) {
-		return neo4jOperations.loadAll(clazz, new Filter(propertyName, propertyValue), depth);
+		return session.loadAll(clazz, new Filter(propertyName, propertyValue), depth);
 	}
 
 	//

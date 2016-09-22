@@ -1,33 +1,31 @@
 package org.springframework.data.neo4j.transactions;
 
-import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.*;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- * @author vince
+ * @author Vince Bickers
+ * @author Mark Angrish
  */
 @Configuration
 @ComponentScan(basePackages = "org.springframework.data.neo4j.transactions.service")
 @EnableTransactionManagement
 @EnableNeo4jRepositories
-public class PrototypeSessionBeanContext extends Neo4jConfiguration {
+public class PrototypeSessionBeanContext {
 
-    @Override
-    @Bean
-    public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.transactions.domain");
-    }
+	@Bean
+	public PlatformTransactionManager transactionManager() throws Exception {
+		return new Neo4jTransactionManager(sessionFactory());
+	}
 
-    @Override
-    @Bean
-    @Scope( value = ConfigurableBeanFactory.SCOPE_PROTOTYPE )
-    public Session getSession() throws Exception {
-        return getSessionFactory().openSession();
-    }
-
+	@Bean
+	public SessionFactory sessionFactory() {
+		return new SessionFactory("org.springframework.data.neo4j.transactions.domain");
+	}
 }

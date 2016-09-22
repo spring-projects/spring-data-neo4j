@@ -18,30 +18,31 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.model.QueryStatistics;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.galaxy.context.GalaxyContext;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
 import org.springframework.data.neo4j.examples.galaxy.repo.WorldRepository;
-import org.springframework.data.neo4j.template.Neo4jOperations;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Vince Bickers
  * @author Luanne Misquitta
+ * @author Mark Angrish
  */
 @ContextConfiguration(classes = {GalaxyContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext
+@Transactional
 public class QueryReturnTypesIT extends MultiDriverTestClass {
 
 	@Autowired
 	WorldRepository worldRepository;
 
 	@Autowired
-	Neo4jOperations neo4jOperations;
+	Session session;
 
 	@Test
 	public void shouldCallExecuteWhenPrimitiveVoidReturnTypeOnQuery() {
@@ -51,7 +52,7 @@ public class QueryReturnTypesIT extends MultiDriverTestClass {
 		worldRepository.save(world);
 		worldRepository.touchAllWorlds();
 
-		neo4jOperations.clear();
+		session.clear();
 		world = worldRepository.findOne(world.getId());
 		assertNotNull(world.getUpdated());
 	}
@@ -70,7 +71,7 @@ public class QueryReturnTypesIT extends MultiDriverTestClass {
 		worldRepository.save(tatooine);
 		worldRepository.touchAllWorlds();
 
-		neo4jOperations.clear();
+		session.clear();
 		tatooine = worldRepository.findOne(tatooine.getId());
 
 		assertNotNull(tatooine.getUpdated());

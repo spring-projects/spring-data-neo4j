@@ -17,9 +17,7 @@
 package org.springframework.data.neo4j.repository.cdi;
 
 import org.neo4j.ogm.session.Session;
-import org.springframework.data.neo4j.repository.support.GraphRepositoryFactory;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactory;
-import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.data.repository.cdi.CdiRepositoryBean;
 import org.springframework.data.repository.config.CustomRepositoryImplementationDetector;
 

@@ -12,9 +12,7 @@
  */
 package org.springframework.data.neo4j.queries;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.List;
 
@@ -24,31 +22,29 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResult;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResultInterface;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
-import org.springframework.data.neo4j.template.Neo4jOperations;
-import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResult;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Luanne Misquitta
  * @author Jasper Blues
+ * @author Mark Angrish
+ *
  * @see DATAGRAPH-680
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext
+@Transactional
 public class PagedQueryIT extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
@@ -56,10 +52,10 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	@Autowired
 	private CinemaRepository cinemaRepository;
 
-	@Autowired Neo4jOperations neo4jOperations;
+	@Autowired Session session;
 
 	@BeforeClass
-	public static void beforeClass(){
+	public static void beforeClass() {
 		graphDatabaseService = getGraphDatabaseService();
 	}
 
@@ -78,7 +74,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	@After
 	public void clearDatabase() {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-		neo4jOperations.clear();
+		session.clear();
 	}
 
 	private void executeUpdate(String cypher) {

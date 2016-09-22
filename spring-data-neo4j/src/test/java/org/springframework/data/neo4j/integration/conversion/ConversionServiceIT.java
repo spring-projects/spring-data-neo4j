@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConverterNotFoundException;
@@ -35,18 +36,21 @@ import org.springframework.data.neo4j.integration.conversion.domain.JavaElement;
 import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmount;
 import org.springframework.data.neo4j.integration.conversion.domain.PensionPlan;
 import org.springframework.data.neo4j.integration.conversion.domain.SiteMember;
-import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Adam George
  * @author Luanne Misquitta
  * @author Vince Bickers
+ * @author Mark Angrish
+ *
  * @see DATAGRAPH-624
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {ConversionServicePersistenceContext.class})
+@Transactional
 public class ConversionServiceIT extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
@@ -60,7 +64,7 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 	@Autowired
 	private GenericConversionService conversionService;
 
-	@Autowired Neo4jOperations neo4jOperations;
+	@Autowired Session session;
 
 	@BeforeClass
 	public static void beforeClass(){
@@ -190,9 +194,9 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 		siteMember.setProfilePictureData(binaryData);
 		this.siteMemberRepository.save(siteMember);
 
-		neo4jOperations.clear();
+		session.clear();
 
-		siteMember = neo4jOperations.loadAll(SiteMember.class).iterator().next();
+		siteMember = session.loadAll(SiteMember.class).iterator().next();
 		assertArrayEquals(binaryData, siteMember.getProfilePictureData());
 	}
 
@@ -209,9 +213,9 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 		siteMember.setYears(BigInteger.valueOf(50));
 		this.siteMemberRepository.save(siteMember);
 
-		neo4jOperations.clear();
+		session.clear();
 
-		siteMember = neo4jOperations.loadAll(SiteMember.class).iterator().next();
+		siteMember = session.loadAll(SiteMember.class).iterator().next();
 		assertArrayEquals(binaryData, siteMember.getProfilePictureData());
 		assertEquals(50, siteMember.getYears().intValue());
 	}
@@ -225,9 +229,9 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 		siteMember.setRoundingModes(Arrays.asList(RoundingMode.DOWN, RoundingMode.FLOOR));
 		this.siteMemberRepository.save(siteMember);
 
-		neo4jOperations.clear();
+		session.clear();
 
-		siteMember = neo4jOperations.loadAll(SiteMember.class).iterator().next();
+		siteMember = session.loadAll(SiteMember.class).iterator().next();
 		assertEquals(2, siteMember.getRoundingModes().size());
 		assertTrue(siteMember.getRoundingModes().contains(RoundingMode.DOWN));
 		assertTrue(siteMember.getRoundingModes().contains(RoundingMode.FLOOR));

@@ -17,12 +17,13 @@ import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.event.AfterDeleteEvent;
 import org.springframework.data.neo4j.event.AfterSaveEvent;
 import org.springframework.data.neo4j.event.BeforeDeleteEvent;
 import org.springframework.data.neo4j.event.BeforeSaveEvent;
 import org.springframework.data.neo4j.template.TestNeo4jEventListener;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -30,34 +31,44 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  *
  * @author Adam George
  * @author Luanne Misquitta
+ * @author Mark Angrish
  */
 @Configuration
 @EnableTransactionManagement
-public class DataManipulationEventConfiguration extends Neo4jConfiguration {
+public class DataManipulationEventConfiguration {
 
-    @Override
-    public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.examples.movies.domain");
-    }
+	@Bean
+	public PlatformTransactionManager transactionManager() throws Exception {
+		return new Neo4jTransactionManager(sessionFactory());
+	}
 
-    @Bean
-    public ApplicationListener<BeforeSaveEvent> beforeSaveEventListener() {
-        return new TestNeo4jEventListener<BeforeSaveEvent>() {};
-    }
+	@Bean
+	public SessionFactory sessionFactory() {
+		return new SessionFactory("org.springframework.data.neo4j.examples.movies.domain");
+	}
 
-    @Bean
-    public ApplicationListener<AfterSaveEvent> afterSaveEventListener() {
-        return new TestNeo4jEventListener<AfterSaveEvent>() {};
-    }
 
-    @Bean
-    public ApplicationListener<BeforeDeleteEvent> beforeDeleteEventListener() {
-        return new TestNeo4jEventListener<BeforeDeleteEvent>() {};
-    }
+	@Bean
+	public ApplicationListener<BeforeSaveEvent> beforeSaveEventListener() {
+		return new TestNeo4jEventListener<BeforeSaveEvent>() {
+		};
+	}
 
-    @Bean
-    public ApplicationListener<AfterDeleteEvent> afterDeleteEventListener() {
-        return new TestNeo4jEventListener<AfterDeleteEvent>() {};
-    }
+	@Bean
+	public ApplicationListener<AfterSaveEvent> afterSaveEventListener() {
+		return new TestNeo4jEventListener<AfterSaveEvent>() {
+		};
+	}
 
+	@Bean
+	public ApplicationListener<BeforeDeleteEvent> beforeDeleteEventListener() {
+		return new TestNeo4jEventListener<BeforeDeleteEvent>() {
+		};
+	}
+
+	@Bean
+	public ApplicationListener<AfterDeleteEvent> afterDeleteEventListener() {
+		return new TestNeo4jEventListener<AfterDeleteEvent>() {
+		};
+	}
 }

@@ -27,6 +27,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -43,23 +44,23 @@ import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.DirectorRepository;
 import org.springframework.data.neo4j.examples.movies.repo.RatingRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
-import org.springframework.data.neo4j.template.Neo4jOperations;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Luanne Misquitta
+ * @author Mark Angrish
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext
+@Transactional
 public class DerivedQueryIT extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired
-	private Neo4jOperations neo4jOperations;
+	private Session session;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -74,14 +75,14 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 	private DirectorRepository directorRepository;
 
 	@BeforeClass
-	public static void beforeClass(){
+	public static void beforeClass() {
 		graphDatabaseService = getGraphDatabaseService();
 	}
 
 	@Before
 	public void clearDatabase() {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-		neo4jOperations.clear();
+		session.clear();
 	}
 
 	private void executeUpdate(String cypher) {
@@ -481,7 +482,7 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 		assertEquals(0, cinema.getVisited().iterator().next().getRatings().size());
 		assertEquals("San Andreas", cinema.getBlockbusterOfTheWeek().getName());
 
-		neo4jOperations.clear();
+		session.clear();
 
 		cinema = cinemaRepository.findByName("Picturehouse", 2);
 		assertNotNull(cinema);
@@ -537,7 +538,7 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 		int numThreads = 3;
 		executeUpdate("CREATE (m:User {name:'Michal', surname:'Bachman'}), (a:User {name:'Adam', surname:'George'}), (l:User {name:'Luanne', surname:'Misquitta'})");
 
-		neo4jOperations.clear();
+		session.clear();
 
 		String[] firstNames = new String[]{"Michal", "Adam", "Luanne"};
 		String[] lastNames = new String[]{"Bachman", "George", "Misquitta"};

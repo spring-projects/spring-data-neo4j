@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.domain.sample.SampleEntity;
-import org.springframework.data.neo4j.repository.config.EnableExperimentalNeo4jRepositories;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactory;
 import org.springframework.data.neo4j.repository.support.TransactionalRepositoryIT;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
@@ -46,7 +46,7 @@ public class Neo4jRepositoryIT extends MultiDriverTestClass {
 
 	@Autowired Session session;
 
-	Neo4jRepository<SampleEntity> repository;
+	GraphRepository<SampleEntity> repository;
 
 	@Before
 	public void setUp() {
@@ -68,12 +68,12 @@ public class Neo4jRepositoryIT extends MultiDriverTestClass {
 	}
 
 
-	private interface SampleEntityRepository extends Neo4jRepository<SampleEntity> {
+	private interface SampleEntityRepository extends GraphRepository<SampleEntity> {
 
 	}
 
 	@Configuration
-	@EnableExperimentalNeo4jRepositories
+	@EnableNeo4jRepositories
 	@EnableTransactionManagement
 	public static class Config {
 

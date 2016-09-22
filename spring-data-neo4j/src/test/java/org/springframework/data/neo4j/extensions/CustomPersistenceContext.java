@@ -15,28 +15,32 @@ package org.springframework.data.neo4j.extensions;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- *
  * Note how the repository base class for all our repositories is overridden
  * using the 'repositoryBaseClass' attribute.
  * This annotation change allows all our repositories to easily extend one or more
  * additional interfaces.
  *
- * @author: Vince Bickers
+ * @author Vince Bickers
+ * @author Mark Angrish
  */
 @Configuration
 @EnableNeo4jRepositories(repositoryBaseClass = CustomGraphRepositoryImpl.class)
 @EnableTransactionManagement
-public class CustomPersistenceContext extends Neo4jConfiguration {
+public class CustomPersistenceContext {
 
-    @Override
-    @Bean
-    public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.extensions.domain");
-    }
+	@Bean
+	public PlatformTransactionManager transactionManager() throws Exception {
+		return new Neo4jTransactionManager(sessionFactory());
+	}
 
+	@Bean
+	public SessionFactory sessionFactory() {
+		return new SessionFactory("org.springframework.data.neo4j.extensions.domain");
+	}
 }

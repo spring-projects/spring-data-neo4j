@@ -62,7 +62,7 @@ public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	@Override
 	protected Class<?> getRepositoryBaseClass(RepositoryMetadata repositoryMetadata) {
-		return SimpleNeo4jRepository.class;
+		return SimpleGraphRepository.class;
 	}
 
 	@Override

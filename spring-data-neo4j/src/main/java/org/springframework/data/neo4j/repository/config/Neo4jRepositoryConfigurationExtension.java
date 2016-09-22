@@ -25,7 +25,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
-import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
 import org.springframework.data.neo4j.repository.support.SessionBeanDefinitionRegistrarPostProcessor;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
@@ -36,7 +36,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Neo4j specific configuration extension parsing custom attributes from the XML namespace and
- * {@link EnableExperimentalNeo4jRepositories} annotation. Also, it registers a bean definition for a
+ * {@link EnableNeo4jRepositories} annotation. Also, it registers a bean definition for a
  * {@link PersistenceExceptionTranslationPostProcessor} to enable exception translation of persistence specific
  * exceptions into Spring's {@link DataAccessException} hierarchy.
  *
@@ -94,7 +94,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	 */
 	@Override
 	protected Collection<Class<?>> getIdentifyingTypes() {
-		return Collections.<Class<?>>singleton(Neo4jRepository.class);
+		return Collections.<Class<?>>singleton(GraphRepository.class);
 	}
 
 	/*

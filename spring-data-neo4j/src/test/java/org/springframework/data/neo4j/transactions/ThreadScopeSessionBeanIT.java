@@ -12,6 +12,7 @@ import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This test uses {@link org.springframework.context.support.SimpleThreadScope} which does not support destruction
@@ -25,6 +26,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration(classes = {ThreadScopeSessionBeanContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
+@Transactional
 public class ThreadScopeSessionBeanIT extends MultiDriverTestClass {
 
 	private final String[] sessions = new String[2];

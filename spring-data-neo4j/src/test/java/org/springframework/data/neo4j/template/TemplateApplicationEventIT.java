@@ -17,6 +17,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.event.AfterDeleteEvent;
@@ -27,18 +28,20 @@ import org.springframework.data.neo4j.examples.movies.domain.Actor;
 import org.springframework.data.neo4j.template.context.DataManipulationEventConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Test to assert the behaviour of {@link Neo4jTemplate}'s interaction with Spring application events.
  *
  * @author Adam George
+ * @author Mark Angrish
  */
 @ContextConfiguration(classes = DataManipulationEventConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class TemplateApplicationEventIT extends MultiDriverTestClass {
 
 	@Autowired
-	private Neo4jOperations neo4jTemplate;
+	private Session session;
 
 	@Autowired
 	private TestNeo4jEventListener<BeforeSaveEvent> beforeSaveEventListener;
@@ -50,15 +53,16 @@ public class TemplateApplicationEventIT extends MultiDriverTestClass {
 	private TestNeo4jEventListener<AfterDeleteEvent> afterDeleteEventListener;
 
 	@Test
+	@Transactional
 	public void shouldCreateTemplateAndPublishAppropriateApplicationEventsOnSaveAndOnDelete() {
-		assertNotNull("The Neo4jTemplate wasn't autowired into this test", this.neo4jTemplate);
+		assertNotNull("The Neo4jTemplate wasn't autowired into this test", this.session);
 
 		Actor entity = new Actor();
 		entity.setName("John Abraham");
 
 		assertFalse(this.beforeSaveEventListener.hasReceivedAnEvent());
 		assertFalse(this.afterSaveEventListener.hasReceivedAnEvent());
-		this.neo4jTemplate.save(entity);
+		this.session.save(entity);
 		assertTrue(this.beforeSaveEventListener.hasReceivedAnEvent());
 		assertSame(entity, this.beforeSaveEventListener.getEvent().getEntity());
 		assertTrue(this.afterSaveEventListener.hasReceivedAnEvent());
@@ -66,7 +70,7 @@ public class TemplateApplicationEventIT extends MultiDriverTestClass {
 
 		assertFalse(this.beforeDeleteEventListener.hasReceivedAnEvent());
 		assertFalse(this.afterDeleteEventListener.hasReceivedAnEvent());
-		this.neo4jTemplate.delete(entity);
+		this.session.delete(entity);
 		assertTrue(this.beforeDeleteEventListener.hasReceivedAnEvent());
 		assertSame(entity, this.beforeDeleteEventListener.getEvent().getEntity());
 		assertTrue(this.afterDeleteEventListener.hasReceivedAnEvent());
