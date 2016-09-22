@@ -35,6 +35,7 @@ import org.springframework.data.neo4j.examples.movies.domain.*;
 import org.springframework.data.neo4j.template.context.Neo4jTemplateConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -51,6 +52,7 @@ import static org.neo4j.ogm.session.Utils.map;
  */
 @ContextConfiguration(classes = {Neo4jTemplateConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
+@Transactional
 public class Neo4jTemplateIT extends MultiDriverTestClass {
 
     private static GraphDatabaseService graphDatabaseService;

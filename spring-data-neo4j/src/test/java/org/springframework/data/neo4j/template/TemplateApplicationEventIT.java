@@ -18,12 +18,9 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.session.event.Event;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.event.AfterDeleteEvent;
-import org.springframework.data.neo4j.event.AfterSaveEvent;
-import org.springframework.data.neo4j.event.BeforeDeleteEvent;
-import org.springframework.data.neo4j.event.BeforeSaveEvent;
 import org.springframework.data.neo4j.examples.movies.domain.Actor;
 import org.springframework.data.neo4j.template.context.DataManipulationEventConfiguration;
 import org.springframework.test.context.ContextConfiguration;
@@ -44,13 +41,13 @@ public class TemplateApplicationEventIT extends MultiDriverTestClass {
 	private Session session;
 
 	@Autowired
-	private TestNeo4jEventListener<BeforeSaveEvent> beforeSaveEventListener;
+	private TestNeo4jEventListener<Event> beforeSaveEventListener;
 	@Autowired
-	private TestNeo4jEventListener<AfterSaveEvent> afterSaveEventListener;
+	private TestNeo4jEventListener<Event> afterSaveEventListener;
 	@Autowired
-	private TestNeo4jEventListener<BeforeDeleteEvent> beforeDeleteEventListener;
+	private TestNeo4jEventListener<Event> beforeDeleteEventListener;
 	@Autowired
-	private TestNeo4jEventListener<AfterDeleteEvent> afterDeleteEventListener;
+	private TestNeo4jEventListener<Event> afterDeleteEventListener;
 
 	@Test
 	@Transactional
@@ -64,16 +61,16 @@ public class TemplateApplicationEventIT extends MultiDriverTestClass {
 		assertFalse(this.afterSaveEventListener.hasReceivedAnEvent());
 		this.session.save(entity);
 		assertTrue(this.beforeSaveEventListener.hasReceivedAnEvent());
-		assertSame(entity, this.beforeSaveEventListener.getEvent().getEntity());
+		assertSame(entity, this.beforeSaveEventListener.getEvent().getObject());
 		assertTrue(this.afterSaveEventListener.hasReceivedAnEvent());
-		assertSame(entity, this.afterSaveEventListener.getEvent().getEntity());
+		assertSame(entity, this.afterSaveEventListener.getEvent().getObject());
 
 		assertFalse(this.beforeDeleteEventListener.hasReceivedAnEvent());
 		assertFalse(this.afterDeleteEventListener.hasReceivedAnEvent());
 		this.session.delete(entity);
 		assertTrue(this.beforeDeleteEventListener.hasReceivedAnEvent());
-		assertSame(entity, this.beforeDeleteEventListener.getEvent().getEntity());
+		assertSame(entity, this.beforeDeleteEventListener.getEvent().getObject());
 		assertTrue(this.afterDeleteEventListener.hasReceivedAnEvent());
-		assertSame(entity, this.afterDeleteEventListener.getEvent().getEntity());
+		assertSame(entity, this.afterDeleteEventListener.getEvent().getObject());
 	}
 }

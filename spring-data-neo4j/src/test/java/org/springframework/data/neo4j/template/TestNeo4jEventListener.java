@@ -13,31 +13,33 @@
 
 package org.springframework.data.neo4j.template;
 
+import org.neo4j.ogm.session.event.Event;
 import org.springframework.context.ApplicationListener;
-import org.springframework.data.neo4j.event.Neo4jDataManipulationEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 
 /**
- * Spring {@code ApplicationListener} used to capture {@link Neo4jDataManipulationEvent}s that occur during a test run.
+ * Spring {@code ApplicationListener} used to capture {@link Event}s that occur during a test run.
  * Note that this is abstract because you're supposed to create an anonymous subclass to handle event type 'E' when you
- * use it.  This ensures Spring doesn't just send {@link Neo4jDataManipulationEvent}s to everything regardless.
+ * use it.  This ensures Spring doesn't just send {@link Event}s to everything regardless.
  *
  * @author Adam George
  */
-public abstract class TestNeo4jEventListener<E extends Neo4jDataManipulationEvent> implements ApplicationListener<E> {
+@Component
+public abstract class TestNeo4jEventListener<E extends Event> {
 
-    private Neo4jDataManipulationEvent event;
+	private Event event;
 
-    @Override
-    public void onApplicationEvent(E event) {
-        this.event = event;
-    }
+	@EventListener
+	public void onApplicationEvent(E event) {
+		this.event = event;
+	}
 
-    public boolean hasReceivedAnEvent() {
-        return this.event != null;
-    }
+	public boolean hasReceivedAnEvent() {
+		return this.event != null;
+	}
 
-    public Neo4jDataManipulationEvent getEvent() {
-        return event;
-    }
-
+	public Event getEvent() {
+		return event;
+	}
 }
