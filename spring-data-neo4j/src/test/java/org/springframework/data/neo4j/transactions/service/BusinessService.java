@@ -55,11 +55,4 @@ public class BusinessService {
     public Iterable<Map<String, Object>> fetch() {
         return session.query("MATCH (n) RETURN n.name", new HashMap<String, Object>());
     }
-
-    public void purge() {
-        session.query("MATCH (n) DELETE n", Collections.EMPTY_MAP);
-        session.clear();
-
-    }
-
 }

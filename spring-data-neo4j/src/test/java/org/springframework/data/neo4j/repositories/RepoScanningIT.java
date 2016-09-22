@@ -43,9 +43,6 @@ public class RepoScanningIT extends MultiDriverTestClass {
 	@Autowired
 	private UserRepository userRepository;
 
-	@Autowired
-	private Session session;
-
 	@BeforeClass
 	public static void beforeClass(){
 		graphDatabaseService = getGraphDatabaseService();
@@ -54,15 +51,18 @@ public class RepoScanningIT extends MultiDriverTestClass {
 	@Before
 	public void clearDatabase() {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-		session.clear();
 	}
 
 	@Test
-	@Transactional
 	public void enableNeo4jRepositoriesShouldScanSelfPackageByDefault() {
-		User user = new User("Michal");
-		userRepository.save(user);
+		saveUser();
 
 		assertSameGraph(graphDatabaseService, "CREATE (u:User {name:'Michal'})");
+	}
+
+	@Transactional
+	public void saveUser() {
+		User user = new User("Michal");
+		userRepository.save(user);
 	}
 }

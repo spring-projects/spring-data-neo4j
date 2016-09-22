@@ -48,25 +48,24 @@ public class RepositoryDefinitionIT extends MultiDriverTestClass {
 	}
 
 	@Autowired
-	private Session session;
-
-	@Autowired
 	private MovieRepository movieRepository;
 
 	@Before
 	public void clearDatabase() {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-		session.clear();
 	}
 
 	@Test
-	@Transactional
 	public void shouldProxyAndAutoImplementRepositoryDefinitionAnnotatedRepo() {
+		saveAndVerifyUser();
+		assertSameGraph(graphDatabaseService, "CREATE (m:Movie {title:'PF'})");
+	}
+
+	@Transactional
+	public void saveAndVerifyUser() {
 		Movie movie = new Movie("PF");
 		movieRepository.save(movie);
 
-
 		assertEquals(1, IterableUtils.count(movieRepository.findAll()));
-		assertSameGraph(graphDatabaseService, "CREATE (m:Movie {title:'PF'})");
 	}
 }

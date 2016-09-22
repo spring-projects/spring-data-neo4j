@@ -58,11 +58,6 @@ public class ExtendedTransactionsIT extends MultiDriverTestClass {
 	@Autowired
 	PlatformTransactionManager annotationDrivenTransactionManager;
 
-	@Before
-	public void init() {
-		wrapperService.purge();
-	}
-
 	@Test
 	public void shouldRollbackSuccessThenFail() {
 

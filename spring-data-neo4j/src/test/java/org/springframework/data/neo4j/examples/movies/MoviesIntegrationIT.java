@@ -425,7 +425,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 		Genre drama = new Genre("Drama");
 		michal.interestedIn(drama);
 
-		userRepository.save(michal);
+		michal = userRepository.save(michal);
 
 		michal.notInterestedIn(drama);
 
