@@ -52,8 +52,6 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	@Autowired
 	private CinemaRepository cinemaRepository;
 
-	@Autowired Session session;
-
 	@BeforeClass
 	public static void beforeClass() {
 		graphDatabaseService = getGraphDatabaseService();
@@ -74,7 +72,6 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	@After
 	public void clearDatabase() {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-		session.clear();
 	}
 
 	private void executeUpdate(String cypher) {

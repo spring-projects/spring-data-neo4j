@@ -82,7 +82,6 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 	@Before
 	public void clearDatabase() {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-		session.clear();
 	}
 
 	private void executeUpdate(String cypher) {

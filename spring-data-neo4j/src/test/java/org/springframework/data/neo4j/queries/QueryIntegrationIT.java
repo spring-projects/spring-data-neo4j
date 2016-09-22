@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.exception.MappingException;
-import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
@@ -58,23 +57,19 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	@Autowired
 	private CinemaRepository cinemaRepository;
 
-	@Autowired
-	private Session session;
-
 	@Before
 	public void init() {
 		clearDatabase();
 	}
 
 	@BeforeClass
-	public static void beforeClass(){
+	public static void beforeClass() {
 		graphDatabaseService = getGraphDatabaseService();
 	}
 
 	@Before
 	public void clearDatabase() {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-		session.clear();
 	}
 
 	private void executeUpdate(String cypher) {

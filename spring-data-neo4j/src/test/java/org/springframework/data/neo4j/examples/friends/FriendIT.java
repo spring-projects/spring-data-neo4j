@@ -53,9 +53,7 @@ public class FriendIT extends MultiDriverTestClass {
 
 
 	@Before
-	@Transactional
 	public void cleanUpDatabase() {
-		session.clear();
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
