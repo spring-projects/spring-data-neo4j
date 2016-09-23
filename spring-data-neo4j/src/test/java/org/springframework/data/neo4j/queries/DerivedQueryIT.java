@@ -54,7 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@Transactional
 public class DerivedQueryIT extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
@@ -481,8 +480,6 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 		assertEquals(0, cinema.getVisited().iterator().next().getRatings().size());
 		assertEquals("San Andreas", cinema.getBlockbusterOfTheWeek().getName());
 
-		session.clear();
-
 		cinema = cinemaRepository.findByName("Picturehouse", 2);
 		assertNotNull(cinema);
 		assertEquals("Picturehouse", cinema.getName());
@@ -537,8 +534,6 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 		int numThreads = 3;
 		executeUpdate("CREATE (m:User {name:'Michal', surname:'Bachman'}), (a:User {name:'Adam', surname:'George'}), (l:User {name:'Luanne', surname:'Misquitta'})");
 
-		session.clear();
-
 		String[] firstNames = new String[]{"Michal", "Adam", "Luanne"};
 		String[] lastNames = new String[]{"Bachman", "George", "Misquitta"};
 
@@ -558,6 +553,7 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-680
 	 */
 	@Test
+	@Transactional
 	public void shouldPageDerivedFinderQueries() {
 		for (int i = 0; i < 10; i++) {
 			userRepository.save(new User("A", "B"));
@@ -594,6 +590,7 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-680
 	 */
 	@Test
+	@Transactional
 	public void shouldSliceDerivedFinderQueries() {
 		for (int i = 0; i < 10; i++) {
 			User user = new User("A");

@@ -32,29 +32,37 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
+import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.integration.conversion.domain.JavaElement;
 import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmount;
 import org.springframework.data.neo4j.integration.conversion.domain.PensionPlan;
 import org.springframework.data.neo4j.integration.conversion.domain.SiteMember;
+import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Adam George
  * @author Luanne Misquitta
  * @author Vince Bickers
  * @author Mark Angrish
- *
  * @see DATAGRAPH-624
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {ConversionServicePersistenceContext.class})
-@Transactional
 public class ConversionServiceIT extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
 
+	@Autowired
+	PlatformTransactionManager platformTransactionManager;
 	@Autowired
 	private PensionRepository pensionRepository;
 	@Autowired
@@ -66,13 +74,16 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 
 	@Autowired Session session;
 
+	private TransactionTemplate transactionTemplate;
+
 	@BeforeClass
-	public static void beforeClass(){
+	public static void beforeClass() {
 		graphDatabaseService = getGraphDatabaseService();
 	}
 
 	@Before
-	public void cleanUpDatabase() {
+	public void setUp() {
+		transactionTemplate = new TransactionTemplate(platformTransactionManager);
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
@@ -106,14 +117,20 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 	@Test
 	public void shouldConvertFieldsUsingSpringConvertersAddedDirectlyToConversionService() {
 
-		this.conversionService.addConverter(new SpringMonetaryAmountToIntegerConverter());
-		this.conversionService.addConverter(new SpringIntegerToMonetaryAmountConverter());
-		this.conversionService.addConverter(new SpringMonetaryAmountToLongConverter());
-		this.conversionService.addConverter(new SpringLongToMonetaryAmountConverter());
+		PensionPlan pensionToSave = transactionTemplate.execute(new TransactionCallback<PensionPlan>() {
+			@Override
+			public PensionPlan doInTransaction(TransactionStatus status) {
+				conversionService.addConverter(new SpringMonetaryAmountToIntegerConverter());
+				conversionService.addConverter(new SpringIntegerToMonetaryAmountConverter());
+				conversionService.addConverter(new SpringMonetaryAmountToLongConverter());
+				conversionService.addConverter(new SpringLongToMonetaryAmountConverter());
 
-		PensionPlan pensionToSave = new PensionPlan(new MonetaryAmount(16472, 81), "Tightfist Asset Management Ltd");
+				PensionPlan pensionToSave = new PensionPlan(new MonetaryAmount(16472, 81), "Tightfist Asset Management Ltd");
 
-		this.pensionRepository.save(pensionToSave);
+				pensionRepository.save(pensionToSave);
+				return pensionToSave;
+			}
+		});
 
 		Result result = graphDatabaseService
 				.execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
@@ -194,8 +211,6 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 		siteMember.setProfilePictureData(binaryData);
 		this.siteMemberRepository.save(siteMember);
 
-		session.clear();
-
 		siteMember = session.loadAll(SiteMember.class).iterator().next();
 		assertArrayEquals(binaryData, siteMember.getProfilePictureData());
 	}
@@ -213,8 +228,6 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 		siteMember.setYears(BigInteger.valueOf(50));
 		this.siteMemberRepository.save(siteMember);
 
-		session.clear();
-
 		siteMember = session.loadAll(SiteMember.class).iterator().next();
 		assertArrayEquals(binaryData, siteMember.getProfilePictureData());
 		assertEquals(50, siteMember.getYears().intValue());
@@ -228,8 +241,6 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 		SiteMember siteMember = new SiteMember();
 		siteMember.setRoundingModes(Arrays.asList(RoundingMode.DOWN, RoundingMode.FLOOR));
 		this.siteMemberRepository.save(siteMember);
-
-		session.clear();
 
 		siteMember = session.loadAll(SiteMember.class).iterator().next();
 		assertEquals(2, siteMember.getRoundingModes().size());
