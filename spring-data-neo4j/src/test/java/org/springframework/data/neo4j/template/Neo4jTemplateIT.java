@@ -52,7 +52,6 @@ import static org.neo4j.ogm.session.Utils.map;
  */
 @ContextConfiguration(classes = {Neo4jTemplateConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@Transactional
 public class Neo4jTemplateIT extends MultiDriverTestClass {
 
     private static GraphDatabaseService graphDatabaseService;
@@ -67,7 +66,6 @@ public class Neo4jTemplateIT extends MultiDriverTestClass {
     @Before
     public void setUpOgmSession() {
         clearDatabase();
-        template.clear();
         addArbitraryDataToDatabase();
     }
 
@@ -95,6 +93,7 @@ public class Neo4jTemplateIT extends MultiDriverTestClass {
     }
 
     @Test
+    @Transactional
     public void shouldSaveAndRetrieveNodeEntitiesWithoutExplicitTransactionManagement() {
         Genre filmGenre = new Genre();
         filmGenre.setName("Comedy");
@@ -114,6 +113,7 @@ public class Neo4jTemplateIT extends MultiDriverTestClass {
     }
 
     @Test
+    @Transactional
     public void shouldSaveAndRetrieveRelationshipEntitiesWithoutExplicitTransactionManagement() {
         User critic = new User("Gary");
         TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -129,6 +129,7 @@ public class Neo4jTemplateIT extends MultiDriverTestClass {
     }
 
     @Test
+    @Transactional
     public void shouldExecuteArbitraryReadQuery() {
         User user = new User("Harmanpreet Singh");
         TempMovie bollywood = new TempMovie("Desi Boyz");
@@ -144,6 +145,7 @@ public class Neo4jTemplateIT extends MultiDriverTestClass {
     }
 
     @Test
+    @Transactional
     public void shouldQueryForSpecificObjectUsingBespokeParameterisedCypherQuery() {
         this.template.save(new Actor("ab", "Alec Baldwin"));
         this.template.save(new Actor("hm", "Helen Mirren"));
@@ -156,6 +158,7 @@ public class Neo4jTemplateIT extends MultiDriverTestClass {
     }
 
     @Test
+    @Transactional
     public void shouldQueryForObjectCollectionUsingBespokeCypherQuery() {
         this.template.save(new User("Jeff"));
         this.template.save(new User("John"));
@@ -172,6 +175,7 @@ public class Neo4jTemplateIT extends MultiDriverTestClass {
     }
 
     @Test
+    @Transactional
     public void shouldRetrieveEntitiesByMatchingProperty() {
         this.template.save(new Genre("Thriller"));
         this.template.save(new Genre("Horror"));
@@ -186,6 +190,7 @@ public class Neo4jTemplateIT extends MultiDriverTestClass {
      * @see DATAGRAPH-685
      */
     @Test
+    @Transactional
     public void shouldRetrieveEntitiesByMatchingPropertyAndDepth() {
         User user = new User("Harmanpreet Singh");
         TempMovie bollywood = new TempMovie("Desi Boyz");
@@ -210,13 +215,7 @@ public class Neo4jTemplateIT extends MultiDriverTestClass {
      */
     @Test
     public void shouldRetrieveAllEntitiesByMatchingPropertyAndDepth() {
-        User user = new User("Harmanpreet Singh");
-        TempMovie bollywood = new TempMovie("Desi Boyz");
-        TempMovie hollywood = new TempMovie("Desi Boyz");
-        template.save(user.rate(bollywood, 1, "Bakwaas"));
-        template.save(user.rate(hollywood, 4, "Pretty good"));
-
-        template.clear();
+        saveUsers();
 
         Collection<TempMovie> m = template.loadAllByProperty(TempMovie.class, "name", "Desi Boyz",0);
         assertEquals(2,m.size());
@@ -227,23 +226,23 @@ public class Neo4jTemplateIT extends MultiDriverTestClass {
         assertEquals(1, m.iterator().next().getRatings().size());
     }
 
+    @Transactional
+    public void saveUsers() {
+        User user = new User("Harmanpreet Singh");
+        TempMovie bollywood = new TempMovie("Desi Boyz");
+        TempMovie hollywood = new TempMovie("Desi Boyz");
+        template.save(user.rate(bollywood, 1, "Bakwaas"));
+        template.save(user.rate(hollywood, 4, "Pretty good"));
+    }
+
 
     /**
      * @see DATAGRAPH-685
      */
     @Test
     public void shouldRetrieveEntitiesByMatchingPropertiesAndDepth() {
-        User user = new User("Harmanpreet Singh");
-        user.setMiddleName("A");
-        User user2 = new User("Harmanpreet Singh");
-        user2.setMiddleName("B");
-        TempMovie bollywood = new TempMovie("Desi Boyz");
-        TempMovie hollywood = new TempMovie("Mission Impossible");
-        template.save(user.rate(bollywood, 1, "Bakwaas"));
-        template.save(user.rate(hollywood, 4, "Pretty good"));
-        template.save(user2);
+        saveUsers2();
 
-        template.clear();
 
         Filter nameFilter = new Filter("name","Harmanpreet Singh");
         Filter middleNameFilter = new Filter("middleName","A");
@@ -259,22 +258,26 @@ public class Neo4jTemplateIT extends MultiDriverTestClass {
         assertNotNull(u.getRatings().iterator().next().getMovie().getRatings());
     }
 
-    /**
-     * @see DATAGRAPH-685
-     */
-    @Test
-    public void shouldRetrieveAllEntitiesByMatchingPropertiesAndDepth() {
+    @Transactional
+    public void saveUsers2() {
         User user = new User("Harmanpreet Singh");
         user.setMiddleName("A");
         User user2 = new User("Harmanpreet Singh");
-        user2.setMiddleName("A");
+        user2.setMiddleName("B");
         TempMovie bollywood = new TempMovie("Desi Boyz");
         TempMovie hollywood = new TempMovie("Mission Impossible");
         template.save(user.rate(bollywood, 1, "Bakwaas"));
         template.save(user.rate(hollywood, 4, "Pretty good"));
         template.save(user2);
+    }
 
-        template.clear();
+    /**
+     * @see DATAGRAPH-685
+     */
+    @Test
+    public void shouldRetrieveAllEntitiesByMatchingPropertiesAndDepth() {
+        saveUsers3();
+
 
         Filter nameFilter = new Filter("name","Harmanpreet Singh");
         Filter middleNameFilter = new Filter("middleName","A");
@@ -289,6 +292,19 @@ public class Neo4jTemplateIT extends MultiDriverTestClass {
         u = template.loadAllByProperties(User.class, filters,2);
         assertEquals(2,u.size());
         assertNotNull(u.iterator().next().getRatings().iterator().next().getMovie().getRatings());
+    }
+
+    @Transactional
+    public void saveUsers3() {
+        User user = new User("Harmanpreet Singh");
+        user.setMiddleName("A");
+        User user2 = new User("Harmanpreet Singh");
+        user2.setMiddleName("A");
+        TempMovie bollywood = new TempMovie("Desi Boyz");
+        TempMovie hollywood = new TempMovie("Mission Impossible");
+        template.save(user.rate(bollywood, 1, "Bakwaas"));
+        template.save(user.rate(hollywood, 4, "Pretty good"));
+        template.save(user2);
     }
 
     @Test
