@@ -16,7 +16,6 @@ package org.springframework.data.neo4j.template;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -32,19 +31,19 @@ import org.springframework.util.Assert;
  */
 @ContextConfiguration(classes = DataManipulationEventConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-@Transactional
 public class ExceptionTranslationIT extends MultiDriverTestClass {
 
 	@Autowired
-	private Session session;
+	private Neo4jOperations neo4jTemplate;
 
 	@Before
 	public void setUp() {
-		Assert.notNull(session, "Session not properly wired in");
+		Assert.notNull(neo4jTemplate, "Session not properly wired in");
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Transactional
 	public void testTemplateExceptionsAreIntercepted() {
-		session.loadAll(Rating.class, 0);
+		neo4jTemplate.loadAll(Rating.class, 0);
 	}
 }

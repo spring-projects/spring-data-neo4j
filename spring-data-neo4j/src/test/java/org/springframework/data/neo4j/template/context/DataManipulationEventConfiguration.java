@@ -17,8 +17,11 @@ import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.events.*;
+import org.springframework.data.neo4j.events.EventPublisher;
+import org.springframework.data.neo4j.events.Neo4jModificationEventListener;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.template.Neo4jOperations;
+import org.springframework.data.neo4j.template.Neo4jTemplate;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -42,7 +45,7 @@ public class DataManipulationEventConfiguration {
 
 	@Bean
 	public SessionFactory sessionFactory() {
-		return new SessionFactory("org.springframework.data.neo4j.examples.movies.domain"){
+		return new SessionFactory("org.springframework.data.neo4j.examples.movies.domain") {
 
 			@Override
 			public Session openSession() {
@@ -51,6 +54,11 @@ public class DataManipulationEventConfiguration {
 				return session;
 			}
 		};
+	}
+
+	@Bean
+	public Neo4jOperations template() {
+		return new Neo4jTemplate(sessionFactory());
 	}
 
 	@Bean
