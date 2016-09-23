@@ -19,12 +19,16 @@ import static org.springframework.data.neo4j.util.IterableUtils.*;
 import java.util.Collection;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
 import org.neo4j.ogm.model.Result;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.transaction.SessionFactoryUtils;
@@ -41,12 +45,21 @@ import org.springframework.util.Assert;
  * @author Adam George
  * @author Michal Bachman
  * @author Luanne Misquitta
+ * @author Mark Angrish
  * @deprecated Use {@link org.neo4j.ogm.session.Session}
  */
 @Deprecated
-public class Neo4jTemplate implements Neo4jOperations {
+public class Neo4jTemplate implements Neo4jOperations, InitializingBean {
 
-	private final SessionFactory sessionFactory;
+	private static final Log logger = LogFactory.getLog(Neo4jTemplate.class);
+
+	private SessionFactory sessionFactory;
+
+	/**
+	 * Create a new Neo4jTemplate instance.
+	 */
+	public Neo4jTemplate() {
+	}
 
 	/**
 	 * Constructs a new {@link Neo4jTemplate} based on the given Neo4j OGM {@link SessionFactory}.
@@ -57,83 +70,207 @@ public class Neo4jTemplate implements Neo4jOperations {
 	public Neo4jTemplate(SessionFactory sessionFactory) {
 		Assert.notNull(sessionFactory, "Cannot create a Neo4jTemplate without a SessionFactory!");
 		this.sessionFactory = sessionFactory;
+		afterPropertiesSet();
+	}
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
+
+	public SessionFactory getSessionFactory() {
+		return sessionFactory;
 	}
 
 	@Override
-	public <T> T load(Class<T> type, Long id) {
-		return SessionFactoryUtils.getSession(sessionFactory).load(type, id);
+	public void afterPropertiesSet() {
+		if (getSessionFactory() == null) {
+			throw new IllegalArgumentException("Property 'sessionFactory' is required");
+		}
+	}
+
+
+	@Override
+	public <T> T execute(Neo4jCallback<T> action) throws DataAccessException {
+		Assert.notNull(action, "Callback object must not be null");
+
+		Session session = null;
+		boolean isNew = false;
+		try {
+			session = SessionFactoryUtils.getSession(getSessionFactory());
+		} catch (IllegalStateException ex) {
+			logger.debug("Could not retrieve pre-bound OGM session", ex);
+		}
+		if (session == null) {
+			session = getSessionFactory().openSession();
+			isNew = true;
+		}
+
+		try {
+			return action.doInNeo4jOgm(session);
+		} catch (RuntimeException ex) {
+			throw SessionFactoryUtils.convertOgmAccessException(ex);
+		} finally {
+			if (isNew) {
+				SessionFactoryUtils.closeSession(session);
+			}
+		}
 	}
 
 	@Override
-	public <T> T load(Class<T> type, Long id, int depth) {
-		return SessionFactoryUtils.getSession(sessionFactory).load(type, id, depth);
-	}
-
-	public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(type, ids);
-	}
-
-	public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, int depth) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(type, ids, depth);
+	public <T> T load(final Class<T> type, final Long id) {
+		return execute(new Neo4jCallback<T>() {
+			@Override
+			public T doInNeo4jOgm(Session session) {
+				return session.load(type, id);
+			}
+		});
 	}
 
 	@Override
-	public <T> Collection<T> loadAll(Class<T> type) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(type);
+	public <T> T load(final Class<T> type, final Long id, final int depth) {
+		return execute(new Neo4jCallback<T>() {
+			@Override
+			public T doInNeo4jOgm(Session session) {
+				return session.load(type, id, depth);
+			}
+		});
+	}
+
+	public <T> Collection<T> loadAll(final Class<T> type, final Collection<Long> ids) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(type, ids);
+			}
+		});
+	}
+
+	public <T> Collection<T> loadAll(final Class<T> type, final Collection<Long> ids, final int depth) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(type, ids, depth);
+			}
+		});
 	}
 
 	@Override
-	public <T> Collection<T> loadAll(Class<T> type, int depth) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(type, depth);
+	public <T> Collection<T> loadAll(final Class<T> type) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(type);
+			}
+		});
 	}
 
 	@Override
-	public <T> Collection<T> loadAll(Class<T> type, SortOrder sortOrder, int depth) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(type, sortOrder, depth);
+	public <T> Collection<T> loadAll(final Class<T> type, final int depth) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(type, depth);
+			}
+		});
 	}
 
 	@Override
-	public <T> Collection<T> loadAll(Class<T> type, SortOrder sortOrder, Pagination pagination, int depth) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(type, sortOrder, pagination, depth);
-	}
-
-	public <T> Collection<T> loadAll(Collection<T> objects) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(objects);
-	}
-
-	@Override
-	public <T> Collection<T> loadAll(Collection<T> objects, int depth) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(objects, depth);
+	public <T> Collection<T> loadAll(final Class<T> type, final SortOrder sortOrder, final int depth) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(type, sortOrder, depth);
+			}
+		});
 	}
 
 	@Override
-	public <T> Collection<T> loadAll(Class<T> type, Collection<Long> ids, SortOrder sortOrder, int depth) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(type, ids, sortOrder, depth);
+	public <T> Collection<T> loadAll(final Class<T> type, final SortOrder sortOrder, final Pagination pagination, final int depth) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(type, sortOrder, pagination, depth);
+			}
+		});
+	}
+
+	public <T> Collection<T> loadAll(final Collection<T> objects) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(objects);
+			}
+		});
 	}
 
 	@Override
-	public <T> Collection<T> loadAll(Class<T> type, Filter filter) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(type, filter);
+	public <T> Collection<T> loadAll(final Collection<T> objects, final int depth) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(objects, depth);
+			}
+		});
 	}
 
 	@Override
-	public <T> Collection<T> loadAll(Class<T> type, Pagination pagination, int depth) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(type, pagination, depth);
+	public <T> Collection<T> loadAll(final Class<T> type, final Collection<Long> ids, final SortOrder sortOrder, final int depth) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(type, ids, sortOrder, depth);
+			}
+		});
 	}
 
 	@Override
-	public <T> Collection<T> loadAll(Class<T> type, Filter filter, int depth) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(type, filter, depth);
+	public <T> Collection<T> loadAll(final Class<T> type, final Filter filter) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(type, filter);
+			}
+		});
 	}
 
 	@Override
-	public <T> T loadByProperty(Class<T> type, String propertyName, Object propertyValue) {
-		return loadByProperty(type, propertyName, propertyValue, 1);
+	public <T> Collection<T> loadAll(final Class<T> type, final Pagination pagination, final int depth) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(type, pagination, depth);
+			}
+		});
 	}
 
 	@Override
-	public <T> T loadByProperty(Class<T> type, String propertyName, Object propertyValue, int depth) {
-		return getSingle(loadAllByProperty(type, propertyName, propertyValue, depth));
+	public <T> Collection<T> loadAll(final Class<T> type, final Filter filter, final int depth) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(type, filter, depth);
+			}
+		});
+	}
+
+	@Override
+	public <T> T loadByProperty(final Class<T> type, final String propertyName, final Object propertyValue) {
+		return execute(new Neo4jCallback<T>() {
+			@Override
+			public T doInNeo4jOgm(Session session) {
+				return loadByProperty(type, propertyName, propertyValue, 1);
+			}
+		});
+	}
+
+	@Override
+	public <T> T loadByProperty(final Class<T> type, final String propertyName, final Object propertyValue, final int depth) {
+		return execute(new Neo4jCallback<T>() {
+			@Override
+			public T doInNeo4jOgm(Session session) {
+				return getSingle(loadAllByProperty(type, propertyName, propertyValue, depth));
+			}
+		});
 	}
 
 	public <T> T loadByPropertyOrNull(Class<T> type, String propertyName, Object propertyValue) {
@@ -141,8 +278,13 @@ public class Neo4jTemplate implements Neo4jOperations {
 	}
 
 	@Override
-	public <T> Collection<T> loadAllByProperty(Class<T> type, String name, Object value) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(type, new Filter(name, value));
+	public <T> Collection<T> loadAllByProperty(final Class<T> type, final String name, final Object value) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(type, new Filter(name, value));
+			}
+		});
 	}
 
 	@Override
@@ -161,75 +303,125 @@ public class Neo4jTemplate implements Neo4jOperations {
 	}
 
 	@Override
-	public <T> Collection<T> loadAllByProperties(Class<T> type, Filters parameters, int depth) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(type, parameters, depth);
+	public <T> Collection<T> loadAllByProperties(final Class<T> type, final Filters parameters, final int depth) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(type, parameters, depth);
+			}
+		});
 	}
 
-	public <T> Collection<T> loadAllByProperty(Class<T> type, String name, Object value, int depth) {
-		return SessionFactoryUtils.getSession(sessionFactory).loadAll(type, new Filter(name, value), depth);
+	public <T> Collection<T> loadAllByProperty(final Class<T> type, final String name, final Object value, final int depth) {
+		return execute(new Neo4jCallback<Collection<T>>() {
+			@Override
+			public Collection<T> doInNeo4jOgm(Session session) {
+				return session.loadAll(type, new Filter(name, value), depth);
+			}
+		});
 	}
 
 	@Override
-	public void delete(Object entity) {
-		SessionFactoryUtils.getSession(sessionFactory).delete(entity);
+	public void delete(final Object entity) {
+		execute(new Neo4jCallback<Object>() {
+			@Override
+			public Object doInNeo4jOgm(Session session) {
+				session.delete(entity);
+				return null;
+			}
+		});
 	}
 
 	@Override
 	public void clear() {
-		SessionFactoryUtils.getSession(sessionFactory).clear();
+		execute(new Neo4jCallback<Object>() {
+			@Override
+			public Object doInNeo4jOgm(Session session) {
+				session.clear();
+				return null;
+			}
+		});
 	}
 
-	public <T> void deleteAll(Class<T> type) {
-		SessionFactoryUtils.getSession(sessionFactory).deleteAll(type);
+	public <T> void deleteAll(final Class<T> type) {
+		execute(new Neo4jCallback<Object>() {
+			@Override
+			public Object doInNeo4jOgm(Session session) {
+				session.deleteAll(type);
+				return null;
+			}
+		});
 	}
 
-//    @Override
-//    public QueryStatistics execute(String jsonStatements) {
-//        return SessionFactoryUtils.getSession(sessionFactory).query(jsonStatements, Utils.map()).queryStatistics();
-//    }
-//
-//    @Override
-//    public QueryStatistics execute(String cypher, Map<String, Object> parameters) {
-//        return SessionFactoryUtils.getSession(sessionFactory).query(cypher, parameters).queryStatistics();
-//    }
 
-	public void purgeSession() {
-		SessionFactoryUtils.getSession(sessionFactory).clear();
+	@Override
+	public <T> T save(final T entity) {
+		return execute(new Neo4jCallback<T>() {
+			@Override
+			public T doInNeo4jOgm(Session session) {
+				session.save(entity);
+				return entity;
+			}
+		});
+	}
+
+	public <T> T save(final T entity, final int depth) {
+		return execute(new Neo4jCallback<T>() {
+			@Override
+			public T doInNeo4jOgm(Session session) {
+				session.save(entity, depth);
+				return entity;
+			}
+		});
 	}
 
 	@Override
-	public <T> T save(T entity) {
-		SessionFactoryUtils.getSession(sessionFactory).save(entity);
-		return entity;
-	}
-
-	public <T> T save(T entity, int depth) {
-		SessionFactoryUtils.getSession(sessionFactory).save(entity, depth);
-		return entity;
-	}
-
-	@Override
-	public Result query(String cypher, Map<String, ?> parameters) {
-		return SessionFactoryUtils.getSession(sessionFactory).query(cypher, parameters);
+	public Result query(final String cypher, final Map<String, ?> parameters) {
+		return execute(new Neo4jCallback<Result>() {
+			@Override
+			public Result doInNeo4jOgm(Session session) {
+				return session.query(cypher, parameters);
+			}
+		});
 	}
 
 	@Override
-	public <T> Iterable<T> queryForObjects(Class<T> objectType, String cypher, Map<String, ?> parameters) {
-		return SessionFactoryUtils.getSession(sessionFactory).query(objectType, cypher, parameters);
+	public <T> Iterable<T> queryForObjects(final Class<T> objectType, final String cypher, final Map<String, ?> parameters) {
+		return execute(new Neo4jCallback<Iterable<T>>() {
+			@Override
+			public Iterable<T> doInNeo4jOgm(Session session) {
+				return session.query(objectType, cypher, parameters);
+			}
+		});
 	}
 
 	@Override
-	public Result query(String cypher, Map<String, ?> parameters, boolean readOnly) {
-		return SessionFactoryUtils.getSession(sessionFactory).query(cypher, parameters, readOnly);
+	public Result query(final String cypher, final Map<String, ?> parameters, final boolean readOnly) {
+		return execute(new Neo4jCallback<Result>() {
+			@Override
+			public Result doInNeo4jOgm(Session session) {
+				return session.query(cypher, parameters, readOnly);
+			}
+		});
 	}
 
 	@Override
-	public <T> T queryForObject(Class<T> objectType, String cypher, Map<String, ?> parameters) {
-		return SessionFactoryUtils.getSession(sessionFactory).queryForObject(objectType, cypher, parameters);
+	public <T> T queryForObject(final Class<T> objectType, final String cypher, final Map<String, ?> parameters) {
+		return execute(new Neo4jCallback<T>() {
+			@Override
+			public T doInNeo4jOgm(Session session) {
+				return session.queryForObject(objectType, cypher, parameters);
+			}
+		});
 	}
 
 	@Override
-	public long count(Class<?> entityClass) {
-		return SessionFactoryUtils.getSession(sessionFactory).countEntitiesOfType(entityClass);
+	public long count(final Class<?> entityClass) {
+		return execute(new Neo4jCallback<Long>() {
+			@Override
+			public Long doInNeo4jOgm(Session session) {
+				return session.countEntitiesOfType(entityClass);
+			}
+		});
 	}
 }
