@@ -31,11 +31,11 @@ import org.springframework.transaction.annotation.TransactionManagementConfigure
 @ComponentScan("org.springframework.data.neo4j.transactions.service")
 @EnableTransactionManagement
 @EnableNeo4jRepositories("org.springframework.data.neo4j.transactions.repo")
-public class ApplicationConfig implements TransactionManagementConfigurer {
+public class ApplicationConfig {
 
-	@Bean(name = "transactionManager")
-	public PlatformTransactionManager annotationDrivenTransactionManager()  {
-		return new ExtendedTransactionsIT.DelegatingTransactionManager(new Neo4jTransactionManager(sessionFactory()));
+	@Bean
+	public PlatformTransactionManager transactionManager()  {
+		return new Neo4jTransactionManager(sessionFactory());
 	}
 
 	@Bean
