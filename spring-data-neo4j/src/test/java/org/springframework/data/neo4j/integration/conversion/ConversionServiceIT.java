@@ -21,6 +21,7 @@ import java.math.RoundingMode;
 import java.util.Arrays;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -48,7 +49,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {ConversionServicePersistenceContext.class})
 public class ConversionServiceIT extends MultiDriverTestClass {
 
-	private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
+	private static GraphDatabaseService graphDatabaseService;
+
 	@Autowired
 	private PensionRepository pensionRepository;
 	@Autowired
@@ -60,9 +62,14 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 
 	@Autowired Neo4jOperations neo4jOperations;
 
+	@BeforeClass
+	public static void beforeClass(){
+		graphDatabaseService = getGraphDatabaseService();
+	}
+
 	@Before
 	public void cleanUpDatabase() {
-		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	/**

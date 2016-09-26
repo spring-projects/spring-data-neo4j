@@ -20,6 +20,7 @@ import static org.springframework.data.neo4j.util.IterableUtils.*;
 import java.util.Arrays;
 import java.util.Collections;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -32,6 +33,13 @@ import org.neo4j.ogm.testutil.MultiDriverTestClass;
  */
 public class IterableUtilsIT extends MultiDriverTestClass {
 
+	private static GraphDatabaseService database;
+
+	@BeforeClass
+	public static void beforeClass(){
+		database = getGraphDatabaseService();
+	}
+
 	@Test
 	public void checkContainsCollections() {
 		assertTrue(contains(asList("a", "b"), "b"));
@@ -40,8 +48,6 @@ public class IterableUtilsIT extends MultiDriverTestClass {
 
 	@Test
 	public void checkContainsRealIterables() {
-
-		GraphDatabaseService database = getGraphDatabaseService();
 
 		Node node;
 		Long nodeId;

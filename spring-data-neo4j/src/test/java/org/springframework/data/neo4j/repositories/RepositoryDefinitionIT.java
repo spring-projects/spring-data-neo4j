@@ -17,6 +17,7 @@ import static org.junit.Assert.*;
 import static org.neo4j.ogm.testutil.GraphTestUtils.*;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -37,19 +38,24 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RepositoryDefinitionIT extends MultiDriverTestClass {
 
-	private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
+	private static GraphDatabaseService graphDatabaseService;
+
+	@BeforeClass
+	public static void beforeClass(){
+		graphDatabaseService = getGraphDatabaseService();
+	}
 
 	@Autowired
 	private Neo4jOperations neo4jOperations;
+
+	@Autowired
+	private MovieRepository movieRepository;
 
 	@Before
 	public void clearDatabase() {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 		neo4jOperations.clear();
 	}
-
-	@Autowired
-	private MovieRepository movieRepository;
 
 	@Test
 	public void shouldProxyAndAutoImplementRepositoryDefinitionAnnotatedRepo() {

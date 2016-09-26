@@ -14,8 +14,10 @@
 package org.springframework.data.neo4j.repositories;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
@@ -38,10 +40,16 @@ import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
  */
 public class ProgrammaticRepositoryIT extends MultiDriverTestClass {
 
+    private static GraphDatabaseService graphDatabaseService;
     private MovieRepository movieRepository;
     private SessionFactory sessionFactory = new SessionFactory("org.springframework.data.neo4j.repositories.domain");
     private Session session;
     private Neo4jOperations neo4jOperations;
+
+    @BeforeClass
+    public static void beforeClass(){
+        graphDatabaseService = getGraphDatabaseService();
+    }
 
     @Before
     public void init() {
@@ -60,7 +68,7 @@ public class ProgrammaticRepositoryIT extends MultiDriverTestClass {
         Movie movie = new Movie("PF");
         movieRepository.save(movie);
 
-        assertSameGraph(getGraphDatabaseService(), "CREATE (m:Movie {title:'PF'})");
+        assertSameGraph(graphDatabaseService, "CREATE (m:Movie {title:'PF'})");
 
         assertEquals(1, IterableUtils.count(movieRepository.findAll()));
     }

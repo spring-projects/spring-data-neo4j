@@ -1,4 +1,4 @@
-package org.springframework.data.neo4j.transactions;
+package org.springframework.data.neo4j.transaction;
 
 import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.*;
@@ -16,9 +16,8 @@ import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.transaction.Transaction;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
-import org.springframework.data.neo4j.transaction.SessionHolder;
-import org.springframework.transaction.*;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -114,8 +113,7 @@ public class Neo4jTransactionManagerTests {
 				}
 			});
 			fail("Should have thrown RuntimeException");
-		}
-		catch (RuntimeException ex) {
+		} catch (RuntimeException ex) {
 			// expected
 		}
 
@@ -169,7 +167,6 @@ public class Neo4jTransactionManagerTests {
 		verify(session).beginTransaction();
 		verify(tx).commit();
 		verify(tx).close();
-
 	}
 
 	@Test
@@ -188,8 +185,7 @@ public class Neo4jTransactionManagerTests {
 				}
 			});
 			fail("Should have thrown RuntimeException");
-		}
-		catch (RuntimeException ex) {
+		} catch (RuntimeException ex) {
 			// expected
 		}
 
@@ -216,8 +212,7 @@ public class Neo4jTransactionManagerTests {
 				}
 			});
 			fail("Should have thrown UnexpectedRollbackException");
-		}
-		catch (UnexpectedRollbackException ex) {
+		} catch (UnexpectedRollbackException ex) {
 			// expected
 		}
 
@@ -225,7 +220,6 @@ public class Neo4jTransactionManagerTests {
 		verify(tx).rollback();
 		verify(tx).close();
 	}
-
 
 //
 //	@Test
@@ -416,5 +410,4 @@ public class Neo4jTransactionManagerTests {
 //		assertTrue(!TransactionSynchronizationManager.isSynchronizationActive());
 //	}
 //
-
 }

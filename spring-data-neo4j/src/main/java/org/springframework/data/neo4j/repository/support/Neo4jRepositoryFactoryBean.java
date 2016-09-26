@@ -52,13 +52,22 @@ public class Neo4jRepositoryFactoryBean<T extends Repository<S, Long>, S> extend
 
 	@Override
 	public void afterPropertiesSet() {
-		super.afterPropertiesSet();
-
 		Assert.notNull(session, "Session must not be null!");
+		super.afterPropertiesSet();
 	}
 
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
+		return createRepositoryFactory(session);
+	}
+
+	/**
+	 * Returns a {@link RepositoryFactorySupport}.
+	 *
+	 * @param session
+	 * @return
+	 */
+	protected RepositoryFactorySupport createRepositoryFactory(Session session) {
 		return new Neo4jRepositoryFactory(session);
 	}
 }

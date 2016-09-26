@@ -56,6 +56,7 @@ public class WrapperService {
         businessService.throwsException();
     }
 
+    @Transactional(readOnly = true)
     public Iterable<Map<String, Object>> fetch() {
         return businessService.fetch();
     }

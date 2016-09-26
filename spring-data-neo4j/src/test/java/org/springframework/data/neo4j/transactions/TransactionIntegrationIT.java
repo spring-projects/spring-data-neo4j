@@ -14,6 +14,7 @@
 package org.springframework.data.neo4j.transactions;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -27,6 +28,7 @@ import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.data.neo4j.examples.movies.service.UserService;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Michal Bachman
@@ -35,14 +37,18 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class TransactionIntegrationIT extends MultiDriverTestClass {
 
-
-	private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
+	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired
 	private UserRepository userRepository;
 
 	@Autowired
 	private UserService userService;
+
+	@BeforeClass
+	public static void beforeClass(){
+		graphDatabaseService = getGraphDatabaseService();
+	}
 
 	@Before
 	public void populateDatabase() {

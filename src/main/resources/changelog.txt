@@ -1,6 +1,25 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.4.5.RELEASE (2016-09-20)
+---------------------------------------------
+* DATAGRAPH-912 - Release 3.4.5 (Gosling SR5).
+* DATAGRAPH-870 - Incorrect relative paths in rest requests of https URLs.
+* DATAGRAPH-869 - Support disabling SSL handshaking.
+
+
+Changes in version 4.1.3.RELEASE (2016-09-20)
+---------------------------------------------
+* DATAGRAPH-911 - Upgrade to Neo4j OGM 2.0.5.
+* DATAGRAPH-910 - Upgrade to Neo4j OGM 2.0.5-snapshot.
+* DATAGRAPH-909 - Ensure all documentation is correct and up to date.
+* DATAGRAPH-908 - Upgrade to Neo4j OGM 2.0.4.
+* DATAGRAPH-907 - Integrate Spring READ_ONLY Transactions with OGM.
+* DATAGRAPH-905 - Count on relationship entity repository returns 0.
+* DATAGRAPH-880 - Release 4.1.3 (Hopper SR3).
+* DATAGRAPH-865 - Spurious warnings related to enum classes.
+
+
 Changes in version 4.2.0.M1 (2016-07-27)
 ----------------------------------------
 * DATAGRAPH-889 - Upgrade to Neo4j OGM 2.0.4.

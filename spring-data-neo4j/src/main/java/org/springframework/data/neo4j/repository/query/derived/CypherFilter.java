@@ -16,7 +16,8 @@ package org.springframework.data.neo4j.repository.query.derived;
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
-import org.neo4j.ogm.cypher.FilterFunction;
+import org.neo4j.ogm.cypher.function.FilterFunction;
+import org.neo4j.ogm.cypher.function.PropertyComparison;
 
 /**
  * A representation of a Neo4j-OGM Filter that contains no parameter/property values and only holds metadata
@@ -33,7 +34,7 @@ public class CypherFilter {
 	BooleanOperator booleanOperator;
 	Class nestedPropertyType;
 	String nestedPropertyName;
-	FilterFunction function = FilterFunction.NONE;
+	FilterFunction function;
 
 	public Integer getPropertyPosition() {
 		return propertyPosition;
@@ -113,7 +114,9 @@ public class CypherFilter {
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNestedPropertyType(nestedPropertyType);
 		filter.setNestedPropertyName(nestedPropertyName);
-		filter.setFunction(function);
+		if (function != null) {
+			filter.setFunction(function);
+		}
 		return filter;
 	}
 }

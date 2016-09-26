@@ -19,7 +19,7 @@ import java.util.List;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
-import org.neo4j.ogm.cypher.FilterFunction;
+import org.neo4j.ogm.cypher.function.DistanceComparison;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -70,7 +70,7 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 		parameter.setBooleanOperator(booleanOperator);
 
 		if (part.getType() == NEAR) {
-			parameter.setFunction(FilterFunction.DISTANCE);
+			parameter.setFunction(new DistanceComparison());
 			parameter.setComparisonOperator(ComparisonOperator.LESS_THAN);
 			paramPosition++;
 		}

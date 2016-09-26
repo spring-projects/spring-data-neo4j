@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.util.*;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -48,7 +49,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext
 public class QueryIntegrationIT extends MultiDriverTestClass {
 
-	private static GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
+	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -62,6 +63,11 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	@Before
 	public void init() {
 		clearDatabase();
+	}
+
+	@BeforeClass
+	public static void beforeClass(){
+		graphDatabaseService = getGraphDatabaseService();
 	}
 
 	@Before

@@ -17,7 +17,6 @@ import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -41,13 +40,13 @@ public class ApplicationConfig extends Neo4jConfiguration implements Transaction
         return new SessionFactory("org.springframework.data.neo4j.transactions.domain");
     }
 
-
     @Override
+    @Bean
     public PlatformTransactionManager annotationDrivenTransactionManager()
     {
         try
         {
-            return transactionManager();
+            return new ExtendedTransactionsIT.DelegatingTransactionManager(transactionManager());
         }
         catch (Exception e)
         {

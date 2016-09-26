@@ -16,6 +16,7 @@ package org.springframework.data.neo4j.repositories;
 import static org.neo4j.ogm.testutil.GraphTestUtils.*;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -35,13 +36,18 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RepoScanningIT extends MultiDriverTestClass {
 
+	private static GraphDatabaseService graphDatabaseService;
+
 	@Autowired
 	private UserRepository userRepository;
 
 	@Autowired
 	private Neo4jOperations neo4jOperations;
 
-	private GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
+	@BeforeClass
+	public static void beforeClass(){
+		graphDatabaseService = getGraphDatabaseService();
+	}
 
 	@Before
 	public void clearDatabase() {

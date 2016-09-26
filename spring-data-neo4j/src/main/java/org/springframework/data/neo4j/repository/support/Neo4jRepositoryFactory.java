@@ -38,8 +38,16 @@ public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	public Neo4jRepositoryFactory(Session session) {
 		Assert.notNull(session);
-
 		this.session = session;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#setBeanClassLoader(java.lang.ClassLoader)
+	 */
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		super.setBeanClassLoader(classLoader);
 	}
 
 	@Override

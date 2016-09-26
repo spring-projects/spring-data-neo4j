@@ -72,8 +72,8 @@ public class OpenSessionInViewInterceptor implements BeanFactoryAware, AsyncWebR
 	 *
 	 * @see SessionFactory#openSession
 	 */
-	public void setSessionFactory(SessionFactory emf) {
-		this.sessionFactory = emf;
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
 	}
 
 	/**
@@ -133,7 +133,7 @@ public class OpenSessionInViewInterceptor implements BeanFactoryAware, AsyncWebR
 			TransactionSynchronizationManager.unbindResource(getSessionFactory());
 			logger.debug("Closed Neo4j OGM Session in OpenSessionInViewInterceptor");
 			// close session.
-			SessionFactoryUtils.closeSession();
+//			SessionFactoryUtils.closeSession(session);
 		}
 	}
 

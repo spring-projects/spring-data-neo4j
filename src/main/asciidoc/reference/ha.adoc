@@ -15,54 +15,49 @@ When operating in HA mode, Neo4j does not make open transactions available acros
 [[reference_configuration_readwrite]]
 === Read-only Transactions
 
-As of version 4, Spring Data Neo4j does not distinguish between WRITE transactions and READ-ONLY transactions. We cannot therefore bind read-only transactions to slaves and write transactions to master. A future version will address this deficiency, but in the meantime the only way to ensure that everything works as expected is to direct every transaction to master. There are a couple of ways to to achieve this.
+As of Version 4.12.0 read-only transactions are fully supported by Spring Data Neo4j
 
-[[reference_configuration_staticbinding]]
-=== Static Binding to a Designated Master
+To declare a read-only transaction specify the `readOnly` attribute in your annotation:
 
-==== Example cluster:
+```
+@Transactional(readOnly=true)
+```
 
-. master:    192.168.0.55
-. slave1:    192.168.0.56
-. slave2:    192.168.0.67
+=== Drivers
+The Neo4j OGM Drivers have been updated to transmit additional information about the transaction type of the current transaction to the server.
 
-.SDN4 Binding to master IP address
-[source,java]
-----
+- The HttpDriver implementation sets a Http Header "X-WRITE" to "1" for READ_WRITE transactions (the default) or to "0" for READ_ONLY ones.
 
-    Components.driver().setURI("http://192.168.0.55:7474");
+- The Embedded Driver can support READ_ONLY, but this only makes sense in an HA environment. As there is no support for HA Embedded in the OGM at the moment, the implementation is currently on hold.
 
-----
+- The native Bolt Driver currently has no support for READ_ONLY transactions or READ_ONLY sessions, so the implementation of this in the OGM is also on hold until this capability becomes available.
 
-[NOTE]
-====
-We don't really recommend this approach, except for testing purposes and non-critical deployments. Firstly, it will only work if you always bring up the designated master first, and secondly, if the master goes down all subsequent transactions will fail until it is restarted. In HA mode, the cluster is able to elect a new master when this happens, but as of version 4 of Spring Data Neo4j, there is no mechanism for querying the cluster to identify the current master. The solution in this case is to use a load balancer such as HAProxy that can do this for us. This is described in the next section.
+[[reference-configuration-haproxy]]
+== Dynamic binding via a load balancer
 
-====
+In the Neo4j HA architecture, a cluster is typically fronted by a load balancer.
 
-[[reference_configuration_haproxy]]
-=== Dynamic Binding via a Load Balancer
-In the Neo4j HA architecture, a cluster is typically fronted by a load balancer. The following example shows how to configure your application and set up HAProxy as a load balancer to route all requests to whichever machine in the cluster is currently identified as the master. Since only one machine can ever be the elected master, this should work exactly as we would like. Furthermore, should the elected master fail, a new server will be elected from the cluster as master and HAProxy will automatically route transactions to this server.
+The following example shows how to configure your application and set up HAProxy as a load balancer to route write requests to whichever machine in the cluster is currently identified as the master, with read requests being distributed to any available machine in the cluster on a round-robin basis.
 
+This configuration will also ensure that requests against a specific transaction are directed to the server where the transaction was created.
 
-==== Example cluster fronted by HAProxy
+=== Example cluster fronted by HAProxy
 
 . haproxy:          10.0.2.200
 . neo4j-server1:    10.0.1.10
 . neo4j-server2:    10.0.1.11
 . neo4j-server3:    10.0.1.12
 
-.Spring Data Neo4j 4 Binding via HAProxy
-[source,java]
+.OGM Binding via HAProxy
+[source, java]
 ----
-
-    Components.driver().setURI("http://10.0.2.200");
-
+Components.driver().setURI("http://10.0.2.200");
 ----
 
 .Sample haproxy.cfg
 
-```
+[source, config]
+----
 global
     daemon
     maxconn 256
@@ -75,9 +70,22 @@ defaults
 
 frontend http-in
     bind *:80
-    default_backend neo4j
+    acl write_hdr hdr_val(X-WRITE) eq 1
+    use_backend neo4j-master if write_hdr
+    default_backend neo4j-cluster
 
-backend neo4j
+backend neo4j-cluster
+    balance roundrobin
+    # create a sticky table so that requests with a transaction id are always sent to the correct server
+    stick-table type integer size 1k expire 70s
+    stick match path,word(4,/)
+    stick store-response hdr(Location),word(6,/)
+    option httpchk GET /db/manage/server/ha/available
+    server s1 10.0.1.10:7474 maxconn 32
+    server s2 10.0.1.11:7474 maxconn 32
+    server s3 10.0.1.12:7474 maxconn 32
+
+backend neo4j-master
     option httpchk GET /db/manage/server/ha/master
     server s1 10.0.1.10:7474 maxconn 32
     server s2 10.0.1.11:7474 maxconn 32
@@ -86,5 +94,5 @@ backend neo4j
 listen admin
     bind *:8080
     stats enable
-```
+----
 

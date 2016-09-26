@@ -1,3 +1,15 @@
+/*
+ * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ *
+ */
 package org.springframework.data.neo4j.repository.cdi;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -18,7 +30,7 @@ import org.neo4j.ogm.session.Session;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
- * Created by markangrish on 03/08/2016.
+ * @author Mark Angrish
  */
 public class Neo4jRepositoryExtensionTest {
 
@@ -35,7 +47,7 @@ public class Neo4jRepositoryExtensionTest {
 	}
 
 	@Test
-	public void registersEntityManager() {
+	public void registersSession() {
 
 		Neo4jCdiRepositoryExtension extension = new Neo4jCdiRepositoryExtension();
 		extension.processBean(createSessionBeanMock(session));
@@ -46,10 +58,10 @@ public class Neo4jRepositoryExtensionTest {
 	@SuppressWarnings("unchecked")
 	private static void assertSessionRegistered(Neo4jCdiRepositoryExtension extension, Bean<Session> em) {
 
-		Map<Set<Annotation>, Bean<Session>> entityManagers = (Map<Set<Annotation>, Bean<Session>>) ReflectionTestUtils
+		Map<Set<Annotation>, Bean<Session>> sessions = (Map<Set<Annotation>, Bean<Session>>) ReflectionTestUtils
 				.getField(extension, "sessions");
-		assertThat(entityManagers.size(), is(1));
-		assertThat(entityManagers.values(), hasItem(em));
+		assertThat(sessions.size(), is(1));
+		assertThat(sessions.values(), hasItem(em));
 	}
 
 	@SuppressWarnings("unchecked")
