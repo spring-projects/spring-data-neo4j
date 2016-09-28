@@ -13,6 +13,7 @@
 
 package org.springframework.data.neo4j.repositories;
 
+import static org.junit.Assert.assertEquals;
 import static org.neo4j.ogm.testutil.GraphTestUtils.*;
 
 import org.junit.Before;
@@ -28,7 +29,11 @@ import org.springframework.data.neo4j.repositories.repo.PersistenceContextInTheS
 import org.springframework.data.neo4j.repositories.repo.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Michal Bachman
@@ -43,6 +48,7 @@ public class RepoScanningIT extends MultiDriverTestClass {
 	@Autowired
 	private UserRepository userRepository;
 
+
 	@BeforeClass
 	public static void beforeClass(){
 		graphDatabaseService = getGraphDatabaseService();
@@ -55,14 +61,11 @@ public class RepoScanningIT extends MultiDriverTestClass {
 
 	@Test
 	public void enableNeo4jRepositoriesShouldScanSelfPackageByDefault() {
-		saveUser();
+
+		User user = new User("Michal");
+		userRepository.save(user);
 
 		assertSameGraph(graphDatabaseService, "CREATE (u:User {name:'Michal'})");
 	}
 
-	@Transactional
-	public void saveUser() {
-		User user = new User("Michal");
-		userRepository.save(user);
-	}
 }

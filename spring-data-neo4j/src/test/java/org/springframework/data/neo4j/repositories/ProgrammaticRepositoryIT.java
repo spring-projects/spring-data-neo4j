@@ -20,16 +20,26 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.repositories.domain.Movie;
 import org.springframework.data.neo4j.repositories.domain.User;
 import org.springframework.data.neo4j.repositories.repo.MovieRepository;
 import org.springframework.data.neo4j.repositories.repo.UserRepository;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactory;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.util.IterableUtils;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Michal Bachman
@@ -39,9 +49,12 @@ import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
 public class ProgrammaticRepositoryIT extends MultiDriverTestClass {
 
     private static GraphDatabaseService graphDatabaseService;
+
     private MovieRepository movieRepository;
     private SessionFactory sessionFactory = new SessionFactory("org.springframework.data.neo4j.repositories.domain");
+    private PlatformTransactionManager platformTransactionManager = new Neo4jTransactionManager(sessionFactory);
     private Session session;
+    private TransactionTemplate transactionTemplate;
 
     @BeforeClass
     public static void beforeClass(){
@@ -50,6 +63,7 @@ public class ProgrammaticRepositoryIT extends MultiDriverTestClass {
 
     @Before
     public void init() {
+        transactionTemplate = new TransactionTemplate(platformTransactionManager);
         session = sessionFactory.openSession();
         session.purgeDatabase();
     }
@@ -57,12 +71,17 @@ public class ProgrammaticRepositoryIT extends MultiDriverTestClass {
     @Test
     public void canInstantiateRepositoryProgrammatically() {
 
-        RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            @Override
+            public void doInTransactionWithoutResult(TransactionStatus status) {
+                RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
 
-        movieRepository = factory.getRepository(MovieRepository.class);
+                movieRepository = factory.getRepository(MovieRepository.class);
 
-        Movie movie = new Movie("PF");
-        movieRepository.save(movie);
+                Movie movie = new Movie("PF");
+                movieRepository.save(movie);
+            }
+        });
 
         assertSameGraph(graphDatabaseService, "CREATE (m:Movie {title:'PF'})");
 
@@ -73,6 +92,7 @@ public class ProgrammaticRepositoryIT extends MultiDriverTestClass {
      * @see DATAGRAPH-847
      */
     @Test
+    @Transactional
     public void shouldBeAbleToDeleteAllViaRepository() {
 
         RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);

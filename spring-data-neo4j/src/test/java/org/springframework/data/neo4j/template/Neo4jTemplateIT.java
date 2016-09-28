@@ -52,6 +52,7 @@ import static org.neo4j.ogm.session.Utils.map;
  */
 @ContextConfiguration(classes = {Neo4jTemplateConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
+@Ignore
 public class Neo4jTemplateIT extends MultiDriverTestClass {
 
     private static GraphDatabaseService graphDatabaseService;

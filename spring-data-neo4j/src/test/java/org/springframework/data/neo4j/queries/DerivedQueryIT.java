@@ -44,9 +44,15 @@ import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.DirectorRepository;
 import org.springframework.data.neo4j.examples.movies.repo.RatingRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
+import org.springframework.data.neo4j.repositories.domain.Movie;
+import org.springframework.data.neo4j.util.IterableUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Luanne Misquitta
@@ -57,6 +63,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class DerivedQueryIT extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
+
+	@Autowired
+	PlatformTransactionManager platformTransactionManager;
 
 	@Autowired
 	private Session session;
@@ -73,6 +82,9 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 	@Autowired
 	private DirectorRepository directorRepository;
 
+	private TransactionTemplate transactionTemplate;
+
+
 	@BeforeClass
 	public static void beforeClass() {
 		graphDatabaseService = getGraphDatabaseService();
@@ -80,6 +92,7 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 
 	@Before
 	public void clearDatabase() {
+		transactionTemplate = new TransactionTemplate(platformTransactionManager);
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
@@ -124,19 +137,24 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 	public void shouldFindNodeEntitiesWithLabels() {
 		executeUpdate("CREATE (u:User {name:'Michal'}) CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'}) CREATE (u)-[:VISITED]->(p)");
 
-		Collection<Cinema> cinemas = cinemaRepository.findByName("Picturehouse");
-		Iterator<Cinema> iterator = cinemas.iterator();
-		assertTrue(iterator.hasNext());
-		Cinema cinema = iterator.next();
-		assertEquals("Picturehouse", cinema.getName());
-		assertEquals(1, cinema.getVisited().size());
-		assertEquals("Michal", cinema.getVisited().iterator().next().getName());
-		assertFalse(iterator.hasNext());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Collection<Cinema> cinemas = cinemaRepository.findByName("Picturehouse");
+				Iterator<Cinema> iterator = cinemas.iterator();
+				assertTrue(iterator.hasNext());
+				Cinema cinema = iterator.next();
+				assertEquals("Picturehouse", cinema.getName());
+				assertEquals(1, cinema.getVisited().size());
+				assertEquals("Michal", cinema.getVisited().iterator().next().getName());
+				assertFalse(iterator.hasNext());
 
-		List<Cinema> theatres = cinemaRepository.findByLocation("London");
-		assertEquals(2, theatres.size());
-		assertTrue(theatres.contains(new Cinema("Picturehouse")));
-		assertTrue(theatres.contains(new Cinema("Ritzy")));
+				List<Cinema> theatres = cinemaRepository.findByLocation("London");
+				assertEquals(2, theatres.size());
+				assertTrue(theatres.contains(new Cinema("Picturehouse")));
+				assertTrue(theatres.contains(new Cinema("Ritzy")));
+			}
+		});
 	}
 
 	/**
@@ -185,23 +203,28 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
 
-		List<Cinema> theatres = cinemaRepository.findByCapacityGreaterThan(3000);
-		assertEquals(2, theatres.size());
-		assertTrue(theatres.contains(new Cinema("Picturehouse")));
-		assertTrue(theatres.contains(new Cinema("Ritzy")));
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Cinema> theatres = cinemaRepository.findByCapacityGreaterThan(3000);
+				assertEquals(2, theatres.size());
+				assertTrue(theatres.contains(new Cinema("Picturehouse")));
+				assertTrue(theatres.contains(new Cinema("Ritzy")));
 
-		theatres = cinemaRepository.findByCapacityGreaterThan(6000);
-		assertEquals(1, theatres.size());
-		assertEquals("Ritzy", theatres.get(0).getName());
+				theatres = cinemaRepository.findByCapacityGreaterThan(6000);
+				assertEquals(1, theatres.size());
+				assertEquals("Ritzy", theatres.get(0).getName());
 
-		theatres = cinemaRepository.findByCapacityLessThan(8000);
-		assertEquals(2, theatres.size());
-		assertTrue(theatres.contains(new Cinema("Picturehouse")));
-		assertTrue(theatres.contains(new Cinema("Ritzy")));
+				theatres = cinemaRepository.findByCapacityLessThan(8000);
+				assertEquals(2, theatres.size());
+				assertTrue(theatres.contains(new Cinema("Picturehouse")));
+				assertTrue(theatres.contains(new Cinema("Ritzy")));
 
-		theatres = cinemaRepository.findByCapacityLessThan(7000);
-		assertEquals(1, theatres.size());
-		assertEquals("Picturehouse", theatres.get(0).getName());
+				theatres = cinemaRepository.findByCapacityLessThan(7000);
+				assertEquals(1, theatres.size());
+				assertEquals("Picturehouse", theatres.get(0).getName());
+			}
+		});
 	}
 
 	/**
@@ -212,14 +235,19 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 4500})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
 
-		List<Cinema> theatres = cinemaRepository.findByLocationAndCapacityGreaterThan("London", 3000);
-		assertEquals(2, theatres.size());
-		assertTrue(theatres.contains(new Cinema("Picturehouse")));
-		assertTrue(theatres.contains(new Cinema("Ritzy")));
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Cinema> theatres = cinemaRepository.findByLocationAndCapacityGreaterThan("London", 3000);
+				assertEquals(2, theatres.size());
+				assertTrue(theatres.contains(new Cinema("Picturehouse")));
+				assertTrue(theatres.contains(new Cinema("Ritzy")));
 
-		theatres = cinemaRepository.findByCapacityLessThanAndLocation(6000, "Bombay");
-		assertEquals(1, theatres.size());
-		assertEquals("Regal", theatres.get(0).getName());
+				theatres = cinemaRepository.findByCapacityLessThanAndLocation(6000, "Bombay");
+				assertEquals(1, theatres.size());
+				assertEquals("Regal", theatres.get(0).getName());
+			}
+		});
 	}
 
 	/**
@@ -230,14 +258,19 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 9000})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
 
-		List<Cinema> theatres = cinemaRepository.findByLocationOrCapacityLessThan("London", 100);
-		assertEquals(2, theatres.size());
-		assertTrue(theatres.contains(new Cinema("Picturehouse")));
-		assertTrue(theatres.contains(new Cinema("Ritzy")));
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Cinema> theatres = cinemaRepository.findByLocationOrCapacityLessThan("London", 100);
+				assertEquals(2, theatres.size());
+				assertTrue(theatres.contains(new Cinema("Picturehouse")));
+				assertTrue(theatres.contains(new Cinema("Ritzy")));
 
-		theatres = cinemaRepository.findByCapacityGreaterThanOrLocation(8000, "Paris");
-		assertEquals(1, theatres.size());
-		assertEquals("Regal", theatres.get(0).getName());
+				theatres = cinemaRepository.findByCapacityGreaterThanOrLocation(8000, "Paris");
+				assertEquals(1, theatres.size());
+				assertEquals("Regal", theatres.get(0).getName());
+			}
+		});
 	}
 
 
@@ -313,12 +346,17 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 				" CREATE (p)-[:BLOCKBUSTER]->(m1)" +
 				" CREATE (r)-[:BLOCKBUSTER]->(m2)");
 
-		List<Cinema> theatres = cinemaRepository.findByVisitedNameAndBlockbusterOfTheWeekName("Michal", "San Andreas");
-		assertEquals(1, theatres.size());
-		assertTrue(theatres.contains(new Cinema("Picturehouse")));
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Cinema> theatres = cinemaRepository.findByVisitedNameAndBlockbusterOfTheWeekName("Michal", "San Andreas");
+				assertEquals(1, theatres.size());
+				assertTrue(theatres.contains(new Cinema("Picturehouse")));
 
-		theatres = cinemaRepository.findByVisitedNameAndBlockbusterOfTheWeekName("Michal", "Tomorrowland");
-		assertEquals(0, theatres.size());
+				theatres = cinemaRepository.findByVisitedNameAndBlockbusterOfTheWeekName("Michal", "Tomorrowland");
+				assertEquals(0, theatres.size());
+			}
+		});
 	}
 
 	/**
@@ -336,13 +374,18 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 				" CREATE (p)-[:BLOCKBUSTER]->(m1)" +
 				" CREATE (r)-[:BLOCKBUSTER]->(m2)");
 
-		List<Cinema> theatres = cinemaRepository.findByVisitedNameOrBlockbusterOfTheWeekName("Michal", "San Andreas");
-		assertEquals(2, theatres.size());
-		assertTrue(theatres.contains(new Cinema("Picturehouse")));
-		assertTrue(theatres.contains(new Cinema("Ritzy")));
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Cinema> theatres = cinemaRepository.findByVisitedNameOrBlockbusterOfTheWeekName("Michal", "San Andreas");
+				assertEquals(2, theatres.size());
+				assertTrue(theatres.contains(new Cinema("Picturehouse")));
+				assertTrue(theatres.contains(new Cinema("Ritzy")));
 
-		theatres = cinemaRepository.findByVisitedNameOrBlockbusterOfTheWeekName("Vince", "Tomorrowland");
-		assertEquals(0, theatres.size());
+				theatres = cinemaRepository.findByVisitedNameOrBlockbusterOfTheWeekName("Vince", "Tomorrowland");
+				assertEquals(0, theatres.size());
+			}
+		});
 	}
 
 	/**
@@ -355,12 +398,17 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 				" CREATE (u:User {name:'Michal', middleName:'M'}) CREATE (u1:User {name:'Vince', middleName:'M'}) " +
 				" CREATE (u)-[:VISITED]->(p)  CREATE (u1)-[:VISITED]->(r)");
 
-		List<Cinema> theatres = cinemaRepository.findByVisitedNameAndVisitedMiddleName("Michal", "M");
-		assertEquals(1, theatres.size());
-		assertTrue(theatres.contains(new Cinema("Picturehouse")));
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Cinema> theatres = cinemaRepository.findByVisitedNameAndVisitedMiddleName("Michal", "M");
+				assertEquals(1, theatres.size());
+				assertTrue(theatres.contains(new Cinema("Picturehouse")));
 
-		theatres = cinemaRepository.findByVisitedNameAndVisitedMiddleName("Vince", "V");
-		assertEquals(0, theatres.size());
+				theatres = cinemaRepository.findByVisitedNameAndVisitedMiddleName("Vince", "V");
+				assertEquals(0, theatres.size());
+			}
+		});
 	}
 
 	/**
@@ -439,16 +487,21 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 	public void shouldFindDirectorsByName() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'}) CREATE (d:Director {name:'Vince'})");
 
-		Collection<Director> directors = directorRepository.findByName("Vince");
-		Iterator<Director> iterator = directors.iterator();
-		assertTrue(iterator.hasNext());
-		Director director = iterator.next();
-		assertEquals("Vince", director.getName());
-		assertFalse(iterator.hasNext());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Collection<Director> directors = directorRepository.findByName("Vince");
+				Iterator<Director> iterator = directors.iterator();
+				assertTrue(iterator.hasNext());
+				Director director = iterator.next();
+				assertEquals("Vince", director.getName());
+				assertFalse(iterator.hasNext());
 
-		directors = directorRepository.findByName("Michal");
-		iterator = directors.iterator();
-		assertFalse(iterator.hasNext());
+				directors = directorRepository.findByName("Michal");
+				iterator = directors.iterator();
+				assertFalse(iterator.hasNext());
+			}
+		});
 	}
 
 
@@ -467,25 +520,30 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 				" CREATE (r)-[:BLOCKBUSTER]->(m2)" +
 				" CREATE (u)-[:RATED {stars :3}]->(m1)");
 
-		Cinema cinema = cinemaRepository.findByName("Picturehouse", 0);
-		assertNotNull(cinema);
-		assertEquals("Picturehouse", cinema.getName());
-		assertEquals(0, cinema.getVisited().size());
-		assertEquals(null, cinema.getBlockbusterOfTheWeek());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Cinema cinema = cinemaRepository.findByName("Picturehouse", 0);
+				assertNotNull(cinema);
+				assertEquals("Picturehouse", cinema.getName());
+				assertEquals(0, cinema.getVisited().size());
+				assertEquals(null, cinema.getBlockbusterOfTheWeek());
 
-		cinema = cinemaRepository.findByName("Picturehouse", 1);
-		assertNotNull(cinema);
-		assertEquals("Picturehouse", cinema.getName());
-		assertEquals(1, cinema.getVisited().size());
-		assertEquals(0, cinema.getVisited().iterator().next().getRatings().size());
-		assertEquals("San Andreas", cinema.getBlockbusterOfTheWeek().getName());
+				cinema = cinemaRepository.findByName("Picturehouse", 1);
+				assertNotNull(cinema);
+				assertEquals("Picturehouse", cinema.getName());
+				assertEquals(1, cinema.getVisited().size());
+				assertEquals(0, cinema.getVisited().iterator().next().getRatings().size());
+				assertEquals("San Andreas", cinema.getBlockbusterOfTheWeek().getName());
 
-		cinema = cinemaRepository.findByName("Picturehouse", 2);
-		assertNotNull(cinema);
-		assertEquals("Picturehouse", cinema.getName());
-		assertEquals(1, cinema.getVisited().size());
-		assertEquals(1, cinema.getVisited().iterator().next().getRatings().size());
-		assertEquals("San Andreas", cinema.getBlockbusterOfTheWeek().getName());
+				cinema = cinemaRepository.findByName("Picturehouse", 2);
+				assertNotNull(cinema);
+				assertEquals("Picturehouse", cinema.getName());
+				assertEquals(1, cinema.getVisited().size());
+				assertEquals(1, cinema.getVisited().iterator().next().getRatings().size());
+				assertEquals("San Andreas", cinema.getBlockbusterOfTheWeek().getName());
+			}
+		});
 	}
 
 

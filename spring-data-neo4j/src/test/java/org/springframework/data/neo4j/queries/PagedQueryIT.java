@@ -16,13 +16,11 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -33,24 +31,31 @@ import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQ
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Luanne Misquitta
  * @author Jasper Blues
  * @author Mark Angrish
- *
  * @see DATAGRAPH-680
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@Transactional
 public class PagedQueryIT extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired
+	PlatformTransactionManager platformTransactionManager;
+
+	@Autowired
 	private CinemaRepository cinemaRepository;
+
+	private TransactionTemplate transactionTemplate;
 
 	@BeforeClass
 	public static void beforeClass() {
@@ -59,7 +64,11 @@ public class PagedQueryIT extends MultiDriverTestClass {
 
 	@Before
 	public void init() {
-		clearDatabase();
+		transactionTemplate = new TransactionTemplate(platformTransactionManager);
+		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+	}
+
+	public void setup() {
 		String[] names = new String[]{"Picturehouse", "Regal", "Ritzy", "Metro", "Inox", "PVR", "Cineplex", "Landmark", "Rainbow", "Movietime"};
 		for (String name : names) {
 			Cinema cinema = new Cinema(name);
@@ -69,18 +78,15 @@ public class PagedQueryIT extends MultiDriverTestClass {
 		}
 	}
 
-	@After
-	public void clearDatabase() {
-		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-	}
-
 	private void executeUpdate(String cypher) {
 		graphDatabaseService.execute(cypher);
 	}
 
 
 	@Test
+	@Transactional
 	public void shouldFindPagedCinemas() {
+		setup();
 		Pageable pageable = new PageRequest(0, 3);
 		Page<Cinema> page = cinemaRepository.getPagedCinemas(pageable);
 		assertEquals(3, page.getNumberOfElements());
@@ -108,7 +114,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-893
 	 */
 	@Test
+	@Transactional
 	public void shouldFindPagedQueryResults() {
+		setup();
 		Pageable pageable = new PageRequest(0, 3);
 		Page<CinemaQueryResult> page = cinemaRepository.getPagedCinemaQueryResults(pageable);
 		System.out.println(page);
@@ -136,7 +144,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-893
 	 */
 	@Test
+	@Transactional
 	public void shouldFindSlicedQueryResults() {
+		setup();
 		Pageable pageable = new PageRequest(0, 3);
 		Slice<CinemaQueryResult> page = cinemaRepository.getSlicedCinemaQueryResults(pageable);
 
@@ -161,7 +171,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 * * @see DATAGRAPH-893
 	 */
 	@Test
+	@Transactional
 	public void shouldFindPagedQueryInterfaceResults() {
+		setup();
 		Pageable pageable = new PageRequest(0, 3);
 		Page<CinemaQueryResultInterface> page = cinemaRepository.getPagedCinemaQueryResultInterfaces(pageable);
 		System.out.println(page);
@@ -186,7 +198,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	}
 
 	@Test
+	@Transactional
 	public void shouldNotRelyOnTotalElementsToFindPagedCinemas() {
+		setup();
 		Pageable pageable = new PageRequest(0, 5);
 		Page<Cinema> page = cinemaRepository.getPagedCinemas(pageable);
 		assertEquals(5, page.getNumberOfElements());
@@ -202,7 +216,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	}
 
 	@Test
+	@Transactional
 	public void shouldFindPagedCinemasWithAccurateTotalCount() {
+		setup();
 		Pageable pageable = new PageRequest(0, 3);
 		Page<Cinema> page = cinemaRepository.getPagedCinemasWithPageCount(pageable);
 		assertEquals(3, page.getNumberOfElements());
@@ -226,7 +242,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	}
 
 	@Test
+	@Transactional
 	public void shouldRelyOnTotalElementsToFindPagedCinemasWithCountQuery() {
+		setup();
 		Pageable pageable = new PageRequest(0, 5);
 		Page<Cinema> page = cinemaRepository.getPagedCinemasWithPageCount(pageable);
 		assertEquals(5, page.getNumberOfElements());
@@ -240,7 +258,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	}
 
 	@Test
+	@Transactional
 	public void shouldUseQueryParametersInCountQuery() {
+		setup();
 		Pageable pageable = new PageRequest(0, 5);
 		Page<Cinema> page = cinemaRepository.getPagedCinemasByCityWithPageCount("London", pageable);
 		assertEquals(5, page.getNumberOfElements());
@@ -254,7 +274,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	}
 
 	@Test
+	@Transactional
 	public void shouldFindSlicedCinemas() {
+		setup();
 		Pageable pageable = new PageRequest(0, 3);
 		Slice<Cinema> slice = cinemaRepository.getSlicedCinemasByName(pageable);
 		assertEquals(3, slice.getNumberOfElements());
@@ -274,7 +296,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	}
 
 	@Test
+	@Transactional
 	public void shouldCorrectlyCalculateWhetherNextSliceExists() {
+		setup();
 		Pageable pageable = new PageRequest(0, 5);
 		Slice<Cinema> slice = cinemaRepository.getSlicedCinemasByName(pageable);
 		assertEquals(5, slice.getNumberOfElements());
@@ -290,7 +314,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-887
 	 */
 	@Test
+	@Transactional
 	public void shouldFindPagedAndSortedCinemas() {
+		setup();
 		Pageable pageable = new PageRequest(0, 4, Sort.Direction.ASC, "name");
 
 		Page<Cinema> page = cinemaRepository.findByLocation("London", pageable);
@@ -323,6 +349,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-887
 	 */
 	@Test
+	@Transactional
 	public void shouldSortPageWhenNestedPropertyIsInvolved() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
 				"CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
@@ -331,19 +358,25 @@ public class PagedQueryIT extends MultiDriverTestClass {
 				"CREATE (u)-[:VISITED]->(r)  " +
 				"CREATE (u)-[:VISITED]->(m)");
 
-		Page<Cinema> page = cinemaRepository.findByLocationAndVisitedName("London", "Michal", new PageRequest(0, 1, Sort.Direction.DESC, "name"));
-		assertEquals(1, page.getNumberOfElements());
-		assertEquals("Ritzy", page.getContent().get(0).getName());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Page<Cinema> page = cinemaRepository.findByLocationAndVisitedName("London", "Michal", new PageRequest(0, 1, Sort.Direction.DESC, "name"));
+				assertEquals(1, page.getNumberOfElements());
+				assertEquals("Ritzy", page.getContent().get(0).getName());
 
-		page = cinemaRepository.findByLocationAndVisitedName("London", "Michal", new PageRequest(1, 1, Sort.Direction.DESC, "name"));
-		assertEquals(1, page.getNumberOfElements());
-		assertEquals("Picturehouse", page.getContent().get(0).getName());
+				page = cinemaRepository.findByLocationAndVisitedName("London", "Michal", new PageRequest(1, 1, Sort.Direction.DESC, "name"));
+				assertEquals(1, page.getNumberOfElements());
+				assertEquals("Picturehouse", page.getContent().get(0).getName());
+			}
+		});
 	}
 
 	/**
 	 * @see DATAGRAPH-887
 	 */
 	@Test
+	@Transactional
 	public void shouldSortPageByNestedPropertyIsInvolved() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
 				"CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
@@ -352,20 +385,27 @@ public class PagedQueryIT extends MultiDriverTestClass {
 				"CREATE (u)-[:VISITED]->(r)  " +
 				"CREATE (u)-[:VISITED]->(m)");
 
-		Page<Cinema> page = cinemaRepository.findByVisitedName("Michal", new PageRequest(0, 1, Sort.Direction.ASC, "location"));
-		assertEquals(1, page.getNumberOfElements());
-		assertEquals("Regal", page.getContent().get(0).getName());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Page<Cinema> page = cinemaRepository.findByVisitedName("Michal", new PageRequest(0, 1, Sort.Direction.ASC, "location"));
+				assertEquals(1, page.getNumberOfElements());
+				assertEquals("Regal", page.getContent().get(0).getName());
 
-		page = cinemaRepository.findByVisitedName("Michal", new PageRequest(1, 1, Sort.Direction.DESC, "location"));
-		assertEquals(1, page.getNumberOfElements());
-		assertEquals("Regal", page.getContent().get(0).getName());
+				page = cinemaRepository.findByVisitedName("Michal", new PageRequest(1, 1, Sort.Direction.DESC, "location"));
+				assertEquals(1, page.getNumberOfElements());
+				assertEquals("Regal", page.getContent().get(0).getName());
+			}
+		});
 	}
 
 	/**
 	 * @see DATAGRAPH-887
 	 */
 	@Test
+	@Transactional
 	public void shouldFindSortedCinemas() {
+		setup();
 		Sort sort = new Sort(Sort.Direction.ASC, "name");
 		List<Cinema> cinemas = cinemaRepository.findByLocation("London", sort);
 		assertEquals(10, cinemas.size());
@@ -385,7 +425,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-887
 	 */
 	@Test
+	@Transactional
 	public void shouldFindPagedAndSortedCinemasByCapacity() {
+		setup();
 		Pageable pageable = new PageRequest(0, 4, Sort.Direction.ASC, "name");
 
 		List<Cinema> page = cinemaRepository.findByCapacity(500, pageable);
@@ -414,7 +456,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-653
 	 */
 	@Test
+	@Transactional
 	public void shouldFindPagedCinemasSortedWithCustomQuery() {
+		setup();
 		Pageable pageable = new PageRequest(0, 4, Sort.Direction.ASC, "n.name");
 
 		Page<Cinema> page = cinemaRepository.getPagedCinemas(pageable);
@@ -447,7 +491,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-653
 	 */
 	@Test
+	@Transactional
 	public void shouldFindSlicedCinemasSortedWithCustomQuery() {
+		setup();
 		Pageable pageable = new PageRequest(0, 4, Sort.Direction.ASC, "n.name");
 
 		Slice<Cinema> slice = cinemaRepository.getSlicedCinemasByName(pageable);
@@ -477,7 +523,9 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-653
 	 */
 	@Test
+	@Transactional
 	public void shouldFindCinemasSortedByNameWithCustomQuery() {
+		setup();
 		Sort sort = new Sort(Sort.Direction.ASC, "n.name");
 		List<Cinema> cinemas = cinemaRepository.getCinemasSortedByName(sort);
 		assertEquals(10, cinemas.size());
