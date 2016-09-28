@@ -20,12 +20,13 @@ import java.lang.annotation.Annotation;
 
 /**
  * @author Vince Bickers
+ * @author Mark Angrish
  */
 public class Neo4jRepositoriesRegistrar extends RepositoryBeanDefinitionRegistrarSupport {
 
 	@Override
 	protected Class<? extends Annotation> getAnnotation() {
-		return EnableExperimentalNeo4jRepositories.class;
+		return EnableNeo4jRepositories.class;
 	}
 
 	@Override

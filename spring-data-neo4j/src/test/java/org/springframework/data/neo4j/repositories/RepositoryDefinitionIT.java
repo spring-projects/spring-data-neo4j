@@ -26,13 +26,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.repositories.context.RepositoriesTestContext;
 import org.springframework.data.neo4j.repositories.domain.Movie;
 import org.springframework.data.neo4j.repositories.repo.MovieRepository;
-import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.util.IterableUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Michal Bachman
+ * @author Mark Angrish
  */
 @ContextConfiguration(classes = {RepositoriesTestContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -40,30 +44,36 @@ public class RepositoryDefinitionIT extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
 
+	@Autowired
+	PlatformTransactionManager platformTransactionManager;
+
+	private TransactionTemplate transactionTemplate;
+
 	@BeforeClass
-	public static void beforeClass(){
+	public static void beforeClass() {
 		graphDatabaseService = getGraphDatabaseService();
 	}
-
-	@Autowired
-	private Neo4jOperations neo4jOperations;
 
 	@Autowired
 	private MovieRepository movieRepository;
 
 	@Before
 	public void clearDatabase() {
+		transactionTemplate = new TransactionTemplate(platformTransactionManager);
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-		neo4jOperations.clear();
 	}
 
 	@Test
 	public void shouldProxyAndAutoImplementRepositoryDefinitionAnnotatedRepo() {
-		Movie movie = new Movie("PF");
-		movieRepository.save(movie);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Movie movie = new Movie("PF");
+				movieRepository.save(movie);
 
+				assertEquals(1, IterableUtils.count(movieRepository.findAll()));
+			}
+		});
 		assertSameGraph(graphDatabaseService, "CREATE (m:Movie {title:'PF'})");
-
-		assertEquals(1, IterableUtils.count(movieRepository.findAll()));
 	}
 }

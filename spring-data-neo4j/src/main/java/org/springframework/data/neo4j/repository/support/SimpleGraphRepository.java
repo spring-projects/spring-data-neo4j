@@ -24,7 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -34,13 +34,14 @@ import org.springframework.util.Assert;
  * you a more sophisticated interface than the plain {@link Session} .
  *
  * @param <T> the type of the entity to handle
+ *
  * @author Vince Bickers
  * @author Luanne Misquitta
  * @author Mark Angrish
  */
 @Repository
 @Transactional(readOnly = true)
-public class SimpleNeo4jRepository<T> implements Neo4jRepository<T> {
+public class SimpleGraphRepository<T> implements GraphRepository<T> {
 
 	private static final int DEFAULT_QUERY_DEPTH = 1;
 	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null!";
@@ -49,12 +50,12 @@ public class SimpleNeo4jRepository<T> implements Neo4jRepository<T> {
 	private Session session;
 
 	/**
-	 * Creates a new {@link SimpleNeo4jRepository} to manage objects of the given domain type.
+	 * Creates a new {@link SimpleGraphRepository} to manage objects of the given domain type.
 	 *
 	 * @param domainClass must not be {@literal null}.
 	 * @param session must not be {@literal null}.
 	 */
-	public SimpleNeo4jRepository(Class<T> domainClass, Session session) {
+	public SimpleGraphRepository(Class<T> domainClass, Session session) {
 		this.clazz = domainClass;
 		this.session = session;
 	}

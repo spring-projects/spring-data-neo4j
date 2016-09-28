@@ -57,7 +57,7 @@ public class Neo4jRepositoriesRegistrarTests {
 		assertThat(names, hasItems("userRepository"));
 	}
 
-	@EnableExperimentalNeo4jRepositories(basePackageClasses = UserRepository.class)
+	@EnableNeo4jRepositories(basePackageClasses = UserRepository.class)
 	class Config {
 
 	}

@@ -16,27 +16,34 @@ package org.springframework.data.neo4j.template.context;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.data.neo4j.template.Neo4jTemplate;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- * @author vince
+ * @author Vince Bickers
+ * @author Mark Angrish
  */
 @Configuration
+@EnableNeo4jRepositories
 @EnableTransactionManagement
-public class Neo4jTemplateConfiguration extends Neo4jConfiguration {
+public class Neo4jTemplateConfiguration {
 
-    @Override
-    @Bean
-    public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.examples.movies.domain");
-    }
+	@Bean
+	public PlatformTransactionManager transactionManager() {
+		return new Neo4jTransactionManager(sessionFactory());
+	}
 
-    @Bean
-    public Neo4jOperations template() throws Exception {
-        return new Neo4jTemplate(getSession());
-    }
+	@Bean
+	public SessionFactory sessionFactory() {
+		return new SessionFactory("org.springframework.data.neo4j.examples.movies.domain");
+	}
 
+	@Bean
+	public Neo4jOperations template() {
+		return new Neo4jTemplate(sessionFactory());
+	}
 }

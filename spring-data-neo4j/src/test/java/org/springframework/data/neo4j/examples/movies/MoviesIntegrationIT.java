@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,19 +39,21 @@ import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.*;
 import org.springframework.data.neo4j.examples.movies.repo.*;
 import org.springframework.data.neo4j.examples.movies.service.UserService;
-import org.springframework.data.neo4j.template.Neo4jOperations;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Michal Bachman
  * @author Luanne Misquitta
- * @uathor Vince Bickers
+ * @author Vince Bickers
+ * @author Mark Angrish
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext
 public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	private final Logger logger = LoggerFactory.getLogger(MoviesIntegrationIT.class);
@@ -58,7 +61,9 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired
-	private Neo4jOperations neo4jOperations;
+	PlatformTransactionManager platformTransactionManager;
+	@Autowired
+	private Session session;
 	@Autowired
 	private UserRepository userRepository;
 	@Autowired
@@ -76,14 +81,16 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 	@Autowired
 	private RatingRepository ratingRepository;
 
+	private TransactionTemplate transactionTemplate;
+
 	@BeforeClass
-	public static void beforeClass(){
+	public static void beforeClass() {
 		graphDatabaseService = getGraphDatabaseService();
 	}
 
 	@Before
-	public void clear() {
-		neo4jOperations.clear();
+	public void setUp() {
+		transactionTemplate = new TransactionTemplate(platformTransactionManager);
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
@@ -102,6 +109,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 		assertSameGraph(graphDatabaseService, "CREATE (u:User:Person)");
 	}
+
 
 	@Test
 	public void shouldSaveReleasedMovie() {
@@ -134,6 +142,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldSaveMovie() {
+
 		Movie movie = new Movie("Pulp Fiction");
 		movie.setTags(new String[]{"cool", "classic"});
 		movie.setImage(new byte[]{1, 2, 3});
@@ -147,48 +156,63 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldSaveUsers() {
-		Set<User> set = new HashSet<>();
-		set.add(new User("Michal"));
-		set.add(new User("Adam"));
-		set.add(new User("Vince"));
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Set<User> set = new HashSet<>();
+				set.add(new User("Michal"));
+				set.add(new User("Adam"));
+				set.add(new User("Vince"));
 
-		userRepository.save(set);
+				userRepository.save(set);
+				assertEquals(3, userRepository.count());
+			}
+		});
 
 		assertSameGraph(graphDatabaseService, "CREATE (:User:Person {name:'Michal'})," +
 				"(:User:Person {name:'Vince'})," +
 				"(:User:Person {name:'Adam'})");
-
-		assertEquals(3, userRepository.count());
 	}
+
 
 	@Test
 	public void shouldSaveUsers2() {
-		List<User> list = new LinkedList<>();
-		list.add(new User("Michal"));
-		list.add(new User("Adam"));
-		list.add(new User("Vince"));
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<User> list = new LinkedList<>();
+				list.add(new User("Michal"));
+				list.add(new User("Adam"));
+				list.add(new User("Vince"));
 
-		userRepository.save(list);
+				userRepository.save(list);
+				assertEquals(3, userRepository.count());
+			}
+		});
 
 		assertSameGraph(graphDatabaseService, "CREATE (:User:Person {name:'Michal'})," +
 				"(:User:Person {name:'Vince'})," +
 				"(:User:Person {name:'Adam'})");
-
-		assertEquals(3, userRepository.count());
 	}
 
 	@Test
 	public void shouldUpdateUserUsingRepository() {
-		User user = userRepository.save(new User("Michal"));
-		user.setName("Adam");
-		userRepository.save(user);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = userRepository.save(new User("Michal"));
+				user.setName("Adam");
+				userRepository.save(user);
+			}
+		});
 
 		assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Adam'})");
 	}
 
+
 	@Test
 	@Ignore  // FIXME
-	// this test expects the neo4jOperations/tx to check for dirty objects, which it currently does not do
+	// this test expects the session/tx to check for dirty objects, which it currently does not do
 	// you must save objects explicitly.
 	public void shouldUpdateUserUsingTransactionalService() {
 		User user = new User("Michal");
@@ -202,15 +226,21 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldFindUser() {
-		User user = new User("Michal");
-		userRepository.save(user);
 
-		User loaded = userRepository.findOne(user.getId());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = new User("Michal");
+				userRepository.save(user);
 
-		assertEquals("Michal", loaded.getName());
+				User loaded = userRepository.findOne(user.getId());
 
-		assertTrue(loaded.equals(user));
-		assertTrue(loaded == user);
+				assertEquals("Michal", loaded.getName());
+
+				assertTrue(loaded.equals(user));
+				assertTrue(loaded == user);
+			}
+		});
 	}
 
 	@Test
@@ -237,22 +267,29 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldDeleteUser() {
-		User user = new User("Michal");
-		userRepository.save(user);
-		userRepository.delete(user);
 
-		assertFalse(userRepository.findAll().iterator().hasNext());
-		assertFalse(userRepository.findAll(1).iterator().hasNext());
-		assertFalse(userRepository.exists(user.getId()));
-		assertEquals(0, userRepository.count());
-		assertNull(userRepository.findOne(user.getId()));
-		assertNull(userRepository.findOne(user.getId(), 10));
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = new User("Michal");
+				userRepository.save(user);
+				userRepository.delete(user);
+
+				assertFalse(userRepository.findAll().iterator().hasNext());
+				assertFalse(userRepository.findAll(1).iterator().hasNext());
+				assertFalse(userRepository.exists(user.getId()));
+				assertEquals(0, userRepository.count());
+				assertNull(userRepository.findOne(user.getId()));
+				assertNull(userRepository.findOne(user.getId(), 10));
+			}
+		});
 
 		try (Transaction tx = graphDatabaseService.beginTx()) {
 			assertFalse(graphDatabaseService.getAllNodes().iterator().hasNext());
 			tx.success();
 		}
 	}
+
 
 	@Test
 	public void shouldHandleMultipleConcurrentRequests() throws InterruptedException, Neo4jFailedToStartException {
@@ -324,16 +361,21 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldSaveUserAndExistingGenre() {
-		User michal = new User("Michal");
-		Genre drama = new Genre("Drama");
-		michal.interestedIn(drama);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User michal = new User("Michal");
+				Genre drama = new Genre("Drama");
+				michal.interestedIn(drama);
 
-		userRepository.save(michal);
+				userRepository.save(michal);
 
-		User vince = new User("Vince");
-		vince.interestedIn(drama);
+				User vince = new User("Vince");
+				vince.interestedIn(drama);
 
-		userRepository.save(vince);
+				userRepository.save(vince);
+			}
+		});
 
 		assertSameGraph(graphDatabaseService, "CREATE " +
 				"(m:User:Person {name:'Michal'})," +
@@ -342,6 +384,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 				"(m)-[:INTERESTED]->(g)," +
 				"(v)-[:INTERESTED]->(g)");
 	}
+
 
 	@Test
 	public void shouldSaveUserButNotGenre() {
@@ -355,15 +398,21 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldUpdateGenreWhenSavedThroughUser() {
-		User michal = new User("Michal");
-		Genre drama = new Genre("Drama");
-		michal.interestedIn(drama);
 
-		userRepository.save(michal);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User michal = new User("Michal");
+				Genre drama = new Genre("Drama");
+				michal.interestedIn(drama);
 
-		drama.setName("New Drama");
+				userRepository.save(michal);
 
-		userRepository.save(michal);
+				drama.setName("New Drama");
+
+				userRepository.save(michal);
+			}
+		});
 
 		assertSameGraph(graphDatabaseService, "CREATE " +
 				"(m:User:Person {name:'Michal'})," +
@@ -371,17 +420,23 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 				"(m)-[:INTERESTED]->(g)");
 	}
 
+
 	@Test
 	public void shouldRemoveGenreFromUser() {
-		User michal = new User("Michal");
-		Genre drama = new Genre("Drama");
-		michal.interestedIn(drama);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User michal = new User("Michal");
+				Genre drama = new Genre("Drama");
+				michal.interestedIn(drama);
 
-		userRepository.save(michal);
+				userRepository.save(michal);
 
-		michal.notInterestedIn(drama);
+				michal.notInterestedIn(drama);
 
-		userRepository.save(michal);
+				userRepository.save(michal);
+			}
+		});
 
 		assertSameGraph(graphDatabaseService, "CREATE " +
 				"(m:User:Person {name:'Michal'})," +
@@ -390,18 +445,24 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldRemoveGenreFromUserUsingService() {
-		User michal = new User("Michal");
-		Genre drama = new Genre("Drama");
-		michal.interestedIn(drama);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User michal = new User("Michal");
+				Genre drama = new Genre("Drama");
+				michal.interestedIn(drama);
 
-		userRepository.save(michal);
+				userRepository.save(michal);
 
-		userService.notInterestedIn(michal.getId(), drama.getId());
+				userService.notInterestedIn(michal.getId(), drama.getId());
+			}
+		});
 
 		assertSameGraph(graphDatabaseService, "CREATE " +
 				"(m:User:Person {name:'Michal'})," +
 				"(g:Genre {name:'Drama'})");
 	}
+
 
 	@Test
 	public void shouldAddNewVisitorToCinema() {
@@ -418,13 +479,18 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldAddExistingVisitorToCinema() {
-		User michal = new User("Michal");
-		userRepository.save(michal);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User michal = new User("Michal");
+				userRepository.save(michal);
 
-		Cinema cinema = new Cinema("Odeon");
-		cinema.addVisitor(michal);
+				Cinema cinema = new Cinema("Odeon");
+				cinema.addVisitor(michal);
 
-		cinemaRepository.save(cinema);
+				cinemaRepository.save(cinema);
+			}
+		});
 
 		assertSameGraph(graphDatabaseService, "CREATE " +
 				"(m:User:Person {name:'Michal'})," +
@@ -434,9 +500,14 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldBefriendPeople() {
-		User michal = new User("Michal");
-		michal.befriend(new User("Adam"));
-		userRepository.save(michal);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User michal = new User("Michal");
+				michal.befriend(new User("Adam"));
+				userRepository.save(michal);
+			}
+		});
 
 		try {
 			assertSameGraph(graphDatabaseService, "CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User:Person {name:'Adam'})");
@@ -492,17 +563,23 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldSaveNewUserRatingsForAnExistingMovie() {
-		TempMovie movie = new TempMovie("Pulp Fiction");
-		//Save the movie
-		movie = tempMovieRepository.save(movie);
 
-		//Create a new user and rate an existing movie
-		User user = new User("Michal");
-		user.rate(movie, 5, "Best movie ever");
-		userRepository.save(user);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				TempMovie movie = new TempMovie("Pulp Fiction");
+				//Save the movie
+				movie = tempMovieRepository.save(movie);
 
-		TempMovie tempMovie = ((Iterable<TempMovie>) findByProperty(TempMovie.class, "name", "Pulp Fiction")).iterator().next();
-		assertEquals(1, tempMovie.getRatings().size());
+				//Create a new user and rate an existing movie
+				User user = new User("Michal");
+				user.rate(movie, 5, "Best movie ever");
+				userRepository.save(user);
+
+				TempMovie tempMovie = ((Iterable<TempMovie>) findByProperty(TempMovie.class, "name", "Pulp Fiction")).iterator().next();
+				assertEquals(1, tempMovie.getRatings().size());
+			}
+		});
 	}
 
 	/**
@@ -510,22 +587,28 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 	 */
 	@Test
 	public void findOneShouldConsiderTheEntityType() {
-		TempMovie movie = new TempMovie("Pulp Fiction");
-		//Save the movie
-		movie = tempMovieRepository.save(movie);
 
-		//Create a new user and rate an existing movie
-		User user = new User("Michal");
-		user.rate(movie, 5, "Best movie ever");
-		userRepository.save(user);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				TempMovie movie = new TempMovie("Pulp Fiction");
+				//Save the movie
+				movie = tempMovieRepository.save(movie);
 
-		assertEquals(movie.getName(), tempMovieRepository.findOne(movie.getId()).getName());
-		assertEquals(user.getName(), userRepository.findOne(user.getId()).getName());
-		assertEquals(5, ratingRepository.findOne(user.getRatings().iterator().next().getId()).getStars());
+				//Create a new user and rate an existing movie
+				User user = new User("Michal");
+				user.rate(movie, 5, "Best movie ever");
+				userRepository.save(user);
 
-		assertNull(tempMovieRepository.findOne(user.getId()));
-		assertNull(userRepository.findOne(movie.getId(), 0));
-		assertNull(ratingRepository.findOne(user.getId()));
+				assertEquals(movie.getName(), tempMovieRepository.findOne(movie.getId()).getName());
+				assertEquals(user.getName(), userRepository.findOne(user.getId()).getName());
+				assertEquals(5, ratingRepository.findOne(user.getRatings().iterator().next().getId()).getStars());
+
+				assertNull(tempMovieRepository.findOne(user.getId()));
+				assertNull(userRepository.findOne(movie.getId(), 0));
+				assertNull(ratingRepository.findOne(user.getId()));
+			}
+		});
 	}
 
 	@Test
@@ -561,26 +644,8 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 		return calendar;
 	}
 
-	private void waitForNeo4jToStart(long maxTimeToWait) throws Neo4jFailedToStartException {
-		long startTime = System.currentTimeMillis();
-
-		Transaction transaction;
-		do {
-			transaction = graphDatabaseService.beginTx();
-		} while (transaction == null && System.currentTimeMillis() - startTime <= maxTimeToWait);
-
-		if (transaction == null) {
-			throw new Neo4jFailedToStartException(maxTimeToWait);
-		}
-		transaction.close();
-	}
-
 	protected Iterable<?> findByProperty(Class clazz, String propertyName, Object propertyValue) {
-		return neo4jOperations.loadAll(clazz, new Filter(propertyName, propertyValue));
-	}
-
-	protected Iterable<?> findByProperty(Class clazz, String propertyName, Object propertyValue, int depth) {
-		return neo4jOperations.loadAll(clazz, new Filter(propertyName, propertyValue), depth);
+		return session.loadAll(clazz, new Filter(propertyName, propertyValue));
 	}
 
 	//

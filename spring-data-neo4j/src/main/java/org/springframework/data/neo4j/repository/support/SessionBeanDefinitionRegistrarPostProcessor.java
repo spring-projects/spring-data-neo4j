@@ -34,6 +34,9 @@ import org.springframework.data.neo4j.transaction.SessionFactoryUtils;
  * {@link BeanFactoryPostProcessor} to register a {@link SessionFactoryBeanDefinition} for the
  * {@link SessionFactory} bean definition found in the application context to enable autowiring
  * {@link Session} instances into constructor arguments.
+ *  <p>
+ *  A PersistenceExceptionTranslator is added so it gets automatically registered with the Spring exception translation
+ *  infrastructure.
  *
  * @author Mark Angrish
  */

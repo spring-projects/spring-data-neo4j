@@ -21,18 +21,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.friends.context.FriendContext;
 import org.springframework.data.neo4j.examples.friends.domain.Friendship;
 import org.springframework.data.neo4j.examples.friends.domain.Person;
 import org.springframework.data.neo4j.examples.friends.repo.FriendshipRepository;
-import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Luanne Misquitta
+ * @author Mark Angrish
  */
 @ContextConfiguration(classes = {FriendContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -40,7 +42,7 @@ public class FriendIT extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
 
-	@Autowired Neo4jOperations neo4jTemplate;
+	@Autowired Session session;
 	@Autowired FriendshipRepository friendshipRepository;
 	@Autowired FriendService friendService;
 
@@ -52,7 +54,6 @@ public class FriendIT extends MultiDriverTestClass {
 
 	@Before
 	public void cleanUpDatabase() {
-		neo4jTemplate.clear();
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
@@ -60,11 +61,12 @@ public class FriendIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-703
 	 */
 	@Test
+	@Transactional
 	public void savingPersonWhenTransactionalShouldWork() {
 		friendService.createPersonAndFriends();
 
-		neo4jTemplate.clear();
-		Person john = neo4jTemplate.loadAll(Person.class, new Filter("firstName", "John")).iterator().next();
+		session.clear();
+		Person john = session.loadAll(Person.class, new Filter("firstName", "John")).iterator().next();
 		assertNotNull(john);
 		assertEquals(2, john.getFriendships().size());
 	}
@@ -73,18 +75,19 @@ public class FriendIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-694
 	 */
 	@Test
+	@Transactional
 	public void circularParametersShouldNotProduceInfiniteRecursion() {
 		Person john = new Person();
 		john.setFirstName("John");
-		neo4jTemplate.save(john);
+		session.save(john);
 
 		Person bob = new Person();
 		bob.setFirstName("Bob");
-		neo4jTemplate.save(bob);
+		session.save(bob);
 
 		Friendship friendship1 = john.addFriend(bob);
 		friendship1.setTimestamp(System.currentTimeMillis());
-		neo4jTemplate.save(john);
+		session.save(john);
 
 		Friendship queriedFriendship = friendshipRepository.getFriendship(john, bob);
 

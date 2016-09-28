@@ -32,20 +32,28 @@ import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.RatingRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
-import org.springframework.data.neo4j.template.Neo4jOperations;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.data.neo4j.repositories.domain.Movie;
+import org.springframework.data.neo4j.util.IterableUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Luanne Misquitta
+ * @author Mark Angrish
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext
 public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
+
+	@Autowired
+	PlatformTransactionManager platformTransactionManager;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -56,18 +64,17 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 	@Autowired
 	private RatingRepository ratingRepository;
 
-	@Autowired
-	private Neo4jOperations neo4jOperations;
+	private TransactionTemplate transactionTemplate;
 
 	@BeforeClass
-	public static void beforeClass(){
+	public static void beforeClass() {
 		graphDatabaseService = getGraphDatabaseService();
 	}
 
 	@Before
 	public void clearDatabase() {
+		transactionTemplate = new TransactionTemplate(platformTransactionManager);
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-		neo4jOperations.clear();
 	}
 
 	private void executeUpdate(String cypher) {
@@ -78,6 +85,7 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-629
 	 */
 	@Test
+	@Transactional
 	public void shouldFindREWithSingleProperty() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -98,6 +106,7 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-629
 	 */
 	@Test
+	@Transactional
 	public void shouldFindREWithMultiplePropertiesAnded() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -122,6 +131,7 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-629
 	 */
 	@Test
+	@Transactional
 	public void shouldFindREWithMultiplePropertiesOred() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -146,6 +156,7 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-629
 	 */
 	@Test
+	@Transactional
 	public void shouldFindREWithMultiplePropertiesDifferentComparisonOperatorsAnded() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -171,6 +182,7 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-629
 	 */
 	@Test
+	@Transactional
 	public void shouldFindREWithMultiplePropertiesDifferentComparisonOperatorsOred() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -199,11 +211,16 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 		executeUpdate("CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})" +
 				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
-		List<Rating> ratings = ratingRepository.findByUserName("Michal");
-		assertEquals(2, ratings.size());
-		Collections.sort(ratings);
-		assertEquals("Speed", ratings.get(0).getMovie().getName());
-		assertEquals("The Matrix", ratings.get(1).getMovie().getName());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Rating> ratings = ratingRepository.findByUserName("Michal");
+				assertEquals(2, ratings.size());
+				Collections.sort(ratings);
+				assertEquals("Speed", ratings.get(0).getMovie().getName());
+				assertEquals("The Matrix", ratings.get(1).getMovie().getName());
+			}
+		});
 	}
 
 	/**
@@ -214,14 +231,19 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 		executeUpdate("CREATE (m1:Movie {name:'Finding Dory'}) CREATE (m2:Movie {name:'Captain America'}) CREATE (m:Movie {name:'X-Men'})" +
 				" CREATE (u:User {name:'Vince'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
-		List<Rating> ratings = ratingRepository.findByMovieName("Captain America");
-		assertEquals(1, ratings.size());
-		assertEquals("Vince", ratings.get(0).getUser().getName());
-		assertEquals("Captain America", ratings.get(0).getMovie().getName());
-		assertEquals(4, ratings.get(0).getStars());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Rating> ratings = ratingRepository.findByMovieName("Captain America");
+				assertEquals(1, ratings.size());
+				assertEquals("Vince", ratings.get(0).getUser().getName());
+				assertEquals("Captain America", ratings.get(0).getMovie().getName());
+				assertEquals(4, ratings.get(0).getStars());
 
-		ratings = ratingRepository.findByMovieName("X-Men");
-		assertEquals(0, ratings.size());
+				ratings = ratingRepository.findByMovieName("X-Men");
+				assertEquals(0, ratings.size());
+			}
+		});
 	}
 
 	/**
@@ -231,14 +253,20 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 	public void shouldFindRelEntitiesWithBothStartEndNestedProperty() {
 		executeUpdate("CREATE (m1:Movie {name:'Independence Day: Resurgence'}) CREATE (m2:Movie {name:'The Conjuring 2'}) CREATE (m:Movie {name:'The BFG'})" +
 				" CREATE (u:User {name:'Daniela'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
-		List<Rating> ratings = ratingRepository.findByUserNameAndMovieName("Daniela", "Independence Day: Resurgence");
-		assertEquals(1, ratings.size());
-		assertEquals("Daniela", ratings.get(0).getUser().getName());
-		assertEquals("Independence Day: Resurgence", ratings.get(0).getMovie().getName());
-		assertEquals(3, ratings.get(0).getStars());
 
-		ratings = ratingRepository.findByUserNameAndMovieName("Daniela", "The BFG");
-		assertEquals(0, ratings.size());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Rating> ratings = ratingRepository.findByUserNameAndMovieName("Daniela", "Independence Day: Resurgence");
+				assertEquals(1, ratings.size());
+				assertEquals("Daniela", ratings.get(0).getUser().getName());
+				assertEquals("Independence Day: Resurgence", ratings.get(0).getMovie().getName());
+				assertEquals(3, ratings.get(0).getStars());
+
+				ratings = ratingRepository.findByUserNameAndMovieName("Daniela", "The BFG");
+				assertEquals(0, ratings.size());
+			}
+		});
 	}
 
 	/**
@@ -248,14 +276,20 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 	public void shouldFindRelEntitiesWithBaseAndNestedStartNodePropertyAnded() {
 		executeUpdate("CREATE (m1:Movie {name:'The Shallows'}) CREATE (m2:Movie {name:'Central Intelligence'}) CREATE (m:Movie {name:'Now you see me'})" +
 				" CREATE (u:User {name:'Luanne'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
-		List<Rating> ratings = ratingRepository.findByUserNameAndStars("Luanne", 3);
-		assertEquals(1, ratings.size());
-		assertEquals("Luanne", ratings.get(0).getUser().getName());
-		assertEquals("The Shallows", ratings.get(0).getMovie().getName());
-		assertEquals(3, ratings.get(0).getStars());
 
-		ratings = ratingRepository.findByUserNameAndStars("Luanne", 1);
-		assertEquals(0, ratings.size());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Rating> ratings = ratingRepository.findByUserNameAndStars("Luanne", 3);
+				assertEquals(1, ratings.size());
+				assertEquals("Luanne", ratings.get(0).getUser().getName());
+				assertEquals("The Shallows", ratings.get(0).getMovie().getName());
+				assertEquals(3, ratings.get(0).getStars());
+
+				ratings = ratingRepository.findByUserNameAndStars("Luanne", 1);
+				assertEquals(0, ratings.size());
+			}
+		});
 	}
 
 	/**
@@ -268,15 +302,21 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 				" CREATE (u:User {name:'Mark'}) CREATE (u2:User {name:'Adam'})  " +
 				" CREATE (u)-[:RATED {stars:2}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)" +
 				" CREATE (u2)-[:RATED {stars:3}]->(m)");
-		List<Rating> ratings = ratingRepository.findByStarsOrUserName(3, "Mark");
-		assertEquals(3, ratings.size());
-		Collections.sort(ratings);
-		assertEquals("Swiss Army Man", ratings.get(0).getMovie().getName());
-		assertEquals("X-Men Apocalypse", ratings.get(1).getMovie().getName());
-		assertEquals("Me Before You", ratings.get(2).getMovie().getName());
 
-		ratings = ratingRepository.findByStarsOrUserName(0, "Vince");
-		assertEquals(0, ratings.size());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Rating> ratings = ratingRepository.findByStarsOrUserName(3, "Mark");
+				assertEquals(3, ratings.size());
+				Collections.sort(ratings);
+				assertEquals("Swiss Army Man", ratings.get(0).getMovie().getName());
+				assertEquals("X-Men Apocalypse", ratings.get(1).getMovie().getName());
+				assertEquals("Me Before You", ratings.get(2).getMovie().getName());
+
+				ratings = ratingRepository.findByStarsOrUserName(0, "Vince");
+				assertEquals(0, ratings.size());
+			}
+		});
 	}
 
 	/**
@@ -288,14 +328,20 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 				" CREATE (u:User {name:'Chris'}) CREATE (u2:User {name:'Katerina'}) " +
 				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)" +
 				" CREATE (u2)-[:RATED {stars:4}]->(m2)");
-		List<Rating> ratings = ratingRepository.findByStarsAndMovieName(4, "Teenage Mutant Ninja Turtles");
-		assertEquals(2, ratings.size());
-		Collections.sort(ratings);
-		assertEquals("Chris", ratings.get(0).getUser().getName());
-		assertEquals("Katerina", ratings.get(1).getUser().getName());
 
-		ratings = ratingRepository.findByStarsAndMovieName(5, "Teenage Mutant Ninja Turtles");
-		assertEquals(0, ratings.size());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Rating> ratings = ratingRepository.findByStarsAndMovieName(4, "Teenage Mutant Ninja Turtles");
+				assertEquals(2, ratings.size());
+				Collections.sort(ratings);
+				assertEquals("Chris", ratings.get(0).getUser().getName());
+				assertEquals("Katerina", ratings.get(1).getUser().getName());
+
+				ratings = ratingRepository.findByStarsAndMovieName(5, "Teenage Mutant Ninja Turtles");
+				assertEquals(0, ratings.size());
+			}
+		});
 	}
 
 	/**
@@ -305,14 +351,20 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 	public void shouldFindRelEntitiesWithBaseAndBothStartEndNestedProperty() {
 		executeUpdate("CREATE (m1:Movie {name:'The Jungle Book'}) CREATE (m2:Movie {name:'The Angry Birds Movie'}) CREATE (m:Movie {name:'Alice Through The Looking Glass'})" +
 				" CREATE (u:User {name:'Alessandro'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
-		List<Rating> ratings = ratingRepository.findByUserNameAndMovieNameAndStars("Alessandro", "The Jungle Book", 3);
-		assertEquals(1, ratings.size());
-		assertEquals("Alessandro", ratings.get(0).getUser().getName());
-		assertEquals("The Jungle Book", ratings.get(0).getMovie().getName());
-		assertEquals(3, ratings.get(0).getStars());
 
-		ratings = ratingRepository.findByUserNameAndMovieNameAndStars("Colin", "Speed", 0);
-		assertEquals(0, ratings.size());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Rating> ratings = ratingRepository.findByUserNameAndMovieNameAndStars("Alessandro", "The Jungle Book", 3);
+				assertEquals(1, ratings.size());
+				assertEquals("Alessandro", ratings.get(0).getUser().getName());
+				assertEquals("The Jungle Book", ratings.get(0).getMovie().getName());
+				assertEquals(3, ratings.get(0).getStars());
+
+				ratings = ratingRepository.findByUserNameAndMovieNameAndStars("Colin", "Speed", 0);
+				assertEquals(0, ratings.size());
+			}
+		});
 	}
 
 	/**
@@ -324,15 +376,21 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 				" CREATE (u:User {name:'David', middleName:'M'}) CREATE (u2:User {name:'Martin', middleName:'M'}) " +
 				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)" +
 				" CREATE (u2)-[:RATED {stars:4}]->(m2)");
-		List<Rating> ratings = ratingRepository.findByUserNameAndUserMiddleName("David", "M");
-		assertEquals(2, ratings.size());
-		Collections.sort(ratings);
-		assertEquals("David", ratings.get(0).getUser().getName());
-		assertEquals("Batman v Superman", ratings.get(0).getMovie().getName());
-		assertEquals("David", ratings.get(1).getUser().getName());
-		assertEquals("Genius", ratings.get(1).getMovie().getName());
 
-		ratings = ratingRepository.findByUserNameAndUserMiddleName("David", "V");
-		assertEquals(0, ratings.size());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Rating> ratings = ratingRepository.findByUserNameAndUserMiddleName("David", "M");
+				assertEquals(2, ratings.size());
+				Collections.sort(ratings);
+				assertEquals("David", ratings.get(0).getUser().getName());
+				assertEquals("Batman v Superman", ratings.get(0).getMovie().getName());
+				assertEquals("David", ratings.get(1).getUser().getName());
+				assertEquals("Genius", ratings.get(1).getMovie().getName());
+
+				ratings = ratingRepository.findByUserNameAndUserMiddleName("David", "V");
+				assertEquals(0, ratings.size());
+			}
+		});
 	}
 }

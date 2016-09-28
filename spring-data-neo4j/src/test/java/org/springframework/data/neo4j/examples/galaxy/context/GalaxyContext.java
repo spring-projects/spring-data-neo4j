@@ -18,24 +18,29 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Vince Bickers
+ * @author Mark Angrish
  */
 @Configuration
 @ComponentScan({"org.springframework.data.neo4j.examples.galaxy.service"})
 @PropertySource("classpath:helloworld.properties")
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.galaxy.repo")
 @EnableTransactionManagement
-public class GalaxyContext extends Neo4jConfiguration {
+public class GalaxyContext {
 
-    @Bean
-    @Override
-    public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.examples.galaxy.domain");
-    }
+	@Bean
+	public PlatformTransactionManager transactionManager() {
+		return new Neo4jTransactionManager(sessionFactory());
+	}
 
+	@Bean
+	public SessionFactory sessionFactory() {
+		return new SessionFactory("org.springframework.data.neo4j.examples.galaxy.domain");
+	}
 }

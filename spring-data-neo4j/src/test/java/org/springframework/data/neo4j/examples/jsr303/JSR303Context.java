@@ -13,35 +13,33 @@
 
 package org.springframework.data.neo4j.examples.jsr303;
 
-import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.springframework.context.annotation.*;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
-import org.springframework.data.neo4j.examples.jsr303.controller.AdultController;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.examples.jsr303.service.AdultService;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Vince Bickers
+ * @author Mark Angrish
  */
 @Configuration
-@ComponentScan(basePackageClasses = { AdultService.class })
+@ComponentScan(basePackageClasses = {AdultService.class})
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.jsr303.repo")
 @EnableTransactionManagement
-public class JSR303Context extends Neo4jConfiguration {
+public class JSR303Context {
 
-    @Bean
-    @Override
-    public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.examples.jsr303.domain");
-    }
+	@Bean
+	public PlatformTransactionManager transactionManager() {
+		return new Neo4jTransactionManager(sessionFactory());
+	}
 
-    @Override
-    @Bean
-    @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
-    public Session getSession() throws Exception {
-        return super.getSession();
-    }
-
+	@Bean
+	public SessionFactory sessionFactory() {
+		return new SessionFactory("org.springframework.data.neo4j.examples.jsr303.domain");
+	}
 }

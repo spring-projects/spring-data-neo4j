@@ -22,6 +22,8 @@ import org.neo4j.ogm.exception.NotFoundException;
 import org.neo4j.ogm.model.Query;
 import org.neo4j.ogm.model.QueryStatistics;
 import org.neo4j.ogm.model.Result;
+import org.neo4j.ogm.session.Session;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -33,11 +35,31 @@ import java.util.Map;
  *
  * @author Adam George
  * @author Luanne Misquitta
+ * @author Mark Angrish
+ *
  * @deprecated Use {@link org.neo4j.ogm.session.Session}
  */
 @Repository
 @Deprecated
 public interface Neo4jOperations {
+
+    /**
+     * Execute the action specified by the given action object within a
+     * {@link Session}.
+     * <p>Application exceptions thrown by the action object get propagated
+     * to the caller (can only be unchecked). OGM exceptions are
+     * transformed into appropriate DAO ones. Allows for returning a result
+     * object, that is a domain object or a collection of domain objects.
+     * <p>Note: Callback code is not supposed to handle transactions itself!
+     * Use an appropriate transaction manager like
+     * {@link org.springframework.data.neo4j.transaction.Neo4jTransactionManager}. Generally, callback code must not
+     * touch any {@code Session} lifecycle methods, like close,
+     * disconnect, or reconnect, to let the template do its work.
+     * @param action callback object that specifies the OGM action
+     * @return a result object returned by the action, or {@code null}
+     * @see Session
+     */
+    <T> T execute(Neo4jCallback<T> action) throws DataAccessException;
 
     /**
      * Loads an entity of type T that matches the specified ID to the default depth.

@@ -17,25 +17,21 @@ import static org.junit.Assert.*;
 
 import java.util.Iterator;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.transactions.service.ServiceA;
 import org.springframework.data.neo4j.transactions.service.ServiceB;
 import org.springframework.data.neo4j.transactions.service.WrapperService;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionException;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author: Vince Bickers
+ * @see http://stackoverflow.com/questions/17224887/java-spring-transactional-method-not-rolling-back-as-expected
  * @see DATAGRAPH-602
  */
 @ContextConfiguration(classes = {ApplicationConfig.class})
@@ -51,17 +47,6 @@ public class ExtendedTransactionsIT extends MultiDriverTestClass {
 	@Autowired
 	WrapperService wrapperService;
 
-	@Autowired
-	SessionFactory sessionFactory;
-
-	@Autowired
-	PlatformTransactionManager annotationDrivenTransactionManager;
-
-	@Before
-	public void init() {
-		wrapperService.purge();
-	}
-
 	@Test
 	public void shouldRollbackSuccessThenFail() {
 
@@ -75,6 +60,8 @@ public class ExtendedTransactionsIT extends MultiDriverTestClass {
 	}
 
 	@Test
+	@Transactional
+	@Rollback
 	public void shouldCommitSuccessSuccess() {
 
 		try {
@@ -127,22 +114,6 @@ public class ExtendedTransactionsIT extends MultiDriverTestClass {
 		}
 	}
 
-
-	@Transactional(readOnly = true)
-	@Test
-	public void shouldCreateReadOnlyTransaction() {
-
-		assertTrue(((DelegatingTransactionManager) annotationDrivenTransactionManager).getTransactionDefinition().isReadOnly());
-	}
-
-
-	@Transactional(readOnly = false)
-	@Test
-	public void shouldCreateReadWriteTransaction() {
-
-		assertFalse(((DelegatingTransactionManager) annotationDrivenTransactionManager).getTransactionDefinition().isReadOnly());
-	}
-
 	private int countNodes() {
 		Iterator iterator = wrapperService.fetch().iterator();
 		int i = 0;
@@ -151,35 +122,5 @@ public class ExtendedTransactionsIT extends MultiDriverTestClass {
 			i++;
 		}
 		return i;
-	}
-
-	static class DelegatingTransactionManager implements PlatformTransactionManager {
-
-		private PlatformTransactionManager transactionManager;
-		private TransactionDefinition transactionDefinition;
-
-		public DelegatingTransactionManager(PlatformTransactionManager platformTransactionManager) {
-			this.transactionManager = platformTransactionManager;
-		}
-
-		@Override
-		public TransactionStatus getTransaction(TransactionDefinition transactionDefinition) throws TransactionException {
-			this.transactionDefinition = transactionDefinition;
-			return transactionManager.getTransaction(transactionDefinition);
-		}
-
-		@Override
-		public void commit(TransactionStatus transactionStatus) throws TransactionException {
-			transactionManager.commit(transactionStatus);
-		}
-
-		@Override
-		public void rollback(TransactionStatus transactionStatus) throws TransactionException {
-			transactionManager.rollback(transactionStatus);
-		}
-
-		public TransactionDefinition getTransactionDefinition() {
-			return transactionDefinition;
-		}
 	}
 }

@@ -35,21 +35,26 @@ import org.springframework.data.neo4j.examples.movies.domain.queryresult.*;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UnmanagedUserPojo;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
-import org.springframework.data.neo4j.template.Neo4jOperations;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Vince Bickers
  * @author Luanne Misquitta
+ * @author Mark Angrish
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext
 public class QueryIntegrationIT extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
+
+	@Autowired
+	PlatformTransactionManager platformTransactionManager;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -57,8 +62,8 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	@Autowired
 	private CinemaRepository cinemaRepository;
 
-	@Autowired
-	private Neo4jOperations neo4jOperations;
+	private TransactionTemplate transactionTemplate;
+
 
 	@Before
 	public void init() {
@@ -66,14 +71,14 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	}
 
 	@BeforeClass
-	public static void beforeClass(){
+	public static void beforeClass() {
 		graphDatabaseService = getGraphDatabaseService();
 	}
 
 	@Before
 	public void clearDatabase() {
+		transactionTemplate = new TransactionTemplate(platformTransactionManager);
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-		neo4jOperations.clear();
 	}
 
 	private void executeUpdate(String cypher) {
@@ -94,70 +99,106 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 						"(bw)-[:ACTED_IN]->(dh), " +
 						"(bw)-[:ACTED_IN]->(fe)");
 
-		List<Map<String, Object>> graph = userRepository.getGraph();
-		assertNotNull(graph);
-		int i = 0;
-		for (Map<String, Object> properties : graph) {
-			i++;
-			assertNotNull(properties);
-		}
-		assertEquals(2, i);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Map<String, Object>> graph = userRepository.getGraph();
+				assertNotNull(graph);
+				int i = 0;
+				for (Map<String, Object> properties : graph) {
+					i++;
+					assertNotNull(properties);
+				}
+				assertEquals(2, i);
+			}
+		});
 	}
 
 	@Test
 	public void shouldFindScalarValues() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
-		List<Integer> ids = userRepository.getUserIds();
-		assertEquals(2, ids.size());
 
-		List<Long> nodeIds = userRepository.getUserNodeIds();
-		assertEquals(2, nodeIds.size());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Integer> ids = userRepository.getUserIds();
+				assertEquals(2, ids.size());
+
+				List<Long> nodeIds = userRepository.getUserNodeIds();
+				assertEquals(2, nodeIds.size());
+			}
+		});
 	}
 
 	@Test
 	public void shouldFindUserByName() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
-		User user = userRepository.findUserByName("Michal");
-		assertEquals("Michal", user.getName());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = userRepository.findUserByName("Michal");
+				assertEquals("Michal", user.getName());
+			}
+		});
 	}
 
 	@Test
 	public void shouldFindTotalUsers() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
-		int users = userRepository.findTotalUsers();
-		assertEquals(users, 2);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				int users = userRepository.findTotalUsers();
+				assertEquals(users, 2);
+			}
+		});
 	}
 
 	@Test
 	public void shouldFindUsers() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
-		Collection<User> users = userRepository.getAllUsers();
-		assertEquals(users.size(), 2);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Collection<User> users = userRepository.getAllUsers();
+				assertEquals(users.size(), 2);
+			}
+		});
 	}
 
 	@Test
 	public void shouldFindUserByNameWithNamedParam() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
-		User user = userRepository.findUserByNameWithNamedParam("Michal");
-		assertEquals("Michal", user.getName());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = userRepository.findUserByNameWithNamedParam("Michal");
+				assertEquals("Michal", user.getName());
+			}
+		});
 	}
 
 	@Test
 	public void shouldFindUsersAsProperties() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
-		Iterable<Map<String, Object>> users = userRepository.getUsersAsProperties();
-		assertNotNull(users);
-		int i = 0;
-		for (Map<String, Object> properties : users) {
-			i++;
-			assertNotNull(properties);
-		}
-		assertEquals(2, i);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Iterable<Map<String, Object>> users = userRepository.getUsersAsProperties();
+				assertNotNull(users);
+				int i = 0;
+				for (Map<String, Object> properties : users) {
+					i++;
+					assertNotNull(properties);
+				}
+				assertEquals(2, i);
+			}
+		});
 	}
 
 	/**
@@ -166,18 +207,24 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	@Test
 	public void shouldFindUsersAndMapThemToConcreteQueryResultObjectCollection() {
 		executeUpdate("CREATE (g:User {name:'Gary', age:32}), (s:User {name:'Sheila', age:29}), (v:User {name:'Vince', age:66})");
-		assertEquals("There should be some users in the database", 3, userRepository.findTotalUsers());
 
-		Iterable<UserQueryResult> expected = Arrays.asList(new UserQueryResult("Sheila", 29),
-				new UserQueryResult("Gary", 32), new UserQueryResult("Vince", 66));
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				assertEquals("There should be some users in the database", 3, userRepository.findTotalUsers());
 
-		Iterable<UserQueryResult> queryResult = userRepository.retrieveAllUsersAndTheirAges();
-		assertNotNull("The query result shouldn't be null", queryResult);
-		assertEquals(expected, queryResult);
-		for (UserQueryResult userQueryResult : queryResult) {
-			assertNotNull(userQueryResult.getUserId());
-			assertNotNull(userQueryResult.getId());
-		}
+				Iterable<UserQueryResult> expected = Arrays.asList(new UserQueryResult("Sheila", 29),
+						new UserQueryResult("Gary", 32), new UserQueryResult("Vince", 66));
+
+				Iterable<UserQueryResult> queryResult = userRepository.retrieveAllUsersAndTheirAges();
+				assertNotNull("The query result shouldn't be null", queryResult);
+				assertEquals(expected, queryResult);
+				for (UserQueryResult userQueryResult : queryResult) {
+					assertNotNull(userQueryResult.getUserId());
+					assertNotNull(userQueryResult.getId());
+				}
+			}
+		});
 	}
 
 	/**
@@ -187,20 +234,30 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	public void shouldThrowMappingExceptionIfQueryResultTypeIsNotManagedInMappingMetadata() {
 		executeUpdate("CREATE (:User {name:'Colin'}), (:User {name:'Jeff'})");
 
-		// NB: UnmanagedUserPojo is not scanned with the other domain classes
-		UnmanagedUserPojo queryResult = userRepository.findIndividualUserAsDifferentObject("Jeff");
-		assertNotNull("The query result shouldn't be null", queryResult);
-		assertEquals("Jeff", queryResult.getName());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				// NB: UnmanagedUserPojo is not scanned with the other domain classes
+				UnmanagedUserPojo queryResult = userRepository.findIndividualUserAsDifferentObject("Jeff");
+				assertNotNull("The query result shouldn't be null", queryResult);
+				assertEquals("Jeff", queryResult.getName());
+			}
+		});
 	}
 
 	@Test
 	public void shouldFindUsersAndMapThemToProxiedQueryResultInterface() {
 		executeUpdate("CREATE (:User {name:'Morne', age:30}), (:User {name:'Abraham', age:31}), (:User {name:'Virat', age:27})");
 
-		UserQueryResultInterface result = userRepository.findIndividualUserAsProxiedObject("Abraham");
-		assertNotNull("The query result shouldn't be null", result);
-		assertEquals("The wrong user was returned", "Abraham", result.getNameOfUser());
-		assertEquals("The wrong user was returned", 31, result.getAgeOfUser());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				UserQueryResultInterface result = userRepository.findIndividualUserAsProxiedObject("Abraham");
+				assertNotNull("The query result shouldn't be null", result);
+				assertEquals("The wrong user was returned", "Abraham", result.getNameOfUser());
+				assertEquals("The wrong user was returned", 31, result.getAgeOfUser());
+			}
+		});
 	}
 
 	@Test
@@ -208,17 +265,22 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 		executeUpdate("CREATE (:User {name:'David Warner', gender:'MALE'}), (:User {name:'Shikhar Dhawan', gender:'MALE'}), "
 				+ "(:User {name:'Sarah Taylor', gender:'FEMALE', account: '3456789', deposits:['12345.6','45678.9']})");
 
-		Iterable<RichUserQueryResult> usersByGender = userRepository.findUsersByGender(Gender.FEMALE);
-		assertNotNull("The resultant users list shouldn't be null", usersByGender);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Iterable<RichUserQueryResult> usersByGender = userRepository.findUsersByGender(Gender.FEMALE);
+				assertNotNull("The resultant users list shouldn't be null", usersByGender);
 
-		Iterator<RichUserQueryResult> userIterator = usersByGender.iterator();
-		assertTrue(userIterator.hasNext());
-		RichUserQueryResult userQueryResult = userIterator.next();
-		assertEquals(Gender.FEMALE, userQueryResult.getUserGender());
-		assertEquals("Sarah Taylor", userQueryResult.getUserName());
-		assertEquals(BigInteger.valueOf(3456789), userQueryResult.getUserAccount());
-		assertArrayEquals(new BigDecimal[]{BigDecimal.valueOf(12345.6), BigDecimal.valueOf(45678.9)}, userQueryResult.getUserDeposits());
-		assertFalse(userIterator.hasNext());
+				Iterator<RichUserQueryResult> userIterator = usersByGender.iterator();
+				assertTrue(userIterator.hasNext());
+				RichUserQueryResult userQueryResult = userIterator.next();
+				assertEquals(Gender.FEMALE, userQueryResult.getUserGender());
+				assertEquals("Sarah Taylor", userQueryResult.getUserName());
+				assertEquals(BigInteger.valueOf(3456789), userQueryResult.getUserAccount());
+				assertArrayEquals(new BigDecimal[]{BigDecimal.valueOf(12345.6), BigDecimal.valueOf(45678.9)}, userQueryResult.getUserDeposits());
+				assertFalse(userIterator.hasNext());
+			}
+		});
 	}
 
 	/**
@@ -228,10 +290,15 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	public void shouldSubstituteUserId() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
-		User michal = userRepository.findUserByName("Michal");
-		assertNotNull(michal);
-		User user = userRepository.loadUserById(michal);
-		assertEquals("Michal", user.getName());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User michal = userRepository.findUserByName("Michal");
+				assertNotNull(michal);
+				User user = userRepository.loadUserById(michal);
+				assertEquals("Michal", user.getName());
+			}
+		});
 	}
 
 	/**
@@ -241,10 +308,15 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	public void shouldSubstituteNamedParamUserId() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
-		User michal = userRepository.findUserByName("Michal");
-		assertNotNull(michal);
-		User user = userRepository.loadUserByNamedId(michal);
-		assertEquals("Michal", user.getName());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User michal = userRepository.findUserByName("Michal");
+				assertNotNull(michal);
+				User user = userRepository.loadUserByNamedId(michal);
+				assertEquals("Michal", user.getName());
+			}
+		});
 	}
 
 	/**
@@ -254,12 +326,17 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	public void shouldFindIterableUsers() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
-		Iterable<User> users = userRepository.getAllUsersIterable();
-		int count = 0;
-		for (User user : users) {
-			count++;
-		}
-		assertEquals(2, count);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Iterable<User> users = userRepository.getAllUsersIterable();
+				int count = 0;
+				for (User user : users) {
+					count++;
+				}
+				assertEquals(2, count);
+			}
+		});
 	}
 
 	/**
@@ -269,11 +346,16 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	public void shouldAllowNullParameters() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
-		userRepository.setNamesNull(null);
-		Iterable<User> users = userRepository.findAll();
-		for (User u : users) {
-			assertNull(u.getName());
-		}
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				userRepository.setNamesNull(null);
+				Iterable<User> users = userRepository.findAll();
+				for (User u : users) {
+					assertNull(u.getName());
+				}
+			}
+		});
 	}
 
 	/**
@@ -282,17 +364,23 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	@Test
 	public void shouldMapNullsToQueryResults() {
 		executeUpdate("CREATE (g:User), (s:User)");
-		assertEquals("There should be some users in the database", 2, userRepository.findTotalUsers());
 
-		Iterable<UserQueryResult> expected = Arrays.asList(new UserQueryResult(null, 0),
-				new UserQueryResult(null, 0));
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				assertEquals("There should be some users in the database", 2, userRepository.findTotalUsers());
 
-		Iterable<UserQueryResult> queryResult = userRepository.retrieveAllUsersAndTheirAges();
-		assertNotNull("The query result shouldn't be null", queryResult);
-		assertEquals(expected, queryResult);
-		for (UserQueryResult userQueryResult : queryResult) {
-			assertNotNull(userQueryResult.getUserId());
-		}
+				Iterable<UserQueryResult> expected = Arrays.asList(new UserQueryResult(null, 0),
+						new UserQueryResult(null, 0));
+
+				Iterable<UserQueryResult> queryResult = userRepository.retrieveAllUsersAndTheirAges();
+				assertNotNull("The query result shouldn't be null", queryResult);
+				assertEquals(expected, queryResult);
+				for (UserQueryResult userQueryResult : queryResult) {
+					assertNotNull(userQueryResult.getUserId());
+				}
+			}
+		});
 	}
 
 	/**
@@ -302,10 +390,15 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	public void shouldMapNodeEntitiesIntoQueryResultObjects() {
 		executeUpdate("CREATE (:User {name:'Abraham'}), (:User {name:'Barry'}), (:User {name:'Colin'})");
 
-		EntityWrappingQueryResult wrappedUser = userRepository.findWrappedUserByName("Barry");
-		assertNotNull("The loaded wrapper object shouldn't be null", wrappedUser);
-		assertNotNull("The enclosed user shouldn't be null", wrappedUser.getUser());
-		assertEquals("Barry", wrappedUser.getUser().getName());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				EntityWrappingQueryResult wrappedUser = userRepository.findWrappedUserByName("Barry");
+				assertNotNull("The loaded wrapper object shouldn't be null", wrappedUser);
+				assertNotNull("The enclosed user shouldn't be null", wrappedUser.getUser());
+				assertEquals("Barry", wrappedUser.getUser().getName());
+			}
+		});
 	}
 
 	/**
@@ -315,18 +408,23 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	public void shouldMapNodeCollectionsIntoQueryResultObjects() {
 		executeUpdate("CREATE (d:User {name:'Daniela'}),  (e:User {name:'Ethan'}), (f:User {name:'Finn'}), (d)-[:FRIEND_OF]->(e), (d)-[:FRIEND_OF]->(f)");
 
-		EntityWrappingQueryResult result = userRepository.findWrappedUserAndFriendsDepth1("Daniela");
-		assertNotNull("The result shouldn't be null", result);
-		assertNotNull("The enclosed user shouldn't be null", result.getUser());
-		assertEquals("Daniela", result.getUser().getName());
-		assertEquals(2, result.getFriends().size());
-		List<String> friends = new ArrayList<>();
-		for (User u : result.getFriends()) {
-			friends.add(u.getName());
-		}
-		assertTrue(friends.contains("Ethan"));
-		assertTrue(friends.contains("Finn"));
-		assertEquals(2, result.getUser().getFriends().size()); //we expect friends to be mapped since the relationships were returned
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				EntityWrappingQueryResult result = userRepository.findWrappedUserAndFriendsDepth1("Daniela");
+				assertNotNull("The result shouldn't be null", result);
+				assertNotNull("The enclosed user shouldn't be null", result.getUser());
+				assertEquals("Daniela", result.getUser().getName());
+				assertEquals(2, result.getFriends().size());
+				List<String> friends = new ArrayList<>();
+				for (User u : result.getFriends()) {
+					friends.add(u.getName());
+				}
+				assertTrue(friends.contains("Ethan"));
+				assertTrue(friends.contains("Finn"));
+				assertEquals(2, result.getUser().getFriends().size()); //we expect friends to be mapped since the relationships were returned
+			}
+		});
 	}
 
 	/**
@@ -336,27 +434,32 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	public void shouldMapRECollectionsIntoQueryResultObjects() {
 		executeUpdate("CREATE (g:User {name:'Gary'}), (sw:Movie {name: 'Star Wars: The Force Awakens'}), (hob:Movie {name:'The Hobbit: An Unexpected Journey'}), (g)-[:RATED {stars : 5}]->(sw), (g)-[:RATED {stars: 4}]->(hob) ");
 
-		EntityWrappingQueryResult result = userRepository.findWrappedUserAndRatingsByName("Gary");
-		assertNotNull("The loaded wrapper object shouldn't be null", result);
-		assertNotNull("The enclosed user shouldn't be null", result.getUser());
-		assertEquals("Gary", result.getUser().getName());
-		assertEquals(2, result.getRatings().size());
-		for (Rating rating : result.getRatings()) {
-			if (rating.getStars() == 4) {
-				assertEquals("The Hobbit: An Unexpected Journey", rating.getMovie().getName());
-			} else {
-				assertEquals("Star Wars: The Force Awakens", rating.getMovie().getName());
-			}
-		}
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				EntityWrappingQueryResult result = userRepository.findWrappedUserAndRatingsByName("Gary");
+				assertNotNull("The loaded wrapper object shouldn't be null", result);
+				assertNotNull("The enclosed user shouldn't be null", result.getUser());
+				assertEquals("Gary", result.getUser().getName());
+				assertEquals(2, result.getRatings().size());
+				for (Rating rating : result.getRatings()) {
+					if (rating.getStars() == 4) {
+						assertEquals("The Hobbit: An Unexpected Journey", rating.getMovie().getName());
+					} else {
+						assertEquals("Star Wars: The Force Awakens", rating.getMovie().getName());
+					}
+				}
 
-		assertEquals(4.5f, result.getAvgRating(), 0);
-		assertEquals(2, result.getMovies().length);
-		List<String> titles = new ArrayList<>();
-		for (TempMovie movie : result.getMovies()) {
-			titles.add(movie.getName());
-		}
-		assertTrue(titles.contains("The Hobbit: An Unexpected Journey"));
-		assertTrue(titles.contains("Star Wars: The Force Awakens"));
+				assertEquals(4.5f, result.getAvgRating(), 0);
+				assertEquals(2, result.getMovies().length);
+				List<String> titles = new ArrayList<>();
+				for (TempMovie movie : result.getMovies()) {
+					titles.add(movie.getName());
+				}
+				assertTrue(titles.contains("The Hobbit: An Unexpected Journey"));
+				assertTrue(titles.contains("Star Wars: The Force Awakens"));
+			}
+		});
 	}
 
 	/**
@@ -366,18 +469,23 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	public void shouldMapRelationshipCollectionsWithDepth0IntoQueryResultObjects() {
 		executeUpdate("CREATE (i:User {name:'Ingrid'}),  (j:User {name:'Jake'}), (k:User {name:'Kate'}), (i)-[:FRIEND_OF]->(j), (i)-[:FRIEND_OF]->(k)");
 
-		EntityWrappingQueryResult result = userRepository.findWrappedUserAndFriendsDepth0("Ingrid");
-		assertNotNull("The result shouldn't be null", result);
-		assertNotNull("The enclosed user shouldn't be null", result.getUser());
-		assertEquals("Ingrid", result.getUser().getName());
-		assertEquals(2, result.getFriends().size());
-		List<String> friends = new ArrayList<>();
-		for (User u : result.getFriends()) {
-			friends.add(u.getName());
-		}
-		assertTrue(friends.contains("Kate"));
-		assertTrue(friends.contains("Jake"));
-		assertEquals(0, result.getUser().getFriends().size()); //we do not expect friends to be mapped since the relationships were not returned
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				EntityWrappingQueryResult result = userRepository.findWrappedUserAndFriendsDepth0("Ingrid");
+				assertNotNull("The result shouldn't be null", result);
+				assertNotNull("The enclosed user shouldn't be null", result.getUser());
+				assertEquals("Ingrid", result.getUser().getName());
+				assertEquals(2, result.getFriends().size());
+				List<String> friends = new ArrayList<>();
+				for (User u : result.getFriends()) {
+					friends.add(u.getName());
+				}
+				assertTrue(friends.contains("Kate"));
+				assertTrue(friends.contains("Jake"));
+				assertEquals(0, result.getUser().getFriends().size()); //we do not expect friends to be mapped since the relationships were not returned
+			}
+		});
 	}
 
 	/**
@@ -387,41 +495,46 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	public void shouldReturnMultipleQueryResultObjects() {
 		executeUpdate("CREATE (g:User {name:'Gary'}), (h:User {name:'Harry'}), (sw:Movie {name: 'Star Wars: The Force Awakens'}), (hob:Movie {name:'The Hobbit: An Unexpected Journey'}), (g)-[:RATED {stars : 5}]->(sw), (g)-[:RATED {stars: 4}]->(hob), (h)-[:RATED {stars: 3}]->(hob) ");
 
-		List<EntityWrappingQueryResult> results = userRepository.findAllUserRatings();
-		assertEquals(2, results.size());
-		EntityWrappingQueryResult result = results.get(0);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<EntityWrappingQueryResult> results = userRepository.findAllUserRatings();
+				assertEquals(2, results.size());
+				EntityWrappingQueryResult result = results.get(0);
 
-		assertNotNull("The loaded wrapper object shouldn't be null", result);
-		assertNotNull("The enclosed user shouldn't be null", result.getUser());
-		assertEquals("Harry", result.getUser().getName());
-		assertEquals(1, result.getRatings().size());
-		Rating rating = result.getRatings().get(0);
-		assertEquals("The Hobbit: An Unexpected Journey", rating.getMovie().getName());
-		assertEquals(3, rating.getStars());
-		assertEquals(3f, result.getAvgRating(), 0);
-		assertEquals(1, result.getMovies().length);
-		assertEquals("The Hobbit: An Unexpected Journey", result.getMovies()[0].getName());
+				assertNotNull("The loaded wrapper object shouldn't be null", result);
+				assertNotNull("The enclosed user shouldn't be null", result.getUser());
+				assertEquals("Harry", result.getUser().getName());
+				assertEquals(1, result.getRatings().size());
+				Rating rating = result.getRatings().get(0);
+				assertEquals("The Hobbit: An Unexpected Journey", rating.getMovie().getName());
+				assertEquals(3, rating.getStars());
+				assertEquals(3f, result.getAvgRating(), 0);
+				assertEquals(1, result.getMovies().length);
+				assertEquals("The Hobbit: An Unexpected Journey", result.getMovies()[0].getName());
 
-		result = results.get(1);
-		assertNotNull("The loaded wrapper object shouldn't be null", result);
-		assertNotNull("The enclosed user shouldn't be null", result.getUser());
-		assertEquals("Gary", result.getUser().getName());
-		for (Rating r : result.getRatings()) {
-			if (r.getStars() == 4) {
-				assertEquals("The Hobbit: An Unexpected Journey", r.getMovie().getName());
-			} else {
-				assertEquals("Star Wars: The Force Awakens", r.getMovie().getName());
+				result = results.get(1);
+				assertNotNull("The loaded wrapper object shouldn't be null", result);
+				assertNotNull("The enclosed user shouldn't be null", result.getUser());
+				assertEquals("Gary", result.getUser().getName());
+				for (Rating r : result.getRatings()) {
+					if (r.getStars() == 4) {
+						assertEquals("The Hobbit: An Unexpected Journey", r.getMovie().getName());
+					} else {
+						assertEquals("Star Wars: The Force Awakens", r.getMovie().getName());
+					}
+				}
+
+				assertEquals(4.5f, result.getAvgRating(), 0);
+				assertEquals(2, result.getMovies().length);
+				List<String> titles = new ArrayList<>();
+				for (TempMovie movie : result.getMovies()) {
+					titles.add(movie.getName());
+				}
+				assertTrue(titles.contains("The Hobbit: An Unexpected Journey"));
+				assertTrue(titles.contains("Star Wars: The Force Awakens"));
 			}
-		}
-
-		assertEquals(4.5f, result.getAvgRating(), 0);
-		assertEquals(2, result.getMovies().length);
-		List<String> titles = new ArrayList<>();
-		for (TempMovie movie : result.getMovies()) {
-			titles.add(movie.getName());
-		}
-		assertTrue(titles.contains("The Hobbit: An Unexpected Journey"));
-		assertTrue(titles.contains("Star Wars: The Force Awakens"));
+		});
 	}
 
 	/**
@@ -431,11 +544,16 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	public void shouldMapEntitiesToProxiedQueryResultInterface() {
 		executeUpdate("CREATE (:User {name:'Morne', age:30}), (:User {name:'Abraham', age:31}), (:User {name:'Virat', age:27})");
 
-		UserQueryResultInterface result = userRepository.findWrappedUserAsProxiedObject("Abraham");
-		assertNotNull("The query result shouldn't be null", result);
-		assertNotNull("The mapped user shouldn't be null", result.getUser());
-		assertEquals("The wrong user was returned", "Abraham", result.getUser().getName());
-		assertEquals("The wrong user was returned", 31, result.getAgeOfUser());
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				UserQueryResultInterface result = userRepository.findWrappedUserAsProxiedObject("Abraham");
+				assertNotNull("The query result shouldn't be null", result);
+				assertNotNull("The mapped user shouldn't be null", result.getUser());
+				assertEquals("The wrong user was returned", "Abraham", result.getUser().getName());
+				assertEquals("The wrong user was returned", 31, result.getAgeOfUser());
+			}
+		});
 	}
 
 	/**
@@ -444,8 +562,14 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	@Test
 	public void shouldMapEmptyNullCollectionsToQueryResultInterface() {
 		executeUpdate("CREATE (g:User {name:'Gary'})");
-		EntityWrappingQueryResult result = userRepository.findAllRatingsNull();
-		assertNotNull(result);
-		assertEquals(0, result.getAllRatings().size());
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				EntityWrappingQueryResult result = userRepository.findAllRatingsNull();
+				assertNotNull(result);
+				assertEquals(0, result.getAllRatings().size());
+			}
+		});
 	}
 }

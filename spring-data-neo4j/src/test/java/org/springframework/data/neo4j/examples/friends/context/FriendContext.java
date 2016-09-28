@@ -17,24 +17,29 @@ import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.examples.friends.FriendService;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Luanne Misquitta
+ * @author Mark Angrish
  */
 @Configuration
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.friends.repo")
 @ComponentScan(basePackageClasses = FriendService.class)
 @EnableTransactionManagement
-public class FriendContext extends Neo4jConfiguration {
+public class FriendContext {
 
-    @Bean
-    @Override
-    public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.examples.friends.domain");
-    }
+	@Bean
+	public PlatformTransactionManager transactionManager() {
+		return new Neo4jTransactionManager(sessionFactory());
+	}
 
+	@Bean
+	public SessionFactory sessionFactory() {
+		return new SessionFactory("org.springframework.data.neo4j.examples.friends.domain");
+	}
 }
