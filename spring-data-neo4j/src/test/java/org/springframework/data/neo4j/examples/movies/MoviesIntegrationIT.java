@@ -44,7 +44,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Michal Bachman
  * @author Luanne Misquitta
- * @uathor Vince Bickers
+ * @author Vince Bickers
+ * @author Jasper Blues
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)

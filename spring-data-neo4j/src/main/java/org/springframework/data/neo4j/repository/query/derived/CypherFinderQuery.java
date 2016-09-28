@@ -26,6 +26,7 @@ import org.springframework.data.repository.query.parser.Part;
  * A {@link DerivedQueryDefinition} that builds a Cypher query.
  *
  * @author Luanne Misquitta
+ * @author Jasper Blues
  */
 public class CypherFinderQuery implements DerivedQueryDefinition {
 

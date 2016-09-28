@@ -23,6 +23,7 @@ import org.neo4j.ogm.cypher.function.PropertyComparison;
  * A representation of a Neo4j-OGM Filter that contains no parameter/property values and only holds metadata
  *
  * @author Luanne Misquitta
+ * @author Jasper Blues
  */
 public class CypherFilter {
 

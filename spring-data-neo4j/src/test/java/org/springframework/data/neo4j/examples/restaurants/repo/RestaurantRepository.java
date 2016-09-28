@@ -20,6 +20,9 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.examples.restaurants.domain.Restaurant;
 import org.springframework.data.neo4j.repository.GraphRepository;
 
+/**
+ * @author Jasper Blues
+ */
 public interface RestaurantRepository extends GraphRepository<Restaurant> {
 
 	Collection<Restaurant> findByNameAndLocationNear(String name, Distance distance, Point point);

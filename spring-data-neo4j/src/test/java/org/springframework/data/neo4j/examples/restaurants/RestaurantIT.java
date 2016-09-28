@@ -39,6 +39,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = {RestaurantContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
+
+/**
+ * @author Jasper Blues
+ */
 public class RestaurantIT extends MultiDriverTestClass {
 
 	@Autowired
@@ -51,6 +55,9 @@ public class RestaurantIT extends MultiDriverTestClass {
 	}
 
 
+	/**
+	 * @see DATAGRAPH-561
+	 */
 	@Test
 	public void shouldFindRestaurantsNear_nameParameterFirst() {
 		Assume.assumeTrue(Components.neo4jVersion() >= 3);
@@ -66,6 +73,9 @@ public class RestaurantIT extends MultiDriverTestClass {
 		assertEquals(1, results.size());
 	}
 
+	/**
+	 * @see DATAGRAPH-561
+	 */
 	@Test
 	public void shouldFindRestaurantsNear_locationFirst() {
 		Assume.assumeTrue(Components.neo4jVersion() >= 3);

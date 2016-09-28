@@ -33,6 +33,7 @@ import java.lang.reflect.ParameterizedType;
  *
  * @author Adam George
  * @author Luanne Misquitta
+ * @author Jasper Blues
  */
 public class MetaDataDrivenConversionService extends GenericConversionService implements ConversionCallback {
 

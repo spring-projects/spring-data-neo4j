@@ -17,14 +17,17 @@ package org.springframework.data.neo4j.examples.restaurants.domain;
 import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.springframework.data.geo.Point;
-import org.springframework.data.neo4j.conversion.LocationConverter;
+import org.springframework.data.neo4j.conversion.PointConverter;
 
+/**
+ * @author Jasper Blues
+ */
 public class Restaurant {
 
     @GraphId
     private Long id;
     private String name;
-    @Convert(LocationConverter.class)
+    @Convert(PointConverter.class)
     private Point location;
     private int zip;
 

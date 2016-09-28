@@ -27,6 +27,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ComponentScan({"org.springframework.data.neo4j.examples.restaurants"})
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.restaurants.repo")
 @EnableTransactionManagement
+
+/**
+ * Assembly for RestaurantIT.
+ * @author Jasper Blues
+ */
 public class RestaurantContext extends Neo4jConfiguration {
 
 	@Override

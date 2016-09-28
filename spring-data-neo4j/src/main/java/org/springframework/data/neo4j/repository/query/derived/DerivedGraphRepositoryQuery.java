@@ -48,6 +48,7 @@ import org.springframework.data.repository.query.parser.PartTree;
  *
  * @author Mark Angrish
  * @author Luanne Misquitta
+ * @author Jasper Blues
  */
 public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 

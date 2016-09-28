@@ -20,7 +20,13 @@ import org.springframework.data.geo.Point;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LocationConverter implements CompositeAttributeConverter<Point> {
+/**
+ * Converts latitude and longitude properties on a node entity to an instance of Point and vice-versa.
+ *
+ * @see Point
+ * @author Jasper Blues
+ */
+public class PointConverter implements CompositeAttributeConverter<Point> {
 
     @Override
     public Map<String, ?> toGraphProperties(Point point) {
