@@ -177,11 +177,6 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 		for (int i = 0; i < parameters.length; i++) {
 			Parameter parameter = methodParameters.getParameter(i);
 
-			// DATAGRAPH-915 - Removing this fails PagedQueryIT with 3.0 and bolt.
-			if (Sort.class.isAssignableFrom(parameter.getType()) || Pageable.class.isAssignableFrom(parameter.getType())) {
-				continue;
-			}
-
 			//The parameter might be an entity, try to resolve its id
 			Object parameterValue = session.resolveGraphIdFor(parameters[i]);
 			if (parameterValue == null) { //Either not an entity or not persisted
