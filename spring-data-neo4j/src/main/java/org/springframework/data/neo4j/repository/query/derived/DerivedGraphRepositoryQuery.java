@@ -13,6 +13,8 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
+import static org.springframework.data.geo.Metrics.*;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +22,9 @@ import java.util.Map;
 
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
+import org.neo4j.ogm.cypher.function.DistanceComparison;
+import org.neo4j.ogm.cypher.function.DistanceFromPoint;
+import org.neo4j.ogm.cypher.function.FilterFunction;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
 import org.neo4j.ogm.session.Session;
@@ -27,6 +32,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.Metrics;
+import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.repository.query.GraphQueryMethod;
 import org.springframework.data.repository.core.EntityMetadata;
 import org.springframework.data.repository.query.ParameterAccessor;
@@ -40,6 +48,7 @@ import org.springframework.data.repository.query.parser.PartTree;
  *
  * @author Mark Angrish
  * @author Luanne Misquitta
+ * @author Jasper Blues
  */
 public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 
@@ -147,7 +156,8 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		Map<Integer, Object> params = new HashMap<>();
 
 		for (int i = 0; i < parameters.length; i++) {
-			if (graphQueryMethod.getQueryDepthParamIndex() == null || (graphQueryMethod.getQueryDepthParamIndex() != null && graphQueryMethod.getQueryDepthParamIndex() != i)) {
+			if (graphQueryMethod.getQueryDepthParamIndex() == null
+					|| (graphQueryMethod.getQueryDepthParamIndex() != null && graphQueryMethod.getQueryDepthParamIndex() != i)) {
 				params.put(i, parameters[i]);
 			}
 		}
@@ -155,10 +165,45 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		Filters queryParams = new Filters();
 		for (CypherFilter cypherFilter : cypherFilters) {
 			Filter filter = cypherFilter.toFilter();
-			filter.setPropertyValue(params.get(cypherFilter.getPropertyPosition()));
+
+			FilterFunction function = filter.getFunction();
+			Object functionValue = function instanceof DistanceComparison ?
+					extractDistanceArgs(params, cypherFilter.getPropertyPosition()) :
+					params.get(cypherFilter.getPropertyPosition());
+			function.setValue(functionValue);
 			queryParams.add(filter);
 		}
 		return queryParams;
+	}
+
+
+	private DistanceFromPoint extractDistanceArgs(Map<Integer, Object> params, int startIndex) {
+		Object firstArg = params.get(startIndex);
+		Object secondArg = params.get(startIndex + 1);
+
+		Distance distance;
+		Point point;
+
+		if (firstArg instanceof Distance && secondArg instanceof Point) {
+			distance = (Distance) firstArg;
+			point = (Point) secondArg;
+		} else if (secondArg instanceof Distance && firstArg instanceof Point) {
+			distance = (Distance) secondArg;
+			point = (Point) firstArg;
+		} else {
+			throw new IllegalArgumentException("findNear requires an argument of type Distance and an argument of type Point");
+		}
+
+		double meters;
+		if (distance.getMetric() == Metrics.KILOMETERS) {
+			meters = distance.getValue() * 1000.0d;
+		} else if (distance.getMetric() == Metrics.MILES) {
+			meters = distance.getValue() / 0.00062137d;
+		} else {
+			meters = distance.getValue();
+		}
+
+		return new DistanceFromPoint(point.getX(), point.getY(), distance.getValue() * meters);
 	}
 
 
