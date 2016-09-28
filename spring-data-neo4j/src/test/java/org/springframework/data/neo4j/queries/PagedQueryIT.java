@@ -349,7 +349,6 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-887
 	 */
 	@Test
-	@Transactional
 	public void shouldSortPageWhenNestedPropertyIsInvolved() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
 				"CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
@@ -376,7 +375,6 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-887
 	 */
 	@Test
-	@Transactional
 	public void shouldSortPageByNestedPropertyIsInvolved() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
 				"CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +

@@ -21,10 +21,7 @@ import java.util.Map;
 import org.neo4j.ogm.model.QueryStatistics;
 import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.SliceImpl;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
@@ -179,6 +176,11 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 
 		for (int i = 0; i < parameters.length; i++) {
 			Parameter parameter = methodParameters.getParameter(i);
+
+			// DATAGRAPH-915 - Removing this fails PagedQueryIT with 3.0 and bolt.
+			if (Sort.class.isAssignableFrom(parameter.getType()) || Pageable.class.isAssignableFrom(parameter.getType())) {
+				continue;
+			}
 
 			//The parameter might be an entity, try to resolve its id
 			Object parameterValue = session.resolveGraphIdFor(parameters[i]);
