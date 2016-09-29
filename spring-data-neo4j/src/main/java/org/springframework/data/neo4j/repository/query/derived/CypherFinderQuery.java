@@ -12,17 +12,21 @@
  */
 package org.springframework.data.neo4j.repository.query.derived;
 
+import static org.springframework.data.repository.query.parser.Part.Type.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
+import org.neo4j.ogm.cypher.function.DistanceComparison;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
  * A {@link DerivedQueryDefinition} that builds a Cypher query.
  *
  * @author Luanne Misquitta
+ * @author Jasper Blues
  */
 public class CypherFinderQuery implements DerivedQueryDefinition {
 
@@ -41,15 +45,6 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 		return basePart;
 	}
 
-//	@Override
-//	public Filters getFilters() {
-//		Filters filters = new Filters();
-//		for (CypherFilter cypherFilter : cypherFilters) {
-//			filters.add(cypherFilter.toFilter());
-//		}
-//		return filters;
-//	}
-//
 	@Override
 	public List<CypherFilter> getCypherFilters() {
 		return cypherFilters;
@@ -65,6 +60,12 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 		parameter.setComparisonOperator(convertToComparisonOperator(part.getType()));
 		parameter.setNegated(part.getType().name().startsWith("NOT"));
 		parameter.setBooleanOperator(booleanOperator);
+
+		if (part.getType() == NEAR) {
+			parameter.setFunction(new DistanceComparison());
+			parameter.setComparisonOperator(ComparisonOperator.LESS_THAN);
+			paramPosition++;
+		}
 
 		if (part.getProperty().next() != null) {
 			parameter.setOwnerEntityType(part.getProperty().getOwningType().getType());
@@ -83,11 +84,11 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 			case LESS_THAN:
 				return ComparisonOperator.LESS_THAN;
 			case REGEX:
-			    return ComparisonOperator.MATCHES;
+				return ComparisonOperator.MATCHES;
 			case LIKE:
-			    return ComparisonOperator.LIKE;
+				return ComparisonOperator.LIKE;
 			case NOT_LIKE:
-			    return ComparisonOperator.LIKE;
+				return ComparisonOperator.LIKE;
 			default:
 				return ComparisonOperator.EQUALS;
 		}

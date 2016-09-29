@@ -33,6 +33,7 @@ import java.lang.reflect.ParameterizedType;
  *
  * @author Adam George
  * @author Luanne Misquitta
+ * @author Jasper Blues
  */
 public class MetaDataDrivenConversionService extends GenericConversionService implements ConversionCallback {
 
@@ -49,14 +50,14 @@ public class MetaDataDrivenConversionService extends GenericConversionService im
 
         for (ClassInfo classInfo : metaData.persistentEntities()) {
             for (FieldInfo fieldInfo : classInfo.propertyFields()) {
-                if (fieldInfo.hasConverter()) {
-                    addWrappedConverter(fieldInfo.converter());
+                if (fieldInfo.hasPropertyConverter()) {
+                    addWrappedConverter(fieldInfo.getPropertyConverter());
                 }
             }
             // TODO: do we need to check the setters too or are programmers obliged to annotate both?
             for (MethodInfo methodInfo : classInfo.propertyGetters()) {
-                if (methodInfo.hasConverter()) {
-                    addWrappedConverter(methodInfo.converter());
+                if (methodInfo.hasPropertyConverter()) {
+                    addWrappedConverter(methodInfo.getPropertyConverter());
                 }
             }
         }
