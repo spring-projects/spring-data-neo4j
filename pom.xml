@@ -177,9 +177,9 @@
 	</dependencies>
 	<repositories>
 		<repository>
-			<id>spring-libs-release</id>
+			<id>spring-libs-snapshot</id>
 			<name>Spring</name>
-			<url>https://repo.spring.io/libs-release</url>
+			<url>https://repo.spring.io/libs-snapshot</url>
 		</repository>
 		<repository>
 			<id>neo4j</id>
