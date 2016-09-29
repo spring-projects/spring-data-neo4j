@@ -12,8 +12,8 @@
  */
 package org.springframework.data.neo4j.extensions;
 
-import org.springframework.data.neo4j.repository.GraphRepositoryImpl;
-import org.springframework.data.neo4j.template.Neo4jOperations;
+import org.neo4j.ogm.session.Session;
+import org.springframework.data.neo4j.repository.support.SimpleGraphRepository;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -21,16 +21,17 @@ import org.springframework.stereotype.Repository;
  *
  * @author Vince Bickers
  * @author Luanne Misquitta
+ * @author Mark Angrish
  */
 @Repository
-public class CustomGraphRepositoryImpl<T> extends GraphRepositoryImpl<T> implements CustomGraphRepository<T> {
+public class CustomGraphRepositoryImpl<T> extends SimpleGraphRepository<T> implements CustomGraphRepository<T> {
 
-    public CustomGraphRepositoryImpl(Class<T> clazz, Neo4jOperations neo4jOperations) {
-        super(clazz, neo4jOperations);
-    }
+	public CustomGraphRepositoryImpl(Class<T> clazz, Session session) {
+		super(clazz, session);
+	}
 
-    @Override
-    public boolean sharedCustomMethod() {
-        return true;
-    }
+	@Override
+	public boolean sharedCustomMethod() {
+		return true;
+	}
 }

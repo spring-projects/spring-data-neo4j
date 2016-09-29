@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.neo4j.domain.sample.User;
-import org.springframework.data.neo4j.repository.config.EnableExperimentalNeo4jRepositories;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.sample.UserRepository;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
@@ -81,7 +81,7 @@ public class DefaultTransactionDisablingIntegrationIT extends MultiDriverTestCla
 	}
 
 	@Configuration
-	@EnableExperimentalNeo4jRepositories(basePackageClasses = UserRepository.class, enableDefaultTransactions = false)
+	@EnableNeo4jRepositories(basePackageClasses = UserRepository.class, enableDefaultTransactions = false)
 	@EnableTransactionManagement
 	static class Config {
 

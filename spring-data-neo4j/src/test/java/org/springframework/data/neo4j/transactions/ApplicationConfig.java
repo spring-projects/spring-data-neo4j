@@ -17,40 +17,29 @@ import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.TransactionManagementConfigurer;
 
 /**
  * @author Vince Bickers
+ * @author Mark Angrish
  */
 @Configuration
 @ComponentScan("org.springframework.data.neo4j.transactions.service")
 @EnableTransactionManagement
 @EnableNeo4jRepositories("org.springframework.data.neo4j.transactions.repo")
-public class ApplicationConfig extends Neo4jConfiguration implements TransactionManagementConfigurer
-{
+public class ApplicationConfig {
 
-    @Override
-    @Bean
-    public SessionFactory getSessionFactory()
-    {
-        return new SessionFactory("org.springframework.data.neo4j.transactions.domain");
-    }
+	@Bean
+	public PlatformTransactionManager transactionManager()  {
+		return new Neo4jTransactionManager(sessionFactory());
+	}
 
-    @Override
-    @Bean
-    public PlatformTransactionManager annotationDrivenTransactionManager()
-    {
-        try
-        {
-            return new ExtendedTransactionsIT.DelegatingTransactionManager(transactionManager());
-        }
-        catch (Exception e)
-        {
-            throw new RuntimeException(e);
-        }
-    }
+	@Bean
+	public SessionFactory sessionFactory() {
+		return new SessionFactory("org.springframework.data.neo4j.transactions.domain");
+	}
 }

@@ -13,33 +13,32 @@
 
 package org.springframework.data.neo4j.examples.movies.context;
 
-import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Michal Bachman
+ * @author Mark Angrish
  */
 @Configuration
 @ComponentScan({"org.springframework.data.neo4j.examples.movies.service"})
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
 @EnableTransactionManagement
-public class MoviesContext extends Neo4jConfiguration {
+public class MoviesContext {
 
-    @Override
-    @Bean
-    public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.springframework.data.neo4j.examples.movies.domain");
-    }
+	@Bean
+	public PlatformTransactionManager transactionManager() {
+		return new Neo4jTransactionManager(sessionFactory());
+	}
 
-    @Override
-    @Bean
-    public Session getSession() throws Exception {
-        return super.getSession();
-    }
+	@Bean
+	public SessionFactory sessionFactory() {
+		return new SessionFactory("org.springframework.data.neo4j.examples.movies.domain");
+	}
 }

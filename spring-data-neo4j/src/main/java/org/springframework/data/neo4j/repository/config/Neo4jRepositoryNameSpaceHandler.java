@@ -31,7 +31,7 @@ public class Neo4jRepositoryNameSpaceHandler extends NamespaceHandlerSupport {
 	 */
 	public void init() {
 
-		RepositoryConfigurationExtension extension = new GraphRepositoryConfigurationExtension();
+		RepositoryConfigurationExtension extension = new Neo4jRepositoryConfigurationExtension();
 		RepositoryBeanDefinitionParser repositoryBeanDefinitionParser = new RepositoryBeanDefinitionParser(extension);
 
 		registerBeanDefinitionParser("repositories", repositoryBeanDefinitionParser);

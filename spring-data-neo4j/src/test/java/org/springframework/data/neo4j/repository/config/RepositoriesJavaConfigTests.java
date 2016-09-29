@@ -12,8 +12,8 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class RepositoriesJavaConfigTests {
 
 	@Configuration
-	@EnableExperimentalNeo4jRepositories(basePackageClasses = UserRepository.class)
+	@EnableNeo4jRepositories(basePackageClasses = UserRepository.class)
 	static class Config {
 
 		@Autowired

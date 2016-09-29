@@ -17,7 +17,7 @@ import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.repository.config.EnableExperimentalNeo4jRepositories;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.web.WebIntegrationIT;
 import org.springframework.data.neo4j.web.support.OpenSessionInViewInterceptor;
@@ -34,7 +34,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @Configuration
 @EnableWebMvc
 @ComponentScan({"org.springframework.data.neo4j.web.controller", "org.springframework.data.neo4j.web.service"})
-@EnableExperimentalNeo4jRepositories("org.springframework.data.neo4j.web.repo")
+@EnableNeo4jRepositories("org.springframework.data.neo4j.web.repo")
 @EnableTransactionManagement
 public class WebAppContext extends WebMvcConfigurerAdapter {
 
@@ -51,7 +51,7 @@ public class WebAppContext extends WebMvcConfigurerAdapter {
 	}
 
 	@Bean
-	public PlatformTransactionManager transactionManager() throws Exception {
+	public PlatformTransactionManager transactionManager() {
 		return new WebIntegrationIT.DelegatingTransactionManager(new Neo4jTransactionManager(sessionFactory()));
 	}
 
@@ -59,5 +59,4 @@ public class WebAppContext extends WebMvcConfigurerAdapter {
 	public SessionFactory sessionFactory() {
 		return new SessionFactory("org.springframework.data.neo4j.web.domain");
 	}
-
 }

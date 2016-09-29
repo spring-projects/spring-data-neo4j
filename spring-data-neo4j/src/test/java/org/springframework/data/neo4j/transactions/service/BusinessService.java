@@ -16,19 +16,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author: Vince Bickers
+ * @author Mark Angrish
  */
 @Component
 public class BusinessService {
 
     @Autowired
-    private Neo4jOperations neo4jOperations;
+    private Session session;
 
     @Transactional
     public void successMethodInTransaction() {
@@ -48,17 +49,10 @@ public class BusinessService {
     }
 
     public void insert() {
-        neo4jOperations.query("CREATE (node {name: 'n'})", Collections.EMPTY_MAP);
+        session.query("CREATE (node {name: 'n'})", Collections.EMPTY_MAP);
     }
 
     public Iterable<Map<String, Object>> fetch() {
-        return neo4jOperations.query("MATCH (n) RETURN n.name", new HashMap<String, Object>());
+        return session.query("MATCH (n) RETURN n.name", new HashMap<String, Object>());
     }
-
-    public void purge() {
-        neo4jOperations.query("MATCH (n) DELETE n", Collections.EMPTY_MAP);
-        neo4jOperations.clear();
-
-    }
-
 }

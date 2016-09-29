@@ -13,6 +13,7 @@
 
 package org.springframework.data.neo4j.repositories;
 
+import static org.junit.Assert.assertEquals;
 import static org.neo4j.ogm.testutil.GraphTestUtils.*;
 
 import org.junit.Before;
@@ -20,17 +21,23 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.repositories.domain.User;
 import org.springframework.data.neo4j.repositories.repo.PersistenceContextInTheSamePackage;
 import org.springframework.data.neo4j.repositories.repo.UserRepository;
-import org.springframework.data.neo4j.template.Neo4jOperations;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Michal Bachman
+ * @author Mark Angrish
  */
 @ContextConfiguration(classes = {PersistenceContextInTheSamePackage.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -41,8 +48,6 @@ public class RepoScanningIT extends MultiDriverTestClass {
 	@Autowired
 	private UserRepository userRepository;
 
-	@Autowired
-	private Neo4jOperations neo4jOperations;
 
 	@BeforeClass
 	public static void beforeClass(){
@@ -52,14 +57,15 @@ public class RepoScanningIT extends MultiDriverTestClass {
 	@Before
 	public void clearDatabase() {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-		neo4jOperations.clear();
 	}
 
 	@Test
 	public void enableNeo4jRepositoriesShouldScanSelfPackageByDefault() {
+
 		User user = new User("Michal");
 		userRepository.save(user);
 
 		assertSameGraph(graphDatabaseService, "CREATE (u:User {name:'Michal'})");
 	}
+
 }

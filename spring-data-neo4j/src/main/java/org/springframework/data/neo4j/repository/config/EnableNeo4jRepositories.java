@@ -13,31 +13,34 @@
 
 package org.springframework.data.neo4j.repository.config;
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.neo4j.repository.support.GraphRepositoryFactoryBean;
-import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
-import org.springframework.data.repository.query.QueryLookupStrategy;
-
 import java.lang.annotation.*;
 
+import org.neo4j.ogm.session.SessionFactory;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
+import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
+import org.springframework.data.repository.query.QueryLookupStrategy;
+import org.springframework.transaction.PlatformTransactionManager;
+
 /**
- * @author Vince Bickers
+ * Annotation to enable Neo4j repositories. Will scan the package of the annotated configuration class for Spring Data
+ * repositories by default.
  *
- * @deprecated See {@link EnableExperimentalNeo4jRepositories}}.
+ * @author Vince Bickers
+ * @author Mark Angrish
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Import(GraphRepositoriesRegistrar.class)
-@Deprecated
+@Import(Neo4jRepositoriesRegistrar.class)
 public @interface EnableNeo4jRepositories {
 
     /**
      * Alias for the {@link #basePackages()} attribute. Allows for more concise annotation declarations e.g.:
-     * {@code @EnableNeo4jRepositories("org.my.pkg")} instead of
-     * {@code @EnableNeo4jRepositories(basePackages="org.my.pkg")}.
+     * {@code @EnableExperimentalNeo4jRepositories("org.my.pkg")} instead of
+     * {@code @EnableExperimentalNeo4jRepositories(basePackages="org.my.pkg")}.
      */
     String[] value() default {};
 
@@ -86,20 +89,41 @@ public @interface EnableNeo4jRepositories {
 
     /**
      * Returns the {@link org.springframework.beans.factory.FactoryBean} class to be used for each repository instance. Defaults to
-     * {@link org.springframework.data.neo4j.repository.support.GraphRepositoryFactoryBean}.
+     * {@link Neo4jRepositoryFactoryBean}.
      */
-    Class<?> repositoryFactoryBeanClass() default GraphRepositoryFactoryBean.class;
+    Class<?> repositoryFactoryBeanClass() default Neo4jRepositoryFactoryBean.class;
 
     /**
      * Configure the repository base class to be used to create repository proxies for this particular configuration.
      *
      * @return
      */
-     Class<?> repositoryBaseClass() default DefaultRepositoryBaseClass.class;
+    Class<?> repositoryBaseClass() default DefaultRepositoryBaseClass.class;
+
+    /**
+     * Configures the name of the {@link SessionFactory} bean definition to be used to create repositories
+     * discovered through this annotation. Defaults to {@code sessionFactory}.
+     */
+    String sessionFactoryRef() default "sessionFactory";
+
+    /**
+     * Configures the name of the {@link PlatformTransactionManager} bean definition to be used to create repositories
+     * discovered through this annotation. Defaults to {@code transactionManager}.
+     */
+    String transactionManagerRef() default "transactionManager";
 
     /**
      * Configures whether nested repository-interfaces (e.g. defined as inner classes) should be discovered by the
      * repositories infrastructure.
      */
     boolean considerNestedRepositories() default false;
+
+    /**
+     * Configures whether to enable default transactions for Spring Data Neo4j repositories. Defaults to {@literal true}. If
+     * disabled, repositories must be used behind a facade that's configuring transactions (e.g. using Spring's annotation
+     * driven transaction facilities) or repository methods have to be used to demarcate transactions.
+     *
+     * @return whether to enable default transactions, defaults to {@literal true}.
+     */
+    boolean enableDefaultTransactions() default true;
 }

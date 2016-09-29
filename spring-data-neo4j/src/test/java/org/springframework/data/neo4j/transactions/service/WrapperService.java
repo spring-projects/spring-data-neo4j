@@ -60,8 +60,4 @@ public class WrapperService {
     public Iterable<Map<String, Object>> fetch() {
         return businessService.fetch();
     }
-
-    public void purge() {
-        businessService.purge();
-    }
 }
