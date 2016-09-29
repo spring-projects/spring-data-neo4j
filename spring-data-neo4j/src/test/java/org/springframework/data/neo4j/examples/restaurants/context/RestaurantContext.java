@@ -14,13 +14,13 @@
 
 package org.springframework.data.neo4j.examples.restaurants.context;
 
-import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.Neo4jConfiguration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
@@ -32,17 +32,16 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * Assembly for RestaurantIT.
  * @author Jasper Blues
  */
-public class RestaurantContext extends Neo4jConfiguration {
+public class RestaurantContext {
 
-	@Override
 	@Bean
-	public SessionFactory getSessionFactory() {
+	public SessionFactory sessionFactory() {
 		return new SessionFactory("org.springframework.data.neo4j.examples.restaurants.domain");
 	}
 
-	@Override
 	@Bean
-	public Session getSession() throws Exception {
-		return super.getSession();
+	public PlatformTransactionManager transactionManager() {
+		return new Neo4jTransactionManager(sessionFactory());
 	}
+
 }
