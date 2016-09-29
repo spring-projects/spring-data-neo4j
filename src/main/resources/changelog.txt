@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 3.4.6.RELEASE (2016-09-29)
+---------------------------------------------
+* DATAGRAPH-916 - Release 3.4.6 (Gosling SR6).
+
+
 Changes in version 3.4.5.RELEASE (2016-09-20)
 ---------------------------------------------
 * DATAGRAPH-912 - Release 3.4.5 (Gosling SR5).
