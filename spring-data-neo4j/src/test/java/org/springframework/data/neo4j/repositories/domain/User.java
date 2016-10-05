@@ -13,6 +13,9 @@
 
 package org.springframework.data.neo4j.repositories.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Michal Bachman
  */
@@ -21,7 +24,12 @@ public class User {
     private Long id;
     private String name;
 
+    private List<User> friends = new ArrayList<>();
     public User() {
+    }
+
+    public Long getId() {
+        return this.id;
     }
 
     public User(String name) {
@@ -35,4 +43,15 @@ public class User {
     public void setName(String name) {
         this.name = name;
     }
+
+    public List<User> getFriends() {
+        return friends;
+    }
+
+    public void setFriends(List<User> friends) {
+        this.friends = friends;
+    }
+
+
+
 }

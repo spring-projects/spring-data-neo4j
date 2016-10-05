@@ -13,21 +13,20 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
-import static org.springframework.data.geo.Metrics.*;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.cypher.function.DistanceComparison;
 import org.neo4j.ogm.cypher.function.DistanceFromPoint;
 import org.neo4j.ogm.cypher.function.FilterFunction;
+import org.neo4j.ogm.cypher.query.AbstractRequest;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
+import org.neo4j.ogm.model.Result;
+import org.neo4j.ogm.session.Neo4jSession;
 import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
@@ -49,58 +48,192 @@ import org.springframework.data.repository.query.parser.PartTree;
  * @author Mark Angrish
  * @author Luanne Misquitta
  * @author Jasper Blues
+ * @author Vince Bickers
  */
 public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 
 	private DerivedQueryDefinition queryDefinition;
 
 	private final GraphQueryMethod graphQueryMethod;
+	private final PartTree tree;
 
 	protected final Session session;
+	protected final EntityMetadata<?> info;
 
 	private final int DEFAULT_QUERY_DEPTH = 1;
 
 	public DerivedGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session) {
 		this.graphQueryMethod = graphQueryMethod;
 		this.session = session;
-		EntityMetadata<?> info = graphQueryMethod.getEntityInformation();
-		PartTree tree = new PartTree(graphQueryMethod.getName(), info.getJavaType());
+		this.info = graphQueryMethod.getEntityInformation();
+		this.tree = new PartTree(graphQueryMethod.getName(), info.getJavaType());
 		this.queryDefinition = new DerivedQueryCreator(tree, info.getJavaType()).createQuery();
 	}
 
 	@Override
 	public Object execute(Object[] parameters) {
+		return doExecute(parameters);
+	}
 
-		ParameterAccessor accessor = new ParametersParameterAccessor(graphQueryMethod.getParameters(), parameters);
-		Pageable pageable = accessor.getPageable();
-		Sort sort = accessor.getSort();
-
-		Class<?> returnType = graphQueryMethod.getMethod().getReturnType();
-		Class<?> concreteType = graphQueryMethod.resolveConcreteReturnType();
-
-		int queryDepth = calculateQueryDepth(parameters);
-
-		Filters params = resolveParams(parameters);
-		if (returnType.equals(Void.class)) {
-			throw new RuntimeException("Derived Queries must have a return type");
+	private Object doExecute(Object[] parameters) {
+		if (tree.isCountProjection()) {
+			return new CountByQuery().execute(parameters);
 		}
+		if (tree.isDelete()) {
+			return new DeleteByQuery().execute(parameters);
+		}
+		return new FindByQuery().execute(parameters);
 
-		if (Iterable.class.isAssignableFrom(returnType)) {
-			PagingAndSorting pagingAndSorting = configurePagingAndSorting(pageable, sort);
-			List resultList = queryResults(concreteType, queryDepth, params, pagingAndSorting);
+	}
 
-			if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
-				return createPage(graphQueryMethod, resultList, pageable);
+	class CountByQuery implements RepositoryQuery {
+
+		@Override
+		public Object execute(Object[] parameters) {
+
+			Class<?> domainClass = info.getJavaType();
+
+			if (getQueryMethod().getReturnedObjectType().equals(Long.class)) {
+				String label = ((Neo4jSession) session).metaData().classInfo(domainClass.getName()).neo4jName();
+				Filters filters = resolveParams(parameters);
+
+				// TODO? create a specific implementation, e.g. CountQuery().findByProperties(label, filters)
+				AbstractRequest query = new VariableDepthQuery().findByProperties(label, filters, 0);
+
+				String statement = query.getStatement().replace("RETURN n", "RETURN COUNT(n)");
+				Result result = session.query(statement, query.getParameters());
+				Map<String, Object> resultMap = result.iterator().next();
+				return Long.parseLong(resultMap.get("COUNT(n)").toString());
 			} else {
-				return resultList;
+		 		throw new RuntimeException("Count queries must return a Long");
 			}
 		}
 
-		Iterator<?> objectIterator = session.loadAll(returnType, params, queryDepth).iterator();
-		if (objectIterator.hasNext()) {
-			return objectIterator.next();
+		@Override
+		public QueryMethod getQueryMethod() {
+			return graphQueryMethod;
 		}
-		return null;
+	}
+
+	class DeleteByQuery implements RepositoryQuery {
+
+		@Override
+		public Object execute(Object[] parameters) {
+
+			Class<?> domainClass = info.getJavaType();
+			String label = ((Neo4jSession) session).metaData().classInfo(domainClass.getName()).neo4jName();
+			Filters filters = resolveParams(parameters);
+
+			// TODO? create a specific implementation, e.g. DeleteQuery().findByProperties(label, filters)
+			AbstractRequest query = new VariableDepthQuery().findByProperties(label, filters, 0);
+
+			Class<?> returnType = graphQueryMethod.resolveConcreteReturnType();
+			String statement = query.getStatement();
+
+			if (returnType.equals(Long.class)) {
+
+				if (graphQueryMethod.isCollectionQuery()) {
+					statement = statement.replace("RETURN n", "OPTIONAL MATCH (n)-[r]-() DELETE r, n RETURN id(n)");
+					Result result = session.query(statement, query.getParameters());
+					List<Long> deletedIds = new ArrayList();
+					for (Map<String, Object> resultEntry : result) {
+						deletedIds.add(Long.parseLong(resultEntry.get("id(n)").toString()));
+					}
+					return deletedIds;
+				}
+
+				statement = statement.replace("RETURN n", "OPTIONAL MATCH (n)-[r]-() DELETE r, n RETURN COUNT(n)");
+				Result result = session.query(statement, query.getParameters());
+				Map<String, Object> resultMap = result.iterator().next();
+				return Long.parseLong(resultMap.get("COUNT(n)").toString());
+			}
+
+			throw new RuntimeException("Return type of Delete query must Long or Iterable<Long>");
+		}
+
+		@Override
+		public QueryMethod getQueryMethod() {
+			return graphQueryMethod;
+		}
+	}
+
+	class FindByQuery implements RepositoryQuery {
+
+		public Object execute(Object[] parameters) {
+
+			ParameterAccessor accessor = new ParametersParameterAccessor(graphQueryMethod.getParameters(), parameters);
+			Pageable pageable = accessor.getPageable();
+			Sort sort = accessor.getSort();
+
+			Class<?> returnType = graphQueryMethod.getMethod().getReturnType();
+			Class<?> concreteType = graphQueryMethod.resolveConcreteReturnType();
+
+			int queryDepth = calculateQueryDepth(parameters);
+
+			Filters params = resolveParams(parameters);
+			if (returnType.equals(Void.class)) {
+				throw new RuntimeException("Derived Queries must have a return type");
+			}
+
+			if (Iterable.class.isAssignableFrom(returnType)) {
+				PagingAndSorting pagingAndSorting = configurePagingAndSorting(pageable, sort);
+				List resultList = queryResults(concreteType, queryDepth, params, pagingAndSorting);
+
+				if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
+					return createPage(graphQueryMethod, resultList, pageable);
+				} else {
+					return resultList;
+				}
+			}
+
+			Iterator<?> objectIterator = session.loadAll(returnType, params, queryDepth).iterator();
+			if (objectIterator.hasNext()) {
+				return objectIterator.next();
+			}
+			return null;
+		}
+
+		@Override
+		public QueryMethod getQueryMethod() {
+			return graphQueryMethod;
+		}
+
+		private List queryResults(Class<?> concreteType, int queryDepth, Filters params, PagingAndSorting pagingAndSorting) {
+			List resultList;
+			switch (pagingAndSorting.configuration()) {
+				case PagingAndSorting.PAGING_AND_SORTING:
+					resultList = (List) session.loadAll(concreteType, params, pagingAndSorting.sortOrder, pagingAndSorting.pagination, queryDepth);
+					break;
+
+				case PagingAndSorting.PAGING_ONLY:
+					resultList = (List) session.loadAll(concreteType, params, pagingAndSorting.pagination, queryDepth);
+					break;
+
+				case PagingAndSorting.SORTING_ONLY:
+					resultList = (List) session.loadAll(concreteType, params, pagingAndSorting.sortOrder, queryDepth);
+					break;
+
+				case PagingAndSorting.NO_PAGING_OR_SORTING:
+					resultList = (List) session.loadAll(concreteType, params, queryDepth);
+					break;
+
+				default:
+					resultList = (List) session.loadAll(concreteType, params, queryDepth);
+			}
+			return resultList;
+		}
+
+		private int calculateQueryDepth(Object[] parameters) {
+			int queryDepth = DEFAULT_QUERY_DEPTH;
+			if (graphQueryMethod.hasStaticDepth()) {
+				queryDepth = graphQueryMethod.getQueryDepth();
+			} else {
+				if (graphQueryMethod.getQueryDepthParamIndex() != null) {
+					queryDepth = (int) parameters[graphQueryMethod.getQueryDepthParamIndex()];
+				}
+			}
+			return queryDepth;
+		}
 	}
 
 
@@ -109,42 +242,6 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		return graphQueryMethod;
 	}
 
-	private List queryResults(Class<?> concreteType, int queryDepth, Filters params, PagingAndSorting pagingAndSorting) {
-		List resultList;
-		switch (pagingAndSorting.configuration()) {
-			case PagingAndSorting.PAGING_AND_SORTING:
-				resultList = (List) session.loadAll(concreteType, params, pagingAndSorting.sortOrder, pagingAndSorting.pagination, queryDepth);
-				break;
-
-			case PagingAndSorting.PAGING_ONLY:
-				resultList = (List) session.loadAll(concreteType, params, pagingAndSorting.pagination, queryDepth);
-				break;
-
-			case PagingAndSorting.SORTING_ONLY:
-				resultList = (List) session.loadAll(concreteType, params, pagingAndSorting.sortOrder, queryDepth);
-				break;
-
-			case PagingAndSorting.NO_PAGING_OR_SORTING:
-				resultList = (List) session.loadAll(concreteType, params, queryDepth);
-				break;
-
-			default:
-				resultList = (List) session.loadAll(concreteType, params, queryDepth);
-		}
-		return resultList;
-	}
-
-	private int calculateQueryDepth(Object[] parameters) {
-		int queryDepth = DEFAULT_QUERY_DEPTH;
-		if (graphQueryMethod.hasStaticDepth()) {
-			queryDepth = graphQueryMethod.getQueryDepth();
-		} else {
-			if (graphQueryMethod.getQueryDepthParamIndex() != null) {
-				queryDepth = (int) parameters[graphQueryMethod.getQueryDepthParamIndex()];
-			}
-		}
-		return queryDepth;
-	}
 
 	/**
 	 * Sets values from  parameters supplied by the finder on {@link org.neo4j.ogm.cypher.Filter} built by the {@link GraphQueryMethod}
