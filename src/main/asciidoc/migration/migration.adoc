@@ -1,9 +1,13 @@
 [[reference.migration]]
 
 = Migrating from Spring Data Neo4j 4.0 or 4.1 to Spring Data Neo4j 4.2
+
 Spring Data Neo4j 4.2 significantly reduces complexity of configuration for application developers.
 There is no longer a need to extend from `Neo4jConfiguration` or define a `Session` bean. Configuration for various types
 of applications are described <<reference.getting_started.spring-configuration,here>>
+
+1. Remove any subclassing of `Neo4jConfiguration`
+1. Define the `sessionFactory` bean with an instance of `SessionFactory` and the `transactionManager` bean with an instance of `Neo4jTransactionManager`. Be sure to pass the `SessionBean` into the constructor for the transaction manager.
 
 
 = Migrating from previous versions of Spring Data Neo4j
@@ -121,11 +125,13 @@ Support for AspectJ-based persistence has been removed from SDN 4 as the write-a
 
 == Changes to Neo4jTemplate
 
-The `Neo4jTemplate` has been slimmed-down significantly for SDN 4 with many of the method signatures changed to reflect the updated behaviour.
+It is highly recommended for users starting new SDN projects to use `Session` directly. `Neo4jTemplate` has been kept to give upgrading users a better experience.
+
+The `Neo4jTemplate` has been slimmed-down significantly for SDN 4. It contains the exact same methods as `Session`. In fact `Neo4jTemplate` is just a very thin wrapper with an ability to support SDN Exception Translation.
 
 Many of the operations are no longer needed or can be expressed with a straightforward Cypher query.
 
-Developers are also encouraged to code against its `Neo4jOperations` interface instead of the template class.
+If you do use `Neo4jTemplate`, then you should code against its `Neo4jOperations` interface instead of the template class.
 
 
 === API Changes
@@ -177,13 +183,7 @@ Dynamic labels, properties and relationship types are not supported as of this v
 == Indexing
 
 The best way to retrieve start nodes for traversals and queries is by using Neo4j's integrated index facilities.
-Spring Data Neo4j takes the view that index maintenance should not be part of your application code.
-For that reason, it does not provide any explicit index-related functionality.
-
-However, it is very important that indices are in place for efficient node lookups.
-Make sure those are applied to your test and especially production databases to guarantee efficient query execution.
-Please make sure you read the http://neo4j.com/docs/stable/query-schema-index.html[Neo4j Documentation]
-on indices.
+Currently SDN supports Index and Constrain management but does not provide look up or merging API's. This will be provided in a future release.
 
 === Built-In Query DSL Support
 Previous versions of SDN allowed you to use a DSL to generate Cypher queries. There are many different DSL

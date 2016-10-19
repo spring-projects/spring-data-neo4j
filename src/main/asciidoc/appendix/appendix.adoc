@@ -39,4 +39,7 @@ The following table lists the keywords generally supported by the Spring Data Ne
 |`Matches`
 |
 
+| `NEAR`
+| `Near`
+|
 |===

@@ -87,10 +87,11 @@ RETURN movie.title, avg(r.stars), count(*) ORDER BY avg(r.stars) DESC, count(*) 
 == Indexing
 
 Neo4j's schema indexes are used automatically by Cypher when set up in your database.
-Spring Data Neo4j (version 4) does not currently provide facilities for handling that setup out of the box.
+Spring Data Neo4j (version 4.2 onwards) provides facilities for handling that setup out of the box.
 
+During development it can be handy to define Indexes that change as your domain model changes. However you do not want
+this to be the case in all environments. SDN provides a validation option that makes sure your indexes are present on startup.
 
-As this is a seeding, migration or maintenance effort, it should be handled as part of managing your Neo4j environment or
-by the group responsible for the database maintenance.
+Note that these facilities are only available on Neo4j 3+.
 
-To find out more about how to set up and maintain Indexes and Constrains in Neo4j see the http://neo4j.com/docs/developer-manual/current/#cypherdoc-labels-constraints-and-indexes[Neo4j Reference Manual].
+For more information about Indexes and Constrains in Neo4j see the http://neo4j.com/docs/developer-manual/current/#cypherdoc-labels-constraints-and-indexes[Neo4j Reference Manual].
