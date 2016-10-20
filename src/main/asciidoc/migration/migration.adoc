@@ -183,7 +183,7 @@ Dynamic labels, properties and relationship types are not supported as of this v
 == Indexing
 
 The best way to retrieve start nodes for traversals and queries is by using Neo4j's integrated index facilities.
-Currently SDN supports Index and Constrain management but does not provide look up or merging API's. This will be provided in a future release.
+Currently SDN supports Index and Constraint management but does not provide look up or merging API's. This will be provided in a future release.
 
 === Built-In Query DSL Support
 Previous versions of SDN allowed you to use a DSL to generate Cypher queries. There are many different DSL
