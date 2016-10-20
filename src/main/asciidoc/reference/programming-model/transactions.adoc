@@ -4,10 +4,14 @@
 Neo4j is a transactional database, only allowing operations to be performed within transaction boundaries.
 Spring Data Neo4j integrates nicely with both the declarative transaction support with `@Transactional` as well as the manual transaction handling with `TransactionTemplate`.
 
-CRUD methods on repository instances are transactional by default. If you are simply just looking up an object through a repository for example,
-then you do not need to define anything else: SDN will take of everything for you.
+Demarcating @Transactional is required for all methods that interact with SDN.
+CRUD methods on `Repository` instances are transactional by default. If you are simply just looking up an object through a repository for example,
+then you do not need to define anything else: SDN will take of everything for you.  That said, it is strongly recommended that you always annotate any service boundaries to the database with a `@Transactional` annotation. This way all your code for that method will always run in one transaction, even if you add a write operation later on.
 
 More standard behaviour with Transactions is using a facade or service implementation that typically covers more than one repository or database call as part of a 'Unit of Work'. Its purpose is to define transactional boundaries for non-CRUD operations:
+
+[IMPORTANT]
+It is important to know that if you enable Transactions *ALL* code that uses the `Session` or `Neo4jTemplate` must have a @Transactional annotation.
 
 [NOTE]
 SDN only supports PROPAGATION_REQUIRED and ISOLATION_DEFAULT type transactions.
@@ -39,17 +43,33 @@ class UserManagementImpl implements UserManagement {
     }
 }
 ----
-This will cause call to addRoleToAllUsers(…) to run inside a transaction (participating in an existing one or create a new one if
+This will cause call to `addRoleToAllUsers(…)` to run inside a transaction (participating in an existing one or create a new one if
 none already running). The transaction configuration at the repositories will be neglected then as the outer transaction configuration
-determines the actual one used. Note that you will have to activate @EnableTransactionManagement explicitly to get annotation based
-configuration at facades working as well as define an instance of this `Neo4jTransactionManager` with the bean name "transactionManager".
+determines the actual one used.
+
+It is highly recommended that users understand how Spring Transactions work. Below are some excellent resources:
+
+* http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/transaction.html[Spring Transaction Management]
+* http://graphaware.com/neo4j/2016/09/30/upgrading-to-sdn-42.html[Upgrading to Spring Data Neo4j 4.2]
+
+=== Read only Transactions
+
+As of SDN 4.2 you can also define read only transactions.
+
+You can start a read only transaction by marking a class or method with `@Transactional(readOnly=true)`.
+
+[CAUTION]
+Note that if you open a read only transaction from, for example a service method, and then call a mutating method that is marked as read/write your transaction semantics will always be defined by the outermost transaction. Be wary!
+
+=== Configuration
+
+Note that you will have to activate `@EnableTransactionManagement` explicitly to get annotation based
+configuration at facades working as well as define an instance of this `Neo4jTransactionManager` with the bean name `transactionManager`.
 The example above assumes you are using component scanning.
 
 To allow your query methods to be transactional simply use @Transactional at the repository interface you define.
 
-[NOTE]
-It is important to know that if you enable Transactions ALL code that uses the `Session` or a `Repository` must have an @Transactional
-annotation.
+
 
 == Transaction Bound Events
 _Formally Data Manipulation Events/ Lifecycle Events_
