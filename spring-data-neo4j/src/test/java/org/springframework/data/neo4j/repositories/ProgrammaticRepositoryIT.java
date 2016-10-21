@@ -159,10 +159,6 @@ public class ProgrammaticRepositoryIT extends MultiDriverTestClass {
 
         Assert.assertEquals(0, userRepository.count());
 
-        // TODO  ??
-        // ensure that the ID field of deleted user objects is set to null;
-
-
     }
 
     @Test

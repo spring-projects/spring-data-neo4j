@@ -13,10 +13,10 @@
 
 package org.springframework.data.neo4j.examples.movies.repo;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.examples.movies.domain.Rating;
 import org.springframework.data.neo4j.repository.GraphRepository;
-
-import java.util.List;
 
 /**
  * @author Luanne Misquitta
@@ -48,5 +48,11 @@ public interface RatingRepository extends GraphRepository<Rating> {
 	List<Rating> findByStarsOrUserName(int stars, String username);
 
 	List<Rating> findByUserNameAndUserMiddleName(String username, String middleName);
+
+	Long countByStars(int stars);
+
+	Long removeByUserName(String username);
+
+	List<Long> deleteByStarsOrRatingTimestampGreaterThan(int stars, long ratingTimestamp);
 
 }

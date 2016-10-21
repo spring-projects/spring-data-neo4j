@@ -393,4 +393,98 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 			}
 		});
 	}
+
+	/**
+	 * @see DATAGRAPH-813
+	 */
+	@Test
+	@Transactional
+	public void shouldDeleteAndReturnDeletedIds() {
+		User critic = new User("Gary");
+		TempMovie film = new TempMovie("Fast and Furious XVII");
+		Rating filmRating = critic.rate(film, 2, "They've made far too many of these films now!");
+		filmRating.setRatingTimestamp(1000);
+
+		userRepository.save(critic);
+
+		List<Long> ratingIds = ratingRepository.deleteByStarsOrRatingTimestampGreaterThan(2, 500);
+		assertEquals(filmRating.getId(), ratingIds.get(0));
+		assertEquals(1, ratingIds.size());
+
+		List<Rating> ratings = ratingRepository.findByStarsAndRatingTimestamp(2, 2000);
+		assertEquals(0, ratings.size());
+	}
+
+	/**
+	 * @see DATAGRAPH-813
+	 */
+	@Test
+	@Transactional
+	public void shouldCountByStars() {
+		User critic = new User("Gary");
+		TempMovie film = new TempMovie("Fast and Furious XVII");
+		Rating filmRating = critic.rate(film, 2, "They've made far too many of these films now!");
+		filmRating.setRatingTimestamp(1000);
+
+		userRepository.save(critic);
+
+		long starredRatings = ratingRepository.countByStars(2);
+		assertEquals(1L, starredRatings);
+
+	}
+
+	/**
+	 * @see DATAGRAPH-813
+	 */
+	@Test
+	@Transactional
+	public void shouldRemoveByUserNameAndReturnCountOfDeletedObjects() {
+		User critic = new User("Gary");
+		TempMovie film = new TempMovie("Fast and Furious XVII");
+		Rating filmRating = critic.rate(film, 2, "They've made far too many of these films now!");
+		filmRating.setRatingTimestamp(1000);
+
+		userRepository.save(critic);
+
+		long countRemovedObjects = ratingRepository.removeByUserName("Gary");
+		assertEquals(1L, countRemovedObjects);
+
+	}
+
+	/**
+	 * @see DATAGRAPH-813
+	 */
+	@Test
+	@Transactional
+	public void shouldCountNothingWithNonMatchingFilter() {
+		User critic = new User("Gary");
+		TempMovie film = new TempMovie("Fast and Furious XVII");
+		Rating filmRating = critic.rate(film, 2, "They've made far too many of these films now!");
+		filmRating.setRatingTimestamp(1000);
+
+		userRepository.save(critic);
+
+		long countRemovedObjects = ratingRepository.removeByUserName("Bill");
+		assertEquals(0L, countRemovedObjects);
+
+	}
+
+	/**
+	 * @see DATAGRAPH-813
+	 */
+	@Test
+	@Transactional
+	public void shouldDeleteNothingWithNonMatchingFilter() {
+		User critic = new User("Gary");
+		TempMovie film = new TempMovie("Fast and Furious XVII");
+		Rating filmRating = critic.rate(film, 2, "They've made far too many of these films now!");
+		filmRating.setRatingTimestamp(1000);
+
+		userRepository.save(critic);
+
+		List<Long> deletedIds = ratingRepository.deleteByStarsOrRatingTimestampGreaterThan(3, 2000);
+		assertEquals(0L, deletedIds.size());
+
+	}
+
 }

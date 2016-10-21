@@ -13,20 +13,19 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.cypher.function.DistanceComparison;
 import org.neo4j.ogm.cypher.function.DistanceFromPoint;
 import org.neo4j.ogm.cypher.function.FilterFunction;
-import org.neo4j.ogm.cypher.query.AbstractRequest;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
-import org.neo4j.ogm.model.Result;
-import org.neo4j.ogm.session.Neo4jSession;
 import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.request.strategy.VariableDepthQuery;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
@@ -58,7 +57,7 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 	private final PartTree tree;
 
 	protected final Session session;
-	protected final EntityMetadata<?> info;
+	protected final EntityMetadata info;
 
 	private final int DEFAULT_QUERY_DEPTH = 1;
 
@@ -91,21 +90,11 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		@Override
 		public Object execute(Object[] parameters) {
 
-			Class<?> domainClass = info.getJavaType();
-
 			if (getQueryMethod().getReturnedObjectType().equals(Long.class)) {
-				String label = ((Neo4jSession) session).metaData().classInfo(domainClass.getName()).neo4jName();
 				Filters filters = resolveParams(parameters);
-
-				// TODO? create a specific implementation, e.g. CountQuery().findByProperties(label, filters)
-				AbstractRequest query = new VariableDepthQuery().findByProperties(label, filters, 0);
-
-				String statement = query.getStatement().replace("RETURN n", "RETURN COUNT(n)");
-				Result result = session.query(statement, query.getParameters());
-				Map<String, Object> resultMap = result.iterator().next();
-				return Long.parseLong(resultMap.get("COUNT(n)").toString());
+				return session.count(info.getJavaType(), filters);
 			} else {
-		 		throw new RuntimeException("Count queries must return a Long");
+		 		throw new RuntimeException("Long is required as the return type of a Count query");
 			}
 		}
 
@@ -120,35 +109,18 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		@Override
 		public Object execute(Object[] parameters) {
 
-			Class<?> domainClass = info.getJavaType();
-			String label = ((Neo4jSession) session).metaData().classInfo(domainClass.getName()).neo4jName();
 			Filters filters = resolveParams(parameters);
 
-			// TODO? create a specific implementation, e.g. DeleteQuery().findByProperties(label, filters)
-			AbstractRequest query = new VariableDepthQuery().findByProperties(label, filters, 0);
-
 			Class<?> returnType = graphQueryMethod.resolveConcreteReturnType();
-			String statement = query.getStatement();
 
 			if (returnType.equals(Long.class)) {
-
 				if (graphQueryMethod.isCollectionQuery()) {
-					statement = statement.replace("RETURN n", "OPTIONAL MATCH (n)-[r]-() DELETE r, n RETURN id(n)");
-					Result result = session.query(statement, query.getParameters());
-					List<Long> deletedIds = new ArrayList();
-					for (Map<String, Object> resultEntry : result) {
-						deletedIds.add(Long.parseLong(resultEntry.get("id(n)").toString()));
-					}
-					return deletedIds;
+					return session.delete(info.getJavaType(), filters, true); // list deleted ids
+				} else {
+					return session.delete(info.getJavaType(), filters, false); // count deleted ids
 				}
-
-				statement = statement.replace("RETURN n", "OPTIONAL MATCH (n)-[r]-() DELETE r, n RETURN COUNT(n)");
-				Result result = session.query(statement, query.getParameters());
-				Map<String, Object> resultMap = result.iterator().next();
-				return Long.parseLong(resultMap.get("COUNT(n)").toString());
 			}
-
-			throw new RuntimeException("Return type of Delete query must Long or Iterable<Long>");
+			throw new RuntimeException("Long or Iterable<Long> is required as the return type of a Delete query");
 		}
 
 		@Override
@@ -391,4 +363,5 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 			return NO_PAGING_OR_SORTING;
 		}
 	}
+
 }
