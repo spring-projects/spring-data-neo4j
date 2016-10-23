@@ -13,15 +13,85 @@ The "legacy" index framework should only be used for fulltext and spatial indexe
 
 == Index Management in Spring Data Neo4j 4
 
-In Spring Data Neo4j 4, index management concerns were removed from the mapping framework entirely.
-Index creation and management is therefore now outside the scope of this document.
-Please see the Neo4j documentation on indexes for for information:  http://neo4j.com/docs/stable/query-schema-index.html
+
+SDN 4.2 allows developers to mark up OGM managed classes with the `@Index` annotation.
+
+To mark a field as indexed simply add the `@Index` annotation.  If your field must be unique add `@Index(unique=true)`.  You may add as many indexes or constraints as you like to your class.  If you annotate a field in a class that is part of an inheritance hierarchy then the index or constraint will only be added to that class's label.
+
+By default index management is set to `None`.
+
+Once you have annotated your classes you then have various Auto Indexing Options.  SDN will try to configure the the auto indexer from the `ogm.properties` file, which it expects to find on the classpath or via Spring through a `Configuration` bean.
+
+The following sections describe how to setup Spring Data Neo4j using both techniques.
+
+
+.ogm.properties
+
+```
+indexes.auto=assert
+```
+
+
+.Java Configuration
+
+To configure the Driver programmatically, create a Configuration bean and pass it as the first argument to the SessionFactory constructor in your Spring configuration:
+
+[source,java]
+----
+
+@Bean
+public Configuration configuration() {
+   Configuration config = new Configuration();
+   config
+       .autoIndexConfiguration()
+       .setAutoIndex("assert");
+   return config;
+}
+
+@Bean
+public SessionFactory sessionFactory() {
+    return new SessionFactory(configuration(), <packages> );
+}
+----
+
+Below is a table of all options available for configuring Auto-Indexing.
+
+|===
+|Option|Description|Properties Example|Java Example
+
+| *none (default)*
+| Nothing is done with index and constraint annotations.
+| -
+| -
+
+| *validate*
+| Make sure the connected database has all indexes and constraints in place before starting up
+| indexes.auto=validate
+| config.autoIndexConfiguration().setAutoIndex("validate");
+
+| *assert*
+| Drops all constraints and indexes on startup then builds indexes based on whatever is represented in OGM by `@Index`. Handy during development
+| indexes.auto=assert
+| config.autoIndexConfiguration().setAutoIndex("assert");
+
+| *dump*
+| Dumps the generated constraints and indexes to a file. Good for setting up environments. none: Default. Simply marks the field as using an index.
+| indexes.auto=dump
+  indexes.auto.dump.dir=<a directory>
+  indexes.auto.dump.filename=<a filename>
+| config.autoIndexConfiguration().setAutoIndex("dump");
+  config.autoIndexConfiguration().setDumpDir("XXX");
+  config.autoIndexConfiguration().setDumpFilename("XXX");
+
+|===
+
+
 
 == Index queries in Repositories
 
 Schema indexes are automatically used by Neo4j's Cypher engine, so using the annotated or derived repository finders will use them out of the box.
 
-== Neo4j Auto Indexes
+== Legacy Neo4j Auto Indexes
 
 Neo4j allows to configure (legacy) http://neo4j.com/docs/stable/auto-indexing.html[auto-indexing] for certain properties on nodes and relationships.
 It is possible to use the specific index names `node_auto_index` and `relationship_auto_index` when querying indexes in Spring Data Neo4j either with the query methods in template and repositories or via Cypher.

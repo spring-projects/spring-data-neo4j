@@ -50,6 +50,8 @@ A working example of using the BOMs can be found in our https://github.com/sprin
 
 Spring Boot already selects a very recent version of Spring Data modules for you. In case you want to upgrade to a newer version nonetheless, simply configure the property `spring-data-releasetrain.version` to the train name and iteration you'd like to use.
 
+To override the version of the OGM that you want to use configure the property `neo4j-ogm.version`.
+
 [[reference.releasetrain.spring-framework]]
 == Spring Framework
 

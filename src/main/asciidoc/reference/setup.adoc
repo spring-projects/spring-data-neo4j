@@ -59,7 +59,7 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
     <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j</artifactId>
-        <version>4.2.1.BUILD-SNAPSHOT</version>
+        <version>4.2.X.BUILD-SNAPSHOT</version>
     </dependency>
 
     <!-- used for nightly builds -->
@@ -199,7 +199,7 @@ For most applications the following configuration is all that's needed to get up
 [source,java]
 ----
 @Configuration
-@EnableExperimentalNeo4jRepositories(basePackages = "org.neo4j.example.repository")
+@EnableNeo4jRepositories(basePackages = "org.neo4j.example.repository")
 @EnableTransactionManagement
 public class MyConfiguration {
 
@@ -227,9 +227,9 @@ If you are using a Spring WebMVC application, the following configuration is all
 @Configuration
 @EnableWebMvc
 @ComponentScan({"org.neo4j.example.web"})
-@EnableExperimentalNeo4jRepositories("org.neo4j.example.repository")
+@EnableNeo4jRepositories("org.neo4j.example.repository")
 @EnableTransactionManagement
-public class WebAppContext extends WebMvcConfigurerAdapter {
+public class MyWebAppConfiguration extends WebMvcConfigurerAdapter {
 
     @Bean
     public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
@@ -275,12 +275,12 @@ public class MyAppInitializer extends AbstractAnnotationConfigDispatcherServletI
 
   @Override
   protected Class<?>[] getRootConfigClasses() {
-      return new Class[] {ApplicationConfiguration.class}
+      return new Class[] {ApplicationConfiguration.class} // if you have broken up your configuration, this points to your non web application config/s.
   }
 
   @Override
   protected Class<?>[] getServletConfigClasses() {
-      throw new Class[] {WebConfiguration.class};
+      throw new Class[] {WebConfiguration.class}; // a configuration that extends the WebMvcConfigurerAdapter as seen above.
   }
 
   @Override
@@ -296,51 +296,105 @@ public class MyAppInitializer extends AbstractAnnotationConfigDispatcherServletI
 ----
 
 
-////
+
 [[reference.getting_started.spring-configuration.boot]]
 === Spring Boot Applications
 
-Coming Soon.
-////
+Unfortunately, due to the Spring release schedule you cannot use the current or upcoming versions of Spring Boot and expect to use these new improvements out of the box.
 
+That said Spring Boot is flexible enough for you to override the current configuration and supply it with something compatible with SDN 4.2.
 
-[[reference.getting_started.spring-configuration.legacy]]
-=== Spring Data Neo4j 4.0 - 4.1 Applications (Deprecated)
+To do that update the Spring Boot properties to use the current SDN version. Update your Spring Boot Maven POM with the following. You may need to add `<repositories>` depending on versioning.
 
-[WARNING]
-This functionality is deprecated and only intended for users on versions of SDN prior to 4.2.x. If you are using an older
-version of SDN you may try the following.
+[source,xml]
+----
+    ...
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <spring-data-releasetrain.version>Ingalls-BUILD-SNAPSHOT</spring-data-releasetrain.version>
+        <neo4j-ogm.version>2.1.0-SNAPSHOT</neo4j-ogm.version>
+    </properties>
+    ...
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-neo4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+    </dependencies>
+    ...
+----
 
+Remove the reference to the old Neo4j Configuration where you define your Spring Boot application using the `exclude` option in the `@SpringBootApplication`.
 
-We recommend that your Spring context should extend the core `Neo4jConfiguration` class that comes with Spring Data Neo4j.
-The example below shows how this can be done.
+[source,java]
+----
+@Controller
+@SpringBootApplication(exclude={Neo4jDataAutoConfiguration.class})
+public class Application {
+    public static main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+----
 
-NOTE:   You will need to override `getSessionFactory()` and `getSession()` bean definitions to provide
-the required context for your own application. This is explained in more detail below.
+Finally, add the your new SDN 4.2 Configuration somewhere in the Boot classpath (it will pick up your configuration if it's annotated with `@Configuration`:
 
-.Pure Java Configuration
 [source,java]
 ----
 @Configuration
-@EnableNeo4jRepositories(basePackages = "org.neo4j.example.repository")
+@EnableNeo4jRepositories(basePackages = "your.project.repository")
 @EnableTransactionManagement
-public class MyConfiguration extends Neo4jConfiguration {
+@ComponentScan({"your.project.services"})
+@EnableWebMvc
+@EnableConfigurationProperties(Neo4jProperties.class)
+public class Neo4jConfiguration extends WebMvcConfigurerAdapter {
 
-    @Bean
-    public SessionFactory getSessionFactory() {
-        // with domain entity base package(s)
-        return new SessionFactory("org.neo4j.example.domain");
-    }
+	private final Neo4jProperties properties;
 
-    // needed for session in view in web-applications
-    @Bean
-    @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
-    public Session getSession() throws Exception {
-        return super.getSession();
-    }
+	public Neo4jConfiguration(Neo4jProperties properties) {
+		this.properties = properties;
+	}
 
+	@Bean
+	@ConditionalOnMissingBean
+	public org.neo4j.ogm.config.Configuration configuration() {
+		return this.properties.createConfiguration();
+	}
+
+	@Bean
+	public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
+		OpenSessionInViewInterceptor openSessionInViewInterceptor =
+				new OpenSessionInViewInterceptor();
+		openSessionInViewInterceptor.setSessionFactory(sessionFactory(configuration()));
+		return openSessionInViewInterceptor;
+	}
+
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addWebRequestInterceptor(openSessionInViewInterceptor());
+	}
+
+	@Bean
+	public SessionFactory sessionFactory(org.neo4j.ogm.config.Configuration configuration) {
+		return new SessionFactory(configuration, "your.project.domain");
+	}
+
+	@Bean
+	public Neo4jTransactionManager transactionManager(SessionFactory sessionFactory) {
+		return new Neo4jTransactionManager(sessionFactory);
+	}
 }
 ----
+
 
 [[reference.getting_started.driver]]
 == Driver Configuration

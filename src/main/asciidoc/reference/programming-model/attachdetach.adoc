@@ -94,10 +94,10 @@ movieRepository.save(movie);
 
 [NOTE]
 ====
-In this case, even though the movie has a reference to the actor, the property change on the actor will not be persisted by the call to `movie.persist()`.
-The reason for this is, as mentioned above, that cascading will only be done for fields that have been modified.
-Since the `movie.topActor` field has not been modified, it will not cascade the persist operation to the actor.
+In this case, even though the movie has a reference to the actor, the property change on the actor *will be* persisted by the call to `save(movie)`.
+The reason for this is, as mentioned above, that cascading will be done for fields that have been modified and reachable from the root object being saved.
 ====
+
 
 [[reference_programming-model_sorting_and_paging]]
 = Sorting and Paging
