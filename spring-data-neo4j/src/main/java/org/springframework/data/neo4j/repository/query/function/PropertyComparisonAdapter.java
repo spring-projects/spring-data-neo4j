@@ -4,20 +4,39 @@ import java.util.Map;
 
 import org.neo4j.ogm.cypher.function.FilterFunction;
 import org.neo4j.ogm.cypher.function.PropertyComparison;
+import org.springframework.data.neo4j.repository.query.derived.CypherFilter;
 
 /**
  * Adapter to the OGM FilterFunction interface for a PropertyComparison.
  *
- * @see FilterFunctionAdapter
- *
  * @author Jasper Blues
+ * @see FilterFunctionAdapter
  */
 public class PropertyComparisonAdapter implements FilterFunctionAdapter<Object> {
 
+	private CypherFilter cypherFilter;
 	private PropertyComparison propertyComparison;
 
-	public PropertyComparisonAdapter(PropertyComparison propertyComparison) {
-		this.propertyComparison = propertyComparison;
+	public PropertyComparisonAdapter(CypherFilter cypherFilter) {
+		this.cypherFilter = cypherFilter;
+		this.propertyComparison = new PropertyComparison();
+	}
+
+	public PropertyComparisonAdapter() {
+		this(null);
+	}
+
+	public CypherFilter getCypherFilter() {
+		return cypherFilter;
+	}
+
+	public void setCypherFilter(CypherFilter cypherFilter) {
+		this.cypherFilter = cypherFilter;
+	}
+
+	@Override
+	public CypherFilter cypherFilter() {
+		return null;
 	}
 
 	@Override
@@ -31,7 +50,10 @@ public class PropertyComparisonAdapter implements FilterFunctionAdapter<Object> 
 	}
 
 	@Override
-	public void setValueFromArgs(Map<Integer, Object> params, int startIndex) {
-		propertyComparison.setValue(params.get(startIndex));
+	public void setValueFromArgs(Map<Integer, Object> params) {
+		if (cypherFilter == null) {
+			throw new IllegalStateException("Can't set value from args when cypherFilter is null.");
+		}
+		propertyComparison.setValue(params.get(cypherFilter.getPropertyPosition()));
 	}
 }

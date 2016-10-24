@@ -8,6 +8,7 @@ import org.neo4j.ogm.cypher.function.FilterFunction;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
+import org.springframework.data.neo4j.repository.query.derived.CypherFilter;
 
 /**
  * Adapter to the OGM FilterFunction interface for a PropertyComparison.
@@ -16,10 +17,21 @@ import org.springframework.data.geo.Point;
  */
 public class DistanceComparisonAdapter implements FilterFunctionAdapter<DistanceFromPoint> {
 
+	private CypherFilter cypherFilter;
 	private DistanceComparison distanceComparison;
 
-	public DistanceComparisonAdapter(DistanceComparison distanceComparison) {
-		this.distanceComparison = distanceComparison;
+	public DistanceComparisonAdapter(CypherFilter cypherFilter) {
+		this.distanceComparison = new DistanceComparison();
+		this.cypherFilter = cypherFilter;
+	}
+
+	public DistanceComparisonAdapter() {
+		this(null);
+	}
+
+	@Override
+	public CypherFilter cypherFilter() {
+		return cypherFilter;
 	}
 
 	@Override
@@ -33,9 +45,13 @@ public class DistanceComparisonAdapter implements FilterFunctionAdapter<Distance
 	}
 
 	@Override
-	public void setValueFromArgs(Map<Integer, Object> params, int startIndex) {
-		Object firstArg = params.get(startIndex);
-		Object secondArg = params.get(startIndex + 1);
+	public void setValueFromArgs(Map<Integer, Object> params) {
+		if (cypherFilter == null) {
+			throw new IllegalStateException("Can't set value from args when cypherFilter is null.");
+		}
+
+		Object firstArg = params.get(cypherFilter().getPropertyPosition());
+		Object secondArg = params.get(cypherFilter().getPropertyPosition() + 1);
 
 		Distance distance;
 		Point point;

@@ -20,6 +20,7 @@ import java.util.List;
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.function.DistanceComparison;
+import org.springframework.data.neo4j.repository.query.function.DistanceComparisonAdapter;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -54,7 +55,6 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 	public void addPart(Part part, BooleanOperator booleanOperator) {
 		String property = part.getProperty().getSegment();
 		CypherFilter parameter = new CypherFilter();
-		parameter.setPropertyPosition(paramPosition++);
 		parameter.setPropertyName(property);
 		parameter.setOwnerEntityType(entityType);
 		parameter.setComparisonOperator(convertToComparisonOperator(part.getType()));
@@ -62,9 +62,8 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 		parameter.setBooleanOperator(booleanOperator);
 
 		if (part.getType() == NEAR) {
-			parameter.setFunction(new DistanceComparison());
+			parameter.setFunctionAdapter(new DistanceComparisonAdapter(parameter));
 			parameter.setComparisonOperator(ComparisonOperator.LESS_THAN);
-			paramPosition++;
 		}
 
 		if (part.getProperty().next() != null) {
@@ -73,7 +72,11 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 			parameter.setPropertyName(part.getProperty().getLeafProperty().getSegment());
 			parameter.setNestedPropertyName(part.getProperty().getSegment());
 		}
+
+		parameter.setPropertyPosition(paramPosition);
 		cypherFilters.add(parameter);
+
+		paramPosition += parameter.functionAdapter.parameterCount();
 
 	}
 
@@ -93,5 +96,7 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 				return ComparisonOperator.EQUALS;
 		}
 	}
+
+
 
 }
