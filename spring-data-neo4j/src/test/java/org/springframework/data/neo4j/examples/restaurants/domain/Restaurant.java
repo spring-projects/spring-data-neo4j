@@ -24,44 +24,55 @@ import org.springframework.data.neo4j.conversion.PointConverter;
  */
 public class Restaurant {
 
-    @GraphId
-    private Long id;
-    private String name;
-    @Convert(PointConverter.class)
-    private Point location;
-    private int zip;
+	@GraphId
+	private Long id;
+	private String name;
+	@Convert(PointConverter.class)
+	private Point location;
+	private int zip;
+	private double score;
 
-    public Restaurant() {
-    }
+	public Restaurant() {
+	}
 
-    public Restaurant(String name, Point location, int zip) {
-        this.name = name;
-        this.location = location;
-        this.zip = zip;
-    }
+	public Restaurant(String name, Point location, int zip) {
+		this.name = name;
+		this.location = location;
+		this.zip = zip;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public Restaurant(String name, double score) {
+		this.name = name;
+		this.score = score;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public Point getLocation() {
-        return location;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public void setLocation(Point location) {
-        this.location = location;
-    }
+	public Point getLocation() {
+		return location;
+	}
 
-    public int getZip() {
-        return zip;
-    }
+	public void setLocation(Point location) {
+		this.location = location;
+	}
 
-    public void setZip(int zip) {
-        this.zip = zip;
-    }
+	public int getZip() {
+		return zip;
+	}
+
+	public void setZip(int zip) {
+		this.zip = zip;
+	}
+
+	public double getScore() { return score; }
+
+	public void setScore(double score) { this.score = score; }
+
 
 }

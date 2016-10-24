@@ -43,6 +43,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext
 
 /**
+ *
+ * Tests that we support each kind of keyword specified by Part.Type
+ *
  * @author Jasper Blues
  */
 public class RestaurantIT extends MultiDriverTestClass {
@@ -100,4 +103,28 @@ public class RestaurantIT extends MultiDriverTestClass {
 		assertEquals(37.61649, found.getLocation().getX(), 0);
 		assertEquals(-122.38681, found.getLocation().getY(), 0);
 	}
+
+	/**
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindRestaurantsWithScoreBetween()
+	{
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		Restaurant cyma = new Restaurant("Cyma", 80.6);
+		restaurantRepository.save(cyma);
+
+		Restaurant awful = new Restaurant("Awful", 20.0);
+		restaurantRepository.save(awful);
+
+		List<Restaurant> results = restaurantRepository.findByScoreBetween(70.0, 80.0);
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		System.out.println(results);
+	}
+
+
+
 }

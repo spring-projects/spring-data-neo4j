@@ -30,4 +30,8 @@ public interface RestaurantRepository extends GraphRepository<Restaurant> {
 
 	List<Restaurant> findByLocationNearAndName(Distance distance, Point point, String name);
 
+	List<Restaurant> findByScoreBetween(double min, double max);
+
+	List<Restaurant> findByScore(double score);
+
 }
