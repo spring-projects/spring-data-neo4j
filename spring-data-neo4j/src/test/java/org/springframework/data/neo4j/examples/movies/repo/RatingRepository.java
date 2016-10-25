@@ -20,6 +20,7 @@ import org.springframework.data.neo4j.repository.GraphRepository;
 
 /**
  * @author Luanne Misquitta
+ * @author Vince Bickers
  */
 public interface RatingRepository extends GraphRepository<Rating> {
 

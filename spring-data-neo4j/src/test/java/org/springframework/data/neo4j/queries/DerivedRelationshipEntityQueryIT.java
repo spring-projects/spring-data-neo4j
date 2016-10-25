@@ -45,6 +45,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * @author Luanne Misquitta
  * @author Mark Angrish
+ * @author Vince Bickers
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)

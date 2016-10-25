@@ -18,6 +18,7 @@ import java.util.List;
 
 /**
  * @author Michal Bachman
+ * @author Vince Bickers
  */
 public class User {
 

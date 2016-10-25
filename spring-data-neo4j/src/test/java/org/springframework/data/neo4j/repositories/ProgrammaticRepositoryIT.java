@@ -44,6 +44,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Michal Bachman
  * @author Luanne Misquitta
  * @author Mark Angrish
+ * @author Vince Bickers
  */
 public class ProgrammaticRepositoryIT extends MultiDriverTestClass {
 
