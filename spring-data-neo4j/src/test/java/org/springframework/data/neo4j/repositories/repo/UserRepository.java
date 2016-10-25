@@ -13,13 +13,32 @@
 
 package org.springframework.data.neo4j.repositories.repo;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.repositories.domain.User;
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Michal Bachman
+ * @author Vince Bickers
  */
 @Repository
 public interface UserRepository extends GraphRepository<User> {
+
+	/*
+	 * @see DATAGRAPH-813
+	 */
+	Long deleteByName(String name); // return a count of deleted objects by name
+
+	/*
+	 * @see DATAGRAPH-813
+	 */
+	List<Long> removeByName(String name); // remove users by name and return an iterable of the removed users' ids
+
+	/*
+	 * @see DATAGRAPH-813
+	 */
+	Long countByName(String name); // return a count of objects with name
+
 }

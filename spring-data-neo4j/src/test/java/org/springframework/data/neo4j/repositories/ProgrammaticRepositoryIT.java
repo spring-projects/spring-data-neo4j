@@ -13,6 +13,12 @@
 
 package org.springframework.data.neo4j.repositories;
 
+import static org.junit.Assert.*;
+import static org.neo4j.ogm.testutil.GraphTestUtils.*;
+
+import java.util.List;
+
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -20,7 +26,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.repositories.domain.Movie;
 import org.springframework.data.neo4j.repositories.domain.User;
 import org.springframework.data.neo4j.repositories.repo.MovieRepository;
@@ -35,16 +40,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import static org.junit.Assert.assertEquals;
-import static org.neo4j.ogm.testutil.GraphTestUtils.assertSameGraph;
-
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * @author Michal Bachman
  * @author Luanne Misquitta
  * @author Mark Angrish
+ * @author Vince Bickers
  */
 public class ProgrammaticRepositoryIT extends MultiDriverTestClass {
 
@@ -110,4 +110,98 @@ public class ProgrammaticRepositoryIT extends MultiDriverTestClass {
         assertEquals(0, userRepository.count());
     }
 
+    /**
+     * @see DATAGRAPH-813
+     */
+    @Test
+    @Transactional
+    public void shouldDeleteUserByNameAndReturnCountOfDeletedUsers() {
+
+        RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
+
+        UserRepository userRepository = factory.getRepository(UserRepository.class);
+
+        User userA = new User("A");
+        userA.setName("A");
+
+        userRepository.save(userA);
+        Assert.assertEquals(1, userRepository.count());
+
+        Assert.assertEquals(new Long(1), userRepository.deleteByName("A"));
+        Assert.assertEquals(0, userRepository.count());
+
+    }
+
+    /**
+     * @see DATAGRAPH-813
+     */
+    @Test
+    @Transactional
+    public void shouldDeleteUserByNameAndReturnListOfDeletedUserIds() {
+
+        RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
+
+        UserRepository userRepository = factory.getRepository(UserRepository.class);
+
+        User userA = new User("A");
+        User userAClone = new User("A");
+
+
+        userRepository.save(userA);
+        userRepository.save(userAClone);
+
+        Assert.assertEquals(2, userRepository.count());
+
+        List<Long> deletedUserIds = userRepository.removeByName("A");
+        Assert.assertEquals(2, deletedUserIds.size());
+
+        Assert.assertEquals(userA.getId(), deletedUserIds.get(0));
+        Assert.assertEquals(userAClone.getId(), deletedUserIds.get(1));
+
+        Assert.assertEquals(0, userRepository.count());
+
+    }
+
+    @Test
+    @Transactional
+    public void shouldBeAbleToDeleteUserWithRelationships() {
+
+        RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
+
+        UserRepository userRepository = factory.getRepository(UserRepository.class);
+
+        User userA = new User("A");
+        User userB = new User("B");
+
+        userA.getFriends().add(userB);
+        userB.getFriends().add(userA);
+
+        userRepository.save(userA);
+
+        Assert.assertEquals(2, userRepository.count());
+
+        userRepository.deleteByName("A");
+
+        Assert.assertEquals(1, userRepository.count());
+
+    }
+
+    /**
+     * @see DATAGRAPH-813
+     */
+    @Test
+    @Transactional
+    public void shouldCountUserByName() {
+
+        RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
+
+        UserRepository userRepository = factory.getRepository(UserRepository.class);
+
+        User userA = new User("A");
+        userA.setName("A");
+
+        userRepository.save(userA);
+
+        Assert.assertEquals(new Long(1), userRepository.countByName("A"));
+    }
 }
