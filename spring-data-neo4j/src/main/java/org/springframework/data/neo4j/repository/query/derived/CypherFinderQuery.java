@@ -12,15 +12,14 @@
  */
 package org.springframework.data.neo4j.repository.query.derived;
 
-import static org.springframework.data.repository.query.parser.Part.Type.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
-import org.neo4j.ogm.cypher.ComparisonOperator;
-import org.neo4j.ogm.cypher.function.DistanceComparison;
-import org.springframework.data.neo4j.repository.query.function.DistanceComparisonAdapter;
+import org.springframework.data.neo4j.repository.query.derived.builder.BetweenComparisonBuilder;
+import org.springframework.data.neo4j.repository.query.derived.builder.CypherFilterBuilder;
+import org.springframework.data.neo4j.repository.query.derived.builder.DistanceComparisonFilterBuilder;
+import org.springframework.data.neo4j.repository.query.derived.builder.PropertyComparisonFilterBuilder;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -53,50 +52,24 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 
 	@Override
 	public void addPart(Part part, BooleanOperator booleanOperator) {
-		String property = part.getProperty().getSegment();
-		CypherFilter parameter = new CypherFilter();
-		parameter.setPropertyName(property);
-		parameter.setOwnerEntityType(entityType);
-		parameter.setComparisonOperator(convertToComparisonOperator(part.getType()));
-		parameter.setNegated(part.getType().name().startsWith("NOT"));
-		parameter.setBooleanOperator(booleanOperator);
 
-		if (part.getType() == NEAR) {
-			parameter.setFunctionAdapter(new DistanceComparisonAdapter(parameter));
-			parameter.setComparisonOperator(ComparisonOperator.LESS_THAN);
+		List<CypherFilter> filters = builderForPart(part, booleanOperator).build();
+		for (CypherFilter filter : filters) {
+			filter.setPropertyPosition(paramPosition);
+			cypherFilters.add(filter);
+			paramPosition += filter.functionAdapter.parameterCount();
 		}
-
-		if (part.getProperty().next() != null) {
-			parameter.setOwnerEntityType(part.getProperty().getOwningType().getType());
-			parameter.setNestedPropertyType(part.getProperty().getType());
-			parameter.setPropertyName(part.getProperty().getLeafProperty().getSegment());
-			parameter.setNestedPropertyName(part.getProperty().getSegment());
-		}
-
-		parameter.setPropertyPosition(paramPosition);
-		cypherFilters.add(parameter);
-
-		paramPosition += parameter.functionAdapter.parameterCount();
 
 	}
 
-	private ComparisonOperator convertToComparisonOperator(Part.Type type) {
-		switch (type) {
-			case GREATER_THAN:
-				return ComparisonOperator.GREATER_THAN;
-			case LESS_THAN:
-				return ComparisonOperator.LESS_THAN;
-			case REGEX:
-				return ComparisonOperator.MATCHES;
-			case LIKE:
-				return ComparisonOperator.LIKE;
-			case NOT_LIKE:
-				return ComparisonOperator.LIKE;
+	private CypherFilterBuilder builderForPart(Part part, BooleanOperator booleanOperator) {
+		switch (part.getType()) {
+			case NEAR:
+				return new DistanceComparisonFilterBuilder(part, booleanOperator, entityType);
+			case BETWEEN:
+				return new BetweenComparisonBuilder(part, booleanOperator, entityType);
 			default:
-				return ComparisonOperator.EQUALS;
+				return new PropertyComparisonFilterBuilder(part, booleanOperator, entityType);
 		}
 	}
-
-
-
 }

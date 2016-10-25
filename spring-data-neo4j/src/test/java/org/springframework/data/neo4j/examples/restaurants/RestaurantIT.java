@@ -122,7 +122,11 @@ public class RestaurantIT extends MultiDriverTestClass {
 		List<Restaurant> results = restaurantRepository.findByScoreBetween(70.0, 80.0);
 		assertNotNull(results);
 		assertEquals(1, results.size());
-		System.out.println(results);
+		System.out.println("$$$$$$" + results);
+
+		List<Restaurant> shouldBeEmpty = restaurantRepository.findByScoreBetween(30.0, 40.0);
+		assertNotNull(shouldBeEmpty);
+		assertEquals(0, shouldBeEmpty.size());
 	}
 
 
