@@ -54,8 +54,7 @@ public class RestaurantIT extends MultiDriverTestClass {
 	private RestaurantRepository restaurantRepository;
 
 	@After
-	public void tearDown()
-	{
+	public void tearDown() {
 		restaurantRepository.deleteAll();
 	}
 
@@ -108,8 +107,7 @@ public class RestaurantIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-904
 	 */
 	@Test
-	public void shouldFindRestaurantsWithScoreBetween()
-	{
+	public void shouldFindRestaurantsWithScoreBetween() {
 		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
 		restaurantRepository.save(kuroda);
 
@@ -122,13 +120,27 @@ public class RestaurantIT extends MultiDriverTestClass {
 		List<Restaurant> results = restaurantRepository.findByScoreBetween(70.0, 80.0);
 		assertNotNull(results);
 		assertEquals(1, results.size());
-		System.out.println("$$$$$$" + results);
 
 		List<Restaurant> shouldBeEmpty = restaurantRepository.findByScoreBetween(30.0, 40.0);
 		assertNotNull(shouldBeEmpty);
 		assertEquals(0, shouldBeEmpty.size());
 	}
 
+	/**
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindByScoreIsNull() {
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
+				new Point(37.61649, -122.38681), 94128);
+		restaurantRepository.save(restaurant);
 
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		List<Restaurant> results = restaurantRepository.findByScoreIsNull();
+		assertNotNull(results);
+		assertEquals(1, results.size());
+	}
 
 }
