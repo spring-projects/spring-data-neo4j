@@ -45,8 +45,7 @@ public class Neo4jRepositoryFactoryBean<T extends Repository<S, Long>, S> extend
 	 * @see org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport#setMappingContext(org.springframework.data.mapping.context.MappingContext)
 	 */
 	@Override
-	@Autowired
-	protected void setMappingContext(MappingContext<?, ?> mappingContext) {
+	public void setMappingContext(MappingContext<?, ?> mappingContext) {
 		super.setMappingContext(mappingContext);
 	}
 

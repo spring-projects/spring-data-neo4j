@@ -107,6 +107,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		String transactionManagerRef = source.getAttribute("transactionManagerRef");
 		builder.addPropertyValue("transactionManager",
 				transactionManagerRef == null ? DEFAULT_TRANSACTION_MANAGER_BEAN_NAME : transactionManagerRef);
+		builder.addPropertyReference("mappingContext", NEO4J_MAPPING_CONTEXT_BEAN_NAME);
 	}
 
 	/*
@@ -149,6 +150,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 
 		registerIfNotAlreadyRegistered(new RootBeanDefinition(SessionBeanDefinitionRegistrarPostProcessor.class),
 				registry, SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME, source);
+
 		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jMappingContextFactoryBean.class), registry,
 				NEO4J_MAPPING_CONTEXT_BEAN_NAME, source);
 	}
