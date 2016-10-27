@@ -17,8 +17,6 @@ package org.springframework.data.neo4j.examples.restaurants;
 import static org.apache.webbeans.util.Asserts.assertNotNull;
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.After;
@@ -130,17 +128,23 @@ public class RestaurantIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-904
 	 */
 	@Test
-	public void shouldFindByScoreIsNull() {
+	public void shouldFindByDescriptionIsNullOrNotNull() {
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
 				new Point(37.61649, -122.38681), 94128);
 		restaurantRepository.save(restaurant);
 
-		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		Restaurant kuroda = new Restaurant("Kuroda", "Mostly Ramen");
 		restaurantRepository.save(kuroda);
 
-		List<Restaurant> results = restaurantRepository.findByScoreIsNull();
+		List<Restaurant> results = restaurantRepository.findByDescriptionIsNull();
 		assertNotNull(results);
 		assertEquals(1, results.size());
+		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+
+		results = restaurantRepository.findByDescriptionIsNotNull();
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("Kuroda", results.get(0).getName());
 	}
 
 }

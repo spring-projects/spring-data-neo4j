@@ -32,6 +32,8 @@ public interface RestaurantRepository extends GraphRepository<Restaurant> {
 
 	List<Restaurant> findByScoreBetween(double min, double max);
 
-	List<Restaurant> findByScoreIsNull();
+	List<Restaurant> findByDescriptionIsNull();
+
+	List<Restaurant> findByDescriptionIsNotNull();
 }
 

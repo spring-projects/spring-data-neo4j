@@ -16,10 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
-import org.springframework.data.neo4j.repository.query.derived.builder.BetweenComparisonBuilder;
-import org.springframework.data.neo4j.repository.query.derived.builder.CypherFilterBuilder;
-import org.springframework.data.neo4j.repository.query.derived.builder.DistanceComparisonFilterBuilder;
-import org.springframework.data.neo4j.repository.query.derived.builder.PropertyComparisonFilterBuilder;
+import org.springframework.data.neo4j.repository.query.derived.builder.*;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -30,46 +27,48 @@ import org.springframework.data.repository.query.parser.Part;
  */
 public class CypherFinderQuery implements DerivedQueryDefinition {
 
-	private Class<?> entityType;
-	private Part basePart;
-	private List<CypherFilter> cypherFilters = new ArrayList<>();
-	private int paramPosition = 0;
+    private Class<?> entityType;
+    private Part basePart;
+    private List<CypherFilter> cypherFilters = new ArrayList<>();
+    private int paramPosition = 0;
 
-	public CypherFinderQuery(Class<?> entityType, Part basePart) {
-		this.entityType = entityType;
-		this.basePart = basePart;
-	}
+    public CypherFinderQuery(Class<?> entityType, Part basePart) {
+        this.entityType = entityType;
+        this.basePart = basePart;
+    }
 
-	@Override
-	public Part getBasePart() { //because the OR is handled in a weird way. Luanne, explain better
-		return basePart;
-	}
+    @Override
+    public Part getBasePart() { //because the OR is handled in a weird way. Luanne, explain better
+        return basePart;
+    }
 
-	@Override
-	public List<CypherFilter> getCypherFilters() {
-		return cypherFilters;
-	}
+    @Override
+    public List<CypherFilter> getCypherFilters() {
+        return cypherFilters;
+    }
 
-	@Override
-	public void addPart(Part part, BooleanOperator booleanOperator) {
+    @Override
+    public void addPart(Part part, BooleanOperator booleanOperator) {
 
-		List<CypherFilter> filters = builderForPart(part, booleanOperator).build();
-		for (CypherFilter filter : filters) {
-			filter.setPropertyPosition(paramPosition);
-			cypherFilters.add(filter);
-			paramPosition += filter.functionAdapter.parameterCount();
-		}
+        List<CypherFilter> filters = builderForPart(part, booleanOperator).build();
+        for (CypherFilter filter : filters) {
+            filter.setPropertyPosition(paramPosition);
+            cypherFilters.add(filter);
+            paramPosition += filter.functionAdapter.parameterCount();
+        }
+    }
 
-	}
-
-	private CypherFilterBuilder builderForPart(Part part, BooleanOperator booleanOperator) {
-		switch (part.getType()) {
-			case NEAR:
-				return new DistanceComparisonFilterBuilder(part, booleanOperator, entityType);
-			case BETWEEN:
-				return new BetweenComparisonBuilder(part, booleanOperator, entityType);
-			default:
-				return new PropertyComparisonFilterBuilder(part, booleanOperator, entityType);
-		}
-	}
+    private CypherFilterBuilder builderForPart(Part part, BooleanOperator booleanOperator) {
+        switch (part.getType()) {
+            case NEAR:
+                return new DistanceComparisonFilterBuilder(part, booleanOperator, entityType);
+            case BETWEEN:
+                return new BetweenComparisonBuilder(part, booleanOperator, entityType);
+            case IS_NULL:
+            case IS_NOT_NULL:
+                return new IsNullFilterBuilder(part, booleanOperator, entityType);
+            default:
+                return new PropertyComparisonFilterBuilder(part, booleanOperator, entityType);
+        }
+    }
 }

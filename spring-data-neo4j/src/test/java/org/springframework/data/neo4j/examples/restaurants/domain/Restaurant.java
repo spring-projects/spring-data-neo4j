@@ -24,66 +24,75 @@ import org.springframework.data.neo4j.conversion.PointConverter;
  */
 public class Restaurant {
 
-	@GraphId
-	private Long id;
-	private String name;
-	@Convert(PointConverter.class)
-	private Point location;
-	private int zip;
-	private double score;
+    @GraphId
+    private Long id;
+    private String name;
+    @Convert(PointConverter.class)
+    private Point location;
+    private int zip;
+    private double score;
+    private String description;
 
-	public Restaurant() {
-	}
+    public Restaurant() {
+    }
 
-	public Restaurant(String name, Point location, int zip) {
-		this.name = name;
-		this.location = location;
-		this.zip = zip;
-	}
+    public Restaurant(String name, Point location, int zip) {
+        this.name = name;
+        this.location = location;
+        this.zip = zip;
+    }
 
-	public Restaurant(String name, double score) {
-		this.name = name;
-		this.score = score;
-	}
+    public Restaurant(String name, double score) {
+        this.name = name;
+        this.score = score;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public Restaurant(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public Point getLocation() {
-		return location;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setLocation(Point location) {
-		this.location = location;
-	}
+    public Point getLocation() {
+        return location;
+    }
 
-	public int getZip() {
-		return zip;
-	}
+    public void setLocation(Point location) {
+        this.location = location;
+    }
 
-	public void setZip(int zip) {
-		this.zip = zip;
-	}
+    public int getZip() {
+        return zip;
+    }
 
-	public double getScore() {
-		return score;
-	}
+    public void setZip(int zip) {
+        this.zip = zip;
+    }
 
-	public void setScore(double score) {
-		this.score = score;
-	}
+    public double getScore() {
+        return score;
+    }
 
-	@Override
-	public String toString() {
-		return "Restaurant{" +
-				"name='" + name + '\'' +
-				", score=" + score +
-				'}';
-	}
+    public void setScore(double score) {
+        this.score = score;
+    }
 
+    public String getDescription() { return description; }
+
+    public void setDescription(String description) { this.description = description; }
+
+    @Override
+    public String toString() {
+        return "Restaurant{" +
+                "name='" + name + '\'' +
+                ", score=" + score +
+                '}';
+    }
 }
