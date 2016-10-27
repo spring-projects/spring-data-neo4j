@@ -147,4 +147,58 @@ public class RestaurantIT extends MultiDriverTestClass {
 		assertEquals("Kuroda", results.get(0).getName());
 	}
 
+	/**
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindByScoreLessThan() {
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		Restaurant cyma = new Restaurant("Cyma", 81.3);
+		restaurantRepository.save(cyma);
+
+		List<Restaurant> results = restaurantRepository.findByScoreLessThan(75);
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("Kuroda", results.get(0).getName());
+
+		results = restaurantRepository.findByScoreLessThan(72.4);
+		assertNotNull(results);
+		assertEquals(0, results.size());
+
+		results = restaurantRepository.findByScoreLessThanEqual(72.4);
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("Kuroda", results.get(0).getName());
+
+	}
+
+	/**
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindByScoreGreaterThan() {
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		Restaurant cyma = new Restaurant("Cyma", 81.3);
+		restaurantRepository.save(cyma);
+
+		List<Restaurant> results = restaurantRepository.findByScoreGreaterThan(75);
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("Cyma", results.get(0).getName());
+
+		results = restaurantRepository.findByScoreGreaterThan(90.0);
+		assertNotNull(results);
+		assertEquals(0, results.size());
+
+		results = restaurantRepository.findByScoreGreaterThanEqual(81.3);
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("Cyma", results.get(0).getName());
+
+	}
+
 }

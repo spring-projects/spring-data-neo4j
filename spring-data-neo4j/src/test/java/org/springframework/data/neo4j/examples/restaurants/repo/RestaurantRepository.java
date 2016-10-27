@@ -26,14 +26,23 @@ import org.springframework.data.neo4j.repository.GraphRepository;
  */
 public interface RestaurantRepository extends GraphRepository<Restaurant> {
 
-	List<Restaurant> findByNameAndLocationNear(String name, Distance distance, Point point);
+    List<Restaurant> findByNameAndLocationNear(String name, Distance distance, Point point);
 
-	List<Restaurant> findByLocationNearAndName(Distance distance, Point point, String name);
+    List<Restaurant> findByLocationNearAndName(Distance distance, Point point, String name);
 
-	List<Restaurant> findByScoreBetween(double min, double max);
+    List<Restaurant> findByScoreBetween(double min, double max);
 
-	List<Restaurant> findByDescriptionIsNull();
+    List<Restaurant> findByScoreLessThan(double max);
 
-	List<Restaurant> findByDescriptionIsNotNull();
+	List<Restaurant> findByScoreLessThanEqual(double max);
+
+    List<Restaurant> findByScoreGreaterThan(double max);
+
+    List<Restaurant> findByScoreGreaterThanEqual(double max);
+
+    List<Restaurant> findByDescriptionIsNull();
+
+    List<Restaurant> findByDescriptionIsNotNull();
+
 }
 

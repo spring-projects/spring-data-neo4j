@@ -53,8 +53,12 @@ public class PropertyComparisonFilterBuilder extends CypherFilterBuilder {
 		switch (type) {
 			case GREATER_THAN:
 				return ComparisonOperator.GREATER_THAN;
+			case GREATER_THAN_EQUAL:
+				return ComparisonOperator.GREATER_THAN_EQUAL;
 			case LESS_THAN:
 				return ComparisonOperator.LESS_THAN;
+			case LESS_THAN_EQUAL:
+				return ComparisonOperator.LESS_THAN_EQUAL;
 			case REGEX:
 				return ComparisonOperator.MATCHES;
 			case LIKE:
