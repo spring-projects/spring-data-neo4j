@@ -51,10 +51,12 @@ public class PropertyComparisonFilterBuilder extends CypherFilterBuilder {
 
 	private ComparisonOperator convertToComparisonOperator(Part.Type type) {
 		switch (type) {
+			case AFTER:
 			case GREATER_THAN:
 				return ComparisonOperator.GREATER_THAN;
 			case GREATER_THAN_EQUAL:
 				return ComparisonOperator.GREATER_THAN_EQUAL;
+			case BEFORE:
 			case LESS_THAN:
 				return ComparisonOperator.LESS_THAN;
 			case LESS_THAN_EQUAL:

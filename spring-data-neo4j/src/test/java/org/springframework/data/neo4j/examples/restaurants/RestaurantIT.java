@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.examples.restaurants;
 import static org.apache.webbeans.util.Asserts.assertNotNull;
 import static org.junit.Assert.*;
 
+import java.util.Date;
 import java.util.List;
 
 import org.junit.After;
@@ -200,5 +201,48 @@ public class RestaurantIT extends MultiDriverTestClass {
 		assertEquals("Cyma", results.get(0).getName());
 
 	}
+
+	@Test
+	public void shouldFindByLaunchDateBefore()
+	{
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		kuroda.setLaunchDate(new Date(1000));
+		restaurantRepository.save(kuroda);
+
+		Restaurant cyma = new Restaurant("Cyma", 80.5);
+		cyma.setLaunchDate(new Date(2000));
+		restaurantRepository.save(cyma);
+
+		List<Restaurant> results = restaurantRepository.findByLaunchDateBefore(new Date(1001));
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("Kuroda", results.get(0).getName());
+
+		results = restaurantRepository.findByLaunchDateBefore(new Date(999));
+		assertNotNull(results);
+		assertEquals(0, results.size());
+	}
+
+	@Test
+	public void shouldFindByLaunchDateAfter()
+	{
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		kuroda.setLaunchDate(new Date(1000));
+		restaurantRepository.save(kuroda);
+
+		Restaurant cyma = new Restaurant("Cyma", 80.5);
+		cyma.setLaunchDate(new Date(2000));
+		restaurantRepository.save(cyma);
+
+		List<Restaurant> results = restaurantRepository.findByLaunchDateAfter(new Date(1500));
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("Cyma", results.get(0).getName());
+
+		results = restaurantRepository.findByLaunchDateAfter(new Date(3000));
+		assertNotNull(results);
+		assertEquals(0, results.size());
+	}
+
 
 }

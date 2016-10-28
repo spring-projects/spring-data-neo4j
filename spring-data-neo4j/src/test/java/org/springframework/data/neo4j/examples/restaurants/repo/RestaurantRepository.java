@@ -14,6 +14,7 @@
 package org.springframework.data.neo4j.examples.restaurants.repo;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.geo.Distance;
@@ -43,6 +44,10 @@ public interface RestaurantRepository extends GraphRepository<Restaurant> {
     List<Restaurant> findByDescriptionIsNull();
 
     List<Restaurant> findByDescriptionIsNotNull();
+
+    List<Restaurant> findByLaunchDateBefore(Date date);
+
+    List<Restaurant> findByLaunchDateAfter(Date date);
 
 }
 

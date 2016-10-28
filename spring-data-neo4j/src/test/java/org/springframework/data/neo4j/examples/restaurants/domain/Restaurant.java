@@ -14,8 +14,11 @@
 
 package org.springframework.data.neo4j.examples.restaurants.domain;
 
+import java.util.Date;
+
 import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
+import org.neo4j.ogm.annotation.typeconversion.DateString;
 import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.conversion.PointConverter;
 
@@ -32,6 +35,9 @@ public class Restaurant {
     private int zip;
     private double score;
     private String description;
+
+	@DateString
+    private Date launchDate;
 
     public Restaurant() {
     }
@@ -87,6 +93,10 @@ public class Restaurant {
     public String getDescription() { return description; }
 
     public void setDescription(String description) { this.description = description; }
+
+    public Date getLaunchDate() { return launchDate; }
+
+    public void setLaunchDate(Date launchDate) { this.launchDate = launchDate; }
 
     @Override
     public String toString() {
