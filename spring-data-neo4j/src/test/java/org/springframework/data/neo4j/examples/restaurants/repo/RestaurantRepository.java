@@ -49,5 +49,9 @@ public interface RestaurantRepository extends GraphRepository<Restaurant> {
 
     List<Restaurant> findByLaunchDateAfter(Date date);
 
+    List<Restaurant> findByNameNotLike(String name);
+
+    List<Restaurant> findByNameLike(String name);
+
 }
 

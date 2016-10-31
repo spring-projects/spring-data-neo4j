@@ -172,7 +172,6 @@ public class RestaurantIT extends MultiDriverTestClass {
 		assertNotNull(results);
 		assertEquals(1, results.size());
 		assertEquals("Kuroda", results.get(0).getName());
-
 	}
 
 	/**
@@ -199,12 +198,13 @@ public class RestaurantIT extends MultiDriverTestClass {
 		assertNotNull(results);
 		assertEquals(1, results.size());
 		assertEquals("Cyma", results.get(0).getName());
-
 	}
 
+	/**
+	 * @see DATAGRAPH-904
+	 */
 	@Test
-	public void shouldFindByLaunchDateBefore()
-	{
+	public void shouldFindByLaunchDateBefore() {
 		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
 		kuroda.setLaunchDate(new Date(1000));
 		restaurantRepository.save(kuroda);
@@ -223,9 +223,11 @@ public class RestaurantIT extends MultiDriverTestClass {
 		assertEquals(0, results.size());
 	}
 
+	/**
+	 * @see DATAGRAPH-904
+	 */
 	@Test
-	public void shouldFindByLaunchDateAfter()
-	{
+	public void shouldFindByLaunchDateAfter() {
 		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
 		kuroda.setLaunchDate(new Date(1000));
 		restaurantRepository.save(kuroda);
@@ -244,5 +246,45 @@ public class RestaurantIT extends MultiDriverTestClass {
 		assertEquals(0, results.size());
 	}
 
+	/**
+	 * All findByPropertyLike does currently is to require an exact match, ignoring case.
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindByNameNotLike() {
+
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
+		restaurantRepository.save(restaurant);
+
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		List<Restaurant> results = restaurantRepository.findByNameNotLike("kuroda");
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+
+	}
+
+
+	/**
+	 * All findByPropertyLike does currently is to require an exact match, ignoring case.
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindByNameLike() {
+
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
+		restaurantRepository.save(restaurant);
+
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		List<Restaurant> results = restaurantRepository.findByNameLike("san francisco international airport (SFO)");
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+
+	}
 
 }
