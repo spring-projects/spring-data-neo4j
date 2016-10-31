@@ -53,5 +53,7 @@ public interface RestaurantRepository extends GraphRepository<Restaurant> {
 
     List<Restaurant> findByNameLike(String name);
 
+    List<Restaurant> findByNameStartingWith(String string);
+
 }
 

@@ -280,7 +280,26 @@ public class RestaurantIT extends MultiDriverTestClass {
 		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
 		restaurantRepository.save(kuroda);
 
-		List<Restaurant> results = restaurantRepository.findByNameLike("san francisco international airport (SFO)");
+		List<Restaurant> results = restaurantRepository.findByNameLike("*san francisco international*");
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+
+	}
+
+	/**
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindByNameStartingWith() {
+
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
+		restaurantRepository.save(restaurant);
+
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		List<Restaurant> results = restaurantRepository.findByNameStartingWith("San Francisco");
 		assertNotNull(results);
 		assertEquals(1, results.size());
 		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
