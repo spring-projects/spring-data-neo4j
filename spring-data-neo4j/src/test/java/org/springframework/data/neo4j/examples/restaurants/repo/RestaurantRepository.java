@@ -27,42 +27,45 @@ import org.springframework.data.neo4j.repository.GraphRepository;
  */
 public interface RestaurantRepository extends GraphRepository<Restaurant> {
 
-    List<Restaurant> findByNameAndLocationNear(String name, Distance distance, Point point);
+	List<Restaurant> findByNameAndLocationNear(String name, Distance distance, Point point);
 
-    List<Restaurant> findByLocationNearAndName(Distance distance, Point point, String name);
+	List<Restaurant> findByLocationNearAndName(Distance distance, Point point, String name);
 
-    List<Restaurant> findByScoreBetween(double min, double max);
+	List<Restaurant> findByScoreBetween(double min, double max);
 
-    List<Restaurant> findByScoreLessThan(double max);
+	List<Restaurant> findByScoreLessThan(double max);
 
 	List<Restaurant> findByScoreLessThanEqual(double max);
 
-    List<Restaurant> findByScoreGreaterThan(double max);
+	List<Restaurant> findByScoreGreaterThan(double max);
 
-    List<Restaurant> findByScoreGreaterThanEqual(double max);
+	List<Restaurant> findByScoreGreaterThanEqual(double max);
 
-    List<Restaurant> findByDescriptionIsNull();
+	List<Restaurant> findByDescriptionIsNull();
 
-    List<Restaurant> findByDescriptionIsNotNull();
+	List<Restaurant> findByDescriptionIsNotNull();
 
-    List<Restaurant> findByLaunchDateBefore(Date date);
+	List<Restaurant> findByLaunchDateBefore(Date date);
 
-    List<Restaurant> findByLaunchDateAfter(Date date);
+	List<Restaurant> findByLaunchDateAfter(Date date);
 
-    List<Restaurant> findByNameNotLike(String name);
+	List<Restaurant> findByNameNotLike(String name);
 
-    List<Restaurant> findByNameLike(String name);
+	List<Restaurant> findByNameLike(String name);
 
-    List<Restaurant> findByNameStartingWith(String string);
+	List<Restaurant> findByNameStartingWith(String string);
 
-    List<Restaurant> findByNameEndingWith(String string);
+	List<Restaurant> findByNameEndingWith(String string);
 
-    List<Restaurant> findByNameContaining(String string);
+	List<Restaurant> findByNameContaining(String string);
 
-    List<Restaurant> findByNameNotContaining(String string);
+	List<Restaurant> findByNameNotContaining(String string);
 
-    List<Restaurant> findByNameIn(Iterable<String> candidates);
+	List<Restaurant> findByNameIn(Iterable<String> candidates);
 
-    List<Restaurant> findByNameNotIn(Iterable<String> candidates);
+	List<Restaurant> findByNameNotIn(Iterable<String> candidates);
+
+	List<Restaurant> findByNameMatchesRegex(String foobar);
+
 }
 
