@@ -71,6 +71,9 @@ public class PropertyComparisonFilterBuilder extends CypherFilterBuilder {
 				return ComparisonOperator.STARTING_WITH;
 			case ENDING_WITH:
 				return ComparisonOperator.ENDING_WITH;
+			case CONTAINING:
+			case NOT_CONTAINING:
+				return ComparisonOperator.CONTAINING;
 			case SIMPLE_PROPERTY:
 				return ComparisonOperator.EQUALS;
 			default:

@@ -325,4 +325,28 @@ public class RestaurantIT extends MultiDriverTestClass {
 
 	}
 
+	/**
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindByNameContaining() {
+
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
+		restaurantRepository.save(restaurant);
+
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		List<Restaurant> results = restaurantRepository.findByNameContaining("International Airport");
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+
+		results = restaurantRepository.findByNameNotContaining("International Airport");
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("Kuroda", results.get(0).getName());
+
+	}
+
 }
