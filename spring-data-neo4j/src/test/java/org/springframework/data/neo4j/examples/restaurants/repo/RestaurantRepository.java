@@ -61,5 +61,8 @@ public interface RestaurantRepository extends GraphRepository<Restaurant> {
 
     List<Restaurant> findByNameNotContaining(String string);
 
+    List<Restaurant> findByNameIn(Iterable<String> candidates);
+
+    List<Restaurant> findByNameNotIn(Iterable<String> candidates);
 }
 

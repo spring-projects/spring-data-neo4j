@@ -64,7 +64,6 @@ public class PropertyComparisonFilterBuilder extends CypherFilterBuilder {
 			case REGEX:
 				return ComparisonOperator.MATCHES;
 			case LIKE:
-				return ComparisonOperator.LIKE;
 			case NOT_LIKE:
 				return ComparisonOperator.LIKE;
 			case STARTING_WITH:
@@ -74,6 +73,9 @@ public class PropertyComparisonFilterBuilder extends CypherFilterBuilder {
 			case CONTAINING:
 			case NOT_CONTAINING:
 				return ComparisonOperator.CONTAINING;
+			case IN:
+			case NOT_IN:
+				return ComparisonOperator.IN;
 			case SIMPLE_PROPERTY:
 				return ComparisonOperator.EQUALS;
 			default:
