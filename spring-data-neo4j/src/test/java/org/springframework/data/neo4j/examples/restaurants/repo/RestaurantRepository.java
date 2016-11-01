@@ -71,7 +71,7 @@ public interface RestaurantRepository extends GraphRepository<Restaurant> {
 
 	List<Restaurant> findByHalalIsTrue();
 
-	List<Restaurant> findByHalalIsNotTrue();
+	List<Restaurant> findByHalalIsFalse();
 
 }
 

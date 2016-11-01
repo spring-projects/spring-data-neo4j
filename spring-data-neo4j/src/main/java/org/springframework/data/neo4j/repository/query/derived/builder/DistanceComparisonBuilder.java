@@ -11,6 +11,7 @@
  *
  */
 
+
 package org.springframework.data.neo4j.repository.query.derived.builder;
 
 import java.util.ArrayList;
@@ -19,14 +20,15 @@ import java.util.List;
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.springframework.data.neo4j.repository.query.derived.CypherFilter;
+import org.springframework.data.neo4j.repository.query.derived.filter.DistanceComparisonAdapter;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
  * @author Jasper Blues
  */
-public class PropertyComparisonFilterBuilder extends CypherFilterBuilder {
+public class DistanceComparisonBuilder extends CypherFilterBuilder {
 
-	public PropertyComparisonFilterBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
+	public DistanceComparisonBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
 		super(part, booleanOperator, entityType);
 	}
 
@@ -39,47 +41,11 @@ public class PropertyComparisonFilterBuilder extends CypherFilterBuilder {
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
-
-		filter.setComparisonOperator(convertToComparisonOperator(part.getType()));
+		filter.setFunctionAdapter(new DistanceComparisonAdapter(filter));
+		filter.setComparisonOperator(ComparisonOperator.LESS_THAN);
 		setNestedAttributes(part, filter);
-
 		filters.add(filter);
 
 		return filters;
-	}
-
-
-	private ComparisonOperator convertToComparisonOperator(Part.Type type) {
-		switch (type) {
-			case AFTER:
-			case GREATER_THAN:
-				return ComparisonOperator.GREATER_THAN;
-			case GREATER_THAN_EQUAL:
-				return ComparisonOperator.GREATER_THAN_EQUAL;
-			case BEFORE:
-			case LESS_THAN:
-				return ComparisonOperator.LESS_THAN;
-			case LESS_THAN_EQUAL:
-				return ComparisonOperator.LESS_THAN_EQUAL;
-			case REGEX:
-				return ComparisonOperator.MATCHES;
-			case LIKE:
-			case NOT_LIKE:
-				return ComparisonOperator.LIKE;
-			case STARTING_WITH:
-				return ComparisonOperator.STARTING_WITH;
-			case ENDING_WITH:
-				return ComparisonOperator.ENDING_WITH;
-			case CONTAINING:
-			case NOT_CONTAINING:
-				return ComparisonOperator.CONTAINING;
-			case IN:
-			case NOT_IN:
-				return ComparisonOperator.IN;
-			case SIMPLE_PROPERTY:
-				return ComparisonOperator.EQUALS;
-			default:
-				throw new IllegalArgumentException("No ComparisonOperator for Part.Type " + type);
-		}
 	}
 }

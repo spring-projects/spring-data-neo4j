@@ -453,7 +453,7 @@ public class RestaurantIT extends MultiDriverTestClass {
 		kuroda.setHalal(false);
 		restaurantRepository.save(kuroda);
 
-		List<Restaurant> results = restaurantRepository.findByHalalIsNotTrue();
+		List<Restaurant> results = restaurantRepository.findByHalalIsFalse();
 		assertNotNull(results);
 		assertEquals(1, results.size());
 		assertEquals("Kuroda", results.get(0).getName());

@@ -58,10 +58,11 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
         }
     }
 
+    //TODO: Should we inject singleton instances of these?
     private CypherFilterBuilder builderForPart(Part part, BooleanOperator booleanOperator) {
         switch (part.getType()) {
             case NEAR:
-                return new DistanceComparisonFilterBuilder(part, booleanOperator, entityType);
+                return new DistanceComparisonBuilder(part, booleanOperator, entityType);
             case BETWEEN:
                 return new BetweenComparisonBuilder(part, booleanOperator, entityType);
             case IS_NULL:
@@ -69,8 +70,11 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
                 return new IsNullFilterBuilder(part, booleanOperator, entityType);
             case EXISTS:
                 return new ExistsFilterBuilder(part, booleanOperator, entityType);
+            case TRUE:
+            case FALSE:
+                return new BooleanComparisonBuilder(part, booleanOperator, entityType);
             default:
-                return new PropertyComparisonFilterBuilder(part, booleanOperator, entityType);
+                return new PropertyComparisonBuilder(part, booleanOperator, entityType);
         }
     }
 }

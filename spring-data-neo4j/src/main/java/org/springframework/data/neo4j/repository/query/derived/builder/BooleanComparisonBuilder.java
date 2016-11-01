@@ -14,21 +14,22 @@
 
 package org.springframework.data.neo4j.repository.query.derived.builder;
 
+import static org.springframework.data.repository.query.parser.Part.Type.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.springframework.data.neo4j.repository.query.derived.CypherFilter;
-import org.springframework.data.neo4j.repository.query.derived.filter.DistanceComparisonAdapter;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
  * @author Jasper Blues
  */
-public class DistanceComparisonFilterBuilder extends CypherFilterBuilder {
+public class BooleanComparisonBuilder extends CypherFilterBuilder {
 
-	public DistanceComparisonFilterBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
+	public BooleanComparisonBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
 		super(part, booleanOperator, entityType);
 	}
 
@@ -40,12 +41,13 @@ public class DistanceComparisonFilterBuilder extends CypherFilterBuilder {
 		filter.setPropertyName(propertyName());
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
-		filter.setNegated(isNegated());
-		filter.setFunctionAdapter(new DistanceComparisonAdapter(filter));
-		filter.setComparisonOperator(ComparisonOperator.LESS_THAN);
+		filter.setNegated(isNegated() || part.getType() == FALSE);
+		filter.setComparisonOperator(ComparisonOperator.IS_TRUE);
 		setNestedAttributes(part, filter);
+
 		filters.add(filter);
 
 		return filters;
 	}
+
 }
