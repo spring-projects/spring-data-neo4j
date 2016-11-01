@@ -419,6 +419,48 @@ public class RestaurantIT extends MultiDriverTestClass {
 
 	}
 
+	/**
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindByPropertyIsTrue()
+	{
+		Restaurant kazan = new Restaurant("Kazan", 77.0);
+		kazan.setHalal(true);
+		restaurantRepository.save(kazan);
+
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		kuroda.setHalal(false);
+		restaurantRepository.save(kuroda);
+
+		List<Restaurant> results = restaurantRepository.findByHalalIsTrue();
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("Kazan", results.get(0).getName());
+	}
+
+	/**
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindByPropertyIsFalse()
+	{
+		Restaurant kazan = new Restaurant("Kazan", 77.0);
+		kazan.setHalal(true);
+		restaurantRepository.save(kazan);
+
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		kuroda.setHalal(false);
+		restaurantRepository.save(kuroda);
+
+		List<Restaurant> results = restaurantRepository.findByHalalIsNotTrue();
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("Kuroda", results.get(0).getName());
+	}
+
+
+
 
 
 }

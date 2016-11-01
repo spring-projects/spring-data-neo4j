@@ -35,6 +35,7 @@ public class Restaurant {
     private int zip;
     private double score;
     private String description;
+    private boolean isHalal;
 
 	@DateString
     private Date launchDate;
@@ -97,6 +98,10 @@ public class Restaurant {
     public Date getLaunchDate() { return launchDate; }
 
     public void setLaunchDate(Date launchDate) { this.launchDate = launchDate; }
+
+    public boolean isHalal() { return isHalal; }
+
+    public void setHalal(boolean halal) { isHalal = halal; }
 
     @Override
     public String toString() {
