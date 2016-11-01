@@ -401,6 +401,24 @@ public class RestaurantIT extends MultiDriverTestClass {
 
 	}
 
+	/**
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindByNameExists() {
+
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
+		restaurantRepository.save(restaurant);
+
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		List<Restaurant> results = restaurantRepository.findByNameExists();
+		assertNotNull(results);
+		assertEquals(2, results.size());
+
+	}
+
 
 
 }

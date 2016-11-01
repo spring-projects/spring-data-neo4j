@@ -67,5 +67,7 @@ public interface RestaurantRepository extends GraphRepository<Restaurant> {
 
 	List<Restaurant> findByNameMatchesRegex(String foobar);
 
+	List<Restaurant> findByNameExists();
+
 }
 

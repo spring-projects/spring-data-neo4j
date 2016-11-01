@@ -67,6 +67,8 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
             case IS_NULL:
             case IS_NOT_NULL:
                 return new IsNullFilterBuilder(part, booleanOperator, entityType);
+            case EXISTS:
+                return new ExistsFilterBuilder(part, booleanOperator, entityType);
             default:
                 return new PropertyComparisonFilterBuilder(part, booleanOperator, entityType);
         }
