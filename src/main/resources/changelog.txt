@@ -1,6 +1,12 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.1.5.RELEASE (2016-11-03)
+---------------------------------------------
+* DATAGRAPH-917 - Release 4.1.5 (Hopper SR5).
+* DATAGRAPH-891 - Not an instance of a persistable class.
+
+
 Changes in version 4.1.4.RELEASE (2016-09-29)
 ---------------------------------------------
 * DATAGRAPH-914 - Upgrade to Neo4j OGM 2.0.6-snapshot.
