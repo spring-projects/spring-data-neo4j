@@ -13,30 +13,33 @@
 
 package org.springframework.data.neo4j.transaction;
 
-import java.lang.reflect.Method;
-import java.util.Map;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.neo4j.ogm.exception.InvalidDepthException;
-import org.neo4j.ogm.exception.NotFoundException;
-import org.neo4j.ogm.exception.ResultProcessingException;
+import org.neo4j.ogm.drivers.http.request.HttpRequestException;
+import org.neo4j.ogm.entity.io.EntityAccessException;
+import org.neo4j.ogm.exception.*;
+import org.neo4j.ogm.index.MissingIndexException;
+import org.neo4j.ogm.index.Neo4jVersionException;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.core.Ordered;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.neo4j.exception.Neo4jErrorStatusCodes;
+import org.springframework.data.neo4j.exception.UncategorizedNeo4jException;
 import org.springframework.transaction.support.ResourceHolderSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * Helper class featuring methods for Neo4j OGM Session handling,
  * allowing for reuse of Session instances within transactions.
  * Also provides support for exception translation.
- *
  * <p>Mainly intended for internal use within the framework.
  *
  * @author Mark Angrish
@@ -92,18 +95,19 @@ public class SessionFactoryUtils {
 	 * {@code org.springframework.dao} hierarchy.
 	 * Return null if no translation is appropriate: any other exception may
 	 * have resulted from user code, and should not be translated.
+	 *
 	 * @param ex runtime exception that occurred
 	 * @return the corresponding DataAccessException instance,
 	 * or {@code null} if the exception should not be translated
 	 */
 	public static DataAccessException convertOgmAccessException(RuntimeException ex) {
 
+		// TODO: The OGM should not be throwing common runtime exceptions as these mask user errors.
+		// TODO: Instead we should be defining our own Exceptions that can then be translated into Spring Exceptions.
 		if (ex instanceof IllegalStateException) {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 		}
-		if (ex instanceof IllegalArgumentException) {
-			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
-		}
+
 		if (ex instanceof NotFoundException) {
 			return new DataRetrievalFailureException(ex.getMessage(), ex);
 		}
@@ -113,13 +117,64 @@ public class SessionFactoryUtils {
 		if (ex instanceof ResultProcessingException) {
 			return new DataRetrievalFailureException(ex.getMessage(), ex);
 		}
+		if (ex instanceof MappingException) {
+			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+		}
+		if (ex instanceof UnknownStatementTypeException) {
+			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+		}
+		if (ex instanceof ConnectionException) {
+			return new DataAccessResourceFailureException(ex.getMessage(), ex);
+		}
+		if (ex instanceof MissingOperatorException) {
+			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+		}
+		if (ex instanceof ResultErrorsException) {
+			return new DataRetrievalFailureException(ex.getMessage(), ex);
+		}
+		if (ex instanceof ServiceNotFoundException) {
+			return new DataAccessResourceFailureException(ex.getMessage(), ex);
+		}
+		if (ex instanceof TransactionException) {
+			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+		}
+		if (ex instanceof TransactionManagerException) {
+			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+		}
+		if (ex instanceof EntityAccessException) {
+			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+		}
+		if (ex instanceof MissingIndexException) {
+			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+		}
+		if (ex instanceof Neo4jVersionException) {
+			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+		}
+		if (ex instanceof HttpRequestException) {
+			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+		}
 
+		// All exceptions coming back from the database.
+		if (ex instanceof CypherException) {
+			String code = ((CypherException) ex).getCode();
+			final Class<? extends DataAccessException> dae = Neo4jErrorStatusCodes.translate(code);
+
+			if (dae != null) {
+				try {
+					final Constructor<? extends DataAccessException> constructor = dae.getDeclaredConstructor(String.class, Throwable.class);
+					return constructor.newInstance(ex.getMessage(), ex);
+				} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+					return null;
+				}
+			}
+
+			return new UncategorizedNeo4jException(ex.getMessage(), ex);
+		}
 		// If we get here, we have an exception that resulted from user code,
 		// rather than the persistence provider, so we return null to indicate
 		// that translation should not occur.
 		return null;
 	}
-
 
 
 	private static class SessionSynchronization

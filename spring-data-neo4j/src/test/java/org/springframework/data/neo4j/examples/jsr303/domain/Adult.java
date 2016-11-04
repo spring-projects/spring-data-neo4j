@@ -10,42 +10,66 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  *
  */
-
 package org.springframework.data.neo4j.examples.jsr303.domain;
 
+import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.NodeEntity;
 
 /**
  * @author Vince Bickers
+ * @author Mark Angrish
  */
+@NodeEntity
 public class Adult {
 
-    private Long id;
-    private String name;
-    @Min(18)
-    private Integer age;
+	@GraphId
+	private Long id;
 
-    public Adult() {}
+	@NotNull @Size(min = 2, max = 50)
+	private String name;
 
-    public Adult(String name, Integer age) {
-        this.name = name;
-        this.age = age;
-    }
+	@Min(18)
+	private Integer age;
+
+	@AssertTrue
+	private boolean votingAge;
+
+	public Adult() {
+	}
+
+	public Adult(String name, Integer age) {
+		this.name = name;
+		this.age = age;
+		this.votingAge = true;
+	}
 
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public Integer getAge() {
-        return age;
-    }
+	public Integer getAge() {
+		return age;
+	}
 
-    public void setAge(Integer age) {
-        this.age = age;
-    }
+	public void setAge(Integer age) {
+		this.age = age;
+	}
+
+	public boolean isVotingAge() {
+		return votingAge;
+	}
+
+	public void setVotingAge(boolean votingAge) {
+		this.votingAge = votingAge;
+	}
 }

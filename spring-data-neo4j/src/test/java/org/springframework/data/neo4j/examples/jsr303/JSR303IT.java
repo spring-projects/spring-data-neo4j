@@ -10,7 +10,6 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  *
  */
-
 package org.springframework.data.neo4j.examples.jsr303;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -34,6 +33,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 /**
  * @author Vince Bickers
+ * @author Mark Angrish
  */
 @ContextConfiguration(classes = {WebConfiguration.class, JSR303Context.class})
 @WebAppConfiguration
@@ -72,6 +72,32 @@ public class JSR303IT extends MultiDriverTestClass {
 	public void testCantCreateAnAdultUnderEighteen() throws Exception {
 
 		Adult adult = new Adult("Peter", 16);
+		String json = objectMapper.writeValueAsString(adult);
+
+		mockMvc.perform(
+				post("/adults")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(json))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	public void testCantCreateAnAdultWithNoName() throws Exception {
+
+		Adult adult = new Adult(null, 21);
+		String json = objectMapper.writeValueAsString(adult);
+
+		mockMvc.perform(
+				post("/adults")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(json))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	public void testCantCreateAnAdultWitAShortName() throws Exception {
+
+		Adult adult = new Adult("A", 21);
 		String json = objectMapper.writeValueAsString(adult);
 
 		mockMvc.perform(
