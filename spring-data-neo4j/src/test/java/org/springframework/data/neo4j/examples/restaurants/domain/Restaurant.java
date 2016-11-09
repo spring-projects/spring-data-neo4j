@@ -14,9 +14,12 @@
 
 package org.springframework.data.neo4j.examples.restaurants.domain;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.annotation.typeconversion.DateString;
 import org.springframework.data.geo.Point;
@@ -27,87 +30,121 @@ import org.springframework.data.neo4j.conversion.PointConverter;
  */
 public class Restaurant {
 
-    @GraphId
-    private Long id;
-    private String name;
-    @Convert(PointConverter.class)
-    private Point location;
-    private int zip;
-    private double score;
-    private String description;
-    private boolean halal;
+	@GraphId
+	private Long id;
+	private String name;
+	@Convert(PointConverter.class)
+	private Point location;
+	private int zip;
+	private double score;
+	private String description;
+	private boolean halal;
+
+	@Relationship(type = "REGULAR_DINER", direction = Relationship.OUTGOING)
+	private List<Diner> regularDiners = new ArrayList<>();
+
+	@Relationship(type = "SIMILAR_RESTAURANT", direction = Relationship.OUTGOING)
+	private List<Restaurant> similarRestaurants = new ArrayList<>();
 
 	@DateString
-    private Date launchDate;
+	private Date launchDate;
 
-    public Restaurant() {
-    }
+	public Restaurant() {
+	}
 
-    public Restaurant(String name, Point location, int zip) {
-        this.name = name;
-        this.location = location;
-        this.zip = zip;
-    }
+	public Restaurant(String name, Point location, int zip) {
+		this.name = name;
+		this.location = location;
+		this.zip = zip;
+	}
 
-    public Restaurant(String name, double score) {
-        this.name = name;
-        this.score = score;
-    }
+	public Restaurant(String name, double score) {
+		this.name = name;
+		this.score = score;
+	}
 
-    public Restaurant(String name, String description) {
-        this.name = name;
-        this.description = description;
-    }
+	public Restaurant(String name, String description) {
+		this.name = name;
+		this.description = description;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public Point getLocation() {
-        return location;
-    }
+	public Point getLocation() {
+		return location;
+	}
 
-    public void setLocation(Point location) {
-        this.location = location;
-    }
+	public void setLocation(Point location) {
+		this.location = location;
+	}
 
-    public int getZip() {
-        return zip;
-    }
+	public int getZip() {
+		return zip;
+	}
 
-    public void setZip(int zip) {
-        this.zip = zip;
-    }
+	public void setZip(int zip) {
+		this.zip = zip;
+	}
 
-    public double getScore() {
-        return score;
-    }
+	public double getScore() {
+		return score;
+	}
 
-    public void setScore(double score) {
-        this.score = score;
-    }
+	public void setScore(double score) {
+		this.score = score;
+	}
 
-    public String getDescription() { return description; }
+	public String getDescription() {
+		return description;
+	}
 
-    public void setDescription(String description) { this.description = description; }
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
-    public Date getLaunchDate() { return launchDate; }
+	public Date getLaunchDate() {
+		return launchDate;
+	}
 
-    public void setLaunchDate(Date launchDate) { this.launchDate = launchDate; }
+	public void setLaunchDate(Date launchDate) {
+		this.launchDate = launchDate;
+	}
 
-    public boolean isHalal() { return halal; }
+	public boolean halal() {
+		return halal;
+	}
 
-    public void setHalal(boolean halal) { this.halal = halal; }
+	public void setHalal(boolean halal) {
+		this.halal = halal;
+	}
 
-    @Override
-    public String toString() {
-        return "Restaurant{" +
-                "name='" + name + '\'' +
-                ", score=" + score +
-                '}';
-    }
+	public void addRegularDiner(Diner diner) {
+		this.regularDiners.add(diner);
+	}
+
+	public List<Diner> getRegularDiners() {
+		return this.regularDiners;
+	}
+
+	public void addSimilarRestaurant(Restaurant restaurant) {
+		this.similarRestaurants.add(restaurant);
+	}
+
+	public List<Restaurant> getSimilarRestaurants() {
+		return this.similarRestaurants;
+	}
+
+	@Override
+	public String toString() {
+		return "Restaurant{" +
+				"name='" + name + '\'' +
+				", score=" + score +
+				'}';
+	}
 }

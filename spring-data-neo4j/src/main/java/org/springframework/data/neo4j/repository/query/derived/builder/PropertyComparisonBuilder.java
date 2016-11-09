@@ -18,6 +18,7 @@ import java.util.List;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.repository.query.derived.CypherFilter;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -32,6 +33,11 @@ public class PropertyComparisonBuilder extends CypherFilterBuilder {
 
 	@Override
 	public List<CypherFilter> build() {
+
+		if (part.getProperty().getSegment().contains("visited")) {
+			System.out.println("here");
+		}
+
 		List<CypherFilter> filters = new ArrayList<>();
 
 		CypherFilter filter = new CypherFilter();
@@ -39,7 +45,6 @@ public class PropertyComparisonBuilder extends CypherFilterBuilder {
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
-
 		filter.setComparisonOperator(convertToComparisonOperator(part.getType()));
 		setNestedAttributes(part, filter);
 

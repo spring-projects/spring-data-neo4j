@@ -32,6 +32,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.examples.restaurants.context.RestaurantContext;
+import org.springframework.data.neo4j.examples.restaurants.domain.Diner;
 import org.springframework.data.neo4j.examples.restaurants.domain.Restaurant;
 import org.springframework.data.neo4j.examples.restaurants.repo.RestaurantRepository;
 import org.springframework.test.annotation.DirtiesContext;
@@ -138,7 +139,7 @@ public class RestaurantIT extends MultiDriverTestClass {
 	 * @see DATAGRAPH-904
 	 */
 	@Test
-	public void shouldFindByDescriptionIsNullOrNotNull() {
+	public void shouldFindByPropertyIsNull() {
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
 				new Point(37.61649, -122.38681), 94128);
 		restaurantRepository.save(restaurant);
@@ -151,10 +152,65 @@ public class RestaurantIT extends MultiDriverTestClass {
 		assertEquals(1, results.size());
 		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
 
-		results = restaurantRepository.findByDescriptionIsNotNull();
+	}
+
+	/**
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindByPropertyIsNotNull() {
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
+				new Point(37.61649, -122.38681), 94128);
+		restaurantRepository.save(restaurant);
+
+		Restaurant kuroda = new Restaurant("Kuroda", "Mostly Ramen");
+		restaurantRepository.save(kuroda);
+
+		List<Restaurant> results = restaurantRepository.findByDescriptionIsNotNull();
 		assertNotNull(results);
 		assertEquals(1, results.size());
 		assertEquals("Kuroda", results.get(0).getName());
+	}
+
+	/**
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindBNestedProperty_different_entity_type_IsNull() {
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
+				new Point(37.61649, -122.38681), 94128);
+
+		Diner diner = new Diner("Jasper", null);
+		restaurant.addRegularDiner(diner);
+
+		restaurantRepository.save(restaurant);
+
+		List<Restaurant> results = restaurantRepository.findByRegularDinersLastNameIsNull();
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+	}
+
+	/**
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindBNestedProperty_same_entity_type_IsNull() {
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
+				new Point(37.61649, -122.38681), 94128);
+
+		Diner diner = new Diner("Jasper", null);
+		restaurant.addRegularDiner(diner);
+
+		Restaurant kuroda = new Restaurant("Kuroda", null);
+		restaurant.addSimilarRestaurant(kuroda);
+
+		restaurantRepository.save(restaurant);
+
+		List<Restaurant> results = restaurantRepository.findBySimilarRestaurantsDescriptionIsNull();
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
 	}
 
 	/**
@@ -458,9 +514,5 @@ public class RestaurantIT extends MultiDriverTestClass {
 		assertEquals(1, results.size());
 		assertEquals("Kuroda", results.get(0).getName());
 	}
-
-
-
-
 
 }

@@ -35,6 +35,11 @@ public class IsNullFilterBuilder extends CypherFilterBuilder {
 
     @Override
     public List<CypherFilter> build() {
+
+        if (part.getProperty().getSegment().contains("similarRestaurants")) {
+            System.out.println("here");
+        }
+
         List<CypherFilter> filters = new ArrayList<>();
 
         CypherFilter filter = new CypherFilter();
