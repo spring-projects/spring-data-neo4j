@@ -25,7 +25,6 @@
     <artifactId>spring-data-neo4j</artifactId>
 
     <properties>
-        <neo4j.version>2.3.7</neo4j.version>
         <neo4j.ogm.version>2.1.0-SNAPSHOT</neo4j.ogm.version>
         <ogm.properties>ogm-http.properties</ogm.properties>
     </properties>
@@ -91,13 +90,6 @@
                 <groupId>org.neo4j</groupId>
                 <artifactId>neo4j-ogm-test</artifactId>
                 <version>${neo4j.ogm.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.neo4j.test</groupId>
-                <artifactId>neo4j-harness</artifactId>
-                <version>${neo4j.version}</version>
                 <scope>test</scope>
             </dependency>
 
@@ -181,52 +173,4 @@
 
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>embedded</id>
-            <properties>
-                <ogm.properties>ogm-embedded.properties</ogm.properties>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>bolt</id>
-            <properties>
-                <ogm.properties>ogm-bolt.properties</ogm.properties>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>http</id>
-            <properties>
-                <ogm.properties>ogm-http.properties</ogm.properties>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>3.0</id>
-            <properties>
-                <neo4j.version>3.0.3</neo4j.version>
-            </properties>
-        </profile>
-
-
-        <profile>
-            <id>2.3</id>
-            <properties>
-                <neo4j.version>2.3.7</neo4j.version>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>2.2</id>
-            <properties>
-                <neo4j.version>2.2.10</neo4j.version>
-            </properties>
-        </profile>
-
-    </profiles>
-
-
 </project>
