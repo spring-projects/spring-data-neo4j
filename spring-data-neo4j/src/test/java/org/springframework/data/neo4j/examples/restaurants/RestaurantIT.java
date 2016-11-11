@@ -18,6 +18,7 @@ import static org.apache.webbeans.util.Asserts.assertNotNull;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -411,6 +412,34 @@ public class RestaurantIT extends MultiDriverTestClass {
 		assertNotNull(results);
 		assertEquals(1, results.size());
 		assertEquals("Kuroda", results.get(0).getName());
+
+	}
+
+	/**
+	 * @see DATAGRAPH-904
+	 */
+	@Test
+	public void shouldFindByNameContainingOrDescriptionIsNull() {
+
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
+		restaurantRepository.save(restaurant);
+
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		Restaurant cyma = new Restaurant("Cyma", "Greek Stuff");
+
+		List<Restaurant> results = restaurantRepository.findByNameContaining("International Airport");
+		assertNotNull(results);
+		assertEquals(1, results.size());
+		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+
+		results = restaurantRepository.findByNameNotContainingOrDescriptionIsNull("International Airport");
+		Collections.sort(results);
+		assertNotNull(results);
+		assertEquals(2, results.size());
+		assertEquals("Kuroda", results.get(0).getName());
+		assertEquals("San Francisco International Airport (SFO)", results.get(1).getName());
 
 	}
 

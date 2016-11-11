@@ -28,7 +28,7 @@ import org.springframework.data.neo4j.conversion.PointConverter;
 /**
  * @author Jasper Blues
  */
-public class Restaurant {
+public class Restaurant implements Comparable<Restaurant> {
 
 	@GraphId
 	private Long id;
@@ -146,5 +146,13 @@ public class Restaurant {
 				"name='" + name + '\'' +
 				", score=" + score +
 				'}';
+	}
+
+	@Override
+	public int compareTo(Restaurant o) {
+		if (this == o) {
+			return 0;
+		}
+		return this.getName().compareTo(o.getName());
 	}
 }
