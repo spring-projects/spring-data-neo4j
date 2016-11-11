@@ -13,14 +13,13 @@
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-neo4j-parent</artifactId>
-		<version>4.2.0.BUILD-SNAPSHOT</version>
+		<version>5.0.0.BUILD-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<properties>
 		<project.root>${basedir}/..</project.root>
 		<dist.id>spring-data-neo4j</dist.id>
-		<dist.key>SDNEO4J</dist.key>
 	</properties>
 
 	<build>
