@@ -57,7 +57,7 @@ public class SessionBeanDefinitionRegistrarPostProcessorTest {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory();
+			return new SessionFactory("");
 		}
 	}
 
