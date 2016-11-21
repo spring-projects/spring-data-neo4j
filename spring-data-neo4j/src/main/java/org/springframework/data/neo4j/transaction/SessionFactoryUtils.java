@@ -18,11 +18,12 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.neo4j.ogm.autoindex.MissingIndexException;
+import org.neo4j.ogm.autoindex.Neo4jVersionException;
 import org.neo4j.ogm.drivers.http.request.HttpRequestException;
 import org.neo4j.ogm.entity.io.EntityAccessException;
 import org.neo4j.ogm.exception.*;
-import org.neo4j.ogm.index.MissingIndexException;
-import org.neo4j.ogm.index.Neo4jVersionException;
+import org.neo4j.ogm.session.Neo4jException;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.core.Ordered;
@@ -151,6 +152,9 @@ public class SessionFactoryUtils {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 		}
 		if (ex instanceof HttpRequestException) {
+			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+		}
+		if (ex instanceof Neo4jException) {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 		}
 
