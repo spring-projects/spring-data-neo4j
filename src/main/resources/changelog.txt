@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.0.M1 (2016-11-23)
+----------------------------------------
+* DATAGRAPH-928 - Update OGM to 2.1.0.M1.
+* DATAGRAPH-925 - Set up 5.0 development.
+* DATAGRAPH-924 - Release 5.0 M1 (Kay).
+
+
 Changes in version 4.1.5.RELEASE (2016-11-03)
 ---------------------------------------------
 * DATAGRAPH-917 - Release 4.1.5 (Hopper SR5).
