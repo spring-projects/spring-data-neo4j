@@ -18,14 +18,14 @@
     <parent>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j-parent</artifactId>
-        <version>5.0.0.BUILD-SNAPSHOT</version>
+        <version>4.2.0.BUILD-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>spring-data-neo4j</artifactId>
 
     <properties>
-        <neo4j.ogm.version>2.1.0-M01</neo4j.ogm.version>
+        <neo4j.ogm.version>2.1.0-RC1</neo4j.ogm.version>
         <ogm.properties>ogm-http.properties</ogm.properties>
     </properties>
 
