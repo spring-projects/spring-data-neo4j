@@ -14,6 +14,7 @@
 package org.springframework.data.neo4j.examples.restaurants.repo;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.geo.Distance;
@@ -30,4 +31,54 @@ public interface RestaurantRepository extends GraphRepository<Restaurant> {
 
 	List<Restaurant> findByLocationNearAndName(Distance distance, Point point, String name);
 
+	List<Restaurant> findByScoreBetween(double min, double max);
+
+	List<Restaurant> findByScoreLessThan(double max);
+
+	List<Restaurant> findByScoreLessThanEqual(double max);
+
+	List<Restaurant> findByScoreGreaterThan(double max);
+
+	List<Restaurant> findByScoreGreaterThanEqual(double max);
+
+	List<Restaurant> findByDescriptionIsNull();
+
+	List<Restaurant> findByDescriptionIsNotNull();
+
+	List<Restaurant> findByLaunchDateBefore(Date date);
+
+	List<Restaurant> findByLaunchDateAfter(Date date);
+
+	List<Restaurant> findByNameNotLike(String name);
+
+	List<Restaurant> findByNameLike(String name);
+
+	List<Restaurant> findByNameStartingWith(String string);
+
+	List<Restaurant> findByNameEndingWith(String string);
+
+	List<Restaurant> findByNameContaining(String string);
+
+	List<Restaurant> findByNameNotContaining(String string);
+
+	List<Restaurant> findByNameIn(Iterable<String> candidates);
+
+	List<Restaurant> findByNameNotIn(Iterable<String> candidates);
+
+	List<Restaurant> findByNameMatchesRegex(String foobar);
+
+	List<Restaurant> findByNameExists();
+
+	List<Restaurant> findByHalalIsTrue();
+
+	List<Restaurant> findByHalalIsFalse();
+
+	List<Restaurant> findBySimilarRestaurantsDescriptionIsNull();
+
+	List<Restaurant> findByRegularDinersLastNameIsNull();
+
+	List<Restaurant> findByNameNotContainingOrDescriptionIsNull(String nameContaining);
+
 }
+
+

@@ -16,8 +16,8 @@ package org.springframework.data.neo4j.repository.query.derived;
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
-import org.neo4j.ogm.cypher.function.FilterFunction;
-import org.neo4j.ogm.cypher.function.PropertyComparison;
+import org.springframework.data.neo4j.repository.query.derived.filter.FunctionAdapter;
+import org.springframework.data.neo4j.repository.query.derived.filter.PropertyComparisonAdapter;
 
 /**
  * A representation of a Neo4j-OGM Filter that contains no parameter/property values and only holds metadata
@@ -35,7 +35,7 @@ public class CypherFilter {
 	BooleanOperator booleanOperator;
 	Class nestedPropertyType;
 	String nestedPropertyName;
-	FilterFunction function;
+	FunctionAdapter functionAdapter = new PropertyComparisonAdapter(this);
 
 	public Integer getPropertyPosition() {
 		return propertyPosition;
@@ -101,9 +101,9 @@ public class CypherFilter {
 		this.nestedPropertyName = nestedPropertyName;
 	}
 
-	public FilterFunction getFunction() { return function; }
+	public FunctionAdapter getFunctionAdapter() { return functionAdapter; }
 
-	public void setFunction(FilterFunction function) { this.function = function; }
+	public void setFunctionAdapter(FunctionAdapter functionAdapter) { this.functionAdapter = functionAdapter;	}
 
 	Filter toFilter() {
 		Filter filter = new Filter();
@@ -115,9 +115,8 @@ public class CypherFilter {
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNestedPropertyType(nestedPropertyType);
 		filter.setNestedPropertyName(nestedPropertyName);
-		if (function != null) {
-			filter.setFunction(function);
-		}
+		filter.setFunction(functionAdapter.filterFunction());
+
 		return filter;
 	}
 }

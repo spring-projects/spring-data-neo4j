@@ -233,47 +233,12 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		List<CypherFilter> cypherFilters = queryDefinition.getCypherFilters();
 		Filters queryParams = new Filters();
 		for (CypherFilter cypherFilter : cypherFilters) {
-			Filter filter = cypherFilter.toFilter();
-
-			FilterFunction function = filter.getFunction();
-			Object functionValue = function instanceof DistanceComparison ?
-					extractDistanceArgs(params, cypherFilter.getPropertyPosition()) :
-					params.get(cypherFilter.getPropertyPosition());
-			function.setValue(functionValue);
-			queryParams.add(filter);
+			cypherFilter.functionAdapter.setValueFromArgs(params);
+			queryParams.add(cypherFilter.toFilter());
 		}
 		return queryParams;
 	}
 
-
-	private DistanceFromPoint extractDistanceArgs(Map<Integer, Object> params, int startIndex) {
-		Object firstArg = params.get(startIndex);
-		Object secondArg = params.get(startIndex + 1);
-
-		Distance distance;
-		Point point;
-
-		if (firstArg instanceof Distance && secondArg instanceof Point) {
-			distance = (Distance) firstArg;
-			point = (Point) secondArg;
-		} else if (secondArg instanceof Distance && firstArg instanceof Point) {
-			distance = (Distance) secondArg;
-			point = (Point) firstArg;
-		} else {
-			throw new IllegalArgumentException("findNear requires an argument of type Distance and an argument of type Point");
-		}
-
-		double meters;
-		if (distance.getMetric() == Metrics.KILOMETERS) {
-			meters = distance.getValue() * 1000.0d;
-		} else if (distance.getMetric() == Metrics.MILES) {
-			meters = distance.getValue() / 0.00062137d;
-		} else {
-			meters = distance.getValue();
-		}
-
-		return new DistanceFromPoint(point.getX(), point.getY(), distance.getValue() * meters);
-	}
 
 
 	protected Object createPage(GraphQueryMethod graphQueryMethod, List resultList, Pageable pageable) {
