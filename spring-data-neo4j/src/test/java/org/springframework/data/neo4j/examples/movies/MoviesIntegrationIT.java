@@ -15,12 +15,14 @@ package org.springframework.data.neo4j.examples.movies;
 
 import static org.junit.Assert.*;
 import static org.neo4j.ogm.testutil.GraphTestUtils.*;
+import static org.springframework.data.repository.query.parser.Part.Type.*;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;

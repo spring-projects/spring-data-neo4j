@@ -12,14 +12,11 @@
  */
 package org.springframework.data.neo4j.repository.query.derived;
 
-import static org.springframework.data.repository.query.parser.Part.Type.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
-import org.neo4j.ogm.cypher.ComparisonOperator;
-import org.neo4j.ogm.cypher.function.DistanceComparison;
+import org.springframework.data.neo4j.repository.query.derived.builder.*;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -30,68 +27,54 @@ import org.springframework.data.repository.query.parser.Part;
  */
 public class CypherFinderQuery implements DerivedQueryDefinition {
 
-	private Class<?> entityType;
-	private Part basePart;
-	private List<CypherFilter> cypherFilters = new ArrayList<>();
-	private int paramPosition = 0;
+    private Class<?> entityType;
+    private Part basePart;
+    private List<CypherFilter> cypherFilters = new ArrayList<>();
+    private int paramPosition = 0;
 
-	public CypherFinderQuery(Class<?> entityType, Part basePart) {
-		this.entityType = entityType;
-		this.basePart = basePart;
-	}
+    public CypherFinderQuery(Class<?> entityType, Part basePart) {
+        this.entityType = entityType;
+        this.basePart = basePart;
+    }
 
-	@Override
-	public Part getBasePart() { //because the OR is handled in a weird way. Luanne, explain better
-		return basePart;
-	}
+    @Override
+    public Part getBasePart() { //because the OR is handled in a weird way. Luanne, explain better
+        return basePart;
+    }
 
-	@Override
-	public List<CypherFilter> getCypherFilters() {
-		return cypherFilters;
-	}
+    @Override
+    public List<CypherFilter> getCypherFilters() {
+        return cypherFilters;
+    }
 
-	@Override
-	public void addPart(Part part, BooleanOperator booleanOperator) {
-		String property = part.getProperty().getSegment();
-		CypherFilter parameter = new CypherFilter();
-		parameter.setPropertyPosition(paramPosition++);
-		parameter.setPropertyName(property);
-		parameter.setOwnerEntityType(entityType);
-		parameter.setComparisonOperator(convertToComparisonOperator(part.getType()));
-		parameter.setNegated(part.getType().name().startsWith("NOT"));
-		parameter.setBooleanOperator(booleanOperator);
+    @Override
+    public void addPart(Part part, BooleanOperator booleanOperator) {
 
-		if (part.getType() == NEAR) {
-			parameter.setFunction(new DistanceComparison());
-			parameter.setComparisonOperator(ComparisonOperator.LESS_THAN);
-			paramPosition++;
-		}
+        List<CypherFilter> filters = builderForPart(part, booleanOperator).build();
+        for (CypherFilter filter : filters) {
+            filter.setPropertyPosition(paramPosition);
+            cypherFilters.add(filter);
+            paramPosition += filter.functionAdapter.parameterCount();
+        }
+    }
 
-		if (part.getProperty().next() != null) {
-			parameter.setOwnerEntityType(part.getProperty().getOwningType().getType());
-			parameter.setNestedPropertyType(part.getProperty().getType());
-			parameter.setPropertyName(part.getProperty().getLeafProperty().getSegment());
-			parameter.setNestedPropertyName(part.getProperty().getSegment());
-		}
-		cypherFilters.add(parameter);
-
-	}
-
-	private ComparisonOperator convertToComparisonOperator(Part.Type type) {
-		switch (type) {
-			case GREATER_THAN:
-				return ComparisonOperator.GREATER_THAN;
-			case LESS_THAN:
-				return ComparisonOperator.LESS_THAN;
-			case REGEX:
-				return ComparisonOperator.MATCHES;
-			case LIKE:
-				return ComparisonOperator.LIKE;
-			case NOT_LIKE:
-				return ComparisonOperator.LIKE;
-			default:
-				return ComparisonOperator.EQUALS;
-		}
-	}
-
+    //TODO: Should we inject singleton instances of these?
+    private CypherFilterBuilder builderForPart(Part part, BooleanOperator booleanOperator) {
+        switch (part.getType()) {
+            case NEAR:
+                return new DistanceComparisonBuilder(part, booleanOperator, entityType);
+            case BETWEEN:
+                return new BetweenComparisonBuilder(part, booleanOperator, entityType);
+            case IS_NULL:
+            case IS_NOT_NULL:
+                return new IsNullFilterBuilder(part, booleanOperator, entityType);
+            case EXISTS:
+                return new ExistsFilterBuilder(part, booleanOperator, entityType);
+            case TRUE:
+            case FALSE:
+                return new BooleanComparisonBuilder(part, booleanOperator, entityType);
+            default:
+                return new PropertyComparisonBuilder(part, booleanOperator, entityType);
+        }
+    }
 }

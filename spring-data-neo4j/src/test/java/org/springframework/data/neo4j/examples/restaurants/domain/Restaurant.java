@@ -14,54 +14,145 @@
 
 package org.springframework.data.neo4j.examples.restaurants.domain;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
+import org.neo4j.ogm.annotation.typeconversion.DateString;
 import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.conversion.PointConverter;
 
 /**
  * @author Jasper Blues
  */
-public class Restaurant {
+public class Restaurant implements Comparable<Restaurant> {
 
-    @GraphId
-    private Long id;
-    private String name;
-    @Convert(PointConverter.class)
-    private Point location;
-    private int zip;
+	@GraphId
+	private Long id;
+	private String name;
+	@Convert(PointConverter.class)
+	private Point location;
+	private int zip;
+	private double score;
+	private String description;
+	private boolean halal;
 
-    public Restaurant() {
-    }
+	@Relationship(type = "REGULAR_DINER", direction = Relationship.OUTGOING)
+	private List<Diner> regularDiners = new ArrayList<>();
 
-    public Restaurant(String name, Point location, int zip) {
-        this.name = name;
-        this.location = location;
-        this.zip = zip;
-    }
+	@Relationship(type = "SIMILAR_RESTAURANT", direction = Relationship.OUTGOING)
+	private List<Restaurant> similarRestaurants = new ArrayList<>();
 
-    public String getName() {
-        return name;
-    }
+	@DateString
+	private Date launchDate;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public Restaurant() {
+	}
 
-    public Point getLocation() {
-        return location;
-    }
+	public Restaurant(String name, Point location, int zip) {
+		this.name = name;
+		this.location = location;
+		this.zip = zip;
+	}
 
-    public void setLocation(Point location) {
-        this.location = location;
-    }
+	public Restaurant(String name, double score) {
+		this.name = name;
+		this.score = score;
+	}
 
-    public int getZip() {
-        return zip;
-    }
+	public Restaurant(String name, String description) {
+		this.name = name;
+		this.description = description;
+	}
 
-    public void setZip(int zip) {
-        this.zip = zip;
-    }
+	public String getName() {
+		return name;
+	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Point getLocation() {
+		return location;
+	}
+
+	public void setLocation(Point location) {
+		this.location = location;
+	}
+
+	public int getZip() {
+		return zip;
+	}
+
+	public void setZip(int zip) {
+		this.zip = zip;
+	}
+
+	public double getScore() {
+		return score;
+	}
+
+	public void setScore(double score) {
+		this.score = score;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public Date getLaunchDate() {
+		return launchDate;
+	}
+
+	public void setLaunchDate(Date launchDate) {
+		this.launchDate = launchDate;
+	}
+
+	public boolean halal() {
+		return halal;
+	}
+
+	public void setHalal(boolean halal) {
+		this.halal = halal;
+	}
+
+	public void addRegularDiner(Diner diner) {
+		this.regularDiners.add(diner);
+	}
+
+	public List<Diner> getRegularDiners() {
+		return this.regularDiners;
+	}
+
+	public void addSimilarRestaurant(Restaurant restaurant) {
+		this.similarRestaurants.add(restaurant);
+	}
+
+	public List<Restaurant> getSimilarRestaurants() {
+		return this.similarRestaurants;
+	}
+
+	@Override
+	public String toString() {
+		return "Restaurant{" +
+				"name='" + name + '\'' +
+				", score=" + score +
+				'}';
+	}
+
+	@Override
+	public int compareTo(Restaurant o) {
+		if (this == o) {
+			return 0;
+		}
+		return this.getName().compareTo(o.getName());
+	}
 }
