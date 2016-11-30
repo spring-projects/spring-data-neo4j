@@ -21,7 +21,7 @@ import org.springframework.stereotype.Repository;
  * @author Adam George
  */
 @Repository
-public interface JavaElementRepository extends GraphRepository<JavaElement> {
+public interface JavaElementRepository extends GraphRepository<JavaElement, Long> {
 
     // no additional repository methods
 

@@ -13,6 +13,7 @@
 
 package org.springframework.data.neo4j.examples.movies.repo;
 
+import java.io.Serializable;
 import java.util.Collection;
 
 import org.springframework.data.neo4j.examples.movies.domain.Person;
@@ -21,7 +22,7 @@ import org.springframework.data.neo4j.repository.GraphRepository;
 /**
  * @author Luanne Misquitta
  */
-public interface PersonRepository<T extends Person> extends GraphRepository<T> {
+public interface PersonRepository<T extends Person, ID extends Serializable> extends GraphRepository<T, ID> {
 
 	Collection<T> findByName(String name);
 }

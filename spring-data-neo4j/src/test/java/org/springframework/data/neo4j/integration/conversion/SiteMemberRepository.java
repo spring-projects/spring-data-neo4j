@@ -21,7 +21,7 @@ import org.springframework.stereotype.Repository;
  * @author Adam George
  */
 @Repository
-public interface SiteMemberRepository extends GraphRepository<SiteMember> {
+public interface SiteMemberRepository extends GraphRepository<SiteMember, Long> {
 
     // no additional repository methods
 

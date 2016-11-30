@@ -25,7 +25,7 @@ import org.springframework.data.neo4j.repository.GraphRepository;
 /**
  * @author Jasper Blues
  */
-public interface RestaurantRepository extends GraphRepository<Restaurant> {
+public interface RestaurantRepository extends GraphRepository<Restaurant, Long> {
 
 	List<Restaurant> findByNameAndLocationNear(String name, Distance distance, Point point);
 

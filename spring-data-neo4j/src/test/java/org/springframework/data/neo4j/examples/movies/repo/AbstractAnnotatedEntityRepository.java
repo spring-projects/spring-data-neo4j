@@ -21,5 +21,5 @@ import org.springframework.stereotype.Repository;
  * @author Michal Bachman
  */
 @Repository
-public interface AbstractAnnotatedEntityRepository extends GraphRepository<AbstractAnnotatedEntity> {
+public interface AbstractAnnotatedEntityRepository extends GraphRepository<AbstractAnnotatedEntity, Long> {
 }

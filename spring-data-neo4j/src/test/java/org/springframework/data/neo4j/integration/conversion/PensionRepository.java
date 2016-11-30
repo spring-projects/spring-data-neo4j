@@ -21,7 +21,7 @@ import org.springframework.stereotype.Repository;
  * @author Adam George
  */
 @Repository
-public interface PensionRepository extends GraphRepository<PensionPlan> {
+public interface PensionRepository extends GraphRepository<PensionPlan, Long> {
 
     // no additional repository methods
 

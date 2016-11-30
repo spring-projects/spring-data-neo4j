@@ -24,7 +24,7 @@ import org.springframework.stereotype.Repository;
  * @author Luanne Misquitta
  */
 @Repository
-public interface WorldRepository extends GraphRepository<World> {
+public interface WorldRepository extends GraphRepository<World, Long> {
 
     @Query("MATCH (n:World) SET n.updated=timestamp()")
     void touchAllWorlds();

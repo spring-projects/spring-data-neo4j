@@ -18,6 +18,6 @@ import org.springframework.data.neo4j.examples.movies.domain.Director;
 /**
  * @author Luanne Misquitta
  */
-public interface DirectorRepository extends PersonRepository<Director> {
+public interface DirectorRepository extends PersonRepository<Director, Long> {
 
 }

@@ -46,7 +46,7 @@ public class Neo4jRepositoryIT extends MultiDriverTestClass {
 
 	@Autowired Session session;
 
-	GraphRepository<SampleEntity> repository;
+	GraphRepository<SampleEntity, Long> repository;
 
 	@Before
 	public void setUp() {
@@ -68,7 +68,7 @@ public class Neo4jRepositoryIT extends MultiDriverTestClass {
 	}
 
 
-	private interface SampleEntityRepository extends GraphRepository<SampleEntity> {
+	private interface SampleEntityRepository extends GraphRepository<SampleEntity, Long> {
 
 	}
 

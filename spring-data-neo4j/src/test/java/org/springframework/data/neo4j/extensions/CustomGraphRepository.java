@@ -12,6 +12,8 @@
  */
 package org.springframework.data.neo4j.extensions;
 
+import java.io.Serializable;
+
 import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
@@ -22,7 +24,7 @@ import org.springframework.data.repository.NoRepositoryBean;
  * @author: Vince Bickers
  */
 @NoRepositoryBean
-public interface CustomGraphRepository<T> extends GraphRepository<T> {
+public interface CustomGraphRepository<T, ID extends Serializable> extends GraphRepository<T, ID> {
 
     boolean sharedCustomMethod();
 

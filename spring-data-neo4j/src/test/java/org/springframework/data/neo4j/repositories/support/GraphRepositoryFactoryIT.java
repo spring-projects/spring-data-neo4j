@@ -15,6 +15,8 @@ package org.springframework.data.neo4j.repositories.support;
 
 import static org.junit.Assert.*;
 
+import java.io.Serializable;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -77,14 +79,14 @@ public class GraphRepositoryFactoryIT extends MultiDriverTestClass {
 		assertEquals(CustomGraphRepository.class, ((Advised) repository).getTargetClass());
 	}
 
-	private interface ObjectRepository extends GraphRepository<Object> {
+	private interface ObjectRepository extends GraphRepository<Object, Long> {
 
 		@Override
 		@Transactional
 		Object findOne(Long id);
 	}
 
-	static class CustomGraphRepository<T> extends SimpleGraphRepository<T> {
+	static class CustomGraphRepository<T, ID extends Serializable> extends SimpleGraphRepository<T, ID> {
 
 		public CustomGraphRepository(Class<T> clazz, Session session) {
 			super(clazz, session);

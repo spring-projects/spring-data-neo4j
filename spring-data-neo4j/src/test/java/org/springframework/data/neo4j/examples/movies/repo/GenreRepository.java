@@ -21,5 +21,5 @@ import org.springframework.stereotype.Repository;
  * @author Michal Bachman
  */
 @Repository
-public interface GenreRepository extends GraphRepository<Genre> {
+public interface GenreRepository extends GraphRepository<Genre, Long> {
 }

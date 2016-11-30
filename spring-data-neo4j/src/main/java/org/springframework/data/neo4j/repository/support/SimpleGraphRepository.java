@@ -13,6 +13,7 @@
 
 package org.springframework.data.neo4j.repository.support;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -41,7 +42,7 @@ import org.springframework.util.Assert;
  */
 @Repository
 @Transactional(readOnly = true)
-public class SimpleGraphRepository<T> implements GraphRepository<T> {
+public class SimpleGraphRepository<T, ID extends Serializable> implements GraphRepository<T, ID> {
 
 	private static final int DEFAULT_QUERY_DEPTH = 1;
 	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null!";
@@ -81,13 +82,13 @@ public class SimpleGraphRepository<T> implements GraphRepository<T> {
 	}
 
 	@Override
-	public T findOne(Long id) {
+	public T findOne(ID id) {
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		return session.load(clazz, id);
 	}
 
 	@Override
-	public boolean exists(Long id) {
+	public boolean exists(ID id) {
 		return findOne(id) != null;
 	}
 
@@ -98,7 +99,7 @@ public class SimpleGraphRepository<T> implements GraphRepository<T> {
 
 	@Transactional
 	@Override
-	public void delete(Long id) {
+	public void delete(ID id) {
 		Object o = findOne(id);
 		if (o != null) {
 			session.delete(o);
@@ -140,7 +141,7 @@ public class SimpleGraphRepository<T> implements GraphRepository<T> {
 	}
 
 	@Override
-	public T findOne(Long id, int depth) {
+	public T findOne(ID id, int depth) {
 		return session.load(clazz, id, depth);
 	}
 
@@ -156,13 +157,13 @@ public class SimpleGraphRepository<T> implements GraphRepository<T> {
 	}
 
 	@Override
-	public Iterable<T> findAll(Iterable<Long> longs) {
+	public Iterable<T> findAll(Iterable<ID> longs) {
 		return findAll(longs, DEFAULT_QUERY_DEPTH);
 	}
 
 	@Override
-	public Iterable<T> findAll(Iterable<Long> ids, int depth) {
-		return session.loadAll(clazz, (Collection<Long>) ids, depth);
+	public Iterable<T> findAll(Iterable<ID> ids, int depth) {
+		return session.loadAll(clazz, (Collection<ID>) ids, depth);
 	}
 
 	@Override
@@ -176,12 +177,12 @@ public class SimpleGraphRepository<T> implements GraphRepository<T> {
 	}
 
 	@Override
-	public Iterable<T> findAll(Iterable<Long> ids, Sort sort) {
+	public Iterable<T> findAll(Iterable<ID> ids, Sort sort) {
 		return findAll(ids, sort, DEFAULT_QUERY_DEPTH);
 	}
 
 	@Override
-	public Iterable<T> findAll(Iterable<Long> ids, Sort sort, int depth) {
+	public Iterable<T> findAll(Iterable<ID> ids, Sort sort, int depth) {
 		return session.loadAll(clazz, (Collection<Long>) ids, convert(sort), depth);
 	}
 

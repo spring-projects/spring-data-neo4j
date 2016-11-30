@@ -13,6 +13,8 @@
 
 package org.springframework.data.neo4j.repository;
 
+import java.io.Serializable;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -26,13 +28,13 @@ import org.springframework.data.repository.PagingAndSortingRepository;
  * @author Mark ANgrish
  */
 @NoRepositoryBean
-public interface GraphRepository<T> extends PagingAndSortingRepository<T, Long> {
+public interface GraphRepository<T, ID extends Serializable> extends PagingAndSortingRepository<T, ID> {
 
 	<S extends T> S save(S s, int depth);
 
 	<S extends T> Iterable<S> save(Iterable<S> entities, int depth);
 
-	T findOne(Long id, int depth);
+	T findOne(ID id, int depth);
 
 	Iterable<T> findAll();
 
@@ -43,13 +45,13 @@ public interface GraphRepository<T> extends PagingAndSortingRepository<T, Long> 
 	Iterable<T> findAll(Sort sort, int depth);
 
 
-	Iterable<T> findAll(Iterable<Long> ids);
+	Iterable<T> findAll(Iterable<ID> ids);
 
-	Iterable<T> findAll(Iterable<Long> ids, int depth);
+	Iterable<T> findAll(Iterable<ID> ids, int depth);
 
-	Iterable<T> findAll(Iterable<Long> ids, Sort sort);
+	Iterable<T> findAll(Iterable<ID> ids, Sort sort);
 
-	Iterable<T> findAll(Iterable<Long> ids, Sort sort, int depth);
+	Iterable<T> findAll(Iterable<ID> ids, Sort sort, int depth);
 
 	/**
 	 * Returns a {@link Page} of entities meeting the paging restriction provided in the {@code Pageable} object.

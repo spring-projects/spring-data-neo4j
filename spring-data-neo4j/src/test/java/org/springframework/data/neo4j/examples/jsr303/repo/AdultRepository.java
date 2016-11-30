@@ -21,5 +21,5 @@ import org.springframework.stereotype.Repository;
  * @author Vince Bickers
  */
 @Repository
-public interface AdultRepository extends GraphRepository<Adult> {
+public interface AdultRepository extends GraphRepository<Adult, Long> {
 }

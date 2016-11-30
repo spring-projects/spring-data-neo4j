@@ -35,7 +35,7 @@ import java.util.List;
  * @author Jasper Blues
  */
 @Repository
-public interface CinemaRepository extends GraphRepository<Cinema> {
+public interface CinemaRepository extends GraphRepository<Cinema, Long> {
 
 	Collection<Cinema> findByName(String name);
 

@@ -21,7 +21,7 @@ import org.springframework.data.neo4j.repository.GraphRepository;
 /**
  * @author Luanne Misquitta
  */
-public interface FriendshipRepository extends GraphRepository<Friendship> {
+public interface FriendshipRepository extends GraphRepository<Friendship, Long> {
 
 	@Query("MATCH (person1)-[rel:IS_FRIEND]->(person2) WHERE ID(person1)={0} AND ID(person2)={1} return rel")
 	Friendship getFriendship(Person person1, Person person2);

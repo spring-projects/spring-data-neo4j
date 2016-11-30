@@ -12,6 +12,8 @@
  */
 package org.springframework.data.neo4j.extensions;
 
+import java.io.Serializable;
+
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.neo4j.repository.support.SimpleGraphRepository;
 import org.springframework.stereotype.Repository;
@@ -24,7 +26,7 @@ import org.springframework.stereotype.Repository;
  * @author Mark Angrish
  */
 @Repository
-public class CustomGraphRepositoryImpl<T> extends SimpleGraphRepository<T> implements CustomGraphRepository<T> {
+public class CustomGraphRepositoryImpl<T, ID extends Serializable> extends SimpleGraphRepository<T, ID> implements CustomGraphRepository<T, ID> {
 
 	public CustomGraphRepositoryImpl(Class<T> clazz, Session session) {
 		super(clazz, session);

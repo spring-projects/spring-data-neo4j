@@ -22,6 +22,6 @@ import org.springframework.stereotype.Repository;
  * @author Mark Angrish
  */
 @Repository
-public interface GenreRepository extends GraphRepository<Genre> {
+public interface GenreRepository extends GraphRepository<Genre, Long> {
 
 }

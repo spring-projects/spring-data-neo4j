@@ -21,5 +21,5 @@ import org.springframework.stereotype.Repository;
  * @author Michal Bachman
  */
 @Repository
-public interface AbstractEntityRepository extends GraphRepository<AbstractEntity> {
+public interface AbstractEntityRepository extends GraphRepository<AbstractEntity, Long> {
 }

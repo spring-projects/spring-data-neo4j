@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Mark Angrish
  */
-public interface UserRepository extends GraphRepository<User> {
+public interface UserRepository extends GraphRepository<User, Long> {
 
 	/**
 	 * Retrieve users by their lastname. The finder {@literal User.findByLastname} is declared in

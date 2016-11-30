@@ -19,5 +19,5 @@ import org.springframework.data.neo4j.repository.GraphRepository;
 /**
  * @author Michal Bachman
  */
-public interface TempMovieRepository extends GraphRepository<TempMovie> {
+public interface TempMovieRepository extends GraphRepository<TempMovie, Long> {
 }
