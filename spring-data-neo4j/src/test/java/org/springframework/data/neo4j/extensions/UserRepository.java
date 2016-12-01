@@ -19,5 +19,5 @@ import org.springframework.stereotype.Repository;
  * @author: Vince Bickers
  */
 @Repository
-public interface UserRepository extends CustomGraphRepository<User, Long> {
+public interface UserRepository extends CustomNeo4jRepository<User, Long> {
 }

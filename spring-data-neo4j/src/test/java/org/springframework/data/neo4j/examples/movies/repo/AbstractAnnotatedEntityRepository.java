@@ -14,12 +14,12 @@
 package org.springframework.data.neo4j.examples.movies.repo;
 
 import org.springframework.data.neo4j.examples.movies.domain.AbstractAnnotatedEntity;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Michal Bachman
  */
 @Repository
-public interface AbstractAnnotatedEntityRepository extends GraphRepository<AbstractAnnotatedEntity, Long> {
+public interface AbstractAnnotatedEntityRepository extends Neo4jRepository<AbstractAnnotatedEntity, Long> {
 }

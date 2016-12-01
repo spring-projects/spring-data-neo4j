@@ -33,7 +33,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.domain.Persistable;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 
@@ -115,7 +115,7 @@ public class Neo4jRepositoryFactoryBeanTests {
 		factoryBean.afterPropertiesSet();
 	}
 
-	private class DummyNeo4jRepositoryFactoryBean<T extends GraphRepository<S, ID>, S, ID extends Serializable> extends
+	private class DummyNeo4jRepositoryFactoryBean<T extends Neo4jRepository<S, ID>, S, ID extends Serializable> extends
 			Neo4jRepositoryFactoryBean<T, S, ID> {
 
 		/*
@@ -132,7 +132,7 @@ public class Neo4jRepositoryFactoryBeanTests {
 		}
 	}
 
-	private interface SimpleSampleRepository extends GraphRepository<User, Long> {
+	private interface SimpleSampleRepository extends Neo4jRepository<User, Long> {
 
 	}
 

@@ -23,7 +23,7 @@ import org.springframework.stereotype.Repository;
  * @author Michal Bachman
  */
 @Repository
-public interface UserRepository extends GraphRepository<User, Long> {
+public interface UserRepository extends GraphRepository<User> {
 
     Collection<User> findUserByName(String name);
 }

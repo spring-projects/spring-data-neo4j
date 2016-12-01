@@ -14,14 +14,14 @@
 package org.springframework.data.neo4j.integration.conversion;
 
 import org.springframework.data.neo4j.integration.conversion.domain.PensionPlan;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Adam George
  */
 @Repository
-public interface PensionRepository extends GraphRepository<PensionPlan, Long> {
+public interface PensionRepository extends Neo4jRepository<PensionPlan, Long> {
 
     // no additional repository methods
 

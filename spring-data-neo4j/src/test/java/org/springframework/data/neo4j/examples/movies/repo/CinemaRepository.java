@@ -21,7 +21,7 @@ import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResultInterface;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResult;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -35,7 +35,7 @@ import java.util.List;
  * @author Jasper Blues
  */
 @Repository
-public interface CinemaRepository extends GraphRepository<Cinema, Long> {
+public interface CinemaRepository extends Neo4jRepository<Cinema, Long> {
 
 	Collection<Cinema> findByName(String name);
 

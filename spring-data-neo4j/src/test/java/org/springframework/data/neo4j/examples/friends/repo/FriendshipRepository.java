@@ -16,12 +16,12 @@ package org.springframework.data.neo4j.examples.friends.repo;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.friends.domain.Friendship;
 import org.springframework.data.neo4j.examples.friends.domain.Person;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
  * @author Luanne Misquitta
  */
-public interface FriendshipRepository extends GraphRepository<Friendship, Long> {
+public interface FriendshipRepository extends Neo4jRepository<Friendship, Long> {
 
 	@Query("MATCH (person1)-[rel:IS_FRIEND]->(person2) WHERE ID(person1)={0} AND ID(person2)={1} return rel")
 	Friendship getFriendship(Person person1, Person person2);

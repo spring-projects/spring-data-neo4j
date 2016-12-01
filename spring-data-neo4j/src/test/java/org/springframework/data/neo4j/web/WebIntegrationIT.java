@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,15 +63,23 @@ public class WebIntegrationIT extends MultiDriverTestClass {
 
 	private MockMvc mockMvc;
 
+	private User adam;
+
+	private User daniela;
+
+	private User michal;
+
+	private User vince;
+
 	@Before
 	public void setUp() {
 
 		this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
 
-		User adam = new User("Adam");
-		User daniela = new User("Daniela");
-		User michal = new User("Michal");
-		User vince = new User("Vince");
+		adam = new User("Adam");
+		daniela = new User("Daniela");
+		michal = new User("Michal");
+		vince = new User("Vince");
 
 		adam.befriend(daniela);
 		daniela.befriend(michal);
@@ -88,39 +97,37 @@ public class WebIntegrationIT extends MultiDriverTestClass {
 		userRepository.save(adam);
 	}
 
+
 	@Test
 	public void shouldNotShareSessionBetweenRequestsWithDifferentSession() throws Exception {
-		mockMvc.perform(get("/user/{name}/friends", "Adam"))
+		mockMvc.perform(get("/user/{uuid}/friends", adam.getUuid()))
 				.andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().string("Daniela"));
 
-		mockMvc.perform(get("/user/{name}/friends", "Vince"))
+		mockMvc.perform(get("/user/{uuid}/friends", vince.getUuid()))
 				.andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().string("Michal"));
-
-		Assert.assertFalse(((DelegatingTransactionManager) transactionManager).getTransactionDefinition().isReadOnly());
 	}
 
 	@Test
 	public void shouldShareSessionBetweenRequestsDuringSameSession() throws Exception {
 		MockHttpSession session = new MockHttpSession();
 
-		mockMvc.perform(get("/user/{name}/immediateFriends", "Adam").session(session))
+		mockMvc.perform(get("/user/{uuid}/immediateFriends", adam.getUuid()).session(session))
 				.andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().string("Daniela"));
 
-		mockMvc.perform(get("/user/{name}/immediateFriends", "Daniela").session(session))
+		mockMvc.perform(get("/user/{uuid}/immediateFriends", daniela.getUuid()).session(session))
 				.andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().string("Adam Michal"));
 
-		mockMvc.perform(get("/user/{name}/immediateFriends", "Michal").session(session))
+		mockMvc.perform(get("/user/{uuid}/immediateFriends", michal.getUuid()).session(session))
 				.andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().string("Daniela Vince"));
 
-		mockMvc.perform(get("/user/{name}/immediateFriends", "Vince").session(session))
+		mockMvc.perform(get("/user/{uuid}/immediateFriends", vince.getUuid()).session(session))
 				.andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().string("Michal"));
-
 	}
 
 
@@ -134,7 +141,7 @@ public class WebIntegrationIT extends MultiDriverTestClass {
 				public void run() {
 					if (j % 2 == 0) {
 						try {
-							mockMvc.perform(get("/user/{name}/friends", "Adam"))
+							mockMvc.perform(get("/user/{uuid}/friends", adam.getUuid()))
 									.andExpect(status().isOk())
 									.andExpect(MockMvcResultMatchers.content().string("Daniela"));
 						} catch (Exception e) {
@@ -143,7 +150,7 @@ public class WebIntegrationIT extends MultiDriverTestClass {
 					} else {
 
 						try {
-							mockMvc.perform(get("/user/{name}/friends", "Vince"))
+							mockMvc.perform(get("/user/{uuid}/friends", vince.getUuid()))
 									.andExpect(status().isOk())
 									.andExpect(MockMvcResultMatchers.content().string("Michal"));
 						} catch (Exception e) {

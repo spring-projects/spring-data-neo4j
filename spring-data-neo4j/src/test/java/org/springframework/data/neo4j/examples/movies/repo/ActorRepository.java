@@ -14,12 +14,12 @@
 package org.springframework.data.neo4j.examples.movies.repo;
 
 import org.springframework.data.neo4j.examples.movies.domain.Actor;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 
 /**
  * @author Michal Bachman
  */
-public interface ActorRepository extends GraphRepository<Actor, Long> {
+public interface ActorRepository extends Neo4jRepository<Actor, Long> {
 }
 

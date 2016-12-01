@@ -17,6 +17,7 @@ import java.util.List;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.domain.sample.User;
 import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Mark Angrish
  */
-public interface UserRepository extends GraphRepository<User, Long> {
+public interface UserRepository extends GraphRepository<User> {
 
 	/**
 	 * Retrieve users by their lastname. The finder {@literal User.findByLastname} is declared in

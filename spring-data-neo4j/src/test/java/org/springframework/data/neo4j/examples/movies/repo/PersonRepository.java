@@ -17,12 +17,12 @@ import java.io.Serializable;
 import java.util.Collection;
 
 import org.springframework.data.neo4j.examples.movies.domain.Person;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
  * @author Luanne Misquitta
  */
-public interface PersonRepository<T extends Person, ID extends Serializable> extends GraphRepository<T, ID> {
+public interface PersonRepository<T extends Person, ID extends Serializable> extends Neo4jRepository<T, ID> {
 
 	Collection<T> findByName(String name);
 }

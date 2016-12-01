@@ -20,20 +20,20 @@ import java.io.Serializable;
 /**
  * @author Mark Angrish
  */
-public class GraphEntityInformation<ID extends Serializable, T> extends AbstractEntityInformation<T, Long> {
+public class GraphEntityInformation<T, ID extends Serializable> extends AbstractEntityInformation<T, ID> {
 
     public GraphEntityInformation(Class<T> type) {
         super(type);
     }
 
     @Override
-    public Long getId(T entity) {
+    public ID getId(T entity) {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
 
     @Override
-    public Class<Long> getIdType() {
-        return Long.class;
+    public Class<ID> getIdType() {
+        return (Class<ID>) Long.class;
     }
 
 }

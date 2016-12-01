@@ -14,14 +14,14 @@
 package org.springframework.data.neo4j.integration.conversion;
 
 import org.springframework.data.neo4j.integration.conversion.domain.JavaElement;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Adam George
  */
 @Repository
-public interface JavaElementRepository extends GraphRepository<JavaElement, Long> {
+public interface JavaElementRepository extends Neo4jRepository<JavaElement, Long> {
 
     // no additional repository methods
 

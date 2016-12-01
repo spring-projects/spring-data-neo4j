@@ -25,7 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
  */
 @Repository
 @Transactional(readOnly = true)
-public class SimpleGraphRepository<T, ID extends Serializable> implements GraphRepository<T, ID> {
+public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jRepository<T, ID> {
 
 	private static final int DEFAULT_QUERY_DEPTH = 1;
 	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null!";
@@ -51,12 +51,12 @@ public class SimpleGraphRepository<T, ID extends Serializable> implements GraphR
 	private Session session;
 
 	/**
-	 * Creates a new {@link SimpleGraphRepository} to manage objects of the given domain type.
+	 * Creates a new {@link SimpleNeo4jRepository} to manage objects of the given domain type.
 	 *
 	 * @param domainClass must not be {@literal null}.
 	 * @param session must not be {@literal null}.
 	 */
-	public SimpleGraphRepository(Class<T> domainClass, Session session) {
+	public SimpleNeo4jRepository(Class<T> domainClass, Session session) {
 		this.clazz = domainClass;
 		this.session = session;
 	}
@@ -183,7 +183,7 @@ public class SimpleGraphRepository<T, ID extends Serializable> implements GraphR
 
 	@Override
 	public Iterable<T> findAll(Iterable<ID> ids, Sort sort, int depth) {
-		return session.loadAll(clazz, (Collection<Long>) ids, convert(sort), depth);
+		return session.loadAll(clazz, (Collection<ID>) ids, convert(sort), depth);
 	}
 
 	@Override

@@ -13,10 +13,13 @@
 
 package org.springframework.data.neo4j.repository;
 
+import java.io.Serializable;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
  * Neo4j OGM specific extension of {@link org.springframework.data.repository.Repository}.
@@ -24,13 +27,14 @@ import org.springframework.data.domain.Sort;
  * @author Vince Bickers
  * @author Mark ANgrish
  */
-public interface GraphRepository<T> extends Neo4jRepository<T, Long> {
+@NoRepositoryBean
+public interface Neo4jRepository<T, ID extends Serializable> extends PagingAndSortingRepository<T, ID> {
 
 	<S extends T> S save(S s, int depth);
 
 	<S extends T> Iterable<S> save(Iterable<S> entities, int depth);
 
-	T findOne(Long id, int depth);
+	T findOne(ID id, int depth);
 
 	Iterable<T> findAll();
 
@@ -40,14 +44,13 @@ public interface GraphRepository<T> extends Neo4jRepository<T, Long> {
 
 	Iterable<T> findAll(Sort sort, int depth);
 
+	Iterable<T> findAll(Iterable<ID> ids);
 
-	Iterable<T> findAll(Iterable<Long> ids);
+	Iterable<T> findAll(Iterable<ID> ids, int depth);
 
-	Iterable<T> findAll(Iterable<Long> ids, int depth);
+	Iterable<T> findAll(Iterable<ID> ids, Sort sort);
 
-	Iterable<T> findAll(Iterable<Long> ids, Sort sort);
-
-	Iterable<T> findAll(Iterable<Long> ids, Sort sort, int depth);
+	Iterable<T> findAll(Iterable<ID> ids, Sort sort, int depth);
 
 	/**
 	 * Returns a {@link Page} of entities meeting the paging restriction provided in the {@code Pageable} object.

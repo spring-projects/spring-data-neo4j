@@ -25,9 +25,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.aop.framework.Advised;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactory;
-import org.springframework.data.neo4j.repository.support.SimpleGraphRepository;
+import org.springframework.data.neo4j.repository.support.SimpleNeo4jRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -74,21 +74,21 @@ public class GraphRepositoryFactoryIT extends MultiDriverTestClass {
 
 	@Test
 	public void usesConfiguredRepositoryBaseClass() {
-		factory.setRepositoryBaseClass(CustomGraphRepository.class);
+		factory.setRepositoryBaseClass(CustomNeo4jRepository.class);
 		ObjectRepository repository = factory.getRepository(ObjectRepository.class);
-		assertEquals(CustomGraphRepository.class, ((Advised) repository).getTargetClass());
+		assertEquals(CustomNeo4jRepository.class, ((Advised) repository).getTargetClass());
 	}
 
-	private interface ObjectRepository extends GraphRepository<Object, Long> {
+	private interface ObjectRepository extends Neo4jRepository<Object, Long> {
 
 		@Override
 		@Transactional
 		Object findOne(Long id);
 	}
 
-	static class CustomGraphRepository<T, ID extends Serializable> extends SimpleGraphRepository<T, ID> {
+	static class CustomNeo4jRepository<T, ID extends Serializable> extends SimpleNeo4jRepository<T, ID> {
 
-		public CustomGraphRepository(Class<T> clazz, Session session) {
+		public CustomNeo4jRepository(Class<T> clazz, Session session) {
 			super(clazz, session);
 		}
 	}

@@ -52,6 +52,8 @@ public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	@Override
 	public <T, ID extends Serializable> EntityInformation<T, ID> getEntityInformation(Class<T> type) {
+		Assert.notNull(type);
+		Assert.notNull(session);
 		return new GraphEntityInformation(type);
 	}
 
@@ -62,7 +64,7 @@ public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	@Override
 	protected Class<?> getRepositoryBaseClass(RepositoryMetadata repositoryMetadata) {
-		return SimpleGraphRepository.class;
+		return SimpleNeo4jRepository.class;
 	}
 
 	@Override
