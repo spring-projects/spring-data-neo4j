@@ -18,8 +18,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.neo4j.ogm.MetaData;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
+import org.neo4j.ogm.session.Neo4jSession;
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -57,6 +59,9 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 	 * @param session must not be {@literal null}.
 	 */
 	public SimpleNeo4jRepository(Class<T> domainClass, Session session) {
+		Assert.notNull(domainClass);
+		Assert.notNull(session);
+
 		this.clazz = domainClass;
 		this.session = session;
 	}

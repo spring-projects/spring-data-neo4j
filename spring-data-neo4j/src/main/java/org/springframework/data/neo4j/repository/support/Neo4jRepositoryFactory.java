@@ -15,6 +15,7 @@ package org.springframework.data.neo4j.repository.support;
 
 import java.io.Serializable;
 
+import org.neo4j.ogm.session.Neo4jSession;
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.neo4j.repository.query.GraphQueryLookupStrategy;
 import org.springframework.data.repository.core.EntityInformation;
@@ -54,7 +55,7 @@ public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	public <T, ID extends Serializable> EntityInformation<T, ID> getEntityInformation(Class<T> type) {
 		Assert.notNull(type);
 		Assert.notNull(session);
-		return new GraphEntityInformation(type);
+		return new GraphEntityInformation(((Neo4jSession)session).metaData(), type);
 	}
 
 	@Override
