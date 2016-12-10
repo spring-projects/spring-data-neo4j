@@ -13,7 +13,13 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>spring-data-neo4j</artifactId>
+
+    <name>Spring Data Neo4J - Core</name>
+    <description>Neo4J support for Spring Data</description>
 
     <parent>
         <groupId>org.springframework.data</groupId>
@@ -22,113 +28,130 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>spring-data-neo4j</artifactId>
-
     <properties>
         <neo4j.ogm.version>2.1.0</neo4j.ogm.version>
         <ogm.properties>ogm-http.properties</ogm.properties>
     </properties>
 
-    <name>Spring Data Neo4j</name>
 
-        <dependencies>
+    <dependencies>
 
-            <dependency>
-                <groupId>org.neo4j</groupId>
-                <artifactId>neo4j-ogm-core</artifactId>
-                <version>${neo4j.ogm.version}</version>
-            </dependency>
+        <!-- Spring -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
 
+        <!-- Spring Data -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>spring-data-commons</artifactId>
+            <version>${springdata.commons}</version>
+        </dependency>
 
-            <dependency>
-                <groupId>org.neo4j</groupId>
-                <artifactId>neo4j-ogm-http-driver</artifactId>
-                <version>${neo4j.ogm.version}</version>
-            </dependency>
+        <!-- CDI -->
+        <dependency>
+            <groupId>javax.enterprise</groupId>
+            <artifactId>cdi-api</artifactId>
+            <version>${cdi}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
 
+        <dependency>
+            <groupId>javax.el</groupId>
+            <artifactId>el-api</artifactId>
+            <version>${cdi}</version>
+            <scope>test</scope>
+        </dependency>
 
-            <dependency>
-                <groupId>org.springframework.data</groupId>
-                <artifactId>spring-data-commons</artifactId>
-                <version>${springdata.commons}</version>
-            </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.el</artifactId>
+            <scope>test</scope>
+        </dependency>
 
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-            </dependency>
+        <dependency>
+            <groupId>org.apache.openwebbeans.test</groupId>
+            <artifactId>cditest-owb</artifactId>
+            <version>${webbeans}</version>
+            <scope>test</scope>
+        </dependency>
 
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-tx</artifactId>
-            </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
 
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-web</artifactId>
-                <scope>compile</scope>
-                <optional>true</optional>
-            </dependency>
+        <!-- JSR 303 Validation -->
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>${validation}</version>
+            <optional>true</optional>
+        </dependency>
 
-            <dependency>
-                <groupId>javax.servlet</groupId>
-                <artifactId>javax.servlet-api</artifactId>
-                <version>3.1.0</version>
-                <scope>compile</scope>
-                <optional>true</optional>
-            </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+			<version>4.2.0.Final</version>
+            <scope>test</scope>
+        </dependency>
 
-            <!-- test-scoped jars -->
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-webmvc</artifactId>
-                <scope>test</scope>
-            </dependency>
+        <!-- Neo4j OGM -->
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-ogm-core</artifactId>
+            <version>${neo4j.ogm.version}</version>
+        </dependency>
 
-            <!-- this test dependency also brings in all the drivers -->
-            <dependency>
-                <groupId>org.neo4j</groupId>
-                <artifactId>neo4j-ogm-test</artifactId>
-                <version>${neo4j.ogm.version}</version>
-                <scope>test</scope>
-            </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-ogm-http-driver</artifactId>
+            <version>${neo4j.ogm.version}</version>
+        </dependency>
 
-            <!-- jsr 303 tests -->
-            <dependency>
-                <groupId>org.hibernate</groupId>
-                <artifactId>hibernate-validator</artifactId>
-                <scope>test</scope>
-            </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-ogm-test</artifactId>
+            <version>${neo4j.ogm.version}</version>
+            <scope>test</scope>
+        </dependency>
 
-            <dependency>
-                <groupId>org.glassfish</groupId>
-                <artifactId>javax.el</artifactId>
-                <scope>test</scope>
-            </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <scope>test</scope>
+        </dependency>
 
-            <dependency>
-                <groupId>javax.el</groupId>
-                <artifactId>el-api</artifactId>
-                <version>${cdi}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <!-- CDI -->
-            <dependency>
-                <groupId>javax.enterprise</groupId>
-                <artifactId>cdi-api</artifactId>
-                <version>${cdi}</version>
-                <scope>provided</scope>
-                <optional>true</optional>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.openwebbeans.test</groupId>
-                <artifactId>cditest-owb</artifactId>
-                <version>${webbeans}</version>
-                <scope>test</scope>
-            </dependency>
-        </dependencies>
+    </dependencies>
 
     <build>
         <plugins>
@@ -157,20 +180,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.2</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
         </plugins>
     </build>
 </project>
