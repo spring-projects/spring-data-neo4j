@@ -26,6 +26,7 @@ import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Michal Bachman
@@ -37,11 +38,11 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @RequestMapping(value = "/user/{name}/friends")
+    @RequestMapping(value = "/user/{uuid}/friends")
     @ResponseBody
     @Transactional
-    public String listFriends(@PathVariable String name, HttpSession session) {
-        User user = userService.getUserByName(name);
+    public String listFriends(@PathVariable UUID uuid, HttpSession session) {
+        User user = userService.getUserByUuid(uuid);
 
         if (user == null) {
             return "No such user!";
@@ -55,11 +56,11 @@ public class UserController {
         return result.toString().trim();
     }
 
-    @RequestMapping(value = "/user/{name}/immediateFriends")
+    @RequestMapping(value = "/user/{uuid}/immediateFriends")
     @ResponseBody
     @Transactional
-    public String listImmediateFriends(@PathVariable String name, HttpSession session) {
-        User user = userService.getUserByName(name);
+    public String listImmediateFriends(@PathVariable UUID uuid, HttpSession session) {
+        User user = userService.getUserByUuid(uuid);
 
         if (user == null) {
             return "No such user!";

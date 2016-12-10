@@ -13,15 +13,11 @@
 
 package org.springframework.data.neo4j.web.service;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
-import org.neo4j.ogm.cypher.Filter;
-import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.web.domain.User;
+import org.springframework.data.neo4j.web.repo.UserRepository;
 import org.springframework.stereotype.Service;
 
 /**
@@ -32,15 +28,11 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
 
 	@Autowired
-	private Session session;
+	private UserRepository userRepository;
 
 	@Override
-	public User getUserByName(String name) {
-		Iterable<User> users = findByProperty("name", name);
-		if (!users.iterator().hasNext()) {
-			return null;
-		}
-		return users.iterator().next();
+	public User getUserByUuid(UUID uuid) {
+		return  userRepository.findOne(uuid);
 	}
 
 	@Override
@@ -63,9 +55,5 @@ public class UserServiceImpl implements UserService {
 				buildNetwork(friend, network);
 			}
 		}
-	}
-
-	protected Iterable<User> findByProperty(String propertyName, Object propertyValue) {
-		return session.loadAll(User.class, new Filter(propertyName, propertyValue));
 	}
 }

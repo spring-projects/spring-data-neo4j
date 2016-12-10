@@ -14,14 +14,14 @@
 package org.springframework.data.neo4j.integration.conversion;
 
 import org.springframework.data.neo4j.integration.conversion.domain.SiteMember;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Adam George
  */
 @Repository
-public interface SiteMemberRepository extends GraphRepository<SiteMember> {
+public interface SiteMemberRepository extends Neo4jRepository<SiteMember, Long> {
 
     // no additional repository methods
 

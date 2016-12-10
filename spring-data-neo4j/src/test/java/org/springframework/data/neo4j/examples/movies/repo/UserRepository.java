@@ -32,7 +32,7 @@ import java.util.Map;
  * @author Luanne Misquitta
  */
 @Repository
-public interface UserRepository extends PersonRepository<User> {
+public interface UserRepository extends PersonRepository<User, Long> {
 
     Collection<User> findByMiddleName(String middleName);
 

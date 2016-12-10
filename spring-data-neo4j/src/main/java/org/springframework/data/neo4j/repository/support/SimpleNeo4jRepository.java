@@ -13,18 +13,21 @@
 
 package org.springframework.data.neo4j.repository.support;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.neo4j.ogm.MetaData;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
+import org.neo4j.ogm.session.Neo4jSession;
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -41,7 +44,7 @@ import org.springframework.util.Assert;
  */
 @Repository
 @Transactional(readOnly = true)
-public class SimpleGraphRepository<T> implements GraphRepository<T> {
+public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jRepository<T, ID> {
 
 	private static final int DEFAULT_QUERY_DEPTH = 1;
 	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null!";
@@ -50,12 +53,15 @@ public class SimpleGraphRepository<T> implements GraphRepository<T> {
 	private Session session;
 
 	/**
-	 * Creates a new {@link SimpleGraphRepository} to manage objects of the given domain type.
+	 * Creates a new {@link SimpleNeo4jRepository} to manage objects of the given domain type.
 	 *
 	 * @param domainClass must not be {@literal null}.
 	 * @param session must not be {@literal null}.
 	 */
-	public SimpleGraphRepository(Class<T> domainClass, Session session) {
+	public SimpleNeo4jRepository(Class<T> domainClass, Session session) {
+		Assert.notNull(domainClass);
+		Assert.notNull(session);
+
 		this.clazz = domainClass;
 		this.session = session;
 	}
@@ -81,13 +87,13 @@ public class SimpleGraphRepository<T> implements GraphRepository<T> {
 	}
 
 	@Override
-	public T findOne(Long id) {
+	public T findOne(ID id) {
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		return session.load(clazz, id);
 	}
 
 	@Override
-	public boolean exists(Long id) {
+	public boolean exists(ID id) {
 		return findOne(id) != null;
 	}
 
@@ -98,7 +104,7 @@ public class SimpleGraphRepository<T> implements GraphRepository<T> {
 
 	@Transactional
 	@Override
-	public void delete(Long id) {
+	public void delete(ID id) {
 		Object o = findOne(id);
 		if (o != null) {
 			session.delete(o);
@@ -140,7 +146,7 @@ public class SimpleGraphRepository<T> implements GraphRepository<T> {
 	}
 
 	@Override
-	public T findOne(Long id, int depth) {
+	public T findOne(ID id, int depth) {
 		return session.load(clazz, id, depth);
 	}
 
@@ -156,13 +162,13 @@ public class SimpleGraphRepository<T> implements GraphRepository<T> {
 	}
 
 	@Override
-	public Iterable<T> findAll(Iterable<Long> longs) {
+	public Iterable<T> findAll(Iterable<ID> longs) {
 		return findAll(longs, DEFAULT_QUERY_DEPTH);
 	}
 
 	@Override
-	public Iterable<T> findAll(Iterable<Long> ids, int depth) {
-		return session.loadAll(clazz, (Collection<Long>) ids, depth);
+	public Iterable<T> findAll(Iterable<ID> ids, int depth) {
+		return session.loadAll(clazz, (Collection<ID>) ids, depth);
 	}
 
 	@Override
@@ -176,13 +182,13 @@ public class SimpleGraphRepository<T> implements GraphRepository<T> {
 	}
 
 	@Override
-	public Iterable<T> findAll(Iterable<Long> ids, Sort sort) {
+	public Iterable<T> findAll(Iterable<ID> ids, Sort sort) {
 		return findAll(ids, sort, DEFAULT_QUERY_DEPTH);
 	}
 
 	@Override
-	public Iterable<T> findAll(Iterable<Long> ids, Sort sort, int depth) {
-		return session.loadAll(clazz, (Collection<Long>) ids, convert(sort), depth);
+	public Iterable<T> findAll(Iterable<ID> ids, Sort sort, int depth) {
+		return session.loadAll(clazz, (Collection<ID>) ids, convert(sort), depth);
 	}
 
 	@Override
