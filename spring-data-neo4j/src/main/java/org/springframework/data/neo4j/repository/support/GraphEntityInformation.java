@@ -13,6 +13,10 @@
 
 package org.springframework.data.neo4j.repository.support;
 
+import org.neo4j.ogm.MetaData;
+import org.neo4j.ogm.entity.io.EntityAccessManager;
+import org.neo4j.ogm.metadata.ClassInfo;
+import org.neo4j.ogm.metadata.FieldInfo;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
 
 import java.io.Serializable;
@@ -20,20 +24,36 @@ import java.io.Serializable;
 /**
  * @author Mark Angrish
  */
-public class GraphEntityInformation<ID extends Serializable, T> extends AbstractEntityInformation<T, Long> {
+public class GraphEntityInformation<T, ID extends Serializable> extends AbstractEntityInformation<T, ID> {
 
-    public GraphEntityInformation(Class<T> type) {
+    private final MetaData metaData;
+
+    public GraphEntityInformation(MetaData metaData, Class<T> type) {
         super(type);
+        this.metaData = metaData;
     }
 
     @Override
-    public Long getId(T entity) {
-        throw new UnsupportedOperationException("Not implemented yet.");
+    public ID getId(T entity) {
+        final ClassInfo classInfo = metaData.classInfo(getJavaType().getName());
+        final FieldInfo primaryIndex = classInfo.primaryIndexField();
+
+        if (primaryIndex != null) {
+            return (ID) EntityAccessManager.getPropertyReader(classInfo, primaryIndex.getName()).readProperty(entity);
+        }
+        else {
+            return (ID) EntityAccessManager.getPropertyReader(classInfo, classInfo.identityField().getName()).readProperty(entity);
+        }
     }
 
     @Override
-    public Class<Long> getIdType() {
-        return Long.class;
+    public Class<ID> getIdType() {
+        final FieldInfo primaryIndex = metaData.classInfo(getJavaType().getName()).primaryIndexField();
+
+        if (primaryIndex != null) {
+            return (Class<ID>) primaryIndex.convertedType();
+        }
+        return (Class<ID>) Long.class;
     }
 
 }

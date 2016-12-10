@@ -25,7 +25,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
 import org.springframework.data.neo4j.repository.support.SessionBeanDefinitionRegistrarPostProcessor;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
@@ -94,7 +94,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	 */
 	@Override
 	protected Collection<Class<?>> getIdentifyingTypes() {
-		return Collections.<Class<?>>singleton(GraphRepository.class);
+		return Collections.<Class<?>>singleton(Neo4jRepository.class);
 	}
 
 	/*

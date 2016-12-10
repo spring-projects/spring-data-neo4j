@@ -13,28 +13,46 @@
 
 package org.springframework.data.neo4j.web.domain;
 
+import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.Index;
+import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
+import org.neo4j.ogm.annotation.typeconversion.Convert;
+import org.neo4j.ogm.typeconversion.UuidStringConverter;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author Michal Bachman
+ * @author Mark Angrish
  */
+@NodeEntity
 public class User {
 
+    @GraphId
     private Long id;
+
+    @Convert(UuidStringConverter.class)
+    @Index(unique = true, primary = true)
+    private UUID uuid;
+
     private String name;
-    private Collection<Genre> interested = new HashSet<>();
+
+    private Collection<Genre> interested;
 
     @Relationship(type = "FRIEND_OF", direction = Relationship.UNDIRECTED)
-    private Set<User> friends = new HashSet<>();
+    private Set<User> friends;
 
     public User() {
     }
 
     public User(String name) {
+        this.interested = new HashSet<>();
+        this.friends = new HashSet<>();
+        this.uuid = UUID.randomUUID();
         this.name = name;
     }
 
@@ -65,5 +83,9 @@ public class User {
 
     public Collection<User> getFriends() {
         return friends;
+    }
+
+    public UUID getUuid() {
+        return uuid;
     }
 }

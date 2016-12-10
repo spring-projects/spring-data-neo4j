@@ -14,12 +14,12 @@
 package org.springframework.data.neo4j.examples.jsr303.repo;
 
 import org.springframework.data.neo4j.examples.jsr303.domain.Adult;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Vince Bickers
  */
 @Repository
-public interface AdultRepository extends GraphRepository<Adult> {
+public interface AdultRepository extends Neo4jRepository<Adult, Long> {
 }

@@ -13,19 +13,18 @@
 
 package org.springframework.data.neo4j.examples.restaurants.repo;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.examples.restaurants.domain.Restaurant;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
  * @author Jasper Blues
  */
-public interface RestaurantRepository extends GraphRepository<Restaurant> {
+public interface RestaurantRepository extends Neo4jRepository<Restaurant, Long> {
 
 	List<Restaurant> findByNameAndLocationNear(String name, Distance distance, Point point);
 

@@ -16,13 +16,14 @@ package org.springframework.data.neo4j.web.service;
 import org.springframework.data.neo4j.web.domain.User;
 
 import java.util.Collection;
+import java.util.UUID;
 
 /**
  * @author Michal Bachman
  */
 public interface UserService {
 
-    User getUserByName(String name);
+    User getUserByUuid(UUID uuid);
 
     Collection<User> getNetwork(User user);
 }

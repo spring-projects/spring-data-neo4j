@@ -18,6 +18,7 @@ import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,7 +33,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.domain.Persistable;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 
@@ -42,7 +43,7 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
 @RunWith(MockitoJUnitRunner.class)
 public class Neo4jRepositoryFactoryBeanTests {
 
-	Neo4jRepositoryFactoryBean<SimpleSampleRepository, User> factoryBean;
+	Neo4jRepositoryFactoryBean<SimpleSampleRepository, User, Long> factoryBean;
 
 	@Mock
 	Session session;
@@ -102,8 +103,8 @@ public class Neo4jRepositoryFactoryBeanTests {
 		factoryBean = new DummyNeo4jRepositoryFactoryBean(null);
 	}
 
-	private class DummyNeo4jRepositoryFactoryBean<T extends GraphRepository<S>, S> extends
-			Neo4jRepositoryFactoryBean<T, S> {
+	private class DummyNeo4jRepositoryFactoryBean<T extends Neo4jRepository<S, ID>, S, ID extends Serializable> extends
+			Neo4jRepositoryFactoryBean<T, S, ID> {
 
 		/**
 		 * @param repositoryInterface
@@ -126,7 +127,7 @@ public class Neo4jRepositoryFactoryBeanTests {
 		}
 	}
 
-	private interface SimpleSampleRepository extends GraphRepository<User> {
+	private interface SimpleSampleRepository extends Neo4jRepository<User, Long> {
 
 	}
 

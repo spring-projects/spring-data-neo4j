@@ -14,10 +14,10 @@
 package org.springframework.data.neo4j.examples.movies.repo;
 
 import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
  * @author Michal Bachman
  */
-public interface TempMovieRepository extends GraphRepository<TempMovie> {
+public interface TempMovieRepository extends Neo4jRepository<TempMovie, Long> {
 }
