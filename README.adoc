@@ -1,10 +1,4 @@
-[NOTE]
-This branch (master) now points to Spring Data Neo4j 4.x the *new* implementation that is based on http://github.com/neo4j/neo4j-ogm[Neo4j-OGM].
-
-[CAUTION]
-If you are using Spring Data Neo4j *4.0* please update the underlying dependeny on Neo4j-OGM to `org.neo4j:neo4j-ogm:1.1.5` to get the latest and greatest performance updates and bug-fixes. Using the latest Neo4j-OGM version is also recommended in general.
-
-= Spring Data Neo4j 4.x - Quick start
+= Spring Data Neo4j 4.1.x - Quick start
 
 [source,java]
 ----
@@ -81,17 +75,9 @@ The underlying technology, neo4j-ogm-core, -compiler, -http-driver, -bolt-driver
     <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j</artifactId>
-        <version>4.1.0.BUILD-SNAPSHOT</version> <!-- or .M1 when released -->
+        <version>4.1.6</version>
     </dependency>
 </dependencies>
-<repositories>
-    <repository>
-        <id>spring-maven-snapshot</id>
-        <snapshots><enabled>true</enabled></snapshots>
-        <name>Springframework Maven MILESTONE Repository</name>
-        <url>http://maven.springframework.org/milestone</url>
-    </repository>
-</repositories>
 ----
 
 
@@ -161,7 +147,7 @@ class Person {
 
 === Transactional services
 
-Create a repository or service to perform typical operations on your entities. 
+Create a repository or service to perform typical operations on your entities.
 The complete functionality is covered in the http://docs.spring.io/spring-data/data-neo4j/docs/current/reference/html/#reference_programming-model[reference manual]
 
 [source,java]
@@ -172,7 +158,7 @@ public interface PersonRepository extends GraphRepository<Person> {
 
    // derived finder method
    Person findByName(String name);
- 
+
    @Query("MATCH (c:Company)<-[:WORKS_AT]-(p:Person) WHERE id(c) = {company} RETURN p")
    List<Person> findEmployees(Company company);
 }
