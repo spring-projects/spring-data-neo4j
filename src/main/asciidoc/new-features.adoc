@@ -1,0 +1,21 @@
+[[new-features]]
+= New & Noteworthy
+
+[[new-features.4-2-0]]
+== What's new in Spring Data Neo4j 4.2.0
+Changes in version 4.2.0.RC1 (2016-12-14)
+----------------------------------------
+
+* Upgrade to Neo4j OGM 2.1.0.
+* Support for Neo4j 3.1.0.
+* Improved documentation focusing more on Spring.
+* Support for other repository query keywords available in Spring Data.
+* Support sorting in derived repository query methods.
+* Support for countBy and delete/removeBy in derived finders.
+* All Cypher Exceptions now translated to Spring Data Exception hierarchy.
+* Fixed `MetaDataDrivenConversionService` to compile against Spring Framework 4.3.
+* Better compliance with Spring's Transaction Manager.
+* Support `@Depth` param on derived repository query methods.
+* Support paging and sorting for custom queries.
+* Improved support for Spring Data REST.
+* Support for findByPropertyNear.

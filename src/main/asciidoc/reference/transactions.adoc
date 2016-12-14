@@ -52,7 +52,7 @@ It is highly recommended that users understand how Spring Transactions work. Bel
 * http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/transaction.html[Spring Transaction Management]
 * http://graphaware.com/neo4j/2016/09/30/upgrading-to-sdn-42.html[Upgrading to Spring Data Neo4j 4.2]
 
-=== Read only Transactions
+== Read only Transactions
 
 As of SDN 4.2 you can also define read only transactions.
 
@@ -61,7 +61,7 @@ You can start a read only transaction by marking a class or method with `@Transa
 [CAUTION]
 Note that if you open a read only transaction from, for example a service method, and then call a mutating method that is marked as read/write your transaction semantics will always be defined by the outermost transaction. Be wary!
 
-=== Configuration
+== Configuration
 
 Note that you will have to activate `@EnableTransactionManagement` explicitly to get annotation based
 configuration at facades working as well as define an instance of this `Neo4jTransactionManager` with the bean name `transactionManager`.

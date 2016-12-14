@@ -1,3 +1,6 @@
+[[forward]]
+= Foreword
+
 [quote, Rod Johnson, Founder of the Spring Framework]
 ____
 I’m excited about Spring Data Neo4j for several reasons.
