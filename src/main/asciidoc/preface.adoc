@@ -1,16 +1,13 @@
 [[preface]]
 = Preface
 
-[abstract]
---
 The Spring Data Neo4J project applies core Spring concepts to the development of solutions using the Neo4j graph data store. We provide "repositories" as a high-level abstraction for storing and querying documents. You will notice similarities to the JPA/Hibernate support in the Spring Framework.
 
 This document is the reference guide for Spring Data - Graph Support. It explains Graph module concepts and semantics and the syntax for various store namespaces.
 
 This section provides some basic introduction to Spring and Graph databases. The rest of the document refers only to Spring Data Neo4j features and assumes the user is familiar with the Neo4j graph database as well as Spring concepts.
---
 
-
+[[get-started:first-steps:spring]]
 == Spring and Spring Data
 
 Spring Data uses Spring framework's http://docs.spring.io/spring/docs/4.2.x/spring-framework-reference/html/spring-core.html[core] functionality, such as the http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/beans.html[IoC] container, http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/validation.html#core-convert[type conversion system], http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/expressions.html[expression language], http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/jmx.html[JMX integration], and portable http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/dao.html#dao-exceptions[DAO exception hierarchy]. While it is not important to know the Spring APIs, understanding the concepts behind them is. At a minimum, the idea behind IoC should be familiar for whatever IoC container you choose to use.
@@ -20,7 +17,7 @@ The core functionality of the Neo4J support can be used directly, with no need t
 To learn more about Spring, you can refer to the comprehensive (and sometimes disarming) documentation that explains in detail the Spring Framework. There are a lot of articles, blog entries and books on the matter - take a look at the Spring framework http://spring.io/docs[home page ] for more information.
 
 
-[[introduction-graph-database]]
+[[get-started:first-steps:nosql]]
 == NoSQL and graph databases
 
 A graph database is a storage engine that is specialised in storing and retrieving vast networks of information.
@@ -34,7 +31,8 @@ In most other modelling approaches, the relationships between things are reduced
 Graph databases allow to keep the rich relationships that originate from the domain equally well-represented in the database without resorting to also modelling the relationships as "things".
 There is very little "impedance mismatch" when putting real-life domains into a graph database.
 
-[[introduction-about-neo4j]]
+
+[[get-started:first-steps:nosql:neo4j]]
 === Introducing Neo4j
 
 http://neo4j.com/[Neo4j] is an open source NOSQL graph database.
@@ -56,6 +54,8 @@ Most importantly, it has an active and contributing community surrounding it, bu
 In addition, Neo4j provides ACID transactions, durable persistence, concurrency control, transaction recovery, high availability, and more.
 Neo4j is released under a dual free software/commercial licence model.
 
+
+[[get-started:first-steps:nosql:neo4j:learn-more]]
 ==== Learning more
 
 The jumping off ground for learning about Neo4J is https://neo4j.com/[neo4j.com]. Here is a list of other useful resources:
@@ -77,8 +77,10 @@ Spring Data Neo4j 4.2.x at minimum, requires:
 * Spring Framework 4.3.x and above.
 
 
-[[project]]
-== Project metadata
+== Additional Resources
+
+[[get-started:project]]
+=== Project metadata
 
 * Version control - http://github.com/spring-projects/spring-data-neo4j
 * Bugtracker - https://jira.spring.io/browse/DATAGRAPH
@@ -86,8 +88,8 @@ Spring Data Neo4j 4.2.x at minimum, requires:
 * Milestone repository - https://repo.spring.io/libs-milestone
 * Snapshot repository - https://repo.spring.io/libs-snapshot
 
-[[getting-help]]
-== Getting Help
+[[get-started:help]]
+=== Getting Help
 
 If you encounter issues or you are just looking for advice, feel free to use one of the links below:
 
@@ -101,8 +103,8 @@ To learn more refer to:
 
 If you are new to Spring as well as to Spring Data, look for information about http://www.springsource.org/projects[Spring projects].
 
-[[feedback]]
-== Got feedback?
+[[get-started:feedback]]
+=== Got feedback?
 
 Whenever you look for the means to employ the full power of the Spring Data Neo4j library, you should be able to find
 your answers in this document.

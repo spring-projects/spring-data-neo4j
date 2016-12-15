@@ -5,17 +5,14 @@ Michael Hunger; Oliver Gierke; Vince Bickers; Adam George; Luanne Misquitta; Mic
 :toc:
 :toc-placement!:
 :spring-data-commons-docs: ../../../../spring-data-commons/src/main/asciidoc
-:neo4j-ogm-docs: http://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc
 
 (C) 2010-2016 Graph Aware Ltd - Neo Technology, Inc. - Pivotal Software, Inc.
+
+image::springdatagraph.png[Spring + Neo4j,align="left"]
 
 NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
 
 toc::[]
-
-image::springdatagraph.png[Spring + Neo4j,align="center"]
-
-include::foreword.adoc[]
 
 include::preface.adoc[]
 
@@ -25,8 +22,7 @@ include::{spring-data-commons-docs}/dependencies.adoc[]
 include::{spring-data-commons-docs}/repositories.adoc[]
 :leveloffset: -1
 
-
-[[sdn-reference]]
+[[sdn-reference-documentation]]
 = Spring Data Neo4j Reference Documentation
 
 :leveloffset: +1
@@ -39,11 +35,40 @@ include::reference/performance.adoc[]
 include::reference/migration.adoc[]
 :leveloffset: -1
 
-[[ogm-reference]]
-= Neo4j Object Graph Mapper (OGM) Reference Documentation
+[[ogm-reference-documentation]]
+= Neo4j OGM Reference Documentation
+
+This section is reproduced from the http://neo4j.com/docs/ogm-manual/current[Official Neo4j OGM Reference Documentation] to
+help developers understand the underlying mapping technology in Spring Data Neo4j.
+
 
 :leveloffset: +1
-include::{neo4j-ogm-docs}/reference/index.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/preface.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/overview.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/preface.adoc[]
+
+[[ogm-reference-documentation:reference-programming-model]]
+= Programming model
+
+This chapter covers the fundamentals of the programming model behind Neo4j OGM.
+It discusses the mapping mode, the annotations provided by the OGM and how to use them.
+
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/programming-model/mapping.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/programming-model/typerepresentationstrategy.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/programming-model/simple_mapping.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/programming-model/node-entities.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/programming-model/relationships.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/programming-model/session.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/programming-model/conversion.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/programming-model/filters.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/programming-model/transactions.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/programming-model/attachdetach.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/programming-model/sorting-paging.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/programming-model/events.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/programming-model/indexing.adoc[]
+
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/setup.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/configuration/ha.adoc[]
 :leveloffset: -1
 
 [[appendix]]
@@ -56,5 +81,3 @@ include::{spring-data-commons-docs}/repository-populator-namespace-reference.ado
 include::{spring-data-commons-docs}/repository-query-keywords-reference.adoc[]
 include::{spring-data-commons-docs}/repository-query-return-types-reference.adoc[]
 :leveloffset: -1
-:numbered:
-

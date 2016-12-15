@@ -1,19 +1,21 @@
 [[migration]]
 = Migration Guide
 
-[[reference.migration]]
+[[migration-4-2]]
 == Migrating from Spring Data Neo4j 4.0 or 4.1 to Spring Data Neo4j 4.2
 
 Spring Data Neo4j 4.2 significantly reduces complexity of configuration for application developers.
 There is no longer a need to extend from `Neo4jConfiguration` or define a `Session` bean.
 
 1. Remove any subclassing of `Neo4jConfiguration`
-1. Define the `sessionFactory` bean with an instance of `SessionFactory` and the `transactionManager` bean with an instance of `Neo4jTransactionManager`. Be sure to pass the `SessionFactory` into the constructor for the transaction manager.
+2. Define the `sessionFactory` bean with an instance of `SessionFactory` and the `transactionManager` bean with an instance of `Neo4jTransactionManager`. Be sure to pass the `SessionFactory` into the constructor for the transaction manager.
 
-
+[[migration-4-0]]
 == Migrating from previous versions of Spring Data Neo4j
 
+[[migration-4-0-packages]]
 === Package Changes
+
 Because the Neo4j Object Graph Mapper can be used independently of Spring Data Neo4j, the core annotations have been
 moved out of the spring framework packages:
 
@@ -25,7 +27,9 @@ The `@Query` and `@QueryResult` annotations are only supported in the Spring mod
 mapping framework. These annotations have not changed.
 ====
 
+[[migration-4-0-annotations]]
 === Annotation Changes
+
 There have been some changes to the annotations that were used in previous versions of Spring Data Neo4j.
 Wherever possible we have tried to maintain the previous annotations verbatim, but in a few cases this has not been
 possible, usually for technical reasons but sometimes for aesthetic ones. Our goal has been to minimise the number
@@ -197,3 +201,4 @@ These features cannot be supported by Cypher and have therefore been dropped fro
 
 
 Please provide feedback on the new APIs of SDN 4 and the migration needs to spring-data-neo4j@neotechnology.com or via a https://jira.spring.io/browse/DATAGRAPH[JIRA issue]
+

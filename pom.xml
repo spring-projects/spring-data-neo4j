@@ -180,6 +180,19 @@
         </profile>
     </profiles>
 
+    <!-- TODO: remove once fix is applied in Spring Data Commons (check after 4.2.0.RC1 release) -->
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.asciidoctor</groupId>
+                    <artifactId>asciidoctor-maven-plugin</artifactId>
+                    <version>1.5.3</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
     <repositories>
         <repository>
             <id>neo4j</id>

@@ -34,4 +34,3 @@ This means that, all other things being equal, it is possible to reliably detect
 Knowing what needs to be changed means we don't need to flood Neo4j with requests to update objects that don't require updating, or create relationships that already exist.
 We can minimise the amount of data we send across the wire as a result, which leads to faster network interaction and fewer CPU cycles consumed on the server.
 
-
