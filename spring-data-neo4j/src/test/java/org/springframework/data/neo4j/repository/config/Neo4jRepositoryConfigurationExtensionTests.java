@@ -47,8 +47,6 @@ import org.springframework.data.repository.core.support.RepositoryFactoryBeanSup
 @RunWith(MockitoJUnitRunner.class)
 public class Neo4jRepositoryConfigurationExtensionTests {
 
-	private static final String RIABPP_CLASS_NAME = RepositoryFactoryBeanSupport.class.getName().concat("_Predictor");
-
 	@Mock RepositoryConfigurationSource configSource;
 
 	public @Rule ExpectedException exception = ExpectedException.none();
@@ -63,7 +61,7 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 
 		Iterable<String> names = Arrays.asList(factory.getBeanDefinitionNames());
 
-		assertThat(names, hasItems("sessionBeanDefinitionRegistrarPostProcessor", RIABPP_CLASS_NAME));
+		assertThat(names, hasItems("sessionBeanDefinitionRegistrarPostProcessor"));
 	}
 
 	@Test

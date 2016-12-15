@@ -68,8 +68,7 @@ public class Neo4jRepositoryFactoryBeanTests {
 		when(factory.getRepository(any(Class.class), any(Object.class))).thenReturn(repository);
 
 		// Setup standard factory configuration
-		factoryBean = new DummyNeo4jRepositoryFactoryBean();
-		factoryBean.setRepositoryInterface(SimpleSampleRepository.class);
+		factoryBean = new DummyNeo4jRepositoryFactoryBean(SimpleSampleRepository.class);
 		factoryBean.setSession(session);
 	}
 
@@ -100,22 +99,18 @@ public class Neo4jRepositoryFactoryBeanTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void preventsNullRepositoryInterface() {
 
-		factoryBean.setRepositoryInterface(null);
-	}
-
-	/**
-	 * Assert that the factory detects unset repository class and interface in
-	 * {@code Neo4jRepositoryFactoryBean#afterPropertiesSet()}.
-	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void preventsUnsetRepositoryInterface() throws Exception {
-
-		factoryBean = new Neo4jRepositoryFactoryBean();
-		factoryBean.afterPropertiesSet();
+		factoryBean = new DummyNeo4jRepositoryFactoryBean(null);
 	}
 
 	private class DummyNeo4jRepositoryFactoryBean<T extends GraphRepository<S>, S> extends
 			Neo4jRepositoryFactoryBean<T, S> {
+
+		/**
+		 * @param repositoryInterface
+		 */
+		public DummyNeo4jRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
+			super(repositoryInterface);
+		}
 
 		/*
 		 * (non-Javadoc)
