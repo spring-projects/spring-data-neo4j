@@ -20,6 +20,7 @@
 	<properties>
 		<project.root>${basedir}/..</project.root>
 		<dist.id>spring-data-neo4j</dist.id>
+		<dist.key>SDNEO4J</dist.key>
 	</properties>
 
 	<build>
