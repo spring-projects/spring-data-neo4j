@@ -112,7 +112,7 @@
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>3.1.0</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
             <optional>true</optional>
         </dependency>
 
@@ -127,7 +127,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>
-			<version>4.2.0.Final</version>
+            <version>5.2.4.Final</version>
             <scope>test</scope>
         </dependency>
 
