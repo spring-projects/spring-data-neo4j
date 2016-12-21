@@ -1,6 +1,12 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.1.6.RELEASE (2016-12-21)
+---------------------------------------------
+* DATAGRAPH-926 - Use only released versions of neo4j-ogm in a stable sdn release.
+* DATAGRAPH-923 - Release 4.1.6 (Hopper SR6).
+
+
 Changes in version 4.2.0.RC1 (2016-12-21)
 -----------------------------------------
 * DATAGRAPH-939 - Adapt API in RepositoryFactoryBeanSupport implementation.
