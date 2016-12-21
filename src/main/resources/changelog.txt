@@ -1,6 +1,38 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.2.0.RC1 (2016-12-21)
+-----------------------------------------
+* DATAGRAPH-939 - Adapt API in RepositoryFactoryBeanSupport implementation.
+* DATAGRAPH-937 - Add OSGI Bundler.
+* DATAGRAPH-936 - Upgrade Neo4j OGM to 2.1.0.
+* DATAGRAPH-935 - Register repository factory in spring.factories for multi-store support.
+* DATAGRAPH-932 - Support non Long keys on Repositories.
+* DATAGRAPH-930 - Upgrade Neo4j OGM to 2.1.0.RC1.
+* DATAGRAPH-927 - Upgrade to OGM 2.1.0-SNAPSHOT.
+* DATAGRAPH-922 - Ensure all OGM exceptions are translated to SD Exceptions.
+* DATAGRAPH-920 - Allow SDN to work at the same time with other Spring Data projects.
+* DATAGRAPH-919 - Update SDN documentation to be ready for 4.2.x release.
+* DATAGRAPH-915 - Merge new code improvements into existing annotations.
+* DATAGRAPH-914 - Upgrade to Neo4j OGM 2.0.6-snapshot.
+* DATAGRAPH-906 - Transaction manager error when mix data jpa and spring data Neo4j.
+* DATAGRAPH-904 - Support for other repository query keywords available in Spring Data.
+* DATAGRAPH-903 - Integration tests create static references to GraphDatabaseService.
+* DATAGRAPH-898 - Fix compile issue in QueryResultGraphRepositoryQuery due to OGM refactor.
+* DATAGRAPH-896 - Neo4jRepositoryFactoryBean should declare mappingContext as auto-wired.
+* DATAGRAPH-895 - Auto-paging does not work when @Query ends with ';'.
+* DATAGRAPH-894 - Fix test setups.
+* DATAGRAPH-893 - Repository methods that return an @QueryResult don't support paging.
+* DATAGRAPH-892 - Upgrade to Neo4j OGM 2.0.5-snapshot.
+* DATAGRAPH-890 - Release 4.2 RC1 (Ingalls).
+* DATAGRAPH-879 - Re-add CDI support for Repositories.
+* DATAGRAPH-878 - Update readme with correct links.
+* DATAGRAPH-865 - Spurious warnings related to enum classes.
+* DATAGRAPH-849 - Neo4j OGM does not scan WAR files. Running java - jar <name>.war results in not finding Neo4j related classes.
+* DATAGRAPH-806 - Finder errors.
+* DATAGRAPH-710 - GraphRepository children do not issue Events.
+
+
 Changes in version 5.0.0.M1 (2016-11-23)
 ----------------------------------------
 * DATAGRAPH-928 - Update OGM to 2.1.0.M1.
