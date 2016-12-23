@@ -15,6 +15,7 @@ package org.springframework.data.neo4j.examples.movies.repo;
 
 import java.util.List;
 
+import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.movies.domain.Rating;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 
@@ -56,4 +57,6 @@ public interface RatingRepository extends Neo4jRepository<Rating, Long> {
 
 	List<Long> deleteByStarsOrRatingTimestampGreaterThan(int stars, long ratingTimestamp);
 
+	@Query("MATCH (a)-[r:RATED]-(b) WHERE ID(a)={0} and ID(b)={1} RETURN a,r,b")
+	Rating findRatingByUserAndTempMovie(long userId, long tempMovieId);
 }
