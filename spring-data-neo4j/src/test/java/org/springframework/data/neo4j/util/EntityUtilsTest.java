@@ -42,6 +42,7 @@ public class EntityUtilsTest extends MultiDriverTestClass {
 		Boolean isNew = EntityUtils.isNew(airplane);
 		Assert.assertTrue(isNew);
 		
+		// Simulate that the entity has been saved (never assign an id in real life)
 		airplane.setId(123);
 		
 		isNew = EntityUtils.isNew(airplane);
@@ -50,7 +51,19 @@ public class EntityUtilsTest extends MultiDriverTestClass {
 	}
 	
 	@Test
-	// Demonstrate determining if the entity is new by using the default "id" property (ie: non-annotated)
+	public void isNew_GraphId_property_returns_non_Long() {
+		
+		Unicycle unicycle = new Unicycle();
+		Boolean isNew = EntityUtils.isNew(unicycle);
+		Assert.assertNull(isNew);
+		
+	}
+	
+	/**
+	 * Demonstrate determining if the entity is new by using the default "id" 
+	 * property (ie: the property is not annotated with @GraphId).
+	 */
+	@Test
 	public void isNew_by_default_property_name_of_id() {
 	
 		Movie movie = new Movie();
@@ -67,24 +80,19 @@ public class EntityUtilsTest extends MultiDriverTestClass {
 
 		@GraphId
 	    private Long id;
-		
-	    private String title;
-
-	    public Airplane() {
-	    }
-
-	    public Airplane(String title) {
-	        this.title = title;
-	    }
-
-	    public String getTitle() {
-	        return title;
-	    }
 
 	    // This would never be done in real life but is used to demonstrate a quick test
 		public void setId(long id) {
 			this.id = id;
 		}
+
+	}
+	
+	protected class Unicycle {
+
+		@GraphId
+		// This would never be done in real life but is used to demonstrate a quick test
+	    private String guid;
 
 	}
 	

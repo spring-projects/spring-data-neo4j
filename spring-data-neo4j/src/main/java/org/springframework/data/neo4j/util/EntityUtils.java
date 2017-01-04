@@ -55,17 +55,16 @@ public class EntityUtils {
 			 * as the OGM will use it automatically."
 			 */
 			Field idField = FieldUtils.getField(entity.getClass(), "id", true);
-			if (Long.class == idField.getType()) {
-				
-				result = getIsNew(entity, idField);
-
+			if (Long.class == idField.getType()) { // Ensure that the field has a @GraphId *and* returns a Long
+				result = isFieldNullValue(entity, idField);
 			}
 			
 		} else if (idFields.size() > 0) {
 
 			Field idField = idFields.get(0);
-			
-			result = getIsNew(entity, idField);
+			if (Long.class == idField.getType()) { // Ensure that the field has a @GraphId *and* returns a Long
+				result = isFieldNullValue(entity, idField);
+			}
 
 		}
 		
@@ -73,16 +72,16 @@ public class EntityUtils {
 		
 	}
 
-	protected static Boolean getIsNew(Object entity, Field idField) {
+	protected static Boolean isFieldNullValue(Object entity, Field idField) {
 		
 		Boolean result = null;
 		
 		try {
 			
-			idField.setAccessible(true);				
+			idField.setAccessible(true);
 			Object value = idField.get(entity);
 			result = (value == null) ? true : false;
-		
+
 		} catch (IllegalArgumentException | IllegalAccessException e) {			
 			logger.warn("Unable to determine if entity " + entity + " is new", e);
 			result = null;
