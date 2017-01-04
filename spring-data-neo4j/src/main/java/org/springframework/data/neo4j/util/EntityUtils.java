@@ -48,7 +48,7 @@ public class EntityUtils {
 		if (idFields.size() == 0) {
 			
 			/* 
-			 * No @GraphId was present on the entity, attempt to find the id property by name, as per 
+			 * No @GraphId was present on the entity, so attempt to find the id property by name, as per 
 			 * http://docs.spring.io/spring-data/neo4j/docs/current/reference/html/#__graphid_neo4j_id_field:
 			 * 
 			 * "If the field is simply named 'id' then it is not necessary to annotate it with @GraphId 
@@ -56,14 +56,14 @@ public class EntityUtils {
 			 */
 			Field idField = FieldUtils.getField(entity.getClass(), "id", true);
 			if (Long.class == idField.getType()) { // Ensure that the field has a @GraphId *and* returns a Long
-				result = isFieldNullValue(entity, idField);
+				result = fieldHasNullValue(entity, idField);
 			}
 			
 		} else if (idFields.size() > 0) {
 
 			Field idField = idFields.get(0);
 			if (Long.class == idField.getType()) { // Ensure that the field has a @GraphId *and* returns a Long
-				result = isFieldNullValue(entity, idField);
+				result = fieldHasNullValue(entity, idField);
 			}
 
 		}
@@ -72,7 +72,7 @@ public class EntityUtils {
 		
 	}
 
-	protected static Boolean isFieldNullValue(Object entity, Field idField) {
+	protected static Boolean fieldHasNullValue(Object entity, Field idField) {
 		
 		Boolean result = null;
 		
