@@ -17,13 +17,21 @@ package org.springframework.data.neo4j.event;
  * {@link Neo4jDataManipulationEvent} published before a particular entity is saved.
  *
  * @author Adam George
+ * @author Eric Spiegelberg
  */
 public class BeforeSaveEvent extends Neo4jDataManipulationEvent {
 
     private static final long serialVersionUID = -2413703447883120441L;
 
-    public BeforeSaveEvent(Object source, Object entity) {
+    private Boolean entityIsNew;
+    
+    public BeforeSaveEvent(Object source, Object entity, boolean entityIsNew) {
         super(source, entity);
+        this.entityIsNew = entityIsNew;
     }
+
+	public Boolean getEntityIsNew() {
+		return entityIsNew;
+	}
 
 }

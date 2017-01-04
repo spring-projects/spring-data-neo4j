@@ -17,13 +17,21 @@ package org.springframework.data.neo4j.event;
  * {@link Neo4jDataManipulationEvent} published after a particular entity is saved.
  *
  * @author Adam George
+ * @author Eric Spiegelberg
  */
 public class AfterSaveEvent extends Neo4jDataManipulationEvent {
 
     private static final long serialVersionUID = 894064891865991948L;
 
-    public AfterSaveEvent(Object source, Object entity) {
+    private Boolean entityIsNew;
+    
+    public AfterSaveEvent(Object source, Object entity, boolean entityIsNew) {
         super(source, entity);
+        this.entityIsNew = entityIsNew;
     }
+
+	public Boolean getEntityIsNew() {
+		return entityIsNew;
+	}
 
 }
