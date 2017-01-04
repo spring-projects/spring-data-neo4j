@@ -41,40 +41,48 @@ public class EntityUtils {
 	public static <T> Boolean isNew(T entity) {
 		
 		Boolean result = null;
+
+		List<Field> idFields = FieldUtils.getFieldsListWithAnnotation(entity.getClass(), GraphId.class);			
+		Assert.isTrue(idFields.size() == 0 || idFields.size() == 1, "Entities must have at most a single @GraphId property");
 		
-		try {
-
-			List<Field> idFields = FieldUtils.getFieldsListWithAnnotation(entity.getClass(), GraphId.class);			
-			Assert.isTrue(idFields.size() == 0 || idFields.size() == 1, "Entities must have at most a single @GraphId property");
+		if (idFields.size() == 0) {
 			
-			if (idFields.size() == 0) {
+			/* 
+			 * No @GraphId was present on the entity, attempt to find the id property by name, as per 
+			 * http://docs.spring.io/spring-data/neo4j/docs/current/reference/html/#__graphid_neo4j_id_field:
+			 * 
+			 * "If the field is simply named 'id' then it is not necessary to annotate it with @GraphId 
+			 * as the OGM will use it automatically."
+			 */
+			Field idField = FieldUtils.getField(entity.getClass(), "id", true);
+			if (Long.class == idField.getType()) {
 				
-				/* 
-				 * No @GraphId was present on the entity, attempt to find the id property by name, as per 
-				 * http://docs.spring.io/spring-data/neo4j/docs/current/reference/html/#__graphid_neo4j_id_field:
-				 * 
-				 * "If the field is simply named 'id' then it is not necessary to annotate it with @GraphId 
-				 * as the OGM will use it automatically."
-				 */
-				Field idField = FieldUtils.getField(entity.getClass(), "id", true);
-				if (Long.class == idField.getType()) {
-					
-					idField.setAccessible(true);					
-					Object value = idField.get(entity);
-					result = (value == null) ? true : false;
-
-				}
-				
-			} else if (idFields.size() > 0) {
-
-				Field idField = idFields.get(0);
-				
-				idField.setAccessible(true);				
-				Object value = idField.get(entity);
-				result = (value == null) ? true : false;
+				result = getIsNew(entity, idField);
 
 			}
+			
+		} else if (idFields.size() > 0) {
 
+			Field idField = idFields.get(0);
+			
+			result = getIsNew(entity, idField);
+
+		}
+		
+		return result;
+		
+	}
+
+	protected static Boolean getIsNew(Object entity, Field idField) {
+		
+		Boolean result = null;
+		
+		try {
+			
+			idField.setAccessible(true);				
+			Object value = idField.get(entity);
+			result = (value == null) ? true : false;
+		
 		} catch (IllegalArgumentException | IllegalAccessException e) {			
 			logger.warn("Unable to determine if entity " + entity + " is new", e);
 			result = null;
@@ -83,5 +91,4 @@ public class EntityUtils {
 		return result;
 		
 	}
-
 }

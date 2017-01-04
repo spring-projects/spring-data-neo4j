@@ -15,6 +15,7 @@ package org.springframework.data.neo4j.util;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.repositories.context.RepositoriesTestContext;
@@ -27,8 +28,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Eric Spiegelberg
  */
-@ContextConfiguration(classes = {RepositoriesTestContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = {RepositoriesTestContext.class})
 public class EntityUtilsTest extends MultiDriverTestClass {
 
 	@Autowired
@@ -36,6 +37,21 @@ public class EntityUtilsTest extends MultiDriverTestClass {
 	
 	@Test
 	public void isNew() {
+		
+		Airplane airplane = new Airplane();
+		Boolean isNew = EntityUtils.isNew(airplane);
+		Assert.assertTrue(isNew);
+		
+		airplane.setId(123);
+		
+		isNew = EntityUtils.isNew(airplane);
+		Assert.assertFalse(isNew);
+		
+	}
+	
+	@Test
+	// Demonstrate determining if the entity is new by using the default "id" property (ie: non-annotated)
+	public void isNew_by_default_property_name_of_id() {
 	
 		Movie movie = new Movie();
 		Boolean isNew = EntityUtils.isNew(movie);
@@ -45,6 +61,31 @@ public class EntityUtilsTest extends MultiDriverTestClass {
 		isNew = EntityUtils.isNew(movie);
 		Assert.assertFalse(isNew);
 		
+	}
+	
+	protected class Airplane {
+
+		@GraphId
+	    private Long id;
+		
+	    private String title;
+
+	    public Airplane() {
+	    }
+
+	    public Airplane(String title) {
+	        this.title = title;
+	    }
+
+	    public String getTitle() {
+	        return title;
+	    }
+
+	    // This would never be done in real life but is used to demonstrate a quick test
+		public void setId(long id) {
+			this.id = id;
+		}
+
 	}
 	
 }
