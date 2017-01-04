@@ -25,7 +25,7 @@ public class AfterSaveEvent extends Neo4jDataManipulationEvent {
 
     private Boolean entityIsNew;
     
-    public AfterSaveEvent(Object source, Object entity, boolean entityIsNew) {
+    public AfterSaveEvent(Object source, Object entity, Boolean entityIsNew) {
         super(source, entity);
         this.entityIsNew = entityIsNew;
     }

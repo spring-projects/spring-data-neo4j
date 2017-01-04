@@ -25,7 +25,7 @@ public class BeforeSaveEvent extends Neo4jDataManipulationEvent {
 
     private Boolean entityIsNew;
     
-    public BeforeSaveEvent(Object source, Object entity, boolean entityIsNew) {
+    public BeforeSaveEvent(Object source, Object entity, Boolean entityIsNew) {
         super(source, entity);
         this.entityIsNew = entityIsNew;
     }
