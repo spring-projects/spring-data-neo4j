@@ -57,7 +57,9 @@ public class TemplateApplicationEventTest extends MultiDriverTestClass {
         assertFalse(this.beforeSaveEventListener.hasReceivedAnEvent());
         assertFalse(this.afterSaveEventListener.hasReceivedAnEvent());
         this.neo4jTemplate.save(entity);
-        assertTrue(this.beforeSaveEventListener.hasReceivedAnEvent());
+        assertTrue(this.beforeSaveEventListener.hasReceivedAnEvent());        
+        assertTrue(((BeforeSaveEvent) this.beforeSaveEventListener.getEvent()).getEntityIsNew());
+        assertTrue(((AfterSaveEvent) this.afterSaveEventListener.getEvent()).getEntityIsNew());        
         assertSame(entity, this.beforeSaveEventListener.getEvent().getEntity());
         assertTrue(this.afterSaveEventListener.hasReceivedAnEvent());
         assertSame(entity, this.afterSaveEventListener.getEvent().getEntity());
@@ -69,6 +71,10 @@ public class TemplateApplicationEventTest extends MultiDriverTestClass {
         assertSame(entity, this.beforeDeleteEventListener.getEvent().getEntity());
         assertTrue(this.afterDeleteEventListener.hasReceivedAnEvent());
         assertSame(entity, this.afterDeleteEventListener.getEvent().getEntity());
+        
+        this.neo4jTemplate.save(entity);
+        assertFalse(((BeforeSaveEvent) this.beforeSaveEventListener.getEvent()).getEntityIsNew());
+        assertFalse(((AfterSaveEvent) this.afterSaveEventListener.getEvent()).getEntityIsNew());
     }
 
 }
