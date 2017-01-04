@@ -91,7 +91,7 @@ public class EntityUtilsTest extends MultiDriverTestClass {
 	protected class Unicycle {
 
 		@GraphId
-		// This would never be done in real life but is used to demonstrate a quick test
+		// Have a non-Long would never be done in real life but is used to demonstrate a quick test
 	    private String guid;
 
 	}
