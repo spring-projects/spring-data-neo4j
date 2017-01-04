@@ -30,6 +30,7 @@ import static org.junit.Assert.*;
 /**
  * Test to assert the behaviour of {@link Neo4jTemplate}'s interaction with Spring application events.
  * @author Adam George
+ * @author Eric Spiegelberg
  */
 @ContextConfiguration(classes = DataManipulationEventConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
