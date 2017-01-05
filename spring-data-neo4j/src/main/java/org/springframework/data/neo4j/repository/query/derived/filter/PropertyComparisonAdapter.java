@@ -15,6 +15,7 @@ package org.springframework.data.neo4j.repository.query.derived.filter;
 
 import java.util.Map;
 
+import org.neo4j.ogm.cypher.CaseInsensitiveLikePropertyValueTransformer;
 import org.neo4j.ogm.cypher.function.FilterFunction;
 import org.neo4j.ogm.cypher.function.PropertyComparison;
 import org.springframework.data.neo4j.repository.query.derived.CypherFilter;
@@ -59,7 +60,24 @@ public class PropertyComparisonAdapter implements FunctionAdapter<Object> {
 
 	@Override
 	public int parameterCount() {
-		return 1;
+		switch (cypherFilter.getComparisonOperator()) {
+			case IS_TRUE:
+			case IS_NULL:
+			case EXISTS:
+				return 0;
+			case EQUALS:
+			case MATCHES:
+			case GREATER_THAN:
+			case GREATER_THAN_EQUAL:
+			case LESS_THAN:
+			case LESS_THAN_EQUAL:
+			case STARTING_WITH:
+			case ENDING_WITH:
+			case CONTAINING:
+			case IN:
+			default:
+				return 1;
+		}
 	}
 
 	@Override
@@ -67,6 +85,8 @@ public class PropertyComparisonAdapter implements FunctionAdapter<Object> {
 		if (cypherFilter == null) {
 			throw new IllegalStateException("Can't set value from args when cypherFilter is null.");
 		}
-		propertyComparison.setValue(params.get(cypherFilter.getPropertyPosition()));
+		if (parameterCount() > 0) {
+			propertyComparison.setValue(params.get(cypherFilter.getPropertyPosition()));
+		}
 	}
 }
