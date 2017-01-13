@@ -313,7 +313,7 @@ To do that update the Spring Boot properties to use the current SDN version. Upd
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring-data-releasetrain.version>Ingalls-BUILD-SNAPSHOT</spring-data-releasetrain.version>
-        <neo4j-ogm.version>2.1.0</neo4j-ogm.version>
+        <neo4j-ogm.version>2.1.1</neo4j-ogm.version>
     </properties>
     ...
     <dependencies>
