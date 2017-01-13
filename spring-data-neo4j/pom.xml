@@ -29,7 +29,7 @@
     </parent>
 
     <properties>
-        <neo4j.ogm.version>2.1.0</neo4j.ogm.version>
+        <neo4j.ogm.version>2.1.1</neo4j.ogm.version>
         <ogm.properties>ogm-http.properties</ogm.properties>
     </properties>
 
