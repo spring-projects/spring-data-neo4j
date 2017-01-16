@@ -280,7 +280,7 @@ To do that update the Spring Boot properties to use the current SDN version. Upd
     ...
 ----
 
-If defining `EventListener`s. Simply defining a `@Bean` will automatically register it with the `SessionFactory`. See
+When defining an `EventListener`. Simply defining a `@Bean` will automatically register it with the `SessionFactory`.
 
 
 [[reference.getting_started.driver]]
