@@ -82,6 +82,23 @@ public class DerivedRelationshipEntityQueryIT extends MultiDriverTestClass {
 		graphDatabaseService.execute(cypher);
 	}
 
+	@Test
+	@Transactional
+	public void shouldFindREFromCustomQuery() {
+		User critic = new User("Gary");
+		TempMovie film = new TempMovie("Fast and Furious XVII");
+		Rating filmRating = critic.rate(film, 2, "They've made far too many of these films now!");
+
+		userRepository.save(critic);
+
+		Rating rating = ratingRepository.findRatingByUserAndTempMovie(critic.getId(), film.getId());
+		assertNotNull(rating);
+		assertNotNull("The loaded rating shouldn't be null", rating);
+		assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), rating.getStars());
+		assertEquals("The rated film wasn't saved correctly", film.getName(), rating.getMovie().getName());
+		assertEquals("The critic wasn't saved correctly", critic.getId(), rating.getUser().getId());
+	}
+
 	/**
 	 * @see DATAGRAPH-629
 	 */
