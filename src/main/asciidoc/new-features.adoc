@@ -3,7 +3,7 @@
 
 [[new-features.4-2-0]]
 == What's new in Spring Data Neo4j 4.2.0
-* Upgrade to Neo4j OGM 2.1.0.
+* Upgrade to Neo4j OGM 2.1.1.
 * Support for Neo4j 3.1.0.
 * Improved documentation focusing more on Spring.
 * Support for other repository query keywords available in Spring Data.
