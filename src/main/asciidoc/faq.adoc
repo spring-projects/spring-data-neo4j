@@ -1,0 +1,8 @@
+[[faq]]
+[appendix]
+= Frequently asked questions
+
+[qanda]
+What is the difference between Neo4j OGM and Spring Data Neo4j (SDN)?::
+  Spring Data Neo4j (SDN) uses the OGM under the covers. It's like Spring Data JPA, where JPA/Hibernate underly it.  Most
+  of the power of SDN actually comes from the OGM.

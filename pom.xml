@@ -27,7 +27,7 @@
         <project.type>multi</project.type>
         <dist.id>spring-data-neo4j</dist.id>
         <springdata.commons>1.13.0.BUILD-SNAPSHOT</springdata.commons>
-        <source.level>1.7</source.level>
+        <source.level>1.8</source.level>
     </properties>
 
     <developers>
@@ -179,6 +179,7 @@
             </build>
         </profile>
     </profiles>
+
 
     <repositories>
         <repository>

@@ -1,20 +1,119 @@
+[[preface]]
+= Preface
 
-Welcome to the http://projects.spring.io/spring-data-neo4j/[Spring Data Neo4j] Guide Book.
+The Spring Data Neo4J project applies core Spring concepts to the development of solutions using the Neo4j graph data store. We provide "repositories" as a high-level abstraction for storing and querying documents. You will notice similarities to the JPA/Hibernate support in the Spring Framework.
 
-This is a classic reference document, containing detailed information about the library. It discusses the programming model, the underlying assumptions, and internals, as well as the APIs for the object-graph mapping. The reference documentation is typically used to look up particular pieces of information or to drill down into certain topics.
+This document is the reference guide for Spring Data - Graph Support. It explains Graph module concepts and semantics and the syntax for various store namespaces.
 
-This project is part of the http://projects.spring.io/spring-data[Spring Data project], which brings the convenient programming model of the Spring Framework to modern NOSQL databases. Spring Data Neo4j, as the name alludes to, aims to provide support for the graph database http://neo4j.com[Neo4j].
+This section provides some basic introduction to Spring and Graph databases. The rest of the document refers only to Spring Data Neo4j features and assumes the user is familiar with the Neo4j graph database as well as Spring concepts.
 
-It is written by developers for developers. Enjoy the book!
+[[get-started:first-steps:spring]]
+== Spring and Spring Data
 
-[preface.acknowledgements]
-== Acknowledgements
+Spring Data uses Spring framework's http://docs.spring.io/spring/docs/4.2.x/spring-framework-reference/html/spring-core.html[core] functionality, such as the http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/beans.html[IoC] container, http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/validation.html#core-convert[type conversion system], http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/expressions.html[expression language], http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/jmx.html[JMX integration], and portable http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/dao.html#dao-exceptions[DAO exception hierarchy]. While it is not important to know the Spring APIs, understanding the concepts behind them is. At a minimum, the idea behind IoC should be familiar for whatever IoC container you choose to use.
 
-We would like to thank everyone who contributed to this book, especially Oliver Gierke, the lead of the Spring Data Project.
+The core functionality of the Neo4J support can be used directly, with no need to invoke the IoC services of the Spring Container. This is much like Hibernate `Session` or JPA `EntityManager` which can be used 'standalone' without any other services of the Spring container. To leverage all the features of Spring Data Neo4j, such as the repository support, you will need to configure some parts of the library using Spring.
 
-Many thanks to our colleagues at Neo Technology and Graph Aware who not only contributed to Spring Data Neo4j but also provided content and feedback for this book.
+To learn more about Spring, you can refer to the comprehensive (and sometimes disarming) documentation that explains in detail the Spring Framework. There are a lot of articles, blog entries and books on the matter - take a look at the Spring framework http://spring.io/docs[home page ] for more information.
 
-We also appreciate very much the foresight of Rod Johnson and Emil Eifrem to initiate the original project. Their leadership inspired collaboration between the engineering teams at SpringSource and Neo Technology, a tremendous help during the making of Spring Data Neo4j.
 
-Last but not least we thank our vibrant community for giving us feedback, reporting issues and suggesting improvements. Without that important feedback we wouldn't be where we are today.
+[[get-started:first-steps:nosql]]
+== NoSQL and graph databases
 
+A graph database is a storage engine that is specialised in storing and retrieving vast networks of information.
+It efficiently stores data as nodes and relationships and allows high performance retrieval and querying of those structures.
+Properties can be added to both nodes and relationships.
+Nodes can be labelled by zero or more labels, relationships are always directed and named.
+
+Graph databases are well suited for storing most kinds of domain models.
+In almost all domains, there are certain things connected to other things.
+In most other modelling approaches, the relationships between things are reduced to a single link without identity and attributes.
+Graph databases allow to keep the rich relationships that originate from the domain equally well-represented in the database without resorting to also modelling the relationships as "things".
+There is very little "impedance mismatch" when putting real-life domains into a graph database.
+
+
+[[get-started:first-steps:nosql:neo4j]]
+=== Introducing Neo4j
+
+http://neo4j.com/[Neo4j] is an open source NOSQL graph database.
+It is a fully transactional database (ACID) that stores data structured as graphs consisting of nodes, connected by relationships.
+Inspired by the structure of the real world, it allows for high query performance on complex data, while remaining intuitive and simple for the developer.
+
+Neo4j is very well-established.
+It has been in commercial development for 15 years and in production for over 12 years.
+Most importantly, it has an active and contributing community surrounding it, but it also:
+
+* has an intuitive, rich graph-oriented model for data representation. Instead of tables, rows, and columns, you work with a graph consisting of http://neo4j.com/docs/stable/graphdb-neo4j.html[nodes, relationships, and properties].
+* has a disk-based, native storage manager optimised for storing graph structures with maximum performance and scalability.
+* is scalable. Neo4j can handle graphs with many billions of nodes/relationships/properties on a single machine, but can also be scaled out across multiple machines for high availability.
+* has a powerful graph query language called Cypher, which allows users to efficiently read/write data by expressing graph patterns.
+* has a powerful traversal framework and query languages for traversing the graph.
+* can be deployed as a standalone server, which is the recommended way of using Neo4j
+* can be deployed as an embedded (in-process) database, giving developers access to its core Java http://api.neo4j.org/[API]
+
+In addition, Neo4j provides ACID transactions, durable persistence, concurrency control, transaction recovery, high availability, and more.
+Neo4j is released under a dual free software/commercial licence model.
+
+
+[[get-started:first-steps:nosql:neo4j:learn-more]]
+==== Learning more
+
+The jumping off ground for learning about Neo4J is https://neo4j.com/[neo4j.com]. Here is a list of other useful resources:
+
+* The https://neo4j.com/docs/[Neo4j documentation] introduces Neo4j and contains links to getting started guides, reference documentation and tutorials.
+* The https://neo4j.com/sandbox/[online sandbox] provides a convenient way to interact with a Neo4j instance in combination with the onlinehttps://neo4j.com//developer/get-started/[tutorial.]
+* Neo4J https://neo4j.com/developer/java/[Java Bolt Driver]
+* Neo4J http://neo4j.com/docs/ogm-manual/current/[Java Object Graph Mapper (OGM) Library]
+* Several https://neo4j.com/books/[books] available for purchase and https://www.youtube.com/neo4j[videos] to watch.
+
+
+[[requirements]]
+== Requirements
+
+Spring Data Neo4j 4.2.x at minimum, requires:
+
+* JDK Version 8 and above.
+* Neo4j Database 2.3.x / 3.0.x / 3.1.x and above.
+* Spring Framework 4.3.x and above.
+
+
+== Additional Resources
+
+[[get-started:project]]
+=== Project metadata
+
+* Version control - http://github.com/spring-projects/spring-data-neo4j
+* Bugtracker - https://jira.spring.io/browse/DATAGRAPH
+* Release repository - https://repo.spring.io/libs-release
+* Milestone repository - https://repo.spring.io/libs-milestone
+* Snapshot repository - https://repo.spring.io/libs-snapshot
+
+[[get-started:help]]
+=== Getting Help
+
+If you encounter issues or you are just looking for advice, feel free to use one of the links below:
+
+To learn more refer to:
+
+* the https://github.com/neo4j-examples/sdn4-university/tree/4.1[sample project: SDN Univeristy].  More example projects for Spring Data Neo4j 4 are available in the https://github.com/neo4j-examples?query=sdn4[Neo4j-Examples] repository
+* The main http://projects.spring.io/spring-data-neo4j[SpringSource project site] contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
+* the http://docs.spring.io/spring-data/neo4j/docs/current/api[Javadocs];
+* for more detailed questions, use http://stackoverflow.com/questions/tagged/spring-data-neo4j-4[Spring Data Neo4j on StackOverflow]
+* For professional support feel free to contact Neo Technology or GraphAware.
+
+If you are new to Spring as well as to Spring Data, look for information about http://www.springsource.org/projects[Spring projects].
+
+[[get-started:feedback]]
+=== Got feedback?
+
+Whenever you look for the means to employ the full power of the Spring Data Neo4j library, you should be able to find
+your answers in this document.
+Hopefully we've created a guide that is well-received by our peers in the development community but sometimes things aren't
+detailed enough or have enough documentation. We are a very quick turnaround development team so if you don't see what, please inform us about missing or incorrect content.
+
+
+If you have any feedback on Spring Data Neo4j or this book, please provide it via:
+
+* https://jira.spring.io/browse/DATAGRAPH[SpringSource JIRA]
+* http://stackoverflow.com/questions/tagged/spring-data-neo4j-4[StackOverflow]
+* http://groups.google.com/group/neo4j[The Neo4j Google Group].

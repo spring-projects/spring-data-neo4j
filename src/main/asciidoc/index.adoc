@@ -1,83 +1,76 @@
-= Good Relationships: The Spring Data Neo4j Guide Book
+= Spring Data Neo4j - Reference Documentation
 Michael Hunger; Oliver Gierke; Vince Bickers; Adam George; Luanne Misquitta; Michal Bachman; Mark Angrish
-:toc:
-:toc-placement!:
 :revnumber: {version}
 :revdate: {localdate}
-
-Spring Data Neo4j Version 4.2.0.RC1 (December 2016)
+:toc:
+:toc-placement!:
+:spring-data-commons-docs: ../../../../spring-data-commons/src/main/asciidoc
 
 (C) 2010-2016 Graph Aware Ltd - Neo Technology, Inc. - Pivotal Software, Inc.
 
-NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee
-for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
+image::springdatagraph.png[Spring + Neo4j,align="left"]
+
+NOTE: _Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically._
 
 toc::[]
 
-image::springdatagraph.png[Spring + Neo4j,align="center"]
-
-[[forward]]
-= Foreword
-
-:sectnums!:
-
-include::foreword.adoc[]
-
-:sectnums:
-
-[[preface]]
-= Preface
-
-:sectnums!:
-
 include::preface.adoc[]
 
-:sectnums:
-
-[[introduction]]
-= Introduction
-
 :leveloffset: +1
-
-include::introduction/spring-data.adoc[]
-include::introduction/neo4j.adoc[]
-
+include::new-features.adoc[]
+include::{spring-data-commons-docs}/dependencies.adoc[]
+include::{spring-data-commons-docs}/repositories.adoc[]
 :leveloffset: -1
 
 [[reference]]
 = Reference Documentation
 
 :leveloffset: +1
-
 include::reference/overview.adoc[]
-include::reference/requirements.adoc[]
-include::reference/release-train.adoc[]
 include::reference/architecture.adoc[]
 include::reference/setup.adoc[]
-include::reference/programming-model/programming-model.adoc[]
+include::reference/neo4j-repositories.adoc[]
+include::reference/neo4j-template.adoc[]
 include::reference/performance.adoc[]
-include::reference/ha.adoc[]
-
+include::reference/migration.adoc[]
 :leveloffset: -1
 
-[[migration]]
-= Migration Guide
+
+[[ogm-reference-documentation]]
+= Neo4j OGM Reference Documentation
+
+[abstract]
+--
+This chapter is the reference documentation for Neo4j OGM, taken from the http://neo4j.com/docs/ogm-manual/current[Official Neo4j OGM Reference Documentation] to
+help developers understand the underlying mapping technology in Spring Data Neo4j.
+It covers the programming model, APIs, concepts, annotations and technical details of the Neo4j OGM.
+--
 
 :leveloffset: +1
-
-include::migration/migration.adoc[]
-
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/introduction.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/getting-started.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/configuration.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/annotations.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/indexing.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/connecting.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/session.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/conversion.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/filters.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/events.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/testing.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/ha.adoc[]
 :leveloffset: -1
+`
 
 [[appendix]]
 = Appendix
 
 :numbered!:
-
 :leveloffset: +1
-
-include::appendix/appendix.adoc[]
+include::{spring-data-commons-docs}/repository-namespace-reference.adoc[]
+include::{spring-data-commons-docs}/repository-populator-namespace-reference.adoc[]
+include::{spring-data-commons-docs}/repository-query-keywords-reference.adoc[]
+include::{spring-data-commons-docs}/repository-query-return-types-reference.adoc[]
+include::faq.adoc[]
 
 :leveloffset: -1
-
-:numbered:

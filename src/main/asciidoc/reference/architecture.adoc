@@ -25,6 +25,9 @@ image::SDN-Architecture.png[Spring Data Neo4j Architecture,align="center"]
 
 == Neo4j OGM
 
+[IMPORTANT]
+It is expected users are familiar with the concepts in the OGM. To find out more check out the http://neo4j.com/docs/ogm-manual/current/[OGM library documentation].
+
 === SessionFactory
 
 The `SessionFactory` is needed by SDN to create instances of `org.neo4j.ogm.session.Session` as required.
@@ -41,7 +44,10 @@ A `Session` is used to drive the object-graph mapping framework. All repository 
 It keeps track of the changes that have been made to entities and their relationships.
 The reason it does this is so that only entities and relationships that have changed get persisted on save, which is particularly efficient when working with large graphs.
 
-For most request/response type applications SDN will take care of Session management for you (as defined in the Configuration section above).
+
+Sessions are usually bound to a thread by default and rely on the garbage collector to clean it up once it is out of scope of processing.
+For most users this means there is nothing to configure.
+Request/response type applications SDN will take care of Session management for you (as defined in the Configuration section above).
 If you have a batch or long running desktop type application you may want to know how you can control using the session a bit more.
 
 ==== Design Consideration: Session caching

@@ -20,6 +20,12 @@ Spring Data Neo4j projects can be built using Maven, Gradle or Ant/Ivy.
 [[reference.getting_started.dependencies.maven]]
 === Maven
 
+By default, SDN will use the Http driver to connect to Neo4j and you don't need to declare it as a separate dependency in your pom.
+If you want to use the embedded or Bolt drivers in your production application, you must add the following dependencies as well.
+(This dependency on the embedded driver is not required if you only want to use the embedded driver for testing. See the section on <<testing,Testing>> below for more information).
+
+
+
 [source,xml]
 ----
 <dependency>
@@ -27,14 +33,7 @@ Spring Data Neo4j projects can be built using Maven, Gradle or Ant/Ivy.
     <artifactId>spring-data-neo4j</artifactId>
     <version>{version}</version>
 </dependency>
-----
 
-By default, SDN will use the Http driver to connect to Neo4j and you don't need to declare it as a separate dependency in your pom.
-If you want to use the embedded or Bolt drivers in your production application, you must add the following dependencies as well.
-(This dependency on the embedded driver is not required if you only want to use the embedded driver for testing. See the section on <<testing,Testing>> below for more information).
-
-[source,xml]
-----
 <!-- add this dependency if you want to use the embedded driver -->
 <dependency>
     <groupId>org.neo4j</groupId>
@@ -48,36 +47,8 @@ If you want to use the embedded or Bolt drivers in your production application, 
     <artifactId>neo4j-ogm-bolt-driver</artifactId>
     <version>{ogm-version}</version>
 </dependency>
-
 ----
 
-If you'd rather like the latest snapshots of the upcoming major version, use our Maven snapshot repository and declare the appropriate dependency version.
-
-[source,xml]
-----
-
-    <dependency>
-        <groupId>org.springframework.data</groupId>
-        <artifactId>spring-data-neo4j</artifactId>
-        <version>4.2.X.BUILD-SNAPSHOT</version>
-    </dependency>
-
-    <!-- used for nightly builds -->
-    <repository>
-      <id>spring-maven-snapshot</id>
-      <snapshots><enabled>true</enabled></snapshots>
-      <name>Springframework Maven SNAPSHOT Repository</name>
-      <url>http://repo.spring.io/libs-release</url>
-    </repository>
-
-    <!-- used for milestone/rc releases -->
-    <repository>
-      <id>spring-maven-milestone</id>
-      <name>Springframework Maven Milestone Repository</name>
-      <url>http://repo.spring.io/libs-milestone</url>
-    </repository>
-
-----
 
 [[reference.getting_started.dependencies.testing]]
 ==== Testing
@@ -149,19 +120,6 @@ dependencies {
 }
 ----
 
-Similar to maven, if you want to use either the latest snapshots or milestones, you will need to add the following:
-
-[source,groovy]
-----
-repositories {
-   # used for milestone/rc releases
-   maven { url "http://repo.spring.io/libs-milestone" }
-
-   # used for nightly builds
-   maven { url "http://repo.spring.io/libs-snapshot" }
-}
-----
-
 [[reference.getting_started.dependencies.ivy]]
 === Ivy
 
@@ -183,13 +141,12 @@ Ivy dependencies are also similar to Maven:
 [[reference.getting_started.spring-configuration]]
 == Spring configuration
 
-Version 4.2 significantly reduces the complexity of configuration for the application developer.
-
 Right now SDN only supports JavaConfig. There is no XML based support at this stage.
 
 [NOTE]
 If you have come from Version 4.1 or earlier you no longer need to define a `Session` bean and Spring `Scope` or
-extend from `Neo4jConfiguration`. This is now all taken care for you by SDN.
+extend from `Neo4jConfiguration`. This is now all taken care for you by SDN. Check out the migration section to make
+sure you have covered all the issues.
 
 For most applications the following configuration is all that's needed to get up and running.
 
@@ -300,9 +257,7 @@ public class MyAppInitializer extends AbstractAnnotationConfigDispatcherServletI
 [[reference.getting_started.spring-configuration.boot]]
 === Spring Boot Applications
 
-Unfortunately, due to the Spring release schedule you cannot use the current or upcoming versions of Spring Boot and expect to use these new improvements out of the box.
-
-That said Spring Boot is flexible enough for you to override the current configuration and supply it with something compatible with SDN 4.2.
+Spring Boot `1.5.0` works straight out of the box with Spring Data Neo4j `4.2.0`.
 
 To do that update the Spring Boot properties to use the current SDN version. Update your Spring Boot Maven POM with the following. You may need to add `<repositories>` depending on versioning.
 
@@ -312,8 +267,8 @@ To do that update the Spring Boot properties to use the current SDN version. Upd
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spring-data-releasetrain.version>Ingalls-BUILD-SNAPSHOT</spring-data-releasetrain.version>
-        <neo4j-ogm.version>2.1.1</neo4j-ogm.version>
+        <java.version>1.8</java.version>
+        <spring-data-releasetrain.version>Ingalls-RC1</spring-data-releasetrain.version>
     </properties>
     ...
     <dependencies>
@@ -321,79 +276,11 @@ To do that update the Spring Boot properties to use the current SDN version. Upd
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-neo4j</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
     </dependencies>
     ...
 ----
 
-Remove the reference to the old Neo4j Configuration where you define your Spring Boot application using the `exclude` option in the `@SpringBootApplication`.
-
-[source,java]
-----
-@Controller
-@SpringBootApplication(exclude={Neo4jDataAutoConfiguration.class})
-public class Application {
-    public static main(String[] args) {
-        SpringApplication.run(Application.class, args);
-    }
-}
-----
-
-Finally, add the your new SDN 4.2 Configuration somewhere in the Boot classpath (it will pick up your configuration if it's annotated with `@Configuration`:
-
-[source,java]
-----
-@Configuration
-@EnableNeo4jRepositories(basePackages = "your.project.repository")
-@EnableTransactionManagement
-@ComponentScan({"your.project.services"})
-@EnableWebMvc
-@EnableConfigurationProperties(Neo4jProperties.class)
-public class Neo4jConfiguration extends WebMvcConfigurerAdapter {
-
-	private final Neo4jProperties properties;
-
-	public Neo4jConfiguration(Neo4jProperties properties) {
-		this.properties = properties;
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public org.neo4j.ogm.config.Configuration configuration() {
-		return this.properties.createConfiguration();
-	}
-
-	@Bean
-	public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
-		OpenSessionInViewInterceptor openSessionInViewInterceptor =
-				new OpenSessionInViewInterceptor();
-		openSessionInViewInterceptor.setSessionFactory(sessionFactory(configuration()));
-		return openSessionInViewInterceptor;
-	}
-
-	@Override
-	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addWebRequestInterceptor(openSessionInViewInterceptor());
-	}
-
-	@Bean
-	public SessionFactory sessionFactory(org.neo4j.ogm.config.Configuration configuration) {
-		return new SessionFactory(configuration, "your.project.domain");
-	}
-
-	@Bean
-	public Neo4jTransactionManager transactionManager(SessionFactory sessionFactory) {
-		return new Neo4jTransactionManager(sessionFactory);
-	}
-}
-----
+When defining an `EventListener`. Simply defining a `@Bean` will automatically register it with the `SessionFactory`.
 
 
 [[reference.getting_started.driver]]
@@ -639,31 +526,3 @@ public Configuration cnfiguration() {
 ====
 Currently only Basic Authentication is supported by Neo4j, so the only Credentials implementation available is `UsernameAndPasswordCredentials`
 ====
-
-== Transport Layer Security
-
-The Bolt and Http drivers allow you to connect to Neo4j over a secure channel. These rely on Transport Layer Security (aka SSL) and require the installation of a signed certificate on the server.
-
-In certain situations (e.g. some cloud environments) it may not be possible to install a signed certificate even though you still want to use an encrypted connection.
-
-To support this, both drivers have configuration settings allowing you to bypass certificate checking, although they differ in their implementation.
-
-.ogm.properties (bolt):
-[source, properties]
-----
-encryption.level=REQUIRED
-trust.strategy=TRUST_ON_FIRST_USE
-trust.certificate.file=/tmp/cert
-----
-
-TRUST_ON_FIRST_USE means that the Bolt Driver will trust the first connection to a host to be safe and intentional. On subsequent connections, the driver will verify that the host is the same as on that first connection.
-
-.ogm.properties (driver):
-[source, properties]
-----
-trust.trategy = ACCEPT_UNSIGNED
-----
-
-The ACCEPT_UNSIGNED strategy permits the Http Driver to accept Neo4j's default `snakeoil.cert` (and any other) unsigned certificate when connecting over HTTPS.
-
-_Note: Both these strategies leave you vulnerable to a MITM attack. You should probably not use them unless your servers are behind a secure firewall.
