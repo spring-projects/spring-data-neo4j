@@ -22,28 +22,23 @@ include::{spring-data-commons-docs}/dependencies.adoc[]
 include::{spring-data-commons-docs}/repositories.adoc[]
 :leveloffset: -1
 
+
 [[reference]]
 = Reference Documentation
 
 :leveloffset: +1
-include::reference/overview.adoc[]
-include::reference/architecture.adoc[]
-include::reference/setup.adoc[]
+include::reference/introduction.adoc[]
+include::reference/getting-started.adoc[]
+include::reference/ogm-support.adoc[]
 include::reference/neo4j-repositories.adoc[]
-include::reference/neo4j-template.adoc[]
-include::reference/performance.adoc[]
-include::reference/migration.adoc[]
 :leveloffset: -1
-
 
 [[ogm-reference-documentation]]
 = Neo4j OGM Reference Documentation
 
 [abstract]
 --
-This chapter is the reference documentation for Neo4j OGM, taken from the http://neo4j.com/docs/ogm-manual/current[Official Neo4j OGM Reference Documentation] to
-help developers understand the underlying mapping technology in Spring Data Neo4j.
-It covers the programming model, APIs, concepts, annotations and technical details of the Neo4j OGM.
+This chapter is taken from the http://neo4j.com/docs/ogm-manual/current[Official Neo4j OGM Reference Documentation].
 --
 
 :leveloffset: +1
@@ -60,7 +55,8 @@ include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs
 include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/testing.adoc[]
 include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/ha.adoc[]
 :leveloffset: -1
-`
+
+
 
 [[appendix]]
 = Appendix
@@ -71,6 +67,7 @@ include::{spring-data-commons-docs}/repository-namespace-reference.adoc[]
 include::{spring-data-commons-docs}/repository-populator-namespace-reference.adoc[]
 include::{spring-data-commons-docs}/repository-query-keywords-reference.adoc[]
 include::{spring-data-commons-docs}/repository-query-return-types-reference.adoc[]
+include::migration.adoc[]
 include::faq.adoc[]
 
 :leveloffset: -1

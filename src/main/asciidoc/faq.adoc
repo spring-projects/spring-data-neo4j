@@ -4,5 +4,76 @@
 
 [qanda]
 What is the difference between Neo4j OGM and Spring Data Neo4j (SDN)?::
-  Spring Data Neo4j (SDN) uses the OGM under the covers. It's like Spring Data JPA, where JPA/Hibernate underly it.  Most
-  of the power of SDN actually comes from the OGM.
+Spring Data Neo4j (SDN) uses the OGM under the covers. It's like Spring Data JPA, where JPA/Hibernate underly it.  Most
+of the power of SDN actually comes from the OGM.
+
+How do I set up my Spring Configuration with Spring WebMVC projects?::
+If you are using a Spring WebMVC application, the following configuration is all that's required:
+[source,java]
+----
+@Configuration
+@EnableWebMvc
+@ComponentScan({"org.neo4j.example.web"})
+@EnableNeo4jRepositories("org.neo4j.example.repository")
+@EnableTransactionManagement
+public class MyWebAppConfiguration extends WebMvcConfigurerAdapter {
+
+    @Bean
+    public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
+        OpenSessionInViewInterceptor openSessionInViewInterceptor =
+            new OpenSessionInViewInterceptor();
+        openSessionInViewInterceptor.setSessionFactory(sessionFactory());
+        return openSessionInViewInterceptor;
+    }
+
+    @Override
+        public void addInterceptors(InterceptorRegistry registry) {
+        registry.addWebRequestInterceptor(openSessionInViewInterceptor());
+    }
+
+    @Bean
+    public SessionFactory sessionFactory() {
+        // with domain entity base package(s)
+        return new SessionFactory("org.neo4j.example.domain");
+    }
+
+    @Bean
+    public Neo4jTransactionManager transactionManager() throws Exception {
+        return new Neo4jTransactionManager(sessionFactory());
+    }
+}
+----
+
+How do I set up my Spring Configuration with a Java Servlet 3.x+ Container project?::
+If you are using a Java Servlet 3.x+ Container, you can configure a Servlet filter with Spring's `AbstractAnnotationConfigDispatcherServletInitializer`.  The configuration below will open a new
+session for every web request then automatically close it on completion. SDN provides the `org.springframework.data.neo4j.web.support.OpenSessionInViewFilter` to do this:
+[source,java]
+----
+public class MyAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+  @Override
+  protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+      registration.setInitParameter("throwExceptionIfNoHandlerFound", "true");
+  }
+
+  @Override
+  protected Class<?>[] getRootConfigClasses() {
+      return new Class[] {ApplicationConfiguration.class} // if you have broken up your configuration, this points to your non web application config/s.
+  }
+
+  @Override
+  protected Class<?>[] getServletConfigClasses() {
+      throw new Class[] {WebConfiguration.class}; // a configuration that extends the WebMvcConfigurerAdapter as seen above.
+  }
+
+  @Override
+  protected String[] getServletMappings() {
+    return new String[] {"/"};
+  }
+
+  protected Filter[] getServletFilters() {
+    return return new Filter[] {new OpenSessionInViewFilter()};
+  }
+
+}
+----

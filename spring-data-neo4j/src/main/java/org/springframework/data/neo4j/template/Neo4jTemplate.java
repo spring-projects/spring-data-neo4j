@@ -19,8 +19,6 @@ import static org.springframework.data.neo4j.util.IterableUtils.*;
 import java.util.Collection;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.cypher.query.Pagination;
@@ -28,6 +26,8 @@ import org.neo4j.ogm.cypher.query.SortOrder;
 import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -51,7 +51,7 @@ import org.springframework.util.Assert;
 @Deprecated
 public class Neo4jTemplate implements Neo4jOperations, InitializingBean {
 
-	private static final Log logger = LogFactory.getLog(Neo4jTemplate.class);
+	private static final Logger logger = LoggerFactory.getLogger(Neo4jTemplate.class);
 
 	private SessionFactory sessionFactory;
 

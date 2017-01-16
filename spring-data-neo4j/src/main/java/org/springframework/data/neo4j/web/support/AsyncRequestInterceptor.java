@@ -15,10 +15,9 @@ package org.springframework.data.neo4j.web.support;
 
 import java.util.concurrent.Callable;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.neo4j.ogm.session.SessionFactory;
-import org.springframework.data.neo4j.transaction.SessionFactoryUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.transaction.SessionHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -37,7 +36,7 @@ import org.springframework.web.context.request.async.DeferredResultProcessingInt
  */
 class AsyncRequestInterceptor extends CallableProcessingInterceptorAdapter implements DeferredResultProcessingInterceptor {
 
-	private static final Log logger = LogFactory.getLog(AsyncRequestInterceptor.class);
+	private static final Logger logger = LoggerFactory.getLogger(AsyncRequestInterceptor.class);
 
 	private final SessionFactory sessionFactory;
 

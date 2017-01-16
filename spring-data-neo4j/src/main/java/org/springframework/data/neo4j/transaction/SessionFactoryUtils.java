@@ -16,16 +16,15 @@ package org.springframework.data.neo4j.transaction;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.neo4j.ogm.autoindex.MissingIndexException;
 import org.neo4j.ogm.autoindex.Neo4jVersionException;
-import org.neo4j.ogm.drivers.http.request.HttpRequestException;
 import org.neo4j.ogm.entity.io.EntityAccessException;
 import org.neo4j.ogm.exception.*;
 import org.neo4j.ogm.session.Neo4jException;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -47,7 +46,7 @@ import org.springframework.util.Assert;
  */
 public class SessionFactoryUtils {
 
-	private static final Log logger = LogFactory.getLog(SessionFactoryUtils.class);
+	private static final Logger logger = LoggerFactory.getLogger(SessionFactoryUtils.class);
 
 
 	public static void closeSession(Session session) {
@@ -149,9 +148,6 @@ public class SessionFactoryUtils {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 		}
 		if (ex instanceof Neo4jVersionException) {
-			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
-		}
-		if (ex instanceof HttpRequestException) {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 		}
 		if (ex instanceof Neo4jException) {

@@ -7,44 +7,7 @@
 This chapter will point out the specialties for repository support for Neo4J and the Neo4J OGM. This builds on the core repository support explained in <<repositories>>. So make sure you've got a sound understanding of the basic concepts explained there.
 
 
-[[neo4j-repo-config]]
-== Configuration
-
-As of SDN 4, this `Neo4jRepository<T>` should be the interface from which your entity repository interfaces inherit, with `T` being specified as the domain entity type to persist.
-
-Examples of methods you get for free out of `Neo4jRepository` are as follows.
-For all of these examples the ID parameter is a `Long` that matches the graph ID:
-
-Load an entity instance via an id::
-`T findOne(id)`
-
-Check for existence of an id in the graph::
-`boolean exists(id)`
-
-Iterate over all nodes of a node entity type::
-`Iterable<T> findAll()`
-`Iterable<T> findAll(Sort ...)`
-`Page<T> findAll(Pageable ...)`
-
-Count the instances of the repository entity type::
-`Long count()`
-
-Save entities::
-`T save(T)` and `Iterable<T> save(Iterable<T>)`
-
-Delete graph entities::
-`void delete(T)`, `void delete(Iterable<T>)`, and `void deleteAll()`
-
-
-=== GraphRepository (Version 4.0.x - 4.1.x)
-
-`Neo4jRepository` has replaced `GraphRepository` but essentially have the same features. This is only provided for legacy reasons
-and has been deprecated.
-
-
 == Usage
-
-=== Creating repositories
 
 The `Repository` instances are only created through Spring and can be auto-wired into your Spring beans as required.
 
@@ -73,28 +36,16 @@ The underlying Spring repository infrastructure will automatically detect these 
 and create an injectable repository implementation to be used in services or other spring beans.
 
 
-
-[[reference_programming-model_repositories]]
-=== CRUD with repositories
-
 The repositories provided by Spring Data Neo4j build on the composable repository infrastructure in http://static.springsource.org/spring-data/data-commons/docs/current/reference/html/#repositories[Spring Data Commons].
 These allow for interface-based composition of repositories consisting of provided default implementations for certain interfaces and additional custom implementations for other methods.
 
 Spring Data Neo4j comes with a single `org.springframework.data.repository.PagingAndSortingRepository` specialisation called
-`Neo4jRepository<T>` used for all object-graph mapping repositories.
+`Neo4jRepository<T. ID>` used for all object-graph mapping repositories.
 This sub-interface also adds specific finder methods that take a _depth_ argument to control the horizon with which related entities are fetched and saved.
 Generally, it provides all the desired repository methods.
 If other operations are required then the additional repository interfaces should be added to the individual interface declaration.
 
-[NOTE]
-====
-`Neo4jRepository` no longer combines `IndexRepository` and `TraversalRepository` because, for reasons explained
-earlier, these features are no longer supported in Spring Data Neo4j as of version 4.
-====
-
-
 == Query Methods
-
 
 === Query and Finder Methods
 
@@ -145,7 +96,7 @@ public interface PersonRepository extends PagingAndSortingRepository<Person, Str
 Queries using the Cypher graph query language can be supplied with the `@Query` annotation.
 
 That means a repository method annotated with +
-`@Query("MATCH (:Actor {name:{name}})-[:ACTED_IN]->(m:Movie) return m")` +
+`@Query("MATCH (:Actor {name:{name}})-[:ACTED_IN]\->(m:Movie) return m")` +
 will use the supplied query query to retrieve data from Neo4j.
 
 The named or indexed parameter `{param}` will be substituted by the actual method parameter.
@@ -184,7 +135,7 @@ returns the names of the actors that have a ACTS_IN relationship to the movie no
 `MATCH (movie:Movie {title:'Matrix'})<-[r:RATED]-(user) WHERE r.stars > 3 RETURN user.name, r.stars, r.comment`::
 returns users names and their ratings (>3) of the movie titled 'Matrix'
 
-`MATCH (user:User {name='Michael'})-[:FRIEND]-(friend)-[r:RATED]->(movie) RETURN movie.title, AVG(r.stars), COUNT(\*) ORDER BY AVG(r.stars) DESC, COUNT(*) DESC`::
+`MATCH (user:User {name='Michael'})-[:FRIEND]-(friend)-[r:RATED]\->(movie) RETURN movie.title, AVG(r.stars), COUNT(\*) ORDER BY AVG(r.stars) DESC, COUNT(*) DESC`::
 returns the movies rated by the friends of the user 'Michael', aggregated by `movie.title`, with averaged ratings and rating-counts sorted by both
 
 Examples of Cypher queries placed on repository methods with @Query where values are replaced with method parameters,
@@ -202,17 +153,17 @@ public interface MovieRepository extends Neo4jRepository<Movie> {
     @Query("MATCH (movie:Movie {title={0}}) RETURN movie")
     Movie getMovieFromTitle(String movieTitle);
 
-	// returns a Page of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter.
-	@Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor")
-	Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, PageRequest page);
+    // returns a Page of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter.
+    @Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor")
+    Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, PageRequest page);
 
     // returns a Page of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter with an accurate total count
-	@Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor", countQuery = "MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN count(*)")
-	Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, Pageable page);
+    @Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor", countQuery = "MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN count(*)")
+    Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, Pageable page);
 
     // returns a Slice of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter.
-	@Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor")
-	Slice<Actor> getActorsThatActInMovieFromTitle(String movieTitle, Pageable page);
+    @Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor")
+    Slice<Actor> getActorsThatActInMovieFromTitle(String movieTitle, Pageable page);
 
     // returns users who rated a movie (movie parameter) higher than rating (rating parameter)
     @Query("MATCH (movie:Movie)<-[r:RATED]-(user) " +
@@ -278,7 +229,7 @@ For queries executed via `@Query` repository methods, it's possible to specify a
 ----
 public interface MovieRepository extends GraphRepository<Movie> {
 
-    @Query("MATCH (movie:Movie)-[r:RATING]->(), (movie)<-[:ACTS_IN]-(actor:Actor) " +
+    @Query("MATCH (movie:Movie)-[r:RATING]\->(), (movie)<-[:ACTS_IN]-(actor:Actor) " +
            "WHERE movie.id={0} " +
            "RETURN movie as movie, COLLECT(actor) AS 'cast', AVG(r.stars) AS 'averageRating'")
     MovieData getMovieData(String movieId);
@@ -326,55 +277,110 @@ The total number of pages reported by the `PagingAndSortingRepository` `findAll`
 ====
 
 
-== Miscellaneous
 
-=== JSR-303 (Bean Validation) Support
+[[reference_programming-model_transactions]]
+== Transactions
 
-Spring Data Neo4J allows developers to use JSR-303 annotations like `@NotNull` etc. on their domain models.
-While this is provided it's not a best practice. It is highly recommended to create JSR-303 annotations on actual Java Beans,
-similar to things like Data Transfer Objects (DTOs).
+Neo4j is a transactional database, only allowing operations to be performed within transaction boundaries.
+Spring Data Neo4j integrates nicely with both the declarative transaction support with `@Transactional` as well as the manual transaction handling with `TransactionTemplate`.
 
-=== Conversion Service
-It is possible to have Spring Data Neo4j 4 use converters registered with http://docs.spring.io/spring/docs/current/spring-framework-reference/html/validation.html#core-convert[Spring's ConversionService].
-In order to do this, provide `org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService` as a Spring bean.
+Demarcating @Transactional is required for all methods that interact with SDN.
+CRUD methods on `Repository` instances are transactional by default. If you are simply just looking up an object through a repository for example,
+then you do not need to define anything else: SDN will take of everything for you.  That said, it is strongly recommended that you always annotate any service boundaries to the database with a `@Transactional` annotation. This way all your code for that method will always run in one transaction, even if you add a write operation later on.
 
-.Provide MetaDataDrivenConversionService as a Spring bean
-[source,java]
-----
-@Bean
-public ConversionService conversionService() {
-    return new MetaDataDrivenConversionService(getSessionFactory().metaData());
-}
-----
-
-Then, instead of defining an implementation of `org.neo4j.ogm.typeconversion.AttributeConverter` on the `@Convert` annotation,
-use the `graphPropertyType` attribute to define the type to convert to.
-
-.Using graphPropertyType
-[source,java]
-----
-@NodeEntity
-public class MyEntity {
-
-    @Convert(graphPropertyType = Integer.class)
-    private DecimalCurrencyAmount fundValue;
-
-}
-----
-
-Spring Data Neo4j 4 will look for converters registered with Spring's ConversionService that can convert
-both to and from the type specified by `graphPropertyType` and use them if they exist.
+More standard behaviour with Transactions is using a facade or service implementation that typically covers more than one repository or database call as part of a 'Unit of Work'. Its purpose is to define transactional boundaries for non-CRUD operations:
 
 [NOTE]
-====
-Default converters and those defined explicitly via an implementation of `org.neo4j.ogm.typeconversion.AttributeConverter`
-will take precedence over converters registered with Spring's ConversionService.
-====
+SDN only supports `PROPAGATION_REQUIRED` and `ISOLATION_DEFAULT` type transactions.
+
+.Using a facade to define transactions for multiple repository calls
+[source,java]
+----
+@Service
+class UserManagementImpl implements UserManagement {
+
+  private final UserRepository userRepository;
+  private final RoleRepository roleRepository;
+
+  @Autowired
+  public UserManagementImpl(UserRepository userRepository,
+    RoleRepository roleRepository) {
+    this.userRepository = userRepository;
+    this.roleRepository = roleRepository;
+  }
+
+  @Transactional
+  public void addRoleToAllUsers(String roleName) {
+
+    Role role = roleRepository.findByName(roleName);
+
+    for (User user : userRepository.findAll()) {
+      user.addRole(role);
+      userRepository.save(user);
+    }
+}
+----
+This will cause call to `addRoleToAllUsers(…)` to run inside a transaction (participating in an existing one or create a new one if
+none already running). The transaction configuration at the repositories will be neglected then as the outer transaction configuration
+determines the actual one used.
+
+It is highly recommended that users understand how Spring Transactions work. Below are some excellent resources:
+
+* http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/transaction.html[Spring Transaction Management]
+* http://graphaware.com/neo4j/2016/09/30/upgrading-to-sdn-42.html[Upgrading to Spring Data Neo4j 4.2]
+
+=== Read only Transactions
+
+As of SDN 4.2 you can also define read only transactions.
+
+You can start a read only transaction by marking a class or method with `@Transactional(readOnly=true)`.
+
+[CAUTION]
+Note that if you open a read only transaction from, for example a service method, and then call a mutating method that is marked as read/write your transaction semantics will always be defined by the outermost transaction. Be wary!
+
+
+=== Transaction Bound Events
+
+SDN provides the ability to bind the listener of an event to a phase of the transaction. The typical example is to handle the event
+when the transaction has completed successfully: this allows events to be used with more flexibility when the outcome of the current
+transaction actually matters to the listener.
+
+Spring Framework is currently structured in such a way that the context is not aware of the transaction support and has an open infrastructure to allow additional components to be registered and influence the way event listeners are created.
+
+The transaction module implements an `EventListenerFactory` that looks for the new `@TransactionalEventListener` annotation. When this one is present, an extended event listener that is aware of the transaction is registered instead of the default.
+
+.Example: An order creation listener.
+[source,java]
+----
+@Component
+public class MyComponent {
+
+  @TransactionalEventListener(condition = "#creationEvent.awesome")
+  public void handleOrderCreatedEvent(CreationEvent<Order> creationEvent) {
+    ...
+  }
+
+}
+----
+
+`@TransactionalEventListener` is a regular `@EventListener` and also exposes a `TransactionPhase`, the default being `AFTER_COMMIT`. You can also hook other phases of the transaction (`BEFORE_COMMIT`, `AFTER_ROLLBACK` and `AFTER_COMPLETION` that is just an alias for `AFTER_COMMIT` and `AFTER_ROLLBACK`).
+
+By default, if no transaction is running the event isn’t sent at all as we can’t obviously honor the requested phase, but there is a fallbackExecution attribute in `@TransactionalEventListener` that tells Spring to invoke the listener immediately if there is no transaction.
+
+[NOTE]
+Only public methods in a managed bean can be annotated with `@EventListener` to consume events.
+`@TransactionalEventListener` is the annotation that provides transaction-bound event support described here.
+
+To find out more about Spring's Event listening capabilities see http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#context-functionality-events-annotation[the Spring reference manual] and https://spring.io/blog/2015/02/11/better-application-events-in-spring-framework-4-2[How to build Transaction aware Eventing with Spring 4.2].
+
+
+
+== Miscellaneous
 
 
 === CDI integration
 
-Instances of the repository interfaces are usually created by a container, which Spring is the most natural choice when working with Spring Data. There's sophisticated support to easily set up Spring to create bean instances documented in <<repositories.create-instances>>. As of version 4.1.5 Spring Data Neo4j ships with a custom CDI extension that allows using the repository abstraction in CDI environments. The extension is part of the JAR so all you need to do to activate it is dropping the Spring Data Neo4j JAR into your classpath.
+Instances of the repository interfaces are usually created by a container, which Spring is the most natural choice when working with Spring Data. There's sophisticated support to easily set up Spring to create bean instances documented in <<repositories.create-instances>>. Spring Data Neo4j ships with a custom CDI extension that allows using the repository abstraction in CDI environments. The extension is part of the JAR so all you need to do to activate it is dropping the Spring Data Neo4j JAR into your classpath.
 
 You can now set up the infrastructure by implementing a CDI Producer for the `SessionFactory` and `Session`:
 
@@ -426,10 +432,83 @@ class RepositoryClient {
 
 
 
+=== JSR-303 (Bean Validation) Support
+
+Spring Data Neo4J allows developers to use JSR-303 annotations like `@NotNull` etc. on their domain models.
+While this is provided it's not a best practice. It is highly recommended to create JSR-303 annotations on actual Java Beans,
+similar to things like Data Transfer Objects (DTOs).
+
+=== Conversion Service
+It is possible to have Spring Data Neo4j 4 use converters registered with http://docs.spring.io/spring/docs/current/spring-framework-reference/html/validation.html#core-convert[Spring's ConversionService].
+In order to do this, provide `org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService` as a Spring bean.
+
+.Provide MetaDataDrivenConversionService as a Spring bean
+[source,java]
+----
+@Bean
+public ConversionService conversionService() {
+    return new MetaDataDrivenConversionService(getSessionFactory().metaData());
+}
+----
+
+Then, instead of defining an implementation of `org.neo4j.ogm.typeconversion.AttributeConverter` on the `@Convert` annotation,
+use the `graphPropertyType` attribute to define the type to convert to.
+
+.Using graphPropertyType
+[source,java]
+----
+@NodeEntity
+public class MyEntity {
+
+    @Convert(graphPropertyType = Integer.class)
+    private DecimalCurrencyAmount fundValue;
+
+}
+----
+
+Spring Data Neo4j 4 will look for converters registered with Spring's ConversionService that can convert
+both to and from the type specified by `graphPropertyType` and use them if they exist.
+
+[NOTE]
+====
+Default converters and those defined explicitly via an implementation of `org.neo4j.ogm.typeconversion.AttributeConverter`
+will take precedence over converters registered with Spring's ConversionService.
+====
 
 
 
 
+
+
+As of SDN 4, this `Neo4jRepository<T>` should be the interface from which your entity repository interfaces inherit, with `T` being specified as the domain entity type to persist.
+`ID` is defined by the field type annotated with `@Index(unique=true,primary=true)`.
+
+Examples of methods you get for free out of `Neo4jRepository` are as follows.
+For all of these examples the ID parameter is a `Long` that matches the graph ID:
+
+Load an entity instance via an id::
+`T findOne(id)`
+
+Check for existence of an id in the graph::
+`boolean exists(id)`
+
+Iterate over all nodes of a node entity type::
+`Iterable<T> findAll()`
+`Iterable<T> findAll(Sort ...)`
+`Page<T> findAll(Pageable ...)`
+
+Count the instances of the repository entity type::
+`Long count()`
+
+Save entities::
+`T save(T)` and `Iterable<T> save(Iterable<T>)`
+
+Delete graph entities::
+`void delete(T)`, `void delete(Iterable<T>)`, and `void deleteAll()`
+
+[NOTE]
+For users coming from versions before `4.2.x`, `Neo4jRepository` has replaced `GraphRepository` but essentially has the same features. `GraphRepository` is only provided for legacy reasons
+and has been deprecated.
 
 
 

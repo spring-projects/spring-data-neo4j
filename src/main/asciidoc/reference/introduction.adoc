@@ -1,0 +1,39 @@
+[[reference.introduction]]
+= Introduction
+
+Spring Data Neo4j has been rewritten between versions 3.5 and 4.  In order to understand what Spring Data Neo4j can do it's important to understand
+how an SDN application is structured and could have implications in how you design your application.
+
+[[reference.components]]
+== Components
+
+
+SDN 3.x was monolithic in a sense that all mapping code, database drivers and Spring integrations were all in one.  SDN 4 has decided to
+break these components up into:
+
+* ***Drivers***: At the moment these come in 3 variants: Embedded, HTTP and the binary protocol Bolt.
+* ***The Object Graph Mapper (OGM)***: This is similar to an ORM in that it maps database nodes to java objects. This library is agnostic of any framework (including Spring).
+* ***Spring Data Neo4j 4***: Provides syntactic sugar and code on top of the OGM to help quickly build Spring Based Neo4j/OGM apps.
+
+Those coming from other Spring Data projects or are familiar with ORM products like JPA or Hibernate may quickly recognise this architecture.
+A bulk of the heavy lifting has been moved into the OGM.
+
+[NOTE]
+It's therefore worth noting that there *will be backward compatibility issues* when migrating to version 4.x, so be sure to check the <<migration,Migration Guide>> to avoid any unwanted surprises.
+
+
+
+image::SDN-Architecture.png[Spring Data Neo4j Architecture,align="center"]
+
+[[reference.how-to-use-this-reference]]
+== How to use this reference
+
+
+Spring Data Neo4j is largely broken up into two main components:
+
+- <<reference.ogm-support, OGM Support>>: Provides close integration between Spring Data and the OGM; the main underlying technology used in SDN.
+- <<mongo.repositories, Spring Data Repository Support>>: Provides Spring Repository support.
+
+It is recommended SDN developers also familiarise themselves with the OGM. The OGM reference documentation has been reproduced after this
+section for convenience.
+

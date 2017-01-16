@@ -60,6 +60,12 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>${slf4j}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
             <scope>compile</scope>
@@ -143,6 +149,12 @@
             <artifactId>neo4j-ogm-test</artifactId>
             <version>${neo4j.ogm.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.neo4j</groupId>
+                    <artifactId>neo4j-security-enterprise</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

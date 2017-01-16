@@ -1,19 +1,21 @@
 [[migration]]
+[appendix]
 = Migration Guide
 
-[[migration-4-2]]
-== Migrating from Spring Data Neo4j 4.0 or 4.1 to Spring Data Neo4j 4.2
+[[migration.4-2]]
+== Migrating from 4.0/4.1 -> 4.2
 
 Spring Data Neo4j 4.2 significantly reduces complexity of configuration for application developers.
-There is no longer a need to extend from `Neo4jConfiguration` or define a `Session` bean.
+There is no longer a need to extend from `Neo4jConfiguration` or define a `Session` bean. Configuration for various types
+of applications are described <<reference.getting_started.spring-configuration,here>>
 
 1. Remove any subclassing of `Neo4jConfiguration`
 2. Define the `sessionFactory` bean with an instance of `SessionFactory` and the `transactionManager` bean with an instance of `Neo4jTransactionManager`. Be sure to pass the `SessionFactory` into the constructor for the transaction manager.
 
-[[migration-4-0]]
-== Migrating from previous versions of Spring Data Neo4j
+[[migration.4-0]]
+== Migrating from pre 4.0 -> 4.2
 
-[[migration-4-0-packages]]
+[[migration.4-0.packages]]
 === Package Changes
 
 Because the Neo4j Object Graph Mapper can be used independently of Spring Data Neo4j, the core annotations have been
@@ -27,7 +29,7 @@ The `@Query` and `@QueryResult` annotations are only supported in the Spring mod
 mapping framework. These annotations have not changed.
 ====
 
-[[migration-4-0-annotations]]
+[[migration.4-0.annotations]]
 === Annotation Changes
 
 There have been some changes to the annotations that were used in previous versions of Spring Data Neo4j.
@@ -46,7 +48,7 @@ m| @ResultColumn m| @Property
 m| Relationship Direction.BOTH m| Relationship.UNDIRECTED
 |===
 
-[[custom_converters]]
+[[migration.4-0.custom_converters]]
 === Custom Type Conversion
 SDN 4 provides automatic type conversion for the obvious candidates: byte[] and Byte[] arrays, Dates, BigDecimal and
 BigInteger types. In order to define bespoke type conversions for particular entity attribute, you can annotate a
@@ -54,6 +56,7 @@ field or method with `@Convert` to specify your own implementation of `org.neo4j
 
 You can find out more about type conversions here: <<reference_programming-model_conversion-custom,Custom Converters>>
 
+[[migration.4-0.date-format]]
 === Date Format Changes
 The default Date converter is <<reference_programming-model_conversion-built_in,@DateString>>.
 
@@ -77,6 +80,13 @@ RETURN count(n); //Run until the statement returns zero records
 However, if your application already represented Dates as  `@GraphProperty(propertyType = Long.class)` then simply changing this to
 `@DateLong` is sufficient.
 
+[[migration.4-0.indexing]]
+=== Indexing
+
+The best way to retrieve start nodes for traversals and queries is by using Neo4j's integrated index facilities.
+SDN supports Index and Constraint management but differs in how it does this to previous versions.
+
+[[migration.4-0.obsolete-annotations]]
 === Obsolete Annotations
 
 The following annotations are no longer used, either because they are no longer needed, or cannot be supported via Cypher.
@@ -84,19 +94,19 @@ The following annotations are no longer used, either because they are no longer 
 * @GraphTraversal
 * @RelatedToVia
 * @RelatedTo
-* @Index
 * @TypeAlias
 * @Fetch
 
+[[migration.4-0.no-support]]
 === Features No Longer Supported
 
 Some features of the previous annotations have been dropped.
 
-==== Overriding @Property Types
+Overriding @Property Types::
 Support for overriding property types via arguments to @Property has been dropped. If your attribute requires
 a non-default conversion to and from a database property, you can use a <<custom_converters,Custom Converter>> instead.
 
-==== @Relationship enforceTargetType
+@Relationship enforceTargetType::
 In previous versions of Spring Data Neo4j, you would have to add an `enforceTargetType` attribute into every clashing
 `@Relationship` annotation.  Thanks to changes in the underlying object-graph mapping mechanism, this is no longer
 necessary.
@@ -115,31 +125,26 @@ class Person {
 }
 ----
 
-==== Cross-store Persistence
+Cross-store Persistence::
 Neo4j is dropping XA support and therefore SDN 4 does not provide any capability for cross-store persistence
 
-==== TypeRepresentationStrategy
-SDN 4 replaces the existing TypeRepresentionStrategy configuration with a straightforwad convention based on simple class-names
+TypeRepresentationStrategy::
+SDN 4 replaces the existing `TypeRepresentionStrategy` configuration with a straightforward convention based on simple class-names
 or entities using `@NodeEntity(label=...)`
 
-Please refer to <<reference_programming_model_typerepresentationstrategy,Entity Type Representation>> for more details.
 
-==== AspectJ Support
+AspectJ Support::
 Support for AspectJ-based persistence has been removed from SDN 4 as the write-and-read-through approach only works with an integrated, embedded database, not Neo4j server. The performance improvements in SDN 4 should make their use as a performance optimisation unnecessary anyway.
 
 
-=== Changes to Neo4jTemplate
+=== Deprecation of Neo4jTemplate
 
 It is highly recommended for users starting new SDN projects to use the OGM `Session` directly. `Neo4jTemplate` has been kept to give upgrading users a better experience.
 
 The `Neo4jTemplate` has been slimmed-down significantly for SDN 4. It contains the exact same methods as `Session`. In fact `Neo4jTemplate` is just a very thin wrapper with an ability to support SDN Exception Translation.
-
 Many of the operations are no longer needed or can be expressed with a straightforward Cypher query.
 
 If you do use `Neo4jTemplate`, then you should code against its `Neo4jOperations` interface instead of the template class.
-
-
-==== API Changes
 
 The following table shows the `Neo4jTemplate` functions that have been retained for version 4 of Spring Data Neo4j.  In some cases the method names have changed but the same functionality is offered under the new version.
 
@@ -184,11 +189,6 @@ It's also worth noting that `exec(GraphCallback)` and the `create...()` methods 
 Instead, you should now issue a Cypher query to the new `execute` method to create the nodes or relationships that you need.
 
 Dynamic labels, properties and relationship types are not supported as of this version, server extensions should be considered instead.
-
-=== Indexing
-
-The best way to retrieve start nodes for traversals and queries is by using Neo4j's integrated index facilities.
-Currently SDN supports Index and Constraint management but does not provide look up or merging API's. This will be provided in a future release.
 
 ==== Built-In Query DSL Support
 Previous versions of SDN allowed you to use a DSL to generate Cypher queries. There are many different DSL
