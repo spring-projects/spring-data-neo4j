@@ -42,12 +42,11 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 public class SharedSessionCreator {
 
-	private static final Set<String> transactionRequiringMethods = new HashSet<>(6);
+	private static final Set<String> transactionRequiringMethods = new HashSet<>(4);
 
 	static {
 		transactionRequiringMethods.add("deleteAll");
 		transactionRequiringMethods.add("save");
-		transactionRequiringMethods.add("clear");
 		transactionRequiringMethods.add("delete");
 		transactionRequiringMethods.add("purgeDatabase");
 	}
@@ -110,8 +109,9 @@ public class SharedSessionCreator {
 			Session target = SessionFactoryUtils.getSession(this.targetFactory);
 
 			if (transactionRequiringMethods.contains(method.getName())) {
-				if (target == null || (!TransactionSynchronizationManager.isActualTransactionActive() &&
-						EnumSet.of(CLOSED, COMMITTED, ROLLEDBACK).contains(target.getTransaction().status()))) {
+				if (target == null || (!TransactionSynchronizationManager.isActualTransactionActive()
+						&& target.getTransaction() != null
+						&& EnumSet.of(CLOSED, COMMITTED, ROLLEDBACK).contains(target.getTransaction().status()))) {
 					throw new IllegalStateException("No Session with actual transaction available " +
 							"for current thread - cannot reliably process '" + method.getName() + "' call");
 				}
