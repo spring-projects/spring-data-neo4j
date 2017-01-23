@@ -140,7 +140,7 @@
 
         <dependency>
             <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-ogm-http-driver</artifactId>
+            <artifactId>neo4j-ogm-bolt-driver</artifactId>
             <version>${neo4j.ogm.version}</version>
         </dependency>
 
