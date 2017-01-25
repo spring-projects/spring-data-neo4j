@@ -6,6 +6,29 @@
 
 This chapter will point out the specialties for repository support for Neo4J and the Neo4J OGM. This builds on the core repository support explained in <<repositories>>. So make sure you've got a sound understanding of the basic concepts explained there.
 
+The following table outlines the repositories functionality currently either supported, partially supported or not supported in SDN:
+
+[frame="topbot",options="header"]
+|======================
+| Feature   | Supported in SDN | Notes
+| `CrudRepository` support |  icon:check[] |
+| `PagingAndSortingRepository` support  | icon:check[] |
+| Derived Count Queries  | icon:check[] |
+| JavaConfig annotation based configuration  | icon:check[] |
+| XML based configuration  | icon:check[] |
+| Multi Spring Data module support | icon:check[] |
+| Configurable Query Lookup Strategy | icon:times[] |
+| Derived Query support | icon:minus[] | See Supported keywords for query methods below
+| Derived Query Property expressions support | icon:times[] |
+| Paging and Slice support | icon:check[] |
+| Derived query paging limit support | icon:times[] |
+| Java 8 Streaming and Optional support | icon:times[] |
+| `@Async` support | icon:times[] |
+| Custom behaviour on repositories | icon:check[] |
+| `QueryDslPredicateExecutor` support| icon:times[] |
+| Web support (incl Spring Data REST) | icon:minus[] | Partial: QueryDSL not supported.
+| Repository populators | icon:times[] |
+|======================
 
 == Usage
 
