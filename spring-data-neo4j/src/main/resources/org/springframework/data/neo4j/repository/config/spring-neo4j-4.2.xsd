@@ -2,11 +2,11 @@
 <xsd:schema xmlns="http://www.springframework.org/schema/data/neo4j"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:tool="http://www.springframework.org/schema/tool"
-            xmlns:context="http://www.springframework.org/schema/context"
             xmlns:repository="http://www.springframework.org/schema/data/repository"
             targetNamespace="http://www.springframework.org/schema/data/neo4j"
             elementFormDefault="qualified" attributeFormDefault="unqualified">
 
+    <xsd:import namespace="http://www.springframework.org/schema/beans" />
     <xsd:import namespace="http://www.springframework.org/schema/tool" />
     <xsd:import namespace="http://www.springframework.org/schema/context" />
     <xsd:import namespace="http://www.springframework.org/schema/data/repository"
