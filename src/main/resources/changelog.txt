@@ -1,6 +1,17 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.2.0.RELEASE (2017-01-26)
+---------------------------------------------
+* DATAGRAPH-959 - Make Bolt the default driver.
+* DATAGRAPH-956 - Update project documentation with the CLA tool integration.
+* DATAGRAPH-955 - Id must be assignable to Serializable error with 4.1.3.
+* DATAGRAPH-947 - Resolving IdProperty  Issue.
+* DATAGRAPH-946 - Derived finders incorrectly advance parameter position for parts that don't have an argument.
+* DATAGRAPH-942 - Release 4.2 GA (Ingalls).
+* DATAGRAPH-918 - Neo4jPersistentProperty does not resolve Id property.
+
+
 Changes in version 4.1.6.RELEASE (2016-12-21)
 ---------------------------------------------
 * DATAGRAPH-926 - Use only released versions of neo4j-ogm in a stable sdn release.
