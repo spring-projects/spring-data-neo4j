@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.1.7.RELEASE (2017-01-26)
+---------------------------------------------
+* DATAGRAPH-941 - Release 4.1.7 (Hopper SR7).
+
+
 Changes in version 4.2.0.RELEASE (2017-01-26)
 ---------------------------------------------
 * DATAGRAPH-959 - Make Bolt the default driver.
