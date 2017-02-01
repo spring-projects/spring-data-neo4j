@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -18,6 +18,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Mark Angrish
+ * @author Mark Paluch
  */
 @NodeEntity
 public class SampleEntity {
@@ -32,8 +33,8 @@ public class SampleEntity {
 	}
 
 	public SampleEntity(String first, String second) {
-		Assert.notNull(first);
-		Assert.notNull(second);
+		Assert.notNull(first, "First must not be null!");
+		Assert.notNull(second, "Second mot be null!");
 		this.first = first;
 		this.second = second;
 	}
