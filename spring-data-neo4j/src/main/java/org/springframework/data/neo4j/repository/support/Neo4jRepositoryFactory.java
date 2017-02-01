@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -32,13 +32,14 @@ import org.springframework.util.Assert;
  * @author Vince Bickers
  * @author Luanne Misquitta
  * @author Mark Angrish
+ * @author Mark Paluch
  */
 public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	private final Session session;
 
 	public Neo4jRepositoryFactory(Session session) {
-		Assert.notNull(session);
+		Assert.notNull(session, "Session must not be null!");
 		this.session = session;
 	}
 
@@ -53,8 +54,8 @@ public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	@Override
 	public <T, ID extends Serializable> EntityInformation<T, ID> getEntityInformation(Class<T> type) {
-		Assert.notNull(type);
-		Assert.notNull(session);
+		Assert.notNull(type, "Domain class must not be null!");
+		Assert.notNull(session, "Session must not be null!");
 		return new GraphEntityInformation(((Neo4jSession)session).metaData(), type);
 	}
 

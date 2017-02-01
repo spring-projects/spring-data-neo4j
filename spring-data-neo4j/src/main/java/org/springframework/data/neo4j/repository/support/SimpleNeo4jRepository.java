@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * @author Vince Bickers
  * @author Luanne Misquitta
  * @author Mark Angrish
+ * @author Mark Paluch
  */
 @Repository
 @Transactional(readOnly = true)
@@ -59,8 +60,8 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 	 * @param session must not be {@literal null}.
 	 */
 	public SimpleNeo4jRepository(Class<T> domainClass, Session session) {
-		Assert.notNull(domainClass);
-		Assert.notNull(session);
+		Assert.notNull(domainClass, "Domain class must not be null!");
+		Assert.notNull(session, "Session must not be null!");
 
 		this.clazz = domainClass;
 		this.session = session;
