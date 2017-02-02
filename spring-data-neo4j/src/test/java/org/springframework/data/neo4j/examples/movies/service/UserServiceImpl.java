@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -13,6 +13,8 @@
 
 package org.springframework.data.neo4j.examples.movies.service;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.movies.domain.Genre;
 import org.springframework.data.neo4j.examples.movies.domain.User;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Michal Bachman
+ * @author Mark Paluch
  */
 @Service
 public class UserServiceImpl implements UserService {
@@ -40,11 +43,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void notInterestedIn(Long userId, Long genreId) {
-        User user = userRepository.findOne(userId);
-        Genre genre = genreRepository.findOne(genreId);
+        Optional<User> user = userRepository.findOne(userId);
 
-        user.notInterestedIn(genre);
-        userRepository.save(user);
+        user.ifPresent(u -> {
+            Optional<Genre> genre = genreRepository.findOne(genreId);
+            genre.ifPresent(u::notInterestedIn);
+
+            userRepository.save(u);
+        });
     }
 
     @Override

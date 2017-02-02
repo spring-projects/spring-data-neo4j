@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.data.repository.query.ParameterAccessor;
  * @author Adam George
  * @author Luanne Misquitta
  * @author Jasper Blues
+ * @author Mark Paluch
  */
 public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
 
@@ -57,10 +58,10 @@ public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
 
 		Pageable pageable = parameterAccessor.getPageable();
 		Sort sort = parameterAccessor.getSort();
-		if (pageable != null && pageable.getSort() != null) {
+		if (pageable != Pageable.NONE) {
 			sort = pageable.getSort();
 		}
-		if (sort != null) {
+		if (sort != Sort.unsorted()) {
 			//Custom queries in the OGM do not support pageable
 			cypherQuery = addSorting(cypherQuery, sort);
 		}

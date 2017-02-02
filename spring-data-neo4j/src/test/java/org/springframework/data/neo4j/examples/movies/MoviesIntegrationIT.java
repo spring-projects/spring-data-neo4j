@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -15,14 +15,12 @@ package org.springframework.data.neo4j.examples.movies;
 
 import static org.junit.Assert.*;
 import static org.neo4j.ogm.testutil.GraphTestUtils.*;
-import static org.springframework.data.repository.query.parser.Part.Type.*;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -36,6 +34,7 @@ import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
@@ -54,6 +53,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Luanne Misquitta
  * @author Vince Bickers
  * @author Mark Angrish
+ * @author Mark Paluch
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -236,12 +236,15 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 				User user = new User("Michal");
 				userRepository.save(user);
 
-				User loaded = userRepository.findOne(user.getId());
+				Optional<User> loaded = userRepository.findOne(user.getId());
 
-				assertEquals("Michal", loaded.getName());
+				assertTrue(loaded.isPresent());
 
-				assertTrue(loaded.equals(user));
-				assertTrue(loaded == user);
+				loaded.ifPresent(loadedUser -> {
+					assertEquals("Michal", loadedUser.getName());
+					assertTrue(loadedUser.equals(user));
+					assertTrue(loadedUser == user);
+				});
 			}
 		});
 	}
@@ -260,12 +263,16 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 		User user = new User();
 		userRepository.save(user);
 
-		User loaded = userRepository.findOne(user.getId());
 
-		assertNull(loaded.getName());
+		Optional<User> loaded = userRepository.findOne(user.getId());
 
-		assertTrue(loaded.equals(user));
-		assertTrue(loaded == user);
+		assertTrue(loaded.isPresent());
+
+		loaded.ifPresent(loadedUser -> {
+			assertNull(loadedUser.getName());
+			assertTrue(loadedUser.equals(user));
+			assertTrue(loadedUser == user);
+		});
 	}
 
 	@Test
@@ -282,8 +289,8 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 				assertFalse(userRepository.findAll(1).iterator().hasNext());
 				assertFalse(userRepository.exists(user.getId()));
 				assertEquals(0, userRepository.count());
-				assertNull(userRepository.findOne(user.getId()));
-				assertNull(userRepository.findOne(user.getId(), 10));
+				assertFalse(userRepository.findOne(user.getId()).isPresent());
+				assertFalse(userRepository.findOne(user.getId(), 10).isPresent());
 			}
 		});
 
@@ -594,22 +601,38 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
-				TempMovie movie = new TempMovie("Pulp Fiction");
-				//Save the movie
-				movie = tempMovieRepository.save(movie);
+				// Save the movie
+				TempMovie movie = tempMovieRepository.save(new TempMovie("Pulp Fiction"));
 
-				//Create a new user and rate an existing movie
+				// Create a new user and rate an existing movie
 				User user = new User("Michal");
 				user.rate(movie, 5, "Best movie ever");
 				userRepository.save(user);
 
-				assertEquals(movie.getName(), tempMovieRepository.findOne(movie.getId()).getName());
-				assertEquals(user.getName(), userRepository.findOne(user.getId()).getName());
-				assertEquals(5, ratingRepository.findOne(user.getRatings().iterator().next().getId()).getStars());
+				Optional<TempMovie> tempMovieOptional = tempMovieRepository.findOne(movie.getId());
 
-				assertNull(tempMovieRepository.findOne(user.getId()));
-				assertNull(userRepository.findOne(movie.getId(), 0));
-				assertNull(ratingRepository.findOne(user.getId()));
+				assertTrue(tempMovieOptional.isPresent());
+				tempMovieOptional.ifPresent(actual -> {
+					assertEquals(movie.getName(), actual.getName());
+				});
+
+				Optional<User> userOptional = userRepository.findOne(user.getId());
+
+				assertTrue(userOptional.isPresent());
+				userOptional.ifPresent(actual -> {
+					assertEquals(user.getName(), actual.getName());
+				});
+
+				Optional<Rating> ratingOptional = ratingRepository.findOne(user.getRatings().iterator().next().getId());
+
+				assertTrue(ratingOptional.isPresent());
+				ratingOptional.ifPresent(actual -> {
+					assertEquals(5, actual.getStars());
+				});
+
+				assertFalse(tempMovieRepository.findOne(user.getId()).isPresent());
+				assertFalse(userRepository.findOne(movie.getId(), 0).isPresent());
+				assertFalse(ratingRepository.findOne(user.getId()).isPresent());
 			}
 		});
 	}

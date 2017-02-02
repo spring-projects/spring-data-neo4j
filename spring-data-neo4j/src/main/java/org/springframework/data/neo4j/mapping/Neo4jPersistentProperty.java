@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
+import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.annotation.QueryResult;
 
@@ -51,6 +52,7 @@ import org.springframework.data.neo4j.annotation.QueryResult;
  * @author Adam George
  * @author Luanne Misquitta
  * @author Mark Angrish
+ * @author Mark Paluch
  * @since 4.0.0
  */
 public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<Neo4jPersistentProperty> {
@@ -59,44 +61,46 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 	private final boolean isIdProperty;
 
-	/**
-	 * Constructs a new {@link Neo4jPersistentProperty} based on the given arguments.
-	 *
-	 * @param owningClassInfo The {@link ClassInfo} of the object of which the property field is a member
-	 * @param field The property {@link Field}
-	 * @param descriptor The Java bean {@link PropertyDescriptor}
-	 * @param owner The owning {@link PersistentEntity} that corresponds to the given {@code ClassInfo}
-	 * @param simpleTypeHolder The {@link SimpleTypeHolder} that dictates whether the type of this property is considered simple
-	 * or not
-	 */
-	public Neo4jPersistentProperty(ClassInfo owningClassInfo, Field field, PropertyDescriptor descriptor,
-								   PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
-		super(field, descriptor, owner, simpleTypeHolder);
-		if (owningClassInfo == null) {
-			logger.warn("Owning ClassInfo is null for field: {} and propertyDescriptor: {}", field, descriptor);
-		}
-		if ((owningClassInfo != null && owningClassInfo.getUnderlyingClass() != null && simpleTypeHolder.isSimpleType(owningClassInfo.getUnderlyingClass()))
-				|| owner.getType().isEnum()) { //TODO refactor all these null checks
-			this.isIdProperty = false;
-		} else {
-			this.isIdProperty = resolveWhetherIdProperty(owningClassInfo, field);
-		}
-	}
+    /**
+     * Constructs a new {@link Neo4jPersistentProperty} based on the given arguments.
+     *
+     * @param owningClassInfo The {@link ClassInfo} of the object of which the property field is a member
+     * @param property The property
+     * @param owner The owning {@link PersistentEntity} that corresponds to the given {@code ClassInfo}
+     * @param simpleTypeHolder The {@link SimpleTypeHolder} that dictates whether the type of this property is considered simple
+     *        or not
+     */
+    public Neo4jPersistentProperty(ClassInfo owningClassInfo, Property property,
+            PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
+        super(property, owner, simpleTypeHolder);
+        if (owningClassInfo == null) {
+            logger.warn("Owning ClassInfo is null for property: {}", property);
+        }
+        if ((owningClassInfo !=null && owningClassInfo.getUnderlyingClass()!=null && simpleTypeHolder.isSimpleType(owningClassInfo.getUnderlyingClass()))
+                || owner.getType().isEnum()) { //TODO refactor all these null checks
+            this.isIdProperty = false;
+        }
+        else {
+            this.isIdProperty = resolveWhetherIdProperty(owningClassInfo, property);
+        }
+    }
 
-	private static boolean resolveWhetherIdProperty(ClassInfo owningClassInfo, Field field) {
-		if (owningClassInfo == null || owningClassInfo.isInterface() || owningClassInfo.annotationsInfo().get(QueryResult.class.getName()) != null || owningClassInfo.isEnum()) {
-			// no ID properties on @QueryResult or non-concrete objects
-			return false;
-		} else {
-			try {
-				return owningClassInfo.getField(owningClassInfo.identityField()).equals(field);
-			} catch (MappingException noIdentityField) {
-				logger.warn("No identity field found for class of type: {} when creating persistent property for field: {}",
-						owningClassInfo.name(), field);
-				return false;
-			}
-		}
-	}
+    private static boolean resolveWhetherIdProperty(ClassInfo owningClassInfo, Property property) {
+        if (owningClassInfo == null || owningClassInfo.isInterface() || owningClassInfo.annotationsInfo().get(QueryResult.class.getName()) != null || owningClassInfo.isEnum()) {
+            // no ID properties on @QueryResult or non-concrete objects
+            return false;
+        } else {
+            try {
+                return property.getField() //
+                        .filter(field ->owningClassInfo.getField(owningClassInfo.identityField()).equals(field)) //
+            .isPresent();}
+            catch (MappingException noIdentityField) {
+                logger.warn("No identity field found for class of type: {} when creating persistent property for : {}",
+                        owningClassInfo.name(), property);
+                return false;
+            }
+        }
+    }
 
 	@Override
 	public boolean isIdProperty() {

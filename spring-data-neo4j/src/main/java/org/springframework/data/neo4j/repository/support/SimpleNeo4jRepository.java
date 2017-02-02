@@ -17,11 +17,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
-import org.neo4j.ogm.session.Neo4jSession;
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -88,14 +88,14 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 	}
 
 	@Override
-	public T findOne(ID id) {
+	public Optional<T> findOne(ID id) {
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
-		return session.load(clazz, id);
+		return Optional.ofNullable(session.load(clazz, id));
 	}
 
 	@Override
 	public boolean exists(ID id) {
-		return findOne(id) != null;
+		return findOne(id).isPresent();
 	}
 
 	@Override
@@ -106,10 +106,7 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 	@Transactional
 	@Override
 	public void delete(ID id) {
-		Object o = findOne(id);
-		if (o != null) {
-			session.delete(o);
-		}
+		findOne(id).ifPresent(session::delete);
 	}
 
 	@Transactional
@@ -147,8 +144,8 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 	}
 
 	@Override
-	public T findOne(ID id, int depth) {
-		return session.load(clazz, id, depth);
+	public Optional<T> findOne(ID id, int depth) {
+		return Optional.ofNullable(session.load(clazz, id, depth));
 	}
 
 	// findAll and variants
@@ -230,9 +227,10 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 	 * retrieved so far. This will ensure that page.next() returns false.
 	 */
 	private Page<T> updatePage(Pageable pageable, List<T> results) {
+
 		int pageSize = pageable.getPageSize();
-		int pageOffset = pageable.getOffset();
-		int total = pageOffset + results.size() + (results.size() == pageSize ? pageSize : 0);
+		long pageOffset = pageable.getOffset();
+		long total = pageOffset + results.size() + (results.size() == pageSize ? pageSize : 0);
 
 		return new PageImpl<T>(results, pageable, total);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -53,6 +53,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Luanne Misquitta
  * @author Vince Bickers
  * @author Mark Angrish
+ * @author Mark Paluch
  * @see DATAGRAPH-624
  */
 @RunWith(SpringRunner.class)
@@ -110,7 +111,7 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 
 		byte[] expectedData = "123456789".getBytes();
 
-		SiteMember siteMember = this.siteMemberRepository.findOne(userId);
+		SiteMember siteMember = this.siteMemberRepository.findOne(userId).get();
 		assertTrue("The data wasn't converted correctly", Arrays.equals(expectedData, siteMember.getProfilePictureData()));
 	}
 
@@ -134,7 +135,7 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 		assertEquals("The amount wasn't converted and persisted correctly", "1647281", String.valueOf(result.next().get("fv")));
 		result.close();
 
-		PensionPlan reloadedPension = this.pensionRepository.findOne(pensionToSave.getPensionPlanId());
+		PensionPlan reloadedPension = this.pensionRepository.findOne(pensionToSave.getPensionPlanId()).get();
 		assertEquals("The amount was converted incorrectly", pensionToSave.getFundValue(), reloadedPension.getFundValue());
 	}
 

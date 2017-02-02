@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -16,6 +16,7 @@ package org.springframework.data.neo4j.repositories.support;
 import static org.junit.Assert.*;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Vince Bickers
  * @author Luanne Misquitta
  * @author Mark Angrish
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class GraphRepositoryFactoryIT extends MultiDriverTestClass {
@@ -83,7 +85,7 @@ public class GraphRepositoryFactoryIT extends MultiDriverTestClass {
 
 		@Override
 		@Transactional
-		Object findOne(Long id);
+		Optional<Object> findOne(Long id);
 	}
 
 	static class CustomNeo4jRepository<T, ID extends Serializable> extends SimpleNeo4jRepository<T, ID> {
