@@ -14,6 +14,7 @@
 package org.springframework.data.neo4j.repository.support;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 import org.neo4j.ogm.session.Neo4jSession;
 import org.neo4j.ogm.session.Session;
@@ -70,8 +71,8 @@ public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	}
 
 	@Override
-	protected QueryLookupStrategy getQueryLookupStrategy(QueryLookupStrategy.Key key,
-														 EvaluationContextProvider evaluationContextProvider) {
-		return new GraphQueryLookupStrategy(session);
+	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(QueryLookupStrategy.Key key,
+																   EvaluationContextProvider evaluationContextProvider) {
+		return Optional.of(new GraphQueryLookupStrategy(session));
 	}
 }

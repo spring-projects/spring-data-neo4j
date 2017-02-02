@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.data.neo4j.repository.cdi;
 
+import java.util.Optional;
+
 import org.springframework.data.neo4j.examples.friends.domain.Person;
 import org.springframework.data.repository.Repository;
 
@@ -29,5 +31,5 @@ public interface CdiPersonRepository extends Repository<Person, Long> {
 
     Person save(Person person);
 
-    Person findOne(Long id);
+    Optional<Person> findOne(Long id);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -16,6 +16,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Mark Angrish
+ * @author Mark Paluch
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Neo4jRepositoryIT.Config.class)
@@ -61,7 +63,10 @@ public class Neo4jRepositoryIT extends MultiDriverTestClass {
 		repository.save(entity);
 		assertThat(repository.exists(entity.getId()), is(true));
 		assertThat(repository.count(), is(1L));
-		assertThat(repository.findOne(entity.getId()), is(entity));
+		
+	    Optional<SampleEntity> optional = repository.findOne(entity.getId());
+		assertTrue(optional.isPresent());
+		optional.ifPresent(actual -> assertThat(actual, is(entity)));
 
 		repository.delete(Arrays.asList(entity));
 		assertThat(repository.count(), is(0L));

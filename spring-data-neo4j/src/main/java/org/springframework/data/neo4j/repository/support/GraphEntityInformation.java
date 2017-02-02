@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -20,9 +20,11 @@ import org.neo4j.ogm.metadata.reflect.EntityAccessManager;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * @author Mark Angrish
+ * @author Mark Paluch
  */
 public class GraphEntityInformation<T, ID extends Serializable> extends AbstractEntityInformation<T, ID> {
 
@@ -34,10 +36,14 @@ public class GraphEntityInformation<T, ID extends Serializable> extends Abstract
     }
 
     @Override
-    public ID getId(T entity) {
+    public Optional<ID> getId(T entity) {
         final ClassInfo classInfo = metaData.classInfo(getJavaType().getName());
         final FieldInfo primaryIndex = classInfo.primaryIndexField();
 
+        return Optional.ofNullable(getId(entity, classInfo, primaryIndex));
+    }
+
+    private ID getId(T entity, ClassInfo classInfo, FieldInfo primaryIndex) {
         if (primaryIndex != null) {
             return (ID) classInfo.propertyField(primaryIndex.getName()).readProperty(entity);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -15,6 +15,7 @@ package org.springframework.data.neo4j.examples.galaxy.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
@@ -32,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Vince Bickers
  * @author Mark Angrish
+ * @author Mark Paluch
  */
 @Service
 @Transactional
@@ -59,7 +61,7 @@ public class GalaxyService {
 		return worldRepository.findAll();
 	}
 
-	public World findWorldById(Long id) {
+	public Optional<World> findWorldById(Long id) {
 		return worldRepository.findOne(id);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -19,6 +19,7 @@ import org.neo4j.ogm.metadata.FieldInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mapping.context.AbstractMappingContext;
+import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
 
@@ -37,6 +38,7 @@ import static java.util.Collections.singleton;
  *
  * @author Vince Bickers
  * @author Adam George
+ * @author Mark Paluch
  * @since 4.0.0
  */
 public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> {
@@ -63,27 +65,27 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
     }
 
     @Override
-    protected Neo4jPersistentProperty createPersistentProperty(Field field, PropertyDescriptor descriptor, Neo4jPersistentEntity<?> owner,
-            SimpleTypeHolder simpleTypeHolder) {
+    protected Neo4jPersistentProperty createPersistentProperty(Property property, Neo4jPersistentEntity<?> owner, SimpleTypeHolder simpleTypeHolder) {
 
         ClassInfo owningClassInfo = this.metaData.classInfo(owner.getType().getName());
 
-        Field propertyField = field;
-        if (propertyField == null && owningClassInfo != null && descriptor != null) {
-            FieldInfo fieldInfo = owningClassInfo.propertyFieldByName(descriptor.getName());
+        Field propertyField = property.getField().orElse(null);
+
+        if (!property.isFieldBacked() && owningClassInfo != null) {
+            FieldInfo fieldInfo = owningClassInfo.propertyFieldByName(property.getName());
             if (fieldInfo == null) {
-                fieldInfo = owningClassInfo.relationshipFieldByName(descriptor.getName());
+                fieldInfo = owningClassInfo.relationshipFieldByName(property.getName());
             }
             if (fieldInfo != null) {
                 propertyField = owningClassInfo.getField(fieldInfo);
             } else {
                 // there is no field, probably because descriptor gave us a field name derived from a getter
                 logger.debug("Couldn't resolve a concrete field corresponding to property {} on {} ",
-                        descriptor.getName(), owningClassInfo.name());
+                        property.getName(), owningClassInfo.name());
             }
         }
 
-        return new Neo4jPersistentProperty(owningClassInfo, propertyField, descriptor, owner,
+        return new Neo4jPersistentProperty(owningClassInfo, property, owner,
                 updateSimpleTypeHolder(simpleTypeHolder, propertyField));
     }
 

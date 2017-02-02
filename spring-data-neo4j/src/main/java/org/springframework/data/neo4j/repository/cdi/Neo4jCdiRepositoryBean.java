@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import java.lang.annotation.Annotation;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -47,17 +48,20 @@ public class Neo4jCdiRepositoryBean<T> extends CdiRepositoryBean<T> {
      *        {@link CustomRepositoryImplementationDetector}, can be {@literal null}.
      */
     public Neo4jCdiRepositoryBean(Bean<Session> sessionBean, Set<Annotation> qualifiers, Class<T> repositoryType,
-                                  BeanManager beanManager, CustomRepositoryImplementationDetector detector) {
+                                  BeanManager beanManager, Optional<CustomRepositoryImplementationDetector> detector) {
         super(qualifiers, repositoryType, beanManager, detector);
         this.sessionBean = sessionBean;
     }
 
     @Override
-    protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType, Object customImplementation) {
+    protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType, Optional<Object> customImplementation) {
 
         Session session = getDependencyInstance(sessionBean, Session.class);
 
         Neo4jRepositoryFactory factory = new Neo4jRepositoryFactory(session);
-        return factory.getRepository(repositoryType, customImplementation);
+
+        return customImplementation //
+                .map(impl -> factory.getRepository(repositoryType, impl)) //
+                .orElseGet(() -> factory.getRepository(repositoryType));
     }
 }

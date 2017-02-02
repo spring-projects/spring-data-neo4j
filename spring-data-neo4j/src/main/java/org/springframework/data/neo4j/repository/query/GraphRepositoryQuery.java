@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.neo4j.ogm.model.QueryStatistics;
 import org.neo4j.ogm.model.Result;
@@ -37,6 +38,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Angrish
  * @author Luanne Misquitta
  * @author Jasper Blues
+ * @author Mark Paluch
  */
 public class GraphRepositoryQuery implements RepositoryQuery {
 
@@ -65,7 +67,7 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 		Object result = execute(returnType, concreteType, getQueryString(), params, accessor);
 
 		return Result.class.equals(returnType) ? result :
-				processor.withDynamicProjection(accessor).processResult(result);
+				processor.withDynamicProjection(Optional.of(accessor)).processResult(result);
 	}
 
 	protected Object execute(Class<?> returnType, Class<?> concreteType, String cypherQuery,
@@ -73,10 +75,10 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 
 		Pageable pageable = parameterAccessor.getPageable();
 		Sort sort = parameterAccessor.getSort();
-		if (pageable != null && pageable.getSort() != null) {
+		if (pageable != Pageable.NONE) {
 			sort = pageable.getSort();
 		}
-		if (sort != null) {
+		if (sort != Sort.unsorted()) {
 			//Custom queries in the OGM do not support pageable
 			cypherQuery = addSorting(cypherQuery, sort);
 		}
@@ -111,11 +113,11 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 		if (pageable == null) {
 			return graphQueryMethod.isPageQuery() ? new PageImpl(resultList) : new SliceImpl(resultList);
 		}
-		int currentTotal;
+		long currentTotal;
 		if (count != null) {
 			currentTotal = count.intValue();
 		} else {
-			int pageOffset = pageable.getOffset();
+			long pageOffset = pageable.getOffset();
 			currentTotal = pageOffset + resultList.size() + (resultList.size() == pageable.getPageSize() ? pageable.getPageSize() : 0);
 		}
 		int resultWindowSize = Math.min(resultList.size(), pageable.getPageSize());
@@ -176,20 +178,25 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 
 		for (int i = 0; i < parameters.length; i++) {
 			Parameter parameter = methodParameters.getParameter(i);
-
-			//The parameter might be an entity, try to resolve its id
-			Object parameterValue = session.resolveGraphIdFor(parameters[i]);
-			if (parameterValue == null) { //Either not an entity or not persisted
-				parameterValue = parameters[i];
-			}
+			Object parameterValue = getParameterValue(parameters[i]);
 
 			if (parameter.isExplicitlyNamed()) {
-				params.put(parameter.getName(), parameterValue);
+				parameter.getName().ifPresent(name -> params.put(name, parameterValue));
 			} else {
 				params.put("" + i, parameterValue);
 			}
 		}
 		return params;
+	}
+
+	private Object getParameterValue(Object parameter) {
+
+		//The parameter might be an entity, try to resolve its id
+		Object parameterValue = session.resolveGraphIdFor(parameter);
+		if (parameterValue == null) { //Either not an entity or not persisted
+			parameterValue = parameter;
+		}
+		return parameterValue;
 	}
 
 	private Object mappedCollection(Class<?> concreteType, String cypherQuery, Map<String, Object> queryParams, Pageable pageable) {// Special method to handle SDN Iterable<Map<String, Object>> behaviour.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -11,6 +11,8 @@
  *
  */
 package org.springframework.data.neo4j.mapping;
+
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +40,7 @@ import org.springframework.data.util.TypeInformation;
  *
  * @author Vince Bickers
  * @author Adam George
+ * @author Mark Paluch
  * @since 4.0.0
  */
 public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty> {
@@ -60,9 +63,9 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
     }
 
     @Override
-    public Neo4jPersistentProperty getVersionProperty() {
+    public Optional<Neo4jPersistentProperty> getVersionProperty() {
         logger.debug("[entity].getVersionProperty() returns null"); // by design
-        return null;
+        return Optional.empty();
     }
 
     @Override
