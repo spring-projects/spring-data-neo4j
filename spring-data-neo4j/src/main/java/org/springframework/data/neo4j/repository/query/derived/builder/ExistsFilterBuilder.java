@@ -1,5 +1,6 @@
 package org.springframework.data.neo4j.repository.query.derived.builder;
 
+import static org.springframework.data.repository.query.parser.Part.Type.IS_NOT_NULL;
 
 import java.util.ArrayList;
 import java.util.List;
