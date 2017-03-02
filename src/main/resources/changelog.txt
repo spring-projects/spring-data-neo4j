@@ -20,6 +20,11 @@ Changes in version 5.0.0.M2 (2017-04-04)
 * DATAGRAPH-929 - Release 5.0 M2 (Kay).
 
 
+Changes in version 4.1.8.RELEASE (2017-03-02)
+---------------------------------------------
+* DATAGRAPH-963 - Release 4.1.8 (Hopper SR8).
+
+
 Changes in version 4.2.1.RELEASE (2017-03-02)
 ---------------------------------------------
 * DATAGRAPH-966 - Remove references to single-argument assertion methods of Spring.
