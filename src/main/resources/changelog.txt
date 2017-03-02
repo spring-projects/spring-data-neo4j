@@ -20,6 +20,15 @@ Changes in version 5.0.0.M2 (2017-04-04)
 * DATAGRAPH-929 - Release 5.0 M2 (Kay).
 
 
+Changes in version 4.2.1.RELEASE (2017-03-02)
+---------------------------------------------
+* DATAGRAPH-966 - Remove references to single-argument assertion methods of Spring.
+* DATAGRAPH-964 - Release 4.2.1 (Ingalls SR1).
+* DATAGRAPH-961 - @RelationshipEntity not hydrated.
+* DATAGRAPH-944 - Returning a RelationshipEntity from a custom repository query doesn't work.
+* DATAGRAPH-558 - XML config.
+
+
 Changes in version 4.1.7.RELEASE (2017-01-26)
 ---------------------------------------------
 * DATAGRAPH-941 - Release 4.1.7 (Hopper SR7).
