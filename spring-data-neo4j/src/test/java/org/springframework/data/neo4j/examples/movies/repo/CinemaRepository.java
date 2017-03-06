@@ -13,6 +13,9 @@
 
 package org.springframework.data.neo4j.examples.movies.repo;
 
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -20,14 +23,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResult;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResultInterface;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResult;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Michal Bachman
@@ -64,6 +64,9 @@ public interface CinemaRepository extends Neo4jRepository<Cinema, Long> {
 	List<Cinema> findByLocationOrCapacityLessThan(String location, int capacity);
 
 	List<Cinema> findByLocationOrVisitedName(String location, String name);
+
+	// invalid query : not enough arguments
+	List<Cinema> findByLocationOrVisitedName(String location);
 
 	List<Cinema> findByVisitedNameAndBlockbusterOfTheWeekName(String location, String name);
 
