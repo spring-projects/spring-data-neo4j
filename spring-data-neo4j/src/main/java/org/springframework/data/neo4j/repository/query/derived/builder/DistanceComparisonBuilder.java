@@ -14,38 +14,71 @@
 
 package org.springframework.data.neo4j.repository.query.derived.builder;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
-import org.springframework.data.neo4j.repository.query.derived.CypherFilter;
-import org.springframework.data.neo4j.repository.query.derived.filter.DistanceComparisonAdapter;
+import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.cypher.function.DistanceComparison;
+import org.neo4j.ogm.cypher.function.DistanceFromPoint;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.Metrics;
+import org.springframework.data.geo.Point;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
  * @author Jasper Blues
+ * @author Nicolas Mervaillie
  */
-public class DistanceComparisonBuilder extends CypherFilterBuilder {
+public class DistanceComparisonBuilder extends FilterBuilder {
 
 	public DistanceComparisonBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
 		super(part, booleanOperator, entityType);
 	}
 
 	@Override
-	public List<CypherFilter> build() {
-		List<CypherFilter> filters = new ArrayList<>();
+	public List<Filter> build(Stack<Object> params) {
 
-		CypherFilter filter = new CypherFilter();
+		Object firstArg = params.pop();
+		Object secondArg = params.pop();
+
+		Distance distance;
+		Point point;
+
+		if (firstArg instanceof Distance && secondArg instanceof Point) {
+			distance = (Distance) firstArg;
+			point = (Point) secondArg;
+		} else if (secondArg instanceof Distance && firstArg instanceof Point) {
+			distance = (Distance) secondArg;
+			point = (Point) firstArg;
+		} else {
+			throw new IllegalArgumentException("findNear requires an argument of type Distance and an argument of type Point");
+		}
+
+		double meters;
+		if (distance.getMetric() == Metrics.KILOMETERS) {
+			meters = distance.getValue() * 1000.0d;
+		} else if (distance.getMetric() == Metrics.MILES) {
+			meters = distance.getValue() / 0.00062137d;
+		} else {
+			meters = distance.getValue();
+		}
+
+		DistanceFromPoint distanceFromPoint = new DistanceFromPoint(point.getX(), point.getY(), distance.getValue() * meters);
+		DistanceComparison distanceComparison = new DistanceComparison(distanceFromPoint);
+
+		Filter filter = new Filter();
 		filter.setPropertyName(propertyName());
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
-		filter.setFunctionAdapter(new DistanceComparisonAdapter(filter));
+		filter.setFunction(distanceComparison);
 		filter.setComparisonOperator(ComparisonOperator.LESS_THAN);
 		setNestedAttributes(part, filter);
-		filters.add(filter);
 
-		return filters;
+		return Collections.singletonList(filter);
 	}
+
 }

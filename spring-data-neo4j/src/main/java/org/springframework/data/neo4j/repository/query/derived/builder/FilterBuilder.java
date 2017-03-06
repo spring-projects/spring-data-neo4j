@@ -14,29 +14,31 @@
 package org.springframework.data.neo4j.repository.query.derived.builder;
 
 import java.util.List;
+import java.util.Stack;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
-import org.springframework.data.neo4j.repository.query.derived.CypherFilter;
+import org.neo4j.ogm.cypher.Filter;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
  * @author Jasper Blues
+ * @author Nicolas Mervaillie
  */
-public abstract class CypherFilterBuilder {
+public abstract class FilterBuilder {
 
 	protected Part part;
 	protected BooleanOperator booleanOperator;
 	protected Class<?> entityType;
 
-	public CypherFilterBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
+	FilterBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
 		this.part = part;
 		this.booleanOperator = booleanOperator;
 		this.entityType = entityType;
 	}
 
-	public abstract List<CypherFilter> build();
+	public abstract List<Filter> build(Stack<Object> params);
 
-	protected boolean isNegated() {
+	boolean isNegated() {
 		return part.getType().name().startsWith("NOT");
 	}
 
@@ -44,7 +46,7 @@ public abstract class CypherFilterBuilder {
 		return part.getProperty().getSegment();
 	}
 
-	protected void setNestedAttributes(Part part, CypherFilter filter) {
+	void setNestedAttributes(Part part, Filter filter) {
 		if (part.getProperty().next() != null) {
 			filter.setOwnerEntityType(part.getProperty().getOwningType().getType());
 			filter.setNestedPropertyType(part.getProperty().getType());
