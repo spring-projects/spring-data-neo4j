@@ -13,16 +13,9 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
-import org.neo4j.ogm.cypher.function.DistanceComparison;
-import org.neo4j.ogm.cypher.function.DistanceFromPoint;
-import org.neo4j.ogm.cypher.function.FilterFunction;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
 import org.neo4j.ogm.session.Session;
@@ -30,9 +23,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.geo.Distance;
-import org.springframework.data.geo.Metrics;
-import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.repository.query.GraphQueryMethod;
 import org.springframework.data.repository.core.EntityMetadata;
 import org.springframework.data.repository.query.ParameterAccessor;
@@ -57,7 +47,7 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 	private final PartTree tree;
 
 	protected final Session session;
-	protected final EntityMetadata info;
+	final EntityMetadata info;
 
 	private final int DEFAULT_QUERY_DEPTH = 1;
 
@@ -91,7 +81,12 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		public Object execute(Object[] parameters) {
 
 			if (getQueryMethod().getReturnedObjectType().equals(Long.class)) {
-				Filters filters = resolveParams(parameters);
+				Filters filters;
+				try {
+					filters = resolveParams(parameters);
+				} catch (EmptyStackException e) {
+					throw new IllegalArgumentException("Not enough arguments for query " + getQueryMethod().getName());
+				}
 				return session.count(info.getJavaType(), filters);
 			} else {
 		 		throw new RuntimeException("Long is required as the return type of a Count query");
@@ -109,7 +104,12 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		@Override
 		public Object execute(Object[] parameters) {
 
-			Filters filters = resolveParams(parameters);
+			Filters filters;
+			try {
+				filters = resolveParams(parameters);
+			} catch (EmptyStackException e) {
+				throw new IllegalArgumentException("Not enough arguments for query " + getQueryMethod().getName());
+			}
 
 			Class<?> returnType = graphQueryMethod.resolveConcreteReturnType();
 
@@ -142,7 +142,12 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 
 			int queryDepth = calculateQueryDepth(parameters);
 
-			Filters params = resolveParams(parameters);
+			Filters params;
+			try {
+				params = resolveParams(parameters);
+			} catch (EmptyStackException e) {
+				throw new IllegalArgumentException("Not enough arguments for query " + getQueryMethod().getName());
+			}
 			if (returnType.equals(Void.class)) {
 				throw new RuntimeException("Derived Queries must have a return type");
 			}
@@ -230,13 +235,8 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 				params.put(i, parameters[i]);
 			}
 		}
-		List<CypherFilter> cypherFilters = queryDefinition.getCypherFilters();
-		Filters queryParams = new Filters();
-		for (CypherFilter cypherFilter : cypherFilters) {
-			cypherFilter.functionAdapter.setValueFromArgs(params);
-			queryParams.add(cypherFilter.toFilter());
-		}
-		return queryParams;
+
+		return new Filters(queryDefinition.getFilters(params));
 	}
 
 

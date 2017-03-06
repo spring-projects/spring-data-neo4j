@@ -1,44 +1,45 @@
 package org.springframework.data.neo4j.repository.query.derived.builder;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Stack;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
-import org.springframework.data.neo4j.repository.query.derived.CypherFilter;
+import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.cypher.function.PropertyComparison;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
  * @author Jasper Blues
+ * @author Nicolas Mervaillie
  */
-public class BetweenComparisonBuilder extends CypherFilterBuilder {
+public class BetweenComparisonBuilder extends FilterBuilder {
 
 	public BetweenComparisonBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
 		super(part, booleanOperator, entityType);
 	}
 
 	@Override
-	public List<CypherFilter> build() {
-		List<CypherFilter> filters = new ArrayList<>();
+	public List<Filter> build(Stack<Object> params) {
+		Filter gt = new Filter();
+		gt.setPropertyName(propertyName());
+		gt.setOwnerEntityType(entityType);
+		gt.setBooleanOperator(booleanOperator);
+		gt.setNegated(isNegated());
+		gt.setComparisonOperator(ComparisonOperator.GREATER_THAN);
+		gt.setFunction(new PropertyComparison(params.pop()));
+		setNestedAttributes(part, gt);
 
-		CypherFilter greaterThan = new CypherFilter();
-		greaterThan.setPropertyName(propertyName());
-		greaterThan.setOwnerEntityType(entityType);
-		greaterThan.setBooleanOperator(booleanOperator);
-		greaterThan.setNegated(isNegated());
-		greaterThan.setComparisonOperator(ComparisonOperator.GREATER_THAN);
-		setNestedAttributes(part, greaterThan);
-		filters.add(greaterThan);
+		Filter lt = new Filter();
+		lt.setPropertyName(propertyName());
+		lt.setOwnerEntityType(entityType);
+		lt.setBooleanOperator(BooleanOperator.AND);
+		lt.setNegated(isNegated());
+		lt.setComparisonOperator(ComparisonOperator.LESS_THAN);
+		lt.setFunction(new PropertyComparison(params.pop()));
+		setNestedAttributes(part, lt);
 
-		CypherFilter lessThan = new CypherFilter();
-		lessThan.setPropertyName(propertyName());
-		lessThan.setOwnerEntityType(entityType);
-		lessThan.setBooleanOperator(BooleanOperator.AND);
-		lessThan.setNegated(isNegated());
-		lessThan.setComparisonOperator(ComparisonOperator.LESS_THAN);
-		setNestedAttributes(part, lessThan);
-		filters.add(lessThan);
-
-		return filters;
+		return Arrays.asList(gt, lt);
 	}
 }

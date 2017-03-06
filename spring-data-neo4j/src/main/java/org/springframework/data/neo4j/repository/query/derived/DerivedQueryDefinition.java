@@ -14,8 +14,10 @@
 package org.springframework.data.neo4j.repository.query.derived;
 
 import java.util.List;
+import java.util.Map;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
+import org.neo4j.ogm.cypher.Filter;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -23,6 +25,7 @@ import org.springframework.data.repository.query.parser.Part;
  *
 /**
  * @author Luanne Misquitta
+ * @author Nicolas Mervaillie
  */
 public interface DerivedQueryDefinition {
 
@@ -41,8 +44,8 @@ public interface DerivedQueryDefinition {
 
 	/**
 	 * Gets all cypher filters for this query
-	 * @return
+	 * @return The OGM filters with bound parameter values
 	 */
-	List<CypherFilter> getCypherFilters();
+	List<Filter> getFilters(Map<Integer, Object> params);
 
 }
