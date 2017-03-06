@@ -22,6 +22,7 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Vince Bickers
@@ -43,4 +44,10 @@ public class GalaxyContext {
 	public SessionFactory sessionFactory() {
 		return new SessionFactory("org.springframework.data.neo4j.examples.galaxy.domain");
 	}
+
+	@Bean
+ 	public TransactionTemplate transactionTemplate() {
+		return new TransactionTemplate(transactionManager());
+	}
+
 }

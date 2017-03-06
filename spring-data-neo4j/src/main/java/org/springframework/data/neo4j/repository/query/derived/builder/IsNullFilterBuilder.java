@@ -14,35 +14,30 @@
 
 package org.springframework.data.neo4j.repository.query.derived.builder;
 
-import static org.springframework.data.repository.query.parser.Part.Type.IS_NOT_NULL;
+import static org.springframework.data.repository.query.parser.Part.Type.*;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
-import org.springframework.data.neo4j.repository.query.derived.CypherFilter;
+import org.neo4j.ogm.cypher.Filter;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
  * @author Jasper Blues
+ * @author Nicolas Mervaillie
  */
-public class IsNullFilterBuilder extends CypherFilterBuilder {
+public class IsNullFilterBuilder extends FilterBuilder {
 
     public IsNullFilterBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
         super(part, booleanOperator, entityType);
     }
 
     @Override
-    public List<CypherFilter> build() {
-
-        if (part.getProperty().getSegment().contains("similarRestaurants")) {
-            System.out.println("here");
-        }
-
-        List<CypherFilter> filters = new ArrayList<>();
-
-        CypherFilter filter = new CypherFilter();
+    public List<Filter> build(Stack<Object> params) {
+        Filter filter = new Filter();
         filter.setPropertyName(propertyName());
         filter.setOwnerEntityType(entityType);
         filter.setBooleanOperator(booleanOperator);
@@ -50,8 +45,7 @@ public class IsNullFilterBuilder extends CypherFilterBuilder {
         filter.setComparisonOperator(ComparisonOperator.IS_NULL);
         setNestedAttributes(part, filter);
 
-        filters.add(filter);
-
-        return filters;
+        return Collections.singletonList(filter);
     }
+
 }

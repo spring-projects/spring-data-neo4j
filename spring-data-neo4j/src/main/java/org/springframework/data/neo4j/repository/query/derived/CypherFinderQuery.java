@@ -12,10 +12,10 @@
  */
 package org.springframework.data.neo4j.repository.query.derived;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
+import org.neo4j.ogm.cypher.Filter;
 import org.springframework.data.neo4j.repository.query.derived.builder.*;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -24,15 +24,15 @@ import org.springframework.data.repository.query.parser.Part;
  *
  * @author Luanne Misquitta
  * @author Jasper Blues
+ * @author Nicolas Mervaillie
  */
 public class CypherFinderQuery implements DerivedQueryDefinition {
 
     private Class<?> entityType;
     private Part basePart;
-    private List<CypherFilter> cypherFilters = new ArrayList<>();
-    private int paramPosition = 0;
+    private List<FilterBuilder> filterBuilders = new ArrayList<>();
 
-    public CypherFinderQuery(Class<?> entityType, Part basePart) {
+    CypherFinderQuery(Class<?> entityType, Part basePart) {
         this.entityType = entityType;
         this.basePart = basePart;
     }
@@ -43,23 +43,34 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
     }
 
     @Override
-    public List<CypherFilter> getCypherFilters() {
-        return cypherFilters;
+    public List<Filter> getFilters(Map<Integer, Object> params) {
+
+        // buiding a stack of parameter values, so that the builders can pull them
+        // according to their needs (zero, one or more parameters)
+        // avoids to manage a current parameter index state here.
+        Stack<Object> parametersStack = new Stack<>();
+        if (!params.isEmpty()) {
+            Integer maxParameterIndex = Collections.max(params.keySet());
+            for (int i = 0; i <= maxParameterIndex; i++) {
+                parametersStack.add(0, params.get(i));
+            }
+        }
+
+        List<Filter> filters = new ArrayList<>();
+        for (FilterBuilder filterBuilder : filterBuilders) {
+            filters.addAll(filterBuilder.build(parametersStack));
+        }
+        return filters;
     }
 
     @Override
     public void addPart(Part part, BooleanOperator booleanOperator) {
 
-        List<CypherFilter> filters = builderForPart(part, booleanOperator).build();
-        for (CypherFilter filter : filters) {
-            filter.setPropertyPosition(paramPosition);
-            cypherFilters.add(filter);
-            paramPosition += filter.functionAdapter.parameterCount();
-        }
+        FilterBuilder builder = builderForPart(part, booleanOperator);
+        filterBuilders.add(builder);
     }
 
-    //TODO: Should we inject singleton instances of these?
-    private CypherFilterBuilder builderForPart(Part part, BooleanOperator booleanOperator) {
+    private FilterBuilder builderForPart(Part part, BooleanOperator booleanOperator) {
         switch (part.getType()) {
             case NEAR:
                 return new DistanceComparisonBuilder(part, booleanOperator, entityType);
