@@ -69,13 +69,10 @@ public class DistanceComparisonBuilder extends FilterBuilder {
 		DistanceFromPoint distanceFromPoint = new DistanceFromPoint(point.getX(), point.getY(), distance.getValue() * meters);
 		DistanceComparison distanceComparison = new DistanceComparison(distanceFromPoint);
 
-		Filter filter = new Filter();
-		filter.setPropertyName(propertyName());
+		Filter filter = new Filter(distanceComparison, ComparisonOperator.LESS_THAN);
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
-		filter.setFunction(distanceComparison);
-		filter.setComparisonOperator(ComparisonOperator.LESS_THAN);
 		setNestedAttributes(part, filter);
 
 		return Collections.singletonList(filter);

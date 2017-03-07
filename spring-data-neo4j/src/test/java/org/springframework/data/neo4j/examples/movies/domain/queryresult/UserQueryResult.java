@@ -33,6 +33,8 @@ public class UserQueryResult {
     private Long id;
     Long userId;
     private String userName;
+
+    @Property(name = "user.age")
     private int age;
 
     UserQueryResult() {
@@ -41,24 +43,6 @@ public class UserQueryResult {
 
     public UserQueryResult(String name, int age) {
         this.userName = name;
-        this.age = age;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String name) {
-        this.userName = name;
-    }
-
-    @Property(name = "user.age")
-    public int getAge() {
-        return age;
-    }
-
-    @Property(name = "user.age")
-    public void setAge(int age) {
         this.age = age;
     }
 

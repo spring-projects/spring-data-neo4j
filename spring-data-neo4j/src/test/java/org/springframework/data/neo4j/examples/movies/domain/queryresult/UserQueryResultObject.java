@@ -13,6 +13,9 @@
 
 package org.springframework.data.neo4j.examples.movies.domain.queryresult;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 import org.neo4j.ogm.annotation.Property;
 import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.examples.movies.domain.User;
@@ -25,13 +28,22 @@ import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
  * @see UserRepository
  */
 @QueryResult
-public interface UserQueryResultInterface {
+public class UserQueryResultObject {
 
-    @Property(name = "user.name")
-    String getNameOfUser();
+    private String name;
+    private int ageOfUser;
+    private User user;
 
-    int getAgeOfUser();
+    public String getName() {
+        return name;
+    }
 
-    User getUser();
+    public int getAgeOfUser() {
+        return ageOfUser;
+    }
+
+    public User getUser() {
+        return user;
+    }
 
 }

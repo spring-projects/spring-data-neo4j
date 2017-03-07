@@ -22,22 +22,20 @@ public class BetweenComparisonBuilder extends FilterBuilder {
 
 	@Override
 	public List<Filter> build(Stack<Object> params) {
-		Filter gt = new Filter();
-		gt.setPropertyName(propertyName());
+		final Object value1 = params.pop();
+		Filter gt = new Filter(propertyName(), ComparisonOperator.GREATER_THAN, value1);
 		gt.setOwnerEntityType(entityType);
 		gt.setBooleanOperator(booleanOperator);
 		gt.setNegated(isNegated());
-		gt.setComparisonOperator(ComparisonOperator.GREATER_THAN);
-		gt.setFunction(new PropertyComparison(params.pop()));
+		gt.setFunction(new PropertyComparison(value1));
 		setNestedAttributes(part, gt);
 
-		Filter lt = new Filter();
-		lt.setPropertyName(propertyName());
+		final Object value2 = params.pop();
+		Filter lt = new Filter(propertyName(), ComparisonOperator.LESS_THAN, value2);
 		lt.setOwnerEntityType(entityType);
 		lt.setBooleanOperator(BooleanOperator.AND);
 		lt.setNegated(isNegated());
-		lt.setComparisonOperator(ComparisonOperator.LESS_THAN);
-		lt.setFunction(new PropertyComparison(params.pop()));
+		lt.setFunction(new PropertyComparison(value2));
 		setNestedAttributes(part, lt);
 
 		return Arrays.asList(gt, lt);

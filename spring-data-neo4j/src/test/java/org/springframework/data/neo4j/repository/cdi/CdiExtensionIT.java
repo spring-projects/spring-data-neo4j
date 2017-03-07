@@ -34,7 +34,8 @@ import org.springframework.data.neo4j.examples.friends.domain.Person;
  * @author Mark Paluch
  * @see DATAGRAPH-879
  */
-public class CdiExtensionIT extends MultiDriverTestClass {
+@Ignore
+public class CdiExtensionIT {
 
 	static CdiTestContainer container;
 
@@ -44,8 +45,6 @@ public class CdiExtensionIT extends MultiDriverTestClass {
         // Prevent the Jersey extension to interact with the InitialContext
         System.setProperty("com.sun.jersey.server.impl.cdi.lookupExtensionInBeanManager", "true");
 
-        setupMultiDriverTestEnvironment();
-
         container = CdiTestContainerLoader.getCdiContainer();
         container.bootContainer();
     }
@@ -54,8 +53,6 @@ public class CdiExtensionIT extends MultiDriverTestClass {
     public static void tearDown() throws Exception {
 
         container.shutdownContainer();
-
-        tearDownMultiDriverTestEnvironment();
     }
 
 	/**

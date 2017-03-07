@@ -37,12 +37,10 @@ public class BooleanComparisonBuilder extends FilterBuilder {
 
 	@Override
 	public List<Filter> build(Stack<Object> params) {
-		Filter filter = new Filter();
-		filter.setPropertyName(propertyName());
+		Filter filter = new Filter(propertyName(), ComparisonOperator.IS_TRUE);
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated() || part.getType() == FALSE);
-		filter.setComparisonOperator(ComparisonOperator.IS_TRUE);
 		setNestedAttributes(part, filter);
 
 		return Collections.singletonList(filter);

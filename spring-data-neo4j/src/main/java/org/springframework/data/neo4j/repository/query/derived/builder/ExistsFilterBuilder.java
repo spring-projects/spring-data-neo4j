@@ -22,12 +22,10 @@ public class ExistsFilterBuilder extends FilterBuilder {
 
 	@Override
 	public List<Filter> build(Stack<Object> params) {
-		Filter filter = new Filter();
-		filter.setPropertyName(propertyName());
+		Filter filter = new Filter(propertyName(), ComparisonOperator.EXISTS);
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
-		filter.setComparisonOperator(ComparisonOperator.EXISTS);
 		setNestedAttributes(part, filter);
 
 		return Collections.singletonList(filter);

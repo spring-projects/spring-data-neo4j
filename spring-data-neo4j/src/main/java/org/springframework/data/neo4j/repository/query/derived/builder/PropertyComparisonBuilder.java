@@ -35,12 +35,10 @@ public class PropertyComparisonBuilder extends FilterBuilder {
 
 	@Override
 	public List<Filter> build(Stack<Object> params) {
-		Filter filter = new Filter();
-		filter.setPropertyName(propertyName());
+		Filter filter = new Filter(propertyName(), convertToComparisonOperator(part.getType()), params.peek());
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
-		filter.setComparisonOperator(convertToComparisonOperator(part.getType()));
 		filter.setFunction(new PropertyComparison(params.pop()));
 		setNestedAttributes(part, filter);
 

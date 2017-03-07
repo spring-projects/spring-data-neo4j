@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
@@ -647,7 +648,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 	}
 
 	protected Iterable<?> findByProperty(Class clazz, String propertyName, Object propertyValue) {
-		return session.loadAll(clazz, new Filter(propertyName, propertyValue));
+		return session.loadAll(clazz, new Filter(propertyName, ComparisonOperator.EQUALS,  propertyValue));
 	}
 
 	//

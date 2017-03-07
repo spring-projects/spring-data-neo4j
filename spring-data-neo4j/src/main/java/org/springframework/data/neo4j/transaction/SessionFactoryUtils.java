@@ -17,8 +17,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import org.neo4j.ogm.autoindex.MissingIndexException;
-import org.neo4j.ogm.autoindex.Neo4jVersionException;
-import org.neo4j.ogm.entity.io.EntityAccessException;
 import org.neo4j.ogm.exception.*;
 import org.neo4j.ogm.session.Neo4jException;
 import org.neo4j.ogm.session.Session;
@@ -141,13 +139,7 @@ public class SessionFactoryUtils {
 		if (ex instanceof TransactionManagerException) {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 		}
-		if (ex instanceof EntityAccessException) {
-			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
-		}
 		if (ex instanceof MissingIndexException) {
-			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
-		}
-		if (ex instanceof Neo4jVersionException) {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 		}
 		if (ex instanceof Neo4jException) {

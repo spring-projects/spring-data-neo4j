@@ -13,10 +13,10 @@
 
 package org.springframework.data.neo4j.repository.support;
 
-import org.neo4j.ogm.MetaData;
-import org.neo4j.ogm.entity.io.EntityAccessManager;
+import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.ClassInfo;
 import org.neo4j.ogm.metadata.FieldInfo;
+import org.neo4j.ogm.metadata.reflect.EntityAccessManager;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
 
 import java.io.Serializable;

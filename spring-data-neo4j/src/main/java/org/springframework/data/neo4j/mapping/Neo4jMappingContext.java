@@ -13,8 +13,8 @@
 package org.springframework.data.neo4j.mapping;
 
 import org.neo4j.ogm.annotation.typeconversion.Convert;
-import org.neo4j.ogm.MetaData;
-import org.neo4j.ogm.classloader.MetaDataClassLoader;
+import org.neo4j.ogm.metadata.MetaData;
+import org.neo4j.ogm.metadata.bytecode.MetaDataClassLoader;
 import org.neo4j.ogm.metadata.ClassInfo;
 import org.neo4j.ogm.metadata.FieldInfo;
 import org.slf4j.Logger;
