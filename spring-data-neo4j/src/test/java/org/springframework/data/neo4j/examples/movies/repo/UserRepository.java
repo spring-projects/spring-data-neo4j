@@ -67,11 +67,11 @@ public interface UserRepository extends PersonRepository<User, Long> {
     @Query("MATCH (user:User{name:{0}}) RETURN user.name AS name")
     UnmanagedUserPojo findIndividualUserAsDifferentObject(String name);
 
-    @Query("MATCH (user:User) WHERE user.name={0} RETURN user.name, user.age AS ageOfUser")
-    UserQueryResultInterface findIndividualUserAsProxiedObject(String name);
+    @Query("MATCH (user:User) WHERE user.name={0} RETURN user.name AS name, user.age AS ageOfUser")
+    UserQueryResultObject findIndividualUserAsProxiedObject(String name);
 
     @Query("MATCH (user:User) WHERE user.name={0} RETURN user as user, user.age AS ageOfUser")
-    UserQueryResultInterface findWrappedUserAsProxiedObject(String name);
+    UserQueryResultObject findWrappedUserAsProxiedObject(String name);
 
     @Query("MATCH (user:User) WHERE user.gender={0} RETURN user.name AS UserName, user.gender AS UserGender, user.account as UserAccount, user.deposits as UserDeposits")
     Iterable<RichUserQueryResult> findUsersByGender(Gender gender);

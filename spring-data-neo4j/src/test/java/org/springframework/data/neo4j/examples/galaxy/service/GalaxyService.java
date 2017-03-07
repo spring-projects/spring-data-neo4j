@@ -16,6 +16,7 @@ package org.springframework.data.neo4j.examples.galaxy.service;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.session.Session;
@@ -156,11 +157,11 @@ public class GalaxyService {
 	}
 
 	private Iterable<World> findByProperty(String propertyName, Object propertyValue) {
-		return session.loadAll(World.class, new Filter(propertyName, propertyValue));
+		return session.loadAll(World.class, new Filter(propertyName, ComparisonOperator.EQUALS, propertyValue));
 	}
 
 	public Iterable<World> findByProperty(String propertyName, Object propertyValue, int depth) {
-		return session.loadAll(World.class, new Filter(propertyName, propertyValue), depth);
+		return session.loadAll(World.class, new Filter(propertyName, ComparisonOperator.EQUALS, propertyValue), depth);
 	}
 
 

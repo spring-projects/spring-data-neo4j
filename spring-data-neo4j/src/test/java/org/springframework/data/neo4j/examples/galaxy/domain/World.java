@@ -44,7 +44,7 @@ public class World {
         this.updated = updated;
     }
 
-
+    @Relationship(type=REACHABLE_BY_ROCKET, direction = "UNDIRECTED")
     private Set<World> reachableByRocket = new HashSet<>();
 
     public World(String name, int moons) {
@@ -73,12 +73,10 @@ public class World {
         otherWorld.reachableByRocket.add(this); // bi-directional in domain.
     }
 
-    @Relationship(type=REACHABLE_BY_ROCKET, direction = "UNDIRECTED")
     public Set<World> getReachableByRocket() {
         return this.reachableByRocket;
     }
 
-    @Relationship(type=REACHABLE_BY_ROCKET , direction = "UNDIRECTED")
     public void setReachableByRocket(Set<World> reachableByRocket) {
         this.reachableByRocket.clear();
         this.reachableByRocket = reachableByRocket;

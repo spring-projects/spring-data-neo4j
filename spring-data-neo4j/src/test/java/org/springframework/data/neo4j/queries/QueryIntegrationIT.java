@@ -251,9 +251,9 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
-				UserQueryResultInterface result = userRepository.findIndividualUserAsProxiedObject("Abraham");
+				UserQueryResultObject result = userRepository.findIndividualUserAsProxiedObject("Abraham");
 				assertNotNull("The query result shouldn't be null", result);
-				assertEquals("The wrong user was returned", "Abraham", result.getNameOfUser());
+				assertEquals("The wrong user was returned", "Abraham", result.getName());
 				assertEquals("The wrong user was returned", 31, result.getAgeOfUser());
 			}
 		});
@@ -546,7 +546,7 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
-				UserQueryResultInterface result = userRepository.findWrappedUserAsProxiedObject("Abraham");
+				UserQueryResultObject result = userRepository.findWrappedUserAsProxiedObject("Abraham");
 				assertNotNull("The query result shouldn't be null", result);
 				assertNotNull("The mapped user shouldn't be null", result.getUser());
 				assertEquals("The wrong user was returned", "Abraham", result.getUser().getName());

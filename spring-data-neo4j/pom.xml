@@ -29,8 +29,8 @@
     </parent>
 
     <properties>
-        <neo4j.ogm.version>2.1.1</neo4j.ogm.version>
-        <ogm.properties>ogm-http.properties</ogm.properties>
+        <neo4j.ogm.version>3.0.0-SNAPSHOT</neo4j.ogm.version>
+        <ogm.properties>ogm-bolt.properties</ogm.properties>
     </properties>
 
 
@@ -140,7 +140,7 @@
 
         <dependency>
             <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-ogm-http-driver</artifactId>
+            <artifactId>neo4j-ogm-bolt-driver</artifactId>
             <version>${neo4j.ogm.version}</version>
         </dependency>
 

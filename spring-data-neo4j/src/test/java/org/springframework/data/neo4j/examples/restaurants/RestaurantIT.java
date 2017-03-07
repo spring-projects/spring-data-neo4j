@@ -26,7 +26,6 @@ import org.junit.After;
 import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.service.Components;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Distance;
@@ -70,7 +69,6 @@ public class RestaurantIT extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindRestaurantsNear_nameParameterFirst() {
-		Assume.assumeTrue(Components.neo4jVersion() >= 3);
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
 				new Point(37.61649, -122.38681), 94128);
 		restaurantRepository.save(restaurant);
@@ -96,7 +94,6 @@ public class RestaurantIT extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindRestaurantsNear_locationFirst() {
-		Assume.assumeTrue(Components.neo4jVersion() >= 3);
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
 				new Point(37.61649, -122.38681), 94128);
 		restaurantRepository.save(restaurant);

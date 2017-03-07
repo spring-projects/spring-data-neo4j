@@ -15,7 +15,7 @@ package org.springframework.data.neo4j.transactions.repo;
 
 import java.util.Collection;
 
-import org.springframework.data.neo4j.repository.GraphRepository;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.transactions.domain.User;
 import org.springframework.stereotype.Repository;
 
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Repository;
  * @author Michal Bachman
  */
 @Repository
-public interface UserRepository extends GraphRepository<User> {
+public interface UserRepository extends Neo4jRepository<User, Long> {
 
     Collection<User> findUserByName(String name);
 }

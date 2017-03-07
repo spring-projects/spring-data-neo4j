@@ -37,12 +37,10 @@ public class IsNullFilterBuilder extends FilterBuilder {
 
     @Override
     public List<Filter> build(Stack<Object> params) {
-        Filter filter = new Filter();
-        filter.setPropertyName(propertyName());
+        Filter filter = new Filter(propertyName(), ComparisonOperator.IS_NULL);
         filter.setOwnerEntityType(entityType);
         filter.setBooleanOperator(booleanOperator);
         filter.setNegated(isNegated() || part.getType() == IS_NOT_NULL);
-        filter.setComparisonOperator(ComparisonOperator.IS_NULL);
         setNestedAttributes(part, filter);
 
         return Collections.singletonList(filter);

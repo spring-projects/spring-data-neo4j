@@ -16,7 +16,6 @@ package org.springframework.data.neo4j.examples.galaxy.repo;
 import org.neo4j.ogm.model.Result;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
-import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.stereotype.Repository;
 
@@ -25,7 +24,7 @@ import org.springframework.stereotype.Repository;
  * @author Luanne Misquitta
  */
 @Repository
-public interface WorldRepository extends GraphRepository<World> {
+public interface WorldRepository extends Neo4jRepository<World, Long> {
 
     @Query("MATCH (n:World) SET n.updated=timestamp()")
     void touchAllWorlds();

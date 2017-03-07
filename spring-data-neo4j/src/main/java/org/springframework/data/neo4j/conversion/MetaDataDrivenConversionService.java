@@ -13,9 +13,9 @@
 
 package org.springframework.data.neo4j.conversion;
 
-import org.neo4j.ogm.MetaData;
 import org.neo4j.ogm.metadata.ClassInfo;
 import org.neo4j.ogm.metadata.FieldInfo;
+import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.MethodInfo;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
 import org.neo4j.ogm.typeconversion.ConversionCallback;
@@ -52,12 +52,6 @@ public class MetaDataDrivenConversionService extends GenericConversionService im
             for (FieldInfo fieldInfo : classInfo.propertyFields()) {
                 if (fieldInfo.hasPropertyConverter()) {
                     addWrappedConverter(fieldInfo.getPropertyConverter());
-                }
-            }
-            // TODO: do we need to check the setters too or are programmers obliged to annotate both?
-            for (MethodInfo methodInfo : classInfo.propertyGetters()) {
-                if (methodInfo.hasPropertyConverter()) {
-                    addWrappedConverter(methodInfo.getPropertyConverter());
                 }
             }
         }

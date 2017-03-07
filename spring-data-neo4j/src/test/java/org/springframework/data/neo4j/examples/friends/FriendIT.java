@@ -20,6 +20,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
@@ -66,7 +67,7 @@ public class FriendIT extends MultiDriverTestClass {
 		friendService.createPersonAndFriends();
 
 		session.clear();
-		Person john = session.loadAll(Person.class, new Filter("firstName", "John")).iterator().next();
+		Person john = session.loadAll(Person.class, new Filter("firstName", ComparisonOperator.EQUALS, "John")).iterator().next();
 		assertNotNull(john);
 		assertEquals(2, john.getFriendships().size());
 	}

@@ -66,7 +66,6 @@ public class Cinema {
 		return location;
 	}
 
-	@Relationship(type = "VISITED", direction = Relationship.INCOMING)
 	public Set<User> getVisited() {
 		return visited;
 	}
