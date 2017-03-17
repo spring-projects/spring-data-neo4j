@@ -57,7 +57,7 @@ public class SessionBeanDefinitionRegistrarPostProcessorTest {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory("");
+			return new SessionFactory("org.springframework.data.neo4j.examples.friends.domain");
 		}
 	}
 

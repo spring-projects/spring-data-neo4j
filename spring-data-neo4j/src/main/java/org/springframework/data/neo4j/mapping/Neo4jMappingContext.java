@@ -14,7 +14,6 @@ package org.springframework.data.neo4j.mapping;
 
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.metadata.MetaData;
-import org.neo4j.ogm.metadata.bytecode.MetaDataClassLoader;
 import org.neo4j.ogm.metadata.ClassInfo;
 import org.neo4j.ogm.metadata.FieldInfo;
 import org.slf4j.Logger;
@@ -25,6 +24,7 @@ import org.springframework.data.util.TypeInformation;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.util.Objects;
 
 import static java.util.Collections.singleton;
 
@@ -52,15 +52,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
      */
     public Neo4jMappingContext(MetaData metaData) {
         this.metaData = metaData;
-
-        for (ClassInfo classInfo : metaData.persistentEntities()) {
-            try {
-                addPersistentEntity( MetaDataClassLoader.loadClass( classInfo.name() ));
-            } catch (ClassNotFoundException e) {
-                logger.error("Failed to load class: " + classInfo.name() + " named in ClassInfo due to exception", e);
-            }
-        }
-
+        metaData.persistentEntities().stream().filter(k -> k.getUnderlyingClass() != null).forEach(k -> addPersistentEntity(k.getUnderlyingClass()));
         logger.info("Neo4jMappingContext initialisation completed");
     }
 
