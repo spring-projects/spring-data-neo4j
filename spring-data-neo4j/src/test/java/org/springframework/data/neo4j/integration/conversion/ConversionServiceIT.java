@@ -117,23 +117,19 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 	@Test
 	public void shouldConvertFieldsUsingSpringConvertersAddedDirectlyToConversionService() {
 
-		PensionPlan pensionToSave = transactionTemplate.execute(new TransactionCallback<PensionPlan>() {
-			@Override
-			public PensionPlan doInTransaction(TransactionStatus status) {
-				conversionService.addConverter(new SpringMonetaryAmountToIntegerConverter());
-				conversionService.addConverter(new SpringIntegerToMonetaryAmountConverter());
-				conversionService.addConverter(new SpringMonetaryAmountToLongConverter());
-				conversionService.addConverter(new SpringLongToMonetaryAmountConverter());
+		PensionPlan pensionToSave = transactionTemplate.execute(status -> {
+            conversionService.addConverter(new SpringMonetaryAmountToIntegerConverter());
+            conversionService.addConverter(new SpringIntegerToMonetaryAmountConverter());
+            conversionService.addConverter(new SpringMonetaryAmountToLongConverter());
+            conversionService.addConverter(new SpringLongToMonetaryAmountConverter());
 
-				PensionPlan pensionToSave = new PensionPlan(new MonetaryAmount(16472, 81), "Tightfist Asset Management Ltd");
+            PensionPlan pensionToSave1 = new PensionPlan(new MonetaryAmount(16472, 81), "Tightfist Asset Management Ltd");
 
-				pensionRepository.save(pensionToSave);
-				return pensionToSave;
-			}
-		});
+            pensionRepository.save(pensionToSave1);
+            return pensionToSave1;
+        });
 
-		Result result = graphDatabaseService
-				.execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
+		Result result = graphDatabaseService.execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
 		assertTrue("Nothing was saved", result.hasNext());
 		assertEquals("The amount wasn't converted and persisted correctly", "1647281", String.valueOf(result.next().get("fv")));
 		result.close();
