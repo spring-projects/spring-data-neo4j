@@ -39,10 +39,10 @@ public class GraphEntityInformation<T, ID extends Serializable> extends Abstract
         final FieldInfo primaryIndex = classInfo.primaryIndexField();
 
         if (primaryIndex != null) {
-            return (ID) EntityAccessManager.getPropertyReader(classInfo, primaryIndex.getName()).readProperty(entity);
+            return (ID) classInfo.propertyField(primaryIndex.getName()).readProperty(entity);
         }
         else {
-            return (ID) EntityAccessManager.getPropertyReader(classInfo, classInfo.identityField().getName()).readProperty(entity);
+            return (ID) classInfo.propertyField(classInfo.identityField().getName()).readProperty(entity);
         }
     }
 
