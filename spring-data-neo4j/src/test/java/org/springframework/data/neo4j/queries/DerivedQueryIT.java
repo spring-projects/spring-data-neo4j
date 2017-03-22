@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -42,10 +42,7 @@ import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.EntityWrappingQueryResult;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.DirectorRepository;
-import org.springframework.data.neo4j.examples.movies.repo.RatingRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
-import org.springframework.data.neo4j.repositories.domain.Movie;
-import org.springframework.data.neo4j.util.IterableUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -75,9 +72,6 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 
 	@Autowired
 	private CinemaRepository cinemaRepository;
-
-	@Autowired
-	private RatingRepository ratingRepository;
 
 	@Autowired
 	private DirectorRepository directorRepository;
@@ -621,26 +615,34 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 		Pageable pageable = new PageRequest(0, 4);
 		Page<User> page = userRepository.findByNameAndSurname("A", "B", pageable);
 		assertEquals(4, page.getNumberOfElements());
-		assertEquals(8, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals(10, page.getTotalElements());
+		assertEquals(0, page.getNumber());
+		assertTrue(page.isFirst());
+		assertFalse(page.isLast());
 		assertTrue(page.hasNext());
 
 		page = userRepository.findByNameAndSurname("A", "B", page.nextPageable());
 		assertEquals(4, page.getNumberOfElements());
-		assertEquals(12, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals(10, page.getTotalElements());
+		assertEquals(1, page.getNumber());
+		assertFalse(page.isFirst());
+		assertFalse(page.isLast());
 		assertTrue(page.hasNext());
 
 		page = userRepository.findByNameAndSurname("A", "B", page.nextPageable());
 		assertEquals(2, page.getNumberOfElements());
-		assertEquals(10, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals(10, page.getTotalElements());
+		assertEquals(2, page.getNumber());
+		assertFalse(page.isFirst());
+		assertTrue(page.isLast());
 		assertFalse(page.hasNext());
 
 		page = userRepository.findByNameAndSurname("A", "B", new PageRequest(0, 10));
 		assertEquals(10, page.getNumberOfElements());
-		assertEquals(20, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
-		assertTrue(page.hasNext()); //this cannot be relied upon because the total number of elements is an estimate
-
-		page = userRepository.findByNameAndSurname("A", "B", page.nextPageable());
-		assertEquals(0, page.getNumberOfElements());
+		assertEquals(10, page.getTotalElements());
+		assertEquals(0, page.getNumber());
+		assertTrue(page.isFirst());
+		assertTrue(page.isLast());
 		assertFalse(page.hasNext());
 	}
 
