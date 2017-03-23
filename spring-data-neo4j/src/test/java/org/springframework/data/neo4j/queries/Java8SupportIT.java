@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @ContextConfiguration(classes = {MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class StreamingAndOptionalIT extends MultiDriverTestClass {
+public class Java8SupportIT extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
 
@@ -100,4 +100,14 @@ public class StreamingAndOptionalIT extends MultiDriverTestClass {
 		assertEquals("Cineplex", allCinemas.iterator().next().getName());
 	}
 
+	@Test
+	@Transactional
+	public void shouldGetCinemasAsync() {
+		setup();
+
+		cinemaRepository.getAllCinemasAsync().thenAccept(cinemas -> {
+			assertEquals(10, cinemas.size());
+			cinemas.forEach(cinema -> assertNotNull(cinema.getName()));
+		});
+	}
 }

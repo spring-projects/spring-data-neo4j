@@ -13,7 +13,9 @@
 
 package org.springframework.data.neo4j.examples.movies.repo;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import org.springframework.data.domain.Sort;
@@ -21,6 +23,7 @@ import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -36,4 +39,8 @@ public interface CinemaStreamingRepository extends Neo4jRepository<Cinema, Long>
 
 	@Query("MATCH (n:Theatre) RETURN n")
 	Stream<Cinema> getCinemasSortedByName(Sort sort);
+
+	@Async
+	@Query(value = "MATCH (n:Theatre) RETURN n;")
+	CompletableFuture<List<Cinema>> getAllCinemasAsync();
 }
