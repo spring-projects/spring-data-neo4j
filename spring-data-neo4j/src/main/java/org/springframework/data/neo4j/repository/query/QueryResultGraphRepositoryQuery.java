@@ -58,7 +58,7 @@ public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
 
 		Pageable pageable = parameterAccessor.getPageable();
 		Sort sort = parameterAccessor.getSort();
-		if (pageable != Pageable.NONE) {
+		if (pageable.isPaged()) {
 			sort = pageable.getSort();
 		}
 		if (sort != Sort.unsorted()) {

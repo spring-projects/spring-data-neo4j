@@ -67,7 +67,7 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 		Object result = execute(returnType, concreteType, getQueryString(), params, accessor);
 
 		return Result.class.equals(returnType) ? result :
-				processor.withDynamicProjection(Optional.of(accessor)).processResult(result);
+				processor.withDynamicProjection(accessor).processResult(result);
 	}
 
 	protected Object execute(Class<?> returnType, Class<?> concreteType, String cypherQuery,
@@ -75,7 +75,7 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 
 		Pageable pageable = parameterAccessor.getPageable();
 		Sort sort = parameterAccessor.getSort();
-		if (pageable != Pageable.NONE) {
+		if (pageable.isPaged()) {
 			sort = pageable.getSort();
 		}
 		if (sort != Sort.unsorted()) {
