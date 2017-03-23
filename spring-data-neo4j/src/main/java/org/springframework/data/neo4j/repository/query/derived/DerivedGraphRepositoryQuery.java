@@ -276,7 +276,7 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		SortOrder sortOrder;
 		Pagination pagination = null;
 
-		if (pageable != Pageable.NONE) {
+		if (pageable.isPaged()) {
 			pagination = new Pagination(pageable.getPageNumber(), pageable.getPageSize());
 			sortOrder = convert(pageable.getSort());
 		} else {
