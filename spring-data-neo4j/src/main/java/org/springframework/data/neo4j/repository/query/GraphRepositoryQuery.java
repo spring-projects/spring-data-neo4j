@@ -183,7 +183,7 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 				parameterValue = parameters[i];
 			}
 
-			if (parameter.isNamedParameter()) {
+			if (parameter.isExplicitlyNamed()) {
 				params.put(parameter.getName(), parameterValue);
 			} else {
 				params.put("" + i, parameterValue);

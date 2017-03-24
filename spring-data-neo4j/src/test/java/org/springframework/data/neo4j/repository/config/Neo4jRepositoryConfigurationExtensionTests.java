@@ -13,7 +13,7 @@
 package org.springframework.data.neo4j.repository.config;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -23,31 +23,30 @@ import java.util.Set;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.ClassInfo;
+import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.StandardEnvironment;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.type.StandardAnnotationMetadata;
 import org.springframework.data.neo4j.repository.support.SessionBeanDefinitionRegistrarPostProcessor;
+import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
-import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
 
 /**
  * Unit tests for {@link Neo4jRepositoryConfigurationExtension}.
  *
  * @author Mark Angrish
  */
-@RunWith(MockitoJUnitRunner.class)
 public class Neo4jRepositoryConfigurationExtensionTests {
 
-	@Mock RepositoryConfigurationSource configSource;
+	RepositoryConfigurationSource configSource = new AnnotationRepositoryConfigurationSource(new StandardAnnotationMetadata(Config.class, true), EnableNeo4jRepositories.class, new PathMatchingResourcePatternResolver(), new StandardEnvironment());
 
 	public @Rule ExpectedException exception = ExpectedException.none();
 
@@ -116,5 +115,10 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 		assertThat(factory.getBean(expectedBeanName), is(notNullValue()));
 		exception.expect(NoSuchBeanDefinitionException.class);
 		factory.getBeanDefinition("org.springframework.data.neo4j.repository.support.SessionBeanDefinitionRegistrarPostProcessor#1");
+	}
+
+	@EnableNeo4jRepositories(considerNestedRepositories = true)
+	static class Config {
+
 	}
 }
