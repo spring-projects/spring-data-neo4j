@@ -64,10 +64,10 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.config14.RepositoryConfigurationExtension#getRepositoryInterface()
+	 * @see org.springframework.data.repository.config14.RepositoryConfigurationExtension#getRepositoryFactoryBeanClassName()
 	 */
 	@Override
-	public String getRepositoryFactoryClassName() {
+	public String getRepositoryFactoryBeanClassName() {
 		return Neo4jRepositoryFactoryBean.class.getName();
 	}
 
