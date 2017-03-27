@@ -11,6 +11,19 @@
  *
  */
 
+/*
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ *
+ */
+
 package org.springframework.data.neo4j.repository.query;
 
 
@@ -34,6 +47,7 @@ import org.springframework.data.repository.query.ResultProcessor;
  * @author Mark Angrish
  * @author Luanne Misquitta
  * @author Jasper Blues
+ * @author Mark Paluch
  * @author Nicolas Mervaillie
  */
 public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
@@ -86,20 +100,25 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 		for (int i = 0; i < parameters.length; i++) {
 			Parameter parameter = methodParameters.getParameter(i);
+			Object parameterValue = getParameterValue(parameters[i]);
 
-			//The parameter might be an entity, try to resolve its id
-			Object parameterValue = session.resolveGraphIdFor(parameters[i]);
-			if (parameterValue == null) { //Either not an entity or not persisted
-				parameterValue = parameters[i];
-			}
-
-			if (parameter.isNamedParameter()) {
-				params.put(parameter.getName(), parameterValue);
+			if (parameter.isExplicitlyNamed()) {
+				parameter.getName().ifPresent(name -> params.put(name, parameterValue));
 			} else {
 				params.put("" + i, parameterValue);
 			}
 		}
 		return params;
+	}
+
+	private Object getParameterValue(Object parameter) {
+
+		//The parameter might be an entity, try to resolve its id
+		Object parameterValue = session.resolveGraphIdFor(parameter);
+		if (parameterValue == null) { //Either not an entity or not persisted
+			parameterValue = parameter;
+		}
+		return parameterValue;
 	}
 
 	@Override
@@ -116,5 +135,4 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 	protected boolean isDeleteQuery() {
 		return false;
 	}
-
 }

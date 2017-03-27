@@ -1,5 +1,18 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ *
+ */
+
+/*
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -18,33 +31,40 @@ import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.StringContains.*;
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.cypher.query.Pagination;
+import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.examples.galaxy.context.GalaxyContext;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
 import org.springframework.data.neo4j.examples.galaxy.service.GalaxyService;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 
 /**
  * @author Vince Bickers
+ * @author Mark Paluch
  */
-@ContextConfiguration(classes = {GalaxyContext.class})
+@ContextConfiguration(classes = {GalaxyServiceIT.GalaxyContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
 public class GalaxyServiceIT extends MultiDriverTestClass {
@@ -93,8 +113,8 @@ public class GalaxyServiceIT extends MultiDriverTestClass {
 		galaxyService.makeSomeWorlds();
 
 		for (World world : galaxyService.getAllWorlds()) {
-			World foundWorld = galaxyService.findWorldById(world.getId());
-			assertNotNull(foundWorld);
+			Optional<World> foundWorld = galaxyService.findWorldById(world.getId());
+			assertTrue(foundWorld.isPresent());
 		}
 	}
 
@@ -309,5 +329,29 @@ public class GalaxyServiceIT extends MultiDriverTestClass {
 		String[] sortedNames = names.toArray(new String[]{});
 		Arrays.sort(sortedNames);
 		return sortedNames;
+	}
+
+	@Configuration
+	@ComponentScan({"org.springframework.data.neo4j.examples.galaxy.service"})
+	@PropertySource("classpath:helloworld.properties")
+	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.galaxy.repo")
+	@EnableTransactionManagement
+	static class GalaxyContext {
+
+		@Bean
+		public PlatformTransactionManager transactionManager() {
+			return new Neo4jTransactionManager(sessionFactory());
+		}
+
+		@Bean
+		public SessionFactory sessionFactory() {
+			return new SessionFactory(baseConfiguration, "org.springframework.data.neo4j.examples.galaxy.domain");
+		}
+
+		@Bean
+		public TransactionTemplate transactionTemplate() {
+			return new TransactionTemplate(transactionManager());
+		}
+
 	}
 }

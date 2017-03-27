@@ -1,5 +1,18 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ *
+ */
+
+/*
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -15,37 +28,39 @@ package org.springframework.data.neo4j.examples.movies;
 
 import static org.junit.Assert.*;
 import static org.neo4j.ogm.testutil.GraphTestUtils.*;
-import static org.springframework.data.repository.query.parser.Part.Type.*;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.*;
 import org.springframework.data.neo4j.examples.movies.repo.*;
 import org.springframework.data.neo4j.examples.movies.service.UserService;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -54,14 +69,13 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Luanne Misquitta
  * @author Vince Bickers
  * @author Mark Angrish
+ * @author Mark Paluch
  */
-@ContextConfiguration(classes = {MoviesContext.class})
+@ContextConfiguration(classes = {MoviesIntegrationIT.MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	private final Logger logger = LoggerFactory.getLogger(MoviesIntegrationIT.class);
-
-	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired
 	PlatformTransactionManager platformTransactionManager;
@@ -86,15 +100,10 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 	private TransactionTemplate transactionTemplate;
 
-	@BeforeClass
-	public static void beforeClass() {
-		graphDatabaseService = getGraphDatabaseService();
-	}
-
 	@Before
 	public void setUp() {
 		transactionTemplate = new TransactionTemplate(platformTransactionManager);
-		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	@Test
@@ -102,7 +111,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 		User user = new User("Michal");
 		userRepository.save(user);
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Michal'})");
+		assertSameGraph(getGraphDatabaseService(), "CREATE (u:User:Person {name:'Michal'})");
 	}
 
 	@Test
@@ -110,7 +119,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 		User user = new User();
 		userRepository.save(user);
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User:Person)");
+		assertSameGraph(getGraphDatabaseService(), "CREATE (u:User:Person)");
 	}
 
 
@@ -125,7 +134,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 		abstractAnnotatedEntityRepository.save(releasedMovie);
 
-		assertSameGraph(graphDatabaseService,
+		assertSameGraph(getGraphDatabaseService(),
 				"CREATE (m:ReleasedMovie:AbstractAnnotatedEntity {cinemaRelease:'1994-09-10T00:00:00.000Z'," +
 						"cannesRelease:768700800000,title:'Pulp Fiction'})");
 	}
@@ -139,7 +148,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 		abstractAnnotatedEntityRepository.save(releasedMovie);
 
-		assertSameGraph(graphDatabaseService,
+		assertSameGraph(getGraphDatabaseService(),
 				"CREATE (m:ReleasedMovie:AbstractAnnotatedEntity {cannesRelease:768700800000,title:'Pulp Fiction'})");
 	}
 
@@ -153,7 +162,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 		abstractEntityRepository.save(movie);
 
 		// byte arrays have to be transferred with a JSON-supported format. Base64 is the default.
-		assertSameGraph(graphDatabaseService, "CREATE (m:Movie {name:'Pulp Fiction', tags:['cool','classic'], " +
+		assertSameGraph(getGraphDatabaseService(), "CREATE (m:Movie {name:'Pulp Fiction', tags:['cool','classic'], " +
 				"image:'AQID'})");
 	}
 
@@ -172,7 +181,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService, "CREATE (:User:Person {name:'Michal'})," +
+		assertSameGraph(getGraphDatabaseService(), "CREATE (:User:Person {name:'Michal'})," +
 				"(:User:Person {name:'Vince'})," +
 				"(:User:Person {name:'Adam'})");
 	}
@@ -193,7 +202,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService, "CREATE (:User:Person {name:'Michal'})," +
+		assertSameGraph(getGraphDatabaseService(), "CREATE (:User:Person {name:'Michal'})," +
 				"(:User:Person {name:'Vince'})," +
 				"(:User:Person {name:'Adam'})");
 	}
@@ -209,7 +218,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Adam'})");
+		assertSameGraph(getGraphDatabaseService(), "CREATE (u:User:Person {name:'Adam'})");
 	}
 
 
@@ -224,7 +233,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 		userService.updateUser(user, "Adam"); //notice userRepository.save(..) isn't called,
 		// not even in the service impl!
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User {name:'Adam'})");
+		assertSameGraph(getGraphDatabaseService(), "CREATE (u:User {name:'Adam'})");
 	}
 
 	@Test
@@ -236,12 +245,15 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 				User user = new User("Michal");
 				userRepository.save(user);
 
-				User loaded = userRepository.findOne(user.getId());
+				Optional<User> loaded = userRepository.findOne(user.getId());
 
-				assertEquals("Michal", loaded.getName());
+				assertTrue(loaded.isPresent());
 
-				assertTrue(loaded.equals(user));
-				assertTrue(loaded == user);
+				loaded.ifPresent(loadedUser -> {
+					assertEquals("Michal", loadedUser.getName());
+					assertTrue(loadedUser.equals(user));
+					assertTrue(loadedUser == user);
+				});
 			}
 		});
 	}
@@ -260,12 +272,16 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 		User user = new User();
 		userRepository.save(user);
 
-		User loaded = userRepository.findOne(user.getId());
 
-		assertNull(loaded.getName());
+		Optional<User> loaded = userRepository.findOne(user.getId());
 
-		assertTrue(loaded.equals(user));
-		assertTrue(loaded == user);
+		assertTrue(loaded.isPresent());
+
+		loaded.ifPresent(loadedUser -> {
+			assertNull(loadedUser.getName());
+			assertTrue(loadedUser.equals(user));
+			assertTrue(loadedUser == user);
+		});
 	}
 
 	@Test
@@ -282,13 +298,13 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 				assertFalse(userRepository.findAll(1).iterator().hasNext());
 				assertFalse(userRepository.exists(user.getId()));
 				assertEquals(0, userRepository.count());
-				assertNull(userRepository.findOne(user.getId()));
-				assertNull(userRepository.findOne(user.getId(), 10));
+				assertFalse(userRepository.findOne(user.getId()).isPresent());
+				assertFalse(userRepository.findOne(user.getId(), 10).isPresent());
 			}
 		});
 
-		try (Transaction tx = graphDatabaseService.beginTx()) {
-			assertFalse(graphDatabaseService.getAllNodes().iterator().hasNext());
+		try (Transaction tx = getGraphDatabaseService().beginTx()) {
+			assertFalse(getGraphDatabaseService().getAllNodes().iterator().hasNext());
 			tx.success();
 		}
 	}
@@ -330,7 +346,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 		userRepository.save(user);
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'})");
+		assertSameGraph(getGraphDatabaseService(), "CREATE (u:User:Person {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'})");
 	}
 
 	@Test
@@ -342,7 +358,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 		userRepository.save(user);
 
-		assertSameGraph(graphDatabaseService, "CREATE " +
+		assertSameGraph(getGraphDatabaseService(), "CREATE " +
 				"(u:User:Person {name:'Michal'})," +
 				"(g1:Genre {name:'Drama'})," +
 				"(g2:Genre {name:'Historical'})," +
@@ -359,7 +375,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 		userRepository.save(user, 1);
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'})");
+		assertSameGraph(getGraphDatabaseService(), "CREATE (u:User:Person {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'})");
 	}
 
 	@Test
@@ -380,7 +396,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService, "CREATE " +
+		assertSameGraph(getGraphDatabaseService(), "CREATE " +
 				"(m:User:Person {name:'Michal'})," +
 				"(v:User:Person {name:'Vince'})," +
 				"(g:Genre {name:'Drama'})," +
@@ -396,7 +412,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 		userRepository.save(user, 0);
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Michal'})");
+		assertSameGraph(getGraphDatabaseService(), "CREATE (u:User:Person {name:'Michal'})");
 	}
 
 	@Test
@@ -417,7 +433,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService, "CREATE " +
+		assertSameGraph(getGraphDatabaseService(), "CREATE " +
 				"(m:User:Person {name:'Michal'})," +
 				"(g:Genre {name:'New Drama'})," +
 				"(m)-[:INTERESTED]->(g)");
@@ -441,7 +457,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService, "CREATE " +
+		assertSameGraph(getGraphDatabaseService(), "CREATE " +
 				"(m:User:Person {name:'Michal'})," +
 				"(g:Genre {name:'Drama'})");
 	}
@@ -461,7 +477,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService, "CREATE " +
+		assertSameGraph(getGraphDatabaseService(), "CREATE " +
 				"(m:User:Person {name:'Michal'})," +
 				"(g:Genre {name:'Drama'})");
 	}
@@ -474,7 +490,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 		cinemaRepository.save(cinema);
 
-		assertSameGraph(graphDatabaseService, "CREATE " +
+		assertSameGraph(getGraphDatabaseService(), "CREATE " +
 				"(m:User:Person {name:'Michal'})," +
 				"(c:Theatre {name:'Odeon', capacity:0})," +
 				"(m)-[:VISITED]->(c)");
@@ -495,7 +511,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService, "CREATE " +
+		assertSameGraph(getGraphDatabaseService(), "CREATE " +
 				"(m:User:Person {name:'Michal'})," +
 				"(c:Theatre {name:'Odeon', capacity:0})," +
 				"(m)-[:VISITED]->(c)");
@@ -513,16 +529,16 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 		});
 
 		try {
-			assertSameGraph(graphDatabaseService, "CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User:Person {name:'Adam'})");
+			assertSameGraph(getGraphDatabaseService(), "CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User:Person {name:'Adam'})");
 		} catch (AssertionError error) {
-			assertSameGraph(graphDatabaseService, "CREATE (m:User:Person {name:'Michal'})<-[:FRIEND_OF]-(a:User:Person {name:'Adam'})");
+			assertSameGraph(getGraphDatabaseService(), "CREATE (m:User:Person {name:'Michal'})<-[:FRIEND_OF]-(a:User:Person {name:'Adam'})");
 		}
 	}
 
 	@Test
 	public void shouldLoadOutgoingFriendsWhenUndirected() {
 
-		graphDatabaseService.execute("CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User {name:'Adam'})");
+		getGraphDatabaseService().execute("CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User {name:'Adam'})");
 
 		User michal = ((Iterable<User>) findByProperty(User.class, "name", "Michal")).iterator().next();
 		assertEquals(1, michal.getFriends().size());
@@ -538,7 +554,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 	@Test
 	public void shouldLoadIncomingFriendsWhenUndirected() {
 
-		graphDatabaseService.execute("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
+		getGraphDatabaseService().execute("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
 		User michal = ((Iterable<User>) findByProperty(User.class, "name", "Michal")).iterator().next();
 		assertEquals(1, michal.getFriends().size());
@@ -560,7 +576,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 		User michal = ((Iterable<User>) findByProperty(User.class, "name", "Michal")).iterator().next();
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Michal'})-[:RATED {stars:5, " +
+		assertSameGraph(getGraphDatabaseService(), "CREATE (u:User:Person {name:'Michal'})-[:RATED {stars:5, " +
 				"comment:'Best movie ever', ratingTimestamp:0}]->(m:Movie {name:'Pulp Fiction'})");
 	}
 
@@ -594,22 +610,38 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
-				TempMovie movie = new TempMovie("Pulp Fiction");
-				//Save the movie
-				movie = tempMovieRepository.save(movie);
+				// Save the movie
+				TempMovie movie = tempMovieRepository.save(new TempMovie("Pulp Fiction"));
 
-				//Create a new user and rate an existing movie
+				// Create a new user and rate an existing movie
 				User user = new User("Michal");
 				user.rate(movie, 5, "Best movie ever");
 				userRepository.save(user);
 
-				assertEquals(movie.getName(), tempMovieRepository.findOne(movie.getId()).getName());
-				assertEquals(user.getName(), userRepository.findOne(user.getId()).getName());
-				assertEquals(5, ratingRepository.findOne(user.getRatings().iterator().next().getId()).getStars());
+				Optional<TempMovie> tempMovieOptional = tempMovieRepository.findOne(movie.getId());
 
-				assertNull(tempMovieRepository.findOne(user.getId()));
-				assertNull(userRepository.findOne(movie.getId(), 0));
-				assertNull(ratingRepository.findOne(user.getId()));
+				assertTrue(tempMovieOptional.isPresent());
+				tempMovieOptional.ifPresent(actual -> {
+					assertEquals(movie.getName(), actual.getName());
+				});
+
+				Optional<User> userOptional = userRepository.findOne(user.getId());
+
+				assertTrue(userOptional.isPresent());
+				userOptional.ifPresent(actual -> {
+					assertEquals(user.getName(), actual.getName());
+				});
+
+				Optional<Rating> ratingOptional = ratingRepository.findOne(user.getRatings().iterator().next().getId());
+
+				assertTrue(ratingOptional.isPresent());
+				ratingOptional.ifPresent(actual -> {
+					assertEquals(5, actual.getStars());
+				});
+
+				assertFalse(tempMovieRepository.findOne(user.getId()).isPresent());
+				assertFalse(userRepository.findOne(movie.getId(), 0).isPresent());
+				assertFalse(ratingRepository.findOne(user.getId()).isPresent());
 			}
 		});
 	}
@@ -656,6 +688,23 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 
 		private Neo4jFailedToStartException(long timeoutValue) {
 			super(String.format("Could not start neo4j instance in [%d] ms", timeoutValue));
+		}
+	}
+
+	@Configuration
+	@ComponentScan({"org.springframework.data.neo4j.examples.movies.service"})
+	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
+	@EnableTransactionManagement
+	static class MoviesContext {
+
+		@Bean
+		public PlatformTransactionManager transactionManager() {
+			return new Neo4jTransactionManager(sessionFactory());
+		}
+
+		@Bean
+		public SessionFactory sessionFactory() {
+			return new SessionFactory(baseConfiguration, "org.springframework.data.neo4j.examples.movies.domain");
 		}
 	}
 }

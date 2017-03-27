@@ -1,4 +1,17 @@
 /*
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ *
+ */
+
+/*
  * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
@@ -16,46 +29,45 @@ package org.springframework.data.neo4j.examples.friends;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.examples.friends.context.FriendContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.examples.friends.domain.Friendship;
 import org.springframework.data.neo4j.examples.friends.domain.Person;
 import org.springframework.data.neo4j.examples.friends.repo.FriendshipRepository;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Luanne Misquitta
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {FriendContext.class})
+@ContextConfiguration(classes = {FriendIT.FriendContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FriendIT extends MultiDriverTestClass {
 
-	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired Session session;
 	@Autowired FriendshipRepository friendshipRepository;
 	@Autowired FriendService friendService;
 
-	@BeforeClass
-	public static void beforeClass(){
-		graphDatabaseService = getGraphDatabaseService();
-	}
-
 
 	@Before
 	public void cleanUpDatabase() {
-		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	/**
@@ -96,4 +108,22 @@ public class FriendIT extends MultiDriverTestClass {
 		assertEquals("John", queriedFriendship.getPersonStartNode().getFirstName());
 		assertEquals("Bob", queriedFriendship.getPersonEndNode().getFirstName());
 	}
+
+	@Configuration
+	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.friends.repo")
+	@ComponentScan(basePackageClasses = FriendService.class)
+	@EnableTransactionManagement
+	static class FriendContext {
+
+		@Bean
+		public PlatformTransactionManager transactionManager() {
+			return new Neo4jTransactionManager(sessionFactory());
+		}
+
+		@Bean
+		public SessionFactory sessionFactory() {
+			return new SessionFactory(baseConfiguration, "org.springframework.data.neo4j.examples.friends.domain");
+		}
+	}
+
 }

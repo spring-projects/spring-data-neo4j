@@ -11,6 +11,19 @@
  *
  */
 
+/*
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ *
+ */
+
 package org.springframework.data.neo4j.queries;
 
 import static org.junit.Assert.*;
@@ -25,20 +38,27 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaStreamingRepository;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Nicolas Mervaillie
  */
-@ContextConfiguration(classes = {MoviesContext.class})
+@ContextConfiguration(classes = {Java8SupportIT.MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class Java8SupportIT extends MultiDriverTestClass {
 
@@ -109,5 +129,22 @@ public class Java8SupportIT extends MultiDriverTestClass {
 			assertEquals(10, cinemas.size());
 			cinemas.forEach(cinema -> assertNotNull(cinema.getName()));
 		});
+	}
+
+	@Configuration
+	@ComponentScan({"org.springframework.data.neo4j.examples.movies.service"})
+	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
+	@EnableTransactionManagement
+	static class MoviesContext {
+
+		@Bean
+		public PlatformTransactionManager transactionManager() {
+			return new Neo4jTransactionManager(sessionFactory());
+		}
+
+		@Bean
+		public SessionFactory sessionFactory() {
+			return new SessionFactory(baseConfiguration, "org.springframework.data.neo4j.examples.movies.domain");
+		}
 	}
 }

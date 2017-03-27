@@ -11,6 +11,19 @@
  *
  */
 
+/*
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ *
+ */
+
 package org.springframework.data.neo4j.queries;
 
 import static org.junit.Assert.*;
@@ -18,22 +31,26 @@ import static org.junit.Assert.*;
 import java.util.List;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.*;
-import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResult;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResultInterface;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -45,11 +62,9 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Nicolas Mervaillie
  * @see DATAGRAPH-680
  */
-@ContextConfiguration(classes = {MoviesContext.class})
+@ContextConfiguration(classes = {PagedQueryIT.MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class PagedQueryIT extends MultiDriverTestClass {
-
-	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired
 	PlatformTransactionManager platformTransactionManager;
@@ -59,15 +74,10 @@ public class PagedQueryIT extends MultiDriverTestClass {
 
 	private TransactionTemplate transactionTemplate;
 
-	@BeforeClass
-	public static void beforeClass() {
-		graphDatabaseService = getGraphDatabaseService();
-	}
-
 	@Before
 	public void init() {
 		transactionTemplate = new TransactionTemplate(platformTransactionManager);
-		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	public void setup() {
@@ -81,7 +91,7 @@ public class PagedQueryIT extends MultiDriverTestClass {
 	}
 
 	private void executeUpdate(String cypher) {
-		graphDatabaseService.execute(cypher);
+		getGraphDatabaseService().execute(cypher);
 	}
 
 
@@ -493,5 +503,22 @@ public class PagedQueryIT extends MultiDriverTestClass {
 		assertEquals("Rainbow", cinemas.get(7).getName());
 		assertEquals("Regal", cinemas.get(8).getName());
 		assertEquals("Ritzy", cinemas.get(9).getName());
+	}
+
+	@Configuration
+	@ComponentScan({"org.springframework.data.neo4j.examples.movies.service"})
+	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
+	@EnableTransactionManagement
+	static class MoviesContext {
+
+		@Bean
+		public PlatformTransactionManager transactionManager() {
+			return new Neo4jTransactionManager(sessionFactory());
+		}
+
+		@Bean
+		public SessionFactory sessionFactory() {
+			return new SessionFactory(baseConfiguration, "org.springframework.data.neo4j.examples.movies.domain");
+		}
 	}
 }

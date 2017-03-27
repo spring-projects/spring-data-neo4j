@@ -13,8 +13,7 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.session.Session;
@@ -33,6 +32,7 @@ import org.springframework.data.repository.query.parser.PartTree;
  * @author Jasper Blues
  * @author Vince Bickers
  * @author Nicolas Mervaillie
+ * @author Mark Paluch
  */
 public class DerivedGraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 

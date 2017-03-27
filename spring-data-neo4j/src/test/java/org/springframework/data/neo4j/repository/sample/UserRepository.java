@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -13,6 +13,7 @@
 package org.springframework.data.neo4j.repository.sample;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.domain.sample.User;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Repository interface for {@code User}s.
  *
  * @author Mark Angrish
+ * @author Mark Paluch
  */
 public interface UserRepository extends Neo4jRepository<User, Long> {
 
@@ -37,11 +39,11 @@ public interface UserRepository extends Neo4jRepository<User, Long> {
      */
     List<User> findByLastname(String lastname);
 
-    /**
-     * Redeclaration of {@link CrudRepository#findOne(java.io.Serializable)} to change transaction configuration.
-     */
-    @Transactional
-    User findOne(Long primaryKey);
+	/**
+	 * Redeclaration of {@link CrudRepository#findOne(java.io.Serializable)} to change transaction configuration.
+	 */
+	@Transactional
+	Optional<User> findOne(Long primaryKey);
 
     /**
      * Redeclaration of {@link CrudRepository#delete(java.io.Serializable)}. to make sure the transaction configuration of

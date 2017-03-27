@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 /**
  * @author Michal Bachman
  * @author Mark Angrish
+ * @author Mark Paluch
  */
 @Service
 public class UserServiceImpl implements UserService {
@@ -32,7 +33,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User getUserByUuid(UUID uuid) {
-		return  userRepository.findOne(uuid);
+		return  userRepository.findOne(uuid).get();
 	}
 
 	@Override

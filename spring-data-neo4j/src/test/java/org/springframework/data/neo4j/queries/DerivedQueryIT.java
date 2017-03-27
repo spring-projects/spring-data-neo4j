@@ -11,6 +11,19 @@
  *
  */
 
+/*
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ *
+ */
+
 package org.springframework.data.neo4j.queries;
 
 import static org.junit.Assert.*;
@@ -23,18 +36,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.examples.movies.domain.Director;
 import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
@@ -43,10 +57,13 @@ import org.springframework.data.neo4j.examples.movies.domain.queryresult.EntityW
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.DirectorRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -55,11 +72,9 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Luanne Misquitta
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {MoviesContext.class})
+@ContextConfiguration(classes = {DerivedQueryIT.MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DerivedQueryIT extends MultiDriverTestClass {
-
-	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired
 	PlatformTransactionManager platformTransactionManager;
@@ -79,19 +94,14 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 	private TransactionTemplate transactionTemplate;
 
 
-	@BeforeClass
-	public static void beforeClass() {
-		graphDatabaseService = getGraphDatabaseService();
-	}
-
 	@Before
 	public void clearDatabase() {
 		transactionTemplate = new TransactionTemplate(platformTransactionManager);
-		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	private void executeUpdate(String cypher) {
-		graphDatabaseService.execute(cypher);
+		getGraphDatabaseService().execute(cypher);
 	}
 
 	@Test
@@ -702,4 +712,22 @@ public class DerivedQueryIT extends MultiDriverTestClass {
 			}
 		}
 	}
+
+	@Configuration
+	@ComponentScan({"org.springframework.data.neo4j.examples.movies.service"})
+	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
+	@EnableTransactionManagement
+	static class MoviesContext {
+
+		@Bean
+		public PlatformTransactionManager transactionManager() {
+			return new Neo4jTransactionManager(sessionFactory());
+		}
+
+		@Bean
+		public SessionFactory sessionFactory() {
+			return new SessionFactory(baseConfiguration, "org.springframework.data.neo4j.examples.movies.domain");
+		}
+	}
+
 }

@@ -11,6 +11,19 @@
  *
  */
 
+/*
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ *
+ */
+
 package org.springframework.data.neo4j.repository.query;
 
 import java.util.Map;
@@ -85,10 +98,10 @@ public class Query {
 	public String getCypherQuery(Pageable pageable, boolean forSlicing) {
 		String result = cypherQuery;
 		Sort sort = null;
-		if (pageable != null && pageable.getSort() != null) {
+		if (pageable.isPaged() && pageable.getSort() != Sort.unsorted()) {
 			sort = pageable.getSort();
 		}
-		if (sort != null) {
+		if (sort != Sort.unsorted()) {
 			//Custom queries in the OGM do not support pageable
 			result = addSorting(result, sort);
 		}
@@ -99,7 +112,7 @@ public class Query {
 	public String getCypherQuery(Sort sort) {
 		//Custom queries in the OGM do not support pageable
 		String result = cypherQuery;
-		if (sort != null) {
+		if (sort != Sort.unsorted()) {
 			result = addSorting(cypherQuery, sort);
 		}
 		return result;

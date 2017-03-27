@@ -1,4 +1,17 @@
 /*
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ *
+ */
+
+/*
  * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
@@ -20,9 +33,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
@@ -48,18 +59,11 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 public class ProgrammaticRepositoryIT extends MultiDriverTestClass {
 
-    private static GraphDatabaseService graphDatabaseService;
-
     private MovieRepository movieRepository;
-    private SessionFactory sessionFactory = new SessionFactory("org.springframework.data.neo4j.repositories.domain");
+    private SessionFactory sessionFactory = new SessionFactory(baseConfiguration, "org.springframework.data.neo4j.repositories.domain");
     private PlatformTransactionManager platformTransactionManager = new Neo4jTransactionManager(sessionFactory);
     private Session session;
     private TransactionTemplate transactionTemplate;
-
-    @BeforeClass
-    public static void beforeClass(){
-        graphDatabaseService = getGraphDatabaseService();
-    }
 
     @Before
     public void init() {
@@ -83,7 +87,7 @@ public class ProgrammaticRepositoryIT extends MultiDriverTestClass {
             }
         });
 
-        assertSameGraph(graphDatabaseService, "CREATE (m:Movie {title:'PF'})");
+        assertSameGraph(getGraphDatabaseService(), "CREATE (m:Movie {title:'PF'})");
 
         assertEquals(1, IterableUtils.count(movieRepository.findAll()));
     }
