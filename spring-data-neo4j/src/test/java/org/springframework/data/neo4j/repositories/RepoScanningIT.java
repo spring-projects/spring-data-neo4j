@@ -21,42 +21,35 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.repositories.domain.User;
-import org.springframework.data.neo4j.repositories.repo.PersistenceContextInTheSamePackage;
 import org.springframework.data.neo4j.repositories.repo.UserRepository;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Michal Bachman
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {PersistenceContextInTheSamePackage.class})
+@ContextConfiguration(classes = {RepoScanningIT.PersistenceContextInTheSamePackage.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RepoScanningIT extends MultiDriverTestClass {
-
-	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired
 	private UserRepository userRepository;
 
 
-	@BeforeClass
-	public static void beforeClass(){
-		graphDatabaseService = getGraphDatabaseService();
-	}
-
 	@Before
 	public void clearDatabase() {
-		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	@Test
@@ -65,7 +58,24 @@ public class RepoScanningIT extends MultiDriverTestClass {
 		User user = new User("Michal");
 		userRepository.save(user);
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User {name:'Michal'})");
+		assertSameGraph(getGraphDatabaseService(), "CREATE (u:User {name:'Michal'})");
 	}
+
+	@Configuration
+	@EnableNeo4jRepositories //no package specified, that's the point of this test
+	@EnableTransactionManagement
+	static class PersistenceContextInTheSamePackage {
+
+		@Bean
+		public PlatformTransactionManager transactionManager() {
+			return new Neo4jTransactionManager(sessionFactory());
+		}
+
+		@Bean
+		public SessionFactory sessionFactory() {
+			return new SessionFactory(baseConfiguration.build(), "org.springframework.data.neo4j.repositories.domain");
+		}
+	}
+
 
 }

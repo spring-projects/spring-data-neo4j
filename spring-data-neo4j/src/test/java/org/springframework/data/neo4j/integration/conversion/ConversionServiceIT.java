@@ -27,22 +27,30 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.ogm.session.Session;
+import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService;
 import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.integration.conversion.domain.JavaElement;
 import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmount;
 import org.springframework.data.neo4j.integration.conversion.domain.PensionPlan;
 import org.springframework.data.neo4j.integration.conversion.domain.SiteMember;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
@@ -57,10 +65,8 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @see DATAGRAPH-624
  */
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = {ConversionServicePersistenceContext.class})
+@ContextConfiguration(classes = {ConversionServiceIT.ConversionServicePersistenceContext.class})
 public class ConversionServiceIT extends MultiDriverTestClass {
-
-	private static GraphDatabaseService graphDatabaseService;
 
 	@Autowired
 	PlatformTransactionManager platformTransactionManager;
@@ -77,15 +83,11 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 
 	private TransactionTemplate transactionTemplate;
 
-	@BeforeClass
-	public static void beforeClass() {
-		graphDatabaseService = getGraphDatabaseService();
-	}
 
 	@Before
 	public void setUp() {
 		transactionTemplate = new TransactionTemplate(platformTransactionManager);
-		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	/**
@@ -105,7 +107,7 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldConvertBase64StringOutOfGraphDatabaseBackIntoByteArray() {
-		Result rs = graphDatabaseService.execute(
+		Result rs = getGraphDatabaseService().execute(
 				"CREATE (u:SiteMember {profilePictureData:'MTIzNDU2Nzg5'}) RETURN id(u) AS userId");
 		Long userId = (Long) rs.columnAs("userId").next();
 
@@ -130,7 +132,7 @@ public class ConversionServiceIT extends MultiDriverTestClass {
             return pensionToSave1;
         });
 
-		Result result = graphDatabaseService.execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
+		Result result = getGraphDatabaseService().execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
 		assertTrue("Nothing was saved", result.hasNext());
 		assertEquals("The amount wasn't converted and persisted correctly", "1647281", String.valueOf(result.next().get("fv")));
 		result.close();
@@ -150,7 +152,7 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 
 		PensionPlan pension = new PensionPlan(new MonetaryAmount(20_000, 00), "Ashes Assets LLP");
 		this.pensionRepository.save(pension);
-		Result result = graphDatabaseService
+		Result result = getGraphDatabaseService()
 				.execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
 		assertTrue("Nothing was saved", result.hasNext());
 		assertEquals("The amount wasn't converted and persisted correctly", "2000000", String.valueOf(result.next().get("fv")));
@@ -170,7 +172,7 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 
 		this.javaElementRepository.save(method);
 
-		Result result = graphDatabaseService
+		Result result = getGraphDatabaseService()
 				.execute("MATCH (e:JavaElement) RETURN e.elementType AS type");
 		assertTrue("Nothing was saved", result.hasNext());
 		assertEquals("The element type wasn't converted and persisted correctly", "METHOD", result.next().get("type"));
@@ -243,5 +245,26 @@ public class ConversionServiceIT extends MultiDriverTestClass {
 		assertEquals(2, siteMember.getRoundingModes().size());
 		assertTrue(siteMember.getRoundingModes().contains(RoundingMode.DOWN));
 		assertTrue(siteMember.getRoundingModes().contains(RoundingMode.FLOOR));
+	}
+
+	@Configuration
+	@EnableNeo4jRepositories(basePackageClasses = {SiteMemberRepository.class, PensionRepository.class, JavaElementRepository.class})
+	@EnableTransactionManagement
+	static class ConversionServicePersistenceContext {
+
+		@Bean
+		public ConversionService conversionService() {
+			return new MetaDataDrivenConversionService(sessionFactory().metaData());
+		}
+
+		@Bean
+		public PlatformTransactionManager transactionManager() {
+			return new Neo4jTransactionManager(sessionFactory());
+		}
+
+		@Bean
+		public SessionFactory sessionFactory() {
+			return new SessionFactory(baseConfiguration.build(), "org.springframework.data.neo4j.integration.conversion.domain");
+		}
 	}
 }
