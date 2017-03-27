@@ -48,18 +48,11 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 public class ProgrammaticRepositoryIT extends MultiDriverTestClass {
 
-    private static GraphDatabaseService graphDatabaseService;
-
     private MovieRepository movieRepository;
-    private SessionFactory sessionFactory = new SessionFactory("org.springframework.data.neo4j.repositories.domain");
+    private SessionFactory sessionFactory = new SessionFactory(baseConfiguration.build(), "org.springframework.data.neo4j.repositories.domain");
     private PlatformTransactionManager platformTransactionManager = new Neo4jTransactionManager(sessionFactory);
     private Session session;
     private TransactionTemplate transactionTemplate;
-
-    @BeforeClass
-    public static void beforeClass(){
-        graphDatabaseService = getGraphDatabaseService();
-    }
 
     @Before
     public void init() {
@@ -83,7 +76,7 @@ public class ProgrammaticRepositoryIT extends MultiDriverTestClass {
             }
         });
 
-        assertSameGraph(graphDatabaseService, "CREATE (m:Movie {title:'PF'})");
+        assertSameGraph(getGraphDatabaseService(), "CREATE (m:Movie {title:'PF'})");
 
         assertEquals(1, IterableUtils.count(movieRepository.findAll()));
     }

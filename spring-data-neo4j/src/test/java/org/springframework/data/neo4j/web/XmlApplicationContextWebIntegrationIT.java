@@ -49,7 +49,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ContextConfiguration(locations = "/xml-based-configuration-applicationContext.xml")
 @WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class XmlApplicationContextWebIntegrationIT extends MultiDriverTestClass {
+public class XmlApplicationContextWebIntegrationIT  {
 
 	@Autowired
 	private UserRepository userRepository;
