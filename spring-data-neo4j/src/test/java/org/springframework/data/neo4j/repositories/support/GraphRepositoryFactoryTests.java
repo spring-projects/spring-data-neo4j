@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
-public class GraphRepositoryFactoryTests extends MultiDriverTestClass {
+public class GraphRepositoryFactoryTests {
 
 	Neo4jRepositoryFactory factory;
 
