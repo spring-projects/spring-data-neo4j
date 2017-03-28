@@ -22,7 +22,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
@@ -48,153 +47,156 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 public class ProgrammaticRepositoryTests extends MultiDriverTestClass {
 
-    private MovieRepository movieRepository;
-    private SessionFactory sessionFactory = new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.repositories.domain");
-    private PlatformTransactionManager platformTransactionManager = new Neo4jTransactionManager(sessionFactory);
-    private Session session;
-    private TransactionTemplate transactionTemplate;
+	private static SessionFactory sessionFactory;
+	private static PlatformTransactionManager platformTransactionManager;
+	private static TransactionTemplate transactionTemplate;
 
-    @Before
-    public void init() {
-        transactionTemplate = new TransactionTemplate(platformTransactionManager);
-        session = sessionFactory.openSession();
-        session.purgeDatabase();
-    }
+	private MovieRepository movieRepository;
+	private Session session;
 
-    @Test
-    public void canInstantiateRepositoryProgrammatically() {
+	@BeforeClass
+	public static void oneTimeSetUp() {
+		sessionFactory = new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.repositories.domain");
+		platformTransactionManager = new Neo4jTransactionManager(sessionFactory);
+		transactionTemplate = new TransactionTemplate(platformTransactionManager);
+	}
 
-        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-            @Override
-            public void doInTransactionWithoutResult(TransactionStatus status) {
-                RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
+	@Before
+	public void init() {
+		session = sessionFactory.openSession();
+		session.purgeDatabase();
+	}
 
-                movieRepository = factory.getRepository(MovieRepository.class);
+	@Test
+	public void canInstantiateRepositoryProgrammatically() {
 
-                Movie movie = new Movie("PF");
-                movieRepository.save(movie);
-            }
-        });
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
 
-        assertSameGraph(getGraphDatabaseService(), "CREATE (m:Movie {title:'PF'})");
+				movieRepository = factory.getRepository(MovieRepository.class);
 
-        assertEquals(1, IterableUtils.count(movieRepository.findAll()));
-    }
+				Movie movie = new Movie("PF");
+				movieRepository.save(movie);
+			}
+		});
+
+		assertSameGraph(getGraphDatabaseService(), "CREATE (m:Movie {title:'PF'})");
+
+		assertEquals(1, IterableUtils.count(movieRepository.findAll()));
+	}
 
 	/**
-     * @see DATAGRAPH-847
-     */
-    @Test
-    @Transactional
-    public void shouldBeAbleToDeleteAllViaRepository() {
+	 * @see DATAGRAPH-847
+	 */
+	@Test
+	@Transactional
+	public void shouldBeAbleToDeleteAllViaRepository() {
 
-        RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
+		RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
 
-        UserRepository userRepository = factory.getRepository(UserRepository.class);
+		UserRepository userRepository = factory.getRepository(UserRepository.class);
 
-        User userA = new User("A");
-        User userB = new User("B");
-        userRepository.save(userA);
-        userRepository.save(userB);
+		User userA = new User("A");
+		User userB = new User("B");
+		userRepository.save(userA);
+		userRepository.save(userB);
 
-        assertEquals(2, userRepository.count());
+		assertEquals(2, userRepository.count());
 
-        userRepository.deleteAll();
-        assertEquals(0, userRepository.count());
-    }
+		userRepository.deleteAll();
+		assertEquals(0, userRepository.count());
+	}
 
-    /**
-     * @see DATAGRAPH-813
-     */
-    @Test
-    @Transactional
-    public void shouldDeleteUserByNameAndReturnCountOfDeletedUsers() {
+	/**
+	 * @see DATAGRAPH-813
+	 */
+	@Test
+	@Transactional
+	public void shouldDeleteUserByNameAndReturnCountOfDeletedUsers() {
 
-        RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
+		RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
 
-        UserRepository userRepository = factory.getRepository(UserRepository.class);
+		UserRepository userRepository = factory.getRepository(UserRepository.class);
 
-        User userA = new User("A");
-        userA.setName("A");
+		User userA = new User("A");
+		userA.setName("A");
 
-        userRepository.save(userA);
-        Assert.assertEquals(1, userRepository.count());
+		userRepository.save(userA);
+		Assert.assertEquals(1, userRepository.count());
 
-        Assert.assertEquals(new Long(1), userRepository.deleteByName("A"));
-        Assert.assertEquals(0, userRepository.count());
+		Assert.assertEquals(new Long(1), userRepository.deleteByName("A"));
+		Assert.assertEquals(0, userRepository.count());
+	}
 
-    }
+	/**
+	 * @see DATAGRAPH-813
+	 */
+	@Test
+	@Transactional
+	public void shouldDeleteUserByNameAndReturnListOfDeletedUserIds() {
 
-    /**
-     * @see DATAGRAPH-813
-     */
-    @Test
-    @Transactional
-    public void shouldDeleteUserByNameAndReturnListOfDeletedUserIds() {
+		RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
 
-        RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
+		UserRepository userRepository = factory.getRepository(UserRepository.class);
 
-        UserRepository userRepository = factory.getRepository(UserRepository.class);
+		User userA = new User("A");
+		User userAClone = new User("A");
 
-        User userA = new User("A");
-        User userAClone = new User("A");
+		userRepository.save(userA);
+		userRepository.save(userAClone);
 
+		Assert.assertEquals(2, userRepository.count());
 
-        userRepository.save(userA);
-        userRepository.save(userAClone);
+		List<Long> deletedUserIds = userRepository.removeByName("A");
+		Assert.assertEquals(2, deletedUserIds.size());
 
-        Assert.assertEquals(2, userRepository.count());
+		Assert.assertEquals(userA.getId(), deletedUserIds.get(0));
+		Assert.assertEquals(userAClone.getId(), deletedUserIds.get(1));
 
-        List<Long> deletedUserIds = userRepository.removeByName("A");
-        Assert.assertEquals(2, deletedUserIds.size());
+		Assert.assertEquals(0, userRepository.count());
+	}
 
-        Assert.assertEquals(userA.getId(), deletedUserIds.get(0));
-        Assert.assertEquals(userAClone.getId(), deletedUserIds.get(1));
+	@Test
+	@Transactional
+	public void shouldBeAbleToDeleteUserWithRelationships() {
 
-        Assert.assertEquals(0, userRepository.count());
+		RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
 
-    }
+		UserRepository userRepository = factory.getRepository(UserRepository.class);
 
-    @Test
-    @Transactional
-    public void shouldBeAbleToDeleteUserWithRelationships() {
+		User userA = new User("A");
+		User userB = new User("B");
 
-        RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
+		userA.getFriends().add(userB);
+		userB.getFriends().add(userA);
 
-        UserRepository userRepository = factory.getRepository(UserRepository.class);
+		userRepository.save(userA);
 
-        User userA = new User("A");
-        User userB = new User("B");
+		Assert.assertEquals(2, userRepository.count());
 
-        userA.getFriends().add(userB);
-        userB.getFriends().add(userA);
+		userRepository.deleteByName("A");
 
-        userRepository.save(userA);
+		Assert.assertEquals(1, userRepository.count());
+	}
 
-        Assert.assertEquals(2, userRepository.count());
+	/**
+	 * @see DATAGRAPH-813
+	 */
+	@Test
+	@Transactional
+	public void shouldCountUserByName() {
 
-        userRepository.deleteByName("A");
+		RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
 
-        Assert.assertEquals(1, userRepository.count());
+		UserRepository userRepository = factory.getRepository(UserRepository.class);
 
-    }
+		User userA = new User("A");
+		userA.setName("A");
 
-    /**
-     * @see DATAGRAPH-813
-     */
-    @Test
-    @Transactional
-    public void shouldCountUserByName() {
+		userRepository.save(userA);
 
-        RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
-
-        UserRepository userRepository = factory.getRepository(UserRepository.class);
-
-        User userA = new User("A");
-        userA.setName("A");
-
-        userRepository.save(userA);
-
-        Assert.assertEquals(new Long(1), userRepository.countByName("A"));
-    }
+		Assert.assertEquals(new Long(1), userRepository.countByName("A"));
+	}
 }
