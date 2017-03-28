@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -78,20 +78,20 @@ public interface CinemaRepository extends Neo4jRepository<Cinema, Long> {
 
 	Cinema findByName(String name, @Depth int depth);
 
-	@Query("MATCH (n:Theatre) RETURN n;")
+	@Query(value = "MATCH (n:Theatre) RETURN n;", countQuery = "MATCH (n:Theatre) return count(*);")
 	Page<Cinema> getPagedCinemas(Pageable pageable);
 
-	@Query("MATCH (n:Theatre) RETURN n")
+	@Query(value = "MATCH (n:Theatre) RETURN n;")
+	Page<Cinema> getPagedCinemasWithoutCountQuery(Pageable pageable);
+
+	@Query(value = "MATCH (n:Theatre) RETURN n", countQuery = "MATCH (n:Theatre) return count(*)")
 	Page<CinemaQueryResult> getPagedCinemaQueryResults(Pageable pageable);
 
 	@Query("MATCH (n:Theatre) RETURN n")
 	Slice<CinemaQueryResult> getSlicedCinemaQueryResults(Pageable pageable);
 
-	@Query("MATCH (n:Theatre) RETURN n")
+	@Query(value = "MATCH (n:Theatre) RETURN n", countQuery = "MATCH (n:Theatre) return count(*)")
 	Page<CinemaQueryResultInterface> getPagedCinemaQueryResultInterfaces(Pageable pageable);
-
-	@Query(value = "MATCH (n:Theatre) RETURN n ORDER BY n.name", countQuery = "MATCH (n:Theatre) return count(*)")
-	Page<Cinema> getPagedCinemasWithPageCount(Pageable pageable);
 
 	@Query(value = "MATCH (n:Theatre {city:{city}}) RETURN n ORDER BY n.name", countQuery = "MATCH (n:Theatre {city:{city}}) return count(*)")
 	Page<Cinema> getPagedCinemasByCityWithPageCount(@Param("city") String city, Pageable pageable);
@@ -107,7 +107,7 @@ public interface CinemaRepository extends Neo4jRepository<Cinema, Long> {
 
 	List<Cinema> findByLocation(String city, Sort sort);
 
-	List<Cinema> findByCapacity(int capacity, Pageable pageable);
+	Page<Cinema> findByCapacity(int capacity, Pageable pageable);
 
 	@Query("MATCH (n:Theatre) RETURN n")
 	List<Cinema> getCinemasSortedByName(Sort sort);

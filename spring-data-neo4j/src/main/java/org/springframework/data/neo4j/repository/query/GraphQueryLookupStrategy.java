@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -13,19 +13,21 @@
 
 package org.springframework.data.neo4j.repository.query;
 
+import java.lang.reflect.Method;
+
 import org.neo4j.ogm.session.Session;
+import org.springframework.data.neo4j.repository.query.derived.DerivedGraphRepositoryQuery;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.RepositoryQuery;
 
-import java.lang.reflect.Method;
-
 /**
  * @author Mark Angrish
  * @author Luanne Misquitta
  * @author Oliver Gierke
+ * @author Nicolas Mervaillie
  */
 public class GraphQueryLookupStrategy implements QueryLookupStrategy {
 
@@ -42,6 +44,16 @@ public class GraphQueryLookupStrategy implements QueryLookupStrategy {
     @Override
     public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
         NamedQueries namedQueries) {
-        return new GraphQueryMethod(method, metadata, factory, session).createQuery();
+
+        GraphQueryMethod queryMethod = new GraphQueryMethod(method, metadata, factory);
+        String namedQueryName = queryMethod.getNamedQueryName();
+
+        if (namedQueries.hasQuery(namedQueryName)) {
+            throw new UnsupportedOperationException("Named queries are not supported for now.");
+        } else if (queryMethod.hasAnnotatedQuery()) {
+            return new GraphRepositoryQuery(queryMethod, session);
+        } else {
+            return new DerivedGraphRepositoryQuery(queryMethod, session);
+        }
     }
 }

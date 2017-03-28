@@ -211,7 +211,9 @@ public class MoviesIntegrationTests extends MultiDriverTestClass {
 
 
 	@Test
-	@Ignore
+	@Ignore  // FIXME
+	// this test expects the session/tx to check for dirty objects, which it currently does not do
+	// you must save objects explicitly.
 	public void shouldUpdateUserUsingTransactionalService() {
 		User user = new User("Michal");
 		userRepository.save(user);
