@@ -116,7 +116,6 @@ public class PagedQueryTests extends MultiDriverTestClass {
 		setup();
 		Pageable pageable = new PageRequest(0, 3);
 		Page<CinemaQueryResult> page = cinemaRepository.getPagedCinemaQueryResults(pageable);
-		System.out.println(page);
 
 		assertEquals(3, page.getNumberOfElements());
 		assertTrue(page.hasNext());
@@ -173,7 +172,6 @@ public class PagedQueryTests extends MultiDriverTestClass {
 		setup();
 		Pageable pageable = new PageRequest(0, 3);
 		Page<CinemaQueryResultInterface> page = cinemaRepository.getPagedCinemaQueryResultInterfaces(pageable);
-		System.out.println(page);
 
 		assertEquals(3, page.getNumberOfElements());
 		assertTrue(page.hasNext());

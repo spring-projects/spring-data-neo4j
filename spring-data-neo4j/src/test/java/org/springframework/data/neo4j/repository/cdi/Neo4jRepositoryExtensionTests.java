@@ -32,7 +32,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 /**
  * @author Mark Angrish
  */
-public class Neo4jRepositoryExtensionTest {
+public class Neo4jRepositoryExtensionTests {
 
 	Bean<Session> session;
 

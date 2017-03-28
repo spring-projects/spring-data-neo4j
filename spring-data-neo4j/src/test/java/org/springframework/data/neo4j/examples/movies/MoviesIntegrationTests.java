@@ -314,7 +314,6 @@ public class MoviesIntegrationTests extends MultiDriverTestClass {
 
 		latch.await(); // pause until the count reaches 0
 
-		System.out.println("all threads joined");
 		executor.shutdown();
 
 		assertEquals(100, userRepository.count());

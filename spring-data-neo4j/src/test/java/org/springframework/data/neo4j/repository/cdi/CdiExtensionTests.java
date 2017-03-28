@@ -37,7 +37,7 @@ import org.springframework.data.neo4j.examples.friends.domain.Person;
  * @see DATAGRAPH-879
  */
 @Ignore("Why is this failing?")
-public class CdiExtensionIT {
+public class CdiExtensionTests {
 
 	static CdiTestContainer container;
 
