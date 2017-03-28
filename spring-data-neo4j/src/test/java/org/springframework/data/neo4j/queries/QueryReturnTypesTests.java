@@ -15,6 +15,7 @@ package org.springframework.data.neo4j.queries;
 
 import static org.junit.Assert.*;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.model.QueryStatistics;
@@ -48,10 +49,22 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class QueryReturnTypesTests extends MultiDriverTestClass {
 
 	@Autowired
+	PlatformTransactionManager transactionManager;
+
+	@Autowired
+	TransactionTemplate transactionTemplate;
+
+	@Autowired
 	WorldRepository worldRepository;
 
 	@Autowired
 	Session session;
+
+	@Before
+	public void clearDatabase() {
+		transactionTemplate = new TransactionTemplate(transactionManager);
+		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+	}
 
 	@Test
 	public void shouldCallExecuteWhenPrimitiveVoidReturnTypeOnQuery() {
