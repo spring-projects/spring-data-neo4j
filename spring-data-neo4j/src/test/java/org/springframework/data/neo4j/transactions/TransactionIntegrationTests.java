@@ -13,6 +13,7 @@
 
 package org.springframework.data.neo4j.transactions;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,6 +59,11 @@ public class TransactionIntegrationTests extends MultiDriverTestClass {
 			}
 		};
 		getGraphDatabaseService().registerTransactionEventHandler(handler);
+	}
+
+	@After
+	public void cleanupHandler() {
+		getGraphDatabaseService().unregisterTransactionEventHandler(handler);
 	}
 
 	@Test(expected = Exception.class)
