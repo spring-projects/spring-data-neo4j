@@ -572,7 +572,7 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 		if (row.getUser().getName().equals("Vince")) {
 			assertEquals(1, row.getLiteralMap().size());
 			assertEquals("Chocolat", row.getLiteralMap().iterator().next().get("movietitle"));
-			assertEquals(3, row.getLiteralMap().iterator().next().get("stars"));
+			assertEquals(3L, row.getLiteralMap().iterator().next().get("stars"));
 		} else {
 			assertEquals(2, row.getLiteralMap().size());
 		}

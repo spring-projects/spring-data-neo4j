@@ -35,6 +35,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Mark Angrish
@@ -43,12 +44,17 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class TransactionalRepositoryTests extends MultiDriverTestClass {
 
+	@Autowired
+	TransactionTemplate transactionTemplate;
+
 	@Autowired UserRepository repository;
 	@Autowired DelegatingTransactionManager transactionManager;
 
 	@Before
 	public void setUp() {
 
+		transactionTemplate = new TransactionTemplate(transactionManager);
+		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 		transactionManager.resetCount();
 	}
 
@@ -144,16 +150,21 @@ public class TransactionalRepositoryTests extends MultiDriverTestClass {
 	@Configuration
 	@EnableNeo4jRepositories("org.springframework.data.neo4j.repository.sample")
 	@EnableTransactionManagement
-	public static class Config {
+	static class Config {
 
 		@Bean
-		public DelegatingTransactionManager transactionManager() throws Exception {
+		public DelegatingTransactionManager transactionManager()  {
 			return new DelegatingTransactionManager(new Neo4jTransactionManager(sessionFactory()));
 		}
 
 		@Bean
 		public SessionFactory sessionFactory() {
 			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.domain.sample");
+		}
+
+		@Bean
+		public TransactionTemplate transactionTemplate() {
+			return new TransactionTemplate(transactionManager());
 		}
 	}
 }
