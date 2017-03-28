@@ -35,8 +35,7 @@ class Neo4jCdiProducer {
     @ApplicationScoped
     Session createSession() {
 
-        SessionFactory sessionFactory = new SessionFactory(Person.class.getPackage().getName());
-        return sessionFactory.openSession();
+        return null;
     }
 
     @Produces

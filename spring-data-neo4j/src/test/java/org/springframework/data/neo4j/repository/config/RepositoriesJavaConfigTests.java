@@ -18,13 +18,14 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.domain.sample.User;
 import org.springframework.data.neo4j.repository.sample.UserRepository;
-import org.springframework.data.neo4j.repository.support.TransactionalRepositoryIT;
+import org.springframework.data.neo4j.repository.support.TransactionalRepositoryTests;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,8 +37,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Angrish
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
-public class RepositoriesJavaConfigTests {
+@ContextConfiguration(classes = RepositoriesJavaConfigTests.Config.class)
+public class RepositoriesJavaConfigTests extends MultiDriverTestClass {
 
 	@Configuration
 	@EnableNeo4jRepositories(basePackageClasses = UserRepository.class)
@@ -52,13 +53,13 @@ public class RepositoriesJavaConfigTests {
 		}
 
 		@Bean
-		public TransactionalRepositoryIT.DelegatingTransactionManager transactionManager() throws Exception {
-			return new TransactionalRepositoryIT.DelegatingTransactionManager(new Neo4jTransactionManager(sessionFactory()));
+		public TransactionalRepositoryTests.DelegatingTransactionManager transactionManager() throws Exception {
+			return new TransactionalRepositoryTests.DelegatingTransactionManager(new Neo4jTransactionManager(sessionFactory()));
 		}
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory("org.springframework.data.neo4j.domain.sample");
+			return new SessionFactory(getBaseConfiguration().build(),"org.springframework.data.neo4j.domain.sample");
 		}
 	}
 

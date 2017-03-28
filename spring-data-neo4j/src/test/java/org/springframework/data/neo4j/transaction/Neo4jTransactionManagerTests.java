@@ -78,15 +78,12 @@ public class Neo4jTransactionManagerTests {
 		assertTrue("Transaction Synchronization already has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
 		assertTrue("Synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
 
-		Object result = tt.execute(new TransactionCallback() {
-			@Override
-			public Object doInTransaction(TransactionStatus status) {
-				assertTrue("Transaction Synchronization doesn't have a thread bound session", TransactionSynchronizationManager.hasResource(sf));
-				assertFalse(TransactionSynchronizationManager.isCurrentTransactionReadOnly());
-				assertTrue(TransactionSynchronizationManager.isActualTransactionActive());
-				Session session = ((SessionHolder) TransactionSynchronizationManager.getResource(sf)).getSession();
-				return session.query("some query string", Collections.<String, Object>emptyMap()).queryResults();
-			}
+		Object result = tt.execute((TransactionCallback) status -> {
+			assertTrue("Transaction Synchronization doesn't have a thread bound session", TransactionSynchronizationManager.hasResource(sf));
+			assertFalse(TransactionSynchronizationManager.isCurrentTransactionReadOnly());
+			assertTrue(TransactionSynchronizationManager.isActualTransactionActive());
+			Session session = ((SessionHolder) TransactionSynchronizationManager.getResource(sf)).getSession();
+			return session.query("some query string", Collections.<String, Object>emptyMap()).queryResults();
 		});
 
 		assertTrue("Incorrect result list", result == list);
@@ -105,12 +102,9 @@ public class Neo4jTransactionManagerTests {
 		assertTrue("Synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
 
 		try {
-			tt.execute(new TransactionCallback() {
-				@Override
-				public Object doInTransaction(TransactionStatus status) {
-					assertTrue("Transaction Synchronization doesn't have a thread bound session", TransactionSynchronizationManager.hasResource(sf));
-					throw new RuntimeException("application exception");
-				}
+			tt.execute(status -> {
+				assertTrue("Transaction Synchronization doesn't have a thread bound session", TransactionSynchronizationManager.hasResource(sf));
+				throw new RuntimeException("application exception");
 			});
 			fail("Should have thrown RuntimeException");
 		} catch (RuntimeException ex) {
@@ -130,13 +124,10 @@ public class Neo4jTransactionManagerTests {
 
 		assertTrue("Transaction Synchronization already has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
 
-		tt.execute(new TransactionCallback() {
-			@Override
-			public Object doInTransaction(TransactionStatus status) {
-				assertTrue("Transaction Synchronization doesn't have a thread bound session", TransactionSynchronizationManager.hasResource(sf));
-				status.setRollbackOnly();
-				return null;
-			}
+		tt.execute(status -> {
+			assertTrue("Transaction Synchronization doesn't have a thread bound session", TransactionSynchronizationManager.hasResource(sf));
+			status.setRollbackOnly();
+			return null;
 		});
 
 		assertTrue("Transaction Synchronization still has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
@@ -151,17 +142,7 @@ public class Neo4jTransactionManagerTests {
 		final List l = new ArrayList();
 		l.add("test");
 
-		Object result = tt.execute(new TransactionCallback() {
-			@Override
-			public Object doInTransaction(TransactionStatus status) {
-				return tt.execute(new TransactionCallback() {
-					@Override
-					public Object doInTransaction(TransactionStatus status) {
-						return l;
-					}
-				});
-			}
-		});
+		Object result = tt.execute(status -> tt.execute((TransactionCallback) status1 -> l));
 		assertTrue("Correct result list", result == l);
 
 		verify(session).beginTransaction();
@@ -173,17 +154,9 @@ public class Neo4jTransactionManagerTests {
 	public void testParticipatingTransactionWithRollback() throws Exception {
 
 		try {
-			tt.execute(new TransactionCallback() {
-				@Override
-				public Object doInTransaction(TransactionStatus status) {
-					return tt.execute(new TransactionCallback() {
-						@Override
-						public Object doInTransaction(TransactionStatus status) {
-							throw new RuntimeException("application exception");
-						}
-					});
-				}
-			});
+			tt.execute(status -> tt.execute(status1 -> {
+				throw new RuntimeException("application exception");
+			}));
 			fail("Should have thrown RuntimeException");
 		} catch (RuntimeException ex) {
 			// expected
@@ -195,22 +168,14 @@ public class Neo4jTransactionManagerTests {
 	}
 
 	@Test
-	@Ignore("Still being tested. Not sure why this is failing.")
+	@Ignore
 	public void testParticipatingTransactionWithRollbackOnly() throws Exception {
 
 		try {
-			tt.execute(new TransactionCallback() {
-				@Override
-				public Object doInTransaction(TransactionStatus status) {
-					return tt.execute(new TransactionCallback() {
-						@Override
-						public Object doInTransaction(TransactionStatus status) {
-							status.setRollbackOnly();
-							return null;
-						}
-					});
-				}
-			});
+			tt.execute(status -> tt.execute(status1 -> {
+				status1.setRollbackOnly();
+				return null;
+			}));
 			fail("Should have thrown UnexpectedRollbackException");
 		} catch (UnexpectedRollbackException ex) {
 			// expected
