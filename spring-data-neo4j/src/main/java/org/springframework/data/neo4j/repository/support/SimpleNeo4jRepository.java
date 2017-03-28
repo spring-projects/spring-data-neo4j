@@ -19,15 +19,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.cypher.query.Pagination;
-import org.neo4j.ogm.cypher.query.SortOrder;
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.util.PagingAndSortingUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -50,8 +49,8 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 	private static final int DEFAULT_QUERY_DEPTH = 1;
 	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null!";
 
-	private Class<T> clazz;
-	private Session session;
+	private final Class<T> clazz;
+	private final Session session;
 
 	/**
 	 * Creates a new {@link SimpleNeo4jRepository} to manage objects of the given domain type.
@@ -65,10 +64,6 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 
 		this.clazz = domainClass;
 		this.session = session;
-	}
-
-	protected Class<T> getDomainClass() {
-		return clazz;
 	}
 
 	@Transactional
@@ -176,7 +171,7 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 
 	@Override
 	public Iterable<T> findAll(Sort sort, int depth) {
-		return session.loadAll(clazz, convert(sort), depth);
+		return session.loadAll(clazz, PagingAndSortingUtils.convert(sort), depth);
 	}
 
 	@Override
@@ -186,7 +181,7 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 
 	@Override
 	public Iterable<T> findAll(Iterable<ID> ids, Sort sort, int depth) {
-		return session.loadAll(clazz, (Collection<ID>) ids, convert(sort), depth);
+		return session.loadAll(clazz, (Collection<ID>) ids, PagingAndSortingUtils.convert(sort), depth);
 	}
 
 	@Override
@@ -196,27 +191,9 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 
 	@Override
 	public Page<T> findAll(Pageable pageable, int depth) {
-		Collection<T> data = session.loadAll(clazz, convert(pageable.getSort()), new Pagination(pageable.getPageNumber(), pageable.getPageSize()), depth);
-		return updatePage(pageable, new ArrayList<T>(data));
-	}
-
-	/*
-	 * Converts a Spring Data Sort object to an OGM SortOrder
-	 */
-	private SortOrder convert(Sort sort) {
-
-		SortOrder sortOrder = new SortOrder();
-
-		if (sort != null) {
-			for (Sort.Order order : sort) {
-				if (order.isAscending()) {
-					sortOrder.add(order.getProperty());
-				} else {
-					sortOrder.add(SortOrder.Direction.DESC, order.getProperty());
-				}
-			}
-		}
-		return sortOrder;
+		Collection<T> data = session.loadAll(clazz, PagingAndSortingUtils.convert(pageable.getSort())
+				, new Pagination(pageable.getPageNumber(), pageable.getPageSize()), depth);
+		return updatePage(pageable, new ArrayList<>(data));
 	}
 
 	/*
