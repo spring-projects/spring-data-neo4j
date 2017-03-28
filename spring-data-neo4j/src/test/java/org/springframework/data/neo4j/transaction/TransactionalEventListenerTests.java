@@ -62,14 +62,11 @@ public class TransactionalEventListenerTests {
 	@Test
 	public void immediately() {
 		load(ImmediateTestListener.class);
-		this.transactionTemplate.execute(new TransactionCallback<Object>() {
-			@Override
-			public Object doInTransaction(TransactionStatus status) {
-				TransactionalEventListenerTests.this.getContext().publishEvent("test");
-				TransactionalEventListenerTests.this.getEventCollector().assertEvents(EventCollector.IMMEDIATELY, "test");
-				TransactionalEventListenerTests.this.getEventCollector().assertTotalEventsCount(1);
-				return null;
-			}
+		this.transactionTemplate.execute(status -> {
+			TransactionalEventListenerTests.this.getContext().publishEvent("test");
+			TransactionalEventListenerTests.this.getEventCollector().assertEvents(EventCollector.IMMEDIATELY, "test");
+			TransactionalEventListenerTests.this.getEventCollector().assertTotalEventsCount(1);
+			return null;
 		});
 		getEventCollector().assertEvents(EventCollector.IMMEDIATELY, "test");
 		getEventCollector().assertTotalEventsCount(1);
@@ -79,13 +76,10 @@ public class TransactionalEventListenerTests {
 	public void immediatelyImpactsCurrentTransaction() {
 		load(ImmediateTestListener.class, BeforeCommitTestListener.class);
 		try {
-			this.transactionTemplate.execute(new TransactionCallback<Object>() {
-				@Override
-				public Object doInTransaction(TransactionStatus status) {
-					TransactionalEventListenerTests.this.getContext().publishEvent("FAIL");
-					fail("Should have thrown an exception at this point");
-					return null;
-				}
+			this.transactionTemplate.execute(status -> {
+				TransactionalEventListenerTests.this.getContext().publishEvent("FAIL");
+				fail("Should have thrown an exception at this point");
+				return null;
 			});
 		} catch (IllegalStateException e) {
 			assertTrue(e.getMessage().contains("Test exception"));
@@ -98,13 +92,10 @@ public class TransactionalEventListenerTests {
 	@Test
 	public void afterCompletionCommit() {
 		load(AfterCompletionTestListener.class);
-		this.transactionTemplate.execute(new TransactionCallback<Object>() {
-			@Override
-			public Object doInTransaction(TransactionStatus status) {
-				TransactionalEventListenerTests.this.getContext().publishEvent("test");
-				TransactionalEventListenerTests.this.getEventCollector().assertNoEventReceived();
-				return null;
-			}
+		this.transactionTemplate.execute(status -> {
+			TransactionalEventListenerTests.this.getContext().publishEvent("test");
+			TransactionalEventListenerTests.this.getEventCollector().assertNoEventReceived();
+			return null;
 		});
 		getEventCollector().assertEvents(EventCollector.AFTER_COMPLETION, "test");
 		getEventCollector().assertTotalEventsCount(1); // After rollback not invoked
@@ -113,14 +104,11 @@ public class TransactionalEventListenerTests {
 	@Test
 	public void afterCompletionRollback() {
 		load(AfterCompletionTestListener.class);
-		this.transactionTemplate.execute(new TransactionCallback<Object>() {
-			@Override
-			public Object doInTransaction(TransactionStatus status) {
-				TransactionalEventListenerTests.this.getContext().publishEvent("test");
-				TransactionalEventListenerTests.this.getEventCollector().assertNoEventReceived();
-				status.setRollbackOnly();
-				return null;
-			}
+		this.transactionTemplate.execute(status -> {
+			TransactionalEventListenerTests.this.getContext().publishEvent("test");
+			TransactionalEventListenerTests.this.getEventCollector().assertNoEventReceived();
+			status.setRollbackOnly();
+			return null;
 		});
 		getEventCollector().assertEvents(EventCollector.AFTER_COMPLETION, "test");
 		getEventCollector().assertTotalEventsCount(1); // After rollback not invoked
@@ -129,13 +117,10 @@ public class TransactionalEventListenerTests {
 	@Test
 	public void afterCommit() {
 		load(AfterCompletionExplicitTestListener.class);
-		this.transactionTemplate.execute(new TransactionCallback<Object>() {
-			@Override
-			public Object doInTransaction(TransactionStatus status) {
-				TransactionalEventListenerTests.this.getContext().publishEvent("test");
-				TransactionalEventListenerTests.this.getEventCollector().assertNoEventReceived();
-				return null;
-			}
+		this.transactionTemplate.execute(status -> {
+			TransactionalEventListenerTests.this.getContext().publishEvent("test");
+			TransactionalEventListenerTests.this.getEventCollector().assertNoEventReceived();
+			return null;
 		});
 		getEventCollector().assertEvents(EventCollector.AFTER_COMMIT, "test");
 		getEventCollector().assertTotalEventsCount(1); // After rollback not invoked
@@ -144,13 +129,10 @@ public class TransactionalEventListenerTests {
 	@Test
 	public void afterCommitWithTransactionalComponentListenerProxiedViaDynamicProxy() {
 		load(AfterCompletionTestListener.class, TransactionalComponentTestListener.class);
-		this.transactionTemplate.execute(new TransactionCallback<Object>() {
-			@Override
-			public Object doInTransaction(TransactionStatus status) {
-				TransactionalEventListenerTests.this.getContext().publishEvent("SKIP");
-				TransactionalEventListenerTests.this.getEventCollector().assertNoEventReceived();
-				return null;
-			}
+		this.transactionTemplate.execute(status -> {
+			TransactionalEventListenerTests.this.getContext().publishEvent("SKIP");
+			TransactionalEventListenerTests.this.getEventCollector().assertNoEventReceived();
+			return null;
 		});
 		getEventCollector().assertNoEventReceived();
 	}
@@ -158,14 +140,11 @@ public class TransactionalEventListenerTests {
 	@Test
 	public void afterRollback() {
 		load(AfterCompletionExplicitTestListener.class);
-		this.transactionTemplate.execute(new TransactionCallback<Object>() {
-			@Override
-			public Object doInTransaction(TransactionStatus status) {
-				TransactionalEventListenerTests.this.getContext().publishEvent("test");
-				TransactionalEventListenerTests.this.getEventCollector().assertNoEventReceived();
-				status.setRollbackOnly();
-				return null;
-			}
+		this.transactionTemplate.execute(status -> {
+			TransactionalEventListenerTests.this.getContext().publishEvent("test");
+			TransactionalEventListenerTests.this.getEventCollector().assertNoEventReceived();
+			status.setRollbackOnly();
+			return null;
 		});
 		getEventCollector().assertEvents(EventCollector.AFTER_ROLLBACK, "test");
 		getEventCollector().assertTotalEventsCount(1); // After commit not invoked
@@ -174,26 +153,23 @@ public class TransactionalEventListenerTests {
 	@Test
 	public void beforeCommit() {
 		load(BeforeCommitTestListener.class);
-		this.transactionTemplate.execute(new TransactionCallback<Object>() {
-			@Override
-			public Object doInTransaction(TransactionStatus status) {
-				TransactionSynchronizationManager.registerSynchronization(new EventTransactionSynchronization(10) {
-					@Override
-					public void beforeCommit(boolean readOnly) {
-						getEventCollector().assertNoEventReceived(); // Not seen yet
-					}
-				});
-				TransactionSynchronizationManager.registerSynchronization(new EventTransactionSynchronization(20) {
-					@Override
-					public void beforeCommit(boolean readOnly) {
-						getEventCollector().assertEvents(EventCollector.BEFORE_COMMIT, "test");
-						getEventCollector().assertTotalEventsCount(1);
-					}
-				});
-				TransactionalEventListenerTests.this.getContext().publishEvent("test");
-				TransactionalEventListenerTests.this.getEventCollector().assertNoEventReceived();
-				return null;
-			}
+		this.transactionTemplate.execute(status -> {
+			TransactionSynchronizationManager.registerSynchronization(new EventTransactionSynchronization(10) {
+				@Override
+				public void beforeCommit(boolean readOnly) {
+					getEventCollector().assertNoEventReceived(); // Not seen yet
+				}
+			});
+			TransactionSynchronizationManager.registerSynchronization(new EventTransactionSynchronization(20) {
+				@Override
+				public void beforeCommit(boolean readOnly) {
+					getEventCollector().assertEvents(EventCollector.BEFORE_COMMIT, "test");
+					getEventCollector().assertTotalEventsCount(1);
+				}
+			});
+			TransactionalEventListenerTests.this.getContext().publishEvent("test");
+			TransactionalEventListenerTests.this.getEventCollector().assertNoEventReceived();
+			return null;
 		});
 		getEventCollector().assertEvents(EventCollector.BEFORE_COMMIT, "test");
 		getEventCollector().assertTotalEventsCount(1);
@@ -203,19 +179,16 @@ public class TransactionalEventListenerTests {
 	public void beforeCommitWithException() { // Validates the custom synchronization is invoked
 		load(BeforeCommitTestListener.class);
 		try {
-			this.transactionTemplate.execute(new TransactionCallback<Object>() {
-				@Override
-				public Object doInTransaction(TransactionStatus status) {
-					TransactionSynchronizationManager.registerSynchronization(new EventTransactionSynchronization(10) {
-						@Override
-						public void beforeCommit(boolean readOnly) {
-							throw new IllegalStateException("test");
-						}
-					});
-					TransactionalEventListenerTests.this.getContext().publishEvent("test");
-					TransactionalEventListenerTests.this.getEventCollector().assertNoEventReceived();
-					return null;
-				}
+			this.transactionTemplate.execute(status -> {
+				TransactionSynchronizationManager.registerSynchronization(new EventTransactionSynchronization(10) {
+					@Override
+					public void beforeCommit(boolean readOnly) {
+						throw new IllegalStateException("test");
+					}
+				});
+				TransactionalEventListenerTests.this.getContext().publishEvent("test");
+				TransactionalEventListenerTests.this.getEventCollector().assertNoEventReceived();
+				return null;
 			});
 			fail("Should have thrown an exception");
 		} catch (IllegalStateException e) {

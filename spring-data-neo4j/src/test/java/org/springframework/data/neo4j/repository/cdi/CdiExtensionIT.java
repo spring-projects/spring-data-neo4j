@@ -36,7 +36,7 @@ import org.springframework.data.neo4j.examples.friends.domain.Person;
  * @author Mark Paluch
  * @see DATAGRAPH-879
  */
-@Ignore
+@Ignore("Why is this failing?")
 public class CdiExtensionIT {
 
 	static CdiTestContainer container;
@@ -90,7 +90,6 @@ public class CdiExtensionIT {
 	 * @see DATAGRAPH-879
 	 */
 	@Test
-	@Ignore
 	public void repositoryWithQualifiersShouldWork() {
 
 		RepositoryClient client = container.getInstance(RepositoryClient.class);

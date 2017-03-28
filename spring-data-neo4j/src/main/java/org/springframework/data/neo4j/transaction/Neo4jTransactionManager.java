@@ -14,6 +14,8 @@
 package org.springframework.data.neo4j.transaction;
 
 
+import java.util.EnumSet;
+
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.transaction.Transaction;
@@ -253,7 +255,9 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 				logger.debug("Committing Neo4j OGM transaction [" + tx + "] on Session [" + session + "]");
 			}
 
-			tx.commit();
+			if (tx != null) {
+				tx.commit();
+			}
 		} catch (RuntimeException ex) {
 			DataAccessException dae = SessionFactoryUtils.convertOgmAccessException(ex);
 			throw (dae != null ? dae : ex);
@@ -272,7 +276,9 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 				logger.debug("Rolling back Neo4j transaction [" + tx + "] on Session [" + session + "]");
 			}
 
-			tx.rollback();
+			if (tx != null) {
+				tx.rollback();
+			}
 		} catch (RuntimeException ex) {
 			DataAccessException dae = SessionFactoryUtils.convertOgmAccessException(ex);
 			throw (dae != null ? dae : ex);
