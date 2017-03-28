@@ -48,7 +48,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ContextConfiguration(locations = "/xml-based-configuration-applicationContext.xml")
 @WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class XmlApplicationContextWebIntegrationIT  {
+public class XmlApplicationContextWebIntegrationTests {
 
 	@Autowired
 	private UserRepository userRepository;

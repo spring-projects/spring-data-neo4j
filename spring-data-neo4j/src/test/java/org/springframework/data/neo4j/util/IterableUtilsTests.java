@@ -34,7 +34,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 /**
  * @author Michal Bachman
  */
-public class IterableUtilsIT  {
+public class IterableUtilsTests {
 
 	private static GraphDatabaseService database;
 

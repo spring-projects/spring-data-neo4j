@@ -179,7 +179,6 @@ public class GalaxyServiceTests extends MultiDriverTestClass {
 		for (int page = 0; page < pages; page++) {
 			Iterable<World> paged = galaxyService.findAllWorlds(new Pagination(page, PAGE_SIZE));
 			for (World world : paged) {
-				System.out.println(world.getName() + ":" + world.getId());
 				n -= world.getId();
 			}
 		}
@@ -197,9 +196,6 @@ public class GalaxyServiceTests extends MultiDriverTestClass {
 		Pageable pageable = new PageRequest(2, 3);
 		Page<World> worlds = galaxyService.findAllWorlds(pageable);
 
-		for (World world : worlds) {
-			System.out.println(world.getName() + ": " + world.getId());
-		}
 		assertTrue(worlds.hasNext());
 	}
 
@@ -213,9 +209,6 @@ public class GalaxyServiceTests extends MultiDriverTestClass {
 		Pageable pageable = new PageRequest(4, 3);
 		Page<World> worlds = galaxyService.findAllWorlds(pageable);
 
-		for (World world : worlds) {
-			System.out.println(world.getName() + ": " + world.getId());
-		}
 		assertFalse(worlds.hasNext());
 	}
 
@@ -235,7 +228,6 @@ public class GalaxyServiceTests extends MultiDriverTestClass {
 		for (; ; ) {
 			Page<World> page = galaxyService.findAllWorlds(pageable);
 			for (World world : page) {
-				System.out.println(world.getName() + ":" + world.getId());
 				sum -= world.getId();
 			}
 			if (!page.hasNext()) {

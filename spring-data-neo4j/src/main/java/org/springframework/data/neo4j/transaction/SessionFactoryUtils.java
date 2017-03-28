@@ -71,10 +71,6 @@ public class SessionFactoryUtils {
 
 		Session session = sessionFactory.openSession();
 
-		if (TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
-			System.out.println("hitting read only txn.");
-		}
-
 		logger.debug("Registering transaction synchronization for Neo4j Session");
 		// Use same Session for further Neo4j actions within the transaction.
 		// Thread object will get removed by synchronization at transaction completion.

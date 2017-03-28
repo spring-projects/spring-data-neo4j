@@ -47,15 +47,17 @@ public class TransactionIntegrationTests extends MultiDriverTestClass {
 	@Autowired
 	private UserService userService;
 
+	private TransactionEventHandler.Adapter<Object> handler;
+
 	@Before
 	public void populateDatabase() {
-		getGraphDatabaseService().registerTransactionEventHandler(new TransactionEventHandler.Adapter<Object>() {
+		handler = new TransactionEventHandler.Adapter<Object>() {
 			@Override
 			public Object beforeCommit(TransactionData data) throws Exception {
-				System.out.println("The request to commit is denied");
 				throw new TransactionInterceptException("Deliberate testing exception");
 			}
-		});
+		};
+		getGraphDatabaseService().registerTransactionEventHandler(handler);
 	}
 
 	@Test(expected = Exception.class)

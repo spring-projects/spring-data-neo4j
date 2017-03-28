@@ -74,10 +74,6 @@ public class WorldRepositoryTests extends MultiDriverTestClass {
                 World world = worldRepository.findByName("world 1");
 
                 if (!"world 1".equals(world.getName())) {
-                    System.out.println("=================================");
-                    System.out.println("World 1 did not equal");
-                    System.out.println("world is: " + world);
-                    System.out.println("=================================");
                     failed = true;
                 }
                 countDownLatch.countDown();
@@ -88,10 +84,6 @@ public class WorldRepositoryTests extends MultiDriverTestClass {
                 World world = worldRepository.findByName("world 2");
 
                 if (!"world 2".equals(world.getName())) {
-                    System.out.println("=================================");
-                    System.out.println("World 2 did not equal");
-                    System.out.println("world is: " + world);
-                    System.out.println("=================================");
                     failed = true;
                 }
                 countDownLatch.countDown();
