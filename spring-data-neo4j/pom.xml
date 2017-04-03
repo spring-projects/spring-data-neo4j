@@ -31,6 +31,7 @@
     <properties>
         <neo4j.ogm.version>3.0.0-M01</neo4j.ogm.version>
         <ogm.properties>ogm-bolt.properties</ogm.properties>
+        <el-api.version>2.2</el-api.version>
     </properties>
 
 
@@ -91,13 +92,7 @@
         <dependency>
             <groupId>javax.el</groupId>
             <artifactId>el-api</artifactId>
-            <version>${cdi}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.glassfish</groupId>
-            <artifactId>javax.el</artifactId>
+            <version>${el-api.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -127,7 +122,14 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>
-			<version>4.2.0.Final</version>
+			<version>5.1.2.Final</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.el</artifactId>
+            <version>3.0.0</version>
             <scope>test</scope>
         </dependency>
 
