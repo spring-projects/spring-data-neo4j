@@ -186,7 +186,14 @@ public class MyConfiguration {
     @Bean
     public SessionFactory sessionFactory() {
         // with domain entity base package(s)
-        return new SessionFactory("org.neo4j.example.domain");
+        return new SessionFactory(configuration(), "org.neo4j.example.domain");
+    }
+
+    @Bean
+    public org.neo4j.ogm.config.Configuration configuration() {
+        ConfigurationSource properties = new ClasspathConfigurationSource("ogm.properties");
+        org.neo4j.ogm.config.Configuration configuration = new org.neo4j.ogm.config.Configuration.Builder(properties)
+        return configuration;
     }
 
     @Bean
