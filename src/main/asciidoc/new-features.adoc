@@ -1,19 +1,15 @@
 [[new-features]]
 = New & Noteworthy
 
-[[new-features.4-2-0]]
-== What's new in Spring Data Neo4j 4.2.0
-* Upgrade to Neo4j OGM 2.1.1.
-* Support for Neo4j 3.1.0.
-* Improved documentation focusing more on Spring.
-* Support for other repository query keywords available in Spring Data.
-* Support sorting in derived repository query methods.
-* Support for countBy and delete/removeBy in derived finders.
-* All Cypher Exceptions now translated to Spring Data Exception hierarchy.
-* Fixed `MetaDataDrivenConversionService` to compile against Spring Framework 4.3.
-* Better compliance with Spring's Transaction Manager.
-* Support `@Depth` param on derived repository query methods.
-* Support paging and sorting for custom queries.
-* Improved support for Spring Data REST.
-* Support for findByPropertyNear.
-
+[[new-features.5-0-0]]
+== What's new in Spring Data Neo4j 5.0 M2
+* SDN 5.x is designed to work with Spring 5 and Spring Boot 2.x.
+* Java 8 support : derived / custom queries can now return stream results and `Optional`.
+* `@Async` support.
+* Annotations are now only supported on attributes.
+* Configuration is now best done as code with the new configuration builder.
+* Internal metadata handling has been refactored for better reliability.
+* Upgrade to Neo4j OGM 3.0.0-M01.
+* Support for Neo4j 3.1.2.
+* Bolt is now the default database protocol.
+* When migrating from 4.x, please see the migration guide below.

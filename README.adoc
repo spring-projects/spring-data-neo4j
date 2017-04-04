@@ -21,10 +21,10 @@ This README is the best place to start learning about the features of Spring Dat
 
 To learn more refer to:
 
-* the http://docs.spring.io/spring-data/neo4j/docs/4.2.x/reference/html/[Reference Manual];
+* the http://docs.spring.io/spring-data/neo4j/docs/5.0.x/reference/html/[Reference Manual];
 * the https://github.com/neo4j-examples/sdn4-university/tree/4.2[sample project: SDN Univeristy].  More example projects for Spring Data Neo4j 4 are available in the https://github.com/neo4j-examples?query=sdn4[Neo4j-Examples] repository
 * The main http://projects.spring.io/spring-data-neo4j[SpringSource project site] contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
-* the http://docs.spring.io/spring-data/neo4j/docs/4.2.x/api/[Javadocs];
+* the http://docs.spring.io/spring-data/neo4j/docs/5.0.x/api/[Javadocs];
 * for more detailed questions, use http://stackoverflow.com/questions/tagged/spring-data-neo4j-4[Spring Data Neo4j 4 on StackOverflow]
 
 If you are new to Spring as well as to Spring Data, look for information about http://www.springsource.org/projects[Spring projects].
@@ -41,7 +41,7 @@ Add the Maven dependency:
     <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j</artifactId>
-        <version>4.2.0.M1</version>
+        <version>5.0.0.M2</version>
     </dependency>
 
     <repository>
@@ -60,7 +60,7 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
     <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j</artifactId>
-        <version>4.2.0.BUILD-SNAPSHOT</version>
+        <version>5.0.0.BUILD-SNAPSHOT</version>
     </dependency>
 
     <!-- used for nightly builds -->
@@ -88,7 +88,16 @@ public class MyConfiguration {
     @Bean
     public SessionFactory sessionFactory() {
         // with domain entity base package(s)
-        return new SessionFactory("com.example.person.domain",...);
+        return new SessionFactory(configuration(), "com.example.person.domain",...);
+    }
+
+    @Bean
+    public org.neo4j.ogm.config.Configuration configuration() {
+        org.neo4j.ogm.config.Configuration configuration = new org.neo4j.ogm.config.Configuration.Builder()
+                .uri("bolt://localhost")
+                .credentials("user", "secret")
+                .build();
+        return configuration;
     }
 
 	@Bean
@@ -112,7 +121,7 @@ driver=org.neo4j.ogm.drivers.http.driver.HttpDriver
 URI=http://user:password@localhost:7474
 ----
 
-The application can be configured programmatically as well, please consult http://docs.spring.io/spring-data/neo4j/docs/4.2.x/reference/html/#reference.getting_started.spring-configuration[the reference guide] for more information.
+The application can be configured programmatically as well, please consult http://docs.spring.io/spring-data/neo4j/docs/5.0.x/reference/html/#reference.getting_started.spring-configuration[the reference guide] for more information.
 
 
 Annotate an entity:
@@ -142,7 +151,7 @@ For example, given the Person class above, a PersonRepository interface that can
 [source,java]
 ----
 @Repository
-public interface PersonRepository extends Neo4jRepository<Person> {
+public interface PersonRepository extends Neo4jRepository<Person, Long> {
 
   List<Person> findByName(String name);
 

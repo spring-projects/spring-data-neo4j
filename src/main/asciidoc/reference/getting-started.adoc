@@ -59,7 +59,7 @@ For more in depth configuration details please consult the Configuration section
 [[reference.getting_started.dependencies.maven]]
 === Maven
 
-By default, SDN will use the HTTP driver to connect to Neo4j and you don't need to declare it as a separate dependency in your pom.
+By default, SDN will use the BOLT driver to connect to Neo4j and you don't need to declare it as a separate dependency in your pom.
 If you want to use the embedded or HTTP drivers in your production application, you must add the following dependencies as well.
 (This dependency on the embedded driver is not required if you only want to use the embedded driver for testing. See the section on <<testing,Testing>> below for more information).
 
@@ -92,7 +92,7 @@ If you want to use the embedded or HTTP drivers in your production application, 
 [[reference.getting_started.dependencies.testing]]
 ==== Testing
 
-.Maven dependencies for testing SDN 4 applications
+.Maven dependencies for testing SDN 5 applications
 [source,xml]
 ----
        <dependency>
@@ -211,7 +211,7 @@ To allow your query methods to be transactional simply use @Transactional at the
 [[reference.getting_started.driver]]
 === Driver Configuration
 
-SDN 4 provides support for connecting to Neo4j using different drivers.
+SDN provides support for connecting to Neo4j using different drivers.
 
 The following drivers are available.
 
@@ -219,45 +219,53 @@ The following drivers are available.
 - Embedded driver
 - Bolt driver
 
-By default, SDN will try to configure the driver from a file `ogm.properties`, which it expects to find on the root of the classpath.
-In many cases you won't want to, or will not be able to provide configuration information via a properties file.
-In these cases you can configure your application programmatically instead, using a `Configuration` bean.
-
-NOTE:   SDN expects the properties file to be called "ogm.properties". If you want to configure your application using a _different_ properties file, you must either set a System property or Environment variable called "ogm.properties" pointing to the alternative configuration file you want to use.
-
-
-The following sections describe how to setup Spring Data Neo4j using both techniques.
-
-.ogm.properties Configuration
-To configure the Driver using a properties file see configuration section of the OGM reference.
-
-
 .Java Configuration
 
 To configure the Driver programmatically, create a Configuration bean and pass it as the first argument to the `SessionFactory` constructor in your Spring configuration:
 
 [source,java]
 ----
-import org.neo4j.ogm.config.Configuration;
-...
-
 @Bean
-public Configuration configuration() {
-   Configuration config = new Configuration();
-   config
-       .driverConfiguration()
-       .setDriverClassName("org.neo4j.ogm.drivers.<driver>.driver.<driver>Driver")
-       .setURI("<uri>");
-   return config;
+public org.neo4j.ogm.config.Configuration configuration() {
+    org.neo4j.ogm.config.Configuration configuration = new org.neo4j.ogm.config.Configuration.Builder()
+            .uri("bolt://localhost")
+            .credentials("user", "secret")
+            .build();
+    return configuration;
 }
+
 
 @Bean
 public SessionFactory sessionFactory() {
-    return new SessionFactory(configuration(), <packages> );
+    return new SessionFactory(configuration(), <packages> ); <1>
+}
+----
+<1> `packages` is a list of java packages containing the annotated domain model.
+
+Configuration can also be initialized from an external file like this.
+
+[source,java]
+----
+@Bean
+public org.neo4j.ogm.config.Configuration configuration() {
+    ConfigurationSource properties = new ClasspathConfigurationSource("db.properties");
+    org.neo4j.ogm.config.Configuration configuration = new org.neo4j.ogm.config.Configuration.Builder(properties)
+    return configuration;
 }
 ----
 
-where `<driver>` is the driver you want to use, `<uri>` is the URI to use.
+.Fallback configuration
+_Please note that this way of configuration might be removed in the future._
+
+Java configuration is the preferred way of initiallizing SDN. However, if no configuration is given to the `SessionFactory`, SDN
+will try to configure the driver from a file `ogm.properties`, which it expects to find on the root of the classpath.
+
+NOTE:   SDN expects the properties file to be called "ogm.properties". If you want to configure your application using a _different_ properties file, you must either set a System property or Environment variable called "ogm.properties" pointing to the alternative configuration file you want to use.
+
+For more detail about this properties file, please refer to the configuration section of the OGM reference.
+
+[NOTE]
+The driver is automatically inferred from the URI scheme.
 
 [NOTE]
 To set up authentication, TLS or other advanced options please see the Configuration section of the OGM Reference.
@@ -270,7 +278,7 @@ As of 4.2.0 the Neo4j OGM embedded driver no longer ships with the Neo4j kernel.
 [[reference.getting_started.spring-configuration.boot]]
 === Spring Boot Applications
 
-Spring Boot `1.5.0` works straight out of the box with Spring Data Neo4j `4.2.0`.
+Spring Boot `2.0` works straight out of the box with Spring Data Neo4j `5.0.0`.
 
 To do that update the Spring Boot properties to use the current SDN version. Update your Spring Boot Maven POM with the following. You may need to add `<repositories>` depending on versioning.
 

@@ -7,7 +7,7 @@
 This chapter will point out the specialties for repository support for Neo4J and the Neo4J OGM. This builds on the core repository support explained in <<repositories>>. So make sure you've got a sound understanding of the basic concepts explained there.
 
 The following table outlines the repositories functionality currently either supported, partially supported or not supported in SDN:
-
+// NME
 [frame="topbot",options="header"]
 |======================
 | Feature   | Supported in SDN | Notes
@@ -18,12 +18,12 @@ The following table outlines the repositories functionality currently either sup
 | XML based configuration  | icon:check[] |
 | Multi Spring Data module support | icon:check[] |
 | Configurable Query Lookup Strategy | icon:times[] |
-| Derived Query support | icon:minus[] | See Supported keywords for query methods below
+| Derived Query support | icon:check[] | See Supported keywords for query methods below
 | Derived Query Property expressions support | icon:times[] |
 | Paging and Slice support | icon:check[] |
-| Derived query paging limit support | icon:times[] |
-| Java 8 Streaming and Optional support | icon:times[] |
-| `@Async` support | icon:times[] |
+| Derived query paging limit support | icon:check[] |
+| Java 8 Streaming and Optional support | icon:check[] |
+| `@Async` support | icon:check[] |
 | Custom behaviour on repositories | icon:check[] |
 | `QueryDslPredicateExecutor` support| icon:times[] |
 | Web support (incl Spring Data REST) | icon:minus[] | Partial: QueryDSL not supported.
@@ -102,14 +102,31 @@ public interface PersonRepository extends PagingAndSortingRepository<Person, Str
 |===============
 |Logical keyword|Keyword expressions|Restrictions
 |`AND`|`And`|
-|`OR`|`Or`|Cannot be used to OR nested properties
+|`AFTER`|`After, IsAfter`|
+|`BEFORE`|`Before, IsBefore`|
+|`CONTAINING`|`Containing, IsContaining, Contains`|
+|`BETWEEN`|`Between, IsBetween`|
+|`ENDING_WITH`|`EndingWith, IsEndingWith, EndsWith`|
+|`EXISTS`|`Exists`|
+|`FALSE`|`False, IsFalse`|
 |`GREATER_THAN`|`GreaterThan`, `IsGreaterThan`|
+|`GREATER_THAN_EQUALS`|`GreaterThanEqual, IsGreaterThanEqual`|
+|`IN`|`In, IsIn`|
+|`IS`|`Is, Equals`|
+|`IS_NOT_NULL`|`NotNull, IsNotNull`|
+|`IS_NULL`|`Null, IsNull`|
 |`LESS_THAN`|`LessThan`, `IsLessThan`|
+|`LESS_THAN_EQUAL`|`LessThanEqual, IsLessThanEqual`|
 |`LIKE`|`Like`, `IsLike`|
+|`NEAR`|`Near, IsNear`|
 |`NOT`|`Not`, `IsNot`|
+|`NOT_IN`|`NotIn, IsNotIn`|
 |`NOT_LIKE`|`NotLike`, `IsNotLike`|
 |`REGEX`|`Regex`, `MatchesRegex`, `Matches`|
+|`OR`|`Or`|Cannot be used to OR nested properties
 |`NEAR`|`Near`, `IsNear`|
+|`STARTING_WITH`|`StartingWith, IsStartingWith, StartsWith`|
+|`TRUE`|`True, IsTrue`|
 |===============
 
 
@@ -166,7 +183,7 @@ as described in the <<reference_programming_model_annotatedQueries>>) section.
 
 [source,java]
 ----
-public interface MovieRepository extends Neo4jRepository<Movie> {
+public interface MovieRepository extends Neo4jRepository<Movie, Long> {
 
     // returns the node with id equal to idOfMovie parameter
     @Query("MATCH (n) WHERE id(n)={0} RETURN n")
@@ -176,12 +193,16 @@ public interface MovieRepository extends Neo4jRepository<Movie> {
     @Query("MATCH (movie:Movie {title={0}}) RETURN movie")
     Movie getMovieFromTitle(String movieTitle);
 
+    // same with optional result
+    @Query("MATCH (movie:Movie {title={0}}) RETURN movie")
+    Optional<Movie> getMovieFromTitle(String movieTitle);
+
     // returns a Page of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter.
-    @Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor")
+    @Query(value = "MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor", countQuery= "MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN count(actor)")
     Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, PageRequest page);
 
     // returns a Page of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter with an accurate total count
-    @Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor", countQuery = "MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN count(*)")
+    @Query(value = "MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor", countQuery = "MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN count(*)")
     Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, Pageable page);
 
     // returns a Slice of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter.
@@ -198,7 +219,10 @@ public interface MovieRepository extends Neo4jRepository<Movie> {
     @Query("MATCH (movie:Movie {title:{0}})<-[r:RATED]-(user) " +
            "WHERE r.stars > {1} " +
            "RETURN user")
-     Iterable<User> getUsersWhoRatedMovieFromTitle(String movieTitle, Integer rating);
+    Iterable<User> getUsersWhoRatedMovieFromTitle(String movieTitle, Integer rating);
+
+    @Query(value = "MATCH (movie:Movie) RETURN movie;")
+    Stream<Movie> getAllMovies();
 }
 ----
 
@@ -211,7 +235,7 @@ The parameters will be used in the order they appear in the method signature so 
 .Some examples of methods and corresponding Cypher queries of a PersonRepository
 [source,java]
 ----
-public interface PersonRepository extends Neo4jRepository<Person> {
+public interface PersonRepository extends Neo4jRepository<Person, Long> {
 
     // MATCH (person:Person {name={0}}) RETURN person
     Person findByName(String name);
@@ -250,7 +274,7 @@ For queries executed via `@Query` repository methods, it's possible to specify a
 .Example of query result mapping
 [source,java]
 ----
-public interface MovieRepository extends GraphRepository<Movie> {
+public interface MovieRepository extends Neo4jRepository<Movie, Long> {
 
     @Query("MATCH (movie:Movie)-[r:RATING]\->(), (movie)<-[:ACTS_IN]-(actor:Actor) " +
            "WHERE movie.id={0} " +
@@ -353,8 +377,6 @@ It is highly recommended that users understand how Spring Transactions work. Bel
 * http://graphaware.com/neo4j/2016/09/30/upgrading-to-sdn-42.html[Upgrading to Spring Data Neo4j 4.2]
 
 === Read only Transactions
-
-As of SDN 4.2 you can also define read only transactions.
 
 You can start a read only transaction by marking a class or method with `@Transactional(readOnly=true)`.
 
@@ -503,14 +525,14 @@ will take precedence over converters registered with Spring's ConversionService.
 
 
 
-As of SDN 4, this `Neo4jRepository<T>` should be the interface from which your entity repository interfaces inherit, with `T` being specified as the domain entity type to persist.
+As of SDN 4, this `Neo4jRepository<T, ID>` should be the interface from which your entity repository interfaces inherit, with `T` being specified as the domain entity type to persist.
 `ID` is defined by the field type annotated with `@Index(unique=true,primary=true)`.
 
 Examples of methods you get for free out of `Neo4jRepository` are as follows.
 For all of these examples the ID parameter is a `Long` that matches the graph ID:
 
 Load an entity instance via an id::
-`T findOne(id)`
+`Optional<T> findOne(id)`
 
 Check for existence of an id in the graph::
 `boolean exists(id)`
@@ -530,8 +552,7 @@ Delete graph entities::
 `void delete(T)`, `void delete(Iterable<T>)`, and `void deleteAll()`
 
 [NOTE]
-For users coming from versions before `4.2.x`, `Neo4jRepository` has replaced `GraphRepository` but essentially has the same features. `GraphRepository` is only provided for legacy reasons
-and has been deprecated.
+For users coming from versions before `4.2.x`, `Neo4jRepository` has replaced `GraphRepository` but essentially has the same features.
 
 
 

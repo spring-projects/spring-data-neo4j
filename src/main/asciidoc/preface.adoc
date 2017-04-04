@@ -10,7 +10,7 @@ This section provides some basic introduction to Spring and Graph databases. The
 [[preface.spring-data]]
 == Spring and Spring Data
 
-Spring Data uses Spring framework's http://docs.spring.io/spring/docs/4.2.x/spring-framework-reference/html/spring-core.html[core] functionality, such as the http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/beans.html[IoC] container, http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/validation.html#core-convert[type conversion system], http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/expressions.html[expression language], http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/jmx.html[JMX integration], and portable http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/dao.html#dao-exceptions[DAO exception hierarchy]. While it is not important to know the Spring APIs, understanding the concepts behind them is. At a minimum, the idea behind IoC should be familiar for whatever IoC container you choose to use.
+Spring Data uses Spring framework's http://docs.spring.io/spring/docs/5.0.x/spring-framework-reference/html/spring-core.html[core] functionality, such as the http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/beans.html[IoC] container, http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/validation.html#core-convert[type conversion system], http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/expressions.html[expression language], http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/jmx.html[JMX integration], and portable http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/dao.html#dao-exceptions[DAO exception hierarchy]. While it is not important to know the Spring APIs, understanding the concepts behind them is. At a minimum, the idea behind IoC should be familiar for whatever IoC container you choose to use.
 
 The core functionality of the Neo4J support can be used directly, with no need to invoke the IoC services of the Spring Container. This is much like Hibernate `Session` or JPA `EntityManager` which can be used 'standalone' without any other services of the Spring container. To leverage all the features of Spring Data Neo4j, such as the repository support, you will need to configure some parts of the library using Spring.
 
@@ -67,13 +67,13 @@ The jumping off ground for learning about Neo4J is https://neo4j.com/[neo4j.com]
 [[preface.requirements]]
 == Requirements
 
-Spring Data Neo4j `4.2.x` at minimum, requires:
+Spring Data Neo4j `5.0.x` at minimum, requires:
 
 * JDK Version `8` and above.
-* Neo4j Graph Database `2.3.x` / `3.0.x` / `3.1.x` and above.
+* Neo4j Graph Database `3.0.x` / `3.1.x` and above.
 * Spring Framework {springVersion} and above.
 
-If you plan on altering the version of the OGM make sure it is only in the `2.1.1+` release family.
+If you plan on altering the version of the OGM make sure it is only in the `3.0.0+` release family.
 
 [[preface.additional-resources]]
 == Additional Resources

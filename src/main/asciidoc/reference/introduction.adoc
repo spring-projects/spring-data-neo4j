@@ -32,7 +32,7 @@ image::SDN-Architecture.png[Spring Data Neo4j Architecture,align="center"]
 Spring Data Neo4j is largely broken up into two main components:
 
 - <<reference.ogm-support, OGM Support>>: Provides close integration between Spring Data and the OGM; the main underlying technology used in SDN.
-- <<mongo.repositories, Spring Data Repository Support>>: Provides Spring Repository support.
+- <<neo4j.repositories, Spring Data Repository Support>>: Provides Spring Repository support.
 
 It is recommended SDN developers also familiarise themselves with the OGM. The OGM reference documentation has been reproduced after this
 section for convenience.
