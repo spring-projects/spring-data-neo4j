@@ -1,6 +1,14 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.2.2.RELEASE (2017-04-19)
+---------------------------------------------
+* DATAGRAPH-976 - ID's don't render JSON properly when SDN is used with SD-REST.
+* DATAGRAPH-973 - Upgrade Neo4j OGM to 2.1.2.
+* DATAGRAPH-968 - Release 4.2.2 (Ingalls SR2).
+* DATAGRAPH-951 - Repository finders results get mixed when run concurrently.
+
+
 Changes in version 5.0.0.M2 (2017-04-04)
 ----------------------------------------
 * DATAGRAPH-981 - Update documentation with new features and API changes.
