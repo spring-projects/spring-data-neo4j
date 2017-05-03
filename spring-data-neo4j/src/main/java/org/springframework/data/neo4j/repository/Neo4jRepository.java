@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
  * @author Vince Bickers
  * @author Mark Angrish
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @NoRepositoryBean
 public interface Neo4jRepository<T, ID extends Serializable> extends PagingAndSortingRepository<T, ID> {
@@ -36,7 +37,7 @@ public interface Neo4jRepository<T, ID extends Serializable> extends PagingAndSo
 
 	<S extends T> Iterable<S> save(Iterable<S> entities, int depth);
 
-	Optional<T> findOne(ID id, int depth);
+	Optional<T> findById(ID id, int depth);
 
 	Iterable<T> findAll();
 
@@ -46,13 +47,13 @@ public interface Neo4jRepository<T, ID extends Serializable> extends PagingAndSo
 
 	Iterable<T> findAll(Sort sort, int depth);
 
-	Iterable<T> findAll(Iterable<ID> ids);
+	Iterable<T> findAllById(Iterable<ID> ids);
 
-	Iterable<T> findAll(Iterable<ID> ids, int depth);
+	Iterable<T> findAllById(Iterable<ID> ids, int depth);
 
-	Iterable<T> findAll(Iterable<ID> ids, Sort sort);
+	Iterable<T> findAllById(Iterable<ID> ids, Sort sort);
 
-	Iterable<T> findAll(Iterable<ID> ids, Sort sort, int depth);
+	Iterable<T> findAllById(Iterable<ID> ids, Sort sort, int depth);
 
 	/**
 	 * Returns a {@link Page} of entities meeting the paging restriction provided in the {@code Pageable} object.

@@ -27,7 +27,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.data.neo4j.examples.friends.domain.Person;
 
 /**
@@ -81,7 +80,7 @@ public class CdiExtensionTests {
 
 		assertThat(result, is(notNullValue()));
 		Long resultId = result.getId();
-		Optional<Person> lookedUpPerson = repository.findOne(person.getId());
+		Optional<Person> lookedUpPerson = repository.findById(person.getId());
 		assertTrue(lookedUpPerson.isPresent());
 		lookedUpPerson.ifPresent(actual -> assertThat(actual.getId(), is(resultId)));
 	}

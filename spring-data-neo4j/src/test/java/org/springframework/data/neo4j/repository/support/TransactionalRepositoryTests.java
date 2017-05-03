@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Mark Angrish
+ * @author Jens Schauder
  */
 @ContextConfiguration(classes = {TransactionalRepositoryTests.Config.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -88,7 +89,7 @@ public class TransactionalRepositoryTests extends MultiDriverTestClass {
 	@Test
 	public void invokeRedeclaredMethod() throws Exception {
 
-		repository.findOne(1L);
+		repository.findById(1L);
 		assertFalse(transactionManager.getDefinition().isReadOnly());
 	}
 
@@ -96,7 +97,7 @@ public class TransactionalRepositoryTests extends MultiDriverTestClass {
 	public void invokeRedeclaredDeleteMethodWithoutTransactionDeclaration() throws Exception {
 
 		User user = repository.save(new User("foo", "bar", "foo@bar.de"));
-		repository.delete(user.getId());
+		repository.deleteById(user.getId());
 
 		assertFalse(transactionManager.getDefinition().isReadOnly());
 	}

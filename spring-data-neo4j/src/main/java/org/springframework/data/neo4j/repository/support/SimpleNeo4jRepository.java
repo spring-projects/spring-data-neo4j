@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * @author Luanne Misquitta
  * @author Mark Angrish
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @Repository
 @Transactional(readOnly = true)
@@ -75,7 +76,7 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 
 	@Transactional
 	@Override
-	public <S extends T> Iterable<S> save(Iterable<S> entities) {
+	public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
 		for (S entity : entities) {
 			session.save(entity);
 		}
@@ -83,14 +84,14 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 	}
 
 	@Override
-	public Optional<T> findOne(ID id) {
+	public Optional<T> findById(ID id) {
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		return Optional.ofNullable(session.load(clazz, id));
 	}
 
 	@Override
-	public boolean exists(ID id) {
-		return findOne(id).isPresent();
+	public boolean existsById(ID id) {
+		return findById(id).isPresent();
 	}
 
 	@Override
@@ -100,8 +101,8 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 
 	@Transactional
 	@Override
-	public void delete(ID id) {
-		findOne(id).ifPresent(session::delete);
+	public void deleteById(ID id) {
+		findById(id).ifPresent(session::delete);
 	}
 
 	@Transactional
@@ -112,7 +113,7 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 
 	@Transactional
 	@Override
-	public void delete(Iterable<? extends T> ts) {
+	public void deleteAll(Iterable<? extends T> ts) {
 		for (T t : ts) {
 			session.delete(t);
 		}
@@ -139,7 +140,7 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 	}
 
 	@Override
-	public Optional<T> findOne(ID id, int depth) {
+	public Optional<T> findById(ID id, int depth) {
 		return Optional.ofNullable(session.load(clazz, id, depth));
 	}
 
@@ -155,12 +156,12 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 	}
 
 	@Override
-	public Iterable<T> findAll(Iterable<ID> longs) {
-		return findAll(longs, DEFAULT_QUERY_DEPTH);
+	public Iterable<T> findAllById(Iterable<ID> longs) {
+		return findAllById(longs, DEFAULT_QUERY_DEPTH);
 	}
 
 	@Override
-	public Iterable<T> findAll(Iterable<ID> ids, int depth) {
+	public Iterable<T> findAllById(Iterable<ID> ids, int depth) {
 		return session.loadAll(clazz, (Collection<ID>) ids, depth);
 	}
 
@@ -175,12 +176,12 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 	}
 
 	@Override
-	public Iterable<T> findAll(Iterable<ID> ids, Sort sort) {
-		return findAll(ids, sort, DEFAULT_QUERY_DEPTH);
+	public Iterable<T> findAllById(Iterable<ID> ids, Sort sort) {
+		return findAllById(ids, sort, DEFAULT_QUERY_DEPTH);
 	}
 
 	@Override
-	public Iterable<T> findAll(Iterable<ID> ids, Sort sort, int depth) {
+	public Iterable<T> findAllById(Iterable<ID> ids, Sort sort, int depth) {
 		return session.loadAll(clazz, (Collection<ID>) ids, PagingAndSortingUtils.convert(sort), depth);
 	}
 

@@ -58,6 +58,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Vince Bickers
  * @author Mark Angrish
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @ContextConfiguration(classes = {MoviesIntegrationTests.MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -164,7 +165,7 @@ public class MoviesIntegrationTests extends MultiDriverTestClass {
 				set.add(new User("Adam"));
 				set.add(new User("Vince"));
 
-				userRepository.save(set);
+				userRepository.saveAll(set);
 				assertEquals(3, userRepository.count());
 			}
 		});
@@ -185,7 +186,7 @@ public class MoviesIntegrationTests extends MultiDriverTestClass {
 				list.add(new User("Adam"));
 				list.add(new User("Vince"));
 
-				userRepository.save(list);
+				userRepository.saveAll(list);
 				assertEquals(3, userRepository.count());
 			}
 		});
@@ -233,7 +234,7 @@ public class MoviesIntegrationTests extends MultiDriverTestClass {
 				User user = new User("Michal");
 				userRepository.save(user);
 
-				Optional<User> loaded = userRepository.findOne(user.getId());
+				Optional<User> loaded = userRepository.findById(user.getId());
 
 				assertTrue(loaded.isPresent());
 
@@ -261,7 +262,7 @@ public class MoviesIntegrationTests extends MultiDriverTestClass {
 		userRepository.save(user);
 
 
-		Optional<User> loaded = userRepository.findOne(user.getId());
+		Optional<User> loaded = userRepository.findById(user.getId());
 
 		assertTrue(loaded.isPresent());
 
@@ -284,10 +285,10 @@ public class MoviesIntegrationTests extends MultiDriverTestClass {
 
 				assertFalse(userRepository.findAll().iterator().hasNext());
 				assertFalse(userRepository.findAll(1).iterator().hasNext());
-				assertFalse(userRepository.exists(user.getId()));
+				assertFalse(userRepository.existsById(user.getId()));
 				assertEquals(0, userRepository.count());
-				assertFalse(userRepository.findOne(user.getId()).isPresent());
-				assertFalse(userRepository.findOne(user.getId(), 10).isPresent());
+				assertFalse(userRepository.findById(user.getId()).isPresent());
+				assertFalse(userRepository.findById(user.getId(), 10).isPresent());
 			}
 		});
 
@@ -592,7 +593,7 @@ public class MoviesIntegrationTests extends MultiDriverTestClass {
 	 * @see DATAGRAPH-707
 	 */
 	@Test
-	public void findOneShouldConsiderTheEntityType() {
+	public void findByIdShouldConsiderTheEntityType() {
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -605,30 +606,30 @@ public class MoviesIntegrationTests extends MultiDriverTestClass {
 				user.rate(movie, 5, "Best movie ever");
 				userRepository.save(user);
 
-				Optional<TempMovie> tempMovieOptional = tempMovieRepository.findOne(movie.getId());
+				Optional<TempMovie> tempMovieOptional = tempMovieRepository.findById(movie.getId());
 
 				assertTrue(tempMovieOptional.isPresent());
 				tempMovieOptional.ifPresent(actual -> {
 					assertEquals(movie.getName(), actual.getName());
 				});
 
-				Optional<User> userOptional = userRepository.findOne(user.getId());
+				Optional<User> userOptional = userRepository.findById(user.getId());
 
 				assertTrue(userOptional.isPresent());
 				userOptional.ifPresent(actual -> {
 					assertEquals(user.getName(), actual.getName());
 				});
 
-				Optional<Rating> ratingOptional = ratingRepository.findOne(user.getRatings().iterator().next().getId());
+				Optional<Rating> ratingOptional = ratingRepository.findById(user.getRatings().iterator().next().getId());
 
 				assertTrue(ratingOptional.isPresent());
 				ratingOptional.ifPresent(actual -> {
 					assertEquals(5, actual.getStars());
 				});
 
-				assertFalse(tempMovieRepository.findOne(user.getId()).isPresent());
-				assertFalse(userRepository.findOne(movie.getId(), 0).isPresent());
-				assertFalse(ratingRepository.findOne(user.getId()).isPresent());
+				assertFalse(tempMovieRepository.findById(user.getId()).isPresent());
+				assertFalse(userRepository.findById(movie.getId(), 0).isPresent());
+				assertFalse(ratingRepository.findById(user.getId()).isPresent());
 			}
 		});
 	}
@@ -643,7 +644,7 @@ public class MoviesIntegrationTests extends MultiDriverTestClass {
 		User daniela = new User("Daniela");
 
 		List<User> users = Arrays.asList(michal, adam, daniela);
-		Iterable<User> savedUsers = userRepository.save(users);
+		Iterable<User> savedUsers = userRepository.saveAll(users);
 		for (User user : savedUsers) {
 			assertNotNull(user.getId());
 		}

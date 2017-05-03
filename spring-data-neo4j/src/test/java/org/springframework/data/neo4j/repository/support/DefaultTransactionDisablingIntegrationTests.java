@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * Integration tests for disabling default transactions using JavaConfig.
  *
  * @author Mark Angrish
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = DefaultTransactionDisablingIntegrationTests.Config.class)
@@ -54,7 +55,7 @@ public class DefaultTransactionDisablingIntegrationTests extends MultiDriverTest
 	@Test
 	public void considersExplicitConfigurationOnRepositoryInterface() {
 
-		repository.findOne(1L);
+		repository.findById(1L);
 
 		assertThat(txManager.getDefinition().isReadOnly(), is(false));
 	}

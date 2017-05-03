@@ -42,6 +42,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Luanne Misquitta
  * @author Mark Angrish
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @ContextConfiguration(classes = {QueryReturnTypesTests.GalaxyContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -75,7 +76,7 @@ public class QueryReturnTypesTests extends MultiDriverTestClass {
 		worldRepository.touchAllWorlds();
 
 		session.clear();
-		world = worldRepository.findOne(world.getId()).get();
+		world = worldRepository.findById(world.getId()).get();
 		assertNotNull(world.getUpdated());
 	}
 
@@ -94,7 +95,7 @@ public class QueryReturnTypesTests extends MultiDriverTestClass {
 		worldRepository.touchAllWorlds();
 
 		session.clear();
-		tatooine = worldRepository.findOne(tatooine.getId()).get();
+		tatooine = worldRepository.findById(tatooine.getId()).get();
 
 		assertNotNull(tatooine.getUpdated());
 		assertEquals(1, tatooine.getReachableByRocket().size());

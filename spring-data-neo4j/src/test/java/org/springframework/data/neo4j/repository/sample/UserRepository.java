@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Mark Angrish
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 public interface UserRepository extends Neo4jRepository<User, Long> {
 
@@ -42,14 +43,16 @@ public interface UserRepository extends Neo4jRepository<User, Long> {
 	/**
 	 * Redeclaration of {@link CrudRepository#findOne(java.io.Serializable)} to change transaction configuration.
 	 */
+	@Override
 	@Transactional
-	Optional<User> findOne(Long primaryKey);
+	Optional<User> findById(Long primaryKey);
 
     /**
      * Redeclaration of {@link CrudRepository#delete(java.io.Serializable)}. to make sure the transaction configuration of
      * the original method is considered if the redeclaration does not carry a {@link Transactional} annotation.
      */
-    void delete(Long id);
+    @Override
+    void deleteById(Long id);
 
     /**
      * Retrieve users by their email address. The finder {@literal User.findByEmailAddress} is declared as annotation at

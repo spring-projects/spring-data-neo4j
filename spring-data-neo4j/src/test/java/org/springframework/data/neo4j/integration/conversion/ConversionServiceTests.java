@@ -53,6 +53,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Vince Bickers
  * @author Mark Angrish
  * @author Mark Paluch
+ * @author Jens Schauder
  * @see DATAGRAPH-624
  */
 @RunWith(SpringRunner.class)
@@ -104,7 +105,7 @@ public class ConversionServiceTests extends MultiDriverTestClass {
 
 		byte[] expectedData = "123456789".getBytes();
 
-		SiteMember siteMember = this.siteMemberRepository.findOne(userId).get();
+		SiteMember siteMember = this.siteMemberRepository.findById(userId).get();
 		assertTrue("The data wasn't converted correctly", Arrays.equals(expectedData, siteMember.getProfilePictureData()));
 	}
 
@@ -128,7 +129,7 @@ public class ConversionServiceTests extends MultiDriverTestClass {
 		assertEquals("The amount wasn't converted and persisted correctly", "1647281", String.valueOf(result.next().get("fv")));
 		result.close();
 
-		PensionPlan reloadedPension = this.pensionRepository.findOne(pensionToSave.getPensionPlanId()).get();
+		PensionPlan reloadedPension = this.pensionRepository.findById(pensionToSave.getPensionPlanId()).get();
 		assertEquals("The amount was converted incorrectly", pensionToSave.getFundValue(), reloadedPension.getFundValue());
 	}
 

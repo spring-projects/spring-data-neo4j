@@ -23,6 +23,7 @@ import org.springframework.data.repository.Repository;
 
 /**
  * @author Mark Paluch
+ * @author Jens Schauder
  * @see DATAGRAPH-879
  */
 public interface CdiPersonRepository extends Repository<Person, Long> {
@@ -31,5 +32,5 @@ public interface CdiPersonRepository extends Repository<Person, Long> {
 
     Person save(Person person);
 
-    Optional<Person> findOne(Long id);
+    Optional<Person> findById(Long id);
 }

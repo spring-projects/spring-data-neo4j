@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Vince Bickers
  * @author Mark Angrish
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @Service
 @Transactional
@@ -62,7 +63,7 @@ public class GalaxyService {
 	}
 
 	public Optional<World> findWorldById(Long id) {
-		return worldRepository.findOne(id);
+		return worldRepository.findById(id);
 	}
 
 	public World findWorldByName(String name) {
@@ -149,7 +150,7 @@ public class GalaxyService {
 		worlds.add(new World("Asgard", 63));
 		worlds.add(new World("Hel", 62));
 
-		worldRepository.save(worlds);
+		worldRepository.saveAll(worlds);
 
 		return worlds;
 	}

@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
  * @author Michal Bachman
  * @author Mark Angrish
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @Service
 public class UserServiceImpl implements UserService {
@@ -33,7 +34,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User getUserByUuid(UUID uuid) {
-		return  userRepository.findOne(uuid).get();
+		return  userRepository.findById(uuid).get();
 	}
 
 	@Override

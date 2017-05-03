@@ -38,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Luanne Misquitta
  * @author Mark Angrish
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @RunWith(MockitoJUnitRunner.class)
 public class GraphRepositoryFactoryTests {
@@ -85,7 +86,7 @@ public class GraphRepositoryFactoryTests {
 
 		@Override
 		@Transactional
-		Optional<Object> findOne(Long id);
+		Optional<Object> findById(Long id);
 	}
 
 	static class CustomNeo4jRepository<T, ID extends Serializable> extends SimpleNeo4jRepository<T, ID> {

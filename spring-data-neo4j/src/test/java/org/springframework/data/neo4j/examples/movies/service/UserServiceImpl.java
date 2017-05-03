@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Michal Bachman
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @Service
 public class UserServiceImpl implements UserService {
@@ -43,10 +44,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void notInterestedIn(Long userId, Long genreId) {
-        Optional<User> user = userRepository.findOne(userId);
+        Optional<User> user = userRepository.findById(userId);
 
         user.ifPresent(u -> {
-            Optional<Genre> genre = genreRepository.findOne(genreId);
+            Optional<Genre> genre = genreRepository.findById(genreId);
             genre.ifPresent(u::notInterestedIn);
 
             userRepository.save(u);

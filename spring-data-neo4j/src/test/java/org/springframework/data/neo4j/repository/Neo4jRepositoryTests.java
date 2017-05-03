@@ -40,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Mark Angrish
  * @author Mark Paluch
+ * @author Jens Schauder
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Neo4jRepositoryTests.Config.class)
@@ -61,14 +62,14 @@ public class Neo4jRepositoryTests extends MultiDriverTestClass {
 
 		SampleEntity entity = new SampleEntity("foo", "bar");
 		repository.save(entity);
-		assertThat(repository.exists(entity.getId()), is(true));
+		assertThat(repository.existsById(entity.getId()), is(true));
 		assertThat(repository.count(), is(1L));
 
-	    Optional<SampleEntity> optional = repository.findOne(entity.getId());
+	    Optional<SampleEntity> optional = repository.findById(entity.getId());
 		assertTrue(optional.isPresent());
 		optional.ifPresent(actual -> assertThat(actual, is(entity)));
 
-		repository.delete(Arrays.asList(entity));
+		repository.deleteAll(Arrays.asList(entity));
 		assertThat(repository.count(), is(0L));
 	}
 
