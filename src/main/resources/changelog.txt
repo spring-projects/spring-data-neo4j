@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.0.M3 (2017-05-09)
+----------------------------------------
+* DATAGRAPH-991 - Adapt to API changes in repository interfaces.
+* DATAGRAPH-984 - Make sure tests use Jackson 2.9.
+* DATAGRAPH-983 - Release 5.0 M3 (Kay).
+
+
 Changes in version 4.1.10.RELEASE (2017-04-19)
 ----------------------------------------------
 * DATAGRAPH-986 - Release 4.1.10 (Hopper SR10).
