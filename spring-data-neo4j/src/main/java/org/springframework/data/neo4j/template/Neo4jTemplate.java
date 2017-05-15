@@ -27,6 +27,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.event.*;
+import org.springframework.data.neo4j.util.EntityUtils;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
@@ -199,16 +200,18 @@ public class Neo4jTemplate implements Neo4jOperations, ApplicationEventPublisher
 
     @Override
     public <T> T save(T entity) {
-        publishEvent(new BeforeSaveEvent(this, entity));
+    	Boolean entityIsNew = EntityUtils.isNew(entity);
+        publishEvent(new BeforeSaveEvent(this, entity, entityIsNew));
         session.save(entity);
-        publishEvent(new AfterSaveEvent(this, entity));
+        publishEvent(new AfterSaveEvent(this, entity, entityIsNew));
         return entity;
     }
 
     public <T> T save(T entity, int depth) {
-        publishEvent(new BeforeSaveEvent(this, entity));
+    	Boolean entityIsNew = EntityUtils.isNew(entity);
+        publishEvent(new BeforeSaveEvent(this, entity, entityIsNew));
         session.save(entity, depth);
-        publishEvent(new AfterSaveEvent(this, entity));
+        publishEvent(new AfterSaveEvent(this, entity, entityIsNew));
         return entity;
     }
 
