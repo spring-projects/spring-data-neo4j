@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.2.4.RELEASE (2017-06-08)
+---------------------------------------------
+* DATAGRAPH-988 - Release 4.2.4 (Ingalls SR4).
+
+
 Changes in version 4.1.11.RELEASE (2017-06-07)
 ----------------------------------------------
 * DATAGRAPH-987 - Release 4.1.11 (Hopper SR11).
