@@ -90,7 +90,7 @@ public class Neo4jTransactionManagerTests {
 		assertTrue("Transaction Synchronization still has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
 		assertTrue("Synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
 
-		verify(session).beginTransaction();
+		verify(session).beginTransaction(any(Transaction.Type.class), anyCollection());
 		verify(tx).commit();
 		verify(tx).close();
 	}
@@ -114,7 +114,7 @@ public class Neo4jTransactionManagerTests {
 		assertTrue("Transaction Synchronization still has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
 		assertTrue("Synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
 
-		verify(session).beginTransaction();
+		verify(session).beginTransaction(any(Transaction.Type.class), anyCollection());
 		verify(tx).rollback();
 		verify(tx).close();
 	}
@@ -132,7 +132,7 @@ public class Neo4jTransactionManagerTests {
 
 		assertTrue("Transaction Synchronization still has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
 
-		verify(session).beginTransaction();
+		verify(session).beginTransaction(any(Transaction.Type.class), anyCollection());
 		verify(tx).rollback();
 		verify(tx).close();
 	}
@@ -145,7 +145,7 @@ public class Neo4jTransactionManagerTests {
 		Object result = tt.execute(status -> tt.execute((TransactionCallback) status1 -> l));
 		assertTrue("Correct result list", result == l);
 
-		verify(session).beginTransaction();
+		verify(session).beginTransaction(any(Transaction.Type.class), anyCollection());
 		verify(tx).commit();
 		verify(tx).close();
 	}
@@ -162,7 +162,7 @@ public class Neo4jTransactionManagerTests {
 			// expected
 		}
 
-		verify(session).beginTransaction();
+		verify(session).beginTransaction(any(Transaction.Type.class), anyCollection());
 		verify(tx).rollback();
 		verify(tx).close();
 	}
@@ -181,7 +181,7 @@ public class Neo4jTransactionManagerTests {
 			// expected
 		}
 
-		verify(session).beginTransaction();
+		verify(session).beginTransaction(any(Transaction.Type.class), anyCollection());
 		verify(tx).rollback();
 		verify(tx).close();
 	}

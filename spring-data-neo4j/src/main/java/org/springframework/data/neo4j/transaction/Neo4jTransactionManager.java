@@ -14,21 +14,29 @@
 package org.springframework.data.neo4j.transaction;
 
 
-import java.util.EnumSet;
-
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.transaction.Transaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.neo4j.bookmark.BookmarkInfo;
+import org.springframework.data.neo4j.bookmark.BookmarkManager;
+import org.springframework.data.neo4j.bookmark.BookmarkSupport;
 import org.springframework.transaction.*;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.ResourceTransactionManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import java.util.Collection;
+
+import static java.util.Collections.emptySet;
 
 /**
  * {@link PlatformTransactionManager} implementation
@@ -50,7 +58,10 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 public class Neo4jTransactionManager extends AbstractPlatformTransactionManager implements ResourceTransactionManager, BeanFactoryAware, InitializingBean {
 
+	private static final Logger logger = LoggerFactory.getLogger(Neo4jTransactionManager.class);
+
 	private SessionFactory sessionFactory;
+	private BookmarkManager bookmarkManager;
 
 	/**
 	 * Create a new Neo4jTransactionManager instance.
@@ -99,6 +110,12 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		if (getSessionFactory() == null) {
 			setSessionFactory(beanFactory.getBean(SessionFactory.class));
+		}
+		try {
+			bookmarkManager = beanFactory.getBean(BookmarkManager.class);
+			logger.debug("Found BookmarkManager {}", bookmarkManager);
+		} catch (NoSuchBeanDefinitionException e) {
+			logger.debug("No BookmarkManager bean found, bookmark management not enabled");
 		}
 	}
 
@@ -166,12 +183,8 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 						"Neo4jTransactionManager only supports 'required' propagation.");
 			}
 
-			Transaction transactionData;
-			if (definition.isReadOnly()  && txObject.isNewSessionHolder()) {
-				transactionData = session.beginTransaction(Transaction.Type.READ_ONLY);
-			} else {
-				transactionData = session.beginTransaction();
-			}
+			Transaction.Type type = getTransactionType(definition, txObject);
+			Transaction transactionData = session.beginTransaction(type, getBookmarks());
 
 			txObject.setTransactionData(transactionData);
 			if (logger.isDebugEnabled()) {
@@ -194,6 +207,34 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		} catch (Throwable ex) {
 			closeSessionAfterFailedBegin(txObject);
 			throw new CannotCreateTransactionException("Could not open Neo4j Session for transaction", ex);
+		}
+	}
+
+	private Transaction.Type getTransactionType(TransactionDefinition definition, Neo4jTransactionObject txObject) {
+		Transaction.Type type;
+		if (definition.isReadOnly() && txObject.isNewSessionHolder()) {
+			type = Transaction.Type.READ_ONLY;
+		} else if (txObject.transactionData != null) {
+			type = txObject.transactionData.type();
+		} else {
+			type = Transaction.Type.READ_WRITE;
+		}
+		return type;
+	}
+
+	private Iterable<String> getBookmarks() {
+		BookmarkInfo bookmarkInfo = BookmarkSupport.currentBookmarkInfo();
+		if (bookmarkInfo != null && bookmarkInfo.shouldUseBookmark()) {
+			if (bookmarkManager != null) {
+				Collection<String> bookmarks = bookmarkManager.getBookmarks();
+				bookmarkInfo.setBookmarks(bookmarks);
+				return bookmarks;
+
+			} else {
+				throw new IllegalStateException("Configured @UseBookmark but no BookmarkManager bean found.");
+			}
+		} else {
+			return emptySet();
 		}
 	}
 
@@ -257,6 +298,19 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 
 			if (tx != null) {
 				tx.commit();
+
+				if (bookmarkManager != null) {
+					String lastBookmark = session.getLastBookmark();
+
+					BookmarkInfo bookmarkInfo = BookmarkSupport.currentBookmarkInfo();
+					Collection<String> bookmarks;
+					if (bookmarkInfo != null && bookmarkInfo.getBookmarks() != null) {
+						bookmarks = bookmarkInfo.getBookmarks();
+					} else {
+						bookmarks = emptySet();
+					}
+					bookmarkManager.storeBookmark(lastBookmark, bookmarks);
+				}
 			}
 		} catch (RuntimeException ex) {
 			DataAccessException dae = SessionFactoryUtils.convertOgmAccessException(ex);

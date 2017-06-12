@@ -13,8 +13,11 @@
 
 package org.springframework.data.neo4j.examples.movies.service;
 
+import org.springframework.data.neo4j.annotation.UseBookmark;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
 
 /**
  * @author Michal Bachman
@@ -31,4 +34,8 @@ public interface UserService {
     void saveWithTxAnnotationOnInterface(User user);
 
     void saveWithTxAnnotationOnImpl(User user);
+
+	@UseBookmark
+	@Transactional
+	Collection<User> getAllUsersWithBookmark();
 }

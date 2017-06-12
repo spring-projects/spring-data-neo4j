@@ -13,15 +13,17 @@
 
 package org.springframework.data.neo4j.examples.movies.service;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.annotation.UseBookmark;
 import org.springframework.data.neo4j.examples.movies.domain.Genre;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.repo.GenreRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * @author Michal Bachman
@@ -64,4 +66,11 @@ public class UserServiceImpl implements UserService {
     public void saveWithTxAnnotationOnImpl(User user) {
         userRepository.save(user);
     }
+
+	@Override
+	@Transactional
+	@UseBookmark
+	public Collection<User> getAllUsersWithBookmark() {
+		return userRepository.getAllUsers();
+	}
 }
