@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -28,6 +28,7 @@ import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
@@ -43,10 +44,12 @@ import org.springframework.data.repository.config.RepositoryConfigurationSource;
  * Unit tests for {@link Neo4jRepositoryConfigurationExtension}.
  *
  * @author Mark Angrish
+ * @author Mark Paluch
  */
 public class Neo4jRepositoryConfigurationExtensionTests {
 
-	RepositoryConfigurationSource configSource = new AnnotationRepositoryConfigurationSource(new StandardAnnotationMetadata(Config.class, true), EnableNeo4jRepositories.class, new PathMatchingResourcePatternResolver(), new StandardEnvironment());
+	BeanDefinitionRegistry registry = new DefaultListableBeanFactory();
+	RepositoryConfigurationSource configSource = new AnnotationRepositoryConfigurationSource(new StandardAnnotationMetadata(Config.class, true), EnableNeo4jRepositories.class, new PathMatchingResourcePatternResolver(), new StandardEnvironment(), registry);
 
 	public @Rule ExpectedException exception = ExpectedException.none();
 
