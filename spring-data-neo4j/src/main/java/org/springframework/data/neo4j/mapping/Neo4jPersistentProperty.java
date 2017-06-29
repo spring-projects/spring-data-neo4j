@@ -19,6 +19,7 @@ import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.StartNode;
 import org.neo4j.ogm.exception.MappingException;
+import org.neo4j.ogm.exception.MetadataException;
 import org.neo4j.ogm.metadata.ClassInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +95,7 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
                 return property.getField() //
                         .filter(field ->owningClassInfo.getField(owningClassInfo.identityField()).equals(field)) //
             .isPresent();}
-            catch (MappingException noIdentityField) {
+            catch (MetadataException noIdentityField) {
                 logger.warn("No identity field found for class of type: {} when creating persistent property for : {}",
                         owningClassInfo.name(), property);
                 return false;
