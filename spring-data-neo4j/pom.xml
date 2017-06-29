@@ -29,7 +29,7 @@
     </parent>
 
     <properties>
-        <neo4j.ogm.version>3.0.0-M02</neo4j.ogm.version>
+        <neo4j.ogm.version>3.0.0-SNAPSHOT</neo4j.ogm.version>
         <ogm.properties>ogm-bolt.properties</ogm.properties>
         <el-api.version>2.2</el-api.version>
     </properties>
