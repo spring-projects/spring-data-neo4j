@@ -35,24 +35,26 @@ public class GraphEntityInformation<T, ID extends Serializable> extends Abstract
         this.metaData = metaData;
     }
 
-    @Override
-    public Optional<ID> getId(T entity) {
+	@Override
+	@SuppressWarnings("unchecked")
+    public ID getId(T entity) {
         final ClassInfo classInfo = metaData.classInfo(getJavaType().getName());
         final FieldInfo primaryIndex = classInfo.primaryIndexField();
 
-        return Optional.ofNullable(getId(entity, classInfo, primaryIndex));
+        return (ID) getId(entity, classInfo, primaryIndex);
     }
 
-    private ID getId(T entity, ClassInfo classInfo, FieldInfo primaryIndex) {
+    private Object getId(T entity, ClassInfo classInfo, FieldInfo primaryIndex) {
         if (primaryIndex != null) {
-            return (ID) classInfo.propertyField(primaryIndex.getName()).readProperty(entity);
+            return classInfo.propertyField(primaryIndex.getName()).readProperty(entity);
         }
         else {
-            return (ID) classInfo.propertyField(classInfo.identityField().getName()).readProperty(entity);
+            return classInfo.propertyField(classInfo.identityField().getName()).readProperty(entity);
         }
     }
 
     @Override
+	@SuppressWarnings("unchecked")
     public Class<ID> getIdType() {
         final FieldInfo primaryIndex = metaData.classInfo(getJavaType().getName()).primaryIndexField();
 

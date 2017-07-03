@@ -63,9 +63,9 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
     }
 
     @Override
-    public Optional<Neo4jPersistentProperty> getVersionProperty() {
+    public Neo4jPersistentProperty getVersionProperty() {
         logger.debug("[entity].getVersionProperty() returns null"); // by design
-        return Optional.empty();
+        return null;
     }
 
     @Override
