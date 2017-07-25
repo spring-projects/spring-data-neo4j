@@ -1,6 +1,16 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.0.RC1 (2017-07-25)
+-----------------------------------------
+* DATAGRAPH-1011 - Upgrade to Neo4j OGM 3.0.0-RC1.
+* DATAGRAPH-1009 - Adapt to API changes in mapping subsystem.
+* DATAGRAPH-1006 - Upgrade to Neo4j OGM 3.0.0-SNAPSHOT.
+* DATAGRAPH-1005 - Auditing support.
+* DATAGRAPH-1004 - Fix unit tests after API changes in Spring Data Commons.
+* DATAGRAPH-1003 - Release 5.0 RC1 (Kay).
+
+
 Changes in version 4.2.5.RELEASE (2017-07-24)
 ---------------------------------------------
 * DATAGRAPH-1001 - Release 4.2.5 (Ingalls SR5).
