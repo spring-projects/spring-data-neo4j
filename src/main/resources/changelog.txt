@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.0.RC2 (2017-07-25)
+-----------------------------------------
+* DATAGRAPH-1013 - Release 5.0 RC2 (Kay).
+
+
 Changes in version 5.0.0.RC1 (2017-07-25)
 -----------------------------------------
 * DATAGRAPH-1011 - Upgrade to Neo4j OGM 3.0.0-RC1.
