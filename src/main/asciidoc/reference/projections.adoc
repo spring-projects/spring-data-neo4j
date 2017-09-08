@@ -72,7 +72,12 @@ interface CinemaRepository extends Neo4jRepository<Cinema, Long> {
 }
 ----
 
-Projections declare a contract between the underlying type and the method signatures related to the exposed properties. Hence it is required to name getter methods according to the property name of the underlying type. If the underlying property is named `name`, then the getter method must be named `getName` otherwise Spring Data is not able to look up the source property. This type of projection is also called _closed projection_. Closed projections expose a subset of properties hence they can be used to optimize the query in a way to reduce the selected fields from the data store. The other type is, as you might imagine, an _open projection_.
+Projections declare a contract between the underlying type and the method signatures related to the exposed properties. Hence it is required to name getter methods according to the property name of the underlying type. If the underlying property is named `name`, then the getter method must be named `getName` otherwise Spring Data is not able to look up the source property.
+This type of projection is also called _closed projection_.
+
+NOTE: Closed projections expose a subset of properties that could be used to optimize the query in a way to reduce the selected fields from the data store. However, it is not implemented at the moment. For performance sensitive querying, you can still use custom queries with maps or `QueryResult` (see <<reference_programming-model_mapresult>>)
+
+The other type is, as you might imagine, an _open projection_.
 
 [[projections.remodelling-data]]
 ==== Remodelling data
