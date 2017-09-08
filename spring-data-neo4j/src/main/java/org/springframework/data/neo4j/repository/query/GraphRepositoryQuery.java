@@ -77,7 +77,7 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 		Object result = getExecution(accessor).execute(query, processor.getReturnedType().getReturnedType());
 
 		return Result.class.equals(returnType)
-				? result : processor.withDynamicProjection(accessor).processResult(result, new CustomResultConverter(getMetaData(), processor.getReturnedType().getReturnedType()));
+				? result : processor.processResult(result, new CustomResultConverter(getMetaData(), processor.getReturnedType().getReturnedType()));
 	}
 
 	// just an horrible trick to get the metadata from OGM
