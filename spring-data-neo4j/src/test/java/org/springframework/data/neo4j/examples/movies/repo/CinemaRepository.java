@@ -23,6 +23,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
+import org.springframework.data.neo4j.examples.movies.domain.CinemaAndBlockbuster;
+import org.springframework.data.neo4j.examples.movies.domain.CinemaAndBlockbusterName;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResult;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResultInterface;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -111,4 +113,12 @@ public interface CinemaRepository extends Neo4jRepository<Cinema, Long> {
 
 	@Query("MATCH (n:Theatre) RETURN n")
 	List<Cinema> getCinemasSortedByName(Sort sort);
+
+	List<CinemaAndBlockbuster> findByNameLike(String name);
+
+	List<CinemaAndBlockbuster> findByNameLike(String name, Sort sort);
+
+	List<CinemaAndBlockbusterName> findByNameStartingWith(String nameStart);
+
+	List<CinemaAndBlockbuster> findByNameLike(String name, @Depth int depth);
 }

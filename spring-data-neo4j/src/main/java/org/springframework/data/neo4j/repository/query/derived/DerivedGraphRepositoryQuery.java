@@ -13,13 +13,18 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.neo4j.repository.query.*;
+import org.springframework.data.neo4j.repository.query.AbstractGraphRepositoryQuery;
+import org.springframework.data.neo4j.repository.query.GraphParameterAccessor;
+import org.springframework.data.neo4j.repository.query.GraphParametersParameterAccessor;
+import org.springframework.data.neo4j.repository.query.GraphQueryMethod;
+import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -62,9 +67,11 @@ public class DerivedGraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 		if (returnType.equals(Void.class)) {
 			throw new RuntimeException("Derived Queries must have a return type");
 		}
-		ResultProcessor processor = graphQueryMethod.getResultProcessor().withDynamicProjection(accessor);
 
-		return getExecution(accessor).execute(params, processor.getReturnedType().getDomainType());
+		ResultProcessor processor = graphQueryMethod.getResultProcessor().withDynamicProjection(accessor);
+		Object results = getExecution(accessor).execute(params, processor.getReturnedType().getDomainType());
+
+		return processor.processResult(results);
 	}
 
 	@Override

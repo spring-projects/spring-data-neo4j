@@ -226,6 +226,7 @@ public interface MovieRepository extends Neo4jRepository<Movie, Long> {
 }
 ----
 
+[[reference_derived-queries]]
 === Queries derived from finder-method names
 
 Using the metadata infrastructure in the underlying object-graph mapper, a finder method name can be split into its semantic parts and converted into a cypher query.
@@ -323,7 +324,7 @@ Page<World> page = worldRepository.findAll(pageable, 0);
 The total number of pages reported by the `PagingAndSortingRepository` `findAll` methods are estimates and should not be relied upon for accuracy
 ====
 
-
+include::projections.adoc[]
 
 [[reference_programming-model_transactions]]
 == Transactions
