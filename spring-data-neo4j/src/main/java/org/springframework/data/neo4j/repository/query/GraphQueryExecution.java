@@ -99,7 +99,7 @@ public interface GraphQueryExecution {
 		@Override
 		public Object execute(Query query, Class<?> type) {
 			if (query.isFilterQuery()) {
-				return session.loadAll(type, query.getFilters(), accessor.getOgmSort());
+				return session.loadAll(type, query.getFilters(), accessor.getOgmSort(), accessor.getDepth());
 			} else {
 				if (type.getAnnotation(QueryResult.class) != null || Map.class.isAssignableFrom(type)) {
 					return session.query(query.getCypherQuery(accessor.getSort()), query.getParameters()).queryResults();

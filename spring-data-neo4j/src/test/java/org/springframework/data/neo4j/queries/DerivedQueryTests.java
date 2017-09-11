@@ -161,6 +161,24 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 		});
 	}
 
+	@Test
+	public void shouldUseDepthOnCollectionFinder() {
+		executeUpdate("CREATE (u:User {name:'Michal'}) CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'}) CREATE (u)-[:VISITED]->(p)");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+
+				List<Cinema> theatres = cinemaRepository.findByLocation("London", 0);
+				assertEquals(2, theatres.size());
+				assertTrue(theatres.contains(new Cinema("Picturehouse")));
+				assertTrue(theatres.contains(new Cinema("Ritzy")));
+				assertNull(theatres.get(0).getBlockbusterOfTheWeek());
+				assertTrue(theatres.get(0).getVisited().isEmpty());
+			}
+		});
+	}
+
 	/**
 	 * @see DATAGRAPH-629
 	 */

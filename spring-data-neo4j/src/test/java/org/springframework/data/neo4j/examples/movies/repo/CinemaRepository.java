@@ -41,6 +41,8 @@ public interface CinemaRepository extends Neo4jRepository<Cinema, Long> {
 
 	List<Cinema> findByLocation(String location);
 
+	List<Cinema> findByLocation(String location, @Depth int depth);
+
 	List<Cinema> findByLocationLike(String location);
 
 	List<Cinema> findByNameAndLocation(String name, String location);
