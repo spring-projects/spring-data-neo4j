@@ -32,5 +32,5 @@ public interface CdiPersonRepository extends Repository<Person, Long> {
 
     Person save(Person person);
 
-    Optional<Person> findById(Long id);
+    Optional<Person> findByLastName(String lastname);
 }

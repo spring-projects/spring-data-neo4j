@@ -17,52 +17,58 @@
 package org.springframework.data.neo4j.repository.cdi;
 
 import java.util.Optional;
+import javax.enterprise.inject.se.SeContainer;
+import javax.enterprise.inject.se.SeContainerInitializer;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
-import org.apache.webbeans.cditest.CdiTestContainer;
-import org.apache.webbeans.cditest.CdiTestContainerLoader;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
+
 import org.springframework.data.neo4j.examples.friends.domain.Person;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Integration tests for {@link org.springframework.data.neo4j.repository.cdi.Neo4jCdiRepositoryExtension}.
  *
  * @author Mark Paluch
- * @see DATAGRAPH-879
+ * @see DATAGRAPH-879, DATAGRAPH-1028
  */
-@Ignore("Why is this failing?")
-public class CdiExtensionTests {
+public class CdiExtensionTests extends MultiDriverTestClass {
 
-	static CdiTestContainer container;
+	static SeContainer container;
 
-    @BeforeClass
-    public static void setUp() throws Exception {
+	@BeforeClass
+	public static void setUp() throws Exception {
 
-        // Prevent the Jersey extension to interact with the InitialContext
-        System.setProperty("com.sun.jersey.server.impl.cdi.lookupExtensionInBeanManager", "true");
+		setupMultiDriverTestEnvironment();
 
-        container = CdiTestContainerLoader.getCdiContainer();
-        container.bootContainer();
-    }
+		// Prevent the Jersey extension to interact with the InitialContext
+		System.setProperty("com.sun.jersey.server.impl.cdi.lookupExtensionInBeanManager", "true");
 
-    @AfterClass
-    public static void tearDown() throws Exception {
+		container = SeContainerInitializer.newInstance() //
+				.disableDiscovery() //
+				.addPackages(RepositoryClient.class) //
+				.initialize();
+	}
 
-        container.shutdownContainer();
-    }
+	@AfterClass
+	public static void tearDown() throws Exception {
+		container.close();
+	}
 
 	/**
-	 * @see DATAGRAPH-879
+	 * @see DATAGRAPH-879, DATAGRAPH-1028
 	 */
 	@Test
 	public void regularRepositoryShouldWork() {
 
-		RepositoryClient client = container.getInstance(RepositoryClient.class);
+		RepositoryClient client = container.select(RepositoryClient.class).get();
 		CdiPersonRepository repository = client.repository;
 
 		assertThat(repository, is(notNullValue()));
@@ -80,30 +86,30 @@ public class CdiExtensionTests {
 
 		assertThat(result, is(notNullValue()));
 		Long resultId = result.getId();
-		Optional<Person> lookedUpPerson = repository.findById(person.getId());
+		Optional<Person> lookedUpPerson = repository.findByLastName(person.getLastName());
 		assertTrue(lookedUpPerson.isPresent());
 		lookedUpPerson.ifPresent(actual -> assertThat(actual.getId(), is(resultId)));
 	}
 
 	/**
-	 * @see DATAGRAPH-879
+	 * @see DATAGRAPH-879, DATAGRAPH-1028
 	 */
 	@Test
 	public void repositoryWithQualifiersShouldWork() {
 
-		RepositoryClient client = container.getInstance(RepositoryClient.class);
+		RepositoryClient client = container.select(RepositoryClient.class).get();
 		client.qualifiedPersonRepository.deleteAll();
 
 		assertEquals(0, client.qualifiedPersonRepository.count());
 	}
 
 	/**
-	 * @see DATAGRAPH-879
+	 * @see DATAGRAPH-879, DATAGRAPH-1028
 	 */
 	@Test
 	public void repositoryWithCustomImplementationShouldWork() {
 
-		RepositoryClient client = container.getInstance(RepositoryClient.class);
+		RepositoryClient client = container.select(RepositoryClient.class).get();
 
 		assertEquals(1, client.samplePersonRepository.returnOne());
 	}

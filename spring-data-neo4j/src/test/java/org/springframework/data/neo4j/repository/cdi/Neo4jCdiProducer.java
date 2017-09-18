@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,16 @@
 
 package org.springframework.data.neo4j.repository.cdi;
 
+import javax.enterprise.inject.Disposes;
+import javax.enterprise.inject.Produces;
+import javax.inject.Singleton;
+
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
+
 import org.springframework.data.neo4j.examples.friends.domain.Person;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
 
 /**
  * Simple component exposing a {@link org.neo4j.ogm.session.Session} as CDI bean.
@@ -31,18 +35,27 @@ import javax.enterprise.inject.Produces;
  */
 class Neo4jCdiProducer {
 
-    @Produces
-    @ApplicationScoped
-    Session createSession() {
+	@Produces
+	@Singleton
+	SessionFactory createSessionFactorySession() {
+		return new SessionFactory(MultiDriverTestClass.getBaseConfiguration().build(), getClass().getPackage().getName(), Person.class.getPackage().getName());
+	}
 
-        return null;
-    }
+	void close(@Disposes SessionFactory sessionFactory) {
+		sessionFactory.close();
+	}
 
-    @Produces
-    @ApplicationScoped
-    @PersonDB
-    @OtherQualifier
-    Session createQualifiedSession() {
-        return createSession();
-    }
+	@Produces
+	@Singleton
+	Session createSession(SessionFactory sessionFactory) {
+		return sessionFactory.openSession();
+	}
+
+	@Produces
+	@Singleton
+	@PersonDB
+	@OtherQualifier
+	Session createQualifiedSession(SessionFactory sessionFactory) {
+		return createSession(sessionFactory);
+	}
 }
