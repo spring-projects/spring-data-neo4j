@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -54,6 +54,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * Tests that we support each kind of keyword specified by Part.Type
  *
  * @author Jasper Blues
+ * @author Gerrit Meier
  */
 public class RestaurantTests extends MultiDriverTestClass {
 
@@ -137,6 +138,25 @@ public class RestaurantTests extends MultiDriverTestClass {
 		List<Restaurant> shouldBeEmpty = restaurantRepository.findByScoreBetween(30.0, 40.0);
 		assertNotNull(shouldBeEmpty);
 		assertEquals(0, shouldBeEmpty.size());
+	}
+
+	/**
+	 * @see DATAGRAPH-1027
+	 */
+	@Test
+	public void shouldFindRestaurantsWithScoreBetweenInclusive() {
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		Restaurant cyma = new Restaurant("Cyma", 80.6);
+		restaurantRepository.save(cyma);
+
+		Restaurant awful = new Restaurant("Awful", 20.0);
+		restaurantRepository.save(awful);
+
+		List<Restaurant> results = restaurantRepository.findByScoreBetween(20.0, 80.6);
+		assertNotNull(results);
+		assertEquals(3, results.size());
 	}
 
 	/**
