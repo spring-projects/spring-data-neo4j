@@ -32,7 +32,7 @@
         <neo4j.ogm.version>3.0.0-RC1</neo4j.ogm.version>
         <ogm.properties>ogm-bolt.properties</ogm.properties>
         <el-api.version>2.2</el-api.version>
-		<java-module-name>spring.data.neo4j</java-module-name>
+        <java-module-name>spring.data.neo4j</java-module-name>
     </properties>
 
 
@@ -82,6 +82,21 @@
         </dependency>
 
         <!-- CDI -->
+        <!-- Dependency order required to build against CDI 1.0 and test with CDI 2.0 -->
+        <dependency>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-jcdi_2.0_spec</artifactId>
+            <version>1.0.1</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>javax.interceptor</groupId>
+            <artifactId>javax.interceptor-api</artifactId>
+            <version>1.2.1</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>javax.enterprise</groupId>
             <artifactId>cdi-api</artifactId>
