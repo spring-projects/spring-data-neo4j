@@ -11,6 +11,8 @@
 * Repository methods can return `Streams`.
 * `findOne` repository methods now return `Optional<T>`.
 * Paged custom queries no longer accept queries without `countQuery` attribute.
+* The keywords `Between` and `IsBetween` in query methods now include the given limits in the query.
+  Use a combination of `GreaterThan`/`isGreaterThan` and `LessThan`/`isLessThan` (e.g. `isGreaterThanLowerLimitAndIsLessThanUpperLimit`) to keep the exclusive behavior.
 
 [[migration.4-2]]
 == Migrating from 4.0/4.1 -> 4.2
