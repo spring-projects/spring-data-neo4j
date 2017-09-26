@@ -77,9 +77,7 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 	@Transactional
 	@Override
 	public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
-		for (S entity : entities) {
-			session.save(entity);
-		}
+		session.save(entities);
 		return entities;
 	}
 
