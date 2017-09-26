@@ -13,19 +13,23 @@
 
 package org.springframework.data.neo4j.examples.movies.repo;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.movies.domain.User;
-import org.springframework.data.neo4j.examples.movies.domain.queryresult.*;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.EntityWrappingQueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.Gender;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.RichUserQueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.UserQueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.UserQueryResultObject;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Michal Bachman
@@ -121,4 +125,6 @@ public interface UserRepository extends PersonRepository<User, Long> {
 
     Slice<User> findByNameAndRatingsStars(String name, int stars, Pageable pageable);
 
+    @Query("invalid")
+	void invalidQuery();
 }
