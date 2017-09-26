@@ -22,7 +22,12 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
-import org.springframework.transaction.*;
+import org.springframework.transaction.CannotCreateTransactionException;
+import org.springframework.transaction.IllegalTransactionStateException;
+import org.springframework.transaction.InvalidIsolationLevelException;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.ResourceTransactionManager;
@@ -253,7 +258,9 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 				logger.debug("Committing Neo4j OGM transaction [" + tx + "] on Session [" + session + "]");
 			}
 
-			tx.commit();
+			if (tx != null) {
+				tx.commit();
+			}
 		} catch (RuntimeException ex) {
 			DataAccessException dae = SessionFactoryUtils.convertOgmAccessException(ex);
 			throw (dae != null ? dae : ex);
@@ -272,7 +279,9 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 				logger.debug("Rolling back Neo4j transaction [" + tx + "] on Session [" + session + "]");
 			}
 
-			tx.rollback();
+			if (tx != null) {
+				tx.rollback();
+			}
 		} catch (RuntimeException ex) {
 			DataAccessException dae = SessionFactoryUtils.convertOgmAccessException(ex);
 			throw (dae != null ? dae : ex);
