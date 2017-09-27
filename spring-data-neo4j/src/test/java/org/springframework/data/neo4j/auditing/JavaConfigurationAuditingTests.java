@@ -13,6 +13,13 @@
 
 package org.springframework.data.neo4j.auditing;
 
+import static java.util.Optional.*;
+import static org.assertj.core.api.Assertions.*;
+
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.session.SessionFactory;
@@ -29,17 +36,12 @@ import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Optional;
-
-import static java.util.Optional.of;
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * @author Frantisek Hartman
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class JavaConfigurationAuditingTest extends MultiDriverTestClass {
+public class JavaConfigurationAuditingTests extends MultiDriverTestClass {
 
 	@Configuration
 	@EnableNeo4jAuditing(modifyOnCreate = false)
@@ -81,7 +83,7 @@ public class JavaConfigurationAuditingTest extends MultiDriverTestClass {
 		assertThat(loaded).isPresent();
 
 		User found = loaded.get();
-		assertThat(found.getCreated()).isNotNull();
+		assertThat(found.getCreated()).isNotNull().isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.SECONDS));
 		assertThat(found.getCreatedBy()).isEqualTo("userId");
 
 		assertThat(found.getModified()).isNull();
@@ -101,7 +103,7 @@ public class JavaConfigurationAuditingTest extends MultiDriverTestClass {
 
 		User found = loaded.get();
 
-		assertThat(found.getModified()).isNotNull();
+		assertThat(found.getModified()).isNotNull().isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.SECONDS));
 		assertThat(found.getModifiedBy()).isEqualTo("userId");
 	}
 }

@@ -14,6 +14,7 @@
 * More flexible configuration.
 * Better Java 8 support : all type queries can now return stream results and `Optional`. Better date / time management.
 * Internal metadata handling has been refactored for better reliability.
+* Auditing support (since 5.0.1)
 
 When migrating from 4.x, please see the <<migration,migration guide>>.
 

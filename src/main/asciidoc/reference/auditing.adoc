@@ -1,0 +1,7 @@
+[[reference_programming-auditing]]
+=== Auditing
+
+Spring Data Neo4j integrates into the Spring Data auditing infrastructure
+to keep track of who created or changed an entity and the point in time this happened.
+
+Please refer to the <<auditing,auditing>> section of the Spring Data reference.
