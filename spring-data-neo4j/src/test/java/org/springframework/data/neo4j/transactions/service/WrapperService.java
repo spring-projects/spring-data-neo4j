@@ -24,40 +24,39 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class WrapperService {
 
-    @Autowired
-    BusinessService businessService;
+	@Autowired BusinessService businessService;
 
-    @Transactional
-    public void composeSuccessThenFail() {
-        businessService.successMethodInTransaction();
-        businessService.failMethodInTransaction();
-    }
+	@Transactional
+	public void composeSuccessThenFail() {
+		businessService.successMethodInTransaction();
+		businessService.failMethodInTransaction();
+	}
 
-    @Transactional
-    public void composeSuccessThenSuccess() {
-        businessService.successMethodInTransaction();
-        businessService.successMethodInTransaction();
-    }
+	@Transactional
+	public void composeSuccessThenSuccess() {
+		businessService.successMethodInTransaction();
+		businessService.successMethodInTransaction();
+	}
 
-    @Transactional
-    public void composeFailThenSuccess() {
-        businessService.failMethodInTransaction();
-        businessService.successMethodInTransaction();
-    }
+	@Transactional
+	public void composeFailThenSuccess() {
+		businessService.failMethodInTransaction();
+		businessService.successMethodInTransaction();
+	}
 
-    @Transactional
-    public void composeFailThenFail() {
-        businessService.failMethodInTransaction();
-        businessService.failMethodInTransaction();
-    }
+	@Transactional
+	public void composeFailThenFail() {
+		businessService.failMethodInTransaction();
+		businessService.failMethodInTransaction();
+	}
 
-    @Transactional(rollbackFor=Exception.class)
-    public void rollbackWithCheckedException() throws Exception {
-        businessService.throwsException();
-    }
+	@Transactional(rollbackFor = Exception.class)
+	public void rollbackWithCheckedException() throws Exception {
+		businessService.throwsException();
+	}
 
-    @Transactional(readOnly = true)
-    public Iterable<Map<String, Object>> fetch() {
-        return businessService.fetch();
-    }
+	@Transactional(readOnly = true)
+	public Iterable<Map<String, Object>> fetch() {
+		return businessService.fetch();
+	}
 }

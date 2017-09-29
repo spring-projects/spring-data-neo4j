@@ -13,12 +13,12 @@
 
 package org.springframework.data.neo4j.examples.movies.domain;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.Relationship;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Michal Bachman
@@ -31,19 +31,15 @@ public class Cinema {
 	private Long id;
 	private String name;
 
-	@Property(name = "city")
-	private String location;
+	@Property(name = "city") private String location;
 
-	@Relationship(type = "VISITED", direction = Relationship.INCOMING)
-	private Set<User> visited = new HashSet<>();
+	@Relationship(type = "VISITED", direction = Relationship.INCOMING) private Set<User> visited = new HashSet<>();
 
-	@Relationship(type = "BLOCKBUSTER", direction = Relationship.OUTGOING)
-	private TempMovie blockbusterOfTheWeek;
+	@Relationship(type = "BLOCKBUSTER", direction = Relationship.OUTGOING) private TempMovie blockbusterOfTheWeek;
 
 	private int capacity;
 
-	public Cinema() {
-	}
+	public Cinema() {}
 
 	public Cinema(String name) {
 		this.name = name;
@@ -92,8 +88,10 @@ public class Cinema {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 
 		Cinema cinema = (Cinema) o;
 

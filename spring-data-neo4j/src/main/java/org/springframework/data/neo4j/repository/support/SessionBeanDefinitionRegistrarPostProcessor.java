@@ -31,16 +31,17 @@ import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.neo4j.transaction.SessionFactoryUtils;
 
 /**
- * {@link BeanFactoryPostProcessor} to register a {@link SessionFactoryBeanDefinition} for the
- * {@link SessionFactory} bean definition found in the application context to enable autowiring
- * {@link Session} instances into constructor arguments.
- *  <p>
- *  A PersistenceExceptionTranslator is added so it gets automatically registered with the Spring exception translation
- *  infrastructure.
+ * {@link BeanFactoryPostProcessor} to register a {@link SessionFactoryBeanDefinition} for the {@link SessionFactory}
+ * bean definition found in the application context to enable autowiring {@link Session} instances into constructor
+ * arguments.
+ * <p>
+ * A PersistenceExceptionTranslator is added so it gets automatically registered with the Spring exception translation
+ * infrastructure.
  *
  * @author Mark Angrish
  */
-public class SessionBeanDefinitionRegistrarPostProcessor implements BeanFactoryPostProcessor, PersistenceExceptionTranslator {
+public class SessionBeanDefinitionRegistrarPostProcessor
+		implements BeanFactoryPostProcessor, PersistenceExceptionTranslator {
 
 	private static String getSessionFactoryBeanRef(ConfigurableListableBeanFactory beanFactory) {
 
@@ -50,7 +51,8 @@ public class SessionBeanDefinitionRegistrarPostProcessor implements BeanFactoryP
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
-		SessionFactoryBeanDefinition sfbd = new SessionFactoryBeanDefinition(transformedBeanName(getSessionFactoryBeanRef(beanFactory)), beanFactory);
+		SessionFactoryBeanDefinition sfbd = new SessionFactoryBeanDefinition(
+				transformedBeanName(getSessionFactoryBeanRef(beanFactory)), beanFactory);
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.rootBeanDefinition("org.springframework.data.neo4j.transaction.SharedSessionCreator");

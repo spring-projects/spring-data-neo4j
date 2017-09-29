@@ -40,10 +40,10 @@ import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.util.Assert;
 
 /**
- * Classes intended to pilot query execution according to the type of the query.
- * The type of the query is determined by looking at the result class of the method.
+ * Classes intended to pilot query execution according to the type of the query. The type of the query is determined by
+ * looking at the result class of the method.
+ * 
  * @see AbstractGraphRepositoryQuery#getExecution(org.springframework.data.neo4j.repository.query.GraphParameterAccessor)
- *
  * @author Nicolas Mervaillie
  */
 public interface GraphQueryExecution {
@@ -75,7 +75,7 @@ public interface GraphQueryExecution {
 				}
 			}
 			Iterator<?> iterator = result.iterator();
-			if (! iterator.hasNext()) {
+			if (!iterator.hasNext()) {
 				return null;
 			}
 			Object ret = iterator.next();
@@ -144,9 +144,9 @@ public interface GraphQueryExecution {
 			List<?> result;
 			long count;
 			if (query.isFilterQuery()) {
-				result = (List<?>) session.loadAll(type, query.getFilters(), accessor.getOgmSort()
-						, query.getPagination(pageable, false), accessor.getDepth());
-				 count = session.count(type, query.getFilters());
+				result = (List<?>) session.loadAll(type, query.getFilters(), accessor.getOgmSort(),
+						query.getPagination(pageable, false), accessor.getDepth());
+				count = session.count(type, query.getFilters());
 			} else {
 				if (type.getAnnotation(QueryResult.class) != null) {
 					result = (List<?>) session.query(query.getCypherQuery(pageable, false), query.getParameters()).queryResults();
@@ -185,8 +185,8 @@ public interface GraphQueryExecution {
 			List<?> result;
 			if (query.isFilterQuery()) {
 				// For a slice, need one extra result to determine if there is a next page
-				result = (List<?>) session.loadAll(type, query.getFilters(), accessor.getOgmSort()
-						, query.getPagination(pageable, true), accessor.getDepth());
+				result = (List<?>) session.loadAll(type, query.getFilters(), accessor.getOgmSort(),
+						query.getPagination(pageable, true), accessor.getDepth());
 			} else {
 				String cypherQuery = query.getCypherQuery(pageable, true);
 				if (type.getAnnotation(QueryResult.class) != null) {

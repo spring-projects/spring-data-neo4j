@@ -17,9 +17,9 @@ import org.neo4j.ogm.session.event.Event;
 import org.springframework.data.neo4j.events.ModificationEvent;
 
 /**
- * Spring {@code ApplicationListener} used to capture {@link Event}s that occur during a test run.
- * Note that this is abstract because you're supposed to create an anonymous subclass to handle event type 'E' when you
- * use it.  This ensures Spring doesn't just send {@link Event}s to everything regardless.
+ * Spring {@code ApplicationListener} used to capture {@link Event}s that occur during a test run. Note that this is
+ * abstract because you're supposed to create an anonymous subclass to handle event type 'E' when you use it. This
+ * ensures Spring doesn't just send {@link Event}s to everything regardless.
  *
  * @author Adam George
  */

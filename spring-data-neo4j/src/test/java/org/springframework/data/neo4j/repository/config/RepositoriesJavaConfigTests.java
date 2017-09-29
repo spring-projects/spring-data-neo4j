@@ -44,8 +44,7 @@ public class RepositoriesJavaConfigTests extends MultiDriverTestClass {
 	@EnableNeo4jRepositories(basePackageClasses = UserRepository.class)
 	static class Config {
 
-		@Autowired
-		ApplicationContext context;
+		@Autowired ApplicationContext context;
 
 		@Bean
 		public Repositories repositories() {
@@ -54,17 +53,17 @@ public class RepositoriesJavaConfigTests extends MultiDriverTestClass {
 
 		@Bean
 		public TransactionalRepositoryTests.DelegatingTransactionManager transactionManager() throws Exception {
-			return new TransactionalRepositoryTests.DelegatingTransactionManager(new Neo4jTransactionManager(sessionFactory()));
+			return new TransactionalRepositoryTests.DelegatingTransactionManager(
+					new Neo4jTransactionManager(sessionFactory()));
 		}
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),"org.springframework.data.neo4j.domain.sample");
+			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.domain.sample");
 		}
 	}
 
-	@Autowired
-	Repositories repositories;
+	@Autowired Repositories repositories;
 
 	/**
 	 */

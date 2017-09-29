@@ -95,7 +95,8 @@ public class DerivedGraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 	}
 
 	/**
-	 * Sets values from  parameters supplied by the finder on {@link org.neo4j.ogm.cypher.Filter} built by the {@link GraphQueryMethod}
+	 * Sets values from parameters supplied by the finder on {@link org.neo4j.ogm.cypher.Filter} built by the
+	 * {@link GraphQueryMethod}
 	 *
 	 * @param parameters parameter values supplied by the finder method
 	 * @return List of Parameter with values set

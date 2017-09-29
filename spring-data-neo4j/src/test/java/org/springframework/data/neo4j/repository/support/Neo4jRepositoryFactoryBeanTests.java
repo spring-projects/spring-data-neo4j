@@ -15,18 +15,12 @@ package org.springframework.data.neo4j.repository.support;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.neo4j.ogm.session.Session;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.data.mapping.context.MappingContext;
@@ -41,11 +35,9 @@ public class Neo4jRepositoryFactoryBeanTests {
 
 	Neo4jRepositoryFactoryBean factoryBean;
 
-	@Mock
-	Session session;
+	@Mock Session session;
 
-	@Mock
-	ListableBeanFactory beanFactory;
+	@Mock ListableBeanFactory beanFactory;
 
 	@Mock MappingContext context;
 

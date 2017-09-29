@@ -31,29 +31,29 @@ import org.springframework.data.repository.query.RepositoryQuery;
  */
 public class GraphQueryLookupStrategy implements QueryLookupStrategy {
 
-    private final Session session;
+	private final Session session;
 
-    public GraphQueryLookupStrategy(Session session) {
-        this.session = session;
-    }
-    
-    /* 
-     * (non-Javadoc)
-     * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.projection.ProjectionFactory, org.springframework.data.repository.core.NamedQueries)
-     */
-    @Override
-    public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
-        NamedQueries namedQueries) {
+	public GraphQueryLookupStrategy(Session session) {
+		this.session = session;
+	}
 
-        GraphQueryMethod queryMethod = new GraphQueryMethod(method, metadata, factory);
-        String namedQueryName = queryMethod.getNamedQueryName();
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.projection.ProjectionFactory, org.springframework.data.repository.core.NamedQueries)
+	 */
+	@Override
+	public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+			NamedQueries namedQueries) {
 
-        if (namedQueries.hasQuery(namedQueryName)) {
-            throw new UnsupportedOperationException("Named queries are not supported for now.");
-        } else if (queryMethod.hasAnnotatedQuery()) {
-            return new GraphRepositoryQuery(queryMethod, session);
-        } else {
-            return new DerivedGraphRepositoryQuery(queryMethod, session);
-        }
-    }
+		GraphQueryMethod queryMethod = new GraphQueryMethod(method, metadata, factory);
+		String namedQueryName = queryMethod.getNamedQueryName();
+
+		if (namedQueries.hasQuery(namedQueryName)) {
+			throw new UnsupportedOperationException("Named queries are not supported for now.");
+		} else if (queryMethod.hasAnnotatedQuery()) {
+			return new GraphRepositoryQuery(queryMethod, session);
+		} else {
+			return new DerivedGraphRepositoryQuery(queryMethod, session);
+		}
+	}
 }

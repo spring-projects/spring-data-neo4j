@@ -13,80 +13,76 @@
 
 package org.springframework.data.neo4j.examples.movies.domain;
 
-import org.neo4j.ogm.annotation.Relationship;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.neo4j.ogm.annotation.Relationship;
 
 /**
  * @author Michal Bachman
  * @author Luanne Misquitta
  */
-public class User extends Person{
+public class User extends Person {
 
-    private String middleName;
-    private String surname;
+	private String middleName;
+	private String surname;
 
-    private Collection<Genre> interested = new HashSet<>();
+	private Collection<Genre> interested = new HashSet<>();
 
-    @Relationship(type = "FRIEND_OF", direction = Relationship.UNDIRECTED)
-    private Collection<User> friends = new HashSet<>();
+	@Relationship(type = "FRIEND_OF",
+			direction = Relationship.UNDIRECTED) private Collection<User> friends = new HashSet<>();
 
-    @Relationship(type = "RATED")
-    private Set<Rating> ratings = new HashSet<>();
+	@Relationship(type = "RATED") private Set<Rating> ratings = new HashSet<>();
 
-    public User() {
-    }
+	public User() {}
 
-    public User(String name) {
-        setName(name);
-    }
+	public User(String name) {
+		setName(name);
+	}
 
-    public User(String name, String surname) {
-        setName(name);
-        this.surname = surname;
-    }
+	public User(String name, String surname) {
+		setName(name);
+		this.surname = surname;
+	}
 
-    public void interestedIn(Genre genre) {
-        interested.add(genre);
-    }
+	public void interestedIn(Genre genre) {
+		interested.add(genre);
+	}
 
-    public void notInterestedIn(Genre genre) {
-        interested.remove(genre);
-    }
+	public void notInterestedIn(Genre genre) {
+		interested.remove(genre);
+	}
 
-    public void befriend(User user) {
-        friends.add(user);
-        user.friends.add(this);
-    }
+	public void befriend(User user) {
+		friends.add(user);
+		user.friends.add(this);
+	}
 
+	public Rating rate(TempMovie movie, int stars, String comment) {
+		Rating rating = new Rating(this, movie, stars, comment);
+		movie.addRating(rating);
+		ratings.add(rating);
+		return rating;
+	}
 
-    public Rating rate(TempMovie movie, int stars, String comment) {
-        Rating rating = new Rating(this, movie, stars, comment);
-        movie.addRating(rating);
-        ratings.add(rating);
-        return rating;
-    }
+	public Collection<User> getFriends() {
+		return friends;
+	}
 
-    public Collection<User> getFriends() {
-        return friends;
-    }
+	public String getMiddleName() {
+		return middleName;
+	}
 
-    public String getMiddleName()
-    {
-        return middleName;
-    }
+	public Set<Rating> getRatings() {
+		return ratings;
+	}
 
-    public Set<Rating> getRatings() {
-        return ratings;
-    }
+	public void setMiddleName(String middleName) {
+		this.middleName = middleName;
+	}
 
-    public void setMiddleName(String middleName) {
-        this.middleName = middleName;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
+	public String getSurname() {
+		return surname;
+	}
 }

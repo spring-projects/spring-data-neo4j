@@ -26,7 +26,8 @@ import org.springframework.stereotype.Repository;
  * @author Mark Angrish
  */
 @Repository
-public class CustomGraphRepositoryImpl<T, ID extends Serializable> extends SimpleNeo4jRepository<T, ID> implements CustomNeo4jRepository<T, ID> {
+public class CustomGraphRepositoryImpl<T, ID extends Serializable> extends SimpleNeo4jRepository<T, ID>
+		implements CustomNeo4jRepository<T, ID> {
 
 	public CustomGraphRepositoryImpl(Class<T> clazz, Session session) {
 		super(clazz, session);

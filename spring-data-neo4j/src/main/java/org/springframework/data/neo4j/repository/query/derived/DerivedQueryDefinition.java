@@ -21,9 +21,8 @@ import org.neo4j.ogm.cypher.Filter;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
- * The graph query created based on a derived query.
- *
-/**
+ * The graph query created based on a derived query. /**
+ * 
  * @author Luanne Misquitta
  * @author Nicolas Mervaillie
  */
@@ -31,19 +30,22 @@ public interface DerivedQueryDefinition {
 
 	/**
 	 * Add a part as a parameter to the graph query.
-	 * @param part	the Part to be added
+	 * 
+	 * @param part the Part to be added
 	 * @param booleanOperator the {@link BooleanOperator} to be used when appending the parameter to the query.
 	 */
 	void addPart(Part part, BooleanOperator booleanOperator);
 
 	/**
 	 * Get the base part i.e. the first parameter of the graph query.
+	 * 
 	 * @return Part representing the base of the query.
 	 */
 	Part getBasePart();
 
 	/**
 	 * Gets all cypher filters for this query
+	 * 
 	 * @return The OGM filters with bound parameter values
 	 */
 	List<Filter> getFilters(Map<Integer, Object> params);

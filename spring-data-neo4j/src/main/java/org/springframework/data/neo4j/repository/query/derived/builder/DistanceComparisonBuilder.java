@@ -11,7 +11,6 @@
  *
  */
 
-
 package org.springframework.data.neo4j.repository.query.derived.builder;
 
 import java.util.Collections;
@@ -54,7 +53,8 @@ public class DistanceComparisonBuilder extends FilterBuilder {
 			distance = (Distance) secondArg;
 			point = (Point) firstArg;
 		} else {
-			throw new IllegalArgumentException("findNear requires an argument of type Distance and an argument of type Point");
+			throw new IllegalArgumentException(
+					"findNear requires an argument of type Distance and an argument of type Point");
 		}
 
 		double meters;
@@ -66,7 +66,8 @@ public class DistanceComparisonBuilder extends FilterBuilder {
 			meters = distance.getValue();
 		}
 
-		DistanceFromPoint distanceFromPoint = new DistanceFromPoint(point.getX(), point.getY(), distance.getValue() * meters);
+		DistanceFromPoint distanceFromPoint = new DistanceFromPoint(point.getX(), point.getY(),
+				distance.getValue() * meters);
 		DistanceComparison distanceComparison = new DistanceComparison(distanceFromPoint);
 
 		Filter filter = new Filter(distanceComparison, ComparisonOperator.LESS_THAN);

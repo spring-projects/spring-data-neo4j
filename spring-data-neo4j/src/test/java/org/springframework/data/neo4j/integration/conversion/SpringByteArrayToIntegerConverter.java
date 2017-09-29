@@ -17,9 +17,10 @@ import org.springframework.core.convert.converter.Converter;
 
 /**
  * Nonsensical spring converter from a byte[] to an Integer, for test purposes
+ * 
  * @author Luanne Misquitta
  */
-public class SpringByteArrayToIntegerConverter implements Converter<byte[],Integer> {
+public class SpringByteArrayToIntegerConverter implements Converter<byte[], Integer> {
 
 	@Override
 	public Integer convert(byte[] source) {

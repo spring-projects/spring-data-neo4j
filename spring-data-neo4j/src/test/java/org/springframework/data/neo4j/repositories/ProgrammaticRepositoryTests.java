@@ -56,7 +56,8 @@ public class ProgrammaticRepositoryTests extends MultiDriverTestClass {
 
 	@BeforeClass
 	public static void oneTimeSetUp() {
-		sessionFactory = new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.repositories.domain");
+		sessionFactory = new SessionFactory(getBaseConfiguration().build(),
+				"org.springframework.data.neo4j.repositories.domain");
 		platformTransactionManager = new Neo4jTransactionManager(sessionFactory);
 		transactionTemplate = new TransactionTemplate(platformTransactionManager);
 	}

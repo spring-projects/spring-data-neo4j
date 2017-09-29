@@ -14,20 +14,20 @@
 
 <configuration>
 
-    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d %5p %40.40c:%4L - %m%n</pattern>
-        </encoder>
-    </appender>
+	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d %5p %40.40c:%4L - %m%n</pattern>
+		</encoder>
+	</appender>
 
-    <logger name="ch.qos.logback" level="warn" />
-    <logger name="org.apache.http" level="warn" />
-    <logger name="org.eclipse.jetty" level="warn" />
-    <logger name="org.neo4j.ogm" level="warn" />
-    <logger name="org.springframework" level="warn" />
-    <logger name="org.springframework.data.neo4j" level="warn" />
-    <root level="warn">
-        <appender-ref ref="console" />
-    </root>
+	<logger name="ch.qos.logback" level="warn"/>
+	<logger name="org.apache.http" level="warn"/>
+	<logger name="org.eclipse.jetty" level="warn"/>
+	<logger name="org.neo4j.ogm" level="warn"/>
+	<logger name="org.springframework" level="warn"/>
+	<logger name="org.springframework.data.neo4j" level="warn"/>
+	<root level="warn">
+		<appender-ref ref="console"/>
+	</root>
 
 </configuration>

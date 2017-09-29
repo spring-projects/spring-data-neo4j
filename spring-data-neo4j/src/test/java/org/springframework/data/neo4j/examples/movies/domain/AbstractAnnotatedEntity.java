@@ -22,6 +22,5 @@ import org.neo4j.ogm.annotation.NodeEntity;
 @NodeEntity
 public abstract class AbstractAnnotatedEntity {
 
-    @GraphId
-    Long nodeId;
+	@GraphId Long nodeId;
 }

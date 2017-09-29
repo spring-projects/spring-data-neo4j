@@ -24,14 +24,9 @@ import javax.inject.Inject;
  */
 class RepositoryClient {
 
-    @Inject
-    CdiPersonRepository repository;
+	@Inject CdiPersonRepository repository;
 
-    @OtherQualifier
-    @PersonDB
-    @Inject
-    QualifiedPersonRepository qualifiedPersonRepository;
+	@OtherQualifier @PersonDB @Inject QualifiedPersonRepository qualifiedPersonRepository;
 
-    @Inject
-    SamplePersonRepository samplePersonRepository;
+	@Inject SamplePersonRepository samplePersonRepository;
 }

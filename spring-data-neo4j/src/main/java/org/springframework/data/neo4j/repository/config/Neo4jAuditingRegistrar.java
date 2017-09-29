@@ -13,6 +13,8 @@
 
 package org.springframework.data.neo4j.repository.config;
 
+import java.lang.annotation.Annotation;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -23,8 +25,6 @@ import org.springframework.data.auditing.config.AuditingConfiguration;
 import org.springframework.data.config.ParsingUtils;
 import org.springframework.data.neo4j.annotation.EnableNeo4jAuditing;
 import org.springframework.util.Assert;
-
-import java.lang.annotation.Annotation;
 
 /**
  * @author Frantisek Hartman
@@ -48,7 +48,8 @@ public class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppo
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(IsNewAwareAuditingHandler.class);
 
-		BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(Neo4jMappingContextFactoryBean.class);
+		BeanDefinitionBuilder definition = BeanDefinitionBuilder
+				.genericBeanDefinition(Neo4jMappingContextFactoryBean.class);
 		definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_CONSTRUCTOR);
 
 		builder.addConstructorArgValue(definition.getBeanDefinition());
@@ -57,7 +58,7 @@ public class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppo
 
 	@Override
 	protected void registerAuditListenerBeanDefinition(BeanDefinition auditingHandlerDefinition,
-													   BeanDefinitionRegistry registry) {
+			BeanDefinitionRegistry registry) {
 
 		Assert.notNull(auditingHandlerDefinition, "BeanDefinition must not be null!");
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null!");

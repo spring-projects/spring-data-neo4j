@@ -79,5 +79,3 @@ public interface RestaurantRepository extends Neo4jRepository<Restaurant, Long> 
 	List<Restaurant> findByNameNotContainingOrDescriptionIsNull(String nameContaining);
 
 }
-
-

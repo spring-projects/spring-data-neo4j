@@ -13,7 +13,6 @@
 
 package org.springframework.data.neo4j.repository.support;
 
-import java.io.Serializable;
 import java.util.Optional;
 
 import org.neo4j.ogm.session.Neo4jSession;
@@ -58,7 +57,7 @@ public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> type) {
 		Assert.notNull(type, "Domain class must not be null!");
 		Assert.notNull(session, "Session must not be null!");
-		return new GraphEntityInformation(((Neo4jSession)session).metaData(), type);
+		return new GraphEntityInformation(((Neo4jSession) session).metaData(), type);
 	}
 
 	@Override
@@ -73,7 +72,7 @@ public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(QueryLookupStrategy.Key key,
-																   EvaluationContextProvider evaluationContextProvider) {
+			EvaluationContextProvider evaluationContextProvider) {
 		return Optional.of(new GraphQueryLookupStrategy(session));
 	}
 }

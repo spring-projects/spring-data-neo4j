@@ -23,8 +23,6 @@ import org.springframework.data.auditing.IsNewAwareAuditingHandler;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.util.Assert;
 
-import java.util.Optional;
-
 /**
  * @author Frantisek Hartman
  */
@@ -39,7 +37,7 @@ public class Neo4jAuditingEventListener extends EventListenerAdapter implements 
 	 * @param auditingHandlerFactory must not be {@literal null}.
 	 */
 	public Neo4jAuditingEventListener(ObjectFactory<IsNewAwareAuditingHandler> auditingHandlerFactory,
-									  SessionFactory sessionFactory) {
+			SessionFactory sessionFactory) {
 
 		Assert.notNull(auditingHandlerFactory, "IsNewAwareAuditingHandler must not be null!");
 		this.auditingHandlerFactory = auditingHandlerFactory;

@@ -11,7 +11,6 @@
  *
  */
 
-
 package org.springframework.data.neo4j.examples.restaurants;
 
 import static org.apache.webbeans.util.Asserts.assertNotNull;
@@ -45,12 +44,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@ContextConfiguration(classes = {RestaurantTests.RestaurantContext.class})
+@ContextConfiguration(classes = { RestaurantTests.RestaurantContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 
 /**
- *
  * Tests that we support each kind of keyword specified by Part.Type
  *
  * @author Jasper Blues
@@ -58,31 +56,27 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 public class RestaurantTests extends MultiDriverTestClass {
 
-	@Autowired
-	private RestaurantRepository restaurantRepository;
+	@Autowired private RestaurantRepository restaurantRepository;
 
 	@After
 	public void tearDown() {
 		restaurantRepository.deleteAll();
 	}
 
-
 	/**
-	 * This test, as the below one does, asserts that the parameter index for each query part is set correctly. Most
-	 * query parts are associated with one parameter, while certain kinds, such as NEAR, require more.
-
+	 * This test, as the below one does, asserts that the parameter index for each query part is set correctly. Most query
+	 * parts are associated with one parameter, while certain kinds, such as NEAR, require more.
 	 *
 	 * @see DATAGRAPH-561
 	 */
 	@Test
 	public void shouldFindRestaurantsNear_nameParameterFirst() {
-		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
-				new Point(37.61649, -122.38681), 94128);
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", new Point(37.61649, -122.38681),
+				94128);
 		restaurantRepository.save(restaurant);
 
 		List<Restaurant> results = restaurantRepository.findByNameAndLocationNear(
-				"San Francisco International Airport (SFO)",
-				new Distance(150, Metrics.KILOMETERS), new Point(37.6, -122.3));
+				"San Francisco International Airport (SFO)", new Distance(150, Metrics.KILOMETERS), new Point(37.6, -122.3));
 
 		assertNotNull(results);
 		assertEquals(1, results.size());
@@ -93,21 +87,19 @@ public class RestaurantTests extends MultiDriverTestClass {
 	}
 
 	/**
-	 *
-	 * This test, as the above one does, asserts that the parameter index for each query part is set correctly. Most
-	 * query parts are associated with one parameter, while certain kinds, such as NEAR, require more.
+	 * This test, as the above one does, asserts that the parameter index for each query part is set correctly. Most query
+	 * parts are associated with one parameter, while certain kinds, such as NEAR, require more.
 	 *
 	 * @see DATAGRAPH-561
 	 */
 	@Test
 	public void shouldFindRestaurantsNear_locationFirst() {
-		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
-				new Point(37.61649, -122.38681), 94128);
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", new Point(37.61649, -122.38681),
+				94128);
 		restaurantRepository.save(restaurant);
 
-		List<Restaurant> results = restaurantRepository.findByLocationNearAndName(
-				new Distance(150, Metrics.KILOMETERS), new Point(37.6, -122.3),
-				"San Francisco International Airport (SFO)");
+		List<Restaurant> results = restaurantRepository.findByLocationNearAndName(new Distance(150, Metrics.KILOMETERS),
+				new Point(37.6, -122.3), "San Francisco International Airport (SFO)");
 
 		assertNotNull(results);
 		assertEquals(1, results.size());
@@ -164,8 +156,8 @@ public class RestaurantTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindByPropertyIsNull() {
-		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
-				new Point(37.61649, -122.38681), 94128);
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", new Point(37.61649, -122.38681),
+				94128);
 		restaurantRepository.save(restaurant);
 
 		Restaurant kuroda = new Restaurant("Kuroda", "Mostly Ramen");
@@ -183,8 +175,8 @@ public class RestaurantTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindByPropertyIsNotNull() {
-		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
-				new Point(37.61649, -122.38681), 94128);
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", new Point(37.61649, -122.38681),
+				94128);
 		restaurantRepository.save(restaurant);
 
 		Restaurant kuroda = new Restaurant("Kuroda", "Mostly Ramen");
@@ -201,8 +193,8 @@ public class RestaurantTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindBNestedProperty_different_entity_type_IsNull() {
-		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
-				new Point(37.61649, -122.38681), 94128);
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", new Point(37.61649, -122.38681),
+				94128);
 
 		Diner diner = new Diner("Jasper", null);
 		restaurant.addRegularDiner(diner);
@@ -220,8 +212,8 @@ public class RestaurantTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindBNestedProperty_same_entity_type_IsNull() {
-		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)",
-				new Point(37.61649, -122.38681), 94128);
+		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", new Point(37.61649, -122.38681),
+				94128);
 
 		Diner diner = new Diner("Jasper", null);
 		restaurant.addRegularDiner(diner);
@@ -337,6 +329,7 @@ public class RestaurantTests extends MultiDriverTestClass {
 
 	/**
 	 * All findByPropertyLike does currently is to require an exact match, ignoring case.
+	 * 
 	 * @see DATAGRAPH-904
 	 */
 	@Test
@@ -355,9 +348,9 @@ public class RestaurantTests extends MultiDriverTestClass {
 
 	}
 
-
 	/**
 	 * All findByPropertyLike does currently is to require an exact match, ignoring case.
+	 * 
 	 * @see DATAGRAPH-904
 	 */
 	@Test
@@ -531,8 +524,7 @@ public class RestaurantTests extends MultiDriverTestClass {
 	 * @see DATAGRAPH-904
 	 */
 	@Test
-	public void shouldFindByPropertyIsTrue()
-	{
+	public void shouldFindByPropertyIsTrue() {
 		Restaurant kazan = new Restaurant("Kazan", 77.0);
 		kazan.setHalal(true);
 		restaurantRepository.save(kazan);
@@ -551,8 +543,7 @@ public class RestaurantTests extends MultiDriverTestClass {
 	 * @see DATAGRAPH-904
 	 */
 	@Test
-	public void shouldFindByPropertyIsFalse()
-	{
+	public void shouldFindByPropertyIsFalse() {
 		Restaurant kazan = new Restaurant("Kazan", 77.0);
 		kazan.setHalal(true);
 		restaurantRepository.save(kazan);
@@ -568,14 +559,15 @@ public class RestaurantTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@ComponentScan({"org.springframework.data.neo4j.examples.restaurants"})
+	@ComponentScan({ "org.springframework.data.neo4j.examples.restaurants" })
 	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.restaurants.repo")
 	@EnableTransactionManagement
 	static class RestaurantContext {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),"org.springframework.data.neo4j.examples.restaurants.domain");
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.examples.restaurants.domain");
 		}
 
 		@Bean
