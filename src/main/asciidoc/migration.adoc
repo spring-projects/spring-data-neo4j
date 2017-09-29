@@ -6,13 +6,21 @@
 == Migrating from 4.2 -> 5.0
 
 * Base class for repositories `GraphRepository` has been renamed `Neo4jRepository` and parameter types change from `<T>` to `<T, ID>`.
-* Annotations are now only supported at attribute level.
-* `@PostLoad` annotation has bean added to support use cases.
-* Repository methods can return `Streams`.
-* `findOne` repository methods now return `Optional<T>`.
+* All Repository methods can return `Streams`.
+* The repository method naming scheme has changed for SD commons 2.0 as part of https://jira.spring.io/browse/DATACMNS-944[DATACMNS-944].
+** for example, `findOne` repository methods are renamed `findById` and now return `Optional<T>`.
+** please check the javadoc of `org.springframework.data.repository.CrudRepository`
 * Paged custom queries no longer accept queries without `countQuery` attribute.
 * The keywords `Between` and `IsBetween` in query methods now include the given limits in the query.
   Use a combination of `GreaterThan`/`isGreaterThan` and `LessThan`/`isLessThan` (e.g. `isGreaterThanLowerLimitAndIsLessThanUpperLimit`) to keep the exclusive behavior.
+* Id handling : `Long` native ids are not mandatory anymore. See <<reference:annotating-entities:graph-id, GraphId field>>.
+* Primary indexes are now deprecated and replaced by `@Id` See <<reference:annotating-entities:entity-identifier, Entity identifier>>.
+* Annotations on accessors are no longer valid. See <<reference:annotating-entities, Annotating entities>>.
+* Loading with depth `-1` calls have to be reviewed (please see the OGM migration guide under _Migration from 2.1 to 3.0 / Performance and unlimited load depth_).
+* The `ogm.properties` file and environment variable have been removed. You now have to provide explicitly the configuration file or configure programmatically. See <<reference:configuration:driver, the configuration section>>.
+* The driver class name in the configuration is now inferred from connection URL.
+* Java 8 dates are now better supported ; the use of `java.util.Date` or converters is not required anymore. You may want to switch to more fine grained date types like `Instant`. See <<reference:type-conversion:built-in, conversions>>.
+* The query filters are now immutable. See <<reference:filters, Filters>>.
 
 [[migration.4-2]]
 == Migrating from 4.0/4.1 -> 4.2

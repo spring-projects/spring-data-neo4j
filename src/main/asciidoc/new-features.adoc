@@ -2,14 +2,18 @@
 = New & Noteworthy
 
 [[new-features.5-0-0]]
-== What's new in Spring Data Neo4j 5.0 M2
-* SDN 5.x is designed to work with Spring 5 and Spring Boot 2.x.
-* Java 8 support : derived / custom queries can now return stream results and `Optional`.
-* `@Async` support.
-* Annotations are now only supported on attributes.
-* Configuration is now best done as code with the new configuration builder.
-* Internal metadata handling has been refactored for better reliability.
-* Upgrade to Neo4j OGM 3.0.0-M01.
-* Support for Neo4j 3.1.2.
+== What's new in Spring Data Neo4j 5.0.0
+* SDN 5.x is designed to work with Java 8, Neo4j 3.1+, Spring 5 and Spring Boot 2.x.
 * Bolt is now the default database protocol.
-* When migrating from 4.x, please see the migration guide below.
+* For simplicity, annotations are now only supported on entity attributes, no more on accessors.
+* New id management ; database ids are not mandatory anymore.
+* Smarter deep querying based on domain model structure.
+* Dynamic properties allow mapping in `Map` structures.
+* Projections support.
+* Improved causal cluster support and bookmark management.
+* More flexible configuration.
+* Better Java 8 support : all type queries can now return stream results and `Optional`. Better date / time management.
+* Internal metadata handling has been refactored for better reliability.
+
+When migrating from 4.x, please see the <<migration,migration guide>>.
+

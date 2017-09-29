@@ -22,10 +22,10 @@ This README is the best place to start learning about the features of Spring Dat
 To learn more refer to:
 
 * the http://docs.spring.io/spring-data/neo4j/docs/5.0.x/reference/html/[Reference Manual];
-* the https://github.com/neo4j-examples/sdn4-university/tree/4.2[sample project: SDN Univeristy].  More example projects for Spring Data Neo4j 4 are available in the https://github.com/neo4j-examples?query=sdn4[Neo4j-Examples] repository
+* the https://github.com/neo4j-examples/sdn-university[sample project: SDN Univeristy].  More example projects for Spring Data Neo4j are available in the https://github.com/neo4j-examples?query=sdn4[Neo4j-Examples] repository
 * The main http://projects.spring.io/spring-data-neo4j[SpringSource project site] contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
 * the http://docs.spring.io/spring-data/neo4j/docs/5.0.x/api/[Javadocs];
-* for more detailed questions, use http://stackoverflow.com/questions/tagged/spring-data-neo4j-4[Spring Data Neo4j 4 on StackOverflow]
+* for more detailed questions, use http://stackoverflow.com/questions/tagged/spring-data-neo4j-5[Spring Data Neo4j on StackOverflow]
 
 If you are new to Spring as well as to Spring Data, look for information about http://www.springsource.org/projects[Spring projects].
 
@@ -41,15 +41,8 @@ Add the Maven dependency:
     <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j</artifactId>
-        <version>5.0.0.M2</version>
+        <version>5.0.0</version>
     </dependency>
-
-    <repository>
-      <id>spring-maven-milestone</id>
-      <name>Springframework Maven Milestone Repository</name>
-      <url>http://repo.spring.io/libs-milestone</url>
-    </repository>
-
 ----
 
 If you'd rather like the latest snapshots of the upcoming major version, use our Maven snapshot repository and declare the appropriate dependency version.
@@ -60,7 +53,7 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
     <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j</artifactId>
-        <version>5.0.0.BUILD-SNAPSHOT</version>
+        <version>5.0.1.BUILD-SNAPSHOT</version>
     </dependency>
 
     <!-- used for nightly builds -->

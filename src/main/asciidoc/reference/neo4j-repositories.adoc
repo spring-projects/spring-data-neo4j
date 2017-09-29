@@ -49,7 +49,7 @@ public class MySpringBean {
 // then you can use the repository as you would any other object
 Person michael = repo.save(new Person("Michael", 36));
 
-Person dave = repo.load(123);
+Optional<Person> dave = repo.findById(123);
 
 long numberOfPeople = repo.count();
 ----
@@ -300,7 +300,7 @@ Spring Data Neo4j supports sorting and paging of results when using Spring Data'
 .Repository-based paging
 [source,java]
 ----
-Pageable pageable = new PageRequest(0, 3);
+Pageable pageable = PageRequest.of(0, 3);
 Page<World> page = worldRepository.findAll(pageable, 0);
 ----
 
@@ -314,7 +314,7 @@ Iterable<World> worlds = worldRepository.findAll(sort, 0)) {
 .Repository-based sorting with paging
 [source,java]
 ----
-Pageable pageable = new PageRequest(0, 3, Sort.Direction.ASC, "name");
+Pageable pageable = PageRequest.of(0, 3, Sort.Direction.ASC, "name");
 Page<World> page = worldRepository.findAll(pageable, 0);
 ----
 ====
@@ -419,7 +419,23 @@ Only public methods in a managed bean can be annotated with `@EventListener` to 
 
 To find out more about Spring's Event listening capabilities see http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#context-functionality-events-annotation[the Spring reference manual] and https://spring.io/blog/2015/02/11/better-application-events-in-spring-framework-4-2[How to build Transaction aware Eventing with Spring 4.2].
 
+[[reference_clustering]]
+== Clustering support
 
+=== Bookmark management
+Neo4j causal clusters use bookmarks to manage _read your own writes_ scenarios.
+You'll find background information on the way causal clusters work in the https://neo4j.com/docs/operations-manual/current/clustering/[Neo4j operations manual].
+
+In SDN, you can use the bookmark management feature to handle these scenarios easily.
+You just need to add :
+
+* The `@EnableBookmarkManagement` annotation once on your spring configuration class.
+* The `@UseBookmark` on each java method involved into your _read your own writes_ scenarios
+
+Every method annotated with `@UseBookmark` will then collect the bookmarks coming from the database at the end of transactions.
+These bookmarks are then stored into a SDN managed context, and reused on later calls to other `@UseBookmark` annotated methods.
+
+WARNING: `@UseBookmark` has to be used on `@Transactional`annotated methods.
 
 == Miscellaneous
 
@@ -485,7 +501,7 @@ While this is provided it's not a best practice. It is highly recommended to cre
 similar to things like Data Transfer Objects (DTOs).
 
 === Conversion Service
-It is possible to have Spring Data Neo4j 4 use converters registered with http://docs.spring.io/spring/docs/current/spring-framework-reference/html/validation.html#core-convert[Spring's ConversionService].
+It is possible to have Spring Data Neo4j use converters registered with http://docs.spring.io/spring/docs/current/spring-framework-reference/html/validation.html#core-convert[Spring's ConversionService].
 In order to do this, provide `org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService` as a Spring bean.
 
 .Provide MetaDataDrivenConversionService as a Spring bean
@@ -512,7 +528,7 @@ public class MyEntity {
 }
 ----
 
-Spring Data Neo4j 4 will look for converters registered with Spring's ConversionService that can convert
+Spring Data Neo4j will look for converters registered with Spring's ConversionService that can convert
 both to and from the type specified by `graphPropertyType` and use them if they exist.
 
 [NOTE]
@@ -527,16 +543,16 @@ will take precedence over converters registered with Spring's ConversionService.
 
 
 As of SDN 4, this `Neo4jRepository<T, ID>` should be the interface from which your entity repository interfaces inherit, with `T` being specified as the domain entity type to persist.
-`ID` is defined by the field type annotated with `@Index(unique=true,primary=true)`.
+`ID` is defined by the field type annotated with `@Id`.
 
 Examples of methods you get for free out of `Neo4jRepository` are as follows.
 For all of these examples the ID parameter is a `Long` that matches the graph ID:
 
 Load an entity instance via an id::
-`Optional<T> findOne(id)`
+`Optional<T> findById(id)`
 
 Check for existence of an id in the graph::
-`boolean exists(id)`
+`boolean existsById(id)`
 
 Iterate over all nodes of a node entity type::
 `Iterable<T> findAll()`
@@ -547,10 +563,10 @@ Count the instances of the repository entity type::
 `Long count()`
 
 Save entities::
-`T save(T)` and `Iterable<T> save(Iterable<T>)`
+`T save(T)` and `Iterable<T> saveAll(Iterable<T>)`
 
 Delete graph entities::
-`void delete(T)`, `void delete(Iterable<T>)`, and `void deleteAll()`
+`void delete(T)`, `void deleteAll(Iterable<T>)`, and `void deleteAll()`
 
 [NOTE]
 For users coming from versions before `4.2.x`, `Neo4jRepository` has replaced `GraphRepository` but essentially has the same features.

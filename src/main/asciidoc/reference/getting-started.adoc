@@ -67,24 +67,35 @@ If you want to use the embedded or HTTP drivers in your production application, 
 
 [source,xml]
 ----
-<dependency>
-    <groupId>org.springframework.data</groupId>
-    <artifactId>spring-data-neo4j</artifactId>
-    <version>{version}</version>
-</dependency>
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-releasetrain</artifactId>
+            <version>${spring-data-releasetrain.version}</version>
+            <scope>import</scope>
+            <type>pom</type>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
 
-<!-- add this dependency if you want to use the embedded driver -->
-<dependency>
-    <groupId>org.neo4j</groupId>
-    <artifactId>neo4j-ogm-embedded-driver</artifactId>
-    <version>{ogm-version}</version>
-</dependency>
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.data</groupId>
+        <artifactId>spring-data-neo4j</artifactId>
+    </dependency>
 
-<!-- add this dependency if you want to use the HTTP driver -->
-<dependency>
-    <groupId>org.neo4j</groupId>
-    <artifactId>neo4j-ogm-http-driver</artifactId>
-    <version>{ogm-version}</version>
+    <!-- add this dependency if you want to use the embedded driver -->
+    <dependency>
+        <groupId>org.neo4j</groupId>
+        <artifactId>neo4j-ogm-embedded-driver</artifactId>
+    </dependency>
+
+    <!-- add this dependency if you want to use the HTTP driver -->
+    <dependency>
+        <groupId>org.neo4j</groupId>
+        <artifactId>neo4j-ogm-http-driver</artifactId>
+    </dependency>
 </dependency>
 ----
 
@@ -95,50 +106,19 @@ If you want to use the embedded or HTTP drivers in your production application, 
 .Maven dependencies for testing SDN 5 applications
 [source,xml]
 ----
-       <dependency>
-           <groupId>org.springframework.data</groupId>
-           <artifactId>spring-data-neo4j</artifactId>
-           <version>${sdn.version}</version>
-           <type>test-jar</type>
-       </dependency>
-
-       <!-- the neo4j-ogm-test jar provides access to the http and embedded drivers for testing purposes -->
-       <dependency>
-          <groupId>org.neo4j</groupId>
-          <artifactId>neo4j-ogm-test</artifactId>
-          <version>${neo4j-ogm.version}</version>
-          <type>test-jar</type>
-          <scope>test</scope>
-      </dependency>
-
-       <dependency>
-           <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-kernel</artifactId>
-            <version>${neo4j.version}</version>
-            <type>test-jar</type>
-       </dependency>
-
-       <dependency>
-            <groupId>org.neo4j.app</groupId>
-            <artifactId>neo4j-server</artifactId>
-            <version>${neo4j.version}</version>
-            <type>test-jar</type>
-       </dependency>
-
-      <dependency>
-          <groupId>org.neo4j.test</groupId>
-          <artifactId>neo4j-harness</artifactId>
-          <version>${neo4j.version}</version>
-          <scope>test</scope>
-      </dependency>
+    <dependency>
+        <groupId>org.neo4j.test</groupId>
+        <artifactId>neo4j-harness</artifactId>
+        <version>3.2.5</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-test</artifactId>
+        <version>${spring.version}</version>
+        <scope>test</scope>
+    </dependency>
 ----
-
-[NOTE]
-====
-The `InProcessServer` has been deprecated. This class was used in previous versions to set up an in-memory Http server so that you could run your tests.
-This is no longer appropriate given the new Driver mechanism, and we recommend you configure an Embedded Driver (impermanent data store) for your integration tests instead.
-====
-
 
 [[reference.getting_started.dependencies.gradle]]
 === Gradle
@@ -256,20 +236,11 @@ Configuration can also be initialized from an external file like this.
 @Bean
 public org.neo4j.ogm.config.Configuration configuration() {
     ConfigurationSource properties = new ClasspathConfigurationSource("db.properties");
-    org.neo4j.ogm.config.Configuration configuration = new org.neo4j.ogm.config.Configuration.Builder(properties)
-    return configuration;
+    return new org.neo4j.ogm.config.Configuration.Builder(properties);
 }
 ----
 
-.Fallback configuration
-_Please note that this way of configuration might be removed in the future._
-
-Java configuration is the preferred way of initiallizing SDN. However, if no configuration is given to the `SessionFactory`, SDN
-will try to configure the driver from a file `ogm.properties`, which it expects to find on the root of the classpath.
-
-NOTE:   SDN expects the properties file to be called "ogm.properties". If you want to configure your application using a _different_ properties file, you must either set a System property or Environment variable called "ogm.properties" pointing to the alternative configuration file you want to use.
-
-For more detail about this properties file, please refer to the configuration section of the OGM reference.
+//TODO add configuration option with native driver
 
 [NOTE]
 The driver is automatically inferred from the URI scheme.
@@ -287,7 +258,8 @@ As of 4.2.0 the Neo4j OGM embedded driver no longer ships with the Neo4j kernel.
 
 Spring Boot `2.0` works straight out of the box with Spring Data Neo4j `5.0.0`.
 
-To do that update the Spring Boot properties to use the current SDN version. Update your Spring Boot Maven POM with the following. You may need to add `<repositories>` depending on versioning.
+Update your Spring Boot Maven POM with the following.
+You may need to add `<repositories>` depending on versioning (when using milestone or snapshot versions).
 
 [source,xml]
 ----
@@ -299,6 +271,14 @@ To do that update the Spring Boot properties to use the current SDN version. Upd
         </dependency>
     </dependencies>
     ...
+----
+
+Then add to your Spring Boot configuration class these annotations:
+
+[source,xml]
+----
+@EnableNeo4jRepositories("com.company.project.repository")
+@EntityScan(basePackages = "com.company.project.domain")
 ----
 
 ==== Configuring Events with Boot

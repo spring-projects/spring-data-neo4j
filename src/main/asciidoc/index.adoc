@@ -1,5 +1,5 @@
 = Spring Data Neo4j - Reference Documentation
-Michael Hunger; Oliver Gierke; Vince Bickers; Adam George; Luanne Misquitta; Michal Bachman; Mark Angrish
+Michael Hunger; Oliver Gierke; Vince Bickers; Adam George; Luanne Misquitta; Michal Bachman; Mark Angrish; Nicolas Mervaillie
 :revnumber: {version}
 :revdate: {localdate}
 :toc:
@@ -24,7 +24,7 @@ include::{spring-data-commons-docs}/repositories.adoc[]
 
 
 [[reference]]
-= Reference Documentation
+= SDN Reference Documentation
 
 :leveloffset: +1
 include::reference/introduction.adoc[]

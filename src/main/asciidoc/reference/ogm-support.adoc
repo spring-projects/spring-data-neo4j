@@ -62,7 +62,7 @@ In general, the scope of a `Session` should correspond to a "unit of work" in yo
 
 == Basic Operations
 
-For Spring Data Neo4j 4, low level operations are handled by the OGM `Session`.
+For Spring Data Neo4j, low level operations are handled by the OGM `Session`.
 Basic operations are now entirely limited to CRUD operations on entities and executing arbitrary Cypher queries; more low-level manipulation of the graph database is not possible.
 
 [NOTE]
