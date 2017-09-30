@@ -14,6 +14,10 @@
 package org.springframework.data.neo4j.transaction;
 
 
+import static java.util.Collections.*;
+
+import java.util.Collection;
+
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.transaction.Transaction;
@@ -28,15 +32,16 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.bookmark.BookmarkInfo;
 import org.springframework.data.neo4j.bookmark.BookmarkManager;
 import org.springframework.data.neo4j.bookmark.BookmarkSupport;
-import org.springframework.transaction.*;
+import org.springframework.transaction.CannotCreateTransactionException;
+import org.springframework.transaction.IllegalTransactionStateException;
+import org.springframework.transaction.InvalidIsolationLevelException;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.ResourceTransactionManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-
-import java.util.Collection;
-
-import static java.util.Collections.emptySet;
 
 /**
  * {@link PlatformTransactionManager} implementation
@@ -249,7 +254,9 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		if (txObject.isNewSessionHolder()) {
 			Session session = txObject.getSessionHolder().getSession();
 			try {
-				session.getTransaction().rollback();
+				if (session.getTransaction() != null) {
+					session.getTransaction().rollback();
+				}
 			} catch (Throwable ex) {
 				logger.debug("Could not rollback Session after failed transaction begin", ex);
 			} finally {

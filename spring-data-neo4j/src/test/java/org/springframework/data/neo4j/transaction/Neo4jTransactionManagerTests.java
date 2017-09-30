@@ -16,7 +16,7 @@ import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.transaction.Transaction;
-import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -60,6 +60,22 @@ public class Neo4jTransactionManagerTests {
 		assertFalse(TransactionSynchronizationManager.isSynchronizationActive());
 		assertFalse(TransactionSynchronizationManager.isCurrentTransactionReadOnly());
 		assertFalse(TransactionSynchronizationManager.isActualTransactionActive());
+	}
+
+	@Test
+	public void testFailBegin() throws Exception {
+
+		given(session.beginTransaction(any(Transaction.Type.class), anyCollection())).willThrow(Exception.class);
+		given(session.getTransaction()).willReturn(null);
+
+		try {
+			tt.execute(status -> {
+				return null;
+			});
+			fail("Should not have executed");
+		} catch (CannotCreateTransactionException ex) {
+			// expected
+		}
 	}
 
 	@Test
