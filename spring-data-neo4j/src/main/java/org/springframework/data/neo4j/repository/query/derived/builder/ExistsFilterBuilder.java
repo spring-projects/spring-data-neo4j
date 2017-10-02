@@ -1,6 +1,5 @@
 package org.springframework.data.neo4j.repository.query.derived.builder;
 
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;

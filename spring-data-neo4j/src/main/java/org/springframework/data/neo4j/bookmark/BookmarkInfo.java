@@ -26,8 +26,7 @@ public class BookmarkInfo implements Serializable {
 	private boolean useBookmark;
 	private Collection<String> bookmarks;
 
-	public BookmarkInfo() {
-	}
+	public BookmarkInfo() {}
 
 	public BookmarkInfo(boolean useBookmark) {
 		this.useBookmark = true;

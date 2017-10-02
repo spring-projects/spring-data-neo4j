@@ -20,6 +20,5 @@ public class Director extends Person {
 
 	private Long id;
 
-	public Director() {
-	}
+	public Director() {}
 }

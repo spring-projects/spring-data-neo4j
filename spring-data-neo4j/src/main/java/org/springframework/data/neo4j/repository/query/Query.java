@@ -37,9 +37,8 @@ import org.springframework.data.neo4j.util.PagingAndSortingUtils;
 import org.springframework.util.Assert;
 
 /**
- * Represents an OGM query. Can hold either cypher queries or filter definitions.
- * Also in charge of adding pagination / sort to the string based queries as OGM does not support
- * pagination and sort on those.
+ * Represents an OGM query. Can hold either cypher queries or filter definitions. Also in charge of adding pagination /
+ * sort to the string based queries as OGM does not support pagination and sort on those.
  *
  * @author Nicolas Mervaillie
  */
@@ -102,7 +101,7 @@ public class Query {
 			sort = pageable.getSort();
 		}
 		if (sort != Sort.unsorted()) {
-			//Custom queries in the OGM do not support pageable
+			// Custom queries in the OGM do not support pageable
 			result = addSorting(result, sort);
 		}
 		result = addPaging(result, pageable, forSlicing);
@@ -110,7 +109,7 @@ public class Query {
 	}
 
 	public String getCypherQuery(Sort sort) {
-		//Custom queries in the OGM do not support pageable
+		// Custom queries in the OGM do not support pageable
 		String result = cypherQuery;
 		if (sort != Sort.unsorted()) {
 			result = addSorting(cypherQuery, sort);
@@ -119,7 +118,7 @@ public class Query {
 	}
 
 	private String addPaging(String cypherQuery, Pageable pageable, boolean forSlicing) {
-		//Custom queries in the OGM do not support pageable
+		// Custom queries in the OGM do not support pageable
 		cypherQuery = formatBaseQuery(cypherQuery);
 		cypherQuery = cypherQuery + SKIP_LIMIT;
 		parameters.put(SKIP, pageable.getPageNumber() * pageable.getPageSize());
@@ -163,7 +162,7 @@ public class Query {
 	}
 
 	public Pagination getPagination(Pageable pageable, boolean forSlicing) {
-		Pagination pagination = new Pagination(pageable.getPageNumber(), pageable.getPageSize() + ((forSlicing)?1:0));
+		Pagination pagination = new Pagination(pageable.getPageNumber(), pageable.getPageSize() + ((forSlicing) ? 1 : 0));
 		pagination.setOffset(pageable.getPageNumber() * pageable.getPageSize());
 		return pagination;
 	}

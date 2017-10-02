@@ -39,7 +39,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  * @author Mark Angrish
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes=SessionBeanDefinitionRegistrarPostProcessorTests.Config.class)
+@ContextConfiguration(classes = SessionBeanDefinitionRegistrarPostProcessorTests.Config.class)
 public class SessionBeanDefinitionRegistrarPostProcessorTests extends MultiDriverTestClass {
 
 	@Configuration
@@ -51,7 +51,6 @@ public class SessionBeanDefinitionRegistrarPostProcessorTests extends MultiDrive
 			return new SessionBeanDefinitionRegistrarPostProcessor();
 		}
 
-
 		@Bean
 		public PlatformTransactionManager transactionManager() {
 			return new Neo4jTransactionManager(sessionFactory());
@@ -59,7 +58,8 @@ public class SessionBeanDefinitionRegistrarPostProcessorTests extends MultiDrive
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.examples.friends.domain");
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.examples.friends.domain");
 		}
 	}
 

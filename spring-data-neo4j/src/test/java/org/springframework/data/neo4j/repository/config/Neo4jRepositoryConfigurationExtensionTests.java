@@ -49,7 +49,9 @@ import org.springframework.data.repository.config.RepositoryConfigurationSource;
 public class Neo4jRepositoryConfigurationExtensionTests {
 
 	BeanDefinitionRegistry registry = new DefaultListableBeanFactory();
-	RepositoryConfigurationSource configSource = new AnnotationRepositoryConfigurationSource(new StandardAnnotationMetadata(Config.class, true), EnableNeo4jRepositories.class, new PathMatchingResourcePatternResolver(), new StandardEnvironment(), registry);
+	RepositoryConfigurationSource configSource = new AnnotationRepositoryConfigurationSource(
+			new StandardAnnotationMetadata(Config.class, true), EnableNeo4jRepositories.class,
+			new PathMatchingResourcePatternResolver(), new StandardEnvironment(), registry);
 
 	public @Rule ExpectedException exception = ExpectedException.none();
 
@@ -110,14 +112,15 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 	}
 
 	private void assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(DefaultListableBeanFactory factory,
-																			   String expectedBeanName) {
+			String expectedBeanName) {
 
 		RepositoryConfigurationExtension extension = new Neo4jRepositoryConfigurationExtension();
 		extension.registerBeansForRoot(factory, configSource);
 
 		assertThat(factory.getBean(expectedBeanName), is(notNullValue()));
 		exception.expect(NoSuchBeanDefinitionException.class);
-		factory.getBeanDefinition("org.springframework.data.neo4j.repository.support.SessionBeanDefinitionRegistrarPostProcessor#1");
+		factory.getBeanDefinition(
+				"org.springframework.data.neo4j.repository.support.SessionBeanDefinitionRegistrarPostProcessor#1");
 	}
 
 	@EnableNeo4jRepositories(considerNestedRepositories = true)

@@ -13,6 +13,11 @@
 
 package org.springframework.data.neo4j.auditing;
 
+import static java.util.Optional.*;
+import static org.assertj.core.api.Assertions.*;
+
+import java.util.Optional;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.session.SessionFactory;
@@ -29,11 +34,6 @@ import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Optional;
-
-import static java.util.Optional.of;
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * @author Frantisek Hartman
  */
@@ -46,20 +46,19 @@ public class JavaConfigurationAuditingTest extends MultiDriverTestClass {
 	@EnableNeo4jRepositories(basePackageClasses = UserRepository.class)
 	static class Neo4jConfiguration {
 
-
 		@Bean
 		public SessionFactory sessionFactory() {
-		    return new SessionFactory(getBaseConfiguration().build(), User.class.getPackage().getName());
+			return new SessionFactory(getBaseConfiguration().build(), User.class.getPackage().getName());
 		}
 
 		@Bean
 		public Neo4jTransactionManager transactionManager() {
-		    return new Neo4jTransactionManager();
+			return new Neo4jTransactionManager();
 		}
 
 		@Bean
 		public AuditorAware<String> auditorAware() {
-		    return new AuditorAware<String>() {
+			return new AuditorAware<String>() {
 
 				@Override
 				public Optional<String> getCurrentAuditor() {
@@ -69,8 +68,7 @@ public class JavaConfigurationAuditingTest extends MultiDriverTestClass {
 		}
 	}
 
-	@Autowired
-	private UserRepository userRepository;
+	@Autowired private UserRepository userRepository;
 
 	@Test
 	public void whenSaveEntity_thenSetCreatedAndCreatedBy() throws Exception {

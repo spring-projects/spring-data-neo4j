@@ -30,7 +30,6 @@ import org.springframework.data.neo4j.annotation.QueryResult;
  */
 class CustomResultConverter implements Converter<Object, Object> {
 
-
 	private final MetaData metaData;
 	private final Class returnedType;
 
@@ -48,8 +47,9 @@ class CustomResultConverter implements Converter<Object, Object> {
 		}
 		SingleUseEntityMapper mapper = new SingleUseEntityMapper(metaData, new EntityFactory(metaData));
 		if (returnedType.isInterface()) {
-			Class<?>[] interfaces = new Class<?>[]{returnedType};
-			return newProxyInstance(returnedType.getClassLoader(), interfaces, new QueryResultProxy((Map<String, Object>) source));
+			Class<?>[] interfaces = new Class<?>[] { returnedType };
+			return newProxyInstance(returnedType.getClassLoader(), interfaces,
+					new QueryResultProxy((Map<String, Object>) source));
 		}
 		return mapper.map(returnedType, (Map<String, Object>) source);
 	}

@@ -21,5 +21,4 @@ import org.springframework.stereotype.Repository;
  * @author Vince Bickers
  */
 @Repository
-public interface AdultRepository extends Neo4jRepository<Adult, Long> {
-}
+public interface AdultRepository extends Neo4jRepository<Adult, Long> {}

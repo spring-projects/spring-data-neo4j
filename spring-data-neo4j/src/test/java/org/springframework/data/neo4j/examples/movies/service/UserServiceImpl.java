@@ -13,6 +13,9 @@
 
 package org.springframework.data.neo4j.examples.movies.service;
 
+import java.util.Collection;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.annotation.UseBookmark;
 import org.springframework.data.neo4j.examples.movies.domain.Genre;
@@ -22,9 +25,6 @@ import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.Optional;
-
 /**
  * @author Michal Bachman
  * @author Mark Paluch
@@ -33,39 +33,37 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+	@Autowired private UserRepository userRepository;
 
-    @Autowired
-    private GenreRepository genreRepository;
+	@Autowired private GenreRepository genreRepository;
 
-    @Override
-    public void updateUser(User user, String newName) {
-        user.setName(newName);
-    }
+	@Override
+	public void updateUser(User user, String newName) {
+		user.setName(newName);
+	}
 
-    @Override
-    public void notInterestedIn(Long userId, Long genreId) {
-        Optional<User> user = userRepository.findById(userId);
+	@Override
+	public void notInterestedIn(Long userId, Long genreId) {
+		Optional<User> user = userRepository.findById(userId);
 
-        user.ifPresent(u -> {
-            Optional<Genre> genre = genreRepository.findById(genreId);
-            genre.ifPresent(u::notInterestedIn);
+		user.ifPresent(u -> {
+			Optional<Genre> genre = genreRepository.findById(genreId);
+			genre.ifPresent(u::notInterestedIn);
 
-            userRepository.save(u);
-        });
-    }
+			userRepository.save(u);
+		});
+	}
 
-    @Override
-    public void saveWithTxAnnotationOnInterface(User user) {
-        userRepository.save(user);
-    }
+	@Override
+	public void saveWithTxAnnotationOnInterface(User user) {
+		userRepository.save(user);
+	}
 
-    @Transactional
-    @Override
-    public void saveWithTxAnnotationOnImpl(User user) {
-        userRepository.save(user);
-    }
+	@Transactional
+	@Override
+	public void saveWithTxAnnotationOnImpl(User user) {
+		userRepository.save(user);
+	}
 
 	@Override
 	@Transactional

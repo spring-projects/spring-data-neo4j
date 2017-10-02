@@ -13,6 +13,14 @@
 
 package org.springframework.data.neo4j.transaction;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assume.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+import java.util.Collection;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,29 +46,18 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import java.util.Collection;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.spy;
-
 /**
  * @author Frantisek Hartman
  */
-@ContextConfiguration(classes = {BookmarkTransactionTest.BookmarkConfiguration.class})
+@ContextConfiguration(classes = { BookmarkTransactionTest.BookmarkConfiguration.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class BookmarkTransactionTest extends MultiDriverTestClass {
 
-	@Autowired
-	private BookmarkManager bookmarkManager;
+	@Autowired private BookmarkManager bookmarkManager;
 
-	@Autowired
-	private Driver nativeDriver;
+	@Autowired private Driver nativeDriver;
 
-	@Autowired
-	private UserService userService;
+	@Autowired private UserService userService;
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {
@@ -92,7 +89,7 @@ public class BookmarkTransactionTest extends MultiDriverTestClass {
 
 	@Configuration
 	@EnableTransactionManagement
-	@ComponentScan(value = {"org.springframework.data.neo4j.examples.movies.service"})
+	@ComponentScan(value = { "org.springframework.data.neo4j.examples.movies.service" })
 	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
 	@EnableBookmarkManagement
 	static class BookmarkConfiguration {

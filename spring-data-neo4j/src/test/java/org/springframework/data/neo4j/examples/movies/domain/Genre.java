@@ -18,25 +18,24 @@ package org.springframework.data.neo4j.examples.movies.domain;
  */
 public class Genre {
 
-    private Long id;
-    private String name;
+	private Long id;
+	private String name;
 
-    public Genre() {
-    }
+	public Genre() {}
 
-    public Genre(String name) {
-        this.name = name;
-    }
+	public Genre(String name) {
+		this.name = name;
+	}
 
-    public Long getId() {
-        return id;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 }

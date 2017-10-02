@@ -16,10 +16,8 @@ package org.springframework.data.neo4j.examples.friends;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
@@ -44,15 +42,13 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Luanne Misquitta
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {FriendTests.FriendContext.class})
+@ContextConfiguration(classes = { FriendTests.FriendContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FriendTests extends MultiDriverTestClass {
-
 
 	@Autowired Session session;
 	@Autowired FriendshipRepository friendshipRepository;
 	@Autowired FriendService friendService;
-
 
 	@Before
 	public void cleanUpDatabase() {
@@ -68,7 +64,8 @@ public class FriendTests extends MultiDriverTestClass {
 		friendService.createPersonAndFriends();
 
 		session.clear();
-		Person john = session.loadAll(Person.class, new Filter("firstName", ComparisonOperator.EQUALS, "John")).iterator().next();
+		Person john = session.loadAll(Person.class, new Filter("firstName", ComparisonOperator.EQUALS, "John")).iterator()
+				.next();
 		assertNotNull(john);
 		assertEquals(2, john.getFriendships().size());
 	}
@@ -111,7 +108,8 @@ public class FriendTests extends MultiDriverTestClass {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.examples.friends.domain");
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.examples.friends.domain");
 		}
 	}
 

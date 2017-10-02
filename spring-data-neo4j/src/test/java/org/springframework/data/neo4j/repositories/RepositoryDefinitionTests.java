@@ -41,17 +41,15 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Michal Bachman
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {RepositoryDefinitionTests.RepositoriesTestContext.class})
+@ContextConfiguration(classes = { RepositoryDefinitionTests.RepositoriesTestContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RepositoryDefinitionTests extends MultiDriverTestClass {
 
-	@Autowired
-	PlatformTransactionManager platformTransactionManager;
+	@Autowired PlatformTransactionManager platformTransactionManager;
 
 	private TransactionTemplate transactionTemplate;
 
-	@Autowired
-	private MovieRepository movieRepository;
+	@Autowired private MovieRepository movieRepository;
 
 	@Before
 	public void clearDatabase() {

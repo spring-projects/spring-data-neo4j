@@ -45,7 +45,6 @@ public class PropertyComparisonBuilder extends FilterBuilder {
 		return Collections.singletonList(filter);
 	}
 
-
 	private ComparisonOperator convertToComparisonOperator(Part.Type type) {
 		switch (type) {
 			case AFTER:

@@ -19,5 +19,4 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 /**
  * @author Michal Bachman
  */
-public interface TempMovieRepository extends Neo4jRepository<TempMovie, Long> {
-}
+public interface TempMovieRepository extends Neo4jRepository<TempMovie, Long> {}

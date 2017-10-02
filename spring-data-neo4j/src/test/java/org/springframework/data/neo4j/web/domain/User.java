@@ -13,17 +13,17 @@
 
 package org.springframework.data.neo4j.web.domain;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.Index;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.UuidStringConverter;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * @author Michal Bachman
@@ -32,60 +32,55 @@ import java.util.UUID;
 @NodeEntity
 public class User {
 
-    @GraphId
-    private Long id;
+	@GraphId private Long id;
 
-    @Convert(UuidStringConverter.class)
-    @Index(unique = true, primary = true)
-    private UUID uuid;
+	@Convert(UuidStringConverter.class) @Index(unique = true, primary = true) private UUID uuid;
 
-    private String name;
+	private String name;
 
-    private Collection<Genre> interested;
+	private Collection<Genre> interested;
 
-    @Relationship(type = "FRIEND_OF", direction = Relationship.UNDIRECTED)
-    private Set<User> friends;
+	@Relationship(type = "FRIEND_OF", direction = Relationship.UNDIRECTED) private Set<User> friends;
 
-    public User() {
-    }
+	public User() {}
 
-    public User(String name) {
-        this.interested = new HashSet<>();
-        this.friends = new HashSet<>();
-        this.uuid = UUID.randomUUID();
-        this.name = name;
-    }
+	public User(String name) {
+		this.interested = new HashSet<>();
+		this.friends = new HashSet<>();
+		this.uuid = UUID.randomUUID();
+		this.name = name;
+	}
 
-    public void interestedIn(Genre genre) {
-        interested.add(genre);
-    }
+	public void interestedIn(Genre genre) {
+		interested.add(genre);
+	}
 
-    public void notInterestedIn(Genre genre) {
-        interested.remove(genre);
-    }
+	public void notInterestedIn(Genre genre) {
+		interested.remove(genre);
+	}
 
-    public void befriend(User user) {
-        friends.add(user);
-    }
+	public void befriend(User user) {
+		friends.add(user);
+	}
 
-    //this doesn't need to be part of the domain, but this class is for testing
-    public Long getId() {
-        return id;
-    }
+	// this doesn't need to be part of the domain, but this class is for testing
+	public Long getId() {
+		return id;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public Collection<User> getFriends() {
-        return friends;
-    }
+	public Collection<User> getFriends() {
+		return friends;
+	}
 
-    public UUID getUuid() {
-        return uuid;
-    }
+	public UUID getUuid() {
+		return uuid;
+	}
 }

@@ -72,27 +72,21 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Luanne Misquitta
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {DerivedQueryTests.MoviesContext.class})
+@ContextConfiguration(classes = { DerivedQueryTests.MoviesContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DerivedQueryTests extends MultiDriverTestClass {
 
-	@Autowired
-	PlatformTransactionManager platformTransactionManager;
+	@Autowired PlatformTransactionManager platformTransactionManager;
 
-	@Autowired
-	private Session session;
+	@Autowired private Session session;
 
-	@Autowired
-	private UserRepository userRepository;
+	@Autowired private UserRepository userRepository;
 
-	@Autowired
-	private CinemaRepository cinemaRepository;
+	@Autowired private CinemaRepository cinemaRepository;
 
-	@Autowired
-	private DirectorRepository directorRepository;
+	@Autowired private DirectorRepository directorRepository;
 
 	private TransactionTemplate transactionTemplate;
-
 
 	@Before
 	public void clearDatabase() {
@@ -139,7 +133,8 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindNodeEntitiesWithLabels() {
-		executeUpdate("CREATE (u:User {name:'Michal'}) CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'}) CREATE (u)-[:VISITED]->(p)");
+		executeUpdate(
+				"CREATE (u:User {name:'Michal'}) CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'}) CREATE (u)-[:VISITED]->(p)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -163,7 +158,8 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 
 	@Test
 	public void shouldUseDepthOnCollectionFinder() {
-		executeUpdate("CREATE (u:User {name:'Michal'}) CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'}) CREATE (u)-[:VISITED]->(p)");
+		executeUpdate(
+				"CREATE (u:User {name:'Michal'}) CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'}) CREATE (u)-[:VISITED]->(p)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -184,8 +180,9 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindNodeEntitiesMultipleAndedProperties() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'})" +
-				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
+		executeUpdate(
+				"CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'})"
+						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
 
 		List<Cinema> theatres = cinemaRepository.findByNameAndLocation("Ritzy", "London");
 		assertEquals(1, theatres.size());
@@ -197,8 +194,9 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindNodeEntititiesMultipleOredProperties() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'})" +
-				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
+		executeUpdate(
+				"CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'})"
+						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
 
 		List<Cinema> theatres = cinemaRepository.findByNameOrLocation("Ritzy", "London");
 		assertEquals(2, theatres.size());
@@ -209,21 +207,22 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldReturnNoResultsCorrectly() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'})" +
-				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
+		executeUpdate(
+				"CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'})"
+						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
 
 		Collection<Cinema> theatres = cinemaRepository.findByName("Does not exist");
 		assertEquals(0, theatres.size());
 	}
-
 
 	/**
 	 * @see DATAGRAPH-629
 	 */
 	@Test
 	public void shouldFindNodeEntititiesWithComparisonOperators() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500})" +
-				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
+		executeUpdate(
+				"CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500})"
+						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -254,8 +253,9 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindNodeEntititiesWithMultipleComparisonOperatorsAnded() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 4500})" +
-				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
+		executeUpdate(
+				"CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 4500})"
+						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -277,8 +277,9 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindNodeEntititiesWithMultipleComparisonOperatorsOred() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 9000})" +
-				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
+		executeUpdate(
+				"CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 9000})"
+						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -295,14 +296,14 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 		});
 	}
 
-
 	/**
 	 * @see DATAGRAPH-629
 	 */
 	@Test
 	public void shouldFindNodeEntititiesWithNestedProperty() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500})" +
-				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
+		executeUpdate(
+				"CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500})"
+						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
 
 		List<Cinema> theatres = cinemaRepository.findByVisitedName("Michal");
 		assertEquals(1, theatres.size());
@@ -314,8 +315,9 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindNodeEntititiesWithBaseAndNestedProperty() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 5000})" +
-				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(m)");
+		executeUpdate(
+				"CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 5000})"
+						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(m)");
 
 		List<Cinema> theatres = cinemaRepository.findByLocationAndVisitedName("London", "Michal");
 		assertEquals(1, theatres.size());
@@ -323,18 +325,18 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	}
 
 	/**
-	 * @see DATAGRAPH-662
-	 * //TODO FIXME
+	 * @see DATAGRAPH-662 //TODO FIXME
 	 */
 	@Test(expected = UnsupportedOperationException.class)
 	public void shouldFindNodeEntititiesWithBaseOrNestedProperty() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'The Old Vic', city:'London', capacity: 5000})" +
-				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(m)");
+		executeUpdate(
+				"CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'The Old Vic', city:'London', capacity: 5000})"
+						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(m)");
 
 		List<Cinema> theatres = cinemaRepository.findByLocationOrVisitedName("P", "Michal");
 		assertEquals(2, theatres.size());
 		assertTrue(theatres.contains(new Cinema("Ritzy")));
-		//assertTrue(theatres.contains(new Cinema("Picturehouse")));
+		// assertTrue(theatres.contains(new Cinema("Picturehouse")));
 		assertTrue(theatres.contains(new Cinema("The Old Vic")));
 	}
 
@@ -343,9 +345,10 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindNodeEntitiesWithNestedRelationshipEntityProperty() {
-		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
-				" CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) " +
-				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->(m)");
+		executeUpdate(
+				"CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})"
+						+ " CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) "
+						+ " CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->(m)");
 
 		List<User> users = userRepository.findByRatingsStars(3);
 		assertEquals(2, users.size());
@@ -359,14 +362,11 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindNodeEntititiesWithTwoNestedPropertiesAndedAcrossDifferentRelatedNodeEntities() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
-				" CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
-				" CREATE (u:User {name:'Michal'}) " +
-				" CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(p)" +
-				" CREATE (m1:Movie {name:'San Andreas'}) " +
-				" CREATE (m2:Movie {name:'Pitch Perfect 2'})" +
-				" CREATE (p)-[:BLOCKBUSTER]->(m1)" +
-				" CREATE (r)-[:BLOCKBUSTER]->(m2)");
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
+				+ " CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " + " CREATE (u:User {name:'Michal'}) "
+				+ " CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(p)" + " CREATE (m1:Movie {name:'San Andreas'}) "
+				+ " CREATE (m2:Movie {name:'Pitch Perfect 2'})" + " CREATE (p)-[:BLOCKBUSTER]->(m1)"
+				+ " CREATE (r)-[:BLOCKBUSTER]->(m2)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -384,17 +384,14 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	/**
 	 * @see DATAGRAPH-662
 	 */
-	//FIXME: OR is not supported for nested properties on an entity
+	// FIXME: OR is not supported for nested properties on an entity
 	@Test(expected = UnsupportedOperationException.class)
 	public void shouldFindNodeEntititiesWithTwoNestedPropertiesOred() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
-				" CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
-				" CREATE (u:User {name:'Michal'}) " +
-				" CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(p)" +
-				" CREATE (m1:Movie {title:'San Andreas'}) " +
-				" CREATE (m2:Movie {title:'Pitch Perfect 2'})" +
-				" CREATE (p)-[:BLOCKBUSTER]->(m1)" +
-				" CREATE (r)-[:BLOCKBUSTER]->(m2)");
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
+				+ " CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " + " CREATE (u:User {name:'Michal'}) "
+				+ " CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(p)" + " CREATE (m1:Movie {title:'San Andreas'}) "
+				+ " CREATE (m2:Movie {title:'Pitch Perfect 2'})" + " CREATE (p)-[:BLOCKBUSTER]->(m1)"
+				+ " CREATE (r)-[:BLOCKBUSTER]->(m2)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -415,10 +412,10 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindNodeEntititiesWithMultipleNestedPropertiesAnded() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
-				" CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
-				" CREATE (u:User {name:'Michal', middleName:'M'}) CREATE (u1:User {name:'Vince', middleName:'M'}) " +
-				" CREATE (u)-[:VISITED]->(p)  CREATE (u1)-[:VISITED]->(r)");
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
+				+ " CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) "
+				+ " CREATE (u:User {name:'Michal', middleName:'M'}) CREATE (u1:User {name:'Vince', middleName:'M'}) "
+				+ " CREATE (u)-[:VISITED]->(p)  CREATE (u1)-[:VISITED]->(r)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -438,9 +435,10 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindNodeEntititiesWithRelationshipEntityAndNestedProperty() {
-		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
-				" CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) CREATE (g:Genre {name:'Thriller'}) CREATE (u)-[:INTERESTED]->(g) " +
-				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->(m)");
+		executeUpdate(
+				"CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})"
+						+ " CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) CREATE (g:Genre {name:'Thriller'}) CREATE (u)-[:INTERESTED]->(g) "
+						+ " CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->(m)");
 
 		List<User> users = userRepository.findByRatingsStarsAndInterestedName(3, "Thriller");
 		assertEquals(1, users.size());
@@ -452,8 +450,7 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindNodeEntitiesByRegularExpressionMatchingOnPropertiesInDerivedFinderMethods() {
-		executeUpdate("CREATE (:Theatre {name:'Odeon', city:'Preston'}), "
-				+ "(:Theatre {name:'Vue', city:'Dumfries'}), "
+		executeUpdate("CREATE (:Theatre {name:'Odeon', city:'Preston'}), " + "(:Theatre {name:'Vue', city:'Dumfries'}), "
 				+ "(:Theatre {name:'PVR', city:'Mumbai'}) ");
 
 		// ideally, I'd name this to be "findWhereNameMatches" or "findByNameMatching"
@@ -468,8 +465,7 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	@Test
 	public void shouldMatchNodeEntitiesUsingCaseInsensitiveLikeWithWildcards() {
 		executeUpdate("CREATE (:Theatre {name:'IMAX', city:'Chesterfield'}), "
-				+ "(:Theatre {name:'Odeon', city:'Manchester'}), "
-				+ "(:Theatre {name:'IMAX', city:'Edinburgh'}) ");
+				+ "(:Theatre {name:'Odeon', city:'Manchester'}), " + "(:Theatre {name:'IMAX', city:'Edinburgh'}) ");
 
 		List<Cinema> cinemas = cinemaRepository.findByLocationLike("*chest*");
 		assertEquals("The wrong number of cinemas was returned", 2, cinemas.size());
@@ -493,9 +489,7 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldMatchNodeEntitiesUsingNotLikeWithAsteriskWildcards() {
-		executeUpdate("CREATE (:User {name:'Jeff'}), "
-				+ "(:User {name:'Jeremy'}), "
-				+ "(:User {name:'Alan'})");
+		executeUpdate("CREATE (:User {name:'Jeff'}), " + "(:User {name:'Jeremy'}), " + "(:User {name:'Alan'})");
 
 		List<User> nonMatchingUsers = userRepository.findByNameIsNotLike("Je*");
 		assertEquals("The wrong number of users was returned", 1, nonMatchingUsers.size());
@@ -507,7 +501,8 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindDirectorsByName() {
-		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'}) CREATE (d:Director {name:'Vince'})");
+		executeUpdate(
+				"CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'}) CREATE (d:Director {name:'Vince'})");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -526,21 +521,16 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 		});
 	}
 
-
 	/**
 	 * @see DATAGRAPH-744
 	 */
 	@Test
 	public void shouldFindUserWithCustomDepth() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
-				" CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
-				" CREATE (u:User {name:'Michal'}) " +
-				" CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(p)" +
-				" CREATE (m1:Movie {name:'San Andreas'}) " +
-				" CREATE (m2:Movie {name:'Pitch Perfect 2'})" +
-				" CREATE (p)-[:BLOCKBUSTER]->(m1)" +
-				" CREATE (r)-[:BLOCKBUSTER]->(m2)" +
-				" CREATE (u)-[:RATED {stars :3}]->(m1)");
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
+				+ " CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " + " CREATE (u:User {name:'Michal'}) "
+				+ " CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(p)" + " CREATE (m1:Movie {name:'San Andreas'}) "
+				+ " CREATE (m2:Movie {name:'Pitch Perfect 2'})" + " CREATE (p)-[:BLOCKBUSTER]->(m1)"
+				+ " CREATE (r)-[:BLOCKBUSTER]->(m2)" + " CREATE (u)-[:RATED {stars :3}]->(m1)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -568,13 +558,13 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 		});
 	}
 
-
 	/**
 	 * @see DATAGRAPH-744
 	 */
 	@Test
 	public void shouldFindUsersByNameWithStaticDepth() {
-		executeUpdate("CREATE (m:User {name:'Michal', surname:'Bachman'})<-[:FRIEND_OF]-(a:User {name:'Adam', surname:'George'})");
+		executeUpdate(
+				"CREATE (m:User {name:'Michal', surname:'Bachman'})<-[:FRIEND_OF]-(a:User {name:'Adam', surname:'George'})");
 
 		User user = userRepository.findBySurname("Bachman");
 		assertNotNull(user);
@@ -588,9 +578,10 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldSupportLiteralMapsInQueryResults() {
-		executeUpdate("CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})" +
-				" CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) " +
-				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->(m)");
+		executeUpdate(
+				"CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})"
+						+ " CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) "
+						+ " CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->(m)");
 
 		List<EntityWrappingQueryResult> result = userRepository.findRatingsWithLiteralMap();
 		assertNotNull(result);
@@ -612,10 +603,11 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	@Test
 	public void shouldAllowMultiThreadedDerivedFinderExecution() throws InterruptedException {
 		int numThreads = 3;
-		executeUpdate("CREATE (m:User {name:'Michal', surname:'Bachman'}), (a:User {name:'Adam', surname:'George'}), (l:User {name:'Luanne', surname:'Misquitta'})");
+		executeUpdate(
+				"CREATE (m:User {name:'Michal', surname:'Bachman'}), (a:User {name:'Adam', surname:'George'}), (l:User {name:'Luanne', surname:'Misquitta'})");
 
-		String[] firstNames = new String[]{"Michal", "Adam", "Luanne"};
-		String[] lastNames = new String[]{"Bachman", "George", "Misquitta"};
+		String[] firstNames = new String[] { "Michal", "Adam", "Luanne" };
+		String[] lastNames = new String[] { "Bachman", "George", "Misquitta" };
 
 		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 		CountDownLatch latch = new CountDownLatch(numThreads);
@@ -705,7 +697,6 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 		assertFalse(page.hasNext());
 	}
 
-
 	class DerivedQueryRunner implements Runnable {
 
 		private final CountDownLatch latch;
@@ -732,7 +723,7 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@ComponentScan({"org.springframework.data.neo4j.examples.movies.service"})
+	@ComponentScan({ "org.springframework.data.neo4j.examples.movies.service" })
 	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
 	@EnableTransactionManagement
 	static class MoviesContext {
@@ -744,7 +735,8 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.examples.movies.domain");
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.examples.movies.domain");
 		}
 	}
 

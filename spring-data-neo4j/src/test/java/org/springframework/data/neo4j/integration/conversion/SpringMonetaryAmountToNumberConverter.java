@@ -18,9 +18,9 @@ import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmou
 
 public class SpringMonetaryAmountToNumberConverter implements Converter<MonetaryAmount, Number> {
 
-    @Override
-    public Number convert(MonetaryAmount source) {
-        return source != null ? source.getAmountAsSubUnits() : null;
-    }
+	@Override
+	public Number convert(MonetaryAmount source) {
+		return source != null ? source.getAmountAsSubUnits() : null;
+	}
 
 }
