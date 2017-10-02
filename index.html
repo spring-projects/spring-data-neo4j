@@ -51,13 +51,13 @@ Spring Data Neo4j is core part of the Spring Data project which aims to provide 
 
 * Support for property graphs (nodes connected via relationships, each with arbitrary properties)
 * Object-Graph-Mapping of annotated POJO entities
-* Neo4jTemplate with convenient API, exception translation and optional transaction management
 * extensive Spring Data Commons Repositories Support, including annotated and derived finder methods
 * Arbitrary result projections for finder methods
 * Supports the Cypher Graph Quey Language
+* Support for Neo4j causal clusters
 * Based on the Neo4j-OGM library
 * Supports binary (bolt), http and embedded transports to connect to Neo4j
-* Available with Spring Boot (since 1.4.0-M3)
+* Available with Spring Boot
 
 <span id="quick-start"></span>
 
@@ -73,7 +73,7 @@ Annotate your domain objects.
 @NodeEntity
 public class Movie {
 
-  @GraphId Long id;
+  @Id @GeneratedValue Long id;
   String title;
 
   Person director;
@@ -91,7 +91,7 @@ public class Movie {
 Declare a repository interface.
 
 ```java
-interface MovieRepository extends GraphRepository<Movie> {
+interface MovieRepository extends Neo4jRepository<Movie, Long> {
 
   // derived finder
   Movie findByTitle(String title);
@@ -117,12 +117,24 @@ Enable Spring Data Neo4j repositories.
 @EnableTransactionManagement
 @ComponentScan("org.neo4j.cineasts")
 @EnableNeo4jRepositories("org.neo4j.cineasts.repository")
-public class PersistenceContext extends Neo4jConfiguration {
+public class PersistenceContext {
 
-    @Override
-    public SessionFactory getSessionFactory() {
-        return new SessionFactory("org.neo4j.cineasts.domain");
-    }
+  @Bean
+  public SessionFactory getSessionFactory() {
+    return new SessionFactory(configuration(), "org.neo4j.cineasts.domain");
+  }
+
+  @Bean
+  public Neo4jTransactionManager transactionManager() throws Exception {
+    return new Neo4jTransactionManager(getSessionFactory());
+  }
+
+  @Bean
+  public org.neo4j.ogm.config.Configuration configuration() {
+    return new org.neo4j.ogm.config.Configuration.Builder()
+      .uri("bolt://localhost")
+      .build();
+  }
 }
 ```
 
