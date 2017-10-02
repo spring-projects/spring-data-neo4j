@@ -1,6 +1,17 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.0.RELEASE (2017-10-02)
+---------------------------------------------
+* DATAGRAPH-1036 - Unnecessary verbose logging when transaction fail to start.
+* DATAGRAPH-1034 - Update documentation for 5.0.
+* DATAGRAPH-1033 - Upgrade to Neo4j OGM 3.0.0.
+* DATAGRAPH-1029 - Add explicit automatic module name for Java 9.
+* DATAGRAPH-1028 - Upgrade to OpenWebBeans 2.0.1.
+* DATAGRAPH-1027 - Generated query of "Between" operator should be "inclusive" for the parameters value.
+* DATAGRAPH-1026 - Release 5.0 GA (Kay).
+
+
 Changes in version 5.0.0.RC3 (2017-09-11)
 -----------------------------------------
 * DATAGRAPH-1023 - Add support for projections.
