@@ -110,7 +110,6 @@ Spring Data Neo4j will attempt to auto-configure itself using a file called `ogm
 
 [source,java]
 ----
-driver=org.neo4j.ogm.drivers.http.driver.HttpDriver
 URI=http://user:password@localhost:7474
 ----
 
