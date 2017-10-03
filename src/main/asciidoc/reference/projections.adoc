@@ -105,7 +105,7 @@ This projection has the following details:
 ====
 
 The backing domain model does not have these properties so we need to tell Spring Data from where they are obtained.
-Virtual properties are the place where `@Value` comes into play. The `cinemaName` getter is annotated with `@Value` to use http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/expressions.html[SpEL expressions] pointing to the backing property `name`. You may have noticed `name` is prefixed with `target` which is the variable name pointing to the backing object. Using `@Value` on methods allows defining where and how the value is obtained.
+Virtual properties are the place where `@Value` comes into play. The `cinemaName` getter is annotated with `@Value` to use https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#expressions[SpEL expressions] pointing to the backing property `name`. You may have noticed `name` is prefixed with `target` which is the variable name pointing to the backing object. Using `@Value` on methods allows defining where and how the value is obtained.
 
 `@Value` gives full access to the target object and its nested properties. SpEL expressions are extremely powerful as the definition is always applied to the projection method.
 

@@ -61,7 +61,8 @@ For more in depth configuration details please consult the Configuration section
 
 By default, SDN will use the BOLT driver to connect to Neo4j and you don't need to declare it as a separate dependency in your pom.
 If you want to use the embedded or HTTP drivers in your production application, you must add the following dependencies as well.
-(This dependency on the embedded driver is not required if you only want to use the embedded driver for testing. See the section on <<testing,Testing>> below for more information).
+(This dependency on the embedded driver is not required if you only want to use the embedded driver for testing.
+See the section on <<reference.getting_started.dependencies.testing,Testing>> below for more information).
 
 
 
@@ -172,7 +173,7 @@ public class MyConfiguration {
     @Bean
     public org.neo4j.ogm.config.Configuration configuration() {
         ConfigurationSource properties = new ClasspathConfigurationSource("ogm.properties");
-        org.neo4j.ogm.config.Configuration configuration = new org.neo4j.ogm.config.Configuration.Builder(properties)
+        org.neo4j.ogm.config.Configuration configuration = new org.neo4j.ogm.config.Configuration.Builder(properties).build();
         return configuration;
     }
 
@@ -236,8 +237,21 @@ Configuration can also be initialized from an external file like this.
 @Bean
 public org.neo4j.ogm.config.Configuration configuration() {
     ConfigurationSource properties = new ClasspathConfigurationSource("db.properties");
-    return new org.neo4j.ogm.config.Configuration.Builder(properties);
+    return new org.neo4j.ogm.config.Configuration.Builder(properties).build();
 }
+----
+where `db.properties` looks like
+[source,properties]
+----
+URI=bolt://localhost
+username=user
+password=secret
+connection.pool.size=... #see java driver doc
+encryption.level=... #see java driver doc
+trust.strategy=... #see java driver doc
+trust.certificate.file=... #see java driver doc
+connection.liveness.check.timeout=... #see java driver doc
+verify.connection=... #see java driver doc
 ----
 
 //TODO add configuration option with native driver
