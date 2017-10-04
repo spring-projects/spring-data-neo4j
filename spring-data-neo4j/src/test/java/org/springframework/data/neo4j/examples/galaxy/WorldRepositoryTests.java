@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
 import org.springframework.data.neo4j.examples.galaxy.repo.WorldRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -92,6 +93,23 @@ public class WorldRepositoryTests extends MultiDriverTestClass {
         countDownLatch.await();
         assertFalse(failed);
     }
+
+	/**
+	 * see https://jira.spring.io/browse/DATAGRAPH-948
+	 *
+	 * @throws Exception
+	 */
+	@Test(expected = IncorrectResultSizeDataAccessException.class)
+	public void findByNameSingleResult() throws Exception {
+		World world1 = new World("world 1", 1);
+		worldRepository.save(world1, 0);
+
+		World world2 = new World("world 1", 2);
+		worldRepository.save(world2, 0);
+
+		// there are 2 results, 1 is returned instead of IncorrectResultSizeDataAccessException thrown
+		worldRepository.findByName("world 1");
+	}
 
     @Configuration
     @ComponentScan({"org.springframework.data.neo4j.examples.galaxy.service"})
