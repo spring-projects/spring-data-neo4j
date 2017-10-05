@@ -316,6 +316,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 					} else {
 						bookmarks = emptySet();
 					}
+					logger.debug("Found bookmarks {}, replacing with {}", bookmarks, lastBookmark);
 					bookmarkManager.storeBookmark(lastBookmark, bookmarks);
 				}
 			}

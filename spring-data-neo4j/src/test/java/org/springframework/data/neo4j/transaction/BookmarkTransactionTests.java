@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.data.neo4j.annotation.EnableBookmarkManagement;
 import org.springframework.data.neo4j.bookmark.BookmarkManager;
 import org.springframework.data.neo4j.bookmark.CaffeineBookmarkManager;
@@ -49,9 +50,9 @@ import static org.mockito.Mockito.spy;
 /**
  * @author Frantisek Hartman
  */
-@ContextConfiguration(classes = {BookmarkTransactionTest.BookmarkConfiguration.class})
+@ContextConfiguration(classes = {BookmarkTransactionTests.BookmarkConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class BookmarkTransactionTest extends MultiDriverTestClass {
+public class BookmarkTransactionTests extends MultiDriverTestClass {
 
 	@Autowired
 	private BookmarkManager bookmarkManager;
@@ -83,10 +84,12 @@ public class BookmarkTransactionTest extends MultiDriverTestClass {
 	public void operationsShouldReplaceOlderBookmarks() throws Exception {
 		userService.saveWithTxAnnotationOnInterface(new User());
 		Collection<String> bookmarks = bookmarkManager.getBookmarks();
+		assertThat(bookmarks).isNotEmpty();
 
 		userService.saveWithTxAnnotationOnInterface(new User());
 		userService.getAllUsersWithBookmark();
 
+		assertThat(bookmarkManager.getBookmarks()).isNotEmpty();
 		assertThat(bookmarkManager.getBookmarks()).doesNotContainAnyElementsOf(bookmarks);
 	}
 
@@ -103,6 +106,7 @@ public class BookmarkTransactionTest extends MultiDriverTestClass {
 		}
 
 		@Bean
+		@Scope
 		public BookmarkManager bookmarkManager() {
 			return new CaffeineBookmarkManager();
 		}
