@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Michal Bachman
  * @author Luanne Misquitta
+ * @author Gerrit Meier
  */
 @Repository
 public interface UserRepository extends PersonRepository<User, Long> {
@@ -127,4 +128,8 @@ public interface UserRepository extends PersonRepository<User, Long> {
 
     @Query("invalid")
 	void invalidQuery();
+
+    User findByEmailAddressesContains(List<String> emails);
+
+    List<User> findByEmailAddressesNotContaining(String email);
 }

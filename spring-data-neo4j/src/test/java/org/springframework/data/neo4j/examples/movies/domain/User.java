@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Set;
 /**
  * @author Michal Bachman
  * @author Luanne Misquitta
+ * @author Gerrit Meier
  */
 public class User extends Person{
 
@@ -36,7 +37,10 @@ public class User extends Person{
     @Relationship(type = "RATED")
     private Set<Rating> ratings = new HashSet<>();
 
-    public User() {
+	private Set<String> emailAddresses;
+
+
+	public User() {
     }
 
     public User(String name) {
@@ -89,4 +93,12 @@ public class User extends Person{
     public String getSurname() {
         return surname;
     }
+
+	public Set<String> getEmailAddresses() {
+		return emailAddresses;
+	}
+
+	public void setEmailAddresses(Set<String> emailAddresses) {
+		this.emailAddresses = emailAddresses;
+	}
 }

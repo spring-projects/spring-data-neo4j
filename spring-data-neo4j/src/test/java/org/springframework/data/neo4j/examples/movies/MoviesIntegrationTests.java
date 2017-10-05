@@ -16,7 +16,15 @@ package org.springframework.data.neo4j.examples.movies;
 import static org.junit.Assert.*;
 import static org.neo4j.ogm.testutil.GraphTestUtils.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,14 +41,26 @@ import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.neo4j.examples.movies.domain.*;
-import org.springframework.data.neo4j.examples.movies.repo.*;
+import org.springframework.data.neo4j.examples.movies.domain.Actor;
+import org.springframework.data.neo4j.examples.movies.domain.Cinema;
+import org.springframework.data.neo4j.examples.movies.domain.Genre;
+import org.springframework.data.neo4j.examples.movies.domain.Movie;
+import org.springframework.data.neo4j.examples.movies.domain.Rating;
+import org.springframework.data.neo4j.examples.movies.domain.ReleasedMovie;
+import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
+import org.springframework.data.neo4j.examples.movies.domain.User;
+import org.springframework.data.neo4j.examples.movies.repo.AbstractAnnotatedEntityRepository;
+import org.springframework.data.neo4j.examples.movies.repo.AbstractEntityRepository;
+import org.springframework.data.neo4j.examples.movies.repo.ActorRepository;
+import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
+import org.springframework.data.neo4j.examples.movies.repo.RatingRepository;
+import org.springframework.data.neo4j.examples.movies.repo.TempMovieRepository;
+import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.data.neo4j.examples.movies.service.UserService;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
@@ -59,11 +79,15 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Mark Angrish
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Gerrit Meier
  */
 @ContextConfiguration(classes = {MoviesIntegrationTests.MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class MoviesIntegrationTests extends MultiDriverTestClass {
 
+	private static final String KNOWN_MAIL_ADDRESS_1 = "a@example.org";
+	private static final String KNOWN_MAIL_ADDRESS_2 = "b@example.org";
+	private static final String UNKNOWN_MAIL_ADDRESS = "c@example.org";
 	private final Logger logger = LoggerFactory.getLogger(MoviesIntegrationTests.class);
 
 	@Autowired
@@ -648,6 +672,62 @@ public class MoviesIntegrationTests extends MultiDriverTestClass {
 		for (User user : savedUsers) {
 			assertNotNull(user.getId());
 		}
+	}
+
+	/**
+	 * @see DATAGRAPH-992
+	 */
+	@Test
+	public void findUserByContainingEmailAddresses() {
+		createUserForContainsTest();
+
+		User foundUser = userRepository.findByEmailAddressesContains(Collections.singletonList(KNOWN_MAIL_ADDRESS_1));
+		assertNotNull(foundUser);
+
+		foundUser = userRepository.findByEmailAddressesContains(Arrays.asList(KNOWN_MAIL_ADDRESS_2, UNKNOWN_MAIL_ADDRESS));
+		assertNotNull(foundUser);
+	}
+
+	/**
+	 * @see DATAGRAPH-992
+	 */
+	@Test
+	public void findNoUserByContainingEmailAddresses() {
+		createUserForContainsTest();
+
+		User foundUser = userRepository.findByEmailAddressesContains(Collections.singletonList(UNKNOWN_MAIL_ADDRESS));
+		assertNull(foundUser);
+	}
+
+	/**
+	 * @see DATAGRAPH-992
+	 */
+	@Test
+	public void findUserByNotContainingEmailAddresses() {
+		createUserForContainsTest();
+
+		List<User> foundUser = userRepository.findByEmailAddressesNotContaining(UNKNOWN_MAIL_ADDRESS);
+		assertNotNull(foundUser.get(0));
+	}
+
+	/**
+	 * @see DATAGRAPH-992
+	 */
+	@Test
+	public void findNoUserByNotContainingEmailAddresses() {
+		createUserForContainsTest();
+
+		List<User> foundUser = userRepository.findByEmailAddressesNotContaining(KNOWN_MAIL_ADDRESS_1);
+		assertTrue(foundUser.isEmpty());
+	}
+
+	private void createUserForContainsTest() {
+		User user = new User("Somebody");
+		Set<String> emailAddresses = new HashSet<>();
+		emailAddresses.add(KNOWN_MAIL_ADDRESS_1);
+		emailAddresses.add(KNOWN_MAIL_ADDRESS_2);
+		user.setEmailAddresses(emailAddresses);
+		userRepository.save(user);
 	}
 
 	private Calendar createDate(int y, int m, int d, String tz) {

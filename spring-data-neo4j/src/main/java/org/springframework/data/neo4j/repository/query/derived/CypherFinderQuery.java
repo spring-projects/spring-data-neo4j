@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -12,11 +12,22 @@
  */
 package org.springframework.data.neo4j.repository.query.derived;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.Filter;
-import org.springframework.data.neo4j.repository.query.derived.builder.*;
+import org.springframework.data.neo4j.repository.query.derived.builder.BetweenComparisonBuilder;
+import org.springframework.data.neo4j.repository.query.derived.builder.BooleanComparisonBuilder;
+import org.springframework.data.neo4j.repository.query.derived.builder.ContainsComparisonBuilder;
+import org.springframework.data.neo4j.repository.query.derived.builder.DistanceComparisonBuilder;
+import org.springframework.data.neo4j.repository.query.derived.builder.ExistsFilterBuilder;
+import org.springframework.data.neo4j.repository.query.derived.builder.FilterBuilder;
+import org.springframework.data.neo4j.repository.query.derived.builder.IsNullFilterBuilder;
+import org.springframework.data.neo4j.repository.query.derived.builder.PropertyComparisonBuilder;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -25,6 +36,7 @@ import org.springframework.data.repository.query.parser.Part;
  * @author Luanne Misquitta
  * @author Jasper Blues
  * @author Nicolas Mervaillie
+ * @author Gerrit Meier
  */
 public class CypherFinderQuery implements DerivedQueryDefinition {
 
@@ -76,7 +88,10 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
                 return new DistanceComparisonBuilder(part, booleanOperator, entityType);
             case BETWEEN:
                 return new BetweenComparisonBuilder(part, booleanOperator, entityType);
-            case IS_NULL:
+			case NOT_CONTAINING:
+			case CONTAINING:
+				return resolveMatchingContainsFilterBuilder(part, booleanOperator);
+			case IS_NULL:
             case IS_NOT_NULL:
                 return new IsNullFilterBuilder(part, booleanOperator, entityType);
             case EXISTS:
@@ -88,4 +103,12 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
                 return new PropertyComparisonBuilder(part, booleanOperator, entityType);
         }
     }
+
+	private FilterBuilder resolveMatchingContainsFilterBuilder(Part part, BooleanOperator booleanOperator) {
+		boolean usePropertyComparison = !part.getProperty().getTypeInformation().isCollectionLike();
+		if (usePropertyComparison) {
+			return new PropertyComparisonBuilder(part, booleanOperator, entityType);
+		}
+		return new ContainsComparisonBuilder(part, booleanOperator, entityType);
+	}
 }
