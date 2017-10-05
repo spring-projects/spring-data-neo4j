@@ -17,6 +17,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,12 +49,16 @@ public class CaffeineBookmarkManager implements BookmarkManager {
 
 	@Override
 	public Collection<String> getBookmarks() {
-		return cache.asMap().values();
+		// return defensive copy
+		return new HashSet<>(cache.asMap().values());
 	}
 
 	@Override
 	public void storeBookmark(String bookmark, Collection<String> previous) {
-		cache.put(bookmark, bookmark);
+		// first invalidate previous bookmarks, because bookmark may be in `previous` collection for
+		// transaction, which didn't make any changes
+
 		cache.invalidateAll(previous);
+		cache.put(bookmark, bookmark);
 	}
 }
