@@ -80,20 +80,11 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 				? result : processor.processResult(result, new CustomResultConverter(getMetaData(), processor.getReturnedType().getReturnedType()));
 	}
 
-	// just an horrible trick to get the metadata from OGM
-	private MetaData getMetaData() {
-		return session.doInTransaction((requestHandler, transaction, metaData) -> metaData);
-	}
-
 	protected Query getQuery(Object[] parameters) {
 		return new Query(getQueryString(), graphQueryMethod.getCountQueryString(), resolveParams(parameters));
 	}
 
-	private String getQueryString() {
-		return getQueryMethod().getQuery();
-	}
-
-	private Map<String, Object> resolveParams(Object[] parameters) {
+	Map<String, Object> resolveParams(Object[] parameters) {
 
 		Map<String, Object> params = new HashMap<>();
 		Parameters<?, ?> methodParameters = graphQueryMethod.getParameters();
@@ -109,6 +100,15 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 			}
 		}
 		return params;
+	}
+
+	// just an horrible trick to get the metadata from OGM
+	private MetaData getMetaData() {
+		return session.doInTransaction((requestHandler, transaction, metaData) -> metaData);
+	}
+
+	private String getQueryString() {
+		return getQueryMethod().getQuery();
 	}
 
 	private Object getParameterValue(Object parameter) {
