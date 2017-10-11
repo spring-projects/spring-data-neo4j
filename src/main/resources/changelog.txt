@@ -1,6 +1,16 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.2.8.RELEASE (2017-10-11)
+---------------------------------------------
+* DATAGRAPH-1032 - SDN 4.2 doc include wrong OGM doc version.
+* DATAGRAPH-1025 - Release 4.2.8 (Ingalls SR8).
+* DATAGRAPH-998 - Upgrade Neo4j OGM to 2.1.5.
+* DATAGRAPH-997 - NPE during transaction rollback when custom query fails.
+* DATAGRAPH-967 - Auto Rollback of sdn4.2 transactions fail in integration test.
+* DATAGRAPH-952 - Null pointer after rollback in test.
+
+
 Changes in version 5.0.0.RELEASE (2017-10-02)
 ---------------------------------------------
 * DATAGRAPH-1036 - Unnecessary verbose logging when transaction fail to start.
