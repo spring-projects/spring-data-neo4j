@@ -155,6 +155,14 @@ Additionally, `@Query` does not support mapping a path to domain entities, as su
 Instead, return nodes and relationships to have them mapped to domain entities.
 ====
 
+=== Named queries
+
+Sometimes it makes sense to extract e.g. a long query.
+Spring Data Neo4j will look in the `META-INF/neo4j-named-queries.properties` file to find named queries.
+If you provide a query property like `User.findByQuery=MATCH (e) WHERE e.name={name} RETURN e` you can refer to this method by providing a finder method in your repository.
+The repository has to support the given entity type (in this example `User`) and the method has to be named as the defined one (`findByQuery`).
+As you can see in the example it is possible to parameterize the query.
+
 === Query results
 
 Typical results for queries are `Iterable<Type>`, `Iterable<Map<String,Object>>` or simply `Type`.
