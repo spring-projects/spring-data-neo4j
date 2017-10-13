@@ -26,6 +26,7 @@
     <properties>
         <project.type>multi</project.type>
         <dist.id>spring-data-neo4j</dist.id>
+        <neo4j.ogm.version>3.0.1-SNAPSHOT</neo4j.ogm.version>
         <springdata.commons>2.1.0.BUILD-SNAPSHOT</springdata.commons>
         <source.level>1.8</source.level>
     </properties>
@@ -142,6 +143,20 @@
             <timezone>-5</timezone>
         </developer>
     </developers>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctor-maven-plugin</artifactId>
+                <configuration>
+                    <attributes>
+                        <ogm-version>${neo4j.ogm.version}</ogm-version>
+                    </attributes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <profiles>
         <profile>
