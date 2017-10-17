@@ -110,7 +110,7 @@ public interface PersonRepository extends PagingAndSortingRepository<Person, Str
 
 |`Before`
 |`findByLaunchDateBefore(Date date)`
-|`n.launchDate > date`
+|`n.launchDate < date`
 
 |`Containing` (String)
 |`findByNameContaining(String namePart)`
