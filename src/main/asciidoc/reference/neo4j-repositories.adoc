@@ -100,33 +100,116 @@ public interface PersonRepository extends PagingAndSortingRepository<Person, Str
 [cols="1,2,3", options="header"]
 .Supported keywords for query methods
 |===============
-|Logical keyword|Keyword expressions|Restrictions
-|`AND`|`And`|
-|`AFTER`|`After, IsAfter`|
-|`BEFORE`|`Before, IsBefore`|
-|`CONTAINING`|`Containing, IsContaining, Contains`|
-|`BETWEEN`|`Between, IsBetween`|
-|`ENDING_WITH`|`EndingWith, IsEndingWith, EndsWith`|
-|`EXISTS`|`Exists`|
-|`FALSE`|`False, IsFalse`|
-|`GREATER_THAN`|`GreaterThan`, `IsGreaterThan`|
-|`GREATER_THAN_EQUALS`|`GreaterThanEqual, IsGreaterThanEqual`|
-|`IN`|`In, IsIn`|
-|`IS`|`Is, Equals`|
-|`IS_NOT_NULL`|`NotNull, IsNotNull`|
-|`IS_NULL`|`Null, IsNull`|
-|`LESS_THAN`|`LessThan`, `IsLessThan`|
-|`LESS_THAN_EQUAL`|`LessThanEqual, IsLessThanEqual`|
-|`LIKE`|`Like`, `IsLike`|
-|`NEAR`|`Near, IsNear`|
-|`NOT`|`Not`, `IsNot`|
-|`NOT_IN`|`NotIn, IsNotIn`|
-|`NOT_LIKE`|`NotLike`, `IsNotLike`|
-|`REGEX`|`Regex`, `MatchesRegex`, `Matches`|
-|`OR`|`Or`|Cannot be used to OR nested properties
-|`NEAR`|`Near`, `IsNear`|
-|`STARTING_WITH`|`StartingWith, IsStartingWith, StartsWith`|
-|`TRUE`|`True, IsTrue`|
+|Keyword
+|Sample
+|Cypher snippet
+
+|`After`
+|`findByLaunchDateAfter(Date date)`
+|`n.launchDate > date`
+
+|`Before`
+|`findByLaunchDateBefore(Date date)`
+|`n.launchDate > date`
+
+|`Containing` (String)
+|`findByNameContaining(String namePart)`
+|`n.name CONTAINS namePart`
+
+|`Containing` (Collection)
+|
+`findByEmailAddressesContains(Collection<String> addresses)`
+
+`findByEmailAddressesContains(String address)`
+|
+`ANY(collectionFields IN [addresses] WHERE collectionFields in n.emailAddresses)`
+
+`ANY(collectionFields IN address WHERE collectionFields in n.emailAddresses)`
+
+|`In`
+|`findByNameIn(Iterable<String> names)`
+|`n.name IN names`
+
+|`Between`
+|`findByScoreBetween(double min, double max)`
+|`n.score >= min AND n.score \<= max`
+
+|`StartingWith`
+|`findByNameStartingWith(String nameStart)`
+|`n.name STARTS WITH nameStart`
+
+|`EndingWith`
+|`findByNameEndingWith(String nameEnd)`
+|`n.name ENDS WITH nameEnd`
+
+|`Exists`
+|`findByNameExists()`
+|`EXISTS(n.name)`
+
+|`True`
+|`findByActivatedIsTrue()`
+|`n.activated = true`
+
+|`False`
+|`findByActivatedIsFalse()`
+|`NOT(n.activated = true)`
+
+|`Is`
+|`findByNameIs(String name)`
+|`n.name = name`
+
+|`NotNull`
+|`findByNameNotNull()`
+|`NOT(n.name IS NULL)`
+
+|`Null`
+|`findByNameNull()`
+|`n.name IS NULL`
+
+|`GreaterThan`
+|`findByScoreGreaterThan(double score)`
+|`n.score > score`
+
+|`GreaterThanEqual`
+|`findByScoreGreaterThanEqual(double score)`
+|`n.score >= score`
+
+|`LessThan`
+|`findByScoreLessThan(double score)`
+|`n.score < score`
+
+|`LessThanEqual`
+|`findByScoreLessThanEqual(double score)`
+|`n.score \<= score`
+
+|`Like`
+|`findByNameLike(String name)`
+|`n.name =~ name`
+
+|`NotLike`
+|`findByNameNotLike(String name)`
+|`NOT(n.name =~ name)`
+
+|`Near`
+|`findByLocationNear(Distance distance, Point point)`
+|`distance( point(n),point({latitude:lat, longitude:lon}) ) < distance`
+
+//|`Not`
+//|`findByNameNot(String name)`
+//| NEGATING_SIMPLE_PROPERTY(new String[]{"IsNot", "Not"}) not supported
+
+|`Regex`
+|`findByNameRegex(String regex)`
+|`n.name =~ regex`
+
+|`And`
+|`findByNameAndDescription(String name, String description)`
+|`n.name = name AND n.description = description`
+
+|`Or`
+|`findByNameOrDescription(String name, String description)`
+|`n.name = name OR n.description = description` (Cannot be used to OR nested properties)
+
 |===============
 
 
