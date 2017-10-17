@@ -382,7 +382,7 @@ determines the actual one used.
 
 It is highly recommended that users understand how Spring Transactions work. Below are some excellent resources:
 
-* http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/transaction.html[Spring Transaction Management]
+* https://docs.spring.io/spring/docs/current/spring-framework-reference/data-access.html#spring-data-tier[Spring Transaction Management]
 * http://graphaware.com/neo4j/2016/09/30/upgrading-to-sdn-42.html[Upgrading to Spring Data Neo4j 4.2]
 
 === Read only Transactions
