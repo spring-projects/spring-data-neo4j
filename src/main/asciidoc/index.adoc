@@ -20,6 +20,7 @@ include::preface.adoc[]
 include::new-features.adoc[]
 include::{spring-data-commons-docs}/dependencies.adoc[]
 include::{spring-data-commons-docs}/repositories.adoc[]
+include::{spring-data-commons-docs}/auditing.adoc[]
 :leveloffset: -1
 
 
@@ -31,6 +32,9 @@ include::reference/introduction.adoc[]
 include::reference/getting-started.adoc[]
 include::reference/ogm-support.adoc[]
 include::reference/neo4j-repositories.adoc[]
+include::reference/projections.adoc[]
+include::reference/auditing.adoc[]
+
 :leveloffset: -1
 
 [[ogm-reference-documentation]]
