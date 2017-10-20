@@ -13,7 +13,7 @@
 
 package org.springframework.data.neo4j.util;
 
-import org.neo4j.ogm.exception.NotFoundException;
+import org.neo4j.ogm.exception.core.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.Collection;
