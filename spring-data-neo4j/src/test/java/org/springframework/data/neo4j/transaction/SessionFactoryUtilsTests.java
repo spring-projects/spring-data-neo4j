@@ -16,9 +16,9 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.neo4j.ogm.exception.BaseClassNotFoundException;
 import org.neo4j.ogm.exception.CypherException;
-import org.neo4j.ogm.exception.NotFoundException;
+import org.neo4j.ogm.exception.core.BaseClassNotFoundException;
+import org.neo4j.ogm.exception.core.NotFoundException;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;

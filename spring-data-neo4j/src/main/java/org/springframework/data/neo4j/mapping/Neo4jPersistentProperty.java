@@ -12,14 +12,10 @@
  */
 package org.springframework.data.neo4j.mapping;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
-
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.StartNode;
-import org.neo4j.ogm.exception.MappingException;
-import org.neo4j.ogm.exception.MetadataException;
+import org.neo4j.ogm.exception.core.MetadataException;
 import org.neo4j.ogm.metadata.ClassInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
