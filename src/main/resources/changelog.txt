@@ -1,6 +1,20 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.1.RELEASE (2017-10-27)
+---------------------------------------------
+* DATAGRAPH-1044 - Update package path of OGM exception.
+* DATAGRAPH-1043 - Documentation of keyword to query mapping.
+* DATAGRAPH-1041 - missing artifacts for neo4 5.0.0 or wrong doc.
+* DATAGRAPH-1040 - Read only transaction may replace all bookmarks with nothing.
+* DATAGRAPH-1039 - Improve documentation.
+* DATAGRAPH-1037 - Release 5.0.1 (Kay SR1).
+* DATAGRAPH-1031 - Auditing doesn't work with latest OGM.
+* DATAGRAPH-1021 - SimpleNeo4jRepository#saveAll should not save instances one at a time.
+* DATAGRAPH-992 - Derived finder support for contains keyword for collection fields.
+* DATAGRAPH-791 - Provide support for named-queries.
+
+
 Changes in version 4.2.8.RELEASE (2017-10-11)
 ---------------------------------------------
 * DATAGRAPH-1032 - SDN 4.2 doc include wrong OGM doc version.
