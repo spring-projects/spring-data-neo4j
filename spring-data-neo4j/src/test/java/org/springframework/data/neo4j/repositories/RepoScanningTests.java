@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.repositories.domain.User;
 import org.springframework.data.neo4j.repositories.repo.UserRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -61,6 +62,7 @@ public class RepoScanningTests extends MultiDriverTestClass {
 
 	@Configuration
 	@EnableNeo4jRepositories //no package specified, that's the point of this test
+	@EnableReactiveNeo4jRepositories
 	@EnableTransactionManagement
 	static class PersistenceContextInTheSamePackage {
 

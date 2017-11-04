@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.domain.sample.SampleEntity;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactory;
 import org.springframework.data.neo4j.repository.support.TransactionalRepositoryTests;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
@@ -80,6 +81,7 @@ public class Neo4jRepositoryTests extends MultiDriverTestClass {
 
 	@Configuration
 	@EnableNeo4jRepositories
+	@EnableReactiveNeo4jRepositories
 	@EnableTransactionManagement
 	public static class Config {
 

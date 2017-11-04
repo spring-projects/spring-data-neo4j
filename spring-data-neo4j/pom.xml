@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j-parent</artifactId>
-        <version>5.1.0.BUILD-SNAPSHOT</version>
+        <version>5.1.0.BUILD-DATAGRAPH-1024-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -32,6 +32,7 @@
         <ogm.properties>ogm-bolt.properties</ogm.properties>
         <el-api.version>2.2</el-api.version>
         <java-module-name>spring.data.neo4j</java-module-name>
+        <projectreactor>3.1.1.RELEASE</projectreactor>
     </properties>
 
 
@@ -195,5 +196,29 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+            <version>${projectreactor}</version>
+            <optional>true</optional>
+        </dependency>
+
+
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <version>${projectreactor}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>2.1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxjava-reactive-streams</artifactId>
+            <version>1.2.1</version>
+        </dependency>
     </dependencies>
 </project>
