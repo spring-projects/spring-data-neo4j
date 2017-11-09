@@ -1,3 +1,6 @@
+image:https://spring.io/badges/spring-data-neo4j/ga.svg[title=Spring Data Neo4j,link=http://projects.spring.io/spring-data-neo4j#quick-start]
+image:https://spring.io/badges/spring-data-neo4j/snapshot.svg[title=Spring Data Neo4j,link=http://projects.spring.io/spring-data-neo4j#quick-start]
+
 = Spring Data Neo4j
 
 The primary goal of the http://projects.spring.io/spring-data[Spring Data] project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
@@ -29,8 +32,6 @@ To learn more refer to:
 
 If you are new to Spring as well as to Spring Data, look for information about http://www.springsource.org/projects[Spring projects].
 
-
-
 == Quick start
 
 
@@ -41,7 +42,7 @@ Add the Maven dependency:
     <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j</artifactId>
-        <version>5.0.0</version>
+        <version>${version}.RELEASE</version>
     </dependency>
 ----
 
@@ -49,19 +50,18 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
 
 [source,xml]
 ----
-
     <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-neo4j</artifactId>
-        <version>5.0.1.BUILD-SNAPSHOT</version>
+        <version>${version}.BUILD-SNAPSHOT</version>
     </dependency>
 
     <!-- used for nightly builds -->
     <repository>
-      <id>spring-maven-snapshot</id>
+      <id>spring-libs-snapshot</id>
       <snapshots><enabled>true</enabled></snapshots>
       <name>Springframework Maven SNAPSHOT Repository</name>
-      <url>http://repo.spring.io/libs-release</url>
+      <url>http://repo.spring.io/libs-snapshot</url>
     </repository>
 ----
 
