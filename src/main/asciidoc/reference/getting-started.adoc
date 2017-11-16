@@ -121,6 +121,30 @@ See the section on <<reference.getting_started.dependencies.testing,Testing>> be
     </dependency>
 ----
 
+[NOTE]
+====
+Using neo4j-harness brings in a dependency on Jetty container.
+If you use Spring Boot dependency management the version may be set to an incompatible version.
+This may be avoided by overriding `jetty.version` property to a version required by neo4j server.
+[source,xml]
+----
+<properties>
+    <!-- version compatible with neo4j 3.3.0 -->
+    <jetty.version>9.2.22.v20170606</jetty.version>
+</properties>
+----
+
+Also having the jetty dependency on classpath might cause your application use jetty as servlet container in your tests
+instead of default Tomcat. You can avoid that e.g. by forcing the EmbeddedTomcat autoconfiguration.
+
+[source,java]
+----
+@SpringBootApplication
+// Import tomcat autoconfig to avoid starting Jetty, which is on classpath because of neo4j dependencies
+@Import(EmbeddedServletContainerAutoConfiguration.EmbeddedTomcat.class)
+----
+====
+
 [[reference.getting_started.dependencies.gradle]]
 === Gradle
 
