@@ -1,6 +1,15 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.2.RELEASE (2017-11-27)
+---------------------------------------------
+* DATAGRAPH-1051 - Upgrade to Neo4j OGM 3.0.2.
+* DATAGRAPH-1050 - Document possible conflict of jetty versions.
+* DATAGRAPH-1046 - Upgrade to Neo4j OGM 3.0.2-SNAPSHOT.
+* DATAGRAPH-1045 - Release 5.0.2 (Kay SR2).
+* DATAGRAPH-1021 - SimpleNeo4jRepository#saveAll should not save instances one at a time.
+
+
 Changes in version 4.2.9.RELEASE (2017-11-27)
 ---------------------------------------------
 * DATAGRAPH-1042 - Release 4.2.9 (Ingalls SR9).
