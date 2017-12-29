@@ -663,5 +663,33 @@ Delete graph entities::
 [NOTE]
 For users coming from versions before `4.2.x`, `Neo4jRepository` has replaced `GraphRepository` but essentially has the same features.
 
+[[reference_programming-model_constructors]]
+=== Persistence constructors
+
+From SDN 5.1 (Lovelace release train), persistence constructors are supported.
+
+Example :
+
+[source,java]
+----
+@NodeEntity
+public class Person {
+
+	@Id
+	private String name;
+
+	public Person(String name) {
+		this.name = name;
+	}
+}
+----
+
+For persistence constructors to work, the constructor arguments names have to match the attributes names.
+
+The current implementation has some limitations :
+
+* entity attributes cannot be marked `final`
+* relationships as constructors arguments are not fully supported.
+  The relationship argument valkue will be null in the constructor and then set to the real value once the entity has been instantiated.
 
 

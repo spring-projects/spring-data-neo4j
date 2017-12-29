@@ -1,5 +1,18 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ *
+ */
+
+/*
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -13,24 +26,31 @@
 
 package org.springframework.data.neo4j.repository.config;
 
-
+import org.neo4j.ogm.session.EntityInstantiator;
 import org.neo4j.ogm.session.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link FactoryBean} to setup {@link Neo4jMappingContext} instances from Spring configuration.
  *
  * @author Mark Angrish
+ * @author Nicolas Mervaillie
  */
-class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMappingContext> implements
+public class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMappingContext> implements
 		ApplicationContextAware {
 
+	private static final Logger LOG = LoggerFactory.getLogger(Neo4jMappingContextFactoryBean.class);
 	private ListableBeanFactory beanFactory;
 
 	/*
@@ -52,16 +72,28 @@ class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMappingCon
 	}
 
 	/*
- * (non-Javadoc)
- * @see org.springframework.beans.factory.config.AbstractFactoryBean#createInstance()
- */
+	 * (non-Javadoc)
+	 * @see org.springframework.beans.factory.config.AbstractFactoryBean#createInstance()
+	 */
 	@Override
-	protected Neo4jMappingContext createInstance() throws Exception {
+	protected Neo4jMappingContext createInstance() {
 
 		SessionFactory sessionFactory = beanFactory.getBean(SessionFactory.class);
 		Neo4jMappingContext context = new Neo4jMappingContext(sessionFactory.metaData());
 		context.initialize();
 
+		ConversionService conversionService = null;
+		try {
+			conversionService = beanFactory.getBean(ConversionService.class);
+		} catch (NoSuchBeanDefinitionException e) {
+			LOG.debug("Unable to find a conversion service to use for entity instantiation, using none");
+		}
+		sessionFactory.setEntityInstantiator(getEntityInstantiator(context, conversionService));
+
 		return context;
+	}
+
+	private EntityInstantiator getEntityInstantiator(Neo4jMappingContext context, @Nullable ConversionService conversionService) {
+		return new OgmEntityInstantiatorAdapter(context, conversionService);
 	}
 }
