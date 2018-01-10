@@ -1,18 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
- *
- * This product is licensed to you under the Apache License, Version 2.0 (the "License").
- * You may not use this product except in compliance with the License.
- *
- * This product may include a number of subcomponents with
- * separate copyright notices and license terms. Your use of the source
- * code for these subcomponents is subject to the terms and
- * conditions of the subcomponent's license, as noted in the LICENSE file.
- *
- */
-
-/*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -33,6 +20,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import org.assertj.core.util.DateUtil;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -46,15 +34,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService;
-import org.springframework.data.neo4j.integration.constructors.domain.Group;
-import org.springframework.data.neo4j.integration.constructors.domain.KotlinPerson;
-import org.springframework.data.neo4j.integration.constructors.domain.Person;
-import org.springframework.data.neo4j.integration.constructors.domain.PersonMultipleConstructors;
-import org.springframework.data.neo4j.integration.constructors.domain.PersonWithAnnotatedPersistenceConstructor;
-import org.springframework.data.neo4j.integration.constructors.domain.PersonWithConverter;
-import org.springframework.data.neo4j.integration.constructors.domain.PersonWithFinalName;
-import org.springframework.data.neo4j.integration.constructors.domain.PersonWithManyToOneRel;
+import org.springframework.data.neo4j.integration.constructors.domain.*;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -90,6 +72,8 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 
 	@Autowired PersonWithConverterRepository pwcRepository;
 
+	@Autowired PersonWithCompositeAttributeRepository pwcaRepository;
+
 	@Autowired PersonWithManyToOneRelRepository manyToOneRepository;
 
 	@Autowired KotlinPersonRepository kotlinRepository;
@@ -110,7 +94,8 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 	public void shouldHandleRelationshipEntityWithConstructor() {
 
 		Person person = new Person("foo");
-		person.addFriend(new Person("bar"));
+		Person friend = new Person("bar");
+		person.addFriend(friend);
 		personRepository.save(person);
 		session.clear();
 
@@ -119,8 +104,12 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 		Person person1 = persons.stream().filter(p -> p.equals(person)).findFirst().get();
 		assertEquals("foo", person1.getName());
 		assertEquals(1, person1.getFriendships().size());
-		long now = System.currentTimeMillis();
-		assertTrue(person.getFriendships().get(0).getTimestamp() - now < 1000);
+
+		Friendship friendship = person.getFriendships().get(0);
+		assertEquals(person, friendship.getPersonStartNode());
+		assertEquals(friend, friendship.getPersonEndNode());
+		assertTrue(DateUtil.timeDifference(friendship.getTimestamp(), new Date()) < 1000);
+		assertEquals(new Point(1, 2), friendship.getLocation());
 	}
 
 	@Test
@@ -191,6 +180,19 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 	}
 
 	@Test
+	public void shouldHandleCompositeAttributes() {
+		Point location = new Point(1.0, 2.0);
+		PersonWithCompositeAttribute person = new PersonWithCompositeAttribute("foo", location);
+		pwcaRepository.save(person);
+		session.clear();
+
+		List<PersonWithCompositeAttribute> persons = IterableUtils.toList(pwcaRepository.findAll());
+		assertEquals(1, persons.size());
+		assertEquals("foo", persons.get(0).getName());
+		assertEquals(location, persons.get(0).getLocation());
+	}
+
+	@Test
 	public void shouldSupportKotlinDataClasses() {
 
 		KotlinPerson person = new KotlinPerson("foo", new ArrayList<>());
@@ -247,6 +249,10 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 
 	@Repository
 	public interface PersonWithConverterRepository extends Neo4jRepository<PersonWithConverter, String> {
+	}
+
+	@Repository
+	public interface PersonWithCompositeAttributeRepository extends Neo4jRepository<PersonWithCompositeAttribute, String> {
 	}
 
 	@Repository

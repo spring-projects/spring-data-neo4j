@@ -13,35 +13,37 @@
 
 package org.springframework.data.neo4j.integration.constructors.domain;
 
-import org.neo4j.ogm.annotation.GeneratedValue;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.annotation.typeconversion.Convert;
+import org.springframework.data.geo.Point;
+import org.springframework.data.neo4j.conversion.PointConverter;
+import org.springframework.util.Assert;
 
 /**
-  * @author Nicolas Mervaillie
-  */
+ * @author Nicolas Mervaillie
+ */
 @NodeEntity
-public class PersonMultipleConstructors {
+public class PersonWithCompositeAttribute {
 
-	@Id @GeneratedValue
-	private Long id;
-	private String firstName;
-	private String lastName;
+	@Id
+	private String name;
 
-	public PersonMultipleConstructors(String lastName) {
-		this.lastName = lastName;
+	@Convert(PointConverter.class)
+	private Point location;
+
+	public PersonWithCompositeAttribute(String name, Point location) {
+		Assert.notNull(name, "name should not be null");
+		Assert.notNull(location, "location should not be null");
+		this.name = name;
+		this.location = location;
 	}
 
-	public PersonMultipleConstructors(String firstName, String lastName) {
-		this.firstName = firstName;
-		this.lastName = lastName;
+	public String getName() {
+		return name;
 	}
 
-	public String getFirstName() {
-		return firstName;
-	}
-
-	public String getLastName() {
-		return lastName;
+	public Point getLocation() {
+		return location;
 	}
 }
