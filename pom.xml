@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+  ~
+  ~ This product is licensed to you under the Apache License, Version 2.0 (the "License").
+  ~ You may not use this product except in compliance with the License.
+  ~
+  ~ This product may include a number of subcomponents with
+  ~ separate copyright notices and license terms. Your use of the source
+  ~ code for these subcomponents is subject to the terms and
+  ~ conditions of the subcomponent's license, as noted in the LICENSE file.
+  ~
+  -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
@@ -26,9 +39,10 @@
     <properties>
         <project.type>multi</project.type>
         <dist.id>spring-data-neo4j</dist.id>
-        <neo4j.ogm.version>3.0.2</neo4j.ogm.version>
+        <neo4j.ogm.version>3.1.0-SNAPSHOT</neo4j.ogm.version>
         <springdata.commons>2.1.0.BUILD-SNAPSHOT</springdata.commons>
         <source.level>1.8</source.level>
+        <kotlin.version>1.2.10</kotlin.version>
     </properties>
 
     <developers>
