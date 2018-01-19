@@ -521,7 +521,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 	@Test
 	public void shouldLoadOutgoingFriendsWhenUndirected() {
 
-		graphDatabaseService.execute("CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User {name:'Adam'})");
+		graphDatabaseService.execute("CREATE (m:User:Person {name:'Michal'})-[:FRIEND_OF]->(a:User:Person {name:'Adam'})");
 
 		User michal = ((Iterable<User>) findByProperty(User.class, "name", "Michal")).iterator().next();
 		assertEquals(1, michal.getFriends().size());
@@ -537,7 +537,7 @@ public class MoviesIntegrationIT extends MultiDriverTestClass {
 	@Test
 	public void shouldLoadIncomingFriendsWhenUndirected() {
 
-		graphDatabaseService.execute("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
+		graphDatabaseService.execute("CREATE (m:User:Person {name:'Michal'})<-[:FRIEND_OF]-(a:User:Person {name:'Adam'})");
 
 		User michal = ((Iterable<User>) findByProperty(User.class, "name", "Michal")).iterator().next();
 		assertEquals(1, michal.getFriends().size());
