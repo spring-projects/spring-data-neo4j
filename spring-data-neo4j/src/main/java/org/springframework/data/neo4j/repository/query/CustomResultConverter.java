@@ -15,13 +15,18 @@ package org.springframework.data.neo4j.repository.query;
 
 import static java.lang.reflect.Proxy.*;
 
+import java.lang.reflect.Constructor;
 import java.util.Map;
+import java.util.Optional;
 
 import org.neo4j.ogm.context.SingleUseEntityMapper;
 import org.neo4j.ogm.metadata.MetaData;
-import org.neo4j.ogm.metadata.reflect.ReflectionEntityInstantiator;
+import org.neo4j.ogm.metadata.reflect.EntityFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.neo4j.annotation.QueryResult;
+import org.springframework.data.util.ReflectionUtils;
+import org.springframework.util.ClassUtils;
 
 /**
  * Convert OGM special {@link QueryResult} annotated types into SD understandable type.
@@ -30,7 +35,8 @@ import org.springframework.data.neo4j.annotation.QueryResult;
  */
 class CustomResultConverter implements Converter<Object, Object> {
 
-
+	private static final boolean HAS_ENTITY_INSTANTIATOR_FEATURE = ClassUtils.isPresent(
+			"org.neo4j.ogm.metadata.reflect.ReflectionEntityInstantiator", CustomResultConverter.class.getClassLoader());
 	private final MetaData metaData;
 	private final Class returnedType;
 
@@ -50,7 +56,18 @@ class CustomResultConverter implements Converter<Object, Object> {
 			Class<?>[] interfaces = new Class<?>[]{returnedType};
 			return newProxyInstance(returnedType.getClassLoader(), interfaces, new QueryResultProxy((Map<String, Object>) source));
 		}
-		SingleUseEntityMapper mapper = new SingleUseEntityMapper(metaData, new ReflectionEntityInstantiator(metaData));
+
+		SingleUseEntityMapper mapper;
+		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
+			OgmReflectionEntityInstantiator entityInstantiator = new OgmReflectionEntityInstantiator(metaData);
+			Optional<Constructor<?>> optionalConstructor = ReflectionUtils
+					.findConstructor(SingleUseEntityMapper.class, metaData, entityInstantiator);
+			// the constructor must exist
+			Constructor<?> constructor = optionalConstructor.get();
+			mapper = (SingleUseEntityMapper) BeanUtils.instantiateClass(constructor, metaData, entityInstantiator);
+		} else {
+			mapper = new SingleUseEntityMapper(metaData, new EntityFactory(metaData));
+		}
 		return mapper.map(returnedType, (Map<String, Object>) source);
 	}
 }
