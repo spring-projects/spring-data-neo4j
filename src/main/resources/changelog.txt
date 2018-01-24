@@ -1,6 +1,12 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.3.RELEASE (2018-01-24)
+---------------------------------------------
+* DATAGRAPH-1059 - Upgrade to Neo4j OGM 3.0.3.
+* DATAGRAPH-1054 - Release 5.0.3 (Kay SR3).
+
+
 Changes in version 4.2.10.RELEASE (2018-01-24)
 ----------------------------------------------
 * DATAGRAPH-1058 - Upgrade to Neo4j OGM to 2.1.6 in 4.2.x branch.
