@@ -14,19 +14,13 @@
 package org.springframework.data.neo4j.repository.config;
 
 import org.neo4j.ogm.session.SessionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
-import org.springframework.util.ClassUtils;
 
 /**
  * {@link FactoryBean} to setup {@link Neo4jMappingContext} instances from Spring configuration.
@@ -37,9 +31,6 @@ import org.springframework.util.ClassUtils;
 public class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMappingContext> implements
 		ApplicationContextAware {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Neo4jMappingContextFactoryBean.class);
-	private static final boolean HAS_ENTITY_INSTANTIATOR_FEATURE = ClassUtils.isPresent("org.neo4j.ogm.session.EntityInstantiator",
-			Neo4jMappingContextFactoryBean.class.getClassLoader());
 	private ListableBeanFactory beanFactory;
 
 	/*
@@ -66,22 +57,9 @@ public class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMap
 	 */
 	@Override
 	protected Neo4jMappingContext createInstance() {
-
 		SessionFactory sessionFactory = beanFactory.getBean(SessionFactory.class);
 		Neo4jMappingContext context = new Neo4jMappingContext(sessionFactory.metaData());
 		context.initialize();
-
-		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
-			ConversionService conversionService = null;
-			try {
-				conversionService = beanFactory.getBean(ConversionService.class);
-			} catch (NoSuchBeanDefinitionException e) {
-				LOG.debug("Unable to find a conversion service to use for entity instantiation, using none");
-			}
-			new DirectFieldAccessor(sessionFactory).setPropertyValue("entityInstantiator",
-					new OgmEntityInstantiatorAdapter(context, conversionService));
-		}
-
 		return context;
 	}
 
