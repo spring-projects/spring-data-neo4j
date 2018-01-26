@@ -13,18 +13,17 @@
 
 package org.springframework.data.neo4j.repository.config;
 
+import java.lang.annotation.Annotation;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.data.auditing.IsNewAwareAuditingHandler;
 import org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport;
 import org.springframework.data.auditing.config.AuditingConfiguration;
 import org.springframework.data.config.ParsingUtils;
 import org.springframework.data.neo4j.annotation.EnableNeo4jAuditing;
 import org.springframework.util.Assert;
-
-import java.lang.annotation.Annotation;
 
 /**
  * @author Frantisek Hartman
@@ -65,8 +64,7 @@ public class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppo
 		BeanDefinitionBuilder listenerBeanDefinitionBuilder = BeanDefinitionBuilder
 				.rootBeanDefinition(Neo4jAuditingEventListener.class);
 		listenerBeanDefinitionBuilder
-				.addConstructorArgValue(ParsingUtils.getObjectFactoryBeanDefinition(getAuditingHandlerBeanName(), registry))
-				.addConstructorArgReference("sessionFactory");
+				.addConstructorArgValue(ParsingUtils.getObjectFactoryBeanDefinition(getAuditingHandlerBeanName(), registry));
 
 		registerInfrastructureBeanWithId(listenerBeanDefinitionBuilder.getBeanDefinition(),
 				Neo4jAuditingEventListener.class.getName(), registry);
