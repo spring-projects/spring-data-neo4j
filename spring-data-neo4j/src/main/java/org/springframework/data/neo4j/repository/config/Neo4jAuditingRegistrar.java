@@ -23,6 +23,7 @@ import org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarS
 import org.springframework.data.auditing.config.AuditingConfiguration;
 import org.springframework.data.config.ParsingUtils;
 import org.springframework.data.neo4j.annotation.EnableNeo4jAuditing;
+import org.springframework.data.neo4j.repository.support.Neo4jAuditingBeanPostProcessor;
 import org.springframework.util.Assert;
 
 /**
@@ -61,13 +62,14 @@ public class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppo
 		Assert.notNull(auditingHandlerDefinition, "BeanDefinition must not be null!");
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null!");
 
-		BeanDefinitionBuilder listenerBeanDefinitionBuilder = BeanDefinitionBuilder
-				.rootBeanDefinition(Neo4jAuditingEventListener.class);
-		listenerBeanDefinitionBuilder
+		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder
+				.rootBeanDefinition(Neo4jAuditingBeanPostProcessor.class);
+
+		beanDefinitionBuilder
 				.addConstructorArgValue(ParsingUtils.getObjectFactoryBeanDefinition(getAuditingHandlerBeanName(), registry));
 
-		registerInfrastructureBeanWithId(listenerBeanDefinitionBuilder.getBeanDefinition(),
-				Neo4jAuditingEventListener.class.getName(), registry);
+		registerInfrastructureBeanWithId(beanDefinitionBuilder.getBeanDefinition(),
+				Neo4jAuditingBeanPostProcessor.class.getName(), registry);
 	}
 
 }

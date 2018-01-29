@@ -27,7 +27,6 @@ import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.data.neo4j.repository.support.Neo4jAuditingBeanFactoryPostProcessor;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
 import org.springframework.data.neo4j.repository.support.SessionBeanDefinitionRegistrarPostProcessor;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
@@ -52,7 +51,6 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 	private static final String NEO4J_MAPPING_CONTEXT_BEAN_NAME = "neo4jMappingContext";
 	private static final String NEO4J_ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME = "neo4jOgmEntityInstantiatorConfigurationBean";
-	private static final String NEO4J_AUDITING_POST_PROCESSOR_NAME = "neo4jAuditionBeanFactoryPostProcessor";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
 	private static final String SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME = "sessionBeanDefinitionRegistrarPostProcessor";
 	private static final boolean HAS_ENTITY_INSTANTIATOR_FEATURE = ClassUtils.isPresent("org.neo4j.ogm.session.EntityInstantiator",
@@ -163,9 +161,6 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 
 		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jMappingContextFactoryBean.class), registry,
 				NEO4J_MAPPING_CONTEXT_BEAN_NAME, source);
-
-		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jAuditingBeanFactoryPostProcessor.class), registry,
-				NEO4J_AUDITING_POST_PROCESSOR_NAME, source);
 
 		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
 			registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jOgmEntityInstantiatorConfigurationBean.class),
