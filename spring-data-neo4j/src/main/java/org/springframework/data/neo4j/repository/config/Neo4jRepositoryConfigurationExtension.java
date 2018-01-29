@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.RelationshipEntity;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -50,7 +51,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 
 	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 	private static final String NEO4J_MAPPING_CONTEXT_BEAN_NAME = "neo4jMappingContext";
-	private static final String NEO4J_ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME = "neo4jOgmEntityInstantiatorConfigurationBean";
+	private static final String ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME = "neo4jOgmEntityInstantiatorConfigurationBean";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
 	private static final String SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME = "sessionBeanDefinitionRegistrarPostProcessor";
 	private static final boolean HAS_ENTITY_INSTANTIATOR_FEATURE = ClassUtils.isPresent("org.neo4j.ogm.session.EntityInstantiator",
@@ -163,9 +164,12 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 				NEO4J_MAPPING_CONTEXT_BEAN_NAME, source);
 
 		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
-			registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jOgmEntityInstantiatorConfigurationBean.class),
-					registry, NEO4J_ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME, source);
+			RootBeanDefinition rootBeanDefinition = new RootBeanDefinition(Neo4jOgmEntityInstantiatorConfigurationBean.class);
+			rootBeanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
+			registerIfNotAlreadyRegistered(rootBeanDefinition,
+					registry, ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME, source);
 		}
+
 
 	}
 }
