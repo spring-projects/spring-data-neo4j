@@ -1,6 +1,24 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.0.M1 (2018-02-06)
+----------------------------------------
+* DATAGRAPH-1065 - Upgrade to Neo4j OGM 3.1.0.
+* DATAGRAPH-1064 - Error in OgmEntityInstantiatorAdapter when ConversionService is requested.
+* DATAGRAPH-1061 - Cyclic bean instantiation when using EnableNeo4jAuditing with SpringBoot.
+* DATAGRAPH-1060 - Avoid dependency to OGM 3.1.0.
+* DATAGRAPH-1057 - Upgrade to Neo4j OGM 3.1.0-SNAPSHOT.
+* DATAGRAPH-1056 - Support for persistence constructors.
+* DATAGRAPH-1048 - Adapt readme to changes in Spring Data Neo4j 5.0.
+* DATAGRAPH-1043 - Documentation of keyword to query mapping.
+* DATAGRAPH-1040 - Read only transaction may replace all bookmarks with nothing.
+* DATAGRAPH-1039 - Improve documentation.
+* DATAGRAPH-1038 - Release 5.1 M1 (Lovelace).
+* DATAGRAPH-1031 - Auditing doesn't work with latest OGM.
+* DATAGRAPH-1021 - SimpleNeo4jRepository#saveAll should not save instances one at a time.
+* DATAGRAPH-341 - Support for PersistenceConstructor.
+
+
 Changes in version 5.0.3.RELEASE (2018-01-24)
 ---------------------------------------------
 * DATAGRAPH-1059 - Upgrade to Neo4j OGM 3.0.3.
