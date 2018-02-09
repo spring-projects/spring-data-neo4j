@@ -16,7 +16,12 @@ import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +36,11 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.examples.movies.domain.Rating;
 import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
 import org.springframework.data.neo4j.examples.movies.domain.User;
-import org.springframework.data.neo4j.examples.movies.domain.queryresult.*;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.EntityWrappingQueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.Gender;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.RichUserQueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.UserQueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.UserQueryResultObject;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UnmanagedUserPojo;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
@@ -129,6 +138,99 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByName("Michal");
+				assertEquals("Michal", user.getName());
+			}
+		});
+	}
+
+	@Test
+	public void shouldFindUserByNameUsingSpElWithObject() {
+		executeUpdate("CREATE (m:User {name:'Michal'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = userRepository.findUserByNameUsingSpElWithObject(new User("Michal"));
+				assertEquals("Michal", user.getName());
+			}
+		});
+	}
+
+	@Test
+	public void shouldFindUserByNameUsingSpElWithIndex() {
+		executeUpdate("CREATE (m:User {name:'Michal'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = userRepository.findUserByNameUsingSpElWithIndex("Michal");
+				assertEquals("Michal", user.getName());
+			}
+		});
+	}
+
+	@Test
+	public void shouldFindUserByNameUsingSpElWithGenericSpElExpression() {
+		executeUpdate("CREATE (m:User {age:10, name:'Michal'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = userRepository.findUserByNameUsingSpElWithSpElExpression();
+				assertEquals("Michal", user.getName());
+			}
+		});
+	}
+
+	@Test
+	public void shouldFindUserByNameAndMiddleNameUsingSpElWithObject() {
+		executeUpdate("CREATE (m:User {name:'Michal', middleName:'Hans'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User userForSearch = new User("Michal");
+				userForSearch.setMiddleName("Hans");
+				User user = userRepository.findUserByNameAndMiddleNameUsingSpElWithObject(userForSearch);
+				assertEquals("Michal", user.getName());
+			}
+		});
+	}
+
+	@Test
+	public void shouldFindUserByNameUsingSpElWithValue() {
+		executeUpdate("CREATE (m:User {name:'Michal'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = userRepository.findUserByNameAndMiddleNameUsingSpElWithValue();
+				assertEquals("Michal", user.getName());
+			}
+		});
+	}
+
+	@Test
+	public void shouldFindUserByNameAndSurnameUsingSpElIndexAndPlaceholderWithOneParameter() {
+		executeUpdate("CREATE (m:User {name:'Michal', surname:'Michal'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = userRepository.findUserByNameAndSurnameUsingSpElIndexAndPlaceholderWithOneParameter("Michal");
+				assertEquals("Michal", user.getName());
+			}
+		});
+	}
+
+	@Test
+	public void shouldFindUserByNameAndSurnameUsingSpElPropertyAndPlaceholderWithOneParameter() {
+		executeUpdate("CREATE (m:User {name:'Michal', surname:'Michal'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = userRepository.findUserByNameAndSurnameUsingSpElPropertyAndPlaceholderWithOneParameter("Michal");
 				assertEquals("Michal", user.getName());
 			}
 		});

@@ -13,6 +13,8 @@
 
 package org.springframework.data.neo4j.repository.query;
 
+import java.util.Collections;
+
 import org.neo4j.ogm.session.Session;
 
 /**
@@ -32,7 +34,7 @@ public class NamedGraphRepositoryQuery extends GraphRepositoryQuery {
 
 	@Override
 	protected Query getQuery(Object[] parameters) {
-		return new Query(cypherQuery, resolveParams(parameters));
+		return new Query(cypherQuery, resolveParams(parameters, Collections.emptyMap()));
 	}
 
 }

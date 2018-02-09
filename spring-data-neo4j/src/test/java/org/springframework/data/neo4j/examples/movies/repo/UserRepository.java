@@ -132,4 +132,25 @@ public interface UserRepository extends PersonRepository<User, Long> {
     User findByEmailAddressesContains(List<String> emails);
 
     List<User> findByEmailAddressesNotContaining(String email);
+
+	@Query("MATCH (user:User) WHERE user.name=:#{#searchUser.name} RETURN user")
+	User findUserByNameUsingSpElWithObject(@Param("searchUser") User user);
+
+	@Query("MATCH (user:User) WHERE user.name=?#{[0]} RETURN user")
+	User findUserByNameUsingSpElWithIndex(String name);
+
+	@Query("MATCH (user:User) WHERE user.age=?#{#5+5} RETURN user")
+	User findUserByNameUsingSpElWithSpElExpression();
+
+	@Query("MATCH (user:User) WHERE user.name=:#{#searchUser.name} and user.middleName=?#{#searchUser.middleName} RETURN user")
+	User findUserByNameAndMiddleNameUsingSpElWithObject(@Param("searchUser") User user);
+
+	@Query("MATCH (user:User) WHERE user.name=:#{'Michal'} RETURN user")
+	User findUserByNameAndMiddleNameUsingSpElWithValue();
+
+	@Query("MATCH (user:User) WHERE user.name=?#{[0]} and user.surname={name} RETURN user")
+	User findUserByNameAndSurnameUsingSpElIndexAndPlaceholderWithOneParameter(@Param("name") String queryName);
+
+	@Query("MATCH (user:User) WHERE user.name=:#{#name} and user.surname={name} RETURN user")
+	User findUserByNameAndSurnameUsingSpElPropertyAndPlaceholderWithOneParameter(@Param("name") String queryName);
 }

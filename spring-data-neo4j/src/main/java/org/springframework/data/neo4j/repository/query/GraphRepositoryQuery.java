@@ -26,9 +26,11 @@
 
 package org.springframework.data.neo4j.repository.query;
 
-
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.model.Result;
@@ -39,7 +41,7 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
-
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * Specialisation of {@link RepositoryQuery} that handles mapping to object annotated with <code>&#064;Query</code>.
@@ -76,21 +78,68 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 		Object result = getExecution(accessor).execute(query, processor.getReturnedType().getReturnedType());
 
-		return Result.class.equals(returnType)
-				? result : processor.processResult(result, new CustomResultConverter(getMetaData(), processor.getReturnedType().getReturnedType()));
+		return Result.class.equals(returnType) ? result
+				: processor.processResult(result,
+						new CustomResultConverter(getMetaData(), processor.getReturnedType().getReturnedType()));
 	}
 
 	protected Query getQuery(Object[] parameters) {
-		return new Query(getQueryString(), graphQueryMethod.getCountQueryString(), resolveParams(parameters));
+		ParameterizedQuery cypherQuery = getParameterizedQuery();
+		Map<String, Object> cypherParameters = resolveParams(parameters, cypherQuery.placeholders);
+
+		return new Query(cypherQuery.queryString, graphQueryMethod.getCountQueryString(), cypherParameters);
 	}
 
-	Map<String, Object> resolveParams(Object[] parameters) {
+	Map<String, Object> resolveParams(Object[] parameters, Map<String, String> placeholders) {
 
 		Map<String, Object> params = new HashMap<>();
 		Parameters<?, ?> methodParameters = graphQueryMethod.getParameters();
+		Set<Parameter> usedParameters = new HashSet<>();
 
+		for (String placeholderKey : placeholders.keySet()) {
+			AtomicBoolean found = new AtomicBoolean(false);
+			for (int i = 0; i < parameters.length; i++) {
+				Parameter parameter = methodParameters.getParameter(i);
+				Object parameterValue = getParameterValue(parameters[i]);
+
+				if (parameter.isExplicitlyNamed()) {
+					parameter.getName().ifPresent(name -> {
+						if (placeholderKey.startsWith(name) && !placeholderKey.equals(name)) {
+							Object value = new SpelExpressionParser()
+									.parseExpression(placeholderKey.substring(placeholderKey.indexOf(".") + 1)).getValue(parameterValue);
+							String placeHolderString = placeholders.get(placeholderKey);
+							params.put(placeHolderString, value);
+							usedParameters.add(parameter);
+						} else {
+							params.put(placeholderKey, parameterValue);
+						}
+						found.set(true);
+
+					});
+				} else {
+					params.put("" + i, parameterValue);
+					found.set(true);
+				}
+			}
+			// unmapped placeholders in query string e.g. pure SpEl values like 5 + 5
+			if (!found.get()) {
+				try {
+					Object value = new SpelExpressionParser().parseExpression(placeholderKey).getValue();
+					String placeHolderString = placeholders.get(placeholderKey);
+					params.put(placeHolderString, value);
+				} catch (Exception e) {
+					/// asdf
+				}
+			}
+
+		}
+
+		// unmapped parameters in method signature because no SpEl placeholder matches
 		for (int i = 0; i < parameters.length; i++) {
 			Parameter parameter = methodParameters.getParameter(i);
+			if (usedParameters.contains(parameter)) {
+				continue;
+			}
 			Object parameterValue = getParameterValue(parameters[i]);
 
 			if (parameter.isExplicitlyNamed()) {
@@ -99,6 +148,7 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 				params.put("" + i, parameterValue);
 			}
 		}
+
 		return params;
 	}
 
@@ -107,15 +157,80 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 		return session.doInTransaction((requestHandler, transaction, metaData) -> metaData);
 	}
 
+	private ParameterizedQuery getParameterizedQuery() {
+		String queryString = getQueryString();
+
+		String spElObjectColon = ":#{#";
+		String spElObjectQuestionMark = "?#{#";
+		String spElIndexColon = ":#{[";
+		String spElIndexQuestionMark = "?#{[";
+		String spElValueColon = ":#{";
+		String spElValueQuestionMark = "?#{";
+
+		HashMap<String, String> placeholderMapping = new HashMap<>();
+
+		int objectIndex;
+		int placeholderIndex = 0;
+		// object
+		while ((objectIndex = queryString.indexOf(spElObjectColon)) > -1) {
+			String placeHolderInQueryAnnotation = queryString.substring(objectIndex,
+					queryString.indexOf("}", objectIndex) + 1);
+			queryString = queryString.replace(placeHolderInQueryAnnotation, "{" + placeholderIndex + "}");
+			placeholderMapping.put(placeHolderInQueryAnnotation.replace(spElObjectColon, "").replace("}", ""),
+					"" + placeholderIndex++);
+
+		}
+		while ((objectIndex = queryString.indexOf(spElObjectQuestionMark)) > -1) {
+			String placeHolderInQueryAnnotation = queryString.substring(objectIndex,
+					queryString.indexOf("}", objectIndex) + 1);
+			queryString = queryString.replace(placeHolderInQueryAnnotation, "{" + placeholderIndex + "}");
+			placeholderMapping.put(placeHolderInQueryAnnotation.replace(spElObjectQuestionMark, "").replace("}", ""),
+					"" + placeholderIndex++);
+		}
+		// index
+		while ((objectIndex = queryString.indexOf(spElIndexColon)) > -1) {
+			String placeHolderInQueryAnnotation = queryString.substring(objectIndex,
+					queryString.indexOf("]}", objectIndex) + 2);
+			queryString = queryString.replace(placeHolderInQueryAnnotation, "{" + placeholderIndex + "}");
+			placeholderMapping.put(placeHolderInQueryAnnotation.replace(spElIndexColon, "").replace("]}", ""),
+					"" + placeholderIndex++);
+
+		}
+		while ((objectIndex = queryString.indexOf(spElIndexQuestionMark)) > -1) {
+			String placeHolderInQueryAnnotation = queryString.substring(objectIndex,
+					queryString.indexOf("]}", objectIndex) + 2);
+			queryString = queryString.replace(placeHolderInQueryAnnotation, "{" + placeholderIndex + "}");
+			placeholderMapping.put(placeHolderInQueryAnnotation.replace(spElIndexQuestionMark, "").replace("]}", ""),
+					"" + placeholderIndex++);
+		}
+		// object
+		while ((objectIndex = queryString.indexOf(spElValueColon)) > -1) {
+			String placeHolderInQueryAnnotation = queryString.substring(objectIndex,
+					queryString.indexOf("}", objectIndex) + 1);
+			queryString = queryString.replace(placeHolderInQueryAnnotation, "{" + placeholderIndex + "}");
+			placeholderMapping.put(placeHolderInQueryAnnotation.replace(spElValueColon, "").replace("}", ""),
+					"" + placeholderIndex++);
+
+		}
+		while ((objectIndex = queryString.indexOf(spElValueQuestionMark)) > -1) {
+			String placeHolderInQueryAnnotation = queryString.substring(objectIndex,
+					queryString.indexOf("}", objectIndex) + 1);
+			queryString = queryString.replace(placeHolderInQueryAnnotation, "{" + placeholderIndex + "}");
+			placeholderMapping.put(placeHolderInQueryAnnotation.replace(spElValueQuestionMark, "").replace("}", ""),
+					"" + placeholderIndex++);
+		}
+		return new ParameterizedQuery(queryString, placeholderMapping);
+	}
+
 	private String getQueryString() {
 		return getQueryMethod().getQuery();
 	}
 
 	private Object getParameterValue(Object parameter) {
 
-		//The parameter might be an entity, try to resolve its id
+		// The parameter might be an entity, try to resolve its id
 		Object parameterValue = session.resolveGraphIdFor(parameter);
-		if (parameterValue == null) { //Either not an entity or not persisted
+		if (parameterValue == null) { // Either not an entity or not persisted
 			parameterValue = parameter;
 		}
 		return parameterValue;
@@ -134,5 +249,15 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 	@Override
 	protected boolean isDeleteQuery() {
 		return false;
+	}
+
+	class ParameterizedQuery {
+		final String queryString;
+		final Map<String, String> placeholders;
+
+		ParameterizedQuery(String queryString, Map<String, String> placeholders) {
+			this.queryString = queryString;
+			this.placeholders = placeholders;
+		}
 	}
 }
