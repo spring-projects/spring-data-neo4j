@@ -14,6 +14,7 @@
 package org.springframework.data.neo4j.repository.query;
 
 import org.neo4j.ogm.session.Session;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 
 /**
  * Specialisation of {@link GraphRepositoryQuery} that creates queries from named queries defined in
@@ -25,14 +26,15 @@ public class NamedGraphRepositoryQuery extends GraphRepositoryQuery {
 
 	private final String cypherQuery;
 
-	NamedGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session, String cypherQuery) {
-		super(graphQueryMethod, session);
+	NamedGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session, String cypherQuery,
+			QueryMethodEvaluationContextProvider evaluationContextProvider) {
+		super(graphQueryMethod, session, evaluationContextProvider);
 		this.cypherQuery = cypherQuery;
 	}
 
 	@Override
 	protected Query getQuery(Object[] parameters) {
-		return new Query(cypherQuery, resolveParams(parameters));
+		return new Query(cypherQuery, resolveParams(getGraphQueryMethod().getParameters(), parameters));
 	}
 
 }
