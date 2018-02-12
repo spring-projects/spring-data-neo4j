@@ -157,4 +157,10 @@ public interface UserRepository extends PersonRepository<User, Long> {
 
 	@Query("MATCH (user:User) WHERE user.name=:#{#name} and user.surname={name} RETURN user")
 	User findUserByNameAndSurnameUsingSpElPropertyAndIndexWithOneParameter(@Param("name") String queryName);
+
+	@Query("MATCH (user:User) WHERE user.name=:#{#name} and user.surname=:#{#name} RETURN user")
+	User findUserByNameAndSurnameUsingSpElPropertyTwice(@Param("name") String queryName);
+
+	@Query("MATCH (user:User) WHERE user.name=:#{#name} and user.surname=:#{[0]} RETURN user")
+	User findUserByNameAndSurnameUsingSpElPropertyAndSpElIndex(@Param("name") String queryName);
 }
