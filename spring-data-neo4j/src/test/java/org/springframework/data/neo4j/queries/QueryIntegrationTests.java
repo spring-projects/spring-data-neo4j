@@ -237,6 +237,19 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 	}
 
 	@Test
+	public void shouldFindUserByNameAndSurnameUsingSpElPropertyAndIndexWithOneParameter() {
+		executeUpdate("CREATE (m:User {name:'Michal', surname:'Michal'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = userRepository.findUserByNameAndSurnameUsingSpElPropertyAndIndexWithOneParameter("Michal");
+				assertEquals("Michal", user.getName());
+			}
+		});
+	}
+
+	@Test
 	public void shouldFindTotalUsers() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 

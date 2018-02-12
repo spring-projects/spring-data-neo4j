@@ -140,6 +140,7 @@ public interface UserRepository extends PersonRepository<User, Long> {
 	User findUserByNameUsingSpElWithIndex(String name);
 
 	@Query("MATCH (user:User) WHERE user.age=?#{#5+5} RETURN user")
+//	@Query("MATCH (user:User) WHERE user.age=?#{5+5} RETURN user")
 	User findUserByNameUsingSpElWithSpElExpression();
 
 	@Query("MATCH (user:User) WHERE user.name=:#{#searchUser.name} and user.middleName=?#{#searchUser.middleName} RETURN user")
@@ -153,4 +154,7 @@ public interface UserRepository extends PersonRepository<User, Long> {
 
 	@Query("MATCH (user:User) WHERE user.name=:#{#name} and user.surname={name} RETURN user")
 	User findUserByNameAndSurnameUsingSpElPropertyAndPlaceholderWithOneParameter(@Param("name") String queryName);
+
+	@Query("MATCH (user:User) WHERE user.name=:#{#name} and user.surname={name} RETURN user")
+	User findUserByNameAndSurnameUsingSpElPropertyAndIndexWithOneParameter(@Param("name") String queryName);
 }
