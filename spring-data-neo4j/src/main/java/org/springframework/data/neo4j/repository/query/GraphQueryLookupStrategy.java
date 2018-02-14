@@ -20,6 +20,7 @@ import org.springframework.data.neo4j.repository.query.derived.DerivedGraphRepos
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.RepositoryQuery;
 
@@ -33,9 +34,11 @@ import org.springframework.data.repository.query.RepositoryQuery;
 public class GraphQueryLookupStrategy implements QueryLookupStrategy {
 
 	private final Session session;
+	private final EvaluationContextProvider evaluationContextProvider;
 
-	public GraphQueryLookupStrategy(Session session) {
+	public GraphQueryLookupStrategy(Session session, EvaluationContextProvider evaluationContextProvider) {
 		this.session = session;
+		this.evaluationContextProvider = evaluationContextProvider;
 	}
 
 	/* 
@@ -51,9 +54,9 @@ public class GraphQueryLookupStrategy implements QueryLookupStrategy {
 
 		if (namedQueries.hasQuery(namedQueryName)) {
 			String cypherQuery = namedQueries.getQuery(namedQueryName);
-			return new NamedGraphRepositoryQuery(queryMethod, session, cypherQuery);
+			return new NamedGraphRepositoryQuery(queryMethod, session, cypherQuery, evaluationContextProvider);
 		} else if (queryMethod.hasAnnotatedQuery()) {
-			return new GraphRepositoryQuery(queryMethod, session);
+			return new GraphRepositoryQuery(queryMethod, session, evaluationContextProvider);
 		} else {
 			return new DerivedGraphRepositoryQuery(queryMethod, session);
 		}

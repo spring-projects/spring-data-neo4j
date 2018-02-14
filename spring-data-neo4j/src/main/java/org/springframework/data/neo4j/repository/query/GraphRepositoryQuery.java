@@ -38,10 +38,12 @@ import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
@@ -59,11 +61,14 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 	private final GraphQueryMethod graphQueryMethod;
 	private final Session session;
+	private final EvaluationContextProvider evaluationContextProvider;
 
-	public GraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session) {
+	public GraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session,
+			EvaluationContextProvider evaluationContextProvider) {
 		super(graphQueryMethod, session);
 		this.graphQueryMethod = graphQueryMethod;
 		this.session = session;
+		this.evaluationContextProvider = evaluationContextProvider;
 	}
 
 	protected Object doExecute(Query query, Object[] parameters) {
@@ -96,7 +101,10 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 		System.out.println(placeholders);
 		Map<String, Object> params = new HashMap<>();
 		Parameters<?, ?> methodParameters = graphQueryMethod.getParameters();
+		EvaluationContext evaluationContext = evaluationContextProvider.getEvaluationContext(methodParameters, parameters);
+
 		Set<Parameter> usedParameters = new HashSet<>();
+
 
 		for (String placeholderKey : placeholders.keySet()) {
 			AtomicBoolean found = new AtomicBoolean(false);
@@ -109,7 +117,7 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 						String placeHolderString = placeholders.get(placeholderKey);
 						if (placeholderKey.startsWith(name) && !placeholderKey.equals(name)) {
 							Object value = new SpelExpressionParser()
-									.parseExpression(placeholderKey.substring(placeholderKey.indexOf(".") + 1)).getValue(parameterValue);
+									.parseExpression("#"+placeholderKey).getValue(evaluationContext, Object.class);
 							params.put(placeHolderString, value);
 						} else {
 							params.put(placeHolderString, parameterValue);
