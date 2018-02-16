@@ -1,3 +1,16 @@
+/*
+ * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ *
+ * This product is licensed to you under the Apache License, Version 2.0 (the "License").
+ * You may not use this product except in compliance with the License.
+ *
+ * This product may include a number of subcomponents with
+ * separate copyright notices and license terms. Your use of the source
+ * code for these subcomponents is subject to the terms and
+ * conditions of the subcomponent's license, as noted in the LICENSE file.
+ *
+ */
+
 package org.springframework.data.neo4j.repository.query.spel;
 
 import java.util.HashMap;
@@ -11,10 +24,6 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
-/**
- * This class is a wrapper for the query string with Neo4j driver specific placeholders and Spring Expression language
- * resolved parameters.
- */
 public class ParameterizedQuery {
 	private static final String PATTERN = "[:?]#\\{(#?[^}]+)}";
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
