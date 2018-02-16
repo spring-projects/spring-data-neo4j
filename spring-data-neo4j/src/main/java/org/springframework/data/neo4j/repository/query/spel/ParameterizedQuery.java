@@ -46,18 +46,22 @@ public class ParameterizedQuery {
 		String processedQuery = queryString;
 		Matcher matcher = Pattern.compile(PATTERN).matcher(queryString);
 		Map<String, String> processedExpressions = new HashMap<>();
+
+		int expressionRegexGroupIndex = 1;
 		while (matcher.find()) {
 
-			int expressionRegexGroupIndex = 1;
 			String expression = matcher.group(expressionRegexGroupIndex);
 			if (processedExpressions.containsKey(expression)) {
-				processedQuery = processedQuery.replaceFirst(PATTERN,
-						supplier.decoratePlaceholder(processedExpressions.get(expression)));
+
+				String decoratedPlaceholder = supplier.decoratePlaceholder(processedExpressions.get(expression));
+				processedQuery = processedQuery.replaceFirst(PATTERN, decoratedPlaceholder);
 			} else {
+
 				String placeholder = supplier.nextPlaceholder();
-				String placeholderForQueryString = supplier.decoratePlaceholder(placeholder);
+				String decoratedPlaceholder = supplier.decoratePlaceholder(placeholder);
+
 				processedExpressions.put(expression, placeholder);
-				processedQuery = processedQuery.replaceFirst(PATTERN, placeholderForQueryString);
+				processedQuery = processedQuery.replaceFirst(PATTERN, decoratedPlaceholder);
 			}
 		}
 
