@@ -21,9 +21,9 @@ import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.neo4j.repository.query.spel.Neo4jQueryPlaceholderSupplier;
 import org.springframework.data.neo4j.repository.query.spel.ParameterizedQuery;
 import org.springframework.data.repository.query.*;
-import org.springframework.expression.EvaluationContext;
 
 /**
  * Specialisation of {@link RepositoryQuery} that handles mapping to object annotated with <code>&#064;Query</code>.
@@ -73,19 +73,21 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 		ParameterizedQuery parameterizedQuery = getParameterizedQuery();
 
 		Parameters<?, ?> methodParameters = graphQueryMethod.getParameters();
-		Map<String, Object> parametersFromQuery = parameterizedQuery.resolveParameter(methodParameters, parameters, this::resolveParams);
+		Map<String, Object> parametersFromQuery = parameterizedQuery.resolveParameter(methodParameters, parameters,
+				this::resolveParams);
 
 		return new Query(parameterizedQuery.getQueryString(), graphQueryMethod.getCountQueryString(), parametersFromQuery);
 	}
 
 	private ParameterizedQuery getParameterizedQuery() {
 		if (parameterizedQuery == null) {
-			parameterizedQuery = ParameterizedQuery.getParameterizedQuery(getAnnotationQueryString(), evaluationContextProvider);
+			parameterizedQuery = ParameterizedQuery.getParameterizedQuery(getAnnotationQueryString(),
+					evaluationContextProvider, new Neo4jQueryPlaceholderSupplier());
 		}
 		return parameterizedQuery;
 	}
 
-	Map<String, Object> resolveParams(Parameters<?,?> methodParameters, Object[] parameters) {
+	Map<String, Object> resolveParams(Parameters<?, ?> methodParameters, Object[] parameters) {
 		Map<String, Object> params = new HashMap<>();
 
 		for (int i = 0; i < parameters.length; i++) {

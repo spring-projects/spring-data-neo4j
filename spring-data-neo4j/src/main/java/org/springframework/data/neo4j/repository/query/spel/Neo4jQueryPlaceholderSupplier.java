@@ -15,7 +15,7 @@ package org.springframework.data.neo4j.repository.query.spel;
 
 public class Neo4jQueryPlaceholderSupplier implements PlaceholderSupplier {
 
-	private static final String PLACEHOLDER = "spel_expression";
+	private static final String PLACEHOLDER = "spel_expr";
 	private int index = 0;
 
 	@Override
@@ -24,7 +24,7 @@ public class Neo4jQueryPlaceholderSupplier implements PlaceholderSupplier {
 	}
 
 	@Override
-	public String decoratedPlaceholder(String placeholder) {
+	public String decoratePlaceholder(String placeholder) {
 		return "{" + placeholder + "}";
 	}
 }

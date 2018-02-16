@@ -34,14 +34,14 @@ public class ParameterizedQuery {
 
 	private ParameterizedQuery(String queryString, Map<String, String> expressionParameters,
 			EvaluationContextProvider evaluationContextProvider) {
+
 		this.evaluationContextProvider = evaluationContextProvider;
 		this.queryString = queryString;
 		this.processedExpressions = expressionParameters;
 	}
 
 	public static ParameterizedQuery getParameterizedQuery(String queryString,
-			EvaluationContextProvider evaluationContextProvider) {
-		PlaceholderSupplier supplier = new Neo4jQueryPlaceholderSupplier();
+			EvaluationContextProvider evaluationContextProvider, PlaceholderSupplier supplier) {
 
 		String processedQuery = queryString;
 		Matcher matcher = Pattern.compile(PATTERN).matcher(queryString);
@@ -52,10 +52,10 @@ public class ParameterizedQuery {
 			String expression = matcher.group(expressionRegexGroupIndex);
 			if (processedExpressions.containsKey(expression)) {
 				processedQuery = processedQuery.replaceFirst(PATTERN,
-						supplier.decoratedPlaceholder(processedExpressions.get(expression)));
+						supplier.decoratePlaceholder(processedExpressions.get(expression)));
 			} else {
 				String placeholder = supplier.nextPlaceholder();
-				String placeholderForQueryString = supplier.decoratedPlaceholder(placeholder);
+				String placeholderForQueryString = supplier.decoratePlaceholder(placeholder);
 				processedExpressions.put(expression, placeholder);
 				processedQuery = processedQuery.replaceFirst(PATTERN, placeholderForQueryString);
 			}
@@ -68,16 +68,14 @@ public class ParameterizedQuery {
 		return PARSER.parseExpression(expression).getValue(evaluationContext, Object.class);
 	}
 
-	public Map<String, Object> resolveParameter(Parameters<?, ?> methodParameters,
-												Object[] parameters,
-												BiFunction<Parameters<?, ?>, Object[], Map<String,Object>> nativeParameterResolverFunction) {
-		EvaluationContext evaluationContext = evaluationContextProvider.getEvaluationContext(methodParameters, parameters);
+	public Map<String, Object> resolveParameter(Parameters<?, ?> methodParameters, Object[] parameters,
+			BiFunction<Parameters<?, ?>, Object[], Map<String, Object>> nativePlaceholderFunction) {
 
-		Map<String, Object> parameterValues = new HashMap<>(nativeParameterResolverFunction.apply(methodParameters, parameters));
+		EvaluationContext evaluationContext = evaluationContextProvider.getEvaluationContext(methodParameters, parameters);
+		Map<String, Object> parameterValues = new HashMap<>(nativePlaceholderFunction.apply(methodParameters, parameters));
 
 		for (Map.Entry<String, String> expression : processedExpressions.entrySet()) {
-			Object spElValue = getSpElValue(evaluationContext, expression.getKey());
-			parameterValues.put(expression.getValue(), spElValue);
+			parameterValues.put(expression.getValue(), getSpElValue(evaluationContext, expression.getKey()));
 		}
 		return parameterValues;
 	}
