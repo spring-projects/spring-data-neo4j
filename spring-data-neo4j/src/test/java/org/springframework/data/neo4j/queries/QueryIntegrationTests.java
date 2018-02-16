@@ -170,7 +170,20 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 	}
 
 	@Test
-	public void shouldFindUserByNameUsingSpElWithGenericSpElExpression() {
+	public void shouldFindUserByNameUsingSpElWithIndexColon() {
+		executeUpdate("CREATE (m:User {name:'Michal'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = userRepository.findUserByNameUsingSpElWithIndexColon("Michal");
+				assertEquals("Michal", user.getName());
+			}
+		});
+	}
+
+	@Test
+	public void shouldFindUserByAgeUsingSpElWithGenericSpElExpression() {
 		executeUpdate("CREATE (m:User {age:10, name:'Michal'})");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {

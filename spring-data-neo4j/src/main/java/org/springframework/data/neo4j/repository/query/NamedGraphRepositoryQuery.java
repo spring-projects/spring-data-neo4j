@@ -36,7 +36,7 @@ public class NamedGraphRepositoryQuery extends GraphRepositoryQuery {
 
 	@Override
 	protected Query getQuery(Object[] parameters) {
-		return new Query(cypherQuery, resolveParams(parameters, Collections.emptyMap()));
+		return new Query(cypherQuery, resolveParams(getGraphQueryMethod().getParameters(), parameters));
 	}
 
 }

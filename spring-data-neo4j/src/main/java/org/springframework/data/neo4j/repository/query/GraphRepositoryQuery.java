@@ -26,25 +26,17 @@
 
 package org.springframework.data.neo4j.repository.query;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.repository.query.EvaluationContextProvider;
-import org.springframework.data.repository.query.Parameter;
-import org.springframework.data.repository.query.Parameters;
-import org.springframework.data.repository.query.RepositoryQuery;
-import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.neo4j.repository.query.spel.ParameterizedQuery;
+import org.springframework.data.repository.query.*;
 import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * Specialisation of {@link RepositoryQuery} that handles mapping to object annotated with <code>&#064;Query</code>.
@@ -62,6 +54,7 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 	private final GraphQueryMethod graphQueryMethod;
 	private final Session session;
 	private final EvaluationContextProvider evaluationContextProvider;
+	private ParameterizedQuery parameterizedQuery;
 
 	public GraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session,
 			EvaluationContextProvider evaluationContextProvider) {
@@ -90,76 +83,33 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 	}
 
 	protected Query getQuery(Object[] parameters) {
-		ParameterizedQuery cypherQuery = getParameterizedQuery();
-		Map<String, Object> cypherParameters = resolveParams(parameters, cypherQuery.placeholders);
+		ParameterizedQuery parameterizedQuery = getParameterizedQuery();
 
-		return new Query(cypherQuery.queryString, graphQueryMethod.getCountQueryString(), cypherParameters);
+		Parameters<?, ?> methodParameters = graphQueryMethod.getParameters();
+		Map<String, Object> parametersFromQuery = parameterizedQuery.resolveParameter(methodParameters, parameters, this::resolveParams);
+
+		return new Query(parameterizedQuery.getQueryString(), graphQueryMethod.getCountQueryString(), parametersFromQuery);
 	}
 
-	Map<String, Object> resolveParams(Object[] parameters, Map<String, String> placeholders) {
-		System.out.println(Arrays.toString(parameters));
-		System.out.println(placeholders);
-		Map<String, Object> params = new HashMap<>();
-		Parameters<?, ?> methodParameters = graphQueryMethod.getParameters();
-		EvaluationContext evaluationContext = evaluationContextProvider.getEvaluationContext(methodParameters, parameters);
-
-		Set<Parameter> usedParameters = new HashSet<>();
-
-
-		for (String placeholderKey : placeholders.keySet()) {
-			AtomicBoolean found = new AtomicBoolean(false);
-			for (int i = 0; i < parameters.length; i++) {
-				Parameter parameter = methodParameters.getParameter(i);
-				Object parameterValue = getParameterValue(parameters[i]);
-
-				if (parameter.isExplicitlyNamed()) {
-					parameter.getName().ifPresent(name -> {
-						String placeHolderString = placeholders.get(placeholderKey);
-						if (placeholderKey.startsWith(name) && !placeholderKey.equals(name)) {
-							Object value = new SpelExpressionParser()
-									.parseExpression("#"+placeholderKey).getValue(evaluationContext, Object.class);
-							params.put(placeHolderString, value);
-						} else {
-							params.put(placeHolderString, parameterValue);
-						}
-						found.set(true);
-						usedParameters.add(parameter);
-
-					});
-				} else {
-					Object value = new SpelExpressionParser()
-							.parseExpression(placeholderKey.substring(placeholderKey.indexOf(".") + 1)).getValue(parameterValue);
-					params.put("" + i, value);
-					found.set(true);
-					usedParameters.add(parameter);
-				}
-			}
-			// unmapped placeholders in query string e.g. pure SpEl values like 5 + 5
-			if (!found.get()) {
-				try {
-					Object value = new SpelExpressionParser().parseExpression(placeholderKey).getValue();
-					String placeHolderString = placeholders.get(placeholderKey);
-					params.put(placeHolderString, value);
-				} catch (Exception e) {
-					/// asdf
-				}
-			}
-
+	private ParameterizedQuery getParameterizedQuery() {
+		if (parameterizedQuery == null) {
+			parameterizedQuery = ParameterizedQuery.getParameterizedQuery(getAnnotationQueryString(), evaluationContextProvider);
 		}
+		return parameterizedQuery;
+	}
 
-		// unmapped parameters in method signature because no SpEl placeholder matches
+	Map<String, Object> resolveParams(Parameters<?,?> methodParameters, Object[] parameters) {
+		Map<String, Object> params = new HashMap<>();
+
 		for (int i = 0; i < parameters.length; i++) {
 			Parameter parameter = methodParameters.getParameter(i);
-//			if (usedParameters.contains(parameter)) {
-//				continue;
-//			}
 			Object parameterValue = getParameterValue(parameters[i]);
 
-//			if (parameter.isExplicitlyNamed()) {
+			if (parameter.isExplicitlyNamed()) {
 				parameter.getName().ifPresent(name -> params.put(name, parameterValue));
-//			} else {
+			} else {
 				params.put("" + i, parameterValue);
-//			}
+			}
 		}
 
 		return params;
@@ -170,70 +120,7 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 		return session.doInTransaction((requestHandler, transaction, metaData) -> metaData);
 	}
 
-	private ParameterizedQuery getParameterizedQuery() {
-		String queryString = getQueryString();
-		System.out.println(queryString);
-		String spElIndexColon = ":#{[";
-		String spElIndexQuestionMark = "?#{[";
-
-		String spElObjectColon = ":#{#";
-		String spElObjectQuestionMark = "?#{#";
-		String spElValueColon = ":#{";
-		String spElValueQuestionMark = "?#{";
-
-		HashMap<String, String> placeholderMapping = new HashMap<>();
-
-		int objectIndex;
-		int placeholderIndex = Integer.MAX_VALUE;
-		// index
-		while ((objectIndex = queryString.indexOf(spElIndexColon)) > -1) {
-			String placeHolderInQueryAnnotation = queryString.substring(objectIndex, queryString.indexOf("]}", objectIndex) + 2);
-			String givenIndex = queryString.substring(objectIndex + 4, queryString.indexOf("]"));
-			// just replace the SpEL index with native index placeholder
-			queryString = queryString.replace(placeHolderInQueryAnnotation, "{" + givenIndex + "}");
-		}
-		while ((objectIndex = queryString.indexOf(spElIndexQuestionMark)) > -1) {
-			String placeHolderInQueryAnnotation = queryString.substring(objectIndex, queryString.indexOf("]}", objectIndex) + 2);
-			String givenIndex = queryString.substring(objectIndex + 4, queryString.indexOf("]"));
-			// just replace the SpEL index with native index placeholder
-			queryString = queryString.replace(placeHolderInQueryAnnotation, "{" + givenIndex + "}");
-		}
-		// object
-		while ((objectIndex = queryString.indexOf(spElObjectColon)) > -1) {
-			String placeHolderInQueryAnnotation = queryString.substring(objectIndex,
-					queryString.indexOf("}", objectIndex) + 1);
-			queryString = queryString.replace(placeHolderInQueryAnnotation, "{" + placeholderIndex + "}");
-			placeholderMapping.put(placeHolderInQueryAnnotation.replace(spElObjectColon, "").replace("}", ""),
-					"" + placeholderIndex--);
-
-		}
-		while ((objectIndex = queryString.indexOf(spElObjectQuestionMark)) > -1) {
-			String placeHolderInQueryAnnotation = queryString.substring(objectIndex,
-					queryString.indexOf("}", objectIndex) + 1);
-			queryString = queryString.replace(placeHolderInQueryAnnotation, "{" + placeholderIndex + "}");
-			placeholderMapping.put(placeHolderInQueryAnnotation.replace(spElObjectQuestionMark, "").replace("}", ""),
-					"" + placeholderIndex--);
-		}
-		// value
-		while ((objectIndex = queryString.indexOf(spElValueColon)) > -1) {
-			String placeHolderInQueryAnnotation = queryString.substring(objectIndex,
-					queryString.indexOf("}", objectIndex) + 1);
-			queryString = queryString.replace(placeHolderInQueryAnnotation, "{" + placeholderIndex + "}");
-			placeholderMapping.put(placeHolderInQueryAnnotation.replace(spElValueColon, "").replace("}", ""),
-					"" + placeholderIndex--);
-
-		}
-		while ((objectIndex = queryString.indexOf(spElValueQuestionMark)) > -1) {
-			String placeHolderInQueryAnnotation = queryString.substring(objectIndex,
-					queryString.indexOf("}", objectIndex) + 1);
-			queryString = queryString.replace(placeHolderInQueryAnnotation, "{" + placeholderIndex + "}");
-			placeholderMapping.put(placeHolderInQueryAnnotation.replace(spElValueQuestionMark, "").replace("}", ""),
-					"" + placeholderIndex--);
-		}
-		return new ParameterizedQuery(queryString, placeholderMapping);
-	}
-
-	private String getQueryString() {
+	private String getAnnotationQueryString() {
 		return getQueryMethod().getQuery();
 	}
 
@@ -262,14 +149,8 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 		return false;
 	}
 
-	class ParameterizedQuery {
-		final String queryString;
-		final Map<String, String> placeholders;
-
-		ParameterizedQuery(String queryString, Map<String, String> placeholders) {
-			this.queryString = queryString;
-			this.placeholders = placeholders;
-			System.out.println(queryString);
-		}
+	GraphQueryMethod getGraphQueryMethod() {
+		return graphQueryMethod;
 	}
+
 }
