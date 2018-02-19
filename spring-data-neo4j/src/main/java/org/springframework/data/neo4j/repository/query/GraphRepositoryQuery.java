@@ -21,9 +21,12 @@ import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.neo4j.repository.query.spel.Neo4jQueryPlaceholderSupplier;
 import org.springframework.data.neo4j.repository.query.spel.ParameterizedQuery;
-import org.springframework.data.repository.query.*;
+import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.data.repository.query.Parameter;
+import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ResultProcessor;
 
 /**
  * Specialisation of {@link RepositoryQuery} that handles mapping to object annotated with <code>&#064;Query</code>.
@@ -43,8 +46,8 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 	private final EvaluationContextProvider evaluationContextProvider;
 	private ParameterizedQuery parameterizedQuery;
 
-	public GraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session,
-			EvaluationContextProvider evaluationContextProvider) {
+	GraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session,
+						 EvaluationContextProvider evaluationContextProvider) {
 		super(graphQueryMethod, session);
 		this.graphQueryMethod = graphQueryMethod;
 		this.session = session;
@@ -71,18 +74,16 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 	protected Query getQuery(Object[] parameters) {
 		ParameterizedQuery parameterizedQuery = getParameterizedQuery();
-
-		Parameters<?, ?> methodParameters = graphQueryMethod.getParameters();
-		Map<String, Object> parametersFromQuery = parameterizedQuery.resolveParameter(methodParameters, parameters,
-				this::resolveParams);
-
+		Map<String, Object> parametersFromQuery = parameterizedQuery.resolveParameter(parameters, this::resolveParams);
 		return new Query(parameterizedQuery.getQueryString(), graphQueryMethod.getCountQueryString(), parametersFromQuery);
 	}
 
 	private ParameterizedQuery getParameterizedQuery() {
 		if (parameterizedQuery == null) {
-			parameterizedQuery = ParameterizedQuery.getParameterizedQuery(getAnnotationQueryString(),
-					evaluationContextProvider, new Neo4jQueryPlaceholderSupplier());
+
+			Parameters<?, ?> methodParameters = graphQueryMethod.getParameters();
+			parameterizedQuery = ParameterizedQuery.getParameterizedQuery(getAnnotationQueryString(), methodParameters,
+					evaluationContextProvider);
 		}
 		return parameterizedQuery;
 	}

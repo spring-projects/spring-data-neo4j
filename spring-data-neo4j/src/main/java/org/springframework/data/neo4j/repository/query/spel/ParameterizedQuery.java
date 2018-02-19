@@ -13,67 +13,44 @@
 
 package org.springframework.data.neo4j.repository.query.spel;
 
-import org.springframework.data.repository.query.EvaluationContextProvider;
-import org.springframework.data.repository.query.Parameters;
-import org.springframework.data.repository.query.parser.SpelQueryContextFactory;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-public class ParameterizedQuery {
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+import org.springframework.data.repository.query.EvaluationContextProvider;
+import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.parser.SpelQueryContextFactory;
 
-//	private final EvaluationContextProvider evaluationContextProvider;
-//	private final String queryString;
-//	private final Map<String, String> processedExpressions;
+public class ParameterizedQuery {
+	private final Parameters<?, ?> methodParameters;
 	private final SpelQueryContextFactory.SpelQueryContext.SpelExtractor extractor;
 
-//	private ParameterizedQuery(String queryString, Map<String, String> expressionParameters,
-//							   EvaluationContextProvider evaluationContextProvider) {
-//
-//		this.evaluationContextProvider = evaluationContextProvider;
-//		this.queryString = queryString;
-//		this.processedExpressions = expressionParameters;
-//	}
-
-	public ParameterizedQuery(SpelQueryContextFactory.SpelQueryContext.SpelExtractor extractor) {
-
+	private ParameterizedQuery(Parameters<?, ?> methodParameters,
+			SpelQueryContextFactory.SpelQueryContext.SpelExtractor extractor) {
+		this.methodParameters = methodParameters;
 		this.extractor = extractor;
 	}
 
-	public static ParameterizedQuery getParameterizedQuery(String queryString,
-														   EvaluationContextProvider evaluationContextProvider, PlaceholderSupplier supplier) {
+	public static ParameterizedQuery getParameterizedQuery(String queryString, Parameters<?, ?> methodParameters,
+			EvaluationContextProvider evaluationContextProvider) {
 
-		Neo4jQueryPlaceholderSupplier supplier1 = new Neo4jQueryPlaceholderSupplier();
+		Neo4jQueryPlaceholderSupplier supplier = new Neo4jQueryPlaceholderSupplier();
 
-		SpelQueryContextFactory.SpelQueryContext spelQueryContext = new SpelQueryContextFactory(evaluationContextProvider).createSpelQueryContext((index, prefix) -> supplier1.parameterName(index), (prefix, name) -> supplier1.decoratePlaceholder(name));
+		SpelQueryContextFactory.SpelQueryContext spElQueryContext = new SpelQueryContextFactory(evaluationContextProvider)
+				.createSpelQueryContext((index, prefix) -> supplier.parameterName(index),
+						(prefix, name) -> supplier.decoratePlaceholder(name));
 
-		SpelQueryContextFactory.SpelQueryContext.SpelExtractor extractor = spelQueryContext.parse(queryString);
+		SpelQueryContextFactory.SpelQueryContext.SpelExtractor extractor = spElQueryContext.parse(queryString);
 
-		return new ParameterizedQuery(extractor);
+		return new ParameterizedQuery(methodParameters, extractor);
 	}
 
-	private static Object getSpElValue(EvaluationContext evaluationContext, String expression) {
-		return PARSER.parseExpression(expression).getValue(evaluationContext, Object.class);
-	}
+	public Map<String, Object> resolveParameter(Object[] parameters,
+			BiFunction<Parameters<?, ?>, Object[], Map<String, Object>> nativePlaceholderFunction) {
 
-	public Map<String, Object> resolveParameter(Parameters<?, ?> methodParameters, Object[] parameters,
-												BiFunction<Parameters<?, ?>, Object[], Map<String, Object>> nativePlaceholderFunction) {
-
-		Map<String, Object> evaluate = extractor.createEvaluator(methodParameters).evaluate(parameters);
-		evaluate.putAll(nativePlaceholderFunction.apply(methodParameters, parameters));
-		return evaluate;
-
-//		EvaluationContext evaluationContext = evaluationContextProvider.getEvaluationContext(methodParameters, parameters);
-//		Map<String, Object> parameterValues = new HashMap<>(nativePlaceholderFunction.apply(methodParameters, parameters));
-//
-//		for (Map.Entry<String, String> expression : processedExpressions.entrySet()) {
-//			parameterValues.put(expression.getKey(), getSpElValue(evaluationContext, expression.getValue()));
-//		}
-//		return parameterValues;
+		Map<String, Object> spElParameterValues = extractor.createEvaluator(methodParameters).evaluate(parameters);
+		Map<String, Object> nativeParameterValues = nativePlaceholderFunction.apply(methodParameters, parameters);
+		spElParameterValues.putAll(nativeParameterValues);
+		return spElParameterValues;
 	}
 
 	public String getQueryString() {
