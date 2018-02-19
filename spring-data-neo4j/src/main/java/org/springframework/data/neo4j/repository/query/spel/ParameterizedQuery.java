@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.parser.SpelExtractor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
@@ -43,29 +44,11 @@ public class ParameterizedQuery {
 	public static ParameterizedQuery getParameterizedQuery(String queryString,
 			EvaluationContextProvider evaluationContextProvider, PlaceholderSupplier supplier) {
 
-		String processedQuery = queryString;
-		Matcher matcher = Pattern.compile(PATTERN).matcher(queryString);
-		Map<String, String> processedExpressions = new HashMap<>();
+		Neo4jQueryPlaceholderSupplier supplier1 = new Neo4jQueryPlaceholderSupplier();
 
-		int expressionRegexGroupIndex = 1;
-		while (matcher.find()) {
+		SpelExtractor extractor = new SpelExtractor(queryString, (index, prefix) -> supplier1.parameterName(index), (prefix, name) -> supplier1.decoratePlaceholder(name));
 
-			String expression = matcher.group(expressionRegexGroupIndex);
-			if (processedExpressions.containsKey(expression)) {
-
-				String decoratedPlaceholder = supplier.decoratePlaceholder(processedExpressions.get(expression));
-				processedQuery = processedQuery.replaceFirst(PATTERN, decoratedPlaceholder);
-			} else {
-
-				String placeholder = supplier.nextPlaceholder();
-				String decoratedPlaceholder = supplier.decoratePlaceholder(placeholder);
-
-				processedExpressions.put(expression, placeholder);
-				processedQuery = processedQuery.replaceFirst(PATTERN, decoratedPlaceholder);
-			}
-		}
-
-		return new ParameterizedQuery(processedQuery, processedExpressions, evaluationContextProvider);
+		return new ParameterizedQuery(extractor.query(), extractor.parameterNameToSpelMap(), evaluationContextProvider);
 	}
 
 	private static Object getSpElValue(EvaluationContext evaluationContext, String expression) {
@@ -79,7 +62,7 @@ public class ParameterizedQuery {
 		Map<String, Object> parameterValues = new HashMap<>(nativePlaceholderFunction.apply(methodParameters, parameters));
 
 		for (Map.Entry<String, String> expression : processedExpressions.entrySet()) {
-			parameterValues.put(expression.getValue(), getSpElValue(evaluationContext, expression.getKey()));
+			parameterValues.put(expression.getKey(), getSpElValue(evaluationContext, expression.getValue()));
 		}
 		return parameterValues;
 	}

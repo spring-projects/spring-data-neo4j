@@ -20,7 +20,11 @@ public class Neo4jQueryPlaceholderSupplier implements PlaceholderSupplier {
 
 	@Override
 	public String nextPlaceholder() {
-		return PLACEHOLDER + index++;
+		return parameterName(index++);
+	}
+
+	public String parameterName(int index) {
+		return PLACEHOLDER + index;
 	}
 
 	@Override
