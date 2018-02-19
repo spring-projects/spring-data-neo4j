@@ -12,9 +12,6 @@
  */
 package org.springframework.data.neo4j.examples.jsr303;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +35,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.context.WebApplicationContext;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * @author Vince Bickers
@@ -128,7 +128,7 @@ public class JSR303Tests extends MultiDriverTestClass {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),"org.springframework.data.neo4j.examples.jsr303.domain");
+			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.examples.jsr303.domain");
 		}
 	}
 
