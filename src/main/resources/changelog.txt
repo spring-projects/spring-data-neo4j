@@ -1,6 +1,12 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.4.RELEASE (2018-02-19)
+---------------------------------------------
+* DATAGRAPH-1063 - Release 5.0.4 (Kay SR4).
+* DATAGRAPH-1061 - Cyclic bean instantiation when using EnableNeo4jAuditing with SpringBoot.
+
+
 Changes in version 5.1.0.M1 (2018-02-06)
 ----------------------------------------
 * DATAGRAPH-1065 - Upgrade to Neo4j OGM 3.1.0.
