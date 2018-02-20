@@ -18,16 +18,19 @@ import java.util.function.BiFunction;
 
 import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameters;
-import org.springframework.data.repository.query.parser.SpelQueryContextFactory;
+import org.springframework.data.repository.query.parser.SpelEvaluator;
+import org.springframework.data.repository.query.parser.SpelQueryContext;
 
 public class ParameterizedQuery {
 	private final Parameters<?, ?> methodParameters;
-	private final SpelQueryContextFactory.SpelQueryContext.SpelExtractor extractor;
+	private final SpelQueryContext.SpelExtractor extractor;
+	private final SpelEvaluator spelEvaluator;
 
-	private ParameterizedQuery(Parameters<?, ?> methodParameters,
-			SpelQueryContextFactory.SpelQueryContext.SpelExtractor extractor) {
+	private ParameterizedQuery(Parameters<?, ?> methodParameters, SpelQueryContext.SpelExtractor extractor,
+			SpelEvaluator spelEvaluator) {
 		this.methodParameters = methodParameters;
 		this.extractor = extractor;
+		this.spelEvaluator = spelEvaluator;
 	}
 
 	public static ParameterizedQuery getParameterizedQuery(String queryString, Parameters<?, ?> methodParameters,
@@ -35,22 +38,22 @@ public class ParameterizedQuery {
 
 		Neo4jQueryPlaceholderSupplier supplier = new Neo4jQueryPlaceholderSupplier();
 
-		SpelQueryContextFactory.SpelQueryContext spElQueryContext = new SpelQueryContextFactory(evaluationContextProvider)
-				.createSpelQueryContext((index, prefix) -> supplier.parameterName(index),
-						(prefix, name) -> supplier.decoratePlaceholder(name));
+		SpelQueryContext spElQueryContext = new SpelQueryContext((index, prefix) -> supplier.parameterName(index),
+				(prefix, name) -> supplier.decoratePlaceholder(name));
 
-		SpelQueryContextFactory.SpelQueryContext.SpelExtractor extractor = spElQueryContext.parse(queryString);
-
-		return new ParameterizedQuery(methodParameters, extractor);
+		SpelQueryContext.SpelExtractor extractor = spElQueryContext.parse(queryString);
+		SpelEvaluator spelEvaluator = new SpelEvaluator(evaluationContextProvider, methodParameters,
+				extractor.parameterNameToSpelMap());
+		return new ParameterizedQuery(methodParameters, extractor, spelEvaluator);
 	}
 
 	public Map<String, Object> resolveParameter(Object[] parameters,
 			BiFunction<Parameters<?, ?>, Object[], Map<String, Object>> nativePlaceholderFunction) {
 
-		Map<String, Object> spElParameterValues = extractor.createEvaluator(methodParameters).evaluate(parameters);
+		Map<String, Object> parameterValues = spelEvaluator.evaluate(parameters);
 		Map<String, Object> nativeParameterValues = nativePlaceholderFunction.apply(methodParameters, parameters);
-		spElParameterValues.putAll(nativeParameterValues);
-		return spElParameterValues;
+		parameterValues.putAll(nativeParameterValues);
+		return parameterValues;
 	}
 
 	public String getQueryString() {
