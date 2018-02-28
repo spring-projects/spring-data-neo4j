@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.5.RELEASE (2018-02-28)
+---------------------------------------------
+* DATAGRAPH-1069 - Release 5.0.5 (Kay SR5).
+
+
 Changes in version 5.0.4.RELEASE (2018-02-19)
 ---------------------------------------------
 * DATAGRAPH-1063 - Release 5.0.4 (Kay SR4).
