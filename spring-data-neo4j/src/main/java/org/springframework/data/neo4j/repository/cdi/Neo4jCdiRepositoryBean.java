@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.neo4j.repository.cdi;
+
+import java.lang.annotation.Annotation;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.enterprise.context.spi.CreationalContext;
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanManager;
 
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactory;
 import org.springframework.data.repository.cdi.CdiRepositoryBean;
 import org.springframework.data.repository.config.CustomRepositoryImplementationDetector;
-
-import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
-import java.lang.annotation.Annotation;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * {@link org.springframework.data.repository.cdi.CdiRepositoryBean} to create Neo4j repository instances via CDI.
@@ -53,15 +53,15 @@ public class Neo4jCdiRepositoryBean<T> extends CdiRepositoryBean<T> {
         this.sessionBean = sessionBean;
     }
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.cdi.CdiRepositoryBean#create(javax.enterprise.context.spi.CreationalContext, java.lang.Class)
+	 */
     @Override
-    protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType, Optional<Object> customImplementation) {
+	protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType) {
 
         Session session = getDependencyInstance(sessionBean, Session.class);
 
-        Neo4jRepositoryFactory factory = new Neo4jRepositoryFactory(session);
-
-        return customImplementation //
-                .map(impl -> factory.getRepository(repositoryType, impl)) //
-                .orElseGet(() -> factory.getRepository(repositoryType));
+		return create(() -> new Neo4jRepositoryFactory(session), repositoryType);
     }
 }
