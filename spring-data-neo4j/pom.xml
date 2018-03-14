@@ -32,6 +32,7 @@
         <ogm.properties>ogm-bolt.properties</ogm.properties>
         <el-api.version>2.2</el-api.version>
         <java-module-name>spring.data.neo4j</java-module-name>
+        <project.root>${basedir}/..</project.root>
     </properties>
 
 
