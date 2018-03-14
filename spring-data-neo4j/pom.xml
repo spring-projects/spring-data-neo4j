@@ -31,6 +31,7 @@
     <properties>
         <neo4j.ogm.version>2.1.6</neo4j.ogm.version>
         <ogm.properties>ogm-http.properties</ogm.properties>
+        <project.root>${basedir}/..</project.root>
     </properties>
 
 
