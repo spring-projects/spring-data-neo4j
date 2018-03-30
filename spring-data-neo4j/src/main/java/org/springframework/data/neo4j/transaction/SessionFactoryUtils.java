@@ -74,7 +74,7 @@ public class SessionFactoryUtils {
 		Session session = sessionFactory.openSession();
 
 		if (TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
-			System.out.println("hitting read only txn.");
+			logger.debug("hitting read only txn.");
 		}
 
 		logger.debug("Registering transaction synchronization for Neo4j Session");
