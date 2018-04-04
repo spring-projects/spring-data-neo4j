@@ -20,7 +20,7 @@ import java.util.Optional;
 
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.RelationshipEntity;
-
+import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -50,6 +50,7 @@ import org.springframework.util.StringUtils;
 public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
 
 	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
+	private static final String DEFAULT_SESSION_FACTORY_BEAN_NAME = "sessionFactory";
 	private static final String NEO4J_MAPPING_CONTEXT_BEAN_NAME = "neo4jMappingContext";
 	private static final String NEO4J_AUDITING_POST_PROCESSOR_NAME = "neo4jAuditionBeanFactoryPostProcessor";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
@@ -81,7 +82,6 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	protected String getModulePrefix() {
 		return "neo4j";
 	}
-
 
 	/*
 	 * (non-Javadoc)
@@ -156,8 +156,11 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 
 		Object source = config.getSource();
 
-		registerIfNotAlreadyRegistered(new RootBeanDefinition(SessionBeanDefinitionRegistrarPostProcessor.class),
-				registry, SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME, source);
+		RootBeanDefinition sessionBeanDefinition = new RootBeanDefinition(SessionBeanDefinitionRegistrarPostProcessor.class,
+				createSessionFactoryRefConstructorArgumentValue(config), null);
+
+		registerIfNotAlreadyRegistered(sessionBeanDefinition, registry,
+				SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME, source);
 
 		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jMappingContextFactoryBean.class), registry,
 				NEO4J_MAPPING_CONTEXT_BEAN_NAME, source);
@@ -165,5 +168,15 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jAuditingBeanFactoryPostProcessor.class), registry,
 				NEO4J_AUDITING_POST_PROCESSOR_NAME, source);
 
+	}
+
+	private ConstructorArgumentValues createSessionFactoryRefConstructorArgumentValue(
+			RepositoryConfigurationSource config) {
+
+		String sessionFactoryBeanName = config.getAttribute("sessionFactoryRef").orElse(DEFAULT_SESSION_FACTORY_BEAN_NAME);
+		ConstructorArgumentValues sessionFactoryRefConstructorArgumentValue = new ConstructorArgumentValues();
+		sessionFactoryRefConstructorArgumentValue.addGenericArgumentValue(sessionFactoryBeanName);
+
+		return sessionFactoryRefConstructorArgumentValue;
 	}
 }

@@ -42,15 +42,17 @@ import org.springframework.data.neo4j.transaction.SessionFactoryUtils;
  */
 public class SessionBeanDefinitionRegistrarPostProcessor implements BeanFactoryPostProcessor, PersistenceExceptionTranslator {
 
-	private static String getSessionFactoryBeanRef(ConfigurableListableBeanFactory beanFactory) {
+	private final String sessionFactoryRef;
 
-		return beanFactory.containsBeanDefinition("sessionFactory") ? "sessionFactory" : "getSessionFactory";
+	SessionBeanDefinitionRegistrarPostProcessor(String sessionFactoryRef) {
+		this.sessionFactoryRef = sessionFactoryRef;
 	}
+
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
-		SessionFactoryBeanDefinition sfbd = new SessionFactoryBeanDefinition(transformedBeanName(getSessionFactoryBeanRef(beanFactory)), beanFactory);
+		SessionFactoryBeanDefinition sfbd = new SessionFactoryBeanDefinition(transformedBeanName(sessionFactoryRef), beanFactory);
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.rootBeanDefinition("org.springframework.data.neo4j.transaction.SharedSessionCreator");

@@ -27,6 +27,7 @@ import org.neo4j.ogm.metadata.ClassInfo;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -70,9 +71,11 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 	public void doesNotRegisterProcessorIfAlreadyPresent() {
 
 		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
-		RootBeanDefinition pabppDefinition = new RootBeanDefinition(SessionBeanDefinitionRegistrarPostProcessor.class);
-		String beanName = BeanDefinitionReaderUtils.generateBeanName(pabppDefinition, factory);
-		factory.registerBeanDefinition(beanName, pabppDefinition);
+		ConstructorArgumentValues sessionFactoryRefConstructorArgumentValue = new ConstructorArgumentValues();
+		sessionFactoryRefConstructorArgumentValue.addGenericArgumentValue("sessionFactory");
+		RootBeanDefinition sessionBeanDefinition = new RootBeanDefinition(SessionBeanDefinitionRegistrarPostProcessor.class, sessionFactoryRefConstructorArgumentValue, null);
+		String beanName = BeanDefinitionReaderUtils.generateBeanName(sessionBeanDefinition, factory);
+		factory.registerBeanDefinition(beanName, sessionBeanDefinition);
 
 		assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(factory, beanName);
 	}
@@ -81,9 +84,11 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 	public void doesNotRegisterProcessorIfAutoRegistered() {
 
 		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
-		RootBeanDefinition pabppDefinition = new RootBeanDefinition(SessionBeanDefinitionRegistrarPostProcessor.class);
+		ConstructorArgumentValues sessionFactoryRefConstructorArgumentValue = new ConstructorArgumentValues();
+		sessionFactoryRefConstructorArgumentValue.addGenericArgumentValue("sessionFactory");
+		RootBeanDefinition sessionBeanDefinition = new RootBeanDefinition(SessionBeanDefinitionRegistrarPostProcessor.class, sessionFactoryRefConstructorArgumentValue, null);
 		String beanName = "sessionBeanDefinitionRegistrarPostProcessor";
-		factory.registerBeanDefinition(beanName, pabppDefinition);
+		factory.registerBeanDefinition(beanName, sessionBeanDefinition);
 
 		assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(factory, beanName);
 	}

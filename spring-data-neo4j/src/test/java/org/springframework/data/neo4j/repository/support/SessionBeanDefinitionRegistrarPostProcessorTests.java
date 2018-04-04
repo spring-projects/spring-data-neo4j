@@ -48,7 +48,7 @@ public class SessionBeanDefinitionRegistrarPostProcessorTests extends MultiDrive
 
 		@Bean
 		public static SessionBeanDefinitionRegistrarPostProcessor processor() {
-			return new SessionBeanDefinitionRegistrarPostProcessor();
+			return new SessionBeanDefinitionRegistrarPostProcessor("sessionFactory");
 		}
 
 
