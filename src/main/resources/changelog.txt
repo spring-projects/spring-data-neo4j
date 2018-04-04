@@ -1,6 +1,12 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.6.RELEASE (2018-04-04)
+---------------------------------------------
+* DATAGRAPH-1072 - Declare project.root property to make sure JavaDoc generation works.
+* DATAGRAPH-1070 - Release 5.0.6 (Kay SR6).
+
+
 Changes in version 4.2.11.RELEASE (2018-04-04)
 ----------------------------------------------
 * DATAGRAPH-1073 - System.out in productive code.
