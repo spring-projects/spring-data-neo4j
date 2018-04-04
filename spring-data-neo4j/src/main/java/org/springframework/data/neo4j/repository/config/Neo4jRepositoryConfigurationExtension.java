@@ -156,10 +156,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 
 		Object source = config.getSource();
 
-		RootBeanDefinition sessionBeanDefinition = new RootBeanDefinition(SessionBeanDefinitionRegistrarPostProcessor.class,
-				createSessionFactoryRefConstructorArgumentValue(config), null);
-
-		registerIfNotAlreadyRegistered(sessionBeanDefinition, registry,
+		registerIfNotAlreadyRegistered(createSessionBeanDefinitionRegistrarPostProcessorBeanDefinition(config), registry,
 				SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME, source);
 
 		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jMappingContextFactoryBean.class), registry,
@@ -170,13 +167,22 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 
 	}
 
+	private RootBeanDefinition createSessionBeanDefinitionRegistrarPostProcessorBeanDefinition(
+			RepositoryConfigurationSource config) {
+
+		RootBeanDefinition sessionBeanDefinition = new RootBeanDefinition();
+		sessionBeanDefinition.setBeanClass(SessionBeanDefinitionRegistrarPostProcessor.class);
+		sessionBeanDefinition.setConstructorArgumentValues(createSessionFactoryRefConstructorArgumentValue(config));
+		return sessionBeanDefinition;
+	}
+
 	private ConstructorArgumentValues createSessionFactoryRefConstructorArgumentValue(
 			RepositoryConfigurationSource config) {
 
 		String sessionFactoryBeanName = config.getAttribute("sessionFactoryRef").orElse(DEFAULT_SESSION_FACTORY_BEAN_NAME);
-		ConstructorArgumentValues sessionFactoryRefConstructorArgumentValue = new ConstructorArgumentValues();
-		sessionFactoryRefConstructorArgumentValue.addGenericArgumentValue(sessionFactoryBeanName);
+		ConstructorArgumentValues constructorArgumentValues = new ConstructorArgumentValues();
+		constructorArgumentValues.addIndexedArgumentValue(0, sessionFactoryBeanName);
 
-		return sessionFactoryRefConstructorArgumentValue;
+		return constructorArgumentValues;
 	}
 }

@@ -27,16 +27,13 @@ import org.neo4j.ogm.metadata.ClassInfo;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.config.ConstructorArgumentValues;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.type.StandardAnnotationMetadata;
-import org.springframework.data.neo4j.repository.support.SessionBeanDefinitionRegistrarPostProcessor;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
@@ -49,48 +46,61 @@ import org.springframework.data.repository.config.RepositoryConfigurationSource;
  */
 public class Neo4jRepositoryConfigurationExtensionTests {
 
-	BeanDefinitionRegistry registry = new DefaultListableBeanFactory();
-	RepositoryConfigurationSource configSource = new AnnotationRepositoryConfigurationSource(new StandardAnnotationMetadata(Config.class, true), EnableNeo4jRepositories.class, new PathMatchingResourcePatternResolver(), new StandardEnvironment(), registry);
+	private static final String SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME = "sessionBeanDefinitionRegistrarPostProcessor";
+	private static final String CUSTOM_SESSION_FACTORY_REF = "mySessionFactory";
 
 	public @Rule ExpectedException exception = ExpectedException.none();
+
+	private StandardAnnotationMetadata metadata = new StandardAnnotationMetadata(Config.class, true);
+	private BeanDefinitionRegistry registry = new DefaultListableBeanFactory();
+	private RepositoryConfigurationSource configSource = new AnnotationRepositoryConfigurationSource(metadata,
+			EnableNeo4jRepositories.class, new PathMatchingResourcePatternResolver(), new StandardEnvironment(), registry);
 
 	@Test
 	public void registersDefaultBeanPostProcessorsByDefault() {
 
-		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
-
-		RepositoryConfigurationExtension extension = new Neo4jRepositoryConfigurationExtension();
-		extension.registerBeansForRoot(factory, configSource);
+		DefaultListableBeanFactory factory = getBeanRegistry();
 
 		Iterable<String> names = Arrays.asList(factory.getBeanDefinitionNames());
 
-		assertThat(names, hasItems("sessionBeanDefinitionRegistrarPostProcessor"));
+		assertThat(names, hasItems(SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME));
 	}
 
 	@Test
 	public void doesNotRegisterProcessorIfAlreadyPresent() {
 
-		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
-		ConstructorArgumentValues sessionFactoryRefConstructorArgumentValue = new ConstructorArgumentValues();
-		sessionFactoryRefConstructorArgumentValue.addGenericArgumentValue("sessionFactory");
-		RootBeanDefinition sessionBeanDefinition = new RootBeanDefinition(SessionBeanDefinitionRegistrarPostProcessor.class, sessionFactoryRefConstructorArgumentValue, null);
-		String beanName = BeanDefinitionReaderUtils.generateBeanName(sessionBeanDefinition, factory);
-		factory.registerBeanDefinition(beanName, sessionBeanDefinition);
+		DefaultListableBeanFactory factory = getBeanRegistry();
+		BeanDefinition beanDefinition = factory
+				.getBeanDefinition(SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME);
 
-		assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(factory, beanName);
+		factory.registerBeanDefinition(SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME, beanDefinition);
+
+		assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(factory);
 	}
 
 	@Test
-	public void doesNotRegisterProcessorIfAutoRegistered() {
+	public void sessionFactoryBeanNameDefaultsToSessionFactory() {
+		BeanDefinition beanDefinition = getBeanRegistry()
+				.getBeanDefinition(SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME);
 
-		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
-		ConstructorArgumentValues sessionFactoryRefConstructorArgumentValue = new ConstructorArgumentValues();
-		sessionFactoryRefConstructorArgumentValue.addGenericArgumentValue("sessionFactory");
-		RootBeanDefinition sessionBeanDefinition = new RootBeanDefinition(SessionBeanDefinitionRegistrarPostProcessor.class, sessionFactoryRefConstructorArgumentValue, null);
-		String beanName = "sessionBeanDefinitionRegistrarPostProcessor";
-		factory.registerBeanDefinition(beanName, sessionBeanDefinition);
+		Object sessionFactoryBeanName = beanDefinition.getConstructorArgumentValues()
+				.getIndexedArgumentValue(0, String.class).getValue();
 
-		assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(factory, beanName);
+		String defaultSessionFactoryName = "sessionFactory";
+		assertThat(sessionFactoryBeanName, equalTo(defaultSessionFactoryName));
+	}
+
+	@Test
+	public void customSessionFactoryBeanNameWillGetUsed() {
+		metadata = new StandardAnnotationMetadata(CustomSessionRefConfig.class, true);
+
+		BeanDefinition beanDefinition = getBeanRegistry()
+				.getBeanDefinition(SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME);
+
+		Object sessionFactoryBeanName = beanDefinition.getConstructorArgumentValues()
+				.getIndexedArgumentValue(0, String.class).getValue();
+
+		assertThat(sessionFactoryBeanName, equalTo(CUSTOM_SESSION_FACTORY_REF));
 	}
 
 	@Test
@@ -114,19 +124,35 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 		factoryBean.createInstance().afterPropertiesSet();
 	}
 
-	private void assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(DefaultListableBeanFactory factory,
-																			   String expectedBeanName) {
+	private void assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(DefaultListableBeanFactory factory) {
 
 		RepositoryConfigurationExtension extension = new Neo4jRepositoryConfigurationExtension();
 		extension.registerBeansForRoot(factory, configSource);
 
-		assertThat(factory.getBean(expectedBeanName), is(notNullValue()));
+		assertThat(factory.getBean(SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME), is(notNullValue()));
 		exception.expect(NoSuchBeanDefinitionException.class);
-		factory.getBeanDefinition("org.springframework.data.neo4j.repository.support.SessionBeanDefinitionRegistrarPostProcessor#1");
+		factory.getBeanDefinition(
+				"org.springframework.data.neo4j.repository.support.SessionBeanDefinitionRegistrarPostProcessor#1");
+	}
+
+	private DefaultListableBeanFactory getBeanRegistry() {
+		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+
+		RepositoryConfigurationExtension extension = new Neo4jRepositoryConfigurationExtension();
+		AnnotationRepositoryConfigurationSource configurationSource = new AnnotationRepositoryConfigurationSource(metadata,
+				EnableNeo4jRepositories.class, new PathMatchingResourcePatternResolver(), new StandardEnvironment(), registry);
+		extension.registerBeansForRoot(factory, configurationSource);
+
+		return factory;
 	}
 
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
 	static class Config {
+
+	}
+
+	@EnableNeo4jRepositories(sessionFactoryRef = CUSTOM_SESSION_FACTORY_REF)
+	static class CustomSessionRefConfig {
 
 	}
 }
