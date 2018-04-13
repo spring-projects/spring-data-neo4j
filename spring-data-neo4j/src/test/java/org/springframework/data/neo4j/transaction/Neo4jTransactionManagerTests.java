@@ -65,7 +65,7 @@ public class Neo4jTransactionManagerTests {
 	@Test
 	public void testFailBegin() throws Exception {
 
-		given(session.beginTransaction(any(Transaction.Type.class), anyCollection())).willThrow(Exception.class);
+		given(session.beginTransaction(any(Transaction.Type.class), anyCollection())).willThrow(RuntimeException.class);
 		given(session.getTransaction()).willReturn(null);
 
 		try {
