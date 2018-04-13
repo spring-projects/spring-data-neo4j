@@ -1,6 +1,14 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.0.M2 (2018-04-13)
+----------------------------------------
+* DATAGRAPH-1079 - Neo4jTransactionManagerTests creates fixture violating Session.beginTransaction() contract.
+* DATAGRAPH-1072 - Declare project.root property to make sure JavaDoc generation works.
+* DATAGRAPH-1071 - Export composable repositories via CDI.
+* DATAGRAPH-1067 - Release 5.1 M2 (Lovelace).
+
+
 Changes in version 5.0.6.RELEASE (2018-04-04)
 ---------------------------------------------
 * DATAGRAPH-1072 - Declare project.root property to make sure JavaDoc generation works.
