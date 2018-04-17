@@ -59,7 +59,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	private static final String NEO4J_AUDITING_POST_PROCESSOR_NAME = "neo4jAuditionBeanFactoryPostProcessor";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
 	private static final String NEO4J_SHARED_SESSION_CREATOR_BEAN_NAME = "sharedSessionCreatorBean";
-	private static final String NEO_4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME = "neo4jPersistenceExceptionTranslator";
+	private static final String NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME = "neo4jPersistenceExceptionTranslator";
 	private static final String MODULE_PREFIX = "neo4j";
 	private static final String MODULE_NAME = "Neo4j";
 
@@ -177,7 +177,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 				NEO4J_AUDITING_POST_PROCESSOR_NAME, source);
 
 		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jPersistenceExceptionTranslator.class), registry,
-				NEO_4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME, source);
+				NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME, source);
 	}
 
 	private AbstractBeanDefinition createSharedSessionCreatorBeanDefinition(RepositoryConfigurationSource config) {
