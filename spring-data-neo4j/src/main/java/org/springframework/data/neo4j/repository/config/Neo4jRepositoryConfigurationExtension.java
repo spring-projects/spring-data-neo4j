@@ -25,11 +25,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.annotation.AnnotationAttributes;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.support.Neo4jAuditingBeanFactoryPostProcessor;
-import org.springframework.data.neo4j.repository.support.Neo4jPersistenceExceptionTranslator;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
 import org.springframework.data.neo4j.transaction.SharedSessionCreator;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
@@ -42,9 +39,7 @@ import org.springframework.util.StringUtils;
  * Neo4j specific configuration extension parsing custom attributes from the XML namespace and
  * {@link EnableNeo4jRepositories} annotation. Creates and registers {@link BeanDefinitionBuilder} for
  * {@link SharedSessionCreator}, {@link Neo4jMappingContextFactoryBean} and
- * {@link Neo4jAuditingBeanFactoryPostProcessor}. Also, it registers a bean definition for a
- * {@link PersistenceExceptionTranslationPostProcessor} to enable exception translation of persistence specific
- * exceptions into Spring's {@link DataAccessException} hierarchy.
+ * {@link Neo4jAuditingBeanFactoryPostProcessor}.
  *
  * @author Vince Bickers
  * @author Mark Angrish
@@ -59,7 +54,6 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	private static final String NEO4J_AUDITING_POST_PROCESSOR_NAME = "neo4jAuditionBeanFactoryPostProcessor";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
 	private static final String NEO4J_SHARED_SESSION_CREATOR_BEAN_NAME = "sharedSessionCreatorBean";
-	private static final String NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME = "neo4jPersistenceExceptionTranslator";
 	private static final String MODULE_PREFIX = "neo4j";
 	private static final String MODULE_NAME = "Neo4j";
 
@@ -175,9 +169,6 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 
 		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jAuditingBeanFactoryPostProcessor.class), registry,
 				NEO4J_AUDITING_POST_PROCESSOR_NAME, source);
-
-		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jPersistenceExceptionTranslator.class), registry,
-				NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME, source);
 	}
 
 	private AbstractBeanDefinition createSharedSessionCreatorBeanDefinition(RepositoryConfigurationSource config) {
