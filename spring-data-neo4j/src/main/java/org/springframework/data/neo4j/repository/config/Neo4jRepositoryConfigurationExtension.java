@@ -20,7 +20,7 @@ import java.util.Optional;
 
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.RelationshipEntity;
-import org.springframework.beans.factory.config.ConstructorArgumentValues;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -29,8 +29,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.support.Neo4jAuditingBeanFactoryPostProcessor;
+import org.springframework.data.neo4j.repository.support.Neo4jPersistenceExceptionTranslator;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
-import org.springframework.data.neo4j.repository.support.SessionBeanDefinitionRegistrarPostProcessor;
+import org.springframework.data.neo4j.transaction.SharedSessionCreator;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
@@ -39,13 +40,16 @@ import org.springframework.util.StringUtils;
 
 /**
  * Neo4j specific configuration extension parsing custom attributes from the XML namespace and
- * {@link EnableNeo4jRepositories} annotation. Also, it registers a bean definition for a
+ * {@link EnableNeo4jRepositories} annotation. Creates and registers {@link BeanDefinitionBuilder} for
+ * {@link SharedSessionCreator}, {@link Neo4jMappingContextFactoryBean} and
+ * {@link Neo4jAuditingBeanFactoryPostProcessor}. Also, it registers a bean definition for a
  * {@link PersistenceExceptionTranslationPostProcessor} to enable exception translation of persistence specific
  * exceptions into Spring's {@link DataAccessException} hierarchy.
  *
  * @author Vince Bickers
  * @author Mark Angrish
  * @author Mark Paluch
+ * @author Gerrit Meier
  */
 public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
 
@@ -54,7 +58,10 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	private static final String NEO4J_MAPPING_CONTEXT_BEAN_NAME = "neo4jMappingContext";
 	private static final String NEO4J_AUDITING_POST_PROCESSOR_NAME = "neo4jAuditionBeanFactoryPostProcessor";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
-	private static final String SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME = "sessionBeanDefinitionRegistrarPostProcessor";
+	private static final String NEO4J_SHARED_SESSION_CREATOR_BEAN_NAME = "sharedSessionCreatorBean";
+	private static final String NEO_4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME = "neo4jPersistenceExceptionTranslator";
+	private static final String MODULE_PREFIX = "neo4j";
+	private static final String MODULE_NAME = "Neo4j";
 
 	/*
 	 * (non-Javadoc)
@@ -62,7 +69,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	 */
 	@Override
 	public String getModuleName() {
-		return "Neo4j";
+		return MODULE_NAME;
 	}
 
 	/*
@@ -80,7 +87,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	 */
 	@Override
 	protected String getModulePrefix() {
-		return "neo4j";
+		return MODULE_PREFIX;
 	}
 
 	/*
@@ -99,7 +106,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	 */
 	@Override
 	protected Collection<Class<?>> getIdentifyingTypes() {
-		return Collections.<Class<?>>singleton(Neo4jRepository.class);
+		return Collections.<Class<?>> singleton(Neo4jRepository.class);
 	}
 
 	/*
@@ -109,11 +116,15 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	@Override
 	public void postProcess(BeanDefinitionBuilder builder, RepositoryConfigurationSource source) {
 
-		Optional<String> transactionManagerRef = source.getAttribute("transactionManagerRef");
+		String transactionManagerRefPropertyName = "transactionManagerRef";
+		String transactionManagerPropertyName = "transactionManager";
+		String mappingContextPropertyName = "mappingContext";
 
-		builder.addPropertyValue("transactionManager",
+		Optional<String> transactionManagerRef = source.getAttribute(transactionManagerRefPropertyName);
+
+		builder.addPropertyValue(transactionManagerPropertyName,
 				transactionManagerRef.orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
-		builder.addPropertyReference("mappingContext", NEO4J_MAPPING_CONTEXT_BEAN_NAME);
+		builder.addPropertyReference(mappingContextPropertyName, NEO4J_MAPPING_CONTEXT_BEAN_NAME);
 	}
 
 	/*
@@ -156,8 +167,8 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 
 		Object source = config.getSource();
 
-		registerIfNotAlreadyRegistered(createSessionBeanDefinitionRegistrarPostProcessorBeanDefinition(config), registry,
-				SESSION_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME, source);
+		registerIfNotAlreadyRegistered(createSharedSessionCreatorBeanDefinition(config), registry,
+				NEO4J_SHARED_SESSION_CREATOR_BEAN_NAME, source);
 
 		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jMappingContextFactoryBean.class), registry,
 				NEO4J_MAPPING_CONTEXT_BEAN_NAME, source);
@@ -165,24 +176,22 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jAuditingBeanFactoryPostProcessor.class), registry,
 				NEO4J_AUDITING_POST_PROCESSOR_NAME, source);
 
+		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jPersistenceExceptionTranslator.class), registry,
+				NEO_4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME, source);
 	}
 
-	private RootBeanDefinition createSessionBeanDefinitionRegistrarPostProcessorBeanDefinition(
-			RepositoryConfigurationSource config) {
+	private AbstractBeanDefinition createSharedSessionCreatorBeanDefinition(RepositoryConfigurationSource config) {
 
-		RootBeanDefinition sessionBeanDefinition = new RootBeanDefinition();
-		sessionBeanDefinition.setBeanClass(SessionBeanDefinitionRegistrarPostProcessor.class);
-		sessionBeanDefinition.setConstructorArgumentValues(createSessionFactoryRefConstructorArgumentValue(config));
-		return sessionBeanDefinition;
+		String sessionFactoryRefPropertyName = "sessionFactoryRef";
+		String sessionFactoryBeanName = config.getAttribute(sessionFactoryRefPropertyName)
+				.orElse(DEFAULT_SESSION_FACTORY_BEAN_NAME);
+
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(SharedSessionCreator.class,
+				"createSharedSession");
+		builder.addConstructorArgReference(sessionFactoryBeanName);
+
+		return builder.getBeanDefinition();
+
 	}
 
-	private ConstructorArgumentValues createSessionFactoryRefConstructorArgumentValue(
-			RepositoryConfigurationSource config) {
-
-		String sessionFactoryBeanName = config.getAttribute("sessionFactoryRef").orElse(DEFAULT_SESSION_FACTORY_BEAN_NAME);
-		ConstructorArgumentValues constructorArgumentValues = new ConstructorArgumentValues();
-		constructorArgumentValues.addIndexedArgumentValue(0, sessionFactoryBeanName);
-
-		return constructorArgumentValues;
-	}
 }
