@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.7.RELEASE (2018-05-08)
+---------------------------------------------
+* DATAGRAPH-1079 - Neo4jTransactionManagerTests creates fixture violating Session.beginTransaction() contract.
+* DATAGRAPH-1078 - Release 5.0.7 (Kay SR7).
+* DATAGRAPH-1068 - EnableNeo4jRepositories.sessionFactoryRef is ignored / not implemented.
+
+
 Changes in version 4.2.12.RELEASE (2018-05-08)
 ----------------------------------------------
 * DATAGRAPH-1077 - Release 4.2.12 (Ingalls SR12).
