@@ -1,6 +1,12 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.2.12.RELEASE (2018-05-08)
+----------------------------------------------
+* DATAGRAPH-1077 - Release 4.2.12 (Ingalls SR12).
+* DATAGRAPH-1068 - EnableNeo4jRepositories.sessionFactoryRef is ignored / not implemented.
+
+
 Changes in version 5.1.0.M2 (2018-04-13)
 ----------------------------------------
 * DATAGRAPH-1079 - Neo4jTransactionManagerTests creates fixture violating Session.beginTransaction() contract.
