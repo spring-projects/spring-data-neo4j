@@ -22,9 +22,9 @@ import org.neo4j.ogm.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.repository.query.spel.ParameterizedQuery;
-import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 
@@ -43,11 +43,11 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 	private final GraphQueryMethod graphQueryMethod;
 	private final Session session;
-	private final EvaluationContextProvider evaluationContextProvider;
+	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 	private ParameterizedQuery parameterizedQuery;
 
 	GraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session,
-						 EvaluationContextProvider evaluationContextProvider) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 		super(graphQueryMethod, session);
 		this.graphQueryMethod = graphQueryMethod;
 		this.session = session;

@@ -18,10 +18,12 @@ import java.util.function.BiFunction;
 
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
-import org.springframework.data.repository.query.parser.SpelEvaluator;
-import org.springframework.data.repository.query.parser.SpelQueryContext;
+import org.springframework.data.repository.query.SpelEvaluator;
+import org.springframework.data.repository.query.SpelQueryContext;
+import org.springframework.data.repository.query.SpelQueryContext.EvaluatingSpelQueryContext;
 
 public class ParameterizedQuery {
+	
 	private final Parameters<?, ?> methodParameters;
 	private final SpelEvaluator spelEvaluator;
 
@@ -35,8 +37,10 @@ public class ParameterizedQuery {
 
 		Neo4jQueryPlaceholderSupplier supplier = new Neo4jQueryPlaceholderSupplier();
 
-		SpelQueryContext context = SpelQueryContext.of(evaluationContextProvider, (index, prefix) -> supplier.parameterName(index),
-				(prefix, name) -> supplier.decoratePlaceholder(name));
+		EvaluatingSpelQueryContext context = SpelQueryContext.of( //
+				(index, prefix) -> supplier.parameterName(index), //
+				(prefix, name) -> supplier.decoratePlaceholder(name)) //
+				.withEvaluationContextProvider(evaluationContextProvider);
 
 		SpelEvaluator evaluator = context.parse(queryString, methodParameters);
 		return new ParameterizedQuery(methodParameters, evaluator);
