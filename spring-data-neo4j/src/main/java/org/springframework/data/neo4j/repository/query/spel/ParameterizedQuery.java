@@ -16,35 +16,30 @@ package org.springframework.data.neo4j.repository.query.spel;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-import org.springframework.data.repository.query.EvaluationContextProvider;
 import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.SpelEvaluator;
 import org.springframework.data.repository.query.parser.SpelQueryContext;
 
 public class ParameterizedQuery {
 	private final Parameters<?, ?> methodParameters;
-	private final SpelQueryContext.SpelExtractor extractor;
 	private final SpelEvaluator spelEvaluator;
 
-	private ParameterizedQuery(Parameters<?, ?> methodParameters, SpelQueryContext.SpelExtractor extractor,
-			SpelEvaluator spelEvaluator) {
+	private ParameterizedQuery(Parameters<?, ?> methodParameters, SpelEvaluator spelEvaluator) {
 		this.methodParameters = methodParameters;
-		this.extractor = extractor;
 		this.spelEvaluator = spelEvaluator;
 	}
 
 	public static ParameterizedQuery getParameterizedQuery(String queryString, Parameters<?, ?> methodParameters,
-			EvaluationContextProvider evaluationContextProvider) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 		Neo4jQueryPlaceholderSupplier supplier = new Neo4jQueryPlaceholderSupplier();
 
-		SpelQueryContext spElQueryContext = new SpelQueryContext((index, prefix) -> supplier.parameterName(index),
+		SpelQueryContext context = SpelQueryContext.of(evaluationContextProvider, (index, prefix) -> supplier.parameterName(index),
 				(prefix, name) -> supplier.decoratePlaceholder(name));
 
-		SpelQueryContext.SpelExtractor extractor = spElQueryContext.parse(queryString);
-		SpelEvaluator spelEvaluator = new SpelEvaluator(evaluationContextProvider, methodParameters,
-				extractor.parameterNameToSpelMap());
-		return new ParameterizedQuery(methodParameters, extractor, spelEvaluator);
+		SpelEvaluator evaluator = context.parse(queryString, methodParameters);
+		return new ParameterizedQuery(methodParameters, evaluator);
 	}
 
 	public Map<String, Object> resolveParameter(Object[] parameters,
@@ -57,7 +52,7 @@ public class ParameterizedQuery {
 	}
 
 	public String getQueryString() {
-		return extractor.query();
+		return spelEvaluator.getQueryString();
 	}
 
 }
