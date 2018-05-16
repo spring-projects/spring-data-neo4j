@@ -23,7 +23,7 @@
     <logger name="ch.qos.logback" level="warn" />
     <logger name="org.apache.http" level="warn" />
     <logger name="org.eclipse.jetty" level="warn" />
-    <logger name="org.neo4j.ogm" level="warn" />
+    <logger name="org.neo4j.ogm" level="info" />
     <logger name="org.springframework" level="warn" />
     <logger name="org.springframework.data.neo4j" level="warn" />
     <root level="warn">
