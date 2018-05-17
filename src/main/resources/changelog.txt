@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.0.M3 (2018-05-17)
+----------------------------------------
+* DATAGRAPH-1086 - Adapt to SpEL extension API changes in Spring Data Commons.
+* DATAGRAPH-1080 - Release 5.1 M3 (Lovelace).
+* DATAGRAPH-1068 - EnableNeo4jRepositories.sessionFactoryRef is ignored / not implemented.
+
+
 Changes in version 5.0.7.RELEASE (2018-05-08)
 ---------------------------------------------
 * DATAGRAPH-1079 - Neo4jTransactionManagerTests creates fixture violating Session.beginTransaction() contract.
