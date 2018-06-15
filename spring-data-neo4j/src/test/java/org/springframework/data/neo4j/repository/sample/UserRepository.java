@@ -19,6 +19,7 @@ import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.domain.sample.User;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 
@@ -71,5 +72,5 @@ public interface UserRepository extends Neo4jRepository<User, Long> {
      */
     @Query("MATCH (n:User{emailAddress:{emailAddress}}) return n")
     @Transactional(readOnly = true)
-    User findByAnnotatedQuery(String emailAddress);
+    User findByAnnotatedQuery(@Param("emailAddress") String emailAddress);
 }

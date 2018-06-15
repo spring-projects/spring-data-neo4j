@@ -310,6 +310,20 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	}
 
 	/**
+	 * @see DATAGRAPH-???
+	 */
+	@Test
+	public void shouldFindNodeEntititiesWithDeepNestedProperty() {
+		executeUpdate("CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500})" +
+				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r) CREATE (m1:Movie {name:'Speed'})" +
+				" CREATE (g:Genre {name:'Thriller'}) CREATE (u)-[:INTERESTED]->(g)");
+
+		List<Cinema> theatres = cinemaRepository.findByVisitedInterestedName("Thriller");
+		assertEquals(1, theatres.size());
+		assertTrue(theatres.contains(new Cinema("Ritzy")));
+	}
+
+	/**
 	 * @see DATAGRAPH-629
 	 */
 	@Test
