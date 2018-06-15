@@ -13,16 +13,19 @@
 
 package org.springframework.data.neo4j.repository.query.derived.builder;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.Filter;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
  * @author Jasper Blues
  * @author Nicolas Mervaillie
+ * @author Gerrit Meier
  */
 public abstract class FilterBuilder {
 
@@ -47,12 +50,28 @@ public abstract class FilterBuilder {
 	}
 
 	void setNestedAttributes(Part part, Filter filter) {
-		if (part.getProperty().next() != null) {
-			filter.setOwnerEntityType(part.getProperty().getOwningType().getType());
-			filter.setNestedPropertyType(part.getProperty().getType());
-			filter.setPropertyName(part.getProperty().getLeafProperty().getSegment());
-			filter.setNestedPropertyName(part.getProperty().getSegment());
+		List<Filter.NestedPathSegment> segments = new ArrayList<>();
+		PropertyPath property = part.getProperty();
+		if (property.hasNext()) {
+			filter.setOwnerEntityType(property.getOwningType().getType());
+			segments.add(new Filter.NestedPathSegment(property.getSegment(), property.getType()));
+			segments.addAll(deepNestedProperty(property));
+			filter.setPropertyName(property.getLeafProperty().getSegment());
+			filter.setNestedPath(segments.toArray(new Filter.NestedPathSegment[0]));
 		}
+
+	}
+
+	private List<Filter.NestedPathSegment> deepNestedProperty(PropertyPath path) {
+		List<Filter.NestedPathSegment> segments = new ArrayList<>();
+		if (path.hasNext()) {
+			PropertyPath next = path.next();
+			if (!next.equals(next.getLeafProperty())) {
+				segments.add(new Filter.NestedPathSegment(next.getSegment(), next.getType()));
+				segments.addAll(deepNestedProperty(next));
+			}
+		}
+		return segments;
 	}
 
 }
