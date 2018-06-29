@@ -18,6 +18,7 @@ import static org.neo4j.ogm.testutil.GraphTestUtils.*;
 
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -152,8 +153,7 @@ public class ProgrammaticRepositoryTests extends MultiDriverTestClass {
 		List<Long> deletedUserIds = userRepository.removeByName("A");
 		Assert.assertEquals(2, deletedUserIds.size());
 
-		Assert.assertEquals(userA.getId(), deletedUserIds.get(0));
-		Assert.assertEquals(userAClone.getId(), deletedUserIds.get(1));
+		Assertions.assertThat(deletedUserIds).containsExactlyInAnyOrder(userA.getId(), userAClone.getId());
 
 		Assert.assertEquals(0, userRepository.count());
 	}

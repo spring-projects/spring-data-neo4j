@@ -20,31 +20,17 @@ import static org.springframework.data.neo4j.util.IterableUtils.*;
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.ogm.exception.core.NotFoundException;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.ogm.testutil.MultiDriverTestClass;
 
 /**
  * @author Michal Bachman
  */
-public class IterableUtilsTests {
-
-	private static GraphDatabaseService database;
-
-	@BeforeClass
-	public static void beforeClass(){
-		database = new TestGraphDatabaseFactory().newImpermanentDatabase();
-	}
-
-	@AfterClass
-	public static void oneTimeTearDown(){
-		database.shutdown();
-	}
+public class IterableUtilsTests extends MultiDriverTestClass {
 
 	@Test
 	public void checkContainsCollections() {
@@ -54,6 +40,7 @@ public class IterableUtilsTests {
 
 	@Test
 	public void checkContainsRealIterables() {
+		GraphDatabaseService database = getGraphDatabaseService();
 
 		Node node;
 		Long nodeId;
