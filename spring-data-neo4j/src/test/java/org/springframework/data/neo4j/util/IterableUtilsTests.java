@@ -64,7 +64,6 @@ public class IterableUtilsTests extends MultiDriverTestClass {
 			assertFalse(contains(database.getAllNodes(), node));
 		}
 
-		database.shutdown();
 	}
 
 	@Test
