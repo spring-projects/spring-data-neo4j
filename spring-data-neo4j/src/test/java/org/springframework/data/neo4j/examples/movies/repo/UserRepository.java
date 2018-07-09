@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.stereotype.Repository;
  * @author Michal Bachman
  * @author Luanne Misquitta
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @Repository
 public interface UserRepository extends PersonRepository<User, Long> {
@@ -44,6 +45,12 @@ public interface UserRepository extends PersonRepository<User, Long> {
     List<User> findByRatingsStars(int stars);
 
     List<User> findByRatingsStarsAndInterestedName(int stars, String name);
+
+	List<User> findByRatingsStarsAndInterestedNameIgnoreCase(int stars, String name);
+
+	List<User> findByRatingsStarsAndInterestedNameAllIgnoreCase(int stars, String name);
+
+	List<User> findByRatingsStarsIgnoreCase(int stars);
 
     @Query("MATCH (user:User) RETURN COUNT(user)")
     int findTotalUsers();

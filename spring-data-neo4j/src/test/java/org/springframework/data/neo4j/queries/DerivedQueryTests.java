@@ -1,18 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
- *
- * This product is licensed to you under the Apache License, Version 2.0 (the "License").
- * You may not use this product except in compliance with the License.
- *
- * This product may include a number of subcomponents with
- * separate copyright notices and license terms. Your use of the source
- * code for these subcomponents is subject to the terms and
- * conditions of the subcomponent's license, as noted in the LICENSE file.
- *
- */
-
-/*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -26,7 +13,13 @@
 
 package org.springframework.data.neo4j.queries;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -35,6 +28,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -71,6 +66,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * @author Luanne Misquitta
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = {DerivedQueryTests.MoviesContext.class})
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -135,7 +131,7 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 	}
 
 	/**
-	 * /* * @see DATAGRAPH-628
+	 * @see DATAGRAPH-628
 	 */
 	@Test
 	public void shouldFindNodeEntitiesWithLabels() {
@@ -719,6 +715,61 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 		assertFalse(page.hasNext());
 	}
 
+	/**
+	 * @see DATAGRAPH-1093
+	 */
+	@Test
+	public void shouldFindNodeEntitiesByAttributeIgnoringCase() {
+		executeUpdate(
+				"CREATE (:Director {name:'Patty Jenkins'})\n" + //
+						"      ,(:Director {name:'Marry Harron'})\n" + //
+						"      ,(m1:Movie {title:'Speed'})\n" + //
+						"      ,(m2:Movie {title:'The Matrix'})\n" + //
+						"      ,(m3:Movie {title:'Chocolat'})\n" + //
+						"      ,(g:Genre {name:'Thriller'})\n" + //
+						"      ,(u1:User {name:'Michal'})\n" + //
+						"            ,(u1)-[:INTERESTED]->(g)\n" +
+						"            ,(u1)-[:RATED {stars:3}]->(m1)\n" + //
+						"            ,(u1)-[:RATED {stars:4}]->(m2)\n" + //
+						"      ,(u2:User {name:'Vince'})\n" + //
+						"            ,(u1)-[:RATED {stars:3}]->(m3)"
+		);
+
+		Collection<Director> directors;
+		directors = directorRepository.findByName("paTTY jenKins");
+		assertThat(directors).isEmpty();
+
+		// Ignore case for attribute Director#name set to ALWAYS
+		directors = directorRepository.findByNameIgnoreCase("paTTY jenKins");
+		assertThat(directors)
+				.hasSize(1)
+				.extracting(Director::getName)
+				.containsExactly("Patty Jenkins");
+
+
+		List<User> users;
+		users = userRepository.findByRatingsStarsAndInterestedName(3, "THRILLER");
+		assertThat(users).isEmpty();
+
+		// Ignore case for attribute Director#name set to ALWAYS
+		users = userRepository.findByRatingsStarsAndInterestedNameIgnoreCase(3, "THRILLER");
+		assertThat(users)
+				.hasSize(1)
+				.extracting(User::getName)
+				.containsExactly("Michal");
+
+		// Ignore case for both Rating#stars and Genre#name to WHEN_POSSIBLE
+		users = userRepository.findByRatingsStarsAndInterestedNameAllIgnoreCase(3, "THRILLER");
+		assertThat(users)
+				.hasSize(1)
+				.extracting(User::getName)
+				.containsExactly("Michal");
+
+		// Ignore case for Rating#stars set to ALWAYS
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> userRepository.findByRatingsStarsIgnoreCase(3))
+				.withMessageStartingWith("Unable to ignore case of int types, the property 'ratings' must reference a String");
+	}
 
 	class DerivedQueryRunner implements Runnable {
 

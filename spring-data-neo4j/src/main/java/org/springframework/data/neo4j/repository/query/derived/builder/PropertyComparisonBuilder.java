@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -13,6 +13,8 @@
 
 package org.springframework.data.neo4j.repository.query.derived.builder;
 
+import static org.springframework.data.repository.query.parser.Part.Type.SIMPLE_PROPERTY;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
@@ -20,12 +22,13 @@ import java.util.Stack;
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
-import org.neo4j.ogm.cypher.function.PropertyComparison;
 import org.springframework.data.repository.query.parser.Part;
+import org.springframework.util.Assert;
 
 /**
  * @author Jasper Blues
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
 public class PropertyComparisonBuilder extends FilterBuilder {
 
@@ -35,16 +38,17 @@ public class PropertyComparisonBuilder extends FilterBuilder {
 
 	@Override
 	public List<Filter> build(Stack<Object> params) {
-		Filter filter = new Filter(propertyName(), convertToComparisonOperator(part.getType()), params.peek());
+		final Object value = params.pop();
+
+		final Filter filter = new Filter(propertyName(), convertToComparisonOperator(part.getType()), value);
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
-		filter.setFunction(new PropertyComparison(params.pop()));
 		setNestedAttributes(part, filter);
+		applyCaseInsensitivityIfShouldIgnoreCase(part, filter);
 
 		return Collections.singletonList(filter);
 	}
-
 
 	private ComparisonOperator convertToComparisonOperator(Part.Type type) {
 		switch (type) {
@@ -78,5 +82,35 @@ public class PropertyComparisonBuilder extends FilterBuilder {
 			default:
 				throw new IllegalArgumentException("No ComparisonOperator for Part.Type " + type);
 		}
+	}
+
+	/**
+	 * Sets the filter to ignore the case in case the underlying {@link Part} requires ignoring case and the property
+	 * actually supports it. Note: The method is modelled after {@link #setNestedAttributes(Part, Filter)} to have some
+	 * consistency. Preferable it should return a new filter.
+	 *
+	 * @param part
+	 * @param filter
+	 */
+	private void applyCaseInsensitivityIfShouldIgnoreCase(Part part, Filter filter) {
+		switch (part.shouldIgnoreCase()) {
+			case ALWAYS:
+				Assert.state(canIgnoreCase(part), "Unable to ignore case of " + part.getProperty().getLeafType().getName()
+						+ " types, the property '" + part.getProperty().getSegment() + "' must reference a String");
+				filter.ignoreCase();
+				break;
+			case WHEN_POSSIBLE:
+				if (canIgnoreCase(part)) {
+					filter.ignoreCase();
+				}
+				break;
+			case NEVER:
+			default:
+				break;
+		}
+	}
+
+	private boolean canIgnoreCase(final Part part) {
+		return part.getType() == SIMPLE_PROPERTY && String.class.equals(part.getProperty().getLeafType());
 	}
 }

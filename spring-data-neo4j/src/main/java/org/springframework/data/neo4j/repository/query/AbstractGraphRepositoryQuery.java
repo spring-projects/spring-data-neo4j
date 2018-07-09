@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -24,6 +24,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * Base class for @link {@link RepositoryQuery}s.
  *
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
 public abstract class AbstractGraphRepositoryQuery implements RepositoryQuery {
 
@@ -86,7 +87,7 @@ public abstract class AbstractGraphRepositoryQuery implements RepositoryQuery {
 
 	/**
 	 * Does the query returns an OGM specific object type that should get a special processing ?
-	 * @return true is that's the case
+	 * @return true if that's the case
 	 */
 	private boolean returnsOgmSpecificType() {
 		Class returnType = method.getMethod().getReturnType();
