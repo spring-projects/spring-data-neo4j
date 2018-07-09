@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -35,103 +35,110 @@ import org.springframework.stereotype.Repository;
  * @author Michal Bachman
  * @author Luanne Misquitta
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @Repository
 public interface UserRepository extends PersonRepository<User, Long> {
 
-    Collection<User> findByMiddleName(String middleName);
+	Collection<User> findByMiddleName(String middleName);
 
-    List<User> findByRatingsStars(int stars);
+	List<User> findByRatingsStars(int stars);
 
-    List<User> findByRatingsStarsAndInterestedName(int stars, String name);
+	List<User> findByRatingsStarsAndInterestedName(int stars, String name);
 
-    @Query("MATCH (user:User) RETURN COUNT(user)")
-    int findTotalUsers();
+	List<User> findByRatingsStarsAndInterestedNameIgnoreCase(int stars, String name);
 
-    @Query("MATCH (user:User) RETURN id(user)")
-    List<Integer> getUserIds();
+	List<User> findByRatingsStarsAndInterestedNameAllIgnoreCase(int stars, String name);
 
-    @Query("MATCH (user:User) RETURN user.name, id(user)")
-    Iterable<Map<String,Object>> getUsersAsProperties();
+	List<User> findByRatingsStarsIgnoreCase(int stars);
 
-    @Query("MATCH (user:User) RETURN user")
-    Collection<User> getAllUsers();
+	@Query("MATCH (user:User) RETURN COUNT(user)")
+	int findTotalUsers();
 
-    @Query("MATCH (m:Movie)<-[:ACTED_IN]-(a:User) RETURN m.name as movie, collect(a.name) as cast")
-    List<Map<String, Object>> getGraph();
+	@Query("MATCH (user:User) RETURN id(user)")
+	List<Integer> getUserIds();
 
-    @Query("MATCH (user:User{name:{name}}) RETURN user")
-    User findUserByNameWithNamedParam(@Param("name") String name);
+	@Query("MATCH (user:User) RETURN user.name, id(user)")
+	Iterable<Map<String, Object>> getUsersAsProperties();
 
-    @Query("MATCH (user:User{name:{0}}) RETURN user")
-    User findUserByName(String name);
+	@Query("MATCH (user:User) RETURN user")
+	Collection<User> getAllUsers();
 
-    @Query("MATCH (user:User) RETURN id(user) AS userId, id(user) as id, user.name AS userName, user.age ORDER BY user.age")
-    Iterable<UserQueryResult> retrieveAllUsersAndTheirAges();
+	@Query("MATCH (m:Movie)<-[:ACTED_IN]-(a:User) RETURN m.name as movie, collect(a.name) as cast")
+	List<Map<String, Object>> getGraph();
 
-    @Query("MATCH (user:User{name:{0}}) RETURN user.name AS name")
-    UnmanagedUserPojo findIndividualUserAsDifferentObject(String name);
+	@Query("MATCH (user:User{name:{name}}) RETURN user")
+	User findUserByNameWithNamedParam(@Param("name") String name);
 
-    @Query("MATCH (user:User) WHERE user.name={0} RETURN user.name AS name, user.age AS ageOfUser")
-    UserQueryResultObject findIndividualUserAsProxiedObject(String name);
+	@Query("MATCH (user:User{name:{0}}) RETURN user")
+	User findUserByName(String name);
 
-    @Query("MATCH (user:User) WHERE user.name={0} RETURN user as user, user.age AS ageOfUser")
-    UserQueryResultObject findWrappedUserAsProxiedObject(String name);
+	@Query("MATCH (user:User) RETURN id(user) AS userId, id(user) as id, user.name AS userName, user.age ORDER BY user.age")
+	Iterable<UserQueryResult> retrieveAllUsersAndTheirAges();
 
-    @Query("MATCH (user:User) WHERE user.gender={0} RETURN user.name AS UserName, user.gender AS UserGender, user.account as UserAccount, user.deposits as UserDeposits")
-    Iterable<RichUserQueryResult> findUsersByGender(Gender gender);
+	@Query("MATCH (user:User{name:{0}}) RETURN user.name AS name")
+	UnmanagedUserPojo findIndividualUserAsDifferentObject(String name);
 
-    @Query("MATCH (user:User) WHERE user.name={0} RETURN user")
-    EntityWrappingQueryResult findWrappedUserByName(String userName);
+	@Query("MATCH (user:User) WHERE user.name={0} RETURN user.name AS name, user.age AS ageOfUser")
+	UserQueryResultObject findIndividualUserAsProxiedObject(String name);
 
-    @Query("MATCH (user:User)-[:FRIEND_OF]->(f) WHERE user.name={0} RETURN user, collect(f) as friends")
-    EntityWrappingQueryResult findWrappedUserAndFriendsDepth0(String userName);
+	@Query("MATCH (user:User) WHERE user.name={0} RETURN user as user, user.age AS ageOfUser")
+	UserQueryResultObject findWrappedUserAsProxiedObject(String name);
 
-    @Query("MATCH (user:User)-[r:FRIEND_OF]->(f) WHERE user.name={0} RETURN user, collect(r) as rels, collect(f) as friends")
-    EntityWrappingQueryResult findWrappedUserAndFriendsDepth1(String userName);
+	@Query("MATCH (user:User) WHERE user.gender={0} RETURN user.name AS UserName, user.gender AS UserGender, user.account as UserAccount, user.deposits as UserDeposits")
+	Iterable<RichUserQueryResult> findUsersByGender(Gender gender);
 
-    @Query("MATCH (user:User)-[r:RATED]->(m) WHERE user.name={0} RETURN user, collect(r) as ratings, collect(m) as movies, avg(r.stars) as avgRating")
-    EntityWrappingQueryResult findWrappedUserAndRatingsByName(String userName);
+	@Query("MATCH (user:User) WHERE user.name={0} RETURN user")
+	EntityWrappingQueryResult findWrappedUserByName(String userName);
 
-    @Query("MATCH (user:User)-[r:RATED]->(m) RETURN user, collect(r) as ratings, collect(m) as movies, avg(r.stars) as avgRating order by user.name desc")
-    List<EntityWrappingQueryResult> findAllUserRatings();
+	@Query("MATCH (user:User)-[:FRIEND_OF]->(f) WHERE user.name={0} RETURN user, collect(f) as friends")
+	EntityWrappingQueryResult findWrappedUserAndFriendsDepth0(String userName);
 
-    @Query("MATCH (user:User) RETURN ID(user)")
-    List<Long> getUserNodeIds();
+	@Query("MATCH (user:User)-[r:FRIEND_OF]->(f) WHERE user.name={0} RETURN user, collect(r) as rels, collect(f) as friends")
+	EntityWrappingQueryResult findWrappedUserAndFriendsDepth1(String userName);
 
-    @Query("MATCH (user:User) WHERE ID(user)={0} return user")
-    User loadUserById(User user);
+	@Query("MATCH (user:User)-[r:RATED]->(m) WHERE user.name={0} RETURN user, collect(r) as ratings, collect(m) as movies, avg(r.stars) as avgRating")
+	EntityWrappingQueryResult findWrappedUserAndRatingsByName(String userName);
 
-    @Query("MATCH (user:User) WHERE ID(user)={userId} RETURN user")
-    User loadUserByNamedId(@Param("userId") User user);
+	@Query("MATCH (user:User)-[r:RATED]->(m) RETURN user, collect(r) as ratings, collect(m) as movies, avg(r.stars) as avgRating order by user.name desc")
+	List<EntityWrappingQueryResult> findAllUserRatings();
 
-    @Query("MATCH (user:User) RETURN user")
-    Iterable<User> getAllUsersIterable();
+	@Query("MATCH (user:User) RETURN ID(user)")
+	List<Long> getUserNodeIds();
 
-    @Query("MATCH (user:User) set user.name={0}")
-    void setNamesNull(String name);
+	@Query("MATCH (user:User) WHERE ID(user)={0} return user")
+	User loadUserById(User user);
 
-    List<User> findByNameIsNotLike(String name);
+	@Query("MATCH (user:User) WHERE ID(user)={userId} RETURN user")
+	User loadUserByNamedId(@Param("userId") User user);
 
-    @Depth(value = 0)
-    User findBySurname(String surname);
+	@Query("MATCH (user:User) RETURN user")
+	Iterable<User> getAllUsersIterable();
 
-    @Query("MATCH (user:User) RETURN user.unknown as allRatings")
-    EntityWrappingQueryResult findAllRatingsNull();
+	@Query("MATCH (user:User) set user.name={0}")
+	void setNamesNull(String name);
 
-    @Query("match (u:User)-[r:RATED]->(m:Movie) return  u as user, collect({username: u.name, movietitle: m.title, stars:r.stars}) as literalMap")
-    List<EntityWrappingQueryResult> findRatingsWithLiteralMap();
+	List<User> findByNameIsNotLike(String name);
 
-    Page<User> findByNameAndSurname(String name, String surname, Pageable pageable);
+	@Depth(value = 0)
+	User findBySurname(String surname);
 
-    Slice<User> findByNameAndRatingsStars(String name, int stars, Pageable pageable);
+	@Query("MATCH (user:User) RETURN user.unknown as allRatings")
+	EntityWrappingQueryResult findAllRatingsNull();
 
-    @Query("invalid")
+	@Query("match (u:User)-[r:RATED]->(m:Movie) return  u as user, collect({username: u.name, movietitle: m.title, stars:r.stars}) as literalMap")
+	List<EntityWrappingQueryResult> findRatingsWithLiteralMap();
+
+	Page<User> findByNameAndSurname(String name, String surname, Pageable pageable);
+
+	Slice<User> findByNameAndRatingsStars(String name, int stars, Pageable pageable);
+
+	@Query("invalid")
 	void invalidQuery();
 
-    User findByEmailAddressesContains(List<String> emails);
+	User findByEmailAddressesContains(List<String> emails);
 
-    List<User> findByEmailAddressesNotContaining(String email);
+	List<User> findByEmailAddressesNotContaining(String email);
 
 	@Query("MATCH (user:User) WHERE user.name=:#{#searchUser.name} RETURN user")
 	User findUserByNameUsingSpElWithObject(@Param("searchUser") User user);

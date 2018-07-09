@@ -190,6 +190,10 @@ public interface PersonRepository extends PagingAndSortingRepository<Person, Str
 |`findByNameNotLike(String name)`
 |`NOT(n.name =~ name)`
 
+|`IgnoreCase`
+|`findByNameIgnoreCase(string name`
+|`toLower(n.name) = toLower(name)`
+
 |`Near`
 |`findByLocationNear(Distance distance, Point point)`
 |`distance( point(n),point({latitude:lat, longitude:lon}) ) < distance`
@@ -526,7 +530,7 @@ You just need to add :
 Every method annotated with `@UseBookmark` will then collect the bookmarks coming from the database at the end of transactions.
 These bookmarks are then stored into a SDN managed context, and reused on later calls to other `@UseBookmark` annotated methods.
 
-WARNING: `@UseBookmark` has to be used on `@Transactional`annotated methods.
+WARNING: `@UseBookmark` has to be used on `@Transactional` annotated methods.
 
 == Miscellaneous
 
