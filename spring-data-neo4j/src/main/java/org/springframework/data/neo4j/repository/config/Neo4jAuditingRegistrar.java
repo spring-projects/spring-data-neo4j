@@ -19,9 +19,11 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.data.auditing.IsNewAwareAuditingHandler;
 import org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport;
 import org.springframework.data.auditing.config.AuditingConfiguration;
 import org.springframework.data.config.ParsingUtils;
+import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.neo4j.annotation.EnableNeo4jAuditing;
 import org.springframework.data.neo4j.repository.support.Neo4jAuditingBeanPostProcessor;
 import org.springframework.util.Assert;
@@ -46,13 +48,16 @@ public class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppo
 
 		Assert.notNull(configuration, "AuditingConfiguration must not be null!");
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(Neo4jIsNewAwareAuditingHandler.class);
+		BeanDefinitionBuilder handler = BeanDefinitionBuilder.rootBeanDefinition(IsNewAwareAuditingHandler.class);
 
 		BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(Neo4jMappingContextFactoryBean.class);
 		definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_CONSTRUCTOR);
+		
+		BeanDefinitionBuilder entities = BeanDefinitionBuilder.rootBeanDefinition(PersistentEntities.class);
+		entities.addConstructorArgValue(definition);
 
-		builder.addConstructorArgValue(definition.getBeanDefinition());
-		return configureDefaultAuditHandlerAttributes(configuration, builder);
+		handler.addConstructorArgValue(definition.getBeanDefinition());
+		return configureDefaultAuditHandlerAttributes(configuration, handler);
 	}
 
 	@Override
