@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -13,9 +13,15 @@
 
 package org.springframework.data.neo4j.repository.config;
 
-import java.lang.annotation.*;
+import static org.springframework.data.neo4j.repository.config.Neo4jRepositoryConfigurationExtension.*;
 
-import org.neo4j.ogm.session.SessionFactory;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
@@ -29,6 +35,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  *
  * @author Vince Bickers
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -101,16 +108,34 @@ public @interface EnableNeo4jRepositories {
     Class<?> repositoryBaseClass() default DefaultRepositoryBaseClass.class;
 
     /**
-     * Configures the name of the {@link SessionFactory} bean definition to be used to create repositories
-     * discovered through this annotation. Defaults to {@code sessionFactory}.
+     * Configures the name of the {@link org.neo4j.ogm.session.SessionFactory} bean definition to be used to create
+     * repositories discovered through this annotation. Defaults to {@code sessionFactory}.
      */
-    String sessionFactoryRef() default "sessionFactory";
+    String sessionFactoryRef() default DEFAULT_SESSION_FACTORY_BEAN_NAME;
+
+    /**
+     * Configures the name of the {@link org.neo4j.ogm.session.Session} bean definition created. Defaults to a generated
+     * name.
+     *
+     * @return
+     * @since 5.1.1
+     */
+    String sessionBeanName() default GENERATE_BEAN_NAME;
 
     /**
      * Configures the name of the {@link PlatformTransactionManager} bean definition to be used to create repositories
      * discovered through this annotation. Defaults to {@code transactionManager}.
      */
-    String transactionManagerRef() default "transactionManager";
+    String transactionManagerRef() default DEFAULT_TRANSACTION_MANAGER_BEAN_NAME;
+
+    /**
+     * Configures the name of the {@link org.springframework.data.neo4j.mapping.Neo4jMappingContext} bean definition
+     * created. Defaults to a generated name.
+     *
+     * @return
+     * @since 5.1.1
+     */
+    String mappingContextBeanName() default GENERATE_BEAN_NAME;
 
     /**
      * Configures whether nested repository-interfaces (e.g. defined as inner classes) should be discovered by the
