@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -20,7 +20,9 @@ import java.util.Optional;
 
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.RelationshipEntity;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.AutowireCandidateQualifier;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -49,20 +51,33 @@ import org.springframework.util.StringUtils;
  * @author Mark Angrish
  * @author Mark Paluch
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
 
 	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
-	private static final String DEFAULT_SESSION_FACTORY_BEAN_NAME = "sessionFactory";
-	private static final String NEO4J_MAPPING_CONTEXT_BEAN_NAME = "neo4jMappingContext";
+	static final String DEFAULT_SESSION_FACTORY_BEAN_NAME = "sessionFactory";
+	static final String DEFAULT_SESSION_BEAN_NAME = "session";
+	private static final String DEFAULT_NEO4J_MAPPING_CONTEXT_BEAN_NAME = "neo4jMappingContext";
 	private static final String ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME = "neo4jOgmEntityInstantiatorConfigurationBean";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
 	private static final boolean HAS_ENTITY_INSTANTIATOR_FEATURE = ClassUtils.isPresent("org.neo4j.ogm.session.EntityInstantiator",
 			Neo4jMappingContextFactoryBean.class.getClassLoader());
-	private static final String NEO4J_SHARED_SESSION_CREATOR_BEAN_NAME = "sharedSessionCreatorBean";
 	private static final String NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME = "neo4jPersistenceExceptionTranslator";
 	private static final String MODULE_PREFIX = "neo4j";
 	private static final String MODULE_NAME = "Neo4j";
+
+	/**
+	 * If there's only one {@link org.neo4j.ogm.session.SessionFactory} around, we generate one injectable shared session
+	 * under that name, otherwise we use a generated name for every further pair of {@code SessionFactory} and
+	 * {@code Session}
+	 */
+	private String sessionBeanName = DEFAULT_SESSION_BEAN_NAME;
+
+	/**
+	 * Same mechanism as with {@link #sessionBeanName}.
+	 */
+	private String neo4jMappingContextBeanName = DEFAULT_NEO4J_MAPPING_CONTEXT_BEAN_NAME;
 
 	/*
 	 * (non-Javadoc)
@@ -120,12 +135,14 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		String transactionManagerRefPropertyName = "transactionManagerRef";
 		String transactionManagerPropertyName = "transactionManager";
 		String mappingContextPropertyName = "mappingContext";
+		String sessionPropertyName = "session";
 
 		Optional<String> transactionManagerRef = source.getAttribute(transactionManagerRefPropertyName);
-
 		builder.addPropertyValue(transactionManagerPropertyName,
 				transactionManagerRef.orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
-		builder.addPropertyReference(mappingContextPropertyName, NEO4J_MAPPING_CONTEXT_BEAN_NAME);
+
+		builder.addPropertyReference(sessionPropertyName, this.sessionBeanName);
+		builder.addPropertyReference(mappingContextPropertyName, this.neo4jMappingContextBeanName);
 	}
 
 	/*
@@ -168,35 +185,74 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 
 		Object source = config.getSource();
 
-		registerIfNotAlreadyRegistered(createSharedSessionCreatorBeanDefinition(config), registry,
-				NEO4J_SHARED_SESSION_CREATOR_BEAN_NAME, source);
+		this.sessionBeanName = registerWithSuggestedNameOrGenerateNewName(createSharedSessionCreatorBeanDefinition(config),
+				registry, DEFAULT_SESSION_BEAN_NAME, source);
 
-		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jMappingContextFactoryBean.class), registry,
-				NEO4J_MAPPING_CONTEXT_BEAN_NAME, source);
+		this.neo4jMappingContextBeanName = registerWithSuggestedNameOrGenerateNewName(
+				createNeo4jMappingContextFactoryBeanDefinition(config), registry, DEFAULT_NEO4J_MAPPING_CONTEXT_BEAN_NAME,
+				source);
 
 		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jPersistenceExceptionTranslator.class), registry,
 				NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME, source);
 
 		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
-			RootBeanDefinition rootBeanDefinition = new RootBeanDefinition(Neo4jOgmEntityInstantiatorConfigurationBean.class);
-			rootBeanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
-			registerIfNotAlreadyRegistered(rootBeanDefinition,
-					registry, ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME, source);
+			AbstractBeanDefinition rootBeanDefinition = BeanDefinitionBuilder
+					.rootBeanDefinition(Neo4jOgmEntityInstantiatorConfigurationBean.class)
+					.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE)
+					.addConstructorArgReference(this.getSessionFactoryBeanName(config))
+					.addConstructorArgReference(this.neo4jMappingContextBeanName)
+					.getBeanDefinition();
+			registerIfNotAlreadyRegistered(rootBeanDefinition, registry, ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME, source);
 		}
 	}
 
 	private AbstractBeanDefinition createSharedSessionCreatorBeanDefinition(RepositoryConfigurationSource config) {
 
-		String sessionFactoryRefPropertyName = "sessionFactoryRef";
-		String sessionFactoryBeanName = config.getAttribute(sessionFactoryRefPropertyName)
+		String sessionFactoryBeanName = getSessionFactoryBeanName(config);
+
+		AbstractBeanDefinition sharedSessionCreatorBeanDefinition = BeanDefinitionBuilder //
+				.rootBeanDefinition(SharedSessionCreator.class, "createSharedSession") //
+				.addConstructorArgReference(sessionFactoryBeanName) //
+				.getBeanDefinition();
+
+		sharedSessionCreatorBeanDefinition
+				.addQualifier(new AutowireCandidateQualifier(Qualifier.class, sessionFactoryBeanName));
+
+		return sharedSessionCreatorBeanDefinition;
+	}
+
+	private AbstractBeanDefinition createNeo4jMappingContextFactoryBeanDefinition(RepositoryConfigurationSource config) {
+		return BeanDefinitionBuilder //
+				.rootBeanDefinition(Neo4jMappingContextFactoryBean.class) //
+				.addConstructorArgValue(getSessionFactoryBeanName(config)) //
+				.getBeanDefinition();
+	}
+
+	private String getSessionFactoryBeanName(RepositoryConfigurationSource config) {
+		return Optional.of("sessionFactoryRef").flatMap(config::getAttribute)
 				.orElse(DEFAULT_SESSION_FACTORY_BEAN_NAME);
+	}
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(SharedSessionCreator.class,
-				"createSharedSession");
-		builder.addConstructorArgReference(sessionFactoryBeanName);
+	/**
+	 * Checks whether a bean is already registered under {@code suggestedBeanName} in the given {@code registry} and uses
+	 * a generated name for registering the bean instead. If not, the suggested bean name is used.
+	 *
+	 * @param bean must not be {@literal null}.
+	 * @param registry must not be {@literal null}.
+	 * @param suggestedBeanName must not be {@literal null} or empty.
+	 * @param source must not be {@literal null}.
+	 * @return the bean name used for registering the given {@link AbstractBeanDefinition}
+	 */
+	private String registerWithSuggestedNameOrGenerateNewName(AbstractBeanDefinition bean,
+			BeanDefinitionRegistry registry, String suggestedBeanName, Object source) {
 
-		return builder.getBeanDefinition();
-
+		String registeredBeanName = suggestedBeanName;
+		if (registry.containsBeanDefinition(suggestedBeanName)) {
+			registeredBeanName = registerWithSourceAndGeneratedBeanName(registry, bean, source);
+		} else {
+			registerIfNotAlreadyRegistered(bean, registry, suggestedBeanName, source);
+		}
+		return registeredBeanName;
 	}
 
 }

@@ -27,11 +27,34 @@ import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
  *
  * @author Mark Angrish
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
 public class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMappingContext> implements
 		ApplicationContextAware {
 
+	private final String sessionFactoryBeanName;
+
 	private ListableBeanFactory beanFactory;
+
+	/**
+	 * Uses the default session factory name {@link Neo4jRepositoryConfigurationExtension#DEFAULT_SESSION_FACTORY_BEAN_NAME}
+	 * for finding the session factory passed to the {@link Neo4jMappingContext}.
+	 *
+	 * @deprecated
+	 */
+	public Neo4jMappingContextFactoryBean() {
+		this(Neo4jRepositoryConfigurationExtension.DEFAULT_SESSION_FACTORY_BEAN_NAME);
+	}
+
+	/**
+	 * Configures the mapping context with a named {@link SessionFactory}.
+	 *
+	 * @param sessionFactoryBeanName
+	 * @since 5.1.0
+	 */
+	Neo4jMappingContextFactoryBean(String sessionFactoryBeanName) {
+		this.sessionFactoryBeanName = sessionFactoryBeanName;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -57,7 +80,8 @@ public class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMap
 	 */
 	@Override
 	protected Neo4jMappingContext createInstance() {
-		SessionFactory sessionFactory = beanFactory.getBean(SessionFactory.class);
+
+		SessionFactory sessionFactory = beanFactory.getBean(this.sessionFactoryBeanName, SessionFactory.class);
 		Neo4jMappingContext context = new Neo4jMappingContext(sessionFactory.metaData());
 		context.initialize();
 		return context;

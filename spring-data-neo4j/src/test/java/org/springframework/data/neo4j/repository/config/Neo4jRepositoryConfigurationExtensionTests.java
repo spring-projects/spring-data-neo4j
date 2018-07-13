@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -12,15 +12,17 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.data.neo4j.repository.config.Neo4jRepositoryConfigurationExtension.*;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -44,35 +46,29 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
  * @author Mark Angrish
  * @author Mark Paluch
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 public class Neo4jRepositoryConfigurationExtensionTests {
 
 	private static final String CUSTOM_SESSION_FACTORY_BEAN_NAME = "mySessionFactory";
-	private static final String DEFAULT_SESSION_FACTORY_BEAN_NAME = "sessionFactory";
-	private static final String SHARED_SESSION_CREATOR_BEAN_NAME = "sharedSessionCreatorBean";
 
 	public @Rule ExpectedException exception = ExpectedException.none();
-
-	private StandardAnnotationMetadata metadata = new StandardAnnotationMetadata(Config.class, true);
-
-	@Before
-	public void setup() {
-		metadata = new StandardAnnotationMetadata(Config.class, true);
-	}
 
 	@Test
 	public void registersSharedSessionCreatorBeanByDefault() {
 
-		DefaultListableBeanFactory factory = getBeanRegistry();
+		DefaultListableBeanFactory factory = getBeanRegistry(new StandardAnnotationMetadata(Config.class, true));
 
 		Iterable<String> names = Arrays.asList(factory.getBeanDefinitionNames());
 
-		assertThat(names, hasItems(SHARED_SESSION_CREATOR_BEAN_NAME));
+		assertThat(names, hasItems(DEFAULT_SESSION_FACTORY_BEAN_NAME));
 	}
 
 	@Test
 	public void sessionFactoryBeanNameDefaultsToSessionFactory() {
-		BeanDefinition beanDefinition = getBeanRegistry().getBeanDefinition(SHARED_SESSION_CREATOR_BEAN_NAME);
+
+		BeanDefinition beanDefinition = getBeanRegistry(new StandardAnnotationMetadata(Config.class, true))
+				.getBeanDefinition(DEFAULT_SESSION_BEAN_NAME);
 
 		RuntimeBeanReference sessionFactoryBean = (RuntimeBeanReference) beanDefinition.getConstructorArgumentValues()
 				.getIndexedArgumentValue(0, RuntimeBeanReference.class).getValue();
@@ -84,9 +80,9 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 
 	@Test
 	public void customSessionFactoryBeanNameWillGetUsed() {
-		metadata = new StandardAnnotationMetadata(CustomSessionRefConfig.class, true);
 
-		BeanDefinition beanDefinition = getBeanRegistry().getBeanDefinition(SHARED_SESSION_CREATOR_BEAN_NAME);
+		BeanDefinition beanDefinition = getBeanRegistry(new StandardAnnotationMetadata(CustomSessionRefConfig.class, true))
+				.getBeanDefinition(DEFAULT_SESSION_BEAN_NAME);
 
 		RuntimeBeanReference sessionFactoryBean = (RuntimeBeanReference) beanDefinition.getConstructorArgumentValues()
 				.getIndexedArgumentValue(0, RuntimeBeanReference.class).getValue();
@@ -106,18 +102,19 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 
 		Set<ClassInfo> managedTypes = Collections.singleton(classInfo);
 
-		when(context.getBean(SessionFactory.class)).thenReturn(sessionFactory);
+		when(context.getBean(any(String.class), eq(SessionFactory.class))).thenReturn(sessionFactory);
 		when(sessionFactory.metaData()).thenReturn(metaData);
 		when(metaData.persistentEntities()).thenReturn(managedTypes);
 		when(classInfo.name()).thenReturn("Test");
 
-		Neo4jMappingContextFactoryBean factoryBean = new Neo4jMappingContextFactoryBean();
+		Neo4jMappingContextFactoryBean factoryBean = new Neo4jMappingContextFactoryBean(Neo4jRepositoryConfigurationExtension.DEFAULT_SESSION_FACTORY_BEAN_NAME);
 		factoryBean.setApplicationContext(context);
 
 		factoryBean.createInstance().afterPropertiesSet();
 	}
 
-	private DefaultListableBeanFactory getBeanRegistry() {
+	private DefaultListableBeanFactory getBeanRegistry(final StandardAnnotationMetadata metadata) {
+
 		AnnotationConfigApplicationContext factory = new AnnotationConfigApplicationContext();
 
 		factory.registerBean(DEFAULT_SESSION_FACTORY_BEAN_NAME, SessionFactory.class, "dummypackage");

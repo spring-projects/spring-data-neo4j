@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * otherwise it will fall back to a newly created Session per operation.
  *
  * @author Mark Angrish
+ * @author Michael J. Simons
  * @see Neo4jTransactionManager
  */
 public class SharedSessionCreator {
@@ -60,7 +61,6 @@ public class SharedSessionCreator {
 	 * @return a shareable transactional Session proxy
 	 */
 	public static Session createSharedSession(SessionFactory sessionFactory) {
-
 		return (Session) Proxy.newProxyInstance(
 				SharedSessionCreator.class.getClassLoader(),
 				new Class<?>[]{Session.class}, new SharedSessionInvocationHandler(sessionFactory));
@@ -76,14 +76,11 @@ public class SharedSessionCreator {
 
 		private final Logger logger = LoggerFactory.getLogger(getClass());
 
-		private final SessionFactory targetFactory;
-		private final ClassLoader proxyClassLoader;
+		private final SessionFactory sessionFactory;
 
-		public SharedSessionInvocationHandler(SessionFactory target) {
-			this.targetFactory = target;
-			this.proxyClassLoader = this.targetFactory.getClass().getClassLoader();
+		public SharedSessionInvocationHandler(SessionFactory sessionFactory) {
+			this.sessionFactory = sessionFactory;
 		}
-
 
 		@Override
 		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -97,7 +94,7 @@ public class SharedSessionCreator {
 				return hashCode();
 			} else if (method.getName().equals("toString")) {
 				// Deliver toString without touching a target Session.
-				return "Shared Session proxy for target factory [" + targetFactory + "]";
+				return "Shared Session proxy for target factory [" + sessionFactory + "]";
 			} else if (method.getName().equals("beginTransaction")) {
 				throw new IllegalStateException(
 						"Not allowed to create transaction on shared Session - " +
@@ -106,12 +103,12 @@ public class SharedSessionCreator {
 
 			// Determine current Session: either the transactional one
 			// managed by the factory or a temporary one for the given invocation.
-			Session target = SessionFactoryUtils.getSession(this.targetFactory);
+			Session targetSession = SessionFactoryUtils.getSession(this.sessionFactory);
 
 			if (transactionRequiringMethods.contains(method.getName())) {
-				if (target == null || (!TransactionSynchronizationManager.isActualTransactionActive()
-						&& target.getTransaction() != null
-						&& EnumSet.of(CLOSED, COMMITTED, ROLLEDBACK).contains(target.getTransaction().status()))) {
+				if (targetSession == null || (!TransactionSynchronizationManager.isActualTransactionActive()
+						&& targetSession.getTransaction() != null
+						&& EnumSet.of(CLOSED, COMMITTED, ROLLEDBACK).contains(targetSession.getTransaction().status()))) {
 					throw new IllegalStateException("No Session with actual transaction available " +
 							"for current thread - cannot reliably process '" + method.getName() + "' call");
 				}
@@ -119,21 +116,21 @@ public class SharedSessionCreator {
 
 			// Regular Session operations.
 			boolean isNewSession = false;
-			if (target == null) {
+			if (targetSession == null) {
 				logger.debug("Creating new Session for shared Session invocation");
-				target = this.targetFactory.openSession();
+				targetSession = this.sessionFactory.openSession();
 				isNewSession = true;
 			}
 
 			// Invoke method on current Session.
 			try {
 
-				return method.invoke(target, args);
+				return method.invoke(targetSession, args);
 			} catch (InvocationTargetException ex) {
 				throw ex.getTargetException();
 			} finally {
 				if (isNewSession) {
-					SessionFactoryUtils.closeSession(target);
+					SessionFactoryUtils.closeSession(targetSession);
 				}
 			}
 		}
