@@ -154,6 +154,28 @@
             </roles>
             <timezone>-5</timezone>
         </developer>
+        <developer>
+            <id>gmeier</id>
+            <name>Gerrit Meier</name>
+            <email>gerrit.meier at neo4j.com</email>
+            <organization>Neo Technology</organization>
+            <organizationUrl>http://www.neotechnology.com</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id>msimons</id>
+            <name>Michael Simons</name>
+            <email>michael.simons at neo4j.com</email>
+            <organization>Neo Technology</organization>
+            <organizationUrl>http://www.neotechnology.com</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
     </developers>
 
     <profiles>
