@@ -5,7 +5,7 @@
 
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-neo4j-parent</artifactId>
-    <version>5.0.9.BUILD-SNAPSHOT</version>
+    <version>5.0.9.DATAGRAPH-1095-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Spring Data Neo4j</name>
