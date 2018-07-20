@@ -13,16 +13,17 @@
 
 package org.springframework.data.neo4j.web.domain;
 
-import org.neo4j.ogm.annotation.GraphId;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.Index;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.UuidStringConverter;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * @author Michal Bachman
@@ -31,11 +32,12 @@ import java.util.UUID;
 @NodeEntity
 public class Cinema {
 
-    @GraphId
+    @Id
+    @GeneratedValue
     private Long id;
 
     @Convert(UuidStringConverter.class)
-    @Index(unique = true, primary = true)
+    @Index(unique = true)
     private UUID uuid;
 
     private String name;

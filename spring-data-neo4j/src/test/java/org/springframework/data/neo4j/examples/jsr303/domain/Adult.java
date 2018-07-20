@@ -17,7 +17,8 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
 
 /**
@@ -27,7 +28,8 @@ import org.neo4j.ogm.annotation.NodeEntity;
 @NodeEntity
 public class Adult {
 
-	@GraphId
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	@NotNull @Size(min = 2, max = 50)

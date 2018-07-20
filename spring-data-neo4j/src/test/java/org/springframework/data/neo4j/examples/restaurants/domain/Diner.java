@@ -1,6 +1,7 @@
 package org.springframework.data.neo4j.examples.restaurants.domain;
 
-import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
 
 /**
  * An entity (most likely human) that consumes meals in a Restaurant. Not to be confused with the 50s concept that
@@ -8,7 +9,8 @@ import org.neo4j.ogm.annotation.GraphId;
  */
 public class Diner {
 
-	@GraphId
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	private String firstName;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -12,23 +12,25 @@
  */
 package org.springframework.data.neo4j.domain.sample;
 
-
 import java.util.UUID;
 
-import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
 
 /**
  * Sample domain class representing roles.
  *
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 @NodeEntity
 public class Role {
 
 	private static final String PREFIX = "ROLE_";
 
-	@GraphId
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	private UUID uuid;

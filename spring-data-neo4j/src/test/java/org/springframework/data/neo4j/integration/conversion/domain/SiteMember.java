@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -16,7 +16,8 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.List;
 
-import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.ByteArrayBase64Converter;
@@ -24,10 +25,12 @@ import org.neo4j.ogm.typeconversion.ByteArrayBase64Converter;
 /**
  * @author Adam George
  * @author Luanne Misquitta
+ * @author Michael J. Simons
  */
 public class SiteMember {
 
-    @GraphId
+    @Id
+    @GeneratedValue
     private Long id;
 
     @Convert(ByteArrayBase64Converter.class)
