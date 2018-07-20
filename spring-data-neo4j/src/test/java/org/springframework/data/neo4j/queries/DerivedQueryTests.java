@@ -13,13 +13,9 @@
 
 package org.springframework.data.neo4j.queries;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -28,7 +24,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -715,10 +710,7 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 		assertFalse(page.hasNext());
 	}
 
-	/**
-	 * @see DATAGRAPH-1093
-	 */
-	@Test
+	@Test // DATAGRAPH-1093
 	public void shouldFindNodeEntitiesByAttributeIgnoringCase() {
 		executeUpdate(
 				"CREATE (:Director {name:'Patty Jenkins'})\n" + //
@@ -735,8 +727,7 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 						"            ,(u1)-[:RATED {stars:3}]->(m3)"
 		);
 
-		Collection<Director> directors;
-		directors = directorRepository.findByName("paTTY jenKins");
+		Collection<Director> directors = directorRepository.findByName("paTTY jenKins");
 		assertThat(directors).isEmpty();
 
 		// Ignore case for attribute Director#name set to ALWAYS
@@ -747,8 +738,7 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 				.containsExactly("Patty Jenkins");
 
 
-		List<User> users;
-		users = userRepository.findByRatingsStarsAndInterestedName(3, "THRILLER");
+		List<User> users = userRepository.findByRatingsStarsAndInterestedName(3, "THRILLER");
 		assertThat(users).isEmpty();
 
 		// Ignore case for attribute Director#name set to ALWAYS

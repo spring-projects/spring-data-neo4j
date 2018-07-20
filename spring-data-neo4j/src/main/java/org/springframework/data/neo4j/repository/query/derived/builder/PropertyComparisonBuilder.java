@@ -13,7 +13,7 @@
 
 package org.springframework.data.neo4j.repository.query.derived.builder;
 
-import static org.springframework.data.repository.query.parser.Part.Type.SIMPLE_PROPERTY;
+import static org.springframework.data.repository.query.parser.Part.Type.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,9 +38,10 @@ public class PropertyComparisonBuilder extends FilterBuilder {
 
 	@Override
 	public List<Filter> build(Stack<Object> params) {
-		final Object value = params.pop();
 
-		final Filter filter = new Filter(propertyName(), convertToComparisonOperator(part.getType()), value);
+		Object value = params.pop();
+
+		Filter filter = new Filter(propertyName(), convertToComparisonOperator(part.getType()), value);
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
@@ -51,6 +52,7 @@ public class PropertyComparisonBuilder extends FilterBuilder {
 	}
 
 	private ComparisonOperator convertToComparisonOperator(Part.Type type) {
+
 		switch (type) {
 			case AFTER:
 			case GREATER_THAN:
@@ -93,6 +95,7 @@ public class PropertyComparisonBuilder extends FilterBuilder {
 	 * @param filter
 	 */
 	private void applyCaseInsensitivityIfShouldIgnoreCase(Part part, Filter filter) {
+
 		switch (part.shouldIgnoreCase()) {
 			case ALWAYS:
 				Assert.state(canIgnoreCase(part), "Unable to ignore case of " + part.getProperty().getLeafType().getName()
@@ -110,7 +113,7 @@ public class PropertyComparisonBuilder extends FilterBuilder {
 		}
 	}
 
-	private boolean canIgnoreCase(final Part part) {
+	private boolean canIgnoreCase(Part part) {
 		return part.getType() == SIMPLE_PROPERTY && String.class.equals(part.getProperty().getLeafType());
 	}
 }
