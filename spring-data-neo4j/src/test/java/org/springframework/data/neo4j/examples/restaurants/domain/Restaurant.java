@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -18,7 +18,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.annotation.typeconversion.DateString;
@@ -27,10 +28,12 @@ import org.springframework.data.neo4j.conversion.PointConverter;
 
 /**
  * @author Jasper Blues
+ * @author Michael J. Simons
  */
 public class Restaurant implements Comparable<Restaurant> {
 
-	@GraphId
+	@Id
+	@GeneratedValue
 	private Long id;
 	private String name;
 	@Convert(PointConverter.class)

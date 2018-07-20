@@ -2,7 +2,8 @@ package org.springframework.data.neo4j.repository;
 
 import java.util.UUID;
 
-import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.Index;
 import org.neo4j.ogm.annotation.NodeEntity;
 
@@ -12,10 +13,11 @@ import org.neo4j.ogm.annotation.NodeEntity;
 @NodeEntity
 public abstract class Contact {
 
-	@GraphId
+	@Id
+	@GeneratedValue
 	protected Long id;
 
-	@Index(primary = true, unique = true)
+	@Index(unique = true)
 	private String uuid;
 
 	public Contact() {

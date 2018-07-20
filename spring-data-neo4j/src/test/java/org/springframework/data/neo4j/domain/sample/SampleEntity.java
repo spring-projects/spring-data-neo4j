@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -12,18 +12,21 @@
  */
 package org.springframework.data.neo4j.domain.sample;
 
-import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.springframework.util.Assert;
 
 /**
  * @author Mark Angrish
  * @author Mark Paluch
+ * @author Michael J. Simons
  */
 @NodeEntity
 public class SampleEntity {
 
-	@GraphId
+	@Id
+	@GeneratedValue
 	protected Long id;
 	private String first;
 	private String second;

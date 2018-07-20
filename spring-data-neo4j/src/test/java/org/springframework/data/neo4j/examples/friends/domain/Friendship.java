@@ -14,7 +14,8 @@
 package org.springframework.data.neo4j.examples.friends.domain;
 
 import org.neo4j.ogm.annotation.EndNode;
-import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.annotation.StartNode;
 
@@ -24,7 +25,7 @@ import org.neo4j.ogm.annotation.StartNode;
 @RelationshipEntity(type = "IS_FRIEND")
 public class Friendship {
 
-	@GraphId private Long id;
+	@Id @GeneratedValue private Long id;
 
 	@StartNode private Person personStartNode;
 	@EndNode private Person personEndNode;

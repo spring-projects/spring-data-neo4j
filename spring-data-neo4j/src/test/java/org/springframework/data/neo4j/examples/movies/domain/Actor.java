@@ -13,15 +13,16 @@
 
 package org.springframework.data.neo4j.examples.movies.domain;
 
-
-import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
 
 /**
  * @author Michal Bachman
  */
 public class Actor{
 
-    @GraphId
+    @Id
+    @GeneratedValue
     Long nodeId;
     String id;
     String name;

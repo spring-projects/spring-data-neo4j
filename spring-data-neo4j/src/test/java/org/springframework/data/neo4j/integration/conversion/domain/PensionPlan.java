@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -13,18 +13,21 @@
 
 package org.springframework.data.neo4j.integration.conversion.domain;
 
-import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 
 /**
  * @author Adam George
  * @author Luanne Misquitta
+ * @author Michael J. Simons
  */
 @NodeEntity
 public class PensionPlan {
 
-    @GraphId
+    @Id
+    @GeneratedValue
     private Long pensionPlanId;
 
     @Convert(graphPropertyType = Integer.class)

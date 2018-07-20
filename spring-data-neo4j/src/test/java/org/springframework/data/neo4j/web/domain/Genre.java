@@ -15,7 +15,8 @@ package org.springframework.data.neo4j.web.domain;
 
 import java.util.UUID;
 
-import org.neo4j.ogm.annotation.GraphId;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.Index;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
@@ -28,11 +29,12 @@ import org.neo4j.ogm.typeconversion.UuidStringConverter;
 @NodeEntity
 public class Genre {
 
-    @GraphId
+    @Id
+    @GeneratedValue
     private Long id;
 
     @Convert(UuidStringConverter.class)
-    @Index(unique = true, primary = true)
+    @Index(unique = true)
     private UUID uuid;
 
     private String name;
