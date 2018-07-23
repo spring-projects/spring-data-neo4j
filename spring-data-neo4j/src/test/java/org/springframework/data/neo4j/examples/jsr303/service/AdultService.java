@@ -24,10 +24,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class AdultService {
 
-    @Autowired
-    private AdultRepository repository;
+	@Autowired private AdultRepository repository;
 
-    public Adult save(Adult adult) {
-        return repository.save(adult);
-    }
+	public Adult save(Adult adult) {
+		return repository.save(adult);
+	}
 }

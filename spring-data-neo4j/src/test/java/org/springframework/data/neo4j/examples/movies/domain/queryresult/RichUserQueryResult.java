@@ -13,10 +13,10 @@
 
 package org.springframework.data.neo4j.examples.movies.domain.queryresult;
 
-import org.springframework.data.neo4j.annotation.QueryResult;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
+
+import org.springframework.data.neo4j.annotation.QueryResult;
 
 /**
  * A {@link QueryResult} that contains rich types.
@@ -27,24 +27,24 @@ import java.math.BigInteger;
 @QueryResult
 public class RichUserQueryResult {
 
-    private Gender userGender; // should be handled by default type conversion
-    private String userName;
-    private BigInteger userAccount;
-    private BigDecimal[] userDeposits;
+	private Gender userGender; // should be handled by default type conversion
+	private String userName;
+	private BigInteger userAccount;
+	private BigDecimal[] userDeposits;
 
-    public Gender getUserGender() {
-        return userGender;
-    }
+	public Gender getUserGender() {
+		return userGender;
+	}
 
-    public String getUserName() {
-        return userName;
-    }
+	public String getUserName() {
+		return userName;
+	}
 
-    public BigInteger getUserAccount() {
-        return userAccount;
-    }
+	public BigInteger getUserAccount() {
+		return userAccount;
+	}
 
-    public BigDecimal[] getUserDeposits() {
-        return userDeposits;
-    }
+	public BigDecimal[] getUserDeposits() {
+		return userDeposits;
+	}
 }

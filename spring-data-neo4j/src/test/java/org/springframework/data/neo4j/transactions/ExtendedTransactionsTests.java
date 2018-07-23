@@ -43,24 +43,20 @@ import org.springframework.transaction.annotation.Transactional;
  * @see http://stackoverflow.com/questions/17224887/java-spring-transactional-method-not-rolling-back-as-expected
  * @see DATAGRAPH-602
  */
-@ContextConfiguration(classes = {ExtendedTransactionsTests.ApplicationConfig.class})
+@ContextConfiguration(classes = { ExtendedTransactionsTests.ApplicationConfig.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ExtendedTransactionsTests extends MultiDriverTestClass {
 
-	@Autowired
-	ServiceA serviceA;
+	@Autowired ServiceA serviceA;
 
-	@Autowired
-	ServiceB serviceB;
+	@Autowired ServiceB serviceB;
 
-	@Autowired
-	WrapperService wrapperService;
+	@Autowired WrapperService wrapperService;
 
 	@Before
 	public void clearDatabase() {
 		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
-
 
 	@Test
 	public void shouldRollbackSuccessThenFail() {
@@ -146,13 +142,13 @@ public class ExtendedTransactionsTests extends MultiDriverTestClass {
 	static class ApplicationConfig {
 
 		@Bean
-		public PlatformTransactionManager transactionManager()  {
+		public PlatformTransactionManager transactionManager() {
 			return new Neo4jTransactionManager(sessionFactory());
 		}
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),"org.springframework.data.neo4j.transactions.domain");
+			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.transactions.domain");
 		}
 	}
 

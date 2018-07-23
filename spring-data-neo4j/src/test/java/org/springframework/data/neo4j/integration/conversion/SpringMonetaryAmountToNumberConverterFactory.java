@@ -20,24 +20,26 @@ import org.springframework.core.convert.converter.ConverterFactory;
 import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmount;
 
 /**
- * Not a properly-implemented factory, but it does serve the purpose of helping to verify that converters defined for abstract
- * supertypes can still be used correctly.
+ * Not a properly-implemented factory, but it does serve the purpose of helping to verify that converters defined for
+ * abstract supertypes can still be used correctly.
  *
  * @author Adam George
  */
-public class SpringMonetaryAmountToNumberConverterFactory implements ConverterFactory<MonetaryAmount, Number>, ConditionalConverter {
+public class SpringMonetaryAmountToNumberConverterFactory
+		implements ConverterFactory<MonetaryAmount, Number>, ConditionalConverter {
 
-    private final SpringMonetaryAmountToIntegerConverter wrappedConverter = new SpringMonetaryAmountToIntegerConverter();
+	private final SpringMonetaryAmountToIntegerConverter wrappedConverter = new SpringMonetaryAmountToIntegerConverter();
 
-    @Override
-    public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
-        return MonetaryAmount.class.isAssignableFrom(sourceType.getType()) && Number.class.isAssignableFrom(targetType.getType());
-    }
+	@Override
+	public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
+		return MonetaryAmount.class.isAssignableFrom(sourceType.getType())
+				&& Number.class.isAssignableFrom(targetType.getType());
+	}
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T extends Number> Converter<MonetaryAmount, T> getConverter(Class<T> targetType) {
-        return (Converter<MonetaryAmount, T>) this.wrappedConverter;
-    }
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends Number> Converter<MonetaryAmount, T> getConverter(Class<T> targetType) {
+		return (Converter<MonetaryAmount, T>) this.wrappedConverter;
+	}
 
 }

@@ -23,6 +23,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface JavaElementRepository extends Neo4jRepository<JavaElement, Long> {
 
-    // no additional repository methods
+	// no additional repository methods
 
 }

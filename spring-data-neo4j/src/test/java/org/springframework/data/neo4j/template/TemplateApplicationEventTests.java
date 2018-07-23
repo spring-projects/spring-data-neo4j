@@ -44,71 +44,69 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class TemplateApplicationEventTests extends MultiDriverTestClass {
 
-    @Autowired
-    private Session session;
+	@Autowired private Session session;
 
-    @Autowired
-    private Neo4jModificationEventListener eventListener;
+	@Autowired private Neo4jModificationEventListener eventListener;
 
-    @Test
-    @Transactional
-    public void shouldCreateTemplateAndPublishAppropriateApplicationEventsOnSaveAndOnDelete() {
-        assertNotNull("The Neo4jTemplate wasn't autowired into this test", this.session);
+	@Test
+	@Transactional
+	public void shouldCreateTemplateAndPublishAppropriateApplicationEventsOnSaveAndOnDelete() {
+		assertNotNull("The Neo4jTemplate wasn't autowired into this test", this.session);
 
-        Actor entity = new Actor();
-        entity.setName("John Abraham");
+		Actor entity = new Actor();
+		entity.setName("John Abraham");
 
-        assertFalse(this.eventListener.receivedPreSaveEvent());
-        assertFalse(this.eventListener.receivedPostSaveEvent());
-        this.session.save(entity);
-        assertTrue(this.eventListener.receivedPreSaveEvent());
+		assertFalse(this.eventListener.receivedPreSaveEvent());
+		assertFalse(this.eventListener.receivedPostSaveEvent());
+		this.session.save(entity);
+		assertTrue(this.eventListener.receivedPreSaveEvent());
 
-        assertSame(entity, this.eventListener.getPreSaveEvent().getSource().getObject());
-        assertTrue(this.eventListener.receivedPostSaveEvent());
-        assertSame(entity, this.eventListener.getPostSaveEvent().getSource().getObject());
+		assertSame(entity, this.eventListener.getPreSaveEvent().getSource().getObject());
+		assertTrue(this.eventListener.receivedPostSaveEvent());
+		assertSame(entity, this.eventListener.getPostSaveEvent().getSource().getObject());
 
-        assertFalse(this.eventListener.receivedPreDeleteEvent());
-        assertFalse(this.eventListener.receivedPostDeleteEvent());
-        this.session.delete(entity);
-        assertTrue(this.eventListener.receivedPreDeleteEvent());
-        assertSame(entity, this.eventListener.getPreDeleteEvent().getSource().getObject());
-        assertTrue(this.eventListener.receivedPostDeleteEvent());
-        assertSame(entity, this.eventListener.getPostDeleteEvent().getSource().getObject());
-    }
+		assertFalse(this.eventListener.receivedPreDeleteEvent());
+		assertFalse(this.eventListener.receivedPostDeleteEvent());
+		this.session.delete(entity);
+		assertTrue(this.eventListener.receivedPreDeleteEvent());
+		assertSame(entity, this.eventListener.getPreDeleteEvent().getSource().getObject());
+		assertTrue(this.eventListener.receivedPostDeleteEvent());
+		assertSame(entity, this.eventListener.getPostDeleteEvent().getSource().getObject());
+	}
 
-    @Configuration
-    @EnableNeo4jRepositories
-    @EnableTransactionManagement
-    static class DataManipulationEventConfiguration {
+	@Configuration
+	@EnableNeo4jRepositories
+	@EnableTransactionManagement
+	static class DataManipulationEventConfiguration {
 
-        @Bean
-        public PlatformTransactionManager transactionManager() {
-            return new Neo4jTransactionManager(sessionFactory());
-        }
+		@Bean
+		public PlatformTransactionManager transactionManager() {
+			return new Neo4jTransactionManager(sessionFactory());
+		}
 
-        @Bean
-        public SessionFactory sessionFactory() {
-            return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.examples.movies.domain") {
+		@Bean
+		public SessionFactory sessionFactory() {
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.examples.movies.domain") {
 
-                @Override
-                public Session openSession() {
-                    Session session = super.openSession();
-                    session.register(eventPublisher());
-                    return session;
-                }
-            };
-        }
+				@Override
+				public Session openSession() {
+					Session session = super.openSession();
+					session.register(eventPublisher());
+					return session;
+				}
+			};
+		}
 
+		@Bean
+		public EventPublisher eventPublisher() {
+			return new EventPublisher();
+		}
 
-        @Bean
-        public EventPublisher eventPublisher() {
-            return new EventPublisher();
-        }
-
-        @Bean
-        public Neo4jModificationEventListener eventListener() {
-            return new Neo4jModificationEventListener();
-        }
-    }
+		@Bean
+		public Neo4jModificationEventListener eventListener() {
+			return new Neo4jModificationEventListener();
+		}
+	}
 
 }

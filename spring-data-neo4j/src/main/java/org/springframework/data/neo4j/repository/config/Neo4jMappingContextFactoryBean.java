@@ -13,7 +13,6 @@
 
 package org.springframework.data.neo4j.repository.config;
 
-
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
@@ -28,8 +27,8 @@ import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
  *
  * @author Mark Angrish
  */
-class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMappingContext> implements
-		ApplicationContextAware {
+class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMappingContext>
+		implements ApplicationContextAware {
 
 	private ListableBeanFactory beanFactory;
 
@@ -52,9 +51,9 @@ class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMappingCon
 	}
 
 	/*
- * (non-Javadoc)
- * @see org.springframework.beans.factory.config.AbstractFactoryBean#createInstance()
- */
+	* (non-Javadoc)
+	* @see org.springframework.beans.factory.config.AbstractFactoryBean#createInstance()
+	*/
 	@Override
 	protected Neo4jMappingContext createInstance() throws Exception {
 

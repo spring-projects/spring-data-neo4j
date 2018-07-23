@@ -1,192 +1,193 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <modelVersion>4.0.0</modelVersion>
+	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.springframework.data</groupId>
-    <artifactId>spring-data-neo4j-parent</artifactId>
-    <version>5.0.9.BUILD-SNAPSHOT</version>
-    <packaging>pom</packaging>
+	<groupId>org.springframework.data</groupId>
+	<artifactId>spring-data-neo4j-parent</artifactId>
+	<version>5.0.9.BUILD-SNAPSHOT</version>
+	<packaging>pom</packaging>
 
-    <name>Spring Data Neo4j</name>
-    <description>Neo4j support for Spring Data</description>
-    <url>http://projects.spring.io/spring-data-neo4j</url>
+	<name>Spring Data Neo4j</name>
+	<description>Neo4j support for Spring Data</description>
+	<url>http://projects.spring.io/spring-data-neo4j</url>
 
-    <parent>
-        <groupId>org.springframework.data.build</groupId>
-        <artifactId>spring-data-parent</artifactId>
-        <version>2.0.9.BUILD-SNAPSHOT</version>
-    </parent>
+	<parent>
+		<groupId>org.springframework.data.build</groupId>
+		<artifactId>spring-data-parent</artifactId>
+		<version>2.0.9.BUILD-SNAPSHOT</version>
+	</parent>
 
-    <modules>
-        <module>spring-data-neo4j</module>
-        <module>spring-data-neo4j-distribution</module>
-    </modules>
+	<modules>
+		<module>spring-data-neo4j</module>
+		<module>spring-data-neo4j-distribution</module>
+	</modules>
 
-    <properties>
-        <project.type>multi</project.type>
-        <dist.id>spring-data-neo4j</dist.id>
-        <neo4j.ogm.version>3.0.4</neo4j.ogm.version>
-        <springdata.commons>2.0.9.BUILD-SNAPSHOT</springdata.commons>
-        <source.level>1.8</source.level>
-    </properties>
+	<properties>
+		<project.type>multi</project.type>
+		<dist.id>spring-data-neo4j</dist.id>
+		<neo4j.ogm.version>3.0.4</neo4j.ogm.version>
+		<springdata.commons>2.0.9.BUILD-SNAPSHOT</springdata.commons>
+		<source.level>1.8</source.level>
+	</properties>
 
-    <developers>
-        <developer>
-            <id>vbickers</id>
-            <name>Vince Bickers</name>
-            <email>vince at graphaware.com</email>
-            <organization>GraphAware</organization>
-            <organizationUrl>http://www.graphaware.com</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>GMT</timezone>
-        </developer>
-        <developer>
-            <id>atg</id>
-            <name>Adam George</name>
-            <email>adam at graphaware.com</email>
-            <organization>GraphAware</organization>
-            <organizationUrl>http://www.graphaware.com</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>GMT</timezone>
-        </developer>
-        <developer>
-            <id>bachmanm</id>
-            <name>Michal Bachman</name>
-            <email>michal at graphaware.com</email>
-            <organization>GraphAware</organization>
-            <organizationUrl>http://www.graphaware.com</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>GMT</timezone>
-        </developer>
-        <developer>
-            <id>lmisquitta</id>
-            <name>Luanne Misquitta</name>
-            <email>luanne at graphaware.com</email>
-            <organization>GraphAware</organization>
-            <organizationUrl>http://www.graphaware.com</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>+5:30</timezone>
-        </developer>
-        <developer>
-            <id>mangrish</id>
-            <name>Mark Angrish</name>
-            <email>mark at graphaware.com</email>
-            <organization>GraphAware</organization>
-            <organizationUrl>http://www.graphaware.com</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>+11</timezone>
-        </developer>
-        <developer>
-            <id>jasperblues</id>
-            <name>Jasper Blues</name>
-            <email>jasper at graphaware.com</email>
-            <organization>GraphAware</organization>
-            <organizationUrl>http://www.graphaware.com</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>+8</timezone>
-        </developer>
-        <developer>
-            <id>mhunger</id>
-            <name>Michael Hunger</name>
-            <email>michael.hunger at neotechnology.com</email>
-            <organization>Neo Technology</organization>
-            <organizationUrl>http://www.neotechnology.com</organizationUrl>
-            <roles>
-                <role>Project Lead</role>
-            </roles>
-            <timezone>+1</timezone>
-        </developer>
-        <developer>
-            <id>ogierke</id>
-            <name>Oliver Gierke</name>
-            <email>ogierke at gopivotal.com</email>
-            <organization>Pivotal</organization>
-            <organizationUrl>http://www.spring.io</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>+1</timezone>
-        </developer>
-        <developer>
-            <id>trisberg</id>
-            <name>Thomas Risberg</name>
-            <email>trisberg at gopivotal.com</email>
-            <organization>Pivotal</organization>
-            <organizationUrl>http://www.spring.io</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>-5</timezone>
-        </developer>
-        <developer>
-            <id>mpollack</id>
-            <name>Mark Pollack</name>
-            <email>mpollack at gopivotal.com</email>
-            <organization>Pivotal</organization>
-            <organizationUrl>http://www.spring.io</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>-5</timezone>
-        </developer>
-    </developers>
+	<developers>
+		<developer>
+			<id>vbickers</id>
+			<name>Vince Bickers</name>
+			<email>vince at graphaware.com</email>
+			<organization>GraphAware</organization>
+			<organizationUrl>http://www.graphaware.com</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>GMT</timezone>
+		</developer>
+		<developer>
+			<id>atg</id>
+			<name>Adam George</name>
+			<email>adam at graphaware.com</email>
+			<organization>GraphAware</organization>
+			<organizationUrl>http://www.graphaware.com</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>GMT</timezone>
+		</developer>
+		<developer>
+			<id>bachmanm</id>
+			<name>Michal Bachman</name>
+			<email>michal at graphaware.com</email>
+			<organization>GraphAware</organization>
+			<organizationUrl>http://www.graphaware.com</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>GMT</timezone>
+		</developer>
+		<developer>
+			<id>lmisquitta</id>
+			<name>Luanne Misquitta</name>
+			<email>luanne at graphaware.com</email>
+			<organization>GraphAware</organization>
+			<organizationUrl>http://www.graphaware.com</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>+5:30</timezone>
+		</developer>
+		<developer>
+			<id>mangrish</id>
+			<name>Mark Angrish</name>
+			<email>mark at graphaware.com</email>
+			<organization>GraphAware</organization>
+			<organizationUrl>http://www.graphaware.com</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>+11</timezone>
+		</developer>
+		<developer>
+			<id>jasperblues</id>
+			<name>Jasper Blues</name>
+			<email>jasper at graphaware.com</email>
+			<organization>GraphAware</organization>
+			<organizationUrl>http://www.graphaware.com</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>+8</timezone>
+		</developer>
+		<developer>
+			<id>mhunger</id>
+			<name>Michael Hunger</name>
+			<email>michael.hunger at neotechnology.com</email>
+			<organization>Neo Technology</organization>
+			<organizationUrl>http://www.neotechnology.com</organizationUrl>
+			<roles>
+				<role>Project Lead</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+		<developer>
+			<id>ogierke</id>
+			<name>Oliver Gierke</name>
+			<email>ogierke at gopivotal.com</email>
+			<organization>Pivotal</organization>
+			<organizationUrl>http://www.spring.io</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+		<developer>
+			<id>trisberg</id>
+			<name>Thomas Risberg</name>
+			<email>trisberg at gopivotal.com</email>
+			<organization>Pivotal</organization>
+			<organizationUrl>http://www.spring.io</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>-5</timezone>
+		</developer>
+		<developer>
+			<id>mpollack</id>
+			<name>Mark Pollack</name>
+			<email>mpollack at gopivotal.com</email>
+			<organization>Pivotal</organization>
+			<organizationUrl>http://www.spring.io</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>-5</timezone>
+		</developer>
+	</developers>
 
-    <profiles>
-        <profile>
-            <id>release</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.jfrog.buildinfo</groupId>
-                        <artifactId>artifactory-maven-plugin</artifactId>
-                        <inherited>false</inherited>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jfrog.buildinfo</groupId>
+						<artifactId>artifactory-maven-plugin</artifactId>
+						<inherited>false</inherited>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
-    <repositories>
-        <repository>
-            <id>neo4j</id>
-            <url>http://m2.neo4j.org/content/repositories/releases</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>neo4j-snapshots</id>
-            <url>http://m2.neo4j.org/content/repositories/snapshots</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>spring-libs-snapshot</id>
-            <url>https://repo.spring.io/libs-snapshot</url>
-        </repository>
-    </repositories>
+	<repositories>
+		<repository>
+			<id>neo4j</id>
+			<url>http://m2.neo4j.org/content/repositories/releases</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>neo4j-snapshots</id>
+			<url>http://m2.neo4j.org/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
+		</repository>
+	</repositories>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>spring-plugins-release</id>
-            <url>https://repo.spring.io/plugins-release</url>
-        </pluginRepository>
-    </pluginRepositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-plugins-release</id>
+			<url>https://repo.spring.io/plugins-release</url>
+		</pluginRepository>
+	</pluginRepositories>
 
 </project>

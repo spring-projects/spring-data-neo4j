@@ -26,12 +26,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WorldRepository extends Neo4jRepository<World, Long> {
 
-    @Query("MATCH (n:World) SET n.updated=timestamp()")
-    void touchAllWorlds();
+	@Query("MATCH (n:World) SET n.updated=timestamp()")
+	void touchAllWorlds();
 
-    @Query("MATCH (n:World) SET n.updated=timestamp()")
-    Result touchAllWorldsWithStatistics();
+	@Query("MATCH (n:World) SET n.updated=timestamp()")
+	Result touchAllWorldsWithStatistics();
 
-    World findByName(String name);
+	World findByName(String name);
 
 }

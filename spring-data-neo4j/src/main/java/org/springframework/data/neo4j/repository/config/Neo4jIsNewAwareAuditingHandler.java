@@ -33,7 +33,8 @@ public class Neo4jIsNewAwareAuditingHandler extends IsNewAwareAuditingHandler {
 
 	private IsNewStrategyFactory isNewStrategyFactory;
 
-	public Neo4jIsNewAwareAuditingHandler(MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> mappingContext) {
+	public Neo4jIsNewAwareAuditingHandler(
+			MappingContext<? extends PersistentEntity<?, ?>, ? extends PersistentProperty<?>> mappingContext) {
 		this(new PersistentEntities(Collections.singletonList(mappingContext)));
 	}
 

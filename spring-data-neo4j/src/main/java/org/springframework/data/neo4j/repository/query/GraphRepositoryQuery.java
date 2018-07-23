@@ -26,7 +26,6 @@
 
 package org.springframework.data.neo4j.repository.query;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,7 +38,6 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
-
 
 /**
  * Specialisation of {@link RepositoryQuery} that handles mapping to object annotated with <code>&#064;Query</code>.
@@ -76,8 +74,9 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 		Object result = getExecution(accessor).execute(query, processor.getReturnedType().getReturnedType());
 
-		return Result.class.equals(returnType)
-				? result : processor.processResult(result, new CustomResultConverter(getMetaData(), processor.getReturnedType().getReturnedType()));
+		return Result.class.equals(returnType) ? result
+				: processor.processResult(result,
+						new CustomResultConverter(getMetaData(), processor.getReturnedType().getReturnedType()));
 	}
 
 	protected Query getQuery(Object[] parameters) {
@@ -113,9 +112,9 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 	private Object getParameterValue(Object parameter) {
 
-		//The parameter might be an entity, try to resolve its id
+		// The parameter might be an entity, try to resolve its id
 		Object parameterValue = session.resolveGraphIdFor(parameter);
-		if (parameterValue == null) { //Either not an entity or not persisted
+		if (parameterValue == null) { // Either not an entity or not persisted
 			parameterValue = parameter;
 		}
 		return parameterValue;

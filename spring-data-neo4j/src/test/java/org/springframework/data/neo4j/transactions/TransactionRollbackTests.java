@@ -45,21 +45,17 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Nicolas Mervaillie
  * @see DATAGRAPH-967 DATAGRAPH-997 DATAGRAPH-995 DATAGRAPH-989 DATAGRAPH-952
  */
-@ContextConfiguration(classes = {TransactionRollbackTests.MoviesContext.class})
+@ContextConfiguration(classes = { TransactionRollbackTests.MoviesContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class TransactionRollbackTests extends MultiDriverTestClass {
 
-	@Autowired
-	private UserRepository userRepository;
+	@Autowired private UserRepository userRepository;
 
-	@Autowired
-	private UserService userService;
+	@Autowired private UserService userService;
 
-	@Autowired
-	private Session session;
+	@Autowired private Session session;
 
-	@Autowired
-	private PlatformTransactionManager platformTransactionManager;
+	@Autowired private PlatformTransactionManager platformTransactionManager;
 
 	private TransactionTemplate transactionTemplate;
 
@@ -78,7 +74,7 @@ public class TransactionRollbackTests extends MultiDriverTestClass {
 	public void queryErrorShouldRollbackAndThrowDataAccessException() {
 
 		try {
-			transactionTemplate.execute( (TransactionStatus tx) -> {
+			transactionTemplate.execute((TransactionStatus tx) -> {
 				User user = new User("foo");
 				userRepository.save(user);
 				try {
@@ -104,7 +100,7 @@ public class TransactionRollbackTests extends MultiDriverTestClass {
 	@Ignore("When an error occurs when doing a request, Neo rollbacks. See https://github.com/neo4j/neo4j/issues/10098")
 	public void catchedExceptionShouldNotRollback() {
 
-		transactionTemplate.execute( (TransactionStatus tx) -> {
+		transactionTemplate.execute((TransactionStatus tx) -> {
 			userRepository.save(new User("foo"));
 			try {
 				userRepository.invalidQuery();
@@ -122,7 +118,7 @@ public class TransactionRollbackTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@ComponentScan({"org.springframework.data.neo4j.examples.movies.service"})
+	@ComponentScan({ "org.springframework.data.neo4j.examples.movies.service" })
 	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
 	@EnableTransactionManagement
 	static class MoviesContext {

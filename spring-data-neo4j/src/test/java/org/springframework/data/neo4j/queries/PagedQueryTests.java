@@ -25,7 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResult;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResultInterface;
@@ -48,15 +52,13 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Nicolas Mervaillie
  * @see DATAGRAPH-680
  */
-@ContextConfiguration(classes = {PagedQueryTests.MoviesContext.class})
+@ContextConfiguration(classes = { PagedQueryTests.MoviesContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class PagedQueryTests extends MultiDriverTestClass {
 
-	@Autowired
-	PlatformTransactionManager platformTransactionManager;
+	@Autowired PlatformTransactionManager platformTransactionManager;
 
-	@Autowired
-	private CinemaRepository cinemaRepository;
+	@Autowired private CinemaRepository cinemaRepository;
 
 	private TransactionTemplate transactionTemplate;
 
@@ -67,7 +69,8 @@ public class PagedQueryTests extends MultiDriverTestClass {
 	}
 
 	public void setup() {
-		String[] names = new String[]{"Picturehouse", "Regal", "Ritzy", "Metro", "Inox", "PVR", "Cineplex", "Landmark", "Rainbow", "Movietime"};
+		String[] names = new String[] { "Picturehouse", "Regal", "Ritzy", "Metro", "Inox", "PVR", "Cineplex", "Landmark",
+				"Rainbow", "Movietime" };
 		for (String name : names) {
 			Cinema cinema = new Cinema(name);
 			cinema.setLocation("London");
@@ -79,7 +82,6 @@ public class PagedQueryTests extends MultiDriverTestClass {
 	private void executeUpdate(String cypher) {
 		getGraphDatabaseService().execute(cypher);
 	}
-
 
 	@Test
 	@Transactional
@@ -129,18 +131,21 @@ public class PagedQueryTests extends MultiDriverTestClass {
 		assertEquals(3, page.getNumberOfElements());
 		assertTrue(page.hasNext());
 		// FIXME : bug here - content is always null
-//		assertNotNull(page.getContent().get(0).getName());
-		assertEquals(10, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		// assertNotNull(page.getContent().get(0).getName());
+		assertEquals(10, page.getTotalElements()); // this should not be relied on as incorrect as the total elements is an
+																								// estimate
 
 		page = cinemaRepository.getPagedCinemaQueryResults(page.nextPageable());
 		assertEquals(3, page.getNumberOfElements());
 		assertTrue(page.hasNext());
-		assertEquals(10, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals(10, page.getTotalElements()); // this should not be relied on as incorrect as the total elements is an
+																								// estimate
 
 		page = cinemaRepository.getPagedCinemaQueryResults(page.nextPageable());
 		assertEquals(3, page.getNumberOfElements());
 		assertTrue(page.hasNext());
-		assertEquals(10, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals(10, page.getTotalElements()); // this should not be relied on as incorrect as the total elements is an
+																								// estimate
 
 		page = cinemaRepository.getPagedCinemaQueryResults(page.nextPageable());
 		assertEquals(1, page.getNumberOfElements());
@@ -159,7 +164,7 @@ public class PagedQueryTests extends MultiDriverTestClass {
 
 		assertEquals(3, page.getNumberOfElements());
 		// FIXME : bug here - content is always null
-//		assertNotNull(page.getContent().get(0).getName());
+		// assertNotNull(page.getContent().get(0).getName());
 		assertTrue(page.hasNext());
 
 		page = cinemaRepository.getSlicedCinemaQueryResults(page.nextPageable());
@@ -176,8 +181,7 @@ public class PagedQueryTests extends MultiDriverTestClass {
 	}
 
 	/**
-	 * Repeats shouldFindPagedCinemas for query results - interfaces
-	 * * @see DATAGRAPH-893
+	 * Repeats shouldFindPagedCinemas for query results - interfaces * @see DATAGRAPH-893
 	 */
 	@Test
 	@Transactional
@@ -189,18 +193,21 @@ public class PagedQueryTests extends MultiDriverTestClass {
 		assertEquals(3, page.getNumberOfElements());
 		assertTrue(page.hasNext());
 		// FIXME : bug here - content is always null
-//		assertNotNull(page.getContent().get(0).getName());
-		assertEquals(10, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		// assertNotNull(page.getContent().get(0).getName());
+		assertEquals(10, page.getTotalElements()); // this should not be relied on as incorrect as the total elements is an
+																								// estimate
 
 		page = cinemaRepository.getPagedCinemaQueryResultInterfaces(page.nextPageable());
 		assertEquals(3, page.getNumberOfElements());
 		assertTrue(page.hasNext());
-		assertEquals(10, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals(10, page.getTotalElements()); // this should not be relied on as incorrect as the total elements is an
+																								// estimate
 
 		page = cinemaRepository.getPagedCinemaQueryResultInterfaces(page.nextPageable());
 		assertEquals(3, page.getNumberOfElements());
 		assertTrue(page.hasNext());
-		assertEquals(10, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals(10, page.getTotalElements()); // this should not be relied on as incorrect as the total elements is an
+																								// estimate
 
 		page = cinemaRepository.getPagedCinemaQueryResultInterfaces(page.nextPageable());
 		assertEquals(1, page.getNumberOfElements());
@@ -214,13 +221,15 @@ public class PagedQueryTests extends MultiDriverTestClass {
 		Pageable pageable = new PageRequest(0, 5);
 		Page<Cinema> page = cinemaRepository.getPagedCinemasByCityWithPageCount("London", pageable);
 		assertEquals(5, page.getNumberOfElements());
-		assertEquals(10, page.getTotalElements()); //With a count query, the total elements should equal the number returned by the count query
+		assertEquals(10, page.getTotalElements()); // With a count query, the total elements should equal the number
+																								// returned by the count query
 		assertTrue(page.hasNext());
 
 		page = cinemaRepository.getPagedCinemasByCityWithPageCount("London", page.nextPageable());
 		assertEquals(5, page.getNumberOfElements());
-		assertEquals(10, page.getTotalElements()); //With a count query, the total elements should equal the number returned by the count query
-		assertFalse(page.hasNext()); //with a count query, the next page calculation is correct
+		assertEquals(10, page.getTotalElements()); // With a count query, the total elements should equal the number
+																								// returned by the count query
+		assertFalse(page.hasNext()); // with a count query, the next page calculation is correct
 	}
 
 	@Test
@@ -259,7 +268,6 @@ public class PagedQueryTests extends MultiDriverTestClass {
 		assertEquals(5, slice.getNumberOfElements());
 		assertFalse(slice.hasNext());
 	}
-
 
 	/**
 	 * @see DATAGRAPH-887
@@ -301,21 +309,21 @@ public class PagedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldSortPageWhenNestedPropertyIsInvolved() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
-				"CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
-				"CREATE (m:Theatre {name:'Picturehouse', city:'London', capacity: 5000}) " +
-				"CREATE (u:User {name:'Michal'}) " +
-				"CREATE (u)-[:VISITED]->(r)  " +
-				"CREATE (u)-[:VISITED]->(m)");
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
+				+ "CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) "
+				+ "CREATE (m:Theatre {name:'Picturehouse', city:'London', capacity: 5000}) "
+				+ "CREATE (u:User {name:'Michal'}) " + "CREATE (u)-[:VISITED]->(r)  " + "CREATE (u)-[:VISITED]->(m)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
-				Page<Cinema> page = cinemaRepository.findByLocationAndVisitedName("London", "Michal", new PageRequest(0, 1, Sort.Direction.DESC, "name"));
+				Page<Cinema> page = cinemaRepository.findByLocationAndVisitedName("London", "Michal",
+						new PageRequest(0, 1, Sort.Direction.DESC, "name"));
 				assertEquals(1, page.getNumberOfElements());
 				assertEquals("Ritzy", page.getContent().get(0).getName());
 
-				page = cinemaRepository.findByLocationAndVisitedName("London", "Michal", new PageRequest(1, 1, Sort.Direction.DESC, "name"));
+				page = cinemaRepository.findByLocationAndVisitedName("London", "Michal",
+						new PageRequest(1, 1, Sort.Direction.DESC, "name"));
 				assertEquals(1, page.getNumberOfElements());
 				assertEquals("Picturehouse", page.getContent().get(0).getName());
 			}
@@ -327,17 +335,16 @@ public class PagedQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldSortPageByNestedPropertyIsInvolved() {
-		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
-				"CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
-				"CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 5000}) " +
-				"CREATE (u:User {name:'Michal'}) " +
-				"CREATE (u)-[:VISITED]->(r)  " +
-				"CREATE (u)-[:VISITED]->(m)");
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
+				+ "CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) "
+				+ "CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 5000}) " + "CREATE (u:User {name:'Michal'}) "
+				+ "CREATE (u)-[:VISITED]->(r)  " + "CREATE (u)-[:VISITED]->(m)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
-				Page<Cinema> page = cinemaRepository.findByVisitedName("Michal", new PageRequest(0, 1, Sort.Direction.ASC, "location"));
+				Page<Cinema> page = cinemaRepository.findByVisitedName("Michal",
+						new PageRequest(0, 1, Sort.Direction.ASC, "location"));
 				assertEquals(1, page.getNumberOfElements());
 				assertEquals("Regal", page.getContent().get(0).getName());
 
@@ -413,7 +420,8 @@ public class PagedQueryTests extends MultiDriverTestClass {
 		Page<Cinema> page = cinemaRepository.getPagedCinemas(pageable);
 		assertEquals(4, page.getNumberOfElements());
 		assertTrue(page.hasNext());
-		assertEquals(10, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals(10, page.getTotalElements()); // this should not be relied on as incorrect as the total elements is an
+																								// estimate
 		assertEquals("Cineplex", page.getContent().get(0).getName());
 		assertEquals("Inox", page.getContent().get(1).getName());
 		assertEquals("Landmark", page.getContent().get(2).getName());
@@ -422,7 +430,8 @@ public class PagedQueryTests extends MultiDriverTestClass {
 		page = cinemaRepository.getPagedCinemas(page.nextPageable());
 		assertEquals(4, page.getNumberOfElements());
 		assertTrue(page.hasNext());
-		assertEquals(10, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals(10, page.getTotalElements()); // this should not be relied on as incorrect as the total elements is an
+																								// estimate
 		assertEquals("Movietime", page.getContent().get(0).getName());
 		assertEquals("PVR", page.getContent().get(1).getName());
 		assertEquals("Picturehouse", page.getContent().get(2).getName());
@@ -431,7 +440,8 @@ public class PagedQueryTests extends MultiDriverTestClass {
 		page = cinemaRepository.getPagedCinemas(page.nextPageable());
 		assertEquals(2, page.getNumberOfElements());
 		assertFalse(page.hasNext());
-		assertEquals(10, page.getTotalElements()); //this should not be relied on as incorrect as the total elements is an estimate
+		assertEquals(10, page.getTotalElements()); // this should not be relied on as incorrect as the total elements is an
+																								// estimate
 		assertEquals("Regal", page.getContent().get(0).getName());
 		assertEquals("Ritzy", page.getContent().get(1).getName());
 	}
@@ -491,7 +501,7 @@ public class PagedQueryTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@ComponentScan({"org.springframework.data.neo4j.examples.movies.service"})
+	@ComponentScan({ "org.springframework.data.neo4j.examples.movies.service" })
 	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
 	@EnableTransactionManagement
 	static class MoviesContext {
@@ -503,7 +513,8 @@ public class PagedQueryTests extends MultiDriverTestClass {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.examples.movies.domain");
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.examples.movies.domain");
 		}
 	}
 }

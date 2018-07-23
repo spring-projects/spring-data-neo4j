@@ -19,5 +19,4 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 /**
  * @author Frantisek Hartman
  */
-public interface UserRepository extends Neo4jRepository<User, Long> {
-}
+public interface UserRepository extends Neo4jRepository<User, Long> {}

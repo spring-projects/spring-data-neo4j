@@ -38,15 +38,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 /**
  * @author Michal Bachman
  */
-@ContextConfiguration(classes = {TransactionIntegrationTests.MoviesContext.class})
+@ContextConfiguration(classes = { TransactionIntegrationTests.MoviesContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class TransactionIntegrationTests extends MultiDriverTestClass {
 
-	@Autowired
-	private UserRepository userRepository;
+	@Autowired private UserRepository userRepository;
 
-	@Autowired
-	private UserService userService;
+	@Autowired private UserService userService;
 
 	private TransactionEventHandler.Adapter<Object> handler;
 
@@ -89,7 +87,7 @@ public class TransactionIntegrationTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@ComponentScan({"org.springframework.data.neo4j.examples.movies.service"})
+	@ComponentScan({ "org.springframework.data.neo4j.examples.movies.service" })
 	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
 	@EnableTransactionManagement
 	static class MoviesContext {
@@ -101,7 +99,8 @@ public class TransactionIntegrationTests extends MultiDriverTestClass {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.examples.movies.domain");
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.examples.movies.domain");
 		}
 	}
 }

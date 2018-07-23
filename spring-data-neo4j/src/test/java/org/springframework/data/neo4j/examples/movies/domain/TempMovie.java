@@ -13,40 +13,38 @@
 
 package org.springframework.data.neo4j.examples.movies.domain;
 
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Relationship;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.annotation.Relationship;
 
 /**
  * @author Michal Bachman
  * @author Luanne Misquitta
  */
-//todo merge with movie when tests fixed
+// todo merge with movie when tests fixed
 @NodeEntity(label = "Movie")
 public class TempMovie extends AbstractEntity {
 
-    private String name;
-    @Relationship(type = "RATED", direction = Relationship.INCOMING)
-    private Set<Rating> ratings = new HashSet<>();
+	private String name;
+	@Relationship(type = "RATED", direction = Relationship.INCOMING) private Set<Rating> ratings = new HashSet<>();
 
-    public TempMovie() {
-    }
+	public TempMovie() {}
 
-    public TempMovie(String name) {
-        this.name = name;
-    }
+	public TempMovie(String name) {
+		this.name = name;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void addRating(Rating rating) {
-        ratings.add(rating);
-    }
+	public void addRating(Rating rating) {
+		ratings.add(rating);
+	}
 
-    public Set<Rating> getRatings() {
-        return ratings;
-    }
+	public Set<Rating> getRatings() {
+		return ratings;
+	}
 }

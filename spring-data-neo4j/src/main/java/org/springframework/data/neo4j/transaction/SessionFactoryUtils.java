@@ -46,10 +46,10 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.Assert;
 
 /**
- * Helper class featuring methods for Neo4j OGM Session handling,
- * allowing for reuse of Session instances within transactions.
- * Also provides support for exception translation.
- * <p>Mainly intended for internal use within the framework.
+ * Helper class featuring methods for Neo4j OGM Session handling, allowing for reuse of Session instances within
+ * transactions. Also provides support for exception translation.
+ * <p>
+ * Mainly intended for internal use within the framework.
  *
  * @author Mark Angrish
  */
@@ -57,9 +57,7 @@ public class SessionFactoryUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(SessionFactoryUtils.class);
 
-
-	public static void closeSession(Session session) {
-	}
+	public static void closeSession(Session session) {}
 
 	public static Session getSession(SessionFactory sessionFactory) throws IllegalStateException {
 
@@ -67,11 +65,11 @@ public class SessionFactoryUtils {
 
 		SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
 		if (sessionHolder != null) {
-			if (!sessionHolder.isSynchronizedWithTransaction() &&
-					TransactionSynchronizationManager.isSynchronizationActive()) {
+			if (!sessionHolder.isSynchronizedWithTransaction()
+					&& TransactionSynchronizationManager.isSynchronizationActive()) {
 				sessionHolder.setSynchronizedWithTransaction(true);
-				TransactionSynchronizationManager.registerSynchronization(
-						new SessionSynchronization(sessionHolder, sessionFactory, false));
+				TransactionSynchronizationManager
+						.registerSynchronization(new SessionSynchronization(sessionHolder, sessionFactory, false));
 			}
 			return sessionHolder.getSession();
 		}
@@ -88,22 +86,20 @@ public class SessionFactoryUtils {
 
 		sessionHolder = new SessionHolder(session);
 		sessionHolder.setSynchronizedWithTransaction(true);
-		TransactionSynchronizationManager.registerSynchronization(
-				new SessionSynchronization(sessionHolder, sessionFactory, true));
+		TransactionSynchronizationManager
+				.registerSynchronization(new SessionSynchronization(sessionHolder, sessionFactory, true));
 		TransactionSynchronizationManager.bindResource(sessionFactory, sessionHolder);
 
 		return session;
 	}
 
 	/**
-	 * Convert the given runtime exception to an appropriate exception from the
-	 * {@code org.springframework.dao} hierarchy.
-	 * Return null if no translation is appropriate: any other exception may
-	 * have resulted from user code, and should not be translated.
+	 * Convert the given runtime exception to an appropriate exception from the {@code org.springframework.dao} hierarchy.
+	 * Return null if no translation is appropriate: any other exception may have resulted from user code, and should not
+	 * be translated.
 	 *
 	 * @param ex runtime exception that occurred
-	 * @return the corresponding DataAccessException instance,
-	 * or {@code null} if the exception should not be translated
+	 * @return the corresponding DataAccessException instance, or {@code null} if the exception should not be translated
 	 */
 	public static DataAccessException convertOgmAccessException(RuntimeException ex) {
 
@@ -160,9 +156,11 @@ public class SessionFactoryUtils {
 
 			if (dae != null) {
 				try {
-					final Constructor<? extends DataAccessException> constructor = dae.getDeclaredConstructor(String.class, Throwable.class);
+					final Constructor<? extends DataAccessException> constructor = dae.getDeclaredConstructor(String.class,
+							Throwable.class);
 					return constructor.newInstance(ex.getMessage(), ex);
-				} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+				} catch (InstantiationException | IllegalAccessException | NoSuchMethodException
+						| InvocationTargetException e) {
 					return null;
 				}
 			}
@@ -175,15 +173,12 @@ public class SessionFactoryUtils {
 		return null;
 	}
 
-
-	private static class SessionSynchronization
-			extends ResourceHolderSynchronization<SessionHolder, SessionFactory>
+	private static class SessionSynchronization extends ResourceHolderSynchronization<SessionHolder, SessionFactory>
 			implements Ordered {
 
 		private final boolean newSession;
 
-		SessionSynchronization(
-				SessionHolder sessionHolder, SessionFactory sessionFactory, boolean newSession) {
+		SessionSynchronization(SessionHolder sessionHolder, SessionFactory sessionFactory, boolean newSession) {
 			super(sessionHolder, sessionFactory);
 			this.newSession = newSession;
 		}
@@ -194,8 +189,7 @@ public class SessionFactoryUtils {
 		}
 
 		@Override
-		public void flushResource(SessionHolder resourceHolder) {
-		}
+		public void flushResource(SessionHolder resourceHolder) {}
 
 		@Override
 		protected boolean shouldUnbindAtCompletion() {
@@ -204,7 +198,7 @@ public class SessionFactoryUtils {
 
 		@Override
 		protected boolean shouldReleaseAfterCompletion(SessionHolder resourceHolder) {
-//			return !resourceHolder.getSession().isClosed();
+			// return !resourceHolder.getSession().isClosed();
 			return false;
 		}
 	}

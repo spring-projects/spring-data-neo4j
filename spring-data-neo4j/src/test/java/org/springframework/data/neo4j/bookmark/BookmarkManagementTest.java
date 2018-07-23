@@ -13,6 +13,8 @@
 
 package org.springframework.data.neo4j.bookmark;
 
+import static org.assertj.core.api.Assertions.*;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +26,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * @author Frantisek Hartman
  */
@@ -33,11 +33,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = BookmarkManagementTest.BookmarkManagementConfiguration.class)
 public class BookmarkManagementTest {
 
-	@Autowired
-	private UseBookmarkOnMethodBean useBookmarkOnMethodBean;
+	@Autowired private UseBookmarkOnMethodBean useBookmarkOnMethodBean;
 
-	@Autowired
-	private UseBookmarkOnClassBean useBookmarkOnClassBean;
+	@Autowired private UseBookmarkOnClassBean useBookmarkOnClassBean;
 
 	@Test
 	public void givenUseBookmarkOnMethod_whenRun_thenShouldUseBookmarkIsSet() throws Exception {
@@ -50,8 +48,7 @@ public class BookmarkManagementTest {
 
 	@Test
 	public void givenUseBookmarkOnMethod_whenRun_thenRemoveBookmarkInfoAfterRun() throws Exception {
-		useBookmarkOnMethodBean.runWithBookmark(() -> {
-		});
+		useBookmarkOnMethodBean.runWithBookmark(() -> {});
 
 		BookmarkInfo bookmarkInfo = BookmarkSupport.currentBookmarkInfo();
 		assertThat(bookmarkInfo).isNull();
@@ -84,8 +81,7 @@ public class BookmarkManagementTest {
 
 	@Test
 	public void givenUseBookmarkOnClass_whenRun_thenRemoveBookmarkInfoAfterRun() throws Exception {
-		useBookmarkOnClassBean.runWithBookmark(() -> {
-		});
+		useBookmarkOnClassBean.runWithBookmark(() -> {});
 
 		BookmarkInfo bookmarkInfo = BookmarkSupport.currentBookmarkInfo();
 		assertThat(bookmarkInfo).isNull();
@@ -133,6 +129,5 @@ public class BookmarkManagementTest {
 		}
 
 	}
-
 
 }

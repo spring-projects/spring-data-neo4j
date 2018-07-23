@@ -60,14 +60,18 @@ public class Neo4jErrorStatusCodes {
 		errors.put("Neo.ClientError.Statement.SemanticError", NonTransientDataAccessException.class);
 		errors.put("Neo.ClientError.Statement.SyntaxError", InvalidDataAccessResourceUsageException.class);
 		errors.put("Neo.ClientError.Statement.TypeError", InvalidDataAccessResourceUsageException.class);
-		errors.put("Neo.ClientError.Transaction.ForbiddenDueToTransactionType", InvalidDataAccessResourceUsageException.class);
-		errors.put("Neo.ClientError.Transaction.TransactionAccessedConcurrently", InvalidDataAccessResourceUsageException.class);
-		errors.put("Neo.ClientError.Transaction.TransactionEventHandlerFailed", InvalidDataAccessResourceUsageException.class);
+		errors.put("Neo.ClientError.Transaction.ForbiddenDueToTransactionType",
+				InvalidDataAccessResourceUsageException.class);
+		errors.put("Neo.ClientError.Transaction.TransactionAccessedConcurrently",
+				InvalidDataAccessResourceUsageException.class);
+		errors.put("Neo.ClientError.Transaction.TransactionEventHandlerFailed",
+				InvalidDataAccessResourceUsageException.class);
 		errors.put("Neo.ClientError.Transaction.TransactionHookFailed", InvalidDataAccessResourceUsageException.class);
 		errors.put("Neo.ClientError.Transaction.TransactionMarkedAsFailed", ConcurrencyFailureException.class);
 		errors.put("Neo.ClientError.Transaction.TransactionNotFound", InvalidDataAccessResourceUsageException.class);
 		errors.put("Neo.ClientError.Transaction.TransactionTerminated", InvalidDataAccessResourceUsageException.class);
-		errors.put("Neo.ClientError.Transaction.TransactionValidationFailed", InvalidDataAccessResourceUsageException.class);
+		errors.put("Neo.ClientError.Transaction.TransactionValidationFailed",
+				InvalidDataAccessResourceUsageException.class);
 		errors.put("Neo.DatabaseError.General.IndexCorruptionDetected", DataAccessResourceFailureException.class);
 		errors.put("Neo.DatabaseError.General.SchemaCorruptionDetected", DataAccessResourceFailureException.class);
 		errors.put("Neo.DatabaseError.General.UnknownError", UncategorizedDataAccessException.class);
