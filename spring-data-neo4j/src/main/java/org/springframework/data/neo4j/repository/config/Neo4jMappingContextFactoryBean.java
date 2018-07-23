@@ -21,6 +21,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.util.Assert;
 
 /**
  * {@link FactoryBean} to setup {@link Neo4jMappingContext} instances from Spring configuration.
@@ -37,10 +38,11 @@ public class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMap
 	private ListableBeanFactory beanFactory;
 
 	/**
-	 * Uses the default session factory name {@link Neo4jRepositoryConfigurationExtension#DEFAULT_SESSION_FACTORY_BEAN_NAME}
-	 * for finding the session factory passed to the {@link Neo4jMappingContext}.
+	 * Uses the default session factory name
+	 * {@link Neo4jRepositoryConfigurationExtension#DEFAULT_SESSION_FACTORY_BEAN_NAME} for finding the session factory
+	 * passed to the {@link Neo4jMappingContext}.
 	 *
-	 * @deprecated
+	 * @deprecated since 5.1.1, use {@link #Neo4jMappingContextFactoryBean(String)} instead
 	 */
 	public Neo4jMappingContextFactoryBean() {
 		this(Neo4jRepositoryConfigurationExtension.DEFAULT_SESSION_FACTORY_BEAN_NAME);
@@ -49,10 +51,12 @@ public class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMap
 	/**
 	 * Configures the mapping context with a named {@link SessionFactory}.
 	 *
-	 * @param sessionFactoryBeanName
+	 * @param sessionFactoryBeanName must not be {@literal null} or empty.
 	 * @since 5.1.0
 	 */
-	Neo4jMappingContextFactoryBean(String sessionFactoryBeanName) {
+	public Neo4jMappingContextFactoryBean(String sessionFactoryBeanName) {
+
+		Assert.hasText(sessionFactoryBeanName, "SessionFactoryBeanName must not be null nor empty!");
 		this.sessionFactoryBeanName = sessionFactoryBeanName;
 	}
 

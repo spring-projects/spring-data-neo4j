@@ -47,19 +47,17 @@ import org.springframework.data.neo4j.examples.restaurants.repo.RestaurantReposi
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- * DATAGRAPH-1094
- *
  * @author Michael J. Simons
  */
 @ContextConfiguration(classes = { MultipleSessionFactorySupportTests.BaseConfiguration.class,
 		MultipleSessionFactorySupportTests.FriendsConfiguration.class,
 		MultipleSessionFactorySupportTests.RestaurantsConfiguration.class })
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 public class MultipleSessionFactorySupportTests {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MultipleSessionFactorySupportTests.class);
@@ -95,14 +93,14 @@ public class MultipleSessionFactorySupportTests {
 		instance2 = createAndStartEmbeddedInstance();
 	}
 
-	@Test
+	@Test // DATAGRAPH-1094
 	public void sessionsShouldUseCorrectMappingContext() {
 
 		assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> friendsSession.loadAll(Restaurant.class));
 		assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> restaurantsSession.loadAll(Person.class));
 	}
 
-	@Test
+	@Test // DATAGRAPH-1094
 	public void repositoriesShouldUseCorrectSessionFactory() {
 
 		this.friendshipRepository.save(buildFriendship());
@@ -153,8 +151,8 @@ public class MultipleSessionFactorySupportTests {
 
 	private static DatabaseHolder createAndStartEmbeddedInstance() throws IOException {
 
-		final File dataStore1 = Files.createTempDirectory("neo4j.db").toFile();
-		final GraphDatabaseService graphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dataStore1)
+		File dataStore1 = Files.createTempDirectory("neo4j.db").toFile();
+		GraphDatabaseService graphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dataStore1)
 				.newGraphDatabase();
 		return new DatabaseHolder(dataStore1, graphDatabaseService);
 	}
