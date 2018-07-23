@@ -51,11 +51,14 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
 public class Neo4jRepositoryConfigurationExtensionTests {
 
 	private static final String CUSTOM_SESSION_FACTORY_BEAN_NAME = "mySessionFactory";
+	private static final String GENERATED_SESSION_BEAN_NAME = "org.springframework.data.neo4j.transaction.SharedSessionCreator#0";
+	private static final String CUSTOM_SESSION_BEAN_NAME = "mySession";
+	private static final String CUSTOM_MAPPING_CONTEXT_BEAN_NAME = "myMappingContext";
 
 	public @Rule ExpectedException exception = ExpectedException.none();
 
 	@Test
-	public void registersSharedSessionCreatorBeanByDefault() {
+	public void shouldRegisterSessionFactoryUnderDefaultName() {
 
 		DefaultListableBeanFactory factory = getBeanRegistry(new StandardAnnotationMetadata(Config.class, true));
 
@@ -64,11 +67,33 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 		assertThat(names, hasItems(DEFAULT_SESSION_FACTORY_BEAN_NAME));
 	}
 
+	@Test // DATAGRAPH-1094
+	public void shouldRegisterSharedSessionUnderDefaultName() {
+
+		DefaultListableBeanFactory factory = getBeanRegistry(new StandardAnnotationMetadata(Config.class, true));
+
+		Iterable<String> names = Arrays.asList(factory.getBeanDefinitionNames());
+
+		assertThat(names, hasItems(GENERATED_SESSION_BEAN_NAME));
+	}
+
+	@Test // DATAGRAPH-1094
+	public void shouldUseConfiguredSessionBeanName() {
+		assertTrue(getBeanRegistry(new StandardAnnotationMetadata(CustomSessionBeanConfig.class, true))
+				.containsBeanDefinition(CUSTOM_SESSION_BEAN_NAME));
+	}
+
+	@Test // DATAGRAPH-1094
+	public void shouldUseConfiguredMappingContextBeanName() {
+		assertTrue(getBeanRegistry(new StandardAnnotationMetadata(CustomMappingContextBeanConfig.class, true))
+				.containsBeanDefinition(CUSTOM_MAPPING_CONTEXT_BEAN_NAME));
+	}
+
 	@Test
 	public void sessionFactoryBeanNameDefaultsToSessionFactory() {
 
 		BeanDefinition beanDefinition = getBeanRegistry(new StandardAnnotationMetadata(Config.class, true))
-				.getBeanDefinition(DEFAULT_SESSION_BEAN_NAME);
+				.getBeanDefinition(GENERATED_SESSION_BEAN_NAME);
 
 		RuntimeBeanReference sessionFactoryBean = (RuntimeBeanReference) beanDefinition.getConstructorArgumentValues()
 				.getIndexedArgumentValue(0, RuntimeBeanReference.class).getValue();
@@ -82,7 +107,7 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 	public void customSessionFactoryBeanNameWillGetUsed() {
 
 		BeanDefinition beanDefinition = getBeanRegistry(new StandardAnnotationMetadata(CustomSessionRefConfig.class, true))
-				.getBeanDefinition(DEFAULT_SESSION_BEAN_NAME);
+				.getBeanDefinition(GENERATED_SESSION_BEAN_NAME);
 
 		RuntimeBeanReference sessionFactoryBean = (RuntimeBeanReference) beanDefinition.getConstructorArgumentValues()
 				.getIndexedArgumentValue(0, RuntimeBeanReference.class).getValue();
@@ -134,6 +159,16 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 
 	@EnableNeo4jRepositories(sessionFactoryRef = CUSTOM_SESSION_FACTORY_BEAN_NAME)
 	private static class CustomSessionRefConfig {
+
+	}
+
+	@EnableNeo4jRepositories(sessionBeanName = CUSTOM_SESSION_BEAN_NAME)
+	private static class CustomSessionBeanConfig {
+
+	}
+
+	@EnableNeo4jRepositories(mappingContextBeanName = CUSTOM_MAPPING_CONTEXT_BEAN_NAME)
+	private static class CustomMappingContextBeanConfig {
 
 	}
 }

@@ -55,11 +55,11 @@ import org.springframework.util.StringUtils;
  */
 public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
 
+	/** See {@link AbstractBeanDefinition#INFER_METHOD}. */
+	static final String GENERATE_BEAN_NAME = "(generated)";
 	static final String DEFAULT_SESSION_FACTORY_BEAN_NAME = "sessionFactory";
-	static final String DEFAULT_SESSION_BEAN_NAME = "session";
+	static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 
-	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
-	private static final String DEFAULT_NEO4J_MAPPING_CONTEXT_BEAN_NAME = "neo4jMappingContext";
 	private static final String ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME = "neo4jOgmEntityInstantiatorConfigurationBean";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
 	private static final String NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME = "neo4jPersistenceExceptionTranslator";
@@ -70,16 +70,16 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 			.isPresent("org.neo4j.ogm.session.EntityInstantiator", Neo4jMappingContextFactoryBean.class.getClassLoader());
 
 	/**
-	 * If there's only one {@link org.neo4j.ogm.session.SessionFactory} around, we generate one injectable shared session
-	 * under that name, otherwise we use a generated name for every further pair of {@code SessionFactory} and
-	 * {@code Session}
+	 * We use a generated name for every pair of {@code SessionFactory} and {@code Session} unless the user configures a
+	 * session bean name with {@code @EnableNeo4jRepositories(sessionBeanName="someName")}.
 	 */
-	private String sessionBeanName = DEFAULT_SESSION_BEAN_NAME;
+	private String sessionBeanName;
 
 	/**
-	 * Same mechanism as with {@link #sessionBeanName}.
+	 * We use a generated name for every pair of {@code SessionFactory} and {@code Neo4jMappingContext} unless the user
+	 * configures a session bean name with {@code @EnableNeo4jRepositories(mappingContextBeanName="someName")}.
 	 */
-	private String neo4jMappingContextBeanName = DEFAULT_NEO4J_MAPPING_CONTEXT_BEAN_NAME;
+	private String neo4jMappingContextBeanName;
 
 	/*
 	 * (non-Javadoc)
@@ -187,12 +187,15 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 
 		Object source = config.getSource();
 
-		this.sessionBeanName = registerWithSuggestedNameOrGenerateNewName(createSharedSessionCreatorBeanDefinition(config),
-				registry, DEFAULT_SESSION_BEAN_NAME, source);
+		String configuredSessionBeanName = Optional.of("sessionBeanName").flatMap(config::getAttribute)
+				.orElse(GENERATE_BEAN_NAME);
+		this.sessionBeanName = registerWithGeneratedNameOrUseConfigured(createSharedSessionCreatorBeanDefinition(config),
+				registry, configuredSessionBeanName, source);
 
-		this.neo4jMappingContextBeanName = registerWithSuggestedNameOrGenerateNewName(
-				createNeo4jMappingContextFactoryBeanDefinition(config), registry, DEFAULT_NEO4J_MAPPING_CONTEXT_BEAN_NAME,
-				source);
+		String configuredMappingContextBeanName = Optional.of("mappingContextBeanName").flatMap(config::getAttribute)
+				.orElse(GENERATE_BEAN_NAME);
+		this.neo4jMappingContextBeanName = registerWithGeneratedNameOrUseConfigured(
+				createNeo4jMappingContextFactoryBeanDefinition(config), registry, configuredMappingContextBeanName, source);
 
 		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jPersistenceExceptionTranslator.class), registry,
 				NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME, source);
@@ -203,32 +206,36 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 					.rootBeanDefinition(Neo4jOgmEntityInstantiatorConfigurationBean.class)
 					.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE)
 					.addConstructorArgReference(getSessionFactoryBeanName(config))
-					.addConstructorArgReference(this.neo4jMappingContextBeanName)
-					.getBeanDefinition();
+					.addConstructorArgReference(this.neo4jMappingContextBeanName).getBeanDefinition();
 
 			registerIfNotAlreadyRegistered(rootBeanDefinition, registry, ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME, source);
 		}
 	}
 
 	/**
-	 * Checks whether a bean is already registered under {@code suggestedBeanName} in the given
-	 * {@link BeanDefinitionRegistry} and uses a generated name for registering the bean instead. If not, the suggested
-	 * bean name is used.
+	 * Uses a generated bean name if {@code configuredBeanName} is equal to {@link #GENERATE_BEAN_NAME}, otherwise uses
+	 * the configured bean name to register the new bean. Does not check if there's already a bean under the configured
+	 * name but throws a {@link org.springframework.beans.factory.BeanDefinitionStoreException}. Checks whether a bean is
+	 * already registered under {@code configuredBeanName} in the given {@link BeanDefinitionRegistry} and uses a
+	 * generated name for registering the bean instead. If not, the suggested bean name is used.
 	 *
 	 * @param bean must not be {@literal null}.
 	 * @param registry must not be {@literal null}.
-	 * @param suggestedBeanName must not be {@literal null} or empty.
+	 * @param configuredBeanName must not be {@literal null} or empty.
 	 * @param source must not be {@literal null}.
+	 * @throws org.springframework.beans.factory.BeanDefinitionStoreException if the BeanDefinition is invalid or if there
+	 *           is already a BeanDefinition for the specified bean name * (and we are not allowed to override it)
 	 * @return the bean name used for registering the given {@link AbstractBeanDefinition}
 	 */
-	private String registerWithSuggestedNameOrGenerateNewName(AbstractBeanDefinition bean,
-			BeanDefinitionRegistry registry, String suggestedBeanName, Object source) {
+	private static String registerWithGeneratedNameOrUseConfigured(AbstractBeanDefinition bean,
+			BeanDefinitionRegistry registry, String configuredBeanName, Object source) {
 
-		String registeredBeanName = suggestedBeanName;
-		if (registry.containsBeanDefinition(suggestedBeanName)) {
+		String registeredBeanName = configuredBeanName;
+		if (GENERATE_BEAN_NAME.equals(configuredBeanName)) {
 			registeredBeanName = registerWithSourceAndGeneratedBeanName(registry, bean, source);
 		} else {
-			registerIfNotAlreadyRegistered(bean, registry, suggestedBeanName, source);
+			bean.setSource(source);
+			registry.registerBeanDefinition(configuredBeanName, bean);
 		}
 		return registeredBeanName;
 	}
