@@ -13,7 +13,6 @@
 
 package org.springframework.data.neo4j.repositories;
 
-import static org.junit.Assert.assertEquals;
 import static org.neo4j.ogm.testutil.GraphTestUtils.*;
 
 import org.junit.Before;
@@ -37,13 +36,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Michal Bachman
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {RepoScanningTests.PersistenceContextInTheSamePackage.class})
+@ContextConfiguration(classes = { RepoScanningTests.PersistenceContextInTheSamePackage.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RepoScanningTests extends MultiDriverTestClass {
 
-	@Autowired
-	private UserRepository userRepository;
-
+	@Autowired private UserRepository userRepository;
 
 	@Before
 	public void clearDatabase() {
@@ -60,7 +57,7 @@ public class RepoScanningTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories //no package specified, that's the point of this test
+	@EnableNeo4jRepositories // no package specified, that's the point of this test
 	@EnableTransactionManagement
 	static class PersistenceContextInTheSamePackage {
 
@@ -74,6 +71,5 @@ public class RepoScanningTests extends MultiDriverTestClass {
 			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.repositories.domain");
 		}
 	}
-
 
 }

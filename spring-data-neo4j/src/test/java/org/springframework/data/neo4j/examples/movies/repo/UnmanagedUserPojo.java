@@ -21,14 +21,14 @@ import org.springframework.data.neo4j.annotation.QueryResult;
 @QueryResult
 public class UnmanagedUserPojo {
 
-    private String name;
+	private String name;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
 }

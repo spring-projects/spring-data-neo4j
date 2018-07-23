@@ -31,41 +31,40 @@ import org.springframework.data.neo4j.examples.movies.domain.User;
 @QueryResult
 public class EntityWrappingQueryResult {
 
-    private User user;
-    private Set<User> friends;
-    private List<Rating> ratings;
-    private TempMovie[] movies;
-    private float avgRating;
-    private List<Float> allRatings;
-    private Collection<Map<String, Object>> literalMap;
+	private User user;
+	private Set<User> friends;
+	private List<Rating> ratings;
+	private TempMovie[] movies;
+	private float avgRating;
+	private List<Float> allRatings;
+	private Collection<Map<String, Object>> literalMap;
 
+	public User getUser() {
+		return user;
+	}
 
-    public User getUser() {
-        return user;
-    }
+	public Set<User> getFriends() {
+		return friends;
+	}
 
-    public Set<User> getFriends() {
-        return friends;
-    }
+	public List<Rating> getRatings() {
+		return ratings;
+	}
 
-    public List<Rating> getRatings() {
-        return ratings;
-    }
+	public float getAvgRating() {
+		return avgRating;
+	}
 
-    public float getAvgRating() {
-        return avgRating;
-    }
+	public TempMovie[] getMovies() {
+		return movies;
+	}
 
-    public TempMovie[] getMovies() {
-        return movies;
-    }
+	public List<Float> getAllRatings() {
+		return allRatings;
+	}
 
-    public List<Float> getAllRatings() {
-        return allRatings;
-    }
-
-    public Collection<Map<String, Object>> getLiteralMap() {
-        return literalMap;
-    }
+	public Collection<Map<String, Object>> getLiteralMap() {
+		return literalMap;
+	}
 
 }

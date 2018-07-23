@@ -13,7 +13,11 @@
 
 package org.springframework.data.neo4j.web.service;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.web.domain.User;
@@ -29,12 +33,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserServiceImpl implements UserService {
 
-	@Autowired
-	private UserRepository userRepository;
+	@Autowired private UserRepository userRepository;
 
 	@Override
 	public User getUserByUuid(UUID uuid) {
-		return  userRepository.findById(uuid).get();
+		return userRepository.findById(uuid).get();
 	}
 
 	@Override

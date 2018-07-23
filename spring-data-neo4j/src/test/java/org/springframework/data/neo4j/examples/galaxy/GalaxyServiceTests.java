@@ -49,18 +49,16 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-
 /**
  * @author Vince Bickers
  * @author Mark Paluch
  */
-@ContextConfiguration(classes = {GalaxyServiceTests.GalaxyContext.class})
+@ContextConfiguration(classes = { GalaxyServiceTests.GalaxyContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
 public class GalaxyServiceTests extends MultiDriverTestClass {
 
-	@Autowired
-	private GalaxyService galaxyService;
+	@Autowired private GalaxyService galaxyService;
 
 	@Before
 	public void setUp() {
@@ -108,7 +106,6 @@ public class GalaxyServiceTests extends MultiDriverTestClass {
 		}
 	}
 
-
 	@Test
 	public void shouldFindWorldsByName() {
 		galaxyService.makeSomeWorlds();
@@ -150,9 +147,7 @@ public class GalaxyServiceTests extends MultiDriverTestClass {
 		galaxyService.makeSomeWorlds();
 
 		for (World worldWithOneMoon : galaxyService.findAllByNumberOfMoons(1)) {
-			assertThat(
-					worldWithOneMoon.getName(),
-					is(anyOf(containsString("Earth"), containsString("Midgard"))));
+			assertThat(worldWithOneMoon.getName(), is(anyOf(containsString("Earth"), containsString("Midgard"))));
 		}
 	}
 
@@ -221,11 +216,11 @@ public class GalaxyServiceTests extends MultiDriverTestClass {
 			sum += world.getId();
 		}
 		// note: this doesn't work, because deleted node ids are not reclaimed
-		// long sum = (size * size - size) / 2;   // 0-based node ids
+		// long sum = (size * size - size) / 2; // 0-based node ids
 
 		Pageable pageable = new PageRequest(0, 3);
 
-		for (; ; ) {
+		for (;;) {
 			Page<World> page = galaxyService.findAllWorlds(pageable);
 			for (World world : page) {
 				sum -= world.getId();
@@ -251,7 +246,7 @@ public class GalaxyServiceTests extends MultiDriverTestClass {
 		Pageable pageable = new PageRequest(0, 3, Sort.Direction.ASC, "name");
 
 		int i = 0;
-		for (; ; ) {
+		for (;;) {
 			Page<World> page = galaxyService.findAllWorlds(pageable);
 			for (World world : page) {
 				assertEquals(sortedNames[i], world.getName());
@@ -308,13 +303,13 @@ public class GalaxyServiceTests extends MultiDriverTestClass {
 			names.add(world.getName());
 		}
 
-		String[] sortedNames = names.toArray(new String[]{});
+		String[] sortedNames = names.toArray(new String[] {});
 		Arrays.sort(sortedNames);
 		return sortedNames;
 	}
 
 	@Configuration
-	@ComponentScan({"org.springframework.data.neo4j.examples.galaxy.service"})
+	@ComponentScan({ "org.springframework.data.neo4j.examples.galaxy.service" })
 	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.galaxy.repo")
 	@EnableTransactionManagement
 	static class GalaxyContext {
@@ -326,7 +321,8 @@ public class GalaxyServiceTests extends MultiDriverTestClass {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.examples.galaxy.domain");
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.examples.galaxy.domain");
 		}
 
 		@Bean

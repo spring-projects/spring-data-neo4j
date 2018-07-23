@@ -13,7 +13,6 @@
 
 package org.springframework.data.neo4j.web.support;
 
-
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.slf4j.Logger;
@@ -32,15 +31,15 @@ import org.springframework.web.context.request.async.WebAsyncManager;
 import org.springframework.web.context.request.async.WebAsyncUtils;
 
 /**
- * Spring web request interceptor that binds a Neo4j OGM Session to the
- * thread for the entire processing of the request. Intended for the "Open
- * Session in View" pattern, i.e. to allow for lazy loading in
- * web views despite the original transactions already being completed.
- * <p>This interceptor makes Neo4j OGM Sessions available via the current thread,
- * which will be autodetected by transaction managers. It is suitable for service
- * layer transactions via {@link Neo4jTransactionManager}.
- * <p>In contrast to {@link OpenSessionInViewFilter}, this interceptor is set
- * up in a Spring application context and can thus take advantage of bean wiring.
+ * Spring web request interceptor that binds a Neo4j OGM Session to the thread for the entire processing of the request.
+ * Intended for the "Open Session in View" pattern, i.e. to allow for lazy loading in web views despite the original
+ * transactions already being completed.
+ * <p>
+ * This interceptor makes Neo4j OGM Sessions available via the current thread, which will be autodetected by transaction
+ * managers. It is suitable for service layer transactions via {@link Neo4jTransactionManager}.
+ * <p>
+ * In contrast to {@link OpenSessionInViewFilter}, this interceptor is set up in a Spring application context and can
+ * thus take advantage of bean wiring.
  *
  * @author Mark Angrish
  * @see OpenSessionInViewFilter
@@ -55,8 +54,7 @@ public class OpenSessionInViewInterceptor implements BeanFactoryAware, AsyncWebR
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	/**
-	 * Suffix that gets appended to the SessionFactory toString
-	 * representation for the "participate in existing session
+	 * Suffix that gets appended to the SessionFactory toString representation for the "participate in existing session
 	 * handling" request attribute.
 	 *
 	 * @see #getParticipateAttributeName
@@ -66,8 +64,7 @@ public class OpenSessionInViewInterceptor implements BeanFactoryAware, AsyncWebR
 	private SessionFactory sessionFactory;
 
 	/**
-	 * Set the Neo4j OGM SessionFactory that should be used to create
-	 * Sessions.
+	 * Set the Neo4j OGM SessionFactory that should be used to create Sessions.
 	 *
 	 * @see SessionFactory#openSession
 	 */
@@ -76,8 +73,7 @@ public class OpenSessionInViewInterceptor implements BeanFactoryAware, AsyncWebR
 	}
 
 	/**
-	 * Return the Neo4j OGM SessionFactory that should be used to create
-	 * Sessions.
+	 * Return the Neo4j OGM SessionFactory that should be used to create Sessions.
 	 */
 	public SessionFactory getSessionFactory() {
 		return this.sessionFactory;
@@ -92,7 +88,6 @@ public class OpenSessionInViewInterceptor implements BeanFactoryAware, AsyncWebR
 			setSessionFactory(beanFactory.getBean(SessionFactory.class));
 		}
 	}
-
 
 	@Override
 	public void preHandle(WebRequest request) throws DataAccessException {
@@ -123,8 +118,7 @@ public class OpenSessionInViewInterceptor implements BeanFactoryAware, AsyncWebR
 	}
 
 	@Override
-	public void postHandle(WebRequest request, ModelMap model) {
-	}
+	public void postHandle(WebRequest request, ModelMap model) {}
 
 	@Override
 	public void afterCompletion(WebRequest request, Exception ex) throws DataAccessException {
@@ -132,7 +126,7 @@ public class OpenSessionInViewInterceptor implements BeanFactoryAware, AsyncWebR
 			TransactionSynchronizationManager.unbindResource(getSessionFactory());
 			logger.debug("Closed Neo4j OGM Session in OpenSessionInViewInterceptor");
 			// close session.
-//			SessionFactoryUtils.closeSession(session);
+			// SessionFactoryUtils.closeSession(session);
 		}
 	}
 
@@ -159,16 +153,14 @@ public class OpenSessionInViewInterceptor implements BeanFactoryAware, AsyncWebR
 	}
 
 	/**
-	 * Return the name of the request attribute that identifies that a request is
-	 * already filtered. Default implementation takes the toString representation
-	 * of the SessionFactory instance and appends ".FILTERED".
+	 * Return the name of the request attribute that identifies that a request is already filtered. Default implementation
+	 * takes the toString representation of the SessionFactory instance and appends ".FILTERED".
 	 *
 	 * @see #PARTICIPATE_SUFFIX
 	 */
 	protected String getParticipateAttributeName() {
 		return getSessionFactory().toString() + PARTICIPATE_SUFFIX;
 	}
-
 
 	private boolean applyCallableInterceptor(WebAsyncManager asyncManager, String key) {
 		if (asyncManager.getCallableInterceptor(key) == null) {

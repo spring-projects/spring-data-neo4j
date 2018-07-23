@@ -24,13 +24,16 @@ import org.springframework.data.repository.query.ParameterAccessor;
 public interface GraphParameterAccessor extends ParameterAccessor {
 
 	/**
-	 * Gets the loading depth value of the {@link org.springframework.data.neo4j.annotation.Depth} annotated method parameter.
+	 * Gets the loading depth value of the {@link org.springframework.data.neo4j.annotation.Depth} annotated method
+	 * parameter.
+	 *
 	 * @return the depth value
 	 */
 	int getDepth();
 
 	/**
 	 * Get OGM specific sort order translated from method parameters.
+	 *
 	 * @return The sort order
 	 */
 	SortOrder getOgmSort();

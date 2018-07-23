@@ -41,12 +41,11 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Mark Angrish
  * @author Jens Schauder
  */
-@ContextConfiguration(classes = {TransactionalRepositoryTests.Config.class})
+@ContextConfiguration(classes = { TransactionalRepositoryTests.Config.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class TransactionalRepositoryTests extends MultiDriverTestClass {
 
-	@Autowired
-	TransactionTemplate transactionTemplate;
+	@Autowired TransactionTemplate transactionTemplate;
 
 	@Autowired UserRepository repository;
 	@Autowired DelegatingTransactionManager transactionManager;
@@ -154,7 +153,7 @@ public class TransactionalRepositoryTests extends MultiDriverTestClass {
 	static class Config {
 
 		@Bean
-		public DelegatingTransactionManager transactionManager()  {
+		public DelegatingTransactionManager transactionManager() {
 			return new DelegatingTransactionManager(new Neo4jTransactionManager(sessionFactory()));
 		}
 

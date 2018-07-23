@@ -61,8 +61,8 @@ public class GraphParameters extends Parameters<GraphParameters, GraphParameters
 		if (this.depthIndex == null && graphParameter.isDepthParameter()) {
 			this.depthIndex = graphParameter.getIndex();
 		} else if (graphParameter.isDepthParameter()) {
-			throw new IllegalStateException(String.format(
-					"Found multiple @Depth annotations on method %s! Only one allowed!", parameter.getMethod().toString()));
+			throw new IllegalStateException(String.format("Found multiple @Depth annotations on method %s! Only one allowed!",
+					parameter.getMethod().toString()));
 		}
 
 		return graphParameter;
@@ -98,8 +98,8 @@ public class GraphParameters extends Parameters<GraphParameters, GraphParameters
 		@Override
 		public boolean isSpecialParameter() {
 			return super.isSpecialParameter() || Distance.class.isAssignableFrom(getType())
-					|| parameter.getParameterAnnotation(Depth.class) != null
-					|| Distance.class.isAssignableFrom(getType()) || Point.class.isAssignableFrom(getType());
+					|| parameter.getParameterAnnotation(Depth.class) != null || Distance.class.isAssignableFrom(getType())
+					|| Point.class.isAssignableFrom(getType());
 		}
 
 		boolean isDepthParameter() {

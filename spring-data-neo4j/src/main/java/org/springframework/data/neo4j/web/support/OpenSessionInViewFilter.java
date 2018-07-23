@@ -13,16 +13,16 @@
 
 package org.springframework.data.neo4j.web.support;
 
+import java.io.IOException;
+
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
-import org.springframework.data.neo4j.transaction.SessionFactoryUtils;
 import org.springframework.data.neo4j.transaction.SessionHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
@@ -33,16 +33,15 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Servlet Filter that binds a Neo4j OGM Session to the thread for the
- * entire processing of the request. Intended for the "Open Session in
- * View" pattern, i.e. to allow for lazy loading in web views despite the
- * original transactions already being completed.
- * <p>This filter makes OGM Sessions available via the current thread,
- * which will be autodetected by transaction managers. At the moment this service is
- * only suitable for transactions via {@link Neo4jTransactionManager}.
- * <p>Looks up the SessionFactory in Spring's root web application context.
- * Supports an "sessionFactoryBeanName" filter init-param in {@code web.xml};
- * the default bean name is "sessionFactory".
+ * Servlet Filter that binds a Neo4j OGM Session to the thread for the entire processing of the request. Intended for
+ * the "Open Session in View" pattern, i.e. to allow for lazy loading in web views despite the original transactions
+ * already being completed.
+ * <p>
+ * This filter makes OGM Sessions available via the current thread, which will be autodetected by transaction managers.
+ * At the moment this service is only suitable for transactions via {@link Neo4jTransactionManager}.
+ * <p>
+ * Looks up the SessionFactory in Spring's root web application context. Supports an "sessionFactoryBeanName" filter
+ * init-param in {@code web.xml}; the default bean name is "sessionFactory".
  *
  * @author Mark Angrish
  * @see OpenSessionInViewInterceptor
@@ -63,9 +62,9 @@ public class OpenSessionInViewFilter extends OncePerRequestFilter {
 	private volatile SessionFactory sessionFactory;
 
 	/**
-	 * Set the bean name of the SessionFactory to fetch from Spring's
-	 * root application context.
-	 * <p>Default is "sessionFactory".
+	 * Set the bean name of the SessionFactory to fetch from Spring's root application context.
+	 * <p>
+	 * Default is "sessionFactory".
 	 *
 	 * @see #DEFAULT_SESSION_FACTORY_BEAN_NAME
 	 */
@@ -74,38 +73,31 @@ public class OpenSessionInViewFilter extends OncePerRequestFilter {
 	}
 
 	/**
-	 * Return the bean name of the SessionFactory to fetch from Spring's
-	 * root application context.
+	 * Return the bean name of the SessionFactory to fetch from Spring's root application context.
 	 */
 	protected String getSessionFactoryBeanName() {
 		return this.sessionFactoryBeanName;
 	}
 
-
 	/**
-	 * Returns "false" so that the filter may re-bind the opened {@code Session}
-	 * to each asynchronously dispatched thread and postpone closing it until the very
-	 * last asynchronous dispatch.
+	 * Returns "false" so that the filter may re-bind the opened {@code Session} to each asynchronously dispatched thread
+	 * and postpone closing it until the very last asynchronous dispatch.
 	 */
 	@Override
 	protected boolean shouldNotFilterAsyncDispatch() {
 		return false;
 	}
 
-
 	/**
-	 * Returns "false" so that the filter may provide an {@code Session}
-	 * to each error dispatches.
+	 * Returns "false" so that the filter may provide an {@code Session} to each error dispatches.
 	 */
 	@Override
 	protected boolean shouldNotFilterErrorDispatch() {
 		return false;
 	}
 
-
 	@Override
-	protected void doFilterInternal(
-			HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 
 		SessionFactory sessionFactory = lookupSessionFactory(request);
@@ -139,17 +131,17 @@ public class OpenSessionInViewFilter extends OncePerRequestFilter {
 				if (!isAsyncStarted(request)) {
 					logger.debug("Closed Neo4J OGM Session in OpenSessionInViewFilter");
 					// close session.
-//					SessionFactoryUtils.closeSession(session);
+					// SessionFactoryUtils.closeSession(session);
 				}
 			}
 		}
 	}
 
 	/**
-	 * Look up the SessionFactory that this filter should use,
-	 * taking the current HTTP request as argument.
-	 * <p>The default implementation delegates to the {@code lookupSessionFactory}
-	 * without arguments, caching the SessionFactory reference once obtained.
+	 * Look up the SessionFactory that this filter should use, taking the current HTTP request as argument.
+	 * <p>
+	 * The default implementation delegates to the {@code lookupSessionFactory} without arguments, caching the
+	 * SessionFactory reference once obtained.
 	 *
 	 * @return the SessionFactory to use
 	 * @see #lookupSessionFactory()
@@ -163,8 +155,8 @@ public class OpenSessionInViewFilter extends OncePerRequestFilter {
 
 	/**
 	 * Look up the SessionFactory that this filter should use.
-	 * <p>The default implementation looks for a bean with the specified name
-	 * in Spring's root application context.
+	 * <p>
+	 * The default implementation looks for a bean with the specified name in Spring's root application context.
 	 *
 	 * @return the SessionFactory to use
 	 * @see #getSessionFactoryBeanName
@@ -182,10 +174,10 @@ public class OpenSessionInViewFilter extends OncePerRequestFilter {
 		}
 	}
 
-
 	/**
 	 * Create a Neo4j OGM Session to be bound to a request.
-	 * <p>Can be overridden in subclasses.
+	 * <p>
+	 * Can be overridden in subclasses.
 	 *
 	 * @param sessionFactory the SessionFactory to use
 	 * @see SessionFactory#openSession
