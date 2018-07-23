@@ -13,7 +13,11 @@
 
 package org.springframework.data.neo4j.repository.query.derived;
 
-import java.util.*;
+import java.util.EmptyStackException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.cypher.query.Pagination;
@@ -89,7 +93,7 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 				}
 				return session.count(info.getJavaType(), filters);
 			} else {
-		 		throw new RuntimeException("Long is required as the return type of a Count query");
+				throw new RuntimeException("Long is required as the return type of a Count query");
 			}
 		}
 
@@ -175,11 +179,13 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 			return graphQueryMethod;
 		}
 
-		private List queryResults(Class<?> concreteType, int queryDepth, Filters params, PagingAndSorting pagingAndSorting) {
+		private List queryResults(Class<?> concreteType, int queryDepth, Filters params,
+				PagingAndSorting pagingAndSorting) {
 			List resultList;
 			switch (pagingAndSorting.configuration()) {
 				case PagingAndSorting.PAGING_AND_SORTING:
-					resultList = (List) session.loadAll(concreteType, params, pagingAndSorting.sortOrder, pagingAndSorting.pagination, queryDepth);
+					resultList = (List) session.loadAll(concreteType, params, pagingAndSorting.sortOrder,
+							pagingAndSorting.pagination, queryDepth);
 					break;
 
 				case PagingAndSorting.PAGING_ONLY:
@@ -213,15 +219,14 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		}
 	}
 
-
 	@Override
 	public QueryMethod getQueryMethod() {
 		return graphQueryMethod;
 	}
 
-
 	/**
-	 * Sets values from  parameters supplied by the finder on {@link org.neo4j.ogm.cypher.Filter} built by the {@link GraphQueryMethod}
+	 * Sets values from parameters supplied by the finder on {@link org.neo4j.ogm.cypher.Filter} built by the
+	 * {@link GraphQueryMethod}
 	 *
 	 * @param parameters parameter values supplied by the finder method
 	 * @return List of Parameter with values set
@@ -239,22 +244,19 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		return new Filters(queryDefinition.getFilters(params));
 	}
 
-
-
 	protected Object createPage(GraphQueryMethod graphQueryMethod, List resultList, Pageable pageable) {
 		if (pageable == null) {
 			return graphQueryMethod.isPageQuery() ? new PageImpl(resultList) : new SliceImpl(resultList);
 		}
-		int currentTotal = pageable.getOffset() + resultList.size() +
-				(resultList.size() == pageable.getPageSize() ? pageable.getPageSize() : 0);
+		int currentTotal = pageable.getOffset() + resultList.size()
+				+ (resultList.size() == pageable.getPageSize() ? pageable.getPageSize() : 0);
 
 		int resultWindowSize = Math.min(resultList.size(), pageable.getPageSize());
 		boolean hasNext = resultWindowSize < resultList.size();
 		List resultListPage = resultList.subList(0, resultWindowSize);
 
-		return graphQueryMethod.isPageQuery() ?
-				new PageImpl(resultListPage, pageable, currentTotal) :
-				new SliceImpl(resultListPage, pageable, hasNext);
+		return graphQueryMethod.isPageQuery() ? new PageImpl(resultListPage, pageable, currentTotal)
+				: new SliceImpl(resultListPage, pageable, hasNext);
 	}
 
 	private SortOrder convert(Sort sort) {
@@ -290,7 +292,9 @@ public class DerivedGraphRepositoryQuery implements RepositoryQuery {
 		if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
 			if (graphQueryMethod.isSliceQuery()) {
 				pagination = new Pagination(pageable.getPageNumber(), pageable.getPageSize() + 1);
-				pagination.setOffset(pageable.getPageNumber() * pageable.getPageSize()); //For a slice, need one extra result to determine if there is a next page
+				pagination.setOffset(pageable.getPageNumber() * pageable.getPageSize()); // For a slice, need one extra result
+																																									// to determine if there is a next
+																																									// page
 			} else {
 				pagination = new Pagination(pageable.getPageNumber(), pageable.getPageSize());
 			}

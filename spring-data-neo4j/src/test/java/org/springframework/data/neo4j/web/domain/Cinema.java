@@ -13,16 +13,16 @@
 
 package org.springframework.data.neo4j.web.domain;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.Index;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.UuidStringConverter;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * @author Michal Bachman
@@ -31,32 +31,27 @@ import java.util.UUID;
 @NodeEntity
 public class Cinema {
 
-    @GraphId
-    private Long id;
+	@GraphId private Long id;
 
-    @Convert(UuidStringConverter.class)
-    @Index(unique = true, primary = true)
-    private UUID uuid;
+	@Convert(UuidStringConverter.class) @Index(unique = true, primary = true) private UUID uuid;
 
-    private String name;
+	private String name;
 
-    @Relationship(direction = Relationship.INCOMING)
-    private Set<User> visited;
+	@Relationship(direction = Relationship.INCOMING) private Set<User> visited;
 
-    public Cinema() {
-    }
+	public Cinema() {}
 
-    public Cinema(String name) {
-        this.visited = new HashSet<>();
-        this.uuid = UUID.randomUUID();
-        this.name = name;
-    }
+	public Cinema(String name) {
+		this.visited = new HashSet<>();
+		this.uuid = UUID.randomUUID();
+		this.name = name;
+	}
 
-    public void addVisitor(User user) {
-        visited.add(user);
-    }
+	public void addVisitor(User user) {
+		visited.add(user);
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 }

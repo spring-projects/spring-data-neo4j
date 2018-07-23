@@ -19,93 +19,91 @@ import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 
 /**
- * Example POJO {@link QueryResult} to test mapping onto arbitrary objects, even for properties that are on the nodes but not in
- * the entity classes.
+ * Example POJO {@link QueryResult} to test mapping onto arbitrary objects, even for properties that are on the nodes
+ * but not in the entity classes.
  *
  * @see UserRepository
- *
  * @author Adam George
  * @author Luanne Misquitta
  */
 @QueryResult
 public class UserQueryResult {
 
-    private Long id;
-    Long userId;
-    private String userName;
-    private int age;
+	private Long id;
+	Long userId;
+	private String userName;
+	private int age;
 
-    UserQueryResult() {
-        // default constructor for OGM
-    }
+	UserQueryResult() {
+		// default constructor for OGM
+	}
 
-    public UserQueryResult(String name, int age) {
-        this.userName = name;
-        this.age = age;
-    }
+	public UserQueryResult(String name, int age) {
+		this.userName = name;
+		this.age = age;
+	}
 
-    public String getUserName() {
-        return userName;
-    }
+	public String getUserName() {
+		return userName;
+	}
 
-    public void setUserName(String name) {
-        this.userName = name;
-    }
+	public void setUserName(String name) {
+		this.userName = name;
+	}
 
-    @Property(name = "user.age")
-    public int getAge() {
-        return age;
-    }
+	@Property(name = "user.age")
+	public int getAge() {
+		return age;
+	}
 
-    @Property(name = "user.age")
-    public void setAge(int age) {
-        this.age = age;
-    }
+	@Property(name = "user.age")
+	public void setAge(int age) {
+		this.age = age;
+	}
 
-    public Long getUserId() {
-        return userId;
-    }
+	public Long getUserId() {
+		return userId;
+	}
 
+	public Long getId() {
+		return id;
+	}
 
-    public Long getId() {
-        return id;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	@Override
+	public int hashCode() {
+		final int prime = 23;
+		int result = 1;
+		result = prime * result + age;
+		result = prime * result + ((userName == null) ? 0 : userName.hashCode());
+		return result;
+	}
 
-    @Override
-    public int hashCode() {
-        final int prime = 23;
-        int result = 1;
-        result = prime * result + age;
-        result = prime * result + ((userName == null) ? 0 : userName.hashCode());
-        return result;
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		UserQueryResult other = (UserQueryResult) obj;
+		if (age != other.age)
+			return false;
+		if (userName == null) {
+			if (other.userName != null)
+				return false;
+		} else if (!userName.equals(other.userName))
+			return false;
+		return true;
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        UserQueryResult other = (UserQueryResult) obj;
-        if (age != other.age)
-            return false;
-        if (userName == null) {
-            if (other.userName != null)
-                return false;
-        } else if (!userName.equals(other.userName))
-            return false;
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
-    }
+	@Override
+	public String toString() {
+		return ReflectionToStringBuilder.toString(this);
+	}
 
 }

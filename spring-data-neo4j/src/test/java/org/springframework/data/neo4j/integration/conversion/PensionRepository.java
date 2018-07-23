@@ -23,6 +23,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PensionRepository extends Neo4jRepository<PensionPlan, Long> {
 
-    // no additional repository methods
+	// no additional repository methods
 
 }

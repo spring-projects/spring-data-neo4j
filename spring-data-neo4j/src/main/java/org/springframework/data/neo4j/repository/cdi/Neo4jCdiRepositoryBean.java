@@ -16,16 +16,17 @@
 
 package org.springframework.data.neo4j.repository.cdi;
 
-import org.neo4j.ogm.session.Session;
-import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactory;
-import org.springframework.data.repository.cdi.CdiRepositoryBean;
-import org.springframework.data.repository.config.CustomRepositoryImplementationDetector;
+import java.lang.annotation.Annotation;
+import java.util.Set;
 
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
-import java.lang.annotation.Annotation;
-import java.util.Set;
+
+import org.neo4j.ogm.session.Session;
+import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactory;
+import org.springframework.data.repository.cdi.CdiRepositoryBean;
+import org.springframework.data.repository.config.CustomRepositoryImplementationDetector;
 
 /**
  * {@link org.springframework.data.repository.cdi.CdiRepositoryBean} to create Neo4j repository instances via CDI.
@@ -34,30 +35,30 @@ import java.util.Set;
  * @since 4.2
  */
 public class Neo4jCdiRepositoryBean<T> extends CdiRepositoryBean<T> {
-    private final Bean<Session> sessionBean;
+	private final Bean<Session> sessionBean;
 
-    /**
-     * Creates a new {@link Neo4jCdiRepositoryBean}.
-     *
-     * @param sessionBean must not be {@literal null}.
-     * @param qualifiers must not be {@literal null}.
-     * @param repositoryType must not be {@literal null}.
-     * @param beanManager must not be {@literal null}.
-     * @param detector detector for the custom {@link org.springframework.data.repository.Repository} implementations
-     *        {@link CustomRepositoryImplementationDetector}, can be {@literal null}.
-     */
-    public Neo4jCdiRepositoryBean(Bean<Session> sessionBean, Set<Annotation> qualifiers, Class<T> repositoryType,
-                                  BeanManager beanManager, CustomRepositoryImplementationDetector detector) {
-        super(qualifiers, repositoryType, beanManager, detector);
-        this.sessionBean = sessionBean;
-    }
+	/**
+	 * Creates a new {@link Neo4jCdiRepositoryBean}.
+	 *
+	 * @param sessionBean must not be {@literal null}.
+	 * @param qualifiers must not be {@literal null}.
+	 * @param repositoryType must not be {@literal null}.
+	 * @param beanManager must not be {@literal null}.
+	 * @param detector detector for the custom {@link org.springframework.data.repository.Repository} implementations
+	 *          {@link CustomRepositoryImplementationDetector}, can be {@literal null}.
+	 */
+	public Neo4jCdiRepositoryBean(Bean<Session> sessionBean, Set<Annotation> qualifiers, Class<T> repositoryType,
+			BeanManager beanManager, CustomRepositoryImplementationDetector detector) {
+		super(qualifiers, repositoryType, beanManager, detector);
+		this.sessionBean = sessionBean;
+	}
 
-    @Override
-    protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType, Object customImplementation) {
+	@Override
+	protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType, Object customImplementation) {
 
-        Session session = getDependencyInstance(sessionBean, Session.class);
+		Session session = getDependencyInstance(sessionBean, Session.class);
 
-        Neo4jRepositoryFactory factory = new Neo4jRepositoryFactory(session);
-        return factory.getRepository(repositoryType, customImplementation);
-    }
+		Neo4jRepositoryFactory factory = new Neo4jRepositoryFactory(session);
+		return factory.getRepository(repositoryType, customImplementation);
+	}
 }

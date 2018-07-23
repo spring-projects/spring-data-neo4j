@@ -18,11 +18,10 @@ import org.springframework.transaction.support.ResourceHolderSupport;
 import org.springframework.util.Assert;
 
 /**
- * Holder wrapping a Neo4j OGM Session.
- * Neo4jTransactionManager binds instances of this class to the thread,
- * for a given SessionFactory.
- *
- * <p>Note: This is an SPI class, not intended to be used by applications.
+ * Holder wrapping a Neo4j OGM Session. Neo4jTransactionManager binds instances of this class to the thread, for a given
+ * SessionFactory.
+ * <p>
+ * Note: This is an SPI class, not intended to be used by applications.
  *
  * @author Mark Angrish
  * @see Neo4jTransactionManager
@@ -39,7 +38,6 @@ public class SessionHolder extends ResourceHolderSupport {
 		this.session = session;
 	}
 
-
 	public Session getSession() {
 		return this.session;
 	}
@@ -51,7 +49,6 @@ public class SessionHolder extends ResourceHolderSupport {
 	protected boolean isTransactionActive() {
 		return this.transactionActive;
 	}
-
 
 	@Override
 	public void clear() {

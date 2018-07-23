@@ -15,7 +15,6 @@ package org.springframework.data.neo4j.web.repo;
 
 import java.util.UUID;
 
-import org.springframework.data.neo4j.repository.GraphRepository;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.web.domain.User;
 import org.springframework.stereotype.Repository;

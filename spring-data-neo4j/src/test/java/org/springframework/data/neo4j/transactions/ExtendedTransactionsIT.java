@@ -34,18 +34,15 @@ import org.springframework.transaction.annotation.Transactional;
  * @see http://stackoverflow.com/questions/17224887/java-spring-transactional-method-not-rolling-back-as-expected
  * @see DATAGRAPH-602
  */
-@ContextConfiguration(classes = {ApplicationConfig.class})
+@ContextConfiguration(classes = { ApplicationConfig.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ExtendedTransactionsIT extends MultiDriverTestClass {
 
-	@Autowired
-	ServiceA serviceA;
+	@Autowired ServiceA serviceA;
 
-	@Autowired
-	ServiceB serviceB;
+	@Autowired ServiceB serviceB;
 
-	@Autowired
-	WrapperService wrapperService;
+	@Autowired WrapperService wrapperService;
 
 	@Test
 	public void shouldRollbackSuccessThenFail() {

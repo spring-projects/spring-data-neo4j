@@ -7,7 +7,11 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,14 +31,20 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.event.TransactionalEventListenerFactory;
-import org.springframework.transaction.support.*;
+import org.springframework.transaction.support.AbstractPlatformTransactionManager;
+import org.springframework.transaction.support.DefaultTransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 /**
- * These tests are copied from
- * <a href="https://github.com/spring-projects/spring-framework/blob/master/spring-tx/src/test/java/org/springframework/transaction/event/TransactionalEventListenerTests.java">the spring framework transactional event listener tests</a>
- * and modified to work with a version of the Neo4jTransactionManager.
+ * These tests are copied from <a href=
+ * "https://github.com/spring-projects/spring-framework/blob/master/spring-tx/src/test/java/org/springframework/transaction/event/TransactionalEventListenerTests.java">the
+ * spring framework transactional event listener tests</a> and modified to work with a version of the
+ * Neo4jTransactionManager.
  *
  * @author Mark Angrish
  * @see DATAGRAPH-883
@@ -47,9 +57,7 @@ public class TransactionalEventListenerTests {
 
 	private TransactionTemplate transactionTemplate = new TransactionTemplate(new CallCountingTransactionManager());
 
-	@Rule
-	public final ExpectedException thrown = ExpectedException.none();
-
+	@Rule public final ExpectedException thrown = ExpectedException.none();
 
 	@Before
 	public void closeContext() {
@@ -57,7 +65,6 @@ public class TransactionalEventListenerTests {
 			this.context.close();
 		}
 	}
-
 
 	@Test
 	public void immediately() {
@@ -255,8 +262,7 @@ public class TransactionalEventListenerTests {
 
 	@Test
 	public void noTransaction() {
-		load(BeforeCommitTestListener.class, AfterCompletionTestListener.class,
-				AfterCompletionExplicitTestListener.class);
+		load(BeforeCommitTestListener.class, AfterCompletionTestListener.class, AfterCompletionExplicitTestListener.class);
 		this.context.publishEvent("test");
 		getEventCollector().assertTotalEventsCount(0);
 	}
@@ -315,7 +321,6 @@ public class TransactionalEventListenerTests {
 		getEventCollector().assertNoEventReceived();
 	}
 
-
 	protected EventCollector getEventCollector() {
 		return eventCollector;
 	}
@@ -335,7 +340,6 @@ public class TransactionalEventListenerTests {
 		this.context = new AnnotationConfigApplicationContext(classes);
 		this.eventCollector = this.context.getBean(EventCollector.class);
 	}
-
 
 	@Configuration
 	static class BasicConfiguration {
@@ -361,7 +365,6 @@ public class TransactionalEventListenerTests {
 		}
 	}
 
-
 	static class EventCollector {
 
 		public static final String IMMEDIATELY = "IMMEDIATELY";
@@ -374,7 +377,7 @@ public class TransactionalEventListenerTests {
 
 		public static final String AFTER_ROLLBACK = "AFTER_ROLLBACK";
 
-		public static final String[] ALL_PHASES = {IMMEDIATELY, BEFORE_COMMIT, AFTER_COMMIT, AFTER_ROLLBACK};
+		public static final String[] ALL_PHASES = { IMMEDIATELY, BEFORE_COMMIT, AFTER_COMMIT, AFTER_ROLLBACK };
 
 		private final MultiValueMap<String, Object> events = new LinkedMultiValueMap<>();
 
@@ -384,9 +387,7 @@ public class TransactionalEventListenerTests {
 
 		public List<Object> getEvents(String phase) {
 			List<Object> v;
-			return (((v = events.get(phase)) != null) || events.containsKey(phase))
-					? v
-					: Collections.emptyList();
+			return (((v = events.get(phase)) != null) || events.containsKey(phase)) ? v : Collections.emptyList();
 		}
 
 		public void assertNoEventReceived(String... phases) {
@@ -395,8 +396,8 @@ public class TransactionalEventListenerTests {
 			}
 			for (String phase : phases) {
 				List<Object> eventsForPhase = getEvents(phase);
-				assertEquals("Expected no events for phase '" + phase + "' " +
-						"but got " + eventsForPhase + ":", 0, eventsForPhase.size());
+				assertEquals("Expected no events for phase '" + phase + "' " + "but got " + eventsForPhase + ":", 0,
+						eventsForPhase.size());
 			}
 		}
 
@@ -413,18 +414,15 @@ public class TransactionalEventListenerTests {
 			for (Map.Entry<String, List<Object>> entry : this.events.entrySet()) {
 				size += entry.getValue().size();
 			}
-			assertEquals("Wrong number of total events (" + this.events.size() + ") " +
-					"registered phase(s)", number, size);
+			assertEquals("Wrong number of total events (" + this.events.size() + ") " + "registered phase(s)", number, size);
 		}
 	}
-
 
 	static abstract class BaseTransactionalTestListener {
 
 		static final String FAIL_MSG = "FAIL";
 
-		@Autowired
-		private EventCollector eventCollector;
+		@Autowired private EventCollector eventCollector;
 
 		public void handleEvent(String phase, String data) {
 			this.eventCollector.addEvent(phase, data);
@@ -433,7 +431,6 @@ public class TransactionalEventListenerTests {
 			}
 		}
 	}
-
 
 	@Component
 	static class ImmediateTestListener extends BaseTransactionalTestListener {
@@ -444,7 +441,6 @@ public class TransactionalEventListenerTests {
 		}
 	}
 
-
 	@Component
 	static class AfterCompletionTestListener extends BaseTransactionalTestListener {
 
@@ -453,7 +449,6 @@ public class TransactionalEventListenerTests {
 			handleEvent(EventCollector.AFTER_COMPLETION, data);
 		}
 	}
-
 
 	@Component
 	static class AfterCompletionExplicitTestListener extends BaseTransactionalTestListener {
@@ -469,7 +464,6 @@ public class TransactionalEventListenerTests {
 		}
 	}
 
-
 	@Transactional
 	@Component
 	static interface TransactionalComponentTestListenerInterface {
@@ -479,16 +473,14 @@ public class TransactionalEventListenerTests {
 		void handleAfterCommit(String data);
 	}
 
-
-	static class TransactionalComponentTestListener extends BaseTransactionalTestListener implements
-			TransactionalComponentTestListenerInterface {
+	static class TransactionalComponentTestListener extends BaseTransactionalTestListener
+			implements TransactionalComponentTestListenerInterface {
 
 		@Override
 		public void handleAfterCommit(String data) {
 			handleEvent(EventCollector.AFTER_COMMIT, data);
 		}
 	}
-
 
 	@Component
 	static class BeforeCommitTestListener extends BaseTransactionalTestListener {
@@ -499,7 +491,6 @@ public class TransactionalEventListenerTests {
 			handleEvent(EventCollector.BEFORE_COMMIT, data);
 		}
 	}
-
 
 	@Component
 	static class FallbackExecutionTestListener extends BaseTransactionalTestListener {
@@ -525,14 +516,12 @@ public class TransactionalEventListenerTests {
 		}
 	}
 
-
 	@TransactionalEventListener(phase = AFTER_COMMIT, condition = "!'SKIP'.equals(#p0)")
 	@Target(ElementType.METHOD)
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface AfterCommitEventListener {
 
 	}
-
 
 	@Component
 	static class AfterCommitMetaAnnotationTestListener extends BaseTransactionalTestListener {
@@ -542,7 +531,6 @@ public class TransactionalEventListenerTests {
 			handleEvent(EventCollector.AFTER_COMMIT, data);
 		}
 	}
-
 
 	static class EventTransactionSynchronization extends TransactionSynchronizationAdapter {
 

@@ -8,15 +8,12 @@ import org.neo4j.ogm.annotation.GraphId;
  */
 public class Diner {
 
-	@GraphId
-	private Long id;
+	@GraphId private Long id;
 
 	private String firstName;
 	private String lastName;
 
-	public Diner()
-	{
-	}
+	public Diner() {}
 
 	public Diner(String firstName, String lastName) {
 		this.firstName = firstName;

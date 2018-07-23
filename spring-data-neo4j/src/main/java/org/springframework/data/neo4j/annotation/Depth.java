@@ -23,10 +23,11 @@ import org.springframework.data.annotation.QueryAnnotation;
 
 /**
  * Specifies the depth of the query. Used with derived finders.
+ *
  * @author Luanne Misquitta
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.PARAMETER, ElementType.METHOD})
+@Target({ ElementType.PARAMETER, ElementType.METHOD })
 @QueryAnnotation
 @Documented
 public @interface Depth {

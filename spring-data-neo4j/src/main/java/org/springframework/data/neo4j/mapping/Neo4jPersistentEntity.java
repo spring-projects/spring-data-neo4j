@@ -19,22 +19,20 @@ import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.util.TypeInformation;
 
 /**
- * This class implements Spring Data's PersistentEntity interface, scavenging the required data from the OGM's mapping classes
- * in order to for SDN to play nicely with Spring Data REST.
- *
- * The main thing to note is that this class is effectively a shim for ClassInfo. We don't reload all the mapping information
- * again.
+ * This class implements Spring Data's PersistentEntity interface, scavenging the required data from the OGM's mapping
+ * classes in order to for SDN to play nicely with Spring Data REST. The main thing to note is that this class is
+ * effectively a shim for ClassInfo. We don't reload all the mapping information again.
  * <p>
  * These attributes do not appear to be used/needed for SDN 4 to inter-operate correctly with SD-REST:
  * </p>
  * <ul>
- *   <li>typeAlias</li>
- *   <li>typeInformation</li>
- *   <li>preferredConstructor (we always use the default constructor)</li>
- *   <li>versionProperty</li>
+ * <li>typeAlias</li>
+ * <li>typeInformation</li>
+ * <li>preferredConstructor (we always use the default constructor)</li>
+ * <li>versionProperty</li>
  * </ul>
- * Consequently their associated getter methods always return default values of null or [true|false] However, because these
- * method calls are not expected, we also log a warning message if they get invoked
+ * Consequently their associated getter methods always return default values of null or [true|false] However, because
+ * these method calls are not expected, we also log a warning message if they get invoked
  *
  * @author Vince Bickers
  * @author Adam George
@@ -42,33 +40,33 @@ import org.springframework.data.util.TypeInformation;
  */
 public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty> {
 
-    private static final Logger logger = LoggerFactory.getLogger(Neo4jPersistentEntity.class);
+	private static final Logger logger = LoggerFactory.getLogger(Neo4jPersistentEntity.class);
 
-    /**
-     * Constructs a new {@link Neo4jPersistentEntity} based on the given type information.
-     *
-     * @param information The {@link TypeInformation} upon which to base this persistent entity.
-     */
-    public Neo4jPersistentEntity(TypeInformation<T> information) {
-        super(information);
-    }
+	/**
+	 * Constructs a new {@link Neo4jPersistentEntity} based on the given type information.
+	 *
+	 * @param information The {@link TypeInformation} upon which to base this persistent entity.
+	 */
+	public Neo4jPersistentEntity(TypeInformation<T> information) {
+		super(information);
+	}
 
-    @Override
-    public boolean hasVersionProperty() {
-        logger.debug("[entity].hasVersionProperty() returns false"); // by design
-        return false;
-    }
+	@Override
+	public boolean hasVersionProperty() {
+		logger.debug("[entity].hasVersionProperty() returns false"); // by design
+		return false;
+	}
 
-    @Override
-    public Neo4jPersistentProperty getVersionProperty() {
-        logger.debug("[entity].getVersionProperty() returns null"); // by design
-        return null;
-    }
+	@Override
+	public Neo4jPersistentProperty getVersionProperty() {
+		logger.debug("[entity].getVersionProperty() returns null"); // by design
+		return null;
+	}
 
-    @Override
-    public boolean isVersionProperty(PersistentProperty<?> property) {
-        logger.debug("[entity].isIdProperty({}) returns false", property); // again, by design
-        return false;
-    }
+	@Override
+	public boolean isVersionProperty(PersistentProperty<?> property) {
+		logger.debug("[entity].isIdProperty({}) returns false", property); // again, by design
+		return false;
+	}
 
 }

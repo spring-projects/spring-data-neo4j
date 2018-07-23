@@ -24,16 +24,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author: Vince Bickers
  */
-@ContextConfiguration(classes = {CustomPersistenceContext.class})
+@ContextConfiguration(classes = { CustomPersistenceContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class CustomGraphRepositoryIT extends MultiDriverTestClass {
 
-	@Autowired
-	private UserRepository repository;
+	@Autowired private UserRepository repository;
 
 	/**
-	 * asserts that the correct proxied object is created by Spring
-	 * and that we can integrate with it.
+	 * asserts that the correct proxied object is created by Spring and that we can integrate with it.
 	 */
 	@Test
 	public void shouldExposeCommonMethodOnExtendedRepository() {

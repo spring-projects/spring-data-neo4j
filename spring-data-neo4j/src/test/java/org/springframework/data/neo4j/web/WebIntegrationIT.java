@@ -20,8 +20,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,19 +45,16 @@ import org.springframework.web.context.WebApplicationContext;
  * @author Michal Bachman
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {WebAppContext.class})
+@ContextConfiguration(classes = { WebAppContext.class })
 @WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class WebIntegrationIT extends MultiDriverTestClass {
 
-	@Autowired
-	private UserRepository userRepository;
+	@Autowired private UserRepository userRepository;
 
-	@Autowired
-	private WebApplicationContext wac;
+	@Autowired private WebApplicationContext wac;
 
-	@Autowired
-	PlatformTransactionManager transactionManager;
+	@Autowired PlatformTransactionManager transactionManager;
 
 	private MockMvc mockMvc;
 
@@ -97,15 +92,12 @@ public class WebIntegrationIT extends MultiDriverTestClass {
 		userRepository.save(adam);
 	}
 
-
 	@Test
 	public void shouldNotShareSessionBetweenRequestsWithDifferentSession() throws Exception {
-		mockMvc.perform(get("/user/{uuid}/friends", adam.getUuid()))
-				.andExpect(status().isOk())
+		mockMvc.perform(get("/user/{uuid}/friends", adam.getUuid())).andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().string("Daniela"));
 
-		mockMvc.perform(get("/user/{uuid}/friends", vince.getUuid()))
-				.andExpect(status().isOk())
+		mockMvc.perform(get("/user/{uuid}/friends", vince.getUuid())).andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().string("Michal"));
 	}
 
@@ -113,23 +105,18 @@ public class WebIntegrationIT extends MultiDriverTestClass {
 	public void shouldShareSessionBetweenRequestsDuringSameSession() throws Exception {
 		MockHttpSession session = new MockHttpSession();
 
-		mockMvc.perform(get("/user/{uuid}/immediateFriends", adam.getUuid()).session(session))
-				.andExpect(status().isOk())
+		mockMvc.perform(get("/user/{uuid}/immediateFriends", adam.getUuid()).session(session)).andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().string("Daniela"));
 
-		mockMvc.perform(get("/user/{uuid}/immediateFriends", daniela.getUuid()).session(session))
-				.andExpect(status().isOk())
+		mockMvc.perform(get("/user/{uuid}/immediateFriends", daniela.getUuid()).session(session)).andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().string("Adam Michal"));
 
-		mockMvc.perform(get("/user/{uuid}/immediateFriends", michal.getUuid()).session(session))
-				.andExpect(status().isOk())
+		mockMvc.perform(get("/user/{uuid}/immediateFriends", michal.getUuid()).session(session)).andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().string("Daniela Vince"));
 
-		mockMvc.perform(get("/user/{uuid}/immediateFriends", vince.getUuid()).session(session))
-				.andExpect(status().isOk())
+		mockMvc.perform(get("/user/{uuid}/immediateFriends", vince.getUuid()).session(session)).andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().string("Michal"));
 	}
-
 
 	@Test
 	public void shouldNotShareSessionBetweenMultiThreadedRequests() throws Exception {
@@ -141,8 +128,7 @@ public class WebIntegrationIT extends MultiDriverTestClass {
 				public void run() {
 					if (j % 2 == 0) {
 						try {
-							mockMvc.perform(get("/user/{uuid}/friends", adam.getUuid()))
-									.andExpect(status().isOk())
+							mockMvc.perform(get("/user/{uuid}/friends", adam.getUuid())).andExpect(status().isOk())
 									.andExpect(MockMvcResultMatchers.content().string("Daniela"));
 						} catch (Exception e) {
 							throw new RuntimeException(e);
@@ -150,8 +136,7 @@ public class WebIntegrationIT extends MultiDriverTestClass {
 					} else {
 
 						try {
-							mockMvc.perform(get("/user/{uuid}/friends", vince.getUuid()))
-									.andExpect(status().isOk())
+							mockMvc.perform(get("/user/{uuid}/friends", vince.getUuid())).andExpect(status().isOk())
 									.andExpect(MockMvcResultMatchers.content().string("Michal"));
 						} catch (Exception e) {
 							throw new RuntimeException(e);

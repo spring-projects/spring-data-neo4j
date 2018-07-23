@@ -33,16 +33,14 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Luanne Misquitta
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {GalaxyContext.class})
+@ContextConfiguration(classes = { GalaxyContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
 public class QueryReturnTypesIT extends MultiDriverTestClass {
 
-	@Autowired
-	WorldRepository worldRepository;
+	@Autowired WorldRepository worldRepository;
 
-	@Autowired
-	Session session;
+	@Autowired Session session;
 
 	@Test
 	public void shouldCallExecuteWhenPrimitiveVoidReturnTypeOnQuery() {

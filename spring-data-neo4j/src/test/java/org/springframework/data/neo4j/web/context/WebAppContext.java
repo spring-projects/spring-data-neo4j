@@ -33,7 +33,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
  */
 @Configuration
 @EnableWebMvc
-@ComponentScan({"org.springframework.data.neo4j.web.controller", "org.springframework.data.neo4j.web.service"})
+@ComponentScan({ "org.springframework.data.neo4j.web.controller", "org.springframework.data.neo4j.web.service" })
 @EnableNeo4jRepositories("org.springframework.data.neo4j.web.repo")
 @EnableTransactionManagement
 public class WebAppContext extends WebMvcConfigurerAdapter {

@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Mark Angrish
  */
 @Configuration
-@ComponentScan(basePackageClasses = {AdultService.class})
+@ComponentScan(basePackageClasses = { AdultService.class })
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.jsr303.repo")
 @EnableTransactionManagement
 public class JSR303Context {

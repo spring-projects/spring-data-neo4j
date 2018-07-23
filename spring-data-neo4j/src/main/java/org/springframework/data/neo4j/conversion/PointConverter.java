@@ -11,14 +11,13 @@
  *
  */
 
-
 package org.springframework.data.neo4j.conversion;
-
-import org.neo4j.ogm.typeconversion.CompositeAttributeConverter;
-import org.springframework.data.geo.Point;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.neo4j.ogm.typeconversion.CompositeAttributeConverter;
+import org.springframework.data.geo.Point;
 
 /**
  * Converts latitude and longitude properties on a node entity to an instance of Point and vice-versa.
@@ -28,24 +27,24 @@ import java.util.Map;
  */
 public class PointConverter implements CompositeAttributeConverter<Point> {
 
-    @Override
-    public Map<String, ?> toGraphProperties(Point point) {
-        Map<String, Double> properties = new HashMap<>();
-        if (point != null)  {
-            properties.put("latitude", point.getX());
-            properties.put("longitude", point.getY());
-        }
-        return properties;
-    }
+	@Override
+	public Map<String, ?> toGraphProperties(Point point) {
+		Map<String, Double> properties = new HashMap<>();
+		if (point != null) {
+			properties.put("latitude", point.getX());
+			properties.put("longitude", point.getY());
+		}
+		return properties;
+	}
 
-    @Override
-    public Point toEntityAttribute(Map<String, ?> map) {
-        Double latitude = (Double) map.get("latitude");
-        Double longitude = (Double) map.get("longitude");
-        if (latitude != null && longitude != null) {
-            return new Point(latitude, longitude);
-        }
-        return null;
-    }
+	@Override
+	public Point toEntityAttribute(Map<String, ?> map) {
+		Double latitude = (Double) map.get("latitude");
+		Double longitude = (Double) map.get("longitude");
+		if (latitude != null && longitude != null) {
+			return new Point(latitude, longitude);
+		}
+		return null;
+	}
 
 }

@@ -13,7 +13,6 @@
 
 package org.springframework.data.neo4j.repository.query;
 
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,10 @@ import java.util.Map;
 import org.neo4j.ogm.model.QueryStatistics;
 import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
@@ -29,7 +31,6 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.util.StringUtils;
-
 
 /**
  * Specialisation of {@link RepositoryQuery} that handles mapping to object annotated with <code>&#064;Query</code>.
@@ -64,12 +65,11 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 		ResultProcessor processor = graphQueryMethod.getResultProcessor();
 		Object result = execute(returnType, concreteType, getQueryString(), params, accessor);
 
-		return Result.class.equals(returnType) ? result :
-				processor.withDynamicProjection(accessor).processResult(result);
+		return Result.class.equals(returnType) ? result : processor.withDynamicProjection(accessor).processResult(result);
 	}
 
 	protected Object execute(Class<?> returnType, Class<?> concreteType, String cypherQuery,
-							 Map<String, Object> queryParams, ParameterAccessor parameterAccessor) {
+			Map<String, Object> queryParams, ParameterAccessor parameterAccessor) {
 
 		Pageable pageable = parameterAccessor.getPageable();
 		Sort sort = parameterAccessor.getSort();
@@ -77,7 +77,7 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 			sort = pageable.getSort();
 		}
 		if (sort != null) {
-			//Custom queries in the OGM do not support pageable
+			// Custom queries in the OGM do not support pageable
 			cypherQuery = addSorting(cypherQuery, sort);
 		}
 
@@ -106,7 +106,6 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 		return getQueryMethod().getQuery();
 	}
 
-
 	protected Object createPage(GraphQueryMethod graphQueryMethod, List resultList, Pageable pageable, Long count) {
 		if (pageable == null) {
 			return graphQueryMethod.isPageQuery() ? new PageImpl(resultList) : new SliceImpl(resultList);
@@ -116,15 +115,15 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 			currentTotal = count.intValue();
 		} else {
 			int pageOffset = pageable.getOffset();
-			currentTotal = pageOffset + resultList.size() + (resultList.size() == pageable.getPageSize() ? pageable.getPageSize() : 0);
+			currentTotal = pageOffset + resultList.size()
+					+ (resultList.size() == pageable.getPageSize() ? pageable.getPageSize() : 0);
 		}
 		int resultWindowSize = Math.min(resultList.size(), pageable.getPageSize());
 		boolean hasNext = resultWindowSize < resultList.size();
 		List resultListPage = resultList.subList(0, resultWindowSize);
 
-		return graphQueryMethod.isPageQuery() ?
-				new PageImpl(resultListPage, pageable, currentTotal) :
-				new SliceImpl(resultListPage, pageable, hasNext);
+		return graphQueryMethod.isPageQuery() ? new PageImpl(resultListPage, pageable, currentTotal)
+				: new SliceImpl(resultListPage, pageable, hasNext);
 	}
 
 	protected String addSorting(String baseQuery, Sort sort) {
@@ -140,7 +139,7 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 	}
 
 	protected String addPaging(String cypherQuery, Map<String, Object> queryParams, int pageNumber, int pageSize) {
-		//Custom queries in the OGM do not support pageable
+		// Custom queries in the OGM do not support pageable
 		cypherQuery = formatBaseQuery(cypherQuery);
 		cypherQuery = cypherQuery + SKIP_LIMIT;
 		queryParams.put(SKIP, pageNumber * pageSize);
@@ -177,9 +176,9 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 		for (int i = 0; i < parameters.length; i++) {
 			Parameter parameter = methodParameters.getParameter(i);
 
-			//The parameter might be an entity, try to resolve its id
+			// The parameter might be an entity, try to resolve its id
 			Object parameterValue = session.resolveGraphIdFor(parameters[i]);
-			if (parameterValue == null) { //Either not an entity or not persisted
+			if (parameterValue == null) { // Either not an entity or not persisted
 				parameterValue = parameters[i];
 			}
 
@@ -192,7 +191,8 @@ public class GraphRepositoryQuery implements RepositoryQuery {
 		return params;
 	}
 
-	private Object mappedCollection(Class<?> concreteType, String cypherQuery, Map<String, Object> queryParams, Pageable pageable) {// Special method to handle SDN Iterable<Map<String, Object>> behaviour.
+	private Object mappedCollection(Class<?> concreteType, String cypherQuery, Map<String, Object> queryParams,
+			Pageable pageable) {// Special method to handle SDN Iterable<Map<String, Object>> behaviour.
 		// TODO: Do we really want this method in an OGM? It's a little too low level and/or doesn't really fit.
 		if (Map.class.isAssignableFrom(concreteType)) {
 			return session.query(cypherQuery, queryParams).queryResults();
