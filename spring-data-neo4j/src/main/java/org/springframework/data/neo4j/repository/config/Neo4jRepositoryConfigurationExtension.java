@@ -55,17 +55,19 @@ import org.springframework.util.StringUtils;
  */
 public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
 
-	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 	static final String DEFAULT_SESSION_FACTORY_BEAN_NAME = "sessionFactory";
 	static final String DEFAULT_SESSION_BEAN_NAME = "session";
+
+	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 	private static final String DEFAULT_NEO4J_MAPPING_CONTEXT_BEAN_NAME = "neo4jMappingContext";
 	private static final String ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME = "neo4jOgmEntityInstantiatorConfigurationBean";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
-	private static final boolean HAS_ENTITY_INSTANTIATOR_FEATURE = ClassUtils.isPresent("org.neo4j.ogm.session.EntityInstantiator",
-			Neo4jMappingContextFactoryBean.class.getClassLoader());
 	private static final String NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME = "neo4jPersistenceExceptionTranslator";
 	private static final String MODULE_PREFIX = "neo4j";
 	private static final String MODULE_NAME = "Neo4j";
+
+	private static final boolean HAS_ENTITY_INSTANTIATOR_FEATURE = ClassUtils
+			.isPresent("org.neo4j.ogm.session.EntityInstantiator", Neo4jMappingContextFactoryBean.class.getClassLoader());
 
 	/**
 	 * If there's only one {@link org.neo4j.ogm.session.SessionFactory} around, we generate one injectable shared session
@@ -196,46 +198,22 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 				NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME, source);
 
 		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
+
 			AbstractBeanDefinition rootBeanDefinition = BeanDefinitionBuilder
 					.rootBeanDefinition(Neo4jOgmEntityInstantiatorConfigurationBean.class)
 					.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE)
-					.addConstructorArgReference(this.getSessionFactoryBeanName(config))
+					.addConstructorArgReference(getSessionFactoryBeanName(config))
 					.addConstructorArgReference(this.neo4jMappingContextBeanName)
 					.getBeanDefinition();
+
 			registerIfNotAlreadyRegistered(rootBeanDefinition, registry, ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME, source);
 		}
 	}
 
-	private AbstractBeanDefinition createSharedSessionCreatorBeanDefinition(RepositoryConfigurationSource config) {
-
-		String sessionFactoryBeanName = getSessionFactoryBeanName(config);
-
-		AbstractBeanDefinition sharedSessionCreatorBeanDefinition = BeanDefinitionBuilder //
-				.rootBeanDefinition(SharedSessionCreator.class, "createSharedSession") //
-				.addConstructorArgReference(sessionFactoryBeanName) //
-				.getBeanDefinition();
-
-		sharedSessionCreatorBeanDefinition
-				.addQualifier(new AutowireCandidateQualifier(Qualifier.class, sessionFactoryBeanName));
-
-		return sharedSessionCreatorBeanDefinition;
-	}
-
-	private AbstractBeanDefinition createNeo4jMappingContextFactoryBeanDefinition(RepositoryConfigurationSource config) {
-		return BeanDefinitionBuilder //
-				.rootBeanDefinition(Neo4jMappingContextFactoryBean.class) //
-				.addConstructorArgValue(getSessionFactoryBeanName(config)) //
-				.getBeanDefinition();
-	}
-
-	private String getSessionFactoryBeanName(RepositoryConfigurationSource config) {
-		return Optional.of("sessionFactoryRef").flatMap(config::getAttribute)
-				.orElse(DEFAULT_SESSION_FACTORY_BEAN_NAME);
-	}
-
 	/**
-	 * Checks whether a bean is already registered under {@code suggestedBeanName} in the given {@code registry} and uses
-	 * a generated name for registering the bean instead. If not, the suggested bean name is used.
+	 * Checks whether a bean is already registered under {@code suggestedBeanName} in the given
+	 * {@link BeanDefinitionRegistry} and uses a generated name for registering the bean instead. If not, the suggested
+	 * bean name is used.
 	 *
 	 * @param bean must not be {@literal null}.
 	 * @param registry must not be {@literal null}.
@@ -253,6 +231,34 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 			registerIfNotAlreadyRegistered(bean, registry, suggestedBeanName, source);
 		}
 		return registeredBeanName;
+	}
+
+	private static AbstractBeanDefinition createSharedSessionCreatorBeanDefinition(RepositoryConfigurationSource config) {
+
+		String sessionFactoryBeanName = getSessionFactoryBeanName(config);
+
+		AbstractBeanDefinition sharedSessionCreatorBeanDefinition = BeanDefinitionBuilder //
+				.rootBeanDefinition(SharedSessionCreator.class, "createSharedSession") //
+				.addConstructorArgReference(sessionFactoryBeanName) //
+				.getBeanDefinition();
+
+		sharedSessionCreatorBeanDefinition
+				.addQualifier(new AutowireCandidateQualifier(Qualifier.class, sessionFactoryBeanName));
+
+		return sharedSessionCreatorBeanDefinition;
+	}
+
+	private static AbstractBeanDefinition createNeo4jMappingContextFactoryBeanDefinition(
+			RepositoryConfigurationSource config) {
+
+		return BeanDefinitionBuilder //
+				.rootBeanDefinition(Neo4jMappingContextFactoryBean.class) //
+				.addConstructorArgValue(getSessionFactoryBeanName(config)) //
+				.getBeanDefinition();
+	}
+
+	private static String getSessionFactoryBeanName(RepositoryConfigurationSource config) {
+		return Optional.of("sessionFactoryRef").flatMap(config::getAttribute).orElse(DEFAULT_SESSION_FACTORY_BEAN_NAME);
 	}
 
 }
