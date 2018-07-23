@@ -10,7 +10,6 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  *
  */
-
 package org.springframework.data.neo4j.repository.config;
 
 import org.neo4j.ogm.session.SessionFactory;
@@ -42,8 +41,9 @@ public class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMap
 	 * {@link Neo4jRepositoryConfigurationExtension#DEFAULT_SESSION_FACTORY_BEAN_NAME} for finding the session factory
 	 * passed to the {@link Neo4jMappingContext}.
 	 *
-	 * @deprecated since 5.1.1, use {@link #Neo4jMappingContextFactoryBean(String)} instead
+	 * @deprecated since 5.1.0, use {@link #Neo4jMappingContextFactoryBean(String)} instead
 	 */
+	@Deprecated
 	public Neo4jMappingContextFactoryBean() {
 		this(Neo4jRepositoryConfigurationExtension.DEFAULT_SESSION_FACTORY_BEAN_NAME);
 	}
@@ -56,7 +56,8 @@ public class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMap
 	 */
 	public Neo4jMappingContextFactoryBean(String sessionFactoryBeanName) {
 
-		Assert.hasText(sessionFactoryBeanName, "SessionFactoryBeanName must not be null nor empty!");
+		Assert.hasText(sessionFactoryBeanName, "SessionFactoryBeanName must not be null or empty!");
+
 		this.sessionFactoryBeanName = sessionFactoryBeanName;
 	}
 
@@ -87,7 +88,9 @@ public class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMap
 
 		SessionFactory sessionFactory = beanFactory.getBean(this.sessionFactoryBeanName, SessionFactory.class);
 		Neo4jMappingContext context = new Neo4jMappingContext(sessionFactory.metaData());
+
 		context.initialize();
+
 		return context;
 	}
 

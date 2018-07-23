@@ -114,12 +114,11 @@ public @interface EnableNeo4jRepositories {
     String sessionFactoryRef() default DEFAULT_SESSION_FACTORY_BEAN_NAME;
 
     /**
-     * Configures the name of the {@link org.neo4j.ogm.session.Session} bean definition created. Defaults to a generated
-     * name.
-     *
-     * @return
-     * @since 5.1.1
-     */
+	 * Configures the name of the {@link org.neo4j.ogm.session.Session} bean definition created. Defaults to a generated
+	 * name.
+	 *
+	 * @since 5.1.0
+	 */
     String sessionBeanName() default GENERATE_BEAN_NAME;
 
     /**
@@ -129,12 +128,11 @@ public @interface EnableNeo4jRepositories {
     String transactionManagerRef() default DEFAULT_TRANSACTION_MANAGER_BEAN_NAME;
 
     /**
-     * Configures the name of the {@link org.springframework.data.neo4j.mapping.Neo4jMappingContext} bean definition
-     * created. Defaults to a generated name.
-     *
-     * @return
-     * @since 5.1.1
-     */
+	 * Configures the name of the {@link org.springframework.data.neo4j.mapping.Neo4jMappingContext} bean definition
+	 * created. Defaults to a generated name.
+	 *
+	 * @since 5.1.0
+	 */
     String mappingContextBeanName() default GENERATE_BEAN_NAME;
 
     /**

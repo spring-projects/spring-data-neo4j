@@ -73,16 +73,17 @@ public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID exten
 	 */
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
-		return createRepositoryFactory(session);
+		return new Neo4jRepositoryFactory(session);
 	}
 
 	/**
 	 * Returns a {@link RepositoryFactorySupport}.
 	 *
-	 * @deprecated since 5.1.1, will be removed in 5.2.x
+	 * @deprecated since 5.1.0, will be removed in 5.2.x.
 	 * @param session
 	 * @return
 	 */
+	@Deprecated
 	protected RepositoryFactorySupport createRepositoryFactory(Session session) {
 		return new Neo4jRepositoryFactory(session);
 	}

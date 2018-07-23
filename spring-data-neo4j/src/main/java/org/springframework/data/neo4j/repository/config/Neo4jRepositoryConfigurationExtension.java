@@ -62,11 +62,12 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 
 	private static final String ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME = "neo4jOgmEntityInstantiatorConfigurationBean";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
-	private static final boolean HAS_ENTITY_INSTANTIATOR_FEATURE = ClassUtils.isPresent("org.neo4j.ogm.session.EntityInstantiator",
-			Neo4jMappingContextFactoryBean.class.getClassLoader());
 	private static final String NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME = "neo4jPersistenceExceptionTranslator";
 	private static final String MODULE_PREFIX = "neo4j";
 	private static final String MODULE_NAME = "Neo4j";
+
+	private static final boolean HAS_ENTITY_INSTANTIATOR_FEATURE = ClassUtils
+			.isPresent("org.neo4j.ogm.session.EntityInstantiator", Neo4jMappingContextFactoryBean.class.getClassLoader());
 
 	/**
 	 * We use a generated name for every pair of {@code SessionFactory} and {@code Session} unless the user configures a
@@ -200,40 +201,14 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 				NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME, source);
 
 		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
+
 			AbstractBeanDefinition rootBeanDefinition = BeanDefinitionBuilder
 					.rootBeanDefinition(Neo4jOgmEntityInstantiatorConfigurationBean.class)
 					.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE)
-					.addConstructorArgReference(this.getSessionFactoryBeanName(config))
+					.addConstructorArgReference(getSessionFactoryBeanName(config))
 					.addConstructorArgReference(this.neo4jMappingContextBeanName).getBeanDefinition();
 			registerIfNotAlreadyRegistered(rootBeanDefinition, registry, ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME, source);
 		}
-	}
-
-	private AbstractBeanDefinition createSharedSessionCreatorBeanDefinition(RepositoryConfigurationSource config) {
-
-		String sessionFactoryBeanName = getSessionFactoryBeanName(config);
-
-		AbstractBeanDefinition sharedSessionCreatorBeanDefinition = BeanDefinitionBuilder //
-				.rootBeanDefinition(SharedSessionCreator.class, "createSharedSession") //
-				.addConstructorArgReference(sessionFactoryBeanName) //
-				.getBeanDefinition();
-
-		sharedSessionCreatorBeanDefinition
-				.addQualifier(new AutowireCandidateQualifier(Qualifier.class, sessionFactoryBeanName));
-
-		return sharedSessionCreatorBeanDefinition;
-	}
-
-	private AbstractBeanDefinition createNeo4jMappingContextFactoryBeanDefinition(RepositoryConfigurationSource config) {
-		return BeanDefinitionBuilder //
-				.rootBeanDefinition(Neo4jMappingContextFactoryBean.class) //
-				.addConstructorArgValue(getSessionFactoryBeanName(config)) //
-				.getBeanDefinition();
-	}
-
-	private String getSessionFactoryBeanName(RepositoryConfigurationSource config) {
-		return Optional.of("sessionFactoryRef").flatMap(config::getAttribute)
-				.orElse(DEFAULT_SESSION_FACTORY_BEAN_NAME);
 	}
 
 	/**
@@ -262,6 +237,34 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 			registry.registerBeanDefinition(configuredBeanName, bean);
 		}
 		return registeredBeanName;
+	}
+
+	private static AbstractBeanDefinition createSharedSessionCreatorBeanDefinition(RepositoryConfigurationSource config) {
+
+		String sessionFactoryBeanName = getSessionFactoryBeanName(config);
+
+		AbstractBeanDefinition sharedSessionCreatorBeanDefinition = BeanDefinitionBuilder //
+				.rootBeanDefinition(SharedSessionCreator.class, "createSharedSession") //
+				.addConstructorArgReference(sessionFactoryBeanName) //
+				.getBeanDefinition();
+
+		sharedSessionCreatorBeanDefinition
+				.addQualifier(new AutowireCandidateQualifier(Qualifier.class, sessionFactoryBeanName));
+
+		return sharedSessionCreatorBeanDefinition;
+	}
+
+	private static AbstractBeanDefinition createNeo4jMappingContextFactoryBeanDefinition(
+			RepositoryConfigurationSource config) {
+
+		return BeanDefinitionBuilder //
+				.rootBeanDefinition(Neo4jMappingContextFactoryBean.class) //
+				.addConstructorArgValue(getSessionFactoryBeanName(config)) //
+				.getBeanDefinition();
+	}
+
+	private static String getSessionFactoryBeanName(RepositoryConfigurationSource config) {
+		return Optional.of("sessionFactoryRef").flatMap(config::getAttribute).orElse(DEFAULT_SESSION_FACTORY_BEAN_NAME);
 	}
 
 }
