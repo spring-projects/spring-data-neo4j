@@ -27,27 +27,21 @@ import org.neo4j.ogm.annotation.NodeEntity;
 @NodeEntity
 public class Adult {
 
-	@GraphId
-	private Long id;
+	@GraphId private Long id;
 
-	@NotNull @Size(min = 2, max = 50)
-	private String name;
+	@NotNull @Size(min = 2, max = 50) private String name;
 
-	@Min(18)
-	private Integer age;
+	@Min(18) private Integer age;
 
-	@AssertTrue
-	private boolean votingAge;
+	@AssertTrue private boolean votingAge;
 
-	public Adult() {
-	}
+	public Adult() {}
 
 	public Adult(String name, Integer age) {
 		this.name = name;
 		this.age = age;
 		this.votingAge = true;
 	}
-
 
 	public String getName() {
 		return name;

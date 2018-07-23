@@ -22,7 +22,7 @@ import org.springframework.data.repository.RepositoryDefinition;
 @RepositoryDefinition(domainClass = Movie.class, idClass = Long.class)
 public interface MovieRepository {
 
-    <S extends Movie> S save(S entity);
+	<S extends Movie> S save(S entity);
 
-    Iterable<Movie> findAll();
+	Iterable<Movie> findAll();
 }

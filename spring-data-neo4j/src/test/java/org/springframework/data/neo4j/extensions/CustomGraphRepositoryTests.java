@@ -31,16 +31,14 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 /**
  * @author: Vince Bickers
  */
-@ContextConfiguration(classes = {CustomGraphRepositoryTests.CustomPersistenceContext.class})
+@ContextConfiguration(classes = { CustomGraphRepositoryTests.CustomPersistenceContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class CustomGraphRepositoryTests extends MultiDriverTestClass {
 
-	@Autowired
-	private UserRepository repository;
+	@Autowired private UserRepository repository;
 
 	/**
-	 * asserts that the correct proxied object is created by Spring
-	 * and that we can integrate with it.
+	 * asserts that the correct proxied object is created by Spring and that we can integrate with it.
 	 */
 	@Test
 	public void shouldExposeCommonMethodOnExtendedRepository() {

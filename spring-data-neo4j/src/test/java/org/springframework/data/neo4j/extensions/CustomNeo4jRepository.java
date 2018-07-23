@@ -18,14 +18,13 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
 /**
- * This interface declares a custom method that we want to
- * be available to all repositories that extend this class
+ * This interface declares a custom method that we want to be available to all repositories that extend this class
  *
  * @author: Vince Bickers
  */
 @NoRepositoryBean
 public interface CustomNeo4jRepository<T, ID extends Serializable> extends Neo4jRepository<T, ID> {
 
-    boolean sharedCustomMethod();
+	boolean sharedCustomMethod();
 
 }

@@ -20,37 +20,34 @@ import org.neo4j.ogm.annotation.Transient;
  */
 public class User {
 
-    private Long id;
-    private String name;
-    @Transient
-    private String species;
+	private Long id;
+	private String name;
+	@Transient private String species;
 
-    public User() {
-    }
+	public User() {}
 
-    public Long id() {
-        return this.id;
-    }
+	public Long id() {
+		return this.id;
+	}
 
-    public User(String name) {
-        this.name = name;
-    }
+	public User(String name) {
+		this.name = name;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
+	public String getSpecies() {
+		return species;
+	}
 
-    public String getSpecies() {
-        return species;
-    }
-
-    public void setSpecies(String species) {
-        this.species = species;
-    }
+	public void setSpecies(String species) {
+		this.species = species;
+	}
 
 }

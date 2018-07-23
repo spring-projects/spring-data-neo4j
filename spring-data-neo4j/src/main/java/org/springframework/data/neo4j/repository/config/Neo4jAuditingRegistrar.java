@@ -47,7 +47,8 @@ public class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppo
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(Neo4jIsNewAwareAuditingHandler.class);
 
-		BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(Neo4jMappingContextFactoryBean.class);
+		BeanDefinitionBuilder definition = BeanDefinitionBuilder
+				.genericBeanDefinition(Neo4jMappingContextFactoryBean.class);
 		definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_CONSTRUCTOR);
 
 		builder.addConstructorArgValue(definition.getBeanDefinition());
@@ -56,7 +57,7 @@ public class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppo
 
 	@Override
 	protected void registerAuditListenerBeanDefinition(BeanDefinition auditingHandlerDefinition,
-													   BeanDefinitionRegistry registry) {
+			BeanDefinitionRegistry registry) {
 
 		Assert.notNull(auditingHandlerDefinition, "BeanDefinition must not be null!");
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null!");

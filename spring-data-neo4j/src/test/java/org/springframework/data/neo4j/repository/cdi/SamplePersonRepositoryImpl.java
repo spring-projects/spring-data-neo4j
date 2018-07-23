@@ -22,8 +22,8 @@ package org.springframework.data.neo4j.repository.cdi;
  */
 class SamplePersonRepositoryImpl implements SamplePersonRepositoryCustom {
 
-    @Override
-    public int returnOne() {
-        return 1;
-    }
+	@Override
+	public int returnOne() {
+		return 1;
+	}
 }

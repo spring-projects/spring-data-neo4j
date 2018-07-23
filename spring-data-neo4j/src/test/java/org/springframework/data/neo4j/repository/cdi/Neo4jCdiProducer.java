@@ -23,9 +23,7 @@ import javax.inject.Singleton;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
-
 import org.springframework.data.neo4j.examples.friends.domain.Person;
-
 
 /**
  * Simple component exposing a {@link org.neo4j.ogm.session.Session} as CDI bean.
@@ -38,7 +36,8 @@ class Neo4jCdiProducer {
 	@Produces
 	@Singleton
 	SessionFactory createSessionFactorySession() {
-		return new SessionFactory(MultiDriverTestClass.getBaseConfiguration().build(), getClass().getPackage().getName(), Person.class.getPackage().getName());
+		return new SessionFactory(MultiDriverTestClass.getBaseConfiguration().build(), getClass().getPackage().getName(),
+				Person.class.getPackage().getName());
 	}
 
 	void close(@Disposes SessionFactory sessionFactory) {

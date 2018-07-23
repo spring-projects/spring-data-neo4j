@@ -24,13 +24,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
  * @author Vince Bickers
  */
 @Configuration
-@ComponentScan({"org.springframework.data.neo4j.examples.jsr303.controller"})
+@ComponentScan({ "org.springframework.data.neo4j.examples.jsr303.controller" })
 @EnableWebMvc
 public class WebConfiguration extends WebMvcConfigurerAdapter {
 
-    @Bean(name="validator")
-    public LocalValidatorFactoryBean validator() {
-        return new LocalValidatorFactoryBean();
-    }
+	@Bean(name = "validator")
+	public LocalValidatorFactoryBean validator() {
+		return new LocalValidatorFactoryBean();
+	}
 
 }

@@ -36,7 +36,6 @@ import org.springframework.util.Assert;
  * you a more sophisticated interface than the plain {@link Session} .
  *
  * @param <T> the type of the entity to handle
- *
  * @author Vince Bickers
  * @author Luanne Misquitta
  * @author Mark Angrish
@@ -190,8 +189,8 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 
 	@Override
 	public Page<T> findAll(Pageable pageable, int depth) {
-		Collection<T> data = session.loadAll(clazz, PagingAndSortingUtils.convert(pageable.getSort())
-				, new Pagination(pageable.getPageNumber(), pageable.getPageSize()), depth);
+		Collection<T> data = session.loadAll(clazz, PagingAndSortingUtils.convert(pageable.getSort()),
+				new Pagination(pageable.getPageNumber(), pageable.getPageSize()), depth);
 		return updatePage(pageable, new ArrayList<>(data));
 	}
 

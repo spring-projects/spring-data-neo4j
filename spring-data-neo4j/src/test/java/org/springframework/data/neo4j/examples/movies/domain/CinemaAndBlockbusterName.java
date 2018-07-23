@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 public interface CinemaAndBlockbusterName {
 
 	Long getId();
+
 	String getName();
 
 	@Value("#{target.blockbusterOfTheWeek.name}")

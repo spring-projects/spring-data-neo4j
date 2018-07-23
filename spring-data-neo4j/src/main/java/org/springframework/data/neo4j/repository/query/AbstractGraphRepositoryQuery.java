@@ -86,6 +86,7 @@ public abstract class AbstractGraphRepositoryQuery implements RepositoryQuery {
 
 	/**
 	 * Does the query returns an OGM specific object type that should get a special processing ?
+	 *
 	 * @return true is that's the case
 	 */
 	private boolean returnsOgmSpecificType() {

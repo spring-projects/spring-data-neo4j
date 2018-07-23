@@ -18,9 +18,9 @@ import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmou
 
 public class SpringMonetaryAmountToLongConverter implements Converter<MonetaryAmount, Long> {
 
-    @Override
-    public Long convert(MonetaryAmount source) {
-        return source != null ? (long) source.getAmountAsSubUnits() : null;
-    }
+	@Override
+	public Long convert(MonetaryAmount source) {
+		return source != null ? (long) source.getAmountAsSubUnits() : null;
+	}
 
 }

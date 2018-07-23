@@ -21,6 +21,8 @@ package org.springframework.data.neo4j.examples.movies.domain;
 public interface CinemaAndBlockbuster {
 
 	String getName();
+
 	String getLocation();
+
 	TempMovie getBlockbusterOfTheWeek();
 }
