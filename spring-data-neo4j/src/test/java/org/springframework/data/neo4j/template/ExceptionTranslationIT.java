@@ -33,8 +33,7 @@ import org.springframework.util.Assert;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ExceptionTranslationIT extends MultiDriverTestClass {
 
-	@Autowired
-	private Neo4jOperations neo4jTemplate;
+	@Autowired private Neo4jOperations neo4jTemplate;
 
 	@Before
 	public void setUp() {

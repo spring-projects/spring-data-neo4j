@@ -25,9 +25,9 @@ import org.springframework.data.repository.Repository;
  */
 public interface CdiPersonRepository extends Repository<Person, Long> {
 
-    void deleteAll();
+	void deleteAll();
 
-    Person save(Person person);
+	Person save(Person person);
 
-    Person findOne(Long id);
+	Person findOne(Long id);
 }

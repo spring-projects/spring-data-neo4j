@@ -11,7 +11,6 @@
  *
  */
 
-
 package org.springframework.data.neo4j.examples.restaurants.context;
 
 import org.neo4j.ogm.session.SessionFactory;
@@ -24,12 +23,13 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
-@ComponentScan({"org.springframework.data.neo4j.examples.restaurants"})
+@ComponentScan({ "org.springframework.data.neo4j.examples.restaurants" })
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.restaurants.repo")
 @EnableTransactionManagement
 
 /**
  * Assembly for RestaurantIT.
+ *
  * @author Jasper Blues
  */
 public class RestaurantContext {

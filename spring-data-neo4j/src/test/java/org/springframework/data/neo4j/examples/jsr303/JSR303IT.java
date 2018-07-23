@@ -35,18 +35,16 @@ import org.springframework.web.context.WebApplicationContext;
  * @author Vince Bickers
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {WebConfiguration.class, JSR303Context.class})
+@ContextConfiguration(classes = { WebConfiguration.class, JSR303Context.class })
 @WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class JSR303IT extends MultiDriverTestClass {
 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
-	@Autowired
-	private AdultService service;
+	@Autowired private AdultService service;
 
-	@Autowired
-	WebApplicationContext wac;
+	@Autowired WebApplicationContext wac;
 
 	private MockMvc mockMvc;
 
@@ -61,11 +59,7 @@ public class JSR303IT extends MultiDriverTestClass {
 		Adult adult = new Adult("Peter", 18);
 		String json = objectMapper.writeValueAsString(adult);
 
-		mockMvc.perform(
-				post("/adults")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(json))
-				.andExpect(status().isOk());
+		mockMvc.perform(post("/adults").contentType(MediaType.APPLICATION_JSON).content(json)).andExpect(status().isOk());
 	}
 
 	@Test
@@ -74,10 +68,7 @@ public class JSR303IT extends MultiDriverTestClass {
 		Adult adult = new Adult("Peter", 16);
 		String json = objectMapper.writeValueAsString(adult);
 
-		mockMvc.perform(
-				post("/adults")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(json))
+		mockMvc.perform(post("/adults").contentType(MediaType.APPLICATION_JSON).content(json))
 				.andExpect(status().isBadRequest());
 	}
 
@@ -87,10 +78,7 @@ public class JSR303IT extends MultiDriverTestClass {
 		Adult adult = new Adult(null, 21);
 		String json = objectMapper.writeValueAsString(adult);
 
-		mockMvc.perform(
-				post("/adults")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(json))
+		mockMvc.perform(post("/adults").contentType(MediaType.APPLICATION_JSON).content(json))
 				.andExpect(status().isBadRequest());
 	}
 
@@ -100,10 +88,7 @@ public class JSR303IT extends MultiDriverTestClass {
 		Adult adult = new Adult("A", 21);
 		String json = objectMapper.writeValueAsString(adult);
 
-		mockMvc.perform(
-				post("/adults")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(json))
+		mockMvc.perform(post("/adults").contentType(MediaType.APPLICATION_JSON).content(json))
 				.andExpect(status().isBadRequest());
 	}
 }

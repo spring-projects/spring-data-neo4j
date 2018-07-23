@@ -21,77 +21,75 @@ import org.neo4j.ogm.annotation.StartNode;
  * @author Michal Bachman
  */
 @RelationshipEntity(type = "RATED")
-public class Rating implements Comparable{
-    private Long id;
+public class Rating implements Comparable {
+	private Long id;
 
-    @StartNode
-    private User user;
-    @EndNode
-    private TempMovie movie;
-    private int stars;
-    private String comment;
+	@StartNode private User user;
+	@EndNode private TempMovie movie;
+	private int stars;
+	private String comment;
 
-    private long ratingTimestamp;
+	private long ratingTimestamp;
 
-    public Rating() {}
+	public Rating() {}
 
-    public Rating(User user, TempMovie movie, int stars, String comment) {
-        this.user = user;
-        this.movie = movie;
-        this.stars = stars;
-        this.comment = comment;
-    }
+	public Rating(User user, TempMovie movie, int stars, String comment) {
+		this.user = user;
+		this.movie = movie;
+		this.stars = stars;
+		this.comment = comment;
+	}
 
-    public Long getId() {
-        return id;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public void setUser(User user) {
-        this.user = user;
-    }
+	public void setUser(User user) {
+		this.user = user;
+	}
 
-    public void setMovie(TempMovie movie) {
-        this.movie = movie;
-    }
+	public void setMovie(TempMovie movie) {
+		this.movie = movie;
+	}
 
-    public void setStars(int stars) {
-        this.stars = stars;
-    }
+	public void setStars(int stars) {
+		this.stars = stars;
+	}
 
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
 
-    public User getUser() {
-        return user;
-    }
+	public User getUser() {
+		return user;
+	}
 
-    public TempMovie getMovie() {
-        return movie;
-    }
+	public TempMovie getMovie() {
+		return movie;
+	}
 
-    public int getStars() {
-        return stars;
-    }
+	public int getStars() {
+		return stars;
+	}
 
-    public String getComment() {
-        return comment;
-    }
+	public String getComment() {
+		return comment;
+	}
 
-    public long getRatingTimestamp() {
-        return ratingTimestamp;
-    }
+	public long getRatingTimestamp() {
+		return ratingTimestamp;
+	}
 
-    public void setRatingTimestamp(long ratingTimestamp) {
-        this.ratingTimestamp = ratingTimestamp;
-    }
+	public void setRatingTimestamp(long ratingTimestamp) {
+		this.ratingTimestamp = ratingTimestamp;
+	}
 
-    @Override
-    public int compareTo(Object o) {
-        Rating other = (Rating) o;
-        if (stars == ((Rating) o).getStars()) {
-            return getUser().getName().compareTo(other.getUser().getName());
-        }
-        return stars - other.getStars();
-    }
+	@Override
+	public int compareTo(Object o) {
+		Rating other = (Rating) o;
+		if (stars == ((Rating) o).getStars()) {
+			return getUser().getName().compareTo(other.getUser().getName());
+		}
+		return stars - other.getStars();
+	}
 }

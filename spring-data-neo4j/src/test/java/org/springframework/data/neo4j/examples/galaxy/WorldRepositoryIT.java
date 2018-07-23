@@ -28,34 +28,31 @@ import org.springframework.data.neo4j.examples.galaxy.domain.World;
 import org.springframework.data.neo4j.examples.galaxy.repo.WorldRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
-@ContextConfiguration(classes = {GalaxyContext.class})
+@ContextConfiguration(classes = { GalaxyContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class WorldRepositoryIT extends MultiDriverTestClass {
 
-	@Autowired
-	WorldRepository worldRepository;
+	@Autowired WorldRepository worldRepository;
 
-	@Autowired
-	TransactionTemplate transactionTemplate;
+	@Autowired TransactionTemplate transactionTemplate;
 
 	boolean failed = false;
 
 	/**
 	 * see https://jira.spring.io/browse/DATAGRAPH-951
+	 *
 	 * @throws Exception
 	 */
 	@Test
 	public void multipleThreadsResultsGetMixedUp() throws Exception {
 
-			World world1 = new World("world 1", 1);
-			worldRepository.save(world1, 0);
+		World world1 = new World("world 1", 1);
+		worldRepository.save(world1, 0);
 
-			World world2 = new World("world 2", 2);
-			worldRepository.save(world2, 0);
+		World world2 = new World("world 2", 2);
+		worldRepository.save(world2, 0);
 
 		int iterations = 10;
 

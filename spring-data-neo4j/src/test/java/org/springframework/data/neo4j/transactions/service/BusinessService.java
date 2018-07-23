@@ -28,31 +28,30 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class BusinessService {
 
-    @Autowired
-    private Session session;
+	@Autowired private Session session;
 
-    @Transactional
-    public void successMethodInTransaction() {
-        insert();
-    }
+	@Transactional
+	public void successMethodInTransaction() {
+		insert();
+	}
 
-    @Transactional // throws unchecked exception
-    public void failMethodInTransaction() {
-        insert();
-        throw new RuntimeException("Deliberately throwing exception");
-    }
+	@Transactional // throws unchecked exception
+	public void failMethodInTransaction() {
+		insert();
+		throw new RuntimeException("Deliberately throwing exception");
+	}
 
-    // transactional only from service wrapper, throws checked exception
-    public void throwsException() throws Exception {
-        insert();
-        throw new Exception("Deliberately throwing exception");
-    }
+	// transactional only from service wrapper, throws checked exception
+	public void throwsException() throws Exception {
+		insert();
+		throw new Exception("Deliberately throwing exception");
+	}
 
-    public void insert() {
-        session.query("CREATE (node {name: 'n'})", Collections.EMPTY_MAP);
-    }
+	public void insert() {
+		session.query("CREATE (node {name: 'n'})", Collections.EMPTY_MAP);
+	}
 
-    public Iterable<Map<String, Object>> fetch() {
-        return session.query("MATCH (n) RETURN n.name", new HashMap<String, Object>());
-    }
+	public Iterable<Map<String, Object>> fetch() {
+		return session.query("MATCH (n) RETURN n.name", new HashMap<String, Object>());
+	}
 }

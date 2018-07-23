@@ -45,18 +45,12 @@ public class Neo4jRepositoryFactoryBeanTests {
 
 	Neo4jRepositoryFactoryBean<SimpleSampleRepository, User, Long> factoryBean;
 
-	@Mock
-	Session session;
-	@Mock
-	RepositoryFactorySupport factory;
-	@Mock
-	ListableBeanFactory beanFactory;
-	@Mock
-	PersistenceExceptionTranslator translator;
-	@Mock
-	Repository<?, ?> repository;
-	@Mock
-	MetaData metaData;
+	@Mock Session session;
+	@Mock RepositoryFactorySupport factory;
+	@Mock ListableBeanFactory beanFactory;
+	@Mock PersistenceExceptionTranslator translator;
+	@Mock Repository<?, ?> repository;
+	@Mock MetaData metaData;
 
 	@Before
 	@SuppressWarnings("unchecked")
@@ -64,8 +58,8 @@ public class Neo4jRepositoryFactoryBeanTests {
 
 		Map<String, PersistenceExceptionTranslator> beans = new HashMap<>();
 		beans.put("foo", translator);
-		when(beanFactory.getBeansOfType(eq(PersistenceExceptionTranslator.class), anyBoolean(), anyBoolean())).thenReturn(
-				beans);
+		when(beanFactory.getBeansOfType(eq(PersistenceExceptionTranslator.class), anyBoolean(), anyBoolean()))
+				.thenReturn(beans);
 		when(factory.getRepository(any(Class.class), any(Object.class))).thenReturn(repository);
 
 		// Setup standard factory configuration
@@ -103,8 +97,8 @@ public class Neo4jRepositoryFactoryBeanTests {
 		factoryBean = new DummyNeo4jRepositoryFactoryBean(null);
 	}
 
-	private class DummyNeo4jRepositoryFactoryBean<T extends Neo4jRepository<S, ID>, S, ID extends Serializable> extends
-			Neo4jRepositoryFactoryBean<T, S, ID> {
+	private class DummyNeo4jRepositoryFactoryBean<T extends Neo4jRepository<S, ID>, S, ID extends Serializable>
+			extends Neo4jRepositoryFactoryBean<T, S, ID> {
 
 		/**
 		 * @param repositoryInterface

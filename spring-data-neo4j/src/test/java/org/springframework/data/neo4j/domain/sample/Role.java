@@ -12,7 +12,6 @@
  */
 package org.springframework.data.neo4j.domain.sample;
 
-
 import java.util.UUID;
 
 import org.neo4j.ogm.annotation.GraphId;
@@ -28,8 +27,7 @@ public class Role {
 
 	private static final String PREFIX = "ROLE_";
 
-	@GraphId
-	private Long id;
+	@GraphId private Long id;
 
 	private UUID uuid;
 	private String name;

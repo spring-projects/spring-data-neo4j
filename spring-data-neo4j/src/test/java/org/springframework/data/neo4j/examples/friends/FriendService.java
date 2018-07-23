@@ -27,8 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class FriendService {
 
-	@Autowired
-	Session session;
+	@Autowired Session session;
 
 	@Transactional
 	public void createPersonAndFriends() {

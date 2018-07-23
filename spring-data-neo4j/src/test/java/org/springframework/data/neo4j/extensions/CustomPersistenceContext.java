@@ -21,10 +21,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- * Note how the repository base class for all our repositories is overridden
- * using the 'repositoryBaseClass' attribute.
- * This annotation change allows all our repositories to easily extend one or more
- * additional interfaces.
+ * Note how the repository base class for all our repositories is overridden using the 'repositoryBaseClass' attribute.
+ * This annotation change allows all our repositories to easily extend one or more additional interfaces.
  *
  * @author Vince Bickers
  * @author Mark Angrish

@@ -36,7 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Luanne Misquitta
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {FriendContext.class})
+@ContextConfiguration(classes = { FriendContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FriendIT extends MultiDriverTestClass {
 
@@ -47,10 +47,9 @@ public class FriendIT extends MultiDriverTestClass {
 	@Autowired FriendService friendService;
 
 	@BeforeClass
-	public static void beforeClass(){
+	public static void beforeClass() {
 		graphDatabaseService = getGraphDatabaseService();
 	}
-
 
 	@Before
 	public void cleanUpDatabase() {

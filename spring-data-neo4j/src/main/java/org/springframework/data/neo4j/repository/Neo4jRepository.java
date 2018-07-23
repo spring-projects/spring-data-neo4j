@@ -54,7 +54,8 @@ public interface Neo4jRepository<T, ID extends Serializable> extends PagingAndSo
 
 	/**
 	 * Returns a {@link Page} of entities meeting the paging restriction provided in the {@code Pageable} object.
-	 * {@link Page#getTotalPages()} returns an estimation of the total number of pages and should not be relied upon for accuracy.
+	 * {@link Page#getTotalPages()} returns an estimation of the total number of pages and should not be relied upon for
+	 * accuracy.
 	 *
 	 * @param pageable
 	 * @return a page of entities
@@ -63,7 +64,8 @@ public interface Neo4jRepository<T, ID extends Serializable> extends PagingAndSo
 
 	/**
 	 * Returns a {@link Page} of entities meeting the paging restriction provided in the {@code Pageable} object.
-	 * {@link Page#getTotalPages()} returns an estimation of the total number of pages and should not be relied upon for accuracy.
+	 * {@link Page#getTotalPages()} returns an estimation of the total number of pages and should not be relied upon for
+	 * accuracy.
 	 *
 	 * @param pageable
 	 * @param depth

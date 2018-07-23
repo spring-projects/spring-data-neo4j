@@ -18,10 +18,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.neo4j.ogm.MetaData;
 import org.neo4j.ogm.cypher.query.Pagination;
 import org.neo4j.ogm.cypher.query.SortOrder;
-import org.neo4j.ogm.session.Neo4jSession;
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -37,7 +35,6 @@ import org.springframework.util.Assert;
  * you a more sophisticated interface than the plain {@link Session} .
  *
  * @param <T> the type of the entity to handle
- *
  * @author Vince Bickers
  * @author Luanne Misquitta
  * @author Mark Angrish
@@ -199,7 +196,8 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 
 	@Override
 	public Page<T> findAll(Pageable pageable, int depth) {
-		Collection<T> data = session.loadAll(clazz, convert(pageable.getSort()), new Pagination(pageable.getPageNumber(), pageable.getPageSize()), depth);
+		Collection<T> data = session.loadAll(clazz, convert(pageable.getSort()),
+				new Pagination(pageable.getPageNumber(), pageable.getPageSize()), depth);
 		return updatePage(pageable, new ArrayList<T>(data));
 	}
 

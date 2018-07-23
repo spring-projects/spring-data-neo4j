@@ -67,7 +67,6 @@ public class Neo4jRepositoryIT extends MultiDriverTestClass {
 		assertThat(repository.count(), is(0L));
 	}
 
-
 	private interface SampleEntityRepository extends Neo4jRepository<SampleEntity, Long> {
 
 	}

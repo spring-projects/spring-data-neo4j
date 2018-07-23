@@ -13,14 +13,14 @@
 
 package org.springframework.data.neo4j.repository.query;
 
+import java.lang.reflect.Method;
+
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.RepositoryQuery;
-
-import java.lang.reflect.Method;
 
 /**
  * @author Mark Angrish
@@ -29,19 +29,19 @@ import java.lang.reflect.Method;
  */
 public class GraphQueryLookupStrategy implements QueryLookupStrategy {
 
-    private final Session session;
+	private final Session session;
 
-    public GraphQueryLookupStrategy(Session session) {
-        this.session = session;
-    }
-    
-    /* 
-     * (non-Javadoc)
-     * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.projection.ProjectionFactory, org.springframework.data.repository.core.NamedQueries)
-     */
-    @Override
-    public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
-        NamedQueries namedQueries) {
-        return new GraphQueryMethod(method, metadata, factory, session).createQuery();
-    }
+	public GraphQueryLookupStrategy(Session session) {
+		this.session = session;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.projection.ProjectionFactory, org.springframework.data.repository.core.NamedQueries)
+	 */
+	@Override
+	public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+			NamedQueries namedQueries) {
+		return new GraphQueryMethod(method, metadata, factory, session).createQuery();
+	}
 }

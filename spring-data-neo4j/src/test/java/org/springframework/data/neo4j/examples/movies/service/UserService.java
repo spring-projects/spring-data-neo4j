@@ -21,14 +21,14 @@ import org.springframework.transaction.annotation.Transactional;
  */
 public interface UserService {
 
-    @Transactional
-    void updateUser(User user, String newName);
+	@Transactional
+	void updateUser(User user, String newName);
 
-    @Transactional
-    void notInterestedIn(Long userId, Long genreId);
+	@Transactional
+	void notInterestedIn(Long userId, Long genreId);
 
-    @Transactional
-    void saveWithTxAnnotationOnInterface(User user);
+	@Transactional
+	void saveWithTxAnnotationOnInterface(User user);
 
-    void saveWithTxAnnotationOnImpl(User user);
+	void saveWithTxAnnotationOnImpl(User user);
 }

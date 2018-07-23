@@ -75,7 +75,7 @@ public class DefaultTransactionDisablingIntegrationIT extends MultiDriverTestCla
 	public void persistingAnEntityShouldThrowExceptionDueToMissingTransaction() {
 
 		exception.expect(InvalidDataAccessApiUsageException.class);
-		exception.expectCause(is(Matchers.<Throwable>instanceOf(IllegalStateException.class)));
+		exception.expectCause(is(Matchers.<Throwable> instanceOf(IllegalStateException.class)));
 
 		repository.save(new User());
 	}

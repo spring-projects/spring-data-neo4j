@@ -83,7 +83,6 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		return MODULE_PREFIX;
 	}
 
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getIdentifyingAnnotations()
@@ -175,7 +174,8 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(SharedSessionCreator.class,
 				"createSharedSession");
-		builder.addConstructorArgReference(sessionFactoryBeanName == null ? DEFAULT_SESSION_FACTORY_BEAN_NAME : sessionFactoryBeanName);
+		builder.addConstructorArgReference(
+				sessionFactoryBeanName == null ? DEFAULT_SESSION_FACTORY_BEAN_NAME : sessionFactoryBeanName);
 
 		return builder.getBeanDefinition();
 

@@ -16,7 +16,12 @@ import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -30,7 +35,11 @@ import org.springframework.data.neo4j.examples.movies.context.MoviesContext;
 import org.springframework.data.neo4j.examples.movies.domain.Rating;
 import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
 import org.springframework.data.neo4j.examples.movies.domain.User;
-import org.springframework.data.neo4j.examples.movies.domain.queryresult.*;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.EntityWrappingQueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.Gender;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.RichUserQueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.UserQueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.queryresult.UserQueryResultInterface;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UnmanagedUserPojo;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
@@ -46,23 +55,19 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Luanne Misquitta
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {MoviesContext.class})
+@ContextConfiguration(classes = { MoviesContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class QueryIntegrationIT extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
 
-	@Autowired
-	PlatformTransactionManager platformTransactionManager;
+	@Autowired PlatformTransactionManager platformTransactionManager;
 
-	@Autowired
-	private UserRepository userRepository;
+	@Autowired private UserRepository userRepository;
 
-	@Autowired
-	private CinemaRepository cinemaRepository;
+	@Autowired private CinemaRepository cinemaRepository;
 
 	private TransactionTemplate transactionTemplate;
-
 
 	@Before
 	public void init() {
@@ -86,17 +91,10 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldFindArbitraryGraph() {
-		executeUpdate(
-				"CREATE " +
-						"(dh:Movie {name:'Die Hard'}), " +
-						"(fe:Movie {name: 'The Fifth Element'}), " +
-						"(bw:User {name: 'Bruce Willis'}), " +
-						"(ar:User {name: 'Alan Rickman'}), " +
-						"(mj:User {name: 'Milla Jovovich'}), " +
-						"(mj)-[:ACTED_IN]->(fe), " +
-						"(ar)-[:ACTED_IN]->(dh), " +
-						"(bw)-[:ACTED_IN]->(dh), " +
-						"(bw)-[:ACTED_IN]->(fe)");
+		executeUpdate("CREATE " + "(dh:Movie {name:'Die Hard'}), " + "(fe:Movie {name: 'The Fifth Element'}), "
+				+ "(bw:User {name: 'Bruce Willis'}), " + "(ar:User {name: 'Alan Rickman'}), "
+				+ "(mj:User {name: 'Milla Jovovich'}), " + "(mj)-[:ACTED_IN]->(fe), " + "(ar)-[:ACTED_IN]->(dh), "
+				+ "(bw)-[:ACTED_IN]->(dh), " + "(bw)-[:ACTED_IN]->(fe)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -205,7 +203,8 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindUsersAndMapThemToConcreteQueryResultObjectCollection() {
-		executeUpdate("CREATE (g:User {name:'Gary', age:32}), (s:User {name:'Sheila', age:29}), (v:User {name:'Vince', age:66})");
+		executeUpdate(
+				"CREATE (g:User {name:'Gary', age:32}), (s:User {name:'Sheila', age:29}), (v:User {name:'Vince', age:66})");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -246,7 +245,8 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldFindUsersAndMapThemToProxiedQueryResultInterface() {
-		executeUpdate("CREATE (:User {name:'Morne', age:30}), (:User {name:'Abraham', age:31}), (:User {name:'Virat', age:27})");
+		executeUpdate(
+				"CREATE (:User {name:'Morne', age:30}), (:User {name:'Abraham', age:31}), (:User {name:'Virat', age:27})");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -261,8 +261,9 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 
 	@Test
 	public void shouldRetrieveUsersByGenderAndConvertToCorrectTypes() {
-		executeUpdate("CREATE (:User {name:'David Warner', gender:'MALE'}), (:User {name:'Shikhar Dhawan', gender:'MALE'}), "
-				+ "(:User {name:'Sarah Taylor', gender:'FEMALE', account: '3456789', deposits:['12345.6','45678.9']})");
+		executeUpdate(
+				"CREATE (:User {name:'David Warner', gender:'MALE'}), (:User {name:'Shikhar Dhawan', gender:'MALE'}), "
+						+ "(:User {name:'Sarah Taylor', gender:'FEMALE', account: '3456789', deposits:['12345.6','45678.9']})");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -276,7 +277,8 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 				assertEquals(Gender.FEMALE, userQueryResult.getUserGender());
 				assertEquals("Sarah Taylor", userQueryResult.getUserName());
 				assertEquals(BigInteger.valueOf(3456789), userQueryResult.getUserAccount());
-				assertArrayEquals(new BigDecimal[]{BigDecimal.valueOf(12345.6), BigDecimal.valueOf(45678.9)}, userQueryResult.getUserDeposits());
+				assertArrayEquals(new BigDecimal[] { BigDecimal.valueOf(12345.6), BigDecimal.valueOf(45678.9) },
+						userQueryResult.getUserDeposits());
 				assertFalse(userIterator.hasNext());
 			}
 		});
@@ -369,8 +371,7 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				assertEquals("There should be some users in the database", 2, userRepository.findTotalUsers());
 
-				Iterable<UserQueryResult> expected = Arrays.asList(new UserQueryResult(null, 0),
-						new UserQueryResult(null, 0));
+				Iterable<UserQueryResult> expected = Arrays.asList(new UserQueryResult(null, 0), new UserQueryResult(null, 0));
 
 				Iterable<UserQueryResult> queryResult = userRepository.retrieveAllUsersAndTheirAges();
 				assertNotNull("The query result shouldn't be null", queryResult);
@@ -405,7 +406,8 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldMapNodeCollectionsIntoQueryResultObjects() {
-		executeUpdate("CREATE (d:User {name:'Daniela'}),  (e:User {name:'Ethan'}), (f:User {name:'Finn'}), (d)-[:FRIEND_OF]->(e), (d)-[:FRIEND_OF]->(f)");
+		executeUpdate(
+				"CREATE (d:User {name:'Daniela'}),  (e:User {name:'Ethan'}), (f:User {name:'Finn'}), (d)-[:FRIEND_OF]->(e), (d)-[:FRIEND_OF]->(f)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -421,7 +423,8 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 				}
 				assertTrue(friends.contains("Ethan"));
 				assertTrue(friends.contains("Finn"));
-				assertEquals(2, result.getUser().getFriends().size()); //we expect friends to be mapped since the relationships were returned
+				assertEquals(2, result.getUser().getFriends().size()); // we expect friends to be mapped since the relationships
+																																// were returned
 			}
 		});
 	}
@@ -431,7 +434,8 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldMapRECollectionsIntoQueryResultObjects() {
-		executeUpdate("CREATE (g:User {name:'Gary'}), (sw:Movie {name: 'Star Wars: The Force Awakens'}), (hob:Movie {name:'The Hobbit: An Unexpected Journey'}), (g)-[:RATED {stars : 5}]->(sw), (g)-[:RATED {stars: 4}]->(hob) ");
+		executeUpdate(
+				"CREATE (g:User {name:'Gary'}), (sw:Movie {name: 'Star Wars: The Force Awakens'}), (hob:Movie {name:'The Hobbit: An Unexpected Journey'}), (g)-[:RATED {stars : 5}]->(sw), (g)-[:RATED {stars: 4}]->(hob) ");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -466,7 +470,8 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldMapRelationshipCollectionsWithDepth0IntoQueryResultObjects() {
-		executeUpdate("CREATE (i:User {name:'Ingrid'}),  (j:User {name:'Jake'}), (k:User {name:'Kate'}), (i)-[:FRIEND_OF]->(j), (i)-[:FRIEND_OF]->(k)");
+		executeUpdate(
+				"CREATE (i:User {name:'Ingrid'}),  (j:User {name:'Jake'}), (k:User {name:'Kate'}), (i)-[:FRIEND_OF]->(j), (i)-[:FRIEND_OF]->(k)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -482,7 +487,8 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 				}
 				assertTrue(friends.contains("Kate"));
 				assertTrue(friends.contains("Jake"));
-				assertEquals(0, result.getUser().getFriends().size()); //we do not expect friends to be mapped since the relationships were not returned
+				assertEquals(0, result.getUser().getFriends().size()); // we do not expect friends to be mapped since the
+																																// relationships were not returned
 			}
 		});
 	}
@@ -492,7 +498,8 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldReturnMultipleQueryResultObjects() {
-		executeUpdate("CREATE (g:User {name:'Gary'}), (h:User {name:'Harry'}), (sw:Movie {name: 'Star Wars: The Force Awakens'}), (hob:Movie {name:'The Hobbit: An Unexpected Journey'}), (g)-[:RATED {stars : 5}]->(sw), (g)-[:RATED {stars: 4}]->(hob), (h)-[:RATED {stars: 3}]->(hob) ");
+		executeUpdate(
+				"CREATE (g:User {name:'Gary'}), (h:User {name:'Harry'}), (sw:Movie {name: 'Star Wars: The Force Awakens'}), (hob:Movie {name:'The Hobbit: An Unexpected Journey'}), (g)-[:RATED {stars : 5}]->(sw), (g)-[:RATED {stars: 4}]->(hob), (h)-[:RATED {stars: 3}]->(hob) ");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -541,7 +548,8 @@ public class QueryIntegrationIT extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldMapEntitiesToProxiedQueryResultInterface() {
-		executeUpdate("CREATE (:User {name:'Morne', age:30}), (:User {name:'Abraham', age:31}), (:User {name:'Virat', age:27})");
+		executeUpdate(
+				"CREATE (:User {name:'Morne', age:30}), (:User {name:'Abraham', age:31}), (:User {name:'Virat', age:27})");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override

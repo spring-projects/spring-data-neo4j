@@ -16,12 +16,12 @@
 
 package org.springframework.data.neo4j.repository.cdi;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
+
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.data.neo4j.examples.friends.domain.Person;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
 
 /**
  * Simple component exposing a {@link org.neo4j.ogm.session.Session} as CDI bean.
@@ -31,19 +31,19 @@ import javax.enterprise.inject.Produces;
  */
 class Neo4jCdiProducer {
 
-    @Produces
-    @ApplicationScoped
-    Session createSession() {
+	@Produces
+	@ApplicationScoped
+	Session createSession() {
 
-        SessionFactory sessionFactory = new SessionFactory(Person.class.getPackage().getName());
-        return sessionFactory.openSession();
-    }
+		SessionFactory sessionFactory = new SessionFactory(Person.class.getPackage().getName());
+		return sessionFactory.openSession();
+	}
 
-    @Produces
-    @ApplicationScoped
-    @PersonDB
-    @OtherQualifier
-    Session createQualifiedSession() {
-        return createSession();
-    }
+	@Produces
+	@ApplicationScoped
+	@PersonDB
+	@OtherQualifier
+	Session createQualifiedSession() {
+		return createSession();
+	}
 }

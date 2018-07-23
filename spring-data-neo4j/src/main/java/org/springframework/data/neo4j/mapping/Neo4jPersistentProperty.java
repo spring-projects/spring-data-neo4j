@@ -29,11 +29,10 @@ import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.annotation.QueryResult;
 
 /**
- * This class implements Spring Data's PersistentProperty interface, scavenging the required data from the
- * OGM's mapping classes in order to for SDN to play nicely with Spring Data REST.
- * The main thing to note is that this class is effectively a shim for FieldInfo. We don't reload
- * all the mapping information again.
- * We do not yet support getter/setter access to entity properties.
+ * This class implements Spring Data's PersistentProperty interface, scavenging the required data from the OGM's mapping
+ * classes in order to for SDN to play nicely with Spring Data REST. The main thing to note is that this class is
+ * effectively a shim for FieldInfo. We don't reload all the mapping information again. We do not yet support
+ * getter/setter access to entity properties.
  * <p>
  * These attributes do not appear to be used/needed for SDN 4 to inter-operate correctly with SD-REST:
  * </p>
@@ -44,8 +43,8 @@ import org.springframework.data.neo4j.annotation.QueryResult;
  * <li>isTransient (we never supply transient classes to the Spring mapping context)</li>
  * <li>isWritable (we don't currently support read-only fields)</li>
  * </ul>
- * Consequently their associated getter methods always return default values of null or [true|false]
- * However, because these method calls are not expected, we also log a warning message if they get invoked
+ * Consequently their associated getter methods always return default values of null or [true|false] However, because
+ * these method calls are not expected, we also log a warning message if they get invoked
  *
  * @author Vince Bickers
  * @author Adam George
@@ -66,17 +65,22 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	 * @param field The property {@link Field}
 	 * @param descriptor The Java bean {@link PropertyDescriptor}
 	 * @param owner The owning {@link PersistentEntity} that corresponds to the given {@code ClassInfo}
-	 * @param simpleTypeHolder The {@link SimpleTypeHolder} that dictates whether the type of this property is considered simple
-	 * or not
+	 * @param simpleTypeHolder The {@link SimpleTypeHolder} that dictates whether the type of this property is considered
+	 *          simple or not
 	 */
 	public Neo4jPersistentProperty(ClassInfo owningClassInfo, Field field, PropertyDescriptor descriptor,
-								   PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
+			PersistentEntity<?, Neo4jPersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
 		super(field, descriptor, owner, simpleTypeHolder);
 		if (owningClassInfo == null) {
 			logger.warn("Owning ClassInfo is null for field: {} and propertyDescriptor: {}", field, descriptor);
 		}
-		if ((owningClassInfo != null && owningClassInfo.getUnderlyingClass() != null && simpleTypeHolder.isSimpleType(owningClassInfo.getUnderlyingClass()))
-				|| owner.getType().isEnum()) { //TODO refactor all these null checks
+		if ((owningClassInfo != null && owningClassInfo.getUnderlyingClass() != null
+				&& simpleTypeHolder.isSimpleType(owningClassInfo.getUnderlyingClass())) || owner.getType().isEnum()) { // TODO
+																																																								// refactor
+																																																								// all
+																																																								// these
+																																																								// null
+																																																								// checks
 			this.isIdProperty = false;
 		} else {
 			this.isIdProperty = resolveWhetherIdProperty(owningClassInfo, field);
@@ -84,7 +88,8 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	}
 
 	private static boolean resolveWhetherIdProperty(ClassInfo owningClassInfo, Field field) {
-		if (owningClassInfo == null || owningClassInfo.isInterface() || owningClassInfo.annotationsInfo().get(QueryResult.class.getName()) != null || owningClassInfo.isEnum()) {
+		if (owningClassInfo == null || owningClassInfo.isInterface()
+				|| owningClassInfo.annotationsInfo().get(QueryResult.class.getName()) != null || owningClassInfo.isEnum()) {
 			// no ID properties on @QueryResult or non-concrete objects
 			return false;
 		} else {
@@ -122,8 +127,8 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	}
 
 	/**
-	 * Determines whether or not this property should be considered an association to another entity or whether it's
-	 * just a simple property that should be shown as a value.
+	 * Determines whether or not this property should be considered an association to another entity or whether it's just
+	 * a simple property that should be shown as a value.
 	 * <p>
 	 * This implementation works by looking for non-transient members annotated with <code>@Relationship</code>.
 	 * </p>
@@ -132,10 +137,8 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	 */
 	@Override
 	public boolean isAssociation() {
-		return !isTransient() &&
-				(isAnnotationPresent(Relationship.class)
-						|| isAnnotationPresent(StartNode.class)
-						|| isAnnotationPresent(EndNode.class));
+		return !isTransient() && (isAnnotationPresent(Relationship.class) || isAnnotationPresent(StartNode.class)
+				|| isAnnotationPresent(EndNode.class));
 	}
 
 	@Override

@@ -29,7 +29,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Mark Angrish
  */
 @Configuration
-@ComponentScan({"org.springframework.data.neo4j.examples.galaxy.service"})
+@ComponentScan({ "org.springframework.data.neo4j.examples.galaxy.service" })
 @PropertySource("classpath:helloworld.properties")
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.galaxy.repo")
 @EnableTransactionManagement
@@ -46,7 +46,7 @@ public class GalaxyContext {
 	}
 
 	@Bean
- 	public TransactionTemplate transactionTemplate() {
+	public TransactionTemplate transactionTemplate() {
 		return new TransactionTemplate(transactionManager());
 	}
 

@@ -28,32 +28,28 @@ import org.neo4j.ogm.typeconversion.UuidStringConverter;
 @NodeEntity
 public class Genre {
 
-    @GraphId
-    private Long id;
+	@GraphId private Long id;
 
-    @Convert(UuidStringConverter.class)
-    @Index(unique = true, primary = true)
-    private UUID uuid;
+	@Convert(UuidStringConverter.class) @Index(unique = true, primary = true) private UUID uuid;
 
-    private String name;
+	private String name;
 
-    public Genre() {
-    }
+	public Genre() {}
 
-    public Genre(String name) {
-        this.uuid = UUID.randomUUID();
-        this.name = name;
-    }
+	public Genre(String name) {
+		this.uuid = UUID.randomUUID();
+		this.name = name;
+	}
 
-    public Long getId() {
-        return id;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 }

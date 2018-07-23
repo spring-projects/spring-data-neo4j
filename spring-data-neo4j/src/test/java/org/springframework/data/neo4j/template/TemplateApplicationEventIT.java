@@ -37,11 +37,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class TemplateApplicationEventIT extends MultiDriverTestClass {
 
-	@Autowired
-	private Session session;
+	@Autowired private Session session;
 
-	@Autowired
-	private Neo4jModificationEventListener eventListener;
+	@Autowired private Neo4jModificationEventListener eventListener;
 
 	@Test
 	@Transactional

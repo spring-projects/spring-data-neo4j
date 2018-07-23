@@ -38,14 +38,13 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Michal Bachman
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {RepositoriesTestContext.class})
+@ContextConfiguration(classes = { RepositoriesTestContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RepositoryDefinitionIT extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
 
-	@Autowired
-	PlatformTransactionManager platformTransactionManager;
+	@Autowired PlatformTransactionManager platformTransactionManager;
 
 	private TransactionTemplate transactionTemplate;
 
@@ -54,8 +53,7 @@ public class RepositoryDefinitionIT extends MultiDriverTestClass {
 		graphDatabaseService = getGraphDatabaseService();
 	}
 
-	@Autowired
-	private MovieRepository movieRepository;
+	@Autowired private MovieRepository movieRepository;
 
 	@Before
 	public void clearDatabase() {
