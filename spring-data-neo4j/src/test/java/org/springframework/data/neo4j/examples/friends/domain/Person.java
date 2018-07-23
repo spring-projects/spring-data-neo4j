@@ -13,12 +13,12 @@
 
 package org.springframework.data.neo4j.examples.friends.domain;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Luanne Misquitta
@@ -30,8 +30,7 @@ public class Person {
 	private String firstName;
 	private String lastName;
 
-	@Relationship(type = "IS_FRIEND")
-	private Set<Friendship> friendships = new HashSet<>();
+	@Relationship(type = "IS_FRIEND") private Set<Friendship> friendships = new HashSet<>();
 
 	public Person() {}
 

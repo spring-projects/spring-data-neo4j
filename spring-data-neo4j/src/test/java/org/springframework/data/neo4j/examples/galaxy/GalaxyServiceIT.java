@@ -40,17 +40,15 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-
 /**
  * @author Vince Bickers
  */
-@ContextConfiguration(classes = {GalaxyContext.class})
+@ContextConfiguration(classes = { GalaxyContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
 public class GalaxyServiceIT extends MultiDriverTestClass {
 
-	@Autowired
-	private GalaxyService galaxyService;
+	@Autowired private GalaxyService galaxyService;
 
 	@Before
 	public void setUp() {
@@ -98,7 +96,6 @@ public class GalaxyServiceIT extends MultiDriverTestClass {
 		}
 	}
 
-
 	@Test
 	public void shouldFindWorldsByName() {
 		galaxyService.makeSomeWorlds();
@@ -140,9 +137,7 @@ public class GalaxyServiceIT extends MultiDriverTestClass {
 		galaxyService.makeSomeWorlds();
 
 		for (World worldWithOneMoon : galaxyService.findAllByNumberOfMoons(1)) {
-			assertThat(
-					worldWithOneMoon.getName(),
-					is(anyOf(containsString("Earth"), containsString("Midgard"))));
+			assertThat(worldWithOneMoon.getName(), is(anyOf(containsString("Earth"), containsString("Midgard"))));
 		}
 	}
 
@@ -218,11 +213,11 @@ public class GalaxyServiceIT extends MultiDriverTestClass {
 			sum += world.getId();
 		}
 		// note: this doesn't work, because deleted node ids are not reclaimed
-		// long sum = (size * size - size) / 2;   // 0-based node ids
+		// long sum = (size * size - size) / 2; // 0-based node ids
 
 		Pageable pageable = new PageRequest(0, 3);
 
-		for (; ; ) {
+		for (;;) {
 			Page<World> page = galaxyService.findAllWorlds(pageable);
 			for (World world : page) {
 				System.out.println(world.getName() + ":" + world.getId());
@@ -249,7 +244,7 @@ public class GalaxyServiceIT extends MultiDriverTestClass {
 		Pageable pageable = new PageRequest(0, 3, Sort.Direction.ASC, "name");
 
 		int i = 0;
-		for (; ; ) {
+		for (;;) {
 			Page<World> page = galaxyService.findAllWorlds(pageable);
 			for (World world : page) {
 				assertEquals(sortedNames[i], world.getName());
@@ -306,7 +301,7 @@ public class GalaxyServiceIT extends MultiDriverTestClass {
 			names.add(world.getName());
 		}
 
-		String[] sortedNames = names.toArray(new String[]{});
+		String[] sortedNames = names.toArray(new String[] {});
 		Arrays.sort(sortedNames);
 		return sortedNames;
 	}

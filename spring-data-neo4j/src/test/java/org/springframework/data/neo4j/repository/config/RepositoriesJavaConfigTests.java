@@ -43,8 +43,7 @@ public class RepositoriesJavaConfigTests {
 	@EnableNeo4jRepositories(basePackageClasses = UserRepository.class)
 	static class Config {
 
-		@Autowired
-		ApplicationContext context;
+		@Autowired ApplicationContext context;
 
 		@Bean
 		public Repositories repositories() {
@@ -62,8 +61,7 @@ public class RepositoriesJavaConfigTests {
 		}
 	}
 
-	@Autowired
-	Repositories repositories;
+	@Autowired Repositories repositories;
 
 	/**
 	 */

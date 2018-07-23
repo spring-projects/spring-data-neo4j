@@ -23,8 +23,7 @@ import org.springframework.util.Assert;
 @NodeEntity
 public class SampleEntity {
 
-	@GraphId
-	protected Long id;
+	@GraphId protected Long id;
 	private String first;
 	private String second;
 

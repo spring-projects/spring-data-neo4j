@@ -28,7 +28,6 @@ import org.neo4j.ogm.session.SessionFactory;
  */
 public class SharedSessionCreatorTests {
 
-
 	@Test
 	public void proxyingWorksIfInfoReturnsNullSessionInterface() {
 		SessionFactory sessionFactory = mock(SessionFactory.class);

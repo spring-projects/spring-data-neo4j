@@ -36,11 +36,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class GalaxyService {
 
-	@Autowired
-	private WorldRepository worldRepository;
+	@Autowired private WorldRepository worldRepository;
 
-	@Autowired
-	Session session;
+	@Autowired Session session;
 
 	public long getNumberOfWorlds() {
 		return worldRepository.count();
@@ -89,13 +87,13 @@ public class GalaxyService {
 		mars.addRocketRouteTo(earth);
 
 		// todo: handle bi-directional automatically
-		//earth.addRocketRouteTo(mars);
+		// earth.addRocketRouteTo(mars);
 
 		// this is a bit silly
 		worldRepository.save(mars);
 
 		// todo: handle-bidirectional automatically
-		//worldRepository.save(earth);
+		// worldRepository.save(earth);
 
 		worlds.add(earth);
 		worlds.add(mars);
@@ -162,7 +160,6 @@ public class GalaxyService {
 	public Iterable<World> findByProperty(String propertyName, Object propertyValue, int depth) {
 		return session.loadAll(World.class, new Filter(propertyName, propertyValue), depth);
 	}
-
 
 	public Iterable<World> findAllWorlds(Pagination paging) {
 		return session.loadAll(World.class, paging, 0);

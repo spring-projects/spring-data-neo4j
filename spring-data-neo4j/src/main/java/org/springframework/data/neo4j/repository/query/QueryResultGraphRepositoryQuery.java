@@ -13,8 +13,7 @@
 
 package org.springframework.data.neo4j.repository.query;
 
-
-import static java.lang.reflect.Proxy.newProxyInstance;
+import static java.lang.reflect.Proxy.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +32,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ParameterAccessor;
 
 /**
- * Specialisation of {@link GraphRepositoryQuery} that handles mapping to objects annotated with <code>&#064;QueryResult</code>.
+ * Specialisation of {@link GraphRepositoryQuery} that handles mapping to objects annotated with
+ * <code>&#064;QueryResult</code>.
  *
  * @author Adam George
  * @author Luanne Misquitta
@@ -53,7 +53,7 @@ public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
 
 	@Override
 	protected Object execute(Class<?> returnType, final Class<?> concreteReturnType, String cypherQuery,
-							 Map<String, Object> queryParams, ParameterAccessor parameterAccessor) {
+			Map<String, Object> queryParams, ParameterAccessor parameterAccessor) {
 
 		Pageable pageable = parameterAccessor.getPageable();
 		Sort sort = parameterAccessor.getSort();
@@ -61,7 +61,7 @@ public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
 			sort = pageable.getSort();
 		}
 		if (sort != null) {
-			//Custom queries in the OGM do not support pageable
+			// Custom queries in the OGM do not support pageable
 			cypherQuery = addSorting(cypherQuery, sort);
 		}
 
@@ -78,7 +78,7 @@ public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
 	}
 
 	private Object mapToConcreteType(final Class<?> targetType, final String cypherQuery,
-									 final Map<String, Object> queryParams, Pageable pageable) {
+			final Map<String, Object> queryParams, Pageable pageable) {
 
 		if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
 			final String query = addPaging(cypherQuery, queryParams, pageable.getPageNumber(), pageable.getPageSize());
@@ -90,7 +90,7 @@ public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
 	}
 
 	private Object mapToProxy(Class<?> targetType, String cypherQuery, Map<String, Object> queryParams,
-							  Pageable pageable) {
+			Pageable pageable) {
 		if (graphQueryMethod.isPageQuery() || graphQueryMethod.isSliceQuery()) {
 			final String query = addPaging(cypherQuery, queryParams, pageable.getPageNumber(), pageable.getPageSize());
 			List<Object> objects = mappedProxyResults(targetType, this.session.query(query, queryParams));
@@ -100,7 +100,8 @@ public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
 		}
 	}
 
-	private List mappedConcreteResults(final Class<?> targetType, final String query, final Map<String, Object> queryParams) {
+	private List mappedConcreteResults(final Class<?> targetType, final String query,
+			final Map<String, Object> queryParams) {
 		return (List) this.session.doInTransaction(new GraphCallback<Collection<Object>>() {
 			@Override
 			public Collection<Object> apply(Request requestHandler, Transaction transaction, MetaData metaData) {
@@ -117,7 +118,7 @@ public class QueryResultGraphRepositoryQuery extends GraphRepositoryQuery {
 
 	private List mappedProxyResults(Class<?> targetType, Iterable<Map<String, Object>> queryResults) {
 		List<Object> resultObjects = new ArrayList<>();
-		Class<?>[] interfaces = new Class<?>[]{targetType};
+		Class<?>[] interfaces = new Class<?>[] { targetType };
 		for (Map<String, Object> map : queryResults) {
 			resultObjects.add(newProxyInstance(targetType.getClassLoader(), interfaces, new QueryResultProxy(map)));
 		}

@@ -22,5 +22,5 @@ package org.springframework.data.neo4j.repository.cdi;
  */
 interface SamplePersonRepositoryCustom {
 
-    int returnOne();
+	int returnOne();
 }

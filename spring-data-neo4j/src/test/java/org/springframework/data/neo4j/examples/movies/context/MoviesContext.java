@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Mark Angrish
  */
 @Configuration
-@ComponentScan({"org.springframework.data.neo4j.examples.movies.service"})
+@ComponentScan({ "org.springframework.data.neo4j.examples.movies.service" })
 @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
 @EnableTransactionManagement
 public class MoviesContext {

@@ -17,14 +17,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService;
-import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmount;
-import org.springframework.data.neo4j.integration.conversion.domain.PensionPlan;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Testing Spring's type conversion service support.
@@ -33,7 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Mark Angrish
  */
 @Configuration
-@EnableNeo4jRepositories(basePackageClasses = {SiteMemberRepository.class, PensionRepository.class, JavaElementRepository.class})
+@EnableNeo4jRepositories(
+		basePackageClasses = { SiteMemberRepository.class, PensionRepository.class, JavaElementRepository.class })
 @EnableTransactionManagement
 public class ConversionServicePersistenceContext {
 

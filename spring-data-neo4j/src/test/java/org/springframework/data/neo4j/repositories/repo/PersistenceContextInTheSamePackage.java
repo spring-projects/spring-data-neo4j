@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Mark Angrish
  */
 @Configuration
-@EnableNeo4jRepositories //no package specified, that's the point of this test
+@EnableNeo4jRepositories // no package specified, that's the point of this test
 @EnableTransactionManagement
 public class PersistenceContextInTheSamePackage {
 

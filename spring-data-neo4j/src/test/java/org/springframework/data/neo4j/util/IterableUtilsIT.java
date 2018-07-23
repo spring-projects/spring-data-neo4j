@@ -36,7 +36,7 @@ public class IterableUtilsIT extends MultiDriverTestClass {
 	private static GraphDatabaseService database;
 
 	@BeforeClass
-	public static void beforeClass(){
+	public static void beforeClass() {
 		database = getGraphDatabaseService();
 	}
 

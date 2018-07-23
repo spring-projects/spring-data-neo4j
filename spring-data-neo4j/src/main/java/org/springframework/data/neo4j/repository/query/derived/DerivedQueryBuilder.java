@@ -31,6 +31,7 @@ public class DerivedQueryBuilder {
 
 	/**
 	 * Add a part as a parameter to the graph query.
+	 *
 	 * @param part the Part to be added
 	 * @param booleanOperator the {@link BooleanOperator} to be used when appending the parameter to the query.
 	 */
@@ -40,6 +41,7 @@ public class DerivedQueryBuilder {
 
 	/**
 	 * Add criteria from an intermediate builder to the query
+	 *
 	 * @param fromBuilder the intermediate builder
 	 * @param booleanOperator the {@link BooleanOperator} to be used when appending the criteria to the query
 	 */
@@ -49,6 +51,7 @@ public class DerivedQueryBuilder {
 
 	/**
 	 * Builds the final query
+	 *
 	 * @return the final query
 	 */
 	public DerivedQueryDefinition buildQuery() {

@@ -17,7 +17,6 @@ import org.neo4j.ogm.model.Result;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
 import org.springframework.data.neo4j.repository.GraphRepository;
-import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -27,12 +26,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WorldRepository extends GraphRepository<World> {
 
-    @Query("MATCH (n:World) SET n.updated=timestamp()")
-    void touchAllWorlds();
+	@Query("MATCH (n:World) SET n.updated=timestamp()")
+	void touchAllWorlds();
 
-    @Query("MATCH (n:World) SET n.updated=timestamp()")
-    Result touchAllWorldsWithStatistics();
+	@Query("MATCH (n:World) SET n.updated=timestamp()")
+	Result touchAllWorldsWithStatistics();
 
-    World findByName(String name);
+	World findByName(String name);
 
 }

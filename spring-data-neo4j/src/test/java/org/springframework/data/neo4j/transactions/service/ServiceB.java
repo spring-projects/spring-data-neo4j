@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.transactions.domain.User;
 import org.springframework.data.neo4j.transactions.repo.UserRepository;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -28,20 +27,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class ServiceB {
 
-    @Autowired
-    private UserRepository userRepository;
+	@Autowired private UserRepository userRepository;
 
-    @Transactional(rollbackFor = Exception.class)
-    public void update() throws Exception {
-        getBilbo();
-        throw new Exception();
-    }
+	@Transactional(rollbackFor = Exception.class)
+	public void update() throws Exception {
+		getBilbo();
+		throw new Exception();
+	}
 
-    public User getBilbo() {
-        Collection<User> userList = userRepository.findUserByName("Bilbo Baggins");
-        if (userList.iterator().hasNext()) {
-            return userList.iterator().next();
-        }
-        return null;
-    }
+	public User getBilbo() {
+		Collection<User> userList = userRepository.findUserByName("Bilbo Baggins");
+		if (userList.iterator().hasNext()) {
+			return userList.iterator().next();
+		}
+		return null;
+	}
 }

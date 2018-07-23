@@ -24,9 +24,9 @@ import org.springframework.data.neo4j.transaction.SessionFactoryUtils;
  */
 public class Neo4jPersistenceExceptionTranslator implements PersistenceExceptionTranslator {
 
-    @Override
-    public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
-        return SessionFactoryUtils.convertOgmAccessException(ex);
-    }
+	@Override
+	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
+		return SessionFactoryUtils.convertOgmAccessException(ex);
+	}
 
 }

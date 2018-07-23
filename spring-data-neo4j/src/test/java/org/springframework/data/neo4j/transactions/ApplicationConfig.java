@@ -21,7 +21,6 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.annotation.TransactionManagementConfigurer;
 
 /**
  * @author Vince Bickers
@@ -34,7 +33,7 @@ import org.springframework.transaction.annotation.TransactionManagementConfigure
 public class ApplicationConfig {
 
 	@Bean
-	public PlatformTransactionManager transactionManager()  {
+	public PlatformTransactionManager transactionManager() {
 		return new Neo4jTransactionManager(sessionFactory());
 	}
 

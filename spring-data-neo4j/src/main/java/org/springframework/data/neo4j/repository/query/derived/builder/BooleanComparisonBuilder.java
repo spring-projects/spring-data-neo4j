@@ -11,7 +11,6 @@
  *
  */
 
-
 package org.springframework.data.neo4j.repository.query.derived.builder;
 
 import static org.springframework.data.repository.query.parser.Part.Type.*;

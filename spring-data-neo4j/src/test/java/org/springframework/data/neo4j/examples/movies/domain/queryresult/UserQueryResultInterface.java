@@ -19,19 +19,19 @@ import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 
 /**
- * Example interface annotated with {@link QueryResult} to test mapping onto proxied objects, where only getter methods are
- * needed to define the mapped result columns.
+ * Example interface annotated with {@link QueryResult} to test mapping onto proxied objects, where only getter methods
+ * are needed to define the mapped result columns.
  *
  * @see UserRepository
  */
 @QueryResult
 public interface UserQueryResultInterface {
 
-    @Property(name = "user.name")
-    String getNameOfUser();
+	@Property(name = "user.name")
+	String getNameOfUser();
 
-    int getAgeOfUser();
+	int getAgeOfUser();
 
-    User getUser();
+	User getUser();
 
 }

@@ -13,7 +13,6 @@
 
 package org.springframework.data.neo4j.template;
 
-
 import static org.springframework.data.neo4j.util.IterableUtils.*;
 
 import java.util.Collection;
@@ -35,12 +34,12 @@ import org.springframework.data.neo4j.transaction.SessionFactoryUtils;
 import org.springframework.util.Assert;
 
 /**
- * Spring Data template for Neo4j, which is an implementation of {@link Neo4jOperations}.  Indeed, framework users are encouraged
- * to favour coding against the {@link Neo4jOperations} interface rather than the {@link Neo4jTemplate} directly, as the
- * interface API will be more consistent over time and enhanced proxy objects of the interface may actually be created by Spring
- * for auto-wiring instead of this template.
- * Please note also that all methods on this class throw a {@link DataAccessException} if any underlying {@code Exception} is
- * thrown. Since {@link DataAccessException} is a runtime exception, this is not documented at the method level.
+ * Spring Data template for Neo4j, which is an implementation of {@link Neo4jOperations}. Indeed, framework users are
+ * encouraged to favour coding against the {@link Neo4jOperations} interface rather than the {@link Neo4jTemplate}
+ * directly, as the interface API will be more consistent over time and enhanced proxy objects of the interface may
+ * actually be created by Spring for auto-wiring instead of this template. Please note also that all methods on this
+ * class throw a {@link DataAccessException} if any underlying {@code Exception} is thrown. Since
+ * {@link DataAccessException} is a runtime exception, this is not documented at the method level.
  *
  * @author Adam George
  * @author Michal Bachman
@@ -58,8 +57,7 @@ public class Neo4jTemplate implements Neo4jOperations, InitializingBean {
 	/**
 	 * Create a new Neo4jTemplate instance.
 	 */
-	public Neo4jTemplate() {
-	}
+	public Neo4jTemplate() {}
 
 	/**
 	 * Constructs a new {@link Neo4jTemplate} based on the given Neo4j OGM {@link SessionFactory}.
@@ -87,7 +85,6 @@ public class Neo4jTemplate implements Neo4jOperations, InitializingBean {
 			throw new IllegalArgumentException("Property 'sessionFactory' is required");
 		}
 	}
-
 
 	@Override
 	public <T> T execute(Neo4jCallback<T> action) throws DataAccessException {
@@ -185,7 +182,8 @@ public class Neo4jTemplate implements Neo4jOperations, InitializingBean {
 	}
 
 	@Override
-	public <T> Collection<T> loadAll(final Class<T> type, final SortOrder sortOrder, final Pagination pagination, final int depth) {
+	public <T> Collection<T> loadAll(final Class<T> type, final SortOrder sortOrder, final Pagination pagination,
+			final int depth) {
 		return execute(new Neo4jCallback<Collection<T>>() {
 			@Override
 			public Collection<T> doInNeo4jOgm(Session session) {
@@ -214,7 +212,8 @@ public class Neo4jTemplate implements Neo4jOperations, InitializingBean {
 	}
 
 	@Override
-	public <T> Collection<T> loadAll(final Class<T> type, final Collection<Long> ids, final SortOrder sortOrder, final int depth) {
+	public <T> Collection<T> loadAll(final Class<T> type, final Collection<Long> ids, final SortOrder sortOrder,
+			final int depth) {
 		return execute(new Neo4jCallback<Collection<T>>() {
 			@Override
 			public Collection<T> doInNeo4jOgm(Session session) {
@@ -264,7 +263,8 @@ public class Neo4jTemplate implements Neo4jOperations, InitializingBean {
 	}
 
 	@Override
-	public <T> T loadByProperty(final Class<T> type, final String propertyName, final Object propertyValue, final int depth) {
+	public <T> T loadByProperty(final Class<T> type, final String propertyName, final Object propertyValue,
+			final int depth) {
 		return execute(new Neo4jCallback<T>() {
 			@Override
 			public T doInNeo4jOgm(Session session) {
@@ -312,7 +312,8 @@ public class Neo4jTemplate implements Neo4jOperations, InitializingBean {
 		});
 	}
 
-	public <T> Collection<T> loadAllByProperty(final Class<T> type, final String name, final Object value, final int depth) {
+	public <T> Collection<T> loadAllByProperty(final Class<T> type, final String name, final Object value,
+			final int depth) {
 		return execute(new Neo4jCallback<Collection<T>>() {
 			@Override
 			public Collection<T> doInNeo4jOgm(Session session) {
@@ -353,7 +354,6 @@ public class Neo4jTemplate implements Neo4jOperations, InitializingBean {
 		});
 	}
 
-
 	@Override
 	public <T> T save(final T entity) {
 		return execute(new Neo4jCallback<T>() {
@@ -386,7 +386,8 @@ public class Neo4jTemplate implements Neo4jOperations, InitializingBean {
 	}
 
 	@Override
-	public <T> Iterable<T> queryForObjects(final Class<T> objectType, final String cypher, final Map<String, ?> parameters) {
+	public <T> Iterable<T> queryForObjects(final Class<T> objectType, final String cypher,
+			final Map<String, ?> parameters) {
 		return execute(new Neo4jCallback<Iterable<T>>() {
 			@Override
 			public Iterable<T> doInNeo4jOgm(Session session) {

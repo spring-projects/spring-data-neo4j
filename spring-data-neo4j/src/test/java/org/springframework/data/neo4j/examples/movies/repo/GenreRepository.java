@@ -21,5 +21,4 @@ import org.springframework.stereotype.Repository;
  * @author Michal Bachman
  */
 @Repository
-public interface GenreRepository extends Neo4jRepository<Genre, Long> {
-}
+public interface GenreRepository extends Neo4jRepository<Genre, Long> {}

@@ -39,7 +39,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 /**
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {TransactionalRepositoryIT.Config.class})
+@ContextConfiguration(classes = { TransactionalRepositoryIT.Config.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class TransactionalRepositoryIT extends MultiDriverTestClass {
 

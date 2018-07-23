@@ -30,12 +30,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
- * Delegate for creating a shareable Neo4j OGM {@link Session}
- * reference for a given {@link SessionFactory}.
- * <p>A shared Session will behave just like a Session fetched from
- * an application SessionFactory.
- * It will delegate all calls to the current transactional Session, if any;
- * otherwise it will fall back to a newly created Session per operation.
+ * Delegate for creating a shareable Neo4j OGM {@link Session} reference for a given {@link SessionFactory}.
+ * <p>
+ * A shared Session will behave just like a Session fetched from an application SessionFactory. It will delegate all
+ * calls to the current transactional Session, if any; otherwise it will fall back to a newly created Session per
+ * operation.
  *
  * @author Mark Angrish
  * @see Neo4jTransactionManager
@@ -54,22 +53,18 @@ public class SharedSessionCreator {
 	/**
 	 * Create a transactional Session proxy for the given SessionFactory.
 	 *
-	 * @param sessionFactory SessionFactory to obtain Sessions from as needed
-	 * {@code createSession} call (may be {@code null})
-	 * Session. Allows the addition or specification of proprietary interfaces.
+	 * @param sessionFactory SessionFactory to obtain Sessions from as needed {@code createSession} call (may be
+	 *          {@code null}) Session. Allows the addition or specification of proprietary interfaces.
 	 * @return a shareable transactional Session proxy
 	 */
 	public static Session createSharedSession(SessionFactory sessionFactory) {
 
-		return (Session) Proxy.newProxyInstance(
-				SharedSessionCreator.class.getClassLoader(),
-				new Class<?>[]{Session.class}, new SharedSessionInvocationHandler(sessionFactory));
+		return (Session) Proxy.newProxyInstance(SharedSessionCreator.class.getClassLoader(),
+				new Class<?>[] { Session.class }, new SharedSessionInvocationHandler(sessionFactory));
 	}
 
-
 	/**
-	 * Invocation handler that delegates all calls to the current
-	 * transactional Session, if any; else, it will fall back
+	 * Invocation handler that delegates all calls to the current transactional Session, if any; else, it will fall back
 	 * to a newly created Session per operation.
 	 */
 	private static class SharedSessionInvocationHandler implements InvocationHandler {
@@ -83,7 +78,6 @@ public class SharedSessionCreator {
 			this.targetFactory = target;
 			this.proxyClassLoader = this.targetFactory.getClass().getClassLoader();
 		}
-
 
 		@Override
 		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -100,8 +94,7 @@ public class SharedSessionCreator {
 				return "Shared Session proxy for target factory [" + targetFactory + "]";
 			} else if (method.getName().equals("beginTransaction")) {
 				throw new IllegalStateException(
-						"Not allowed to create transaction on shared Session - " +
-								"use Spring transactions instead");
+						"Not allowed to create transaction on shared Session - " + "use Spring transactions instead");
 			}
 
 			// Determine current Session: either the transactional one
@@ -109,11 +102,11 @@ public class SharedSessionCreator {
 			Session target = SessionFactoryUtils.getSession(this.targetFactory);
 
 			if (transactionRequiringMethods.contains(method.getName())) {
-				if (target == null || (!TransactionSynchronizationManager.isActualTransactionActive()
-						&& target.getTransaction() != null
-						&& EnumSet.of(CLOSED, COMMITTED, ROLLEDBACK).contains(target.getTransaction().status()))) {
-					throw new IllegalStateException("No Session with actual transaction available " +
-							"for current thread - cannot reliably process '" + method.getName() + "' call");
+				if (target == null
+						|| (!TransactionSynchronizationManager.isActualTransactionActive() && target.getTransaction() != null
+								&& EnumSet.of(CLOSED, COMMITTED, ROLLEDBACK).contains(target.getTransaction().status()))) {
+					throw new IllegalStateException("No Session with actual transaction available "
+							+ "for current thread - cannot reliably process '" + method.getName() + "' call");
 				}
 			}
 

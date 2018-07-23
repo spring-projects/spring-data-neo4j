@@ -12,8 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class EventPublisher extends EventListenerAdapter {
 
-	@Autowired
-	private ApplicationEventPublisher publisher;
+	@Autowired private ApplicationEventPublisher publisher;
 
 	@Override
 	public void onPreSave(Event event) {

@@ -17,6 +17,6 @@ package org.springframework.data.neo4j.extensions.domain;
  */
 public class User {
 
-    Long id;
+	Long id;
 
 }

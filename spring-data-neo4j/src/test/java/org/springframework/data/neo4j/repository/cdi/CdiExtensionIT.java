@@ -38,25 +38,25 @@ public class CdiExtensionIT extends MultiDriverTestClass {
 
 	static CdiTestContainer container;
 
-    @BeforeClass
-    public static void setUp() throws Exception {
+	@BeforeClass
+	public static void setUp() throws Exception {
 
-        // Prevent the Jersey extension to interact with the InitialContext
-        System.setProperty("com.sun.jersey.server.impl.cdi.lookupExtensionInBeanManager", "true");
+		// Prevent the Jersey extension to interact with the InitialContext
+		System.setProperty("com.sun.jersey.server.impl.cdi.lookupExtensionInBeanManager", "true");
 
-        setupMultiDriverTestEnvironment();
+		setupMultiDriverTestEnvironment();
 
-        container = CdiTestContainerLoader.getCdiContainer();
-        container.bootContainer();
-    }
+		container = CdiTestContainerLoader.getCdiContainer();
+		container.bootContainer();
+	}
 
-    @AfterClass
-    public static void tearDown() throws Exception {
+	@AfterClass
+	public static void tearDown() throws Exception {
 
-        container.shutdownContainer();
+		container.shutdownContainer();
 
-        tearDownMultiDriverTestEnvironment();
-    }
+		tearDownMultiDriverTestEnvironment();
+	}
 
 	/**
 	 * @see DATAGRAPH-879

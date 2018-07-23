@@ -15,41 +15,41 @@ package org.springframework.data.neo4j.integration.conversion.domain;
 
 public class MonetaryAmount {
 
-    private final int amount;
+	private final int amount;
 
-    public MonetaryAmount(int pounds, int pence) {
-        this.amount = pounds * 100 + pence;
-    }
+	public MonetaryAmount(int pounds, int pence) {
+		this.amount = pounds * 100 + pence;
+	}
 
-    public int getAmountAsSubUnits() {
-        return this.amount;
-    }
+	public int getAmountAsSubUnits() {
+		return this.amount;
+	}
 
-    @Override
-    public int hashCode() {
-        final int prime = 17;
-        int result = 1;
-        result = prime * result + (amount ^ (amount >>> 32));
-        return result;
-    }
+	@Override
+	public int hashCode() {
+		final int prime = 17;
+		int result = 1;
+		result = prime * result + (amount ^ (amount >>> 32));
+		return result;
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (!(obj instanceof MonetaryAmount))
-            return false;
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof MonetaryAmount))
+			return false;
 
-        MonetaryAmount other = (MonetaryAmount) obj;
-        return this.amount == other.amount;
-    }
+		MonetaryAmount other = (MonetaryAmount) obj;
+		return this.amount == other.amount;
+	}
 
-    @Override
-    public String toString() {
-        int pence = this.amount % 100;
-        return "£" + (this.amount / 100) + "." + (pence < 10 ? "0" + pence : pence);
-    }
+	@Override
+	public String toString() {
+		int pence = this.amount % 100;
+		return "£" + (this.amount / 100) + "." + (pence < 10 ? "0" + pence : pence);
+	}
 
 }

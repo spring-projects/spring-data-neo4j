@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.transactions.domain.User;
 import org.springframework.data.neo4j.transactions.repo.UserRepository;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -26,19 +25,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class ServiceA {
 
-    @Autowired
-    private UserRepository userRepository;
+	@Autowired private UserRepository userRepository;
 
-    @Autowired
-    private ServiceB serviceB;
+	@Autowired private ServiceB serviceB;
 
-    @Transactional(rollbackFor = Exception.class)
-    public void run() throws Exception {
-        saveBilbo();
-        serviceB.update();
-    }
+	@Transactional(rollbackFor = Exception.class)
+	public void run() throws Exception {
+		saveBilbo();
+		serviceB.update();
+	}
 
-    public User saveBilbo() {
-        return userRepository.save(new User("Bilbo baggins"));
-    }
+	public User saveBilbo() {
+		return userRepository.save(new User("Bilbo baggins"));
+	}
 }
