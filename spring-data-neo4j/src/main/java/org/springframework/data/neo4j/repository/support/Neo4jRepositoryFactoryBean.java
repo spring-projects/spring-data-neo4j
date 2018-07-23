@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -32,14 +32,15 @@ import org.springframework.util.Assert;
  * @author Vince Bickers
  * @author Luanne Misquitta
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable> extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
 	private Session session;
-	
+
 	/**
 	 * Creates a new {@link Neo4jRepositoryFactoryBean} for the given repository interface.
-	 * 
+	 *
 	 * @param repositoryInterface must not be {@literal null}.
 	 */
 	public Neo4jRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
@@ -66,6 +67,10 @@ public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID exten
 		super.afterPropertiesSet();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport#doCreateRepositoryFactory()
+	 */
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
 		return createRepositoryFactory(session);
@@ -74,6 +79,7 @@ public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID exten
 	/**
 	 * Returns a {@link RepositoryFactorySupport}.
 	 *
+	 * @deprecated since 5.1.1, will be removed in 5.2.x
 	 * @param session
 	 * @return
 	 */

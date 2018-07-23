@@ -21,17 +21,44 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.util.Assert;
 
 /**
  * {@link FactoryBean} to setup {@link Neo4jMappingContext} instances from Spring configuration.
  *
  * @author Mark Angrish
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
 public class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMappingContext> implements
 		ApplicationContextAware {
 
+	private final String sessionFactoryBeanName;
+
 	private ListableBeanFactory beanFactory;
+
+	/**
+	 * Uses the default session factory name
+	 * {@link Neo4jRepositoryConfigurationExtension#DEFAULT_SESSION_FACTORY_BEAN_NAME} for finding the session factory
+	 * passed to the {@link Neo4jMappingContext}.
+	 *
+	 * @deprecated since 5.1.1, use {@link #Neo4jMappingContextFactoryBean(String)} instead
+	 */
+	public Neo4jMappingContextFactoryBean() {
+		this(Neo4jRepositoryConfigurationExtension.DEFAULT_SESSION_FACTORY_BEAN_NAME);
+	}
+
+	/**
+	 * Configures the mapping context with a named {@link SessionFactory}.
+	 *
+	 * @param sessionFactoryBeanName must not be {@literal null} or empty.
+	 * @since 5.1.0
+	 */
+	public Neo4jMappingContextFactoryBean(String sessionFactoryBeanName) {
+
+		Assert.hasText(sessionFactoryBeanName, "SessionFactoryBeanName must not be null nor empty!");
+		this.sessionFactoryBeanName = sessionFactoryBeanName;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -57,7 +84,8 @@ public class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMap
 	 */
 	@Override
 	protected Neo4jMappingContext createInstance() {
-		SessionFactory sessionFactory = beanFactory.getBean(SessionFactory.class);
+
+		SessionFactory sessionFactory = beanFactory.getBean(this.sessionFactoryBeanName, SessionFactory.class);
 		Neo4jMappingContext context = new Neo4jMappingContext(sessionFactory.metaData());
 		context.initialize();
 		return context;
