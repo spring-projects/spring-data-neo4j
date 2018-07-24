@@ -11,7 +11,6 @@
  *
  */
 
-
 package org.springframework.data.neo4j.examples.restaurants.domain;
 
 import java.util.ArrayList;
@@ -32,28 +31,23 @@ import org.springframework.data.neo4j.conversion.PointConverter;
  */
 public class Restaurant implements Comparable<Restaurant> {
 
-	@Id
-	@GeneratedValue
-	private Long id;
+	@Id @GeneratedValue private Long id;
 	private String name;
-	@Convert(PointConverter.class)
-	private Point location;
+	@Convert(PointConverter.class) private Point location;
 	private int zip;
 	private double score;
 	private String description;
 	private boolean halal;
 
-	@Relationship(type = "REGULAR_DINER", direction = Relationship.OUTGOING)
-	private List<Diner> regularDiners = new ArrayList<>();
+	@Relationship(type = "REGULAR_DINER",
+			direction = Relationship.OUTGOING) private List<Diner> regularDiners = new ArrayList<>();
 
-	@Relationship(type = "SIMILAR_RESTAURANT", direction = Relationship.OUTGOING)
-	private List<Restaurant> similarRestaurants = new ArrayList<>();
+	@Relationship(type = "SIMILAR_RESTAURANT",
+			direction = Relationship.OUTGOING) private List<Restaurant> similarRestaurants = new ArrayList<>();
 
-	@DateString
-	private Date launchDate;
+	@DateString private Date launchDate;
 
-	public Restaurant() {
-	}
+	public Restaurant() {}
 
 	public Restaurant(String name, Point location, int zip) {
 		this.name = name;
@@ -145,10 +139,7 @@ public class Restaurant implements Comparable<Restaurant> {
 
 	@Override
 	public String toString() {
-		return "Restaurant{" +
-				"name='" + name + '\'' +
-				", score=" + score +
-				'}';
+		return "Restaurant{" + "name='" + name + '\'' + ", score=" + score + '}';
 	}
 
 	@Override

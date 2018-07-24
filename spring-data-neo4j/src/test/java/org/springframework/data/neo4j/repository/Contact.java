@@ -13,12 +13,9 @@ import org.neo4j.ogm.annotation.NodeEntity;
 @NodeEntity
 public abstract class Contact {
 
-	@Id
-	@GeneratedValue
-	protected Long id;
+	@Id @GeneratedValue protected Long id;
 
-	@Index(unique = true)
-	private String uuid;
+	@Index(unique = true) private String uuid;
 
 	public Contact() {
 		this.uuid = UUID.randomUUID().toString();

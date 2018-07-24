@@ -13,12 +13,12 @@
 
 package org.springframework.data.neo4j.bookmark;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 /**
  * Implementation of the bookmark manager using Caffeine cache
@@ -32,10 +32,7 @@ public class CaffeineBookmarkManager implements BookmarkManager {
 	private final Cache<String, String> cache;
 
 	public CaffeineBookmarkManager() {
-		cache = Caffeine.newBuilder()
-				.maximumSize(10_000)
-				.expireAfterWrite(1, TimeUnit.MINUTES)
-				.build();
+		cache = Caffeine.newBuilder().maximumSize(10_000).expireAfterWrite(1, TimeUnit.MINUTES).build();
 	}
 
 	/**

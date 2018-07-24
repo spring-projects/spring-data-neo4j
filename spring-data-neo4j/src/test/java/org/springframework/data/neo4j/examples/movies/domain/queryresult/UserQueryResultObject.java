@@ -13,37 +13,33 @@
 
 package org.springframework.data.neo4j.examples.movies.domain.queryresult;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-
-import org.neo4j.ogm.annotation.Property;
 import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 
 /**
- * Example interface annotated with {@link QueryResult} to test mapping onto proxied objects, where only getter methods are
- * needed to define the mapped result columns.
+ * Example interface annotated with {@link QueryResult} to test mapping onto proxied objects, where only getter methods
+ * are needed to define the mapped result columns.
  *
  * @see UserRepository
  */
 @QueryResult
 public class UserQueryResultObject {
 
-    private String name;
-    private int ageOfUser;
-    private User user;
+	private String name;
+	private int ageOfUser;
+	private User user;
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public int getAgeOfUser() {
-        return ageOfUser;
-    }
+	public int getAgeOfUser() {
+		return ageOfUser;
+	}
 
-    public User getUser() {
-        return user;
-    }
+	public User getUser() {
+		return user;
+	}
 
 }

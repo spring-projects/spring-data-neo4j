@@ -13,19 +13,22 @@
 
 package org.springframework.data.neo4j.annotation;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 import org.springframework.context.annotation.Import;
 import org.springframework.data.neo4j.bookmark.BookmarkManagementConfiguration;
-
-import java.lang.annotation.*;
 
 /**
  * Enables bookmark management
  * <p>
  * Bean implementing {@link org.springframework.data.neo4j.bookmark.BookmarkManager} interface needs to exist in the
- * context. Default implementation {@link org.springframework.data.neo4j.bookmark.CaffeineBookmarkManager} exists.
- * Use scope of the bean to control how bookmarks are managed.
- * singleton - suitable for application wide bookmarks, e.g. fat clients
- * request,session - suitable for web applications
+ * context. Default implementation {@link org.springframework.data.neo4j.bookmark.CaffeineBookmarkManager} exists. Use
+ * scope of the bean to control how bookmarks are managed. singleton - suitable for application wide bookmarks, e.g. fat
+ * clients request,session - suitable for web applications
  * <p>
  * NOTE: Only usable with OGM Bolt driver.
  *

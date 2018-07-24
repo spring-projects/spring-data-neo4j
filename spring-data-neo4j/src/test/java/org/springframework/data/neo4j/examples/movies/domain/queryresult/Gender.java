@@ -15,6 +15,6 @@ package org.springframework.data.neo4j.examples.movies.domain.queryresult;
 
 public enum Gender {
 
-    FEMALE, MALE;
+	FEMALE, MALE;
 
 }

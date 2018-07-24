@@ -129,8 +129,8 @@ public class SimpleNeo4jRepositoryTests {
 	private void prepareSessionMock(PageRequest requestedPage, long amountOfElementsInDatabase) {
 		List<Object> databaseResult = new ArrayList<>();
 
-		long countOfElementsOnCurrentPage = Math.min(requestedPage.getPageSize(), amountOfElementsInDatabase
-				- (requestedPage.getPageSize() * requestedPage.getPageNumber()));
+		long countOfElementsOnCurrentPage = Math.min(requestedPage.getPageSize(),
+				amountOfElementsInDatabase - (requestedPage.getPageSize() * requestedPage.getPageNumber()));
 
 		for (int i = 0; i < countOfElementsOnCurrentPage; i++) {
 			databaseResult.add("entry");

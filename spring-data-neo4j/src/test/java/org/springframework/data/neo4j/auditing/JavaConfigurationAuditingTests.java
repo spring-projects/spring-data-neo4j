@@ -48,20 +48,19 @@ public class JavaConfigurationAuditingTests extends MultiDriverTestClass {
 	@EnableNeo4jRepositories(basePackageClasses = UserRepository.class)
 	static class Neo4jConfiguration {
 
-
 		@Bean
 		public SessionFactory sessionFactory() {
-		    return new SessionFactory(getBaseConfiguration().build(), User.class.getPackage().getName());
+			return new SessionFactory(getBaseConfiguration().build(), User.class.getPackage().getName());
 		}
 
 		@Bean
 		public Neo4jTransactionManager transactionManager() {
-		    return new Neo4jTransactionManager();
+			return new Neo4jTransactionManager();
 		}
 
 		@Bean
 		public AuditorAware<String> auditorAware() {
-		    return new AuditorAware<String>() {
+			return new AuditorAware<String>() {
 
 				@Override
 				public Optional<String> getCurrentAuditor() {
@@ -71,8 +70,7 @@ public class JavaConfigurationAuditingTests extends MultiDriverTestClass {
 		}
 	}
 
-	@Autowired
-	private UserRepository userRepository;
+	@Autowired private UserRepository userRepository;
 
 	@Test
 	public void whenSaveEntity_thenSetCreatedAndCreatedBy() throws Exception {

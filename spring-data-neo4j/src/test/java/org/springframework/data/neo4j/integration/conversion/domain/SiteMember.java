@@ -29,39 +29,35 @@ import org.neo4j.ogm.typeconversion.ByteArrayBase64Converter;
  */
 public class SiteMember {
 
-    @Id
-    @GeneratedValue
-    private Long id;
+	@Id @GeneratedValue private Long id;
 
-    @Convert(ByteArrayBase64Converter.class)
-    private byte[] profilePictureData;
+	@Convert(ByteArrayBase64Converter.class) private byte[] profilePictureData;
 
-    private BigInteger years;
+	private BigInteger years;
 
-    @Property(name = "rounding")
-    private List<RoundingMode> roundingModes;
+	@Property(name = "rounding") private List<RoundingMode> roundingModes;
 
-    public byte[] getProfilePictureData() {
-        return this.profilePictureData;
-    }
+	public byte[] getProfilePictureData() {
+		return this.profilePictureData;
+	}
 
-    public void setProfilePictureData(byte[] profilePictureData) {
-        this.profilePictureData = profilePictureData;
-    }
+	public void setProfilePictureData(byte[] profilePictureData) {
+		this.profilePictureData = profilePictureData;
+	}
 
-    public BigInteger getYears() {
-        return years;
-    }
+	public BigInteger getYears() {
+		return years;
+	}
 
-    public void setYears(BigInteger years) {
-        this.years = years;
-    }
+	public void setYears(BigInteger years) {
+		this.years = years;
+	}
 
-    public List<RoundingMode> getRoundingModes() {
-        return roundingModes;
-    }
+	public List<RoundingMode> getRoundingModes() {
+		return roundingModes;
+	}
 
-    public void setRoundingModes(List<RoundingMode> roundingModes) {
-        this.roundingModes = roundingModes;
-    }
+	public void setRoundingModes(List<RoundingMode> roundingModes) {
+		this.roundingModes = roundingModes;
+	}
 }

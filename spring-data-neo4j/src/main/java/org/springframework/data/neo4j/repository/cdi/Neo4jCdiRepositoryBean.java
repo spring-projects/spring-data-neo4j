@@ -35,33 +35,33 @@ import org.springframework.data.repository.config.CustomRepositoryImplementation
  * @since 4.2
  */
 public class Neo4jCdiRepositoryBean<T> extends CdiRepositoryBean<T> {
-    private final Bean<Session> sessionBean;
+	private final Bean<Session> sessionBean;
 
-    /**
-     * Creates a new {@link Neo4jCdiRepositoryBean}.
-     *
-     * @param sessionBean must not be {@literal null}.
-     * @param qualifiers must not be {@literal null}.
-     * @param repositoryType must not be {@literal null}.
-     * @param beanManager must not be {@literal null}.
-     * @param detector detector for the custom {@link org.springframework.data.repository.Repository} implementations
-     *        {@link CustomRepositoryImplementationDetector}, can be {@literal null}.
-     */
-    public Neo4jCdiRepositoryBean(Bean<Session> sessionBean, Set<Annotation> qualifiers, Class<T> repositoryType,
-                                  BeanManager beanManager, Optional<CustomRepositoryImplementationDetector> detector) {
-        super(qualifiers, repositoryType, beanManager, detector);
-        this.sessionBean = sessionBean;
-    }
+	/**
+	 * Creates a new {@link Neo4jCdiRepositoryBean}.
+	 *
+	 * @param sessionBean must not be {@literal null}.
+	 * @param qualifiers must not be {@literal null}.
+	 * @param repositoryType must not be {@literal null}.
+	 * @param beanManager must not be {@literal null}.
+	 * @param detector detector for the custom {@link org.springframework.data.repository.Repository} implementations
+	 *          {@link CustomRepositoryImplementationDetector}, can be {@literal null}.
+	 */
+	public Neo4jCdiRepositoryBean(Bean<Session> sessionBean, Set<Annotation> qualifiers, Class<T> repositoryType,
+			BeanManager beanManager, Optional<CustomRepositoryImplementationDetector> detector) {
+		super(qualifiers, repositoryType, beanManager, detector);
+		this.sessionBean = sessionBean;
+	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.cdi.CdiRepositoryBean#create(javax.enterprise.context.spi.CreationalContext, java.lang.Class)
 	 */
-    @Override
+	@Override
 	protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType) {
 
-        Session session = getDependencyInstance(sessionBean, Session.class);
+		Session session = getDependencyInstance(sessionBean, Session.class);
 
 		return create(() -> new Neo4jRepositoryFactory(session), repositoryType);
-    }
+	}
 }

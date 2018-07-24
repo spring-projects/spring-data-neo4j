@@ -32,33 +32,27 @@ import org.neo4j.ogm.typeconversion.UuidStringConverter;
 @NodeEntity
 public class Cinema {
 
-    @Id
-    @GeneratedValue
-    private Long id;
+	@Id @GeneratedValue private Long id;
 
-    @Convert(UuidStringConverter.class)
-    @Index(unique = true)
-    private UUID uuid;
+	@Convert(UuidStringConverter.class) @Index(unique = true) private UUID uuid;
 
-    private String name;
+	private String name;
 
-    @Relationship(direction = Relationship.INCOMING)
-    private Set<User> visited;
+	@Relationship(direction = Relationship.INCOMING) private Set<User> visited;
 
-    public Cinema() {
-    }
+	public Cinema() {}
 
-    public Cinema(String name) {
-        this.visited = new HashSet<>();
-        this.uuid = UUID.randomUUID();
-        this.name = name;
-    }
+	public Cinema(String name) {
+		this.visited = new HashSet<>();
+		this.uuid = UUID.randomUUID();
+		this.name = name;
+	}
 
-    public void addVisitor(User user) {
-        visited.add(user);
-    }
+	public void addVisitor(User user) {
+		visited.add(user);
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 }

@@ -53,15 +53,16 @@ class CustomResultConverter implements Converter<Object, Object> {
 			return source;
 		}
 		if (returnedType.isInterface()) {
-			Class<?>[] interfaces = new Class<?>[]{returnedType};
-			return newProxyInstance(returnedType.getClassLoader(), interfaces, new QueryResultProxy((Map<String, Object>) source));
+			Class<?>[] interfaces = new Class<?>[] { returnedType };
+			return newProxyInstance(returnedType.getClassLoader(), interfaces,
+					new QueryResultProxy((Map<String, Object>) source));
 		}
 
 		SingleUseEntityMapper mapper;
 		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
 			OgmReflectionEntityInstantiator entityInstantiator = new OgmReflectionEntityInstantiator(metaData);
-			Optional<Constructor<?>> optionalConstructor = ReflectionUtils
-					.findConstructor(SingleUseEntityMapper.class, metaData, entityInstantiator);
+			Optional<Constructor<?>> optionalConstructor = ReflectionUtils.findConstructor(SingleUseEntityMapper.class,
+					metaData, entityInstantiator);
 			// the constructor must exist
 			Constructor<?> constructor = optionalConstructor.get();
 			mapper = (SingleUseEntityMapper) BeanUtils.instantiateClass(constructor, metaData, entityInstantiator);

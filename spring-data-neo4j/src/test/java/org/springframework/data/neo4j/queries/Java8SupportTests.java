@@ -58,14 +58,13 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Nicolas Mervaillie
  */
-@ContextConfiguration(classes = {Java8SupportTests.MoviesContext.class})
+@ContextConfiguration(classes = { Java8SupportTests.MoviesContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class Java8SupportTests extends MultiDriverTestClass {
 
 	private static GraphDatabaseService graphDatabaseService;
 
-	@Autowired
-	private CinemaStreamingRepository cinemaRepository;
+	@Autowired private CinemaStreamingRepository cinemaRepository;
 
 	@BeforeClass
 	public static void beforeClass() {
@@ -78,7 +77,8 @@ public class Java8SupportTests extends MultiDriverTestClass {
 	}
 
 	public void setup() {
-		String[] names = new String[]{"Picturehouse", "Regal", "Ritzy", "Metro", "Inox", "PVR", "Cineplex", "Landmark", "Rainbow", "Movietime"};
+		String[] names = new String[] { "Picturehouse", "Regal", "Ritzy", "Metro", "Inox", "PVR", "Cineplex", "Landmark",
+				"Rainbow", "Movietime" };
 		for (String name : names) {
 			Cinema cinema = new Cinema(name);
 			cinema.setLocation("London");
@@ -114,7 +114,8 @@ public class Java8SupportTests extends MultiDriverTestClass {
 	public void shouldStreamCinemasWithSort() {
 		setup();
 
-		Collection<Cinema> allCinemas = cinemaRepository.getCinemasSortedByName(new Sort("n.name")).collect(Collectors.toList());
+		Collection<Cinema> allCinemas = cinemaRepository.getCinemasSortedByName(new Sort("n.name"))
+				.collect(Collectors.toList());
 
 		assertEquals(10, allCinemas.size());
 		assertEquals("Cineplex", allCinemas.iterator().next().getName());
@@ -132,7 +133,7 @@ public class Java8SupportTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@ComponentScan({"org.springframework.data.neo4j.examples.movies.service"})
+	@ComponentScan({ "org.springframework.data.neo4j.examples.movies.service" })
 	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
 	@EnableTransactionManagement
 	static class MoviesContext {
@@ -144,7 +145,8 @@ public class Java8SupportTests extends MultiDriverTestClass {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.examples.movies.domain");
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.examples.movies.domain");
 		}
 	}
 }

@@ -47,7 +47,8 @@ public class SessionFactoryUtilsTests {
 
 	@Test
 	public void translateToDataIntegrityException() {
-		CypherException ce = new CypherException("Cypher Exception caused by:", "Neo.ClientError.Schema.ConstraintValidationFailed", "The reason");
+		CypherException ce = new CypherException("Cypher Exception caused by:",
+				"Neo.ClientError.Schema.ConstraintValidationFailed", "The reason");
 		DataAccessException translatedException = SessionFactoryUtils.convertOgmAccessException(ce);
 		expectExceptionWithCauseMessage(translatedException, DataIntegrityViolationException.class, null);
 	}
@@ -69,14 +70,13 @@ public class SessionFactoryUtilsTests {
 		assertThat(SessionFactoryUtils.convertOgmAccessException(exception), is(nullValue()));
 	}
 
-
 	private static void expectExceptionWithCauseMessage(NestedRuntimeException e,
-														Class<? extends NestedRuntimeException> type) {
+			Class<? extends NestedRuntimeException> type) {
 		expectExceptionWithCauseMessage(e, type, null);
 	}
 
 	private static void expectExceptionWithCauseMessage(NestedRuntimeException e,
-														Class<? extends NestedRuntimeException> type, String message) {
+			Class<? extends NestedRuntimeException> type, String message) {
 
 		assertThat(e, is(instanceOf(type)));
 

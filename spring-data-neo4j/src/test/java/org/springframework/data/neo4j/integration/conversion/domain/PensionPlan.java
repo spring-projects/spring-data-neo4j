@@ -26,44 +26,41 @@ import org.neo4j.ogm.annotation.typeconversion.Convert;
 @NodeEntity
 public class PensionPlan {
 
-    @Id
-    @GeneratedValue
-    private Long pensionPlanId;
+	@Id @GeneratedValue private Long pensionPlanId;
 
-    @Convert(graphPropertyType = Integer.class)
-    private MonetaryAmount fundValue;
+	@Convert(graphPropertyType = Integer.class) private MonetaryAmount fundValue;
 
-    @Convert(graphPropertyType = SiteMember.class) //nonsensical conversion for test purposes
-    private JavaElement javaElement;
+	@Convert(graphPropertyType = SiteMember.class) // nonsensical conversion for test purposes
+	private JavaElement javaElement;
 
-    private String providerName;
+	private String providerName;
 
-    PensionPlan() {
-        // default constructor for OGM
-    }
+	PensionPlan() {
+		// default constructor for OGM
+	}
 
-    public PensionPlan(MonetaryAmount fundValue, String providerName) {
-        this.fundValue = fundValue;
-        this.providerName = providerName;
-    }
+	public PensionPlan(MonetaryAmount fundValue, String providerName) {
+		this.fundValue = fundValue;
+		this.providerName = providerName;
+	}
 
-    public Long getPensionPlanId() {
-        return pensionPlanId;
-    }
+	public Long getPensionPlanId() {
+		return pensionPlanId;
+	}
 
-    public String getProviderName() {
-        return providerName;
-    }
+	public String getProviderName() {
+		return providerName;
+	}
 
-    public MonetaryAmount getFundValue() {
-        return fundValue;
-    }
+	public MonetaryAmount getFundValue() {
+		return fundValue;
+	}
 
-    public JavaElement getJavaElement() {
-        return javaElement;
-    }
+	public JavaElement getJavaElement() {
+		return javaElement;
+	}
 
-    public void setJavaElement(JavaElement javaElement) {
-        this.javaElement = javaElement;
-    }
+	public void setJavaElement(JavaElement javaElement) {
+		this.javaElement = javaElement;
+	}
 }

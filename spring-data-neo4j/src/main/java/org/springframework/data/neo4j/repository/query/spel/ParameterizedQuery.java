@@ -23,7 +23,7 @@ import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.data.repository.query.SpelQueryContext.EvaluatingSpelQueryContext;
 
 public class ParameterizedQuery {
-	
+
 	private final Parameters<?, ?> methodParameters;
 	private final SpelEvaluator spelEvaluator;
 

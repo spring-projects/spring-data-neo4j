@@ -43,29 +43,21 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Nicolas Mervaillie
  */
-@ContextConfiguration(classes = {ProjectionTests.MoviesContext.class})
+@ContextConfiguration(classes = { ProjectionTests.MoviesContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ProjectionTests extends MultiDriverTestClass {
 
-	@Autowired
-	private CinemaRepository cinemaRepository;
+	@Autowired private CinemaRepository cinemaRepository;
 
 	@BeforeClass
 	public static void setupData() {
 		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-		getGraphDatabaseService().execute("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) " +
-				" CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " +
-				" CREATE (u:User {name:'Michal'}) " +
-				" CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(p)" +
-				" CREATE (m1:Movie {name:'San Andreas'}) " +
-				" CREATE (m2:Movie {name:'Pitch Perfect 2'})" +
-				" CREATE (p)-[:BLOCKBUSTER]->(m1)" +
-				" CREATE (p)-[:SHOWS]->(m1)" +
-				" CREATE (p)-[:SHOWS]->(m2)" +
-				" CREATE (r)-[:BLOCKBUSTER]->(m2)" +
-				" CREATE (r)-[:SHOWS]->(m1)" +
-				" CREATE (r)-[:SHOWS]->(m2)" +
-				" CREATE (u)-[:RATED {stars :3}]->(m1)");
+		getGraphDatabaseService().execute("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
+				+ " CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " + " CREATE (u:User {name:'Michal'}) "
+				+ " CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(p)" + " CREATE (m1:Movie {name:'San Andreas'}) "
+				+ " CREATE (m2:Movie {name:'Pitch Perfect 2'})" + " CREATE (p)-[:BLOCKBUSTER]->(m1)"
+				+ " CREATE (p)-[:SHOWS]->(m1)" + " CREATE (p)-[:SHOWS]->(m2)" + " CREATE (r)-[:BLOCKBUSTER]->(m2)"
+				+ " CREATE (r)-[:SHOWS]->(m1)" + " CREATE (r)-[:SHOWS]->(m2)" + " CREATE (u)-[:RATED {stars :3}]->(m1)");
 	}
 
 	@AfterClass
@@ -106,7 +98,8 @@ public class ProjectionTests extends MultiDriverTestClass {
 		assertThat(theatres).extracting("name").containsExactly("Ritzy", "Picturehouse");
 	}
 
-	@Test @Ignore("To be reactivated after DATAGRAPH-1022 has been fixed")
+	@Test
+	@Ignore("To be reactivated after DATAGRAPH-1022 has been fixed")
 	@Transactional
 	public void shouldFindCinemasWithoutUsersAndCustomDepth() {
 
@@ -131,7 +124,7 @@ public class ProjectionTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@ComponentScan({"org.springframework.data.neo4j.examples.movies.service"})
+	@ComponentScan({ "org.springframework.data.neo4j.examples.movies.service" })
 	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
 	@EnableTransactionManagement
 	static class MoviesContext {
@@ -143,7 +136,8 @@ public class ProjectionTests extends MultiDriverTestClass {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.examples.movies.domain");
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.examples.movies.domain");
 		}
 	}
 

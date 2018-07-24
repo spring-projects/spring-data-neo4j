@@ -44,21 +44,19 @@ class OgmEntityInstantiatorAdapter implements EntityInstantiator {
 		instantiators = new EntityInstantiators();
 	}
 
-	@SuppressWarnings({"unchecked"})
+	@SuppressWarnings({ "unchecked" })
 	@Override
 	public <T> T createInstance(Class<T> clazz, Map<String, Object> propertyValues) {
 
-		Neo4jPersistentEntity<T> persistentEntity =
-				(Neo4jPersistentEntity<T>) context.getRequiredPersistentEntity(clazz);
-		org.springframework.data.convert.EntityInstantiator instantiator =
-				instantiators.getInstantiatorFor(persistentEntity);
+		Neo4jPersistentEntity<T> persistentEntity = (Neo4jPersistentEntity<T>) context.getRequiredPersistentEntity(clazz);
+		org.springframework.data.convert.EntityInstantiator instantiator = instantiators
+				.getInstantiatorFor(persistentEntity);
 
-		return instantiator
-				.createInstance(persistentEntity, getParameterProvider(propertyValues, conversionService));
+		return instantiator.createInstance(persistentEntity, getParameterProvider(propertyValues, conversionService));
 	}
 
-	private ParameterValueProvider<Neo4jPersistentProperty> getParameterProvider(
-			Map<String, Object> propertyValues, ConversionService conversionService) {
+	private ParameterValueProvider<Neo4jPersistentProperty> getParameterProvider(Map<String, Object> propertyValues,
+			ConversionService conversionService) {
 		return new Neo4jPropertyValueProvider(propertyValues, conversionService);
 	}
 
@@ -73,7 +71,7 @@ class OgmEntityInstantiatorAdapter implements EntityInstantiator {
 			this.propertyValues = propertyValues;
 		}
 
-		@SuppressWarnings({"unchecked"})
+		@SuppressWarnings({ "unchecked" })
 		@Override
 		@Nullable
 		public Object getParameterValue(PreferredConstructor.Parameter parameter) {

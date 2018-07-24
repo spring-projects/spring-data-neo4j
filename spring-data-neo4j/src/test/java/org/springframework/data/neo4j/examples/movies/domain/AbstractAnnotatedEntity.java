@@ -24,7 +24,5 @@ import org.neo4j.ogm.annotation.NodeEntity;
 @NodeEntity
 public abstract class AbstractAnnotatedEntity {
 
-    @Id
-    @GeneratedValue
-    Long nodeId;
+	@Id @GeneratedValue Long nodeId;
 }

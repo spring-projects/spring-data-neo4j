@@ -13,27 +13,27 @@
 
 package org.springframework.data.neo4j.examples.movies.service;
 
+import java.util.Collection;
+
 import org.springframework.data.neo4j.annotation.UseBookmark;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collection;
 
 /**
  * @author Michal Bachman
  */
 public interface UserService {
 
-    @Transactional
-    void updateUser(User user, String newName);
+	@Transactional
+	void updateUser(User user, String newName);
 
-    @Transactional
-    void notInterestedIn(Long userId, Long genreId);
+	@Transactional
+	void notInterestedIn(Long userId, Long genreId);
 
-    @Transactional
-    void saveWithTxAnnotationOnInterface(User user);
+	@Transactional
+	void saveWithTxAnnotationOnInterface(User user);
 
-    void saveWithTxAnnotationOnImpl(User user);
+	void saveWithTxAnnotationOnImpl(User user);
 
 	@UseBookmark
 	@Transactional

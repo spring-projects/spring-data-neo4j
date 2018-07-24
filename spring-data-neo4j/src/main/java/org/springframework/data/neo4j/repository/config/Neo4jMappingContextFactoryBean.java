@@ -29,8 +29,8 @@ import org.springframework.util.Assert;
  * @author Nicolas Mervaillie
  * @author Michael J. Simons
  */
-public class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMappingContext> implements
-		ApplicationContextAware {
+public class Neo4jMappingContextFactoryBean extends AbstractFactoryBean<Neo4jMappingContext>
+		implements ApplicationContextAware {
 
 	private final String sessionFactoryBeanName;
 

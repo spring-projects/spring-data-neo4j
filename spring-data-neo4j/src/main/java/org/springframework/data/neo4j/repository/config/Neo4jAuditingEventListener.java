@@ -36,14 +36,13 @@ public class Neo4jAuditingEventListener extends EventListenerAdapter implements 
 	 * provided by the given {@link ObjectFactory}. This constructor does an additional registration to the
 	 * {@link SessionFactory}. Therefore the {@link SessionFactory} must already be instantiated.
 	 *
-	 * @deprecated this constructor could create a cyclic dependency to the session factory if this class gets
-	 * registered as a bean in the context.
-	 *
+	 * @deprecated this constructor could create a cyclic dependency to the session factory if this class gets registered
+	 *             as a bean in the context.
 	 * @param auditingHandlerFactory must not be {@literal null}.
 	 */
 	@Deprecated
 	public Neo4jAuditingEventListener(ObjectFactory<? extends IsNewAwareAuditingHandler> auditingHandlerFactory,
-									  SessionFactory sessionFactory) {
+			SessionFactory sessionFactory) {
 
 		Assert.notNull(auditingHandlerFactory, "IsNewAwareAuditingHandler must not be null!");
 		this.auditingHandlerFactory = auditingHandlerFactory;
@@ -54,7 +53,7 @@ public class Neo4jAuditingEventListener extends EventListenerAdapter implements 
 	/**
 	 * Constructor used for creating an instance in the {@link Neo4jAuditingRegistrar} to get registered in the session
 	 * "manually". The registration is done within the {@link Neo4jAuditingBeanPostProcessor}.
-	 * 
+	 *
 	 * @param auditingHandlerFactory {@link AuditingHandler} to hook into the {@code preSave} phase for auditing.
 	 */
 	public Neo4jAuditingEventListener(ObjectFactory<? extends IsNewAwareAuditingHandler> auditingHandlerFactory) {

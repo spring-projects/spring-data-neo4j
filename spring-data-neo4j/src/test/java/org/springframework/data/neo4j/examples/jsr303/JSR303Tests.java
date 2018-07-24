@@ -12,6 +12,9 @@
  */
 package org.springframework.data.neo4j.examples.jsr303;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,25 +39,20 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.context.WebApplicationContext;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 /**
  * @author Vince Bickers
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = {WebConfiguration.class, JSR303Tests.JSR303Context.class})
+@ContextConfiguration(classes = { WebConfiguration.class, JSR303Tests.JSR303Context.class })
 @WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class JSR303Tests extends MultiDriverTestClass {
 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
-	@Autowired
-	private AdultService service;
+	@Autowired private AdultService service;
 
-	@Autowired
-	WebApplicationContext wac;
+	@Autowired WebApplicationContext wac;
 
 	private MockMvc mockMvc;
 
@@ -69,11 +67,7 @@ public class JSR303Tests extends MultiDriverTestClass {
 		Adult adult = new Adult("Peter", 18);
 		String json = objectMapper.writeValueAsString(adult);
 
-		mockMvc.perform(
-				post("/adults")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(json))
-				.andExpect(status().isOk());
+		mockMvc.perform(post("/adults").contentType(MediaType.APPLICATION_JSON).content(json)).andExpect(status().isOk());
 	}
 
 	@Test
@@ -82,10 +76,7 @@ public class JSR303Tests extends MultiDriverTestClass {
 		Adult adult = new Adult("Peter", 16);
 		String json = objectMapper.writeValueAsString(adult);
 
-		mockMvc.perform(
-				post("/adults")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(json))
+		mockMvc.perform(post("/adults").contentType(MediaType.APPLICATION_JSON).content(json))
 				.andExpect(status().isBadRequest());
 	}
 
@@ -95,10 +86,7 @@ public class JSR303Tests extends MultiDriverTestClass {
 		Adult adult = new Adult(null, 21);
 		String json = objectMapper.writeValueAsString(adult);
 
-		mockMvc.perform(
-				post("/adults")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(json))
+		mockMvc.perform(post("/adults").contentType(MediaType.APPLICATION_JSON).content(json))
 				.andExpect(status().isBadRequest());
 	}
 
@@ -108,15 +96,12 @@ public class JSR303Tests extends MultiDriverTestClass {
 		Adult adult = new Adult("A", 21);
 		String json = objectMapper.writeValueAsString(adult);
 
-		mockMvc.perform(
-				post("/adults")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(json))
+		mockMvc.perform(post("/adults").contentType(MediaType.APPLICATION_JSON).content(json))
 				.andExpect(status().isBadRequest());
 	}
 
 	@Configuration
-	@ComponentScan(basePackageClasses = {AdultService.class})
+	@ComponentScan(basePackageClasses = { AdultService.class })
 	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.jsr303.repo")
 	@EnableTransactionManagement
 	static class JSR303Context {
@@ -128,7 +113,8 @@ public class JSR303Tests extends MultiDriverTestClass {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.examples.jsr303.domain");
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.examples.jsr303.domain");
 		}
 	}
 

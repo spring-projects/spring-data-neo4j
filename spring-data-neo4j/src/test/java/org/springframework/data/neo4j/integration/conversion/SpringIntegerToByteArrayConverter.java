@@ -13,14 +13,14 @@
 
 package org.springframework.data.neo4j.integration.conversion;
 
-
 import org.springframework.core.convert.converter.Converter;
 
 /**
  * Nonsensical spring converter from a byte[] to an Integer, for test purposes
+ *
  * @author Luanne Misquitta
  */
-public class SpringIntegerToByteArrayConverter implements Converter<Integer,byte[]> {
+public class SpringIntegerToByteArrayConverter implements Converter<Integer, byte[]> {
 
 	@Override
 	public byte[] convert(Integer source) {
