@@ -13,20 +13,23 @@
 
 package org.springframework.data.neo4j.annotation;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Indicates that a transactional operation will use bookmarks that are currently stored in BookmarkManager when
- * creating Neo4j session.
- * Must be used on a method with @Transactional annotation.
- * May be used on class - applies to all methods or on specific methods.
+ * creating Neo4j session. Must be used on a method with @Transactional annotation. May be used on class - applies to
+ * all methods or on specific methods.
  * <p>
  *
  * @author Frantisek Hartman
  * @see EnableBookmarkManagement
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target({ ElementType.TYPE, ElementType.METHOD })
 @Documented
 public @interface UseBookmark {
 

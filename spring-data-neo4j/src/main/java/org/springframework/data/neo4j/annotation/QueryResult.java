@@ -13,7 +13,11 @@
 
 package org.springframework.data.neo4j.annotation;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Annotation to be applied to interfaces and classes onto which arbitrary Cypher query results are to be mapped.
@@ -25,6 +29,6 @@ import java.lang.annotation.*;
 @Documented
 public @interface QueryResult {
 
-    // no annotation properties needed
+	// no annotation properties needed
 
 }

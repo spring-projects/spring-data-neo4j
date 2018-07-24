@@ -55,8 +55,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ContextConfiguration(classes = { PersistenceConstructorsTests.PersistenceConstructorsPersistenceContext.class })
 public class PersistenceConstructorsTests extends MultiDriverTestClass {
 
-	@Autowired
-	PlatformTransactionManager platformTransactionManager;
+	@Autowired PlatformTransactionManager platformTransactionManager;
 
 	@Autowired Session session;
 
@@ -155,7 +154,8 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 		assertEquals("ADMIN", persons.get(0).getGroup().getName());
 	}
 
-	@Test @Ignore("final fields are not supported by OGM for now")
+	@Test
+	@Ignore("final fields are not supported by OGM for now")
 	public void shouldHandleFinalFields() {
 		PersonWithFinalName person = new PersonWithFinalName("foo");
 		pfnRepository.save(person);
@@ -232,34 +232,28 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 	}
 
 	@Repository
-	public interface PersonRepository extends Neo4jRepository<Person, String> {
-	}
+	public interface PersonRepository extends Neo4jRepository<Person, String> {}
 
 	@Repository
-	public interface KotlinPersonRepository extends Neo4jRepository<KotlinPerson, String> {
-	}
+	public interface KotlinPersonRepository extends Neo4jRepository<KotlinPerson, String> {}
 
 	@Repository
-	public interface PersonMultipleConstructorsRepository extends Neo4jRepository<PersonMultipleConstructors, String> {
-	}
+	public interface PersonMultipleConstructorsRepository extends Neo4jRepository<PersonMultipleConstructors, String> {}
 
 	@Repository
-	public interface PersonWithAnnotatedPersistenceConstructorRepository extends Neo4jRepository<PersonWithAnnotatedPersistenceConstructor, String> {
-	}
+	public interface PersonWithAnnotatedPersistenceConstructorRepository
+			extends Neo4jRepository<PersonWithAnnotatedPersistenceConstructor, String> {}
 
 	@Repository
-	public interface PersonWithConverterRepository extends Neo4jRepository<PersonWithConverter, String> {
-	}
+	public interface PersonWithConverterRepository extends Neo4jRepository<PersonWithConverter, String> {}
 
 	@Repository
-	public interface PersonWithCompositeAttributeRepository extends Neo4jRepository<PersonWithCompositeAttribute, String> {
-	}
+	public interface PersonWithCompositeAttributeRepository
+			extends Neo4jRepository<PersonWithCompositeAttribute, String> {}
 
 	@Repository
-	public interface PersonWithFinalNameRepository extends Neo4jRepository<PersonWithFinalName, String> {
-	}
+	public interface PersonWithFinalNameRepository extends Neo4jRepository<PersonWithFinalName, String> {}
 
 	@Repository
-	public interface PersonWithManyToOneRelRepository extends Neo4jRepository<PersonWithManyToOneRel, String> {
-	}
+	public interface PersonWithManyToOneRelRepository extends Neo4jRepository<PersonWithManyToOneRel, String> {}
 }

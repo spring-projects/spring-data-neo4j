@@ -13,10 +13,10 @@
 
 package org.springframework.data.neo4j.bookmark;
 
+import java.lang.reflect.Method;
+
 import org.springframework.aop.support.StaticMethodMatcherPointcut;
 import org.springframework.data.neo4j.annotation.UseBookmark;
-
-import java.lang.reflect.Method;
 
 /**
  * Pointcut for methods marked with @{@link UseBookmark}
@@ -33,7 +33,7 @@ public class BookmarkOperationPointcut extends StaticMethodMatcherPointcut {
 		// method matches if @UseBookmark is on class, is true and not on method or
 		// @UseBookmark is on method and is true
 		// it is needed to cover @UseBookmark on class and @UseBookmark(false) on method
-		return ((classAnnotation != null) && classAnnotation.value() && methodAnnotation == null) ||
-				((methodAnnotation != null) && methodAnnotation.value());
+		return ((classAnnotation != null) && classAnnotation.value() && methodAnnotation == null)
+				|| ((methodAnnotation != null) && methodAnnotation.value());
 	}
 }

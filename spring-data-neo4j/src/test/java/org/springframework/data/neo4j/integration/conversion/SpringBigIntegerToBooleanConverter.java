@@ -13,15 +13,16 @@
 
 package org.springframework.data.neo4j.integration.conversion;
 
-import org.springframework.core.convert.converter.Converter;
-
 import java.math.BigInteger;
+
+import org.springframework.core.convert.converter.Converter;
 
 /**
  * Nonsensical Spring converter for test purposes
+ *
  * @author Luanne Misquitta
  */
-public class SpringBigIntegerToBooleanConverter implements Converter<BigInteger,Boolean> {
+public class SpringBigIntegerToBooleanConverter implements Converter<BigInteger, Boolean> {
 
 	@Override
 	public Boolean convert(BigInteger source) {

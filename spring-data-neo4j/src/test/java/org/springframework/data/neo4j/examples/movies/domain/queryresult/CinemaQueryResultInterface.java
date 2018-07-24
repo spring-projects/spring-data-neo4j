@@ -23,12 +23,12 @@ import org.springframework.data.neo4j.annotation.QueryResult;
 @QueryResult
 public interface CinemaQueryResultInterface {
 
-    Long getId();
+	Long getId();
 
-    void setId(Long id);
+	void setId(Long id);
 
-    String getName();
+	String getName();
 
-    void setName(String name);
+	void setName(String name);
 
 }

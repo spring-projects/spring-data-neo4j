@@ -17,7 +17,6 @@ import java.io.Serializable;
 import java.util.Collection;
 
 import org.springframework.data.neo4j.examples.movies.domain.Person;
-import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**

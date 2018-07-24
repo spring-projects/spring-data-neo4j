@@ -57,24 +57,18 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @see DATAGRAPH-624
  */
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = {ConversionServiceTests.ConversionServicePersistenceContext.class})
+@ContextConfiguration(classes = { ConversionServiceTests.ConversionServicePersistenceContext.class })
 public class ConversionServiceTests extends MultiDriverTestClass {
 
-	@Autowired
-	PlatformTransactionManager platformTransactionManager;
-	@Autowired
-	private PensionRepository pensionRepository;
-	@Autowired
-	private JavaElementRepository javaElementRepository;
-	@Autowired
-	private SiteMemberRepository siteMemberRepository;
-	@Autowired
-	private GenericConversionService conversionService;
+	@Autowired PlatformTransactionManager platformTransactionManager;
+	@Autowired private PensionRepository pensionRepository;
+	@Autowired private JavaElementRepository javaElementRepository;
+	@Autowired private SiteMemberRepository siteMemberRepository;
+	@Autowired private GenericConversionService conversionService;
 
 	@Autowired Session session;
 
 	private TransactionTemplate transactionTemplate;
-
 
 	@Before
 	public void setUp() {
@@ -88,7 +82,7 @@ public class ConversionServiceTests extends MultiDriverTestClass {
 	@Test
 	public void shouldBeAbleToConvertBetweenBytesAndBase64EncodedDataViaSpringConversionService() {
 		String base64Representation = "YmNkZWY=";
-		byte[] binaryData = new byte[]{98, 99, 100, 101, 102};
+		byte[] binaryData = new byte[] { 98, 99, 100, 101, 102 };
 
 		assertTrue(this.conversionService.canConvert(byte[].class, String.class));
 		assertEquals(base64Representation, this.conversionService.convert(binaryData, String.class));
@@ -99,8 +93,8 @@ public class ConversionServiceTests extends MultiDriverTestClass {
 
 	@Test
 	public void shouldConvertBase64StringOutOfGraphDatabaseBackIntoByteArray() {
-		Result rs = getGraphDatabaseService().execute(
-				"CREATE (u:SiteMember {profilePictureData:'MTIzNDU2Nzg5'}) RETURN id(u) AS userId");
+		Result rs = getGraphDatabaseService()
+				.execute("CREATE (u:SiteMember {profilePictureData:'MTIzNDU2Nzg5'}) RETURN id(u) AS userId");
 		Long userId = (Long) rs.columnAs("userId").next();
 
 		byte[] expectedData = "123456789".getBytes();
@@ -113,20 +107,21 @@ public class ConversionServiceTests extends MultiDriverTestClass {
 	public void shouldConvertFieldsUsingSpringConvertersAddedDirectlyToConversionService() {
 
 		PensionPlan pensionToSave = transactionTemplate.execute(status -> {
-            conversionService.addConverter(new SpringMonetaryAmountToIntegerConverter());
-            conversionService.addConverter(new SpringIntegerToMonetaryAmountConverter());
-            conversionService.addConverter(new SpringMonetaryAmountToLongConverter());
-            conversionService.addConverter(new SpringLongToMonetaryAmountConverter());
+			conversionService.addConverter(new SpringMonetaryAmountToIntegerConverter());
+			conversionService.addConverter(new SpringIntegerToMonetaryAmountConverter());
+			conversionService.addConverter(new SpringMonetaryAmountToLongConverter());
+			conversionService.addConverter(new SpringLongToMonetaryAmountConverter());
 
-            PensionPlan pensionToSave1 = new PensionPlan(new MonetaryAmount(16472, 81), "Tightfist Asset Management Ltd");
+			PensionPlan pensionToSave1 = new PensionPlan(new MonetaryAmount(16472, 81), "Tightfist Asset Management Ltd");
 
-            pensionRepository.save(pensionToSave1);
-            return pensionToSave1;
-        });
+			pensionRepository.save(pensionToSave1);
+			return pensionToSave1;
+		});
 
 		Result result = getGraphDatabaseService().execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
 		assertTrue("Nothing was saved", result.hasNext());
-		assertEquals("The amount wasn't converted and persisted correctly", "1647281", String.valueOf(result.next().get("fv")));
+		assertEquals("The amount wasn't converted and persisted correctly", "1647281",
+				String.valueOf(result.next().get("fv")));
 		result.close();
 
 		PensionPlan reloadedPension = this.pensionRepository.findById(pensionToSave.getPensionPlanId()).get();
@@ -140,14 +135,14 @@ public class ConversionServiceTests extends MultiDriverTestClass {
 	public void shouldConvertFieldsUsingAnAvailableSupertypeConverterIfExactTypesDoNotMatch() {
 
 		this.conversionService.addConverterFactory(new SpringMonetaryAmountToNumberConverterFactory());
-		//this.conversionService.addConverter(new SpringIntegerToMonetaryAmountConverter());
+		// this.conversionService.addConverter(new SpringIntegerToMonetaryAmountConverter());
 
 		PensionPlan pension = new PensionPlan(new MonetaryAmount(20_000, 00), "Ashes Assets LLP");
 		this.pensionRepository.save(pension);
-		Result result = getGraphDatabaseService()
-				.execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
+		Result result = getGraphDatabaseService().execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
 		assertTrue("Nothing was saved", result.hasNext());
-		assertEquals("The amount wasn't converted and persisted correctly", "2000000", String.valueOf(result.next().get("fv")));
+		assertEquals("The amount wasn't converted and persisted correctly", "2000000",
+				String.valueOf(result.next().get("fv")));
 		result.close();
 	}
 
@@ -164,14 +159,14 @@ public class ConversionServiceTests extends MultiDriverTestClass {
 
 		this.javaElementRepository.save(method);
 
-		Result result = getGraphDatabaseService()
-				.execute("MATCH (e:JavaElement) RETURN e.elementType AS type");
+		Result result = getGraphDatabaseService().execute("MATCH (e:JavaElement) RETURN e.elementType AS type");
 		assertTrue("Nothing was saved", result.hasNext());
 		assertEquals("The element type wasn't converted and persisted correctly", "METHOD", result.next().get("type"));
 		result.close();
 
 		JavaElement loadedObject = this.javaElementRepository.findAll().iterator().next();
-		assertEquals("The element type wasn't loaded and converted correctly", ElementType.METHOD, loadedObject.getElementType());
+		assertEquals("The element type wasn't loaded and converted correctly", ElementType.METHOD,
+				loadedObject.getElementType());
 	}
 
 	@Test(expected = ConverterNotFoundException.class)
@@ -185,12 +180,12 @@ public class ConversionServiceTests extends MultiDriverTestClass {
 
 	@Test
 	public void shouldUseSpecifiedAttributeConverterInsteadOfSprings() {
-		//We're registering Spring converters as well
+		// We're registering Spring converters as well
 		this.conversionService.addConverter(new SpringIntegerToByteArrayConverter());
 		this.conversionService.addConverter(new SpringByteArrayToIntegerConverter());
 
 		String base64Representation = "YmNkZWY=";
-		byte[] binaryData = new byte[]{98, 99, 100, 101, 102};
+		byte[] binaryData = new byte[] { 98, 99, 100, 101, 102 };
 
 		assertTrue(this.conversionService.canConvert(byte[].class, String.class));
 		assertEquals(base64Representation, this.conversionService.convert(binaryData, String.class));
@@ -208,11 +203,11 @@ public class ConversionServiceTests extends MultiDriverTestClass {
 
 	@Test
 	public void shouldUseDefaultAttributeConverterInsteadOfSprings() {
-		//We're registering Spring converters which should not override the default ogm BigInteger converter
+		// We're registering Spring converters which should not override the default ogm BigInteger converter
 		this.conversionService.addConverter(new SpringBigIntegerToBooleanConverter());
 		this.conversionService.addConverter(new SpringBooleanToBigIntegerConverter());
 
-		byte[] binaryData = new byte[]{98, 99, 100, 101, 102};
+		byte[] binaryData = new byte[] { 98, 99, 100, 101, 102 };
 
 		SiteMember siteMember = new SiteMember();
 		siteMember.setProfilePictureData(binaryData);
@@ -240,7 +235,8 @@ public class ConversionServiceTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories(basePackageClasses = {SiteMemberRepository.class, PensionRepository.class, JavaElementRepository.class})
+	@EnableNeo4jRepositories(
+			basePackageClasses = { SiteMemberRepository.class, PensionRepository.class, JavaElementRepository.class })
 	@EnableTransactionManagement
 	static class ConversionServicePersistenceContext {
 
@@ -256,7 +252,8 @@ public class ConversionServiceTests extends MultiDriverTestClass {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.integration.conversion.domain");
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.integration.conversion.domain");
 		}
 	}
 }

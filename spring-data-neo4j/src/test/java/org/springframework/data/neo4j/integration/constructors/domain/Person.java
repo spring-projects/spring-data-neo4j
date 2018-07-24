@@ -30,11 +30,9 @@ import org.springframework.util.Assert;
 @NodeEntity
 public class Person {
 
-	@Id
-	private String name;
+	@Id private String name;
 
-	@Relationship(type = "IS_FRIEND")
-	private List<Friendship> friendships = new ArrayList<>();
+	@Relationship(type = "IS_FRIEND") private List<Friendship> friendships = new ArrayList<>();
 
 	public Person(String name) {
 		Assert.notNull(name, "name should not be null");
@@ -55,7 +53,8 @@ public class Person {
 		return friendship;
 	}
 
-	@Override public boolean equals(Object o) {
+	@Override
+	public boolean equals(Object o) {
 		if (this == o)
 			return true;
 		if (o == null || getClass() != o.getClass())
@@ -64,7 +63,8 @@ public class Person {
 		return Objects.equals(name, person.name);
 	}
 
-	@Override public int hashCode() {
+	@Override
+	public int hashCode() {
 
 		return Objects.hash(name);
 	}

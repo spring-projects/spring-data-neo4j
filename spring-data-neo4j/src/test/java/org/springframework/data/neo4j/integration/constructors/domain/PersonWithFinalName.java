@@ -24,8 +24,7 @@ import org.neo4j.ogm.annotation.NodeEntity;
 @NodeEntity
 public class PersonWithFinalName {
 
-	@Id
-	private final String name;
+	@Id private final String name;
 
 	public PersonWithFinalName(String name) {
 		this.name = name;
@@ -35,7 +34,8 @@ public class PersonWithFinalName {
 		return name;
 	}
 
-	@Override public boolean equals(Object o) {
+	@Override
+	public boolean equals(Object o) {
 		if (this == o)
 			return true;
 		if (o == null || getClass() != o.getClass())
@@ -44,7 +44,8 @@ public class PersonWithFinalName {
 		return Objects.equals(name, person.name);
 	}
 
-	@Override public int hashCode() {
+	@Override
+	public int hashCode() {
 
 		return Objects.hash(name);
 	}

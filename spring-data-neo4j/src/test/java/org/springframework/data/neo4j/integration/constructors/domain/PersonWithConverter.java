@@ -26,11 +26,9 @@ import org.springframework.util.Assert;
 @NodeEntity
 public class PersonWithConverter {
 
-	@Id
-	private String name;
+	@Id private String name;
 
-	@DateLong
-	private Date birthDate;
+	@DateLong private Date birthDate;
 
 	public PersonWithConverter(String name, Date birthDate) {
 		Assert.notNull(name, "name should not be null");

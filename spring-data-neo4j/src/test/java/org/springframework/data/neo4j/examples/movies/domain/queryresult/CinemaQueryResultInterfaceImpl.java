@@ -21,8 +21,7 @@ public class CinemaQueryResultInterfaceImpl implements CinemaQueryResultInterfac
 	private Long id;
 	private String name;
 
-	public CinemaQueryResultInterfaceImpl() {
-	}
+	public CinemaQueryResultInterfaceImpl() {}
 
 	public Long getId() {
 		return id;

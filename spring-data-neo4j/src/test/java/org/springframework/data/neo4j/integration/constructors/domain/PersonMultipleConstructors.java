@@ -18,13 +18,12 @@ import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
 
 /**
-  * @author Nicolas Mervaillie
-  */
+ * @author Nicolas Mervaillie
+ */
 @NodeEntity
 public class PersonMultipleConstructors {
 
-	@Id @GeneratedValue
-	private Long id;
+	@Id @GeneratedValue private Long id;
 	private String firstName;
 	private String lastName;
 

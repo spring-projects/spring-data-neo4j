@@ -23,8 +23,7 @@ import org.springframework.util.Assert;
 @NodeEntity
 public class Group {
 
-	@Id
-	private String name;
+	@Id private String name;
 
 	public Group(String name) {
 		Assert.notNull(name, "name should not be null");

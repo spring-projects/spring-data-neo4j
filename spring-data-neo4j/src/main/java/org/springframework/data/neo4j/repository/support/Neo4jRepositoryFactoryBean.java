@@ -23,7 +23,6 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
 import org.springframework.util.Assert;
 
-
 /**
  * Special adapter for Springs {@link org.springframework.beans.factory.FactoryBean} interface to allow easy setup of
  * repository factories via Spring configuration.
@@ -34,7 +33,8 @@ import org.springframework.util.Assert;
  * @author Mark Angrish
  * @author Michael J. Simons
  */
-public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable> extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
+public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
+		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
 	private Session session;
 
@@ -88,5 +88,3 @@ public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID exten
 		return new Neo4jRepositoryFactory(session);
 	}
 }
-
-

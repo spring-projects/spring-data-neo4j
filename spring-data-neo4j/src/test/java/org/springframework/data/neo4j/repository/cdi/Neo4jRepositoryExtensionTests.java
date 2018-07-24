@@ -16,13 +16,14 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.ProcessBean;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.ProcessBean;
 
 import org.junit.Before;
 import org.junit.Test;

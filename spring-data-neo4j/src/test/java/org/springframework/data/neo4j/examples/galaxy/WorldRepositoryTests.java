@@ -38,61 +38,59 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
-@ContextConfiguration(classes = {WorldRepositoryTests.GalaxyContext.class})
+@ContextConfiguration(classes = { WorldRepositoryTests.GalaxyContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class WorldRepositoryTests extends MultiDriverTestClass {
 
-    @Autowired
-    WorldRepository worldRepository;
+	@Autowired WorldRepository worldRepository;
 
-    @Autowired
-    TransactionTemplate transactionTemplate;
+	@Autowired TransactionTemplate transactionTemplate;
 
-    boolean failed = false;
+	boolean failed = false;
 
-    /**
-     * see https://jira.spring.io/browse/DATAGRAPH-951
-     *
-     * @throws Exception
-     */
-    @Test
-    public void multipleThreadsResultsGetMixedUp() throws Exception {
+	/**
+	 * see https://jira.spring.io/browse/DATAGRAPH-951
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void multipleThreadsResultsGetMixedUp() throws Exception {
 
-        World world1 = new World("world 1", 1);
-        worldRepository.save(world1, 0);
+		World world1 = new World("world 1", 1);
+		worldRepository.save(world1, 0);
 
-        World world2 = new World("world 2", 2);
-        worldRepository.save(world2, 0);
+		World world2 = new World("world 2", 2);
+		worldRepository.save(world2, 0);
 
-        int iterations = 10;
+		int iterations = 10;
 
-        ExecutorService service = Executors.newFixedThreadPool(2);
-        final CountDownLatch countDownLatch = new CountDownLatch(iterations * 2);
+		ExecutorService service = Executors.newFixedThreadPool(2);
+		final CountDownLatch countDownLatch = new CountDownLatch(iterations * 2);
 
-        for (int i = 0; i < iterations; i++) {
+		for (int i = 0; i < iterations; i++) {
 
-            service.execute(() -> {
-                World world = worldRepository.findByName("world 1");
+			service.execute(() -> {
+				World world = worldRepository.findByName("world 1");
 
-                if (!"world 1".equals(world.getName())) {
-                    failed = true;
-                }
-                countDownLatch.countDown();
-            });
+				if (!"world 1".equals(world.getName())) {
+					failed = true;
+				}
+				countDownLatch.countDown();
+			});
 
-            service.execute(() -> {
+			service.execute(() -> {
 
-                World world = worldRepository.findByName("world 2");
+				World world = worldRepository.findByName("world 2");
 
-                if (!"world 2".equals(world.getName())) {
-                    failed = true;
-                }
-                countDownLatch.countDown();
-            });
-        }
-        countDownLatch.await();
-        assertFalse(failed);
-    }
+				if (!"world 2".equals(world.getName())) {
+					failed = true;
+				}
+				countDownLatch.countDown();
+			});
+		}
+		countDownLatch.await();
+		assertFalse(failed);
+	}
 
 	/**
 	 * see https://jira.spring.io/browse/DATAGRAPH-948
@@ -111,26 +109,27 @@ public class WorldRepositoryTests extends MultiDriverTestClass {
 		worldRepository.findByName("world 1");
 	}
 
-    @Configuration
-    @ComponentScan({"org.springframework.data.neo4j.examples.galaxy.service"})
-    @EnableNeo4jRepositories("org.springframework.data.neo4j.examples.galaxy.repo")
-    @EnableTransactionManagement
-    static class GalaxyContext {
+	@Configuration
+	@ComponentScan({ "org.springframework.data.neo4j.examples.galaxy.service" })
+	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.galaxy.repo")
+	@EnableTransactionManagement
+	static class GalaxyContext {
 
-        @Bean
-        public PlatformTransactionManager transactionManager() {
-            return new Neo4jTransactionManager(sessionFactory());
-        }
+		@Bean
+		public PlatformTransactionManager transactionManager() {
+			return new Neo4jTransactionManager(sessionFactory());
+		}
 
-        @Bean
-        public SessionFactory sessionFactory() {
-            return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.examples.galaxy.domain");
-        }
+		@Bean
+		public SessionFactory sessionFactory() {
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.examples.galaxy.domain");
+		}
 
-        @Bean
-        public TransactionTemplate transactionTemplate() {
-            return new TransactionTemplate(transactionManager());
-        }
+		@Bean
+		public TransactionTemplate transactionTemplate() {
+			return new TransactionTemplate(transactionManager());
+		}
 
-    }
+	}
 }

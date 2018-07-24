@@ -9,16 +9,12 @@ import org.neo4j.ogm.annotation.Id;
  */
 public class Diner {
 
-	@Id
-	@GeneratedValue
-	private Long id;
+	@Id @GeneratedValue private Long id;
 
 	private String firstName;
 	private String lastName;
 
-	public Diner()
-	{
-	}
+	public Diner() {}
 
 	public Diner(String firstName, String lastName) {
 		this.firstName = firstName;

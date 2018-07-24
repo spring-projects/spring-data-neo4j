@@ -49,21 +49,17 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Mark Angrish
  * @author Vince Bickers
  */
-@ContextConfiguration(classes = {DerivedRelationshipEntityQueryTests.MoviesContext.class})
+@ContextConfiguration(classes = { DerivedRelationshipEntityQueryTests.MoviesContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 
-	@Autowired
-	PlatformTransactionManager platformTransactionManager;
+	@Autowired PlatformTransactionManager platformTransactionManager;
 
-	@Autowired
-	private UserRepository userRepository;
+	@Autowired private UserRepository userRepository;
 
-	@Autowired
-	private CinemaRepository cinemaRepository;
+	@Autowired private CinemaRepository cinemaRepository;
 
-	@Autowired
-	private RatingRepository ratingRepository;
+	@Autowired private RatingRepository ratingRepository;
 
 	private TransactionTemplate transactionTemplate;
 
@@ -190,7 +186,6 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 		assertEquals(0, ratings.size());
 	}
 
-
 	/**
 	 * @see DATAGRAPH-629
 	 */
@@ -221,8 +216,9 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithNestedStartNodeProperty() {
-		executeUpdate("CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})" +
-				" CREATE (u:User {name:'Michal'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
+		executeUpdate(
+				"CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})"
+						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -241,8 +237,9 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithNestedEndNodeProperty() {
-		executeUpdate("CREATE (m1:Movie {name:'Finding Dory'}) CREATE (m2:Movie {name:'Captain America'}) CREATE (m:Movie {name:'X-Men'})" +
-				" CREATE (u:User {name:'Vince'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
+		executeUpdate(
+				"CREATE (m1:Movie {name:'Finding Dory'}) CREATE (m2:Movie {name:'Captain America'}) CREATE (m:Movie {name:'X-Men'})"
+						+ " CREATE (u:User {name:'Vince'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -264,8 +261,9 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithBothStartEndNestedProperty() {
-		executeUpdate("CREATE (m1:Movie {name:'Independence Day: Resurgence'}) CREATE (m2:Movie {name:'The Conjuring 2'}) CREATE (m:Movie {name:'The BFG'})" +
-				" CREATE (u:User {name:'Daniela'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
+		executeUpdate(
+				"CREATE (m1:Movie {name:'Independence Day: Resurgence'}) CREATE (m2:Movie {name:'The Conjuring 2'}) CREATE (m:Movie {name:'The BFG'})"
+						+ " CREATE (u:User {name:'Daniela'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -287,8 +285,9 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithBaseAndNestedStartNodePropertyAnded() {
-		executeUpdate("CREATE (m1:Movie {name:'The Shallows'}) CREATE (m2:Movie {name:'Central Intelligence'}) CREATE (m:Movie {name:'Now you see me'})" +
-				" CREATE (u:User {name:'Luanne'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
+		executeUpdate(
+				"CREATE (m1:Movie {name:'The Shallows'}) CREATE (m2:Movie {name:'Central Intelligence'}) CREATE (m:Movie {name:'Now you see me'})"
+						+ " CREATE (u:User {name:'Luanne'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -306,15 +305,15 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 	}
 
 	/**
-	 * @see DATAGRAPH-662
-	 * //TODO FIXME
+	 * @see DATAGRAPH-662 //TODO FIXME
 	 */
 	@Test(expected = UnsupportedOperationException.class)
 	public void shouldFindRelEntitiesWithBaseAndNestedStartNodePropertyOred() {
-		executeUpdate("CREATE (m1:Movie {name:'Swiss Army Man'}) CREATE (m2:Movie {name:'Me Before You'}) CREATE (m:Movie {name:'X-Men Apocalypse'})" +
-				" CREATE (u:User {name:'Mark'}) CREATE (u2:User {name:'Adam'})  " +
-				" CREATE (u)-[:RATED {stars:2}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)" +
-				" CREATE (u2)-[:RATED {stars:3}]->(m)");
+		executeUpdate(
+				"CREATE (m1:Movie {name:'Swiss Army Man'}) CREATE (m2:Movie {name:'Me Before You'}) CREATE (m:Movie {name:'X-Men Apocalypse'})"
+						+ " CREATE (u:User {name:'Mark'}) CREATE (u2:User {name:'Adam'})  "
+						+ " CREATE (u)-[:RATED {stars:2}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)"
+						+ " CREATE (u2)-[:RATED {stars:3}]->(m)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -337,10 +336,11 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithBaseAndNestedEndNodeProperty() {
-		executeUpdate("CREATE (m1:Movie {name:'Our Kind of Traitor'}) CREATE (m2:Movie {name:'Teenage Mutant Ninja Turtles'}) CREATE (m:Movie {name:'Zootopia'})" +
-				" CREATE (u:User {name:'Chris'}) CREATE (u2:User {name:'Katerina'}) " +
-				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)" +
-				" CREATE (u2)-[:RATED {stars:4}]->(m2)");
+		executeUpdate(
+				"CREATE (m1:Movie {name:'Our Kind of Traitor'}) CREATE (m2:Movie {name:'Teenage Mutant Ninja Turtles'}) CREATE (m:Movie {name:'Zootopia'})"
+						+ " CREATE (u:User {name:'Chris'}) CREATE (u2:User {name:'Katerina'}) "
+						+ " CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)"
+						+ " CREATE (u2)-[:RATED {stars:4}]->(m2)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -362,8 +362,9 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithBaseAndBothStartEndNestedProperty() {
-		executeUpdate("CREATE (m1:Movie {name:'The Jungle Book'}) CREATE (m2:Movie {name:'The Angry Birds Movie'}) CREATE (m:Movie {name:'Alice Through The Looking Glass'})" +
-				" CREATE (u:User {name:'Alessandro'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
+		executeUpdate(
+				"CREATE (m1:Movie {name:'The Jungle Book'}) CREATE (m2:Movie {name:'The Angry Birds Movie'}) CREATE (m:Movie {name:'Alice Through The Looking Glass'})"
+						+ " CREATE (u:User {name:'Alessandro'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -385,10 +386,11 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 	 */
 	@Test
 	public void shouldFindRelEntitiesWithTwoStartNodeNestedProperties() {
-		executeUpdate("CREATE (m1:Movie {name:'Batman v Superman'}) CREATE (m2:Movie {name:'Genius'}) CREATE (m:Movie {name:'Home'})" +
-				" CREATE (u:User {name:'David', middleName:'M'}) CREATE (u2:User {name:'Martin', middleName:'M'}) " +
-				" CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)" +
-				" CREATE (u2)-[:RATED {stars:4}]->(m2)");
+		executeUpdate(
+				"CREATE (m1:Movie {name:'Batman v Superman'}) CREATE (m2:Movie {name:'Genius'}) CREATE (m:Movie {name:'Home'})"
+						+ " CREATE (u:User {name:'David', middleName:'M'}) CREATE (u2:User {name:'Martin', middleName:'M'}) "
+						+ " CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)"
+						+ " CREATE (u2)-[:RATED {stars:4}]->(m2)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -500,9 +502,8 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 
 	}
 
-
 	@Configuration
-	@ComponentScan({"org.springframework.data.neo4j.examples.movies.service"})
+	@ComponentScan({ "org.springframework.data.neo4j.examples.movies.service" })
 	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
 	@EnableTransactionManagement
 	static class MoviesContext {
@@ -514,7 +515,8 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.examples.movies.domain");
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.examples.movies.domain");
 		}
 	}
 }

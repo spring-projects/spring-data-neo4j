@@ -22,37 +22,35 @@ import java.util.List;
  */
 public class User {
 
-    private Long id;
-    private String name;
+	private Long id;
+	private String name;
 
-    private List<User> friends = new ArrayList<>();
-    public User() {
-    }
+	private List<User> friends = new ArrayList<>();
 
-    public Long getId() {
-        return this.id;
-    }
+	public User() {}
 
-    public User(String name) {
-        this.name = name;
-    }
+	public Long getId() {
+		return this.id;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public User(String name) {
+		this.name = name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public List<User> getFriends() {
-        return friends;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public void setFriends(List<User> friends) {
-        this.friends = friends;
-    }
+	public List<User> getFriends() {
+		return friends;
+	}
 
-
+	public void setFriends(List<User> friends) {
+		this.friends = friends;
+	}
 
 }

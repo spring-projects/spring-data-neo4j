@@ -17,8 +17,8 @@ import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.reflect.ReflectionEntityInstantiator;
 
 /**
- * Class to avoid direct dependency to {@link org.neo4j.ogm.metadata.reflect.ReflectionEntityInstantiator}
- * that is only present in OGM 3.1.0+
+ * Class to avoid direct dependency to {@link org.neo4j.ogm.metadata.reflect.ReflectionEntityInstantiator} that is only
+ * present in OGM 3.1.0+
  *
  * @author Gerrit Meier
  */
