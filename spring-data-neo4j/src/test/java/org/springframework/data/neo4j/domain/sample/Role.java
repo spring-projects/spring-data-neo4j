@@ -29,9 +29,7 @@ public class Role {
 
 	private static final String PREFIX = "ROLE_";
 
-	@Id
-	@GeneratedValue
-	private Long id;
+	@Id @GeneratedValue private Long id;
 
 	private UUID uuid;
 	private String name;

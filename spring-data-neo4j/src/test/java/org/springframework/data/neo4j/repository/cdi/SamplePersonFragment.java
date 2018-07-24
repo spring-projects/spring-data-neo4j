@@ -21,5 +21,5 @@ package org.springframework.data.neo4j.repository.cdi;
  */
 interface SamplePersonFragment {
 
-    int returnOne();
+	int returnOne();
 }

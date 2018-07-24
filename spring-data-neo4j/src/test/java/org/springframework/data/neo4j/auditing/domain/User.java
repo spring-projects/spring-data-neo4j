@@ -13,13 +13,13 @@
 
 package org.springframework.data.neo4j.auditing.domain;
 
+import java.time.LocalDateTime;
+
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
-
-import java.time.LocalDateTime;
 
 /**
  * @author Frantisek Hartman
@@ -31,20 +31,15 @@ public class User {
 
 	String name;
 
-	@CreatedDate
-	LocalDateTime created;
+	@CreatedDate LocalDateTime created;
 
-	@CreatedBy
-	String createdBy;
+	@CreatedBy String createdBy;
 
-	@LastModifiedDate
-	LocalDateTime modified;
+	@LastModifiedDate LocalDateTime modified;
 
-	@LastModifiedBy
-	String modifiedBy;
+	@LastModifiedBy String modifiedBy;
 
-	public User() {
-	}
+	public User() {}
 
 	public User(String name) {
 		this.name = name;

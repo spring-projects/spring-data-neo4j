@@ -32,8 +32,7 @@ public class Person {
 	private String firstName;
 	private String lastName;
 
-	@Relationship(type = "IS_FRIEND")
-	private Set<Friendship> friendships = new HashSet<>();
+	@Relationship(type = "IS_FRIEND") private Set<Friendship> friendships = new HashSet<>();
 
 	public Person() {}
 

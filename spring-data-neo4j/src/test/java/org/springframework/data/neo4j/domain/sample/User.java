@@ -11,7 +11,6 @@ import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.typeconversion.DateString;
 
-
 /**
  * Domain class representing a person emphasizing the use of {@code AbstractEntity}. No declaration of an id is
  * required. The id is typed by the parameterizable superclass.
@@ -19,9 +18,7 @@ import org.neo4j.ogm.annotation.typeconversion.DateString;
 @NodeEntity
 public class User {
 
-	@Id
-	@GeneratedValue
-	private Long id;
+	@Id @GeneratedValue private Long id;
 
 	private String firstname;
 
@@ -35,11 +32,9 @@ public class User {
 
 	private String emailAddress;
 
-	@Relationship
-	private Set<User> colleagues;
+	@Relationship private Set<User> colleagues;
 
-	@Relationship
-	private Set<Role> roles;
+	@Relationship private Set<Role> roles;
 
 	private User manager;
 
@@ -49,8 +44,7 @@ public class User {
 
 	private Set<String> attributes;
 
-	@DateString
-	private Date dateOfBirth;
+	@DateString private Date dateOfBirth;
 
 	/**
 	 * Creates a new empty instance of {@code User}.

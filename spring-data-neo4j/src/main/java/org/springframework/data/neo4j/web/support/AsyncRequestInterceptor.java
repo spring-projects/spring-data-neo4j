@@ -26,15 +26,14 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.context.request.async.DeferredResultProcessingInterceptor;
 
 /**
- * An interceptor with asynchronous web requests used in OpenSessionInViewFilter and
- * OpenSessionInViewInterceptor.
- * Ensures the following:
- * 1) The session is bound/unbound when "callable processing" is started
- * 2) The session is closed if an async request times out
+ * An interceptor with asynchronous web requests used in OpenSessionInViewFilter and OpenSessionInViewInterceptor.
+ * Ensures the following: 1) The session is bound/unbound when "callable processing" is started 2) The session is closed
+ * if an async request times out
  *
  * @author Mark Angrish
  */
-class AsyncRequestInterceptor extends CallableProcessingInterceptorAdapter implements DeferredResultProcessingInterceptor {
+class AsyncRequestInterceptor extends CallableProcessingInterceptorAdapter
+		implements DeferredResultProcessingInterceptor {
 
 	private static final Logger logger = LoggerFactory.getLogger(AsyncRequestInterceptor.class);
 
@@ -48,7 +47,6 @@ class AsyncRequestInterceptor extends CallableProcessingInterceptorAdapter imple
 		this.sessionFactory = sessionFactory;
 		this.sessionHolder = sessionHolder;
 	}
-
 
 	@Override
 	public <T> void preProcess(NativeWebRequest request, Callable<T> task) {
@@ -68,7 +66,7 @@ class AsyncRequestInterceptor extends CallableProcessingInterceptorAdapter imple
 	@Override
 	public <T> Object handleTimeout(NativeWebRequest request, Callable<T> task) {
 		this.timeoutInProgress = true;
-		return RESULT_NONE;  // give other interceptors a chance to handle the timeout
+		return RESULT_NONE; // give other interceptors a chance to handle the timeout
 	}
 
 	@Override
@@ -80,13 +78,12 @@ class AsyncRequestInterceptor extends CallableProcessingInterceptorAdapter imple
 		if (this.timeoutInProgress) {
 			logger.debug("Closing Neo4j OGM Session after async request timeout");
 			// close session.
-//			SessionFactoryUtils.closeSession(session);
+			// SessionFactoryUtils.closeSession(session);
 		}
 	}
 
 	@Override
-	public <T> void beforeConcurrentHandling(NativeWebRequest request, DeferredResult<T> deferredResult) {
-	}
+	public <T> void beforeConcurrentHandling(NativeWebRequest request, DeferredResult<T> deferredResult) {}
 
 	@Override
 	public <T> void preProcess(NativeWebRequest request, DeferredResult<T> deferredResult) {
@@ -101,11 +98,12 @@ class AsyncRequestInterceptor extends CallableProcessingInterceptorAdapter imple
 	@Override
 	public <T> boolean handleTimeout(NativeWebRequest request, DeferredResult<T> deferredResult) {
 		this.timeoutInProgress = true;
-		return true;  // give other interceptors a chance to handle the timeout
+		return true; // give other interceptors a chance to handle the timeout
 	}
 
 	@Override
-	public <T> void afterCompletion(NativeWebRequest nativeWebRequest, DeferredResult<T> deferredResult) throws Exception {
+	public <T> void afterCompletion(NativeWebRequest nativeWebRequest, DeferredResult<T> deferredResult)
+			throws Exception {
 		// Do nothing.
 	}
 }

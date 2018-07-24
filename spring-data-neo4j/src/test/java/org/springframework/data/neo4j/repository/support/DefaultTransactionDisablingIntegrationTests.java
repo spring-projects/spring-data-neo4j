@@ -76,7 +76,7 @@ public class DefaultTransactionDisablingIntegrationTests extends MultiDriverTest
 	public void persistingAnEntityShouldThrowExceptionDueToMissingTransaction() {
 
 		exception.expect(InvalidDataAccessApiUsageException.class);
-		exception.expectCause(is(Matchers.<Throwable>instanceOf(IllegalStateException.class)));
+		exception.expectCause(is(Matchers.<Throwable> instanceOf(IllegalStateException.class)));
 
 		repository.save(new User());
 	}
@@ -88,7 +88,8 @@ public class DefaultTransactionDisablingIntegrationTests extends MultiDriverTest
 
 		@Bean
 		public TransactionalRepositoryTests.DelegatingTransactionManager transactionManager() throws Exception {
-			return new TransactionalRepositoryTests.DelegatingTransactionManager(new Neo4jTransactionManager(sessionFactory()));
+			return new TransactionalRepositoryTests.DelegatingTransactionManager(
+					new Neo4jTransactionManager(sessionFactory()));
 		}
 
 		@Bean

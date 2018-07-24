@@ -25,9 +25,9 @@ public class Neo4jAuditingBeanPostProcessor implements BeanPostProcessor {
 	private final ObjectFactory<IsNewAwareAuditingHandler> isNewAwareHandler;
 
 	public Neo4jAuditingBeanPostProcessor(ObjectFactory<IsNewAwareAuditingHandler> isNewAwareHandler) {
-		
+
 		Assert.notNull(isNewAwareHandler, "IsNewAwareHandler must not be null!");
-		
+
 		this.isNewAwareHandler = isNewAwareHandler;
 	}
 
@@ -37,14 +37,14 @@ public class Neo4jAuditingBeanPostProcessor implements BeanPostProcessor {
 	 */
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		
+
 		if (!SessionFactory.class.isInstance(bean)) {
 			return bean;
 		}
-		
+
 		SessionFactory sessionFactory = (SessionFactory) bean;
 		sessionFactory.register(new Neo4jAuditingEventListener(isNewAwareHandler));
-		
+
 		return sessionFactory;
 	}
 }

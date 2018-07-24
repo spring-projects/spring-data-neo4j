@@ -13,43 +13,40 @@
 
 package org.springframework.data.neo4j.examples.movies.domain;
 
+import java.util.Date;
+
 import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.typeconversion.DateLong;
-
-import java.util.Date;
 
 /**
  * @author Michal Bachman
  */
-//the fields here will move to Movie, this separate class exists temporarily after its tests pass
+// the fields here will move to Movie, this separate class exists temporarily after its tests pass
 public class ReleasedMovie extends AbstractAnnotatedEntity {
 
-    private String title;
+	private String title;
 
-    @Property(name = "cinemaRelease")
-    private Date released;
+	@Property(name = "cinemaRelease") private Date released;
 
-    @DateLong
-    private Date cannesRelease;
+	@DateLong private Date cannesRelease;
 
-    public ReleasedMovie() {
-    }
+	public ReleasedMovie() {}
 
-    public ReleasedMovie(String title, Date released, Date cannesRelease) {
-        this.title = title;
-        this.released = released;
-        this.cannesRelease = cannesRelease;
-    }
+	public ReleasedMovie(String title, Date released, Date cannesRelease) {
+		this.title = title;
+		this.released = released;
+		this.cannesRelease = cannesRelease;
+	}
 
-    public String getTitle() {
-        return title;
-    }
+	public String getTitle() {
+		return title;
+	}
 
-    public Date getReleased() {
-        return released;
-    }
+	public Date getReleased() {
+		return released;
+	}
 
-    public Date getCannesRelease() {
-        return cannesRelease;
-    }
+	public Date getCannesRelease() {
+		return cannesRelease;
+	}
 }

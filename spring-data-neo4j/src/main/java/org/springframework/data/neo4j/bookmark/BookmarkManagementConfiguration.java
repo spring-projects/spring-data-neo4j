@@ -21,16 +21,14 @@ import org.springframework.context.annotation.Role;
 /**
  * Configuration used by @{@link org.springframework.data.neo4j.annotation.EnableBookmarkManagement}
  * <p>
- * Note on bookmark management implementation:
- * The implementation closely follows implementation of @EnableTransactionManagement or @EnableCaching, with simplified
- * pointcut.
+ * Note on bookmark management implementation: The implementation closely follows implementation
+ * of @EnableTransactionManagement or @EnableCaching, with simplified pointcut.
  * <p>
- * The bookmark interceptor will set BookmarkInfo thread local when a methods is annotated with @UseBookmark.
- * It is executed before transactional advice (see setOrder(0) ).
- * Neo4j transaction manager then uses {@link BookmarkManager} bean to retrieve currently stored bookmarks and begins
- * new transaction using these bookmarks.
- * After commit new bookmark is stored in the BookmarkManager, replacing the bookmarks used to begin the transaction.
- * The user needs to provide the BookmarkManager bean.
+ * The bookmark interceptor will set BookmarkInfo thread local when a methods is annotated with @UseBookmark. It is
+ * executed before transactional advice (see setOrder(0) ). Neo4j transaction manager then uses {@link BookmarkManager}
+ * bean to retrieve currently stored bookmarks and begins new transaction using these bookmarks. After commit new
+ * bookmark is stored in the BookmarkManager, replacing the bookmarks used to begin the transaction. The user needs to
+ * provide the BookmarkManager bean.
  *
  * @author Frantisek Hartman
  */
@@ -45,7 +43,6 @@ public class BookmarkManagementConfiguration {
 		advisor.setOrder(0);
 		return advisor;
 	}
-
 
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)

@@ -32,20 +32,15 @@ import org.springframework.util.Assert;
 @RelationshipEntity(type = "IS_FRIEND")
 public class Friendship {
 
-	@Id @GeneratedValue
-	private Long id;
+	@Id @GeneratedValue private Long id;
 
-	@StartNode
-	private Person personStartNode;
+	@StartNode private Person personStartNode;
 
-	@EndNode
-	private Person personEndNode;
+	@EndNode private Person personEndNode;
 
-	@DateLong
-	private Date timestamp;
+	@DateLong private Date timestamp;
 
-	@Convert(PointConverter.class)
-	private Point location;
+	@Convert(PointConverter.class) private Point location;
 
 	public Friendship(Person personStartNode, Person personEndNode, Date timestamp, Point location) {
 		Assert.notNull(timestamp, "Timestamp cannot be null");

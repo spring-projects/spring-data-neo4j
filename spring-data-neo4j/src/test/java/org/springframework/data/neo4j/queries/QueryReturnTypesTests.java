@@ -44,22 +44,18 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Mark Paluch
  * @author Jens Schauder
  */
-@ContextConfiguration(classes = {QueryReturnTypesTests.GalaxyContext.class})
+@ContextConfiguration(classes = { QueryReturnTypesTests.GalaxyContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
 public class QueryReturnTypesTests extends MultiDriverTestClass {
 
-	@Autowired
-	PlatformTransactionManager transactionManager;
+	@Autowired PlatformTransactionManager transactionManager;
 
-	@Autowired
-	TransactionTemplate transactionTemplate;
+	@Autowired TransactionTemplate transactionTemplate;
 
-	@Autowired
-	WorldRepository worldRepository;
+	@Autowired WorldRepository worldRepository;
 
-	@Autowired
-	Session session;
+	@Autowired Session session;
 
 	@Before
 	public void clearDatabase() {
@@ -118,7 +114,7 @@ public class QueryReturnTypesTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@ComponentScan({"org.springframework.data.neo4j.examples.galaxy.service"})
+	@ComponentScan({ "org.springframework.data.neo4j.examples.galaxy.service" })
 	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.galaxy.repo")
 	@EnableTransactionManagement
 	static class GalaxyContext {
@@ -130,7 +126,8 @@ public class QueryReturnTypesTests extends MultiDriverTestClass {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.examples.galaxy.domain");
+			return new SessionFactory(getBaseConfiguration().build(),
+					"org.springframework.data.neo4j.examples.galaxy.domain");
 		}
 
 		@Bean

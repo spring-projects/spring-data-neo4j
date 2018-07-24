@@ -20,15 +20,12 @@ import static org.springframework.data.neo4j.util.IterableUtils.*;
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.ogm.exception.core.NotFoundException;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
-import org.neo4j.test.TestGraphDatabaseFactory;
 
 /**
  * @author Michal Bachman

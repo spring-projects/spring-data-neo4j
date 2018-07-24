@@ -43,7 +43,8 @@ public class GraphQueryExecutionTests {
 
 	@Mock private Session sessionMock;
 
-	private Method method = ReflectionUtils.findMethod(UserRepository.class, "findByFirstname", String.class, Pageable.class);
+	private Method method = ReflectionUtils.findMethod(UserRepository.class, "findByFirstname", String.class,
+			Pageable.class);
 	private ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
 
 	@Test
@@ -52,8 +53,10 @@ public class GraphQueryExecutionTests {
 
 		when(sessionMock.query(eq(User.class), anyString(), anyMap())).thenReturn(Collections.<User> emptyList());
 
-		GraphQueryMethod queryMethod = new GraphQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class), factory);
-		GraphParameterAccessor accessor = new GraphParametersParameterAccessor(queryMethod, new Object[]{"", new PageRequest(0,1)});
+		GraphQueryMethod queryMethod = new GraphQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
+				factory);
+		GraphParameterAccessor accessor = new GraphParametersParameterAccessor(queryMethod,
+				new Object[] { "", new PageRequest(0, 1) });
 		GraphQueryExecution.PagedExecution execution = new GraphQueryExecution.PagedExecution(sessionMock, accessor);
 		Query query = new Query("", "noop", new HashMap<>());
 		execution.execute(query, User.class);

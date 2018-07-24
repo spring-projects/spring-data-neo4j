@@ -13,14 +13,12 @@
 
 package org.springframework.data.neo4j.repository.support;
 
-import org.neo4j.ogm.metadata.MetaData;
+import java.io.Serializable;
+
 import org.neo4j.ogm.metadata.ClassInfo;
 import org.neo4j.ogm.metadata.FieldInfo;
-import org.neo4j.ogm.metadata.reflect.EntityAccessManager;
+import org.neo4j.ogm.metadata.MetaData;
 import org.springframework.data.repository.core.support.AbstractEntityInformation;
-
-import java.io.Serializable;
-import java.util.Optional;
 
 /**
  * @author Mark Angrish
@@ -28,40 +26,39 @@ import java.util.Optional;
  */
 public class GraphEntityInformation<T, ID extends Serializable> extends AbstractEntityInformation<T, ID> {
 
-    private final MetaData metaData;
+	private final MetaData metaData;
 
-    public GraphEntityInformation(MetaData metaData, Class<T> type) {
-        super(type);
-        this.metaData = metaData;
-    }
+	public GraphEntityInformation(MetaData metaData, Class<T> type) {
+		super(type);
+		this.metaData = metaData;
+	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-    public ID getId(T entity) {
-        final ClassInfo classInfo = metaData.classInfo(getJavaType().getName());
-        final FieldInfo primaryIndex = classInfo.primaryIndexField();
+	public ID getId(T entity) {
+		final ClassInfo classInfo = metaData.classInfo(getJavaType().getName());
+		final FieldInfo primaryIndex = classInfo.primaryIndexField();
 
-        return (ID) getId(entity, classInfo, primaryIndex);
-    }
+		return (ID) getId(entity, classInfo, primaryIndex);
+	}
 
-    private Object getId(T entity, ClassInfo classInfo, FieldInfo primaryIndex) {
-        if (primaryIndex != null) {
-            return classInfo.propertyField(primaryIndex.getName()).readProperty(entity);
-        }
-        else {
-            return classInfo.propertyField(classInfo.identityField().getName()).readProperty(entity);
-        }
-    }
+	private Object getId(T entity, ClassInfo classInfo, FieldInfo primaryIndex) {
+		if (primaryIndex != null) {
+			return classInfo.propertyField(primaryIndex.getName()).readProperty(entity);
+		} else {
+			return classInfo.propertyField(classInfo.identityField().getName()).readProperty(entity);
+		}
+	}
 
-    @Override
+	@Override
 	@SuppressWarnings("unchecked")
-    public Class<ID> getIdType() {
-        final FieldInfo primaryIndex = metaData.classInfo(getJavaType().getName()).primaryIndexField();
+	public Class<ID> getIdType() {
+		final FieldInfo primaryIndex = metaData.classInfo(getJavaType().getName()).primaryIndexField();
 
-        if (primaryIndex != null) {
-            return (Class<ID>) primaryIndex.convertedType();
-        }
-        return (Class<ID>) Long.class;
-    }
+		if (primaryIndex != null) {
+			return (Class<ID>) primaryIndex.convertedType();
+		}
+		return (Class<ID>) Long.class;
+	}
 
 }

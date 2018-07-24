@@ -1,7 +1,6 @@
 package org.springframework.data.neo4j.events;
 
 import org.springframework.context.event.EventListener;
-import org.springframework.core.ResolvableType;
 import org.springframework.stereotype.Component;
 
 /**
@@ -21,7 +20,7 @@ public class Neo4jModificationEventListener {
 
 	@EventListener
 	public void onPreSaveEvent(PreSaveEvent event) {
-		preSaveEvent= event;
+		preSaveEvent = event;
 		preSaveEventCount++;
 	}
 

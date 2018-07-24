@@ -21,5 +21,4 @@ import org.springframework.stereotype.Repository;
  * @author Michal Bachman
  */
 @Repository
-public interface AbstractEntityRepository extends Neo4jRepository<AbstractEntity, Long> {
-}
+public interface AbstractEntityRepository extends Neo4jRepository<AbstractEntity, Long> {}

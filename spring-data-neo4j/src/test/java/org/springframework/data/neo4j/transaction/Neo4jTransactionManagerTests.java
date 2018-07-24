@@ -37,7 +37,6 @@ public class Neo4jTransactionManagerTests {
 
 	private TransactionTemplate tt;
 
-
 	@Before
 	public void setUp() throws Exception {
 		sf = mock(SessionFactory.class);
@@ -88,22 +87,25 @@ public class Neo4jTransactionManagerTests {
 
 		Result res = mock(Result.class);
 
-		given(session.query("some query string", Collections.<String, Object>emptyMap())).willReturn(res);
+		given(session.query("some query string", Collections.<String, Object> emptyMap())).willReturn(res);
 		given(res.queryResults()).willReturn(list);
 
-		assertTrue("Transaction Synchronization already has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
+		assertTrue("Transaction Synchronization already has a thread bound session",
+				!TransactionSynchronizationManager.hasResource(sf));
 		assertTrue("Synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
 
 		Object result = tt.execute((TransactionCallback) status -> {
-			assertTrue("Transaction Synchronization doesn't have a thread bound session", TransactionSynchronizationManager.hasResource(sf));
+			assertTrue("Transaction Synchronization doesn't have a thread bound session",
+					TransactionSynchronizationManager.hasResource(sf));
 			assertFalse(TransactionSynchronizationManager.isCurrentTransactionReadOnly());
 			assertTrue(TransactionSynchronizationManager.isActualTransactionActive());
 			Session session = ((SessionHolder) TransactionSynchronizationManager.getResource(sf)).getSession();
-			return session.query("some query string", Collections.<String, Object>emptyMap()).queryResults();
+			return session.query("some query string", Collections.<String, Object> emptyMap()).queryResults();
 		});
 
 		assertTrue("Incorrect result list", result == list);
-		assertTrue("Transaction Synchronization still has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
+		assertTrue("Transaction Synchronization still has a thread bound session",
+				!TransactionSynchronizationManager.hasResource(sf));
 		assertTrue("Synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
 
 		verify(session).beginTransaction(any(Transaction.Type.class), anyCollection());
@@ -114,12 +116,14 @@ public class Neo4jTransactionManagerTests {
 	@Test
 	public void testTransactionRollback() throws Exception {
 
-		assertTrue("Transaction Synchronization already has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
+		assertTrue("Transaction Synchronization already has a thread bound session",
+				!TransactionSynchronizationManager.hasResource(sf));
 		assertTrue("Synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
 
 		try {
 			tt.execute(status -> {
-				assertTrue("Transaction Synchronization doesn't have a thread bound session", TransactionSynchronizationManager.hasResource(sf));
+				assertTrue("Transaction Synchronization doesn't have a thread bound session",
+						TransactionSynchronizationManager.hasResource(sf));
 				throw new RuntimeException("application exception");
 			});
 			fail("Should have thrown RuntimeException");
@@ -127,7 +131,8 @@ public class Neo4jTransactionManagerTests {
 			// expected
 		}
 
-		assertTrue("Transaction Synchronization still has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
+		assertTrue("Transaction Synchronization still has a thread bound session",
+				!TransactionSynchronizationManager.hasResource(sf));
 		assertTrue("Synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
 
 		verify(session).beginTransaction(any(Transaction.Type.class), anyCollection());
@@ -138,15 +143,18 @@ public class Neo4jTransactionManagerTests {
 	@Test
 	public void testTransactionRollbackOnly() throws Exception {
 
-		assertTrue("Transaction Synchronization already has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
+		assertTrue("Transaction Synchronization already has a thread bound session",
+				!TransactionSynchronizationManager.hasResource(sf));
 
 		tt.execute(status -> {
-			assertTrue("Transaction Synchronization doesn't have a thread bound session", TransactionSynchronizationManager.hasResource(sf));
+			assertTrue("Transaction Synchronization doesn't have a thread bound session",
+					TransactionSynchronizationManager.hasResource(sf));
 			status.setRollbackOnly();
 			return null;
 		});
 
-		assertTrue("Transaction Synchronization still has a thread bound session", !TransactionSynchronizationManager.hasResource(sf));
+		assertTrue("Transaction Synchronization still has a thread bound session",
+				!TransactionSynchronizationManager.hasResource(sf));
 
 		verify(session).beginTransaction(any(Transaction.Type.class), anyCollection());
 		verify(tx).rollback();
@@ -202,193 +210,193 @@ public class Neo4jTransactionManagerTests {
 		verify(tx).close();
 	}
 
-//
-//	@Test
-//	public void testTransactionCommitWithPreBound() throws Exception {
-//		tt.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
-//		final List l = new ArrayList();
-//		l.add("test");
-//		assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
-//		TransactionSynchronizationManager.bindResource(sf, new SessionHolder(session));
-//		assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
-//
-//		Object result = tt.execute(new TransactionCallback() {
-//			@Override
-//			public Object doInTransaction(TransactionStatus status) {
-//				assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
-//				SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(sf);
-//				assertTrue("Has thread transaction", sessionHolder.getSession().getTransaction() != null);
-//				Session sess = ((SessionHolder) TransactionSynchronizationManager.getResource(sf)).getSession();
-//				assertEquals(session, sess);
-//				return l;
-//			}
-//		});
-//		assertTrue("Correct result list", result == l);
-//
-//		assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
-//		SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(sf);
-//		assertTrue("Hasn't thread transaction", sessionHolder.getSession().getTransaction() == null);
-//		TransactionSynchronizationManager.unbindResource(sf);
-//		assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
-//
-//		verify(tx).commit();
-//	}
-//
-//	@Test
-//	public void testTransactionRollbackWithPreBound() throws Exception {
-//
-//		final Transaction tx1 = mock(Transaction.class);
-//		final Transaction tx2 = mock(Transaction.class);
-//
-//		given(session.beginTransaction()).willReturn(tx1, tx2);
-//
-//		tm.setSessionFactory(sf);
-//		assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
-//		TransactionSynchronizationManager.bindResource(sf, new SessionHolder(session));
-//		assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
-//
-//		try {
-//			tt.execute(new TransactionCallbackWithoutResult() {
-//				@Override
-//				public void doInTransactionWithoutResult(TransactionStatus status) {
-//					assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
-//					SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(sf);
-//					assertEquals(tx1, sessionHolder.getSession().getTransaction());
-//					tt.execute(new TransactionCallbackWithoutResult() {
-//						@Override
-//						public void doInTransactionWithoutResult(TransactionStatus status) {
-//							status.setRollbackOnly();
-//							Session sess = ((SessionHolder) TransactionSynchronizationManager.getResource(sf)).getSession();
-//							assertEquals(session, sess);
-//						}
-//					});
-//				}
-//			});
-//			fail("Should have thrown UnexpectedRollbackException");
-//		}
-//		catch (UnexpectedRollbackException ex) {
-//			// expected
-//		}
-//
-//		assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
-//		SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(sf);
-//		assertTrue("Hasn't thread transaction", sessionHolder.getSession().getTransaction() == null);
-//		assertTrue("Not marked rollback-only", !sessionHolder.isRollbackOnly());
-//
-//		tt.execute(new TransactionCallbackWithoutResult() {
-//			@Override
-//			public void doInTransactionWithoutResult(TransactionStatus status) {
-//				assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
-//				SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(sf);
-//				assertEquals(tx2, sessionHolder.getSession().getTransaction());
-//				Session sess = ((SessionHolder) TransactionSynchronizationManager.getResource(sf)).getSession();
-//				assertEquals(session, sess);
-//			}
-//		});
-//
-//		assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
-//		assertTrue("Hasn't thread transaction", sessionHolder.getSession().getTransaction() == null);
-//		TransactionSynchronizationManager.unbindResource(sf);
-//		assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
-//
-//		verify(tx1).rollback();
-//		verify(tx2).commit();
-//		InOrder ordered = inOrder(session);
-//		ordered.verify(session).clear();
-//	}
-//
-//
-//	@Test
-//	public void testTransactionCommitWithNonExistingDatabase() throws Exception {
-//		tm.setSessionFactory(sf);
-//		tm.afterPropertiesSet();
-//		TransactionTemplate tt = new TransactionTemplate(tm);
-//		tt.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
-//		tt.setTimeout(10);
-//		assertTrue("Hasn't thread session", !TransactionSynchronizationManager.hasResource(sf));
-//		assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
-//
-//		try {
-//			tt.execute(new TransactionCallback() {
-//				@Override
-//				public Object doInTransaction(TransactionStatus status) {
-//					assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
-//					Session session = ((SessionHolder) TransactionSynchronizationManager.getResource(sf)).getSession();
-//					return session.query("from java.lang.Object", Collections.<String, Object>emptyMap()).queryResults();
-//				}
-//			});
-//			fail("Should have thrown CannotCreateTransactionException");
-//		}
-//		catch (CannotCreateTransactionException ex) {
-//			// expected
-//		}
-//
-//		assertTrue("Hasn't thread session", !TransactionSynchronizationManager.hasResource(sf));
-//		assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
-//	}
-//
-//	@Test
-//	public void testTransactionCommitWithPreBoundSessionAndNonExistingDatabase() throws Exception {
-//		tm.setSessionFactory(sf);
-//		tm.afterPropertiesSet();
-//		tt.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
-//		tt.setTimeout(10);
-//		assertTrue("Hasn't thread session", !TransactionSynchronizationManager.hasResource(sf));
-//		assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
-//
-//		Session session = sf.openSession();
-//		TransactionSynchronizationManager.bindResource(sf, new SessionHolder(session));
-//		try {
-//			tt.execute(new TransactionCallback() {
-//				@Override
-//				public Object doInTransaction(TransactionStatus status) {
-//					assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
-//					Session session = ((SessionHolder) TransactionSynchronizationManager.getResource(sf)).getSession();
-//					return session.query("from java.lang.Object", Collections.<String, Object>emptyMap()).queryResults();
-//				}
-//			});
-//			fail("Should have thrown CannotCreateTransactionException");
-//		}
-//		catch (CannotCreateTransactionException ex) {
-//			// expected
-//			SessionHolder holder = (SessionHolder) TransactionSynchronizationManager.getResource(sf);
-//			assertFalse(holder.isSynchronizedWithTransaction());
-//		}
-//		finally {
-//			TransactionSynchronizationManager.unbindResource(sf);
-//		}
-//
-//		assertTrue("Hasn't thread session", !TransactionSynchronizationManager.hasResource(sf));
-//		assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
-//	}
-//
-//
-//	@Test
-//	public void testTransactionCommitWithRollbackException() {
-//		willThrow(new RuntimeException()).given(tx).commit();
-//
-//		final List<String> l = new ArrayList<>();
-//		l.add("test");
-//
-//		assertTrue(!TransactionSynchronizationManager.hasResource(sf));
-//		assertTrue(!TransactionSynchronizationManager.isSynchronizationActive());
-//
-//		try {
-//			Object result = tt.execute(new TransactionCallback() {
-//				@Override
-//				public Object doInTransaction(TransactionStatus status) {
-//					assertTrue(TransactionSynchronizationManager.hasResource(sf));
-//					return l;
-//				}
-//			});
-//			assertSame(l, result);
-//		} catch (TransactionSystemException tse) {
-//			// expected
-//			assertTrue(tse.getCause() instanceof RuntimeException);
-//		}
-//
-//		assertTrue(!TransactionSynchronizationManager.hasResource(sf));
-//		assertTrue(!TransactionSynchronizationManager.isSynchronizationActive());
-//	}
-//
+	//
+	// @Test
+	// public void testTransactionCommitWithPreBound() throws Exception {
+	// tt.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
+	// final List l = new ArrayList();
+	// l.add("test");
+	// assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
+	// TransactionSynchronizationManager.bindResource(sf, new SessionHolder(session));
+	// assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
+	//
+	// Object result = tt.execute(new TransactionCallback() {
+	// @Override
+	// public Object doInTransaction(TransactionStatus status) {
+	// assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
+	// SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(sf);
+	// assertTrue("Has thread transaction", sessionHolder.getSession().getTransaction() != null);
+	// Session sess = ((SessionHolder) TransactionSynchronizationManager.getResource(sf)).getSession();
+	// assertEquals(session, sess);
+	// return l;
+	// }
+	// });
+	// assertTrue("Correct result list", result == l);
+	//
+	// assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
+	// SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(sf);
+	// assertTrue("Hasn't thread transaction", sessionHolder.getSession().getTransaction() == null);
+	// TransactionSynchronizationManager.unbindResource(sf);
+	// assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
+	//
+	// verify(tx).commit();
+	// }
+	//
+	// @Test
+	// public void testTransactionRollbackWithPreBound() throws Exception {
+	//
+	// final Transaction tx1 = mock(Transaction.class);
+	// final Transaction tx2 = mock(Transaction.class);
+	//
+	// given(session.beginTransaction()).willReturn(tx1, tx2);
+	//
+	// tm.setSessionFactory(sf);
+	// assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
+	// TransactionSynchronizationManager.bindResource(sf, new SessionHolder(session));
+	// assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
+	//
+	// try {
+	// tt.execute(new TransactionCallbackWithoutResult() {
+	// @Override
+	// public void doInTransactionWithoutResult(TransactionStatus status) {
+	// assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
+	// SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(sf);
+	// assertEquals(tx1, sessionHolder.getSession().getTransaction());
+	// tt.execute(new TransactionCallbackWithoutResult() {
+	// @Override
+	// public void doInTransactionWithoutResult(TransactionStatus status) {
+	// status.setRollbackOnly();
+	// Session sess = ((SessionHolder) TransactionSynchronizationManager.getResource(sf)).getSession();
+	// assertEquals(session, sess);
+	// }
+	// });
+	// }
+	// });
+	// fail("Should have thrown UnexpectedRollbackException");
+	// }
+	// catch (UnexpectedRollbackException ex) {
+	// // expected
+	// }
+	//
+	// assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
+	// SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(sf);
+	// assertTrue("Hasn't thread transaction", sessionHolder.getSession().getTransaction() == null);
+	// assertTrue("Not marked rollback-only", !sessionHolder.isRollbackOnly());
+	//
+	// tt.execute(new TransactionCallbackWithoutResult() {
+	// @Override
+	// public void doInTransactionWithoutResult(TransactionStatus status) {
+	// assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
+	// SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(sf);
+	// assertEquals(tx2, sessionHolder.getSession().getTransaction());
+	// Session sess = ((SessionHolder) TransactionSynchronizationManager.getResource(sf)).getSession();
+	// assertEquals(session, sess);
+	// }
+	// });
+	//
+	// assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
+	// assertTrue("Hasn't thread transaction", sessionHolder.getSession().getTransaction() == null);
+	// TransactionSynchronizationManager.unbindResource(sf);
+	// assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
+	//
+	// verify(tx1).rollback();
+	// verify(tx2).commit();
+	// InOrder ordered = inOrder(session);
+	// ordered.verify(session).clear();
+	// }
+	//
+	//
+	// @Test
+	// public void testTransactionCommitWithNonExistingDatabase() throws Exception {
+	// tm.setSessionFactory(sf);
+	// tm.afterPropertiesSet();
+	// TransactionTemplate tt = new TransactionTemplate(tm);
+	// tt.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
+	// tt.setTimeout(10);
+	// assertTrue("Hasn't thread session", !TransactionSynchronizationManager.hasResource(sf));
+	// assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
+	//
+	// try {
+	// tt.execute(new TransactionCallback() {
+	// @Override
+	// public Object doInTransaction(TransactionStatus status) {
+	// assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
+	// Session session = ((SessionHolder) TransactionSynchronizationManager.getResource(sf)).getSession();
+	// return session.query("from java.lang.Object", Collections.<String, Object>emptyMap()).queryResults();
+	// }
+	// });
+	// fail("Should have thrown CannotCreateTransactionException");
+	// }
+	// catch (CannotCreateTransactionException ex) {
+	// // expected
+	// }
+	//
+	// assertTrue("Hasn't thread session", !TransactionSynchronizationManager.hasResource(sf));
+	// assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
+	// }
+	//
+	// @Test
+	// public void testTransactionCommitWithPreBoundSessionAndNonExistingDatabase() throws Exception {
+	// tm.setSessionFactory(sf);
+	// tm.afterPropertiesSet();
+	// tt.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
+	// tt.setTimeout(10);
+	// assertTrue("Hasn't thread session", !TransactionSynchronizationManager.hasResource(sf));
+	// assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
+	//
+	// Session session = sf.openSession();
+	// TransactionSynchronizationManager.bindResource(sf, new SessionHolder(session));
+	// try {
+	// tt.execute(new TransactionCallback() {
+	// @Override
+	// public Object doInTransaction(TransactionStatus status) {
+	// assertTrue("Has thread session", TransactionSynchronizationManager.hasResource(sf));
+	// Session session = ((SessionHolder) TransactionSynchronizationManager.getResource(sf)).getSession();
+	// return session.query("from java.lang.Object", Collections.<String, Object>emptyMap()).queryResults();
+	// }
+	// });
+	// fail("Should have thrown CannotCreateTransactionException");
+	// }
+	// catch (CannotCreateTransactionException ex) {
+	// // expected
+	// SessionHolder holder = (SessionHolder) TransactionSynchronizationManager.getResource(sf);
+	// assertFalse(holder.isSynchronizedWithTransaction());
+	// }
+	// finally {
+	// TransactionSynchronizationManager.unbindResource(sf);
+	// }
+	//
+	// assertTrue("Hasn't thread session", !TransactionSynchronizationManager.hasResource(sf));
+	// assertTrue("JTA synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
+	// }
+	//
+	//
+	// @Test
+	// public void testTransactionCommitWithRollbackException() {
+	// willThrow(new RuntimeException()).given(tx).commit();
+	//
+	// final List<String> l = new ArrayList<>();
+	// l.add("test");
+	//
+	// assertTrue(!TransactionSynchronizationManager.hasResource(sf));
+	// assertTrue(!TransactionSynchronizationManager.isSynchronizationActive());
+	//
+	// try {
+	// Object result = tt.execute(new TransactionCallback() {
+	// @Override
+	// public Object doInTransaction(TransactionStatus status) {
+	// assertTrue(TransactionSynchronizationManager.hasResource(sf));
+	// return l;
+	// }
+	// });
+	// assertSame(l, result);
+	// } catch (TransactionSystemException tse) {
+	// // expected
+	// assertTrue(tse.getCause() instanceof RuntimeException);
+	// }
+	//
+	// assertTrue(!TransactionSynchronizationManager.hasResource(sf));
+	// assertTrue(!TransactionSynchronizationManager.isSynchronizationActive());
+	// }
+	//
 }

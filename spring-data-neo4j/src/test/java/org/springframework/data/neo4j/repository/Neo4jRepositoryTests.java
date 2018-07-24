@@ -65,14 +65,13 @@ public class Neo4jRepositoryTests extends MultiDriverTestClass {
 		assertThat(repository.existsById(entity.getId()), is(true));
 		assertThat(repository.count(), is(1L));
 
-	    Optional<SampleEntity> optional = repository.findById(entity.getId());
+		Optional<SampleEntity> optional = repository.findById(entity.getId());
 		assertTrue(optional.isPresent());
 		optional.ifPresent(actual -> assertThat(actual, is(entity)));
 
 		repository.deleteAll(Arrays.asList(entity));
 		assertThat(repository.count(), is(0L));
 	}
-
 
 	private interface SampleEntityRepository extends Neo4jRepository<SampleEntity, Long> {
 
@@ -85,12 +84,13 @@ public class Neo4jRepositoryTests extends MultiDriverTestClass {
 
 		@Bean
 		public TransactionalRepositoryTests.DelegatingTransactionManager transactionManager() throws Exception {
-			return new TransactionalRepositoryTests.DelegatingTransactionManager(new Neo4jTransactionManager(sessionFactory()));
+			return new TransactionalRepositoryTests.DelegatingTransactionManager(
+					new Neo4jTransactionManager(sessionFactory()));
 		}
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),"org.springframework.data.neo4j.domain.sample");
+			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.domain.sample");
 		}
 	}
 }

@@ -26,11 +26,9 @@ import org.springframework.util.Assert;
 @NodeEntity
 public class PersonWithCompositeAttribute {
 
-	@Id
-	private String name;
+	@Id private String name;
 
-	@Convert(PointConverter.class)
-	private Point location;
+	@Convert(PointConverter.class) private Point location;
 
 	public PersonWithCompositeAttribute(String name, Point location) {
 		Assert.notNull(name, "name should not be null");

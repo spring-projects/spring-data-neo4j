@@ -19,35 +19,32 @@ import org.neo4j.ogm.annotation.Id;
 /**
  * @author Michal Bachman
  */
-public class Actor{
+public class Actor {
 
-    @Id
-    @GeneratedValue
-    Long nodeId;
-    String id;
-    String name;
+	@Id @GeneratedValue Long nodeId;
+	String id;
+	String name;
 
-    public Actor() {
-    }
+	public Actor() {}
 
-    public Actor(String id, String name) {
-        this.id = id;
-        this.name = name;
-    }
+	public Actor(String id, String name) {
+		this.id = id;
+		this.name = name;
+	}
 
-    public String getId() {
-        return id;
-    }
+	public String getId() {
+		return id;
+	}
 
-    public void setId(String id) {
-        this.id = id;
-    }
+	public void setId(String id) {
+		this.id = id;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 }

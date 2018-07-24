@@ -32,7 +32,8 @@ public class GraphParametersParameterAccessor extends ParametersParameterAccesso
 
 	/**
 	 * Creates a new {@link ParametersParameterAccessor}.
-	 *  @param method must not be {@literal null}.
+	 *
+	 * @param method must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 */
 	public GraphParametersParameterAccessor(GraphQueryMethod method, Object[] values) {

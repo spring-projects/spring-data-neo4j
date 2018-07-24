@@ -25,8 +25,7 @@ import org.springframework.util.Assert;
 @NodeEntity
 public class PersonWithAnnotatedPersistenceConstructor {
 
-	@Id @GeneratedValue
-	private Long id;
+	@Id @GeneratedValue private Long id;
 	private String firstName;
 	private String lastName;
 

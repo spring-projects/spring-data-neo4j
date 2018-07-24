@@ -132,7 +132,8 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 		when(metaData.persistentEntities()).thenReturn(managedTypes);
 		when(classInfo.name()).thenReturn("Test");
 
-		Neo4jMappingContextFactoryBean factoryBean = new Neo4jMappingContextFactoryBean(Neo4jRepositoryConfigurationExtension.DEFAULT_SESSION_FACTORY_BEAN_NAME);
+		Neo4jMappingContextFactoryBean factoryBean = new Neo4jMappingContextFactoryBean(
+				Neo4jRepositoryConfigurationExtension.DEFAULT_SESSION_FACTORY_BEAN_NAME);
 		factoryBean.setApplicationContext(context);
 
 		factoryBean.createInstance().afterPropertiesSet();

@@ -13,23 +13,21 @@
 
 package org.springframework.data.neo4j.repositories.domain;
 
-
 /**
  * @author Michal Bachman
  */
 public class Movie {
 
-    private Long id;
-    private String title;
+	private Long id;
+	private String title;
 
-    public Movie() {
-    }
+	public Movie() {}
 
-    public Movie(String title) {
-        this.title = title;
-    }
+	public Movie(String title) {
+		this.title = title;
+	}
 
-    public String getTitle() {
-        return title;
-    }
+	public String getTitle() {
+		return title;
+	}
 }

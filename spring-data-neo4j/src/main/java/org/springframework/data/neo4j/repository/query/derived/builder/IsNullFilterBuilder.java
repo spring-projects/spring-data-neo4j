@@ -11,7 +11,6 @@
  *
  */
 
-
 package org.springframework.data.neo4j.repository.query.derived.builder;
 
 import static org.springframework.data.repository.query.parser.Part.Type.*;
@@ -31,19 +30,19 @@ import org.springframework.data.repository.query.parser.Part;
  */
 public class IsNullFilterBuilder extends FilterBuilder {
 
-    public IsNullFilterBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
-        super(part, booleanOperator, entityType);
-    }
+	public IsNullFilterBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
+		super(part, booleanOperator, entityType);
+	}
 
-    @Override
-    public List<Filter> build(Stack<Object> params) {
-        Filter filter = new Filter(propertyName(), ComparisonOperator.IS_NULL);
-        filter.setOwnerEntityType(entityType);
-        filter.setBooleanOperator(booleanOperator);
-        filter.setNegated(isNegated() || part.getType() == IS_NOT_NULL);
-        setNestedAttributes(part, filter);
+	@Override
+	public List<Filter> build(Stack<Object> params) {
+		Filter filter = new Filter(propertyName(), ComparisonOperator.IS_NULL);
+		filter.setOwnerEntityType(entityType);
+		filter.setBooleanOperator(booleanOperator);
+		filter.setNegated(isNegated() || part.getType() == IS_NOT_NULL);
+		setNestedAttributes(part, filter);
 
-        return Collections.singletonList(filter);
-    }
+		return Collections.singletonList(filter);
+	}
 
 }

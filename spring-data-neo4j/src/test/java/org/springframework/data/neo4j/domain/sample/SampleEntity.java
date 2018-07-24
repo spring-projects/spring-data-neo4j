@@ -25,9 +25,7 @@ import org.springframework.util.Assert;
 @NodeEntity
 public class SampleEntity {
 
-	@Id
-	@GeneratedValue
-	protected Long id;
+	@Id @GeneratedValue protected Long id;
 	private String first;
 	private String second;
 
