@@ -54,24 +54,6 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		super(information);
 	}
 
-	@Override
-	public boolean hasVersionProperty() {
-		logger.debug("[entity].hasVersionProperty() returns false"); // by design
-		return false;
-	}
-
-	@Override
-	public Neo4jPersistentProperty getVersionProperty() {
-		logger.debug("[entity].getVersionProperty() returns null"); // by design
-		return null;
-	}
-
-	@Override
-	public boolean isVersionProperty(PersistentProperty<?> property) {
-		logger.debug("[entity].isIdProperty({}) returns false", property); // again, by design
-		return false;
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#getFallbackIsNewStrategy()

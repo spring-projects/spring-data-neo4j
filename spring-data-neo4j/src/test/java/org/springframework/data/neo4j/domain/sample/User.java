@@ -9,6 +9,7 @@ import org.neo4j.ogm.annotation.GeneratedValue;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
+import org.neo4j.ogm.annotation.Version;
 import org.neo4j.ogm.annotation.typeconversion.DateString;
 
 /**
@@ -23,6 +24,8 @@ public class User {
 	private String firstname;
 
 	private String lastname;
+
+	@Version Long version;
 
 	private int age;
 
