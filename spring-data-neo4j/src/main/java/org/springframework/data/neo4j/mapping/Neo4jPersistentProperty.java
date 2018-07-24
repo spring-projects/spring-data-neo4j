@@ -15,6 +15,7 @@ package org.springframework.data.neo4j.mapping;
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.StartNode;
+import org.neo4j.ogm.annotation.Version;
 import org.neo4j.ogm.exception.core.MetadataException;
 import org.neo4j.ogm.metadata.ClassInfo;
 import org.slf4j.Logger;
@@ -111,8 +112,7 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 	@Override
 	public boolean isVersionProperty() {
-		logger.debug("[property].isVersionProperty() returns false"); // by design
-		return false;
+		return isAnnotationPresent(Version.class);
 	}
 
 	/**
