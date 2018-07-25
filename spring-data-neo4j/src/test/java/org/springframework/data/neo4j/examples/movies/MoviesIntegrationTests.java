@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -16,15 +16,9 @@ package org.springframework.data.neo4j.examples.movies;
 import static org.junit.Assert.*;
 import static org.neo4j.ogm.testutil.GraphTestUtils.*;
 
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TimeZone;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,6 +53,7 @@ import org.springframework.data.neo4j.examples.movies.repo.AbstractEntityReposit
 import org.springframework.data.neo4j.examples.movies.repo.ActorRepository;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.RatingRepository;
+import org.springframework.data.neo4j.examples.movies.repo.ReleasedMovieRepository;
 import org.springframework.data.neo4j.examples.movies.repo.TempMovieRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.data.neo4j.examples.movies.service.UserService;
@@ -80,6 +75,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = { MoviesIntegrationTests.MoviesContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -100,6 +96,7 @@ public class MoviesIntegrationTests extends MultiDriverTestClass {
 	@Autowired private TempMovieRepository tempMovieRepository;
 	@Autowired private ActorRepository actorRepository;
 	@Autowired private RatingRepository ratingRepository;
+	@Autowired private ReleasedMovieRepository releasedMovieRepository;
 
 	private TransactionTemplate transactionTemplate;
 
@@ -690,6 +687,22 @@ public class MoviesIntegrationTests extends MultiDriverTestClass {
 
 		List<User> foundUser = userRepository.findByEmailAddressesNotContaining(KNOWN_MAIL_ADDRESS_1);
 		assertTrue(foundUser.isEmpty());
+	}
+
+	@Test // DATAGRAPH-1105
+	public void shouldRetrieveAndConvertDates() {
+		ZoneId utc = ZoneId.of("UTC");
+
+		this.releasedMovieRepository
+				.save(new ReleasedMovie("Apocalypse Now", Date.from(LocalDate.of(1979, 5, 10).atStartOfDay(utc).toInstant()),
+						Date.from(LocalDate.of(1979, 8, 15).atStartOfDay(utc).toInstant())));
+
+		Date maxCinemaReleaseDate = Date.from(LocalDate.of(1991, 5, 9).atStartOfDay(utc).toInstant());
+		Date maxCannesReleaseDate = Date.from(LocalDate.of(1991, 10, 30).atStartOfDay(utc).toInstant());
+		this.releasedMovieRepository.save(new ReleasedMovie("Van Gogh", maxCinemaReleaseDate, maxCannesReleaseDate));
+
+		assertEquals(maxCinemaReleaseDate, this.releasedMovieRepository.findMaxCinemaReleaseDate());
+		assertEquals(maxCannesReleaseDate, this.releasedMovieRepository.findMaxCannesReleaseDate());
 	}
 
 	private void createUserForContainsTest() {
