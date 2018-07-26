@@ -1,6 +1,17 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.9.RELEASE (2018-07-26)
+---------------------------------------------
+* DATAGRAPH-1103 - Apply to Kay.
+* DATAGRAPH-1100 - Apply common Spring Data Formatting to SDN Codebase.
+* DATAGRAPH-1095 - Upgrade to Neo4j OGM 3.0.4.
+* DATAGRAPH-1091 - Derived query support for (deeper) nested properties.
+* DATAGRAPH-1090 - Release 5.0.9 (Kay SR9).
+* DATAGRAPH-933 - @Property annotation on a Date field causes a derived finder to convert Date arguments incorrectly.
+* DATAGRAPH-592 - Add support for Java 8 Stream in repository finder methods.
+
+
 Changes in version 5.1.0.RC1 (2018-07-26)
 -----------------------------------------
 * DATAGRAPH-1100 - Apply common Spring Data Formatting to SDN Codebase.
