@@ -1,6 +1,23 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.0.RC1 (2018-07-26)
+-----------------------------------------
+* DATAGRAPH-1100 - Apply common Spring Data Formatting to SDN Codebase.
+* DATAGRAPH-1099 - Examples and test still use deprecated annotations.
+* DATAGRAPH-1097 - Adapt to changes in auditing for immutable object support.
+* DATAGRAPH-1096 - Upgrade to Neo4j OGM 3.1.1-RC1.
+* DATAGRAPH-1094 - Neo4jRepositories don't work with multiple Neo4j instances.
+* DATAGRAPH-1093 - Support the IgnoreCase flag.
+* DATAGRAPH-1091 - Derived query support for (deeper) nested properties.
+* DATAGRAPH-1087 - Release 5.1 RC1 (Lovelace).
+* DATAGRAPH-1081 - Support @Version annotation of OGM 3.1.
+* DATAGRAPH-933 - @Property annotation on a Date field causes a derived finder to convert Date arguments incorrectly.
+* DATAGRAPH-551 - Optimistic Locking.
+* DATAGRAPH-371 - Add missing packageinfo.java files.
+* DATAGRAPH-336 - Optimistic locking using @Version field.
+
+
 Changes in version 5.0.8.RELEASE (2018-06-13)
 ---------------------------------------------
 * DATAGRAPH-1085 - Release 5.0.8 (Kay SR8).
