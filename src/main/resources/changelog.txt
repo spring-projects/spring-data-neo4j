@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.2.14.RELEASE (2018-07-27)
+----------------------------------------------
+* DATAGRAPH-1102 - Apply to Ingalls.
+* DATAGRAPH-1100 - Apply common Spring Data Formatting to SDN Codebase.
+* DATAGRAPH-1089 - Release 4.2.14 (Ingalls SR14).
+
+
 Changes in version 5.0.9.RELEASE (2018-07-26)
 ---------------------------------------------
 * DATAGRAPH-1103 - Apply to Kay.
