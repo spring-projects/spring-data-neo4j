@@ -89,7 +89,7 @@ public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> type) {
 		Assert.notNull(type, "Domain class must not be null!");
-		Assert.notNull(session, "Session must not be null!");
+
 		return new GraphEntityInformation(((Neo4jSession) session).metaData(), type);
 	}
 

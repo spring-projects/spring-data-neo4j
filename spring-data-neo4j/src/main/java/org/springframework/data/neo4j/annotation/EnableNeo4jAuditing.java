@@ -26,9 +26,10 @@ import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.neo4j.repository.config.Neo4jAuditingRegistrar;
 
 /**
- * Annotation to enable auditing in MongoDB via annotation configuration.
+ * Annotation to enable auditing in Neo4j via annotation configuration.
  *
  * @author Frantisek Hartman
+ * @author Michael J. Simons
  */
 @Inherited
 @Documented

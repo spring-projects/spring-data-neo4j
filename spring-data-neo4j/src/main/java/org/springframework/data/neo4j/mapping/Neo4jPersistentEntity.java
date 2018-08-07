@@ -12,8 +12,6 @@
  */
 package org.springframework.data.neo4j.mapping;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.support.IsNewStrategy;
@@ -42,8 +40,6 @@ import org.springframework.data.util.TypeInformation;
  * @since 4.0.0
  */
 public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty> {
-
-	private static final Logger logger = LoggerFactory.getLogger(Neo4jPersistentEntity.class);
 
 	/**
 	 * Constructs a new {@link Neo4jPersistentEntity} based on the given type information.
