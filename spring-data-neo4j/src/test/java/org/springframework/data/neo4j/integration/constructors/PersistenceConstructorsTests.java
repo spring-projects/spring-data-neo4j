@@ -13,11 +13,14 @@
 
 package org.springframework.data.neo4j.integration.constructors;
 
+import static java.util.stream.Collectors.*;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.assertj.core.util.DateUtil;
@@ -35,6 +38,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.geo.Point;
+import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService;
 import org.springframework.data.neo4j.integration.constructors.domain.*;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
@@ -42,6 +46,7 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.util.IterableUtils;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -50,6 +55,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = { PersistenceConstructorsTests.PersistenceConstructorsPersistenceContext.class })
@@ -204,6 +210,26 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 		assertEquals("foo", persons.iterator().next().getName());
 	}
 
+	@Test
+	public void shouldSupportQueryResults() {
+		session.query(
+				"MERGE (buffy:Person {name: 'Buffy'}) - [:IS_FRIEND {timestamp: 1533570712595, latitude: 34.10367, longitude: -118.272562}] -> (spike:Person {name: 'Spike'})\n"
+						+ "MERGE (willow:Person {name: 'Willow'})\n" + "MERGE (xander:Person {name: 'Xander'})\n"
+						+ "MERGE (buffy) - [:IS_FRIEND {timestamp: 1533570712595, latitude: 34.10367, longitude: -118.272562}] -> (willow)\n"
+						+ "MERGE (willow) - [:IS_FRIEND {timestamp: 1533570712595, latitude: 34.10367, longitude: -118.272562}] -> (buffy)\n"
+						+ "MERGE (buffy) - [:IS_FRIEND {timestamp: 1533570712595, latitude: 34.10367, longitude: -118.272562}] -> (xander)\n"
+						+ "MERGE (xander) - [:IS_FRIEND {timestamp: 1533570712595, latitude: 34.10367, longitude: -118.272562}] -> (buffy)",
+				new HashMap<>());
+
+		List<PersonProjection> personsWithMutualFriends = personRepository.findPersonWithMutualFriendsByName("Buffy");
+		assertEquals(1, personsWithMutualFriends.size());
+		assertEquals(3L, personsWithMutualFriends.get(0).getNumberOfFriends());
+
+		List<String> namesOfMutalFriends = personsWithMutualFriends.get(0).getMutualFriends().stream().map(Person::getName)
+				.collect(toList());
+		assertTrue(namesOfMutalFriends.containsAll(Arrays.asList("Willow", "Xander")));
+	}
+
 	@Before
 	public void setUp() {
 		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
@@ -232,7 +258,13 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 	}
 
 	@Repository
-	public interface PersonRepository extends Neo4jRepository<Person, String> {}
+	public interface PersonRepository extends Neo4jRepository<Person, String> {
+		@Query("MATCH (n:Person {name: $name}) - [allFriends:IS_FRIEND] -> () \n"
+				+ "WITH n, count(allFriends) AS numberOfFriends\n"
+				+ "MATCH (n) - [:IS_FRIEND] -> (m:Person) - [:IS_FRIEND] -> (n)\n"
+				+ "RETURN n.name AS name, numberOfFriends,  collect(m) AS mutualFriends")
+		List<PersonProjection> findPersonWithMutualFriendsByName(@Param("name") String name);
+	}
 
 	@Repository
 	public interface KotlinPersonRepository extends Neo4jRepository<KotlinPerson, String> {}

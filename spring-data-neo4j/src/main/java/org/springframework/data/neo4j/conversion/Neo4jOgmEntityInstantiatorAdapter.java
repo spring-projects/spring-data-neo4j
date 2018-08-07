@@ -11,7 +11,7 @@
  *
  */
 
-package org.springframework.data.neo4j.repository.config;
+package org.springframework.data.neo4j.conversion;
 
 import java.util.Map;
 
@@ -19,8 +19,8 @@ import org.neo4j.ogm.session.EntityInstantiator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.convert.EntityInstantiators;
 import org.springframework.data.mapping.PreferredConstructor;
+import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ParameterValueProvider;
-import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.lang.Nullable;
@@ -30,15 +30,18 @@ import org.springframework.util.Assert;
  * Implements OGM instantiation callback in order to user Spring Data Commons infrastructure for instantiation.
  *
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
-class OgmEntityInstantiatorAdapter implements EntityInstantiator {
+public class Neo4jOgmEntityInstantiatorAdapter implements EntityInstantiator {
 
-	private final Neo4jMappingContext context;
+	private final MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context;
 	private ConversionService conversionService;
 	private final EntityInstantiators instantiators;
 
-	OgmEntityInstantiatorAdapter(Neo4jMappingContext context, @Nullable ConversionService conversionService) {
+	public Neo4jOgmEntityInstantiatorAdapter(MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context,
+			@Nullable ConversionService conversionService) {
 		Assert.notNull(context, "MappingContext cannot be null");
+
 		this.context = context;
 		this.conversionService = conversionService;
 		instantiators = new EntityInstantiators();

@@ -19,10 +19,12 @@ import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService;
+import org.springframework.data.neo4j.conversion.Neo4jOgmEntityInstantiatorAdapter;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 public class Neo4jOgmEntityInstantiatorConfigurationBean {
 
@@ -32,7 +34,7 @@ public class Neo4jOgmEntityInstantiatorConfigurationBean {
 		ConversionService conversionService = conversionServiceObjectProvider.getIfAvailable();
 
 		sessionFactory.setEntityInstantiator(
-				new OgmEntityInstantiatorAdapter(mappingContext, conversionService != null ? conversionService
+				new Neo4jOgmEntityInstantiatorAdapter(mappingContext, conversionService != null ? conversionService
 						: new MetaDataDrivenConversionService(sessionFactory.metaData())));
 	}
 

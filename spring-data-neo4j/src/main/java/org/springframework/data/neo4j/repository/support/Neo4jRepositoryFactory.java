@@ -17,6 +17,12 @@ import java.util.Optional;
 
 import org.neo4j.ogm.session.Neo4jSession;
 import org.neo4j.ogm.session.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.GraphQueryLookupStrategy;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.RepositoryInformation;
@@ -24,6 +30,7 @@ import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -34,14 +41,40 @@ import org.springframework.util.Assert;
  * @author Mark Angrish
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Michael J. Simons
  */
 public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
+	private static final Logger logger = LoggerFactory.getLogger(Neo4jRepositoryFactory.class);
+
 	private final Session session;
 
+	private @Nullable final MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext;
+
+	/**
+	 * @param session
+	 * @deprecated since 5.1.0, use {@link Neo4jRepositoryFactory#Neo4jRepositoryFactory(Session, MappingContext)} instead
+	 *             and provide the mapping context.
+	 */
+	@Deprecated
 	public Neo4jRepositoryFactory(Session session) {
+		this(session, null);
+	}
+
+	public Neo4jRepositoryFactory(Session session, MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext) {
 		Assert.notNull(session, "Session must not be null!");
+
 		this.session = session;
+		if (mappingContext != null) {
+			this.mappingContext = mappingContext;
+		} else if(session instanceof Neo4jSession) {
+			logger.debug("Creating a new mapping context");
+			this.mappingContext = new Neo4jMappingContext(((Neo4jSession) session).metaData());
+			((Neo4jMappingContext) this.mappingContext).initialize();
+		} else {
+			logger.warn("No mapping context present, some operations won't support persistence constructors");
+			this.mappingContext = null;
+		}
 	}
 
 	/*
@@ -73,6 +106,6 @@ public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(QueryLookupStrategy.Key key,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
-		return Optional.of(new GraphQueryLookupStrategy(session, evaluationContextProvider));
+		return Optional.of(new GraphQueryLookupStrategy(session, evaluationContextProvider, this.mappingContext));
 	}
 }

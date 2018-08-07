@@ -66,8 +66,8 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	private static final String MODULE_PREFIX = "neo4j";
 	private static final String MODULE_NAME = "Neo4j";
 
-	private static final boolean HAS_ENTITY_INSTANTIATOR_FEATURE = ClassUtils
-			.isPresent("org.neo4j.ogm.session.EntityInstantiator", Neo4jMappingContextFactoryBean.class.getClassLoader());
+	public static final boolean HAS_ENTITY_INSTANTIATOR_FEATURE = ClassUtils.isPresent(
+			"org.neo4j.ogm.session.EntityInstantiator", Neo4jRepositoryConfigurationExtension.class.getClassLoader());
 
 	/**
 	 * We use a generated name for every pair of {@code SessionFactory} and {@code Session} unless the user configures a
