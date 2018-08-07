@@ -18,27 +18,34 @@ import java.lang.reflect.Method;
 
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Angrish
  * @author Luanne Misquitta
  * @author Oliver Gierke
+ * @author Michael J. Simons
  */
 public class GraphQueryMethod extends QueryMethod {
 
 	private final Method method;
 	private final Query queryAnnotation;
 	private final Integer queryDepthParamIndex;
+	private @Nullable MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext;
 
 	public GraphQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
 		super(method, metadata, factory);
+
 		this.method = method;
 		this.queryAnnotation = method.getAnnotation(Query.class);
 		this.queryDepthParamIndex = getQueryDepthParamIndex(method);
@@ -57,6 +64,14 @@ public class GraphQueryMethod extends QueryMethod {
 	@Override
 	public GraphParameters getParameters() {
 		return (GraphParameters) super.getParameters();
+	}
+
+	public MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> getMappingContext() {
+		return mappingContext;
+	}
+
+	public void setMappingContext(MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext) {
+		this.mappingContext = mappingContext;
 	}
 
 	public String getQuery() {

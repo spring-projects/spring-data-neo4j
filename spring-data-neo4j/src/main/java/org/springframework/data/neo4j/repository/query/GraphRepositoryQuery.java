@@ -69,7 +69,7 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 		return Result.class.equals(returnType) ? result
 				: processor.processResult(result,
-						new CustomResultConverter(getMetaData(), processor.getReturnedType().getReturnedType()));
+						new CustomResultConverter(getMetaData(), processor.getReturnedType().getReturnedType(), graphQueryMethod.getMappingContext()));
 	}
 
 	protected Query getQuery(Object[] parameters) {

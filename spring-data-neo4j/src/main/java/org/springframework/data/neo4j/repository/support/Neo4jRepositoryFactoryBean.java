@@ -18,6 +18,7 @@ import java.io.Serializable;
 import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
@@ -37,6 +38,7 @@ public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID exten
 		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
 	private Session session;
+	private Neo4jMappingContext mappingContext;
 
 	/**
 	 * Creates a new {@link Neo4jRepositoryFactoryBean} for the given repository interface.
@@ -59,6 +61,10 @@ public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID exten
 	@Override
 	public void setMappingContext(MappingContext<?, ?> mappingContext) {
 		super.setMappingContext(mappingContext);
+
+		if (mappingContext instanceof Neo4jMappingContext) {
+			this.mappingContext = (Neo4jMappingContext) mappingContext;
+		}
 	}
 
 	@Override
@@ -73,7 +79,7 @@ public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID exten
 	 */
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
-		return new Neo4jRepositoryFactory(session);
+		return createRepositoryFactory(session);
 	}
 
 	/**
@@ -85,6 +91,6 @@ public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID exten
 	 */
 	@Deprecated
 	protected RepositoryFactorySupport createRepositoryFactory(Session session) {
-		return new Neo4jRepositoryFactory(session);
+		return new Neo4jRepositoryFactory(session, mappingContext);
 	}
 }
