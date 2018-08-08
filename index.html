@@ -96,7 +96,7 @@ interface MovieRepository extends Neo4jRepository<Movie, Long> {
   // derived finder
   Movie findByTitle(String title);
 
-  @Query("MATCH (m:Movie)<-[rating:RATED]-(user) WHERE id(movie)={movie} return rating")
+  @Query("MATCH (m:Movie)<-[rating:RATED]-(user) WHERE id(movie)={movie} RETURN rating")
   List<Rating> getRatings(@Param("movie") Movie movie);
 
   // Co-Actors
