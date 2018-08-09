@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -24,6 +24,7 @@ import org.neo4j.ogm.exception.ResultProcessingException;
 import org.neo4j.ogm.exception.TransactionException;
 import org.neo4j.ogm.exception.core.InvalidDepthException;
 import org.neo4j.ogm.exception.core.MappingException;
+import org.neo4j.ogm.exception.core.MetadataException;
 import org.neo4j.ogm.exception.core.MissingOperatorException;
 import org.neo4j.ogm.exception.core.NotFoundException;
 import org.neo4j.ogm.exception.core.TransactionManagerException;
@@ -38,6 +39,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.dao.TypeMismatchDataAccessException;
 import org.springframework.data.neo4j.exception.Neo4jErrorStatusCodes;
 import org.springframework.data.neo4j.exception.UncategorizedNeo4jException;
 import org.springframework.transaction.support.ResourceHolderSynchronization;
@@ -51,6 +53,7 @@ import org.springframework.util.Assert;
  * Mainly intended for internal use within the framework.
  *
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 public class SessionFactoryUtils {
 
@@ -119,6 +122,9 @@ public class SessionFactoryUtils {
 		}
 		if (ex instanceof MappingException) {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+		}
+		if (ex instanceof MetadataException) {
+			return new TypeMismatchDataAccessException(ex.getMessage(), ex);
 		}
 		if (ex instanceof UnknownStatementTypeException) {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
