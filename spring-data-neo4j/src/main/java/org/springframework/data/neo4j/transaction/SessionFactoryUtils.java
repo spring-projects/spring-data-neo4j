@@ -133,9 +133,6 @@ public class SessionFactoryUtils {
 		if (ex instanceof ResultErrorsException) {
 			return new DataRetrievalFailureException(ex.getMessage(), ex);
 		}
-		if (ex instanceof ServiceNotFoundException) {
-			return new DataAccessResourceFailureException(ex.getMessage(), ex);
-		}
 		if (ex instanceof TransactionException) {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 		}
