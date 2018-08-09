@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -15,7 +15,10 @@ package org.springframework.data.neo4j.examples.movies.domain.queryresult;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Year;
 
+import org.neo4j.ogm.annotation.Property;
+import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.springframework.data.neo4j.annotation.QueryResult;
 
 /**
@@ -23,6 +26,7 @@ import org.springframework.data.neo4j.annotation.QueryResult;
  *
  * @author Adam George
  * @author Luanne Misquitta
+ * @author Michael J. Simons
  */
 @QueryResult
 public class RichUserQueryResult {
@@ -31,6 +35,8 @@ public class RichUserQueryResult {
 	private String userName;
 	private BigInteger userAccount;
 	private BigDecimal[] userDeposits;
+
+	@Property(name = "yearOfBirth") @Convert(YearConverter.class) private Year yearOfBirth;
 
 	public Gender getUserGender() {
 		return userGender;
@@ -46,5 +52,9 @@ public class RichUserQueryResult {
 
 	public BigDecimal[] getUserDeposits() {
 		return userDeposits;
+	}
+
+	public Year getYearOfBirth() {
+		return yearOfBirth;
 	}
 }

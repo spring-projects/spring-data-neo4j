@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -16,6 +16,7 @@ import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,6 +49,7 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -58,9 +60,10 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Vince Bickers
  * @author Luanne Misquitta
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = { QueryIntegrationTests.MoviesContext.class })
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 public class QueryIntegrationTests extends MultiDriverTestClass {
 
 	@Autowired PlatformTransactionManager platformTransactionManager;
@@ -413,7 +416,7 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 	public void shouldRetrieveUsersByGenderAndConvertToCorrectTypes() {
 		executeUpdate(
 				"CREATE (:User {name:'David Warner', gender:'MALE'}), (:User {name:'Shikhar Dhawan', gender:'MALE'}), "
-						+ "(:User {name:'Sarah Taylor', gender:'FEMALE', account: '3456789', deposits:['12345.6','45678.9']})");
+						+ "(:User {name:'Sarah Taylor', gender:'FEMALE', account: '3456789', yearOfBirth: 1979, deposits:['12345.6','45678.9']})");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -426,6 +429,7 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 				RichUserQueryResult userQueryResult = userIterator.next();
 				assertEquals(Gender.FEMALE, userQueryResult.getUserGender());
 				assertEquals("Sarah Taylor", userQueryResult.getUserName());
+				assertEquals(Year.of(1979), userQueryResult.getYearOfBirth());
 				assertEquals(BigInteger.valueOf(3456789), userQueryResult.getUserAccount());
 				assertArrayEquals(new BigDecimal[] { BigDecimal.valueOf(12345.6), BigDecimal.valueOf(45678.9) },
 						userQueryResult.getUserDeposits());
