@@ -16,7 +16,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-parent</artifactId>
-	<version>5.1.0.BUILD-SNAPSHOT</version>
+	<version>5.1.0.DATAGRAPH-1110-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Data Neo4j</name>
@@ -37,7 +37,7 @@
 	<properties>
 		<project.type>multi</project.type>
 		<dist.id>spring-data-neo4j</dist.id>
-		<neo4j.ogm.version>3.1.1-RC1</neo4j.ogm.version>
+		<neo4j.ogm.version>3.1.1-SNAPSHOT</neo4j.ogm.version>
 		<springdata.commons>2.1.0.BUILD-SNAPSHOT</springdata.commons>
 		<source.level>1.8</source.level>
 		<kotlin.version>1.2.10</kotlin.version>
