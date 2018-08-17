@@ -97,7 +97,7 @@ See the section on <<reference.getting_started.dependencies.testing,Testing>> be
         <groupId>org.neo4j</groupId>
         <artifactId>neo4j-ogm-http-driver</artifactId>
     </dependency>
-</dependency>
+</dependencies>
 ----
 
 
