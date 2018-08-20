@@ -1,6 +1,16 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.0.RC2 (2018-08-20)
+-----------------------------------------
+* DATAGRAPH-1113 - Upgrade to Neo4j OGM 3.1.1 final.
+* DATAGRAPH-1111 - Remove reference to unused ServiceNotFoundException.
+* DATAGRAPH-1110 - Improve exception handling on non persistable properties.
+* DATAGRAPH-1109 - Add support for persistence constructors for @QueryResults.
+* DATAGRAPH-1106 - Release 5.1 RC2 (Lovelace).
+* DATAGRAPH-1105 - Allow query methods to return single components of a result set for supported types.
+
+
 Changes in version 4.2.14.RELEASE (2018-07-27)
 ----------------------------------------------
 * DATAGRAPH-1102 - Apply to Ingalls.
