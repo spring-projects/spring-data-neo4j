@@ -21,7 +21,7 @@ import org.springframework.data.neo4j.domain.sample.User;
 /**
  * @author Gerrit Meier
  */
-public class Neo4jPersistentPropertyTest {
+public class Neo4jPersistentPropertyTests {
 
 	@Test // DATAGRAPH-1081
 	public void detectsOgmVersionAnnotation() {

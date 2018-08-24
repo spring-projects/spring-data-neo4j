@@ -16,6 +16,8 @@ package org.springframework.data.neo4j.bookmark;
 import java.lang.reflect.Method;
 
 import org.springframework.aop.support.StaticMethodMatcherPointcut;
+import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.neo4j.annotation.UseBookmark;
 
 /**
@@ -27,8 +29,8 @@ public class BookmarkOperationPointcut extends StaticMethodMatcherPointcut {
 
 	@Override
 	public boolean matches(Method method, Class<?> targetClass) {
-		UseBookmark classAnnotation = targetClass.getAnnotation(UseBookmark.class);
-		UseBookmark methodAnnotation = method.getAnnotation(UseBookmark.class);
+		UseBookmark classAnnotation = AnnotatedElementUtils.findMergedAnnotation(targetClass, UseBookmark.class);
+		UseBookmark methodAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, UseBookmark.class);
 
 		// method matches if @UseBookmark is on class, is true and not on method or
 		// @UseBookmark is on method and is true
