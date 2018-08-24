@@ -21,7 +21,6 @@ import org.neo4j.ogm.exception.ConnectionException;
 import org.neo4j.ogm.exception.CypherException;
 import org.neo4j.ogm.exception.ResultErrorsException;
 import org.neo4j.ogm.exception.ResultProcessingException;
-import org.neo4j.ogm.exception.ServiceNotFoundException;
 import org.neo4j.ogm.exception.TransactionException;
 import org.neo4j.ogm.exception.core.InvalidDepthException;
 import org.neo4j.ogm.exception.core.MappingException;
@@ -132,9 +131,6 @@ public class SessionFactoryUtils {
 		}
 		if (ex instanceof ResultErrorsException) {
 			return new DataRetrievalFailureException(ex.getMessage(), ex);
-		}
-		if (ex instanceof ServiceNotFoundException) {
-			return new DataAccessResourceFailureException(ex.getMessage(), ex);
 		}
 		if (ex instanceof TransactionException) {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
