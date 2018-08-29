@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -105,8 +105,7 @@ public class BookmarkManagementTests {
 		});
 	}
 
-	// Bookmarkwrapper on class
-	@Test
+	@Test // DATAGRAPH-1115
 	public void givenUseBookmarkWrapperOnClass_whenRunMethod_thenShouldUseBookmarkIsSet() {
 		useBookmarkWrapperOnClassBean.runWithBookmark(() -> {
 			BookmarkInfo bookmarkInfo = BookmarkSupport.currentBookmarkInfo();
