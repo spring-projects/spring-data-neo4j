@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xsd:schema xmlns="http://www.springframework.org/schema/data/neo4j"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:tool="http://www.springframework.org/schema/tool"
+            xmlns:repository="http://www.springframework.org/schema/data/repository"
+            targetNamespace="http://www.springframework.org/schema/data/neo4j"
+            elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+    <xsd:import namespace="http://www.springframework.org/schema/beans" />
+    <xsd:import namespace="http://www.springframework.org/schema/tool" />
+    <xsd:import namespace="http://www.springframework.org/schema/context" />
+    <xsd:import namespace="http://www.springframework.org/schema/data/repository"
+                schemaLocation="http://www.springframework.org/schema/data/repository/spring-repository.xsd" />
+
+    <xsd:element name="repositories">
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="repository:repositories">
+                    <xsd:attributeGroup ref="repository:transactional-repository-attributes" />
+                    <xsd:attribute name="session-factory-provider-ref" type="sessionFactoryRef" />
+                    <xsd:attribute name="enable-default-transactions" type="xsd:boolean">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[
+   							Controls whether repositories get transactions enabled by default.
+							]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:attribute>
+                </xsd:extension>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+
+
+    <xsd:simpleType name="sessionFactoryRef">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <tool:annotation kind="ref">
+                    <tool:assignable-to type="org.neo4j.ogm.session.SessionFactory" />
+                </tool:annotation>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:union memberTypes="xsd:string" />
+    </xsd:simpleType>
+
+</xsd:schema>
