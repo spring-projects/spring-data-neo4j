@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -10,16 +10,15 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  *
  */
+
 package org.springframework.data.neo4j.repository.query.derived;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Stack;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
-import org.neo4j.ogm.cypher.Filter;
+import org.neo4j.ogm.cypher.Filters;
 import org.springframework.data.neo4j.repository.query.derived.builder.BetweenComparisonBuilder;
 import org.springframework.data.neo4j.repository.query.derived.builder.BooleanComparisonBuilder;
 import org.springframework.data.neo4j.repository.query.derived.builder.ContainsComparisonBuilder;
@@ -31,55 +30,54 @@ import org.springframework.data.neo4j.repository.query.derived.builder.PropertyC
 import org.springframework.data.repository.query.parser.Part;
 
 /**
- * A {@link DerivedQueryDefinition} that builds a Cypher query.
+ * A filter builder definition represents an ongoing state of {@link FilterBuilder filter builder} chained together with
+ * "and" or "or". It is used with a resolved parameters to create an instance {@link Filters} for building a query
+ * object.
  *
  * @author Luanne Misquitta
- * @author Jasper Blues
- * @author Nicolas Mervaillie
- * @author Gerrit Meier
+ * @author Michael J. Simons
  */
-public class CypherFinderQuery implements DerivedQueryDefinition {
+class FilterBuildersDefinition {
 
-	private Class<?> entityType;
-	private Part basePart;
-	private List<FilterBuilder> filterBuilders = new ArrayList<>();
+	private final Class<?> entityType;
 
-	CypherFinderQuery(Class<?> entityType, Part basePart) {
-		this.entityType = entityType;
-		this.basePart = basePart;
+	private final Part basePart;
+
+	private final List<FilterBuilder> filterBuilders;
+
+	static UnstartedBuild forType(Class<?> entityType) {
+		return new UnstartedBuild(entityType);
 	}
 
-	@Override
-	public Part getBasePart() { // because the OR is handled in a weird way. Luanne, explain better
+	private FilterBuildersDefinition(Class<?> entityType, Part basePart) {
+		this.entityType = entityType;
+		this.basePart = basePart;
+		this.filterBuilders = new LinkedList<>();
+
+		this.filterBuilders.add(builderForPart(basePart, BooleanOperator.NONE));
+	}
+
+	FilterBuildersQuery buildFilterQuery() {
+		return new FilterBuildersQuery(Collections.unmodifiableList(filterBuilders));
+	}
+
+	/**
+	 * Comment on original DerivedQueryDefinition was: "because the OR is handled in a weird way. Luanne, explain better"
+	 *
+	 * @return
+	 */
+	Part getBasePart() {
 		return basePart;
 	}
 
-	@Override
-	public List<Filter> getFilters(Map<Integer, Object> params) {
-
-		// buiding a stack of parameter values, so that the builders can pull them
-		// according to their needs (zero, one or more parameters)
-		// avoids to manage a current parameter index state here.
-		Stack<Object> parametersStack = new Stack<>();
-		if (!params.isEmpty()) {
-			Integer maxParameterIndex = Collections.max(params.keySet());
-			for (int i = 0; i <= maxParameterIndex; i++) {
-				parametersStack.add(0, params.get(i));
-			}
-		}
-
-		List<Filter> filters = new ArrayList<>();
-		for (FilterBuilder filterBuilder : filterBuilders) {
-			filters.addAll(filterBuilder.build(parametersStack));
-		}
-		return filters;
+	FilterBuildersDefinition and(Part part) {
+		this.filterBuilders.add(builderForPart(part, BooleanOperator.AND));
+		return this;
 	}
 
-	@Override
-	public void addPart(Part part, BooleanOperator booleanOperator) {
-
-		FilterBuilder builder = builderForPart(part, booleanOperator);
-		filterBuilders.add(builder);
+	FilterBuildersDefinition or(Part part) {
+		this.filterBuilders.add(builderForPart(part, BooleanOperator.OR));
+		return this;
 	}
 
 	private FilterBuilder builderForPart(Part part, BooleanOperator booleanOperator) {
@@ -110,5 +108,17 @@ public class CypherFinderQuery implements DerivedQueryDefinition {
 			return new PropertyComparisonBuilder(part, booleanOperator, entityType);
 		}
 		return new ContainsComparisonBuilder(part, booleanOperator, entityType);
+	}
+
+	static class UnstartedBuild {
+		private final Class<?> entityType;
+
+		UnstartedBuild(Class<?> entityType) {
+			this.entityType = entityType;
+		}
+
+		FilterBuildersDefinition startWith(Part firstPart) {
+			return new FilterBuildersDefinition(entityType, firstPart);
+		}
 	}
 }
