@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -16,7 +16,6 @@ package org.springframework.data.neo4j.repository.query.derived;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,20 +37,25 @@ import org.springframework.data.repository.query.parser.PartTree;
  * @author Vince Bickers
  * @author Nicolas Mervaillie
  * @author Mark Paluch
+ * @author Michael J. Simons
  */
 public class DerivedGraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DerivedGraphRepositoryQuery.class);
-	private final DerivedQueryDefinition queryDefinition;
 	private final GraphQueryMethod graphQueryMethod;
 	private final PartTree tree;
 
+	private final FilterBuildersQuery queryTemplate;
+
 	public DerivedGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session) {
 		super(graphQueryMethod, session);
-		this.graphQueryMethod = graphQueryMethod;
+
 		Class<?> domainType = graphQueryMethod.getEntityInformation().getJavaType();
+
+		this.graphQueryMethod = graphQueryMethod;
 		this.tree = new PartTree(graphQueryMethod.getName(), domainType);
-		this.queryDefinition = new DerivedQueryCreator(tree, domainType).createQuery();
+
+		this.queryTemplate = new FilterBuildersQueryCreator(this.tree, domainType).createQuery();
 	}
 
 	@Override
@@ -76,7 +80,9 @@ public class DerivedGraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 	@Override
 	protected Query getQuery(Object[] parameters) {
-		return new Query(resolveParams(parameters));
+
+		Map<Integer, Object> resolvedParameters = resolveParameters(parameters);
+		return this.queryTemplate.createExecutableQuery(resolvedParameters);
 	}
 
 	@Override
@@ -101,16 +107,16 @@ public class DerivedGraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 	 * @param parameters parameter values supplied by the finder method
 	 * @return List of Parameter with values set
 	 */
-	private Filters resolveParams(Object[] parameters) {
-		Map<Integer, Object> params = new HashMap<>();
+	private Map<Integer, Object> resolveParameters(Object[] parameters) {
+		Map<Integer, Object> resolvedParameters = new HashMap<>();
 
 		for (int i = 0; i < parameters.length; i++) {
 			if (graphQueryMethod.getQueryDepthParamIndex() == null
 					|| (graphQueryMethod.getQueryDepthParamIndex() != null && graphQueryMethod.getQueryDepthParamIndex() != i)) {
-				params.put(i, parameters[i]);
+				resolvedParameters.put(i, parameters[i]);
 			}
 		}
 
-		return new Filters(queryDefinition.getFilters(params));
+		return resolvedParameters;
 	}
 }
