@@ -19,7 +19,6 @@ import org.neo4j.ogm.session.Session;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.repository.query.derived.DerivedGraphRepositoryQuery;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -79,7 +78,7 @@ public class GraphQueryLookupStrategy implements QueryLookupStrategy {
 		} else if (queryMethod.hasAnnotatedQuery()) {
 			return new GraphRepositoryQuery(queryMethod, session, evaluationContextProvider);
 		} else {
-			return new DerivedGraphRepositoryQuery(queryMethod, session);
+			return new PartTreeNeo4jQuery(queryMethod, session);
 		}
 	}
 }

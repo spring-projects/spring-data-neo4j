@@ -10,7 +10,7 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  *
  */
-package org.springframework.data.neo4j.repository.query.derived;
+package org.springframework.data.neo4j.repository.query;
 
 import java.util.Iterator;
 
@@ -26,11 +26,11 @@ import org.springframework.data.repository.query.parser.PartTree;
  * @author Luanne Misquitta
  * @author Michael J. Simons
  */
-class FilterBuildersQueryCreator extends AbstractQueryCreator<FilterBuildersQuery, FilterBuildersDefinition> {
+class TemplatedQueryCreator extends AbstractQueryCreator<TemplatedQuery, FilterBuildersDefinition> {
 
 	private final Class<?> entityType;
 
-	public FilterBuildersQueryCreator(PartTree tree, Class<?> entityType) {
+	public TemplatedQueryCreator(PartTree tree, Class<?> entityType) {
 		super(tree);
 
 		this.entityType = entityType;
@@ -53,7 +53,7 @@ class FilterBuildersQueryCreator extends AbstractQueryCreator<FilterBuildersQuer
 	}
 
 	@Override
-	protected FilterBuildersQuery complete(FilterBuildersDefinition filterDefinition, Sort sort) {
-		return filterDefinition.buildFilterQuery();
+	protected TemplatedQuery complete(FilterBuildersDefinition filterDefinition, Sort sort) {
+		return filterDefinition.buildTemplatedQuery();
 	}
 }

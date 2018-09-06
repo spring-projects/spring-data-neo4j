@@ -10,7 +10,7 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  *
  */
-package org.springframework.data.neo4j.repository.query.derived;
+package org.springframework.data.neo4j.repository.query;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,8 +20,7 @@ import java.util.Stack;
 
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
-import org.springframework.data.neo4j.repository.query.Query;
-import org.springframework.data.neo4j.repository.query.derived.builder.FilterBuilder;
+import org.springframework.data.neo4j.repository.query.filter.FilterBuilder;
 
 /**
  * A template query based on filters. {@link #createExecutableQuery(Map)} is used to create an executable query from
@@ -33,11 +32,11 @@ import org.springframework.data.neo4j.repository.query.derived.builder.FilterBui
  * @author Gerrit Meier
  * @author Michael J. Simons
  */
-class FilterBuildersQuery {
+class TemplatedQuery {
 
 	private final List<FilterBuilder> filterBuilders;
 
-	FilterBuildersQuery(List<FilterBuilder> filterBuilders) {
+	TemplatedQuery(List<FilterBuilder> filterBuilders) {
 		this.filterBuilders = filterBuilders;
 	}
 
