@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -11,7 +11,7 @@
  *
  */
 
-package org.springframework.data.neo4j.repository.query.derived.builder;
+package org.springframework.data.neo4j.repository.query.filter;
 
 import static org.springframework.data.repository.query.parser.Part.Type.*;
 
@@ -27,19 +27,20 @@ import org.springframework.data.repository.query.parser.Part;
 /**
  * @author Jasper Blues
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
-public class IsNullFilterBuilder extends FilterBuilder {
+class BooleanComparisonBuilder extends FilterBuilder {
 
-	public IsNullFilterBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
+	BooleanComparisonBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
 		super(part, booleanOperator, entityType);
 	}
 
 	@Override
 	public List<Filter> build(Stack<Object> params) {
-		Filter filter = new Filter(propertyName(), ComparisonOperator.IS_NULL);
+		Filter filter = new Filter(propertyName(), ComparisonOperator.IS_TRUE);
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
-		filter.setNegated(isNegated() || part.getType() == IS_NOT_NULL);
+		filter.setNegated(isNegated() || part.getType() == FALSE);
 		setNestedAttributes(part, filter);
 
 		return Collections.singletonList(filter);

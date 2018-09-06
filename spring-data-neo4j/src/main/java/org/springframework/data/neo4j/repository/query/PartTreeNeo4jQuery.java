@@ -11,7 +11,7 @@
  *
  */
 
-package org.springframework.data.neo4j.repository.query.derived;
+package org.springframework.data.neo4j.repository.query;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,17 +19,12 @@ import java.util.Map;
 import org.neo4j.ogm.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.neo4j.repository.query.AbstractGraphRepositoryQuery;
-import org.springframework.data.neo4j.repository.query.GraphParameterAccessor;
-import org.springframework.data.neo4j.repository.query.GraphParametersParameterAccessor;
-import org.springframework.data.neo4j.repository.query.GraphQueryMethod;
-import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.parser.PartTree;
 
 /**
- * Specialisation of {@link RepositoryQuery} that handles mapping of derived finders.
+ * Specialisation of {@link RepositoryQuery} that handles mapping of filter finders.
  *
  * @author Mark Angrish
  * @author Luanne Misquitta
@@ -39,15 +34,15 @@ import org.springframework.data.repository.query.parser.PartTree;
  * @author Mark Paluch
  * @author Michael J. Simons
  */
-public class DerivedGraphRepositoryQuery extends AbstractGraphRepositoryQuery {
+public class PartTreeNeo4jQuery extends AbstractGraphRepositoryQuery {
 
-	private static final Logger LOG = LoggerFactory.getLogger(DerivedGraphRepositoryQuery.class);
+	private static final Logger LOG = LoggerFactory.getLogger(PartTreeNeo4jQuery.class);
 	private final GraphQueryMethod graphQueryMethod;
 	private final PartTree tree;
 
-	private final FilterBuildersQuery queryTemplate;
+	private final TemplatedQuery queryTemplate;
 
-	public DerivedGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session) {
+	public PartTreeNeo4jQuery(GraphQueryMethod graphQueryMethod, Session session) {
 		super(graphQueryMethod, session);
 
 		Class<?> domainType = graphQueryMethod.getEntityInformation().getJavaType();
@@ -55,7 +50,7 @@ public class DerivedGraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 		this.graphQueryMethod = graphQueryMethod;
 		this.tree = new PartTree(graphQueryMethod.getName(), domainType);
 
-		this.queryTemplate = new FilterBuildersQueryCreator(this.tree, domainType).createQuery();
+		this.queryTemplate = new TemplatedQueryCreator(this.tree, domainType).createQuery();
 	}
 
 	@Override
