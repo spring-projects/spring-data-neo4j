@@ -1,7 +1,9 @@
 [[reference_programming-projections]]
 === Projections
 
-Spring Data Repositories usually return the domain model when using query methods. However, sometimes, you may need to alter the view of that model for various reasons. In this section, you will learn how to define projections to serve up simplified and reduced views of resources.
+Spring Data Repositories usually return the domain model when using query methods.
+However, sometimes you may need to alter the view of that model for various reasons.
+In this section you will learn how to define projections to serve up simplified and reduced views of resources.
 
 Look at the following domain model:
 
@@ -38,7 +40,8 @@ public interface CinemaRepository extends Neo4jRepository<Cinema, Long> {
 }
 ----
 
-Spring Data will return the domain object including all of its attributes, including all the users that visited this cinema. That can be a big amount of data and can lead to performance issues.
+Spring Data will return the domain object including all of its attributes and all the users that visited this cinema.
+That can be a big amount of data and can lead to performance issues.
 
 There are several ways to avoid that :
 
@@ -62,7 +65,8 @@ This projection has the following details:
 <2> Only some attributes of the entity are exported.
 ====
 
-The `CinemaNameAndBlockbuster` projection only has getters for `name` and `blockbusterOfTheWeek` meaning that it will not serve up any user information. The query method definition returns in this case `CinemaNameAndBlockbuster` instead of `Cinema`.
+The `CinemaNameAndBlockbuster` projection only has getters for `name` and `blockbusterOfTheWeek` meaning that it will not serve up any user information.
+The query method definition returns in this case `CinemaNameAndBlockbuster` instead of `Cinema`.
 
 [source,java]
 ----
@@ -72,29 +76,36 @@ interface CinemaRepository extends Neo4jRepository<Cinema, Long> {
 }
 ----
 
-Projections declare a contract between the underlying type and the method signatures related to the exposed properties. Hence it is required to name getter methods according to the property name of the underlying type. If the underlying property is named `name`, then the getter method must be named `getName` otherwise Spring Data is not able to look up the source property.
+Projections declare a contract between the underlying type and the method signatures related to the exposed properties.
+Hence it is required to name getter methods according to the property name of the underlying type.
+If the underlying property is named `name`, then the getter method must be named `getName` otherwise Spring Data is not able to look up the source property.
 This type of projection is also called _closed projection_.
 
-NOTE: Closed projections expose a subset of properties that could be used to optimize the query in a way to reduce the selected fields from the data store. However, it is not implemented at the moment. For performance sensitive querying, you can still use custom queries with maps or `QueryResult` (see <<reference_programming-model_mapresult>>)
+NOTE: Closed projections expose a subset of properties that could be used to optimize the query in a way to reduce the selected fields from the data store.
+However, it is not implemented at the moment.
+For performance sensitive querying, you can still use custom queries with maps or `QueryResult` (see <<reference_programming-model_mapresult>>)
 
 The other type is, as you might imagine, an _open projection_.
 
 [[projections.remodelling-data]]
 ==== Remodelling data
 
-So far, you have seen how projections can be used to reduce the information that is presented to the user. Projections can be used to adjust the exposed data model. You can add virtual properties to your projection. Look at the following projection interface:
+So far, you have seen how projections can be used to reduce the information that is presented to the user.
+Projections can be used to adjust the exposed data model.
+You can add virtual properties to your projection.
+Look at the following projection interface:
 
 .Renaming a property
 ====
 [source,java]
 ----
-interface RenamedProperty {    <1>
+interface RenamedProperty {                 <1>
 
   @Value("#{target.name}")
-  String getCinemaName();       <2>
+  String getCinemaName();                   <2>
 
   @Value("#{target.blockbusterOfTheWeek.name}")
-  String getBlockbusterOfTheWeekName();            <3>
+  String getBlockbusterOfTheWeekName();     <3>
 }
 ----
 This projection has the following details:
@@ -105,11 +116,15 @@ This projection has the following details:
 ====
 
 The backing domain model does not have these properties so we need to tell Spring Data from where they are obtained.
-Virtual properties are the place where `@Value` comes into play. The `cinemaName` getter is annotated with `@Value` to use https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#expressions[SpEL expressions] pointing to the backing property `name`. You may have noticed `name` is prefixed with `target` which is the variable name pointing to the backing object. Using `@Value` on methods allows defining where and how the value is obtained.
+Virtual properties are the place where `@Value` comes into play.
+The `cinemaName` getter is annotated with `@Value` to use https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#expressions[SpEL expressions] pointing to the backing property `name`.
+You may have noticed `name` is prefixed with `target` which is the variable name pointing to the backing object.
+Using `@Value` on methods allows defining where and how the value is obtained.
 
-`@Value` gives full access to the target object and its nested properties. SpEL expressions are extremely powerful as the definition is always applied to the projection method.
+`@Value` gives full access to the target object and its nested properties.
+SpEL expressions are extremely powerful as the definition is always applied to the projection method.
 
-We could imagine this :
+We could imagine this:
 
 [source,java]
 ----

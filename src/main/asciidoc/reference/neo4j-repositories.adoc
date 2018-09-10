@@ -1,49 +1,55 @@
 [[neo4j.repositories]]
-= Neo4J Repositories
+= Neo4j Repositories
 
 [[neo4j-repo-intro]]
 == Introduction
 
-This chapter will point out the specialties for repository support for Neo4J and the Neo4J OGM. This builds on the core repository support explained in <<repositories>>. So make sure you've got a sound understanding of the basic concepts explained there.
+This chapter will point out the specialties for repository support for Neo4j and the Neo4j-OGM.
+This builds on the core repository support explained in <<repositories>>.
+So make sure you have got a sound understanding of the basic concepts explained there.
 
 The following table outlines the repositories functionality currently either supported, partially supported or not supported in SDN:
 // NME
 [frame="topbot",options="header"]
 |======================
-| Feature   | Supported in SDN | Notes
-| `CrudRepository` support |  icon:check[] |
-| `PagingAndSortingRepository` support  | icon:check[] |
-| Derived Count Queries  | icon:check[] |
-| JavaConfig annotation based configuration  | icon:check[] |
-| XML based configuration  | icon:check[] |
-| Multi Spring Data module support | icon:check[] |
-| Configurable Query Lookup Strategy | icon:times[] |
-| Derived Query support | icon:check[] | See Supported keywords for query methods below
-| Derived Query Property expressions support | icon:times[] |
-| Paging and Slice support | icon:check[] |
-| Derived query paging limit support | icon:check[] |
-| Java 8 Streaming and Optional support | icon:check[] |
-| `@Async` support | icon:check[] |
-| Custom behaviour on repositories | icon:check[] |
-| `QueryDslPredicateExecutor` support| icon:times[] |
-| Web support (incl Spring Data REST) | icon:minus[] | Partial: QueryDSL not supported.
-| Repository populators | icon:times[] |
+| Feature                                       | Supported in SDN  | Notes
+| `CrudRepository` support                      | icon:check[]      |
+| `PagingAndSortingRepository` support          | icon:check[]      |
+| Derived Count Queries                         | icon:check[]      |
+| JavaConfig annotation based configuration     | icon:check[]      |
+| XML based configuration                       | icon:check[]      |
+| Multi Spring Data module support              | icon:check[]      |
+| Configurable Query Lookup Strategy            | icon:times[]      |
+| Derived Query support                         | icon:check[]      | See Supported keywords for query methods below
+| Derived Query Property expressions support    | icon:times[]      |
+| Paging and Slice support                      | icon:check[]      |
+| Derived query paging limit support            | icon:check[]      |
+| Java 8 Streaming and Optional support         | icon:check[]      |
+| `@Async` support                              | icon:check[]      |
+| Custom behaviour on repositories              | icon:check[]      |
+| `QueryDslPredicateExecutor` support           | icon:times[]      |
+| Web support (incl. Spring Data REST)          | icon:minus[]      | Partial: QueryDSL not supported.
+| Repository populators                         | icon:times[]      |
 |======================
 
 == Usage
 
-The `Repository` instances are only created through Spring and can be auto-wired into your Spring beans as required.
+The `Repository` instances are only created through Spring and can be autowired into your Spring beans as required.
 
-.Using basic Neo4jRepository CRUD-methods
+.Using basic `Neo4jRepository` CRUD-methods
 [source,java]
 ----
 @Repository
 public interface PersonRepository extends Neo4jRepository<Person, Long> {}
 
 public class MySpringBean {
+
+   private final PersonRepository repo;
+
    @Autowired
-   private PersonRepository repo;
-   ...
+   public MySpringBean(PersonRepository repo) {
+    this.repo = repo;
+   }
 }
 
 // then you can use the repository as you would any other object
@@ -54,27 +60,27 @@ Optional<Person> dave = repo.findById(123);
 long numberOfPeople = repo.count();
 ----
 
-The recommended way of providing repositories is to define a repository interface per domain class.
+The recommended way of providing repositories is to define a repository interface per aggregate root and not for every domain class.
 The underlying Spring repository infrastructure will automatically detect these repositories, along with additional implementation classes,
-and create an injectable repository implementation to be used in services or other spring beans.
+and create an injectable repository implementation to be used in services or other Spring beans.
 
-
-The repositories provided by Spring Data Neo4j build on the composable repository infrastructure in http://static.springsource.org/spring-data/data-commons/docs/current/reference/html/#repositories[Spring Data Commons].
+The repositories provided by Spring Data Neo4j build on the composable repository infrastructure in https://docs.spring.io/spring-data/data-commons/docs/current/reference/html/[Spring Data Commons].
 These allow for interface-based composition of repositories consisting of provided default implementations for certain interfaces and additional custom implementations for other methods.
 
-Spring Data Neo4j comes with a single `org.springframework.data.repository.PagingAndSortingRepository` specialisation called
-`Neo4jRepository<T. ID>` used for all object-graph mapping repositories.
+Spring Data Neo4j comes with a single `org.springframework.data.repository.PagingAndSortingRepository` specialisation called `Neo4jRepository<T. ID>` used for all object-graph mapping repositories.
 This sub-interface also adds specific finder methods that take a _depth_ argument to control the horizon with which related entities are fetched and saved.
 Generally, it provides all the desired repository methods.
 If other operations are required then the additional repository interfaces should be added to the individual interface declaration.
+
 
 == Query Methods
 
 === Query and Finder Methods
 
-Most of the data access operations you usually trigger on a repository result a query being executed against the Neo4j database. Defining such a query is just a matter of declaring a method on the repository interface
+Most of the data access operations you usually trigger on a repository result a query being executed against the Neo4j database.
+Defining such a query is just a matter of declaring a method on the repository interface
 
-.PersonRepository with query methods
+.`PersonRepository` with query methods
 ====
 [source,java]
 ----
@@ -89,12 +95,17 @@ public interface PersonRepository extends PagingAndSortingRepository<Person, Str
     Stream<Person> findAllBy();                                        <4>
 }
 ----
-<1> The method shows a query for all people with the given lastname. The query will be derived parsing the method name for constraints which can be concatenated with `And` and `Or`. Thus the method name will result in a query expression of `{"lastname" : lastname}`.
-<2> Applies pagination to a query. Just equip your method signature with a `Pageable` parameter and let the method return a `Page` instance and we will automatically page the query accordingly.
+<1> The method shows a query for all people with the given lastname.
+The query will be derived parsing the method name for constraints which can be concatenated with `And` and `Or`.
+Thus the method name will result in a query expression of `{"lastname" : lastname}`.
+
+<2> Applies pagination to a query.
+Just equip your method signature with a `Pageable` parameter and let the method return a `Page` instance and we will automatically page the query accordingly.
+
 <3> Shows that you can query based on properties which are not a primitive type.
+
 <4> Uses a Java 8 `Stream` which reads and converts individual elements while iterating the stream.
 ====
-
 
 
 [cols="1,2,3", options="header"]
@@ -190,17 +201,9 @@ public interface PersonRepository extends PagingAndSortingRepository<Person, Str
 |`findByNameNotLike(String name)`
 |`NOT(n.name =~ name)`
 
-|`IgnoreCase`
-|`findByNameIgnoreCase(string name`
-|`toLower(n.name) = toLower(name)`
-
 |`Near`
 |`findByLocationNear(Distance distance, Point point)`
 |`distance( point(n),point({latitude:lat, longitude:lon}) ) < distance`
-
-//|`Not`
-//|`findByNameNot(String name)`
-//| NEGATING_SIMPLE_PROPERTY(new String[]{"IsNot", "Not"}) not supported
 
 |`Regex`
 |`findByNameRegex(String regex)`
@@ -224,13 +227,14 @@ Queries using the Cypher graph query language can be supplied with the `@Query` 
 
 That means a repository method annotated with +
 `@Query("MATCH (:Actor {name:{name}})-[:ACTED_IN]\->(m:Movie) return m")` +
-will use the supplied query query to retrieve data from Neo4j.
+will use the supplied query to retrieve data from Neo4j.
 
 The named or indexed parameter `{param}` will be substituted by the actual method parameter.
-Node and Relationship-Entities are handled directly and converted into their respective ids.
-All other parameters types are provided directly (i.e. Strings, Longs, etc).
+Node and relationship entities are handled directly and converted into their respective ids.
+All other parameters types are provided directly (i.e. `String`, `Long`, etc).
 
-There is special support for the Pageable parameter from Spring Data Commons, which is supported to add programmatic paging and slicing(alternatively static paging and sorting can be supplied in the query string itself).
+There is special support for the `Pageable` parameter from Spring Data Commons, which is supported to add programmatic paging and slicing
+(alternatively static paging and sorting can be supplied in the query string itself).
 
 If it is required that paged results return the correct total count, the @Query annotation can be supplied with a count query in the countQuery attribute.
 This query is executed separately after the result query and its result is used to populate the number of elements on the Page.
@@ -276,7 +280,7 @@ returns the movies rated by the friends of the user 'Michael', aggregated by `mo
 Examples of Cypher queries placed on repository methods with @Query where values are replaced with method parameters,
 as described in the <<reference_programming_model_annotatedQueries>>) section.
 
-[source,java]
+[source,java,subs="-replacements"]
 ----
 public interface MovieRepository extends Neo4jRepository<Movie, Long> {
 
@@ -328,7 +332,7 @@ Using the metadata infrastructure in the underlying object-graph mapper, a finde
 Navigation along relationships will be reflected in the generated `MATCH` clause and properties with operators will end up as expressions in the `WHERE` clause.
 The parameters will be used in the order they appear in the method signature so they should align with the expressions stated in the method name.
 
-.Some examples of methods and corresponding Cypher queries of a PersonRepository
+.Some examples of methods and corresponding Cypher queries of a `PersonRepository`
 [source,java]
 ----
 public interface PersonRepository extends Neo4jRepository<Person, Long> {
@@ -365,25 +369,27 @@ public interface PersonRepository extends Neo4jRepository<Person, Long> {
 [[reference_programming-model_mapresult]]
 === Mapping Query Results
 
-For queries executed via `@Query` repository methods, it's possible to specify a conversion of complex query results to POJOs. These result objects are then populated with the query result data and can be serialized and sent to a different part of the application, e.g. a frontend-ui.  To take advantage of this feature, use a class annotated with `@QueryResult` as the method return type.
+For queries executed via `@Query` repository methods, it's possible to specify a conversion of complex query results to POJOs.
+These result objects are then populated with the query result data and can be serialized and sent to a different part of the application, e.g. a frontend-ui.
+To take advantage of this feature, use a class annotated with `@QueryResult` as the method return type.
 
 .Example of query result mapping
-[source,java]
+[source,java,subs="-replacements"]
 ----
 public interface MovieRepository extends Neo4jRepository<Movie, Long> {
 
-    @Query("MATCH (movie:Movie)-[r:RATING]\->(), (movie)<-[:ACTS_IN]-(actor:Actor) " +
+    @Query("MATCH (movie:Movie)-[r:RATING]->(), (movie)<-[:ACTS_IN]-(actor:Actor) " +
            "WHERE movie.id={0} " +
            "RETURN movie as movie, COLLECT(actor) AS 'cast', AVG(r.stars) AS 'averageRating'")
     MovieData getMovieData(String movieId);
+}
 
-    @QueryResult
-    public class MovieData {
-        Movie movie;
-        Double averageRating;
-        Set<Actor> cast;
-    }
 
+@QueryResult
+public class MovieData {
+    Movie movie;
+    Double averageRating;
+    Set<Actor> cast;
 }
 ----
 
@@ -414,11 +420,6 @@ Page<World> page = worldRepository.findAll(pageable, 0);
 ----
 ====
 
-[NOTE]
-====
-The total number of pages reported by the `PagingAndSortingRepository` `findAll` methods are estimates and should not be relied upon for accuracy
-====
-
 include::projections.adoc[]
 
 [[reference_programming-model_transactions]]
@@ -427,11 +428,15 @@ include::projections.adoc[]
 Neo4j is a transactional database, only allowing operations to be performed within transaction boundaries.
 Spring Data Neo4j integrates nicely with both the declarative transaction support with `@Transactional` as well as the manual transaction handling with `TransactionTemplate`.
 
-Demarcating @Transactional is required for all methods that interact with SDN.
-CRUD methods on `Repository` instances are transactional by default. If you are simply just looking up an object through a repository for example,
-then you do not need to define anything else: SDN will take of everything for you.  That said, it is strongly recommended that you always annotate any service boundaries to the database with a `@Transactional` annotation. This way all your code for that method will always run in one transaction, even if you add a write operation later on.
+Demarcating `@Transactional` is required for all methods that interact with SDN.
+CRUD methods on `Repository` instances are transactional by default.
+If you are simply just looking up an object through a repository for example, then you do not need to define anything else:
+SDN will take of everything for you.
+That said, it is strongly recommended that you always annotate any service boundaries to the database with a `@Transactional` annotation.
+This way all your code for that method will always run in one transaction, even if you add a write operation later on.
 
-More standard behaviour with Transactions is using a facade or service implementation that typically covers more than one repository or database call as part of a 'Unit of Work'. Its purpose is to define transactional boundaries for non-CRUD operations:
+More standard behaviour with transactions is using a facade or service implementation that typically covers more than one repository or database call as part of a 'Unit of Work'.
+Its purpose is to define transactional boundaries for non-CRUD operations:
 
 [NOTE]
 SDN only supports `PROPAGATION_REQUIRED` and `ISOLATION_DEFAULT` type transactions.
@@ -463,11 +468,11 @@ class UserManagementImpl implements UserManagement {
     }
 }
 ----
-This will cause call to `addRoleToAllUsers(…)` to run inside a transaction (participating in an existing one or create a new one if
-none already running). The transaction configuration at the repositories will be neglected then as the outer transaction configuration
-determines the actual one used.
+This will cause call to `addRoleToAllUsers(…)` to run inside a transaction (participating in an existing one or create a new one if none already running).
+The transaction configuration at the repositories will be neglected then as the outer transaction configuration determines the actual one used.
 
-It is highly recommended that users understand how Spring Transactions work. Below are some excellent resources:
+It is highly recommended that users understand how Spring transactions work.
+Below are some excellent resources:
 
 * https://docs.spring.io/spring/docs/current/spring-framework-reference/data-access.html#spring-data-tier[Spring Transaction Management]
 * https://graphaware.com/neo4j/2016/09/30/upgrading-to-sdn-42.html[Upgrading to Spring Data Neo4j 4.2]
@@ -482,13 +487,14 @@ Note that if you open a read only transaction from, for example a service method
 
 === Transaction Bound Events
 
-SDN provides the ability to bind the listener of an event to a phase of the transaction. The typical example is to handle the event
-when the transaction has completed successfully: this allows events to be used with more flexibility when the outcome of the current
-transaction actually matters to the listener.
+SDN provides the ability to bind the listener of an event to a phase of the transaction.
+The typical example is to handle the event when the transaction has completed successfully:
+this allows events to be used with more flexibility when the outcome of the current transaction actually matters to the listener.
 
 Spring Framework is currently structured in such a way that the context is not aware of the transaction support and has an open infrastructure to allow additional components to be registered and influence the way event listeners are created.
 
-The transaction module implements an `EventListenerFactory` that looks for the new `@TransactionalEventListener` annotation. When this one is present, an extended event listener that is aware of the transaction is registered instead of the default.
+The transaction module implements an `EventListenerFactory` that looks for the new `@TransactionalEventListener` annotation.
+When this one is present, an extended event listener that is aware of the transaction is registered instead of the default.
 
 .Example: An order creation listener.
 [source,java]
@@ -504,9 +510,11 @@ public class MyComponent {
 }
 ----
 
-`@TransactionalEventListener` is a regular `@EventListener` and also exposes a `TransactionPhase`, the default being `AFTER_COMMIT`. You can also hook other phases of the transaction (`BEFORE_COMMIT`, `AFTER_ROLLBACK` and `AFTER_COMPLETION` that is just an alias for `AFTER_COMMIT` and `AFTER_ROLLBACK`).
+`@TransactionalEventListener` is a regular `@EventListener` and also exposes a `TransactionPhase`, the default being `AFTER_COMMIT`.
+You can also hook other phases of the transaction (`BEFORE_COMMIT`, `AFTER_ROLLBACK` and `AFTER_COMPLETION` that is just an alias for `AFTER_COMMIT` and `AFTER_ROLLBACK`).
 
-By default, if no transaction is running the event isn’t sent at all as we can’t obviously honor the requested phase, but there is a fallbackExecution attribute in `@TransactionalEventListener` that tells Spring to invoke the listener immediately if there is no transaction.
+By default, if no transaction is running the event isn’t sent at all as we can’t obviously honor the requested phase,
+but there is a fallbackExecution attribute in `@TransactionalEventListener` that tells Spring to invoke the listener immediately if there is no transaction.
 
 [NOTE]
 Only public methods in a managed bean can be annotated with `@EventListener` to consume events.
@@ -522,10 +530,10 @@ Neo4j causal clusters use bookmarks to manage _read your own writes_ scenarios.
 You'll find background information on the way causal clusters work in the https://neo4j.com/docs/operations-manual/current/clustering/[Neo4j operations manual].
 
 In SDN, you can use the bookmark management feature to handle these scenarios easily.
-You just need to add :
+You just need to add:
 
-* The `@EnableBookmarkManagement` annotation once on your spring configuration class.
-* The `@UseBookmark` on each java method involved into your _read your own writes_ scenarios
+* The `@EnableBookmarkManagement` annotation once on your Spring configuration class.
+* The `@UseBookmark` on each Java method involved into your _read your own writes_ scenarios
 
 Every method annotated with `@UseBookmark` will then collect the bookmarks coming from the database at the end of transactions.
 These bookmarks are then stored into a SDN managed context, and reused on later calls to other `@UseBookmark` annotated methods.
@@ -537,13 +545,16 @@ WARNING: `@UseBookmark` has to be used on `@Transactional` annotated methods.
 
 === CDI integration
 
-Instances of the repository interfaces are usually created by a container, which Spring is the most natural choice when working with Spring Data. There's sophisticated support to easily set up Spring to create bean instances documented in <<repositories.create-instances>>. Spring Data Neo4j ships with a custom CDI extension that allows using the repository abstraction in CDI environments. The extension is part of the JAR so all you need to do to activate it is dropping the Spring Data Neo4j JAR into your classpath.
+Instances of the repository interfaces are usually created by a container, which Spring is the most natural choice when working with Spring Data.
+There's sophisticated support to easily set up Spring to create bean instances documented in <<repositories.create-instances>>.
+Spring Data Neo4j ships with a custom CDI extension that allows using the repository abstraction in CDI environments.
+The extension is part of the JAR so all you need to do to activate it is dropping the Spring Data Neo4j JAR into your classpath.
 
 You can now set up the infrastructure by implementing a CDI Producer for the `SessionFactory` and `Session`:
 
 [source, java]
 ----
-class sessionFactoryProducer {
+class SessionFactoryProducer {
 
   @Produces
   @ApplicationScoped
@@ -557,7 +568,8 @@ class sessionFactoryProducer {
 }
 ----
 
-The necessary setup can vary depending on the JavaEE environment you run in. It might also just be enough to redeclare a `session` as CDI bean as follows:
+The necessary setup can vary depending on the JavaEE environment you run in.
+It might also just be enough to redeclare a `Session` as CDI bean as follows:
 
 [source, java]
 ----
@@ -566,13 +578,15 @@ class CdiConfig {
   @Produces
   @RequestScoped
   @PersistenceContext
-  public session session;
+  public Session session;
 }
 ----
 
-In this example, the container has to be capable of creating OGM `Sessions` itself. All the configuration does is re-exporting the OGM `Session` as CDI bean.
+In this example, the container has to be capable of creating Neo4j-OGM `Sessions` itself.
+All the configuration does is re-exporting the Neo4j-OGM `Session` as CDI bean.
 
-The Spring Data Neo4J CDI extension will pick up all sessions availables as CDI beans and create a proxy for a Spring Data repository whenever an bean of a repository type is requested by the container. Thus obtaining an instance of a Spring Data repository is a matter of declaring an `@Injected` property:
+The Spring Data Neo4j CDI extension will pick up all sessions available as CDI beans and create a proxy for a Spring Data repository whenever an bean of a repository type is requested by the container.
+Thus obtaining an instance of a Spring Data repository is a matter of declaring an `@Injected` property:
 
 [source, java]
 ----
@@ -591,9 +605,9 @@ class RepositoryClient {
 
 === JSR-303 (Bean Validation) Support
 
-Spring Data Neo4J allows developers to use JSR-303 annotations like `@NotNull` etc. on their domain models.
-While this is provided it's not a best practice. It is highly recommended to create JSR-303 annotations on actual Java Beans,
-similar to things like Data Transfer Objects (DTOs).
+Spring Data Neo4j allows developers to use _JSR-303_ annotations like `@NotNull` etc. on their domain models.
+While this is provided it's not a best practice.
+It is highly recommended to create _JSR-303_ annotations on actual Java Beans, similar to things like Data Transfer Objects (DTOs).
 
 [[reference_programming-model_conversion]]
 === Conversion Service
@@ -624,8 +638,7 @@ public class MyEntity {
 }
 ----
 
-Spring Data Neo4j will look for converters registered with Spring's ConversionService that can convert
-both to and from the type specified by `graphPropertyType` and use them if they exist.
+Spring Data Neo4j will look for converters registered with Spring's ConversionService that can convert both to and from the type specified by `graphPropertyType` and use them if they exist.
 
 [NOTE]
 ====
@@ -633,16 +646,11 @@ Default converters and those defined explicitly via an implementation of `org.ne
 will take precedence over converters registered with Spring's ConversionService.
 ====
 
-
-
-
-
-
-As of SDN 4, this `Neo4jRepository<T, ID>` should be the interface from which your entity repository interfaces inherit, with `T` being specified as the domain entity type to persist.
+`Neo4jRepository<T, ID>` should be the interface from which your entity repository interfaces inherit, with `T` being specified as the domain entity type to persist.
 `ID` is defined by the field type annotated with `@Id`.
 
 Examples of methods you get for free out of `Neo4jRepository` are as follows.
-For all of these examples the ID parameter is a `Long` that matches the graph ID:
+For all of these examples the `ID` parameter is a `Long` that matches the graph id:
 
 Load an entity instance via an id::
 `Optional<T> findById(id)`
@@ -666,42 +674,3 @@ Delete graph entities::
 
 [NOTE]
 For users coming from versions before `4.2.x`, `Neo4jRepository` has replaced `GraphRepository` but essentially has the same features.
-
-[[reference_programming-model_constructors]]
-=== Persistence constructors
-
-From SDN 5.1 (Lovelace release train), persistence constructors are supported.
-
-It means that SDN will try to find the best constructor to instantiate entities.
-Constructor discovery works as follow :
-
-- look for explicit @PersistenceConstructor annotation on constructor
-- if not found, look for the default constructor
-- if not found, look at any specific constructor defined by the entity.
-
-Values for constructor parameters are determined by looking at parameters names (not parameter types).
-For values to be filled in correctly, the parameter names have to match the entity attributes names.
-
-This is an example of a valid entity with a constructor :
-
-[source,java]
-----
-@NodeEntity
-public class Person {
-
-	@Id
-	private String email;
-
-	public Person(String email) {
-		this.email = email;
-	}
-}
-----
-
-The current implementation has some limitations :
-
-* entity attributes cannot be marked `final`
-* relationships as constructors arguments are not fully supported.
-  The relationship argument value will be null in the constructor and then set to the real value once the entity has been instantiated.
-
-
