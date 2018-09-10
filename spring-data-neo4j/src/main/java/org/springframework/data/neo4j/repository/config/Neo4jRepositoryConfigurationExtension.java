@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.RelationshipEntity;
@@ -197,16 +198,16 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		this.neo4jMappingContextBeanName = registerWithGeneratedNameOrUseConfigured(
 				createNeo4jMappingContextFactoryBeanDefinition(config), registry, configuredMappingContextBeanName, source);
 
-		registerIfNotAlreadyRegistered(new RootBeanDefinition(Neo4jPersistenceExceptionTranslator.class), registry,
+		registerIfNotAlreadyRegistered(() -> new RootBeanDefinition(Neo4jPersistenceExceptionTranslator.class), registry,
 				NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME, source);
 
 		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
 
-			AbstractBeanDefinition rootBeanDefinition = BeanDefinitionBuilder
+			Supplier<AbstractBeanDefinition> rootBeanDefinition = BeanDefinitionBuilder
 					.rootBeanDefinition(Neo4jOgmEntityInstantiatorConfigurationBean.class)
 					.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE)
 					.addConstructorArgReference(getSessionFactoryBeanName(config))
-					.addConstructorArgReference(this.neo4jMappingContextBeanName).getBeanDefinition();
+					.addConstructorArgReference(this.neo4jMappingContextBeanName)::getBeanDefinition;
 			registerIfNotAlreadyRegistered(rootBeanDefinition, registry, ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME, source);
 		}
 	}
@@ -231,7 +232,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 
 		String registeredBeanName = configuredBeanName;
 		if (GENERATE_BEAN_NAME.equals(configuredBeanName)) {
-			registeredBeanName = registerWithSourceAndGeneratedBeanName(registry, bean, source);
+			registeredBeanName = registerWithSourceAndGeneratedBeanName(bean, registry, source);
 		} else {
 			bean.setSource(source);
 			registry.registerBeanDefinition(configuredBeanName, bean);
