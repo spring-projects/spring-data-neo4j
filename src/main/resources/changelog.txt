@@ -1,6 +1,16 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.10.RELEASE (2018-09-10)
+----------------------------------------------
+* DATAGRAPH-1118 - Fix dependencies example in Getting Started Guide.
+* DATAGRAPH-1117 - Provide up to date version of XSD schemas for XML based configuration.
+* DATAGRAPH-1116 - Remove reference to unused ServiceNotFoundException in Kay.
+* DATAGRAPH-1115 - Support @UseBookmark in composed annotations.
+* DATAGRAPH-1110 - Improve exception handling on non persistable properties.
+* DATAGRAPH-1107 - Release 5.0.10 (Kay SR10).
+
+
 Changes in version 4.2.15.RELEASE (2018-09-10)
 ----------------------------------------------
 * DATAGRAPH-1108 - Release 4.2.15 (Ingalls SR15).
