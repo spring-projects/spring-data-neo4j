@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.transaction.SessionHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.context.request.async.CallableProcessingInterceptorAdapter;
+import org.springframework.web.context.request.async.CallableProcessingInterceptor;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.context.request.async.DeferredResultProcessingInterceptor;
 
@@ -31,9 +31,9 @@ import org.springframework.web.context.request.async.DeferredResultProcessingInt
  * if an async request times out
  *
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
-class AsyncRequestInterceptor extends CallableProcessingInterceptorAdapter
-		implements DeferredResultProcessingInterceptor {
+class AsyncRequestInterceptor implements CallableProcessingInterceptor, DeferredResultProcessingInterceptor {
 
 	private static final Logger logger = LoggerFactory.getLogger(AsyncRequestInterceptor.class);
 
@@ -86,24 +86,8 @@ class AsyncRequestInterceptor extends CallableProcessingInterceptorAdapter
 	public <T> void beforeConcurrentHandling(NativeWebRequest request, DeferredResult<T> deferredResult) {}
 
 	@Override
-	public <T> void preProcess(NativeWebRequest request, DeferredResult<T> deferredResult) {
-		// Do nothing.
-	}
-
-	@Override
-	public <T> void postProcess(NativeWebRequest request, DeferredResult<T> deferredResult, Object result) {
-		// Do nothing.
-	}
-
-	@Override
 	public <T> boolean handleTimeout(NativeWebRequest request, DeferredResult<T> deferredResult) {
 		this.timeoutInProgress = true;
 		return true; // give other interceptors a chance to handle the timeout
-	}
-
-	@Override
-	public <T> void afterCompletion(NativeWebRequest nativeWebRequest, DeferredResult<T> deferredResult)
-			throws Exception {
-		// Do nothing.
 	}
 }
