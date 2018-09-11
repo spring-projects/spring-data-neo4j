@@ -11,7 +11,7 @@
  *
  */
 
-package org.springframework.data.neo4j.repository.query.derived.builder;
+package org.springframework.data.neo4j.repository.query.filter;
 
 import static org.springframework.data.repository.query.parser.Part.Type.*;
 
@@ -30,9 +30,9 @@ import org.springframework.util.Assert;
  * @author Nicolas Mervaillie
  * @author Michael J. Simons
  */
-public class PropertyComparisonBuilder extends FilterBuilder {
+class PropertyComparisonBuilder extends FilterBuilder {
 
-	public PropertyComparisonBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
+	PropertyComparisonBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
 		super(part, booleanOperator, entityType);
 	}
 

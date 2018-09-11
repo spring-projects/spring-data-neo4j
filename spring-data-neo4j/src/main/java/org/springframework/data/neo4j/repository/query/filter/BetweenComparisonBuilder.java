@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -11,7 +11,7 @@
  *
  */
 
-package org.springframework.data.neo4j.repository.query.derived.builder;
+package org.springframework.data.neo4j.repository.query.filter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,10 +27,11 @@ import org.springframework.data.repository.query.parser.Part;
  * @author Jasper Blues
  * @author Nicolas Mervaillie
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
-public class BetweenComparisonBuilder extends FilterBuilder {
+class BetweenComparisonBuilder extends FilterBuilder {
 
-	public BetweenComparisonBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
+	BetweenComparisonBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
 		super(part, booleanOperator, entityType);
 	}
 
