@@ -322,6 +322,26 @@ The `SessionFactory` is needed by SDN to create instances of `org.neo4j.ogm.sess
 When constructed, it sets up the object-graph mapping metadata, which is then used across all `Session` objects that it creates.
 As seen in the above example, the packages to scan for domain object metadata should be provided to the `SessionFactory` constructor.
 
-// TODO explain multiple SessionFactories per application
-There should typically be only one `SessionFactory` per application.
+Your application typically connects only to one instance of Neo4j.
+Therefore there is usually only one `SessionFactory` per application.
+This `SessionFactory` should be configured in such a way that it scans all necessary packages.
+`@EnableNeo4jRepositories` detects one single bean of type `SessionFactory` out of the box and you don't need to configure anything more.
 
+In cases however where your setup requires the application to connect to multiple different instances of Neo4j, SDN allows you to specify that instance in `@EnableNeo4jRepositories` as follows:
+
+[source,java]
+----
+@Configuration
+@EnableNeo4jRepositories(
+    basePackages = "org.neo4j.example.repository",
+    sessionFactoryRef = "mySpecialSessionFactory" // <1>
+)
+@EnableTransactionManagement
+public class MyConfiguration {
+}
+----
+<1> Use the name of the session factory you want to be bound to the repositories for that package
+
+In cases as this SDN also supports multiple declarations of `@EnableNeo4jRepositories` that target different packages.
+Our recommendation however is connecting one application to one instance.
+If your domains are so different that they are stored in different databases, a microservices approach might be a good fit to your application.
