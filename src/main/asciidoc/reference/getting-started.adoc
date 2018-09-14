@@ -10,7 +10,6 @@ Depending on what type of project you are doing there are several options when i
 If you plan on using Neo4j in server mode, you will also need a running instance.
 Refer to the Getting Started section of the http://neo4j.com/docs/developer-manual/current/get-started[Neo4j Developer manual] on how to get that up and running.
 
-
 == Using Spring Boot
 
 To create a Spring Boot project simply go to http://start.spring.io and specify a group and artifact like: `org.spring.neo4j.example` and `demo`.
@@ -54,6 +53,7 @@ Also change the version of Spring in the `pom.xml` to be
 
 Spring Data Neo4j projects can be built using Maven, Gradle or any other tool that supports Maven's repository system.
 
+NOTE: Adding the depedency-management-block is not necessary in a Spring Boot based project. Spring Boot manages Spring Data dependencies and releasetrains automatically.
 
 [[reference.getting_started.dependencies.maven]]
 === Maven
@@ -116,6 +116,7 @@ If you want to use the embedded or HTTP drivers in your production application, 
     </dependency>
 ----
 
+NOTE: Spring Boot brings `spring-test` through `spring-boot-starter-test`, which simplifies testing a lot. You don't need to declare `spring-test` explicitly.
 
 //todo check versions and conflicts in current Spring Boot configurations
 [NOTE]

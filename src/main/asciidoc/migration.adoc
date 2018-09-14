@@ -17,7 +17,9 @@
 * Primary indexes are now deprecated and replaced by `@Id` See <<reference:annotating-entities:entity-identifier, Entity identifier>>.
 * Annotations on accessors are no longer valid. See <<reference:annotating-entities, Annotating entities>>.
 * Loading with depth `-1` calls have to be reviewed (please see the Neo4j-OGM migration guide under _Migration from 2.1 to 3.0 / Performance and unlimited load depth_).
-* The `ogm.properties` file and environment variable have been removed. You now have to provide explicitly the configuration file or configure programmatically. See <<reference:configuration:driver, the configuration section>>.
+* The `ogm.properties` file and environment variable have been removed. 
+You have to explicitly provide the configuration file now or configure the driver programmatically. 
+See <<reference:configuration:driver, the configuration section>>.
 * The driver class name in the configuration is now inferred from connection URL.
 * Java 8 dates are now better supported ; the use of `java.util.Date` or converters is not required anymore. You may want to switch to more fine grained date types like `Instant`. See <<reference:type-conversion:built-in, conversions>>.
 * The query filters are now immutable. See <<reference:filters, Filters>>.

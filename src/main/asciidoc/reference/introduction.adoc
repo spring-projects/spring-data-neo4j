@@ -1,7 +1,7 @@
 [[reference.introduction]]
 = Introduction
 
-It is important to understand how an SDN application is structured because this could have implications in how you design your application.
+It is important to understand how a Spring Data Neo4j (SDN) application is structured because this could have implications in how you design your application.
 
 [[reference.architecture]]
 == SDN Architecture
