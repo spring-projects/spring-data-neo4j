@@ -342,6 +342,6 @@ public class MyConfiguration {
 ----
 <1> Use the name of the session factory you want to be bound to the repositories for that package
 
-In cases as this SDN also supports multiple declarations of `@EnableNeo4jRepositories` that target different packages.
+In cases like this SDN also supports multiple declarations of `@EnableNeo4jRepositories` that target different packages.
 Our recommendation however is connecting one application to one instance.
-If your domains are so different that they are stored in different databases, a microservices approach might be a good fit to your application.
+If your domains are so different that they are stored in different databases, a microservices approach might be a better fit to your application.
