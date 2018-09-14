@@ -1,8 +1,8 @@
 [[reference_programming-projections]]
 === Projections
 
-Spring Data Repositories usually return the domain model when using query methods.
-However, sometimes you may need to alter the view of that model for various reasons.
+Spring Data Repositories usually return the domain model (either as `@NodeEntity` or as a `@QueryResult`) when using query methods.
+However, sometimes you may need a different view of that model for various reasons.
 In this section you will learn how to define projections to serve up simplified and reduced views of resources.
 
 Look at the following domain model:

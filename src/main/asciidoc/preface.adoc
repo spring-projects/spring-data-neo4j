@@ -4,7 +4,7 @@
 The Spring Data Neo4j project applies Spring Data concepts to the development of solutions using the Neo4j graph data store.
 We provide _"repositories"_ as a high-level abstraction for storing and querying documents.
 
-This section provides some basic introduction to Spring and Graph databases.
+The next section provides some basic introduction to Spring and Graph databases.
 
 The Spring Data Commons section then describes the common foundation of all Spring Data projects: the repositories.
 _This part is taken from from SD commons project and may include examples from other persistence type such as JPA_.
@@ -36,7 +36,7 @@ There are a lot of articles, blog entries and books on the matter - take a look 
 == NoSQL and Graph databases
 
 A graph database is a storage engine that is specialised in storing and retrieving vast networks of information.
-It efficiently stores data as nodes and relationships and allows high performance retrieval and querying of those structures.
+It efficiently stores data as nodes with relationships to other nodes and allows high performance retrieval and querying of those structures.
 Properties can be added to both nodes and relationships.
 Nodes can be labelled by zero or more labels, relationships are always directed and named.
 
