@@ -4,7 +4,7 @@
 [[neo4j-repo-intro]]
 == Introduction
 
-This chapter will point out the specialties for repository support for Neo4j and the Neo4j-OGM.
+This chapter will point out the features for repository support for Neo4j and the Neo4j-OGM.
 This builds on the core repository support explained in <<repositories>>.
 So make sure you have got a sound understanding of the basic concepts explained there.
 
@@ -34,7 +34,8 @@ The following table outlines the repositories functionality currently either sup
 
 == Usage
 
-The `Repository` instances are only created through Spring and can be autowired into your Spring beans as required.
+The `Repository` instances are created automatically through Spring and can be autowired into your Spring beans as required.
+You don't have to provide an implementation for the interfaces you declared.
 
 .Using basic `Neo4jRepository` CRUD-methods
 [source,java]
@@ -77,7 +78,7 @@ If other operations are required then the additional repository interfaces shoul
 
 === Query and Finder Methods
 
-Most of the data access operations you usually trigger on a repository result a query being executed against the Neo4j database.
+Most of the data access operations you usually trigger on a repository will result in a query being executed against the Neo4j database.
 Defining such a query is just a matter of declaring a method on the repository interface
 
 .`PersonRepository` with query methods
@@ -428,8 +429,7 @@ include::projections.adoc[]
 Neo4j is a transactional database, only allowing operations to be performed within transaction boundaries.
 Spring Data Neo4j integrates nicely with both the declarative transaction support with `@Transactional` as well as the manual transaction handling with `TransactionTemplate`.
 
-Demarcating `@Transactional` is required for all methods that interact with SDN.
-CRUD methods on `Repository` instances are transactional by default.
+The methods on the repositories instances are transactional by default.
 If you are simply just looking up an object through a repository for example, then you do not need to define anything else:
 SDN will take of everything for you.
 That said, it is strongly recommended that you always annotate any service boundaries to the database with a `@Transactional` annotation.
@@ -491,8 +491,6 @@ SDN provides the ability to bind the listener of an event to a phase of the tran
 The typical example is to handle the event when the transaction has completed successfully:
 this allows events to be used with more flexibility when the outcome of the current transaction actually matters to the listener.
 
-Spring Framework is currently structured in such a way that the context is not aware of the transaction support and has an open infrastructure to allow additional components to be registered and influence the way event listeners are created.
-
 The transaction module implements an `EventListenerFactory` that looks for the new `@TransactionalEventListener` annotation.
 When this one is present, an extended event listener that is aware of the transaction is registered instead of the default.
 
@@ -513,7 +511,7 @@ public class MyComponent {
 `@TransactionalEventListener` is a regular `@EventListener` and also exposes a `TransactionPhase`, the default being `AFTER_COMMIT`.
 You can also hook other phases of the transaction (`BEFORE_COMMIT`, `AFTER_ROLLBACK` and `AFTER_COMPLETION` that is just an alias for `AFTER_COMMIT` and `AFTER_ROLLBACK`).
 
-By default, if no transaction is running the event isn’t sent at all as we can’t obviously honor the requested phase,
+By default, if no transaction is running the event isn't sent at all as we can't obviously honor the requested phase,
 but there is a fallbackExecution attribute in `@TransactionalEventListener` that tells Spring to invoke the listener immediately if there is no transaction.
 
 [NOTE]
@@ -548,7 +546,6 @@ WARNING: `@UseBookmark` has to be used on `@Transactional` annotated methods.
 Instances of the repository interfaces are usually created by a container, which Spring is the most natural choice when working with Spring Data.
 There's sophisticated support to easily set up Spring to create bean instances documented in <<repositories.create-instances>>.
 Spring Data Neo4j ships with a custom CDI extension that allows using the repository abstraction in CDI environments.
-The extension is part of the JAR so all you need to do to activate it is dropping the Spring Data Neo4j JAR into your classpath.
 
 You can now set up the infrastructure by implementing a CDI Producer for the `SessionFactory` and `Session`:
 
@@ -606,7 +603,7 @@ class RepositoryClient {
 === JSR-303 (Bean Validation) Support
 
 Spring Data Neo4j allows developers to use _JSR-303_ annotations like `@NotNull` etc. on their domain models.
-While this is provided it's not a best practice.
+While this is supported, it's not a best practice.
 It is highly recommended to create _JSR-303_ annotations on actual Java Beans, similar to things like Data Transfer Objects (DTOs).
 
 [[reference_programming-model_conversion]]

@@ -1,8 +1,7 @@
 [[reference.introduction]]
 = Introduction
 
-In order to understand what Spring Data Neo4j can do it is important to understand
-how an SDN application is structured and this could have implications in how you design your application.
+It is important to understand how an SDN application is structured because this could have implications in how you design your application.
 
 [[reference.architecture]]
 == SDN Architecture
@@ -16,17 +15,14 @@ At the moment these come in three variants:
 _Embedded_, _HTTP_ and the binary protocol _Bolt_.
 The latter uses the official Neo4j Java driver.
 
-* *Neo4j Object Graph Mapper* (Neo4j-OGM):
-This is similar to an ORM (Object Relational Mapper) in that it maps database nodes to Java objects.
-This library is agnostic of any framework (including Spring).
+* *Neo4j Object Graph Mapper* (Neo4j-OGM)
 
-* *Spring Data Neo4j* provides syntactic sugar and code on top of Neo4-OGM to help quickly build Spring based Neo4j apps.
+* *Spring Data Neo4j* provides code on top of Neo4-OGM to help quickly build Spring based Neo4j apps.
 
 Those coming from other Spring Data projects or are familiar with ORM products like JPA or Hibernate may quickly recognise this architecture.
-A bulk of the heavy lifting takes place in Neo4j-OGM.
 
 [NOTE]
-If you come from Spring Data Neo4j 3 and want to upgrade, please consider reading the <<migration,Migration Guide>> to avoid any unwanted surprises.
+Please read the <<migration,Migration Guide>> for a smooth upgrade from Spring Data Neo4j 3.
 
 
 [[reference.how-to-use-this-reference]]

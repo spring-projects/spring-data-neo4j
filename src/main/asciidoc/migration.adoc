@@ -159,7 +159,8 @@ Support for AspectJ-based persistence has been removed from SDN 4 as the write-a
 
 === Deprecation of Neo4jTemplate
 
-It is highly recommended for users starting new SDN projects to use the Neo4j-OGM `Session` directly. `Neo4jTemplate` has been kept to give upgrading users a better experience.
+Users that rely on a direct interaction with the database should be using the Neo4j-OGM `Session` directly.
+`Neo4jTemplate` has been kept to give upgrading users a better experience.
 
 The `Neo4jTemplate` has been slimmed-down significantly for SDN 4. It contains the exact same methods as `Session`. In fact `Neo4jTemplate` is just a very thin wrapper with an ability to support SDN Exception Translation.
 Many of the operations are no longer needed or can be expressed with a straightforward Cypher query.
