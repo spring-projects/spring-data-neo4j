@@ -227,7 +227,7 @@ The following drivers are available.
 - Embedded driver
 - Bolt driver
 
-To configure the driver programmatically, create a `Configuration` bean and pass it as the first argument to the `SessionFactory` constructor in your Spring configuration:
+To configure the driver programmatically, create a Neo4j-OGM `Configuration` bean and pass it as the first argument to the `SessionFactory` constructor in your Spring configuration:
 
 [source,java]
 .Java Configuration
