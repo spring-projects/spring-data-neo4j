@@ -3,21 +3,23 @@
 = Migration Guide
 
 [[migration.5-0]]
-== Migrating from 4.2 -> 5.0
+== Migrating from 4.2 -> 5.0/5.1
 
 * Base class for repositories `GraphRepository` has been renamed `Neo4jRepository` and parameter types change from `<T>` to `<T, ID>`.
 * All Repository methods can return `Streams`.
 * The repository method naming scheme has changed for SD commons 2.0 as part of https://jira.spring.io/browse/DATACMNS-944[DATACMNS-944].
 ** for example, `findOne` repository methods are renamed `findById` and now return `Optional<T>`.
-** please check the javadoc of `org.springframework.data.repository.CrudRepository`
+** please check the JavaDoc of `org.springframework.data.repository.CrudRepository`
 * Paged custom queries no longer accept queries without `countQuery` attribute.
 * The keywords `Between` and `IsBetween` in query methods now include the given limits in the query.
   Use a combination of `GreaterThan`/`isGreaterThan` and `LessThan`/`isLessThan` (e.g. `isGreaterThanLowerLimitAndIsLessThanUpperLimit`) to keep the exclusive behavior.
 * Id handling : `Long` native ids are not mandatory anymore. See <<reference:annotating-entities:graph-id, GraphId field>>.
 * Primary indexes are now deprecated and replaced by `@Id` See <<reference:annotating-entities:entity-identifier, Entity identifier>>.
 * Annotations on accessors are no longer valid. See <<reference:annotating-entities, Annotating entities>>.
-* Loading with depth `-1` calls have to be reviewed (please see the OGM migration guide under _Migration from 2.1 to 3.0 / Performance and unlimited load depth_).
-* The `ogm.properties` file and environment variable have been removed. You now have to provide explicitly the configuration file or configure programmatically. See <<reference:configuration:driver, the configuration section>>.
+* Loading with depth `-1` calls have to be reviewed (please see the Neo4j-OGM migration guide under _Migration from 2.1 to 3.0 / Performance and unlimited load depth_).
+* The `ogm.properties` file and environment variable have been removed. 
+You have to explicitly provide the configuration file now or configure the driver programmatically. 
+See <<reference:configuration:driver, the configuration section>>.
 * The driver class name in the configuration is now inferred from connection URL.
 * Java 8 dates are now better supported ; the use of `java.util.Date` or converters is not required anymore. You may want to switch to more fine grained date types like `Instant`. See <<reference:type-conversion:built-in, conversions>>.
 * The query filters are now immutable. See <<reference:filters, Filters>>.
@@ -159,7 +161,8 @@ Support for AspectJ-based persistence has been removed from SDN 4 as the write-a
 
 === Deprecation of Neo4jTemplate
 
-It is highly recommended for users starting new SDN projects to use the OGM `Session` directly. `Neo4jTemplate` has been kept to give upgrading users a better experience.
+Users that rely on a direct interaction with the database should be using the Neo4j-OGM `Session` directly.
+`Neo4jTemplate` has been kept to give upgrading users a better experience.
 
 The `Neo4jTemplate` has been slimmed-down significantly for SDN 4. It contains the exact same methods as `Session`. In fact `Neo4jTemplate` is just a very thin wrapper with an ability to support SDN Exception Translation.
 Many of the operations are no longer needed or can be expressed with a straightforward Cypher query.

@@ -3,28 +3,29 @@
 
 Depending on what type of project you are doing there are several options when it comes to creating a new SDN project:
 
-- Use http://start.spring.io (for Spring Boot projects);
-- Use the https://spring.io/tools/sts[Spring Tool Suite (based on eclipse)];
-- Adding the required libraries using your dependency management tool.
+* Use http://start.spring.io (for Spring Boot projects)
+* Use the https://spring.io/tools/sts[Spring Tool Suite] (based on eclipse)
+* Adding the required libraries using your dependency management tool
 
+If you plan on using Neo4j in server mode, you will also need a running instance.
+Refer to the Getting Started section of the http://neo4j.com/docs/developer-manual/current/get-started[Neo4j Developer manual] on how to get that up and running.
 
-If you plan on using Neo4j in server mode, you will also need a running instance.  Refer to the Getting Started section of the http://neo4j.com/docs/developer-manual/current/get-started[Neo4j Developer manual] on
-how to get that up and running.
-
-== Using Boot
+== Using Spring Boot
 
 To create a Spring Boot project simply go to http://start.spring.io and specify a group and artifact like: `org.spring.neo4j.example` and `demo`.
-In the ***Dependencies*** box type: "Neo4J".  You can also add any other Spring support like "Web" etc. Once you are satisfied with your dependencies
-hit the generate button, download the zip and unzip into your workspace.
+In the _Dependencies_ box type: "Neo4j".
+You can also add any other Spring support like "Web" etc.
+Once you are satisfied with your dependencies hit the generate button, download the zip and unzip into your workspace.
 
 
-== Using STS
+== Using Spring Tool Suite
 
-To create a Spring project in STS go to File → New → Spring Template Project → Simple Spring Utility Project → press Yes when prompted. Then enter a project and a package name such as `org.spring.neo4j.example`.
+To create a Spring project in STS go to File → New → Spring Template Project → Simple Spring Utility Project → press _Yes_ when prompted.
+Then enter a project and a package name such as `org.spring.neo4j.example`.
 
-Then add the following to pom.xml dependencies section.
+Then add the following to `pom.xml` dependencies section.
 
-[source,xml]
+[source,xml,subs="+attributes"]
 ----
 <dependencies>
 
@@ -39,13 +40,12 @@ Then add the following to pom.xml dependencies section.
 </dependencies>
 ----
 
-Also change the version of Spring in the pom.xml to be
+Also change the version of Spring in the `pom.xml` to be
 
-[source,xml]
+[source,xml,subs="+attributes"]
 ----
 <spring.framework.version>{springVersion}</spring.framework.version>
 ----
-
 
 
 [[reference.getting_started.dependencies]]
@@ -53,20 +53,15 @@ Also change the version of Spring in the pom.xml to be
 
 Spring Data Neo4j projects can be built using Maven, Gradle or any other tool that supports Maven's repository system.
 
-[NOTE]
-For more in depth configuration details please consult the Configuration section of the OGM Reference Manual.
+NOTE: Adding the depedency-management-block is not necessary in a Spring Boot based project. Spring Boot manages Spring Data dependencies and releasetrains automatically.
 
 [[reference.getting_started.dependencies.maven]]
 === Maven
 
-By default, SDN will use the BOLT driver to connect to Neo4j and you don't need to declare it as a separate dependency in your pom.
+By default, SDN will use the Bolt driver to connect to Neo4j and you don't need to declare it as a separate dependency in your `pom.xml`.
 If you want to use the embedded or HTTP drivers in your production application, you must add the following dependencies as well.
-(This dependency on the embedded driver is not required if you only want to use the embedded driver for testing.
-See the section on <<reference.getting_started.dependencies.testing,Testing>> below for more information).
 
-
-
-[source,xml]
+[source,xml,subs="+attributes"]
 ----
 <dependencyManagement>
     <dependencies>
@@ -104,8 +99,8 @@ See the section on <<reference.getting_started.dependencies.testing,Testing>> be
 [[reference.getting_started.dependencies.testing]]
 ==== Testing
 
-.Maven dependencies for testing SDN 5 applications
-[source,xml]
+.Maven dependencies for testing
+[source,xml,subs="+attributes"]
 ----
     <dependency>
         <groupId>org.neo4j.test</groupId>
@@ -121,6 +116,9 @@ See the section on <<reference.getting_started.dependencies.testing,Testing>> be
     </dependency>
 ----
 
+NOTE: Spring Boot brings `spring-test` through `spring-boot-starter-test`, which simplifies testing a lot. You don't need to declare `spring-test` explicitly.
+
+//todo check versions and conflicts in current Spring Boot configurations
 [NOTE]
 ====
 Using neo4j-harness brings in a dependency on Jetty container.
@@ -145,6 +143,7 @@ instead of default Tomcat. You can avoid that e.g. by forcing the EmbeddedTomcat
 ----
 ====
 
+
 [[reference.getting_started.dependencies.gradle]]
 === Gradle
 
@@ -155,10 +154,10 @@ Gradle dependencies are basically the same as Maven:
 dependencies {
     compile 'org.springframework.data:spring-data-neo4j:{version}'
 
-    # add this dependency if you want to use the embedded driver
+    // add this dependency if you want to use the embedded driver
     compile 'org.neo4j:neo4j-ogm-embedded-driver:{ogm-version}'
 
-    # add this dependency if you want to use the Http driver
+    // add this dependency if you want to use the Http driver
     compile 'org.neo4j:neo4j-ogm-http-driver:{ogm-version}'
 
 }
@@ -171,14 +170,10 @@ There is an https://github.com/spring-projects/spring-data-examples[github repos
 [[reference.getting_started.spring-configuration]]
 == Configuration
 
-Right now SDN only supports JavaConfig. There is no XML based support but this may change in future.
-
 [NOTE]
 For those not familiar with how to configure the Spring container using Java based bean metadata instead of XML based metadata see the high level introduction in the reference docs http://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/new-in-3.0.html#new-java-configuration[here] as well as the detailed documentation http://docs.spring.io/spring/docs/4.2.9.RELEASE/spring-framework-reference/html/beans.html#beans-java-instantiating-container[here].
 
-
 For most applications the following configuration is all that's needed to get up and running.
-
 
 .Spring Data Neo4j repositories using JavaConfig
 [source,java]
@@ -209,15 +204,17 @@ public class MyConfiguration {
 }
 ----
 
-Here we wire up a `SessionFactory` configured from defaults.  We can change these defaults by providing an `ogm.properties` file at the root of the
-classpath or by passing in a `org.neo4j.ogm.config.Configuration` object.
-The last infrastructure component declared here is the  Neo4jTransactionManager. We finally activate Spring Data Neo4j repositories using the @EnableNeo4jRepositories annotation. If no base package is configured it will use the one the configuration class resides in.
+Here we wire up a `SessionFactory` configured from defaults.
+We can change these defaults by providing an `ogm.properties` file at the root of the classpath or by passing in a `org.neo4j.ogm.config.Configuration` object.
+The last infrastructure component declared here is the `Neo4jTransactionManager`.
+We finally activate Spring Data Neo4j repositories using the `@EnableNeo4jRepositories` annotation.
+If no base package is configured it will use the one the configuration class resides in.
 
 Note that you will have to activate `@EnableTransactionManagement` explicitly to get annotation based
 configuration at facades working as well as define an instance of this `Neo4jTransactionManager` with the bean name `transactionManager`.
 The example above assumes you are using component scanning.
 
-To allow your query methods to be transactional simply use @Transactional at the repository interface you define.
+To allow your query methods to be transactional simply use `@Transactional` at the repository interface you define.
 
 
 [[reference.getting_started.driver]]
@@ -231,11 +228,10 @@ The following drivers are available.
 - Embedded driver
 - Bolt driver
 
-.Java Configuration
-
-To configure the Driver programmatically, create a Configuration bean and pass it as the first argument to the `SessionFactory` constructor in your Spring configuration:
+To configure the driver programmatically, create a Neo4j-OGM `Configuration` bean and pass it as the first argument to the `SessionFactory` constructor in your Spring configuration:
 
 [source,java]
+.Java Configuration
 ----
 @Bean
 public org.neo4j.ogm.config.Configuration configuration() {
@@ -252,7 +248,7 @@ public SessionFactory sessionFactory() {
     return new SessionFactory(configuration(), <packages> ); <1>
 }
 ----
-<1> `packages` is a list of java packages containing the annotated domain model.
+<1> `packages` is a list of Java packages containing the annotated domain model.
 
 Configuration can also be initialized from an external file like this.
 
@@ -270,31 +266,29 @@ where `db.properties` looks like
 URI=bolt://localhost
 username=user
 password=secret
-connection.pool.size=... #see java driver doc
-encryption.level=... #see java driver doc
-trust.strategy=... #see java driver doc
-trust.certificate.file=... #see java driver doc
-connection.liveness.check.timeout=... #see java driver doc
-verify.connection=... #see java driver doc
+connection.pool.size=... #see Java driver doc
+encryption.level=... #see Java driver doc
+trust.strategy=... #see Java driver doc
+trust.certificate.file=... #see Java driver doc
+connection.liveness.check.timeout=... #see Java driver doc
+verify.connection=... #see Java driver doc
 ----
-
-//TODO add configuration option with native driver
 
 [NOTE]
 The driver is automatically inferred from the URI scheme.
 
 [NOTE]
-To set up authentication, TLS or other advanced options please see the Configuration section of the OGM Reference.
+To set up authentication, TLS or other advanced options please see the Configuration section of the Neo4j-OGM Reference.
 
 [NOTE]
-As of 4.2.0 the Neo4j OGM embedded driver no longer ships with the Neo4j kernel. Users are expected to provide this dependency through their dependency management system.
+As of 4.2.0 the Neo4j-OGM embedded driver no longer ships with the Neo4j kernel. Users are expected to provide this dependency through their dependency management system.
 
 
 
 [[reference.getting_started.spring-configuration.boot]]
 === Spring Boot Applications
 
-Spring Boot `2.0` works straight out of the box with Spring Data Neo4j `5.0.0`.
+Spring Boot 2.0 works straight out of the box with Spring Data Neo4j 5.
 
 Update your Spring Boot Maven POM with the following.
 You may need to add `<repositories>` depending on versioning (when using milestone or snapshot versions).
@@ -329,5 +323,26 @@ The `SessionFactory` is needed by SDN to create instances of `org.neo4j.ogm.sess
 When constructed, it sets up the object-graph mapping metadata, which is then used across all `Session` objects that it creates.
 As seen in the above example, the packages to scan for domain object metadata should be provided to the `SessionFactory` constructor.
 
-There should typically be only one `SessionFactory` per application.
+Your application typically connects only to one instance of Neo4j.
+Therefore there is usually only one `SessionFactory` per application.
+This `SessionFactory` should be configured in such a way that it scans all necessary packages.
+`@EnableNeo4jRepositories` detects one single bean of type `SessionFactory` out of the box and you don't need to configure anything more.
 
+In cases however where your setup requires the application to connect to multiple different instances of Neo4j, SDN allows you to specify that instance in `@EnableNeo4jRepositories` as follows:
+
+[source,java]
+----
+@Configuration
+@EnableNeo4jRepositories(
+    basePackages = "org.neo4j.example.repository",
+    sessionFactoryRef = "mySpecialSessionFactory" // <1>
+)
+@EnableTransactionManagement
+public class MyConfiguration {
+}
+----
+<1> Use the name of the session factory you want to be bound to the repositories for that package
+
+In cases like this SDN also supports multiple declarations of `@EnableNeo4jRepositories` that target different packages.
+Our recommendation however is connecting one application to one instance.
+If your domains are so different that they are stored in different databases, a microservices approach might be a better fit to your application.

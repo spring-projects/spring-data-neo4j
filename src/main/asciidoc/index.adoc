@@ -25,39 +25,38 @@ include::{spring-data-commons-docs}/auditing.adoc[]
 
 
 [[reference]]
-= SDN Reference Documentation
+= Spring Data Neo4j Reference Documentation
 
 :leveloffset: +1
 include::reference/introduction.adoc[]
 include::reference/getting-started.adoc[]
 include::reference/ogm-support.adoc[]
 include::reference/neo4j-repositories.adoc[]
-include::reference/projections.adoc[]
 include::reference/auditing.adoc[]
 
 :leveloffset: -1
 
 [[ogm-reference-documentation]]
-= Neo4j OGM Reference Documentation
+= Neo4j-OGM Reference Documentation
 
 [abstract]
 --
-This chapter is taken from the http://neo4j.com/docs/ogm-manual/current[Official Neo4j OGM Reference Documentation].
+This chapter is taken from the http://neo4j.com/docs/ogm-manual/current[Official Neo4j-OGM Reference Documentation].
 --
 
 :leveloffset: +1
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/introduction.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/getting-started.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/configuration.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/annotations.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/indexing.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/connecting.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/session.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/conversion.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/filters.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/events.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/testing.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/master/neo4j-ogm-docs/src/main/asciidoc/reference/ha.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/introduction.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/getting-started.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/configuration.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/annotations.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/indexing.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/connecting.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/session.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/conversion.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/filters.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/events.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/testing.adoc[]
+include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/ha.adoc[]
 :leveloffset: -1
 
 
