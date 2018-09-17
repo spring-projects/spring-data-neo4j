@@ -36,7 +36,8 @@ There are a lot of articles, blog entries and books on the matter - take a look 
 == NoSQL and Graph databases
 
 A graph database is a storage engine that is specialised in storing and retrieving vast networks of information.
-It efficiently stores data as nodes with relationships to other nodes and allows high performance retrieval and querying of those structures.
+It efficiently stores data as nodes with relationships to other or even the same nodes,
+thus allowing high performance retrieval and querying of those structures.
 Properties can be added to both nodes and relationships.
 Nodes can be labelled by zero or more labels, relationships are always directed and named.
 

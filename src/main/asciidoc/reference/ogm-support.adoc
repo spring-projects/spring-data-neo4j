@@ -3,7 +3,7 @@
 
 To get started, you need only your domain model and the annotations provided by the Neo4j-OGM library.
 You use annotations to mark domain objects to be reflected by nodes and relationships of the graph database.
-Annotations for individual fields allow you to declare how fields should be processed and mapped to a nodes properties in the graph.
+Annotations for individual fields allow you to declare how fields should be processed and mapped to properties of nodes in the graph.
 
 Refer to the Neo4j-OGM documentation for more details.
 
