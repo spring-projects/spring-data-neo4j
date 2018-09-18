@@ -531,10 +531,28 @@ Neo4j causal clusters use bookmarks to manage _read your own writes_ scenarios.
 You'll find background information on the way causal clusters work in the https://neo4j.com/docs/operations-manual/current/clustering/[Neo4j operations manual].
 
 In SDN, you can use the bookmark management feature to handle these scenarios easily.
-You just need to add:
+You just need to:
 
-* The `@EnableBookmarkManagement` annotation once on your Spring configuration class.
-* The `@UseBookmark` on each Java method involved into your _read your own writes_ scenarios
+* Add the `@EnableBookmarkManagement` annotation once on one of your Spring configuration classes.
+* Provide one bean implementing `org.springframework.data.neo4j.bookmark.BookmarkManager`. SDN supplies an implementation named `CaffeineBookmarkManager` based on the popular caching framework https://github.com/ben-manes/caffeine[Caffeine].
+* Add `@UseBookmark` to each transactional Java method involved in a _read your own writes_ scenario.
+
+A configuration using Caffeine may look like this:
+
+[source,java]
+----
+@Configuration
+@EnableBookmarkManagement
+public class ExampleConfiguration {
+
+    @Bean
+    public BookmarkManager bookmarkManager() {
+        return new CaffeineBookmarkManager();
+    }
+}
+----
+
+Please make sure that Caffeine is on the class path before you use this configuration.
 
 Every method annotated with `@UseBookmark` will then collect the bookmarks coming from the database at the end of transactions.
 These bookmarks are then stored into a SDN managed context, and reused on later calls to other `@UseBookmark` annotated methods.
