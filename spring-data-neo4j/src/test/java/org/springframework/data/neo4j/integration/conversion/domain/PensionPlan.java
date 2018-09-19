@@ -35,10 +35,6 @@ public class PensionPlan {
 
 	private String providerName;
 
-	PensionPlan() {
-		// default constructor for OGM
-	}
-
 	public PensionPlan(MonetaryAmount fundValue, String providerName) {
 		this.fundValue = fundValue;
 		this.providerName = providerName;
