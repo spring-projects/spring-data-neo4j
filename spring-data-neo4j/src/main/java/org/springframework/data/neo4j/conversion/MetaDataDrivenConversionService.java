@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -19,7 +19,6 @@ import org.neo4j.ogm.metadata.ClassInfo;
 import org.neo4j.ogm.metadata.FieldInfo;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
-import org.neo4j.ogm.typeconversion.ConversionCallback;
 import org.neo4j.ogm.typeconversion.ProxyAttributeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,8 +32,9 @@ import org.springframework.core.convert.support.GenericConversionService;
  * @author Adam George
  * @author Luanne Misquitta
  * @author Jasper Blues
+ * @author Michael J. Simons
  */
-public class MetaDataDrivenConversionService extends GenericConversionService implements ConversionCallback {
+public class MetaDataDrivenConversionService extends GenericConversionService {
 
 	private static final Logger logger = LoggerFactory.getLogger(MetaDataDrivenConversionService.class);
 
@@ -45,7 +45,6 @@ public class MetaDataDrivenConversionService extends GenericConversionService im
 	 *          object-graph mapping layer
 	 */
 	public MetaDataDrivenConversionService(MetaData metaData) {
-		metaData.registerConversionCallback(this);
 
 		for (ClassInfo classInfo : metaData.persistentEntities()) {
 			for (FieldInfo fieldInfo : classInfo.propertyFields()) {
@@ -100,13 +99,4 @@ public class MetaDataDrivenConversionService extends GenericConversionService im
 			addConverter(targetType, sourceType, toEntityConverter);
 		}
 	}
-
-	@Override
-	public <T> T convert(Class<T> targetType, Object value) {
-		if (value == null) {
-			return null;
-		}
-		return convert(value, targetType);
-	}
-
 }

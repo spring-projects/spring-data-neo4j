@@ -25,6 +25,7 @@ import org.springframework.data.neo4j.conversion.Neo4jOgmEntityInstantiatorAdapt
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 
 /**
+ *
  * @author Gerrit Meier
  * @author Michael J. Simons
  */
@@ -33,13 +34,10 @@ public class Neo4jOgmEntityInstantiatorConfigurationBean {
 	public Neo4jOgmEntityInstantiatorConfigurationBean(SessionFactory sessionFactory, Neo4jMappingContext mappingContext,
 			ObjectProvider<ConversionService> conversionServiceObjectProvider) {
 
-		ConversionService conversionService = conversionServiceObjectProvider.getIfUnique();
 		MetaData metaData = sessionFactory.metaData();
-		if (conversionService == null) {
-			conversionService = new MetaDataDrivenConversionService(metaData);
-		} else {
-			metaData.registerConversionCallback(new ConversionServiceBasedConversionCallback(conversionService));
-		}
+		ConversionService conversionService = conversionServiceObjectProvider
+				.getIfUnique(() -> new MetaDataDrivenConversionService(metaData));
+		metaData.registerConversionCallback(new ConversionServiceBasedConversionCallback(conversionService));
 
 		sessionFactory.setEntityInstantiator(new Neo4jOgmEntityInstantiatorAdapter(mappingContext, conversionService));
 	}
