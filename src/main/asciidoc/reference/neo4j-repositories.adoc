@@ -630,19 +630,10 @@ It is highly recommended to create _JSR-303_ annotations on actual Java Beans, s
 [[reference_programming-model_conversion]]
 === Conversion Service
 It is possible to have Spring Data Neo4j use converters registered with http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/validation.html#core-convert[Spring's ConversionService].
-In order to do this, provide `org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService` as a Spring bean.
+There must be one unique instance of a `ConversionService`-Bean in your application context to use this.
+If there is more than one instance, you have to mark the one to be used by SDN with `@Primary`, otherwise an internal conversion service will be used.
 
-.Provide MetaDataDrivenConversionService as a Spring bean
-[source,java]
-----
-@Bean
-public ConversionService conversionService() {
-    return new MetaDataDrivenConversionService(getSessionFactory().metaData());
-}
-----
-
-Then, instead of defining an implementation of `org.neo4j.ogm.typeconversion.AttributeConverter` on the `@Convert` annotation,
-use the `graphPropertyType` attribute to define the type to convert to.
+When those requirements are met, use the `graphPropertyType` attribute on the `@Convert` annotation instead of specifying an `org.neo4j.ogm.typeconversion.AttributeConverter` through its `value`:
 
 .Using graphPropertyType
 [source,java]

@@ -15,7 +15,9 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
+import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.typeconversion.ConversionCallback;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService;
@@ -23,6 +25,7 @@ import org.springframework.data.neo4j.conversion.Neo4jOgmEntityInstantiatorAdapt
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 
 /**
+ *
  * @author Gerrit Meier
  * @author Michael J. Simons
  */
@@ -31,11 +34,28 @@ public class Neo4jOgmEntityInstantiatorConfigurationBean {
 	public Neo4jOgmEntityInstantiatorConfigurationBean(SessionFactory sessionFactory, Neo4jMappingContext mappingContext,
 			ObjectProvider<ConversionService> conversionServiceObjectProvider) {
 
-		ConversionService conversionService = conversionServiceObjectProvider.getIfAvailable();
+		MetaData metaData = sessionFactory.metaData();
+		ConversionService conversionService = conversionServiceObjectProvider
+				.getIfUnique(() -> new MetaDataDrivenConversionService(metaData));
+		metaData.registerConversionCallback(new ConversionServiceBasedConversionCallback(conversionService));
 
-		sessionFactory.setEntityInstantiator(
-				new Neo4jOgmEntityInstantiatorAdapter(mappingContext, conversionService != null ? conversionService
-						: new MetaDataDrivenConversionService(sessionFactory.metaData())));
+		sessionFactory.setEntityInstantiator(new Neo4jOgmEntityInstantiatorAdapter(mappingContext, conversionService));
 	}
 
+	private static class ConversionServiceBasedConversionCallback implements ConversionCallback {
+
+		private final ConversionService delegate;
+
+		public ConversionServiceBasedConversionCallback(ConversionService conversionService) {
+			this.delegate = conversionService;
+		}
+
+		@Override
+		public <T> T convert(Class<T> targetType, Object value) {
+			if (value == null) {
+				return null;
+			}
+			return delegate.convert(value, targetType);
+		}
+	}
 }

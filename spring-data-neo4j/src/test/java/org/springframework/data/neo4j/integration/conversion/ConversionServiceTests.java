@@ -33,7 +33,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService;
 import org.springframework.data.neo4j.integration.conversion.domain.JavaElement;
 import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmount;
@@ -48,13 +47,14 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
+ * See DATAGRAPH-624
+ *
  * @author Adam George
  * @author Luanne Misquitta
  * @author Vince Bickers
  * @author Mark Angrish
  * @author Mark Paluch
  * @author Jens Schauder
- * @see DATAGRAPH-624
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = { ConversionServiceTests.ConversionServicePersistenceContext.class })
@@ -64,7 +64,11 @@ public class ConversionServiceTests extends MultiDriverTestClass {
 	@Autowired private PensionRepository pensionRepository;
 	@Autowired private JavaElementRepository javaElementRepository;
 	@Autowired private SiteMemberRepository siteMemberRepository;
-	@Autowired private GenericConversionService conversionService;
+	// TODO See below, for the time being at least be explicit on which type of conversion service we're working on here
+	// The only thing that is under test, is the instance of MetaDataDrivenConversionService which get's even
+	// modified heavily be this test. This needs to be fixed in the near future.
+	// Also it doesn't test conversion with `graphPropertyType` attribute and a standard Spring Converter.
+	@Autowired private MetaDataDrivenConversionService conversionService;
 
 	@Autowired Session session;
 
@@ -219,10 +223,7 @@ public class ConversionServiceTests extends MultiDriverTestClass {
 		assertEquals(50, siteMember.getYears().intValue());
 	}
 
-	/**
-	 * @see DATAGRAPH-659
-	 */
-	@Test
+	@Test // DATAGRAPH-659
 	public void shouldRecognizeJavaEnums() {
 		SiteMember siteMember = new SiteMember();
 		siteMember.setRoundingModes(Arrays.asList(RoundingMode.DOWN, RoundingMode.FLOOR));
