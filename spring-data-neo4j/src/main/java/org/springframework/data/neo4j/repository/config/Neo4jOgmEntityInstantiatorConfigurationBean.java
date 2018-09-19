@@ -15,7 +15,9 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
+import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.session.SessionFactory;
+import org.neo4j.ogm.typeconversion.ConversionCallback;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService;
@@ -31,11 +33,31 @@ public class Neo4jOgmEntityInstantiatorConfigurationBean {
 	public Neo4jOgmEntityInstantiatorConfigurationBean(SessionFactory sessionFactory, Neo4jMappingContext mappingContext,
 			ObjectProvider<ConversionService> conversionServiceObjectProvider) {
 
-		ConversionService conversionService = conversionServiceObjectProvider.getIfAvailable();
+		ConversionService conversionService = conversionServiceObjectProvider.getIfUnique();
+		MetaData metaData = sessionFactory.metaData();
+		if (conversionService == null) {
+			conversionService = new MetaDataDrivenConversionService(metaData);
+		} else {
+			metaData.registerConversionCallback(new ConversionServiceBasedConversionCallback(conversionService));
+		}
 
-		sessionFactory.setEntityInstantiator(
-				new Neo4jOgmEntityInstantiatorAdapter(mappingContext, conversionService != null ? conversionService
-						: new MetaDataDrivenConversionService(sessionFactory.metaData())));
+		sessionFactory.setEntityInstantiator(new Neo4jOgmEntityInstantiatorAdapter(mappingContext, conversionService));
 	}
 
+	private static class ConversionServiceBasedConversionCallback implements ConversionCallback {
+
+		private final ConversionService delegate;
+
+		public ConversionServiceBasedConversionCallback(ConversionService conversionService) {
+			this.delegate = conversionService;
+		}
+
+		@Override
+		public <T> T convert(Class<T> targetType, Object value) {
+			if (value == null) {
+				return null;
+			}
+			return delegate.convert(value, targetType);
+		}
+	}
 }
