@@ -1,6 +1,21 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.0.RELEASE (2018-09-21)
+---------------------------------------------
+* DATAGRAPH-1127 - Update to OGM 3.1.3.
+* DATAGRAPH-1126 - Application fails to start with multiple ConversionServices.
+* DATAGRAPH-1125 - Clarify requirements for @EnableBookmarkManagement.
+* DATAGRAPH-1124 - Remove usage of deprecated CallableProcessingInterceptorAdapter.
+* DATAGRAPH-1122 - Prevent eager initialization of beans for repository support.
+* DATAGRAPH-1120 - Cleanup derived query infrastructure.
+* DATAGRAPH-1118 - Fix dependencies example in Getting Started Guide.
+* DATAGRAPH-1117 - Provide up to date version of XSD schemas for XML based configuration.
+* DATAGRAPH-1115 - Support @UseBookmark in composed annotations.
+* DATAGRAPH-1114 - Release 5.1 GA (Lovelace).
+* DATAGRAPH-1101 - Review and improve documentation.
+
+
 Changes in version 5.0.10.RELEASE (2018-09-10)
 ----------------------------------------------
 * DATAGRAPH-1118 - Fix dependencies example in Getting Started Guide.
