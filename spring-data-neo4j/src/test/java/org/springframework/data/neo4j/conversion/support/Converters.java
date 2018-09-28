@@ -13,6 +13,8 @@
 
 package org.springframework.data.neo4j.conversion.support;
 
+import static java.util.stream.Collectors.joining;
+
 import java.util.List;
 
 import org.neo4j.ogm.typeconversion.AttributeConverter;
@@ -64,7 +66,7 @@ public final class Converters {
 
 		@Override
 		public String toGraphProperty(Double value) {
-			return null;
+			return "that has been a double";
 		}
 
 		@Override
@@ -77,7 +79,7 @@ public final class Converters {
 
 		@Override
 		public String toGraphProperty(List<Double> value) {
-			return null;
+			return value.stream().map(d -> d.toString()).collect(joining(","));
 		}
 
 		@Override
