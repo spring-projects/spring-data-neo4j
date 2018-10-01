@@ -28,29 +28,29 @@ public class MetaDataDrivenConversionServiceTests extends MultiDriverTestClass {
 
 	@Test
 	public void shouldDetermineConvertersForClasses() {
-		MetaDataDrivenConversionService.PairOfTypes pairOfTypes = MetaDataDrivenConversionService
-				.getPairOfTypes(new Converters.DoubleToStringConverter());
+		MetaDataDrivenConversionService.EntityToGraphTypeMapping entityToGraphTypeMapping = MetaDataDrivenConversionService
+				.getEntityToGraphTypeMapping(new Converters.DoubleToStringConverter());
 
-		assertThat(pairOfTypes.sourceType).isEqualTo(Double.class);
-		assertThat(pairOfTypes.targetType).isEqualTo(String.class);
+		assertThat(entityToGraphTypeMapping.entityType).isEqualTo(Double.class);
+		assertThat(entityToGraphTypeMapping.graphType).isEqualTo(String.class);
 	}
 
 	@Test
 	public void shouldDetermineConvertersForTypedClasses() {
-		MetaDataDrivenConversionService.PairOfTypes pairOfTypes = MetaDataDrivenConversionService
-				.getPairOfTypes(new Converters.ListToStringConverter());
+		MetaDataDrivenConversionService.EntityToGraphTypeMapping entityToGraphTypeMapping = MetaDataDrivenConversionService
+				.getEntityToGraphTypeMapping(new Converters.ListToStringConverter());
 
-		assertThat(pairOfTypes.sourceType).isEqualTo(Double.class);
-		assertThat(pairOfTypes.targetType).isEqualTo(String.class);
+		assertThat(entityToGraphTypeMapping.entityType).isEqualTo(Double.class);
+		assertThat(entityToGraphTypeMapping.graphType).isEqualTo(String.class);
 	}
 
 	@Test // DATAGRAPH-1131
 	public void shouldWorkWithConvertersInvolvingAbstractBaseClasses() {
-		MetaDataDrivenConversionService.PairOfTypes pairOfTypes = MetaDataDrivenConversionService
-				.getPairOfTypes(new Converters.ConvertedClassToStringConverter());
+		MetaDataDrivenConversionService.EntityToGraphTypeMapping entityToGraphTypeMapping = MetaDataDrivenConversionService
+				.getEntityToGraphTypeMapping(new Converters.ConvertedClassToStringConverter());
 
-		assertThat(pairOfTypes.sourceType).isEqualTo(ConvertedClass.class);
-		assertThat(pairOfTypes.targetType).isEqualTo(String.class);
+		assertThat(entityToGraphTypeMapping.entityType).isEqualTo(ConvertedClass.class);
+		assertThat(entityToGraphTypeMapping.graphType).isEqualTo(String.class);
 	}
 
 }
