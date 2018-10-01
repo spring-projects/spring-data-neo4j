@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.core.convert.support.GenericConversionService;
  * @author Adam George
  * @author Luanne Misquitta
  * @author Jasper Blues
+ * @author Michael J. Simons
  */
 public class MetaDataDrivenConversionService extends GenericConversionService implements ConversionCallback {
 
