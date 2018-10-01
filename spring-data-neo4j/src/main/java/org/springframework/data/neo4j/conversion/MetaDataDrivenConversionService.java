@@ -13,7 +13,7 @@
 
 package org.springframework.data.neo4j.conversion;
 
-import java.lang.reflect.ParameterizedType;
+import java.util.Optional;
 
 import org.neo4j.ogm.metadata.ClassInfo;
 import org.neo4j.ogm.metadata.FieldInfo;
@@ -22,6 +22,7 @@ import org.neo4j.ogm.typeconversion.AttributeConverter;
 import org.neo4j.ogm.typeconversion.ProxyAttributeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
 
@@ -57,46 +58,64 @@ public class MetaDataDrivenConversionService extends GenericConversionService {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void addWrappedConverter(final AttributeConverter attributeConverter) {
+
 		if (attributeConverter instanceof ProxyAttributeConverter) {
 			return;
 		}
 
-		Converter toGraphConverter = new Converter() {
-			@Override
-			public Object convert(Object source) {
-				return attributeConverter.toGraphProperty(source);
-			}
-		};
-		Converter toEntityConverter = new Converter() {
-			@Override
-			public Object convert(Object source) {
-				return attributeConverter.toEntityAttribute(source);
-			}
-		};
+		EntityToGraphTypeMapping entityToGraphTypeMapping = getEntityToGraphTypeMapping(attributeConverter);
 
-		ParameterizedType pt = (ParameterizedType) attributeConverter.getClass().getGenericInterfaces()[0];
-		Class<?> sourceType, targetType;
-		if (pt.getActualTypeArguments()[0] instanceof Class) {
-			sourceType = (Class<?>) pt.getActualTypeArguments()[0];
-		} else { // the argument may be a Collection for example
-			sourceType = (Class<?>) ((ParameterizedType) pt.getActualTypeArguments()[0]).getActualTypeArguments()[0];
-		}
-
-		if (pt.getActualTypeArguments()[1] instanceof Class) {
-			targetType = (Class<?>) pt.getActualTypeArguments()[1];
-		} else {
-			targetType = (Class<?>) ((ParameterizedType) pt.getActualTypeArguments()[1]).getActualTypeArguments()[1];
-
-		}
-
-		if (canConvert(sourceType, targetType) && canConvert(targetType, sourceType)) {
+		if (canConvert(entityToGraphTypeMapping.entityType, entityToGraphTypeMapping.graphType)
+				&& canConvert(entityToGraphTypeMapping.graphType, entityToGraphTypeMapping.entityType)) {
 			logger.info("Not adding Spring-compatible converter for " + attributeConverter.getClass()
 					+ " because one that does the same job has already been registered with the ConversionService.");
 		} else {
+			Converter toGraphConverter = attributeConverter::toGraphProperty;
+			Converter toEntityConverter = attributeConverter::toEntityAttribute;
+
 			// It could be argued that this is wrong as it potentially overrides a registered converted that doesn't handle
 			// both directions, but I've decided that it's better to ensure the same converter is used for load and save.
-			addConverter(sourceType, targetType, toGraphConverter);
-			addConverter(targetType, sourceType, toEntityConverter);
+			addConverter(entityToGraphTypeMapping.entityType, entityToGraphTypeMapping.graphType, toGraphConverter);
+			addConverter(entityToGraphTypeMapping.graphType, entityToGraphTypeMapping.entityType, toEntityConverter);
 		}
+	}
+
+	static class EntityToGraphTypeMapping {
+		Class<?> entityType;
+		Class<?> graphType;
+
+		private EntityToGraphTypeMapping(Class<?> entityType, Class<?> target) {
+			this.entityType = entityType;
+			this.graphType = target;
+		}
+	}
+
+	static EntityToGraphTypeMapping getEntityToGraphTypeMapping(AttributeConverter attributeConverter) {
+
+		ResolvableType resolvableType = ResolvableType.forClass(AttributeConverter.class,
+				attributeConverter.getClass());
+
+		if (!resolvableType.hasGenerics()) {
+			throw new IllegalStateException(
+					"Cannot resolve source and target types for the given attribute converter of class "
+							+ attributeConverter.getClass());
+		}
+
+		Class<?> sourceType = nestedTypeOrType(resolvableType.getGeneric(0));
+		Class<?> targetType = nestedTypeOrType(resolvableType.getGeneric(1));
+
+		return new EntityToGraphTypeMapping(sourceType, targetType);
+	}
+
+	/**
+	 * If the type can be resolved to a collection that has generics, we extract the collection type, otherwise we return
+	 * the resolved type.
+	 *
+	 * @param type Type to resolve
+	 * @return The types resolved class or in case of a generic collections, the collections elements class.
+	 */
+	private static Class<?> nestedTypeOrType(ResolvableType type) {
+		return Optional.ofNullable(type.asCollection()).filter(ResolvableType::hasGenerics).map(r -> r.getGeneric(0))
+				.orElse(type).toClass();
 	}
 }
