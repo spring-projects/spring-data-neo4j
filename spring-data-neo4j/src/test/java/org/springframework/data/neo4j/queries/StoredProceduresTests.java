@@ -50,9 +50,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 /**
  * @author Michael J. Simons
  */
-@ContextConfiguration(classes = { StoredProceduresTest.ContextConfig.class })
+@ContextConfiguration(classes = { StoredProceduresTests.ContextConfig.class })
 @RunWith(SpringRunner.class)
-public class StoredProceduresTest {
+public class StoredProceduresTests {
 	private static final Config driverConfig = Config.build().withoutEncryption().toConfig();
 
 	private static ServerControls serverControls;
