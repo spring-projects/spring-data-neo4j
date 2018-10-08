@@ -37,7 +37,7 @@
 	<properties>
 		<project.type>multi</project.type>
 		<dist.id>spring-data-neo4j</dist.id>
-		<neo4j.ogm.version>3.1.3</neo4j.ogm.version>
+		<neo4j.ogm.version>3.1.4</neo4j.ogm.version>
 		<springdata.commons>2.1.1.BUILD-SNAPSHOT</springdata.commons>
 		<source.level>1.8</source.level>
 		<kotlin.version>1.2.10</kotlin.version>
