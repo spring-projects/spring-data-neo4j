@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.data.repository.query.ResultProcessor;
  * @author Jasper Blues
  * @author Mark Paluch
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
 public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
@@ -89,19 +90,26 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 	}
 
 	Map<String, Object> resolveParams(Parameters<?, ?> methodParameters, Object[] parameters) {
-		Map<String, Object> params = new HashMap<>();
 
-		for (int i = 0; i < parameters.length; i++) {
-			Parameter parameter = methodParameters.getParameter(i);
-			Object parameterValue = getParameterValue(parameters[i]);
+		Map<String, Object> resolvedParameters = new HashMap<>();
 
-			if (parameter.isExplicitlyNamed()) {
-				parameter.getName().ifPresent(name -> params.put(name, parameterValue));
+		for(Parameter parameter : methodParameters) {
+			int parameterIndex = parameter.getIndex();
+			Object parameterValue = getParameterValue(parameters[parameterIndex]);
+
+			// We support using parameters based on their index and their name at the same time,
+			// so parameters are always bound by index.
+			resolvedParameters.put(Integer.toString(parameterIndex), parameterValue);
+
+			// Make sure we don't add "special" parameters as named parameters
+			if(parameter.isNamedParameter()) {
+				// even though the above check ensures the presence usually, it's probably better to
+				// treat #isNamedParameter as a blackbox and not just calling #get() on the optional.
+				parameter.getName().ifPresent(parameterName -> resolvedParameters.put(parameterName, parameterValue));
 			}
-			params.put("" + i, parameterValue);
 		}
 
-		return params;
+		return resolvedParameters;
 	}
 
 	// just an horrible trick to get the metadata from OGM
