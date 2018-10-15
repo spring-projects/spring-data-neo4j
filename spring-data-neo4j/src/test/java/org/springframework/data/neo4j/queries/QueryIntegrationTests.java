@@ -364,10 +364,7 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-698, DATAGRAPH-861
-	 */
-	@Test
+	@Test // DATAGRAPH-698, DATAGRAPH-861
 	public void shouldFindUsersAndMapThemToConcreteQueryResultObjectCollection() {
 		executeUpdate(
 				"CREATE (g:User {name:'Gary', age:32}), (s:User {name:'Sheila', age:29}), (v:User {name:'Vince', age:66})");
@@ -451,10 +448,7 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-694
-	 */
-	@Test
+	@Test // DATAGRAPH-694
 	public void shouldSubstituteUserId() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
@@ -469,10 +463,7 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-694
-	 */
-	@Test
+	@Test // DATAGRAPH-694
 	public void shouldSubstituteNamedParamUserId() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
@@ -487,10 +478,7 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-727
-	 */
-	@Test
+	@Test // DATAGRAPH-727
 	public void shouldFindIterableUsers() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
@@ -507,10 +495,7 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-772
-	 */
-	@Test
+	@Test // DATAGRAPH-772
 	public void shouldAllowNullParameters() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
@@ -526,10 +511,7 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-772
-	 */
-	@Test
+	@Test // DATAGRAPH-772
 	public void shouldMapNullsToQueryResults() {
 		executeUpdate("CREATE (g:User), (s:User)");
 
@@ -550,10 +532,7 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-700
-	 */
-	@Test
+	@Test // DATAGRAPH-700
 	public void shouldMapNodeEntitiesIntoQueryResultObjects() {
 		executeUpdate("CREATE (:User {name:'Abraham'}), (:User {name:'Barry'}), (:User {name:'Colin'})");
 
@@ -568,10 +547,7 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-700
-	 */
-	@Test
+	@Test // DATAGRAPH-700
 	public void shouldMapNodeCollectionsIntoQueryResultObjects() {
 		executeUpdate(
 				"CREATE (d:User {name:'Daniela'}),  (e:User {name:'Ethan'}), (f:User {name:'Finn'}), (d)-[:FRIEND_OF]->(e), (d)-[:FRIEND_OF]->(f)");
@@ -590,16 +566,13 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 				}
 				assertTrue(friends.contains("Ethan"));
 				assertTrue(friends.contains("Finn"));
-				assertEquals(2, result.getUser().getFriends().size()); // we expect friends to be mapped since the relationships
-																																// were returned
+				// we expect friends to be mapped since the relationships were returned
+				assertEquals(2, result.getUser().getFriends().size());
 			}
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-700
-	 */
-	@Test
+	@Test // DATAGRAPH-700
 	public void shouldMapRECollectionsIntoQueryResultObjects() {
 		executeUpdate(
 				"CREATE (g:User {name:'Gary'}), (sw:Movie {name: 'Star Wars: The Force Awakens'}), (hob:Movie {name:'The Hobbit: An Unexpected Journey'}), (g)-[:RATED {stars : 5}]->(sw), (g)-[:RATED {stars: 4}]->(hob) ");
@@ -632,10 +605,7 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-700
-	 */
-	@Test
+	@Test // DATAGRAPH-700
 	public void shouldMapRelationshipCollectionsWithDepth0IntoQueryResultObjects() {
 		executeUpdate(
 				"CREATE (i:User {name:'Ingrid'}),  (j:User {name:'Jake'}), (k:User {name:'Kate'}), (i)-[:FRIEND_OF]->(j), (i)-[:FRIEND_OF]->(k)");
@@ -654,16 +624,13 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 				}
 				assertTrue(friends.contains("Kate"));
 				assertTrue(friends.contains("Jake"));
-				assertEquals(0, result.getUser().getFriends().size()); // we do not expect friends to be mapped since the
-																																// relationships were not returned
+				// we do not expect friends to be mapped since the relationships were not returned
+				assertEquals(0, result.getUser().getFriends().size());
 			}
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-700
-	 */
-	@Test
+	@Test // DATAGRAPH-700
 	public void shouldReturnMultipleQueryResultObjects() {
 		executeUpdate(
 				"CREATE (g:User {name:'Gary'}), (h:User {name:'Harry'}), (sw:Movie {name: 'Star Wars: The Force Awakens'}), (hob:Movie {name:'The Hobbit: An Unexpected Journey'}), (g)-[:RATED {stars : 5}]->(sw), (g)-[:RATED {stars: 4}]->(hob), (h)-[:RATED {stars: 3}]->(hob) ");
@@ -710,10 +677,7 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-700
-	 */
-	@Test
+	@Test // DATAGRAPH-700
 	public void shouldMapEntitiesToProxiedQueryResultInterface() {
 		executeUpdate(
 				"CREATE (:User {name:'Morne', age:30}), (:User {name:'Abraham', age:31}), (:User {name:'Virat', age:27})");
@@ -730,10 +694,7 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-860
-	 */
-	@Test
+	@Test // DATAGRAPH-860
 	public void shouldMapEmptyNullCollectionsToQueryResultInterface() {
 		executeUpdate("CREATE (g:User {name:'Gary'})");
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.data.repository.query.ResultProcessor;
  * @author Jasper Blues
  * @author Mark Paluch
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
 public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
@@ -96,9 +97,8 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 			int parameterIndex = parameter.getIndex();
 			Object parameterValue = getParameterValue(parameters[parameterIndex]);
 
-			// We support using parameters based on their index and their name at the same time
-			// and don't check the query upfront whether the parameter is bound via name or index
-			// as Spring Data JPA does for example.
+			// We support using parameters based on their index and their name at the same time,
+			// so parameters are always bound by index.
 			resolvedParameters.put(Integer.toString(parameterIndex), parameterValue);
 
 			// Make sure we don't add "special" parameters as named parameters
