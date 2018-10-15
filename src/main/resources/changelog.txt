@@ -1,6 +1,17 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.11.RELEASE (2018-10-15)
+----------------------------------------------
+* DATAGRAPH-1133 - Upgrade Neo4j-OGM to the latest version.
+* DATAGRAPH-1132 - Describe @EnableNeo4jAuditing.
+* DATAGRAPH-1131 - Fix possible ArrayIndexOutOfBoundsException in MetaDataDrivenConversionService during startup.
+* DATAGRAPH-1130 - Fix JavaDoc for EnableNeo4jAuditing.
+* DATAGRAPH-1125 - Clarify requirements for @EnableBookmarkManagement.
+* DATAGRAPH-1124 - Remove usage of deprecated CallableProcessingInterceptorAdapter.
+* DATAGRAPH-1123 - Release 5.0.11 (Kay SR11).
+
+
 Changes in version 5.1.1.RELEASE (2018-10-15)
 ---------------------------------------------
 * DATAGRAPH-1134 - Ignore result of stored procedures when repository method returns void.
