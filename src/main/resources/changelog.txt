@@ -1,6 +1,16 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.1.RELEASE (2018-10-15)
+---------------------------------------------
+* DATAGRAPH-1134 - Ignore result of stored procedures when repository method returns void.
+* DATAGRAPH-1133 - Upgrade Neo4j-OGM to the latest version.
+* DATAGRAPH-1132 - Describe @EnableNeo4jAuditing.
+* DATAGRAPH-1131 - Fix possible ArrayIndexOutOfBoundsException in MetaDataDrivenConversionService during startup.
+* DATAGRAPH-1130 - Fix JavaDoc for EnableNeo4jAuditing.
+* DATAGRAPH-1129 - Release 5.1.1 (Lovelace SR1).
+
+
 Changes in version 5.1.0.RELEASE (2018-09-21)
 ---------------------------------------------
 * DATAGRAPH-1127 - Update to OGM 3.1.3.
