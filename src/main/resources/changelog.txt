@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.2.16.RELEASE (2018-10-15)
+----------------------------------------------
+* DATAGRAPH-1121 - Release 4.2.16 (Ingalls SR16).
+
+
 Changes in version 5.0.11.RELEASE (2018-10-15)
 ----------------------------------------------
 * DATAGRAPH-1133 - Upgrade Neo4j-OGM to the latest version.
