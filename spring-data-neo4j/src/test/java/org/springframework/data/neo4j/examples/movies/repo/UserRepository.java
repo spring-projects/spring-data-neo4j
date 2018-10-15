@@ -62,6 +62,9 @@ public interface UserRepository extends PersonRepository<User, Long> {
 	@Query("MATCH (user:User{name:{name}}) RETURN user")
 	User findUserByNameWithNamedParam(@Param("name") String name);
 
+	@Query("MATCH (user:User{name:{name}}) RETURN user")
+	User findUserByNameWithNamedParamWithoutParamAnnotation(String name);
+
 	@Query("MATCH (user:User{name:{0}}) RETURN user")
 	User findUserByName(String name);
 
