@@ -116,6 +116,6 @@ public class MetaDataDrivenConversionService extends GenericConversionService {
 	 */
 	private static Class<?> nestedTypeOrType(ResolvableType type) {
 		return Optional.ofNullable(type.asCollection()).filter(ResolvableType::hasGenerics).map(r -> r.getGeneric(0))
-				.orElse(type).toClass();
+				.orElse(type).resolve(Object.class);
 	}
 }
