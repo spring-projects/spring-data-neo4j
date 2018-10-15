@@ -36,18 +36,6 @@ public class GraphParameters extends Parameters<GraphParameters, GraphParameters
 		super(method);
 	}
 
-	GraphParameters(Method method, List<GraphParameter> parameters) {
-
-		super(parameters);
-
-		for (int i = 0; i < parameters.size(); i++) {
-			GraphParameter parameter = parameters.get(i);
-			if (parameter.isDepthParameter()) {
-				this.depthIndex = i;
-			}
-		}
-	}
-
 	GraphParameters(List<GraphParameter> parameters, Integer depthIndex) {
 		super(parameters);
 		this.depthIndex = depthIndex;
