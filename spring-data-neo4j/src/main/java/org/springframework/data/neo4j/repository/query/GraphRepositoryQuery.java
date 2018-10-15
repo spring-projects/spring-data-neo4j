@@ -92,10 +92,10 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 			Parameter parameter = methodParameters.getParameter(i);
 			Object parameterValue = getParameterValue(parameters[i]);
 
-			if (parameter.isExplicitlyNamed()) {
-				parameter.getName().ifPresent(name -> params.put(name, parameterValue));
-			} else {
-				params.put("" + i, parameterValue);
+			params.put(Integer.toString(i), parameterValue);
+
+			if(parameter.isNamedParameter()) {
+				parameter.getName().ifPresent(parameterName -> params.put(parameterName, parameterValue));
 			}
 		}
 		return params;

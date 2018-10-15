@@ -171,6 +171,19 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 		});
 	}
 
+	@Test // DATAGRAPH-1135
+	public void namedParameterShouldWorkWithouthAtParamsInAtQueryMethods() {
+		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = userRepository.findUserByNameWithNamedParamWithoutParamAnnotation("Michal");
+				assertEquals("Michal", user.getName());
+			}
+		});
+	}
+
 	@Test
 	public void shouldFindUsersAsProperties() {
 		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
