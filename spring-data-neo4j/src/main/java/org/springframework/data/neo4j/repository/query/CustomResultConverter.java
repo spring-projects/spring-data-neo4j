@@ -16,15 +16,18 @@ package org.springframework.data.neo4j.repository.query;
 import static java.lang.reflect.Proxy.*;
 
 import java.util.Map;
+import java.util.Optional;
 
+import org.neo4j.ogm.context.SingleUseEntityMapper;
 import org.neo4j.ogm.metadata.MetaData;
+import org.neo4j.ogm.metadata.reflect.ReflectionEntityInstantiator;
 import org.neo4j.ogm.session.EntityInstantiator;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.annotation.QueryResult;
+import org.springframework.data.neo4j.conversion.Neo4jOgmEntityInstantiatorAdapter;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.mapping.SingleUseEntityMapper;
 import org.springframework.lang.Nullable;
 
 /**
@@ -45,8 +48,9 @@ class CustomResultConverter implements Converter<Object, Object> {
 
 		this.returnedType = returnedType;
 		this.metaData = metaData;
-		entityInstantiator = new QueryResultInstantiator(metaData, mappingContext);
-
+		this.entityInstantiator =  Optional.ofNullable(mappingContext)
+				.<EntityInstantiator> map(ctx -> new Neo4jOgmEntityInstantiatorAdapter(ctx, null))
+				.orElseGet(() -> new ReflectionEntityInstantiator(metaData));
 	}
 
 	@Override

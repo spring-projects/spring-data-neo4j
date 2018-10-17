@@ -14,6 +14,9 @@
 package org.springframework.data.neo4j.conversion;
 
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.neo4j.ogm.session.EntityInstantiator;
 import org.springframework.core.convert.ConversionService;
@@ -23,6 +26,7 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -58,6 +62,12 @@ public class Neo4jOgmEntityInstantiatorAdapter implements EntityInstantiator {
 		return instantiator.createInstance(persistentEntity, getParameterProvider(propertyValues, conversionService));
 	}
 
+	@Override
+	public Function<Class<?>, Optional<Predicate<String>>> getConstructorArgumentPredicateSupplier() {
+
+		return clazz -> Optional.ofNullable(context.getPersistentEntity(clazz)).map(IsConstructorArgumentPredicate::new);
+	}
+
 	private ParameterValueProvider<Neo4jPersistentProperty> getParameterProvider(Map<String, Object> propertyValues,
 			ConversionService conversionService) {
 		return new Neo4jPropertyValueProvider(propertyValues, conversionService);
@@ -84,6 +94,26 @@ public class Neo4jOgmEntityInstantiatorAdapter implements EntityInstantiator {
 			} else {
 				return conversionService.convert(value, parameter.getType().getType());
 			}
+		}
+	}
+
+	/**
+	 * This is a predicate that tests whether a property (represented by it's name) is an argument of the persistence
+	 * constructor used to instantiate a given instance of a class represented by {@link #persistentEntity}.
+	 */
+	private static class IsConstructorArgumentPredicate implements Predicate<String> {
+		private final Neo4jPersistentEntity<?> persistentEntity;
+
+		IsConstructorArgumentPredicate(@NonNull Neo4jPersistentEntity<?> persistentEntity) {
+			this.persistentEntity = persistentEntity;
+		}
+
+		@Override
+		public boolean test(@Nullable  String s) {
+			return Optional.ofNullable(s)
+					.map(this.persistentEntity::getPersistentProperty)
+					.map(this.persistentEntity::isConstructorArgument)
+					.orElse(false);
 		}
 	}
 }
