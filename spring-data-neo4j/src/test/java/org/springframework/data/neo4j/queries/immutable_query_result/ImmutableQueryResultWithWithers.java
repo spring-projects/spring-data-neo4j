@@ -15,28 +15,32 @@
  */
 package org.springframework.data.neo4j.queries.immutable_query_result;
 
-import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.data.neo4j.annotation.QueryResult;
 
 /**
- * This class modifies incoming constructor parameters on purpose!
- *
  * @author Michael J. Simons
  */
 @QueryResult
-public class ImmutableQueryResult {
+public class ImmutableQueryResultWithWithers {
 	private final String name;
 
 	private final Long number;
 
-	public ImmutableQueryResult(Long number) {
-		this("Foobar", number);
+	public ImmutableQueryResultWithWithers() {
+		this(null, null);
 	}
 
-	@PersistenceConstructor
-	public ImmutableQueryResult(String name, Long number) {
+	private ImmutableQueryResultWithWithers(String name, Long number) {
 		this.name = name;
 		this.number = number;
+	}
+
+	public ImmutableQueryResultWithWithers withName(String name) {
+		return this.name == name ? this : new ImmutableQueryResultWithWithers("J" + name + "d", this.number);
+	}
+
+	public ImmutableQueryResultWithWithers withNumber(Long number) {
+		return this.number == number ? this : new ImmutableQueryResultWithWithers(this.name, number + 1);
 	}
 
 	public String getName() {

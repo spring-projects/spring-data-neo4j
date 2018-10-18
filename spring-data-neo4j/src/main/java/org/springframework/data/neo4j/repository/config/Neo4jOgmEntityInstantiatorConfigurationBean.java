@@ -21,7 +21,7 @@ import org.neo4j.ogm.typeconversion.ConversionCallback;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService;
-import org.springframework.data.neo4j.conversion.Neo4jOgmEntityInstantiatorAdapter;
+import org.springframework.data.neo4j.mapping.Neo4jOgmEntityInstantiatorAdapter;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 
 /**

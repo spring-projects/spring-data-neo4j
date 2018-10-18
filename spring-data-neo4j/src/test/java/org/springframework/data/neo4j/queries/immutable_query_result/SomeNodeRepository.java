@@ -24,9 +24,13 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
  * @author Michael J. Simons
  */
 public interface SomeNodeRepository extends Neo4jRepository<SomeNodeEntity, Long> {
-	@Query("RETURN \"James Bond\" AS name, 7 AS aNumber")
+	@Query("RETURN \"James Bond\" AS name, 7 AS number")
 	List<ImmutableQueryResult> findImmutableQueryResults();
 
-	@Query("RETURN \"ames Bon\" AS name, 6 AS aNumber")
+	@Query("RETURN \"ames Bon\" AS name, 6 AS number")
 	List<ImmutableQueryResultWithNonFinalFields> findImmutableQueryResultsWithNonFinalFields();
+
+	@Query("RETURN \"ames Bon\" AS name, 6 AS number")
+	List<ImmutableQueryResultWithWithers> findImmutableQueryResultsWithWithers();
+
 }

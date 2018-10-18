@@ -43,7 +43,19 @@ public class GraphQueryMethod extends QueryMethod {
 	private final Integer queryDepthParamIndex;
 	private @Nullable MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext;
 
+	/**
+	 *
+	 * @param method
+	 * @param metadata
+	 * @param factory
+	 * @deprecated since 5.1.2, use {@link #GraphQueryMethod(Method, RepositoryMetadata, ProjectionFactory, MappingContext)}
+	 */
+	@Deprecated
 	public GraphQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
+		this(method, metadata, factory, null);
+	}
+
+	public GraphQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory, MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext) {
 		super(method, metadata, factory);
 
 		this.method = method;
@@ -53,7 +65,7 @@ public class GraphQueryMethod extends QueryMethod {
 		if (queryDepth != null && queryDepthParamIndex != null) {
 			throw new IllegalArgumentException(method.getName() + " cannot have both a method @Depth and a parameter @Depth");
 		}
-
+		this.mappingContext = mappingContext;
 	}
 
 	@Override
@@ -68,10 +80,6 @@ public class GraphQueryMethod extends QueryMethod {
 
 	public MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> getMappingContext() {
 		return mappingContext;
-	}
-
-	public void setMappingContext(MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext) {
-		this.mappingContext = mappingContext;
 	}
 
 	public String getQuery() {

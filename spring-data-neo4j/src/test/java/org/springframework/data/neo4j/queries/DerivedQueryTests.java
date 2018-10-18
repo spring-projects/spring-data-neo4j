@@ -599,6 +599,7 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 		} else {
 			assertEquals(2, row.getLiteralMap().size());
 		}
+		assertArrayEquals(new int[]{1,2,3,4,5}, row.getIntegers());
 	}
 
 	/**

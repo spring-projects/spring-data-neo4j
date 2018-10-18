@@ -38,6 +38,7 @@ public class EntityWrappingQueryResult {
 	private float avgRating;
 	private List<Float> allRatings;
 	private Collection<Map<String, Object>> literalMap;
+	private int[] integers;
 
 	public User getUser() {
 		return user;
@@ -67,4 +68,11 @@ public class EntityWrappingQueryResult {
 		return literalMap;
 	}
 
+	public int[] getIntegers() {
+		return integers;
+	}
+
+	public void setIntegers(int[] integers) {
+		this.integers = integers;
+	}
 }

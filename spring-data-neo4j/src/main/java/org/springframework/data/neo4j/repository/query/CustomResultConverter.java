@@ -25,7 +25,7 @@ import org.neo4j.ogm.session.EntityInstantiator;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.annotation.QueryResult;
-import org.springframework.data.neo4j.conversion.Neo4jOgmEntityInstantiatorAdapter;
+import org.springframework.data.neo4j.mapping.Neo4jOgmEntityInstantiatorAdapter;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.lang.Nullable;

@@ -68,8 +68,7 @@ public class GraphQueryLookupStrategy implements QueryLookupStrategy {
 	public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 			NamedQueries namedQueries) {
 
-		GraphQueryMethod queryMethod = new GraphQueryMethod(method, metadata, factory);
-		queryMethod.setMappingContext(this.mappingContext);
+		GraphQueryMethod queryMethod = new GraphQueryMethod(method, metadata, factory, this.mappingContext);
 		String namedQueryName = queryMethod.getNamedQueryName();
 
 		if (namedQueries.hasQuery(namedQueryName)) {

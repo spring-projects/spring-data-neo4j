@@ -13,37 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.queries.immutable_query_result;
-
-import org.springframework.data.annotation.PersistenceConstructor;
-import org.springframework.data.neo4j.annotation.QueryResult;
+package org.springframework.data.neo4j.mapping;
 
 /**
- * This class modifies incoming constructor parameters on purpose!
+ * An implementation of {@link org.neo4j.ogm.session.PropertiesPopulator} that uses
+ * {@link org.springframework.data.mapping.PersistentPropertyAccessor PersistentPropertyAccessors} to fill properties.
  *
  * @author Michael J. Simons
+ * @soundtrack Five Finger Death Punch - War is the answer
  */
-@QueryResult
-public class ImmutableQueryResult {
-	private final String name;
+public class Neo4jOgmPropertiesPopulator {
+	static void x() {
 
-	private final Long number;
-
-	public ImmutableQueryResult(Long number) {
-		this("Foobar", number);
-	}
-
-	@PersistenceConstructor
-	public ImmutableQueryResult(String name, Long number) {
-		this.name = name;
-		this.number = number;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public Long getNumber() {
-		return number;
 	}
 }
