@@ -16,10 +16,12 @@ import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
 import org.neo4j.ogm.metadata.MetaData;
+import org.springframework.data.neo4j.domain.sample.NodeWithUUIDAsId;
 import org.springframework.data.neo4j.domain.sample.User;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 public class Neo4jPersistentPropertyTests {
 
@@ -32,4 +34,13 @@ public class Neo4jPersistentPropertyTests {
 		assertThat(version.isVersionProperty()).isTrue();
 	}
 
+	@Test // DATAGRAPH-1144
+	public void shouldDetectExplicitIdFieldsAsIdProperties() {
+		MetaData metaData = new MetaData("org.springframework.data.neo4j.domain.sample");
+		Neo4jMappingContext mappingContext = new Neo4jMappingContext(metaData);
+		Neo4jPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(NodeWithUUIDAsId.class);
+		Neo4jPersistentProperty idProperty = persistentEntity.getRequiredIdProperty();
+		assertThat(idProperty.isIdProperty());
+		assertThat(idProperty.getName()).isEqualTo("myNiceId");
+	}
 }

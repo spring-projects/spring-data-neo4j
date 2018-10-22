@@ -12,8 +12,10 @@
  */
 package org.springframework.data.neo4j.mapping;
 
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty.PropertyType;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.data.util.TypeInformation;
 
@@ -37,6 +39,7 @@ import org.springframework.data.util.TypeInformation;
  * @author Adam George
  * @author Mark Paluch
  * @author Oliver Gierke
+ * @author Michael J. Simons
  * @since 4.0.0
  */
 public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty> {
@@ -46,7 +49,7 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	 *
 	 * @param information The {@link TypeInformation} upon which to base this persistent entity.
 	 */
-	public Neo4jPersistentEntity(TypeInformation<T> information) {
+	Neo4jPersistentEntity(TypeInformation<T> information) {
 		super(information);
 	}
 
@@ -59,18 +62,45 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		return new Neo4jIsNewStrategy(this);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#returnPropertyIfBetterIdPropertyCandidateOrNull(PersistentProperty)
+	 */
+	@Override
+	protected Neo4jPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(Neo4jPersistentProperty property) {
+
+		if (!property.isIdProperty()) {
+			return null;
+		}
+
+		Neo4jPersistentProperty existingIdProperty = this.getIdProperty();
+		Neo4jPersistentProperty preferredIdProperty = existingIdProperty;
+
+		if (existingIdProperty == null) {
+			preferredIdProperty = property;
+		} else if (existingIdProperty.getPropertyType() == property.getPropertyType()) {
+			throw new MappingException(
+					String.format("Attempt to add id property %s but already have property %s registered "
+									+ "as id. Check your mapping configuration!", property.getField(),
+							existingIdProperty.getField()));
+		} else if (existingIdProperty.getPropertyType() == PropertyType.INTERNAL_ID_PROPERTY && property.getPropertyType() == PropertyType.ID_PROPERTY) {
+			preferredIdProperty = property;
+		}
+		return preferredIdProperty;
+	}
+
 	/**
 	 * Custom {@link IsNewStrategy} to also consider entities with identifiers of negative Long values new.
+	 * See also DATAGRAPH-1031.
 	 *
 	 * @author Frantisek Hartman
 	 * @author Oliver Gierke
-	 * @see DATAGRAPH-1031
 	 */
 	private static class Neo4jIsNewStrategy implements IsNewStrategy {
 
 		private final Neo4jPersistentEntity<?> entity;
 
-		public Neo4jIsNewStrategy(Neo4jPersistentEntity<?> entity) {
+		private Neo4jIsNewStrategy(Neo4jPersistentEntity<?> entity) {
 			this.entity = entity;
 		}
 
