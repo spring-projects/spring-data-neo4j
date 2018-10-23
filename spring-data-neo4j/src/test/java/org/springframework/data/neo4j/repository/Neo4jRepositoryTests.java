@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -17,16 +17,16 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.UUID;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.domain.sample.NodeWithUUIDAsId;
 import org.springframework.data.neo4j.domain.sample.SampleEntity;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactory;
@@ -41,21 +41,19 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Mark Angrish
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Michael J. Simons
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Neo4jRepositoryTests.Config.class)
 @Transactional
 public class Neo4jRepositoryTests extends MultiDriverTestClass {
 
-	@Autowired Session session;
+	@Autowired
+	SampleEntityRepository repository;
 
-	Neo4jRepository<SampleEntity, Long> repository;
+	@Autowired
+	NodeWithUUIDAsIdRepository nodeWithUUIDAsIdRepository;
 
-	@Before
-	public void setUp() {
-
-		repository = new Neo4jRepositoryFactory(session).getRepository(SampleEntityRepository.class);
-	}
 
 	@Test
 	public void testCrudOperationsForCompoundKeyEntity() throws Exception {
@@ -73,8 +71,21 @@ public class Neo4jRepositoryTests extends MultiDriverTestClass {
 		assertThat(repository.count(), is(0L));
 	}
 
-	private interface SampleEntityRepository extends Neo4jRepository<SampleEntity, Long> {
+	@Test // DATAGRAPH-1144
+	public void explicitIdsWithCustomTypesShouldWork() throws Exception {
 
+		NodeWithUUIDAsId entity = new NodeWithUUIDAsId("someProperty");
+		nodeWithUUIDAsIdRepository.save(entity);
+
+		assertThat(nodeWithUUIDAsIdRepository.existsById(entity.getMyNiceId()), is(true));
+		assertThat(nodeWithUUIDAsIdRepository.count(), is(1L));
+
+		Optional<NodeWithUUIDAsId> retrievedEntity = nodeWithUUIDAsIdRepository.findById(entity.getMyNiceId());
+		assertTrue(retrievedEntity.isPresent());
+		assertThat(retrievedEntity.get(), is(entity));
+
+		nodeWithUUIDAsIdRepository.deleteAll(Arrays.asList(entity));
+		assertThat(nodeWithUUIDAsIdRepository.count(), is(0L));
 	}
 
 	@Configuration
@@ -94,3 +105,7 @@ public class Neo4jRepositoryTests extends MultiDriverTestClass {
 		}
 	}
 }
+
+interface SampleEntityRepository extends Neo4jRepository<SampleEntity, Long> {}
+
+interface NodeWithUUIDAsIdRepository extends Neo4jRepository<NodeWithUUIDAsId, UUID> {}
