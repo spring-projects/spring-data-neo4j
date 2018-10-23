@@ -62,6 +62,10 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		return new Neo4jIsNewStrategy(this);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#returnPropertyIfBetterIdPropertyCandidateOrNull(PersistentProperty)
+	 */
 	@Override
 	protected Neo4jPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(Neo4jPersistentProperty property) {
 
@@ -87,10 +91,10 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 
 	/**
 	 * Custom {@link IsNewStrategy} to also consider entities with identifiers of negative Long values new.
+	 * See also DATAGRAPH-1031.
 	 *
 	 * @author Frantisek Hartman
 	 * @author Oliver Gierke
-	 * @see DATAGRAPH-1031
 	 */
 	private static class Neo4jIsNewStrategy implements IsNewStrategy {
 
