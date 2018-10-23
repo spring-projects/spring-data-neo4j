@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -14,8 +14,10 @@ package org.springframework.data.neo4j.mapping;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty.PropertyType;
 import org.springframework.data.util.TypeInformation;
 
 /**
@@ -37,6 +39,7 @@ import org.springframework.data.util.TypeInformation;
  * @author Vince Bickers
  * @author Adam George
  * @author Mark Paluch
+ * @author Michael J. Simons
  * @since 4.0.0
  */
 public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty> {
@@ -50,6 +53,33 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	 */
 	public Neo4jPersistentEntity(TypeInformation<T> information) {
 		super(information);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#returnPropertyIfBetterIdPropertyCandidateOrNull(PersistentProperty)
+	 */
+	@Override
+	protected Neo4jPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(Neo4jPersistentProperty property) {
+
+		if (!property.isIdProperty()) {
+			return null;
+		}
+
+		Neo4jPersistentProperty existingIdProperty = this.getIdProperty();
+		Neo4jPersistentProperty preferredIdProperty = existingIdProperty;
+
+		if (existingIdProperty == null) {
+			preferredIdProperty = property;
+		} else if (existingIdProperty.getPropertyType() == property.getPropertyType()) {
+			throw new MappingException(
+					String.format("Attempt to add id property %s but already have property %s registered "
+									+ "as id. Check your mapping configuration!", property.getField(),
+							existingIdProperty.getField()));
+		} else if(existingIdProperty.getPropertyType() == PropertyType.INTERNAL_ID_PROPERTY && property.getPropertyType() == PropertyType.ID_PROPERTY) {
+			preferredIdProperty = property;
+		}
+		return preferredIdProperty;
 	}
 
 	@Override
