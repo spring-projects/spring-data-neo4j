@@ -1,0 +1,20 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: openjdk
+    tag: 8-jdk-alpine
+
+inputs:
+- name: spring-data-neo4j-github
+
+outputs:
+- name: spring-data-neo4j-artifactory
+
+caches:
+- path: maven
+
+run:
+  path: spring-data-neo4j-github/ci/build.sh
