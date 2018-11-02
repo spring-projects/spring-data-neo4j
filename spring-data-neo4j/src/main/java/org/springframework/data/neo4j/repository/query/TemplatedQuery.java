@@ -36,6 +36,10 @@ class TemplatedQuery {
 
 	private final List<FilterBuilder> filterBuilders;
 
+	static TemplatedQuery unfiltered() {
+		return new TemplatedQuery(Collections.emptyList());
+	}
+
 	TemplatedQuery(List<FilterBuilder> filterBuilders) {
 		this.filterBuilders = filterBuilders;
 	}

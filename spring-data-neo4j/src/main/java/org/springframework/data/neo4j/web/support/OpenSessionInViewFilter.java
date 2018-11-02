@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.data.neo4j.transaction.SessionHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.request.async.CallableProcessingInterceptor;
 import org.springframework.web.context.request.async.WebAsyncManager;
 import org.springframework.web.context.request.async.WebAsyncUtils;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -43,10 +44,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * Looks up the SessionFactory in Spring's root web application context. Supports an "sessionFactoryBeanName" filter
  * init-param in {@code web.xml}; the default bean name is "sessionFactory".
  *
- * @author Mark Angrish
  * @see OpenSessionInViewInterceptor
  * @see Neo4jTransactionManager
  * @see TransactionSynchronizationManager
+ *
+ * @author Mark Angrish
+ * @author Michael J. Simons
  */
 public class OpenSessionInViewFilter extends OncePerRequestFilter {
 
@@ -187,10 +190,12 @@ public class OpenSessionInViewFilter extends OncePerRequestFilter {
 	}
 
 	private boolean applySessionBindingInterceptor(WebAsyncManager asyncManager, String key) {
-		if (asyncManager.getCallableInterceptor(key) == null) {
+
+		CallableProcessingInterceptor processingInterceptor = asyncManager.getCallableInterceptor(key);
+		if (processingInterceptor == null) {
 			return false;
 		}
-		((AsyncRequestInterceptor) asyncManager.getCallableInterceptor(key)).bindSession();
+		((AsyncRequestInterceptor) processingInterceptor).bindSession();
 		return true;
 	}
 }

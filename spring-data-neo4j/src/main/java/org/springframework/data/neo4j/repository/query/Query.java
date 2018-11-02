@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -27,6 +27,7 @@
 package org.springframework.data.neo4j.repository.query;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.neo4j.ogm.cypher.Filters;
 import org.neo4j.ogm.cypher.query.Pagination;
@@ -41,6 +42,7 @@ import org.springframework.util.Assert;
  * sort to the string based queries as OGM does not support pagination and sort on those.
  *
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
 public class Query {
 
@@ -143,14 +145,10 @@ public class Query {
 	}
 
 	private String getSortOrder(Sort sort) {
-		String result = "";
-		for (Sort.Order order : sort) {
-			if (!result.isEmpty()) {
-				result += ", ";
-			}
-			result += order.getProperty() + " " + order.getDirection();
-		}
-		return result;
+
+		return sort.stream()
+				.map(order -> order.getProperty() + " " + order.getDirection())
+				.collect(Collectors.joining(", "));
 	}
 
 	private String formatBaseQuery(String cypherQuery) {

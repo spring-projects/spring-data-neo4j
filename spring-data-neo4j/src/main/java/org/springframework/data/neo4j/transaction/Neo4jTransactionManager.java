@@ -73,7 +73,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager
 	 * @see #setSessionFactory(SessionFactory)
 	 */
 	public Neo4jTransactionManager() {
-		setTransactionSynchronization(SYNCHRONIZATION_ON_ACTUAL_TRANSACTION);
+		this(null);
 	}
 
 	/**
@@ -82,7 +82,8 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager
 	 * @param sessionFactory SessionFactory to manage transactions for
 	 */
 	public Neo4jTransactionManager(SessionFactory sessionFactory) {
-		this();
+
+		setTransactionSynchronization(SYNCHRONIZATION_ON_ACTUAL_TRANSACTION);
 		this.sessionFactory = sessionFactory;
 	}
 

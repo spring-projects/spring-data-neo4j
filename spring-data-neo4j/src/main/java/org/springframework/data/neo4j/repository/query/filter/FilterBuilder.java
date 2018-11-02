@@ -89,7 +89,7 @@ public abstract class FilterBuilder {
 		List<Filter.NestedPathSegment> segments = new ArrayList<>();
 		if (path.hasNext()) {
 			PropertyPath next = path.next();
-			if (!next.equals(next.getLeafProperty())) {
+			if (next != null && !next.equals(next.getLeafProperty())) {
 				segments.add(new Filter.NestedPathSegment(next.getSegment(), next.getType()));
 				segments.addAll(deepNestedProperty(next));
 			}

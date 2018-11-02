@@ -15,6 +15,7 @@ package org.springframework.data.neo4j.repository.query;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.data.geo.Distance;
@@ -50,8 +51,14 @@ public class GraphParameters extends Parameters<GraphParameters, GraphParameters
 		if (this.depthIndex == null && graphParameter.isDepthParameter()) {
 			this.depthIndex = graphParameter.getIndex();
 		} else if (graphParameter.isDepthParameter()) {
+
+			String methodFragment = Optional.ofNullable(parameter)
+					.map(MethodParameter::getMethod)
+					.map(Method::toString)
+					.map(s -> "method " + s)
+					.orElse("unknown method");
 			throw new IllegalStateException(String.format("Found multiple @Depth annotations on method %s! Only one allowed!",
-					parameter.getMethod().toString()));
+					methodFragment));
 		}
 
 		return graphParameter;
@@ -66,7 +73,7 @@ public class GraphParameters extends Parameters<GraphParameters, GraphParameters
 		return (depthIndex != null) ? depthIndex : -1;
 	}
 
-	class GraphParameter extends Parameter {
+	static class GraphParameter extends Parameter {
 
 		private final MethodParameter parameter;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.ui.ModelMap;
 import org.springframework.web.context.request.AsyncWebRequestInterceptor;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.context.request.async.CallableProcessingInterceptor;
 import org.springframework.web.context.request.async.WebAsyncManager;
 import org.springframework.web.context.request.async.WebAsyncUtils;
 
@@ -41,10 +42,12 @@ import org.springframework.web.context.request.async.WebAsyncUtils;
  * In contrast to {@link OpenSessionInViewFilter}, this interceptor is set up in a Spring application context and can
  * thus take advantage of bean wiring.
  *
- * @author Mark Angrish
  * @see OpenSessionInViewFilter
  * @see Neo4jTransactionManager
  * @see TransactionSynchronizationManager
+ *
+ * @author Mark Angrish
+ * @author Michael J. Simons
  */
 public class OpenSessionInViewInterceptor implements BeanFactoryAware, AsyncWebRequestInterceptor {
 
@@ -163,10 +166,12 @@ public class OpenSessionInViewInterceptor implements BeanFactoryAware, AsyncWebR
 	}
 
 	private boolean applyCallableInterceptor(WebAsyncManager asyncManager, String key) {
-		if (asyncManager.getCallableInterceptor(key) == null) {
+
+		CallableProcessingInterceptor callableInterceptor = asyncManager.getCallableInterceptor(key);
+		if (callableInterceptor == null) {
 			return false;
 		}
-		((AsyncRequestInterceptor) asyncManager.getCallableInterceptor(key)).bindSession();
+		((AsyncRequestInterceptor) callableInterceptor).bindSession();
 		return true;
 	}
 }
