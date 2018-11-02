@@ -15,6 +15,8 @@ package org.springframework.data.neo4j.transaction;
 
 import static java.util.Collections.*;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.util.Collection;
 
 import org.neo4j.ogm.session.Session;
@@ -62,6 +64,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager
 
 	private static final Logger logger = LoggerFactory.getLogger(Neo4jTransactionManager.class);
 
+	@SuppressFBWarnings("SE_BAD_FIELD")
 	private SessionFactory sessionFactory;
 	private BookmarkManager bookmarkManager;
 
@@ -73,7 +76,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager
 	 * @see #setSessionFactory(SessionFactory)
 	 */
 	public Neo4jTransactionManager() {
-		setTransactionSynchronization(SYNCHRONIZATION_ON_ACTUAL_TRANSACTION);
+		this(null);
 	}
 
 	/**
@@ -82,7 +85,8 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager
 	 * @param sessionFactory SessionFactory to manage transactions for
 	 */
 	public Neo4jTransactionManager(SessionFactory sessionFactory) {
-		this();
+
+		setTransactionSynchronization(SYNCHRONIZATION_ON_ACTUAL_TRANSACTION);
 		this.sessionFactory = sessionFactory;
 	}
 

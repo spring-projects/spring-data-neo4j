@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -22,13 +22,12 @@ import org.springframework.aop.support.AbstractBeanFactoryPointcutAdvisor;
  * Used to setup BookmarkInfo for methods marked with @{@link org.springframework.data.neo4j.annotation.UseBookmark}
  *
  * @author Frantisek Hartman
+ * @author Michael J. Simons
  */
 public class BeanFactoryBookmarkOperationAdvisor extends AbstractBeanFactoryPointcutAdvisor {
 
-	private Pointcut pointcut = new BookmarkOperationPointcut();
-
 	@Override
 	public Pointcut getPointcut() {
-		return pointcut;
+		return new BookmarkOperationPointcut();
 	}
 }

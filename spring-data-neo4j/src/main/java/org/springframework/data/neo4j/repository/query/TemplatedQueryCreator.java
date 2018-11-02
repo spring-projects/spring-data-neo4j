@@ -13,11 +13,13 @@
 package org.springframework.data.neo4j.repository.query;
 
 import java.util.Iterator;
+import java.util.Optional;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.lang.Nullable;
 
 /**
  * An {@link AbstractQueryCreator} that builds a query template based on filters. The intermediate object is a filter
@@ -53,7 +55,10 @@ class TemplatedQueryCreator extends AbstractQueryCreator<TemplatedQuery, FilterB
 	}
 
 	@Override
-	protected TemplatedQuery complete(FilterBuildersDefinition filterDefinition, Sort sort) {
-		return filterDefinition.buildTemplatedQuery();
+	protected TemplatedQuery complete(@Nullable FilterBuildersDefinition filterDefinition, Sort sort) {
+
+		return Optional.ofNullable(filterDefinition)
+				.map(FilterBuildersDefinition::buildTemplatedQuery)
+				.orElseGet(TemplatedQuery::unfiltered);
 	}
 }

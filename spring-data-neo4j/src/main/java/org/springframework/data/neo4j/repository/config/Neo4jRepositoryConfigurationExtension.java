@@ -187,6 +187,9 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		super.registerBeansForRoot(registry, config);
 
 		Object source = config.getSource();
+		if(source == null) {
+			return;
+		}
 
 		String configuredSessionBeanName = Optional.of("sessionBeanName").flatMap(config::getAttribute)
 				.orElse(GENERATE_BEAN_NAME);

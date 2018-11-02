@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2017] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -24,6 +24,7 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
  * Custom {@link ParametersParameterAccessor} to allow access to the {@link Depth} parameter.
  *
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
 public class GraphParametersParameterAccessor extends ParametersParameterAccessor implements GraphParameterAccessor {
 
@@ -47,7 +48,8 @@ public class GraphParametersParameterAccessor extends ParametersParameterAccesso
 
 		Depth methodAnnotation = AnnotatedElementUtils.findMergedAnnotation(method.getMethod(), Depth.class);
 		if (methodAnnotation != null) {
-			return (int) AnnotationUtils.getValue(methodAnnotation);
+			Object value = AnnotationUtils.getValue(methodAnnotation);
+			return value == null ? DEFAULT_QUERY_DEPTH : (int) value;
 		}
 
 		GraphParameters graphParameters = method.getParameters();
