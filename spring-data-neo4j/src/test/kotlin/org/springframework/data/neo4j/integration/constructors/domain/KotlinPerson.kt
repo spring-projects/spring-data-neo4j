@@ -13,9 +13,11 @@
 
 package org.springframework.data.neo4j.integration.constructors.domain
 
+import org.jetbrains.annotations.NotNull
 import org.neo4j.ogm.annotation.Id
 import org.neo4j.ogm.annotation.NodeEntity
 import org.neo4j.ogm.annotation.Relationship
+import org.springframework.lang.NonNull
 
 /**
  * @author Nicolas Mervaillie
@@ -23,6 +25,12 @@ import org.neo4j.ogm.annotation.Relationship
 @NodeEntity
 data class KotlinPerson(
         @Id var name: String,
-        @Relationship var friendships: List<KotlinFriendship> = ArrayList()) {
-
+        @NonNull @NotNull var firstName: String,
+        @Relationship var thing: Thing,
+        @Relationship var friendships: List<KotlinFriendship> = emptyList<KotlinFriendship>()) {
 }
+
+@NodeEntity
+data class Thing(
+        @Id var name: String
+)

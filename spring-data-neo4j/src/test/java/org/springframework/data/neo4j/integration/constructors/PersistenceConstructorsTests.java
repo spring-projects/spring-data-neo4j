@@ -201,13 +201,16 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 	@Test
 	public void shouldSupportKotlinDataClasses() {
 
-		KotlinPerson person = new KotlinPerson("foo", new ArrayList<>());
+		KotlinPerson person = new KotlinPerson("foo", "bar", new Thing("thing"), new ArrayList<>());
 		kotlinRepository.save(person);
 		session.clear();
 
 		Collection<KotlinPerson> persons = session.loadAll(KotlinPerson.class);
 		assertEquals(1, persons.size());
-		assertEquals("foo", persons.iterator().next().getName());
+		KotlinPerson kotlinPerson = persons.iterator().next();
+		assertEquals("foo", kotlinPerson.getName());
+		assertEquals("bar", kotlinPerson.getFirstName());
+		assertEquals("thing", kotlinPerson.getThing().getName());
 	}
 
 	@Test
