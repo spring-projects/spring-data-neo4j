@@ -13,6 +13,7 @@
 
 package org.springframework.data.neo4j.repository.query;
 
+import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.session.Session;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 
@@ -21,20 +22,22 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
  * {@code META-INFO/neo4j-named-queries.properties}.
  *
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 public class NamedGraphRepositoryQuery extends GraphRepositoryQuery {
 
 	private final String cypherQuery;
 
-	NamedGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session, String cypherQuery,
+	NamedGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, MetaData metaData, Session session, String cypherQuery,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
-		super(graphQueryMethod, session, evaluationContextProvider);
+
+		super(graphQueryMethod, metaData, session, evaluationContextProvider);
 		this.cypherQuery = cypherQuery;
 	}
 
 	@Override
 	protected Query getQuery(Object[] parameters) {
-		return new Query(cypherQuery, resolveParams(getGraphQueryMethod().getParameters(), parameters));
+		return new Query(cypherQuery, resolveParams(method.getParameters(), parameters));
 	}
 
 }

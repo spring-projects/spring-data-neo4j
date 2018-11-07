@@ -42,47 +42,46 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 	private static final Logger LOG = LoggerFactory.getLogger(GraphRepositoryQuery.class);
 
-	private final GraphQueryMethod graphQueryMethod;
-	private final Session session;
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 	private ParameterizedQuery parameterizedQuery;
 
-	GraphRepositoryQuery(GraphQueryMethod graphQueryMethod, Session session,
-			QueryMethodEvaluationContextProvider evaluationContextProvider) {
-		super(graphQueryMethod, session);
-		this.graphQueryMethod = graphQueryMethod;
-		this.session = session;
+	GraphRepositoryQuery(GraphQueryMethod graphQueryMethod, MetaData metaData, Session session,
+			QueryMethodEvaluationContextProvider evaluationContextProvider
+	) {
+
+		super(graphQueryMethod, metaData, session);
+
 		this.evaluationContextProvider = evaluationContextProvider;
 	}
 
 	protected Object doExecute(Query query, Object[] parameters) {
 
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Executing query for method {}", graphQueryMethod.getName());
+			LOG.debug("Executing query for method {}", method.getName());
 		}
 
-		GraphParameterAccessor accessor = new GraphParametersParameterAccessor(graphQueryMethod, parameters);
-		Class<?> returnType = graphQueryMethod.getMethod().getReturnType();
+		GraphParameterAccessor accessor = new GraphParametersParameterAccessor(method, parameters);
+		Class<?> returnType = method.getMethod().getReturnType();
 
-		ResultProcessor processor = graphQueryMethod.getResultProcessor().withDynamicProjection(accessor);
+		ResultProcessor processor = method.getResultProcessor().withDynamicProjection(accessor);
 
 		Object result = getExecution(accessor).execute(query, processor.getReturnedType().getReturnedType());
 
 		return Result.class.equals(returnType) ? result
-				: processor.processResult(result,
-						new CustomResultConverter(getMetaData(), processor.getReturnedType().getReturnedType(), graphQueryMethod.getMappingContext()));
+				: processor.processResult(result, new CustomResultConverter(metaData,
+						processor.getReturnedType().getReturnedType(), method.getMappingContext()));
 	}
 
 	protected Query getQuery(Object[] parameters) {
 		ParameterizedQuery parameterizedQuery = getParameterizedQuery();
 		Map<String, Object> parametersFromQuery = parameterizedQuery.resolveParameter(parameters, this::resolveParams);
-		return new Query(parameterizedQuery.getQueryString(), graphQueryMethod.getCountQueryString(), parametersFromQuery);
+		return new Query(parameterizedQuery.getQueryString(), method.getCountQueryString(), parametersFromQuery);
 	}
 
 	private ParameterizedQuery getParameterizedQuery() {
 		if (parameterizedQuery == null) {
 
-			Parameters<?, ?> methodParameters = graphQueryMethod.getParameters();
+			Parameters<?, ?> methodParameters = method.getParameters();
 			parameterizedQuery = ParameterizedQuery.getParameterizedQuery(getAnnotationQueryString(), methodParameters,
 					evaluationContextProvider);
 		}
@@ -93,7 +92,7 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 		Map<String, Object> resolvedParameters = new HashMap<>();
 
-		for(Parameter parameter : methodParameters) {
+		for (Parameter parameter : methodParameters) {
 			int parameterIndex = parameter.getIndex();
 			Object parameterValue = getParameterValue(parameters[parameterIndex]);
 
@@ -102,7 +101,7 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 			resolvedParameters.put(Integer.toString(parameterIndex), parameterValue);
 
 			// Make sure we don't add "special" parameters as named parameters
-			if(parameter.isNamedParameter()) {
+			if (parameter.isNamedParameter()) {
 				// even though the above check ensures the presence usually, it's probably better to
 				// treat #isNamedParameter as a blackbox and not just calling #get() on the optional.
 				parameter.getName().ifPresent(parameterName -> resolvedParameters.put(parameterName, parameterValue));
@@ -110,11 +109,6 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 		}
 
 		return resolvedParameters;
-	}
-
-	// just an horrible trick to get the metadata from OGM
-	private MetaData getMetaData() {
-		return session.doInTransaction((requestHandler, transaction, metaData) -> metaData);
 	}
 
 	private String getAnnotationQueryString() {
@@ -145,9 +139,4 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 	protected boolean isDeleteQuery() {
 		return false;
 	}
-
-	GraphQueryMethod getGraphQueryMethod() {
-		return graphQueryMethod;
-	}
-
 }

@@ -14,17 +14,17 @@
 package org.springframework.data.neo4j.repositories.support;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
 import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.Mockito;
 import org.neo4j.ogm.session.Session;
 import org.springframework.aop.framework.Advised;
+import org.springframework.data.neo4j.mapping.MetaDataProvider;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactory;
 import org.springframework.data.neo4j.repository.support.SimpleNeo4jRepository;
@@ -38,20 +38,17 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Mark Angrish
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Michael J. Simons
  */
-@RunWith(MockitoJUnitRunner.class)
 public class GraphRepositoryFactoryTests {
 
 	Neo4jRepositoryFactory factory;
 
-	@Mock org.neo4j.ogm.session.Session session;
-
 	@Before
 	public void setUp() {
 
-		factory = new Neo4jRepositoryFactory(session) {
-
-		};
+		Session session = mock(Session.class, withSettings().extraInterfaces(MetaDataProvider.class));
+		factory = new Neo4jRepositoryFactory(session, null);
 	}
 
 	/**

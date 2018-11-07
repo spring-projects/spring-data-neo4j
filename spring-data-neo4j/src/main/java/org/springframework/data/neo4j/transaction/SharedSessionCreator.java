@@ -22,12 +22,16 @@ import java.lang.reflect.Proxy;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.neo4j.mapping.MetaDataProvider;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Delegate for creating a shareable Neo4j OGM {@link Session} reference for a given {@link SessionFactory}.
@@ -60,7 +64,7 @@ public class SharedSessionCreator {
 	 */
 	public static Session createSharedSession(SessionFactory sessionFactory) {
 		return (Session) Proxy.newProxyInstance(SharedSessionCreator.class.getClassLoader(),
-				new Class<?>[] { Session.class }, new SharedSessionInvocationHandler(sessionFactory));
+				new Class<?>[] { Session.class, MetaDataProvider.class }, new SharedSessionInvocationHandler(sessionFactory));
 	}
 
 	/**
@@ -79,32 +83,41 @@ public class SharedSessionCreator {
 
 		@Override
 		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-			// Invocation on Session interface coming in...
 
-			if (method.getName().equals("equals")) {
-				// Only consider equal when proxies are identical.
-				return (proxy == args[0]);
-			} else if (method.getName().equals("hashCode")) {
-				// Use hashCode of Session proxy.
-				return hashCode();
-			} else if (method.getName().equals("toString")) {
-				// Deliver toString without touching a target Session.
-				return "Shared Session proxy for target factory [" + sessionFactory + "]";
-			} else if (method.getName().equals("beginTransaction")) {
-				throw new IllegalStateException(
-						"Not allowed to create transaction on shared Session - " + "use Spring transactions instead");
+			String methodName = method.getName();
+			switch (methodName) {
+				case "equals":
+					// Only consider equal when proxies are identical.
+					return (proxy == args[0]);
+				case "hashCode":
+					// Use hashCode of Session proxy.
+					return hashCode();
+				case "toString":
+					// Deliver toString without touching a target Session.
+					return "Shared Session proxy for target factory [" + sessionFactory + "]";
+				case "getMetaData":
+					return this.sessionFactory.metaData();
+				case "beginTransaction":
+					throw new IllegalStateException(
+							"Not allowed to create transaction on shared Session - " + "use Spring transactions instead");
+				default:
+					Function<Session, Object> methodCall = targetSession -> ReflectionUtils.invokeMethod(method, targetSession, args);
+					return invokeInTransaction(methodName, methodCall);
 			}
+		}
+
+		private Object invokeInTransaction(String methodName, Function<Session, Object> methodCall) {
 
 			// Determine current Session: either the transactional one
 			// managed by the factory or a temporary one for the given invocation.
 			Session targetSession = SessionFactoryUtils.getSession(this.sessionFactory);
 
-			if (transactionRequiringMethods.contains(method.getName())) {
+			if (transactionRequiringMethods.contains(methodName)) {
 				if (targetSession == null
 						|| (!TransactionSynchronizationManager.isActualTransactionActive() && targetSession.getTransaction() != null
-								&& EnumSet.of(CLOSED, COMMITTED, ROLLEDBACK).contains(targetSession.getTransaction().status()))) {
+						&& EnumSet.of(CLOSED, COMMITTED, ROLLEDBACK).contains(targetSession.getTransaction().status()))) {
 					throw new IllegalStateException("No Session with actual transaction available "
-							+ "for current thread - cannot reliably process '" + method.getName() + "' call");
+							+ "for current thread - cannot reliably process '" + methodName + "' call");
 				}
 			}
 
@@ -118,10 +131,7 @@ public class SharedSessionCreator {
 
 			// Invoke method on current Session.
 			try {
-
-				return method.invoke(targetSession, args);
-			} catch (InvocationTargetException ex) {
-				throw ex.getTargetException();
+				return methodCall.apply(targetSession);
 			} finally {
 				if (isNewSession) {
 					SessionFactoryUtils.closeSession(targetSession);
