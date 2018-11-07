@@ -15,6 +15,7 @@ package org.springframework.data.neo4j.repository.query;
 
 import java.util.EmptyStackException;
 
+import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.model.QueryStatistics;
 import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
@@ -28,12 +29,14 @@ import org.springframework.data.repository.query.RepositoryQuery;
  */
 public abstract class AbstractGraphRepositoryQuery implements RepositoryQuery {
 
-	private final GraphQueryMethod method;
-	private final Session session;
+	protected final GraphQueryMethod method;
+	protected final MetaData metaData;
+	protected final Session session;
 
-	protected AbstractGraphRepositoryQuery(GraphQueryMethod method, Session session) {
+	protected AbstractGraphRepositoryQuery(GraphQueryMethod method, MetaData metaData, Session session) {
 
 		this.method = method;
+		this.metaData = metaData;
 		this.session = session;
 	}
 

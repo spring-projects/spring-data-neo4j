@@ -24,18 +24,18 @@ import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.neo4j.mapping.MetaDataProvider;
 import org.springframework.data.neo4j.repository.ContactRepository;
 
 /**
  * @author Mark Angrish
  * @author Mark Paluch
+ * @author Michael J. Simons
  */
 @RunWith(MockitoJUnitRunner.class)
 public class Neo4jRepositoryFactoryBeanTests {
 
 	Neo4jRepositoryFactoryBean factoryBean;
-
-	@Mock Session session;
 
 	@Mock ListableBeanFactory beanFactory;
 
@@ -44,6 +44,8 @@ public class Neo4jRepositoryFactoryBeanTests {
 	@Before
 	@SuppressWarnings("unchecked")
 	public void setUp() {
+
+		Session session = mock(Session.class, withSettings().extraInterfaces(MetaDataProvider.class));
 
 		// Setup standard factory configuration
 		factoryBean = new Neo4jRepositoryFactoryBean(ContactRepository.class);
