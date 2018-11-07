@@ -16,6 +16,7 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +43,8 @@ public class PartTreeNeo4jQuery extends AbstractGraphRepositoryQuery {
 
 	private final TemplatedQuery queryTemplate;
 
-	public PartTreeNeo4jQuery(GraphQueryMethod graphQueryMethod, Session session) {
-		super(graphQueryMethod, session);
+	public PartTreeNeo4jQuery(GraphQueryMethod graphQueryMethod, MetaData metaData, Session session) {
+		super(graphQueryMethod, metaData, session);
 
 		Class<?> domainType = graphQueryMethod.getEntityInformation().getJavaType();
 
