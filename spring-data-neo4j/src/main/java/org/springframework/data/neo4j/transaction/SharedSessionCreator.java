@@ -16,13 +16,12 @@ package org.springframework.data.neo4j.transaction;
 import static org.neo4j.ogm.transaction.Transaction.Status.*;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.neo4j.ogm.session.Session;
@@ -46,13 +45,16 @@ import org.springframework.util.ReflectionUtils;
  */
 public class SharedSessionCreator {
 
-	private static final Set<String> transactionRequiringMethods = new HashSet<>(4);
+	private static final Set<String> TRANSACTION_REQUIRING_METHODS;
 
 	static {
-		transactionRequiringMethods.add("deleteAll");
-		transactionRequiringMethods.add("save");
-		transactionRequiringMethods.add("delete");
-		transactionRequiringMethods.add("purgeDatabase");
+		Set<String> tmp = new HashSet<>();
+		tmp.add("deleteAll");
+		tmp.add("save");
+		tmp.add("delete");
+		tmp.add("purgeDatabase");
+
+		TRANSACTION_REQUIRING_METHODS = Collections.unmodifiableSet(tmp);
 	}
 
 	/**
@@ -101,7 +103,8 @@ public class SharedSessionCreator {
 					throw new IllegalStateException(
 							"Not allowed to create transaction on shared Session - " + "use Spring transactions instead");
 				default:
-					Function<Session, Object> methodCall = targetSession -> ReflectionUtils.invokeMethod(method, targetSession, args);
+					Function<Session, Object> methodCall = targetSession -> ReflectionUtils.invokeMethod(method, targetSession,
+							args);
 					return invokeInTransaction(methodName, methodCall);
 			}
 		}
@@ -112,10 +115,10 @@ public class SharedSessionCreator {
 			// managed by the factory or a temporary one for the given invocation.
 			Session targetSession = SessionFactoryUtils.getSession(this.sessionFactory);
 
-			if (transactionRequiringMethods.contains(methodName)) {
+			if (TRANSACTION_REQUIRING_METHODS.contains(methodName)) {
 				if (targetSession == null
 						|| (!TransactionSynchronizationManager.isActualTransactionActive() && targetSession.getTransaction() != null
-						&& EnumSet.of(CLOSED, COMMITTED, ROLLEDBACK).contains(targetSession.getTransaction().status()))) {
+								&& EnumSet.of(CLOSED, COMMITTED, ROLLEDBACK).contains(targetSession.getTransaction().status()))) {
 					throw new IllegalStateException("No Session with actual transaction available "
 							+ "for current thread - cannot reliably process '" + methodName + "' call");
 				}
