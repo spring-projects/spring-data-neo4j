@@ -29,13 +29,13 @@ import org.springframework.data.repository.query.RepositoryQuery;
  */
 public abstract class AbstractGraphRepositoryQuery implements RepositoryQuery {
 
-	protected final GraphQueryMethod method;
+	protected final GraphQueryMethod queryMethod;
 	protected final MetaData metaData;
 	protected final Session session;
 
-	protected AbstractGraphRepositoryQuery(GraphQueryMethod method, MetaData metaData, Session session) {
+	protected AbstractGraphRepositoryQuery(GraphQueryMethod queryMethod, MetaData metaData, Session session) {
 
-		this.method = method;
+		this.queryMethod = queryMethod;
 		this.metaData = metaData;
 		this.session = session;
 	}
@@ -59,30 +59,30 @@ public abstract class AbstractGraphRepositoryQuery implements RepositoryQuery {
 
 	@Override
 	public GraphQueryMethod getQueryMethod() {
-		return method;
+		return queryMethod;
 	}
 
 	protected GraphQueryExecution getExecution(GraphParameterAccessor accessor) {
 
-		if (method.isStreamQuery()) {
+		if (queryMethod.isStreamQuery()) {
 			return new GraphQueryExecution.CollectionExecution(session, accessor);
 		}
 		if (isCountQuery()) {
 			return new GraphQueryExecution.CountByExecution(session, accessor);
 		}
 		if (isDeleteQuery()) {
-			return new GraphQueryExecution.DeleteByExecution(session, method, accessor);
+			return new GraphQueryExecution.DeleteByExecution(session, queryMethod, accessor);
 		}
 		if (returnsOgmSpecificType()) {
 			return new GraphQueryExecution.QueryResultExecution(session, accessor);
 		}
-		if (method.isCollectionQuery()) {
+		if (queryMethod.isCollectionQuery()) {
 			return new GraphQueryExecution.CollectionExecution(session, accessor);
 		}
-		if (method.isPageQuery()) {
+		if (queryMethod.isPageQuery()) {
 			return new GraphQueryExecution.PagedExecution(session, accessor);
 		}
-		if (method.isSliceQuery()) {
+		if (queryMethod.isSliceQuery()) {
 			return new GraphQueryExecution.SlicedExecution(session, accessor);
 		}
 		return new GraphQueryExecution.SingleEntityExecution(session, accessor);
@@ -94,7 +94,7 @@ public abstract class AbstractGraphRepositoryQuery implements RepositoryQuery {
 	 * @return true if that's the case
 	 */
 	private boolean returnsOgmSpecificType() {
-		Class returnType = method.getMethod().getReturnType();
+		Class returnType = queryMethod.getMethod().getReturnType();
 		return QueryStatistics.class.isAssignableFrom(returnType) || Result.class.isAssignableFrom(returnType);
 	}
 

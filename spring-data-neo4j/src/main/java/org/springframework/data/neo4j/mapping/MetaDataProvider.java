@@ -19,6 +19,7 @@ import org.neo4j.ogm.metadata.MetaData;
  * meta-data is needed during execution of graph-repository-queries to lookup mappings etc.
  *
  * @author Michael J. Simons
+ * @since 5.1.2
  */
 @FunctionalInterface
 public interface MetaDataProvider {

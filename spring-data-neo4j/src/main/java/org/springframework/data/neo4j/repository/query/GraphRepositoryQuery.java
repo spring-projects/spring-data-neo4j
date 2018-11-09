@@ -57,31 +57,31 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 	protected Object doExecute(Query query, Object[] parameters) {
 
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("Executing query for method {}", method.getName());
+			LOG.debug("Executing query for method {}", queryMethod.getName());
 		}
 
-		GraphParameterAccessor accessor = new GraphParametersParameterAccessor(method, parameters);
-		Class<?> returnType = method.getMethod().getReturnType();
+		GraphParameterAccessor accessor = new GraphParametersParameterAccessor(queryMethod, parameters);
+		Class<?> returnType = queryMethod.getMethod().getReturnType();
 
-		ResultProcessor processor = method.getResultProcessor().withDynamicProjection(accessor);
+		ResultProcessor processor = queryMethod.getResultProcessor().withDynamicProjection(accessor);
 
 		Object result = getExecution(accessor).execute(query, processor.getReturnedType().getReturnedType());
 
 		return Result.class.equals(returnType) ? result
 				: processor.processResult(result, new CustomResultConverter(metaData,
-						processor.getReturnedType().getReturnedType(), method.getMappingContext()));
+						processor.getReturnedType().getReturnedType(), queryMethod.getMappingContext()));
 	}
 
 	protected Query getQuery(Object[] parameters) {
 		ParameterizedQuery parameterizedQuery = getParameterizedQuery();
 		Map<String, Object> parametersFromQuery = parameterizedQuery.resolveParameter(parameters, this::resolveParams);
-		return new Query(parameterizedQuery.getQueryString(), method.getCountQueryString(), parametersFromQuery);
+		return new Query(parameterizedQuery.getQueryString(), queryMethod.getCountQueryString(), parametersFromQuery);
 	}
 
 	private ParameterizedQuery getParameterizedQuery() {
 		if (parameterizedQuery == null) {
 
-			Parameters<?, ?> methodParameters = method.getParameters();
+			Parameters<?, ?> methodParameters = queryMethod.getParameters();
 			parameterizedQuery = ParameterizedQuery.getParameterizedQuery(getAnnotationQueryString(), methodParameters,
 					evaluationContextProvider);
 		}
