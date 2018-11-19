@@ -4,12 +4,12 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.config.Configuration;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.namedquery.domain.SampleEntityForNamedQuery;
 import org.springframework.data.neo4j.namedquery.repo.SampleEntityForNamedQueryRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -67,7 +67,7 @@ public class NamedQueryTests extends MultiDriverTestClass {
 		repository.save(entity);
 	}
 
-	@org.springframework.context.annotation.Configuration
+	@Configuration
 	@ComponentScan({ "org.springframework.data.neo4j.namedquery" })
 	@EnableNeo4jRepositories(value = "org.springframework.data.neo4j.namedquery.repo")
 	@EnableTransactionManagement
@@ -80,11 +80,7 @@ public class NamedQueryTests extends MultiDriverTestClass {
 
 		@Bean
 		public SessionFactory sessionFactory() {
-			Configuration.Builder builder = getBaseConfiguration();
-
-			Configuration configuration = builder.build();
-
-			return new SessionFactory(configuration, "org.springframework.data.neo4j.namedquery.domain");
+			return new SessionFactory("org.springframework.data.neo4j.namedquery.domain");
 		}
 	}
 }
