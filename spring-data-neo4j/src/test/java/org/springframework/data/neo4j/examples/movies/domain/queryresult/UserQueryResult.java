@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -13,7 +13,6 @@
 
 package org.springframework.data.neo4j.examples.movies.domain.queryresult;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.neo4j.ogm.annotation.Property;
 import org.springframework.data.neo4j.annotation.QueryResult;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
@@ -86,7 +85,11 @@ public class UserQueryResult {
 
 	@Override
 	public String toString() {
-		return ReflectionToStringBuilder.toString(this);
+		return "UserQueryResult{" +
+				"id=" + id +
+				", userId=" + userId +
+				", userName='" + userName + '\'' +
+				", age=" + age +
+				'}';
 	}
-
 }
