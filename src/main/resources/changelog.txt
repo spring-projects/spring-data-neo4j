@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.2.17.RELEASE (2018-11-27)
+----------------------------------------------
+* DATAGRAPH-1140 - Release 4.2.17 (Ingalls SR17).
+
+
 Changes in version 5.1.2.RELEASE (2018-10-29)
 ---------------------------------------------
 * DATAGRAPH-1144 - Recognize not only internal ids as id properties.
