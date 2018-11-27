@@ -1,6 +1,14 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.12.RELEASE (2018-11-27)
+----------------------------------------------
+* DATAGRAPH-1151 - Remove usage of undeclared dependencies.
+* DATAGRAPH-1144 - Recognize not only internal ids as id properties.
+* DATAGRAPH-1139 - Release 5.0.12 (Kay SR12).
+* DATAGRAPH-1135 - Fix resolution of implicitly named parameters on Repository queries.
+
+
 Changes in version 4.2.17.RELEASE (2018-11-27)
 ----------------------------------------------
 * DATAGRAPH-1140 - Release 4.2.17 (Ingalls SR17).
