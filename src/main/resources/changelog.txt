@@ -1,6 +1,15 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.3.RELEASE (2018-11-27)
+---------------------------------------------
+* DATAGRAPH-1152 - Upgrade to Neo4j OGM 3.1.5.
+* DATAGRAPH-1151 - Remove usage of undeclared dependencies.
+* DATAGRAPH-1150 - Align Kotlin Version with Spring Data Commons.
+* DATAGRAPH-1147 - Add Spotbugs Maven plugin.
+* DATAGRAPH-1145 - Release 5.1.3 (Lovelace SR3).
+
+
 Changes in version 5.0.12.RELEASE (2018-11-27)
 ----------------------------------------------
 * DATAGRAPH-1151 - Remove usage of undeclared dependencies.
