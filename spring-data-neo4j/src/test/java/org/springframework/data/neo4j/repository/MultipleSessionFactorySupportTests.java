@@ -222,7 +222,8 @@ public class MultipleSessionFactorySupportTests {
 
 		@Bean(BEAN_NAME_FRIENDS_SESSION_FACTORY)
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(new EmbeddedDriver(instance1.graphDatabaseService),
+			return new SessionFactory(new EmbeddedDriver(instance1.graphDatabaseService,
+					new org.neo4j.ogm.config.Configuration.Builder().build()),
 					PACKAGE_FOR_DOMAIN_OF_INSTANCE1 + ".domain");
 		}
 	}
@@ -239,7 +240,8 @@ public class MultipleSessionFactorySupportTests {
 
 		@Bean(BEAN_NAME_RESTAURANTS_SESSION_FACTORY)
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(new EmbeddedDriver(instance2.graphDatabaseService),
+			return new SessionFactory(new EmbeddedDriver(instance2.graphDatabaseService,
+					new org.neo4j.ogm.config.Configuration.Builder().build()),
 					PACKAGE_FOR_DOMAIN_OF_INSTANCE2 + ".domain");
 		}
 	}

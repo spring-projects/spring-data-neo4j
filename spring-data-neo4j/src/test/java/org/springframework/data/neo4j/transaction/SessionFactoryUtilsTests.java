@@ -21,7 +21,6 @@ import org.neo4j.ogm.exception.core.BaseClassNotFoundException;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.exception.UncategorizedNeo4jException;
 
@@ -40,8 +39,8 @@ public class SessionFactoryUtilsTests {
 
 	@Test
 	public void translateToDataIntegrityException() {
-		CypherException ce = new CypherException("Cypher Exception caused by:",
-				"Neo.ClientError.Schema.ConstraintValidationFailed", "The reason");
+		CypherException ce = new CypherException("Neo.ClientError.Schema.ConstraintValidationFailed",
+				"Cypher Exception caused by:");
 		DataAccessException translatedException = SessionFactoryUtils.convertOgmAccessException(ce);
 		expectExceptionWithCauseMessage(translatedException, DataIntegrityViolationException.class, null);
 	}
@@ -49,7 +48,7 @@ public class SessionFactoryUtilsTests {
 	@Test
 	public void translateToUncategorizedNeo4jException() {
 
-		CypherException ce = new CypherException("Cypher Exception caused by:", "A.New.Neo.Error", "The reason");
+		CypherException ce = new CypherException("A.New.Neo.Error", "Cypher Exception caused by:");
 
 		DataAccessException translatedException = SessionFactoryUtils.convertOgmAccessException(ce);
 
