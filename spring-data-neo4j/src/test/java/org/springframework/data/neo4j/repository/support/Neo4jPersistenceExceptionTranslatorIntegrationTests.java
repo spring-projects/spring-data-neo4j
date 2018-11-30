@@ -84,7 +84,8 @@ public class Neo4jPersistenceExceptionTranslatorIntegrationTests {
 			// auto index manager which is currently faulty and doesn't
 			// obey "None" completely and insists on a index scan
 			// TODO just turn auto index manager off
-			return new SessionFactory(new EmbeddedDriver(MultiDriverTestClass.getGraphDatabaseService()),
+			return new SessionFactory(new EmbeddedDriver(MultiDriverTestClass.getGraphDatabaseService(),
+					new org.neo4j.ogm.config.Configuration.Builder().build()),
 					EntityWithInvalidProperty.class.getPackage().getName());
 		}
 
