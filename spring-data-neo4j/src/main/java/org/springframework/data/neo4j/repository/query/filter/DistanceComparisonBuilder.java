@@ -21,7 +21,10 @@ import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.function.DistanceComparison;
+import org.neo4j.ogm.cypher.function.DistanceFromNativePoint;
 import org.neo4j.ogm.cypher.function.DistanceFromPoint;
+import org.neo4j.ogm.cypher.function.NativeDistanceComparison;
+import org.neo4j.ogm.types.spatial.AbstractPoint;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
@@ -44,6 +47,20 @@ class DistanceComparisonBuilder extends FilterBuilder {
 		Object firstArg = params.pop();
 		Object secondArg = params.pop();
 
+		Filter distanceComparisonFilter;
+
+		if (needsFilterForSpringPoint(firstArg, secondArg)) {
+			distanceComparisonFilter = springPointFilterOf(firstArg, secondArg);
+		} else {
+			distanceComparisonFilter = nativePointFilterOf(firstArg, secondArg);
+		}
+
+		return Collections.singletonList(distanceComparisonFilter);
+
+	}
+
+	private Filter springPointFilterOf(Object firstArg, Object secondArg) {
+
 		Distance distance;
 		Point point;
 
@@ -58,17 +75,51 @@ class DistanceComparisonBuilder extends FilterBuilder {
 					"findNear requires an argument of type Distance and an argument of type Point");
 		}
 
-		double meters;
-		if (distance.getMetric() == Metrics.KILOMETERS) {
-			meters = distance.getValue() * 1000.0d;
-		} else if (distance.getMetric() == Metrics.MILES) {
-			meters = distance.getValue() / 0.00062137d;
+		return createFilterForSpringPoint(distance, point, calculateDistanceInMeter(distance));
+	}
+
+	private Filter nativePointFilterOf(Object firstArg, Object secondArg) {
+
+		Distance distance;
+		AbstractPoint spatialPoint;
+
+		if (firstArg instanceof AbstractPoint && secondArg instanceof Distance) {
+			distance = (Distance) secondArg;
+			spatialPoint = (AbstractPoint) firstArg;
+		} else if (firstArg instanceof Distance && secondArg instanceof AbstractPoint) {
+			distance = (Distance) firstArg;
+			spatialPoint = (AbstractPoint) secondArg;
 		} else {
-			meters = distance.getValue();
+			throw new IllegalArgumentException(
+					"findNear requires an argument of type Distance and an argument of type Point");
 		}
+
+		return createFilterForSpatialPoint(spatialPoint, calculateDistanceInMeter(distance));
+	}
+
+	private boolean needsFilterForSpringPoint(Object firstArg, Object secondArg) {
+		return (firstArg instanceof Point || secondArg instanceof Point);
+	}
+
+	private Filter createFilterForSpatialPoint(AbstractPoint spatialPoint, double meters) {
+
+		NativeDistanceComparison distanceComparison = NativeDistanceComparison
+				.distanceComparisonFor(new DistanceFromNativePoint(spatialPoint, meters));
+
+		String propertyName = super.part.getProperty().getLeafProperty().getSegment();
+		Filter filter = new Filter(propertyName, distanceComparison, ComparisonOperator.LESS_THAN);
+		filter.setOwnerEntityType(entityType);
+		filter.setBooleanOperator(booleanOperator);
+		filter.setNegated(isNegated());
+		setNestedAttributes(part, filter);
+		return filter;
+	}
+
+	private Filter createFilterForSpringPoint(Distance distance, Point point, double meters) {
 
 		DistanceFromPoint distanceFromPoint = new DistanceFromPoint(point.getX(), point.getY(),
 				distance.getValue() * meters);
+
 		DistanceComparison distanceComparison = new DistanceComparison(distanceFromPoint);
 
 		Filter filter = new Filter(distanceComparison, ComparisonOperator.LESS_THAN);
@@ -76,8 +127,18 @@ class DistanceComparisonBuilder extends FilterBuilder {
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
 		setNestedAttributes(part, filter);
+		return filter;
+	}
 
-		return Collections.singletonList(filter);
+	private double calculateDistanceInMeter(Distance distance) {
+
+		if (distance.getMetric() == Metrics.KILOMETERS) {
+			return distance.getValue() * 1000.0d;
+		} else if (distance.getMetric() == Metrics.MILES) {
+			return distance.getValue() / 0.00062137d;
+		} else {
+			return distance.getValue();
+		}
 	}
 
 }
