@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -17,6 +17,7 @@ import static org.junit.Assert.*;
 import static org.neo4j.ogm.testutil.GraphTestUtils.*;
 
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Assert;
@@ -32,7 +33,6 @@ import org.springframework.data.neo4j.repositories.repo.MovieRepository;
 import org.springframework.data.neo4j.repositories.repo.UserRepository;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactory;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
-import org.springframework.data.neo4j.util.IterableUtils;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -45,6 +45,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Luanne Misquitta
  * @author Mark Angrish
  * @author Vince Bickers
+ * @author Michael J. Simons
  */
 public class ProgrammaticRepositoryTests extends MultiDriverTestClass {
 
@@ -86,13 +87,10 @@ public class ProgrammaticRepositoryTests extends MultiDriverTestClass {
 
 		assertSameGraph(getGraphDatabaseService(), "CREATE (m:Movie {title:'PF'})");
 
-		assertEquals(1, IterableUtils.count(movieRepository.findAll()));
+		assertEquals(1, StreamSupport.stream(movieRepository.findAll().spliterator(), false).count());
 	}
 
-	/**
-	 * @see DATAGRAPH-847
-	 */
-	@Test
+	@Test // DATAGRAPH-847
 	@Transactional
 	public void shouldBeAbleToDeleteAllViaRepository() {
 
@@ -111,10 +109,7 @@ public class ProgrammaticRepositoryTests extends MultiDriverTestClass {
 		assertEquals(0, userRepository.count());
 	}
 
-	/**
-	 * @see DATAGRAPH-813
-	 */
-	@Test
+	@Test // DATAGRAPH-813
 	@Transactional
 	public void shouldDeleteUserByNameAndReturnCountOfDeletedUsers() {
 
@@ -132,10 +127,7 @@ public class ProgrammaticRepositoryTests extends MultiDriverTestClass {
 		Assert.assertEquals(0, userRepository.count());
 	}
 
-	/**
-	 * @see DATAGRAPH-813
-	 */
-	@Test
+	@Test // DATAGRAPH-813
 	@Transactional
 	public void shouldDeleteUserByNameAndReturnListOfDeletedUserIds() {
 
@@ -182,10 +174,7 @@ public class ProgrammaticRepositoryTests extends MultiDriverTestClass {
 		Assert.assertEquals(1, userRepository.count());
 	}
 
-	/**
-	 * @see DATAGRAPH-813
-	 */
-	@Test
+	@Test // DATAGRAPH-813
 	@Transactional
 	public void shouldCountUserByName() {
 
