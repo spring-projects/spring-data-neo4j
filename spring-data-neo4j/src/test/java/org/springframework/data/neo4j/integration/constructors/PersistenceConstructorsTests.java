@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 import org.assertj.core.util.DateUtil;
 import org.junit.Before;
@@ -45,7 +46,6 @@ import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
-import org.springframework.data.neo4j.util.IterableUtils;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.test.context.ContextConfiguration;
@@ -90,7 +90,7 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 		personRepository.save(person);
 		session.clear();
 
-		List<Person> persons = IterableUtils.toList(personRepository.findAll());
+		List<Person> persons = iterableToList(personRepository.findAll());
 		assertEquals(1, persons.size());
 		assertEquals("foo", persons.get(0).getName());
 	}
@@ -104,7 +104,7 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 		personRepository.save(person);
 		session.clear();
 
-		List<Person> persons = IterableUtils.toList(personRepository.findAll());
+		List<Person> persons = iterableToList(personRepository.findAll());
 		assertEquals(2, persons.size());
 		Person person1 = persons.stream().filter(p -> p.equals(person)).findFirst().get();
 		assertEquals("foo", person1.getName());
@@ -139,7 +139,7 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 		papcRepository.save(pmc);
 		session.clear();
 
-		List<PersonWithAnnotatedPersistenceConstructor> persons = IterableUtils.toList(papcRepository.findAll());
+		List<PersonWithAnnotatedPersistenceConstructor> persons = iterableToList(papcRepository.findAll());
 		assertEquals(1, persons.size());
 		PersonWithAnnotatedPersistenceConstructor person = persons.get(0);
 		assertEquals("foo", person.getFirstName());
@@ -154,7 +154,7 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 		manyToOneRepository.save(person);
 		session.clear();
 
-		List<PersonWithManyToOneRel> persons = IterableUtils.toList(manyToOneRepository.findAll());
+		List<PersonWithManyToOneRel> persons = iterableToList(manyToOneRepository.findAll());
 		assertEquals(1, persons.size());
 		assertEquals("foo", persons.get(0).getName());
 		assertEquals("ADMIN", persons.get(0).getGroup().getName());
@@ -167,7 +167,7 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 		pfnRepository.save(person);
 		session.clear();
 
-		List<PersonWithFinalName> persons = IterableUtils.toList(pfnRepository.findAll());
+		List<PersonWithFinalName> persons = iterableToList(pfnRepository.findAll());
 		assertEquals(1, persons.size());
 		assertEquals("foo", persons.get(0).getName());
 	}
@@ -179,7 +179,7 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 		pwcRepository.save(person);
 		session.clear();
 
-		List<PersonWithConverter> persons = IterableUtils.toList(pwcRepository.findAll());
+		List<PersonWithConverter> persons = iterableToList(pwcRepository.findAll());
 		assertEquals(1, persons.size());
 		assertEquals("foo", persons.get(0).getName());
 		assertEquals(date, persons.get(0).getBirthDate());
@@ -192,7 +192,7 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 		pwcaRepository.save(person);
 		session.clear();
 
-		List<PersonWithCompositeAttribute> persons = IterableUtils.toList(pwcaRepository.findAll());
+		List<PersonWithCompositeAttribute> persons = iterableToList(pwcaRepository.findAll());
 		assertEquals(1, persons.size());
 		assertEquals("foo", persons.get(0).getName());
 		assertEquals(location, persons.get(0).getLocation());
@@ -288,4 +288,8 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 
 	@Repository
 	public interface PersonWithManyToOneRelRepository extends Neo4jRepository<PersonWithManyToOneRel, String> {}
+
+	private static <T> List<T> iterableToList(Iterable<T> iterable) {
+		return StreamSupport.stream(iterable.spliterator(), false).collect(toList());
+	}
 }
