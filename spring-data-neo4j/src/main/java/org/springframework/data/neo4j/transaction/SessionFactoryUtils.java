@@ -19,7 +19,6 @@ import java.lang.reflect.InvocationTargetException;
 import org.neo4j.ogm.autoindex.MissingIndexException;
 import org.neo4j.ogm.exception.ConnectionException;
 import org.neo4j.ogm.exception.CypherException;
-import org.neo4j.ogm.exception.ResultErrorsException;
 import org.neo4j.ogm.exception.ResultProcessingException;
 import org.neo4j.ogm.exception.TransactionException;
 import org.neo4j.ogm.exception.core.InvalidDepthException;
@@ -129,9 +128,6 @@ public class SessionFactoryUtils {
 		}
 		if (ex instanceof MissingOperatorException) {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
-		}
-		if (ex instanceof ResultErrorsException) {
-			return new DataRetrievalFailureException(ex.getMessage(), ex);
 		}
 		if (ex instanceof TransactionException) {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
