@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  [2011-2016] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
+ * Copyright (c)  [2011-2018] "Pivotal Software, Inc." / "Neo Technology" / "Graph Aware Ltd."
  *
  * This product is licensed to you under the Apache License, Version 2.0 (the "License").
  * You may not use this product except in compliance with the License.
@@ -18,7 +18,6 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.neo4j.ogm.exception.CypherException;
 import org.neo4j.ogm.exception.core.BaseClassNotFoundException;
-import org.neo4j.ogm.exception.core.NotFoundException;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -28,15 +27,9 @@ import org.springframework.data.neo4j.exception.UncategorizedNeo4jException;
 
 /**
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 public class SessionFactoryUtilsTests {
-
-	@Test
-	public void translatNotFoundException() {
-		NotFoundException nfe = new NotFoundException("Not Found");
-		DataAccessException translatedException = SessionFactoryUtils.convertOgmAccessException(nfe);
-		expectExceptionWithCauseMessage(translatedException, DataRetrievalFailureException.class, null);
-	}
 
 	@Test
 	public void translateMappingException() {
