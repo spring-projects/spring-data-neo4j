@@ -26,7 +26,6 @@ import org.neo4j.ogm.exception.core.InvalidDepthException;
 import org.neo4j.ogm.exception.core.MappingException;
 import org.neo4j.ogm.exception.core.MetadataException;
 import org.neo4j.ogm.exception.core.MissingOperatorException;
-import org.neo4j.ogm.exception.core.NotFoundException;
 import org.neo4j.ogm.exception.core.TransactionManagerException;
 import org.neo4j.ogm.exception.core.UnknownStatementTypeException;
 import org.neo4j.ogm.session.Session;
@@ -110,9 +109,6 @@ public class SessionFactoryUtils {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 		}
 
-		if (ex instanceof NotFoundException) {
-			return new DataRetrievalFailureException(ex.getMessage(), ex);
-		}
 		if (ex instanceof InvalidDepthException) {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 		}
