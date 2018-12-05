@@ -29,7 +29,6 @@ import org.neo4j.ogm.exception.core.MissingOperatorException;
 import org.neo4j.ogm.exception.core.NotFoundException;
 import org.neo4j.ogm.exception.core.TransactionManagerException;
 import org.neo4j.ogm.exception.core.UnknownStatementTypeException;
-import org.neo4j.ogm.session.Neo4jException;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.slf4j.Logger;
@@ -145,9 +144,6 @@ public class SessionFactoryUtils {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 		}
 		if (ex instanceof MissingIndexException) {
-			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
-		}
-		if (ex instanceof Neo4jException) {
 			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 		}
 
