@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.nativetypes;
 
+import java.util.List;
+
 import org.neo4j.ogm.annotation.GeneratedValue;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
@@ -22,6 +24,7 @@ import org.neo4j.ogm.types.spatial.CartesianPoint2d;
 import org.neo4j.ogm.types.spatial.CartesianPoint3d;
 import org.neo4j.ogm.types.spatial.GeographicPoint2d;
 import org.neo4j.ogm.types.spatial.GeographicPoint3d;
+import org.springframework.data.geo.Point;
 
 @NodeEntity
 public class SpatialDomain {
@@ -39,6 +42,16 @@ public class SpatialDomain {
 	private CartesianPoint2d cartesianPoint2d;
 
 	private CartesianPoint3d cartesianPoint3d;
+
+	private Point sdnPoint;
+
+	private List<Point> sdnPoints;
+
+	private Point[] morePoints;
+
+	public Long getId() {
+		return id;
+	}
 
 	public String getName() {
 		return name;
@@ -78,5 +91,29 @@ public class SpatialDomain {
 
 	public void setCartesianPoint3d(CartesianPoint3d cartesianPoint3d) {
 		this.cartesianPoint3d = cartesianPoint3d;
+	}
+
+	public Point getSdnPoint() {
+		return sdnPoint;
+	}
+
+	public void setSdnPoint(Point sdnPoint) {
+		this.sdnPoint = sdnPoint;
+	}
+
+	public List<Point> getSdnPoints() {
+		return sdnPoints;
+	}
+
+	public void setSdnPoints(List<Point> sdnPoints) {
+		this.sdnPoints = sdnPoints;
+	}
+
+	public Point[] getMorePoints() {
+		return morePoints;
+	}
+
+	public void setMorePoints(Point[] morePoints) {
+		this.morePoints = morePoints;
 	}
 }
