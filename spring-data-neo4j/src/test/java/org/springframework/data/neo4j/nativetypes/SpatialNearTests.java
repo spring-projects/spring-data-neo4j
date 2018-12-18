@@ -29,6 +29,7 @@ import org.neo4j.ogm.types.spatial.GeographicPoint3d;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -40,7 +41,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ContextConfiguration(classes = NativeTypesContextConfiguration.class)
 public class SpatialNearTests {
 
-	@Autowired private SpatialDomainRepository repository;
+	@Autowired
+	private SpatialDomainRepository repository;
 
 	@Test
 	public void findByNearCartesianPoint2d() {

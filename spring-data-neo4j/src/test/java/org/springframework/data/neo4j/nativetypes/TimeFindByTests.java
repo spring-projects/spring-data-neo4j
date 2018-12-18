@@ -22,25 +22,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.temporal.TemporalAmount;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.harness.ServerControls;
-import org.neo4j.harness.TestServerBuilders;
-import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = NativeTypesContextConfiguration.class)
@@ -78,6 +69,9 @@ public class TimeFindByTests {
 		timeDomain.setDuration(duration);
 
 		timeDomain.setTemporalAmount(temporalAmount);
+
+		timeDomain.setArrayOfDurations(new Duration[]{Duration.ofMinutes(23)});
+		timeDomain.setListOfDurations(Collections.singletonList(Duration.ofMinutes(42)));
 
 		repository.save(timeDomain);
 	}

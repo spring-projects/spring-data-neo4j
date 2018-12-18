@@ -77,7 +77,7 @@ class DistanceComparisonBuilder extends FilterBuilder {
 					"findNear requires an argument of type Distance and an argument of type Point");
 		}
 
-		return createFilterForSpringPoint(distance, point, calculateDistanceInMeter(distance));
+		return createFilterForSpringPoint(point, calculateDistanceInMeter(distance));
 	}
 
 	private Filter nativePointFilterOf(Object firstArg, Object secondArg) {
@@ -117,12 +117,23 @@ class DistanceComparisonBuilder extends FilterBuilder {
 		return filter;
 	}
 
-	private Filter createFilterForSpringPoint(Distance distance, Point point, double meters) {
+	private Filter createFilterForSpringPoint(Point point, double meters) {
 
-		DistanceFromPoint distanceFromPoint = new DistanceFromPoint(point.getX(), point.getY(),
-				distance.getValue() * meters);
+		DistanceFromPoint distanceFromPoint = new DistanceFromPoint(point.getX(), point.getY(), meters);
 
-		DistanceComparison distanceComparison = new DistanceComparison(distanceFromPoint);
+		DistanceComparison distanceComparison = new DistanceComparison(distanceFromPoint) {
+			@Override
+			public String expression(String nodeIdentifier) {
+				String latitudeProperty = nodeIdentifier + ".latitude";
+				String longitudeProperty = nodeIdentifier + ".longitude";
+
+				return String.format(
+						"distance(coalesce(point({latitude: %s, longitude: %s}), %s), point({latitude:{lat}, longitude:{lon}})) "
+								+ "%s {distance} ",
+						latitudeProperty, longitudeProperty, nodeIdentifier + "." + propertyName(),
+						super.getFilter().getComparisonOperator().getValue());
+			}
+		};
 
 		Filter filter = new Filter(distanceComparison, ComparisonOperator.LESS_THAN);
 		filter.setOwnerEntityType(entityType);
@@ -132,10 +143,10 @@ class DistanceComparisonBuilder extends FilterBuilder {
 		return filter;
 	}
 
-	private double calculateDistanceInMeter(Distance distance) {
+	static double calculateDistanceInMeter(Distance distance) {
 
 		if (distance.getMetric() == Metrics.KILOMETERS) {
-			return distance.getValue() * 1000.0d;
+			return distance.getValue() / 0.001d;
 		} else if (distance.getMetric() == Metrics.MILES) {
 			return distance.getValue() / 0.00062137d;
 		} else {
