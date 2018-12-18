@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.nativetypes;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.neo4j.nativetypes.SpatialPersistenceContextConfiguration.*;
 
 import java.util.List;
 

@@ -16,10 +16,13 @@
 package org.springframework.data.neo4j.nativetypes;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.neo4j.nativetypes.SpatialPersistenceContextConfiguration.*;
 
 import java.util.List;
 
 import org.junit.After;
+import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.types.spatial.CartesianPoint2d;
@@ -40,7 +43,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ContextConfiguration(classes = NativeTypesContextConfiguration.class)
 public class SpatialNearTests {
 
-	@Autowired private SpatialDomainRepository repository;
+	@Autowired
+	private SpatialDomainRepository repository;
 
 	@Test
 	public void findByNearCartesianPoint2d() {
