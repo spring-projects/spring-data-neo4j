@@ -12,8 +12,9 @@
 
 package org.springframework.data.neo4j.nativetypes;
 
+import org.neo4j.harness.ServerControls;
+import org.neo4j.harness.TestServerBuilders;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -33,8 +34,16 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 class SpatialPersistenceContextConfiguration {
 
 	@Bean
-	org.neo4j.ogm.config.Configuration neo4jOGMConfiguration() {
-		return MultiDriverTestClass.getBaseConfiguration().useNativeTypes().build();
+	ServerControls neo4j() {
+		return TestServerBuilders.newInProcessBuilder().newServer();
+	}
+
+	@Bean
+	org.neo4j.ogm.config.Configuration neo4jOGMConfiguration(ServerControls serverControls) {
+		return new org.neo4j.ogm.config.Configuration.Builder() //
+				.uri(serverControls.boltURI().toString()) //
+				.useNativeTypes() //
+				.build();
 	}
 
 	@Bean
@@ -45,9 +54,5 @@ class SpatialPersistenceContextConfiguration {
 	@Bean
 	public PlatformTransactionManager transactionManager(SessionFactory sessionFactory) {
 		return new Neo4jTransactionManager(sessionFactory);
-	}
-
-	static boolean runsInHttpMode(org.neo4j.ogm.config.Configuration configuration) {
-		return configuration.getURI().startsWith("http");
 	}
 }
