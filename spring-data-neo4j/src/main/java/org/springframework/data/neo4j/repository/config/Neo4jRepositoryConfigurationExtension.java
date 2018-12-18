@@ -185,17 +185,15 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		super.registerBeansForRoot(registry, config);
 
 		Object source = config.getSource();
-		if(source == null) {
+		if (source == null) {
 			return;
 		}
 
-		String configuredSessionBeanName = Optional.of("sessionBeanName").flatMap(config::getAttribute)
-				.orElse(GENERATE_BEAN_NAME);
+		String configuredSessionBeanName = config.getAttribute("sessionBeanName").orElse(GENERATE_BEAN_NAME);
 		this.sessionBeanName = registerWithGeneratedNameOrUseConfigured(createSharedSessionCreatorBeanDefinition(config),
 				registry, configuredSessionBeanName, source);
 
-		String configuredMappingContextBeanName = Optional.of("mappingContextBeanName").flatMap(config::getAttribute)
-				.orElse(GENERATE_BEAN_NAME);
+		String configuredMappingContextBeanName = config.getAttribute("mappingContextBeanName").orElse(GENERATE_BEAN_NAME);
 		this.neo4jMappingContextBeanName = registerWithGeneratedNameOrUseConfigured(
 				createNeo4jMappingContextFactoryBeanDefinition(config), registry, configuredMappingContextBeanName, source);
 
