@@ -18,19 +18,19 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * @author Vince Bickers
+ * @author Michael J. Simons
  */
 @Configuration
-@ComponentScan({ "org.springframework.data.neo4j.examples.jsr303.controller" })
+@ComponentScan("org.springframework.data.neo4j.examples.jsr303.controller")
 @EnableWebMvc
-public class WebConfiguration extends WebMvcConfigurerAdapter {
+class WebConfiguration implements WebMvcConfigurer {
 
 	@Bean(name = "validator")
 	public LocalValidatorFactoryBean validator() {
 		return new LocalValidatorFactoryBean();
 	}
-
 }

@@ -19,36 +19,25 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.neo4j.ogm.types.spatial.CartesianPoint2d;
 import org.neo4j.ogm.types.spatial.CartesianPoint3d;
 import org.neo4j.ogm.types.spatial.GeographicPoint2d;
 import org.neo4j.ogm.types.spatial.GeographicPoint3d;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@ContextConfiguration(classes = SpatialNearTest.SpatialPersistenceContext.class)
+/**
+ * @author Gerrit Meier
+ * @author Michael J. Simons
+ */
 @RunWith(SpringRunner.class)
-public class SpatialNearTest extends MultiDriverTestClass {
-
-	private static org.neo4j.ogm.config.Configuration configuration;
+@ContextConfiguration(classes = NativeTypesContextConfiguration.class)
+public class SpatialNearTests {
 
 	@Autowired private SpatialDomainRepository repository;
-
-	@After
-	public void cleanUp() {
-		repository.deleteAll();
-	}
 
 	@Test
 	public void findByNearCartesianPoint2d() {
@@ -98,7 +87,7 @@ public class SpatialNearTest extends MultiDriverTestClass {
 		centralStation.setGeographicPoint2d(centralStationLocation);
 		repository.save(centralStation);
 
-		GeographicPoint2d office = new GeographicPoint2d(55.611851,12.9949028);
+		GeographicPoint2d office = new GeographicPoint2d(55.611851, 12.9949028);
 		List<SpatialDomain> result = repository.findByGeographicPoint2dNear(new Distance(0.4486, Metrics.KILOMETERS),
 				office);
 		assertThat(result).hasSize(1);
@@ -112,57 +101,42 @@ public class SpatialNearTest extends MultiDriverTestClass {
 		centralStation.setGeographicPoint2d(centralStationLocation);
 		repository.save(centralStation);
 
-		GeographicPoint2d office = new GeographicPoint2d(55.611851,12.9949028);
+		GeographicPoint2d office = new GeographicPoint2d(55.611851, 12.9949028);
 		List<SpatialDomain> result = repository.findByGeographicPoint2dNear(new Distance(0.4485, Metrics.KILOMETERS),
 				office);
 		assertThat(result).hasSize(0);
 	}
 
-	 @Test
-	 public void findByNearGeographicPoint3d() {
-		 SpatialDomain centralStation = new SpatialDomain();
+	@Test
+	public void findByNearGeographicPoint3d() {
+		SpatialDomain centralStation = new SpatialDomain();
 
-		 GeographicPoint3d centralStationLocation = new GeographicPoint3d(55.6093093, 13.0004377, -5);
-		 centralStation.setGeographicPoint3d(centralStationLocation);
-		 repository.save(centralStation);
+		GeographicPoint3d centralStationLocation = new GeographicPoint3d(55.6093093, 13.0004377, -5);
+		centralStation.setGeographicPoint3d(centralStationLocation);
+		repository.save(centralStation);
 
-		 GeographicPoint3d office = new GeographicPoint3d(55.611851,12.9949028, 15);
-		 List<SpatialDomain> result = repository.findByGeographicPoint3dNear(new Distance(0.4489591, Metrics.KILOMETERS),
-				 office);
-		 assertThat(result).hasSize(1);
-	 }
-
-	 @Test
-	 public void findByNearGeographicPoint3dNoMatch() {
-		 SpatialDomain centralStation = new SpatialDomain();
-
-		 GeographicPoint3d centralStationLocation = new GeographicPoint3d(55.6093093, 13.0004377, -5);
-		 centralStation.setGeographicPoint3d(centralStationLocation);
-		 repository.save(centralStation);
-
-		 GeographicPoint3d office = new GeographicPoint3d(55.611851,12.9949028, 15);
-		 List<SpatialDomain> result = repository.findByGeographicPoint3dNear(new Distance(0.448950, Metrics.KILOMETERS),
-				 office);
-		 assertThat(result).hasSize(0);
-	 }
-
-	@Configuration
-	@EnableNeo4jRepositories
-	@EnableTransactionManagement
-	static class SpatialPersistenceContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-
-			configuration = getBaseConfiguration().useNativeTypes().build();
-
-			return new SessionFactory(configuration, "org.springframework.data.neo4j.nativetypes");
-		}
+		GeographicPoint3d office = new GeographicPoint3d(55.611851, 12.9949028, 15);
+		List<SpatialDomain> result = repository.findByGeographicPoint3dNear(new Distance(0.4489591, Metrics.KILOMETERS),
+				office);
+		assertThat(result).hasSize(1);
 	}
 
+	@Test
+	public void findByNearGeographicPoint3dNoMatch() {
+		SpatialDomain centralStation = new SpatialDomain();
+
+		GeographicPoint3d centralStationLocation = new GeographicPoint3d(55.6093093, 13.0004377, -5);
+		centralStation.setGeographicPoint3d(centralStationLocation);
+		repository.save(centralStation);
+
+		GeographicPoint3d office = new GeographicPoint3d(55.611851, 12.9949028, 15);
+		List<SpatialDomain> result = repository.findByGeographicPoint3dNear(new Distance(0.448950, Metrics.KILOMETERS),
+				office);
+		assertThat(result).hasSize(0);
+	}
+
+	@After
+	public void cleanUp() {
+		repository.deleteAll();
+	}
 }

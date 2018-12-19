@@ -19,32 +19,32 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.domain.sample.User;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.sample.UserRepository;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Mark Angrish
  * @author Jens Schauder
+ * @author Michael J. Simons
  */
-@ContextConfiguration(classes = { TransactionalRepositoryTests.Config.class })
-@RunWith(SpringJUnit4ClassRunner.class)
-public class TransactionalRepositoryTests extends MultiDriverTestClass {
+@ContextConfiguration(classes = TransactionalRepositoryTests.Config.class)
+@RunWith(SpringRunner.class)
+public class TransactionalRepositoryTests {
 
+	@Autowired GraphDatabaseService graphDatabaseService;
 	@Autowired TransactionTemplate transactionTemplate;
 
 	@Autowired UserRepository repository;
@@ -53,8 +53,7 @@ public class TransactionalRepositoryTests extends MultiDriverTestClass {
 	@Before
 	public void setUp() {
 
-		transactionTemplate = new TransactionTemplate(transactionManager);
-		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 		transactionManager.resetCount();
 	}
 
@@ -65,35 +64,35 @@ public class TransactionalRepositoryTests extends MultiDriverTestClass {
 	}
 
 	@Test
-	public void simpleManipulatingOperation() throws Exception {
+	public void simpleManipulatingOperation() {
 
 		repository.save(new User("foo", "bar", "foo@bar.de"));
 		assertThat(transactionManager.getTransactionRequests(), is(1));
 	}
 
 	@Test
-	public void unannotatedFinder() throws Exception {
+	public void unannotatedFinder() {
 
 		repository.findByEmailAddress("foo@bar.de");
 		assertThat(transactionManager.getTransactionRequests(), is(0));
 	}
 
 	@Test
-	public void invokeTransactionalFinder() throws Exception {
+	public void invokeTransactionalFinder() {
 
 		repository.findByAnnotatedQuery("foo@bar.de");
 		assertThat(transactionManager.getTransactionRequests(), is(1));
 	}
 
 	@Test
-	public void invokeRedeclaredMethod() throws Exception {
+	public void invokeRedeclaredMethod() {
 
 		repository.findById(1L);
 		assertFalse(transactionManager.getDefinition().isReadOnly());
 	}
 
 	@Test
-	public void invokeRedeclaredDeleteMethodWithoutTransactionDeclaration() throws Exception {
+	public void invokeRedeclaredDeleteMethodWithoutTransactionDeclaration() {
 
 		User user = repository.save(new User("foo", "bar", "foo@bar.de"));
 		repository.deleteById(user.getId());
@@ -101,7 +100,7 @@ public class TransactionalRepositoryTests extends MultiDriverTestClass {
 		assertFalse(transactionManager.getDefinition().isReadOnly());
 	}
 
-	public static class DelegatingTransactionManager implements PlatformTransactionManager {
+	static class DelegatingTransactionManager implements PlatformTransactionManager {
 
 		private PlatformTransactionManager txManager;
 		private int transactionRequests;
@@ -148,23 +147,14 @@ public class TransactionalRepositoryTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.repository.sample")
-	@EnableTransactionManagement
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.domain.sample",
+			transactionManagerRef = "delegatingTransactionManager",
+			repositoryPackages = "org.springframework.data.neo4j.repository.sample")
 	static class Config {
 
 		@Bean
-		public DelegatingTransactionManager transactionManager() {
-			return new DelegatingTransactionManager(new Neo4jTransactionManager(sessionFactory()));
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.domain.sample");
-		}
-
-		@Bean
-		public TransactionTemplate transactionTemplate() {
-			return new TransactionTemplate(transactionManager());
+		public DelegatingTransactionManager delegatingTransactionManager(Neo4jTransactionManager neo4jTransactionManager) {
+			return new DelegatingTransactionManager(neo4jTransactionManager);
 		}
 	}
 }

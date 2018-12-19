@@ -15,41 +15,36 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
+import static org.hamcrest.Matchers.*;
 import static org.junit.rules.ExpectedException.*;
 
 import java.time.Year;
 
-import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver;
+import org.neo4j.harness.ServerControls;
+import org.neo4j.ogm.config.AutoIndexMode;
 import org.neo4j.ogm.exception.core.InvalidPropertyFieldException;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.TypeMismatchDataAccessException;
 import org.springframework.data.neo4j.domain.invalid.EntityWithInvalidProperty;
 import org.springframework.data.neo4j.domain.invalid.EntityWithInvalidPropertyRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Michael J. Simons
  * @soundtrack Opeth - Blackwater Park
  */
-@ContextConfiguration(classes = { Neo4jPersistenceExceptionTranslatorIntegrationTests.ContextConfiguration.class })
-@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = Neo4jPersistenceExceptionTranslatorIntegrationTests.ContextConfiguration.class)
+@RunWith(SpringRunner.class)
 public class Neo4jPersistenceExceptionTranslatorIntegrationTests {
 
 	@Rule public final ExpectedException expectedException = none();
@@ -60,7 +55,7 @@ public class Neo4jPersistenceExceptionTranslatorIntegrationTests {
 	public void invalidPropertyFieldExceptionShouldBeTranslated() {
 
 		expectedException.expect(TypeMismatchDataAccessException.class);
-		expectedException.expectCause(Matchers.any(InvalidPropertyFieldException.class));
+		expectedException.expectCause(any(InvalidPropertyFieldException.class));
 		expectedException.expectMessage(
 				"'org.springframework.data.neo4j.domain.invalid.EntityWithInvalidProperty#year' is not persistable as property but has not been marked as transient.");
 
@@ -68,25 +63,17 @@ public class Neo4jPersistenceExceptionTranslatorIntegrationTests {
 	}
 
 	@Configuration
-	@ComponentScan(basePackageClasses = EntityWithInvalidProperty.class)
-	@EnableNeo4jRepositories(basePackageClasses = EntityWithInvalidProperty.class)
-	@EnableTransactionManagement
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.domain.invalid",
+			repositoryPackages = "org.springframework.data.neo4j.domain.invalid")
 	static class ContextConfiguration {
 
+		// Turn off Autoindex Manager to avoid eager entity scanning
 		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			// Cannot use the base configuration as it always uses the
-			// auto index manager which is currently faulty and doesn't
-			// obey "None" completely and insists on a index scan
-			// TODO just turn auto index manager off
-			return new SessionFactory(new EmbeddedDriver(MultiDriverTestClass.getGraphDatabaseService(),
-					new org.neo4j.ogm.config.Configuration.Builder().build()),
-					EntityWithInvalidProperty.class.getPackage().getName());
+		org.neo4j.ogm.config.Configuration neo4jOGMConfiguration(ServerControls neo4jTestServer) {
+			return new org.neo4j.ogm.config.Configuration.Builder() //
+					.uri(neo4jTestServer.boltURI().toString()) //
+					.autoIndex(AutoIndexMode.NONE.getName()) //
+					.build();
 		}
 
 		// Eager entity scanning is also triggered without a Spring conversion service

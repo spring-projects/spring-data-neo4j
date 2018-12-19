@@ -22,29 +22,29 @@ import java.time.temporal.TemporalAmount;
 import java.util.Date;
 import java.util.List;
 
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.harness.ServerControls;
+import org.neo4j.harness.TestServerBuilders;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@ContextConfiguration(classes = TimeFindByTest.TimePersistenceContext.class)
 @RunWith(SpringRunner.class)
-public class TimeFindByTest extends MultiDriverTestClass {
+@ContextConfiguration(classes = NativeTypesContextConfiguration.class)
+public class TimeFindByTests {
 
-	private static org.neo4j.ogm.config.Configuration configuration;
-
-	@Autowired private TimeDomainRepository repository;
+	@Autowired
+	private TimeDomainRepository repository;
 
 	private TimeDomain timeDomain;
 	private Date date;
@@ -56,7 +56,6 @@ public class TimeFindByTest extends MultiDriverTestClass {
 
 	@Before
 	public void setUpDomainObject() {
-		Assume.assumeFalse(runsInHttpMode());
 		repository.deleteAll();
 
 		timeDomain = new TimeDomain();
@@ -114,28 +113,5 @@ public class TimeFindByTest extends MultiDriverTestClass {
 	public void findByTemporalAmount() {
 		List<TimeDomain> result = repository.findByTemporalAmount(temporalAmount);
 		assertThat(result).hasSize(1);
-	}
-
-	private boolean runsInHttpMode() {
-		return configuration.getURI().startsWith("http");
-	}
-
-	@Configuration
-	@EnableNeo4jRepositories
-	@EnableTransactionManagement
-	static class TimePersistenceContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-
-			configuration = getBaseConfiguration().useNativeTypes().build();
-
-			return new SessionFactory(configuration, "org.springframework.data.neo4j.nativetypes");
-		}
 	}
 }

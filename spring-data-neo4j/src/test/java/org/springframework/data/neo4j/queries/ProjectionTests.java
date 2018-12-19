@@ -14,56 +14,59 @@
 package org.springframework.data.neo4j.queries;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.test.context.TestExecutionListeners.MergeMode.*;
 
 import java.util.List;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.harness.ServerControls;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.examples.movies.domain.CinemaAndBlockbuster;
 import org.springframework.data.neo4j.examples.movies.domain.CinemaAndBlockbusterName;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.test.context.TestContext;
+import org.springframework.test.context.TestExecutionListener;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
-@ContextConfiguration(classes = { ProjectionTests.MoviesContext.class })
-@RunWith(SpringJUnit4ClassRunner.class)
-public class ProjectionTests extends MultiDriverTestClass {
+@ContextConfiguration(classes = MoviesContextConfiguration.class)
+@TestExecutionListeners(listeners = ProjectionTests.PrepareAndCleanDatabase.class, mergeMode = MERGE_WITH_DEFAULTS)
+@RunWith(SpringRunner.class)
+public class ProjectionTests {
+
+	static class PrepareAndCleanDatabase implements TestExecutionListener {
+		public void beforeTestClass(TestContext testContext) {
+
+			GraphDatabaseService graphDatabaseService = testContext.getApplicationContext().getBean(ServerControls.class)
+					.graph();
+
+			graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+			graphDatabaseService.execute("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
+					+ " CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " + " CREATE (u:User {name:'Michal'}) "
+					+ " CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(p)" + " CREATE (m1:Movie {name:'San Andreas'}) "
+					+ " CREATE (m2:Movie {name:'Pitch Perfect 2'})" + " CREATE (p)-[:BLOCKBUSTER]->(m1)"
+					+ " CREATE (p)-[:SHOWS]->(m1)" + " CREATE (p)-[:SHOWS]->(m2)" + " CREATE (r)-[:BLOCKBUSTER]->(m2)"
+					+ " CREATE (r)-[:SHOWS]->(m1)" + " CREATE (r)-[:SHOWS]->(m2)" + " CREATE (u)-[:RATED {stars :3}]->(m1)");
+		}
+
+		@Override
+		public void afterTestClass(TestContext testContext) {
+			GraphDatabaseService graphDatabaseService = testContext.getApplicationContext().getBean(ServerControls.class)
+					.graph();
+			graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		}
+	}
 
 	@Autowired private CinemaRepository cinemaRepository;
-
-	@BeforeClass
-	public static void setupData() {
-		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-		getGraphDatabaseService().execute("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
-				+ " CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " + " CREATE (u:User {name:'Michal'}) "
-				+ " CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(p)" + " CREATE (m1:Movie {name:'San Andreas'}) "
-				+ " CREATE (m2:Movie {name:'Pitch Perfect 2'})" + " CREATE (p)-[:BLOCKBUSTER]->(m1)"
-				+ " CREATE (p)-[:SHOWS]->(m1)" + " CREATE (p)-[:SHOWS]->(m2)" + " CREATE (r)-[:BLOCKBUSTER]->(m2)"
-				+ " CREATE (r)-[:SHOWS]->(m1)" + " CREATE (r)-[:SHOWS]->(m2)" + " CREATE (u)-[:RATED {stars :3}]->(m1)");
-	}
-
-	@AfterClass
-	public static void clearDatabase() {
-		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-	}
 
 	@Test
 	@Transactional
@@ -99,7 +102,6 @@ public class ProjectionTests extends MultiDriverTestClass {
 	}
 
 	@Test
-	@Ignore("To be reactivated after DATAGRAPH-1022 has been fixed")
 	@Transactional
 	public void shouldFindCinemasWithoutUsersAndCustomDepth() {
 
@@ -122,23 +124,4 @@ public class ProjectionTests extends MultiDriverTestClass {
 		assertThat(c1.getName()).isEqualTo("Picturehouse");
 		assertThat(c1.blockBusterOfTheWeekName()).isEqualTo("San Andreas");
 	}
-
-	@Configuration
-	@ComponentScan({ "org.springframework.data.neo4j.examples.movies.service" })
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
-	@EnableTransactionManagement
-	static class MoviesContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.examples.movies.domain");
-		}
-	}
-
 }

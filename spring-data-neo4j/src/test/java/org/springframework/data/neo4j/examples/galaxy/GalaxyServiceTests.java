@@ -28,35 +28,26 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.cypher.query.Pagination;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
 import org.springframework.data.neo4j.examples.galaxy.service.GalaxyService;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Vince Bickers
  * @author Mark Paluch
+ * @author Michael J. Simons
  */
-@ContextConfiguration(classes = { GalaxyServiceTests.GalaxyContext.class })
-@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = GalaxyContextConfiguration.class)
+@RunWith(SpringRunner.class)
 @Transactional
-public class GalaxyServiceTests extends MultiDriverTestClass {
+public class GalaxyServiceTests {
 
 	@Autowired private GalaxyService galaxyService;
 
@@ -282,10 +273,7 @@ public class GalaxyServiceTests extends MultiDriverTestClass {
 		assertEquals(0, count);
 	}
 
-	/**
-	 * @see DATAGRAPH-783
-	 */
-	@Test
+	@Test // DATAGRAPH-783
 	public void shouldFindWorldWithRadius() {
 		galaxyService.deleteAll();
 		World earth = new World("Earth", 1);
@@ -306,29 +294,5 @@ public class GalaxyServiceTests extends MultiDriverTestClass {
 		String[] sortedNames = names.toArray(new String[] {});
 		Arrays.sort(sortedNames);
 		return sortedNames;
-	}
-
-	@Configuration
-	@ComponentScan({ "org.springframework.data.neo4j.examples.galaxy.service" })
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.galaxy.repo")
-	@EnableTransactionManagement
-	static class GalaxyContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.examples.galaxy.domain");
-		}
-
-		@Bean
-		public TransactionTemplate transactionTemplate() {
-			return new TransactionTemplate(transactionManager());
-		}
-
 	}
 }

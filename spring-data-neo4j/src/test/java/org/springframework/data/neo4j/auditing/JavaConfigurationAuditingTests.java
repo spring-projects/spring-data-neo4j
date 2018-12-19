@@ -22,8 +22,6 @@ import java.util.Optional;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,49 +29,34 @@ import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.neo4j.annotation.EnableNeo4jAuditing;
 import org.springframework.data.neo4j.auditing.domain.User;
 import org.springframework.data.neo4j.auditing.repository.UserRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Frantisek Hartman
+ * @author Michael J. Simons
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @ContextConfiguration
-public class JavaConfigurationAuditingTests extends MultiDriverTestClass {
+public class JavaConfigurationAuditingTests {
 
 	@Configuration
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.auditing.domain",
+			repositoryPackages = "org.springframework.data.neo4j.auditing.repository")
 	@EnableNeo4jAuditing(modifyOnCreate = false)
-	@EnableNeo4jRepositories(basePackageClasses = UserRepository.class)
 	static class Neo4jConfiguration {
 
 		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), User.class.getPackage().getName());
-		}
-
-		@Bean
-		public Neo4jTransactionManager transactionManager() {
-			return new Neo4jTransactionManager();
-		}
-
-		@Bean
 		public AuditorAware<String> auditorAware() {
-			return new AuditorAware<String>() {
-
-				@Override
-				public Optional<String> getCurrentAuditor() {
-					return of("userId");
-				}
-			};
+			return () -> of("userId");
 		}
 	}
 
 	@Autowired private UserRepository userRepository;
 
 	@Test
-	public void whenSaveEntity_thenSetCreatedAndCreatedBy() throws Exception {
+	public void whenSaveEntity_thenSetCreatedAndCreatedBy() {
 		User user = new User("John Doe");
 		userRepository.save(user);
 
@@ -89,7 +72,7 @@ public class JavaConfigurationAuditingTests extends MultiDriverTestClass {
 	}
 
 	@Test
-	public void whenUpdateEntity_thenSetModifiedAndModifiedBy() throws Exception {
+	public void whenUpdateEntity_thenSetModifiedAndModifiedBy() {
 		User user = new User("John Doe");
 		userRepository.save(user);
 

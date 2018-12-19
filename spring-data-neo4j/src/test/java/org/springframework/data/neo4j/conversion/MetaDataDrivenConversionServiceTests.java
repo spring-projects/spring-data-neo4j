@@ -16,7 +16,6 @@ package org.springframework.data.neo4j.conversion;
 import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.data.neo4j.conversion.support.ConvertedClass;
 import org.springframework.data.neo4j.conversion.support.Converters;
 
@@ -24,7 +23,7 @@ import org.springframework.data.neo4j.conversion.support.Converters;
  * @author Michael J. Simons
  * @soundtrack Murray Gold - Doctor Who Season 9
  */
-public class MetaDataDrivenConversionServiceTests extends MultiDriverTestClass {
+public class MetaDataDrivenConversionServiceTests {
 
 	@Test
 	public void shouldDetermineConvertersForClasses() {

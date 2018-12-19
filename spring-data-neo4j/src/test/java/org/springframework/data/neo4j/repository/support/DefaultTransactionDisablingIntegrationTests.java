@@ -20,38 +20,34 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.neo4j.domain.sample.User;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.sample.UserRepository;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Integration tests for disabling default transactions using JavaConfig.
  *
  * @author Mark Angrish
  * @author Jens Schauder
+ * @author Michael J. Simons
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @ContextConfiguration(classes = DefaultTransactionDisablingIntegrationTests.Config.class)
-public class DefaultTransactionDisablingIntegrationTests extends MultiDriverTestClass {
+public class DefaultTransactionDisablingIntegrationTests {
 
 	public @Rule ExpectedException exception = ExpectedException.none();
 
 	@Autowired UserRepository repository;
 	@Autowired TransactionalRepositoryTests.DelegatingTransactionManager txManager;
 
-	/**
-	 */
 	@Test
 	public void considersExplicitConfigurationOnRepositoryInterface() {
 
@@ -60,18 +56,14 @@ public class DefaultTransactionDisablingIntegrationTests extends MultiDriverTest
 		assertThat(txManager.getDefinition().isReadOnly(), is(false));
 	}
 
-	/**
-	 */
 	@Test
 	public void doesNotUseDefaultTransactionsOnNonRedeclaredMethod() {
 
-		repository.findAll(new PageRequest(0, 10));
+		repository.findAll(PageRequest.of(0, 10));
 
 		assertThat(txManager.getDefinition(), is(nullValue()));
 	}
 
-	/**
-	 */
 	@Test
 	public void persistingAnEntityShouldThrowExceptionDueToMissingTransaction() {
 
@@ -82,19 +74,15 @@ public class DefaultTransactionDisablingIntegrationTests extends MultiDriverTest
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories(basePackageClasses = UserRepository.class, enableDefaultTransactions = false)
-	@EnableTransactionManagement
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.domain.sample",
+			repositoryPackages = "org.springframework.data.neo4j.repository.sample",
+			transactionManagerRef = "delegatingTransactionManager", enableDefaultTransactions = false)
 	static class Config {
 
 		@Bean
-		public TransactionalRepositoryTests.DelegatingTransactionManager transactionManager() throws Exception {
-			return new TransactionalRepositoryTests.DelegatingTransactionManager(
-					new Neo4jTransactionManager(sessionFactory()));
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.domain.sample");
+		public TransactionalRepositoryTests.DelegatingTransactionManager delegatingTransactionManager(
+				Neo4jTransactionManager neo4jTransactionManager) {
+			return new TransactionalRepositoryTests.DelegatingTransactionManager(neo4jTransactionManager);
 		}
 	}
 }

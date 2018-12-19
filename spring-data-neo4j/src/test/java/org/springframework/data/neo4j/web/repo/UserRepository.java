@@ -22,6 +22,7 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Michal Bachman
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 @Repository
 public interface UserRepository extends Neo4jRepository<User, UUID> {

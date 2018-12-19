@@ -29,10 +29,10 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.exception.core.MappingException;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,24 +44,21 @@ import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService
 import org.springframework.data.neo4j.integration.constructors.domain.*;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Nicolas Mervaillie
  * @author Michael J. Simons
  */
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = { PersistenceConstructorsTests.PersistenceConstructorsPersistenceContext.class })
-public class PersistenceConstructorsTests extends MultiDriverTestClass {
+@ContextConfiguration(classes = PersistenceConstructorsTests.PersistenceConstructorsPersistenceContext.class)
+public class PersistenceConstructorsTests {
 
-	@Autowired PlatformTransactionManager platformTransactionManager;
+	@Autowired GraphDatabaseService graphDatabaseService;
 
 	@Autowired Session session;
 
@@ -232,35 +229,12 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 
 	@Before
 	public void setUp() {
-		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-	}
-
-	@Configuration
-	@EnableNeo4jRepositories(basePackageClasses = { PersonRepository.class }, considerNestedRepositories = true)
-	@EnableTransactionManagement
-	static class PersistenceConstructorsPersistenceContext {
-
-		@Bean
-		public ConversionService conversionService() {
-			return new MetaDataDrivenConversionService(sessionFactory().metaData());
-		}
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.integration.constructors.domain");
-		}
+		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	@Repository
 	public interface PersonRepository extends Neo4jRepository<Person, String> {
-		@Query("MATCH (n:Person {name: $name}) \n"
-				+ "WITH n, size((n) - [:IS_FRIEND] -> ()) AS numberOfFriends\n"
+		@Query("MATCH (n:Person {name: $name}) \n" + "WITH n, size((n) - [:IS_FRIEND] -> ()) AS numberOfFriends\n"
 				+ "MATCH (n) - [:IS_FRIEND] -> (m:Person) - [:IS_FRIEND] -> (n)\n"
 				+ "RETURN n.name AS name, numberOfFriends,  collect(m) AS mutualFriends")
 		List<PersonProjection> findPersonWithMutualFriendsByName(@Param("name") String name);
@@ -291,5 +265,16 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 
 	private static <T> List<T> iterableToList(Iterable<T> iterable) {
 		return StreamSupport.stream(iterable.spliterator(), false).collect(toList());
+	}
+
+	@Configuration
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.integration.constructors.domain",
+			repositoryPackages = "org.springframework.data.neo4j.integration.constructors", considerNestedRepositories = true)
+	static class PersistenceConstructorsPersistenceContext {
+
+		@Bean
+		public ConversionService conversionService(SessionFactory sessionFactory) {
+			return new MetaDataDrivenConversionService(sessionFactory.metaData());
+		}
 	}
 }

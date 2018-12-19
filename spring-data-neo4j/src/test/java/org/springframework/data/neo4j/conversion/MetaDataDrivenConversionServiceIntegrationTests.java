@@ -20,29 +20,26 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.conversion.support.ConvertedClass;
 import org.springframework.data.neo4j.conversion.support.EntityRepository;
 import org.springframework.data.neo4j.conversion.support.EntityWithConvertedAttributes;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Michael J. Simons
  * @soundtrack Murray Gold - Doctor Who Season 9
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @ContextConfiguration(classes = MetaDataDrivenConversionServiceIntegrationTests.Config.class)
-public class MetaDataDrivenConversionServiceIntegrationTests extends MultiDriverTestClass {
+public class MetaDataDrivenConversionServiceIntegrationTests {
+
+	@Autowired private GraphDatabaseService graphDatabaseService;
 
 	@Autowired private EntityRepository entityRepository;
 
@@ -57,7 +54,7 @@ public class MetaDataDrivenConversionServiceIntegrationTests extends MultiDriver
 		entity.setTheDouble(42.0);
 		entityRepository.save(entity);
 
-		Result result = getGraphDatabaseService()
+		Result result = graphDatabaseService
 				.execute("MATCH (e:EntityWithConvertedAttributes) RETURN e.convertedClass, e.doubles, e.theDouble");
 
 		assertThat(result.hasNext()).isTrue();
@@ -70,19 +67,7 @@ public class MetaDataDrivenConversionServiceIntegrationTests extends MultiDriver
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories(basePackageClasses = EntityWithConvertedAttributes.class)
-	@EnableTransactionManagement
-	public static class Config {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					EntityWithConvertedAttributes.class.getPackage().getName());
-		}
-	}
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.conversion.support",
+			repositoryPackages = "org.springframework.data.neo4j.conversion.support")
+	static class Config {}
 }

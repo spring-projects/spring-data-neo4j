@@ -27,23 +27,25 @@ import javax.enterprise.inject.se.SeContainerInitializer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
+import org.neo4j.harness.ServerControls;
+import org.neo4j.harness.TestServerBuilders;
 import org.springframework.data.neo4j.examples.friends.domain.Person;
 
 /**
  * Integration tests for {@link org.springframework.data.neo4j.repository.cdi.Neo4jCdiRepositoryExtension}.
  *
  * @author Mark Paluch
- * @see DATAGRAPH-879, DATAGRAPH-1028
+ * @author Michael J. Simons
  */
-public class CdiExtensionTests extends MultiDriverTestClass {
+public class CdiExtensionTests {
 
+	static ServerControls neo4jTestServer;
 	static SeContainer container;
 
 	@BeforeClass
-	public static void setUp() throws Exception {
+	public static void setUp() {
 
-		setupMultiDriverTestEnvironment();
+		neo4jTestServer = TestServerBuilders.newInProcessBuilder().newServer();
 
 		// Prevent the Jersey extension to interact with the InitialContext
 		System.setProperty("com.sun.jersey.server.impl.cdi.lookupExtensionInBeanManager", "true");
@@ -57,12 +59,10 @@ public class CdiExtensionTests extends MultiDriverTestClass {
 	@AfterClass
 	public static void tearDown() throws Exception {
 		container.close();
+		neo4jTestServer.close();
 	}
 
-	/**
-	 * @see DATAGRAPH-879, DATAGRAPH-1028
-	 */
-	@Test
+	@Test // DATAGRAPH-879, DATAGRAPH-1028
 	public void regularRepositoryShouldWork() {
 
 		RepositoryClient client = container.select(RepositoryClient.class).get();
@@ -88,10 +88,7 @@ public class CdiExtensionTests extends MultiDriverTestClass {
 		lookedUpPerson.ifPresent(actual -> assertThat(actual.getId(), is(resultId)));
 	}
 
-	/**
-	 * @see DATAGRAPH-879, DATAGRAPH-1028
-	 */
-	@Test
+	@Test // DATAGRAPH-879, DATAGRAPH-1028
 	public void repositoryWithQualifiersShouldWork() {
 
 		RepositoryClient client = container.select(RepositoryClient.class).get();
@@ -100,10 +97,7 @@ public class CdiExtensionTests extends MultiDriverTestClass {
 		assertEquals(0, client.qualifiedPersonRepository.count());
 	}
 
-	/**
-	 * @see DATAGRAPH-879, DATAGRAPH-1028
-	 */
-	@Test
+	@Test // DATAGRAPH-879, DATAGRAPH-1028
 	public void repositoryWithCustomImplementationShouldWork() {
 
 		RepositoryClient client = container.select(RepositoryClient.class).get();

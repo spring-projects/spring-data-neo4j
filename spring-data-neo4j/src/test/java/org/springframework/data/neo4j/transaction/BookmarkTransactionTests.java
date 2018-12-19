@@ -14,23 +14,21 @@
 package org.springframework.data.neo4j.transaction;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assume.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.util.Collection;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.neo4j.driver.v1.AccessMode;
+import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
+import org.neo4j.harness.ServerControls;
+import org.neo4j.harness.TestServerBuilders;
 import org.neo4j.ogm.drivers.bolt.driver.BoltDriver;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -43,27 +41,23 @@ import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.service.UserService;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Frantisek Hartman
+ * @author Michael J. Simons
  */
-@ContextConfiguration(classes = { BookmarkTransactionTests.BookmarkConfiguration.class })
-@RunWith(SpringJUnit4ClassRunner.class)
-public class BookmarkTransactionTests extends MultiDriverTestClass {
+@ContextConfiguration(classes = BookmarkTransactionTests.BookmarkConfiguration.class)
+@RunWith(SpringRunner.class)
+public class BookmarkTransactionTests {
 
 	@Autowired private BookmarkManager bookmarkManager;
 
 	@Autowired private Driver nativeDriver;
 
 	@Autowired private UserService userService;
-
-	@BeforeClass
-	public static void setUpClass() throws Exception {
-		assumeTrue(getBaseConfiguration().build().getDriverClassName().equals(BoltDriver.class.getName()));
-	}
 
 	@Test
 	public void operationsShouldStoreBookmarkAndUseBookmarkShouldReuseBookmark() throws Exception {
@@ -72,6 +66,7 @@ public class BookmarkTransactionTests extends MultiDriverTestClass {
 		Collection<String> bookmarks = bookmarkManager.getBookmarks();
 		assertThat(bookmarks).isNotEmpty();
 
+		@SuppressWarnings("unused")
 		Collection<User> users = userService.getAllUsersWithBookmark();
 
 		Mockito.verify(nativeDriver).session(any(AccessMode.class), eq(bookmarks));
@@ -92,14 +87,34 @@ public class BookmarkTransactionTests extends MultiDriverTestClass {
 
 	@Configuration
 	@EnableTransactionManagement
-	@ComponentScan(value = { "org.springframework.data.neo4j.examples.movies.service" })
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
 	@EnableBookmarkManagement
+	@EnableNeo4jRepositories(basePackages = "org.springframework.data.neo4j.examples.movies.repo")
+	@ComponentScan(value = "org.springframework.data.neo4j.examples.movies.service")
 	static class BookmarkConfiguration {
 
 		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
+		ServerControls neo4jTestServer() {
+			return TestServerBuilders.newInProcessBuilder().newServer();
+		}
+
+		@Bean
+		public Driver nativeDriver(ServerControls neo4jTestServer) {
+			return spy(GraphDatabase.driver(neo4jTestServer.boltURI(), AuthTokens.none()));
+		}
+
+		@Bean
+		org.neo4j.ogm.driver.Driver neo4jOGMDriver(Driver nativeDriver) {
+			return new BoltDriver(nativeDriver);
+		}
+
+		@Bean
+		SessionFactory sessionFactory(org.neo4j.ogm.driver.Driver neo4jOGMDriver) {
+			return new SessionFactory(neo4jOGMDriver, "org.springframework.data.neo4j.examples.movies.domain");
+		}
+
+		@Bean
+		public PlatformTransactionManager transactionManager(SessionFactory sessionFactory) {
+			return new Neo4jTransactionManager(sessionFactory);
 		}
 
 		@Bean
@@ -107,17 +122,5 @@ public class BookmarkTransactionTests extends MultiDriverTestClass {
 		public BookmarkManager bookmarkManager() {
 			return new CaffeineBookmarkManager();
 		}
-
-		@Bean
-		public Driver nativeDriver() {
-			return spy(GraphDatabase.driver(getBaseConfiguration().build().getURI()));
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(new BoltDriver(nativeDriver()),
-					"org.springframework.data.neo4j.examples.movies.domain");
-		}
-
 	}
 }

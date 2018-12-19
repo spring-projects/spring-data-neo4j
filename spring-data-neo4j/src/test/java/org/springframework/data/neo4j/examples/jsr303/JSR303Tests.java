@@ -19,34 +19,29 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.examples.jsr303.domain.Adult;
 import org.springframework.data.neo4j.examples.jsr303.service.AdultService;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
  * @author Vince Bickers
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = { WebConfiguration.class, JSR303Tests.JSR303Context.class })
 @WebAppConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-public class JSR303Tests extends MultiDriverTestClass {
+@RunWith(SpringRunner.class)
+public class JSR303Tests {
 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -101,21 +96,8 @@ public class JSR303Tests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@ComponentScan(basePackageClasses = { AdultService.class })
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.jsr303.repo")
-	@EnableTransactionManagement
-	static class JSR303Context {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.examples.jsr303.domain");
-		}
-	}
-
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.examples.jsr303.domain",
+			repositoryPackages = "org.springframework.data.neo4j.examples.jsr303.repo")
+	@ComponentScan(basePackageClasses = AdultService.class)
+	static class JSR303Context {}
 }

@@ -18,7 +18,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.neo4j.ogm.annotation.GeneratedValue;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.Index;
 import org.neo4j.ogm.annotation.NodeEntity;
@@ -29,13 +28,12 @@ import org.neo4j.ogm.typeconversion.UuidStringConverter;
 /**
  * @author Michal Bachman
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 @NodeEntity
 public class User {
 
-	@Id @GeneratedValue private Long id;
-
-	@Convert(UuidStringConverter.class) @Index(unique = true) private UUID uuid;
+	@Id @Convert(UuidStringConverter.class) @Index(unique = true) private UUID uuid;
 
 	private String name;
 
@@ -62,11 +60,6 @@ public class User {
 
 	public void befriend(User user) {
 		friends.add(user);
-	}
-
-	// this doesn't need to be part of the domain, but this class is for testing
-	public Long getId() {
-		return id;
 	}
 
 	public String getName() {

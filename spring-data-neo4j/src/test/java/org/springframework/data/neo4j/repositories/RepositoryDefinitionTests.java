@@ -21,20 +21,15 @@ import java.util.stream.StreamSupport;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.repositories.domain.Movie;
 import org.springframework.data.neo4j.repositories.repo.MovieRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -43,20 +38,19 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Mark Angrish
  * @author Michael J. Simons
  */
-@ContextConfiguration(classes = { RepositoryDefinitionTests.RepositoriesTestContext.class })
+@ContextConfiguration(classes = RepositoryDefinitionTests.RepositoriesTestContext.class)
 @RunWith(SpringRunner.class)
-public class RepositoryDefinitionTests extends MultiDriverTestClass {
+public class RepositoryDefinitionTests {
 
-	@Autowired PlatformTransactionManager platformTransactionManager;
+	@Autowired private GraphDatabaseService graphDatabaseService;
 
-	private TransactionTemplate transactionTemplate;
+	@Autowired private TransactionTemplate transactionTemplate;
 
 	@Autowired private MovieRepository movieRepository;
 
 	@Before
 	public void clearDatabase() {
-		transactionTemplate = new TransactionTemplate(platformTransactionManager);
-		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	@Test
@@ -70,23 +64,12 @@ public class RepositoryDefinitionTests extends MultiDriverTestClass {
 				assertEquals(1, StreamSupport.stream(movieRepository.findAll().spliterator(), false).count());
 			}
 		});
-		assertSameGraph(getGraphDatabaseService(), "CREATE (m:Movie {title:'PF'})");
+		assertSameGraph(graphDatabaseService, "CREATE (m:Movie {title:'PF'})");
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.repositories.repo")
-	@EnableTransactionManagement
-	static class RepositoriesTestContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.repositories.domain");
-		}
-	}
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.repositories.domain",
+			repositoryPackages = "org.springframework.data.neo4j.repositories.repo")
+	static class RepositoriesTestContext {}
 
 }

@@ -18,9 +18,8 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,26 +30,24 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmount;
 import org.springframework.data.neo4j.integration.conversion.domain.PensionPlan;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Michael J. Simons
  */
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = { ShouldPickPrimaryConversionServiceTests.ConversionServicePersistenceContext.class })
-public class ShouldPickPrimaryConversionServiceTests extends MultiDriverTestClass {
+@ContextConfiguration(classes = ShouldPickPrimaryConversionServiceTests.ConversionServicePersistenceContext.class)
+public class ShouldPickPrimaryConversionServiceTests {
+
+	@Autowired private GraphDatabaseService graphDatabaseService;
 
 	@Autowired private PensionRepository pensionRepository;
 
 	@Before
 	public void setUp() {
-		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	@Test
@@ -58,7 +55,7 @@ public class ShouldPickPrimaryConversionServiceTests extends MultiDriverTestClas
 		PensionPlan pension = new PensionPlan(new MonetaryAmount(16472, 81), "Tightfist Asset Management Ltd");
 		pension = this.pensionRepository.save(pension);
 
-		Result result = getGraphDatabaseService().execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
+		Result result = graphDatabaseService.execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
 		assertTrue("Nothing was saved", result.hasNext());
 		assertEquals("The amount wasn't converted and persisted correctly", "42", String.valueOf(result.next().get("fv")));
 		result.close();
@@ -68,8 +65,8 @@ public class ShouldPickPrimaryConversionServiceTests extends MultiDriverTestClas
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories(basePackageClasses = { PensionRepository.class })
-	@EnableTransactionManagement
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.integration.conversion.domain",
+			repositoryPackages = "org.springframework.data.neo4j.integration.conversion")
 	static class ConversionServicePersistenceContext {
 
 		/**
@@ -98,17 +95,6 @@ public class ShouldPickPrimaryConversionServiceTests extends MultiDriverTestClas
 		@Bean
 		public ConversionService conversionService2() {
 			return DefaultConversionService.getSharedInstance();
-		}
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.integration.conversion.domain");
 		}
 	}
 }

@@ -21,60 +21,40 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.examples.movies.domain.Rating;
 import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
 import org.springframework.data.neo4j.examples.movies.domain.User;
-import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.RatingRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Luanne Misquitta
  * @author Mark Angrish
  * @author Vince Bickers
+ * @author Michael J. Simons
  */
-@ContextConfiguration(classes = { DerivedRelationshipEntityQueryTests.MoviesContext.class })
-@RunWith(SpringJUnit4ClassRunner.class)
-public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
+@ContextConfiguration(classes = MoviesContextConfiguration.class)
+@RunWith(SpringRunner.class)
+@Transactional
+public class DerivedRelationshipEntityQueryTests {
 
-	@Autowired PlatformTransactionManager platformTransactionManager;
+	@Autowired private GraphDatabaseService graphDatabaseService;
 
 	@Autowired private UserRepository userRepository;
 
-	@Autowired private CinemaRepository cinemaRepository;
-
 	@Autowired private RatingRepository ratingRepository;
-
-	private TransactionTemplate transactionTemplate;
 
 	@Before
 	public void clearDatabase() {
-		transactionTemplate = new TransactionTemplate(platformTransactionManager);
-		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-	}
-
-	private void executeUpdate(String cypher) {
-		getGraphDatabaseService().execute(cypher);
+		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	@Test
-	@Transactional
 	public void shouldFindREFromCustomQuery() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -90,11 +70,7 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 		assertEquals("The critic wasn't saved correctly", critic.getId(), rating.getUser().getId());
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
-	@Transactional
+	@Test // DATAGRAPH-629
 	public void shouldFindREWithSingleProperty() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -111,11 +87,7 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
-	@Transactional
+	@Test // DATAGRAPH-629
 	public void shouldFindREWithMultiplePropertiesAnded() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -136,11 +108,7 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 		assertEquals(0, ratings.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
-	@Transactional
+	@Test // DATAGRAPH-629
 	public void shouldFindREWithMultiplePropertiesOred() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -161,11 +129,7 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 		assertEquals(0, ratings.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
-	@Transactional
+	@Test // DATAGRAPH-629
 	public void shouldFindREWithMultiplePropertiesDifferentComparisonOperatorsAnded() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -186,11 +150,7 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 		assertEquals(0, ratings.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
-	@Transactional
+	@Test // DATAGRAPH-629
 	public void shouldFindREWithMultiplePropertiesDifferentComparisonOperatorsOred() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -211,209 +171,141 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 		assertEquals(0, ratings.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-632
-	 */
-	@Test
+	@Test // DATAGRAPH-632
 	public void shouldFindRelEntitiesWithNestedStartNodeProperty() {
-		executeUpdate(
+		graphDatabaseService.execute(
 				"CREATE (m1:Movie {name:'Speed'}) CREATE (m2:Movie {name:'The Matrix'}) CREATE (m:Movie {name:'Chocolat'})"
 						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
-		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-			@Override
-			public void doInTransactionWithoutResult(TransactionStatus status) {
-				List<Rating> ratings = ratingRepository.findByUserName("Michal");
-				assertEquals(2, ratings.size());
-				Collections.sort(ratings);
-				assertEquals("Speed", ratings.get(0).getMovie().getName());
-				assertEquals("The Matrix", ratings.get(1).getMovie().getName());
-			}
-		});
+		List<Rating> ratings = ratingRepository.findByUserName("Michal");
+		assertEquals(2, ratings.size());
+		Collections.sort(ratings);
+		assertEquals("Speed", ratings.get(0).getMovie().getName());
+		assertEquals("The Matrix", ratings.get(1).getMovie().getName());
 	}
 
-	/**
-	 * @see DATAGRAPH-632
-	 */
-	@Test
+	@Test // DATAGRAPH-632
 	public void shouldFindRelEntitiesWithNestedEndNodeProperty() {
-		executeUpdate(
+		graphDatabaseService.execute(
 				"CREATE (m1:Movie {name:'Finding Dory'}) CREATE (m2:Movie {name:'Captain America'}) CREATE (m:Movie {name:'X-Men'})"
 						+ " CREATE (u:User {name:'Vince'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
-		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-			@Override
-			public void doInTransactionWithoutResult(TransactionStatus status) {
-				List<Rating> ratings = ratingRepository.findByMovieName("Captain America");
-				assertEquals(1, ratings.size());
-				assertEquals("Vince", ratings.get(0).getUser().getName());
-				assertEquals("Captain America", ratings.get(0).getMovie().getName());
-				assertEquals(4, ratings.get(0).getStars());
+		List<Rating> ratings = ratingRepository.findByMovieName("Captain America");
+		assertEquals(1, ratings.size());
+		assertEquals("Vince", ratings.get(0).getUser().getName());
+		assertEquals("Captain America", ratings.get(0).getMovie().getName());
+		assertEquals(4, ratings.get(0).getStars());
 
-				ratings = ratingRepository.findByMovieName("X-Men");
-				assertEquals(0, ratings.size());
-			}
-		});
+		ratings = ratingRepository.findByMovieName("X-Men");
+		assertEquals(0, ratings.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-632
-	 */
-	@Test
+	@Test // DATAGRAPH-632
 	public void shouldFindRelEntitiesWithBothStartEndNestedProperty() {
-		executeUpdate(
+		graphDatabaseService.execute(
 				"CREATE (m1:Movie {name:'Independence Day: Resurgence'}) CREATE (m2:Movie {name:'The Conjuring 2'}) CREATE (m:Movie {name:'The BFG'})"
 						+ " CREATE (u:User {name:'Daniela'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
-		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-			@Override
-			public void doInTransactionWithoutResult(TransactionStatus status) {
-				List<Rating> ratings = ratingRepository.findByUserNameAndMovieName("Daniela", "Independence Day: Resurgence");
-				assertEquals(1, ratings.size());
-				assertEquals("Daniela", ratings.get(0).getUser().getName());
-				assertEquals("Independence Day: Resurgence", ratings.get(0).getMovie().getName());
-				assertEquals(3, ratings.get(0).getStars());
+		List<Rating> ratings = ratingRepository.findByUserNameAndMovieName("Daniela", "Independence Day: Resurgence");
+		assertEquals(1, ratings.size());
+		assertEquals("Daniela", ratings.get(0).getUser().getName());
+		assertEquals("Independence Day: Resurgence", ratings.get(0).getMovie().getName());
+		assertEquals(3, ratings.get(0).getStars());
 
-				ratings = ratingRepository.findByUserNameAndMovieName("Daniela", "The BFG");
-				assertEquals(0, ratings.size());
-			}
-		});
+		ratings = ratingRepository.findByUserNameAndMovieName("Daniela", "The BFG");
+		assertEquals(0, ratings.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-632
-	 */
-	@Test
+	@Test // DATAGRAPH-632
 	public void shouldFindRelEntitiesWithBaseAndNestedStartNodePropertyAnded() {
-		executeUpdate(
+		graphDatabaseService.execute(
 				"CREATE (m1:Movie {name:'The Shallows'}) CREATE (m2:Movie {name:'Central Intelligence'}) CREATE (m:Movie {name:'Now you see me'})"
 						+ " CREATE (u:User {name:'Luanne'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
-		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-			@Override
-			public void doInTransactionWithoutResult(TransactionStatus status) {
-				List<Rating> ratings = ratingRepository.findByUserNameAndStars("Luanne", 3);
-				assertEquals(1, ratings.size());
-				assertEquals("Luanne", ratings.get(0).getUser().getName());
-				assertEquals("The Shallows", ratings.get(0).getMovie().getName());
-				assertEquals(3, ratings.get(0).getStars());
+		List<Rating> ratings = ratingRepository.findByUserNameAndStars("Luanne", 3);
+		assertEquals(1, ratings.size());
+		assertEquals("Luanne", ratings.get(0).getUser().getName());
+		assertEquals("The Shallows", ratings.get(0).getMovie().getName());
+		assertEquals(3, ratings.get(0).getStars());
 
-				ratings = ratingRepository.findByUserNameAndStars("Luanne", 1);
-				assertEquals(0, ratings.size());
-			}
-		});
+		ratings = ratingRepository.findByUserNameAndStars("Luanne", 1);
+		assertEquals(0, ratings.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-662 //TODO FIXME
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAGRAPH-662
 	public void shouldFindRelEntitiesWithBaseAndNestedStartNodePropertyOred() {
-		executeUpdate(
+		graphDatabaseService.execute(
 				"CREATE (m1:Movie {name:'Swiss Army Man'}) CREATE (m2:Movie {name:'Me Before You'}) CREATE (m:Movie {name:'X-Men Apocalypse'})"
 						+ " CREATE (u:User {name:'Mark'}) CREATE (u2:User {name:'Adam'})  "
 						+ " CREATE (u)-[:RATED {stars:2}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)"
 						+ " CREATE (u2)-[:RATED {stars:3}]->(m)");
 
-		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-			@Override
-			public void doInTransactionWithoutResult(TransactionStatus status) {
-				List<Rating> ratings = ratingRepository.findByStarsOrUserName(3, "Mark");
-				assertEquals(3, ratings.size());
-				Collections.sort(ratings);
-				assertEquals("Swiss Army Man", ratings.get(0).getMovie().getName());
-				assertEquals("X-Men Apocalypse", ratings.get(1).getMovie().getName());
-				assertEquals("Me Before You", ratings.get(2).getMovie().getName());
+		List<Rating> ratings = ratingRepository.findByStarsOrUserName(3, "Mark");
+		assertEquals(3, ratings.size());
+		Collections.sort(ratings);
+		assertEquals("Swiss Army Man", ratings.get(0).getMovie().getName());
+		assertEquals("X-Men Apocalypse", ratings.get(1).getMovie().getName());
+		assertEquals("Me Before You", ratings.get(2).getMovie().getName());
 
-				ratings = ratingRepository.findByStarsOrUserName(0, "Vince");
-				assertEquals(0, ratings.size());
-			}
-		});
+		ratings = ratingRepository.findByStarsOrUserName(0, "Vince");
+		assertEquals(0, ratings.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-632
-	 */
-	@Test
+	@Test // DATAGRAPH-632
 	public void shouldFindRelEntitiesWithBaseAndNestedEndNodeProperty() {
-		executeUpdate(
+		graphDatabaseService.execute(
 				"CREATE (m1:Movie {name:'Our Kind of Traitor'}) CREATE (m2:Movie {name:'Teenage Mutant Ninja Turtles'}) CREATE (m:Movie {name:'Zootopia'})"
 						+ " CREATE (u:User {name:'Chris'}) CREATE (u2:User {name:'Katerina'}) "
 						+ " CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)"
 						+ " CREATE (u2)-[:RATED {stars:4}]->(m2)");
 
-		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-			@Override
-			public void doInTransactionWithoutResult(TransactionStatus status) {
-				List<Rating> ratings = ratingRepository.findByStarsAndMovieName(4, "Teenage Mutant Ninja Turtles");
-				assertEquals(2, ratings.size());
-				Collections.sort(ratings);
-				assertEquals("Chris", ratings.get(0).getUser().getName());
-				assertEquals("Katerina", ratings.get(1).getUser().getName());
+		List<Rating> ratings = ratingRepository.findByStarsAndMovieName(4, "Teenage Mutant Ninja Turtles");
+		assertEquals(2, ratings.size());
+		Collections.sort(ratings);
+		assertEquals("Chris", ratings.get(0).getUser().getName());
+		assertEquals("Katerina", ratings.get(1).getUser().getName());
 
-				ratings = ratingRepository.findByStarsAndMovieName(5, "Teenage Mutant Ninja Turtles");
-				assertEquals(0, ratings.size());
-			}
-		});
+		ratings = ratingRepository.findByStarsAndMovieName(5, "Teenage Mutant Ninja Turtles");
+		assertEquals(0, ratings.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-632
-	 */
-	@Test
+	@Test // DATAGRAPH-632
 	public void shouldFindRelEntitiesWithBaseAndBothStartEndNestedProperty() {
-		executeUpdate(
+		graphDatabaseService.execute(
 				"CREATE (m1:Movie {name:'The Jungle Book'}) CREATE (m2:Movie {name:'The Angry Birds Movie'}) CREATE (m:Movie {name:'Alice Through The Looking Glass'})"
 						+ " CREATE (u:User {name:'Alessandro'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
-		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-			@Override
-			public void doInTransactionWithoutResult(TransactionStatus status) {
-				List<Rating> ratings = ratingRepository.findByUserNameAndMovieNameAndStars("Alessandro", "The Jungle Book", 3);
-				assertEquals(1, ratings.size());
-				assertEquals("Alessandro", ratings.get(0).getUser().getName());
-				assertEquals("The Jungle Book", ratings.get(0).getMovie().getName());
-				assertEquals(3, ratings.get(0).getStars());
+		List<Rating> ratings = ratingRepository.findByUserNameAndMovieNameAndStars("Alessandro", "The Jungle Book", 3);
+		assertEquals(1, ratings.size());
+		assertEquals("Alessandro", ratings.get(0).getUser().getName());
+		assertEquals("The Jungle Book", ratings.get(0).getMovie().getName());
+		assertEquals(3, ratings.get(0).getStars());
 
-				ratings = ratingRepository.findByUserNameAndMovieNameAndStars("Colin", "Speed", 0);
-				assertEquals(0, ratings.size());
-			}
-		});
+		ratings = ratingRepository.findByUserNameAndMovieNameAndStars("Colin", "Speed", 0);
+		assertEquals(0, ratings.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-632
-	 */
-	@Test
+	@Test // DATAGRAPH-632
 	public void shouldFindRelEntitiesWithTwoStartNodeNestedProperties() {
-		executeUpdate(
+		graphDatabaseService.execute(
 				"CREATE (m1:Movie {name:'Batman v Superman'}) CREATE (m2:Movie {name:'Genius'}) CREATE (m:Movie {name:'Home'})"
 						+ " CREATE (u:User {name:'David', middleName:'M'}) CREATE (u2:User {name:'Martin', middleName:'M'}) "
 						+ " CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)"
 						+ " CREATE (u2)-[:RATED {stars:4}]->(m2)");
 
-		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-			@Override
-			public void doInTransactionWithoutResult(TransactionStatus status) {
-				List<Rating> ratings = ratingRepository.findByUserNameAndUserMiddleName("David", "M");
-				assertEquals(2, ratings.size());
-				Collections.sort(ratings);
-				assertEquals("David", ratings.get(0).getUser().getName());
-				assertEquals("Batman v Superman", ratings.get(0).getMovie().getName());
-				assertEquals("David", ratings.get(1).getUser().getName());
-				assertEquals("Genius", ratings.get(1).getMovie().getName());
+		List<Rating> ratings = ratingRepository.findByUserNameAndUserMiddleName("David", "M");
+		assertEquals(2, ratings.size());
+		Collections.sort(ratings);
+		assertEquals("David", ratings.get(0).getUser().getName());
+		assertEquals("Batman v Superman", ratings.get(0).getMovie().getName());
+		assertEquals("David", ratings.get(1).getUser().getName());
+		assertEquals("Genius", ratings.get(1).getMovie().getName());
 
-				ratings = ratingRepository.findByUserNameAndUserMiddleName("David", "V");
-				assertEquals(0, ratings.size());
-			}
-		});
+		ratings = ratingRepository.findByUserNameAndUserMiddleName("David", "V");
+		assertEquals(0, ratings.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-813
-	 */
-	@Test
-	@Transactional
+	@Test // DATAGRAPH-813
 	public void shouldDeleteAndReturnDeletedIds() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -430,11 +322,7 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 		assertEquals(0, ratings.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-813
-	 */
-	@Test
-	@Transactional
+	@Test // DATAGRAPH-813
 	public void shouldCountByStars() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -448,11 +336,7 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 
 	}
 
-	/**
-	 * @see DATAGRAPH-813
-	 */
-	@Test
-	@Transactional
+	@Test // DATAGRAPH-813
 	public void shouldRemoveByUserNameAndReturnCountOfDeletedObjects() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -466,11 +350,7 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 
 	}
 
-	/**
-	 * @see DATAGRAPH-813
-	 */
-	@Test
-	@Transactional
+	@Test // DATAGRAPH-813
 	public void shouldCountNothingWithNonMatchingFilter() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -481,14 +361,9 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 
 		long countRemovedObjects = ratingRepository.removeByUserName("Bill");
 		assertEquals(0L, countRemovedObjects);
-
 	}
 
-	/**
-	 * @see DATAGRAPH-813
-	 */
-	@Test
-	@Transactional
+	@Test // DATAGRAPH-813
 	public void shouldDeleteNothingWithNonMatchingFilter() {
 		User critic = new User("Gary");
 		TempMovie film = new TempMovie("Fast and Furious XVII");
@@ -499,24 +374,5 @@ public class DerivedRelationshipEntityQueryTests extends MultiDriverTestClass {
 
 		List<Long> deletedIds = ratingRepository.deleteByStarsOrRatingTimestampGreaterThan(3, 2000);
 		assertEquals(0L, deletedIds.size());
-
-	}
-
-	@Configuration
-	@ComponentScan({ "org.springframework.data.neo4j.examples.movies.service" })
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
-	@EnableTransactionManagement
-	static class MoviesContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.examples.movies.domain");
-		}
 	}
 }
