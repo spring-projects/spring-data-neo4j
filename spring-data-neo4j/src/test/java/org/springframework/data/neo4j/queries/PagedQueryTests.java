@@ -19,12 +19,8 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
+import org.neo4j.harness.ServerControls;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,13 +30,9 @@ import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResult;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.CinemaQueryResultInterface;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -52,20 +44,19 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Nicolas Mervaillie
  * @see DATAGRAPH-680
  */
-@ContextConfiguration(classes = { PagedQueryTests.MoviesContext.class })
-@RunWith(SpringJUnit4ClassRunner.class)
-public class PagedQueryTests extends MultiDriverTestClass {
+@ContextConfiguration(classes = MoviesContextConfiguration.class)
+@RunWith(SpringRunner.class)
+public class PagedQueryTests {
 
-	@Autowired PlatformTransactionManager platformTransactionManager;
+	@Autowired private ServerControls neo4jTestServer;
 
 	@Autowired private CinemaRepository cinemaRepository;
 
-	private TransactionTemplate transactionTemplate;
+	@Autowired private TransactionTemplate transactionTemplate;
 
 	@Before
 	public void init() {
-		transactionTemplate = new TransactionTemplate(platformTransactionManager);
-		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		neo4jTestServer.graph().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	public void setup() {
@@ -80,7 +71,7 @@ public class PagedQueryTests extends MultiDriverTestClass {
 	}
 
 	private void executeUpdate(String cypher) {
-		getGraphDatabaseService().execute(cypher);
+		neo4jTestServer.graph().execute(cypher);
 	}
 
 	@Test
@@ -498,23 +489,5 @@ public class PagedQueryTests extends MultiDriverTestClass {
 		assertEquals("Rainbow", cinemas.get(7).getName());
 		assertEquals("Regal", cinemas.get(8).getName());
 		assertEquals("Ritzy", cinemas.get(9).getName());
-	}
-
-	@Configuration
-	@ComponentScan({ "org.springframework.data.neo4j.examples.movies.service" })
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
-	@EnableTransactionManagement
-	static class MoviesContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.examples.movies.domain");
-		}
 	}
 }

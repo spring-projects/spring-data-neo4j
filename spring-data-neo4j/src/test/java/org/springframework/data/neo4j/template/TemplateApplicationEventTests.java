@@ -19,19 +19,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.events.EventPublisher;
 import org.springframework.data.neo4j.events.Neo4jModificationEventListener;
 import org.springframework.data.neo4j.examples.movies.domain.Actor;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -42,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @ContextConfiguration(classes = TemplateApplicationEventTests.DataManipulationEventConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-public class TemplateApplicationEventTests extends MultiDriverTestClass {
+public class TemplateApplicationEventTests {
 
 	@Autowired private Session session;
 
@@ -75,32 +74,25 @@ public class TemplateApplicationEventTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories
-	@EnableTransactionManagement
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.examples.movies.domain")
 	static class DataManipulationEventConfiguration {
 
 		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.examples.movies.domain") {
-
+		public BeanPostProcessor sessionFactoryPostProcessor(EventPublisher eventPublisher) {
+			return new BeanPostProcessor() {
 				@Override
-				public Session openSession() {
-					Session session = super.openSession();
-					session.register(eventPublisher());
-					return session;
+				public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+					if (bean instanceof SessionFactory) {
+						((SessionFactory) bean).register(eventPublisher);
+					}
+					return null;
 				}
 			};
 		}
 
 		@Bean
-		public EventPublisher eventPublisher() {
-			return new EventPublisher();
+		public EventPublisher eventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+			return new EventPublisher(applicationEventPublisher);
 		}
 
 		@Bean

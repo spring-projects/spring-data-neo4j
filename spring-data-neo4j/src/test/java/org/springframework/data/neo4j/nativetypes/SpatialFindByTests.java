@@ -16,39 +16,33 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.neo4j.ogm.types.spatial.CartesianPoint2d;
 import org.neo4j.ogm.types.spatial.CartesianPoint3d;
 import org.neo4j.ogm.types.spatial.GeographicPoint2d;
 import org.neo4j.ogm.types.spatial.GeographicPoint3d;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@ContextConfiguration(classes = SpatialFindByTest.SpatialPersistenceContext.class)
+/**
+ * @author Gerrit Meier
+ * @author Michael J. Simons
+ */
 @RunWith(SpringRunner.class)
-public class SpatialFindByTest extends MultiDriverTestClass {
+@ContextConfiguration(classes = NativeTypesContextConfiguration.class)
+public class SpatialFindByTests {
 
-	private static org.neo4j.ogm.config.Configuration configuration;
-
-	@Autowired private SpatialDomainRepository repository;
+	@Autowired
+	private SpatialDomainRepository repository;
 
 	private SpatialDomain spatialDomain;
 
 	@Before
 	public void setUpDomainObject() {
-		Assume.assumeFalse(runsInHttpMode());
 		repository.deleteAll();
 
 		spatialDomain = new SpatialDomain();
@@ -95,28 +89,5 @@ public class SpatialFindByTest extends MultiDriverTestClass {
 
 		List<SpatialDomain> result = repository.findByCartesianPoint3d(cartesianPoint3d);
 		assertThat(result).hasSize(1);
-	}
-
-	private boolean runsInHttpMode() {
-		return configuration.getURI().startsWith("http");
-	}
-
-	@Configuration
-	@EnableNeo4jRepositories
-	@EnableTransactionManagement
-	static class SpatialPersistenceContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-
-			configuration = getBaseConfiguration().useNativeTypes().build();
-
-			return new SessionFactory(configuration, "org.springframework.data.neo4j.nativetypes");
-		}
 	}
 }

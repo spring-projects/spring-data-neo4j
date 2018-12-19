@@ -33,8 +33,7 @@ import org.neo4j.ogm.typeconversion.UuidStringConverter;
 @NodeEntity
 public class User {
 
-	@Id @GeneratedValue private Long id;
-
+	@Id
 	@Convert(UuidStringConverter.class) @Index(unique = true) private UUID uuid;
 
 	private String name;
@@ -62,11 +61,6 @@ public class User {
 
 	public void befriend(User user) {
 		friends.add(user);
-	}
-
-	// this doesn't need to be part of the domain, but this class is for testing
-	public Long getId() {
-		return id;
 	}
 
 	public String getName() {

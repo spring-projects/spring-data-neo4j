@@ -17,58 +17,39 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.domain.sample.User;
-import org.springframework.data.neo4j.repository.sample.UserRepository;
-import org.springframework.data.neo4j.repository.support.TransactionalRepositoryTests;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Integration test for the combination of JavaConfig and an {@link Repositories} wrapper.
  *
  * @author Mark Angrish
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @ContextConfiguration(classes = RepositoriesJavaConfigTests.Config.class)
-public class RepositoriesJavaConfigTests extends MultiDriverTestClass {
+public class RepositoriesJavaConfigTests {
 
 	@Configuration
-	@EnableNeo4jRepositories(basePackageClasses = UserRepository.class)
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.domain.sample",
+			repositoryPackages = "org.springframework.data.neo4j.repository.sample")
 	static class Config {
-
-		@Autowired ApplicationContext context;
-
 		@Bean
-		public Repositories repositories() {
+		public Repositories repositories(ApplicationContext context) {
 			return new Repositories(context);
-		}
-
-		@Bean
-		public TransactionalRepositoryTests.DelegatingTransactionManager transactionManager() throws Exception {
-			return new TransactionalRepositoryTests.DelegatingTransactionManager(
-					new Neo4jTransactionManager(sessionFactory()));
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.domain.sample");
 		}
 	}
 
 	@Autowired Repositories repositories;
 
-	/**
-	 */
 	@Test
-	public void foo() {
+	public void neo4jRepositoriesShouldBeRegistered() {
 		assertThat(repositories.hasRepositoryFor(User.class), is(true));
 	}
 }

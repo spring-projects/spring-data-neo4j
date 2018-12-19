@@ -27,13 +27,9 @@ import java.util.concurrent.Executors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.harness.ServerControls;
 import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -47,13 +43,9 @@ import org.springframework.data.neo4j.examples.movies.domain.queryresult.EntityW
 import org.springframework.data.neo4j.examples.movies.repo.CinemaRepository;
 import org.springframework.data.neo4j.examples.movies.repo.DirectorRepository;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -63,11 +55,11 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Mark Angrish
  * @author Michael J. Simons
  */
-@ContextConfiguration(classes = { DerivedQueryTests.MoviesContext.class })
-@RunWith(SpringJUnit4ClassRunner.class)
-public class DerivedQueryTests extends MultiDriverTestClass {
+@ContextConfiguration(classes = MoviesContextConfiguration.class)
+@RunWith(SpringRunner.class)
+public class DerivedQueryTests {
 
-	@Autowired PlatformTransactionManager platformTransactionManager;
+	@Autowired private ServerControls neo4jTestServer;
 
 	@Autowired private Session session;
 
@@ -77,16 +69,15 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 
 	@Autowired private DirectorRepository directorRepository;
 
-	private TransactionTemplate transactionTemplate;
+	@Autowired private TransactionTemplate transactionTemplate;
 
 	@Before
 	public void clearDatabase() {
-		transactionTemplate = new TransactionTemplate(platformTransactionManager);
-		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		neo4jTestServer.graph().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	private void executeUpdate(String cypher) {
-		getGraphDatabaseService().execute(cypher);
+		neo4jTestServer.graph().execute(cypher);
 	}
 
 	@Test
@@ -764,23 +755,4 @@ public class DerivedQueryTests extends MultiDriverTestClass {
 			}
 		}
 	}
-
-	@Configuration
-	@ComponentScan({ "org.springframework.data.neo4j.examples.movies.service" })
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
-	@EnableTransactionManagement
-	static class MoviesContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.examples.movies.domain");
-		}
-	}
-
 }

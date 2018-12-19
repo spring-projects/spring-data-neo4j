@@ -34,46 +34,31 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
+import org.neo4j.harness.ServerControls;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaStreamingRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Nicolas Mervaillie
  */
-@ContextConfiguration(classes = { Java8SupportTests.MoviesContext.class })
+@ContextConfiguration(classes = MoviesContextConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-public class Java8SupportTests extends MultiDriverTestClass {
+public class Java8SupportTests {
 
-	private static GraphDatabaseService graphDatabaseService;
+	@Autowired private ServerControls neo4jTestServer;
 
 	@Autowired private CinemaStreamingRepository cinemaRepository;
 
-	@BeforeClass
-	public static void beforeClass() {
-		graphDatabaseService = getGraphDatabaseService();
-	}
-
 	@Before
 	public void init() {
-		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		neo4jTestServer.graph().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	public void setup() {
@@ -130,23 +115,5 @@ public class Java8SupportTests extends MultiDriverTestClass {
 			assertEquals(10, cinemas.size());
 			cinemas.forEach(cinema -> assertNotNull(cinema.getName()));
 		});
-	}
-
-	@Configuration
-	@ComponentScan({ "org.springframework.data.neo4j.examples.movies.service" })
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
-	@EnableTransactionManagement
-	static class MoviesContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.examples.movies.domain");
-		}
 	}
 }

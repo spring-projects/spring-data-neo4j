@@ -20,13 +20,16 @@ import java.util.List;
 import java.util.stream.StreamSupport;
 
 import org.assertj.core.api.Assertions;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.neo4j.harness.ServerControls;
+import org.neo4j.harness.TestServerBuilders;
+import org.neo4j.ogm.config.Configuration;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.data.neo4j.repositories.domain.Movie;
 import org.springframework.data.neo4j.repositories.domain.User;
 import org.springframework.data.neo4j.repositories.repo.MovieRepository;
@@ -47,10 +50,10 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Vince Bickers
  * @author Michael J. Simons
  */
-public class ProgrammaticRepositoryTests extends MultiDriverTestClass {
+public class ProgrammaticRepositoryTests {
 
+	private static ServerControls serverControls;
 	private static SessionFactory sessionFactory;
-	private static PlatformTransactionManager platformTransactionManager;
 	private static TransactionTemplate transactionTemplate;
 
 	private MovieRepository movieRepository;
@@ -58,10 +61,29 @@ public class ProgrammaticRepositoryTests extends MultiDriverTestClass {
 
 	@BeforeClass
 	public static void oneTimeSetUp() {
-		sessionFactory = new SessionFactory(getBaseConfiguration().build(),
-				"org.springframework.data.neo4j.repositories.domain");
-		platformTransactionManager = new Neo4jTransactionManager(sessionFactory);
+		serverControls = TestServerBuilders.newInProcessBuilder().newServer();
+
+		Configuration configuration = new Configuration.Builder() //
+				.uri(serverControls.boltURI().toString()) //
+				.build();
+		sessionFactory = new SessionFactory(configuration, "org.springframework.data.neo4j.repositories.domain");
+
+		PlatformTransactionManager platformTransactionManager = new Neo4jTransactionManager(sessionFactory);
 		transactionTemplate = new TransactionTemplate(platformTransactionManager);
+	}
+
+	@AfterClass
+	public static void shutdownTestServer() {
+
+		if (sessionFactory != null) {
+			sessionFactory.close();
+			sessionFactory = null;
+		}
+
+		if (serverControls != null) {
+			serverControls.close();
+			serverControls = null;
+		}
 	}
 
 	@Before
@@ -85,7 +107,7 @@ public class ProgrammaticRepositoryTests extends MultiDriverTestClass {
 			}
 		});
 
-		assertSameGraph(getGraphDatabaseService(), "CREATE (m:Movie {title:'PF'})");
+		assertSameGraph(serverControls.graph(), "CREATE (m:Movie {title:'PF'})");
 
 		assertEquals(1, StreamSupport.stream(movieRepository.findAll().spliterator(), false).count());
 	}

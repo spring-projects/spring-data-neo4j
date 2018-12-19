@@ -17,30 +17,25 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.data.neo4j.examples.movies.service.UserService;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.queries.MoviesContextConfiguration;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Michal Bachman
  */
-@ContextConfiguration(classes = { TransactionIntegrationTests.MoviesContext.class })
-@RunWith(SpringJUnit4ClassRunner.class)
-public class TransactionIntegrationTests extends MultiDriverTestClass {
+@ContextConfiguration(classes = MoviesContextConfiguration.class)
+@RunWith(SpringRunner.class)
+public class TransactionIntegrationTests {
+
+	@Autowired private GraphDatabaseService graphDatabaseService;
 
 	@Autowired private UserRepository userRepository;
 
@@ -56,12 +51,12 @@ public class TransactionIntegrationTests extends MultiDriverTestClass {
 				throw new TransactionInterceptException("Deliberate testing exception");
 			}
 		};
-		getGraphDatabaseService().registerTransactionEventHandler(handler);
+		graphDatabaseService.registerTransactionEventHandler(handler);
 	}
 
 	@After
 	public void cleanupHandler() {
-		getGraphDatabaseService().unregisterTransactionEventHandler(handler);
+		graphDatabaseService.unregisterTransactionEventHandler(handler);
 	}
 
 	@Test(expected = Exception.class)
@@ -83,24 +78,6 @@ public class TransactionIntegrationTests extends MultiDriverTestClass {
 
 		public TransactionInterceptException(String msg) {
 			super(msg);
-		}
-	}
-
-	@Configuration
-	@ComponentScan({ "org.springframework.data.neo4j.examples.movies.service" })
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.movies.repo")
-	@EnableTransactionManagement
-	static class MoviesContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.examples.movies.domain");
 		}
 	}
 }

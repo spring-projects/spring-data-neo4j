@@ -13,6 +13,7 @@
 
 package org.springframework.data.neo4j.web.repo;
 
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.data.neo4j.repository.Neo4jRepository;

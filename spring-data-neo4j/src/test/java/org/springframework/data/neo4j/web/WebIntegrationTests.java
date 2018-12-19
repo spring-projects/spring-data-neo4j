@@ -21,45 +21,38 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.web.domain.User;
 import org.springframework.data.neo4j.web.repo.UserRepository;
 import org.springframework.data.neo4j.web.support.OpenSessionInViewInterceptor;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * @author Michal Bachman
  * @author Mark Angrish
  */
 @WebAppConfiguration
-@ContextConfiguration(classes = { WebIntegrationTests.WebAppContext.class })
-@RunWith(SpringJUnit4ClassRunner.class)
-@Ignore("Why is this failing?")
-public class WebIntegrationTests extends MultiDriverTestClass {
+@ContextConfiguration(classes = WebIntegrationTests.WebAppContext.class)
+@RunWith(SpringRunner.class)
+public class WebIntegrationTests {
 
 	@Autowired private UserRepository userRepository;
 
@@ -78,7 +71,6 @@ public class WebIntegrationTests extends MultiDriverTestClass {
 	@Transactional
 	@Before
 	public void setUp() {
-		Mockito.reset(userRepository);
 
 		this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
 
@@ -162,33 +154,27 @@ public class WebIntegrationTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@EnableWebMvc
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.web.domain",
+			repositoryPackages = "org.springframework.data.neo4j.web.repo")
 	@ComponentScan({ "org.springframework.data.neo4j.web.controller", "org.springframework.data.neo4j.web.service" })
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.web.repo")
-	@EnableTransactionManagement
-	static class WebAppContext extends WebMvcConfigurerAdapter {
+	@EnableWebMvc
+	static class WebAppContext {
 
 		@Bean
-		public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
+		public OpenSessionInViewInterceptor openSessionInViewInterceptor(SessionFactory sessionFactory) {
 			OpenSessionInViewInterceptor openSessionInViewInterceptor = new OpenSessionInViewInterceptor();
-			openSessionInViewInterceptor.setSessionFactory(sessionFactory());
+			openSessionInViewInterceptor.setSessionFactory(sessionFactory);
 			return openSessionInViewInterceptor;
 		}
 
-		@Override
-		public void addInterceptors(InterceptorRegistry registry) {
-			registry.addWebRequestInterceptor(openSessionInViewInterceptor());
-		}
-
 		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.web.domain");
+		public WebMvcConfigurer webMvcConfigurer(OpenSessionInViewInterceptor openSessionInViewInterceptor) {
+			return new WebMvcConfigurer() {
+				@Override
+				public void addInterceptors(InterceptorRegistry registry) {
+					registry.addWebRequestInterceptor(openSessionInViewInterceptor);
+				}
+			};
 		}
 	}
-
 }

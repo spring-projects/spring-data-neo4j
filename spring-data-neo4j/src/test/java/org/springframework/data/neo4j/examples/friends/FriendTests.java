@@ -18,41 +18,37 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.examples.friends.domain.Friendship;
 import org.springframework.data.neo4j.examples.friends.domain.Person;
 import org.springframework.data.neo4j.examples.friends.repo.FriendshipRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Luanne Misquitta
  * @author Mark Angrish
  */
-@ContextConfiguration(classes = { FriendTests.FriendContext.class })
-@RunWith(SpringJUnit4ClassRunner.class)
-public class FriendTests extends MultiDriverTestClass {
+@ContextConfiguration(classes = FriendTests.FriendContext.class)
+@RunWith(SpringRunner.class)
+public class FriendTests {
 
+	@Autowired GraphDatabaseService graphDatabaseService;
 	@Autowired Session session;
 	@Autowired FriendshipRepository friendshipRepository;
 	@Autowired FriendService friendService;
 
 	@Before
 	public void cleanUpDatabase() {
-		getGraphDatabaseService().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
 	/**
@@ -96,21 +92,8 @@ public class FriendTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.friends.repo")
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.examples.friends.domain",
+			repositoryPackages = "org.springframework.data.neo4j.examples.friends.repo")
 	@ComponentScan(basePackageClasses = FriendService.class)
-	@EnableTransactionManagement
-	static class FriendContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.examples.friends.domain");
-		}
-	}
-
+	static class FriendContext {}
 }

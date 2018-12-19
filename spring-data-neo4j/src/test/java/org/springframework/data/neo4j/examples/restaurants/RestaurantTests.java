@@ -24,10 +24,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.geo.Distance;
@@ -36,17 +33,10 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.examples.restaurants.domain.Diner;
 import org.springframework.data.neo4j.examples.restaurants.domain.Restaurant;
 import org.springframework.data.neo4j.examples.restaurants.repo.RestaurantRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-
-@ContextConfiguration(classes = { RestaurantTests.RestaurantContext.class })
-@RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext
 
 /**
  * Tests that we support each kind of keyword specified by Part.Type
@@ -54,7 +44,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Jasper Blues
  * @author Gerrit Meier
  */
-public class RestaurantTests extends MultiDriverTestClass {
+@ContextConfiguration(classes = { RestaurantTests.RestaurantContext.class })
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
+
+public class RestaurantTests {
 
 	@Autowired private RestaurantRepository restaurantRepository;
 
@@ -559,22 +553,8 @@ public class RestaurantTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@ComponentScan({ "org.springframework.data.neo4j.examples.restaurants" })
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.restaurants.repo")
-	@EnableTransactionManagement
-	static class RestaurantContext {
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.examples.restaurants.domain");
-		}
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-	}
-
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.examples.restaurants.domain",
+			repositoryPackages = "org.springframework.data.neo4j.examples.restaurants.repo")
+	@ComponentScan("org.springframework.data.neo4j.examples.restaurants")
+	static class RestaurantContext {}
 }

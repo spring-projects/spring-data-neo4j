@@ -16,24 +16,19 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author: Vince Bickers
  */
-@ContextConfiguration(classes = { CustomGraphRepositoryTests.CustomPersistenceContext.class })
-@RunWith(SpringJUnit4ClassRunner.class)
-public class CustomGraphRepositoryTests extends MultiDriverTestClass {
+@ContextConfiguration(classes = CustomGraphRepositoryTests.CustomPersistenceContext.class)
+@RunWith(SpringRunner.class)
+public class CustomGraphRepositoryTests {
 
 	@Autowired private UserRepository repository;
 
@@ -46,18 +41,7 @@ public class CustomGraphRepositoryTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.extensions.domain")
 	@EnableNeo4jRepositories(repositoryBaseClass = CustomGraphRepositoryImpl.class)
-	@EnableTransactionManagement
-	static class CustomPersistenceContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.extensions.domain");
-		}
-	}
+	static class CustomPersistenceContext {}
 }

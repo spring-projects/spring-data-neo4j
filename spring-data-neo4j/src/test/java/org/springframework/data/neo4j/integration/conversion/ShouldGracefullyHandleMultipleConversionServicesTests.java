@@ -16,54 +16,39 @@ package org.springframework.data.neo4j.integration.conversion;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Michael J. Simons
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(
-		classes = { ShouldGracefullyHandleMultipleConversionServicesTests.ConversionServicePersistenceContext.class })
-public class ShouldGracefullyHandleMultipleConversionServicesTests extends MultiDriverTestClass {
+		classes = ShouldGracefullyHandleMultipleConversionServicesTests.ConversionServicePersistenceContext.class)
+public class ShouldGracefullyHandleMultipleConversionServicesTests {
 
 	@Test
 	public void contextLoads() {}
 
 	@Configuration
-	@EnableNeo4jRepositories(basePackageClasses = { SiteMemberRepository.class })
-	@EnableTransactionManagement
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.integration.conversion.domain",
+			repositoryPackages = "org.springframework.data.neo4j.integration.conversion")
 	static class ConversionServicePersistenceContext {
 
 		@Bean
-		public ConversionService conversionService1() {
-			return new MetaDataDrivenConversionService(sessionFactory().metaData());
+		public ConversionService conversionService1(SessionFactory sessionFactory) {
+			return new MetaDataDrivenConversionService(sessionFactory.metaData());
 		}
 
 		@Bean
 		public ConversionService conversionService2() {
 			return DefaultConversionService.getSharedInstance();
-		}
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.integration.conversion.domain");
 		}
 	}
 }

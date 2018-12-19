@@ -21,20 +21,13 @@ import java.util.UUID;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.domain.sample.NodeWithUUIDAsId;
 import org.springframework.data.neo4j.domain.sample.SampleEntity;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactory;
-import org.springframework.data.neo4j.repository.support.TransactionalRepositoryTests;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -43,17 +36,14 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jens Schauder
  * @author Michael J. Simons
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @ContextConfiguration(classes = Neo4jRepositoryTests.Config.class)
 @Transactional
-public class Neo4jRepositoryTests extends MultiDriverTestClass {
+public class Neo4jRepositoryTests {
 
-	@Autowired
-	SampleEntityRepository repository;
+	@Autowired SampleEntityRepository repository;
 
-	@Autowired
-	NodeWithUUIDAsIdRepository nodeWithUUIDAsIdRepository;
-
+	@Autowired NodeWithUUIDAsIdRepository nodeWithUUIDAsIdRepository;
 
 	@Test
 	public void testCrudOperationsForCompoundKeyEntity() throws Exception {
@@ -89,21 +79,8 @@ public class Neo4jRepositoryTests extends MultiDriverTestClass {
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories
-	@EnableTransactionManagement
-	public static class Config {
-
-		@Bean
-		public TransactionalRepositoryTests.DelegatingTransactionManager transactionManager() throws Exception {
-			return new TransactionalRepositoryTests.DelegatingTransactionManager(
-					new Neo4jTransactionManager(sessionFactory()));
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(), "org.springframework.data.neo4j.domain.sample");
-		}
-	}
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.domain.sample")
+	static class Config {}
 }
 
 interface SampleEntityRepository extends Neo4jRepository<SampleEntity, Long> {}

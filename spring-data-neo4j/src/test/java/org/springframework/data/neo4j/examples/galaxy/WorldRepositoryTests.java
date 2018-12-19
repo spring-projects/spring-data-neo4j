@@ -21,26 +21,17 @@ import java.util.concurrent.Executors;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
-import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
 import org.springframework.data.neo4j.examples.galaxy.repo.WorldRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.support.TransactionTemplate;
 
-@ContextConfiguration(classes = { WorldRepositoryTests.GalaxyContext.class })
-@RunWith(SpringJUnit4ClassRunner.class)
-public class WorldRepositoryTests extends MultiDriverTestClass {
+@ContextConfiguration(classes = GalaxyContextConfiguration.class)
+@RunWith(SpringRunner.class)
+public class WorldRepositoryTests {
 
 	@Autowired WorldRepository worldRepository;
 
@@ -107,29 +98,5 @@ public class WorldRepositoryTests extends MultiDriverTestClass {
 
 		// there are 2 results, 1 is returned instead of IncorrectResultSizeDataAccessException thrown
 		worldRepository.findByName("world 1");
-	}
-
-	@Configuration
-	@ComponentScan({ "org.springframework.data.neo4j.examples.galaxy.service" })
-	@EnableNeo4jRepositories("org.springframework.data.neo4j.examples.galaxy.repo")
-	@EnableTransactionManagement
-	static class GalaxyContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory(getBaseConfiguration().build(),
-					"org.springframework.data.neo4j.examples.galaxy.domain");
-		}
-
-		@Bean
-		public TransactionTemplate transactionTemplate() {
-			return new TransactionTemplate(transactionManager());
-		}
-
 	}
 }

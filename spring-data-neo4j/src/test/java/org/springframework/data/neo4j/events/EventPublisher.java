@@ -4,15 +4,17 @@ import org.neo4j.ogm.session.event.Event;
 import org.neo4j.ogm.session.event.EventListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
 
 /**
  * Created by markangrish on 22/09/2016.
  */
-@Component
 public class EventPublisher extends EventListenerAdapter {
 
-	@Autowired private ApplicationEventPublisher publisher;
+	private final ApplicationEventPublisher publisher;
+
+	public EventPublisher(ApplicationEventPublisher publisher) {
+		this.publisher = publisher;
+	}
 
 	@Override
 	public void onPreSave(Event event) {
