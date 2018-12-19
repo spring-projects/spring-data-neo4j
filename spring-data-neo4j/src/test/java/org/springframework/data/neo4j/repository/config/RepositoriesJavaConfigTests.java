@@ -31,6 +31,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * Integration test for the combination of JavaConfig and an {@link Repositories} wrapper.
  *
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = RepositoriesJavaConfigTests.Config.class)

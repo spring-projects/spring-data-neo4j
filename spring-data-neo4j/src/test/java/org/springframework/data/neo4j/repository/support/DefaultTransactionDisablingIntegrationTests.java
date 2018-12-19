@@ -26,7 +26,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.neo4j.domain.sample.User;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.sample.UserRepository;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
@@ -38,6 +37,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  *
  * @author Mark Angrish
  * @author Jens Schauder
+ * @author Michael J. Simons
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = DefaultTransactionDisablingIntegrationTests.Config.class)
@@ -48,8 +48,6 @@ public class DefaultTransactionDisablingIntegrationTests {
 	@Autowired UserRepository repository;
 	@Autowired TransactionalRepositoryTests.DelegatingTransactionManager txManager;
 
-	/**
-	 */
 	@Test
 	public void considersExplicitConfigurationOnRepositoryInterface() {
 
@@ -58,18 +56,14 @@ public class DefaultTransactionDisablingIntegrationTests {
 		assertThat(txManager.getDefinition().isReadOnly(), is(false));
 	}
 
-	/**
-	 */
 	@Test
 	public void doesNotUseDefaultTransactionsOnNonRedeclaredMethod() {
 
-		repository.findAll(new PageRequest(0, 10));
+		repository.findAll(PageRequest.of(0, 10));
 
 		assertThat(txManager.getDefinition(), is(nullValue()));
 	}
 
-	/**
-	 */
 	@Test
 	public void persistingAnEntityShouldThrowExceptionDueToMissingTransaction() {
 
@@ -80,9 +74,9 @@ public class DefaultTransactionDisablingIntegrationTests {
 	}
 
 	@Configuration
-	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.domain.sample")
-	@EnableNeo4jRepositories(transactionManagerRef = "delegatingTransactionManager",
-			basePackages = "org.springframework.data.neo4j.repository.sample", enableDefaultTransactions = false)
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.domain.sample",
+			repositoryPackages = "org.springframework.data.neo4j.repository.sample",
+			transactionManagerRef = "delegatingTransactionManager", enableDefaultTransactions = false)
 	static class Config {
 
 		@Bean

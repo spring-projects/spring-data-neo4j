@@ -38,11 +38,11 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
+ * See DATAGRAPH-680
  * @author Luanne Misquitta
  * @author Jasper Blues
  * @author Mark Angrish
  * @author Nicolas Mervaillie
- * @see DATAGRAPH-680
  */
 @ContextConfiguration(classes = MoviesContextConfiguration.class)
 @RunWith(SpringRunner.class)
@@ -78,7 +78,7 @@ public class PagedQueryTests {
 	@Transactional
 	public void shouldFindPagedCinemas() {
 		setup();
-		Pageable pageable = new PageRequest(0, 3);
+		Pageable pageable = PageRequest.of(0, 3);
 		Page<Cinema> page = cinemaRepository.getPagedCinemas(pageable);
 		assertEquals(3, page.getNumberOfElements());
 		assertTrue(page.hasNext());
@@ -103,20 +103,18 @@ public class PagedQueryTests {
 	@Transactional
 	public void shouldThrowExceptionIfCountQueryAbsent() {
 		setup();
-		Pageable pageable = new PageRequest(0, 3);
+		Pageable pageable = PageRequest.of(0, 3);
 		cinemaRepository.getPagedCinemasWithoutCountQuery(pageable);
 	}
 
 	/**
 	 * Repeats shouldFindPagedCinemas for query results - concrete classes.
-	 *
-	 * @see DATAGRAPH-893
 	 */
-	@Test
+	@Test // DATAGRAPH-893
 	@Transactional
 	public void shouldFindPagedQueryResults() {
 		setup();
-		Pageable pageable = new PageRequest(0, 3);
+		Pageable pageable = PageRequest.of(0, 3);
 		Page<CinemaQueryResult> page = cinemaRepository.getPagedCinemaQueryResults(pageable);
 
 		assertEquals(3, page.getNumberOfElements());
@@ -143,14 +141,11 @@ public class PagedQueryTests {
 		assertFalse(page.hasNext());
 	}
 
-	/**
-	 * @see DATAGRAPH-893
-	 */
-	@Test
+	@Test // DATAGRAPH-893
 	@Transactional
 	public void shouldFindSlicedQueryResults() {
 		setup();
-		Pageable pageable = new PageRequest(0, 3);
+		Pageable pageable = PageRequest.of(0, 3);
 		Slice<CinemaQueryResult> page = cinemaRepository.getSlicedCinemaQueryResults(pageable);
 
 		assertEquals(3, page.getNumberOfElements());
@@ -178,7 +173,7 @@ public class PagedQueryTests {
 	@Transactional
 	public void shouldFindPagedQueryInterfaceResults() {
 		setup();
-		Pageable pageable = new PageRequest(0, 3);
+		Pageable pageable = PageRequest.of(0, 3);
 		Page<CinemaQueryResultInterface> page = cinemaRepository.getPagedCinemaQueryResultInterfaces(pageable);
 
 		assertEquals(3, page.getNumberOfElements());
@@ -209,7 +204,7 @@ public class PagedQueryTests {
 	@Transactional
 	public void shouldUseQueryParametersInCountQuery() {
 		setup();
-		Pageable pageable = new PageRequest(0, 5);
+		Pageable pageable = PageRequest.of(0, 5);
 		Page<Cinema> page = cinemaRepository.getPagedCinemasByCityWithPageCount("London", pageable);
 		assertEquals(5, page.getNumberOfElements());
 		assertEquals(10, page.getTotalElements()); // With a count query, the total elements should equal the number
@@ -227,7 +222,7 @@ public class PagedQueryTests {
 	@Transactional
 	public void shouldFindSlicedCinemas() {
 		setup();
-		Pageable pageable = new PageRequest(0, 3);
+		Pageable pageable = PageRequest.of(0, 3);
 		Slice<Cinema> slice = cinemaRepository.getSlicedCinemasByName(pageable);
 		assertNotNull(slice.getContent().get(0).getName());
 		assertEquals(3, slice.getNumberOfElements());
@@ -250,7 +245,7 @@ public class PagedQueryTests {
 	@Transactional
 	public void shouldCorrectlyCalculateWhetherNextSliceExists() {
 		setup();
-		Pageable pageable = new PageRequest(0, 5);
+		Pageable pageable = PageRequest.of(0, 5);
 		Slice<Cinema> slice = cinemaRepository.getSlicedCinemasByName(pageable);
 		assertEquals(5, slice.getNumberOfElements());
 		assertTrue(slice.hasNext());
@@ -260,14 +255,11 @@ public class PagedQueryTests {
 		assertFalse(slice.hasNext());
 	}
 
-	/**
-	 * @see DATAGRAPH-887
-	 */
-	@Test
+	@Test // DATAGRAPH-887
 	@Transactional
 	public void shouldFindPagedAndSortedCinemas() {
 		setup();
-		Pageable pageable = new PageRequest(0, 4, Sort.Direction.ASC, "name");
+		Pageable pageable = PageRequest.of(0, 4, Sort.by("name").ascending());
 
 		Page<Cinema> page = cinemaRepository.findByLocation("London", pageable);
 		assertEquals(4, page.getNumberOfElements());
@@ -295,10 +287,7 @@ public class PagedQueryTests {
 		assertEquals("Ritzy", page.getContent().get(1).getName());
 	}
 
-	/**
-	 * @see DATAGRAPH-887
-	 */
-	@Test
+	@Test // DATAGRAPH-887
 	public void shouldSortPageWhenNestedPropertyIsInvolved() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
 				+ "CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) "
@@ -309,22 +298,19 @@ public class PagedQueryTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				Page<Cinema> page = cinemaRepository.findByLocationAndVisitedName("London", "Michal",
-						new PageRequest(0, 1, Sort.Direction.DESC, "name"));
+						PageRequest.of(0, 1, Sort.Direction.DESC, "name"));
 				assertEquals(1, page.getNumberOfElements());
 				assertEquals("Ritzy", page.getContent().get(0).getName());
 
 				page = cinemaRepository.findByLocationAndVisitedName("London", "Michal",
-						new PageRequest(1, 1, Sort.Direction.DESC, "name"));
+						PageRequest.of(1, 1, Sort.Direction.DESC, "name"));
 				assertEquals(1, page.getNumberOfElements());
 				assertEquals("Picturehouse", page.getContent().get(0).getName());
 			}
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-887
-	 */
-	@Test
+	@Test // DATAGRAPH-887
 	public void shouldSortPageByNestedPropertyIsInvolved() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
 				+ "CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) "
@@ -335,21 +321,18 @@ public class PagedQueryTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				Page<Cinema> page = cinemaRepository.findByVisitedName("Michal",
-						new PageRequest(0, 1, Sort.Direction.ASC, "location"));
+						PageRequest.of(0, 1, Sort.Direction.ASC, "location"));
 				assertEquals(1, page.getNumberOfElements());
 				assertEquals("Regal", page.getContent().get(0).getName());
 
-				page = cinemaRepository.findByVisitedName("Michal", new PageRequest(1, 1, Sort.Direction.DESC, "location"));
+				page = cinemaRepository.findByVisitedName("Michal", PageRequest.of(1, 1, Sort.Direction.DESC, "location"));
 				assertEquals(1, page.getNumberOfElements());
 				assertEquals("Regal", page.getContent().get(0).getName());
 			}
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-887
-	 */
-	@Test
+	@Test // DATAGRAPH-887
 	@Transactional
 	public void shouldFindSortedCinemas() {
 		setup();
@@ -368,14 +351,12 @@ public class PagedQueryTests {
 		assertEquals("Ritzy", cinemas.get(9).getName());
 	}
 
-	/**
-	 * @see DATAGRAPH-887
-	 */
-	@Test
+	@Test // DATAGRAPH-887
 	@Transactional
 	public void shouldFindPagedAndSortedCinemasByCapacity() {
 		setup();
-		Pageable pageable = new PageRequest(0, 4, Sort.Direction.ASC, "name");
+
+		Pageable pageable = PageRequest.of(0, 4, Sort.by("name").ascending());
 
 		Page<Cinema> page = cinemaRepository.findByCapacity(500, pageable);
 		assertEquals(4, page.getNumberOfElements());
@@ -384,7 +365,7 @@ public class PagedQueryTests {
 		assertEquals("Landmark", page.getContent().get(2).getName());
 		assertEquals("Metro", page.getContent().get(3).getName());
 
-		pageable = new PageRequest(1, 4, Sort.Direction.ASC, "name");
+		pageable = PageRequest.of(1, 4, Sort.Direction.ASC, "name");
 		page = cinemaRepository.findByCapacity(500, pageable);
 		assertEquals(4, page.getContent().size());
 		assertEquals("Movietime", page.getContent().get(0).getName());
@@ -392,21 +373,18 @@ public class PagedQueryTests {
 		assertEquals("Picturehouse", page.getContent().get(2).getName());
 		assertEquals("Rainbow", page.getContent().get(3).getName());
 
-		pageable = new PageRequest(2, 4, Sort.Direction.ASC, "name");
+		pageable = PageRequest.of(2, 4, Sort.Direction.ASC, "name");
 		page = cinemaRepository.findByCapacity(500, pageable);
 		assertEquals(2, page.getContent().size());
 		assertEquals("Regal", page.getContent().get(0).getName());
 		assertEquals("Ritzy", page.getContent().get(1).getName());
 	}
 
-	/**
-	 * @see DATAGRAPH-653
-	 */
-	@Test
+	@Test // DATAGRAPH-653
 	@Transactional
 	public void shouldFindPagedCinemasSortedWithCustomQuery() {
 		setup();
-		Pageable pageable = new PageRequest(0, 4, Sort.Direction.ASC, "n.name");
+		Pageable pageable = PageRequest.of(0, 4, Sort.by("n.name").ascending());
 
 		Page<Cinema> page = cinemaRepository.getPagedCinemas(pageable);
 		assertEquals(4, page.getNumberOfElements());
@@ -437,14 +415,11 @@ public class PagedQueryTests {
 		assertEquals("Ritzy", page.getContent().get(1).getName());
 	}
 
-	/**
-	 * @see DATAGRAPH-653
-	 */
-	@Test
+	@Test // DATAGRAPH-653
 	@Transactional
 	public void shouldFindSlicedCinemasSortedWithCustomQuery() {
 		setup();
-		Pageable pageable = new PageRequest(0, 4, Sort.Direction.ASC, "n.name");
+		Pageable pageable = PageRequest.of(0, 4, Sort.by("n.name").ascending());
 
 		Slice<Cinema> slice = cinemaRepository.getSlicedCinemasByName(pageable);
 		assertEquals(4, slice.getNumberOfElements());
@@ -469,10 +444,7 @@ public class PagedQueryTests {
 		assertEquals("Ritzy", slice.getContent().get(1).getName());
 	}
 
-	/**
-	 * @see DATAGRAPH-653
-	 */
-	@Test
+	@Test // DATAGRAPH-653
 	@Transactional
 	public void shouldFindCinemasSortedByNameWithCustomQuery() {
 		setup();

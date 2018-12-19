@@ -29,7 +29,7 @@ import org.springframework.data.neo4j.web.domain.User;
 import org.springframework.data.neo4j.web.repo.UserRepository;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -42,7 +42,7 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @ContextConfiguration(locations = "/xml-based-configuration-applicationContext.xml")
 @WebAppConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @Ignore("Make this work with new infrastructure test code.")
 public class XmlApplicationContextWebIntegrationTests {
 

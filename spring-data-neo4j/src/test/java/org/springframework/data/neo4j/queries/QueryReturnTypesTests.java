@@ -68,10 +68,7 @@ public class QueryReturnTypesTests {
 		assertNotNull(world.getUpdated());
 	}
 
-	/**
-	 * @see DATAGRAPH-704
-	 */
-	@Test
+	@Test // DATAGRAPH-704
 	public void shouldCallExecuteWhenVoidReturnTypeOnQuery() {
 
 		World tatooine = new World("Tatooine", 0);

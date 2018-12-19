@@ -36,6 +36,7 @@ import org.springframework.web.context.WebApplicationContext;
 /**
  * @author Vince Bickers
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = { WebConfiguration.class, JSR303Tests.JSR303Context.class })
 @WebAppConfiguration

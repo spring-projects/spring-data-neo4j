@@ -44,7 +44,6 @@ import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService
 import org.springframework.data.neo4j.integration.constructors.domain.*;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -269,8 +268,8 @@ public class PersistenceConstructorsTests {
 	}
 
 	@Configuration
-	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.integration.constructors.domain")
-	@EnableNeo4jRepositories(basePackageClasses = { PersonRepository.class }, considerNestedRepositories = true)
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.integration.constructors.domain",
+			repositoryPackages = "org.springframework.data.neo4j.integration.constructors", considerNestedRepositories = true)
 	static class PersistenceConstructorsPersistenceContext {
 
 		@Bean

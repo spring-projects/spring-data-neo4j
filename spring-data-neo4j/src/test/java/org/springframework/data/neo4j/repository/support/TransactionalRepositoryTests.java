@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.domain.sample.User;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.sample.UserRepository;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
@@ -39,6 +38,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * @author Mark Angrish
  * @author Jens Schauder
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = TransactionalRepositoryTests.Config.class)
 @RunWith(SpringRunner.class)
@@ -64,35 +64,35 @@ public class TransactionalRepositoryTests {
 	}
 
 	@Test
-	public void simpleManipulatingOperation() throws Exception {
+	public void simpleManipulatingOperation() {
 
 		repository.save(new User("foo", "bar", "foo@bar.de"));
 		assertThat(transactionManager.getTransactionRequests(), is(1));
 	}
 
 	@Test
-	public void unannotatedFinder() throws Exception {
+	public void unannotatedFinder() {
 
 		repository.findByEmailAddress("foo@bar.de");
 		assertThat(transactionManager.getTransactionRequests(), is(0));
 	}
 
 	@Test
-	public void invokeTransactionalFinder() throws Exception {
+	public void invokeTransactionalFinder() {
 
 		repository.findByAnnotatedQuery("foo@bar.de");
 		assertThat(transactionManager.getTransactionRequests(), is(1));
 	}
 
 	@Test
-	public void invokeRedeclaredMethod() throws Exception {
+	public void invokeRedeclaredMethod() {
 
 		repository.findById(1L);
 		assertFalse(transactionManager.getDefinition().isReadOnly());
 	}
 
 	@Test
-	public void invokeRedeclaredDeleteMethodWithoutTransactionDeclaration() throws Exception {
+	public void invokeRedeclaredDeleteMethodWithoutTransactionDeclaration() {
 
 		User user = repository.save(new User("foo", "bar", "foo@bar.de"));
 		repository.deleteById(user.getId());
@@ -100,7 +100,7 @@ public class TransactionalRepositoryTests {
 		assertFalse(transactionManager.getDefinition().isReadOnly());
 	}
 
-	public static class DelegatingTransactionManager implements PlatformTransactionManager {
+	static class DelegatingTransactionManager implements PlatformTransactionManager {
 
 		private PlatformTransactionManager txManager;
 		private int transactionRequests;
@@ -147,9 +147,9 @@ public class TransactionalRepositoryTests {
 	}
 
 	@Configuration
-	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.domain.sample")
-	@EnableNeo4jRepositories(transactionManagerRef = "delegatingTransactionManager",
-			basePackages = "org.springframework.data.neo4j.repository.sample")
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.domain.sample",
+			transactionManagerRef = "delegatingTransactionManager",
+			repositoryPackages = "org.springframework.data.neo4j.repository.sample")
 	static class Config {
 
 		@Bean

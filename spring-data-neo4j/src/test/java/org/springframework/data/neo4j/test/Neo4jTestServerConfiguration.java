@@ -72,7 +72,7 @@ class Neo4jTestServerConfiguration {
 				uri = neo4jTestServer.httpURI().toString();
 				break;
 			case EMBEDDED:
-				uri = null; // This is on purpose, the configuration than uses embedde.
+				uri = null; // This is on purpose, the configuration than uses embedded.
 				break;
 			default:
 				throw new UnsupportedOperationException("Unsupported mode for integration tests: " + integrationTestMode);

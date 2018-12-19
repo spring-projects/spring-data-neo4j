@@ -29,6 +29,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.support.TransactionTemplate;
 
+/**
+ * @author Nicolas Mervaillie
+ * @author Mark Angrish
+ * @author Gerrit Meier
+ * @author Michael J. Simons
+ */
 @ContextConfiguration(classes = GalaxyContextConfiguration.class)
 @RunWith(SpringRunner.class)
 public class WorldRepositoryTests {
@@ -39,12 +45,7 @@ public class WorldRepositoryTests {
 
 	boolean failed = false;
 
-	/**
-	 * see https://jira.spring.io/browse/DATAGRAPH-951
-	 *
-	 * @throws Exception
-	 */
-	@Test
+	@Test // DATAGRAPH-951
 	public void multipleThreadsResultsGetMixedUp() throws Exception {
 
 		World world1 = new World("world 1", 1);
@@ -83,13 +84,8 @@ public class WorldRepositoryTests {
 		assertFalse(failed);
 	}
 
-	/**
-	 * see https://jira.spring.io/browse/DATAGRAPH-948
-	 *
-	 * @throws Exception
-	 */
-	@Test(expected = IncorrectResultSizeDataAccessException.class)
-	public void findByNameSingleResult() throws Exception {
+	@Test(expected = IncorrectResultSizeDataAccessException.class) // DATAGRAPH-948
+	public void findByNameSingleResult() {
 		World world1 = new World("world 1", 1);
 		worldRepository.save(world1, 0);
 

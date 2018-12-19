@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Luanne Misquitta
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = FriendTests.FriendContext.class)
 @RunWith(SpringRunner.class)
@@ -51,10 +52,7 @@ public class FriendTests {
 		graphDatabaseService.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
 	}
 
-	/**
-	 * @see DATAGRAPH-703
-	 */
-	@Test
+	@Test // DATAGRAPH-703
 	@Transactional
 	public void savingPersonWhenTransactionalShouldWork() {
 		friendService.createPersonAndFriends();
@@ -66,10 +64,7 @@ public class FriendTests {
 		assertEquals(2, john.getFriendships().size());
 	}
 
-	/**
-	 * @see DATAGRAPH-694
-	 */
-	@Test
+	@Test // DATAGRAPH-694
 	@Transactional
 	public void circularParametersShouldNotProduceInfiniteRecursion() {
 		Person john = new Person();

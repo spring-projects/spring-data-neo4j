@@ -28,17 +28,20 @@ import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.data.neo4j.examples.movies.service.UserService;
 import org.springframework.data.neo4j.queries.MoviesContextConfiguration;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * @author Nicolas Mervaillie DATAGRAPH-967 DATAGRAPH-997 DATAGRAPH-995 DATAGRAPH-989 DATAGRAPH-952
+ * See DATAGRAPH-967 DATAGRAPH-997 DATAGRAPH-995 DATAGRAPH-989 DATAGRAPH-952.
+ *
+ * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = MoviesContextConfiguration.class)
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 public class TransactionRollbackTests {
 
 	@Autowired private GraphDatabaseService graphDatabaseService;
@@ -86,8 +89,7 @@ public class TransactionRollbackTests {
 		}
 	}
 
-	// see https://github.com/neo4j/neo4j/issues/10098
-	@Test
+	@Test // GH-10098
 	@Ignore("When an error occurs when doing a request, Neo rollbacks. See https://github.com/neo4j/neo4j/issues/10098")
 	public void catchedExceptionShouldNotRollback() {
 

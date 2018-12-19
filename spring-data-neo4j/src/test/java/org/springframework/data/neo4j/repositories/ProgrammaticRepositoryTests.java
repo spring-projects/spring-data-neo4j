@@ -39,7 +39,6 @@ import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -113,7 +112,6 @@ public class ProgrammaticRepositoryTests {
 	}
 
 	@Test // DATAGRAPH-847
-	@Transactional
 	public void shouldBeAbleToDeleteAllViaRepository() {
 
 		RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
@@ -132,7 +130,6 @@ public class ProgrammaticRepositoryTests {
 	}
 
 	@Test // DATAGRAPH-813
-	@Transactional
 	public void shouldDeleteUserByNameAndReturnCountOfDeletedUsers() {
 
 		RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
@@ -150,7 +147,6 @@ public class ProgrammaticRepositoryTests {
 	}
 
 	@Test // DATAGRAPH-813
-	@Transactional
 	public void shouldDeleteUserByNameAndReturnListOfDeletedUserIds() {
 
 		RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
@@ -174,7 +170,6 @@ public class ProgrammaticRepositoryTests {
 	}
 
 	@Test
-	@Transactional
 	public void shouldBeAbleToDeleteUserWithRelationships() {
 
 		RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);
@@ -197,7 +192,6 @@ public class ProgrammaticRepositoryTests {
 	}
 
 	@Test // DATAGRAPH-813
-	@Transactional
 	public void shouldCountUserByName() {
 
 		RepositoryFactorySupport factory = new Neo4jRepositoryFactory(session);

@@ -25,6 +25,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author: Vince Bickers
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = CustomGraphRepositoryTests.CustomPersistenceContext.class)
 @RunWith(SpringRunner.class)
@@ -41,7 +42,6 @@ public class CustomGraphRepositoryTests {
 	}
 
 	@Configuration
-	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.extensions.domain")
-	@EnableNeo4jRepositories(repositoryBaseClass = CustomGraphRepositoryImpl.class)
+	@Neo4jIntegrationTest(repositoryBaseClass = CustomGraphRepositoryImpl.class, domainPackages = "org.springframework.data.neo4j.extensions.domain")
 	static class CustomPersistenceContext {}
 }

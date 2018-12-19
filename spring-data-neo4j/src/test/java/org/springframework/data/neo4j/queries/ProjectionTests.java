@@ -31,15 +31,16 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.TestExecutionListener;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = MoviesContextConfiguration.class)
 @TestExecutionListeners(listeners = ProjectionTests.PrepareAndCleanDatabase.class, mergeMode = MERGE_WITH_DEFAULTS)
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 public class ProjectionTests {
 
 	static class PrepareAndCleanDatabase implements TestExecutionListener {

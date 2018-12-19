@@ -38,8 +38,6 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.examples.movies.domain.Actor;
@@ -73,6 +71,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = MoviesContextConfiguration.class)
 @RunWith(SpringRunner.class)
@@ -81,7 +80,6 @@ public class MoviesIntegrationTests {
 	private static final String KNOWN_MAIL_ADDRESS_1 = "a@example.org";
 	private static final String KNOWN_MAIL_ADDRESS_2 = "b@example.org";
 	private static final String UNKNOWN_MAIL_ADDRESS = "c@example.org";
-	private final Logger logger = LoggerFactory.getLogger(MoviesIntegrationTests.class);
 
 	@Autowired private GraphDatabaseService graphDatabaseService;
 	@Autowired private Session session;
@@ -573,10 +571,7 @@ public class MoviesIntegrationTests {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-707
-	 */
-	@Test
+	@Test // DATAGRAPH-707
 	public void findByIdShouldConsiderTheEntityType() {
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
@@ -618,10 +613,7 @@ public class MoviesIntegrationTests {
 		});
 	}
 
-	@Test
-	/**
-	 * @see DATAGRAPH-760
-	 */
+	@Test // DATAGRAPH-760
 	public void shouldSaveAndReturnManyEntities() {
 		User michal = new User("Michal");
 		User adam = new User("Adam");
@@ -634,10 +626,7 @@ public class MoviesIntegrationTests {
 		}
 	}
 
-	/**
-	 * @see DATAGRAPH-992
-	 */
-	@Test
+	@Test // DATAGRAPH-992
 	public void findUserByContainingEmailAddresses() {
 		createUserForContainsTest();
 
@@ -648,10 +637,7 @@ public class MoviesIntegrationTests {
 		assertNotNull(foundUser);
 	}
 
-	/**
-	 * @see DATAGRAPH-992
-	 */
-	@Test
+	@Test // DATAGRAPH-992
 	public void findNoUserByContainingEmailAddresses() {
 		createUserForContainsTest();
 
@@ -659,10 +645,7 @@ public class MoviesIntegrationTests {
 		assertNull(foundUser);
 	}
 
-	/**
-	 * @see DATAGRAPH-992
-	 */
-	@Test
+	@Test // DATAGRAPH-992
 	public void findUserByNotContainingEmailAddresses() {
 		createUserForContainsTest();
 
@@ -670,10 +653,7 @@ public class MoviesIntegrationTests {
 		assertNotNull(foundUser.get(0));
 	}
 
-	/**
-	 * @see DATAGRAPH-992
-	 */
-	@Test
+	@Test // DATAGRAPH-992
 	public void findNoUserByNotContainingEmailAddresses() {
 		createUserForContainsTest();
 
@@ -711,7 +691,6 @@ public class MoviesIntegrationTests {
 		return session.loadAll(clazz, new Filter(propertyName, ComparisonOperator.EQUALS, propertyValue));
 	}
 
-	//
 	private static class Neo4jFailedToStartException extends Exception {
 
 		private Neo4jFailedToStartException(long timeoutValue) {

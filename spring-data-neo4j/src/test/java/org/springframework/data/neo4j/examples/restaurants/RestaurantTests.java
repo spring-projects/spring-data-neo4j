@@ -36,18 +36,18 @@ import org.springframework.data.neo4j.examples.restaurants.repo.RestaurantReposi
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Tests that we support each kind of keyword specified by Part.Type
  *
  * @author Jasper Blues
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = { RestaurantTests.RestaurantContext.class })
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
-
 public class RestaurantTests {
 
 	@Autowired private RestaurantRepository restaurantRepository;
@@ -60,10 +60,8 @@ public class RestaurantTests {
 	/**
 	 * This test, as the below one does, asserts that the parameter index for each query part is set correctly. Most query
 	 * parts are associated with one parameter, while certain kinds, such as NEAR, require more.
-	 *
-	 * @see DATAGRAPH-561
 	 */
-	@Test
+	@Test // DATAGRAPH-561
 	public void shouldFindRestaurantsNear_nameParameterFirst() {
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", new Point(37.61649, -122.38681),
 				94128);
@@ -83,10 +81,8 @@ public class RestaurantTests {
 	/**
 	 * This test, as the above one does, asserts that the parameter index for each query part is set correctly. Most query
 	 * parts are associated with one parameter, while certain kinds, such as NEAR, require more.
-	 *
-	 * @see DATAGRAPH-561
 	 */
-	@Test
+	@Test // DATAGRAPH-561
 	public void shouldFindRestaurantsNear_locationFirst() {
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", new Point(37.61649, -122.38681),
 				94128);
@@ -103,10 +99,7 @@ public class RestaurantTests {
 		assertEquals(-122.38681, found.getLocation().getY(), 0);
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindRestaurantsWithScoreBetween() {
 		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
 		restaurantRepository.save(kuroda);
@@ -126,10 +119,7 @@ public class RestaurantTests {
 		assertEquals(0, shouldBeEmpty.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-1027
-	 */
-	@Test
+	@Test // DATAGRAPH-1027
 	public void shouldFindRestaurantsWithScoreBetweenInclusive() {
 		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
 		restaurantRepository.save(kuroda);
@@ -145,10 +135,7 @@ public class RestaurantTests {
 		assertEquals(3, results.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByPropertyIsNull() {
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", new Point(37.61649, -122.38681),
 				94128);
@@ -164,10 +151,7 @@ public class RestaurantTests {
 
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByPropertyIsNotNull() {
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", new Point(37.61649, -122.38681),
 				94128);
@@ -182,10 +166,7 @@ public class RestaurantTests {
 		assertEquals("Kuroda", results.get(0).getName());
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindBNestedProperty_different_entity_type_IsNull() {
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", new Point(37.61649, -122.38681),
 				94128);
@@ -201,10 +182,7 @@ public class RestaurantTests {
 		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindBNestedProperty_same_entity_type_IsNull() {
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", new Point(37.61649, -122.38681),
 				94128);
@@ -223,10 +201,7 @@ public class RestaurantTests {
 		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByScoreLessThan() {
 		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
 		restaurantRepository.save(kuroda);
@@ -249,10 +224,7 @@ public class RestaurantTests {
 		assertEquals("Kuroda", results.get(0).getName());
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByScoreGreaterThan() {
 		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
 		restaurantRepository.save(kuroda);
@@ -275,10 +247,7 @@ public class RestaurantTests {
 		assertEquals("Cyma", results.get(0).getName());
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByLaunchDateBefore() {
 		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
 		kuroda.setLaunchDate(new Date(1000));
@@ -298,10 +267,7 @@ public class RestaurantTests {
 		assertEquals(0, results.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByLaunchDateAfter() {
 		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
 		kuroda.setLaunchDate(new Date(1000));
@@ -323,10 +289,8 @@ public class RestaurantTests {
 
 	/**
 	 * All findByPropertyLike does currently is to require an exact match, ignoring case.
-	 *
-	 * @see DATAGRAPH-904
 	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByNameNotLike() {
 
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
@@ -344,10 +308,8 @@ public class RestaurantTests {
 
 	/**
 	 * All findByPropertyLike does currently is to require an exact match, ignoring case.
-	 *
-	 * @see DATAGRAPH-904
 	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByNameLike() {
 
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
@@ -363,10 +325,7 @@ public class RestaurantTests {
 
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByNameStartingWith() {
 
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
@@ -382,10 +341,7 @@ public class RestaurantTests {
 
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByNameEndingWith() {
 
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
@@ -401,10 +357,7 @@ public class RestaurantTests {
 
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByNameContaining() {
 
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
@@ -425,10 +378,7 @@ public class RestaurantTests {
 
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByNameContainingOrDescriptionIsNull() {
 
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
@@ -453,10 +403,7 @@ public class RestaurantTests {
 
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByNameIn() {
 
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
@@ -477,10 +424,7 @@ public class RestaurantTests {
 
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByNameMatchesRegEx() {
 
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
@@ -496,10 +440,7 @@ public class RestaurantTests {
 
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByNameExists() {
 
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
@@ -514,10 +455,7 @@ public class RestaurantTests {
 
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByPropertyIsTrue() {
 		Restaurant kazan = new Restaurant("Kazan", 77.0);
 		kazan.setHalal(true);
@@ -533,10 +471,7 @@ public class RestaurantTests {
 		assertEquals("Kazan", results.get(0).getName());
 	}
 
-	/**
-	 * @see DATAGRAPH-904
-	 */
-	@Test
+	@Test // DATAGRAPH-904
 	public void shouldFindByPropertyIsFalse() {
 		Restaurant kazan = new Restaurant("Kazan", 77.0);
 		kazan.setHalal(true);

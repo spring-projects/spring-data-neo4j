@@ -47,6 +47,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Frantisek Hartman
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = BookmarkTransactionTests.BookmarkConfiguration.class)
 @RunWith(SpringRunner.class)

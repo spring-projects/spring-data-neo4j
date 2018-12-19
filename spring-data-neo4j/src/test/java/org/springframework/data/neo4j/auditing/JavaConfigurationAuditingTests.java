@@ -35,6 +35,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Frantisek Hartman
+ * @author Michael J. Simons
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration

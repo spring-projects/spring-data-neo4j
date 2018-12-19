@@ -53,6 +53,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Mark Angrish
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Michael J. Simons
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = ConversionServiceTests.ConversionServicePersistenceContext.class)

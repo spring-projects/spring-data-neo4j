@@ -2,11 +2,10 @@ package org.springframework.data.neo4j.events;
 
 import org.neo4j.ogm.session.event.Event;
 import org.neo4j.ogm.session.event.EventListenerAdapter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 
 /**
- * Created by markangrish on 22/09/2016.
+ * @author Mark Angrish
  */
 public class EventPublisher extends EventListenerAdapter {
 

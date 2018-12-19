@@ -48,6 +48,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 /**
  * @author Michal Bachman
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 @WebAppConfiguration
 @ContextConfiguration(classes = WebIntegrationTests.WebAppContext.class)

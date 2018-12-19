@@ -30,7 +30,7 @@ import org.springframework.data.neo4j.events.Neo4jModificationEventListener;
 import org.springframework.data.neo4j.examples.movies.domain.Actor;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -38,9 +38,10 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Adam George
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = TemplateApplicationEventTests.DataManipulationEventConfiguration.class)
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 public class TemplateApplicationEventTests {
 
 	@Autowired private Session session;

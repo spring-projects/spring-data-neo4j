@@ -31,6 +31,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 /**
  * @author Michal Bachman
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = RepoScanningTests.PersistenceContextInTheSamePackage.class)
 @RunWith(SpringRunner.class)
@@ -56,7 +57,6 @@ public class RepoScanningTests {
 
 	@Configuration
 	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.repositories.domain")
-	@EnableNeo4jRepositories // no package specified, that's the point of this test
 	static class PersistenceContextInTheSamePackage {}
 
 }

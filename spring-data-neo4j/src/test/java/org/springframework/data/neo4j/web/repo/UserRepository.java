@@ -13,7 +13,6 @@
 
 package org.springframework.data.neo4j.web.repo;
 
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -23,6 +22,7 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Michal Bachman
  * @author Mark Angrish
+ * @author Michael J. Simons
  */
 @Repository
 public interface UserRepository extends Neo4jRepository<User, UUID> {

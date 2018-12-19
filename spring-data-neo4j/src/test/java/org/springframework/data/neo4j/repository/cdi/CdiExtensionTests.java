@@ -35,7 +35,7 @@ import org.springframework.data.neo4j.examples.friends.domain.Person;
  * Integration tests for {@link org.springframework.data.neo4j.repository.cdi.Neo4jCdiRepositoryExtension}.
  *
  * @author Mark Paluch
- * @see DATAGRAPH-879, DATAGRAPH-1028
+ * @author Michael J. Simons
  */
 public class CdiExtensionTests {
 
@@ -62,10 +62,7 @@ public class CdiExtensionTests {
 		neo4jTestServer.close();
 	}
 
-	/**
-	 * @see DATAGRAPH-879, DATAGRAPH-1028
-	 */
-	@Test
+	@Test // DATAGRAPH-879, DATAGRAPH-1028
 	public void regularRepositoryShouldWork() {
 
 		RepositoryClient client = container.select(RepositoryClient.class).get();
@@ -91,10 +88,7 @@ public class CdiExtensionTests {
 		lookedUpPerson.ifPresent(actual -> assertThat(actual.getId(), is(resultId)));
 	}
 
-	/**
-	 * @see DATAGRAPH-879, DATAGRAPH-1028
-	 */
-	@Test
+	@Test // DATAGRAPH-879, DATAGRAPH-1028
 	public void repositoryWithQualifiersShouldWork() {
 
 		RepositoryClient client = container.select(RepositoryClient.class).get();
@@ -103,10 +97,7 @@ public class CdiExtensionTests {
 		assertEquals(0, client.qualifiedPersonRepository.count());
 	}
 
-	/**
-	 * @see DATAGRAPH-879, DATAGRAPH-1028
-	 */
-	@Test
+	@Test // DATAGRAPH-879, DATAGRAPH-1028
 	public void repositoryWithCustomImplementationShouldWork() {
 
 		RepositoryClient client = container.select(RepositoryClient.class).get();

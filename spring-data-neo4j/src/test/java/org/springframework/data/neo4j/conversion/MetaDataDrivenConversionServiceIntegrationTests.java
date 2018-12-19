@@ -29,13 +29,13 @@ import org.springframework.data.neo4j.conversion.support.EntityRepository;
 import org.springframework.data.neo4j.conversion.support.EntityWithConvertedAttributes;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Michael J. Simons
  * @soundtrack Murray Gold - Doctor Who Season 9
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @ContextConfiguration(classes = MetaDataDrivenConversionServiceIntegrationTests.Config.class)
 public class MetaDataDrivenConversionServiceIntegrationTests {
 

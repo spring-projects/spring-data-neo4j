@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
  * and DATAGRAPH-602
  *
  * @author: Vince Bickers
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = ExtendedTransactionsTests.ApplicationConfig.class)
 @RunWith(SpringRunner.class)

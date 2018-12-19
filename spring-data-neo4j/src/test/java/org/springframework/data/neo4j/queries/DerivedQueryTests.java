@@ -110,10 +110,7 @@ public class DerivedQueryTests {
 		assertFalse(iterator.hasNext());
 	}
 
-	/**
-	 * @see DATAGRAPH-628
-	 */
-	@Test
+	@Test // DATAGRAPH-628
 	public void shouldFindNodeEntitiesWithLabels() {
 		executeUpdate(
 				"CREATE (u:User {name:'Michal'}) CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'}) CREATE (u)-[:VISITED]->(p)");
@@ -157,10 +154,7 @@ public class DerivedQueryTests {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
+	@Test // DATAGRAPH-629
 	public void shouldFindNodeEntitiesMultipleAndedProperties() {
 		executeUpdate(
 				"CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'})"
@@ -171,10 +165,7 @@ public class DerivedQueryTests {
 		assertEquals("Michal", theatres.get(0).getVisited().iterator().next().getName());
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
+	@Test // DATAGRAPH-629
 	public void shouldFindNodeEntititiesMultipleOredProperties() {
 		executeUpdate(
 				"CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'})"
@@ -184,10 +175,7 @@ public class DerivedQueryTests {
 		assertEquals(2, theatres.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
+	@Test // DATAGRAPH-629
 	public void shouldReturnNoResultsCorrectly() {
 		executeUpdate(
 				"CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'})"
@@ -197,10 +185,7 @@ public class DerivedQueryTests {
 		assertEquals(0, theatres.size());
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
+	@Test // DATAGRAPH-629
 	public void shouldFindNodeEntititiesWithComparisonOperators() {
 		executeUpdate(
 				"CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500})"
@@ -230,10 +215,7 @@ public class DerivedQueryTests {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
+	@Test // DATAGRAPH-629
 	public void shouldFindNodeEntititiesWithMultipleComparisonOperatorsAnded() {
 		executeUpdate(
 				"CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 4500})"
@@ -254,10 +236,7 @@ public class DerivedQueryTests {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
+	@Test // DATAGRAPH-629
 	public void shouldFindNodeEntititiesWithMultipleComparisonOperatorsOred() {
 		executeUpdate(
 				"CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 9000})"
@@ -278,10 +257,7 @@ public class DerivedQueryTests {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
+	@Test // DATAGRAPH-629
 	public void shouldFindNodeEntititiesWithNestedProperty() {
 		executeUpdate(
 				"CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500})"
@@ -292,9 +268,6 @@ public class DerivedQueryTests {
 		assertTrue(theatres.contains(new Cinema("Ritzy")));
 	}
 
-	/**
-	 * @see DATAGRAPH-???
-	 */
 	@Test
 	public void shouldFindNodeEntititiesWithDeepNestedProperty() {
 		executeUpdate("CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500})"
@@ -306,10 +279,7 @@ public class DerivedQueryTests {
 		assertTrue(theatres.contains(new Cinema("Ritzy")));
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
+	@Test // DATAGRAPH-629
 	public void shouldFindNodeEntititiesWithBaseAndNestedProperty() {
 		executeUpdate(
 				"CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 5000})"
@@ -320,10 +290,7 @@ public class DerivedQueryTests {
 		assertTrue(theatres.contains(new Cinema("Ritzy")));
 	}
 
-	/**
-	 * @see DATAGRAPH-662 //TODO FIXME
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAGRAPH-662
 	public void shouldFindNodeEntititiesWithBaseOrNestedProperty() {
 		executeUpdate(
 				"CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) CREATE (m:Theatre {name:'The Old Vic', city:'London', capacity: 5000})"
@@ -336,10 +303,7 @@ public class DerivedQueryTests {
 		assertTrue(theatres.contains(new Cinema("The Old Vic")));
 	}
 
-	/**
-	 * @see DATAGRAPH-632
-	 */
-	@Test
+	@Test // DATAGRAPH-632
 	public void shouldFindNodeEntitiesWithNestedRelationshipEntityProperty() {
 		executeUpdate(
 				"CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})"
@@ -352,11 +316,7 @@ public class DerivedQueryTests {
 		assertTrue(users.contains(new User("Vince")));
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 * @see DATAGRAPH-705
-	 */
-	@Test
+	@Test // DATAGRAPH-629, DATAGRAPH-705
 	public void shouldFindNodeEntititiesWithTwoNestedPropertiesAndedAcrossDifferentRelatedNodeEntities() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
 				+ " CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " + " CREATE (u:User {name:'Michal'}) "
@@ -377,11 +337,7 @@ public class DerivedQueryTests {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-662
-	 */
-	// FIXME: OR is not supported for nested properties on an entity
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAGRAPH-662
 	public void shouldFindNodeEntititiesWithTwoNestedPropertiesOred() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
 				+ " CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " + " CREATE (u:User {name:'Michal'}) "
@@ -403,10 +359,7 @@ public class DerivedQueryTests {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
+	@Test // DATAGRAPH-629
 	public void shouldFindNodeEntititiesWithMultipleNestedPropertiesAnded() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
 				+ " CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) "
@@ -426,10 +379,7 @@ public class DerivedQueryTests {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-629
-	 */
-	@Test
+	@Test // DATAGRAPH-629
 	public void shouldFindNodeEntititiesWithRelationshipEntityAndNestedProperty() {
 		executeUpdate(
 				"CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})"
@@ -441,10 +391,7 @@ public class DerivedQueryTests {
 		assertTrue(users.contains(new User("Michal")));
 	}
 
-	/**
-	 * Relates to DATAGRAPH-601 and, to an extent, DATAGRAPH-761
-	 */
-	@Test
+	@Test // Relates to DATAGRAPH-601 and, to an extent, DATAGRAPH-761
 	public void shouldFindNodeEntitiesByRegularExpressionMatchingOnPropertiesInDerivedFinderMethods() {
 		executeUpdate("CREATE (:Theatre {name:'Odeon', city:'Preston'}), " + "(:Theatre {name:'Vue', city:'Dumfries'}), "
 				+ "(:Theatre {name:'PVR', city:'Mumbai'}) ");
@@ -455,10 +402,7 @@ public class DerivedQueryTests {
 		assertEquals("An unexpected cinema was retrieved", "Dumfries", cinemas.get(0).getLocation());
 	}
 
-	/**
-	 * DATAGRAPH-761
-	 */
-	@Test
+	@Test // DATAGRAPH-761
 	public void shouldMatchNodeEntitiesUsingCaseInsensitiveLikeWithWildcards() {
 		executeUpdate("CREATE (:Theatre {name:'IMAX', city:'Chesterfield'}), "
 				+ "(:Theatre {name:'Odeon', city:'Manchester'}), " + "(:Theatre {name:'IMAX', city:'Edinburgh'}) ");
@@ -467,10 +411,7 @@ public class DerivedQueryTests {
 		assertEquals("The wrong number of cinemas was returned", 2, cinemas.size());
 	}
 
-	/**
-	 * DATAGRAPH-761
-	 */
-	@Test
+	@Test // DATAGRAPH-761
 	public void shouldMatchNodeEntitiesUsingLikeWithWildcardsAndSpecialCharacters() {
 		executeUpdate("CREATE (:Theatre {name:'IMAX', city:'Kolkata (Calcutta)'}), "
 				+ "(:Theatre {name:'PVR', city:'Bengaluru (Bangalore)'}), "
@@ -480,10 +421,7 @@ public class DerivedQueryTests {
 		assertEquals("The wrong number of cinemas was returned", 2, indianCinemas.size());
 	}
 
-	/**
-	 * DATAGRAPH-761
-	 */
-	@Test
+	@Test // DATAGRAPH-761
 	public void shouldMatchNodeEntitiesUsingNotLikeWithAsteriskWildcards() {
 		executeUpdate("CREATE (:User {name:'Jeff'}), " + "(:User {name:'Jeremy'}), " + "(:User {name:'Alan'})");
 
@@ -492,10 +430,7 @@ public class DerivedQueryTests {
 		assertEquals("The wrong user was returned", "Alan", nonMatchingUsers.get(0).getName());
 	}
 
-	/**
-	 * @see DATAGRAPH-787
-	 */
-	@Test
+	@Test // DATAGRAPH-787
 	public void shouldFindDirectorsByName() {
 		executeUpdate(
 				"CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'}) CREATE (d:Director {name:'Vince'})");
@@ -517,10 +452,7 @@ public class DerivedQueryTests {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-744
-	 */
-	@Test
+	@Test // DATAGRAPH-744
 	public void shouldFindUserWithCustomDepth() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
 				+ " CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) " + " CREATE (u:User {name:'Michal'}) "
@@ -554,10 +486,7 @@ public class DerivedQueryTests {
 		});
 	}
 
-	/**
-	 * @see DATAGRAPH-744
-	 */
-	@Test
+	@Test // DATAGRAPH-744
 	public void shouldFindUsersByNameWithStaticDepth() {
 		executeUpdate(
 				"CREATE (m:User {name:'Michal', surname:'Bachman'})<-[:FRIEND_OF]-(a:User {name:'Adam', surname:'George'})");
@@ -569,10 +498,7 @@ public class DerivedQueryTests {
 		assertEquals(0, user.getFriends().size());
 	}
 
-	/**
-	 * @see DATAGRAPH-864
-	 */
-	@Test
+	@Test // DATAGRAPH-864
 	public void shouldSupportLiteralMapsInQueryResults() {
 		executeUpdate(
 				"CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})"
@@ -592,11 +518,7 @@ public class DerivedQueryTests {
 		}
 	}
 
-	/**
-	 * @throws InterruptedException
-	 * @see DATAGRAPH-876
-	 */
-	@Test
+	@Test // DATAGRAPH-876
 	public void shouldAllowMultiThreadedDerivedFinderExecution() throws InterruptedException {
 		int numThreads = 3;
 		executeUpdate(
@@ -617,10 +539,7 @@ public class DerivedQueryTests {
 		executor.shutdownNow();
 	}
 
-	/**
-	 * @see DATAGRAPH-680
-	 */
-	@Test
+	@Test // DATAGRAPH-680
 	@Transactional
 	public void shouldPageDerivedFinderQueries() {
 		for (int i = 0; i < 10; i++) {
@@ -662,10 +581,7 @@ public class DerivedQueryTests {
 		assertFalse(page.hasNext());
 	}
 
-	/**
-	 * @see DATAGRAPH-680
-	 */
-	@Test
+	@Test // DATAGRAPH-680
 	@Transactional
 	public void shouldSliceDerivedFinderQueries() {
 		for (int i = 0; i < 10; i++) {

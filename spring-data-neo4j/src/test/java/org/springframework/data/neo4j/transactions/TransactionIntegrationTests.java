@@ -30,6 +30,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Michal Bachman
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = MoviesContextConfiguration.class)
 @RunWith(SpringRunner.class)

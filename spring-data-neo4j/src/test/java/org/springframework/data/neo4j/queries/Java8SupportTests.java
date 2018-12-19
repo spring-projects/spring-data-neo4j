@@ -42,14 +42,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.examples.movies.repo.CinemaStreamingRepository;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = MoviesContextConfiguration.class)
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
+@Transactional
 public class Java8SupportTests {
 
 	@Autowired private ServerControls neo4jTestServer;
@@ -57,11 +59,9 @@ public class Java8SupportTests {
 	@Autowired private CinemaStreamingRepository cinemaRepository;
 
 	@Before
-	public void init() {
-		neo4jTestServer.graph().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
-	}
-
 	public void setup() {
+		neo4jTestServer.graph().execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE r, n");
+
 		String[] names = new String[] { "Picturehouse", "Regal", "Ritzy", "Metro", "Inox", "PVR", "Cineplex", "Landmark",
 				"Rainbow", "Movietime" };
 		for (String name : names) {
@@ -73,10 +73,7 @@ public class Java8SupportTests {
 	}
 
 	@Test
-	@Transactional
 	public void shouldFindOptionalCinema() {
-		setup();
-
 		Optional<Cinema> cinema = cinemaRepository.findByName("Picturehouse", 1);
 		assertTrue(cinema.isPresent());
 		assertEquals("Picturehouse", cinema.get().getName());
@@ -86,19 +83,13 @@ public class Java8SupportTests {
 	}
 
 	@Test
-	@Transactional
 	public void shouldStreamCinemas() {
-		setup();
-
 		Stream<Cinema> allCinemas = cinemaRepository.getAllCinemas();
 		assertEquals(10, allCinemas.count());
 	}
 
 	@Test
-	@Transactional
 	public void shouldStreamCinemasWithSort() {
-		setup();
-
 		Collection<Cinema> allCinemas = cinemaRepository.getCinemasSortedByName(new Sort("n.name"))
 				.collect(Collectors.toList());
 
@@ -107,10 +98,7 @@ public class Java8SupportTests {
 	}
 
 	@Test
-	@Transactional
 	public void shouldGetCinemasAsync() {
-		setup();
-
 		cinemaRepository.getAllCinemasAsync().thenAccept(cinemas -> {
 			assertEquals(10, cinemas.size());
 			cinemas.forEach(cinema -> assertNotNull(cinema.getName()));

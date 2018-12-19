@@ -36,15 +36,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
 import org.springframework.data.neo4j.examples.galaxy.service.GalaxyService;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Vince Bickers
  * @author Mark Paluch
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = GalaxyContextConfiguration.class)
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @Transactional
 public class GalaxyServiceTests {
 
@@ -272,10 +273,7 @@ public class GalaxyServiceTests {
 		assertEquals(0, count);
 	}
 
-	/**
-	 * @see DATAGRAPH-783
-	 */
-	@Test
+	@Test // DATAGRAPH-783
 	public void shouldFindWorldWithRadius() {
 		galaxyService.deleteAll();
 		World earth = new World("Earth", 1);
