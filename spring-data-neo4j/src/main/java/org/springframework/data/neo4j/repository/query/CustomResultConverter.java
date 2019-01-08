@@ -23,7 +23,6 @@ import java.util.Optional;
 import org.neo4j.ogm.context.SingleUseEntityMapper;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.metadata.reflect.EntityFactory;
-import org.neo4j.ogm.session.EntityInstantiator;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mapping.context.MappingContext;
@@ -32,6 +31,7 @@ import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.lang.Nullable;
+import org.springframework.util.ClassUtils;
 
 /**
  * Convert OGM special {@link QueryResult} annotated types into SD understandable type.
@@ -46,17 +46,30 @@ class CustomResultConverter implements Converter<Object, Object> {
 	private final Class returnedType;
 	private final MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext;
 
+	private final Optional<Constructor<?>> singleUseEntityMapperUsingInstantiator;
+	private final Object entityInstantiator;
+
 	CustomResultConverter(MetaData metaData, Class<?> returnedType,
 			@Nullable MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext) {
 
 		this.metaData = metaData;
 		this.returnedType = returnedType;
 		this.mappingContext = mappingContext;
+
+		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
+			this.entityInstantiator = getEntityInstantiator(metaData, mappingContext);
+			this.singleUseEntityMapperUsingInstantiator = ReflectionUtils.findConstructor(SingleUseEntityMapper.class,
+					metaData, entityInstantiator);
+		} else {
+			this.entityInstantiator = null;
+			this.singleUseEntityMapperUsingInstantiator = Optional.empty();
+		}
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public Object convert(Object source) {
+
 		if (returnedType.getAnnotation(QueryResult.class) == null) {
 			return source;
 		}
@@ -66,17 +79,26 @@ class CustomResultConverter implements Converter<Object, Object> {
 					new QueryResultProxy((Map<String, Object>) source));
 		}
 
-		SingleUseEntityMapper mapper;
-		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
-			EntityInstantiator entityInstantiator = new QueryResultInstantiator(metaData, mappingContext);
-			Optional<Constructor<?>> optionalConstructor = ReflectionUtils.findConstructor(SingleUseEntityMapper.class,
-					metaData, entityInstantiator);
-			// the constructor must exist
-			Constructor<?> constructor = optionalConstructor.get();
-			mapper = (SingleUseEntityMapper) BeanUtils.instantiateClass(constructor, metaData, entityInstantiator);
-		} else {
-			mapper = new SingleUseEntityMapper(metaData, new EntityFactory(metaData));
-		}
+		SingleUseEntityMapper mapper = this.singleUseEntityMapperUsingInstantiator.map(
+				constructor -> (SingleUseEntityMapper) BeanUtils.instantiateClass(constructor, metaData, entityInstantiator))
+				.orElseGet(() -> new SingleUseEntityMapper(metaData, new EntityFactory(metaData)));
 		return mapper.map(returnedType, (Map<String, Object>) source);
+	}
+
+	private static Object getEntityInstantiator(MetaData metaData,
+			@Nullable MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext) {
+
+		try {
+			Class<?> queryResultInstantiatorClass = Class.forName(
+					"org.springframework.data.neo4j.repository.query.QueryResultInstantiator", true,
+					ClassUtils.getDefaultClassLoader());
+			Optional<Constructor<?>> queryResultInstantiatorConstructor = ReflectionUtils
+					.findConstructor(queryResultInstantiatorClass, metaData, mappingContext);
+			return queryResultInstantiatorConstructor.map(ctor -> BeanUtils.instantiateClass(ctor, metaData, mappingContext))
+					.get();
+		} catch (ClassNotFoundException e) {
+			// It is there, we just don't want to reference it directly.
+			return null;
+		}
 	}
 }
