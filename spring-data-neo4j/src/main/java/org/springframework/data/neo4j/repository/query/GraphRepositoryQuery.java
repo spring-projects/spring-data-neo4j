@@ -43,6 +43,8 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 	private static final Logger LOG = LoggerFactory.getLogger(GraphRepositoryQuery.class);
 
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
+	private final QueryResultInstantiator entityInstantiator;
+
 	private ParameterizedQuery parameterizedQuery;
 
 	GraphRepositoryQuery(GraphQueryMethod graphQueryMethod, MetaData metaData, Session session,
@@ -52,6 +54,7 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 		super(graphQueryMethod, metaData, session);
 
 		this.evaluationContextProvider = evaluationContextProvider;
+		this.entityInstantiator = new QueryResultInstantiator(metaData, queryMethod.getMappingContext());
 	}
 
 	protected Object doExecute(Query query, Object[] parameters) {
@@ -61,15 +64,16 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 		}
 
 		GraphParameterAccessor accessor = new GraphParametersParameterAccessor(queryMethod, parameters);
-		Class<?> returnType = queryMethod.getMethod().getReturnType();
-
 		ResultProcessor processor = queryMethod.getResultProcessor().withDynamicProjection(accessor);
 
-		Object result = getExecution(accessor).execute(query, processor.getReturnedType().getReturnedType());
+		Class<?> methodReturnType = queryMethod.getMethod().getReturnType();
+		Class<?> processorReturnType = processor.getReturnedType().getReturnedType();
 
-		return Result.class.equals(returnType) ? result
+		Object result = getExecution(accessor).execute(query, processorReturnType);
+
+		return Result.class.equals(methodReturnType) ? result
 				: processor.processResult(result, new CustomResultConverter(metaData,
-						processor.getReturnedType().getReturnedType(), queryMethod.getMappingContext()));
+				processorReturnType, entityInstantiator));
 	}
 
 	protected Query getQuery(Object[] parameters) {

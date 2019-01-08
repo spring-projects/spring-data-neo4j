@@ -14,24 +14,13 @@
 package org.springframework.data.neo4j.repository.query;
 
 import static java.lang.reflect.Proxy.*;
-import static org.springframework.data.neo4j.repository.config.Neo4jRepositoryConfigurationExtension.*;
 
-import java.lang.reflect.Constructor;
 import java.util.Map;
-import java.util.Optional;
 
 import org.neo4j.ogm.context.SingleUseEntityMapper;
 import org.neo4j.ogm.metadata.MetaData;
-import org.neo4j.ogm.metadata.reflect.EntityFactory;
-import org.neo4j.ogm.session.EntityInstantiator;
-import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.annotation.QueryResult;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
-import org.springframework.data.util.ReflectionUtils;
-import org.springframework.lang.Nullable;
 
 /**
  * Convert OGM special {@link QueryResult} annotated types into SD understandable type.
@@ -44,19 +33,20 @@ class CustomResultConverter implements Converter<Object, Object> {
 
 	private final MetaData metaData;
 	private final Class returnedType;
-	private final MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext;
 
-	CustomResultConverter(MetaData metaData, Class<?> returnedType,
-			@Nullable MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext) {
+	private final QueryResultInstantiator entityInstantiator;
+
+	CustomResultConverter(MetaData metaData, Class<?> returnedType, QueryResultInstantiator entityInstantiator) {
 
 		this.metaData = metaData;
 		this.returnedType = returnedType;
-		this.mappingContext = mappingContext;
+		this.entityInstantiator = entityInstantiator;
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public Object convert(Object source) {
+
 		if (returnedType.getAnnotation(QueryResult.class) == null) {
 			return source;
 		}
@@ -66,17 +56,7 @@ class CustomResultConverter implements Converter<Object, Object> {
 					new QueryResultProxy((Map<String, Object>) source));
 		}
 
-		SingleUseEntityMapper mapper;
-		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
-			EntityInstantiator entityInstantiator = new QueryResultInstantiator(metaData, mappingContext);
-			Optional<Constructor<?>> optionalConstructor = ReflectionUtils.findConstructor(SingleUseEntityMapper.class,
-					metaData, entityInstantiator);
-			// the constructor must exist
-			Constructor<?> constructor = optionalConstructor.get();
-			mapper = (SingleUseEntityMapper) BeanUtils.instantiateClass(constructor, metaData, entityInstantiator);
-		} else {
-			mapper = new SingleUseEntityMapper(metaData, new EntityFactory(metaData));
-		}
+		SingleUseEntityMapper mapper = new SingleUseEntityMapper(metaData, entityInstantiator);
 		return mapper.map(returnedType, (Map<String, Object>) source);
 	}
 }

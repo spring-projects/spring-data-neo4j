@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.RelationshipEntity;
@@ -61,14 +60,10 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	static final String DEFAULT_SESSION_FACTORY_BEAN_NAME = "sessionFactory";
 	static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 
-	private static final String ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME = "neo4jOgmEntityInstantiatorConfigurationBean";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
 	private static final String NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME = "neo4jPersistenceExceptionTranslator";
 	private static final String MODULE_PREFIX = "neo4j";
 	private static final String MODULE_NAME = "Neo4j";
-
-	public static final boolean HAS_ENTITY_INSTANTIATOR_FEATURE = ClassUtils.isPresent(
-			"org.neo4j.ogm.session.EntityInstantiator", Neo4jRepositoryConfigurationExtension.class.getClassLoader());
 
 	/**
 	 * We use a generated name for every pair of {@code SessionFactory} and {@code Session} unless the user configures a
@@ -204,15 +199,12 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		registerIfNotAlreadyRegistered(() -> new RootBeanDefinition(Neo4jPersistenceExceptionTranslator.class), registry,
 				NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME, source);
 
-		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
-
-			Supplier<AbstractBeanDefinition> rootBeanDefinition = BeanDefinitionBuilder
-					.rootBeanDefinition(Neo4jOgmEntityInstantiatorConfigurationBean.class)
-					.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE)
-					.addConstructorArgReference(getSessionFactoryBeanName(config))
-					.addConstructorArgReference(this.neo4jMappingContextBeanName)::getBeanDefinition;
-			registerIfNotAlreadyRegistered(rootBeanDefinition, registry, ENTITY_INSTANTIATOR_CONFIGURATION_BEAN_NAME, source);
-		}
+		AbstractBeanDefinition rootBeanDefinition = BeanDefinitionBuilder
+				.rootBeanDefinition(Neo4jOgmEntityInstantiatorConfigurationBean.class)
+				.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE)
+				.addConstructorArgReference(getSessionFactoryBeanName(config))
+				.addConstructorArgReference(this.neo4jMappingContextBeanName).getBeanDefinition();
+		registerWithGeneratedNameOrUseConfigured(rootBeanDefinition, registry, GENERATE_BEAN_NAME, source);
 	}
 
 	/**

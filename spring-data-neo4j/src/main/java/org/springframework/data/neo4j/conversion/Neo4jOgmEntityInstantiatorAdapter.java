@@ -15,12 +15,12 @@ package org.springframework.data.neo4j.conversion;
 
 import java.util.Map;
 
-import org.neo4j.ogm.session.EntityInstantiator;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.convert.EntityInstantiators;
+import org.springframework.data.convert.EntityInstantiator;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ParameterValueProvider;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.lang.Nullable;
@@ -32,19 +32,17 @@ import org.springframework.util.Assert;
  * @author Nicolas Mervaillie
  * @author Michael J. Simons
  */
-public class Neo4jOgmEntityInstantiatorAdapter implements EntityInstantiator {
+public class Neo4jOgmEntityInstantiatorAdapter implements org.neo4j.ogm.session.EntityInstantiator {
 
-	private final MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context;
+	private final Neo4jMappingContext context;
 	private ConversionService conversionService;
-	private final EntityInstantiators instantiators;
 
 	public Neo4jOgmEntityInstantiatorAdapter(MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> context,
 			@Nullable ConversionService conversionService) {
 		Assert.notNull(context, "MappingContext cannot be null");
 
-		this.context = context;
+		this.context = (Neo4jMappingContext) context;
 		this.conversionService = conversionService;
-		instantiators = new EntityInstantiators();
 	}
 
 	@SuppressWarnings({ "unchecked" })
@@ -52,10 +50,9 @@ public class Neo4jOgmEntityInstantiatorAdapter implements EntityInstantiator {
 	public <T> T createInstance(Class<T> clazz, Map<String, Object> propertyValues) {
 
 		Neo4jPersistentEntity<T> persistentEntity = (Neo4jPersistentEntity<T>) context.getRequiredPersistentEntity(clazz);
-		org.springframework.data.convert.EntityInstantiator instantiator = instantiators
-				.getInstantiatorFor(persistentEntity);
+		EntityInstantiator sdnInstantiator = context.getInstantiatorFor(persistentEntity);
 
-		return instantiator.createInstance(persistentEntity, getParameterProvider(propertyValues, conversionService));
+		return sdnInstantiator.createInstance(persistentEntity, getParameterProvider(propertyValues, conversionService));
 	}
 
 	private ParameterValueProvider<Neo4jPersistentProperty> getParameterProvider(Map<String, Object> propertyValues,

@@ -29,7 +29,7 @@ import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
  * @author Gerrit Meier
  * @author Michael J. Simons
  */
-public class Neo4jOgmEntityInstantiatorConfigurationBean {
+class Neo4jOgmEntityInstantiatorConfigurationBean {
 
 	public Neo4jOgmEntityInstantiatorConfigurationBean(SessionFactory sessionFactory, Neo4jMappingContext mappingContext,
 			ObjectProvider<ConversionService> conversionServiceObjectProvider) {
