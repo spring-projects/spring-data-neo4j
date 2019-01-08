@@ -25,7 +25,7 @@
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-neo4j-parent</artifactId>
-		<version>5.1.4.BUILD-SNAPSHOT</version>
+		<version>5.1.4.DATAGRAPH-1174-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
