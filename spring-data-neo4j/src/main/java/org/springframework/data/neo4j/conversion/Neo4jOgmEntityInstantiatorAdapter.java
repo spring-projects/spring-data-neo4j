@@ -15,8 +15,8 @@ package org.springframework.data.neo4j.conversion;
 
 import java.util.Map;
 
-import org.neo4j.ogm.session.EntityInstantiator;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.data.convert.EntityInstantiator;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ParameterValueProvider;
@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  * @author Nicolas Mervaillie
  * @author Michael J. Simons
  */
-public class Neo4jOgmEntityInstantiatorAdapter implements EntityInstantiator {
+public class Neo4jOgmEntityInstantiatorAdapter implements org.neo4j.ogm.session.EntityInstantiator {
 
 	private final Neo4jMappingContext context;
 	private ConversionService conversionService;
@@ -50,9 +50,9 @@ public class Neo4jOgmEntityInstantiatorAdapter implements EntityInstantiator {
 	public <T> T createInstance(Class<T> clazz, Map<String, Object> propertyValues) {
 
 		Neo4jPersistentEntity<T> persistentEntity = (Neo4jPersistentEntity<T>) context.getRequiredPersistentEntity(clazz);
-		org.springframework.data.convert.EntityInstantiator instantiator = context.getInstantiatorFor(persistentEntity);
+		EntityInstantiator sdnInstantiator = context.getInstantiatorFor(persistentEntity);
 
-		return instantiator.createInstance(persistentEntity, getParameterProvider(propertyValues, conversionService));
+		return sdnInstantiator.createInstance(persistentEntity, getParameterProvider(propertyValues, conversionService));
 	}
 
 	private ParameterValueProvider<Neo4jPersistentProperty> getParameterProvider(Map<String, Object> propertyValues,
