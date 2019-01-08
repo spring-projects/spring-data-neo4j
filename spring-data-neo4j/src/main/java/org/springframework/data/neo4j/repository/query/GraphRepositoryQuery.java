@@ -13,20 +13,32 @@
 
 package org.springframework.data.neo4j.repository.query;
 
+import static org.springframework.data.neo4j.repository.config.Neo4jRepositoryConfigurationExtension.*;
+
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
+import org.neo4j.ogm.context.SingleUseEntityMapper;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.spel.ParameterizedQuery;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.util.ReflectionUtils;
+import org.springframework.lang.Nullable;
+import org.springframework.util.ClassUtils;
 
 /**
  * Specialisation of {@link RepositoryQuery} that handles mapping to object annotated with <code>&#064;Query</code>.
@@ -45,13 +57,23 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 	private ParameterizedQuery parameterizedQuery;
 
+	private final Optional<Constructor<?>> singleUseEntityMapperUsingInstantiator;
+	private final Object entityInstantiator;
+
 	GraphRepositoryQuery(GraphQueryMethod graphQueryMethod, MetaData metaData, Session session,
-			QueryMethodEvaluationContextProvider evaluationContextProvider
-	) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 		super(graphQueryMethod, metaData, session);
 
 		this.evaluationContextProvider = evaluationContextProvider;
+		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
+			this.entityInstantiator = getEntityInstantiator(metaData, queryMethod.getMappingContext());
+			this.singleUseEntityMapperUsingInstantiator = ReflectionUtils.findConstructor(SingleUseEntityMapper.class,
+					metaData, entityInstantiator);
+		} else {
+			this.entityInstantiator = null;
+			this.singleUseEntityMapperUsingInstantiator = Optional.empty();
+		}
 	}
 
 	protected Object doExecute(Query query, Object[] parameters) {
@@ -69,7 +91,7 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 		return Result.class.equals(returnType) ? result
 				: processor.processResult(result, new CustomResultConverter(metaData,
-						processor.getReturnedType().getReturnedType(), queryMethod.getMappingContext()));
+						processor.getReturnedType().getReturnedType(), singleUseEntityMapperUsingInstantiator, entityInstantiator));
 	}
 
 	protected Query getQuery(Object[] parameters) {
@@ -138,5 +160,22 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 	@Override
 	protected boolean isDeleteQuery() {
 		return false;
+	}
+
+	private static Object getEntityInstantiator(MetaData metaData,
+			@Nullable MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext) {
+
+		try {
+			Class<?> queryResultInstantiatorClass = Class.forName(
+					"org.springframework.data.neo4j.repository.query.QueryResultInstantiator", true,
+					ClassUtils.getDefaultClassLoader());
+			Optional<Constructor<?>> queryResultInstantiatorConstructor = ReflectionUtils
+					.findConstructor(queryResultInstantiatorClass, metaData, mappingContext);
+			return queryResultInstantiatorConstructor.map(ctor -> BeanUtils.instantiateClass(ctor, metaData, mappingContext))
+					.get();
+		} catch (ClassNotFoundException e) {
+			// It is there, we just don't want to reference it directly.
+			return null;
+		}
 	}
 }
