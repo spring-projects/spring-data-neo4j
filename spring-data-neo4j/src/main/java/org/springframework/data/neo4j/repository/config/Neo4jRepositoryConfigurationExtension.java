@@ -65,9 +65,6 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	private static final String MODULE_PREFIX = "neo4j";
 	private static final String MODULE_NAME = "Neo4j";
 
-	public static final boolean HAS_ENTITY_INSTANTIATOR_FEATURE = ClassUtils.isPresent(
-			"org.neo4j.ogm.session.EntityInstantiator", Neo4jRepositoryConfigurationExtension.class.getClassLoader());
-
 	/**
 	 * We use a generated name for every pair of {@code SessionFactory} and {@code Session} unless the user configures a
 	 * session bean name with {@code @EnableNeo4jRepositories(sessionBeanName="someName")}.
@@ -202,15 +199,12 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		registerIfNotAlreadyRegistered(() -> new RootBeanDefinition(Neo4jPersistenceExceptionTranslator.class), registry,
 				NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME, source);
 
-		if (HAS_ENTITY_INSTANTIATOR_FEATURE) {
-
-			AbstractBeanDefinition rootBeanDefinition = BeanDefinitionBuilder
-					.rootBeanDefinition(Neo4jOgmEntityInstantiatorConfigurationBean.class)
-					.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE)
-					.addConstructorArgReference(getSessionFactoryBeanName(config))
-					.addConstructorArgReference(this.neo4jMappingContextBeanName).getBeanDefinition();
-			registerWithGeneratedNameOrUseConfigured(rootBeanDefinition, registry, GENERATE_BEAN_NAME, source);
-		}
+		AbstractBeanDefinition rootBeanDefinition = BeanDefinitionBuilder
+				.rootBeanDefinition(Neo4jOgmEntityInstantiatorConfigurationBean.class)
+				.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE)
+				.addConstructorArgReference(getSessionFactoryBeanName(config))
+				.addConstructorArgReference(this.neo4jMappingContextBeanName).getBeanDefinition();
+		registerWithGeneratedNameOrUseConfigured(rootBeanDefinition, registry, GENERATE_BEAN_NAME, source);
 	}
 
 	/**
