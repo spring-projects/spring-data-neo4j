@@ -4,7 +4,7 @@ Michael Hunger; Oliver Gierke; Vince Bickers; Adam George; Luanne Misquitta; Mic
 :revdate: {localdate}
 :spring-data-commons-docs: ../../../../../spring-data-commons/src/main/asciidoc
 
-(C) 2010-2018 Graph Aware Ltd - Neo Technology, Inc. - Pivotal Software, Inc.
+(C) 2010-2019 Graph Aware Ltd - Neo Technology, Inc. - Pivotal Software, Inc.
 
 image::springdatagraph.png[Spring + Neo4j,align="left"]
 
