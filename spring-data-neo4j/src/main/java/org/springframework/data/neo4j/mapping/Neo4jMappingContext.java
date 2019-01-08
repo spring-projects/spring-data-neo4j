@@ -22,6 +22,9 @@ import org.neo4j.ogm.metadata.FieldInfo;
 import org.neo4j.ogm.metadata.MetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.convert.EntityInstantiator;
+import org.springframework.data.convert.EntityInstantiators;
+import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
@@ -41,6 +44,11 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 
 	private static final Logger logger = LoggerFactory.getLogger(Neo4jMappingContext.class);
 
+	// Instantiation of the EntityInstantiators must happen only once, otherwise
+	// the org.springframework.data.convert.ClassGeneratingEntityInstantiator will
+	// be created every time an instantiator is requested and thus the whole thing
+	// will dynamically create classes like there is no tomorrow.
+	private final EntityInstantiators instantiators = new EntityInstantiators();
 	private final MetaData metaData;
 
 	/**
@@ -85,6 +93,10 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 
 		return new Neo4jPersistentProperty(owningClassInfo, property, owner,
 				updateSimpleTypeHolder(simpleTypeHolder, propertyField));
+	}
+
+	public EntityInstantiator getInstantiatorFor(PersistentEntity<?, ?> entity) {
+		return instantiators.getInstantiatorFor(entity);
 	}
 
 	private SimpleTypeHolder updateSimpleTypeHolder(SimpleTypeHolder currentSimpleTypeHolder, Field field) {
