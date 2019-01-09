@@ -35,11 +35,14 @@
 	</modules>
 
 	<properties>
-		<project.type>multi</project.type>
 		<dist.id>spring-data-neo4j</dist.id>
+
+		<project.type>multi</project.type>
+
+		<checkstyle.version>8.16</checkstyle.version>
+		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
 		<neo4j.ogm.version>3.1.6</neo4j.ogm.version>
 		<springdata.commons>2.1.4.BUILD-SNAPSHOT</springdata.commons>
-		<source.level>1.8</source.level>
 	</properties>
 
 	<developers>
@@ -221,5 +224,46 @@
 			<url>https://repo.spring.io/plugins-release</url>
 		</pluginRepository>
 	</pluginRepositories>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-checkstyle-plugin</artifactId>
+					<version>${maven-checkstyle-plugin.version}</version>
+					<dependencies>
+						<dependency>
+							<groupId>com.puppycrawl.tools</groupId>
+							<artifactId>checkstyle</artifactId>
+							<version>${checkstyle.version}</version>
+						</dependency>
+					</dependencies>
+					<configuration>
+						<configLocation>checkstyle/config.xml</configLocation>
+						<suppressionsLocation>checkstyle/suppressions.xml</suppressionsLocation>
+						<headerLocation>checkstyle/java-header.txt</headerLocation>
+						<encoding>${project.build.sourceEncoding}</encoding>
+						<consoleOutput>true</consoleOutput>
+						<failsOnError>true</failsOnError>
+						<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>validate</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>
