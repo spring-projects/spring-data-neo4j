@@ -1,6 +1,17 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.4.RELEASE (2019-01-10)
+---------------------------------------------
+* DATAGRAPH-1176 - Harmonize license headers.
+* DATAGRAPH-1175 - Upgrade to Neo4j OGM 3.1.6.
+* DATAGRAPH-1174 - Fix class loading leak with custom QueryResults.
+* DATAGRAPH-1173 - Update copyright years to 2019.
+* DATAGRAPH-1165 - Remove jcl-over-slf4j dependency.
+* DATAGRAPH-1155 - Release 5.1.4 (Lovelace SR4).
+* DATAGRAPH-1149 - Introduce MetaDataProvider to avoid unnecessary transactions.
+
+
 Changes in version 5.0.13.RELEASE (2019-01-10)
 ----------------------------------------------
 * DATAGRAPH-1176 - Harmonize license headers.
