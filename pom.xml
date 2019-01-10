@@ -16,9 +16,7 @@
  | Copyright 2011-2019 the original author or authors.
  |
  | Licensed under the Apache License, Version 2.0 (the "License");
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+--><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -34,7 +32,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>2.1.4.BUILD-SNAPSHOT</version>
+		<version>2.1.4.RELEASE</version>
 	</parent>
 
 	<modules>
@@ -50,7 +48,7 @@
 		<checkstyle.version>8.16</checkstyle.version>
 		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
 		<neo4j.ogm.version>3.1.6</neo4j.ogm.version>
-		<springdata.commons>2.1.4.BUILD-SNAPSHOT</springdata.commons>
+		<springdata.commons>2.1.4.RELEASE</springdata.commons>
 	</properties>
 
 	<developers>
@@ -221,8 +219,8 @@
 			</snapshots>
 		</repository>
 		<repository>
-			<id>spring-libs-snapshot</id>
-			<url>https://repo.spring.io/libs-snapshot</url>
+			<id>spring-libs-release</id>
+			<url>https://repo.spring.io/libs-release</url>
 		</repository>
 	</repositories>
 
