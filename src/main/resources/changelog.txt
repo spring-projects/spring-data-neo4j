@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.0.13.RELEASE (2019-01-10)
+----------------------------------------------
+* DATAGRAPH-1176 - Harmonize license headers.
+* DATAGRAPH-1173 - Update copyright years to 2019.
+* DATAGRAPH-1154 - Release 5.0.13 (Kay SR13).
+
+
 Changes in version 4.2.18.RELEASE (2019-01-10)
 ----------------------------------------------
 * DATAGRAPH-1176 - Harmonize license headers.
