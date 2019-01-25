@@ -27,7 +27,7 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
 
 /**
- * This is an internal annotation to provide the mininum setup for an integration test against a Neo4j instance running
+ * This is an internal annotation to provide the minimum setup for an integration test against a Neo4j instance running
  * through the Neo4j test harness. It is not meant to be used outside SDN. <br>
  * <br>
  * It turns on {@link EnableNeo4jRepositories Neo4j repositories} as well as

@@ -301,18 +301,15 @@ public class MoviesIntegrationTests {
 	}
 
 	@Test
-	public void shouldHandleMultipleConcurrentRequests() throws InterruptedException, Neo4jFailedToStartException {
+	public void shouldHandleMultipleConcurrentRequests() throws InterruptedException {
 
 		ExecutorService executor = Executors.newFixedThreadPool(10);
 		final CountDownLatch latch = new CountDownLatch(100);
 
 		for (int i = 0; i < 100; i++) {
-			executor.submit(new Runnable() {
-				@Override
-				public void run() {
-					userRepository.save(new User());
-					latch.countDown();
-				}
+			executor.submit(() -> {
+				userRepository.save(new User());
+				latch.countDown();
 			});
 		}
 

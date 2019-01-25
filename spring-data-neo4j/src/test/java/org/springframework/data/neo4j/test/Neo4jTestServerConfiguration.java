@@ -59,7 +59,7 @@ class Neo4jTestServerConfiguration {
 	@Conditional(OnMissingOGMConfigurationCondition.class)
 	org.neo4j.ogm.config.Configuration neo4jOGMConfiguration(ServerControls neo4jTestServer) {
 
-		// @Value isn't used on purpose. Some tests interfer with the conversion services and
+		// @Value isn't used on purpose. Some tests interfere with the conversion services and
 		// it would be much more effort to use Springs system property integration and SpEL than
 		// this manual setup.
 		IntegrationTestMode integrationTestMode = Optional.ofNullable(System.getProperty("integration-test-mode"))
