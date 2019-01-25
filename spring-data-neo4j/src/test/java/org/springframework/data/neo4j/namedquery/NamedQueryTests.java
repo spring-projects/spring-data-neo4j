@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.namedquery.domain.SampleEntityForNamedQuery;
 import org.springframework.data.neo4j.namedquery.repo.SampleEntityForNamedQueryRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -85,20 +86,9 @@ public class NamedQueryTests {
 		repository.save(entity);
 	}
 
-	@Configuration
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.namedquery.domain",
+			repositoryPackages = "org.springframework.data.neo4j.namedquery.repo")
 	@ComponentScan({ "org.springframework.data.neo4j.namedquery" })
-	@EnableNeo4jRepositories(value = "org.springframework.data.neo4j.namedquery.repo")
-	@EnableTransactionManagement
 	static class NamedQueryContext {
-
-		@Bean
-		public PlatformTransactionManager transactionManager() {
-			return new Neo4jTransactionManager(sessionFactory());
-		}
-
-		@Bean
-		public SessionFactory sessionFactory() {
-			return new SessionFactory("org.springframework.data.neo4j.namedquery.domain");
-		}
 	}
 }

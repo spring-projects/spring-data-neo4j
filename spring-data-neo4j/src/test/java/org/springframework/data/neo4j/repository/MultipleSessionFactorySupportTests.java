@@ -17,22 +17,14 @@ package org.springframework.data.neo4j.repository;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver;
+import org.neo4j.harness.ServerControls;
+import org.neo4j.harness.TestServerBuilders;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.slf4j.Logger;
@@ -77,9 +69,9 @@ public class MultipleSessionFactorySupportTests {
 	private static final String QUERY_COUNT_PERSON_NODES = "MATCH (n:Person) RETURN count(n) as cnt";
 	private static final String QUERY_COUNT_DINER_NODES = "MATCH (n:Diner) RETURN count(n) as cnt";
 
-	private static DatabaseHolder instance1;
+	private static ServerControls instance1;
 
-	private static DatabaseHolder instance2;
+	private static ServerControls instance2;
 
 	@Autowired @Qualifier(BEAN_NAME_FRIENDS_SESSION_FACTORY) private Session friendsSession;
 
@@ -90,10 +82,10 @@ public class MultipleSessionFactorySupportTests {
 	@Autowired private RestaurantRepository restaurantRepository;
 
 	@BeforeClass
-	public static void initializeDatabase() throws IOException {
+	public static void initializeDatabase() {
 
-		instance1 = createAndStartEmbeddedInstance();
-		instance2 = createAndStartEmbeddedInstance();
+		instance1 = TestServerBuilders.newInProcessBuilder().newServer();
+		instance2 = TestServerBuilders.newInProcessBuilder().newServer();
 	}
 
 	@Test // DATAGRAPH-1094
@@ -112,10 +104,10 @@ public class MultipleSessionFactorySupportTests {
 		assertThat(this.friendsSession.loadAll(Person.class)).hasSize(2);
 		assertThat(this.restaurantsSession.loadAll(Diner.class)).hasSize(2);
 
-		assertThat(executeCountQuery(QUERY_COUNT_PERSON_NODES, instance1.graphDatabaseService)).isEqualTo(2L);
-		assertThat(executeCountQuery(QUERY_COUNT_PERSON_NODES, instance2.graphDatabaseService)).isEqualTo(0L);
-		assertThat(executeCountQuery(QUERY_COUNT_DINER_NODES, instance1.graphDatabaseService)).isEqualTo(0L);
-		assertThat(executeCountQuery(QUERY_COUNT_DINER_NODES, instance2.graphDatabaseService)).isEqualTo(2L);
+		assertThat(executeCountQuery(QUERY_COUNT_PERSON_NODES, instance1.graph())).isEqualTo(2L);
+		assertThat(executeCountQuery(QUERY_COUNT_PERSON_NODES, instance2.graph())).isEqualTo(0L);
+		assertThat(executeCountQuery(QUERY_COUNT_DINER_NODES, instance1.graph())).isEqualTo(0L);
+		assertThat(executeCountQuery(QUERY_COUNT_DINER_NODES, instance2.graph())).isEqualTo(2L);
 	}
 
 	@AfterClass
@@ -147,62 +139,10 @@ public class MultipleSessionFactorySupportTests {
 
 	private long executeCountQuery(String countQuery, GraphDatabaseService onInstance) {
 
-		try (Transaction ignored = onInstance.beginTx()) {
-			return (long) onInstance.execute(countQuery).next().get("cnt");
-		}
-	}
-
-	private static DatabaseHolder createAndStartEmbeddedInstance() throws IOException {
-
-		File dataStore1 = Files.createTempDirectory("neo4j.db").toFile();
-		GraphDatabaseService graphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dataStore1)
-				.newGraphDatabase();
-		return new DatabaseHolder(dataStore1, graphDatabaseService);
-	}
-
-	/**
-	 * Just keep database and directory together.
-	 */
-	static class DatabaseHolder {
-
-		final File dataStoreDirectory;
-
-		final GraphDatabaseService graphDatabaseService;
-
-		public DatabaseHolder(File dataStoreDirectory, GraphDatabaseService graphDatabaseService) {
-
-			this.dataStoreDirectory = dataStoreDirectory;
-			this.graphDatabaseService = graphDatabaseService;
-		}
-
-		void close() {
-
-			this.graphDatabaseService.shutdown();
-			try {
-				deleteDirectory(dataStoreDirectory.toPath());
-			} catch (IOException e) {
-				LOGGER.warn("Failed to delete database store in {}" + dataStoreDirectory.getAbsolutePath());
-			}
-		}
-
-		private static void deleteDirectory(Path directory) throws IOException {
-			Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-					Files.delete(file);
-					return FileVisitResult.CONTINUE;
-				}
-
-				@Override
-				public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-
-					if(exc != null) {
-						throw exc;
-					}
-					Files.delete(dir);
-					return FileVisitResult.CONTINUE;
-				}
-			});
+		try (Transaction tx = onInstance.beginTx()) {
+			long result = (long) onInstance.execute(countQuery).next().get("cnt");
+			tx.success();
+			return result;
 		}
 	}
 
@@ -222,9 +162,10 @@ public class MultipleSessionFactorySupportTests {
 
 		@Bean(BEAN_NAME_FRIENDS_SESSION_FACTORY)
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(new EmbeddedDriver(instance1.graphDatabaseService,
-					new org.neo4j.ogm.config.Configuration.Builder().build()),
-					PACKAGE_FOR_DOMAIN_OF_INSTANCE1 + ".domain");
+
+			org.neo4j.ogm.config.Configuration ogmConfiguration = new org.neo4j.ogm.config.Configuration.Builder()
+					.uri(instance1.boltURI().toString()).build();
+			return new SessionFactory(ogmConfiguration, PACKAGE_FOR_DOMAIN_OF_INSTANCE1 + ".domain");
 		}
 	}
 
@@ -240,9 +181,10 @@ public class MultipleSessionFactorySupportTests {
 
 		@Bean(BEAN_NAME_RESTAURANTS_SESSION_FACTORY)
 		public SessionFactory sessionFactory() {
-			return new SessionFactory(new EmbeddedDriver(instance2.graphDatabaseService,
-					new org.neo4j.ogm.config.Configuration.Builder().build()),
-					PACKAGE_FOR_DOMAIN_OF_INSTANCE2 + ".domain");
+
+			org.neo4j.ogm.config.Configuration ogmConfiguration = new org.neo4j.ogm.config.Configuration.Builder()
+					.uri(instance2.boltURI().toString()).build();
+			return new SessionFactory(ogmConfiguration, PACKAGE_FOR_DOMAIN_OF_INSTANCE2 + ".domain");
 		}
 	}
 }

@@ -16,9 +16,11 @@
 package org.springframework.data.neo4j.repositories;
 
 import static org.junit.Assert.*;
-import static org.neo4j.ogm.testutil.GraphTestUtils.*;
+import static org.springframework.data.neo4j.test.GraphDatabaseServiceAssert.assertThat;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.StreamSupport;
 
 import org.assertj.core.api.Assertions;
@@ -108,7 +110,9 @@ public class ProgrammaticRepositoryTests {
 			}
 		});
 
-		assertSameGraph(serverControls.graph(), "CREATE (m:Movie {title:'PF'})");
+		Map<String, Object> params = new HashMap<>();
+		params.put("title", "PF");
+		assertThat(serverControls.graph()).containsNode("MATCH (n:Movie) WHERE n.title = $title RETURN n", params);
 
 		assertEquals(1, StreamSupport.stream(movieRepository.findAll().spliterator(), false).count());
 	}

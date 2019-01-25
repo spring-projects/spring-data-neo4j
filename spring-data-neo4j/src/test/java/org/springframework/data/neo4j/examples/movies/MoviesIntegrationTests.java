@@ -16,7 +16,7 @@
 package org.springframework.data.neo4j.examples.movies;
 
 import static org.junit.Assert.*;
-import static org.neo4j.ogm.testutil.GraphTestUtils.*;
+import static org.springframework.data.neo4j.test.GraphDatabaseServiceAssert.assertThat;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -36,7 +36,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.Result;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.session.Session;
@@ -105,7 +105,8 @@ public class MoviesIntegrationTests {
 		User user = new User("Michal");
 		userRepository.save(user);
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Michal'})");
+		assertThat(graphDatabaseService).containsNode("MATCH (n:User:Person {name:'Michal'}) RETURN n")
+				.withId(user.getId());
 	}
 
 	@Test
@@ -113,7 +114,7 @@ public class MoviesIntegrationTests {
 		User user = new User();
 		userRepository.save(user);
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User:Person)");
+		assertThat(graphDatabaseService).containsNode("MATCH (n:User:Person) RETURN n").withId(user.getId());
 	}
 
 	@Test
@@ -127,9 +128,9 @@ public class MoviesIntegrationTests {
 
 		abstractAnnotatedEntityRepository.save(releasedMovie);
 
-		assertSameGraph(graphDatabaseService,
-				"CREATE (m:ReleasedMovie:AbstractAnnotatedEntity {cinemaRelease:'1994-09-10T00:00:00.000Z',"
-						+ "cannesRelease:768700800000,title:'Pulp Fiction'})");
+		assertThat(graphDatabaseService)
+				.containsNode("MATCH (m:ReleasedMovie:AbstractAnnotatedEntity {cinemaRelease:'1994-09-10T00:00:00.000Z',"
+						+ "cannesRelease:768700800000,title:'Pulp Fiction'}) RETURN m AS n");
 	}
 
 	@Test
@@ -141,8 +142,8 @@ public class MoviesIntegrationTests {
 
 		abstractAnnotatedEntityRepository.save(releasedMovie);
 
-		assertSameGraph(graphDatabaseService,
-				"CREATE (m:ReleasedMovie:AbstractAnnotatedEntity {cannesRelease:768700800000,title:'Pulp Fiction'})");
+		assertThat(graphDatabaseService).containsNode(
+				"MATCH (m:ReleasedMovie:AbstractAnnotatedEntity {cannesRelease:768700800000,title:'Pulp Fiction'}) RETURN m AS n");
 	}
 
 	@Test
@@ -155,8 +156,8 @@ public class MoviesIntegrationTests {
 		abstractEntityRepository.save(movie);
 
 		// byte arrays have to be transferred with a JSON-supported format. Base64 is the default.
-		assertSameGraph(graphDatabaseService,
-				"CREATE (m:Movie {name:'Pulp Fiction', tags:['cool','classic'], " + "image:'AQID'})");
+		assertThat(graphDatabaseService).containsNode(
+				"MATCH (m:Movie {name:'Pulp Fiction', tags:['cool','classic'], " + "image:'AQID'}) RETURN m AS n");
 	}
 
 	@Test
@@ -174,8 +175,10 @@ public class MoviesIntegrationTests {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService,
-				"CREATE (:User:Person {name:'Michal'})," + "(:User:Person {name:'Vince'})," + "(:User:Person {name:'Adam'})");
+		assertThat(graphDatabaseService).containsNode("MATCH (n:User:Person {name:'Michal'}) RETURN n");
+		assertThat(graphDatabaseService).containsNode("MATCH (n:User:Person {name:'Vince'}) RETURN n");
+		assertThat(graphDatabaseService).containsNode("MATCH (n:User:Person {name:'Adam'}) RETURN n");
+
 	}
 
 	@Test
@@ -193,8 +196,9 @@ public class MoviesIntegrationTests {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService,
-				"CREATE (:User:Person {name:'Michal'})," + "(:User:Person {name:'Vince'})," + "(:User:Person {name:'Adam'})");
+		assertThat(graphDatabaseService).containsNode("MATCH (n:User:Person {name:'Michal'}) RETURN n");
+		assertThat(graphDatabaseService).containsNode("MATCH (n:User:Person {name:'Vince'}) RETURN n");
+		assertThat(graphDatabaseService).containsNode("MATCH (n:User:Person {name:'Adam'}) RETURN n");
 	}
 
 	@Test
@@ -208,7 +212,7 @@ public class MoviesIntegrationTests {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Adam'})");
+		assertThat(graphDatabaseService).containsNode("MATCH (n:User:Person {name:'Adam'}) RETURN n");
 	}
 
 	@Test
@@ -222,7 +226,7 @@ public class MoviesIntegrationTests {
 		userService.updateUser(user, "Adam"); // notice userRepository.save(..) isn't called,
 		// not even in the service impl!
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User {name:'Adam'})");
+		assertThat(graphDatabaseService).containsNode("MATCH (n:User:Person {name:'Adam'}) RETURN n");
 	}
 
 	@Test
@@ -287,13 +291,12 @@ public class MoviesIntegrationTests {
 				assertFalse(userRepository.existsById(user.getId()));
 				assertEquals(0, userRepository.count());
 				assertFalse(userRepository.findById(user.getId()).isPresent());
-				assertFalse(userRepository.findById(user.getId(), 10).isPresent());
+				assertFalse(userRepository.findById(user.getId(), 5).isPresent());
 			}
 		});
 
-		try (Transaction tx = graphDatabaseService.beginTx()) {
-			assertFalse(graphDatabaseService.getAllNodes().iterator().hasNext());
-			tx.success();
+		try (Result result = graphDatabaseService.execute("MATCH (n) RETURN n")) {
+			assertFalse(result.hasNext());
 		}
 	}
 
@@ -322,8 +325,8 @@ public class MoviesIntegrationTests {
 
 	@Test(expected = DataAccessException.class)
 	public void shouldInterceptOGMExceptions() {
-		ratingRepository.findAll(0); // ratings are REs and must be found to at least depth 1 in order to get the start and
-																	// end nodes
+		// ratings are REs and must be found to at least depth 1 in order to get the start and end nodes
+		ratingRepository.findAll(0);
 	}
 
 	@Test
@@ -333,8 +336,9 @@ public class MoviesIntegrationTests {
 
 		userRepository.save(user);
 
-		assertSameGraph(graphDatabaseService,
-				"CREATE (u:User:Person {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'})");
+		assertThat(graphDatabaseService)
+				.containsNode("MATCH (u:User:Person {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'}) RETURN u AS n")
+				.withId(user.getId());
 	}
 
 	@Test
@@ -346,10 +350,10 @@ public class MoviesIntegrationTests {
 
 		userRepository.save(user);
 
-		assertSameGraph(graphDatabaseService,
-				"CREATE " + "(u:User:Person {name:'Michal'})," + "(g1:Genre {name:'Drama'}),"
-						+ "(g2:Genre {name:'Historical'})," + "(g3:Genre {name:'Thriller'})," + "(u)-[:INTERESTED]->(g1),"
-						+ "(u)-[:INTERESTED]->(g2)," + "(u)-[:INTERESTED]->(g3)");
+		assertThat(graphDatabaseService).containsNode("MATCH (u:User:Person {name:'Michal'}),"
+				+ "(g1:Genre {name:'Drama'})," + "(g2:Genre {name:'Historical'})," + "(g3:Genre {name:'Thriller'}),"
+				+ "(u)-[:INTERESTED]->(g1)," + "(u)-[:INTERESTED]->(g2)," + "(u)-[:INTERESTED]->(g3) RETURN u AS n ")
+				.withId(user.getId());
 	}
 
 	@Test
@@ -359,8 +363,9 @@ public class MoviesIntegrationTests {
 
 		userRepository.save(user, 1);
 
-		assertSameGraph(graphDatabaseService,
-				"CREATE (u:User:Person {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'})");
+		assertThat(graphDatabaseService)
+				.containsNode("MATCH (u:User:Person {name:'Michal'})-[:INTERESTED]->(g:Genre {name:'Drama'}) RETURN u AS n")
+				.withId(user.getId());
 	}
 
 	@Test
@@ -381,9 +386,9 @@ public class MoviesIntegrationTests {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService,
-				"CREATE " + "(m:User:Person {name:'Michal'})," + "(v:User:Person {name:'Vince'})," + "(g:Genre {name:'Drama'}),"
-						+ "(m)-[:INTERESTED]->(g)," + "(v)-[:INTERESTED]->(g)");
+		assertThat(graphDatabaseService)
+				.containsNode("MATCH (m:User:Person {name:'Michal'})," + "(v:User:Person {name:'Vince'}),"
+						+ "(g:Genre {name:'Drama'})," + "(m)-[:INTERESTED]->(g)," + "(v)-[:INTERESTED]->(g) RETURN m AS n");
 	}
 
 	@Test
@@ -393,7 +398,8 @@ public class MoviesIntegrationTests {
 
 		userRepository.save(user, 0);
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Michal'})");
+		assertThat(graphDatabaseService).containsNode("MATCH (u:User:Person {name:'Michal'}) RETURN u AS n")
+				.withId(user.getId());
 	}
 
 	@Test
@@ -414,8 +420,8 @@ public class MoviesIntegrationTests {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService,
-				"CREATE " + "(m:User:Person {name:'Michal'})," + "(g:Genre {name:'New Drama'})," + "(m)-[:INTERESTED]->(g)");
+		assertThat(graphDatabaseService).containsNode("MATCH (m:User:Person {name:'Michal'}),"
+				+ "(g:Genre {name:'New Drama'})," + "(m)-[:INTERESTED]->(g) RETURN m AS n");
 	}
 
 	@Test
@@ -435,7 +441,8 @@ public class MoviesIntegrationTests {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService, "CREATE " + "(m:User:Person {name:'Michal'})," + "(g:Genre {name:'Drama'})");
+		assertThat(graphDatabaseService)
+				.containsNode("MATCH (m:User:Person {name:'Michal'})," + "(g:Genre {name:'Drama'}) RETURN m AS n");
 	}
 
 	@Test
@@ -453,7 +460,8 @@ public class MoviesIntegrationTests {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService, "CREATE " + "(m:User:Person {name:'Michal'})," + "(g:Genre {name:'Drama'})");
+		assertThat(graphDatabaseService)
+				.containsNode("MATCH (m:User:Person {name:'Michal'})," + "(g:Genre {name:'Drama'}) RETURN m AS n");
 	}
 
 	@Test
@@ -463,8 +471,8 @@ public class MoviesIntegrationTests {
 
 		cinemaRepository.save(cinema);
 
-		assertSameGraph(graphDatabaseService, "CREATE " + "(m:User:Person {name:'Michal'}),"
-				+ "(c:Theatre {name:'Odeon', capacity:0})," + "(m)-[:VISITED]->(c)");
+		assertThat(graphDatabaseService).containsNode("MATCH (m:User:Person {name:'Michal'}),"
+				+ "(c:Theatre {name:'Odeon', capacity:0})," + "(m)-[:VISITED]->(c) RETURN m AS n");
 	}
 
 	@Test
@@ -482,8 +490,8 @@ public class MoviesIntegrationTests {
 			}
 		});
 
-		assertSameGraph(graphDatabaseService, "CREATE " + "(m:User:Person {name:'Michal'}),"
-				+ "(c:Theatre {name:'Odeon', capacity:0})," + "(m)-[:VISITED]->(c)");
+		assertThat(graphDatabaseService).containsNode("MATCH (m:User:Person {name:'Michal'}),"
+				+ "(c:Theatre {name:'Odeon', capacity:0})," + "(m)-[:VISITED]->(c) RETURN m AS n");
 	}
 
 	@Test
@@ -498,11 +506,11 @@ public class MoviesIntegrationTests {
 		});
 
 		try {
-			assertSameGraph(graphDatabaseService,
-					"CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User:Person {name:'Adam'})");
+			assertThat(graphDatabaseService)
+					.containsNode("MATCH (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User:Person {name:'Adam'}) RETURN m AS n");
 		} catch (AssertionError error) {
-			assertSameGraph(graphDatabaseService,
-					"CREATE (m:User:Person {name:'Michal'})<-[:FRIEND_OF]-(a:User:Person {name:'Adam'})");
+			assertThat(graphDatabaseService).containsNode(
+					"MATCH (m:User:Person {name:'Michal'})<-[:FRIEND_OF]-(a:User:Person {name:'Adam'}) RETURN m AS n");
 		}
 	}
 
@@ -547,8 +555,10 @@ public class MoviesIntegrationTests {
 
 		User michal = ((Iterable<User>) findByProperty(User.class, "name", "Michal")).iterator().next();
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User:Person {name:'Michal'})-[:RATED {stars:5, "
-				+ "comment:'Best movie ever', ratingTimestamp:0}]->(m:Movie {name:'Pulp Fiction'})");
+		assertThat(graphDatabaseService)
+				.containsNode("MATCH (u:User:Person {name:'Michal'})-[:RATED {stars:5, "
+						+ "comment:'Best movie ever', ratingTimestamp:0}]->(m:Movie {name:'Pulp Fiction'}) RETURN u AS n")
+				.withId(michal.getId());
 	}
 
 	@Test

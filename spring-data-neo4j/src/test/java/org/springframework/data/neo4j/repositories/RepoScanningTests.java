@@ -15,7 +15,10 @@
  */
 package org.springframework.data.neo4j.repositories;
 
-import static org.neo4j.ogm.testutil.GraphTestUtils.*;
+import static org.springframework.data.neo4j.test.GraphDatabaseServiceAssert.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.repositories.domain.User;
 import org.springframework.data.neo4j.repositories.repo.UserRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -54,7 +56,12 @@ public class RepoScanningTests {
 		User user = new User("Michal");
 		userRepository.save(user);
 
-		assertSameGraph(graphDatabaseService, "CREATE (u:User {name:'Michal'})");
+		Map<String, Object> params = new HashMap<>();
+		params.put("name", user.getName());
+
+		assertThat(graphDatabaseService)
+				.containsNode("MATCH (n:User {name: $name}) RETURN n", params)
+				.withId(user.getId());
 	}
 
 	@Configuration

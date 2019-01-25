@@ -16,10 +16,13 @@
 package org.springframework.data.neo4j.repositories;
 
 import static org.junit.Assert.*;
-import static org.neo4j.ogm.testutil.GraphTestUtils.*;
+import static org.springframework.data.neo4j.test.GraphDatabaseServiceAssert.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.StreamSupport;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.repositories.domain.Movie;
 import org.springframework.data.neo4j.repositories.repo.MovieRepository;
+import org.springframework.data.neo4j.test.GraphDatabaseServiceAssert;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -66,7 +70,12 @@ public class RepositoryDefinitionTests {
 				assertEquals(1, StreamSupport.stream(movieRepository.findAll().spliterator(), false).count());
 			}
 		});
-		assertSameGraph(graphDatabaseService, "CREATE (m:Movie {title:'PF'})");
+
+		Map<String, Object> params = new HashMap<>();
+		params.put("title", "PF");
+		assertThat(graphDatabaseService)
+				.containsNode("MATCH (n:Movie) WHERE n.title = $title RETURN n", params);
+
 	}
 
 	@Configuration
