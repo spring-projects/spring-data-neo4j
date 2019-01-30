@@ -18,4 +18,10 @@ import org.springframework.data.neo4j.annotation.EnableNeo4jAuditing;
 public class Neo4jConfiguration {}
 ----
 
+[NOTE]
+If you are working with custom ids by setting them directly or using your own `IdStrategy`, the auditing support is limited.
+In this case it is not possible for Spring Data Neo4j to figure out if an entity is new or already exists in the database,
+because it has an id field set.
+As a consequence the fields annotated with `@CreatedBy` and `@CreatedDate` will never get filled.
+
 Please refer to the <<auditing,auditing>> section of the shared Spring Data reference for further details.
