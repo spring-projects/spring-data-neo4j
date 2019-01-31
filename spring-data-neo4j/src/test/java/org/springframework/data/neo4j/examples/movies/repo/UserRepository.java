@@ -90,7 +90,7 @@ public interface UserRepository extends PersonRepository<User, Long> {
 	@Query("MATCH (user:User) WHERE user.name={0} RETURN user as user, user.age AS ageOfUser")
 	UserQueryResultObject findWrappedUserAsProxiedObject(String name);
 
-	@Query("MATCH (user:User) WHERE user.gender={0} RETURN user.name AS UserName, user.gender AS UserGender, user.account as UserAccount, user.yearOfBirth as yearOfBirth, user.yearOfBirth as plainYearValue, user.deposits as UserDeposits")
+	@Query("MATCH (user:User) WHERE user.gender={0} RETURN user.name AS userName, user.gender AS userGender, user.account as userAccount, user.yearOfBirth as yearOfBirth, user.yearOfBirth as plainYearValue, user.deposits as userDeposits")
 	Iterable<RichUserQueryResult> findUsersByGender(Gender gender);
 
 	@Query("MATCH (user:User) WHERE user.name={0} RETURN user")
