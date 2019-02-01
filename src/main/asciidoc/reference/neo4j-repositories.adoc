@@ -482,10 +482,6 @@ Below are some excellent resources:
 
 You can start a read only transaction by marking a class or method with `@Transactional(readOnly=true)`.
 
-[NOTE]
-A custom cypher provided by using the `@Query` annotation will automatically force a read/write transaction.
-This is a known limitation because Neo4j-OGM ignores the `readOnly` flag if custom cypher is provided.
-
 [CAUTION]
 Note that if you open a read only transaction from a service method and then call a mutating method that is marked as read/write your transaction semantics will always be defined by the outermost transaction.
 The `Neo4jTransactionManager` can be configured to validate existing transaction by calling `#setValidateExistingTransaction(true)` during bean initialization. 
