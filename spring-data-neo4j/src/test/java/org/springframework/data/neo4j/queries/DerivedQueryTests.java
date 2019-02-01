@@ -649,6 +649,18 @@ public class DerivedQueryTests {
 				.withMessageStartingWith("Unable to ignore case of int types, the property 'ratings' must reference a String");
 	}
 
+	@Test // DATAGRAPH-1190
+	public void shouldFindNodeByNameContainingAndIgnoreCase() {
+
+		String userName = "ABCD";
+		User user = new User(userName);
+		userRepository.save(user);
+
+		User foundUser = userRepository.findByNameContainingIgnoreCase("bc").iterator().next();
+		assertThat(foundUser).isNotNull();
+		assertThat(foundUser.getName()).isEqualTo(userName);
+	}
+
 	class DerivedQueryRunner implements Runnable {
 
 		private final CountDownLatch latch;
