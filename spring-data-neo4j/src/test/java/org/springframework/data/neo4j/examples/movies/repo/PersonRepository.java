@@ -30,4 +30,6 @@ public interface PersonRepository<T extends Person, ID extends Serializable> ext
 	Collection<T> findByName(String name);
 
 	Collection<T> findByNameIgnoreCase(String name);
+
+	Collection<T> findByNameContainingIgnoreCase(String name);
 }

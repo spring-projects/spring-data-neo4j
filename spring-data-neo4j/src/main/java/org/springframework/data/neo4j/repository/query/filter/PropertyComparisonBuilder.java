@@ -116,6 +116,11 @@ class PropertyComparisonBuilder extends FilterBuilder {
 	}
 
 	private boolean canIgnoreCase(Part part) {
-		return part.getType() == SIMPLE_PROPERTY && String.class.equals(part.getProperty().getLeafType());
+		return isSupportedIgnoreKeyword(part) && String.class.equals(part.getProperty().getLeafType());
+	}
+
+	private boolean isSupportedIgnoreKeyword(Part part) {
+		Part.Type type = part.getType();
+		return type == SIMPLE_PROPERTY || type == CONTAINING;
 	}
 }
