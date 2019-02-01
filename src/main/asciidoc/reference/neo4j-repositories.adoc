@@ -376,7 +376,7 @@ Those POJOs are easier to handle and might be used as Data Transfer Objects (DTO
 To take advantage of this feature, use a class annotated with `@QueryResult` as the method return type.
 
 The properties of your `@QueryResult` annotated class must have the same names as the returned values.
-Please keep in mind that Java and Cypher are case-sensitive.
+Please keep in mind that Java attributes and the keys returned by Cypher statements are case-sensitive.
 
 .Example of query result mapping
 [source,java,subs="-replacements"]
