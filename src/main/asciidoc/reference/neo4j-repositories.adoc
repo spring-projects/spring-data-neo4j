@@ -372,8 +372,11 @@ public interface PersonRepository extends Neo4jRepository<Person, Long> {
 
 For queries executed via `@Query` repository methods, it's possible to specify a conversion of complex query results to POJOs.
 These result objects are then populated with the query result data.
-Those POJOs are easier to handle and might be use as Data Transfer Objects (DTOs) as they are not attached to a `Session` and don't participate in any lifecycle.
+Those POJOs are easier to handle and might be used as Data Transfer Objects (DTOs) as they are not attached to a `Session` and don't participate in any lifecycle.
 To take advantage of this feature, use a class annotated with `@QueryResult` as the method return type.
+
+The properties of your `@QueryResult` annotated class must have the same names as the returned values.
+Please keep in mind that Java and Cypher are case-sensitive.
 
 .Example of query result mapping
 [source,java,subs="-replacements"]
@@ -382,7 +385,7 @@ public interface MovieRepository extends Neo4jRepository<Movie, Long> {
 
     @Query("MATCH (movie:Movie)-[r:RATING]->(), (movie)<-[:ACTS_IN]-(actor:Actor) " +
            "WHERE movie.id={0} " +
-           "RETURN movie as movie, COLLECT(actor) AS 'cast', AVG(r.stars) AS 'averageRating'")
+           "RETURN movie as movie, COLLECT(actor) AS cast, AVG(r.stars) AS averageRating")
     MovieData getMovieData(String movieId);
 }
 
