@@ -483,9 +483,10 @@ Below are some excellent resources:
 You can start a read only transaction by marking a class or method with `@Transactional(readOnly=true)`.
 
 [CAUTION]
-Note that if you open a read only transaction from a service method and then call a mutating method that is marked as read/write your transaction semantics will always be defined by the outermost transaction.
-The `Neo4jTransactionManager` can be configured to validate existing transaction by calling `#setValidateExistingTransaction(true)` during bean initialization. 
-In this mode checks are taken whether outer and inner transactions can work together or not.
+Be careful when nesting transactions.
+Spring's `@Transactional` propagates by default outer transactions and doesn't validate whether they are compatible with inner.
+The `Neo4jTransactionManager` can be configured to validate existing transaction by calling `#setValidateExistingTransaction(true)` during bean initialization.
+For more details see https://docs.spring.io/spring/docs/current/spring-framework-reference/data-access.html#tx-propagation[Spring's documentation].
 
 
 === Transaction Bound Events
