@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ | Copyright (c) 2019 "Neo4j,"
+ | Neo4j Sweden AB [http://neo4j.com]
+ |
+ | This file is part of Neo4j.
+ |
+ | Licensed under the Apache License, Version 2.0 (the "License");
+ | you may not use this file except in compliance with the License.
+ | You may obtain a copy of the License at
+ |
+ |     http://www.apache.org/licenses/LICENSE-2.0
+ |
+ | Unless required by applicable law or agreed to in writing, software
+ | distributed under the License is distributed on an "AS IS" BASIS,
+ | WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ | See the License for the specific language governing permissions and
+ | limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.springframework.data.build</groupId>
+		<artifactId>spring-data-parent</artifactId>
+		<version>2.2.0.BUILD-SNAPSHOT</version>
+	</parent>
+
+	<groupId>org.springframework.data</groupId>
+	<artifactId>spring-data-neo4j-rx-parent</artifactId>
+	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<inceptionYear>2019</inceptionYear>
+
+	<developers>
+		<developer>
+			<id>gmeier</id>
+			<name>Gerrit Meier</name>
+			<email>gerrit.meier at neo4j.com</email>
+			<organization>Neo Technology</organization>
+			<organizationUrl>http://www.neotechnology.com</organizationUrl>
+			<roles>
+				<role>Project Lead</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+		<developer>
+			<id>msimons</id>
+			<name>Michael Simons</name>
+			<email>michael.simons at neo4j.com</email>
+			<organization>Neo Technology</organization>
+			<organizationUrl>http://www.neotechnology.com</organizationUrl>
+			<roles>
+				<role>Project Lead</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+	</developers>
+
+	<modules>
+		<module>spring-data-neo4j-rx</module>
+		<module>spring-data-neo4j-rx-spring-boot-autoconfigure</module>
+		<module>spring-data-neo4j-rx-spring-boot-starter</module>
+	</modules>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<assertj.version>3.11.1</assertj.version>
+		<checkstyle.version>8.16</checkstyle.version>
+		<java.version>1.8</java.version>
+		<jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
+		<junit-jupiter.version>5.3.2</junit-jupiter.version>
+		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
+		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
+		<maven-enforcer-plugin.version>3.0.0-M2</maven-enforcer-plugin.version>
+		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
+		<maven-install-plugin.version>3.0.0-M1</maven-install-plugin.version>
+		<maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
+		<maven-site-plugin.version>3.7.1</maven-site-plugin.version>
+		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+		<maven-surefire-plugin.version>3.0.0-M2</maven-surefire-plugin.version>
+		<springdata-commons.version>2.2.0.BUILD-SNAPSHOT</springdata-commons.version>
+		<neo4j.version>3.5.2</neo4j.version>
+		<neo4j-java-driver.version>1.7.2</neo4j-java-driver.version>
+		<reactive-streams.version>1.2.1</reactive-streams.version>
+		<reactor-bom.version>Californium-SR4</reactor-bom.version>
+		<rxjava.version>1.3.8</rxjava.version>
+		<rxjava2.version>2.2.5</rxjava2.version>
+
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.data</groupId>
+				<artifactId>spring-data-commons</artifactId>
+				<version>${springdata-commons.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter-engine</artifactId>
+				<version>${junit-jupiter.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.assertj</groupId>
+				<artifactId>assertj-core</artifactId>
+				<version>${assertj.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j.test</groupId>
+				<artifactId>neo4j-harness</artifactId>
+				<version>${neo4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.projectreactor</groupId>
+				<artifactId>reactor-bom</artifactId>
+				<version>${reactor-bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.reactivex</groupId>
+				<artifactId>rxjava</artifactId>
+				<version>${rxjava.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.reactivex</groupId>
+				<artifactId>rxjava-reactive-streams</artifactId>
+				<version>${reactive-streams.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.reactivex.rxjava2</groupId>
+				<artifactId>rxjava</artifactId>
+				<version>${rxjava2.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<repositories>
+		<repository>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-plugins-snapshot</id>
+			<url>https://repo.spring.io/plugins-snapshot</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-checkstyle-plugin</artifactId>
+					<version>${maven-checkstyle-plugin.version}</version>
+					<dependencies>
+						<dependency>
+							<groupId>com.puppycrawl.tools</groupId>
+							<artifactId>checkstyle</artifactId>
+							<version>${checkstyle.version}</version>
+						</dependency>
+					</dependencies>
+					<configuration>
+						<configLocation>etc/checkstyle/config.xml</configLocation>
+						<suppressionsLocation>etc/checkstyle/suppressions.xml</suppressionsLocation>
+						<headerLocation>etc/checkstyle/java-header.txt</headerLocation>
+						<encoding>${project.build.sourceEncoding}</encoding>
+						<consoleOutput>true</consoleOutput>
+						<failsOnError>true</failsOnError>
+						<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>${jacoco-maven-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>${maven-deploy-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-enforcer-plugin</artifactId>
+					<version>${maven-enforcer-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-install-plugin</artifactId>
+					<version>${maven-install-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>${maven-surefire-plugin.version}</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>validate</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>enforce</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<DependencyConvergence></DependencyConvergence>
+								<requireMavenVersion>
+									<version>3.6.0</version>
+								</requireMavenVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<useSystemClassLoader>false</useSystemClassLoader>
+					<useFile>false</useFile>
+					<includes>
+						<include>**/*Test.java</include>
+						<include>**/*Tests.java</include>
+					</includes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
