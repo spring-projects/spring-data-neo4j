@@ -26,7 +26,10 @@ import org.neo4j.ogm.exception.core.NotFoundException;
  * Utility methods for dealing with {@link Iterable}s.
  *
  * @author Michal Bachman
+ * @deprecated Since 5.1.5, will be removed in 5.2. All of the methods here can be replaced among others by
+ *             {@link java.util.stream.StreamSupport} etc.
  */
+@Deprecated
 public final class IterableUtils {
 
 	/**
