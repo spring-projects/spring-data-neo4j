@@ -32,6 +32,7 @@ import org.neo4j.ogm.testutil.MultiDriverTestClass;
 /**
  * @author Michal Bachman
  */
+@Deprecated
 public class IterableUtilsTests extends MultiDriverTestClass {
 
 	@Test
