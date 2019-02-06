@@ -28,6 +28,6 @@
 
   <artifactId>spring-data-neo4j-rx-spring-boot-starter</artifactId>
 
-  <name>SDN.rx Spring Boot Starter</name>
+  <name>SDN⚡️RX Spring Boot Starter</name>
   <description>Integration with Spring Boot.</description>
 </project>

@@ -31,7 +31,7 @@
 	<artifactId>spring-data-neo4j-rx-spring-boot-starter-parent</artifactId>
 	<packaging>pom</packaging>
 
-	<name>SDN.rx Spring Boot Starter Aggregator</name>
+	<name>SDN⚡️RX Spring Boot Starter Parent</name>
 	<description>Integration with Spring Boot.</description>
 
 	<modules>

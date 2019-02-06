@@ -16,13 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.client;
+package org.springframework.data.neo4j.core.session;
+
+import org.neo4j.driver.v1.Session;
 
 /**
- * Provides access to Neo4j. Clients are supposed to be long living objects throughout an application. Implementations
- * are supposed to close the resources they use.
+ * Interface for factories creating {@link org.neo4j.driver.v1.Session Neo4j driver sessions}.
  *
  * @author Michael J. Simons
  */
-public interface Neo4jClient extends AutoCloseable {
+public interface Neo4jSessionFactory {
+
+	Session getSession();
 }

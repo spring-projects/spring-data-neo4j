@@ -16,21 +16,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.client.embedded;
+package org.springframework.data.neo4j.core.session;
 
-import org.neo4j.client.Neo4jClient;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.v1.Session;
 
 /**
- * Neo4j Client based on an embedded database. The embedded database will shutdown when this client closes.
+ * Default implementation of a {@link Neo4jSessionFactory}.
  *
  * @author Michael J. Simons
  */
-class Neo4jEmbeddedClient implements Neo4jClient {
+class DefaultNeo4jSessionFactory extends Neo4jSessionFactorySupport<Driver> {
 
-	private final GraphDatabaseService graphDatabaseService = null;
+	@Override
+	public Session getSession() {
 
-	@Override public void close() {
-		this.graphDatabaseService.shutdown();
+		throw new UnsupportedOperationException("Not there yet.");
 	}
 }

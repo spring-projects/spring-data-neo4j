@@ -16,22 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.client.bolt;
+package org.springframework.data.neo4j.core.session;
 
-import org.neo4j.client.Neo4jClient;
 import org.neo4j.driver.v1.Driver;
 
 /**
- * Neo4j Client for Bolt.
+ * Support infrastructure for dealing with the Neo4j Driver.
  *
+ * @param <D> Type of the driver.
  * @author Michael J. Simons
  */
-class Neo4jBoltClient implements Neo4jClient {
-
-	private final Driver driver = null;
-
-	@Override
-	public void close() {
-		this.driver.close();
-	}
+abstract class Neo4jSessionFactorySupport<D extends Driver> implements Neo4jSessionFactory {
 }

@@ -29,7 +29,7 @@
 
 	<artifactId>spring-data-neo4j-rx</artifactId>
 
-	<name>SDN.rx</name>
+	<name>SDN⚡️RX</name>
 	<description>Core module of SDN.rx.</description>
 
 	<dependencies>
@@ -54,9 +54,8 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>org.neo4j.client</groupId>
-			<artifactId>neo4j-client-api</artifactId>
-			<version>1.0.0.BUILD-SNAPSHOT</version>
+			<groupId>org.neo4j.driver</groupId>
+			<artifactId>neo4j-java-driver</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>

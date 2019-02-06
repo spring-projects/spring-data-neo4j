@@ -29,6 +29,6 @@
 
 	<artifactId>spring-data-neo4j-rx-spring-boot-autoconfigure</artifactId>
 
-	<name>SDN.rx Spring Boot Starter Autoconfiguration</name>
+	<name>SDN⚡️RX Spring Boot Starter Autoconfiguration</name>
 	<description>Integration with Spring Boot.</description>
 </project>
