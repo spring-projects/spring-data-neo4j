@@ -1,0 +1,46 @@
+= Spring Data Neo4j⚡️RX
+
+[abstract]
+--
+This is a work in progress project determining a possible future form of Spring Data Neo4j.
+Expect the README and even more the project to change quite a lot in the future weeks.
+--
+
+== Architectural guidelines and principles
+
+The next version of Spring Data Neo4j should be designed with the following principles in mind:
+
+* Rely completely on the https://github.com/neo4j/neo4j-java-driver[Neo4j Java Driver], without introducing another "driver" or "transport" layer between the mapping framework and the driver.
+* Immutable entities and thus full support for Kotlin's data classes right from the start.
+* Work result item / record and not result set oriented, thus not reading the complete result set before the mapping starts, but make a "row" the foundation for any mapping.
+This encourages generation of optimized queries, which should greatly reduce the object graph impedance mismatch we see in some projects using Neo4j-OGM.
+* Follow up on the reactive story for database access in general. Being immutable and row oriented are two main requirements for making things possible.
+
+=== Modules
+
+So far we have identified the following modules:
+
+* Schema: Should read a set of given classes and create a schema (Metagraph) from it
+* Mapping: Should take care of hydrating from results to domain objects and dehydrating vice versa. It can depend on schema, but only as a provider for property matching
+* Lifecycle: Lifecycle must not depend directly on mapping, but should only care whether an Object and its Relations are managed or not
+* Querying: Generates cypher queries, depends on schema
+
+Those will be reassembled as packages inside Spring Data Neo4j RX.
+There are no short-term planes to create additional artifacts from those.
+
+NOTE: However, we should discuss if you could try a JDK 11 only project.
+
+=== The embedded "problem"
+
+Supporting the embedded usecase will be solved on the drivers level.
+
+== Configuration
+
+Spring Data Neo4j RX takes a "ready to use" drivers instance and uses that.
+We won't provide any additional configuration for aspects that are configurable through the driver.
+We will however provide support to configure the drivers instance in Spring Boot.
+The current Spring Boot Starter only configures the Neo4j-OGM transport and not the "real" driver.
+
+Closing the driver is not the the concern of Spring Data Neo4j RX.
+The lifecycle of that bean should be managed by the application.
+Therefore, the starter need to take care of register the drivers instance with the application.
