@@ -18,13 +18,17 @@
  | limitations under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>org.springframework.data</groupId>
-		<artifactId>spring-data-neo4j-rx-parent</artifactId>
-		<version>1.0.0.BUILD-SNAPSHOT</version>
-	</parent>
+  <parent>
+    <groupId>org.neo4j.client</groupId>
+    <artifactId>neo4j-client-parent</artifactId>
+    <version>1.0.0.BUILD-SNAPSHOT</version>
+  </parent>
 
-	<artifactId>spring-data-neo4j-rx-spring-boot-autoconfigure</artifactId>
+  <groupId>org.neo4j.client</groupId>
+  <artifactId>neo4j-client-api</artifactId>
+
+  <name>Neo4j Client API</name>
+  <description>The API that both the Bolt and embedded Client has to implement.</description>
 </project>
