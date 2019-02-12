@@ -37,7 +37,7 @@ There are a lot of articles, blog entries and books on the matter - take a look 
 
 A graph database is a storage engine that is specialised in storing and retrieving vast networks of information.
 It efficiently stores data as nodes with relationships to other or even the same nodes,
-thus allowing high performance retrieval and querying of those structures.
+thus allowing high-performance retrieval and querying of those structures.
 Properties can be added to both nodes and relationships.
 Nodes can be labelled by zero or more labels, relationships are always directed and named.
 
@@ -97,7 +97,7 @@ If you are looking for advice, here are some more resources:
 * The https://github.com/neo4j-examples/sdn-university[sample project: SDN University].
 More example projects for Spring Data Neo4j are available in the https://github.com/neo4j-examples?query=sdn[Neo4j-Examples] repository.
 
-* The http://projects.spring.io/spring-data-neo4j[Spring Data Neo4j project site] contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
+* The http://projects.spring.io/spring-data-neo4j[Spring Data Neo4j project site] contains links to basic project information such as source code, JavaDocs, issue tracking, etc.
 * Talk and share with the community on the https://neo4j-users.slack.com[SDN/Neo4j-OGM Slack channel]
 * For more detailed questions, use http://stackoverflow.com/questions/tagged/spring-data-neo4j[Spring Data Neo4j on StackOverflow]
 * For professional support feel free to contact http://www.neo4j.com[Neo4j] or http://www.graphaware.com[GraphAware].

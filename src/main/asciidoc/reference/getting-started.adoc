@@ -132,8 +132,8 @@ This may be avoided by overriding `jetty.version` property to a version required
 </properties>
 ----
 
-Also having the jetty dependency on classpath might cause your application use jetty as servlet container in your tests
-instead of default Tomcat. You can avoid that e.g. by forcing the EmbeddedTomcat autoconfiguration.
+Also having the jetty dependency on the classpath might cause your application to use jetty as a servlet container in your tests
+instead of defaulting to Tomcat. You can avoid that e.g. by forcing the EmbeddedTomcat auto-configuration.
 
 [source,java]
 ----
@@ -164,14 +164,14 @@ dependencies {
 ----
 
 == Examples
-There is an https://github.com/spring-projects/spring-data-examples[github repository with several examples] that you can download and play around with to get a feel for how the library works.
+There is a https://github.com/spring-projects/spring-data-examples[github repository with several examples] that you can download and play around with to get a feel for how the library works.
 
 
 [[reference.getting_started.spring-configuration]]
 == Configuration
 
 [NOTE]
-For those not familiar with how to configure the Spring container using Java based bean metadata instead of XML based metadata see the high level introduction in the reference docs http://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/new-in-3.0.html#new-java-configuration[here] as well as the detailed documentation http://docs.spring.io/spring/docs/4.2.9.RELEASE/spring-framework-reference/html/beans.html#beans-java-instantiating-container[here].
+For those not familiar with how to configure the Spring container using Java based bean metadata instead of XML based metadata see the high-level introduction in the reference docs http://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/new-in-3.0.html#new-java-configuration[here] as well as the detailed documentation http://docs.spring.io/spring/docs/4.2.9.RELEASE/spring-framework-reference/html/beans.html#beans-java-instantiating-container[here].
 
 For most applications the following configuration is all that's needed to get up and running.
 
