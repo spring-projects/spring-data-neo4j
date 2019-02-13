@@ -1,6 +1,15 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.5.RELEASE (2019-02-13)
+---------------------------------------------
+* DATAGRAPH-1193 - Deprecate IterableUtils.
+* DATAGRAPH-1192 - Upgrade to Neo4j OGM 3.1.7.
+* DATAGRAPH-1189 - Handle @QueryResult properties case-sensitive.
+* DATAGRAPH-1188 - Document limitations of auditing and read-only transactions.
+* DATAGRAPH-1180 - Release 5.1.5 (Lovelace SR5).
+
+
 Changes in version 5.1.4.RELEASE (2019-01-10)
 ---------------------------------------------
 * DATAGRAPH-1176 - Harmonize license headers.
