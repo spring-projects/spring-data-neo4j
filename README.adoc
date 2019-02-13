@@ -49,3 +49,76 @@ The current Spring Boot Starter only configures the Neo4j-OGM transport and not 
 Closing the driver is not the the concern of Spring Data Neo4j RX.
 The lifecycle of that bean should be managed by the application.
 Therefore, the starter need to take care of register the drivers instance with the application.
+
+== Architecture
+
+This is definitely not the last version of the architecture.
+It is only meant to be a basic for discussions.
+
+=== Package structure
+
+.A rough outline of the current and maybe future package structure
+[plantuml, width=800]
+----
+@startuml
+note "currently only in Spring Data JDBC" as JDBC_note
+package "org.springframework.data.neo4j" {
+package "core" {
+JDBC_note..convert
+    package "mapping" {
+        note "split into Spring Data and Neo4j mapping" as mappingNote
+        annotation Node
+        annotation Property
+        interface Neo4jPersistentEntity
+        interface Neo4jPersistentProperty
+    }
+    package "session" {
+        note "do we need/want a Neo4jTemplate" as templateNote
+        interface Neo4jSessionFactory
+    }
+    package "convert" {
+        note "conversion support" as conversionNote
+    }
+}
+
+package "repository" {
+JDBC_note..query
+JDBC_note..support
+    package "config" {
+        class EnableNeo4jRepository
+        class Neo4jRepositoryRegistrar
+        class Neo4jRepositoryConfigExtension
+    }
+    package "query" {
+        class Query
+    }
+    package "support" {
+        class RepositoryFactoryBean
+        class SimpleNeo4jRepository
+        class Neo4jQueryLookupStrategy
+    }
+}
+
+core-[hidden]--->repository
+}
+
+@enduml
+----
+
+[options="header"]
+|===
+|Package|Comment
+|core.mapping
+|Should get split to separate the Spring related mapping information like `Neo4jPersistentEntity` from incoming data mapping
+|core.session
+|Connection to the `Driver` instance. Maybe also a place to consider abstraction by introducing a `Neo4jTemplate`?
+|core.convert
+|_not used yet_  place for conversion related classes.
+| |
+|repository.config
+|General setup: `@EnableNeo4jRepository` and related `Registrar` and `Config` classes.
+|repository.query
+|Place where `@Query` and other query method related annotations go in.
+|repository.support
+|"Glue code" like `Neo4jRepositoryFactoryBean`, `SimpleNeo4jRepository` etc.
+|===
