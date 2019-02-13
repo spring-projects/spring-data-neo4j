@@ -33,11 +33,11 @@ NOTE: However, we should discuss if you could try a JDK 11 only project.
 === Other principles
 
 * Ensure that the underlying store (Neo4j) leaks as little as possible into the mapping.
-  I.e. reuse `@Id` etc. and avoid adding custom variants of annoation whenever possible.
+  I.e. reuse `@Id` etc. and avoid adding custom variants of annotation whenever possible.
 
 === The embedded "problem"
 
-Supporting the embedded usecase will be solved on the drivers level.
+Supporting the embedded use case will be solved on the drivers level.
 
 == Configuration
 
