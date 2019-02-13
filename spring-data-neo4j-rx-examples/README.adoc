@@ -10,4 +10,4 @@ Together they can be used to build a bigger system.
 == Examples vs. Testing
 
 While some domain classes here in the example project might be similar or even duplicate to those inside our tests, they server a different purpose.
-The _Example_ module is build during the project's whole build but is neither the primary test nor integration test.
+The _Example_ module is built during the project's whole build but is neither the place for primary nor integration testing.
