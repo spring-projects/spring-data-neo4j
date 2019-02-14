@@ -62,6 +62,7 @@ It is only meant to be a basic for discussions.
 ----
 @startuml
 note "currently only in Spring Data JDBC" as JDBC_note
+note "Implementation of Spring Data Commons SPI" as SDC_note
 package "org.springframework.data.neo4j" {
 package "core" {
 JDBC_note..convert
@@ -84,6 +85,7 @@ JDBC_note..convert
 package "repository" {
 JDBC_note..query
 JDBC_note..support
+SDC_note..config
     package "config" {
         class EnableNeo4jRepository
         class Neo4jRepositoryRegistrar
@@ -108,15 +110,19 @@ core-[hidden]--->repository
 [options="header"]
 |===
 |Package|Comment
+|core
+|`Neo4jTemplate` and related classes.
 |core.mapping
-|Should get split to separate the Spring related mapping information like `Neo4jPersistentEntity` from incoming data mapping
+|Spring mapping information.
+|core.mapping.internal
+|Neo4j data mapping.
 |core.session
-|Connection to the `Driver` instance. Maybe also a place to consider abstraction by introducing a `Neo4jTemplate`?
+|Connection to the `Driver` instance.
 |core.convert
 |_not used yet_  place for conversion related classes.
 | |
 |repository.config
-|General setup: `@EnableNeo4jRepository` and related `Registrar` and `Config` classes.
+|Register all needed beans for Spring context.
 |repository.query
 |Place where `@Query` and other query method related annotations go in.
 |repository.support
