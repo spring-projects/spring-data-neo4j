@@ -25,8 +25,12 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
 
 /**
  * {@link RepositoryBeanDefinitionRegistrarSupport} to enable {@link EnableNeo4jRepositories} annotation.
+ * The {@link RepositoryBeanDefinitionRegistrarSupport} is a dedicated implementation of Spring's
+ * {@code org.springframework.context.annotation.ImportBeanDefinitionRegistrar}, a dedicated SPI to register beans
+ * during processing of configuration classes.
  *
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 class Neo4jRepositoriesRegistrar extends RepositoryBeanDefinitionRegistrarSupport {
 
@@ -45,6 +49,6 @@ class Neo4jRepositoriesRegistrar extends RepositoryBeanDefinitionRegistrarSuppor
 	 */
 	@Override
 	protected RepositoryConfigurationExtension getExtension() {
-		return null;
+		return new Neo4jRepositoryConfigurationExtension();
 	}
 }
