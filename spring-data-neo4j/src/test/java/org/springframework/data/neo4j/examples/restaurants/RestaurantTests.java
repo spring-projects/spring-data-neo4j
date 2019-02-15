@@ -498,11 +498,27 @@ public class RestaurantTests {
 	}
 
 	@Test // DATAGRAPH-1197
+	public void shouldCheckNonExistenceForDerivedQueryMethod() {
+		Restaurant restaurant = new Restaurant("R1", "good");
+		restaurantRepository.save(restaurant);
+
+		assertFalse(restaurantRepository.existsByDescription("bad"));
+	}
+
+	@Test // DATAGRAPH-1197
 	public void shouldCheckExistenceForQueryMethod() {
 		Restaurant restaurant = new Restaurant("R1", "good");
 		restaurantRepository.save(restaurant);
 
 		assertTrue(restaurantRepository.existenceOfAGoodRestaurant());
+	}
+
+	@Test // DATAGRAPH-1197
+	public void shouldCheckNonExistenceForQueryMethod() {
+		Restaurant restaurant = new Restaurant("R1", "bad");
+		restaurantRepository.save(restaurant);
+
+		assertFalse(restaurantRepository.existenceOfAGoodRestaurant());
 	}
 
 	@Configuration
