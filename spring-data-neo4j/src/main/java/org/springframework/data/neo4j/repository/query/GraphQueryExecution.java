@@ -231,6 +231,20 @@ public interface GraphQueryExecution {
 		}
 	}
 
+	final class ExistsByExecution implements GraphQueryExecution {
+
+		private final Session session;
+
+		ExistsByExecution(Session session) {
+			this.session = session;
+		}
+
+		@Override
+		public Object execute(Query query, Class<?> type) {
+			return session.count(type, query.getFilters()) > 0;
+		}
+	}
+
 	final class DeleteByExecution implements GraphQueryExecution {
 
 		private final Session session;

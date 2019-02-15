@@ -75,6 +75,9 @@ public abstract class AbstractGraphRepositoryQuery implements RepositoryQuery {
 		if (isDeleteQuery()) {
 			return new GraphQueryExecution.DeleteByExecution(session, queryMethod, accessor);
 		}
+		if (isExistsQuery()) {
+			return new GraphQueryExecution.ExistsByExecution(session);
+		}
 		if (returnsOgmSpecificType()) {
 			return new GraphQueryExecution.QueryResultExecution(session, accessor);
 		}
