@@ -46,6 +46,7 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 	private final QueryResultInstantiator entityInstantiator;
+	private final boolean isExistsQuery;
 
 	private ParameterizedQuery parameterizedQuery;
 
@@ -57,6 +58,7 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 		this.evaluationContextProvider = evaluationContextProvider;
 		this.entityInstantiator = new QueryResultInstantiator(metaData, queryMethod.getMappingContext());
+		this.isExistsQuery = graphQueryMethod.isAnnotatedExistsQuery();
 	}
 
 	protected Object doExecute(Query query, Object[] parameters) {
@@ -138,7 +140,7 @@ public class GraphRepositoryQuery extends AbstractGraphRepositoryQuery {
 
 	@Override
 	protected boolean isExistsQuery() {
-		return false;
+		return isExistsQuery;
 	}
 
 	@Override

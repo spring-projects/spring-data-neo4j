@@ -497,6 +497,14 @@ public class RestaurantTests {
 		assertTrue(restaurantRepository.existsByDescription("good"));
 	}
 
+	@Test // DATAGRAPH-1197
+	public void shouldCheckExistenceForQueryMethod() {
+		Restaurant restaurant = new Restaurant("R1", "good");
+		restaurantRepository.save(restaurant);
+
+		assertTrue(restaurantRepository.existenceOfAGoodRestaurant());
+	}
+
 	@Configuration
 	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.examples.restaurants.domain",
 			repositoryPackages = "org.springframework.data.neo4j.examples.restaurants.repo")

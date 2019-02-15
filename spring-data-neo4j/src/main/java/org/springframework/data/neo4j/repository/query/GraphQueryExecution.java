@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.LongSupplier;
 
+import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Pageable;
@@ -241,7 +242,11 @@ public interface GraphQueryExecution {
 
 		@Override
 		public Object execute(Query query, Class<?> type) {
-			return session.count(type, query.getFilters()) > 0;
+			if (query.isFilterQuery()) {
+				return session.count(type, query.getFilters()) > 0;
+			}
+			Result result = session.query(query.getCypherQuery(), query.getParameters());
+			return result.iterator().hasNext();
 		}
 	}
 
