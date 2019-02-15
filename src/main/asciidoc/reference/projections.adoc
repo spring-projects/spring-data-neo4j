@@ -81,7 +81,7 @@ Hence it is required to name getter methods according to the property name of th
 If the underlying property is named `name`, then the getter method must be named `getName` otherwise Spring Data is not able to look up the source property.
 This type of projection is also called _closed projection_.
 
-NOTE: Closed projections expose a subset of properties that could be used to optimize the query in a way to reduce the selected fields from the data store.
+NOTE: Closed projections expose a subset of properties that could be used to optimize the query in a way that reduces the selected fields from the data store.
 However, it is not implemented at the moment.
 For performance sensitive querying, you can still use custom queries with maps or `QueryResult` (see <<reference_programming-model_mapresult>>)
 
