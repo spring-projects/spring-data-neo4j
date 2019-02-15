@@ -489,6 +489,14 @@ public class RestaurantTests {
 		assertEquals("Kuroda", results.get(0).getName());
 	}
 
+	@Test // DATAGRAPH-1197
+	public void shouldCheckExistenceForDerivedQueryMethod() {
+		Restaurant restaurant = new Restaurant("R1", "good");
+		restaurantRepository.save(restaurant);
+
+		assertTrue(restaurantRepository.existsByDescription("good"));
+	}
+
 	@Configuration
 	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.examples.restaurants.domain",
 			repositoryPackages = "org.springframework.data.neo4j.examples.restaurants.repo")
