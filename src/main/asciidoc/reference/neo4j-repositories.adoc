@@ -20,7 +20,7 @@ The following table outlines the repositories functionality currently either sup
 | XML based configuration                       | icon:check[]      |
 | Multi Spring Data module support              | icon:check[]      |
 | Configurable Query Lookup Strategy            | icon:times[]      |
-| Derived Query support                         | icon:check[]      | See Supported keywords for query methods below
+| Derived Query support                         | icon:check[]      | See supported keywords for query methods below
 | Derived Query Property expressions support    | icon:times[]      |
 | Paging and Slice support                      | icon:check[]      |
 | Derived query paging limit support            | icon:check[]      |
@@ -79,7 +79,7 @@ If other operations are required then the additional repository interfaces shoul
 === Query and Finder Methods
 
 Most of the data access operations you usually trigger on a repository will result in a query being executed against the Neo4j database.
-Defining such a query is just a matter of declaring a method on the repository interface
+Defining such a query is just a matter of declaring a method on the repository interface.
 
 .`PersonRepository` with query methods
 ====
@@ -96,7 +96,7 @@ public interface PersonRepository extends PagingAndSortingRepository<Person, Str
     Stream<Person> findAllBy();                                        <4>
 }
 ----
-<1> The method shows a query for all people with the given lastname.
+<1> The method shows a query for all people with the given last name.
 The query will be derived parsing the method name for constraints which can be concatenated with `And` and `Or`.
 Thus the method name will result in a query expression of `{"lastname" : lastname}`.
 
@@ -232,13 +232,13 @@ will use the supplied query to retrieve data from Neo4j.
 
 The named or indexed parameter `{param}` will be substituted by the actual method parameter.
 Node and relationship entities are handled directly and converted into their respective ids.
-All other parameters types are provided directly (i.e. `String`, `Long`, etc).
+All other parameters types are provided directly (i.e. `String`, `Long`, etc.).
 
 There is special support for the `Pageable` parameter from Spring Data Commons, which is supported to add programmatic paging and slicing
 (alternatively static paging and sorting can be supplied in the query string itself).
 
 If it is required that paged results return the correct total count, the @Query annotation can be supplied with a count query in the countQuery attribute.
-This query is executed separately after the result query and its result is used to populate the number of elements on the Page.
+This query is executed separately after the result query and its result is used to populate the number of elements on the page.
 
 [NOTE]
 ====
@@ -434,7 +434,7 @@ Neo4j is a transactional database, only allowing operations to be performed with
 Spring Data Neo4j integrates nicely with both the declarative transaction support with `@Transactional` as well as the manual transaction handling with `TransactionTemplate`.
 
 The methods on the repositories instances are transactional by default.
-If you are simply just looking up an object through a repository for example, then you do not need to define anything else:
+If you are, for example, simply just looking up an object through a repository then you do not need to define anything else:
 SDN will take of everything for you.
 That said, it is strongly recommended that you always annotate any service boundaries to the database with a `@Transactional` annotation.
 This way all your code for that method will always run in one transaction, even if you add a write operation later on.
@@ -568,7 +568,7 @@ WARNING: `@UseBookmark` has to be used on `@Transactional` annotated methods.
 
 === CDI integration
 
-Instances of the repository interfaces are usually created by a container, which Spring is the most natural choice when working with Spring Data.
+Instances of the repository interfaces are usually created by a container and Spring is the most natural choice when working with Spring Data.
 There's sophisticated support to easily set up Spring to create bean instances documented in <<repositories.create-instances>>.
 Spring Data Neo4j ships with a custom CDI extension that allows using the repository abstraction in CDI environments.
 
@@ -607,7 +607,7 @@ class CdiConfig {
 In this example, the container has to be capable of creating Neo4j-OGM `Sessions` itself.
 All the configuration does is re-exporting the Neo4j-OGM `Session` as CDI bean.
 
-The Spring Data Neo4j CDI extension will pick up all sessions available as CDI beans and create a proxy for a Spring Data repository whenever an bean of a repository type is requested by the container.
+The Spring Data Neo4j CDI extension will pick up all sessions available as CDI beans and create a proxy for a Spring Data repository whenever a bean of a repository type is requested by the container.
 Thus obtaining an instance of a Spring Data repository is a matter of declaring an `@Injected` property:
 
 [source, java]
