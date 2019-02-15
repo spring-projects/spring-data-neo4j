@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.LongSupplier;
 
+import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Pageable;
@@ -190,38 +191,11 @@ public interface GraphQueryExecution {
 		}
 	}
 
-	final class StreamExecution implements GraphQueryExecution {
-
-		private final Session session;
-		private final GraphParameterAccessor accessor;
-
-		public StreamExecution(org.neo4j.ogm.session.Session session, GraphParameterAccessor accessor) {
-			this.session = session;
-			this.accessor = accessor;
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public Object execute(Query query, Class<?> type) {
-
-			// not a real support for streaming. for that need that the stack all the way down
-			// supports streaming
-			List<?> result;
-			if (query.isFilterQuery()) {
-				result = (List<?>) session.loadAll(type, query.getFilters(), accessor.getOgmSort(), accessor.getDepth());
-			} else {
-				// TODO add support for QueryResults as above
-				result = (List<?>) session.query(type, query.getCypherQuery(accessor.getSort()), query.getParameters());
-			}
-			return result;
-		}
-	}
-
 	final class CountByExecution implements GraphQueryExecution {
 
 		private final Session session;
 
-		CountByExecution(Session session, GraphParameterAccessor accessor) {
+		CountByExecution(Session session) {
 			this.session = session;
 		}
 
@@ -241,7 +215,11 @@ public interface GraphQueryExecution {
 
 		@Override
 		public Object execute(Query query, Class<?> type) {
-			return session.count(type, query.getFilters()) > 0;
+			if (query.isFilterQuery()) {
+				return session.count(type, query.getFilters()) > 0;
+			}
+			Result result = session.query(query.getCypherQuery(), query.getParameters());
+			return result.iterator().hasNext();
 		}
 	}
 
@@ -250,7 +228,7 @@ public interface GraphQueryExecution {
 		private final Session session;
 		private final GraphQueryMethod graphQueryMethod;
 
-		DeleteByExecution(Session session, GraphQueryMethod graphQueryMethod, GraphParameterAccessor accessor) {
+		DeleteByExecution(Session session, GraphQueryMethod graphQueryMethod) {
 			this.session = session;
 			this.graphQueryMethod = graphQueryMethod;
 		}

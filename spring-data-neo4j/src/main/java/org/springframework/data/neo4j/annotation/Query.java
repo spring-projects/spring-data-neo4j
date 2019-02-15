@@ -28,15 +28,13 @@ import org.springframework.data.annotation.QueryAnnotation;
  *
  * @author Mark Angrish
  * @author Luanne Misquitta
+ * @author Gerrit Meier
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @QueryAnnotation
 @Documented
 public @interface Query {
-
-	static final String CLASS = "org.springframework.data.neo4j.annotation.Query";
-	static final String VALUE = "value";
 
 	/**
 	 * Defines the Cypher query to be executed when the annotated method is called.
@@ -47,4 +45,11 @@ public @interface Query {
 	 * @return simpler count-query to be executed for @{see Pageable}-support
 	 */
 	String countQuery() default "";
+
+	/**
+	 * Returns whether the defined query should be executed as an exists projection.
+	 *
+	 * @since 5.2
+	 */
+	boolean exists() default false;
 }

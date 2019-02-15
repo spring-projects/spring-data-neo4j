@@ -70,10 +70,10 @@ public abstract class AbstractGraphRepositoryQuery implements RepositoryQuery {
 			return new GraphQueryExecution.CollectionExecution(session, accessor);
 		}
 		if (isCountQuery()) {
-			return new GraphQueryExecution.CountByExecution(session, accessor);
+			return new GraphQueryExecution.CountByExecution(session);
 		}
 		if (isDeleteQuery()) {
-			return new GraphQueryExecution.DeleteByExecution(session, queryMethod, accessor);
+			return new GraphQueryExecution.DeleteByExecution(session, queryMethod);
 		}
 		if (isExistsQuery()) {
 			return new GraphQueryExecution.ExistsByExecution(session);

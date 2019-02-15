@@ -43,6 +43,7 @@ public class GraphQueryMethod extends QueryMethod {
 	private final Method method;
 	private final Query queryAnnotation;
 	private final Integer queryDepthParamIndex;
+	private final boolean isExistsQuery;
 	private @Nullable MappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> mappingContext;
 
 	public GraphQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
@@ -50,6 +51,11 @@ public class GraphQueryMethod extends QueryMethod {
 
 		this.method = method;
 		this.queryAnnotation = method.getAnnotation(Query.class);
+		if (this.queryAnnotation != null) {
+			this.isExistsQuery = queryAnnotation.exists();
+		} else {
+			this.isExistsQuery = false;
+		}
 		this.queryDepthParamIndex = getQueryDepthParamIndex(method);
 		Integer queryDepth = getStaticQueryDepth(method);
 		if (queryDepth != null && queryDepthParamIndex != null) {
@@ -141,6 +147,10 @@ public class GraphQueryMethod extends QueryMethod {
 
 	public boolean hasAnnotatedQuery() {
 		return getAnnotatedQuery() != null;
+	}
+
+	boolean isAnnotatedExistsQuery() {
+		return isExistsQuery;
 	}
 
 	private String getAnnotatedQuery() {

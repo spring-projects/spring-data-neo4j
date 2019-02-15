@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Point;
+import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.restaurants.domain.Restaurant;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 
@@ -81,4 +82,7 @@ public interface RestaurantRepository extends Neo4jRepository<Restaurant, Long> 
 	List<Restaurant> findByNameNotContainingOrDescriptionIsNull(String nameContaining);
 
 	boolean existsByDescription(String description);
+
+	@Query(value = "MATCH (r:Restaurant) WHERE r.description = 'good' return r", exists = true)
+	boolean existenceOfAGoodRestaurant();
 }
