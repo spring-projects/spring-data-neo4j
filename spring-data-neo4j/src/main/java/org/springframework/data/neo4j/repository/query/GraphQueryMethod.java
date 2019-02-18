@@ -50,7 +50,7 @@ public class GraphQueryMethod extends QueryMethod {
 		super(method, metadata, factory);
 
 		this.method = method;
-		this.queryAnnotation = method.getAnnotation(Query.class);
+		this.queryAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, Query.class);
 		if (this.queryAnnotation != null) {
 			this.isExistsQuery = queryAnnotation.exists();
 		} else {

@@ -21,35 +21,26 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.data.annotation.QueryAnnotation;
+import org.springframework.core.annotation.AliasFor;
 
 /**
- * Annotation to declare finder queries directly on repository methods.
+ * Annotation to declare a {@link Query} with a value contains an exists custom query. The result will then be used for
+ * boolean projection.
  *
- * @author Mark Angrish
- * @author Luanne Misquitta
  * @author Gerrit Meier
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.ANNOTATION_TYPE, ElementType.METHOD })
-@QueryAnnotation
+@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Documented
-public @interface Query {
+@Query(exists = true)
+public @interface ExistsQuery {
 
 	/**
-	 * Defines the Cypher query to be executed when the annotated method is called.
-	 */
-	String value() default "";
-
-	/**
-	 * @return simpler count-query to be executed for @{see Pageable}-support
-	 */
-	String countQuery() default "";
-
-	/**
-	 * Returns whether the defined query should be executed as an exists projection.
-	 *
+	 * The cypher query.
+	 * 
+	 * @see Query#value()
 	 * @since 5.2
 	 */
-	boolean exists() default false;
+	@AliasFor(annotation = Query.class)
+	String value() default "";
 }
