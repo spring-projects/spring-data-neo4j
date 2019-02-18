@@ -128,3 +128,14 @@ core-[hidden]--->repository
 |repository.support
 |"Glue code" like `Neo4jRepositoryFactoryBean`, `SimpleNeo4jRepository` etc.
 |===
+
+The structure of this project can be explored as a Graph.
+We use https://jqassistant.org[jQAssistant] to verify our architecture during the build.
+Run the following two commands
+
+```
+./mvnw clean compile jqassistant:scan
+./mvnw jqassistant:server
+```
+
+and point your browser to http://localhost:7474.

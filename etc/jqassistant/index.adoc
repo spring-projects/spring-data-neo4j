@@ -1,0 +1,16 @@
+= Coding Rules
+
+The following rules are checked during a build:
+
+[[default]]
+[role=group,includesGroups="naming:Default,structure:Default"]
+- <<naming:Default>>
+- <<structure:Default>>
+
+== Naming things
+
+include::naming.adoc[]
+
+== Structuring things
+
+include::structure.adoc[]

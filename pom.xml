@@ -83,6 +83,8 @@
 		<checkstyle.version>8.16</checkstyle.version>
 		<java.version>1.8</java.version>
 		<jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
+		<jqassistant.version>1.6.0</jqassistant.version>
+		<jqassistant.plugin.version>1.6.0</jqassistant.plugin.version>
 		<junit-jupiter.version>5.3.2</junit-jupiter.version>
 		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
 		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
@@ -195,6 +197,14 @@
 						<consoleOutput>true</consoleOutput>
 						<failsOnError>true</failsOnError>
 						<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>com.buschmais.jqassistant</groupId>
+					<artifactId>jqassistant-maven-plugin</artifactId>
+					<version>${jqassistant.version}</version>
+					<configuration>
+						<rulesDirectory>etc/jqassistant</rulesDirectory>
 					</configuration>
 				</plugin>
 				<plugin>
