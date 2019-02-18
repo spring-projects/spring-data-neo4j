@@ -1,0 +1,15 @@
+[[structure:Default]]
+[role=group,includesConstraints="structure:mapping"]
+
+Most of the time, the package structure under `org.springframework.data.neo4j` should reflect the main building parts.
+
+[[structure:mapping]]
+[source,cypher,role=constraint,requiresConcepts="dependency:Package"]
+.The mapping package must not depend on other SDN-RX packages.
+----
+MATCH (a:Main:Artifact)
+MATCH (a) -[:CONTAINS]-> (p1:Package) -[:DEPENDS_ON]-> (p2:Package) <-[:CONTAINS]- (a)
+WHERE p1.fqn = 'org.springframework.data.neo4j.core.mapping'
+  AND NOT (p1) -[:CONTAINS]-> (p2)
+return p1,p2
+----
