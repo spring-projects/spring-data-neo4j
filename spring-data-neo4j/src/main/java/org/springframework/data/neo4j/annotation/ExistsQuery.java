@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 import org.springframework.core.annotation.AliasFor;
 
 /**
- * Annotation to declare a {@link Query} with a value contains an exists custom query. The result will then be used for
+ * Annotation to declare a {@link Query} with a value containing an exists custom query. The result will then be used for
  * boolean projection.
  *
  * @author Gerrit Meier
