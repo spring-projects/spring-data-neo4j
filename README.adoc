@@ -58,23 +58,23 @@ It is only meant to be a basic for discussions.
 === Package structure
 
 .A rough outline of the current and maybe future package structure
-[plantuml, width=800]
+[plantuml, width=1200]
 ----
 @startuml
-note "currently only in Spring Data JDBC" as JDBC_note
 note "Implementation of Spring Data Commons SPI" as SDC_note
 package "org.springframework.data.neo4j" {
 package "core" {
-JDBC_note..convert
+    interface Neo4jTemplate
     package "mapping" {
-        note "split into Spring Data and Neo4j mapping" as mappingNote
+        package "internal" {
+            note "GraphToObjectMapping" as graphMapping
+        }
         annotation Node
         annotation Property
         interface Neo4jPersistentEntity
         interface Neo4jPersistentProperty
     }
     package "session" {
-        note "do we need/want a Neo4jTemplate" as templateNote
         interface Neo4jSessionFactory
     }
     package "convert" {
@@ -83,8 +83,6 @@ JDBC_note..convert
 }
 
 package "repository" {
-JDBC_note..query
-JDBC_note..support
 SDC_note..config
     package "config" {
         class EnableNeo4jRepository
@@ -92,13 +90,15 @@ SDC_note..config
         class Neo4jRepositoryConfigExtension
     }
     package "query" {
-        class Query
+        annotation Query
     }
     package "support" {
-        class RepositoryFactoryBean
+        class Neo4jRepositoryFactoryBean
         class SimpleNeo4jRepository
         class Neo4jQueryLookupStrategy
     }
+    interface Neo4jRepository
+    interface ReactiveNeo4jRepository
 }
 
 core-[hidden]--->repository
@@ -121,6 +121,8 @@ core-[hidden]--->repository
 |core.convert
 |_not used yet_  place for conversion related classes.
 | |
+|repository
+|Repository interfaces like `Neo4jRepository`.
 |repository.config
 |Register all needed beans for Spring context.
 |repository.query
@@ -129,6 +131,7 @@ core-[hidden]--->repository
 |"Glue code" like `Neo4jRepositoryFactoryBean`, `SimpleNeo4jRepository` etc.
 |===
 
+=== Architecture validation
 The structure of this project can be explored as a Graph.
 We use https://jqassistant.org[jQAssistant] to verify our architecture during the build.
 Run the following two commands
