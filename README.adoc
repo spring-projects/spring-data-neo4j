@@ -142,3 +142,18 @@ Run the following two commands
 ```
 
 and point your browser to http://localhost:7474.
+
+== `SimpleNeo4jRepository` initialization
+. `@EnableNeo4jRepositories` defines
+ ** the `repositoryFactoryBeanClass` that defaults to `Neo4jRepositoryFactoryBean.class`. (I)
+ ** `Neo4jRepositoriesRegistrar` as a configuration via the `@Import` annotation.
+. `Neo4jRepositoriesRegistrar` connects `@EnableNeo4jRepositories` with `Neo4jRepositoryConfigurationExtension`.
+. `Neo4jRepositoryConfigurationExtension` creates `Neo4jRepositoryFactoryBean` (the class defined (I)).
+** Adds manually created `Neo4jTemplate` (as an implementation of `Neo4jOperations`) bean by setting it (`setNeo4jOperations`) in the `Neo4jRepositoryFactoryBean`. (II)
+** Defines the default/fallback `RepositoryFactoryBeanClassName` as `Neo4jRepositoryFactoryBean.class.getName()` in `getRepositoryFactoryBeanClassName`.
+. `Neo4jRepositoryFactoryBean` has a super constructor that gets called from the infrastructure code.
+As a consequence the `neo4jOperations` property has to get set in (II) after initialization.
+** Creates a new instance of `Neo4jRepositoryFactory` with the in (II) provided `Neo4jOperations` in `doCreateRepositoryFactory`.
+. `Neo4jRepositoryFactory` will then create a `SimpleNeo4jRepository`.
+** It does this by calling `getTargetRepositoryViaReflection` in `getTargetRepository` and providing the `neo4jOperations`.
+. `SimpleNeo4jRepository` (the repository behind every user defined repository) is initialized.
