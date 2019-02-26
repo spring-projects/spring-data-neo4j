@@ -20,6 +20,7 @@ package org.springframework.data.neo4j.repository.support;
 
 import java.io.Serializable;
 
+import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
@@ -34,6 +35,8 @@ import org.springframework.data.repository.core.support.TransactionalRepositoryF
 public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
 	extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
+	private Neo4jOperations neo4jOperations;
+
 	/**
 	 * Creates a new {@link TransactionalRepositoryFactoryBeanSupport} for the given repository interface.
 	 *
@@ -43,8 +46,13 @@ public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID exten
 		super(repositoryInterface);
 	}
 
+	public void setNeo4jOperations(Neo4jOperations neo4jOperations) {
+		this.neo4jOperations = neo4jOperations;
+	}
+
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
-		return null;
+		return new Neo4jRepositoryFactory(neo4jOperations);
 	}
+
 }

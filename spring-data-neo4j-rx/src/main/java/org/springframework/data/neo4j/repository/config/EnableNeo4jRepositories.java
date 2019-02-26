@@ -25,8 +25,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
 
 /**
  * Annotation to activate Neo4j repositories. If no base package is configured through either {@link #value()},
@@ -63,4 +67,39 @@ public @interface EnableNeo4jRepositories {
 	 * each package that serves no purpose other than being referenced by this attribute.
 	 */
 	Class<?>[] basePackageClasses() default {};
+
+	/**
+	 * Returns the {@link FactoryBean} class to be used for each repository instance. Defaults to
+	 * {@link Neo4jRepositoryFactoryBean}.
+	 */
+	Class<?> repositoryFactoryBeanClass() default Neo4jRepositoryFactoryBean.class;
+
+	/**
+	 * Configures the name of the {@link Neo4jTemplate} bean to be used with the repositories detected.
+	 */
+	String neo4jTemplateRef() default "neo4jTemplate";
+
+	/**
+	 * Specifies which types are eligible for component scanning. Further narrows the set of candidate components from
+	 * everything in {@link #basePackages()} to everything in the base packages that matches the given filter or filters.
+	 */
+	ComponentScan.Filter[] includeFilters() default {};
+
+	/**
+	 * Specifies which types are not eligible for component scanning.
+	 */
+	ComponentScan.Filter[] excludeFilters() default {};
+
+	/**
+	 * Configures the location of where to find the Spring Data named queries properties file. Will default to
+	 * {@code META-INFO/neo4j-named-queries.properties}.
+	 */
+	String namedQueriesLocation() default "";
+
+	/**
+	 * Returns the postfix to be used when looking up custom repository implementations. Defaults to {@literal Impl}. So
+	 * for a repository named {@code PersonRepository} the corresponding implementation class will be looked up scanning
+	 * for {@code PersonRepositoryImpl}.
+	 */
+	String repositoryImplementationPostfix() default "Impl";
 }
