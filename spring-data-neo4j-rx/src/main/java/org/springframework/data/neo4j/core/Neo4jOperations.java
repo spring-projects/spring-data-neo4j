@@ -24,4 +24,5 @@ package org.springframework.data.neo4j.core;
  * @author Gerrit Meier
  */
 public interface Neo4jOperations {
+	Object executeQuery(String query);
 }
