@@ -40,6 +40,11 @@ import org.springframework.data.annotation.QueryAnnotation;
 public @interface Query {
 
 	/**
+	 * The custom Cypher query to get executed and mapped back, if any return type is defined.
+	 */
+	String value() default "";
+
+	/**
 	 * @return whether the query defined should be executed as count projection.
 	 */
 	boolean count() default false;

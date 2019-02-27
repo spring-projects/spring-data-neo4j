@@ -16,16 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration;
+package org.springframework.data.neo4j.repository.query;
 
-import java.util.List;
+import org.springframework.data.repository.query.RepositoryQuery;
 
-import org.neo4j.driver.v1.Record;
-import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.data.neo4j.repository.query.Query;
-
-public interface PersonRepository extends Neo4jRepository<Person, Long> {
-
-	@Query("MATCH (n) return n")
-	List<Record> customQuery();
+/**
+ * Base class for {@link RepositoryQuery} implementations for Neo4j.
+ *
+ * @author Gerrit Meier
+ **/
+abstract class AbstractNeo4jQuery implements RepositoryQuery {
 }

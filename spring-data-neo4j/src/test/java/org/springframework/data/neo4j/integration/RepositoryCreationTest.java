@@ -20,8 +20,14 @@ package org.springframework.data.neo4j.integration;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.neo4j.driver.v1.AuthTokens;
+import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.v1.GraphDatabase;
+import org.neo4j.driver.v1.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,22 +35,34 @@ import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @ContextConfiguration
-@RunWith(SpringRunner.class)
-public class RepositoryCreationTest {
+@ExtendWith(SpringExtension.class)
+@Testcontainers
+class RepositoryCreationTest {
+
+	@Container private static Neo4jContainer neo4jContainer = new Neo4jContainer().withAdminPassword(null);
 
 	@Autowired private PersonRepository repository;
 
 	@Test
-	public void repositoryGetsCreated() {
+	void repositoryGetsCreated() {
 		assertThat(repository).isNotNull();
 	}
 
 	@Test
-	public void repositoryCallFailsBecauseOfUnsupportedOperationException() {
+	void repositoryCallFailsBecauseOfUnsupportedOperationException() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findAll());
+	}
+
+	@Test
+	void callCustomCypher() {
+		List<Record> actual = repository.customQuery();
+		assertThat(actual).isNotNull();
 	}
 
 	@Configuration
@@ -53,7 +71,10 @@ public class RepositoryCreationTest {
 
 		@Bean
 		public Neo4jOperations neo4jTemplate() {
-			return new Neo4jTemplate();
+			String boltUrl = neo4jContainer.getBoltUrl();
+			Driver driver = GraphDatabase.driver(boltUrl, AuthTokens.none());
+
+			return new Neo4jTemplate(driver);
 		}
 
 	}

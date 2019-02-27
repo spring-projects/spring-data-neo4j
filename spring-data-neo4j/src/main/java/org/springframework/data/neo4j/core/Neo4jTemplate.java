@@ -18,6 +18,11 @@
  */
 package org.springframework.data.neo4j.core;
 
+import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.v1.StatementResult;
+import org.neo4j.driver.v1.Transaction;
+
 /**
  * Default implementation of {@link Neo4jOperations}. Uses the Neo4j Java driver to connect to and interact with the
  * database.
@@ -26,4 +31,26 @@ package org.springframework.data.neo4j.core;
  */
 public class Neo4jTemplate implements Neo4jOperations {
 
+	private final Driver driver;
+
+	public Neo4jTemplate(Driver driver) {
+		this.driver = driver;
+	}
+
+	@Override
+	public Object executeQuery(String query) {
+		Session session = driver.session();
+		Transaction transaction = session.beginTransaction();
+		try {
+			StatementResult result = transaction.run(query);
+			transaction.success();
+			return result.list();
+		} catch (Exception e) {
+			transaction.failure();
+		} finally {
+			transaction.close();
+		}
+
+		return null;
+	}
 }
