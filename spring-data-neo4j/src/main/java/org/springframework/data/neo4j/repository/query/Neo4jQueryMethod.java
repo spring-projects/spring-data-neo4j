@@ -54,6 +54,15 @@ public class Neo4jQueryMethod extends QueryMethod {
 		return new Neo4jQueryMethod(method, metadata, factory);
 	}
 
+	/**
+	 * Determines if this is a custom Cypher query method.
+	 *
+	 * @return true, if method has {@link Query} annotation. Otherwise false.
+	 */
+	public boolean hasAnnotatedQuery() {
+		return getQueryAnnotation().isPresent();
+	}
+
 	@Nullable
 	String getAnnotatedQuery() {
 		return getQueryAnnotation().map(Query::value).orElse(null);

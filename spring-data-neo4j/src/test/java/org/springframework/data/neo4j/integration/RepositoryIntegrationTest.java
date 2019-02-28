@@ -66,6 +66,11 @@ class RepositoryIntegrationTest {
 		assertThat(actual.get(0).get("1").asInt()).isEqualTo(1);
 	}
 
+	@Test
+	void findBySimpleProperty() {
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findByName());
+	}
+
 	@Configuration
 	@EnableNeo4jRepositories
 	static class Config {

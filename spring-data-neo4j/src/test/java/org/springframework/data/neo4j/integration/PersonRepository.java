@@ -28,4 +28,6 @@ public interface PersonRepository extends Neo4jRepository<Person, Long> {
 
 	@Query("RETURN 1")
 	List<Record> customQuery();
+
+	List<Record> findByName();
 }
