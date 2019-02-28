@@ -63,6 +63,7 @@ class RepositoryCreationTest {
 	void callCustomCypher() {
 		List<Record> actual = repository.customQuery();
 		assertThat(actual).isNotNull();
+		assertThat(actual.get(0).get("1").asInt()).isEqualTo(1);
 	}
 
 	@Configuration

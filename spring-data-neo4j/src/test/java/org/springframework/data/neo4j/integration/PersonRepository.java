@@ -26,6 +26,6 @@ import org.springframework.data.neo4j.repository.query.Query;
 
 public interface PersonRepository extends Neo4jRepository<Person, Long> {
 
-	@Query("MATCH (n) return n")
+	@Query("RETURN 1")
 	List<Record> customQuery();
 }
