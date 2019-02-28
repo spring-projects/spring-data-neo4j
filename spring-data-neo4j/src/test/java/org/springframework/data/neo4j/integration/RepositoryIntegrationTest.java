@@ -43,7 +43,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @ContextConfiguration
 @ExtendWith(SpringExtension.class)
 @Testcontainers
-class RepositoryCreationTest {
+class RepositoryIntegrationTest {
 
 	@Container private static Neo4jContainer neo4jContainer = new Neo4jContainer().withAdminPassword(null);
 
@@ -79,4 +79,5 @@ class RepositoryCreationTest {
 		}
 
 	}
+
 }
