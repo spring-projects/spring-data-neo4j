@@ -143,7 +143,7 @@ Run the following two commands
 
 and point your browser to http://localhost:7474.
 
-== `SimpleNeo4jRepository` initialization
+=== `SimpleNeo4jRepository` initialization
 . `@EnableNeo4jRepositories` defines
  ** the `repositoryFactoryBeanClass` that defaults to `Neo4jRepositoryFactoryBean.class`. (I)
  ** `Neo4jRepositoriesRegistrar` as a configuration via the `@Import` annotation.
@@ -157,3 +157,23 @@ As a consequence the `neo4jOperations` property has to get set in (II) after ini
 . `Neo4jRepositoryFactory` will then create a `SimpleNeo4jRepository`.
 ** It does this by calling `getTargetRepositoryViaReflection` in `getTargetRepository` and providing the `neo4jOperations`.
 . `SimpleNeo4jRepository` (the repository behind every user defined repository) is initialized.
+
+=== Query execution
+
+NOTE: This section contains the already straight-forward implemented support for custom queries via `@Query`.
+The other execution paths are only drafts right now and marked with a `*`.
+
+`Neo4jRepositoryFactory` overrides the `getQueryLookupStrategy` method to provide the `Neo4jQueryLookupStrategy`.
+From our previous experience and handling in other Spring Data stores this would branch off in two (technical three) directions:
+
+. `StringBasedNeo4jQuery` for custom Cypher queries that are provided with the `@Query` annotation.
+. `*` `StringBasedNeo4jQuery` for named queries that are outsourced in property files.
+. `*` `PartTreeNeo4jQuery` for derived finder methods.
+
+All three of them will get a custom `Neo4jQueryMethod` besides `Neo4jOperations` and `QueryMethodEvaluationContextProvider` (not used yet) provided.
+This is a wrapper around the `java.lang.reflect.Method` passed into the `resolveQuery` method of the `Neo4jQueryLookupStrategy` to provide additional metadata.
+
+==== `StringBasedNeo4jQuery` execution
+
+At the moment the implementation just takes the value of the provided `@Query` annotation by calling `getAnnotatedQuery` on the `Neo4jQueryMethod`
+and executes it through the `neo4jOperations` (`Neo4jTemplate`) class.
