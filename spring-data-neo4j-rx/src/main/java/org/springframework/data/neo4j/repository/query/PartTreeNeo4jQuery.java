@@ -23,24 +23,18 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 
 /**
- * Implementation of {@link RepositoryQuery} for String based custom Cypher query.
+ * Implementation of {@link RepositoryQuery} for derived finder methods.
  *
  * @author Gerrit Meier
- */
-public class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
+ **/
+public class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 
-	private final Neo4jQueryMethod queryMethod;
-	private final Neo4jOperations neo4jOperations;
-
-	public StringBasedNeo4jQuery(Neo4jQueryMethod queryMethod, Neo4jOperations neo4jOperations) {
-
-		this.queryMethod = queryMethod;
-		this.neo4jOperations = neo4jOperations;
+	public PartTreeNeo4jQuery(Neo4jQueryMethod queryMethod, Neo4jOperations neo4jOperations) {
 	}
 
 	@Override
 	public Object execute(Object[] parameters) {
-		return neo4jOperations.executeQuery(queryMethod.getAnnotatedQuery());
+		throw new UnsupportedOperationException("Not there yet.");
 	}
 
 	@Override
