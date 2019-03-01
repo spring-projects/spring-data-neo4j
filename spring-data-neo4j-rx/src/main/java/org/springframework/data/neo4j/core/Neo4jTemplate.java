@@ -51,6 +51,7 @@ public class Neo4jTemplate implements Neo4jOperations {
 			transaction.failure();
 		} finally {
 			transaction.close();
+			session.close();
 		}
 
 		return null;
