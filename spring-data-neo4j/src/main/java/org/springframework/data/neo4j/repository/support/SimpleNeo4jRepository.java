@@ -32,11 +32,11 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
  *
  * @author Gerrit Meier
  */
-public class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
+class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 
 	private final Neo4jOperations neo4jOperations;
 
-	public SimpleNeo4jRepository(Neo4jOperations neo4jOperations) {
+	SimpleNeo4jRepository(Neo4jOperations neo4jOperations) {
 		this.neo4jOperations = neo4jOperations;
 	}
 
