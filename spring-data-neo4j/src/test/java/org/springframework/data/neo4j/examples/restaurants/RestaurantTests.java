@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Range;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
@@ -135,6 +136,86 @@ public class RestaurantTests {
 		List<Restaurant> results = restaurantRepository.findByScoreBetween(20.0, 80.6);
 		assertNotNull(results);
 		assertEquals(3, results.size());
+	}
+
+	@Test // DATAGRAPH-1202
+	public void shouldFindRestaurantsWithScoreBetweenRangeInclusiveBothBounds() {
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		Restaurant cyma = new Restaurant("Cyma", 80.6);
+		restaurantRepository.save(cyma);
+
+		Restaurant awful = new Restaurant("Awful", 20.0);
+		restaurantRepository.save(awful);
+
+		Range.Bound<Double> lowerBoundInclusive = Range.Bound.inclusive(20.0);
+		Range.Bound<Double> upperBoundInclusive = Range.Bound.inclusive(80.6);
+		Range<Double> inclusiveBound = Range.of(lowerBoundInclusive, upperBoundInclusive);
+
+		List<Restaurant> results = restaurantRepository.findByScoreBetween(inclusiveBound);
+		assertNotNull(results);
+		assertEquals(3, results.size());
+	}
+
+	@Test // DATAGRAPH-1202
+	public void shouldFindRestaurantsWithScoreBetweenRangeExclusiveBothBounds() {
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		Restaurant cyma = new Restaurant("Cyma", 80.6);
+		restaurantRepository.save(cyma);
+
+		Restaurant awful = new Restaurant("Awful", 20.0);
+		restaurantRepository.save(awful);
+
+		Range.Bound<Double> lowerBoundInclusive = Range.Bound.exclusive(20.0);
+		Range.Bound<Double> upperBoundInclusive = Range.Bound.exclusive(80.6);
+		Range<Double> inclusiveBound = Range.of(lowerBoundInclusive, upperBoundInclusive);
+
+		List<Restaurant> results = restaurantRepository.findByScoreBetween(inclusiveBound);
+		assertNotNull(results);
+		assertEquals(1, results.size());
+	}
+
+	@Test // DATAGRAPH-1202
+	public void shouldFindRestaurantsWithScoreBetweenRangeInclusiveLowerBounds() {
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		Restaurant cyma = new Restaurant("Cyma", 80.6);
+		restaurantRepository.save(cyma);
+
+		Restaurant awful = new Restaurant("Awful", 20.0);
+		restaurantRepository.save(awful);
+
+		Range.Bound<Double> lowerBoundInclusive = Range.Bound.inclusive(20.0);
+		Range.Bound<Double> upperBoundInclusive = Range.Bound.exclusive(80.6);
+		Range<Double> inclusiveBound = Range.of(lowerBoundInclusive, upperBoundInclusive);
+
+		List<Restaurant> results = restaurantRepository.findByScoreBetween(inclusiveBound);
+		assertNotNull(results);
+		assertEquals(2, results.size());
+	}
+
+	@Test // DATAGRAPH-1202
+	public void shouldFindRestaurantsWithScoreBetweenRangeInclusiveUpperBounds() {
+		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
+		restaurantRepository.save(kuroda);
+
+		Restaurant cyma = new Restaurant("Cyma", 80.6);
+		restaurantRepository.save(cyma);
+
+		Restaurant awful = new Restaurant("Awful", 20.0);
+		restaurantRepository.save(awful);
+
+		Range.Bound<Double> lowerBoundInclusive = Range.Bound.exclusive(20.0);
+		Range.Bound<Double> upperBoundInclusive = Range.Bound.inclusive(80.6);
+		Range<Double> inclusiveBound = Range.of(lowerBoundInclusive, upperBoundInclusive);
+
+		List<Restaurant> results = restaurantRepository.findByScoreBetween(inclusiveBound);
+		assertNotNull(results);
+		assertEquals(2, results.size());
 	}
 
 	@Test // DATAGRAPH-904

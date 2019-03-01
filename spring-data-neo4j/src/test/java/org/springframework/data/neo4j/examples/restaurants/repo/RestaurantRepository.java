@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.examples.restaurants.repo;
 import java.util.Date;
 import java.util.List;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.annotation.ExistsQuery;
@@ -35,6 +36,8 @@ public interface RestaurantRepository extends Neo4jRepository<Restaurant, Long> 
 	List<Restaurant> findByLocationNearAndName(Distance distance, Point point, String name);
 
 	List<Restaurant> findByScoreBetween(double min, double max);
+
+	List<Restaurant> findByScoreBetween(Range range);
 
 	List<Restaurant> findByScoreLessThan(double max);
 
