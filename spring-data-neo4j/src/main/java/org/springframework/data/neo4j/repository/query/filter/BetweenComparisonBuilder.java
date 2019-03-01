@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.repository.query.filter;
 
+import static org.neo4j.ogm.cypher.ComparisonOperator.*;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
@@ -23,6 +25,7 @@ import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.function.PropertyComparison;
+import org.springframework.data.domain.Range;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -39,22 +42,71 @@ class BetweenComparisonBuilder extends FilterBuilder {
 
 	@Override
 	public List<Filter> build(Stack<Object> params) {
-		final Object value1 = params.pop();
-		Filter gt = new Filter(propertyName(), ComparisonOperator.GREATER_THAN_EQUAL, value1);
-		gt.setOwnerEntityType(entityType);
-		gt.setBooleanOperator(booleanOperator);
-		gt.setNegated(isNegated());
-		gt.setFunction(new PropertyComparison(value1));
-		setNestedAttributes(part, gt);
 
-		final Object value2 = params.pop();
-		Filter lt = new Filter(propertyName(), ComparisonOperator.LESS_THAN_EQUAL, value2);
-		lt.setOwnerEntityType(entityType);
-		lt.setBooleanOperator(BooleanOperator.AND);
-		lt.setNegated(isNegated());
-		lt.setFunction(new PropertyComparison(value2));
-		setNestedAttributes(part, lt);
+		final Object lowerBoundOrRange = params.pop();
 
-		return Arrays.asList(gt, lt);
+		Object lowerBoundValue;
+		Object upperBoundValue;
+
+		boolean inclusiveLowerBound = true;
+		boolean inclusiveUpperBound = true;
+
+		if (lowerBoundOrRange instanceof Range) {
+			Range range = (Range) lowerBoundOrRange;
+			Range.Bound lowerBound = range.getLowerBound();
+			lowerBoundValue = lowerBound.getValue();
+			inclusiveLowerBound = lowerBound.isInclusive();
+
+			Range.Bound upperBound = range.getUpperBound();
+			upperBoundValue = upperBound.getValue();
+			inclusiveUpperBound = upperBound.isInclusive();
+		} else {
+			lowerBoundValue = lowerBoundOrRange;
+			upperBoundValue = params.pop();
+		}
+
+		Filter lowerBoundFilter = createLowerBoundFilter(lowerBoundValue, inclusiveLowerBound);
+		setNestedAttributes(part, lowerBoundFilter);
+
+		Filter upperBoundFilter = createUpperBoundFilter(upperBoundValue, inclusiveUpperBound);
+		setNestedAttributes(part, upperBoundFilter);
+
+		return Arrays.asList(lowerBoundFilter, upperBoundFilter);
+	}
+
+	private Filter createLowerBoundFilter(Object value, boolean inclusive) {
+		Filter filter = createBoundFilter(Bound.LOWER, value, inclusive);
+		filter.setBooleanOperator(booleanOperator);
+		return filter;
+	}
+
+	private Filter createUpperBoundFilter(Object value, boolean inclusive) {
+		Filter filter = createBoundFilter(Bound.UPPER, value, inclusive);
+		filter.setBooleanOperator(BooleanOperator.AND);
+		return filter;
+	}
+
+	private Filter createBoundFilter(Bound bound, Object value, boolean inclusive) {
+		Filter filter = new Filter(propertyName(), deriveComparisonOperator(bound, inclusive), value);
+		filter.setOwnerEntityType(entityType);
+		filter.setNegated(isNegated());
+		filter.setFunction(new PropertyComparison(value));
+
+		return filter;
+	}
+
+	private ComparisonOperator deriveComparisonOperator(Bound bound, boolean inclusive) {
+		switch (bound) {
+			case LOWER:
+				return inclusive ? GREATER_THAN_EQUAL : GREATER_THAN;
+			case UPPER:
+				return inclusive ? LESS_THAN_EQUAL : LESS_THAN;
+		}
+		throw new IllegalArgumentException("unsupported bound");
+	}
+
+	private enum Bound {
+		UPPER,
+		LOWER
 	}
 }

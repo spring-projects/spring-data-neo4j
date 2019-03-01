@@ -143,8 +143,11 @@ Just equip your method signature with a `Pageable` parameter and let the method 
 |`n.name IN names`
 
 |`Between`
-|`findByScoreBetween(double min, double max)`
-|`n.score >= min AND n.score \<= max`
+|`findByScoreBetween(double min, double max)` +
+`findByScoreBetween(Range<Double> range)`
+|`n.score >= min AND n.score \<= max` +
+Depending on the `Range` definition `n.score >= min AND n.score \<= max` or
+`n.score > min AND n.score < max`
 
 |`StartingWith`
 |`findByNameStartingWith(String nameStart)`
