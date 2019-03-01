@@ -81,6 +81,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<apiguardian.version>1.0.0</apiguardian.version>
 		<assertj.version>3.11.1</assertj.version>
 		<checkstyle.version>8.16</checkstyle.version>
 		<java.version>1.8</java.version>
@@ -169,6 +170,11 @@
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
 				<version>${slf4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apiguardian</groupId>
+				<artifactId>apiguardian-api</artifactId>
+				<version>${apiguardian.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.projectreactor</groupId>
