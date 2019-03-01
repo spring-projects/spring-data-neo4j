@@ -42,11 +42,11 @@ import org.springframework.data.repository.query.RepositoryQuery;
  *
  * @author Gerrit Meier
  */
-public class Neo4jRepositoryFactory extends RepositoryFactorySupport {
+class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	private final Neo4jOperations neo4jOperations;
 
-	public Neo4jRepositoryFactory(Neo4jOperations neo4jOperations) {
+	Neo4jRepositoryFactory(Neo4jOperations neo4jOperations) {
 		this.neo4jOperations = neo4jOperations;
 	}
 
