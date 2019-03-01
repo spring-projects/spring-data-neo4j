@@ -18,11 +18,15 @@
  */
 package org.springframework.data.neo4j.core;
 
+import org.apiguardian.api.API;
+
 /**
  * Definition of Neo4j specific operations. Implemented by {@link Neo4jTemplate}.
  *
  * @author Gerrit Meier
  */
 public interface Neo4jOperations {
+
+	@API(status = API.Status.EXPERIMENTAL)
 	Object executeQuery(String query);
 }

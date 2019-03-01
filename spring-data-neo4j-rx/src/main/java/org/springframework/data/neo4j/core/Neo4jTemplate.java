@@ -18,6 +18,7 @@
  */
 package org.springframework.data.neo4j.core;
 
+import org.apiguardian.api.API;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
@@ -33,6 +34,7 @@ public class Neo4jTemplate implements Neo4jOperations {
 
 	private final Driver driver;
 
+	@API(status = API.Status.STABLE, since = "1.0")
 	public Neo4jTemplate(Driver driver) {
 		this.driver = driver;
 	}
