@@ -75,23 +75,19 @@ class BetweenComparisonBuilder extends FilterBuilder {
 	}
 
 	private Filter createLowerBoundFilter(Object value, boolean inclusive) {
-		Filter filter = createBoundFilter(Bound.LOWER, value, inclusive);
-		filter.setBooleanOperator(booleanOperator);
-		return filter;
+		return createBoundFilter(Bound.LOWER, value, inclusive, booleanOperator);
 	}
 
 	private Filter createUpperBoundFilter(Object value, boolean inclusive) {
-		Filter filter = createBoundFilter(Bound.UPPER, value, inclusive);
-		filter.setBooleanOperator(BooleanOperator.AND);
-		return filter;
+		return createBoundFilter(Bound.UPPER, value, inclusive, BooleanOperator.AND);
 	}
 
-	private Filter createBoundFilter(Bound bound, Object value, boolean inclusive) {
+	private Filter createBoundFilter(Bound bound, Object value, boolean inclusive, BooleanOperator operator) {
 		Filter filter = new Filter(propertyName(), deriveComparisonOperator(bound, inclusive), value);
 		filter.setOwnerEntityType(entityType);
 		filter.setNegated(isNegated());
 		filter.setFunction(new PropertyComparison(value));
-
+		filter.setBooleanOperator(operator);
 		return filter;
 	}
 
