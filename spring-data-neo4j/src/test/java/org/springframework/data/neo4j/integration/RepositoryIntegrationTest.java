@@ -40,18 +40,17 @@ import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@ContextConfiguration
 @ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = RepositoryIntegrationTest.Config.class)
 @Testcontainers
 class RepositoryIntegrationTest {
 
 	@Container private static Neo4jContainer neo4jContainer = new Neo4jContainer().withAdminPassword(null);
 
-	@Autowired private PersonRepository repository;
+	private final PersonRepository repository;
 
-	@Test
-	void repositoryGetsCreated() {
-		assertThat(repository).isNotNull();
+	RepositoryIntegrationTest(@Autowired PersonRepository repository) {
+		this.repository = repository;
 	}
 
 	@Test
@@ -62,8 +61,11 @@ class RepositoryIntegrationTest {
 	@Test
 	void callCustomCypher() {
 		List<Record> actual = repository.customQuery();
-		assertThat(actual).isNotNull();
-		assertThat(actual.get(0).get("1").asInt()).isEqualTo(1);
+		assertThat(actual)
+			.isNotNull()
+			.isNotEmpty()
+			.first().extracting(record -> record.get("1").asInt())
+			.isEqualTo(1);
 	}
 
 	@Test
