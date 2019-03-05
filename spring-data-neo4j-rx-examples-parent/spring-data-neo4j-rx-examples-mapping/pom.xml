@@ -22,34 +22,20 @@
 
 	<parent>
 		<groupId>org.springframework.data</groupId>
-		<artifactId>spring-data-neo4j-rx-parent</artifactId>
+		<artifactId>spring-data-neo4j-rx-examples-parent</artifactId>
 		<version>1.0.0.BUILD-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>spring-data-neo4j-rx-spring-boot-starter-parent</artifactId>
-	<packaging>pom</packaging>
+	<artifactId>spring-data-neo4j-rx-examples-mapping</artifactId>
 
-	<name>SDN⚡️RX Spring Boot Starter Parent</name>
-	<description>Integration with Spring Boot.</description>
+	<name>SDN⚡️RX Examples Mapping</name>
+	<description>A showcase for possible mappings, queries and respository handling.</description>
 
-	<modules>
-		<module>spring-data-neo4j-rx-spring-boot-autoconfigure</module>
-		<module>spring-data-neo4j-rx-spring-boot-starter</module>
-	</modules>
-
-	<properties>
-		<spring-boot.version>2.1.3.RELEASE</spring-boot.version>
-	</properties>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-dependencies</artifactId>
-				<version>${spring-boot.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-neo4j-rx</artifactId>
+			<version>1.0.0.BUILD-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
 </project>

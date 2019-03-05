@@ -17,8 +17,7 @@
  | See the License for the specific language governing permissions and
  | limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -27,17 +26,16 @@
 		<version>1.0.0.BUILD-SNAPSHOT</version>
 	</parent>
 
-	<groupId>org.springframework.data</groupId>
-	<artifactId>spring-data-neo4j-rx-examples</artifactId>
+	<artifactId>spring-data-neo4j-rx-examples-parent</artifactId>
+	<packaging>pom</packaging>
 
-	<name>SDN⚡️RX Examples</name>
-	<description>A showcase for possible mappings, queries and respository handling.</description>
+	<name>SDN⚡️RX Examples Parent</name>
+	<description>Contains several example projects, among them demonstration of mapping and concepts as well as Spring
+		Boot integration.
+	</description>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-neo4j-rx</artifactId>
-			<version>1.0.0.BUILD-SNAPSHOT</version>
-		</dependency>
-	</dependencies>
+	<modules>
+		<module>spring-data-neo4j-rx-examples-mapping</module>
+		<module>spring-data-neo4j-rx-examples-spring-boot</module>
+	</modules>
 </project>

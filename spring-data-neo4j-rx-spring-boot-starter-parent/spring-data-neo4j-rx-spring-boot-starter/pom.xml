@@ -18,16 +18,29 @@
  | limitations under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+	<modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.springframework.data</groupId>
-    <artifactId>spring-data-neo4j-rx-spring-boot-starter-parent</artifactId>
-    <version>1.0.0.BUILD-SNAPSHOT</version>
-  </parent>
+	<parent>
+		<groupId>org.springframework.data</groupId>
+		<artifactId>spring-data-neo4j-rx-spring-boot-starter-parent</artifactId>
+		<version>1.0.0.BUILD-SNAPSHOT</version>
+	</parent>
 
-  <artifactId>spring-data-neo4j-rx-spring-boot-starter</artifactId>
+	<artifactId>spring-data-neo4j-rx-spring-boot-starter</artifactId>
 
-  <name>SDN⚡️RX Spring Boot Starter</name>
-  <description>Integration with Spring Boot.</description>
+	<name>SDN⚡️RX Spring Boot Starter</name>
+	<description>Integration with Spring Boot.</description>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.neo4j.driver</groupId>
+			<artifactId>neo4j-java-driver</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-neo4j-rx-spring-boot-autoconfigure</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 </project>

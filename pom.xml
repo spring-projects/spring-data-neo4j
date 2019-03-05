@@ -74,7 +74,7 @@
 	<modules>
 		<module>spring-data-neo4j-rx</module>
 		<module>spring-data-neo4j-rx-spring-boot-starter-parent</module>
-		<module>spring-data-neo4j-rx-examples</module>
+		<module>spring-data-neo4j-rx-examples-parent</module>
 	</modules>
 
 	<properties>
@@ -136,8 +136,8 @@
 				<groupId>org.junit</groupId>
 				<artifactId>junit-bom</artifactId>
 				<version>${junit-jupiter.version}</version>
-				<scope>import</scope>
 				<type>pom</type>
+				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.testcontainers</groupId>
