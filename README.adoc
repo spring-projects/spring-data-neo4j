@@ -51,7 +51,8 @@ Integration tests will get executed withing the `verify` goal and their class na
 Spring Data Neo4j RX takes a "ready to use" drivers instance and uses that.
 We won't provide any additional configuration for aspects that are configurable through the driver.
 We will however provide support to configure the drivers instance in Spring Boot.
-The current Spring Boot Starter only configures the Neo4j-OGM transport and not the "real" driver.
+The current SDN Spring Boot Starter only configures the Neo4j-OGM transport and not the "real" driver.
+Our plans for a future starter a have been <<starter,described separately>>.
 
 Closing the driver is not the the concern of Spring Data Neo4j RX.
 The lifecycle of that bean should be managed by the application.
@@ -184,3 +185,13 @@ This is a wrapper around the `java.lang.reflect.Method` passed into the `resolve
 
 At the moment the implementation just takes the value of the provided `@Query` annotation by calling `getAnnotatedQuery` on the `Neo4jQueryMethod`
 and executes it through the `neo4jOperations` (`Neo4jTemplate`) class.
+
+[[starter]]
+== Spring Boot Starter
+
+The Spring Data Neo4j RX Spring Boot Starter provides automatic configuration to
+
+* Create an instance of the https://github.com/neo4j/neo4j-java-driver[neo4j-java-driver]
+* Configure Spring Data Neo4j RX itself inside a Spring Boot application and enabling Spring Data repositories
+
+Read me about it link:spring-data-neo4j-rx-spring-boot-starter-parent/README.adoc[here].
