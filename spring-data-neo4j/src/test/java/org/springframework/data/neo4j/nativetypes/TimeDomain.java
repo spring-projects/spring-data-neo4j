@@ -18,17 +18,14 @@ package org.springframework.data.neo4j.nativetypes;
 import org.neo4j.ogm.annotation.GeneratedValue;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Relationship;
-import org.neo4j.ogm.annotation.typeconversion.Convert;
-import org.neo4j.ogm.typeconversion.LocalDateStringConverter;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.temporal.TemporalAmount;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @NodeEntity
 public class TimeDomain {
@@ -42,6 +39,10 @@ public class TimeDomain {
 	private Duration duration;
 	private Period period;
 	private TemporalAmount temporalAmount;
+
+	private Duration[] arrayOfDurations;
+
+	private List<Duration> listOfDurations;
 
 	public LocalDate getLocalDate() {
 		return localDate;
@@ -89,5 +90,21 @@ public class TimeDomain {
 
 	public void setTemporalAmount(TemporalAmount temporalAmount) {
 		this.temporalAmount = temporalAmount;
+	}
+
+	public Duration[] getArrayOfDurations() {
+		return arrayOfDurations;
+	}
+
+	public void setArrayOfDurations(Duration[] arrayOfDurations) {
+		this.arrayOfDurations = arrayOfDurations;
+	}
+
+	public List<Duration> getListOfDurations() {
+		return listOfDurations;
+	}
+
+	public void setListOfDurations(List<Duration> listOfDurations) {
+		this.listOfDurations = listOfDurations;
 	}
 }
