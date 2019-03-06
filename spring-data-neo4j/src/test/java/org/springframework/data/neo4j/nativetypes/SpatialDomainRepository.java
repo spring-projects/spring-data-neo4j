@@ -20,6 +20,7 @@ import org.neo4j.ogm.types.spatial.CartesianPoint3d;
 import org.neo4j.ogm.types.spatial.GeographicPoint2d;
 import org.neo4j.ogm.types.spatial.GeographicPoint3d;
 import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 import java.util.List;
@@ -40,4 +41,6 @@ public interface SpatialDomainRepository extends Neo4jRepository<SpatialDomain, 
 	List<SpatialDomain> findByGeographicPoint2dNear(Distance distance, GeographicPoint2d geographicPoint2d);
 
 	List<SpatialDomain> findByGeographicPoint3dNear(Distance distance, GeographicPoint3d office);
+
+	List<SpatialDomain> findBySdnPointNear(Distance distance, Point aPoint);
 }

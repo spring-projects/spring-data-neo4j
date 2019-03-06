@@ -18,20 +18,29 @@ package org.springframework.data.neo4j.mapping;
 import static java.util.Collections.*;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.metadata.ClassInfo;
 import org.neo4j.ogm.metadata.FieldInfo;
 import org.neo4j.ogm.metadata.MetaData;
+import org.neo4j.ogm.typeconversion.AttributeConverter;
+import org.neo4j.ogm.typeconversion.ConverterBasedCollectionConverter;
+import org.neo4j.ogm.types.spatial.CartesianPoint2d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.convert.EntityInstantiator;
 import org.springframework.data.convert.EntityInstantiators;
+import org.springframework.data.geo.Point;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * This class implements Spring Data's MappingContext interface, scavenging the required data from the OGM's metadata in
@@ -41,6 +50,7 @@ import org.springframework.data.util.TypeInformation;
  * @author Vince Bickers
  * @author Adam George
  * @author Mark Paluch
+ * @author Michael J. Simons
  * @since 4.0.0
  */
 public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> {
@@ -63,7 +73,40 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 		this.metaData = metaData;
 		metaData.persistentEntities().stream().filter(k -> k.getUnderlyingClass() != null)
 				.forEach(k -> addPersistentEntity(k.getUnderlyingClass()));
+
+		installDefaultConverter();
+
 		logger.info("Neo4jMappingContext initialisation completed");
+	}
+
+	private void installDefaultConverter() {
+
+		Method setPropertyConverter = ReflectionUtils.findMethod(FieldInfo.class, "setPropertyConverter",
+				AttributeConverter.class);
+
+		if (setPropertyConverter == null) {
+			return;
+		}
+
+		CartesianPointConverter cartesianPointConverter = new CartesianPointConverter();
+		CartesianPointArrayConverter cartesianPointArrayConverter = new CartesianPointArrayConverter();
+
+		metaData.persistentEntities().stream().flatMap(classInfo -> Stream
+				.concat(classInfo.findFields(Point.class).stream(), classInfo.findIterableFields(Point.class).stream()))
+				.distinct().forEach(fieldInfo -> {
+
+					AttributeConverter<?, ?> propertyConverter;
+					if (fieldInfo.isArray()) {
+						propertyConverter = cartesianPointArrayConverter;
+					} else if (fieldInfo.isIterable()) {
+						propertyConverter = new ConverterBasedCollectionConverter(fieldInfo.getField().getType(),
+								cartesianPointConverter);
+					} else {
+						propertyConverter = cartesianPointConverter;
+					}
+
+					ReflectionUtils.invokeMethod(setPropertyConverter, fieldInfo, propertyConverter);
+				});
 	}
 
 	@Override
@@ -132,6 +175,56 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * This is used internally for automatic conversion of Spring Data Point to a fitting Neo4j point. If you want to be
+	 * explicit which coordinate system you use, please use {@link org.neo4j.ogm.types.spatial.GeographicPoint2d} or
+	 * {@link CartesianPoint2d} directly.
+	 */
+	private static class CartesianPointConverter implements AttributeConverter<Point, CartesianPoint2d> {
+
+		@Override
+		public CartesianPoint2d toGraphProperty(Point value) {
+
+			return Optional.ofNullable(value).map(p -> new CartesianPoint2d(value.getX(), value.getY())).orElse(null);
+		}
+
+		@Override
+		public Point toEntityAttribute(CartesianPoint2d value) {
+
+			return Optional.ofNullable(value).map(p -> new Point(value.getX(), value.getY())).orElse(null);
+		}
+	}
+
+	/**
+	 * This is used internally for automatic conversion of Spring Data Point to a fitting Neo4j point. If you want to be
+	 * explicit which coordinate system you use, please use {@link org.neo4j.ogm.types.spatial.GeographicPoint2d} or
+	 * {@link CartesianPoint2d} directly.
+	 */
+	private static class CartesianPointArrayConverter implements AttributeConverter<Point[], CartesianPoint2d[]> {
+
+		private final CartesianPointConverter delegate = new CartesianPointConverter();
+
+		@Override
+		public CartesianPoint2d[] toGraphProperty(Point[] value) {
+
+			if (value == null) {
+				return null;
+			}
+
+			return Arrays.stream(value).map(delegate::toGraphProperty).toArray(CartesianPoint2d[]::new);
+		}
+
+		@Override
+		public Point[] toEntityAttribute(CartesianPoint2d[] value) {
+
+			if (value == null) {
+				return null;
+			}
+
+			return Arrays.stream(value).map(delegate::toEntityAttribute).toArray(Point[]::new);
+		}
 	}
 
 }
