@@ -1,6 +1,30 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.2.0.M2 (2019-03-07)
+----------------------------------------
+* DATAGRAPH-1202 - Add support for Range type in derived queries.
+* DATAGRAPH-1199 - Add shortcut annotations for exists @Query.
+* DATAGRAPH-1197 - Add support for exists projection.
+* DATAGRAPH-1196 - Improve documentation.
+* DATAGRAPH-1191 - Upgrade to Neo4j OGM 3.2.0-alpha04.
+* DATAGRAPH-1190 - Allow concatenation of ignoreCase modifier keyword.
+* DATAGRAPH-1189 - Handle @QueryResult properties case-sensitive.
+* DATAGRAPH-1188 - Document limitations of auditing and read-only transactions.
+* DATAGRAPH-1187 - Replace links to springsource.org with spring.io.
+* DATAGRAPH-1186 - Remove usage of Neo4j-OGM test-util module.
+* DATAGRAPH-1181 - Fix minor typos in readme.
+* DATAGRAPH-1177 - Introduce Concourse CI.
+* DATAGRAPH-1176 - Harmonize license headers.
+* DATAGRAPH-1174 - Fix class loading leak with custom QueryResults.
+* DATAGRAPH-1173 - Update copyright years to 2019.
+* DATAGRAPH-1172 - Remove usage of Neo4j internal MultidriverTestClass.
+* DATAGRAPH-1170 - Ensure compatibility with JDK 11.
+* DATAGRAPH-1169 - Align Caffeine cache version with OGM and Spring Boot.
+* DATAGRAPH-1168 - Release 5.2 M2 (Moore).
+* DATAGRAPH-1161 - Upgrade to Neo4j OGM 3.2.0-alpha01.
+
+
 Changes in version 5.1.5.RELEASE (2019-02-13)
 ---------------------------------------------
 * DATAGRAPH-1193 - Deprecate IterableUtils.
