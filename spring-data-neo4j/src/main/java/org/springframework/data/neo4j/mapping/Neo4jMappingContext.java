@@ -201,9 +201,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 	}
 
 	/**
-	 * This is used internally for automatic conversion of Spring Data Point to a fitting Neo4j point. If you want to be
-	 * explicit which coordinate system you use, please use {@link org.neo4j.ogm.types.spatial.GeographicPoint2d} or
-	 * {@link CartesianPoint2d} directly.
+	 * Wrapper delegating to {@link NativePointConverter} for arrays of points.
 	 */
 	private static class NativePointArrayConverter implements AttributeConverter<Point[], GeographicPoint2d[]> {
 
