@@ -16,14 +16,10 @@
 package org.springframework.data.neo4j.nativetypes;
 
 import org.neo4j.harness.ServerControls;
-import org.neo4j.harness.TestServerBuilders;
-import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 
 /**
  * Shared configuration for all tests involving native, spatial types.
@@ -32,14 +28,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Michael J. Simons
  */
 @Configuration
-@EnableNeo4jRepositories
-@EnableTransactionManagement
+@Neo4jIntegrationTest(
+		domainPackages = { "org.springframework.data.neo4j.nativetypes",
+				"org.springframework.data.neo4j.examples.restaurants.domain" },
+		repositoryPackages = { "org.springframework.data.neo4j.nativetypes",
+				"org.springframework.data.neo4j.examples.restaurants.repo" })
+@ComponentScan("org.springframework.data.neo4j.examples.restaurants")
 class SpatialPersistenceContextConfiguration {
-
-	@Bean
-	ServerControls neo4j() {
-		return TestServerBuilders.newInProcessBuilder().newServer();
-	}
 
 	@Bean
 	org.neo4j.ogm.config.Configuration neo4jOGMConfiguration(ServerControls serverControls) {
@@ -49,13 +44,4 @@ class SpatialPersistenceContextConfiguration {
 				.build();
 	}
 
-	@Bean
-	public SessionFactory sessionFactory(org.neo4j.ogm.config.Configuration configuration) {
-		return new SessionFactory(configuration, "org.springframework.data.neo4j.nativetypes");
-	}
-
-	@Bean
-	public PlatformTransactionManager transactionManager(SessionFactory sessionFactory) {
-		return new Neo4jTransactionManager(sessionFactory);
-	}
 }

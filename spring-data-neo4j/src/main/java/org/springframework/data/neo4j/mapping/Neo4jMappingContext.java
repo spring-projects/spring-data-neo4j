@@ -30,6 +30,7 @@ import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
 import org.neo4j.ogm.typeconversion.ConverterBasedCollectionConverter;
 import org.neo4j.ogm.types.spatial.CartesianPoint2d;
+import org.neo4j.ogm.types.spatial.GeographicPoint2d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.convert.EntityInstantiator;
@@ -88,8 +89,8 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 			return;
 		}
 
-		CartesianPointConverter cartesianPointConverter = new CartesianPointConverter();
-		CartesianPointArrayConverter cartesianPointArrayConverter = new CartesianPointArrayConverter();
+		NativePointConverter nativePointConverter = new NativePointConverter();
+		NativePointArrayConverter nativePointArrayConverter = new NativePointArrayConverter();
 
 		metaData.persistentEntities().stream().flatMap(classInfo -> Stream
 				.concat(classInfo.findFields(Point.class).stream(), classInfo.findIterableFields(Point.class).stream()))
@@ -97,12 +98,12 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 
 					AttributeConverter<?, ?> propertyConverter;
 					if (fieldInfo.isArray()) {
-						propertyConverter = cartesianPointArrayConverter;
+						propertyConverter = nativePointArrayConverter;
 					} else if (fieldInfo.isIterable()) {
 						propertyConverter = new ConverterBasedCollectionConverter(fieldInfo.getField().getType(),
-								cartesianPointConverter);
+								nativePointConverter);
 					} else {
-						propertyConverter = cartesianPointConverter;
+						propertyConverter = nativePointConverter;
 					}
 
 					ReflectionUtils.invokeMethod(setPropertyConverter, fieldInfo, propertyConverter);
@@ -178,22 +179,24 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 	}
 
 	/**
-	 * This is used internally for automatic conversion of Spring Data Point to a fitting Neo4j point. If you want to be
+	 * This is used internally for automatic conversion of Spring Data Point to a fitting Neo4j point. While OGM native
+	 * types treat longitude as x and latitude as y, we apply the same behaviour as SDN: x/y -> lat/long. We need however
+	 * a geographic type, as all calculations expected from Spring Data are usually based on WGS-84 If you want to be
 	 * explicit which coordinate system you use, please use {@link org.neo4j.ogm.types.spatial.GeographicPoint2d} or
-	 * {@link CartesianPoint2d} directly.
+	 * {@link CartesianPoint2d} in your domain model.
 	 */
-	private static class CartesianPointConverter implements AttributeConverter<Point, CartesianPoint2d> {
+	private static class NativePointConverter implements AttributeConverter<Point, GeographicPoint2d> {
 
 		@Override
-		public CartesianPoint2d toGraphProperty(Point value) {
+		public GeographicPoint2d toGraphProperty(Point value) {
 
-			return Optional.ofNullable(value).map(p -> new CartesianPoint2d(value.getX(), value.getY())).orElse(null);
+			return Optional.ofNullable(value).map(p -> new GeographicPoint2d(value.getX(), value.getY())).orElse(null);
 		}
 
 		@Override
-		public Point toEntityAttribute(CartesianPoint2d value) {
+		public Point toEntityAttribute(GeographicPoint2d value) {
 
-			return Optional.ofNullable(value).map(p -> new Point(value.getX(), value.getY())).orElse(null);
+			return Optional.ofNullable(value).map(p -> new Point(value.getLatitude(), value.getLongitude())).orElse(null);
 		}
 	}
 
@@ -202,22 +205,22 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 	 * explicit which coordinate system you use, please use {@link org.neo4j.ogm.types.spatial.GeographicPoint2d} or
 	 * {@link CartesianPoint2d} directly.
 	 */
-	private static class CartesianPointArrayConverter implements AttributeConverter<Point[], CartesianPoint2d[]> {
+	private static class NativePointArrayConverter implements AttributeConverter<Point[], GeographicPoint2d[]> {
 
-		private final CartesianPointConverter delegate = new CartesianPointConverter();
+		private final NativePointConverter delegate = new NativePointConverter();
 
 		@Override
-		public CartesianPoint2d[] toGraphProperty(Point[] value) {
+		public GeographicPoint2d[] toGraphProperty(Point[] value) {
 
 			if (value == null) {
 				return null;
 			}
 
-			return Arrays.stream(value).map(delegate::toGraphProperty).toArray(CartesianPoint2d[]::new);
+			return Arrays.stream(value).map(delegate::toGraphProperty).toArray(GeographicPoint2d[]::new);
 		}
 
 		@Override
-		public Point[] toEntityAttribute(CartesianPoint2d[] value) {
+		public Point[] toEntityAttribute(GeographicPoint2d[] value) {
 
 			if (value == null) {
 				return null;

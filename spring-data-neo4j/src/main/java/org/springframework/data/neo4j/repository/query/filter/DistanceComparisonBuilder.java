@@ -121,6 +121,20 @@ class DistanceComparisonBuilder extends FilterBuilder {
 
 		DistanceFromPoint distanceFromPoint = new DistanceFromPoint(point.getX(), point.getY(), meters);
 
+		DistanceComparison distanceComparison = new DistanceComparison(distanceFromPoint) {
+			@Override
+			public String expression(String nodeIdentifier) {
+				String latitudeProperty = nodeIdentifier + ".latitude";
+				String longitudeProperty = nodeIdentifier + ".longitude";
+
+				return String.format(
+						"distance(coalesce(point({latitude: %s, longitude: %s}), %s), point({latitude:{lat}, longitude:{lon}})) "
+								+ "%s {distance} ",
+						latitudeProperty, longitudeProperty, nodeIdentifier + "." + propertyName(),
+						super.getFilter().getComparisonOperator().getValue());
+			}
+		};
+
 		Filter filter = new Filter(distanceComparison, ComparisonOperator.LESS_THAN);
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
