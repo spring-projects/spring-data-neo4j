@@ -69,8 +69,7 @@ class DistanceComparisonBuilder extends FilterBuilder {
 			meters = distance.getValue();
 		}
 
-		DistanceFromPoint distanceFromPoint = new DistanceFromPoint(point.getX(), point.getY(),
-				distance.getValue() * meters);
+		DistanceFromPoint distanceFromPoint = new DistanceFromPoint(point.getX(), point.getY(), meters);
 		DistanceComparison distanceComparison = new DistanceComparison(distanceFromPoint);
 
 		Filter filter = new Filter(distanceComparison, ComparisonOperator.LESS_THAN);
