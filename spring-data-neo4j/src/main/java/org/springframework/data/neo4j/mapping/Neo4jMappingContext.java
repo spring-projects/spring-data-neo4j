@@ -89,6 +89,8 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 			return;
 		}
 
+		setPropertyConverter.setAccessible(true);
+
 		NativePointConverter nativePointConverter = new NativePointConverter();
 		NativePointArrayConverter nativePointArrayConverter = new NativePointArrayConverter();
 
