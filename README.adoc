@@ -39,6 +39,13 @@ NOTE: However, we should discuss if you could try a JDK 11 only project.
 
 Supporting the embedded use case will be solved on the drivers level.
 
+=== Integration tests
+
+Integration tests take more time by their very nature.
+To get fast feedback we have split up the tests in unit and integration tests.
+Unit tests will run when the `test` goal is issued and should have a name ending with `Test` or `Tests`.
+Integration tests will get executed withing the `verify` goal and their class name have to end with `IntegrationTest` to get picked up.
+
 == Configuration
 
 Spring Data Neo4j RX takes a "ready to use" drivers instance and uses that.
