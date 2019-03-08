@@ -41,15 +41,15 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = RepositoryIntegrationTest.Config.class)
+@ContextConfiguration(classes = RepositoryIT.Config.class)
 @Testcontainers
-class RepositoryIntegrationTest {
+class RepositoryIT {
 
 	@Container private static Neo4jContainer neo4jContainer = new Neo4jContainer().withAdminPassword(null);
 
 	private final PersonRepository repository;
 
-	RepositoryIntegrationTest(@Autowired PersonRepository repository) {
+	RepositoryIT(@Autowired PersonRepository repository) {
 		this.repository = repository;
 	}
 
