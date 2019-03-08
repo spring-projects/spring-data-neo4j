@@ -21,8 +21,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
+		<groupId>org.springframework.boot</groupId>
 		<version>2.2.0.BUILD-SNAPSHOT</version>
 		<relativePath></relativePath>
 		<!-- lookup parent from repository -->
