@@ -36,12 +36,6 @@ public class Neo4jQueryMethod extends QueryMethod {
 
 	private final Method method;
 
-	private Neo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
-		super(method, metadata, factory);
-
-		this.method = method;
-	}
-
 	/**
 	 * Creates a new {@link Neo4jQueryMethod} from the given parameters. Looks up the correct query to use for following
 	 * invocations of the method given.
@@ -50,8 +44,9 @@ public class Neo4jQueryMethod extends QueryMethod {
 	 * @param metadata must not be {@literal null}.
 	 * @param factory must not be {@literal null}.
 	 */
-	public static Neo4jQueryMethod of(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
-		return new Neo4jQueryMethod(method, metadata, factory);
+	public Neo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
+		super(method, metadata, factory);
+		this.method = method;
 	}
 
 	/**
