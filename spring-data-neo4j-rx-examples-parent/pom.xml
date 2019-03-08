@@ -31,8 +31,7 @@
 
 	<name>SDN⚡️RX Examples Parent</name>
 	<description>Contains several example projects, among them demonstration of mapping and concepts as well as Spring
-		Boot integration.
-	</description>
+		Boot integration.</description>
 
 	<modules>
 		<module>spring-data-neo4j-rx-examples-mapping</module>
