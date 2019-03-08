@@ -332,9 +332,6 @@
 						<include>**/*Test.java</include>
 						<include>**/*Tests.java</include>
 					</includes>
-					<excludes>
-						<exclude>**/*IntegrationTest.java</exclude>
-					</excludes>
 					<skipTests>${skipUnitTests}</skipTests>
 				</configuration>
 			</plugin>
@@ -350,11 +347,6 @@
 						</goals>
 					</execution>
 				</executions>
-				<configuration>
-					<includes>
-						<include>**/*IntegrationTest.java</include>
-					</includes>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
