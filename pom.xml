@@ -79,6 +79,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<skipUnitTests>false</skipUnitTests>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<apiguardian.version>1.0.0</apiguardian.version>
@@ -313,6 +314,7 @@
 					<excludes>
 						<exclude>**/*IntegrationTest.java</exclude>
 					</excludes>
+					<skipTests>${skipUnitTests}</skipTests>
 				</configuration>
 			</plugin>
 			<plugin>
