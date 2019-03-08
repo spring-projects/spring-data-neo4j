@@ -53,7 +53,7 @@ class Neo4jQueryMethodTest {
 
 		Method method = repositoryClass.getMethod(name, parameters);
 		ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
-		return Neo4jQueryMethod.of(method, new DefaultRepositoryMetadata(repositoryClass), factory);
+		return new Neo4jQueryMethod(method, new DefaultRepositoryMetadata(repositoryClass), factory);
 	}
 
 	interface PersonRepository extends Repository<Person, Long> {

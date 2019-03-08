@@ -95,7 +95,7 @@ class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 		public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 				NamedQueries namedQueries) {
 
-			Neo4jQueryMethod queryMethod = Neo4jQueryMethod.of(method, metadata, factory);
+			Neo4jQueryMethod queryMethod = new Neo4jQueryMethod(method, metadata, factory);
 			if (queryMethod.hasAnnotatedQuery()) {
 				return new StringBasedNeo4jQuery(queryMethod, neo4jOperations);
 			}
