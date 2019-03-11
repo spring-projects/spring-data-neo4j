@@ -26,12 +26,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Repository base implementation for Neo4j.
  *
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
+@Repository
+@Transactional(readOnly = true)
 class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 
 	private final Neo4jOperations neo4jOperations;
@@ -51,11 +56,13 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	}
 
 	@Override
+	@Transactional
 	public <S extends T> S save(S entity) {
 		throw new UnsupportedOperationException("Not there yet.");
 	}
 
 	@Override
+	@Transactional
 	public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
 		throw new UnsupportedOperationException("Not there yet.");
 	}
@@ -86,23 +93,31 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	}
 
 	@Override
+	@Transactional
 	public void deleteById(ID id) {
 		throw new UnsupportedOperationException("Not there yet.");
 	}
 
 	@Override
+	@Transactional
 	public void delete(T entity) {
 		throw new UnsupportedOperationException("Not there yet.");
 	}
 
 	@Override
+	@Transactional
 	public void deleteAll(Iterable<? extends T> entities) {
+
 		throw new UnsupportedOperationException("Not there yet.");
 	}
 
 	@Override
+	@Transactional
 	public void deleteAll() {
-		throw new UnsupportedOperationException("Not there yet.");
+
+		for (T element : findAll()) {
+			delete(element);
+		}
 	}
 
 	@Override

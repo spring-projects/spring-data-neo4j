@@ -18,6 +18,8 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
+import static org.springframework.data.neo4j.repository.config.Neo4jRepositoryConfigurationExtension.*;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -31,6 +33,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * Annotation to activate Neo4j repositories. If no base package is configured through either {@link #value()},
@@ -77,7 +80,13 @@ public @interface EnableNeo4jRepositories {
 	/**
 	 * Configures the name of the {@link Neo4jTemplate} bean to be used with the repositories detected.
 	 */
-	String neo4jTemplateRef() default "neo4jTemplate";
+	String neo4jTemplateRef() default DEFAULT_NEO4J_TEMPLATE_BEAN_NAME;
+
+	/**
+	 * Configures the name of the {@link PlatformTransactionManager} bean definition to be used to create repositories
+	 * discovered through this annotation. Defaults to {@code transactionManager}.
+	 */
+	String transactionManagerRef() default DEFAULT_TRANSACTION_MANAGER_BEAN_NAME;
 
 	/**
 	 * Specifies which types are eligible for component scanning. Further narrows the set of candidate components from

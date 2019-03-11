@@ -18,42 +18,33 @@
  */
 package org.springframework.data.neo4j.core;
 
-import org.apiguardian.api.API;
 import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Transaction;
+import org.neo4j.driver.v1.StatementRunner;
+import org.springframework.data.neo4j.core.transaction.DefaultNeo4jStatementRunnerSupplier;
+import org.springframework.data.neo4j.core.transaction.StatementRunnerSupplier;
 
 /**
  * Default implementation of {@link Neo4jOperations}. Uses the Neo4j Java driver to connect to and interact with the
  * database.
  *
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 public class Neo4jTemplate implements Neo4jOperations {
 
-	private final Driver driver;
+	private StatementRunnerSupplier<StatementRunner> statementRunnerSupplier;
 
-	@API(status = API.Status.STABLE, since = "1.0")
 	public Neo4jTemplate(Driver driver) {
-		this.driver = driver;
+		this.statementRunnerSupplier = new DefaultNeo4jStatementRunnerSupplier(driver);
 	}
 
 	@Override
 	public Object executeQuery(String query) {
-		Session session = driver.session();
-		Transaction transaction = session.beginTransaction();
-		try {
-			StatementResult result = transaction.run(query);
-			transaction.success();
-			return result.list();
-		} catch (Exception e) {
-			transaction.failure();
-		} finally {
-			transaction.close();
-			session.close();
-		}
 
-		return null;
+		// TODO Let's see whether we can stick with the statementrunner or if we need to differentiate between reactive runner and default. Current 2.0 react version has two complete separate interfaces
+		StatementRunner statementRunner = statementRunnerSupplier.get();
+		StatementResult result = statementRunner.run(query);
+		return result.list();
 	}
 }
