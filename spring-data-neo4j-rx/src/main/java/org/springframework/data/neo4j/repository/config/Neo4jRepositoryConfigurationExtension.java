@@ -18,11 +18,11 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
-import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
+import org.springframework.data.repository.config.RepositoryConfigurationSource;
 
 /**
  * This dedicated Neo4j repository extension will be registered via {@link Neo4jRepositoriesRegistrar} and then provide
@@ -34,6 +34,14 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
 class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
 
 	private static final String MODULE_PREFIX = "neo4j";
+
+	/**
+	 * See {@link AbstractBeanDefinition#INFER_METHOD}.
+	 */
+	static final String GENERATE_BEAN_NAME = "(generated)";
+
+	static final String DEFAULT_NEO4J_TEMPLATE_BEAN_NAME = "neo4jTemplate";
+	static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 
 	/*
 	 * (non-Javadoc)
@@ -55,13 +63,15 @@ class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurationExten
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#postProcess(org.springframework.beans.factory.support.BeanDefinitionBuilder, org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#postProcess(org.springframework.beans.factory.support.BeanDefinitionBuilder, org.springframework.data.repository.config.RepositoryConfigurationSource)
 	 */
 	@Override
-	public void postProcess(BeanDefinitionBuilder builder, AnnotationRepositoryConfigurationSource config) {
+	public void postProcess(BeanDefinitionBuilder builder, RepositoryConfigurationSource source) {
 
-		AnnotationAttributes attributes = config.getAttributes();
+		builder.addPropertyValue("transactionManager",
+			source.getAttribute("transactionManagerRef").orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
 
-		builder.addPropertyReference("neo4jOperations", attributes.getString("neo4jTemplateRef"));
+		builder.addPropertyReference("neo4jOperations",
+			source.getAttribute("neo4jTemplateRef").orElse(DEFAULT_NEO4J_TEMPLATE_BEAN_NAME));
 	}
 }

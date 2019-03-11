@@ -20,6 +20,8 @@ package org.springframework.data.neo4j.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.Collections;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Pageable;
@@ -74,7 +76,8 @@ class SimpleNeo4jRepositoryTest {
 
 	@Test
 	void deleteAll1NotImplemented() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.deleteAll(null));
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+			.isThrownBy(() -> repository.deleteAll(Collections.emptyList()));
 	}
 
 	@Test

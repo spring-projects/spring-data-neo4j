@@ -33,9 +33,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -45,7 +48,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 class RepositoryIT {
 
-	@Container private static Neo4jContainer neo4jContainer = new Neo4jContainer().withAdminPassword(null);
+	@Container
+	private static Neo4jContainer neo4jContainer = new Neo4jContainer().withAdminPassword(null);
 
 	private final PersonRepository repository;
 
@@ -75,16 +79,26 @@ class RepositoryIT {
 
 	@Configuration
 	@EnableNeo4jRepositories
+	@EnableTransactionManagement
 	static class Config {
 
 		@Bean
-		public Neo4jOperations neo4jTemplate() {
-			String boltUrl = neo4jContainer.getBoltUrl();
-			Driver driver = GraphDatabase.driver(boltUrl, AuthTokens.none());
+		public Driver driver() {
 
-			return new Neo4jTemplate(driver);
+			String boltUrl = neo4jContainer.getBoltUrl();
+			return GraphDatabase.driver(boltUrl, AuthTokens.none());
 		}
 
-	}
+		@Bean
+		public PlatformTransactionManager transactionManager() {
 
+			return new Neo4jTransactionManager(driver());
+		}
+
+		@Bean
+		public Neo4jOperations neo4jTemplate() {
+
+			return new Neo4jTemplate(driver());
+		}
+	}
 }

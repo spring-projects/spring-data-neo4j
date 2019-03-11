@@ -16,16 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.session;
+package org.springframework.data.neo4j.core.transaction;
 
-import org.neo4j.driver.v1.Session;
+import java.util.function.Supplier;
 
 /**
- * Interface for factories creating {@link org.neo4j.driver.v1.Session Neo4j driver sessions}.
+ * Used for obtaining {@link org.neo4j.driver.v1.Session session bound (standard or reactive)} bound statement runners.
+ * <p>
+ * <strong>Note:</strong> Intended for internal usage only.
  *
  * @author Michael J. Simons
  */
-public interface Neo4jSessionFactory {
-
-	Session getSession();
+@FunctionalInterface
+public interface StatementRunnerSupplier<T> extends Supplier<T> {
 }

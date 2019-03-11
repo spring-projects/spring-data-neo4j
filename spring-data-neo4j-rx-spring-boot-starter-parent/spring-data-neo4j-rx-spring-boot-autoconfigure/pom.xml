@@ -21,8 +21,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-neo4j-rx-spring-boot-starter-parent</artifactId>
+		<groupId>org.springframework.data</groupId>
 		<version>1.0.0.BUILD-SNAPSHOT</version>
 	</parent>
 
@@ -61,8 +61,8 @@
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
-					<groupId>junit</groupId>
 					<artifactId>junit</artifactId>
+					<groupId>junit</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>
