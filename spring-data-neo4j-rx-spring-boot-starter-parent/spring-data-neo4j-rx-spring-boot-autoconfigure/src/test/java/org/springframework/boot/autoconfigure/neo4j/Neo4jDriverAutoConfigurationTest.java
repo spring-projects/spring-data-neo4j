@@ -21,9 +21,11 @@ package org.springframework.boot.autoconfigure.neo4j;
 import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
+import org.neo4j.driver.v1.Driver;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverFactory.DefaultDriverFactory;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverFactory.RoutingDriverFactory;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 /**
@@ -33,6 +35,14 @@ class Neo4jDriverAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withConfiguration(AutoConfigurations.of(Neo4jDriverAutoConfiguration.class));
+
+	@Test
+	void shouldRequireAllNeededClasses() {
+
+		contextRunner
+			.withClassLoader(new FilteredClassLoader(Driver.class))
+			.run((ctx) -> assertThat(ctx).doesNotHaveBean(DefaultDriverFactory.class));
+	}
 
 	@Test
 	void shouldCreateDefaultDriverFactoryWithDefaultUri() {

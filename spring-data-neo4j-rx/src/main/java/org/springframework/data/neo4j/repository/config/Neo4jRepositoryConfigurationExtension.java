@@ -27,11 +27,13 @@ import org.springframework.data.repository.config.RepositoryConfigurationSource;
 /**
  * This dedicated Neo4j repository extension will be registered via {@link Neo4jRepositoriesRegistrar} and then provide
  * all necessary beans to be registered in the application's context before the user's "business" beans gets registered.
+ * <p>
+ * While it is public, it is mainly used for internal API respectively for Spring Boots automatic configuration.
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
  */
-class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
+public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
 
 	private static final String MODULE_PREFIX = "neo4j";
 

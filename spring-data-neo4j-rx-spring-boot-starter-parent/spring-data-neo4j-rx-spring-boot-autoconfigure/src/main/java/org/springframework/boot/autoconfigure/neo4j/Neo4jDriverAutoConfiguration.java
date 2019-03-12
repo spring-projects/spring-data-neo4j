@@ -28,7 +28,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.data.neo4j_rx.SDNRXAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.neo4j_rx.Neo4jDataAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,7 +45,7 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnClass(Driver.class)
 @ConditionalOnMissingBean(Driver.class)
 @EnableConfigurationProperties(Neo4jDriverProperties.class)
-@AutoConfigureBefore(SDNRXAutoConfiguration.class)
+@AutoConfigureBefore(Neo4jDataAutoConfiguration.class)
 public class Neo4jDriverAutoConfiguration {
 
 	private static final URI DEFAULT_SERVER_URI = URI.create("bolt://localhost:7687");

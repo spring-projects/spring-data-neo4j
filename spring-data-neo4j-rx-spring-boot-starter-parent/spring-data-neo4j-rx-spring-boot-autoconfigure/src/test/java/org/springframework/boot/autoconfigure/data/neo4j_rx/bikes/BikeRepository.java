@@ -16,16 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.boot.autoconfigure.data.neo4j_rx;
+package org.springframework.boot.autoconfigure.data.neo4j_rx.bikes;
 
-import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
- * Automatic configuration of Spring Data Neo4j RX.
- * TODO This is a stub.
- *
  * @author Michael J. Simons
  */
-@Configuration
-public class SDNRXAutoConfiguration {
+public interface BikeRepository extends Neo4jRepository<BikeNode, Long> {
 }
