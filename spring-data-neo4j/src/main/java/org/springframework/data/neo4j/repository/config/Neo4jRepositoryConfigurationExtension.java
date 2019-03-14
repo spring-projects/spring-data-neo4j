@@ -18,8 +18,14 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
+import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.Collections;
+
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
@@ -61,6 +67,16 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	@Override
 	protected String getModulePrefix() {
 		return MODULE_PREFIX;
+	}
+
+	@Override
+	protected Collection<Class<? extends Annotation>> getIdentifyingAnnotations() {
+		return Collections.singleton(Node.class);
+	}
+
+	@Override
+	protected Collection<Class<?>> getIdentifyingTypes() {
+		return Collections.singleton(Neo4jRepository.class);
 	}
 
 	/*

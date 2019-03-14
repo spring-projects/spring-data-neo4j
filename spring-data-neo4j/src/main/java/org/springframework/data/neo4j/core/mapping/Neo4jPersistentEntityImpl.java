@@ -18,14 +18,31 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import org.apiguardian.api.API;
-import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.mapping.model.BasicPersistentEntity;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.util.TypeInformation;
 
 /**
- * A {@link org.springframework.data.mapping.PersistentProperty} interface with additional methods for metadata related to Neo4j.
- *
  * @author Michael J. Simons
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
-public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersistentProperty> {
+class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty>
+	implements Neo4jPersistentEntity<T> {
+
+	private final String primaryLabel;
+
+	Neo4jPersistentEntityImpl(TypeInformation<T> information) {
+		super(information);
+
+		Node nodeAnnotation = this.findAnnotation(Node.class);
+		if (nodeAnnotation == null || nodeAnnotation.labels().length != 1) {
+			primaryLabel = this.getType().getSimpleName();
+		} else {
+			primaryLabel = nodeAnnotation.labels()[0];
+		}
+	}
+
+	@Override
+	public String getPrimaryLabel() {
+		return primaryLabel;
+	}
 }

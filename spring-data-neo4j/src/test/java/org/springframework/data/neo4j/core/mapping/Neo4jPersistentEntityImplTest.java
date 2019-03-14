@@ -18,14 +18,27 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import org.apiguardian.api.API;
-import org.springframework.data.mapping.PersistentProperty;
+import static org.assertj.core.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.data.neo4j.core.schema.Node;
 
 /**
- * A {@link org.springframework.data.mapping.PersistentProperty} interface with additional methods for metadata related to Neo4j.
- *
  * @author Michael J. Simons
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
-public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersistentProperty> {
+public class Neo4jPersistentEntityImplTest {
+
+	private Neo4jMappingContext mappingContext = new Neo4jMappingContext();
+
+	@Test
+	void shouldDiscoverAnnotatedPrimaryLabel() {
+
+		Neo4jPersistentEntity<?> entity = mappingContext.getPersistentEntity(DummySubEntity.class);
+
+		assertThat(entity).isNotNull();
+	}
+
+	@Node("DummySubNode")
+	static class DummySubEntity {
+	}
 }

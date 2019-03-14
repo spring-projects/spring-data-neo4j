@@ -18,31 +18,26 @@
  */
 package org.springframework.data.neo4j.core.schema;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import org.apiguardian.api.API;
-import org.springframework.core.annotation.AliasFor;
 
 /**
- * The annotation to configure the mapping from a property to an attribute and vice versa.
+ * Description of a relationship. Those descriptions always describe outgoing relationships. The inverse direction
+ * is maybe defined on the {@link NodeDescription} reachable in the {@link Schema} via it's primary label defined by
+ * {@link #target}.
  *
  * @author Michael J. Simons
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@Documented
-@Inherited
-@API(status = API.Status.STABLE, since = "1.0")
-public @interface Property {
+@API(status = API.Status.INTERNAL, since = "1.0")
+@RequiredArgsConstructor
+@ToString
+@EqualsAndHashCode(of = { "type", "target" })
+public final class RelationshipDescription {
 
-	@AliasFor("name")
-	String value() default "";
+	private final String type;
 
-	@AliasFor("value")
-	String name() default "";
+	private final String target;
 }
