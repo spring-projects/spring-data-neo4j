@@ -50,7 +50,6 @@ public class GraphQueryExecutionTests {
 	private ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void pagedExecutionShouldNotGenerateCountQueryIfQueryReportedNoResults() {
 
 		when(sessionMock.query(eq(User.class), anyString(), anyMap())).thenReturn(Collections.<User> emptyList());
@@ -58,7 +57,7 @@ public class GraphQueryExecutionTests {
 		GraphQueryMethod queryMethod = new GraphQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
 				factory);
 		GraphParameterAccessor accessor = new GraphParametersParameterAccessor(queryMethod,
-				new Object[] { "", new PageRequest(0, 1) });
+				new Object[] { "", PageRequest.of(0, 1) });
 		GraphQueryExecution.PagedExecution execution = new GraphQueryExecution.PagedExecution(sessionMock, accessor);
 		Query query = new Query("", "noop", new HashMap<>());
 		execution.execute(query, User.class);

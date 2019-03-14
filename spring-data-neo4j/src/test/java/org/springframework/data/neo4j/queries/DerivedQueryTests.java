@@ -549,7 +549,7 @@ public class DerivedQueryTests {
 		}
 		userRepository.save(new User("A", "C"));
 
-		Pageable pageable = new PageRequest(0, 4);
+		Pageable pageable = PageRequest.of(0, 4);
 		Page<User> page = userRepository.findByNameAndSurname("A", "B", pageable);
 		assertEquals(4, page.getNumberOfElements());
 		assertEquals(10, page.getTotalElements());
@@ -574,7 +574,7 @@ public class DerivedQueryTests {
 		assertTrue(page.isLast());
 		assertFalse(page.hasNext());
 
-		page = userRepository.findByNameAndSurname("A", "B", new PageRequest(0, 10));
+		page = userRepository.findByNameAndSurname("A", "B", PageRequest.of(0, 10));
 		assertEquals(10, page.getNumberOfElements());
 		assertEquals(10, page.getTotalElements());
 		assertEquals(0, page.getNumber());
@@ -593,7 +593,7 @@ public class DerivedQueryTests {
 		}
 		userRepository.save(new User("A", "C"));
 
-		Pageable pageable = new PageRequest(0, 4);
+		Pageable pageable = PageRequest.of(0, 4);
 		Slice<User> page = userRepository.findByNameAndRatingsStars("A", 5, pageable);
 		assertEquals(4, page.getNumberOfElements());
 		assertTrue(page.hasNext());
@@ -606,7 +606,7 @@ public class DerivedQueryTests {
 		assertEquals(2, page.getNumberOfElements());
 		assertFalse(page.hasNext());
 
-		page = userRepository.findByNameAndRatingsStars("A", 5, new PageRequest(0, 10));
+		page = userRepository.findByNameAndRatingsStars("A", 5, PageRequest.of(0, 10));
 		assertEquals(10, page.getNumberOfElements());
 		assertFalse(page.hasNext());
 	}

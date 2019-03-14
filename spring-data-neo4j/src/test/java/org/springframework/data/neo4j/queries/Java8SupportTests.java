@@ -79,7 +79,7 @@ public class Java8SupportTests {
 
 	@Test
 	public void shouldStreamCinemasWithSort() {
-		Collection<Cinema> allCinemas = cinemaRepository.getCinemasSortedByName(new Sort("n.name"))
+		Collection<Cinema> allCinemas = cinemaRepository.getCinemasSortedByName(Sort.by("n.name"))
 				.collect(Collectors.toList());
 
 		assertEquals(10, allCinemas.size());

@@ -181,7 +181,7 @@ public class GalaxyServiceTests {
 
 		assertEquals(count, 13);
 
-		Pageable pageable = new PageRequest(2, 3);
+		Pageable pageable = PageRequest.of(2, 3);
 		Page<World> worlds = galaxyService.findAllWorlds(pageable);
 
 		assertTrue(worlds.hasNext());
@@ -194,7 +194,7 @@ public class GalaxyServiceTests {
 
 		assertEquals(count, 13);
 
-		Pageable pageable = new PageRequest(4, 3);
+		Pageable pageable = PageRequest.of(4, 3);
 		Page<World> worlds = galaxyService.findAllWorlds(pageable);
 
 		assertFalse(worlds.hasNext());
@@ -211,7 +211,7 @@ public class GalaxyServiceTests {
 		// note: this doesn't work, because deleted node ids are not reclaimed
 		// long sum = (size * size - size) / 2; // 0-based node ids
 
-		Pageable pageable = new PageRequest(0, 3);
+		Pageable pageable = PageRequest.of(0, 3);
 
 		for (;;) {
 			Page<World> page = galaxyService.findAllWorlds(pageable);
@@ -236,7 +236,7 @@ public class GalaxyServiceTests {
 
 		String[] sortedNames = getNamesSorted(worlds);
 
-		Pageable pageable = new PageRequest(0, 3, Sort.Direction.ASC, "name");
+		Pageable pageable = PageRequest.of(0, 3, Sort.Direction.ASC, "name");
 
 		int i = 0;
 		for (;;) {
@@ -264,7 +264,7 @@ public class GalaxyServiceTests {
 
 		String[] sortedNames = getNamesSorted(worlds);
 
-		Sort sort = new Sort(Sort.Direction.ASC, "name");
+		Sort sort = Sort.by(Sort.Direction.ASC, "name");
 		int i = 0;
 		for (World world : galaxyService.findAllWorlds(sort)) {
 			assertEquals(sortedNames[i], world.getName());

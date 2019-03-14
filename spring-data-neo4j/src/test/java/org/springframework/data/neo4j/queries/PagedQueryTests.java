@@ -339,7 +339,7 @@ public class PagedQueryTests {
 	@Transactional
 	public void shouldFindSortedCinemas() {
 		setup();
-		Sort sort = new Sort(Sort.Direction.ASC, "name");
+		Sort sort = Sort.by(Sort.Direction.ASC, "name");
 		List<Cinema> cinemas = cinemaRepository.findByLocation("London", sort);
 		assertEquals(10, cinemas.size());
 		assertEquals("Cineplex", cinemas.get(0).getName());
@@ -451,7 +451,7 @@ public class PagedQueryTests {
 	@Transactional
 	public void shouldFindCinemasSortedByNameWithCustomQuery() {
 		setup();
-		Sort sort = new Sort(Sort.Direction.ASC, "n.name");
+		Sort sort = Sort.by(Sort.Direction.ASC, "n.name");
 		List<Cinema> cinemas = cinemaRepository.getCinemasSortedByName(sort);
 		assertEquals(10, cinemas.size());
 		assertEquals("Cineplex", cinemas.get(0).getName());
