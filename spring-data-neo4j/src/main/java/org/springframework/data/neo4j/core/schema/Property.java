@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.mapping;
+package org.springframework.data.neo4j.core.schema;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -25,10 +25,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.core.annotation.AliasFor;
+import org.apiguardian.api.API;
 
 /**
- * The annotation to configure the mapping from a node with a given set of labels to a class and vice versa.
+ * The annotation to configure the mapping from a property to an attribute and vice versa.
  *
  * @author Michael J. Simons
  */
@@ -36,14 +36,6 @@ import org.springframework.core.annotation.AliasFor;
 @Target(ElementType.TYPE)
 @Documented
 @Inherited
-public @interface Node {
-
-	@AliasFor("labels")
-	String[] value() default {};
-
-	/**
-	 * The labels to identify a node with that is supposed to be mapped to the class annotated with {@link Node @Node}.
-	 */
-	@AliasFor("value")
-	String[] labels() default {};
+@API(status = API.Status.STABLE, since = "1.0")
+public @interface Property {
 }
