@@ -34,7 +34,7 @@ import org.springframework.core.annotation.AliasFor;
  * @author Michael J. Simons
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Documented
 @Inherited
 @API(status = API.Status.STABLE, since = "1.0")
@@ -66,6 +66,8 @@ public @interface Relationship {
 	 */
 	@AliasFor("value")
 	String type() default "";
+
+	String inverse() default "";
 
 	/**
 	 * If {@code direction} is {@link Direction#OUTGOING}, than the attribute annotated with {@link Relationship} will be

@@ -18,31 +18,27 @@
  */
 package org.springframework.data.neo4j.core.schema;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.Getter;
 
 import org.apiguardian.api.API;
-import org.springframework.core.annotation.AliasFor;
 
 /**
- * The annotation to configure the mapping from a property to an attribute and vice versa.
- *
  * @author Michael J. Simons
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@Documented
-@Inherited
-@API(status = API.Status.STABLE, since = "1.0")
-public @interface Property {
+@API(status = API.Status.INTERNAL, since = "1.0")
+@Getter
+public final class PropertyDescription {
 
-	@AliasFor("name")
-	String value() default "";
+	private final String fieldName;
 
-	@AliasFor("value")
-	String name() default "";
+	private final String propertyName;
+
+	// TODO basically all the properties from Springs PersistentProperty are needed.
+	// Two options: Turn that classes ending in XXXDescription into interfaces and let Neo4jPersistentProperty extend
+	// from it as well, or copy needed stuff into a format that fits our needs best.
+
+	public PropertyDescription(String fieldName, String propertyName) {
+		this.fieldName = fieldName;
+		this.propertyName = propertyName;
+	}
 }

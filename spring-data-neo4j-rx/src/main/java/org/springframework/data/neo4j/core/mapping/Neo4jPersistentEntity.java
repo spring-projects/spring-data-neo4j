@@ -18,6 +18,7 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import org.apiguardian.api.API;
 import org.springframework.data.mapping.model.MutablePersistentEntity;
 
 /**
@@ -25,5 +26,11 @@ import org.springframework.data.mapping.model.MutablePersistentEntity;
  *
  * @author Michael J. Simons
  */
+@API(status = API.Status.INTERNAL, since = "1.0")
 public interface Neo4jPersistentEntity<T> extends MutablePersistentEntity<T, Neo4jPersistentProperty> {
+
+	/**
+	 * @return The primary label of this entity inside Neo4j.
+	 */
+	String getPrimaryLabel();
 }

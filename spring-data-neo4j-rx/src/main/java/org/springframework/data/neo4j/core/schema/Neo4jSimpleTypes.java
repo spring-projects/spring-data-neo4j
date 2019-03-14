@@ -18,31 +18,17 @@
  */
 package org.springframework.data.neo4j.core.schema;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import org.apiguardian.api.API;
-import org.springframework.core.annotation.AliasFor;
 
 /**
- * The annotation to configure the mapping from a property to an attribute and vice versa.
+ * A list of Neo4j simple types: All attributes that can be mapped to a property. There is never a relationship
+ * established for attributes of a node that are simple types.
  *
  * @author Michael J. Simons
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@Documented
-@Inherited
-@API(status = API.Status.STABLE, since = "1.0")
-public @interface Property {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class Neo4jSimpleTypes {
 
-	@AliasFor("name")
-	String value() default "";
-
-	@AliasFor("value")
-	String name() default "";
+	private Neo4jSimpleTypes() {
+	}
 }

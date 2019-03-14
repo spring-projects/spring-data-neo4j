@@ -18,31 +18,23 @@
  */
 package org.springframework.data.neo4j.core.schema;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import static org.assertj.core.api.Assertions.*;
 
-import org.apiguardian.api.API;
-import org.springframework.core.annotation.AliasFor;
+import java.util.Collections;
+
+import org.junit.jupiter.api.Test;
 
 /**
- * The annotation to configure the mapping from a property to an attribute and vice versa.
- *
  * @author Michael J. Simons
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@Documented
-@Inherited
-@API(status = API.Status.STABLE, since = "1.0")
-public @interface Property {
+class SchemaTest {
 
-	@AliasFor("name")
-	String value() default "";
+	@Test
+	void shouldGetNodeDescription() {
+		NodeDescription description = new NodeDescription("aLabel", Collections.emptyList(), Collections.emptyList());
 
-	@AliasFor("value")
-	String name() default "";
+		Schema schema = new Schema().registerNodeDescription(description);
+		assertThat(schema.getNodeDescription("aLabel")).isPresent().contains(description);
+		assertThat(schema.getNodeDescription("anotherLabel")).isNotPresent();
+	}
 }
