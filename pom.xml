@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.springframework.data</groupId>
@@ -36,7 +36,7 @@
             <name>Vince Bickers</name>
             <email>vince at graphaware.com</email>
             <organization>GraphAware</organization>
-            <organizationUrl>http://www.graphaware.com</organizationUrl>
+            <organizationUrl>https://www.graphaware.com</organizationUrl>
             <roles>
                 <role>Developer</role>
             </roles>
@@ -47,7 +47,7 @@
             <name>Adam George</name>
             <email>adam at graphaware.com</email>
             <organization>GraphAware</organization>
-            <organizationUrl>http://www.graphaware.com</organizationUrl>
+            <organizationUrl>https://www.graphaware.com</organizationUrl>
             <roles>
                 <role>Developer</role>
             </roles>
@@ -58,7 +58,7 @@
             <name>Michal Bachman</name>
             <email>michal at graphaware.com</email>
             <organization>GraphAware</organization>
-            <organizationUrl>http://www.graphaware.com</organizationUrl>
+            <organizationUrl>https://www.graphaware.com</organizationUrl>
             <roles>
                 <role>Developer</role>
             </roles>
@@ -69,7 +69,7 @@
             <name>Luanne Misquitta</name>
             <email>luanne at graphaware.com</email>
             <organization>GraphAware</organization>
-            <organizationUrl>http://www.graphaware.com</organizationUrl>
+            <organizationUrl>https://www.graphaware.com</organizationUrl>
             <roles>
                 <role>Developer</role>
             </roles>
@@ -88,7 +88,7 @@
             <name>Michael Hunger</name>
             <email>michael.hunger at neotechnology.com</email>
             <organization>Neo Technology</organization>
-            <organizationUrl>http://www.neotechnology.com</organizationUrl>
+            <organizationUrl>https://www.neotechnology.com</organizationUrl>
             <roles>
                 <role>Project Lead</role>
             </roles>
@@ -99,7 +99,7 @@
             <name>Oliver Gierke</name>
             <email>ogierke at gopivotal.com</email>
             <organization>Pivotal</organization>
-            <organizationUrl>http://www.spring.io</organizationUrl>
+            <organizationUrl>https://www.spring.io</organizationUrl>
             <roles>
                 <role>Developer</role>
             </roles>
@@ -110,7 +110,7 @@
             <name>Thomas Risberg</name>
             <email>trisberg at gopivotal.com</email>
             <organization>Pivotal</organization>
-            <organizationUrl>http://www.spring.io</organizationUrl>
+            <organizationUrl>https://www.spring.io</organizationUrl>
             <roles>
                 <role>Developer</role>
             </roles>
@@ -121,7 +121,7 @@
             <name>Mark Pollack</name>
             <email>mpollack at gopivotal.com</email>
             <organization>Pivotal</organization>
-            <organizationUrl>http://www.spring.io</organizationUrl>
+            <organizationUrl>https://www.spring.io</organizationUrl>
             <roles>
                 <role>Developer</role>
             </roles>
@@ -170,7 +170,7 @@
 
         <repository>
             <id>neo4j</id>
-            <url>http://m2.neo4j.org/content/repositories/releases</url>
+            <url>https://m2.neo4j.org/content/repositories/releases</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
@@ -178,7 +178,7 @@
 
         <repository>
             <id>neo4j-snapshots</id>
-            <url>http://m2.neo4j.org/content/repositories/snapshots</url>
+            <url>https://m2.neo4j.org/content/repositories/snapshots</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
@@ -195,7 +195,7 @@
     <pluginRepositories>
         <pluginRepository>
             <id>spring-plugins-release</id>
-            <url>http://repo.spring.io/plugins-release</url>
+            <url>https://repo.spring.io/plugins-release</url>
         </pluginRepository>
     </pluginRepositories>
 
