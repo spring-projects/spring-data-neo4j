@@ -15,7 +15,7 @@ configurations {
 repositories {
     mavenCentral()
     mavenLocal()
-    mavenRepo urls: "http://maven.springframework.org/release"
+    mavenRepo urls: "https://maven.springframework.org/release"
 }
 
 

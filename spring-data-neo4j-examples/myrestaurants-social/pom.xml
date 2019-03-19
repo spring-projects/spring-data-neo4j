@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.springone.myrestaurants</groupId>
 	<artifactId>myrestaurants-social</artifactId>
@@ -19,12 +19,12 @@
         <repository>
             <id>spring-maven-release</id>
             <name>Spring Maven Release Repository</name>
-            <url>http://maven.springframework.org/release</url>
+            <url>https://maven.springframework.org/release</url>
         </repository>
         <repository>
             <id>spring-maven-milestone</id>
             <name>Spring Maven Milestone Repository</name>
-            <url>http://maven.springframework.org/milestone</url>
+            <url>https://maven.springframework.org/milestone</url>
         </repository>
 		<repository>
 			<id>spring-maven-snapshot</id>
@@ -32,7 +32,7 @@
 				<enabled>true</enabled>
 			</snapshots>
 			<name>Springframework Maven SNAPSHOT Repository</name>
-			<url>http://maven.springframework.org/snapshot</url>
+			<url>https://maven.springframework.org/snapshot</url>
         </repository>
 		<repository>
             <id>JBoss Repo</id>
@@ -42,7 +42,7 @@
 	    <repository>
 	      <id>neo4j-release-repository</id>
 	      <name>Neo4j Maven 2 release repository</name>
-	      <url>http://m2.neo4j.org/releases</url>
+	      <url>https://m2.neo4j.org/releases</url>
 	      <releases>
 	        <enabled>true</enabled>
 	      </releases>
@@ -53,7 +53,7 @@
 	    <repository>
 	      <id>neo4j-snapshot-repository</id>
 	      <name>Neo4j Maven 2 snapshot repository</name>
-	      <url>http://m2.neo4j.org/snapshots</url>
+	      <url>https://m2.neo4j.org/snapshots</url>
 	      <snapshots>
 	        <enabled>true</enabled>
 	      </snapshots>
@@ -66,12 +66,12 @@
         <pluginRepository>
             <id>spring-maven-release</id>
             <name>Spring Maven Release Repository</name>
-            <url>http://maven.springframework.org/release</url>
+            <url>https://maven.springframework.org/release</url>
         </pluginRepository>
         <pluginRepository>
             <id>spring-maven-milestone</id>
             <name>Spring Maven Milestone Repository</name>
-            <url>http://maven.springframework.org/milestone</url>
+            <url>https://maven.springframework.org/milestone</url>
         </pluginRepository>
 	</pluginRepositories>
 	<dependencies>
