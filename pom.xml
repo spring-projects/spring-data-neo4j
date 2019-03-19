@@ -12,7 +12,7 @@
   ~
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -23,7 +23,7 @@
 
 	<name>Spring Data Neo4j</name>
 	<description>Neo4j support for Spring Data</description>
-	<url>http://projects.spring.io/spring-data-neo4j</url>
+	<url>https://projects.spring.io/spring-data-neo4j</url>
 
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
@@ -51,7 +51,7 @@
 			<name>Vince Bickers</name>
 			<email>vince at graphaware.com</email>
 			<organization>GraphAware</organization>
-			<organizationUrl>http://www.graphaware.com</organizationUrl>
+			<organizationUrl>https://www.graphaware.com</organizationUrl>
 			<roles>
 				<role>Developer</role>
 			</roles>
@@ -62,7 +62,7 @@
 			<name>Adam George</name>
 			<email>adam at graphaware.com</email>
 			<organization>GraphAware</organization>
-			<organizationUrl>http://www.graphaware.com</organizationUrl>
+			<organizationUrl>https://www.graphaware.com</organizationUrl>
 			<roles>
 				<role>Developer</role>
 			</roles>
@@ -73,7 +73,7 @@
 			<name>Michal Bachman</name>
 			<email>michal at graphaware.com</email>
 			<organization>GraphAware</organization>
-			<organizationUrl>http://www.graphaware.com</organizationUrl>
+			<organizationUrl>https://www.graphaware.com</organizationUrl>
 			<roles>
 				<role>Developer</role>
 			</roles>
@@ -84,7 +84,7 @@
 			<name>Luanne Misquitta</name>
 			<email>luanne at graphaware.com</email>
 			<organization>GraphAware</organization>
-			<organizationUrl>http://www.graphaware.com</organizationUrl>
+			<organizationUrl>https://www.graphaware.com</organizationUrl>
 			<roles>
 				<role>Developer</role>
 			</roles>
@@ -95,7 +95,7 @@
 			<name>Mark Angrish</name>
 			<email>mark at graphaware.com</email>
 			<organization>GraphAware</organization>
-			<organizationUrl>http://www.graphaware.com</organizationUrl>
+			<organizationUrl>https://www.graphaware.com</organizationUrl>
 			<roles>
 				<role>Developer</role>
 			</roles>
@@ -106,7 +106,7 @@
 			<name>Jasper Blues</name>
 			<email>jasper at graphaware.com</email>
 			<organization>GraphAware</organization>
-			<organizationUrl>http://www.graphaware.com</organizationUrl>
+			<organizationUrl>https://www.graphaware.com</organizationUrl>
 			<roles>
 				<role>Developer</role>
 			</roles>
@@ -117,7 +117,7 @@
 			<name>Michael Hunger</name>
 			<email>michael.hunger at neotechnology.com</email>
 			<organization>Neo Technology</organization>
-			<organizationUrl>http://www.neotechnology.com</organizationUrl>
+			<organizationUrl>https://www.neotechnology.com</organizationUrl>
 			<roles>
 				<role>Project Lead</role>
 			</roles>
@@ -128,7 +128,7 @@
 			<name>Oliver Gierke</name>
 			<email>ogierke at gopivotal.com</email>
 			<organization>Pivotal</organization>
-			<organizationUrl>http://www.spring.io</organizationUrl>
+			<organizationUrl>https://www.spring.io</organizationUrl>
 			<roles>
 				<role>Developer</role>
 			</roles>
@@ -139,7 +139,7 @@
 			<name>Thomas Risberg</name>
 			<email>trisberg at gopivotal.com</email>
 			<organization>Pivotal</organization>
-			<organizationUrl>http://www.spring.io</organizationUrl>
+			<organizationUrl>https://www.spring.io</organizationUrl>
 			<roles>
 				<role>Developer</role>
 			</roles>
@@ -150,7 +150,7 @@
 			<name>Mark Pollack</name>
 			<email>mpollack at gopivotal.com</email>
 			<organization>Pivotal</organization>
-			<organizationUrl>http://www.spring.io</organizationUrl>
+			<organizationUrl>https://www.spring.io</organizationUrl>
 			<roles>
 				<role>Developer</role>
 			</roles>
@@ -161,7 +161,7 @@
 			<name>Gerrit Meier</name>
 			<email>gerrit.meier at neo4j.com</email>
 			<organization>Neo Technology</organization>
-			<organizationUrl>http://www.neotechnology.com</organizationUrl>
+			<organizationUrl>https://www.neotechnology.com</organizationUrl>
 			<roles>
 				<role>Developer</role>
 			</roles>
@@ -172,7 +172,7 @@
 			<name>Michael Simons</name>
 			<email>michael.simons at neo4j.com</email>
 			<organization>Neo Technology</organization>
-			<organizationUrl>http://www.neotechnology.com</organizationUrl>
+			<organizationUrl>https://www.neotechnology.com</organizationUrl>
 			<roles>
 				<role>Developer</role>
 			</roles>
@@ -198,7 +198,7 @@
 	<repositories>
 		<repository>
 			<id>neo4j</id>
-			<url>http://m2.neo4j.org/content/repositories/releases</url>
+			<url>https://m2.neo4j.org/content/repositories/releases</url>
 			<snapshots>
 				<enabled>true</enabled>
 				<updatePolicy>always</updatePolicy>
@@ -206,7 +206,7 @@
 		</repository>
 		<repository>
 			<id>neo4j-snapshots</id>
-			<url>http://m2.neo4j.org/content/repositories/snapshots</url>
+			<url>https://m2.neo4j.org/content/repositories/snapshots</url>
 			<snapshots>
 				<enabled>true</enabled>
 				<updatePolicy>always</updatePolicy>
