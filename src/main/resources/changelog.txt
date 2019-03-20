@@ -916,7 +916,7 @@ Changes in version 4.0.0.M1 (2015-03-20)
 * Compatible with Neo4j 2.1.x and 2.2.x
 * DATAGRAPH-572 - Documentation Updates for SDN 4
 * DATAGRAPH-570 - Distribution and Module Cleanup
-* Examples: Available in http://github.com/neo4j-examples
+* Examples: Available in https://github.com/neo4j-examples
 ** Cineasts Example Migration
 ** New Angular + Spring-Boot Example: University Course Management
 

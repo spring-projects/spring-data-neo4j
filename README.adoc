@@ -1,11 +1,11 @@
-image:https://spring.io/badges/spring-data-neo4j/ga.svg[title=Spring Data Neo4j,link=http://projects.spring.io/spring-data-neo4j#quick-start]
-image:https://spring.io/badges/spring-data-neo4j/snapshot.svg[title=Spring Data Neo4j,link=http://projects.spring.io/spring-data-neo4j#quick-start]
+image:https://spring.io/badges/spring-data-neo4j/ga.svg[title=Spring Data Neo4j,link=https://projects.spring.io/spring-data-neo4j#quick-start]
+image:https://spring.io/badges/spring-data-neo4j/snapshot.svg[title=Spring Data Neo4j,link=https://projects.spring.io/spring-data-neo4j#quick-start]
 
 = Spring Data Neo4j
 
-The primary goal of the http://projects.spring.io/spring-data[Spring Data] project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
+The primary goal of the https://projects.spring.io/spring-data[Spring Data] project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
 
-The Spring Data Neo4j project aims to provide a familiar and consistent Spring-based programming model for integrating with the http://neo4j.com/[Neo4j] Graph Database.
+The Spring Data Neo4j project aims to provide a familiar and consistent Spring-based programming model for integrating with the https://neo4j.com/[Neo4j] Graph Database.
 
 === Features
 
@@ -24,11 +24,11 @@ This README is the best place to start learning about the features of Spring Dat
 
 To learn more refer to:
 
-* the http://docs.spring.io/spring-data/neo4j/docs/5.0.x/reference/html/[Reference Manual];
+* the https://docs.spring.io/spring-data/neo4j/docs/5.0.x/reference/html/[Reference Manual];
 * the https://github.com/neo4j-examples/sdn-university[sample project: SDN University].  More example projects for Spring Data Neo4j are available in the https://github.com/neo4j-examples?query=sdn4[Neo4j-Examples] repository
-* The main http://projects.spring.io/spring-data-neo4j[Spring project site] contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
-* the http://docs.spring.io/spring-data/neo4j/docs/5.0.x/api/[Javadocs];
-* for more detailed questions, use http://stackoverflow.com/questions/tagged/spring-data-neo4j-5[Spring Data Neo4j on StackOverflow]
+* The main https://projects.spring.io/spring-data-neo4j[Spring project site] contains links to basic project information such as source code, JavaDocs, Issue tracking, etc.
+* the https://docs.spring.io/spring-data/neo4j/docs/5.0.x/api/[Javadocs];
+* for more detailed questions, use https://stackoverflow.com/questions/tagged/spring-data-neo4j-5[Spring Data Neo4j on StackOverflow]
 
 If you are new to Spring as well as to Spring Data, look for information about https://spring.io/projects[Spring projects].
 
@@ -61,7 +61,7 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
       <id>spring-libs-snapshot</id>
       <snapshots><enabled>true</enabled></snapshots>
       <name>Springframework Maven SNAPSHOT Repository</name>
-      <url>http://repo.spring.io/libs-snapshot</url>
+      <url>https://repo.spring.io/libs-snapshot</url>
     </repository>
 ----
 
@@ -113,7 +113,7 @@ Spring Data Neo4j will attempt to auto-configure itself using a file called `ogm
 URI=http://user:password@localhost:7474
 ----
 
-The application can be configured programmatically as well, please consult http://docs.spring.io/spring-data/neo4j/docs/5.0.x/reference/html/#reference.getting_started.spring-configuration[the reference guide] for more information.
+The application can be configured programmatically as well, please consult https://docs.spring.io/spring-data/neo4j/docs/5.0.x/reference/html/#reference.getting_started.spring-configuration[the reference guide] for more information.
 
 
 Annotate an entity:
@@ -195,7 +195,7 @@ There are dedicated, mandatory https://github.com/spring-projects/spring-data-bu
 
 Here are some ways for you to get involved in the community:
 
-* Get involved with Spring Data Neo4j community on the http://groups.google.com/group/neo4j[Neo4j Google Group] and by helping on http://stackoverflow.com/questions/tagged/spring-data-neo4j[StackOverflow].
+* Get involved with Spring Data Neo4j community on the https://groups.google.com/group/neo4j[Neo4j Google Group] and by helping on https://stackoverflow.com/questions/tagged/spring-data-neo4j[StackOverflow].
 * Create https://jira.spring.io/browse/DATAGRAPH[JIRA] tickets for bugs and new features and comment and vote on the ones that you are interested in.
 * Github is for social coding: if you want to write code, we encourage contributions through *pull requests* from a fork of this repository.
   If you want to contribute code this way, please read the https://github.com/spring-projects/spring-data-build/blob/master/CONTRIBUTING.adoc[contribution guidelines] for details.
