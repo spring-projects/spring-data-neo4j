@@ -15,7 +15,6 @@
  */
 package org.springframework.data.neo4j.queries;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -53,17 +52,17 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ContextConfiguration(classes = { StoredProceduresTests.ContextConfig.class })
 @RunWith(SpringRunner.class)
 public class StoredProceduresTests {
+
 	private static final Config driverConfig = Config.build().withoutEncryption().toConfig();
 
 	private static ServerControls serverControls;
 	private static URI boltURI;
 
 	@BeforeClass
-	public static void initializeNeo4j() throws IOException {
+	public static void initializeNeo4j() {
 
 		serverControls = TestServerBuilders.newInProcessBuilder().withProcedure(ApocLovesSwitch.class).newServer();
 		boltURI = serverControls.boltURI();
-
 	}
 
 	@Autowired private DocumentRepository documentRepository;
