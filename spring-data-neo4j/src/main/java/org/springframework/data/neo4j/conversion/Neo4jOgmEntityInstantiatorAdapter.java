@@ -15,8 +15,11 @@
  */
 package org.springframework.data.neo4j.conversion;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
+import org.neo4j.ogm.metadata.reflect.EntityAccessManager;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.convert.EntityInstantiator;
 import org.springframework.data.mapping.PreferredConstructor;
@@ -25,6 +28,7 @@ import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -77,12 +81,35 @@ public class Neo4jOgmEntityInstantiatorAdapter implements org.neo4j.ogm.session.
 		@Override
 		@Nullable
 		public Object getParameterValue(PreferredConstructor.Parameter parameter) {
-			Object value = propertyValues.get(parameter.getName());
+
+			Object value = extractParameterValue(parameter);
 			if (value == null || conversionService == null) {
 				return value;
 			} else {
 				return conversionService.convert(value, parameter.getType().getType());
 			}
+		}
+
+		Object extractParameterValue(PreferredConstructor.Parameter parameter) {
+
+			Object value = propertyValues.get(parameter.getName());
+
+			// This recreates the behaviour of
+			// org.neo4j.ogm.context.SingleUseEntityMapper.writeProperty and
+			// org.neo4j.ogm.context.GraphEntityMapper.writeProperty
+			// As sad as it is to have in 3 places, this is the least invasive solution over both Neo4j-OGM and SDN
+			if (value != null && value.getClass().isArray()) {
+				value = Arrays.asList((Object[]) value);
+			}
+			TypeInformation typeInformation = parameter.getType();
+			if (typeInformation.isCollectionLike()) {
+				Class<?> collectionType = typeInformation.getType();
+				Class<?> elementType = typeInformation.getComponentType().getType();
+				value = collectionType.isArray()
+						? EntityAccessManager.merge(collectionType, value, new Object[] {}, elementType)
+						: EntityAccessManager.merge(collectionType, value, Collections.EMPTY_LIST, elementType);
+			}
+			return value;
 		}
 	}
 }
