@@ -43,7 +43,7 @@
 
 		<project.type>multi</project.type>
 
-		<checkstyle.version>8.16</checkstyle.version>
+		<checkstyle.version>8.18</checkstyle.version>
 		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
 		<neo4j.ogm.version>3.2.0-alpha05</neo4j.ogm.version>
 		<springdata.commons>2.2.0.BUILD-SNAPSHOT</springdata.commons>
