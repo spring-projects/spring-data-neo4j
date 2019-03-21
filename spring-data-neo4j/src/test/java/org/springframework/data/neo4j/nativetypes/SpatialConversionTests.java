@@ -44,9 +44,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
- * Useful links: http://maps.google.com/maps?q=55.612191,12.994823 where q -> latLong
+ * Useful links: https://maps.google.com/maps?q=55.612191,12.994823 where q -> latLong
  * <p>
- * http://maps.google.com/maps?q=37.61649,-122.38681
+ * https://maps.google.com/maps?q=37.61649,-122.38681
  * <p>
  * https://www.latlong.net/Show-Latitude-Longitude.html
  */

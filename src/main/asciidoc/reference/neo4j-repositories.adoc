@@ -528,7 +528,7 @@ but there is a fallbackExecution attribute in `@TransactionalEventListener` that
 Only public methods in a managed bean can be annotated with `@EventListener` to consume events.
 `@TransactionalEventListener` is the annotation that provides transaction-bound event support described here.
 
-To find out more about Spring's Event listening capabilities see http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#context-functionality-events-annotation[the Spring reference manual] and https://spring.io/blog/2015/02/11/better-application-events-in-spring-framework-4-2[How to build Transaction aware Eventing with Spring 4.2].
+To find out more about Spring's Event listening capabilities see https://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#context-functionality-events-annotation[the Spring reference manual] and https://spring.io/blog/2015/02/11/better-application-events-in-spring-framework-4-2[How to build Transaction aware Eventing with Spring 4.2].
 
 [[reference_clustering]]
 == Clustering support
@@ -636,7 +636,7 @@ It is highly recommended to create _JSR-303_ annotations on actual Java Beans, s
 
 [[reference_programming-model_conversion]]
 === Conversion Service
-It is possible to have Spring Data Neo4j use converters registered with http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/validation.html#core-convert[Spring's ConversionService].
+It is possible to have Spring Data Neo4j use converters registered with https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/html/validation.html#core-convert[Spring's ConversionService].
 There must be one unique instance of a `ConversionService`-Bean in your application context to use this.
 If there is more than one instance, you have to mark the one to be used by SDN with `@Primary`, otherwise an internal conversion service will be used.
 

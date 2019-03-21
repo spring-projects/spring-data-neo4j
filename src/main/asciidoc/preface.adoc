@@ -29,7 +29,7 @@ The core functionality of the Neo4j support can be used directly, through the Ne
 This class corresponds to the Hibernate Session or JPA EntityManager.
 
 To learn more about Spring, you can refer to the comprehensive documentation that explains in detail the Spring Framework.
-There are a lot of articles, blog entries and books on the matter - take a look at the Spring framework http://spring.io/docs[home page ] for more information.
+There are a lot of articles, blog entries and books on the matter - take a look at the Spring framework https://spring.io/docs[home page ] for more information.
 
 
 [[preface.nosql]]
@@ -51,7 +51,7 @@ There is very little "impedance mismatch" when putting real-life domains into a 
 [[preface.nosql.neo4j]]
 === Introducing Neo4j
 
-http://neo4j.com/[Neo4j] is an open source NoSQL graph database.
+https://neo4j.com/[Neo4j] is an open source NoSQL graph database.
 It is a fully transactional database (ACID) that stores data structured as graphs consisting of nodes, connected by relationships.
 Inspired by the structure of the real world, it allows for high query performance on complex data, while remaining intuitive and simple for the developer.
 
@@ -82,7 +82,7 @@ If you plan on altering the version of the Neo4j-OGM make sure it is a 3.0.0+ re
 [[preface.additional-resources.metadata]]
 === Project metadata
 
-* Version control - http://github.com/spring-projects/spring-data-neo4j
+* Version control - https://github.com/spring-projects/spring-data-neo4j
 * Bugtracker - https://jira.spring.io/browse/DATAGRAPH
 * Release repository - https://repo.spring.io/libs-release
 * Milestone repository - https://repo.spring.io/libs-milestone
@@ -97,10 +97,10 @@ If you are looking for advice, here are some more resources:
 * The https://github.com/neo4j-examples/sdn-university[sample project: SDN University].
 More example projects for Spring Data Neo4j are available in the https://github.com/neo4j-examples?query=sdn[Neo4j-Examples] repository.
 
-* The http://projects.spring.io/spring-data-neo4j[Spring Data Neo4j project site] contains links to basic project information such as source code, JavaDocs, issue tracking, etc.
+* The https://projects.spring.io/spring-data-neo4j[Spring Data Neo4j project site] contains links to basic project information such as source code, JavaDocs, issue tracking, etc.
 * Talk and share with the community on the https://neo4j-users.slack.com[SDN/Neo4j-OGM Slack channel]
-* For more detailed questions, use http://stackoverflow.com/questions/tagged/spring-data-neo4j[Spring Data Neo4j on StackOverflow]
-* For professional support feel free to contact http://www.neo4j.com[Neo4j] or http://www.graphaware.com[GraphAware].
+* For more detailed questions, use https://stackoverflow.com/questions/tagged/spring-data-neo4j[Spring Data Neo4j on StackOverflow]
+* For professional support feel free to contact https://www.neo4j.com[Neo4j] or https://www.graphaware.com[GraphAware].
 
 If you are new to Spring as well as to Spring Data, look for information about https://spring.io/projects[Spring projects].
 

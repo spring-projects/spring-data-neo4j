@@ -39,7 +39,7 @@ include::reference/auditing.adoc[]
 
 [abstract]
 --
-This chapter is taken from the http://neo4j.com/docs/ogm-manual/current[Official Neo4j-OGM Reference Documentation].
+This chapter is taken from the https://neo4j.com/docs/ogm-manual/current[Official Neo4j-OGM Reference Documentation].
 --
 
 :leveloffset: +1

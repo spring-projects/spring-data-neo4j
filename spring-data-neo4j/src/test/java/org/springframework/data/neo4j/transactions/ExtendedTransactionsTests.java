@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * See <a href=
- * "http://stackoverflow.com/questions/17224887/java-spring-transactional-method-not-rolling-back-as-expected">StackOverFlow</a>
+ * "https://stackoverflow.com/questions/17224887/java-spring-transactional-method-not-rolling-back-as-expected">StackOverFlow</a>
  * and DATAGRAPH-602
  *
  * @author: Vince Bickers

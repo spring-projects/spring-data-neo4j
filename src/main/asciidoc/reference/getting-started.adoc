@@ -3,16 +3,16 @@
 
 Depending on what type of project you are doing there are several options when it comes to creating a new SDN project:
 
-* Use http://start.spring.io (for Spring Boot projects)
+* Use https://start.spring.io (for Spring Boot projects)
 * Use the https://spring.io/tools/sts[Spring Tool Suite] (based on eclipse)
 * Adding the required libraries using your dependency management tool
 
 If you plan on using Neo4j in server mode, you will also need a running instance.
-Refer to the Getting Started section of the http://neo4j.com/docs/developer-manual/current/get-started[Neo4j Developer manual] on how to get that up and running.
+Refer to the Getting Started section of the https://neo4j.com/docs/developer-manual/current/get-started[Neo4j Developer manual] on how to get that up and running.
 
 == Using Spring Boot
 
-To create a Spring Boot project simply go to http://start.spring.io and specify a group and artifact like: `org.spring.neo4j.example` and `demo`.
+To create a Spring Boot project simply go to https://start.spring.io and specify a group and artifact like: `org.spring.neo4j.example` and `demo`.
 In the _Dependencies_ box type: "Neo4j".
 You can also add any other Spring support like "Web" etc.
 Once you are satisfied with your dependencies hit the generate button, download the zip and unzip into your workspace.
@@ -171,7 +171,7 @@ There is a https://github.com/spring-projects/spring-data-examples[github reposi
 == Configuration
 
 [NOTE]
-For those not familiar with how to configure the Spring container using Java based bean metadata instead of XML based metadata see the high-level introduction in the reference docs http://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/new-in-3.0.html#new-java-configuration[here] as well as the detailed documentation http://docs.spring.io/spring/docs/4.2.9.RELEASE/spring-framework-reference/html/beans.html#beans-java-instantiating-container[here].
+For those not familiar with how to configure the Spring container using Java based bean metadata instead of XML based metadata see the high-level introduction in the reference docs https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/new-in-3.0.html#new-java-configuration[here] as well as the detailed documentation https://docs.spring.io/spring/docs/4.2.9.RELEASE/spring-framework-reference/html/beans.html#beans-java-instantiating-container[here].
 
 For most applications the following configuration is all that's needed to get up and running.
 
