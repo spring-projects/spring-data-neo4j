@@ -90,7 +90,7 @@ public class Neo4jOgmEntityInstantiatorAdapter implements org.neo4j.ogm.session.
 			}
 		}
 
-		Object extractParameterValue(PreferredConstructor.Parameter parameter) {
+		private Object extractParameterValue(PreferredConstructor.Parameter parameter) {
 
 			Object value = propertyValues.get(parameter.getName());
 
