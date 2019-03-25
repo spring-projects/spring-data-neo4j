@@ -69,6 +69,88 @@ That sounds good in theory, but the Graph itself being more optimized for reads 
 
 Supporting the embedded use case will be solved on the drivers level.
 
+
+=== Relationships
+
+=== Simple relationships
+
+We provide `@Relationship` for mapping relationships without properties.
+This annotation shall be used for 1:1 and 1:n mappings.
+It provides an attribute to specifiy the name of the relationship.
+When a relationship is mapped on both sides (that is a circular mapping in the domain model from start to endnode and back) the annotation provides the `inverse` attribute to cater the following use case:
+
+[source,java]
+----
+@Node("User")
+static class UserNode {
+
+	@Relationship(type = "OWNS", inverse = "owner")
+	List<BikeNode> bikes;
+}
+
+static class BikeNode {
+
+	UserNode owner;
+
+	UserNode renter;
+}
+----
+
+Without the inverse that mapping would lead to three relationships:
+
+1. `(user) - [:OWNS] -> (bike)`
+2. `(user) <- [:OWNER] - (bike)`
+3. `(user) <- [:RENTER] - (bike)`
+
+Which is probably not the intended graph.
+Specifying `inverse` removes ambiguity here.
+
+=== "Rich" relationships
+
+There should be no means of using a relationship as aggregate root in SDN RX (like it is today the case with `@RelationshipEntity`).
+Instead we suggest that properties of relationships are mapped to POJOs.
+This has the following requirements:
+On the node representing the start node, the relationship (either 1:1 or 1:n) has to be annotated with `@Relationship` specifying the type of the end node like this:
+
+[source,java]
+----
+@Relationship("HAS_MEMBER", endNodeType = SoloArtistEntity.class)
+private List<Member> member = new ArrayList<>();
+----
+
+The POJO, in this case `Member` is required to have the following structure :
+
+[source,java]
+----
+public static class Member {
+
+	private SoloArtistEntity artist;
+
+	private Year joinedIn;
+
+	private Year leftIn;
+}
+----
+
+It must have exactly _one_ attribute of `endNodeType`.
+All other attributes are mapped from the properties of the relationship.
+
+The motivation behind this is that a relationship needs to be manifested in the domain model,
+but as the domain model usually isn't a graph, it manifests itself as a thing, not a relationship as is.
+We prefer that people use the mapping framework domain centric, not database centric.
+In the relational world it is an anti pattern to map out n:m (intersection) tables.
+If they have attributes, a schema is usually refactored into a 1:n and a n:1  table and an entity structure.
+We don't need another entity, though.
+
+
+=== Labels
+
+NOTE: Do we need support for dynamic labels?
+We propose a new `@Node` annotation that takes in an array of strings as labels for that object.
+We like to get rid of `@Label` annotation supporting dynamic labels for objects
+
+
+
 === Integration tests
 
 Integration tests take more time by their very nature.
