@@ -304,6 +304,29 @@ This is a wrapper around the `java.lang.reflect.Method` passed into the `resolve
 At the moment the implementation just takes the value of the provided `@Query` annotation by calling `getAnnotatedQuery` on the `Neo4jQueryMethod`
 and executes it through the `neo4jOperations` (`Neo4jTemplate`) class.
 
+=== Dirty tracking
+
+We considered several approaches of dirty tracking in SDN-rx:
+
+. No dirty tracking at all.
+    _Not an option when it comes to relationships._
+. Dirty tracking through hashes.
+    _Not on the level of detail (fields) we want to have it._
+. Using some kind of event / listener to track changes.
+. Shallow copy of objects to get compared on save.
+    _A full copy of the objects will occupy twice the memory._
+
+Picking the third option for now (_using some kind of event / listener_) would allow us to track single field / relationship changes per object.
+An entity will get tracked after it gets initially saved into or loaded from the database.
+As the technical solution we decided to use proxies to listen for the changes.
+It will then be required for the user to work with the returned (proxy) object after calling `save` to set additional fields etc.
+
+The event tracking and event triggering through the proxies should communicate via an API to have the option of using another tracking approach in the future.
+
+==== Side-effect on "flush mode"
+We can also track repository interactions like `save` and defer them depending on the flush mode.
+This would make it possible to remove the need for calling `save` explicitly but be more JPA-ish.
+
 [[starter]]
 == Spring Boot Starter
 
