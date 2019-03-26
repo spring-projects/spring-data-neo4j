@@ -35,6 +35,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.neo4j.driver.v1.AccessMode;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Session;
@@ -51,6 +53,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Michael J. Simons
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class DefaultNeo4jStatementRunnerSupplierTest {
 
 	@Mock
@@ -68,6 +71,7 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 		AtomicBoolean sessionIsOpen = new AtomicBoolean(true);
 		AtomicBoolean transactionIsOpen = new AtomicBoolean(true);
 
+		when(driver.session()).thenReturn(session);
 		when(driver.session(AccessMode.WRITE, Collections.emptyList())).thenReturn(session);
 
 		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
@@ -82,6 +86,100 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 			return null;
 		}).when(transaction).close();
 		when(transaction.isOpen()).thenAnswer(invocation -> transactionIsOpen.get());
+	}
+
+	@Test
+	void shouldWorkWithoutSynchronizations() {
+		StatementRunnerSupplier<StatementRunner> statementRunnerSupplier = new DefaultNeo4jStatementRunnerSupplier(
+			driver);
+
+		@SuppressWarnings({ "unused" })
+		StatementRunner statementRunner = statementRunnerSupplier.get();
+
+		verify(driver).session();
+		verifyNoMoreInteractions(driver, session, transaction);
+	}
+
+	@Nested
+	class BasedOnNeo4jTransactions {
+		@Test
+		void shouldOpenNewTransaction() {
+
+			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
+			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
+			StatementRunnerSupplier<StatementRunner> statementRunnerSupplier = new DefaultNeo4jStatementRunnerSupplier(
+				driver);
+
+			txTemplate.execute(new TransactionCallbackWithoutResult() {
+
+				@Override
+				protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+
+					assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isTrue();
+					assertThat(transactionStatus.isNewTransaction()).isTrue();
+					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
+
+					@SuppressWarnings({ "unused" })
+					StatementRunner statementRunner = statementRunnerSupplier.get();
+
+					transactionStatus.setRollbackOnly();
+				}
+			});
+
+			verify(driver).session(AccessMode.WRITE, Collections.emptyList());
+
+			verify(session).isOpen();
+			verify(session).beginTransaction(any(TransactionConfig.class));
+			verify(session).close();
+
+			verify(transaction, times(2)).isOpen();
+			verify(transaction).failure();
+			verify(transaction).close();
+		}
+
+		@Test
+		void shouldParticipateInOngoingTransaction() {
+
+			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
+			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
+			StatementRunnerSupplier<StatementRunner> statementRunnerSupplier = new DefaultNeo4jStatementRunnerSupplier(
+				driver);
+
+			txTemplate.execute(new TransactionCallbackWithoutResult() {
+
+				@Override
+				protected void doInTransactionWithoutResult(TransactionStatus outerStatus) {
+
+					@SuppressWarnings({ "unused" })
+					StatementRunner outerStatementRunner = statementRunnerSupplier.get();
+					assertThat(outerStatus.isNewTransaction()).isTrue();
+
+					txTemplate.execute(new TransactionCallbackWithoutResult() {
+
+						@Override
+						protected void doInTransactionWithoutResult(TransactionStatus innerStatus) {
+
+							assertThat(innerStatus.isNewTransaction()).isFalse();
+
+							@SuppressWarnings({ "unused" })
+							StatementRunner innerStatementRunner = statementRunnerSupplier.get();
+						}
+					});
+
+					outerStatus.setRollbackOnly();
+				}
+			});
+
+			verify(driver).session(AccessMode.WRITE, Collections.emptyList());
+
+			verify(session).isOpen();
+			verify(session).beginTransaction(any(TransactionConfig.class));
+			verify(session).close();
+
+			verify(transaction, times(2)).isOpen();
+			verify(transaction).failure();
+			verify(transaction).close();
+		}
 	}
 
 	@Nested
@@ -107,6 +205,7 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 					assertThat(transactionStatus.isNewTransaction()).isTrue();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
 
+					@SuppressWarnings({ "unused" })
 					StatementRunner statementRunner = statementRunnerSupplier.get();
 
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
@@ -127,7 +226,7 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 		}
 
 		@Test
-		public void shouldParticipateInOngoingTransactionWithRollback() throws Exception {
+		void shouldParticipateInOngoingTransactionWithRollback() throws Exception {
 
 			when(userTransaction.getStatus()).thenReturn(Status.STATUS_NO_TRANSACTION, Status.STATUS_ACTIVE,
 				Status.STATUS_ACTIVE);
@@ -165,44 +264,6 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 			verify(session).close();
 
 			verify(transaction, times(3)).isOpen();
-			verify(transaction).failure();
-			verify(transaction).close();
-		}
-	}
-
-	@Nested
-	class BasedOnNeo4jTransactions {
-		@Test
-		public void shouldParticipateInOngoingTransaction() {
-
-			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
-			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
-			StatementRunnerSupplier<StatementRunner> statementRunnerSupplier = new DefaultNeo4jStatementRunnerSupplier(
-				driver);
-
-			txTemplate.execute(new TransactionCallbackWithoutResult() {
-
-				@Override
-				protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-
-					assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isTrue();
-					assertThat(transactionStatus.isNewTransaction()).isTrue();
-					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
-
-					@SuppressWarnings({ "unused" })
-					StatementRunner statementRunner = statementRunnerSupplier.get();
-
-					transactionStatus.setRollbackOnly();
-				}
-			});
-
-			verify(driver).session(AccessMode.WRITE, Collections.emptyList());
-
-			verify(session).isOpen();
-			verify(session).beginTransaction(any(TransactionConfig.class));
-			verify(session).close();
-
-			verify(transaction, times(2)).isOpen();
 			verify(transaction).failure();
 			verify(transaction).close();
 		}

@@ -38,11 +38,11 @@ public class Neo4jResourceHolder extends ResourceHolderSupport {
 
 	private final Transaction transaction;
 
-	public Neo4jResourceHolder(Session session) {
+	Neo4jResourceHolder(Session session) {
 		this(session, TransactionConfig.empty());
 	}
 
-	public Neo4jResourceHolder(Session session, TransactionConfig transactionConfig) {
+	Neo4jResourceHolder(Session session, TransactionConfig transactionConfig) {
 		this.session = session;
 
 		this.transaction = this.session.beginTransaction(transactionConfig);
@@ -52,7 +52,7 @@ public class Neo4jResourceHolder extends ResourceHolderSupport {
 		return transaction;
 	}
 
-	public void commit() {
+	void commit() {
 
 		Assert.state(hasActiveTransaction(), "Transaction must be open, but has already been closed.");
 		Assert.state(!isRollbackOnly(), "Resource msut not be marked as rollback only.");
@@ -61,7 +61,7 @@ public class Neo4jResourceHolder extends ResourceHolderSupport {
 		transaction.close();
 	}
 
-	public void rollback() {
+	void rollback() {
 
 		Assert.state(hasActiveTransaction(), "Transaction must be open, but has already been closed.");
 
@@ -69,7 +69,7 @@ public class Neo4jResourceHolder extends ResourceHolderSupport {
 		transaction.close();
 	}
 
-	public void close() {
+	void close() {
 
 		Assert.state(hasActiveSession(), "Session must be open, but has already been closed.");
 
@@ -90,12 +90,12 @@ public class Neo4jResourceHolder extends ResourceHolderSupport {
 		throw new UnsupportedOperationException();
 	}
 
-	public boolean hasActiveSession() {
+	boolean hasActiveSession() {
 
 		return session.isOpen();
 	}
 
-	public boolean hasActiveTransaction() {
+	boolean hasActiveTransaction() {
 
 		return transaction.isOpen();
 	}
