@@ -108,7 +108,7 @@
 		<skipUnitTests>false</skipUnitTests>
 		<slf4j.version>1.7.25</slf4j.version>
 		<springdata-commons.version>2.2.0.BUILD-SNAPSHOT</springdata-commons.version>
-		<testcontainers.version>1.10.6</testcontainers.version>
+		<testcontainers.version>1.10.7</testcontainers.version>
 	</properties>
 
 	<dependencyManagement>

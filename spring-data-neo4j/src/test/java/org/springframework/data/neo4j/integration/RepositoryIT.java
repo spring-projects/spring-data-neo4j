@@ -49,7 +49,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class RepositoryIT {
 
 	@Container
-	private static Neo4jContainer neo4jContainer = new Neo4jContainer().withAdminPassword(null);
+	private static Neo4jContainer neo4jContainer = new Neo4jContainer().withoutAuthentication();
 
 	private final PersonRepository repository;
 
