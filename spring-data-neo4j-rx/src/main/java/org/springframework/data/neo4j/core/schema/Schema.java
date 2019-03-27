@@ -22,8 +22,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apiguardian.api.API;
 
@@ -32,15 +30,10 @@ import org.apiguardian.api.API;
  *
  * The schema is currently designed to be mutual.
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.STABLE, since = "1.0")
 public final class Schema {
 
 	private final Map<String, NodeDescription> nodeDescriptionsByPrimaryLabel = new HashMap<>();
-
-	// Just added as a reminder. Add adaquate locks
-	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-	private final Lock read = lock.readLock();
-	private final Lock write = lock.writeLock();
 
 	/**
 	 * Registers a node description under it's primary label.
