@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.Property;
@@ -51,28 +52,38 @@ class Neo4jMappingContextTest {
 		Optional<NodeDescription> optionalUserNodeDescription = schema.getNodeDescription("User");
 		assertThat(optionalUserNodeDescription)
 			.isPresent()
-			.hasValueSatisfying(userNodeDescription -> {
-				assertThat(userNodeDescription.getProperties())
-					.extracting(PropertyDescription::getFieldName)
-					.containsExactlyInAnyOrder("name", "first_name");
+			.hasValueSatisfying(description -> {
+				assertThat(description.getIdDescription().getIdStrategy())
+					.isEqualTo(Id.Strategy.INTERNAL);
 
-				assertThat(userNodeDescription.getProperties())
+				assertThat(description.getProperties())
+					.extracting(PropertyDescription::getFieldName)
+					.containsExactlyInAnyOrder("id", "name", "first_name");
+
+				assertThat(description.getProperties())
 					.extracting(PropertyDescription::getPropertyName)
-					.containsExactlyInAnyOrder("name", "firstName");
+					.containsExactlyInAnyOrder("id", "name", "firstName");
 			});
 
 		Optional<NodeDescription> optionalBikeNodeDescription = schema.getNodeDescription("BikeNode");
 		assertThat(optionalBikeNodeDescription)
 			.isPresent()
-			.hasValueSatisfying(bikeNodeDescription ->
-				assertThat(bikeNodeDescription.getRelationships())
+			.hasValueSatisfying(description -> {
+				assertThat(description.getIdDescription().getIdStrategy())
+					.isEqualTo(Id.Strategy.ASSIGNED);
+
+				assertThat(description.getRelationships())
 					.containsExactlyInAnyOrder(
 						new RelationshipDescription("owner", "User"),
-						new RelationshipDescription("renter", "User")));
+						new RelationshipDescription("renter", "User"));
+			});
 	}
 
 	@Node("User")
 	static class UserNode {
+
+		@org.springframework.data.annotation.Id
+		private long id;
 
 		@Relationship(type = "OWNS", inverse = "owner")
 		List<BikeNode> bikes;
@@ -85,10 +96,11 @@ class Neo4jMappingContextTest {
 
 	static class BikeNode {
 
+		@Id(strategy = Id.Strategy.ASSIGNED)
+		private String id;
+
 		UserNode owner;
 
 		List<UserNode> renter;
 	}
-
-
 }

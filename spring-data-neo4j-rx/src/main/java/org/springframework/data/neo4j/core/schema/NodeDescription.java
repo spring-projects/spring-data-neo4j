@@ -18,6 +18,8 @@
  */
 package org.springframework.data.neo4j.core.schema;
 
+import lombok.Builder;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,16 +45,20 @@ public final class NodeDescription {
 	 */
 	private final String primaryLabel;
 
+	private final IdDescription idDescription;
+
 	private final Map<String, PropertyDescription> propertiesByFieldName;
 
 	private final List<RelationshipDescription> relationships;
 
-	public NodeDescription(String primaryLabel, List<PropertyDescription> properties,
+	@Builder
+	private NodeDescription(String primaryLabel, IdDescription idDescription,
+		List<PropertyDescription> properties,
 		List<RelationshipDescription> relationships) {
 		this.primaryLabel = primaryLabel;
+		this.idDescription = idDescription;
 		this.propertiesByFieldName = properties.stream()
-			.collect(Collectors.toMap(PropertyDescription::getFieldName, Function
-				.identity()));
+			.collect(Collectors.toMap(PropertyDescription::getFieldName, Function.identity()));
 		this.relationships = new ArrayList<>(relationships);
 	}
 
@@ -61,6 +67,10 @@ public final class NodeDescription {
 	 */
 	public String getPrimaryLabel() {
 		return primaryLabel;
+	}
+
+	public IdDescription getIdDescription() {
+		return idDescription;
 	}
 
 	/**

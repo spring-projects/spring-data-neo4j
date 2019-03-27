@@ -18,24 +18,22 @@
  */
 package org.springframework.data.neo4j.core.schema;
 
-import static org.assertj.core.api.Assertions.*;
-
-import java.util.Collections;
-
-import org.junit.jupiter.api.Test;
+import org.apiguardian.api.API;
 
 /**
+ * Interface for generating ids for entities.
+ *
  * @author Michael J. Simons
  */
-class SchemaTest {
+@FunctionalInterface
+@API(status = API.Status.STABLE, since = "1.0")
+public interface IdGenerator {
 
-	@Test
-	void shouldGetNodeDescription() {
-		NodeDescription description = NodeDescription.builder().primaryLabel("aLabel")
-			.properties(Collections.emptyList()).relationships(Collections.emptyList()).build();
-
-		Schema schema = new Schema().registerNodeDescription(description);
-		assertThat(schema.getNodeDescription("aLabel")).isPresent().contains(description);
-		assertThat(schema.getNodeDescription("anotherLabel")).isNotPresent();
-	}
+	/**
+	 * Generates a new id for given entity
+	 *
+	 * @param entity the entity to be saved
+	 * @return id to be assigned to the entity
+	 */
+	Object generateId(Object entity);
 }
