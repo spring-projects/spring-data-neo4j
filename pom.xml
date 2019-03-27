@@ -44,7 +44,7 @@
 
 		<checkstyle.version>8.18</checkstyle.version>
 		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
-		<neo4j.ogm.version>3.1.7</neo4j.ogm.version>
+		<neo4j.ogm.version>3.1.8</neo4j.ogm.version>
 		<springdata.commons>2.1.6.BUILD-SNAPSHOT</springdata.commons>
 	</properties>
 
