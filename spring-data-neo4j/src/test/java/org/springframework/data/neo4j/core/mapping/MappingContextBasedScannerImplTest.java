@@ -33,12 +33,13 @@ import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.PropertyDescription;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
+import org.springframework.data.neo4j.core.schema.Scanner;
 import org.springframework.data.neo4j.core.schema.Schema;
 
 /**
  * @author Michael J. Simons
  */
-class Neo4jMappingContextTest {
+class MappingContextBasedScannerImplTest {
 
 	@Test
 	void initializationOfSchemaShouldWork() {
@@ -47,7 +48,8 @@ class Neo4jMappingContextTest {
 		neo4jMappingContext.setInitialEntitySet(new HashSet<>(Arrays.asList(BikeNode.class, UserNode.class)));
 		neo4jMappingContext.initialize();
 
-		Schema schema = neo4jMappingContext.getSchema();
+		final Scanner scanner = new MappingContextBasedScannerImpl(neo4jMappingContext);
+		Schema schema = scanner.scan();
 
 		Optional<NodeDescription> optionalUserNodeDescription = schema.getNodeDescription("User");
 		assertThat(optionalUserNodeDescription)

@@ -18,25 +18,9 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.data.mapping.Association;
-import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.mapping.SimpleAssociationHandler;
-import org.springframework.data.mapping.SimplePropertyHandler;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.IdDescription;
-import org.springframework.data.neo4j.core.schema.NodeDescription;
-import org.springframework.data.neo4j.core.schema.PropertyDescription;
-import org.springframework.data.neo4j.core.schema.Relationship;
-import org.springframework.data.neo4j.core.schema.RelationshipDescription;
-import org.springframework.data.neo4j.core.schema.Schema;
 import org.springframework.data.util.TypeInformation;
 
 /**
@@ -45,8 +29,6 @@ import org.springframework.data.util.TypeInformation;
  * @author Michael J. Simons
  */
 public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> {
-
-	private final Schema schema = new Schema();
 
 	/*
 	 * (non-Javadoc)
@@ -68,74 +50,4 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 
 		return new Neo4jPersistentPropertyImpl(property, neo4jPersistentProperties, simpleTypeHolder);
 	}
-
-	@Override
-	public void initialize() {
-		super.initialize();
-
-		super.getPersistentEntities().forEach(m ->
-			schema.registerNodeDescription(describeAsNode(m))
-		);
-	}
-
-	public Schema getSchema() {
-		return schema;
-	}
-
-	private NodeDescription describeAsNode(Neo4jPersistentEntity<?> entity) {
-
-		List<PropertyDescription> properties = new ArrayList<>();
-
-		// TODO break this up into separate methods.
-		entity.doWithProperties(new SimplePropertyHandler() {
-			@Override
-			public void doWithPersistentProperty(PersistentProperty<?> persistentProperty) {
-				org.springframework.data.neo4j.core.schema.Property propertyAnnotation =
-					persistentProperty.findAnnotation(org.springframework.data.neo4j.core.schema.Property.class);
-
-				String propertyName = persistentProperty.getName();
-				if (propertyAnnotation != null && !propertyAnnotation.name().isEmpty()
-					&& propertyAnnotation.name().trim().length() != 0) {
-					propertyName = propertyAnnotation.name().trim();
-				}
-
-				properties.add(new PropertyDescription(persistentProperty.getName(), propertyName));
-			}
-		});
-
-		List<RelationshipDescription> relationships = new ArrayList<>();
-		entity.doWithAssociations(new SimpleAssociationHandler() {
-			@Override
-			public void doWithAssociation(Association<? extends PersistentProperty<?>> association) {
-
-				Neo4jPersistentEntity<?> obverseOwner = Neo4jMappingContext.this
-					.getPersistentEntity(association.getInverse().getAssociationTargetType());
-
-				Relationship outgoingRelationship = association.getInverse().findAnnotation(Relationship.class);
-				String type;
-				if (outgoingRelationship != null && outgoingRelationship.type() != null) {
-					type = outgoingRelationship.type();
-				} else {
-					type = association.getInverse().getName();
-				}
-				relationships.add(new RelationshipDescription(type, obverseOwner.getPrimaryLabel()));
-			}
-		});
-
-		final Neo4jPersistentProperty idProperty = entity.getRequiredIdProperty();
-		final Optional<Id> optionalIdAnnotation = Optional
-			.ofNullable(AnnotatedElementUtils.findMergedAnnotation(idProperty.getField(), Id.class));
-		final IdDescription idDescription = optionalIdAnnotation
-			.map(idAnnotation -> new IdDescription(idAnnotation.strategy(), idAnnotation.generator()))
-			.orElseGet(() -> new IdDescription());
-
-		return NodeDescription.builder()
-			.primaryLabel(entity.getPrimaryLabel())
-			.idDescription(idDescription)
-			.properties(properties)
-			.relationships(relationships)
-			.build();
-	}
-
-
 }
