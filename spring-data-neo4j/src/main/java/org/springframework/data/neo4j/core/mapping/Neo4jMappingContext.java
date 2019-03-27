@@ -20,7 +20,9 @@ package org.springframework.data.neo4j.core.mapping;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.SimpleAssociationHandler;
@@ -28,6 +30,8 @@ import org.springframework.data.mapping.SimplePropertyHandler;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.IdDescription;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.PropertyDescription;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -118,7 +122,19 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 			}
 		});
 
-		return new NodeDescription(entity.getPrimaryLabel(), properties, relationships);
+		final Neo4jPersistentProperty idProperty = entity.getRequiredIdProperty();
+		final Optional<Id> optionalIdAnnotation = Optional
+			.ofNullable(AnnotatedElementUtils.findMergedAnnotation(idProperty.getField(), Id.class));
+		final IdDescription idDescription = optionalIdAnnotation
+			.map(idAnnotation -> new IdDescription(idAnnotation.strategy(), idAnnotation.generator()))
+			.orElseGet(() -> new IdDescription());
+
+		return NodeDescription.builder()
+			.primaryLabel(entity.getPrimaryLabel())
+			.idDescription(idDescription)
+			.properties(properties)
+			.relationships(relationships)
+			.build();
 	}
 
 

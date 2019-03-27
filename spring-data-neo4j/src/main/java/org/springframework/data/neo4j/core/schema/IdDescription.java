@@ -21,29 +21,39 @@ package org.springframework.data.neo4j.core.schema;
 import org.apiguardian.api.API;
 
 /**
+ * Description howto generate Ids for entities.
+ *
  * @author Michael J. Simons
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public final class PropertyDescription {
+public final class IdDescription {
 
-	private final String fieldName;
+	private final Id.Strategy idStrategy;
 
-	private final String propertyName;
+	private final Class<? extends IdGenerator> idGeneratorClass;
 
-	// TODO basically all the properties from Springs PersistentProperty are needed.
-	// Two options: Turn that classes ending in XXXDescription into interfaces and let Neo4jPersistentProperty extend
-	// from it as well, or copy needed stuff into a format that fits our needs best.
-
-	public PropertyDescription(String fieldName, String propertyName) {
-		this.fieldName = fieldName;
-		this.propertyName = propertyName;
+	public IdDescription() {
+		this(Id.Strategy.INTERNAL, NoopIdGenerator.class);
 	}
 
-	public String getFieldName() {
-		return fieldName;
+	public IdDescription(Id.Strategy idStrategy, Class<? extends IdGenerator> idGeneratorClass) {
+		this.idStrategy = idStrategy;
+		this.idGeneratorClass = idGeneratorClass;
 	}
 
-	public String getPropertyName() {
-		return propertyName;
+	public Id.Strategy getIdStrategy() {
+		return idStrategy;
+	}
+
+	public Class<? extends IdGenerator> getIdGeneratorClass() {
+		return idGeneratorClass;
+	}
+
+	static class NoopIdGenerator implements IdGenerator {
+
+		@Override
+		public Object generateId(Object entity) {
+			return null;
+		}
 	}
 }
