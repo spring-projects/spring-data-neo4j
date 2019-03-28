@@ -28,8 +28,6 @@ So far we have identified the following modules:
 Those will be reassembled as packages inside Spring Data Neo4j RX.
 There are no short-term planes to create additional artifacts from those.
 
-NOTE: However, we should discuss if you could try a JDK 11 only project.
-
 [[schema]]
 ==== Schema
 
