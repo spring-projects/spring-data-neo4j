@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.2.19.RELEASE (2019-04-01)
+----------------------------------------------
+* DATAGRAPH-1178 - Release 4.2.19 (Ingalls SR19).
+
+
 Changes in version 5.2.0.M2 (2019-03-07)
 ----------------------------------------
 * DATAGRAPH-1202 - Add support for Range type in derived queries.
