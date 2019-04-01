@@ -30,6 +30,7 @@ import org.springframework.boot.autoconfigure.transaction.TransactionManagerCust
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.NodeManagerFactory;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -50,6 +51,15 @@ public class Neo4jDataAutoConfiguration {
 	@ConditionalOnMissingBean
 	public Neo4jTemplate neo4jTemplate(Driver driver) {
 		return new Neo4jTemplate(driver);
+	}
+
+
+	@Bean
+	@ConditionalOnMissingBean
+	public NodeManagerFactory nodeManagerFactory(Driver driver) {
+
+		// TODO Scan classes like JPA or Mongo if not defined otherwise
+		return new NodeManagerFactory(driver);
 	}
 
 	@Bean

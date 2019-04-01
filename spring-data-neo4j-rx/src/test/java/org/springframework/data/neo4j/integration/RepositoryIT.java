@@ -31,8 +31,7 @@ import org.neo4j.driver.v1.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.core.Neo4jOperations;
-import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.NodeManagerFactory;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.test.context.ContextConfiguration;
@@ -90,15 +89,15 @@ class RepositoryIT {
 		}
 
 		@Bean
-		public PlatformTransactionManager transactionManager() {
+		public NodeManagerFactory nodeManagerFactory(Driver driver) {
 
-			return new Neo4jTransactionManager(driver());
+			return new NodeManagerFactory(driver, Person.class);
 		}
 
 		@Bean
-		public Neo4jOperations neo4jTemplate() {
+		public PlatformTransactionManager transactionManager(Driver driver) {
 
-			return new Neo4jTemplate(driver());
+			return new Neo4jTransactionManager(driver);
 		}
 	}
 }

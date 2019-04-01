@@ -32,6 +32,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.NodeManagerFactory;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -100,6 +101,28 @@ class Neo4jDataAutoConfigurationTest {
 		}
 	}
 
+	@Nested
+	@DisplayName("Automatic configuration…")
+	class ConfigurationOfNodeManagerFactory {
+		@Test
+		@DisplayName("…should create new Neo4j node manager")
+		void shouldCreateNew() {
+			contextRunner
+				.run(ctx -> assertThat(ctx).hasSingleBean(NodeManagerFactory.class));
+		}
+
+		@Test
+		@DisplayName("…should honour existing node manager")
+		void shouldHonourExisting() {
+			contextRunner
+				.withUserConfiguration(ConfigurationWithExistingNodeManager.class)
+				.run(ctx -> assertThat(ctx)
+					.hasSingleBean(NodeManagerFactory.class)
+					.hasBean("myNodeManagerFactory")
+				);
+		}
+	}
+
 	@Configuration
 	static class MockedDriverConfiguration {
 		@Bean
@@ -121,6 +144,14 @@ class Neo4jDataAutoConfigurationTest {
 		@Bean("myCustomTransactionManager")
 		PlatformTransactionManager transactionManager() {
 			return Mockito.mock(PlatformTransactionManager.class);
+		}
+	}
+
+	@Configuration
+	static class ConfigurationWithExistingNodeManager {
+		@Bean("myNodeManagerFactory")
+		NodeManagerFactory nodeManagerFactory() {
+			return Mockito.mock(NodeManagerFactory.class);
 		}
 	}
 }

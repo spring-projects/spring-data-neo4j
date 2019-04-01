@@ -16,36 +16,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.query;
+package org.springframework.data.neo4j.core.transaction;
 
 import org.springframework.data.neo4j.core.NodeManager;
-import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.lang.Nullable;
+import org.springframework.transaction.support.ResourceHolderSupport;
+import org.springframework.util.Assert;
 
 /**
- * Implementation of {@link RepositoryQuery} for String based custom Cypher query.
+ * Dedicated holder for storing a NodeManager inside a transaction.
+ * <p>
+ * <strong>Note:</strong> Intended for internal usage only.
  *
- * @author Gerrit Meier
  * @author Michael J. Simons
  */
-public class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
+public class NodeManagerHolder extends ResourceHolderSupport {
 
-	private final Neo4jQueryMethod queryMethod;
+	@Nullable
 	private final NodeManager nodeManager;
 
-	public StringBasedNeo4jQuery(Neo4jQueryMethod queryMethod, NodeManager nodeManager) {
-
-		this.queryMethod = queryMethod;
+	public NodeManagerHolder(@Nullable NodeManager nodeManager) {
 		this.nodeManager = nodeManager;
 	}
 
-	@Override
-	public Object execute(Object[] parameters) {
-		return nodeManager.executeQuery(queryMethod.getAnnotatedQuery());
+	public NodeManager getNodeManager() {
+		Assert.state(this.nodeManager != null, "No NodeManager available");
+		return this.nodeManager;
 	}
 
-	@Override
-	public QueryMethod getQueryMethod() {
-		return null;
-	}
 }

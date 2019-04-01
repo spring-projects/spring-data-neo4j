@@ -49,7 +49,7 @@ class MappingContextBasedScannerImplTest {
 		neo4jMappingContext.initialize();
 
 		final Scanner scanner = new MappingContextBasedScannerImpl(neo4jMappingContext);
-		Schema schema = scanner.scan();
+		Schema schema = scanner.scan(new HashSet<>(Arrays.asList(BikeNode.class, UserNode.class)));
 
 		Optional<NodeDescription> optionalUserNodeDescription = schema.getNodeDescription("User");
 		assertThat(optionalUserNodeDescription)

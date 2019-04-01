@@ -37,7 +37,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 	@Override
 	protected <T> Neo4jPersistentEntity<?> createPersistentEntity(TypeInformation<T> typeInformation) {
 
-		return new Neo4jPersistentEntityImpl<>(typeInformation);
+		return new DefaultNeo4jPersistentEntity<>(typeInformation);
 	}
 
 	/*
@@ -48,6 +48,6 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 	protected Neo4jPersistentProperty createPersistentProperty(Property property,
 		Neo4jPersistentEntity<?> neo4jPersistentProperties, SimpleTypeHolder simpleTypeHolder) {
 
-		return new Neo4jPersistentPropertyImpl(property, neo4jPersistentProperties, simpleTypeHolder);
+		return new DefaultNeo4jPersistentProperty(property, neo4jPersistentProperties, simpleTypeHolder);
 	}
 }

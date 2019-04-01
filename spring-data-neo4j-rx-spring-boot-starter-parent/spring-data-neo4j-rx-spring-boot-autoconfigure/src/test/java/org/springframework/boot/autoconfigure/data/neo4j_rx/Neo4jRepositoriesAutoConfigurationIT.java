@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.neo4j_rx.bikes.BikeRepository;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverAutoConfiguration;
@@ -44,8 +44,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @ContextConfiguration(initializers = Neo4jRepositoriesAutoConfigurationIT.Neo4jContainerBasedTestPropertyProvider.class)
 public class Neo4jRepositoriesAutoConfigurationIT {
 
-	@Container
-	private static Neo4jContainer neo4jServer = new Neo4jContainer<>();
+	@Container private static Neo4jContainer neo4jServer = new Neo4jContainer<>();
 
 	private final BikeRepository bikeRepository;
 
@@ -57,13 +56,12 @@ public class Neo4jRepositoriesAutoConfigurationIT {
 	@Test
 	void ensureRepositoryIsReady() {
 
-		assertThatExceptionOfType(UnsupportedOperationException.class)
-			.isThrownBy(() -> bikeRepository.count())
-			.withMessage("Not there yet.");
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> bikeRepository.count())
+				.withMessage("Not there yet.");
 	}
 
 	static class Neo4jContainerBasedTestPropertyProvider
-		implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+			implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
 		@Override
 		public void initialize(ConfigurableApplicationContext applicationContext) {
@@ -76,7 +74,7 @@ public class Neo4jRepositoriesAutoConfigurationIT {
 	}
 
 	@Configuration
-	@AutoConfigurationPackage
+	@EnableAutoConfiguration
 	@ImportAutoConfiguration({ Neo4jDriverAutoConfiguration.class, Neo4jDataAutoConfiguration.class,
 		Neo4jRepositoriesAutoConfiguration.class })
 	static class TestConfiguration {

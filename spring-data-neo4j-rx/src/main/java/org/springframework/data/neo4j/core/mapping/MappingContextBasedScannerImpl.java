@@ -19,6 +19,7 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,12 +51,14 @@ public class MappingContextBasedScannerImpl implements Scanner {
 	}
 
 	@Override
-	public Schema scan() {
+	public Schema scan(Collection<Class<?>> persistentClasses) {
 
 		final Schema schema = new Schema();
-		neo4jMappingContext.getPersistentEntities().forEach(m ->
-			schema.registerNodeDescription(describeAsNode(m))
-		);
+		persistentClasses.forEach(clazz -> {
+			Neo4jPersistentEntity<?> m = neo4jMappingContext.getPersistentEntity(clazz);
+			schema.registerNodeDescription(describeAsNode(m));
+		});
+
 		return schema;
 	}
 

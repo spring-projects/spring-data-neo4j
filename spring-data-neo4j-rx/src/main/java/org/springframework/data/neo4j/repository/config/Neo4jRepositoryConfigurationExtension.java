@@ -24,9 +24,12 @@ import java.util.Collections;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
+import org.springframework.data.neo4j.repository.support.NodeManagerFactoryBean;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 
@@ -48,8 +51,13 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	 */
 	static final String GENERATE_BEAN_NAME = "(generated)";
 
-	static final String DEFAULT_NEO4J_TEMPLATE_BEAN_NAME = "neo4jTemplate";
+	static final String DEFAULT_NODE_MANAGER_FACTORY_BEAN_NAME = "nodeManagerFactory";
 	static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
+
+	/**
+	 * Holds the name of the shared NodeManagerBean created from the factory with the configured name.
+	 */
+	private String generatedNodeManagerBeanName;
 
 	/*
 	 * (non-Javadoc)
@@ -89,7 +97,57 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		builder.addPropertyValue("transactionManager",
 			source.getAttribute("transactionManagerRef").orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
 
-		builder.addPropertyReference("neo4jOperations",
-			source.getAttribute("neo4jTemplateRef").orElse(DEFAULT_NEO4J_TEMPLATE_BEAN_NAME));
+		builder.addPropertyReference("nodeManager", this.generatedNodeManagerBeanName);
+	}
+
+	@Override
+	public void registerBeansForRoot(BeanDefinitionRegistry registry,
+		RepositoryConfigurationSource config) {
+
+		// Mapping context
+		AbstractBeanDefinition neo4jMappingContextBeanDefinition = BeanDefinitionBuilder
+			.rootBeanDefinition(Neo4jMappingContext.class)
+			.getBeanDefinition();
+		String nameOfMappingContextBean = registerWithSourceAndGeneratedBeanName(
+			neo4jMappingContextBeanDefinition, registry, config);
+
+		// Augmented node manager factory (creating injectable, shared instances of NodeManager)
+		String nameOfNodeManagerFactory = config.getAttribute("nodeManagerFactoryRef")
+			.orElse(DEFAULT_NODE_MANAGER_FACTORY_BEAN_NAME);
+		AbstractBeanDefinition sharedSessionCreatorBeanDefinition = BeanDefinitionBuilder
+			.rootBeanDefinition(NodeManagerFactoryBean.class)
+			.addConstructorArgReference(nameOfNodeManagerFactory)
+			.addConstructorArgReference(nameOfMappingContextBean)
+			.getBeanDefinition();
+		this.generatedNodeManagerBeanName = registerWithSourceAndGeneratedBeanName(
+			sharedSessionCreatorBeanDefinition, registry, config);
+	}
+
+	/**
+	 * Uses a generated bean name if {@code configuredBeanName} is equal to {@link #GENERATE_BEAN_NAME}, otherwise uses
+	 * the configured bean name to register the new bean. Does not check if there's already a bean under the configured
+	 * name but throws a {@link org.springframework.beans.factory.BeanDefinitionStoreException}. Checks whether a bean is
+	 * already registered under {@code configuredBeanName} in the given {@link BeanDefinitionRegistry} and uses a
+	 * generated name for registering the bean instead. If not, the suggested bean name is used.
+	 *
+	 * @param bean               must not be {@literal null}.
+	 * @param registry           must not be {@literal null}.
+	 * @param configuredBeanName must not be {@literal null} or empty.
+	 * @param source             must not be {@literal null}.
+	 * @return the bean name used for registering the given {@link AbstractBeanDefinition}
+	 * @throws org.springframework.beans.factory.BeanDefinitionStoreException if the BeanDefinition is invalid or if there
+	 *                                                                        is already a BeanDefinition for the specified bean name * (and we are not allowed to override it)
+	 */
+	private static String registerWithGeneratedNameOrUseConfigured(AbstractBeanDefinition bean,
+		BeanDefinitionRegistry registry, String configuredBeanName, Object source) {
+
+		String registeredBeanName = configuredBeanName;
+		if (GENERATE_BEAN_NAME.equals(configuredBeanName)) {
+			registeredBeanName = registerWithSourceAndGeneratedBeanName(bean, registry, source);
+		} else {
+			bean.setSource(source);
+			registry.registerBeanDefinition(configuredBeanName, bean);
+		}
+		return registeredBeanName;
 	}
 }

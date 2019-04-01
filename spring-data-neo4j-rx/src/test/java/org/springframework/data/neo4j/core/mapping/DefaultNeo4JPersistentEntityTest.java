@@ -16,10 +16,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.context;
+package org.springframework.data.neo4j.core.mapping;
+
+import static org.assertj.core.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * @author Michael J. Simons
  */
-class PersistenceContextImpl implements PersistenceContext {
+public class DefaultNeo4JPersistentEntityTest {
+
+	private Neo4jMappingContext mappingContext = new Neo4jMappingContext();
+
+	@Test
+	void shouldDiscoverAnnotatedPrimaryLabel() {
+
+		Neo4jPersistentEntity<?> entity = mappingContext.getPersistentEntity(DummySubEntity.class);
+
+		assertThat(entity).isNotNull();
+	}
+
+	@Node("DummySubNode")
+	static class DummySubEntity {
+	}
 }

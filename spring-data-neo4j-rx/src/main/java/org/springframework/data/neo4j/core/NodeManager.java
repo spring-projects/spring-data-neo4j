@@ -16,26 +16,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.schema;
-
-import java.util.Collection;
+package org.springframework.data.neo4j.core;
 
 import org.apiguardian.api.API;
+import org.neo4j.driver.v1.Transaction;
+import org.springframework.lang.Nullable;
 
 /**
- * A scanner produces an instance of schema. The default scanner is based on all the information we can get from
- * a Spring Mapping context (in our case, the {@link org.springframework.data.neo4j.core.mapping.Neo4jMappingContext}.
+ * Entry point for creating queries that return managed Nodes. The node manager is not supposed to be kept around
+ * for longer than necessary. Try to keep your transactions short to avoid memory pressure due to keeping track of
+ * managed nodes.
  *
  * @author Michael J. Simons
  */
 @API(status = API.Status.STABLE, since = "1.0")
-public interface Scanner {
+public interface NodeManager {
 
 	/**
-	 * Scans the relevant classes and creates a schema.
-	 *
-	 * @param persistentClasses The classes to scan
-	 * @return The new schema.
+	 * Clears all managed entities and flushes any open state to the underlying storage.
 	 */
-	Schema scan(Collection<Class<?>> persistentClasses);
+	default void flush() {
+	}
+
+	@Nullable
+	Transaction getTransaction();
+
+	@API(status = API.Status.EXPERIMENTAL)
+	Object executeQuery(String query);
 }
