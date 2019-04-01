@@ -16,30 +16,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.query;
+package org.springframework.data.neo4j.core.transaction;
 
-import org.springframework.data.neo4j.core.NodeManager;
-import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.neo4j.core.NodeManagerFactory;
+import org.springframework.transaction.support.ResourceHolderSynchronization;
 
 /**
- * Implementation of {@link RepositoryQuery} for derived finder methods.
+ * TODO Update Licence header https
  *
- * @author Gerrit Meier
  * @author Michael J. Simons
  */
-public class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
+public class NodeManagerSynchronization
+	extends ResourceHolderSynchronization<NodeManagerHolder, Object> {
 
-	public PartTreeNeo4jQuery(Neo4jQueryMethod queryMethod, NodeManager nodeManager) {
+	private final NodeManagerHolder localNodeManagerHolder;
+
+	NodeManagerSynchronization(NodeManagerHolder nodeManagerHolder, NodeManagerFactory nodeManagerFactory) {
+
+		super(nodeManagerHolder, nodeManagerFactory);
+		this.localNodeManagerHolder = nodeManagerHolder;
 	}
 
 	@Override
-	public Object execute(Object[] parameters) {
-		throw new UnsupportedOperationException("Not there yet.");
-	}
-
-	@Override
-	public QueryMethod getQueryMethod() {
-		return null;
+	protected void flushResource(NodeManagerHolder resourceHolder) {
+		resourceHolder.getNodeManager().flush();
 	}
 }

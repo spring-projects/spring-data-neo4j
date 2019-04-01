@@ -54,7 +54,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class DefaultNeo4jStatementRunnerSupplierTest {
+class Neo4jTransactionUtilsTest {
 
 	@Mock
 	private Driver driver;
@@ -90,11 +90,8 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 
 	@Test
 	void shouldWorkWithoutSynchronizations() {
-		StatementRunnerSupplier<StatementRunner> statementRunnerSupplier = new DefaultNeo4jStatementRunnerSupplier(
-			driver);
-
 		@SuppressWarnings({ "unused" })
-		StatementRunner statementRunner = statementRunnerSupplier.get();
+		StatementRunner statementRunner = Neo4jTransactionUtils.retrieveTransactionalStatementRunner(driver);
 
 		verify(driver).session();
 		verifyNoMoreInteractions(driver, session, transaction);
@@ -107,8 +104,6 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 
 			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
 			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
-			StatementRunnerSupplier<StatementRunner> statementRunnerSupplier = new DefaultNeo4jStatementRunnerSupplier(
-				driver);
 
 			txTemplate.execute(new TransactionCallbackWithoutResult() {
 
@@ -120,7 +115,8 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
 
 					@SuppressWarnings({ "unused" })
-					StatementRunner statementRunner = statementRunnerSupplier.get();
+					StatementRunner statementRunner = Neo4jTransactionUtils
+						.retrieveTransactionalStatementRunner(driver);
 
 					transactionStatus.setRollbackOnly();
 				}
@@ -142,8 +138,6 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 
 			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
 			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
-			StatementRunnerSupplier<StatementRunner> statementRunnerSupplier = new DefaultNeo4jStatementRunnerSupplier(
-				driver);
 
 			txTemplate.execute(new TransactionCallbackWithoutResult() {
 
@@ -151,7 +145,8 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 				protected void doInTransactionWithoutResult(TransactionStatus outerStatus) {
 
 					@SuppressWarnings({ "unused" })
-					StatementRunner outerStatementRunner = statementRunnerSupplier.get();
+					StatementRunner outerStatementRunner = Neo4jTransactionUtils
+						.retrieveTransactionalStatementRunner(driver);
 					assertThat(outerStatus.isNewTransaction()).isTrue();
 
 					txTemplate.execute(new TransactionCallbackWithoutResult() {
@@ -162,7 +157,8 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 							assertThat(innerStatus.isNewTransaction()).isFalse();
 
 							@SuppressWarnings({ "unused" })
-							StatementRunner innerStatementRunner = statementRunnerSupplier.get();
+							StatementRunner innerStatementRunner = Neo4jTransactionUtils
+								.retrieveTransactionalStatementRunner(driver);
 						}
 					});
 
@@ -193,8 +189,6 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 
 			JtaTransactionManager txManager = new JtaTransactionManager(userTransaction);
 			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
-			StatementRunnerSupplier<StatementRunner> statementRunnerSupplier = new DefaultNeo4jStatementRunnerSupplier(
-				driver);
 
 			txTemplate.execute(new TransactionCallbackWithoutResult() {
 
@@ -206,7 +200,8 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
 
 					@SuppressWarnings({ "unused" })
-					StatementRunner statementRunner = statementRunnerSupplier.get();
+					StatementRunner statementRunner = Neo4jTransactionUtils
+						.retrieveTransactionalStatementRunner(driver);
 
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
 				}
@@ -233,8 +228,6 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 
 			JtaTransactionManager txManager = new JtaTransactionManager(userTransaction);
 			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
-			StatementRunnerSupplier<StatementRunner> statementRunnerSupplier = new DefaultNeo4jStatementRunnerSupplier(
-				driver);
 
 			txTemplate.execute(new TransactionCallbackWithoutResult() {
 
@@ -246,7 +239,8 @@ class DefaultNeo4jStatementRunnerSupplierTest {
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
 
 					@SuppressWarnings({ "unused" })
-					StatementRunner statementRunner = statementRunnerSupplier.get();
+					StatementRunner statementRunner = Neo4jTransactionUtils
+						.retrieveTransactionalStatementRunner(driver);
 
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
 

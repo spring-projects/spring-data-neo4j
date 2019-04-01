@@ -24,7 +24,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.core.Neo4jOperations;
+import org.springframework.data.neo4j.core.NodeManager;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,10 +39,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 
-	private final Neo4jOperations neo4jOperations;
+	private final NodeManager nodeManager;
 
-	SimpleNeo4jRepository(Neo4jOperations neo4jOperations) {
-		this.neo4jOperations = neo4jOperations;
+	SimpleNeo4jRepository(NodeManager nodeManager) {
+		this.nodeManager = nodeManager;
 	}
 
 	@Override

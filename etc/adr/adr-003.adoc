@@ -1,0 +1,21 @@
+== ADR 3: Public classes that are part of internal API only must be final
+
+=== Status
+
+accepted, open
+
+=== Context
+
+Due to the fact that we are not yet on the module path, we need to have some classes public defined that are not meant
+to be part of the public API.
+
+=== Decision
+
+Those classes should be marked `@API(status = API.Status.INTERNAL, since = "1.0")` as well as made final to at least
+prevent people from inheriting from them.
+We need to add architecture rules in jQAssistant.
+
+=== Consequences
+
+Potentially problems with some Spring proxies.
+Need to be solved on a case by case incident.

@@ -32,17 +32,17 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  */
-public class Neo4jResourceHolder extends ResourceHolderSupport {
+public class Neo4jConnectionHolder extends ResourceHolderSupport {
 
 	private final Session session;
 
 	private final Transaction transaction;
 
-	Neo4jResourceHolder(Session session) {
+	Neo4jConnectionHolder(Session session) {
 		this(session, TransactionConfig.empty());
 	}
 
-	Neo4jResourceHolder(Session session, TransactionConfig transactionConfig) {
+	Neo4jConnectionHolder(Session session, TransactionConfig transactionConfig) {
 		this.session = session;
 
 		this.transaction = this.session.beginTransaction(transactionConfig);

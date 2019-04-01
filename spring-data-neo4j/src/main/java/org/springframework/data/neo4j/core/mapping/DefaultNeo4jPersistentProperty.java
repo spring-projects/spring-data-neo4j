@@ -27,7 +27,7 @@ import org.springframework.data.mapping.model.SimpleTypeHolder;
 /**
  * @author Michael J. Simons
  */
-class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4jPersistentProperty>
+class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<Neo4jPersistentProperty>
 	implements Neo4jPersistentProperty {
 
 	/**
@@ -37,7 +37,7 @@ class Neo4jPersistentPropertyImpl extends AnnotationBasedPersistentProperty<Neo4
 	 * @param owner            must not be {@literal null}.
 	 * @param simpleTypeHolder
 	 */
-	Neo4jPersistentPropertyImpl(Property property,
+	DefaultNeo4jPersistentProperty(Property property,
 		PersistentEntity<?, Neo4jPersistentProperty> owner,
 		SimpleTypeHolder simpleTypeHolder) {
 

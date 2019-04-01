@@ -31,7 +31,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.AliasFor;
-import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.NodeManager;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -78,9 +78,9 @@ public @interface EnableNeo4jRepositories {
 	Class<?> repositoryFactoryBeanClass() default Neo4jRepositoryFactoryBean.class;
 
 	/**
-	 * Configures the name of the {@link Neo4jTemplate} bean to be used with the repositories detected.
+	 * Configures the name of the {@link NodeManager} bean to be used with the repositories detected.
 	 */
-	String neo4jTemplateRef() default DEFAULT_NEO4J_TEMPLATE_BEAN_NAME;
+	String nodeManagerFactoryRef() default DEFAULT_NODE_MANAGER_FACTORY_BEAN_NAME;
 
 	/**
 	 * Configures the name of the {@link PlatformTransactionManager} bean definition to be used to create repositories

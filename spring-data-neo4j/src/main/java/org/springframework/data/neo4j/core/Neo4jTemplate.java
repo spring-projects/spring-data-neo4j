@@ -18,11 +18,12 @@
  */
 package org.springframework.data.neo4j.core;
 
+import java.util.function.Supplier;
+
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.StatementRunner;
-import org.springframework.data.neo4j.core.transaction.DefaultNeo4jStatementRunnerSupplier;
-import org.springframework.data.neo4j.core.transaction.StatementRunnerSupplier;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 
 /**
  * Default implementation of {@link Neo4jOperations}. Uses the Neo4j Java driver to connect to and interact with the
@@ -33,10 +34,14 @@ import org.springframework.data.neo4j.core.transaction.StatementRunnerSupplier;
  */
 public class Neo4jTemplate implements Neo4jOperations {
 
-	private StatementRunnerSupplier<StatementRunner> statementRunnerSupplier;
+	private Supplier<StatementRunner> statementRunnerSupplier;
 
 	public Neo4jTemplate(Driver driver) {
-		this.statementRunnerSupplier = new DefaultNeo4jStatementRunnerSupplier(driver);
+		this(() -> Neo4jTransactionUtils.retrieveTransactionalStatementRunner(driver));
+	}
+
+	Neo4jTemplate(Supplier<StatementRunner> statementRunnerSupplier) {
+		this.statementRunnerSupplier = statementRunnerSupplier;
 	}
 
 	@Override

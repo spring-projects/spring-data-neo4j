@@ -24,17 +24,17 @@ import org.springframework.transaction.support.TransactionSynchronization;
 
 /**
  * Neo4j specific {@link ResourceHolderSynchronization} for resource cleanup at the end of a transaction when
- * participating in a non-native Neoj4 transaction, such as a Jta transaction.
+ * participating in a non-native Neo4j transaction, such as a Jta transaction.
  */
 class Neo4jSessionSynchronization
-	extends ResourceHolderSynchronization<Neo4jResourceHolder, Object> {
+	extends ResourceHolderSynchronization<Neo4jConnectionHolder, Object> {
 
-	private final Neo4jResourceHolder localResourceHolder;
+	private final Neo4jConnectionHolder localConnectionHolder;
 
-	Neo4jSessionSynchronization(Neo4jResourceHolder resourceHolder, Driver driver) {
+	Neo4jSessionSynchronization(Neo4jConnectionHolder connectionHolder, Driver driver) {
 
-		super(resourceHolder, driver);
-		this.localResourceHolder = resourceHolder;
+		super(connectionHolder, driver);
+		this.localConnectionHolder = connectionHolder;
 	}
 
 	/*
@@ -51,7 +51,7 @@ class Neo4jSessionSynchronization
 	 * @see org.springframework.transaction.support.ResourceHolderSynchronization#processResourceAfterCommit(java.lang.Object)
 	 */
 	@Override
-	protected void processResourceAfterCommit(Neo4jResourceHolder resourceHolder) {
+	protected void processResourceAfterCommit(Neo4jConnectionHolder resourceHolder) {
 
 		super.processResourceAfterCommit(resourceHolder);
 
@@ -67,8 +67,8 @@ class Neo4jSessionSynchronization
 	@Override
 	public void afterCompletion(int status) {
 
-		if (status == TransactionSynchronization.STATUS_ROLLED_BACK && localResourceHolder.hasActiveTransaction()) {
-			localResourceHolder.rollback();
+		if (status == TransactionSynchronization.STATUS_ROLLED_BACK && localConnectionHolder.hasActiveTransaction()) {
+			localConnectionHolder.rollback();
 		}
 
 		super.afterCompletion(status);
@@ -79,7 +79,7 @@ class Neo4jSessionSynchronization
 	 * @see org.springframework.transaction.support.ResourceHolderSynchronization#releaseResource(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	protected void releaseResource(Neo4jResourceHolder resourceHolder, Object resourceKey) {
+	protected void releaseResource(Neo4jConnectionHolder resourceHolder, Object resourceKey) {
 
 		if (resourceHolder.hasActiveSession()) {
 			resourceHolder.close();

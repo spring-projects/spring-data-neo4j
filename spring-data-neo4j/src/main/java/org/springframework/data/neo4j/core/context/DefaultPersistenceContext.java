@@ -16,17 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.transaction;
-
-import java.util.function.Supplier;
+package org.springframework.data.neo4j.core.context;
 
 /**
- * Used for obtaining {@link org.neo4j.driver.v1.Session session bound (standard or reactive)} bound statement runners.
- * <p>
- * <strong>Note:</strong> Intended for internal usage only.
- *
  * @author Michael J. Simons
  */
-@FunctionalInterface
-public interface StatementRunnerSupplier<T> extends Supplier<T> {
+public class DefaultPersistenceContext implements PersistenceContext {
 }

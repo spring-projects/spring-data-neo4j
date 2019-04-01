@@ -23,9 +23,11 @@ import java.util.List;
 import org.neo4j.driver.v1.Record;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface PersonRepository extends Neo4jRepository<Person, Long> {
 
+	@Transactional
 	@Query("RETURN 1")
 	List<Record> customQuery();
 

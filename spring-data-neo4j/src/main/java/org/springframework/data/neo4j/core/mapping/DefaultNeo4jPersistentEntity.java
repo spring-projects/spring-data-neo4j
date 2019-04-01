@@ -25,12 +25,12 @@ import org.springframework.data.util.TypeInformation;
 /**
  * @author Michael J. Simons
  */
-class Neo4jPersistentEntityImpl<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty>
+class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty>
 	implements Neo4jPersistentEntity<T> {
 
 	private final String primaryLabel;
 
-	Neo4jPersistentEntityImpl(TypeInformation<T> information) {
+	DefaultNeo4jPersistentEntity(TypeInformation<T> information) {
 		super(information);
 
 		Node nodeAnnotation = this.findAnnotation(Node.class);
