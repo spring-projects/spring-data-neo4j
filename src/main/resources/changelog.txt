@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.2.20.RELEASE (2019-04-01)
+----------------------------------------------
+* DATAGRAPH-1214 - Release 4.2.20 (Ingalls SR20).
+
+
 Changes in version 4.2.19.RELEASE (2019-04-01)
 ----------------------------------------------
 * DATAGRAPH-1178 - Release 4.2.19 (Ingalls SR19).
