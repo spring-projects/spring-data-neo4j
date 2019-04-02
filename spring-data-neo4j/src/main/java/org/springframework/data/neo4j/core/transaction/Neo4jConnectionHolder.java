@@ -18,14 +18,14 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.Transaction;
-import org.neo4j.driver.v1.TransactionConfig;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Transaction;
+import org.neo4j.driver.TransactionConfig;
 import org.springframework.transaction.support.ResourceHolderSupport;
 import org.springframework.util.Assert;
 
 /**
- * Neo4j specific {@link ResourceHolderSupport resource holder}, wrapping a {@link org.neo4j.driver.v1.Transaction}.
+ * Neo4j specific {@link ResourceHolderSupport resource holder}, wrapping a {@link org.neo4j.driver.Transaction}.
  * {@link Neo4jTransactionManager} binds instances of this class to the thread.
  * <p>
  * <strong>Note:</strong> Intended for internal usage only.

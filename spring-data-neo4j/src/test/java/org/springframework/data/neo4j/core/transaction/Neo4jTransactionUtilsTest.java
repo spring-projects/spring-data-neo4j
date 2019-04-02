@@ -22,8 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import javax.transaction.Status;
 import javax.transaction.UserTransaction;
@@ -37,12 +37,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.neo4j.driver.v1.AccessMode;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementRunner;
-import org.neo4j.driver.v1.Transaction;
-import org.neo4j.driver.v1.TransactionConfig;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.StatementRunner;
+import org.neo4j.driver.Transaction;
+import org.neo4j.driver.TransactionConfig;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
@@ -72,7 +71,7 @@ class Neo4jTransactionUtilsTest {
 		AtomicBoolean transactionIsOpen = new AtomicBoolean(true);
 
 		when(driver.session()).thenReturn(session);
-		when(driver.session(AccessMode.WRITE, Collections.emptyList())).thenReturn(session);
+		when(driver.session(any(Consumer.class))).thenReturn(session);
 
 		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
 		doAnswer(invocation -> {
@@ -122,7 +121,7 @@ class Neo4jTransactionUtilsTest {
 				}
 			});
 
-			verify(driver).session(AccessMode.WRITE, Collections.emptyList());
+			verify(driver).session(any(Consumer.class));
 
 			verify(session).isOpen();
 			verify(session).beginTransaction(any(TransactionConfig.class));
@@ -166,7 +165,7 @@ class Neo4jTransactionUtilsTest {
 				}
 			});
 
-			verify(driver).session(AccessMode.WRITE, Collections.emptyList());
+			verify(driver).session(any(Consumer.class));
 
 			verify(session).isOpen();
 			verify(session).beginTransaction(any(TransactionConfig.class));
@@ -209,7 +208,7 @@ class Neo4jTransactionUtilsTest {
 
 			verify(userTransaction).begin();
 
-			verify(driver).session(AccessMode.WRITE, Collections.emptyList());
+			verify(driver).session(any(Consumer.class));
 
 			verify(session, times(2)).isOpen();
 			verify(session).beginTransaction(any(TransactionConfig.class));
@@ -251,7 +250,7 @@ class Neo4jTransactionUtilsTest {
 			verify(userTransaction).begin();
 			verify(userTransaction).rollback();
 
-			verify(driver).session(AccessMode.WRITE, Collections.emptyList());
+			verify(driver).session(any(Consumer.class));
 
 			verify(session, times(2)).isOpen();
 			verify(session).beginTransaction(any(TransactionConfig.class));

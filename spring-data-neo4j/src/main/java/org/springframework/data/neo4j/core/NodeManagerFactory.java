@@ -18,6 +18,8 @@
  */
 package org.springframework.data.neo4j.core;
 
+import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils.*;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -29,9 +31,8 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
-import org.neo4j.driver.v1.AccessMode;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.StatementRunner;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.StatementRunner;
 import org.springframework.data.neo4j.core.schema.Scanner;
 import org.springframework.data.neo4j.core.schema.Schema;
 import org.springframework.lang.Nullable;
@@ -63,7 +64,7 @@ public final class NodeManagerFactory  {
 	private Schema schema;
 
 	private Function<Driver, StatementRunner> statementRunnerProvider = sourceDriver -> sourceDriver
-		.session(AccessMode.WRITE, Collections.emptyList()).beginTransaction();
+		.session(defaultSessionParameters(null)).beginTransaction();
 
 	/**
 	 * Creates a new instance of a factory producing {@link NodeManager node managers}. When used in a transactional setup,
