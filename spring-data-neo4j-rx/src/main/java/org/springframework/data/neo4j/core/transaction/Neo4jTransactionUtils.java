@@ -19,18 +19,35 @@
 package org.springframework.data.neo4j.core.transaction;
 
 import java.util.Collections;
+import java.util.Optional;
+import java.util.function.Consumer;
 
-import org.neo4j.driver.v1.AccessMode;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.StatementRunner;
+import org.neo4j.driver.AccessMode;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.SessionParametersTemplate;
+import org.neo4j.driver.StatementRunner;
 import org.springframework.data.neo4j.core.NodeManager;
 import org.springframework.data.neo4j.core.NodeManagerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Internal use only.
  */
 public final class Neo4jTransactionUtils {
+
+	/**
+	 * The default session uses {@link AccessMode#WRITE} and an empty list of bookmarks.
+	 *
+	 * @param database The database to use. May be null, which then designates the default database.
+	 * @return Session parameters to configure the default session used
+	 */
+	public static Consumer<SessionParametersTemplate> defaultSessionParameters(@Nullable String database) {
+		return t -> t
+			.withDefaultAccessMode(AccessMode.WRITE)
+			.withBookmarks(Collections.EMPTY_LIST)
+			.withDatabase(Optional.ofNullable(database).orElse(""));
+	}
 
 	public static StatementRunner retrieveTransactionalStatementRunner(Driver driver) {
 
@@ -48,7 +65,7 @@ public final class Neo4jTransactionUtils {
 		}
 
 		// Manually create a new synchronization
-		connectionHolder = new Neo4jConnectionHolder(driver.session(AccessMode.WRITE, Collections.emptyList()));
+		connectionHolder = new Neo4jConnectionHolder(driver.session(defaultSessionParameters(null)));
 		connectionHolder.setSynchronizedWithTransaction(true);
 
 		TransactionSynchronizationManager.registerSynchronization(

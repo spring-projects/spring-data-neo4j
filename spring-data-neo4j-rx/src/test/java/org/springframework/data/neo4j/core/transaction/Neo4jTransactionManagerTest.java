@@ -20,18 +20,17 @@ package org.springframework.data.neo4j.core.transaction;
 
 import static org.mockito.Mockito.*;
 
-import java.util.Collections;
+import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.neo4j.driver.v1.AccessMode;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Transaction;
-import org.neo4j.driver.v1.TransactionConfig;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.StatementResult;
+import org.neo4j.driver.Transaction;
+import org.neo4j.driver.TransactionConfig;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -54,7 +53,7 @@ class Neo4jTransactionManagerTest {
 	@Test
 	public void triggerCommitCorrectly() {
 
-		when(driver.session(AccessMode.WRITE, Collections.emptyList())).thenReturn(session);
+		when(driver.session(any(Consumer.class))).thenReturn(session);
 		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
 		when(transaction.run(anyString())).thenReturn(statementResult);
 		when(session.isOpen()).thenReturn(true);
@@ -68,7 +67,7 @@ class Neo4jTransactionManagerTest {
 
 		txManager.commit(txStatus);
 
-		verify(driver).session(AccessMode.WRITE, Collections.emptyList());
+		verify(driver).session(any(Consumer.class));
 
 		verify(session).isOpen();
 		verify(session).beginTransaction(any(TransactionConfig.class));

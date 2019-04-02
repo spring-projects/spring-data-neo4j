@@ -18,7 +18,7 @@
  */
 package org.springframework.boot.autoconfigure.data.neo4j_rx;
 
-import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;

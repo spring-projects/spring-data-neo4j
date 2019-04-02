@@ -98,7 +98,7 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<mockito.version>2.23.4</mockito.version>
-		<neo4j-java-driver.version>1.7.2</neo4j-java-driver.version>
+		<neo4j-java-driver.version>2.0.0-alpha01</neo4j-java-driver.version>
 		<neo4j.version>3.5.2</neo4j.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<reactive-streams.version>1.2.1</reactive-streams.version>

@@ -19,8 +19,8 @@
 package org.springframework.data.neo4j.core;
 
 import org.apiguardian.api.API;
-import org.neo4j.driver.v1.StatementRunner;
-import org.neo4j.driver.v1.Transaction;
+import org.neo4j.driver.StatementRunner;
+import org.neo4j.driver.Transaction;
 import org.springframework.data.neo4j.core.context.DefaultPersistenceContext;
 import org.springframework.data.neo4j.core.context.PersistenceContext;
 import org.springframework.data.neo4j.core.schema.Schema;

@@ -20,9 +20,9 @@ package org.springframework.data.neo4j.core;
 
 import java.util.function.Supplier;
 
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.StatementRunner;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.StatementResult;
+import org.neo4j.driver.StatementRunner;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 
 /**

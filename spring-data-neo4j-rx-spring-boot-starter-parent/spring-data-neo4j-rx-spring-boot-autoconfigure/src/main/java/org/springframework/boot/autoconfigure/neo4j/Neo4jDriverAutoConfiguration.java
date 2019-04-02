@@ -21,9 +21,9 @@ package org.springframework.boot.autoconfigure.neo4j;
 import java.net.URI;
 import java.util.List;
 
-import org.neo4j.driver.v1.AuthToken;
-import org.neo4j.driver.v1.Config;
-import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.AuthToken;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Automatic configuration of Neo4js Java Driver.
  * <p>
- * Provides an instance of {@link org.neo4j.driver.v1.Driver} if the required library is available and no other instance
+ * Provides an instance of {@link org.neo4j.driver.Driver} if the required library is available and no other instance
  * has been manually configured.
  *
  * @author Michael J. Simons

@@ -19,7 +19,7 @@
 package org.springframework.data.neo4j.core;
 
 import org.apiguardian.api.API;
-import org.neo4j.driver.v1.Transaction;
+import org.neo4j.driver.Transaction;
 import org.springframework.lang.Nullable;
 
 /**

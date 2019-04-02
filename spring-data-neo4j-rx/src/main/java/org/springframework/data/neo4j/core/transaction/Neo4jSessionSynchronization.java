@@ -18,7 +18,7 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
-import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.Driver;
 import org.springframework.transaction.support.ResourceHolderSynchronization;
 import org.springframework.transaction.support.TransactionSynchronization;
 

@@ -32,17 +32,17 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
+import org.neo4j.driver.AuthToken;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Config;
 import org.neo4j.driver.internal.async.pool.PoolSettings;
-import org.neo4j.driver.v1.AuthToken;
-import org.neo4j.driver.v1.AuthTokens;
-import org.neo4j.driver.v1.Config;
-import org.neo4j.driver.v1.net.ServerAddressResolver;
+import org.neo4j.driver.net.ServerAddressResolver;
 import org.springframework.beans.BeanUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.source.InvalidConfigurationPropertyValueException;
 
 /**
- * Used to configure an instance of the {@link org.neo4j.driver.v1.Driver Neo4j-Java-Driver}.
+ * Used to configure an instance of the {@link org.neo4j.driver.Driver Neo4j-Java-Driver}.
  *
  * @author Michael J. Simons
  */

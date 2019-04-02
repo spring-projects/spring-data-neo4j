@@ -26,10 +26,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
-import org.neo4j.driver.v1.AccessMode;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.TransactionConfig;
+import org.neo4j.driver.AccessMode;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.TransactionConfig;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -106,11 +106,13 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		boolean readOnly = definition.isReadOnly();
 		AccessMode accessMode = readOnly ? AccessMode.READ : AccessMode.WRITE;
 		List<String> bookmarks = Collections.emptyList(); // TODO Bookmarksupport
+		String database = ""; // TODO Database selection
 
 		TransactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
 
 		try {
-			Session session = this.driver.session(accessMode, bookmarks);
+			Session session = this.driver
+				.session(t -> t.withDefaultAccessMode(accessMode).withBookmarks(bookmarks).withDatabase(database));
 
 			Neo4jConnectionHolder connectionHolder = new Neo4jConnectionHolder(session, transactionConfig);
 			connectionHolder.setSynchronizedWithTransaction(true);

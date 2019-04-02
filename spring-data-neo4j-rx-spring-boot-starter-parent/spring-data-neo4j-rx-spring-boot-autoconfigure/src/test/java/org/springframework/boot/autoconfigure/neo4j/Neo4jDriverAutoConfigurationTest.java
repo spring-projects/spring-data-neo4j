@@ -21,7 +21,7 @@ package org.springframework.boot.autoconfigure.neo4j;
 import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
-import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.Driver;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverFactory.DefaultDriverFactory;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverFactory.RoutingDriverFactory;

@@ -20,7 +20,7 @@ package org.springframework.data.neo4j.integration;
 
 import java.util.List;
 
-import org.neo4j.driver.v1.Record;
+import org.neo4j.driver.Record;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.transaction.annotation.Transactional;
