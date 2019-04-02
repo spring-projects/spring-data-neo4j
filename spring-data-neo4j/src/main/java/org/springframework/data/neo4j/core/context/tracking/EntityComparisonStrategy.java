@@ -19,14 +19,17 @@
 package org.springframework.data.neo4j.core.context.tracking;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.neo4j.core.schema.NodeDescription;
+import org.springframework.data.neo4j.core.schema.PropertyDescription;
 
 /**
  * @author Gerrit Meier
@@ -51,15 +54,15 @@ public class EntityComparisonStrategy implements EntityTrackingStrategy {
 	private static class EntityState {
 
 		private final Map<String, Object> oldState;
-		private final Field[] objectFields;
+		private final List<Field> objectFields;
 		private final Object identifier;
 
-		EntityState(NodeDescription nodeDescription, Object oldEntity) {
+		EntityState(NodeDescription nodeDescription, Object entity) {
 
-			// TODO compute fields based on description
-			objectFields = oldEntity.getClass().getDeclaredFields();
-			this.identifier = computeIdentifier(oldEntity);
-			this.oldState = retrieveStateFrom(oldEntity);
+			Collection<PropertyDescription> properties = nodeDescription.getProperties();
+			objectFields = getFieldsFromProperties(entity, properties);
+			this.identifier = computeIdentifier(entity);
+			this.oldState = retrieveStateFrom(entity);
 		}
 
 		Set<EntityChangeEvent> computeDelta(Object newObject) {
@@ -70,12 +73,45 @@ public class EntityComparisonStrategy implements EntityTrackingStrategy {
 
 			for (Field field : objectFields) {
 				Object newValue = getFieldValueOrHashCode(field, newObject);
-				if (!oldState.get(field.getName()).equals(newValue)) {
+				Object oldValue = oldState.get(field.getName());
+
+				// check oldValue null first to avoid NPE in `equals` calls
+				if (oldValue == null && newValue == null) {
+					continue;
+				}
+				if (oldValue == null || !oldValue.equals(newValue)) {
 					changes.add(new EntityChangeEvent(field.getName(), newValue));
 				}
 			}
 
 			return changes;
+		}
+
+		private List<Field> getFieldsFromProperties(Object entity, Collection<PropertyDescription> properties) {
+			List<Field> fields = new ArrayList<>();
+
+			Class<?> entityClass = entity.getClass();
+			Map<String, Field> classFields = retrieveAllFields(entityClass);
+			for (PropertyDescription property : properties) {
+				fields.add(classFields.get(property.getFieldName()));
+			}
+
+			return fields;
+		}
+
+		private Map<String, Field> retrieveAllFields(Class<?> entityClass) {
+			Map<String, Field> classFields = new HashMap<>();
+
+			Class<?> classToScan = entityClass;
+
+			do {
+				for (Field field : classToScan.getDeclaredFields()) {
+					classFields.put(field.getName(), field);
+				}
+				classToScan = classToScan.getSuperclass();
+			} while (classToScan != null);
+
+			return classFields;
 		}
 
 		private boolean sameObject(Object objectToCompare) {
@@ -101,7 +137,9 @@ public class EntityComparisonStrategy implements EntityTrackingStrategy {
 				field.setAccessible(true);
 				Object value = field.get(entity);
 				field.setAccessible(false);
-				if (!Collection.class.isAssignableFrom(value.getClass())) {
+				if (value == null) {
+					return null;
+				} else if (!Collection.class.isAssignableFrom(value.getClass())) {
 					return value;
 				} else {
 					return value.hashCode();
