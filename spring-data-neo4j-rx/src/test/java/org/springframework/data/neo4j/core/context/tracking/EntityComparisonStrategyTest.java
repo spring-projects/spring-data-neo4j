@@ -22,6 +22,7 @@ import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -29,18 +30,28 @@ import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
+import org.springframework.data.neo4j.core.schema.PropertyDescription;
 
 /**
  * @author Gerrit Meier
  */
 class EntityComparisonStrategyTest {
 
+	private PropertyDescription valuePropertyDescription = new PropertyDescription("value", "value");
+
+	private PropertyDescription informationPropertyDescription = new PropertyDescription("information", "information");
+
+	private PropertyDescription parentPropertyDescription = new PropertyDescription("parentValue", "parentValue");
+
+	private NodeDescription description = NodeDescription.builder().primaryLabel("Something")
+			.properties(Arrays.asList(valuePropertyDescription, informationPropertyDescription, parentPropertyDescription))
+			.relationships(emptyList()).underlyingClass(Something.class).build();
+
 	@Test
 	void trackSimplePropertyChange() {
 		EntityComparisonStrategy strategy = new EntityComparisonStrategy();
 		Something something = new Something("oldValue");
-		NodeDescription description = NodeDescription.builder().primaryLabel("Something").properties(emptyList())
-			.relationships(emptyList()).underlyingClass(Something.class).build();
+
 		strategy.track(description, something);
 
 		String fieldName = "value";
@@ -58,31 +69,26 @@ class EntityComparisonStrategyTest {
 	void trackCollectionPropertyChange() {
 		EntityComparisonStrategy strategy = new EntityComparisonStrategy();
 		Something something = new Something("oldValue");
-		NodeDescription description = NodeDescription.builder().primaryLabel("Something").properties(emptyList())
-			.relationships(emptyList()).underlyingClass(Something.class).build();
+
 		strategy.track(description, something);
 
 		String fieldName = "information";
-
 		something.information.add("additional entry");
 
 		Collection<EntityChangeEvent> changeEvents = strategy.getAggregatedDelta(something);
 
 		EntityChangeEvent changeEvent = changeEvents.iterator().next();
 		assertThat(changeEvent.getPropertyField()).isEqualTo(fieldName);
-		// todo decide what we want to see as a collection diff
 		assertThat(changeEvent.getValue()).isInstanceOf(Integer.class);
 	}
 
 	@Test
 	void trackCollectionPropertyReorderChange() {
+		EntityComparisonStrategy strategy = new EntityComparisonStrategy();
 		Something something = new Something("blubb");
 		something.information.add("entry 1");
 		something.information.add("entry 2");
 
-		EntityComparisonStrategy strategy = new EntityComparisonStrategy();
-		NodeDescription description = NodeDescription.builder().primaryLabel("Something").properties(emptyList())
-			.relationships(emptyList()).underlyingClass(Something.class).build();
 		strategy.track(description, something);
 
 		something.information.sort(Comparator.reverseOrder());
@@ -96,7 +102,29 @@ class EntityComparisonStrategyTest {
 		assertThat(changeEvent.getValue()).isInstanceOf(Integer.class);
 	}
 
-	class Something {
+	@Test
+	void trackParentClassPropertyChange() {
+		EntityComparisonStrategy strategy = new EntityComparisonStrategy();
+		Something something = new Something("oldValue");
+
+		strategy.track(description, something);
+
+		String fieldName = "parentValue";
+		String newValue = "newValue";
+		something.parentValue = newValue;
+
+		Collection<EntityChangeEvent> changeEvents = strategy.getAggregatedDelta(something);
+
+		EntityChangeEvent changeEvent = changeEvents.iterator().next();
+		assertThat(changeEvent.getPropertyField()).isEqualTo(fieldName);
+		assertThat(changeEvent.getValue()).isEqualTo(newValue);
+	}
+
+	class ParentClass {
+		String parentValue;
+	}
+
+	class Something extends ParentClass {
 		final List<String> information = new ArrayList<>();
 		String value;
 
