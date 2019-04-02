@@ -140,7 +140,7 @@ In the relational world it is an anti pattern to map out n:m (intersection) tabl
 If they have attributes, a schema is usually refactored into a 1:n and a n:1  table and an entity structure.
 We don't need another entity, though.
 
-
+[[labels]]
 === Labels
 
 NOTE: Do we need support for dynamic labels?
@@ -316,10 +316,24 @@ We considered several approaches of dirty tracking in SDN-rx:
 
 Picking the third option for now (_using some kind of event / listener_) would allow us to track single field / relationship changes per object.
 An entity will get tracked after it gets initially saved into or loaded from the database.
+
+[NOTE]
+.Architecture evaluation fragment (not current anymore but should get archived)
+====
 As the technical solution we decided to use proxies to listen for the changes.
 It will then be required for the user to work with the returned (proxy) object after calling `save` to set additional fields etc.
-
 The event tracking and event triggering through the proxies should communicate via an API to have the option of using another tracking approach in the future.
+
+Moved back to evaluation: It is not possible to simply intercept arbitrary property changes in Java.
+We would need some kind of byte code enhancement/maven plugin to achieve this.
+====
+
+The information about object changes will be based on an object comparison.
+We will store the saved or loaded object state and compare it with the actual version that should get saved.
+To keep the eventing idea up this will create an one-shot event containing multiple changed properties.
+This will also be needed if we implement the support for property changes through the byte code enhancement,
+because a change / domain interaction could affect more than one property at a time.
+The events will then get used to construct the matching cypher for the next save interaction.
 
 ==== Side-effect on "flush mode"
 We can also track repository interactions like `save` and defer them depending on the flush mode.
@@ -334,3 +348,8 @@ The Spring Data Neo4j RX Spring Boot Starter provides automatic configuration to
 * Configure Spring Data Neo4j RX itself inside a Spring Boot application and enabling Spring Data repositories
 
 Read me about it link:spring-data-neo4j-rx-spring-boot-starter-parent/README.adoc[here].
+
+== Open questions
+
+* <<labels,Dynamic label support>>
+* Reloading nodes from the database and the affect on already loaded and changed objects.

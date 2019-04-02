@@ -32,9 +32,9 @@ import org.springframework.lang.Nullable;
 @API(status = API.Status.INTERNAL, since = "1.0")
 class DefaultNodeManager implements NodeManager {
 
-	private final PersistenceContext persistenceContext = new DefaultPersistenceContext();
-
 	private final Schema schema;
+
+	private final PersistenceContext persistenceContext;
 
 	private final Neo4jTemplate neo4jTemplate;
 
@@ -42,6 +42,7 @@ class DefaultNodeManager implements NodeManager {
 
 	DefaultNodeManager(Schema schema, StatementRunner statementRunner) {
 		this.schema = schema;
+		this.persistenceContext = new DefaultPersistenceContext(schema);
 		this.neo4jTemplate = new Neo4jTemplate(() -> statementRunner);
 		this.transaction = statementRunner instanceof Transaction ? (Transaction) statementRunner : null;
 	}
@@ -56,5 +57,22 @@ class DefaultNodeManager implements NodeManager {
 	public Object executeQuery(String query) {
 
 		return neo4jTemplate.executeQuery(query);
+	}
+
+	@Override
+	public Object save(Object entityWithUnknownState) {
+
+		// TODO if already registered, here or in the context?
+		this.persistenceContext.register(entityWithUnknownState);
+
+		throw new UnsupportedOperationException("Not there yet.");
+	}
+
+	@Override
+	public void delete(Object managedEntity) {
+
+		this.persistenceContext.deregister(managedEntity);
+
+		throw new UnsupportedOperationException("Not there yet.");
 	}
 }

@@ -16,36 +16,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.context;
+package org.springframework.data.neo4j.core.context.tracking;
+
+import lombok.Getter;
 
 import org.apiguardian.api.API;
 
 /**
- * Represents the state of varies instances being tracked. Those include:
- *
- * <ul>
- * <li>All nodes</li>
- * <li>All relationships</li>
- * </ul>
- *
- * including properties of them.
- *
- * @author Michael J. Simons
+ * @author Gerrit Meier
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public interface PersistenceContext {
+@Getter
+public class EntityChangeEvent {
+	private final String propertyField;
+	private final Object value;
 
-	/**
-	 * Registers an entity within the context and starts tracking the entitys state.
-	 *
-	 * @param entity The entity to register
-	 */
-	void register(Object entity);
-
-	/**
-	 * Removes an entity from this context and stops tracking the entitys state.
-	 *
-	 * @param managedEntity The entity to remove
-	 */
-	void deregister(Object managedEntity);
+	EntityChangeEvent(String propertyField, Object value) {
+		this.propertyField = propertyField;
+		this.value = value;
+	}
 }

@@ -55,6 +55,8 @@ class MappingContextBasedScannerImplTest {
 		assertThat(optionalUserNodeDescription)
 			.isPresent()
 			.hasValueSatisfying(description -> {
+				assertThat(description.getUnderlyingClass()).isEqualTo(UserNode.class);
+
 				assertThat(description.getIdDescription().getIdStrategy())
 					.isEqualTo(Id.Strategy.INTERNAL);
 
@@ -71,6 +73,8 @@ class MappingContextBasedScannerImplTest {
 		assertThat(optionalBikeNodeDescription)
 			.isPresent()
 			.hasValueSatisfying(description -> {
+				assertThat(description.getUnderlyingClass()).isEqualTo(BikeNode.class);
+
 				assertThat(description.getIdDescription().getIdStrategy())
 					.isEqualTo(Id.Strategy.ASSIGNED);
 

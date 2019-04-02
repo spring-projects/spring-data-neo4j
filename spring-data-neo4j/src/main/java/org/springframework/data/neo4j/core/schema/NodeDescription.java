@@ -41,6 +41,11 @@ import org.apiguardian.api.API;
 public final class NodeDescription {
 
 	/**
+	 * The class being mapped to the node.
+	 */
+	private final Class<?> underlyingClass;
+
+	/**
 	 * The primary label of this node.
 	 */
 	private final String primaryLabel;
@@ -52,14 +57,20 @@ public final class NodeDescription {
 	private final List<RelationshipDescription> relationships;
 
 	@Builder
-	private NodeDescription(String primaryLabel, IdDescription idDescription,
+	private NodeDescription(Class<?> underlyingClass, String primaryLabel, IdDescription idDescription,
 		List<PropertyDescription> properties,
 		List<RelationshipDescription> relationships) {
+
+		this.underlyingClass = underlyingClass;
 		this.primaryLabel = primaryLabel;
 		this.idDescription = idDescription;
 		this.propertiesByFieldName = properties.stream()
 			.collect(Collectors.toMap(PropertyDescription::getFieldName, Function.identity()));
 		this.relationships = new ArrayList<>(relationships);
+	}
+
+	public Class<?> getUnderlyingClass() {
+		return underlyingClass;
 	}
 
 	/**

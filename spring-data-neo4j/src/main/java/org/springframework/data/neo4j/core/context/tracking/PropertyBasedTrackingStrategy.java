@@ -16,16 +16,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration;
+package org.springframework.data.neo4j.core.context.tracking;
 
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
+import java.util.Collection;
 
-@Node
-public class Person {
+import org.springframework.data.neo4j.core.schema.NodeDescription;
 
-	@Id
-	private Long id;
+/**
+ * @author Gerrit Meier
+ */
+public class PropertyBasedTrackingStrategy implements EntityTrackingStrategy {
 
-	private String name;
+	@Override
+	public void track(NodeDescription nodeDescription, Object entity) {
+		// React to events propagated from the enhanced class and store them
+	}
+
+	@Override
+	public Collection<EntityChangeEvent> getAggregatedDelta(Object entity) {
+		// Aggregate collected events and return it
+		return null;
+	}
 }

@@ -110,6 +110,7 @@ public class MappingContextBasedScannerImpl implements Scanner {
 			.orElseGet(() -> new IdDescription());
 
 		return NodeDescription.builder()
+			.underlyingClass(entity.getType())
 			.primaryLabel(entity.getPrimaryLabel())
 			.idDescription(idDescription)
 			.properties(properties)
