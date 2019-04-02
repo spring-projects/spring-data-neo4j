@@ -36,6 +36,7 @@ import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.internal.async.pool.PoolSettings;
+import org.neo4j.driver.internal.logging.Slf4jLogging;
 import org.neo4j.driver.net.ServerAddressResolver;
 import org.springframework.beans.BeanUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -387,6 +388,9 @@ public class Neo4jDriverProperties {
 			if (serverAddressResolverClass != null) {
 				builder.withResolver(BeanUtils.instantiateClass(serverAddressResolverClass));
 			}
+
+			// Always use Slf4j logging
+			builder.withLogging(new Slf4jLogging());
 
 			return builder.build();
 		}
