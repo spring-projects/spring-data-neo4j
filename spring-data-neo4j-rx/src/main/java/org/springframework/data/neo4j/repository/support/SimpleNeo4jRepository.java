@@ -58,7 +58,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	@Override
 	@Transactional
 	public <S extends T> S save(S entity) {
-		throw new UnsupportedOperationException("Not there yet.");
+		return this.nodeManager.save(entity);
 	}
 
 	@Override

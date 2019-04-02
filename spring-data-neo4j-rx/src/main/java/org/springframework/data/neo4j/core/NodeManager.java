@@ -43,4 +43,25 @@ public interface NodeManager {
 
 	@API(status = API.Status.EXPERIMENTAL)
 	Object executeQuery(String query);
+
+	/**
+	 * Saves an entity. When the entity is not yet managed in this instance of the NodeManager, and will be registered as
+	 * a managed instance. In either way, the state of the entity will be written to the underlying store afterwards.
+	 * It is recommended to use the returned, managed instance of the object. This is especially true when dealing with
+	 * immutable entities, where SDN RX has to return new instances to fill in generated keys and the like.
+	 *
+	 * @param entityWithUnknownState An entity that is either managed or unmanaged
+	 * @return A managed object
+	 */
+	<T extends Object> T save(T entityWithUnknownState);
+
+	/**
+	 * Delete an object from the persistence context and the underlying store.
+	 *
+	 * @param managedEntity Object to be removed
+	 */
+	void delete(Object managedEntity);
+
+
+
 }

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
 
@@ -61,6 +62,13 @@ public final class Schema {
 					newDescription, label.orElse("n/a")));
 		}
 
+		this.getNodeDescription(newDescription.getUnderlyingClass()).ifPresent(existingDescription -> {
+			throw new IllegalSchemaChangeException(String
+				.format(Locale.ENGLISH,
+					"The schema already contains description with the underlying class %s under the primary label %s",
+					newDescription.getUnderlyingClass().getName(), existingDescription.getPrimaryLabel()));
+		});
+
 		this.nodeDescriptionsByPrimaryLabel.put(primaryLabel, newDescription);
 		return this;
 	}
@@ -73,5 +81,17 @@ public final class Schema {
 	 */
 	public Optional<NodeDescription> getNodeDescription(String primaryLabel) {
 		return Optional.ofNullable(this.nodeDescriptionsByPrimaryLabel.get(primaryLabel));
+	}
+
+	/**
+	 * Retrieves a nodes description by its underlying class.
+	 *
+	 * @param underlyingClass The underlying class of the node description to be retrieved
+	 * @return The description if any
+	 */
+	public Optional<NodeDescription> getNodeDescription(Class<?> underlyingClass) {
+
+		Predicate<NodeDescription> underlyingClassMatches = n -> n.getUnderlyingClass().equals(underlyingClass);
+		return this.nodeDescriptionsByPrimaryLabel.values().stream().filter(underlyingClassMatches).findFirst();
 	}
 }
