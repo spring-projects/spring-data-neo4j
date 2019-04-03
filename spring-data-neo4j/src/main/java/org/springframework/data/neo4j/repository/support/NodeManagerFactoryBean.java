@@ -18,6 +18,8 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apiguardian.api.API;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -25,6 +27,7 @@ import org.springframework.data.neo4j.core.NodeManager;
 import org.springframework.data.neo4j.core.NodeManagerFactory;
 import org.springframework.data.neo4j.core.mapping.MappingContextBasedScannerImpl;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.transaction.ManagedTransactionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 
 /**
@@ -37,16 +40,12 @@ import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
  * @author Michael J. Simons
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
+@RequiredArgsConstructor
 public final class NodeManagerFactoryBean implements InitializingBean, FactoryBean<NodeManager> {
+
 	private final NodeManagerFactory target;
 
 	private final Neo4jMappingContext neo4jMappingContext;
-
-	public NodeManagerFactoryBean(NodeManagerFactory target, Neo4jMappingContext neo4jMappingContext) {
-
-		this.target = target;
-		this.neo4jMappingContext = neo4jMappingContext;
-	}
 
 	@Override
 	public NodeManager getObject() {
@@ -60,7 +59,9 @@ public final class NodeManagerFactoryBean implements InitializingBean, FactoryBe
 
 	@Override
 	public void afterPropertiesSet() {
-		target.setStatementRunnerProvider(Neo4jTransactionUtils::retrieveTransactionalStatementRunner);
+
+		// Use managed transactions
+		target.setNativeTransactionProvider(new ManagedTransactionProvider());
 		target.setScanner(new MappingContextBasedScannerImpl(this.neo4jMappingContext));
 		target.initialize();
 	}

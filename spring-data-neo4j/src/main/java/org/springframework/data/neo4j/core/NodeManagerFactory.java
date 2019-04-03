@@ -18,8 +18,6 @@
  */
 package org.springframework.data.neo4j.core;
 
-import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils.*;
-
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -28,13 +26,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.StatementRunner;
 import org.springframework.data.neo4j.core.schema.Scanner;
 import org.springframework.data.neo4j.core.schema.Schema;
+import org.springframework.data.neo4j.core.transaction.DefaultTransactionProvider;
+import org.springframework.data.neo4j.core.transaction.NativeTransactionProvider;
 import org.springframework.lang.Nullable;
 
 /**
@@ -63,8 +61,10 @@ public final class NodeManagerFactory  {
 	@Nullable
 	private Schema schema;
 
-	private Function<Driver, StatementRunner> statementRunnerProvider = sourceDriver -> sourceDriver
-		.session(defaultSessionParameters(null)).beginTransaction();
+	/**
+	 * A provider of native transactions, defaults to unmanaged native transactions opened with default parameters.
+	 */
+	private NativeTransactionProvider nativeTransactionProvider = new DefaultTransactionProvider();
 
 	/**
 	 * Creates a new instance of a factory producing {@link NodeManager node managers}. When used in a transactional setup,
@@ -77,9 +77,10 @@ public final class NodeManagerFactory  {
 	 * @param initialPersistentClasses The set of classes that should be initially scanned
 	 */
 	public NodeManagerFactory(Driver driver, Class<?>... initialPersistentClasses) {
-		this.driver = driver;
 
+		this.driver = driver;
 		this.initialPersistentClasses = new HashSet<>();
+
 		Arrays.stream(initialPersistentClasses).forEach(this.initialPersistentClasses::add);
 	}
 
@@ -93,20 +94,21 @@ public final class NodeManagerFactory  {
 	public NodeManager createNodeManager() {
 
 		Objects.requireNonNull(schema, "A schema is required. Did you call #initialize() before using this factory?");
-		return new DefaultNodeManager(schema, statementRunnerProvider.apply(driver));
+		return new DefaultNodeManager(schema, new Neo4jTemplate(driver, this.nativeTransactionProvider),
+			this.nativeTransactionProvider.retrieveTransaction(driver).orElse(null));
 	}
 
 	/**
 	 * Configures a provider for extracting sessions/transactions from a Neo4j driver. This method is not to be called
 	 * from application code and only used by internal API.
 	 *
-	 * @param statementRunnerProvider A required provider of statement runners
+	 * @param nativeTransactionProvider A required transaction supplier
 	 */
 	@API(status = API.Status.INTERNAL, since = "1.0")
-	public void setStatementRunnerProvider(Function<Driver, StatementRunner> statementRunnerProvider) {
+	public void setNativeTransactionProvider(NativeTransactionProvider nativeTransactionProvider) {
 
-		Objects.requireNonNull(statementRunnerProvider, "A node manager factory requires a provider of statement runners.");
-		this.statementRunnerProvider = statementRunnerProvider;
+		Objects.requireNonNull(nativeTransactionProvider, "A node manager factory requires a transaction provider.");
+		this.nativeTransactionProvider = nativeTransactionProvider;
 	}
 
 	/**
