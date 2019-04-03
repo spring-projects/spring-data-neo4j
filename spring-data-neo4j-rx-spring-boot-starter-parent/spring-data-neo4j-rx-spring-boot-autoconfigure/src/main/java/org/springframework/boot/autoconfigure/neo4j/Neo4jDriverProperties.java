@@ -35,6 +35,7 @@ import java.util.function.Predicate;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
+import org.neo4j.driver.Logging;
 import org.neo4j.driver.internal.async.pool.PoolSettings;
 import org.neo4j.driver.internal.logging.Slf4jLogging;
 import org.neo4j.driver.net.ServerAddressResolver;
@@ -273,6 +274,11 @@ public class Neo4jDriverProperties {
 		 */
 		private Class<? extends ServerAddressResolver> serverAddressResolverClass;
 
+		/**
+		 * Specify a custom logging shim to use. Default delegates to Slf4j.
+		 */
+		private Class<? extends Logging> loggingClass = Slf4jLogging.class;
+
 		public boolean isLogLeakedSessions() {
 			return logLeakedSessions;
 		}
@@ -362,6 +368,14 @@ public class Neo4jDriverProperties {
 			this.serverAddressResolverClass = serverAddressResolverClass;
 		}
 
+		public Class<? extends Logging> getLoggingClass() {
+			return loggingClass;
+		}
+
+		public void setLoggingClass(Class<? extends Logging> loggingClass) {
+			this.loggingClass = loggingClass;
+		}
+
 		Config toInternalRepresentation() {
 			Config.ConfigBuilder builder = Config.builder();
 
@@ -389,8 +403,7 @@ public class Neo4jDriverProperties {
 				builder.withResolver(BeanUtils.instantiateClass(serverAddressResolverClass));
 			}
 
-			// Always use Slf4j logging
-			builder.withLogging(new Slf4jLogging());
+			builder.withLogging(BeanUtils.instantiateClass(this.loggingClass));
 
 			return builder.build();
 		}

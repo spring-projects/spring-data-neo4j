@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.internal.async.pool.PoolSettings;
+import org.neo4j.driver.internal.logging.Slf4jLogging;
 import org.neo4j.driver.internal.retry.RetrySettings;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.source.InvalidConfigurationPropertyValueException;
@@ -284,6 +285,27 @@ class Neo4jDriverPropertiesTest {
 			assertThat(configProperties.toInternalRepresentation().resolver())
 				.isNotNull()
 				.isInstanceOf(TestServerAddressResolver.class);
+		}
+
+		@Test
+		void shouldDefaultToSlf4j() {
+
+			ConfigProperties configProperties = new ConfigProperties();
+			assertThat(configProperties.toInternalRepresentation().logging())
+				.isNotNull()
+				.isInstanceOf(Slf4jLogging.class);
+
+		}
+
+		@Test
+		void loggingClassSettingsShouldWork() {
+
+			ConfigProperties configProperties = new ConfigProperties();
+			configProperties.setLoggingClass(TestLoggingClass.class);
+			assertThat(configProperties.toInternalRepresentation().logging())
+				.isNotNull()
+				.isInstanceOf(TestLoggingClass.class);
+
 		}
 	}
 

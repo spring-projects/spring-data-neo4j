@@ -92,6 +92,10 @@ Otherwise, it passes all URIs to the Java driver which in turn uses the first on
 |`+false+`
 |+++Flag, if leaked sessions logging is enabled.+++
 
+|`+spring.neo4j.config.logging-class+`
+|`+org.neo4j.driver.internal.logging.Slf4jLogging+`
+|+++Used to configure a different Neo4j-Java-Driver logging implementation.+++
+
 |`+spring.neo4j.config.max-connection-lifetime+`
 |`+1h+`
 |+++Pooled connections older than this threshold will be closed and removed from the pool.+++
