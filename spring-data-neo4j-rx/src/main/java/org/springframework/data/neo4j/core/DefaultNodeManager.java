@@ -19,7 +19,6 @@
 package org.springframework.data.neo4j.core;
 
 import org.apiguardian.api.API;
-import org.neo4j.driver.StatementRunner;
 import org.neo4j.driver.Transaction;
 import org.springframework.data.neo4j.core.context.DefaultPersistenceContext;
 import org.springframework.data.neo4j.core.context.PersistenceContext;
@@ -34,17 +33,19 @@ class DefaultNodeManager implements NodeManager {
 
 	private final Schema schema;
 
-	private final PersistenceContext persistenceContext;
-
 	private final Neo4jTemplate neo4jTemplate;
 
 	private final Transaction transaction;
 
-	DefaultNodeManager(Schema schema, StatementRunner statementRunner) {
+	private final PersistenceContext persistenceContext;
+
+	DefaultNodeManager(Schema schema, Neo4jTemplate neo4jTemplate, @Nullable Transaction transaction) {
+
 		this.schema = schema;
+		this.neo4jTemplate = neo4jTemplate;
+		this.transaction = transaction;
+
 		this.persistenceContext = new DefaultPersistenceContext(schema);
-		this.neo4jTemplate = new Neo4jTemplate(() -> statementRunner);
-		this.transaction = statementRunner instanceof Transaction ? (Transaction) statementRunner : null;
 	}
 
 	@Override

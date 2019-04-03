@@ -23,9 +23,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.neo4j.driver.AccessMode;
-import org.neo4j.driver.Driver;
 import org.neo4j.driver.SessionParametersTemplate;
-import org.neo4j.driver.StatementRunner;
 import org.springframework.data.neo4j.core.NodeManager;
 import org.springframework.data.neo4j.core.NodeManagerFactory;
 import org.springframework.lang.Nullable;
@@ -47,33 +45,6 @@ public final class Neo4jTransactionUtils {
 			.withDefaultAccessMode(AccessMode.WRITE)
 			.withBookmarks(Collections.EMPTY_LIST)
 			.withDatabase(Optional.ofNullable(database).orElse(""));
-	}
-
-	public static StatementRunner retrieveTransactionalStatementRunner(Driver driver) {
-
-		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-			return driver.session();
-		}
-
-		// Try existing transaction
-		Neo4jConnectionHolder connectionHolder = (Neo4jConnectionHolder) TransactionSynchronizationManager
-			.getResource(driver);
-
-		if (connectionHolder != null) {
-
-			return connectionHolder.getTransaction();
-		}
-
-		// Manually create a new synchronization
-		connectionHolder = new Neo4jConnectionHolder(driver.session(defaultSessionParameters(null)));
-		connectionHolder.setSynchronizedWithTransaction(true);
-
-		TransactionSynchronizationManager.registerSynchronization(
-			new Neo4jSessionSynchronization(connectionHolder, driver));
-
-		TransactionSynchronizationManager.bindResource(driver, connectionHolder);
-
-		return connectionHolder.getTransaction();
 	}
 
 	public static NodeManager retrieveTransactionalNodeManager(NodeManagerFactory nodeManagerFactory) {

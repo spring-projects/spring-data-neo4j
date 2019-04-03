@@ -18,10 +18,10 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -39,7 +39,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.StatementRunner;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
 import org.springframework.transaction.TransactionStatus;
@@ -53,7 +52,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class Neo4jTransactionUtilsTest {
+class ManagedTransactionProviderTest {
 
 	@Mock
 	private Driver driver;
@@ -70,7 +69,6 @@ class Neo4jTransactionUtilsTest {
 		AtomicBoolean sessionIsOpen = new AtomicBoolean(true);
 		AtomicBoolean transactionIsOpen = new AtomicBoolean(true);
 
-		when(driver.session()).thenReturn(session);
 		when(driver.session(any(Consumer.class))).thenReturn(session);
 
 		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
@@ -89,17 +87,19 @@ class Neo4jTransactionUtilsTest {
 
 	@Test
 	void shouldWorkWithoutSynchronizations() {
-		@SuppressWarnings({ "unused" })
-		StatementRunner statementRunner = Neo4jTransactionUtils.retrieveTransactionalStatementRunner(driver);
+		Optional<Transaction> optionalTransaction = new ManagedTransactionProvider().retrieveTransaction(driver);
 
-		verify(driver).session();
-		verifyNoMoreInteractions(driver, session, transaction);
+		assertThat(optionalTransaction).isEmpty();
+
+		verifyZeroInteractions(driver, session, transaction);
 	}
 
 	@Nested
 	class BasedOnNeo4jTransactions {
 		@Test
 		void shouldOpenNewTransaction() {
+
+			final ManagedTransactionProvider transactionProvider = new ManagedTransactionProvider();
 
 			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
 			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
@@ -113,9 +113,8 @@ class Neo4jTransactionUtilsTest {
 					assertThat(transactionStatus.isNewTransaction()).isTrue();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
 
-					@SuppressWarnings({ "unused" })
-					StatementRunner statementRunner = Neo4jTransactionUtils
-						.retrieveTransactionalStatementRunner(driver);
+					Optional<Transaction> optionalTransaction = transactionProvider.retrieveTransaction(driver);
+					assertThat(optionalTransaction).isPresent();
 
 					transactionStatus.setRollbackOnly();
 				}
@@ -135,6 +134,8 @@ class Neo4jTransactionUtilsTest {
 		@Test
 		void shouldParticipateInOngoingTransaction() {
 
+			final ManagedTransactionProvider transactionProvider = new ManagedTransactionProvider();
+
 			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
 			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
@@ -143,9 +144,8 @@ class Neo4jTransactionUtilsTest {
 				@Override
 				protected void doInTransactionWithoutResult(TransactionStatus outerStatus) {
 
-					@SuppressWarnings({ "unused" })
-					StatementRunner outerStatementRunner = Neo4jTransactionUtils
-						.retrieveTransactionalStatementRunner(driver);
+					Optional<Transaction> outerNativeTransaction = transactionProvider.retrieveTransaction(driver);
+					assertThat(outerNativeTransaction).isPresent();
 					assertThat(outerStatus.isNewTransaction()).isTrue();
 
 					txTemplate.execute(new TransactionCallbackWithoutResult() {
@@ -155,9 +155,9 @@ class Neo4jTransactionUtilsTest {
 
 							assertThat(innerStatus.isNewTransaction()).isFalse();
 
-							@SuppressWarnings({ "unused" })
-							StatementRunner innerStatementRunner = Neo4jTransactionUtils
-								.retrieveTransactionalStatementRunner(driver);
+							Optional<Transaction> innerNativeTransaction = transactionProvider
+								.retrieveTransaction(driver);
+							assertThat(innerNativeTransaction).isPresent();
 						}
 					});
 
@@ -186,6 +186,8 @@ class Neo4jTransactionUtilsTest {
 			when(userTransaction.getStatus()).thenReturn(Status.STATUS_NO_TRANSACTION, Status.STATUS_ACTIVE,
 				Status.STATUS_ACTIVE);
 
+			final ManagedTransactionProvider transactionProvider = new ManagedTransactionProvider();
+
 			JtaTransactionManager txManager = new JtaTransactionManager(userTransaction);
 			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
@@ -198,10 +200,9 @@ class Neo4jTransactionUtilsTest {
 					assertThat(transactionStatus.isNewTransaction()).isTrue();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
 
-					@SuppressWarnings({ "unused" })
-					StatementRunner statementRunner = Neo4jTransactionUtils
-						.retrieveTransactionalStatementRunner(driver);
+					Optional<Transaction> nativeTransaction = transactionProvider.retrieveTransaction(driver);
 
+					assertThat(nativeTransaction).isPresent();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
 				}
 			});
@@ -225,6 +226,8 @@ class Neo4jTransactionUtilsTest {
 			when(userTransaction.getStatus()).thenReturn(Status.STATUS_NO_TRANSACTION, Status.STATUS_ACTIVE,
 				Status.STATUS_ACTIVE);
 
+			final ManagedTransactionProvider transactionProvider = new ManagedTransactionProvider();
+
 			JtaTransactionManager txManager = new JtaTransactionManager(userTransaction);
 			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
@@ -237,10 +240,9 @@ class Neo4jTransactionUtilsTest {
 					assertThat(transactionStatus.isNewTransaction()).isTrue();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
 
-					@SuppressWarnings({ "unused" })
-					StatementRunner statementRunner = Neo4jTransactionUtils
-						.retrieveTransactionalStatementRunner(driver);
+					Optional<Transaction> nativeTransaction = transactionProvider.retrieveTransaction(driver);
 
+					assertThat(nativeTransaction).isPresent();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
 
 					transactionStatus.setRollbackOnly();
@@ -265,11 +267,11 @@ class Neo4jTransactionUtilsTest {
 	@AfterEach
 	void verifyTransactionSynchronizationManagerState() {
 
-		assertTrue(TransactionSynchronizationManager.getResourceMap().isEmpty());
-		assertFalse(TransactionSynchronizationManager.isSynchronizationActive());
-		assertNull(TransactionSynchronizationManager.getCurrentTransactionName());
-		assertFalse(TransactionSynchronizationManager.isCurrentTransactionReadOnly());
-		assertNull(TransactionSynchronizationManager.getCurrentTransactionIsolationLevel());
-		assertFalse(TransactionSynchronizationManager.isActualTransactionActive());
+		assertThat(TransactionSynchronizationManager.getResourceMap().isEmpty()).isTrue();
+		assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isFalse();
+		assertThat(TransactionSynchronizationManager.getCurrentTransactionName()).isNull();
+		assertThat(TransactionSynchronizationManager.isCurrentTransactionReadOnly()).isFalse();
+		assertThat(TransactionSynchronizationManager.getCurrentTransactionIsolationLevel()).isNull();
+		assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
 	}
 }

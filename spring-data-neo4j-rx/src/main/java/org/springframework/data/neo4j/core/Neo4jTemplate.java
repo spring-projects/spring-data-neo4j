@@ -18,12 +18,20 @@
  */
 package org.springframework.data.neo4j.core;
 
-import java.util.function.Supplier;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
 import org.neo4j.driver.StatementResult;
 import org.neo4j.driver.StatementRunner;
-import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
+import org.springframework.data.neo4j.core.transaction.ManagedTransactionProvider;
+import org.springframework.data.neo4j.core.transaction.NativeTransactionProvider;
 
 /**
  * Default implementation of {@link Neo4jOperations}. Uses the Neo4j Java driver to connect to and interact with the
@@ -34,22 +42,81 @@ import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
  */
 public class Neo4jTemplate implements Neo4jOperations {
 
-	private Supplier<StatementRunner> statementRunnerSupplier;
+	private final Driver driver;
+
+	private final NativeTransactionProvider transactionProvider;
 
 	public Neo4jTemplate(Driver driver) {
-		this(() -> Neo4jTransactionUtils.retrieveTransactionalStatementRunner(driver));
+
+		this(driver, new ManagedTransactionProvider());
 	}
 
-	Neo4jTemplate(Supplier<StatementRunner> statementRunnerSupplier) {
-		this.statementRunnerSupplier = statementRunnerSupplier;
+	Neo4jTemplate(Driver driver, NativeTransactionProvider transactionProvider) {
+
+		this.driver = driver;
+		this.transactionProvider = transactionProvider;
+	}
+
+	AutoCloseableStatementRunner getStatementRunner() {
+
+		StatementRunner statementRunner = transactionProvider.retrieveTransaction(driver)
+			.map(StatementRunner.class::cast)
+			.orElseGet(() -> driver.session());
+
+		return (AutoCloseableStatementRunner) Proxy.newProxyInstance(StatementRunner.class.getClassLoader(),
+			new Class<?>[] { AutoCloseableStatementRunner.class },
+			new AutoCloseableStatementRunnerHandler(statementRunner));
 	}
 
 	@Override
 	public Object executeQuery(String query) {
 
-		// TODO Let's see whether we can stick with the statementrunner or if we need to differentiate between reactive runner and default. Current 2.0 react version has two complete separate interfaces
-		StatementRunner statementRunner = statementRunnerSupplier.get();
-		StatementResult result = statementRunner.run(query);
-		return result.list();
+		try (AutoCloseableStatementRunner statementRunner = getStatementRunner()) {
+
+			StatementResult result = statementRunner.run(query);
+
+			return result.list();
+		}
+	}
+
+	/**
+	 * Makes a statement runner autoclosable and aware wether it's session or a transaction
+	 */
+	interface AutoCloseableStatementRunner extends StatementRunner, AutoCloseable {
+
+		@Override void close();
+	}
+
+	private static class AutoCloseableStatementRunnerHandler implements InvocationHandler {
+
+		private final Map<Method, MethodHandle> cachedHandles = new ConcurrentHashMap<>();
+		private final StatementRunner target;
+
+		AutoCloseableStatementRunnerHandler(StatementRunner target) {
+			this.target = target;
+		}
+
+		@Override
+		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+
+			if ("close".equals(method.getName())) {
+				if (this.target instanceof Session) {
+					((Session) this.target).close();
+				}
+				return null;
+			} else {
+				return cachedHandles.computeIfAbsent(method, this::findHandleFor)
+					.invokeWithArguments(args);
+			}
+		}
+
+		MethodHandle findHandleFor(Method method) {
+			try {
+				return MethodHandles.publicLookup().unreflect(method).bindTo(target);
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 }
+
