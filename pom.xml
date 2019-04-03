@@ -23,7 +23,7 @@
 	<parent>
 		<artifactId>spring-data-parent</artifactId>
 		<groupId>org.springframework.data.build</groupId>
-		<version>2.2.0.BUILD-SNAPSHOT</version>
+		<version>2.1.5.RELEASE</version>
 	</parent>
 
 	<groupId>org.springframework.data</groupId>
@@ -79,7 +79,7 @@
 
 	<properties>
 		<apiguardian.version>1.0.0</apiguardian.version>
-		<assertj.version>3.12.0</assertj.version>
+		<assertj.version>3.11.1</assertj.version>
 		<checkstyle.version>8.16</checkstyle.version>
 		<jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
 		<java.version>1.8</java.version>
@@ -107,8 +107,12 @@
 		<rxjava2.version>2.2.5</rxjava2.version>
 		<skipUnitTests>false</skipUnitTests>
 		<slf4j.version>1.7.25</slf4j.version>
-		<springdata-commons.version>2.2.0.BUILD-SNAPSHOT</springdata-commons.version>
+		<springdata-commons.version>2.1.5.RELEASE</springdata-commons.version>
 		<testcontainers.version>1.10.7</testcontainers.version>
+
+		<!-- For whatever reason, redeclaring those dependencies in our managed dependencies doesn't have any affect... -->
+		<assertj>${assertj.version}</assertj>
+		<mockito>${mockito.version}</mockito>
 	</properties>
 
 	<dependencyManagement>
@@ -144,6 +148,7 @@
 				<groupId>org.assertj</groupId>
 				<artifactId>assertj-core</artifactId>
 				<version>${assertj.version}</version>
+				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.junit</groupId>
@@ -156,11 +161,13 @@
 				<groupId>org.mockito</groupId>
 				<artifactId>mockito-core</artifactId>
 				<version>${mockito.version}</version>
+				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.mockito</groupId>
 				<artifactId>mockito-junit-jupiter</artifactId>
 				<version>${mockito.version}</version>
+				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.neo4j</groupId>
@@ -191,27 +198,16 @@
 				<groupId>org.testcontainers</groupId>
 				<artifactId>junit-jupiter</artifactId>
 				<version>${testcontainers.version}</version>
+				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.testcontainers</groupId>
 				<artifactId>neo4j</artifactId>
 				<version>${testcontainers.version}</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-
-	<repositories>
-		<repository>
-			<id>spring-libs-snapshot</id>
-			<url>https://repo.spring.io/libs-snapshot</url>
-		</repository>
-	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>spring-plugins-snapshot</id>
-			<url>https://repo.spring.io/plugins-snapshot</url>
-		</pluginRepository>
-	</pluginRepositories>
 
 	<build>
 		<pluginManagement>
