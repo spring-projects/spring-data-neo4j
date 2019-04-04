@@ -56,7 +56,7 @@ public interface NodeManager {
 	 * @param entityWithUnknownState An entity that is either managed or unmanaged
 	 * @return A managed object
 	 */
-	<T extends Object> T save(T entityWithUnknownState);
+	<T> T save(T entityWithUnknownState);
 
 	/**
 	 * Delete an object from the persistence context and the underlying store.
