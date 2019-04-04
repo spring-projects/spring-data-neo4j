@@ -52,6 +52,11 @@ public class EntityComparisonStrategy implements EntityTrackingStrategy {
 	}
 
 	@Override
+	public void untrack(Object entity) {
+		statesOfEntities.remove(getObjectIdentifier(entity));
+	}
+
+	@Override
 	public Collection<EntityChangeEvent> getAggregatedEntityChangeEvents(Object entity) {
 		int objectIdentifier = getObjectIdentifier(entity);
 		return statesOfEntities.get(objectIdentifier).aggregateChanges(entity);
