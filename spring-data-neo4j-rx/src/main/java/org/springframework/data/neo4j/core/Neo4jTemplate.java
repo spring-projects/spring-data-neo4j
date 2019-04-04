@@ -59,7 +59,7 @@ public class Neo4jTemplate implements Neo4jOperations {
 
 	AutoCloseableStatementRunner getStatementRunner() {
 
-		StatementRunner statementRunner = transactionProvider.retrieveTransaction(driver)
+		StatementRunner statementRunner = transactionProvider.retrieveTransaction(driver, null)
 			.map(StatementRunner.class::cast)
 			.orElseGet(() -> driver.session());
 

@@ -18,6 +18,8 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
+import java.util.Optional;
+
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
@@ -34,22 +36,39 @@ import org.springframework.util.Assert;
  */
 public class Neo4jConnectionHolder extends ResourceHolderSupport {
 
+	private final String databaseName;
+
 	private final Session session;
 
 	private final Transaction transaction;
 
-	Neo4jConnectionHolder(Session session) {
-		this(session, TransactionConfig.empty());
+	Neo4jConnectionHolder(String databaseName, Session session) {
+		this(databaseName, session, TransactionConfig.empty());
 	}
 
-	Neo4jConnectionHolder(Session session, TransactionConfig transactionConfig) {
-		this.session = session;
+	Neo4jConnectionHolder(String databaseName, Session session, TransactionConfig transactionConfig) {
 
+		this.databaseName = databaseName;
+		this.session = session;
 		this.transaction = this.session.beginTransaction(transactionConfig);
 	}
 
-	Transaction getTransaction() {
-		return transaction;
+	/**
+	 * Returns the transaction if it has been opened in a session for the requested database.
+	 *
+	 * @param inDatabase
+	 * @return
+	 */
+	Transaction getTransaction(String inDatabase) {
+
+		return namesMapToTheSameDatabase(this.databaseName, inDatabase) ? transaction : null;
+	}
+
+	static boolean namesMapToTheSameDatabase(String name1, String name2) {
+		String d1 = Optional.ofNullable(name1).orElse(Neo4jTransactionUtils.DEFAULT_DATABASE_NAME);
+		String d2 = Optional.ofNullable(name2).orElse(Neo4jTransactionUtils.DEFAULT_DATABASE_NAME);
+
+		return d1.equals(d2);
 	}
 
 	void commit() {

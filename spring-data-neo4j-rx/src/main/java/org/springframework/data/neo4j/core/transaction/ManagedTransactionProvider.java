@@ -35,33 +35,36 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 public class ManagedTransactionProvider implements NativeTransactionProvider {
 
 	/**
+	 * @param databaseName
 	 * @param driver The driver whos transactions are bound from withing {@link TransactionSynchronizationManager}.
 	 * @return An optional containing a managed transaction or an empty optional if the method hasn't been called inside
 	 * an ongoing Spring transaction
 	 */
 	@Override
-	public Optional<Transaction> retrieveTransaction(final Driver driver) {
+	public Optional<Transaction> retrieveTransaction(final Driver driver, String databaseName) {
+
 		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
 			return Optional.empty();
 		}
 
+		// TODO Check existing transaction wether
 		// Try existing transaction
 		Neo4jConnectionHolder connectionHolder = (Neo4jConnectionHolder) TransactionSynchronizationManager
 			.getResource(driver);
 
 		if (connectionHolder != null) {
 
-			return Optional.of(connectionHolder.getTransaction());
+			return Optional.of(connectionHolder.getTransaction(databaseName));
 		}
 
 		// Manually create a new synchronization
-		connectionHolder = new Neo4jConnectionHolder(driver.session(defaultSessionParameters(null)));
+		connectionHolder = new Neo4jConnectionHolder(databaseName, driver.session(defaultSessionParameters(databaseName)));
 		connectionHolder.setSynchronizedWithTransaction(true);
 
 		TransactionSynchronizationManager.registerSynchronization(
 			new Neo4jSessionSynchronization(connectionHolder, driver));
 
 		TransactionSynchronizationManager.bindResource(driver, connectionHolder);
-		return Optional.of(connectionHolder.getTransaction());
+		return Optional.of(connectionHolder.getTransaction(databaseName));
 	}
 }

@@ -54,6 +54,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ManagedTransactionProviderTest {
 
+	private String databaseName = Neo4jTransactionUtils.DEFAULT_DATABASE_NAME;
+
 	@Mock
 	private Driver driver;
 	@Mock
@@ -87,7 +89,7 @@ class ManagedTransactionProviderTest {
 
 	@Test
 	void shouldWorkWithoutSynchronizations() {
-		Optional<Transaction> optionalTransaction = new ManagedTransactionProvider().retrieveTransaction(driver);
+		Optional<Transaction> optionalTransaction = new ManagedTransactionProvider().retrieveTransaction(driver, databaseName);
 
 		assertThat(optionalTransaction).isEmpty();
 
@@ -113,7 +115,7 @@ class ManagedTransactionProviderTest {
 					assertThat(transactionStatus.isNewTransaction()).isTrue();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
 
-					Optional<Transaction> optionalTransaction = transactionProvider.retrieveTransaction(driver);
+					Optional<Transaction> optionalTransaction = transactionProvider.retrieveTransaction(driver, databaseName);
 					assertThat(optionalTransaction).isPresent();
 
 					transactionStatus.setRollbackOnly();
@@ -144,7 +146,7 @@ class ManagedTransactionProviderTest {
 				@Override
 				protected void doInTransactionWithoutResult(TransactionStatus outerStatus) {
 
-					Optional<Transaction> outerNativeTransaction = transactionProvider.retrieveTransaction(driver);
+					Optional<Transaction> outerNativeTransaction = transactionProvider.retrieveTransaction(driver, databaseName);
 					assertThat(outerNativeTransaction).isPresent();
 					assertThat(outerStatus.isNewTransaction()).isTrue();
 
@@ -156,7 +158,7 @@ class ManagedTransactionProviderTest {
 							assertThat(innerStatus.isNewTransaction()).isFalse();
 
 							Optional<Transaction> innerNativeTransaction = transactionProvider
-								.retrieveTransaction(driver);
+								.retrieveTransaction(driver, databaseName);
 							assertThat(innerNativeTransaction).isPresent();
 						}
 					});
@@ -200,7 +202,7 @@ class ManagedTransactionProviderTest {
 					assertThat(transactionStatus.isNewTransaction()).isTrue();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
 
-					Optional<Transaction> nativeTransaction = transactionProvider.retrieveTransaction(driver);
+					Optional<Transaction> nativeTransaction = transactionProvider.retrieveTransaction(driver, databaseName);
 
 					assertThat(nativeTransaction).isPresent();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
@@ -240,7 +242,7 @@ class ManagedTransactionProviderTest {
 					assertThat(transactionStatus.isNewTransaction()).isTrue();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
 
-					Optional<Transaction> nativeTransaction = transactionProvider.retrieveTransaction(driver);
+					Optional<Transaction> nativeTransaction = transactionProvider.retrieveTransaction(driver, databaseName);
 
 					assertThat(nativeTransaction).isPresent();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();

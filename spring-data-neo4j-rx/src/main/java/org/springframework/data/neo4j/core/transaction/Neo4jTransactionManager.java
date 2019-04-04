@@ -114,7 +114,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 			Session session = this.driver
 				.session(t -> t.withDefaultAccessMode(accessMode).withBookmarks(bookmarks).withDatabase(database));
 
-			Neo4jConnectionHolder connectionHolder = new Neo4jConnectionHolder(session, transactionConfig);
+			Neo4jConnectionHolder connectionHolder = new Neo4jConnectionHolder(database, session, transactionConfig);
 			connectionHolder.setSynchronizedWithTransaction(true);
 			transactionObject.setResourceHolder(connectionHolder);
 			TransactionSynchronizationManager.bindResource(this.driver, connectionHolder);

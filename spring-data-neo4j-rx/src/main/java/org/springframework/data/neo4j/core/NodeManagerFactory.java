@@ -95,7 +95,7 @@ public final class NodeManagerFactory  {
 
 		Objects.requireNonNull(schema, "A schema is required. Did you call #initialize() before using this factory?");
 		return new DefaultNodeManager(schema, new Neo4jTemplate(driver, this.nativeTransactionProvider),
-			this.nativeTransactionProvider.retrieveTransaction(driver).orElse(null));
+			this.nativeTransactionProvider.retrieveTransaction(driver, null).orElse(null));
 	}
 
 	/**
