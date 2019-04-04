@@ -58,7 +58,7 @@ class EntityComparisonStrategyTest {
 		String newValue = "newValue";
 		something.value = newValue;
 
-		Collection<EntityChangeEvent> changeEvents = strategy.getAggregatedDelta(something);
+		Collection<EntityChangeEvent> changeEvents = strategy.getAggregatedEntityChangeEvents(something);
 
 		EntityChangeEvent changeEvent = changeEvents.iterator().next();
 		assertThat(changeEvent.getPropertyField()).isEqualTo(fieldName);
@@ -75,7 +75,7 @@ class EntityComparisonStrategyTest {
 		String fieldName = "information";
 		something.information.add("additional entry");
 
-		Collection<EntityChangeEvent> changeEvents = strategy.getAggregatedDelta(something);
+		Collection<EntityChangeEvent> changeEvents = strategy.getAggregatedEntityChangeEvents(something);
 
 		EntityChangeEvent changeEvent = changeEvents.iterator().next();
 		assertThat(changeEvent.getPropertyField()).isEqualTo(fieldName);
@@ -95,7 +95,7 @@ class EntityComparisonStrategyTest {
 
 		String fieldName = "information";
 
-		Collection<EntityChangeEvent> changeEvents = strategy.getAggregatedDelta(something);
+		Collection<EntityChangeEvent> changeEvents = strategy.getAggregatedEntityChangeEvents(something);
 
 		EntityChangeEvent changeEvent = changeEvents.iterator().next();
 		assertThat(changeEvent.getPropertyField()).isEqualTo(fieldName);
@@ -113,11 +113,38 @@ class EntityComparisonStrategyTest {
 		String newValue = "newValue";
 		something.parentValue = newValue;
 
-		Collection<EntityChangeEvent> changeEvents = strategy.getAggregatedDelta(something);
+		Collection<EntityChangeEvent> changeEvents = strategy.getAggregatedEntityChangeEvents(something);
 
 		EntityChangeEvent changeEvent = changeEvents.iterator().next();
 		assertThat(changeEvent.getPropertyField()).isEqualTo(fieldName);
 		assertThat(changeEvent.getValue()).isEqualTo(newValue);
+	}
+
+	@Test
+	void trackMultipleObjects() {
+		EntityComparisonStrategy strategy = new EntityComparisonStrategy();
+		Something something1 = new Something("oldValue");
+		Something something2 = new Something("oldValue");
+
+		strategy.track(description, something1);
+		strategy.track(description, something2);
+
+		String fieldName = "value";
+		String newValue1 = "newValue1";
+		String newValue2 = "newValue2";
+		something1.value = newValue1;
+		something2.value = newValue2;
+
+		Collection<EntityChangeEvent> changeEvents1 = strategy.getAggregatedEntityChangeEvents(something1);
+		Collection<EntityChangeEvent> changeEvents2 = strategy.getAggregatedEntityChangeEvents(something2);
+
+		EntityChangeEvent changeEvent1 = changeEvents1.iterator().next();
+		assertThat(changeEvent1.getPropertyField()).isEqualTo(fieldName);
+		assertThat(changeEvent1.getValue()).isEqualTo(newValue1);
+
+		EntityChangeEvent changeEvent2 = changeEvents2.iterator().next();
+		assertThat(changeEvent2.getPropertyField()).isEqualTo(fieldName);
+		assertThat(changeEvent2.getValue()).isEqualTo(newValue2);
 	}
 
 	class ParentClass {

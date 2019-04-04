@@ -18,8 +18,15 @@
  */
 package org.springframework.data.neo4j.core.context;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.springframework.data.neo4j.core.context.tracking.EntityChangeEvent;
 import org.springframework.data.neo4j.core.context.tracking.EntityComparisonStrategy;
@@ -28,8 +35,12 @@ import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.Schema;
 
 /**
+ * TODO explain what the persistence context should do other than being the plural of EntityTrackingStrategy :D
+ *
  * @author Michael J. Simons
+ * @author Gerrit Meier
  */
+@Slf4j
 public class DefaultPersistenceContext implements PersistenceContext {
 
 	/**
@@ -39,19 +50,29 @@ public class DefaultPersistenceContext implements PersistenceContext {
 
 	private final EntityTrackingStrategy entityTrackingStrategy;
 
-	public DefaultPersistenceContext(final Schema schema) {
+	private final Set<Integer> registeredObjectIds = new HashSet<>();
 
+	public DefaultPersistenceContext(final Schema schema) {
 		this.schema = schema;
-		//todo choose the right / fitting implementation
-		this.entityTrackingStrategy = new EntityComparisonStrategy();
+		this.entityTrackingStrategy = getEntityTrackingStrategy();
 	}
 
 	@Override
 	public void register(Object entity) {
 
 		Objects.requireNonNull(entity, "Cannot track null-entity!");
+
+		int identityOfEntity = getIdentityOf(entity);
+
+		if (registeredObjectIds.contains(identityOfEntity)) {
+			log.info("Object " + entity + " was already registered");
+			return;
+		}
+
 		NodeDescription nodeDescription = schema.getNodeDescription(entity.getClass())
-			.orElseThrow(() -> new IllegalStateException("Cannot track entity that has no schema entry!"));
+				.orElseThrow(() -> new IllegalStateException("Cannot track entity that has no schema entry!"));
+
+		registeredObjectIds.add(identityOfEntity);
 		entityTrackingStrategy.track(nodeDescription, entity);
 	}
 
@@ -61,12 +82,41 @@ public class DefaultPersistenceContext implements PersistenceContext {
 		throw new UnsupportedOperationException("Not there yet.");
 	}
 
-	private void somethingToGetCalledBeforeSave() {
-		getDeltasForEachEntity();
+	@Override
+	public Collection<EntityChanges> getChanges(Object... objects) {
+
+		List<EntityChanges> entityChanges = new ArrayList<>();
+
+		for (Object object : objects) {
+			entityChanges.add(new EntityChanges(object, getEntityChangesFor(object)));
+		}
+
+		return entityChanges;
 	}
 
-	private Collection<EntityChangeEvent> getDeltasForEachEntity() {
-		return entityTrackingStrategy.getAggregatedDelta(new Object());
+	EntityTrackingStrategy getEntityTrackingStrategy() {
+		// todo choose the right / fitting implementation
+		return new EntityComparisonStrategy();
+	}
+
+	private int getIdentityOf(Object entity) {
+		return entityTrackingStrategy.getObjectIdentifier(entity);
+	}
+
+	private Collection<EntityChangeEvent> getEntityChangesFor(Object entity) {
+		return entityTrackingStrategy.getAggregatedEntityChangeEvents(entity);
+	}
+
+	@Getter
+	static class EntityChanges {
+		private final Object entity;
+
+		private final Collection<EntityChangeEvent> changeEvents;
+
+		EntityChanges(Object entity, Collection<EntityChangeEvent> changeEvents) {
+			this.entity = entity;
+			this.changeEvents = changeEvents;
+		}
 	}
 
 }

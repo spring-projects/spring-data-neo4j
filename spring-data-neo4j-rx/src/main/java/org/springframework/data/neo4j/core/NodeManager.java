@@ -34,6 +34,9 @@ public interface NodeManager {
 
 	/**
 	 * Clears all managed entities and flushes any open state to the underlying storage.
+	 * TODO reflect if we really, really want to have this.
+	 * If an user flushes the node manager, we will end up in a state where we do not have any information about
+	 * the nodes / entities currently processed in the ongoing transaction.
 	 */
 	default void flush() {
 	}
