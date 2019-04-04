@@ -59,5 +59,5 @@ public interface PersistenceContext {
 	 * @param objects to calculate and return changes for
 	 * @return All change events that got registered since registration.
 	 */
-	Collection<DefaultPersistenceContext.EntityChanges> getChanges(Object... objects);
+	Collection<DefaultPersistenceContext.EntityChanges> getEntityChanges(Object... objects);
 }

@@ -90,7 +90,7 @@ class DefaultPersistenceContextTest {
 	void triggersDeltaCalculationOnDeltaCall() {
 		Something entity = new Something();
 		context.register(entity);
-		context.getChanges(entity);
+		context.getEntityChanges(entity);
 
 		verify(entityTrackingStrategy).getAggregatedEntityChangeEvents(entity);
 	}

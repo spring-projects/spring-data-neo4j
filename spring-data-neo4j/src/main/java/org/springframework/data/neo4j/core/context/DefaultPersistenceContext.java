@@ -83,12 +83,13 @@ public class DefaultPersistenceContext implements PersistenceContext {
 	}
 
 	@Override
-	public Collection<EntityChanges> getChanges(Object... objects) {
+	public Collection<EntityChanges> getEntityChanges(Object... objects) {
 
 		List<EntityChanges> entityChanges = new ArrayList<>();
 
 		for (Object object : objects) {
-			entityChanges.add(new EntityChanges(object, getEntityChangesFor(object)));
+			Collection<EntityChangeEvent> changeEvents = entityTrackingStrategy.getAggregatedEntityChangeEvents(object);
+			entityChanges.add(new EntityChanges(object, changeEvents));
 		}
 
 		return entityChanges;
@@ -101,10 +102,6 @@ public class DefaultPersistenceContext implements PersistenceContext {
 
 	private int getIdentityOf(Object entity) {
 		return entityTrackingStrategy.getObjectIdentifier(entity);
-	}
-
-	private Collection<EntityChangeEvent> getEntityChangesFor(Object entity) {
-		return entityTrackingStrategy.getAggregatedEntityChangeEvents(entity);
 	}
 
 	@Getter
