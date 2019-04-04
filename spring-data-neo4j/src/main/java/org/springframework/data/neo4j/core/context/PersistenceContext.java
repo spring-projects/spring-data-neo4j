@@ -18,19 +18,20 @@
  */
 package org.springframework.data.neo4j.core.context;
 
+import java.util.Collection;
+
 import org.apiguardian.api.API;
 
 /**
  * Represents the state of varies instances being tracked. Those include:
- *
  * <ul>
  * <li>All nodes</li>
  * <li>All relationships</li>
  * </ul>
- *
  * including properties of them.
  *
  * @author Michael J. Simons
+ * @author Gerrit Meier
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public interface PersistenceContext {
@@ -48,4 +49,15 @@ public interface PersistenceContext {
 	 * @param managedEntity The entity to remove
 	 */
 	void deregister(Object managedEntity);
+
+	/**
+	 * Calculates the deltas for each registered object and returns them grouped by the object identifying function
+	 * defined in
+	 * {@link org.springframework.data.neo4j.core.context.tracking.EntityTrackingStrategy#getObjectIdentifier(Object)} or
+	 * one of its implementations.
+	 *
+	 * @param objects to calculate and return changes for
+	 * @return All change events that got registered since registration.
+	 */
+	Collection<DefaultPersistenceContext.EntityChanges> getChanges(Object... objects);
 }

@@ -18,6 +18,8 @@
  */
 package org.springframework.data.neo4j.core.context.tracking;
 
+import static org.springframework.data.neo4j.core.context.tracking.EntityTrackingStrategy.*;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,11 +29,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.PropertyDescription;
 
 /**
+ * Dirty tracking strategy based on property comparison. The strategy can compare two states of the same instance on
+ * attribute level but uses hashes for collection-like fields. Only fields that are considered to be node properties
+ * will get compared.
+ *
  * @author Gerrit Meier
  */
 public class EntityComparisonStrategy implements EntityTrackingStrategy {
@@ -40,12 +47,14 @@ public class EntityComparisonStrategy implements EntityTrackingStrategy {
 
 	@Override
 	public void track(NodeDescription nodeDescription, Object entity) {
-		statesOfEntities.put(getObjectIdentifier(entity), new EntityState(nodeDescription, entity));
+		statesOfEntities.put(getObjectIdentifier(entity),
+				new EntityState(nodeDescription, entity, getDefaultObjectIdentifier()));
 	}
 
 	@Override
-	public Collection<EntityChangeEvent> getAggregatedDelta(Object entity) {
-		return statesOfEntities.get(getObjectIdentifier(entity)).computeDelta(entity);
+	public Collection<EntityChangeEvent> getAggregatedEntityChangeEvents(Object entity) {
+		int objectIdentifier = getObjectIdentifier(entity);
+		return statesOfEntities.get(objectIdentifier).aggregateChanges(entity);
 	}
 
 	/**
@@ -56,17 +65,21 @@ public class EntityComparisonStrategy implements EntityTrackingStrategy {
 		private final Map<String, Object> oldState;
 		private final List<Field> objectFields;
 		private final Object identifier;
+		private final Function<Object, Integer> objectIdentifyingFuction;
 
-		EntityState(NodeDescription nodeDescription, Object entity) {
+		EntityState(NodeDescription nodeDescription, Object entity, Function<Object, Integer> objectIdentifyingFuction) {
 
 			Collection<PropertyDescription> properties = nodeDescription.getProperties();
-			objectFields = getFieldsFromProperties(entity, properties);
-			this.identifier = computeIdentifier(entity);
+			this.objectFields = getFieldsFromProperties(entity, properties);
+
+			this.objectIdentifyingFuction = objectIdentifyingFuction;
+			this.identifier = this.objectIdentifyingFuction.apply(entity);
 			this.oldState = retrieveStateFrom(entity);
 		}
 
-		Set<EntityChangeEvent> computeDelta(Object newObject) {
-			if (!sameObject(newObject)) {
+		Set<EntityChangeEvent> aggregateChanges(Object newObject) {
+
+			if (!sameObject(objectIdentifyingFuction.apply(newObject))) {
 				throw new IllegalArgumentException("The objects to compare are not the same.");
 			}
 			Set<EntityChangeEvent> changes = new HashSet<>();
@@ -88,6 +101,7 @@ public class EntityComparisonStrategy implements EntityTrackingStrategy {
 		}
 
 		private List<Field> getFieldsFromProperties(Object entity, Collection<PropertyDescription> properties) {
+
 			List<Field> fields = new ArrayList<>();
 
 			Class<?> entityClass = entity.getClass();
@@ -100,6 +114,7 @@ public class EntityComparisonStrategy implements EntityTrackingStrategy {
 		}
 
 		private Map<String, Field> retrieveAllFields(Class<?> entityClass) {
+
 			Map<String, Field> classFields = new HashMap<>();
 
 			Class<?> classToScan = entityClass;
@@ -114,15 +129,12 @@ public class EntityComparisonStrategy implements EntityTrackingStrategy {
 			return classFields;
 		}
 
-		private boolean sameObject(Object objectToCompare) {
-			return this.identifier.equals(computeIdentifier(objectToCompare));
-		}
-
-		private Object computeIdentifier(Object object) {
-			return System.identityHashCode(object);
+		private boolean sameObject(Integer objectIdentifier) {
+			return this.identifier.equals(objectIdentifier);
 		}
 
 		private Map<String, Object> retrieveStateFrom(Object entity) {
+
 			Map<String, Object> state = new HashMap<>();
 
 			for (Field field : objectFields) {
