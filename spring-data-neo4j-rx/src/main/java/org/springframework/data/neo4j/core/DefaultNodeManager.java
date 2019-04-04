@@ -61,7 +61,7 @@ class DefaultNodeManager implements NodeManager {
 	}
 
 	@Override
-	public Object save(Object entityWithUnknownState) {
+	public <T> T save(T entityWithUnknownState) {
 
 		// TODO if already registered, here or in the context?
 		this.persistenceContext.register(entityWithUnknownState);
