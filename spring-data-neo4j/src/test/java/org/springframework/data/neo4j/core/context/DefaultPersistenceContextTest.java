@@ -95,6 +95,25 @@ class DefaultPersistenceContextTest {
 		verify(entityTrackingStrategy).getAggregatedEntityChangeEvents(entity);
 	}
 
+	@Test
+	void deregisterRemovesEntityFromTracking() {
+		Something entity = new Something();
+		context.register(entity);
+
+		context.deregister(entity);
+
+		verify(entityTrackingStrategy).untrack(entity);
+	}
+
+	@Test
+	void deregisterUnknownEntityDoesNotCallUntrack() {
+		Something entity = new Something();
+
+		context.deregister(entity);
+
+		verify(entityTrackingStrategy, never()).untrack(entity);
+	}
+
 	class Something {
 
 		String value;

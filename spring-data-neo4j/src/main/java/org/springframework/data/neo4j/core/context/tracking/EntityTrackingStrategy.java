@@ -47,6 +47,14 @@ public interface EntityTrackingStrategy {
 	void track(NodeDescription nodeDescription, Object entity);
 
 	/**
+	 * Remove an entity from tracking. This method should get called after an entity was deleted to have a clean change
+	 * history state.
+	 *
+	 * @param entity to get removed from entity tracking
+	 */
+	void untrack(Object entity);
+
+	/**
 	 * Aggregates all changes that were registered for this entity since the start of tracking.
 	 *
 	 * @param entity for which a summarized collection of {@EntityChangeEvent}s should get created.

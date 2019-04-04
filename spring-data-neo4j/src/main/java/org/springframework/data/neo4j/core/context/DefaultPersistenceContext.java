@@ -79,7 +79,13 @@ public class DefaultPersistenceContext implements PersistenceContext {
 	@Override
 	public void deregister(Object managedEntity) {
 
-		throw new UnsupportedOperationException("Not there yet.");
+		int identityOfEntity = getIdentityOf(managedEntity);
+		if (!registeredObjectIds.contains(identityOfEntity)) {
+			log.warn("Cannot deregister " + managedEntity + " because it were never registered");
+			return;
+		}
+
+		entityTrackingStrategy.untrack(managedEntity);
 	}
 
 	@Override
