@@ -37,8 +37,9 @@ public interface NativeTransactionProvider {
 	/**
 	 * Retrieves a transaction from the driver.
 	 *
-	 * @param driver
+	 * @param driver The driver to be used to retrieve transactions from or create new ones
+	 * @param databaseName The name of the database to work with
 	 * @return A transaction or an empty optional in case a transaction could not be provided
 	 */
-	Optional<Transaction> retrieveTransaction(Driver driver);
+	Optional<Transaction> retrieveTransaction(Driver driver, String databaseName);
 }

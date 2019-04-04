@@ -31,7 +31,11 @@ import org.neo4j.driver.Transaction;
 public class DefaultTransactionProvider implements NativeTransactionProvider {
 
 	@Override
-	public Optional<Transaction> retrieveTransaction(Driver driver) {
-		return Optional.of(driver.session(Neo4jTransactionUtils.defaultSessionParameters(null)).beginTransaction());
+	public Optional<Transaction> retrieveTransaction(Driver driver, String database) {
+
+		Transaction nativeTransaction = driver
+			.session(Neo4jTransactionUtils.defaultSessionParameters(database))
+			.beginTransaction();
+		return Optional.of(nativeTransaction);
 	}
 }

@@ -55,7 +55,7 @@ class Neo4jTemplateTest {
 			when(driver.session()).thenReturn(session);
 
 			// Make template acquire session
-			Neo4jTemplate neo4jTemplate = new Neo4jTemplate(driver, d -> Optional.empty());
+			Neo4jTemplate neo4jTemplate = new Neo4jTemplate(driver, (d, n) -> Optional.empty());
 			try (AutoCloseableStatementRunner s = neo4jTemplate.getStatementRunner()) {
 				s.run("MATCH (n) RETURN n");
 			}
@@ -69,7 +69,7 @@ class Neo4jTemplateTest {
 		@Test
 		public void shouldNotInvokeCloseOnTransaction() {
 
-			Neo4jTemplate neo4jTemplate = new Neo4jTemplate(driver, d -> Optional.of(transaction));
+			Neo4jTemplate neo4jTemplate = new Neo4jTemplate(driver, (d, n) -> Optional.of(transaction));
 			try (AutoCloseableStatementRunner s = neo4jTemplate.getStatementRunner()) {
 				s.run("MATCH (n) RETURN n");
 			}
