@@ -30,12 +30,12 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  */
-public class NodeManagerHolder extends ResourceHolderSupport {
+class NodeManagerHolder extends ResourceHolderSupport {
 
 	@Nullable
 	private final NodeManager nodeManager;
 
-	public NodeManagerHolder(@Nullable NodeManager nodeManager) {
+	NodeManagerHolder(@Nullable NodeManager nodeManager) {
 		this.nodeManager = nodeManager;
 	}
 

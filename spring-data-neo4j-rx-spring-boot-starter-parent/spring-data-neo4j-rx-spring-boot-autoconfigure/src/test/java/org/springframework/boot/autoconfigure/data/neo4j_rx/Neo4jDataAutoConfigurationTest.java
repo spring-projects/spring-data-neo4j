@@ -31,7 +31,7 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.NodeManagerFactory;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -52,29 +52,29 @@ class Neo4jDataAutoConfigurationTest {
 			.withClassLoader(
 				new FilteredClassLoader(Driver.class, Neo4jTransactionManager.class, PlatformTransactionManager.class))
 			.run(ctx -> assertThat(ctx)
-				.doesNotHaveBean(Neo4jTemplate.class)
+				.doesNotHaveBean(Neo4jClient.class)
 				.doesNotHaveBean(Neo4jTransactionManager.class)
 			);
 	}
 
 	@Nested
 	@DisplayName("Automatic configuration…")
-	class ConfigurationOfTemplate {
+	class ConfigurationOfClient {
 		@Test
-		@DisplayName("…should create new Neo4j template")
+		@DisplayName("…should create new Neo4j Client")
 		void shouldCreateNew() {
 			contextRunner
-				.run(ctx -> assertThat(ctx).hasSingleBean(Neo4jTemplate.class));
+				.run(ctx -> assertThat(ctx).hasSingleBean(Neo4jClient.class));
 		}
 
 		@Test
-		@DisplayName("…should not replace existing Neo4j template")
+		@DisplayName("…should not replace existing Neo4j Client")
 		void shouldNotReplaceExisting() {
 			contextRunner
-				.withUserConfiguration(ConfigurationWithExistingTemplate.class)
+				.withUserConfiguration(ConfigurationWithExistingClient.class)
 				.run(ctx -> assertThat(ctx)
-					.hasSingleBean(Neo4jTemplate.class)
-					.hasBean("myCustomTemplate")
+					.hasSingleBean(Neo4jClient.class)
+					.hasBean("myCustomClient")
 				);
 		}
 	}
@@ -132,10 +132,10 @@ class Neo4jDataAutoConfigurationTest {
 	}
 
 	@Configuration
-	static class ConfigurationWithExistingTemplate {
-		@Bean("myCustomTemplate")
-		Neo4jTemplate neo4jTemplate(Driver driver) {
-			return new Neo4jTemplate(driver);
+	static class ConfigurationWithExistingClient {
+		@Bean("myCustomClient")
+		Neo4jClient neo4jClient(Driver driver) {
+			return Neo4jClient.create(driver);
 		}
 	}
 

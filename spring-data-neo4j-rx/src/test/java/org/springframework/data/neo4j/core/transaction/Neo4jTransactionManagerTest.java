@@ -31,7 +31,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.StatementResult;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
-import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
@@ -55,15 +55,15 @@ class Neo4jTransactionManagerTest {
 
 		when(driver.session(any(Consumer.class))).thenReturn(session);
 		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
-		when(transaction.run(anyString())).thenReturn(statementResult);
+		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(session.isOpen()).thenReturn(true);
 		when(transaction.isOpen()).thenReturn(true, false);
 
 		Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
 		TransactionStatus txStatus = txManager.getTransaction(new DefaultTransactionDefinition());
 
-		Neo4jTemplate template = new Neo4jTemplate(driver);
-		template.executeQuery("RETURN 1");
+		Neo4jClient client = Neo4jClient.create(driver);
+		client.newQuery("RETURN 1").run();
 
 		txManager.commit(txStatus);
 

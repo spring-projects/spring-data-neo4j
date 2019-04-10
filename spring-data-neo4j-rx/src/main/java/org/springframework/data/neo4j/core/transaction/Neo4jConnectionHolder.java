@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  */
-public class Neo4jConnectionHolder extends ResourceHolderSupport {
+class Neo4jConnectionHolder extends ResourceHolderSupport {
 
 	private final String databaseName;
 

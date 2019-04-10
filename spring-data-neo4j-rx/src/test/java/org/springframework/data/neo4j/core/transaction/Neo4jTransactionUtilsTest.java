@@ -52,7 +52,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class ManagedTransactionProviderTest {
+class Neo4jTransactionUtilsTest {
 
 	private String databaseName = Neo4jTransactionUtils.DEFAULT_DATABASE_NAME;
 
@@ -89,7 +89,7 @@ class ManagedTransactionProviderTest {
 
 	@Test
 	void shouldWorkWithoutSynchronizations() {
-		Optional<Transaction> optionalTransaction = new ManagedTransactionProvider().retrieveTransaction(driver, databaseName);
+		Optional<Transaction> optionalTransaction = Neo4jTransactionUtils.retrieveTransaction(driver, databaseName);
 
 		assertThat(optionalTransaction).isEmpty();
 
@@ -100,8 +100,6 @@ class ManagedTransactionProviderTest {
 	class BasedOnNeo4jTransactions {
 		@Test
 		void shouldOpenNewTransaction() {
-
-			final ManagedTransactionProvider transactionProvider = new ManagedTransactionProvider();
 
 			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
 			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
@@ -115,7 +113,7 @@ class ManagedTransactionProviderTest {
 					assertThat(transactionStatus.isNewTransaction()).isTrue();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
 
-					Optional<Transaction> optionalTransaction = transactionProvider.retrieveTransaction(driver, databaseName);
+					Optional<Transaction> optionalTransaction = Neo4jTransactionUtils.retrieveTransaction(driver, databaseName);
 					assertThat(optionalTransaction).isPresent();
 
 					transactionStatus.setRollbackOnly();
@@ -136,8 +134,6 @@ class ManagedTransactionProviderTest {
 		@Test
 		void shouldParticipateInOngoingTransaction() {
 
-			final ManagedTransactionProvider transactionProvider = new ManagedTransactionProvider();
-
 			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
 			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
@@ -146,7 +142,7 @@ class ManagedTransactionProviderTest {
 				@Override
 				protected void doInTransactionWithoutResult(TransactionStatus outerStatus) {
 
-					Optional<Transaction> outerNativeTransaction = transactionProvider.retrieveTransaction(driver, databaseName);
+					Optional<Transaction> outerNativeTransaction = Neo4jTransactionUtils.retrieveTransaction(driver, databaseName);
 					assertThat(outerNativeTransaction).isPresent();
 					assertThat(outerStatus.isNewTransaction()).isTrue();
 
@@ -157,7 +153,7 @@ class ManagedTransactionProviderTest {
 
 							assertThat(innerStatus.isNewTransaction()).isFalse();
 
-							Optional<Transaction> innerNativeTransaction = transactionProvider
+							Optional<Transaction> innerNativeTransaction = Neo4jTransactionUtils
 								.retrieveTransaction(driver, databaseName);
 							assertThat(innerNativeTransaction).isPresent();
 						}
@@ -188,8 +184,6 @@ class ManagedTransactionProviderTest {
 			when(userTransaction.getStatus()).thenReturn(Status.STATUS_NO_TRANSACTION, Status.STATUS_ACTIVE,
 				Status.STATUS_ACTIVE);
 
-			final ManagedTransactionProvider transactionProvider = new ManagedTransactionProvider();
-
 			JtaTransactionManager txManager = new JtaTransactionManager(userTransaction);
 			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
@@ -202,7 +196,7 @@ class ManagedTransactionProviderTest {
 					assertThat(transactionStatus.isNewTransaction()).isTrue();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
 
-					Optional<Transaction> nativeTransaction = transactionProvider.retrieveTransaction(driver, databaseName);
+					Optional<Transaction> nativeTransaction = Neo4jTransactionUtils.retrieveTransaction(driver, databaseName);
 
 					assertThat(nativeTransaction).isPresent();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
@@ -228,8 +222,6 @@ class ManagedTransactionProviderTest {
 			when(userTransaction.getStatus()).thenReturn(Status.STATUS_NO_TRANSACTION, Status.STATUS_ACTIVE,
 				Status.STATUS_ACTIVE);
 
-			final ManagedTransactionProvider transactionProvider = new ManagedTransactionProvider();
-
 			JtaTransactionManager txManager = new JtaTransactionManager(userTransaction);
 			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
@@ -242,7 +234,7 @@ class ManagedTransactionProviderTest {
 					assertThat(transactionStatus.isNewTransaction()).isTrue();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
 
-					Optional<Transaction> nativeTransaction = transactionProvider.retrieveTransaction(driver, databaseName);
+					Optional<Transaction> nativeTransaction = Neo4jTransactionUtils.retrieveTransaction(driver, databaseName);
 
 					assertThat(nativeTransaction).isPresent();
 					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();

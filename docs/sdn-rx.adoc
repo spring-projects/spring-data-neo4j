@@ -1,0 +1,14 @@
+= Spring Data Neo4j⚡️RX
+Michael Simons <michael.simons@neo4j.com>
+Gerrit Meier <gerrit.meier@neo4j.com>
+:doctype: article
+:lang: en
+:listing-caption: Listing
+:source-highlighter: coderay
+:icons: font
+:sectlink: true
+:sectanchors: true
+:numbered: true
+:xrefstyle: short
+
+include::neo4j-client.adoc[]

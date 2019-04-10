@@ -26,7 +26,7 @@ import org.apiguardian.api.API;
  * @author Michael J. Simons
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public class IllegalSchemaChangeException extends IllegalArgumentException {
+public final class IllegalSchemaChangeException extends IllegalArgumentException {
 
 	IllegalSchemaChangeException(String s) {
 		super(s);

@@ -29,7 +29,7 @@ import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverAutoConfiguration
 import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.NodeManagerFactory;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -49,8 +49,8 @@ public class Neo4jDataAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public Neo4jTemplate neo4jTemplate(Driver driver) {
-		return new Neo4jTemplate(driver);
+	public Neo4jClient neo4jClient(Driver driver) {
+		return Neo4jClient.create(driver);
 	}
 
 

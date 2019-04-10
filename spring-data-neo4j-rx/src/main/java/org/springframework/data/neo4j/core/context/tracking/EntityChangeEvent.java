@@ -24,10 +24,11 @@ import org.apiguardian.api.API;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 @Getter
-public class EntityChangeEvent {
+public final class EntityChangeEvent {
 	private final String propertyField;
 	private final Object value;
 
