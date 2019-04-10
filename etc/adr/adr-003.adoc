@@ -2,7 +2,7 @@
 
 === Status
 
-accepted, open
+accepted
 
 === Context
 
@@ -13,7 +13,6 @@ to be part of the public API.
 
 Those classes should be marked `@API(status = API.Status.INTERNAL, since = "1.0")` as well as made final to at least
 prevent people from inheriting from them.
-We need to add architecture rules in jQAssistant.
 
 === Consequences
 

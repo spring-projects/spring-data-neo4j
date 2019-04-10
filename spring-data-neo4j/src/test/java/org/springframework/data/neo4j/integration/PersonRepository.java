@@ -19,17 +19,21 @@
 package org.springframework.data.neo4j.integration;
 
 import java.util.List;
+import java.util.Map;
 
-import org.neo4j.driver.Record;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * @author Gerrit Meier
+ * @author Michael J. Simon
+ */
 public interface PersonRepository extends Neo4jRepository<Person, Long> {
 
 	@Transactional
 	@Query("RETURN 1")
-	List<Record> customQuery();
+	List<Map<String, Object>> customQuery();
 
-	List<Record> findByName();
+	List<Map<String, Object>> findByName();
 }

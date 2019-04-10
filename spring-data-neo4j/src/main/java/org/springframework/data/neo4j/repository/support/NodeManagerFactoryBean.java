@@ -27,14 +27,11 @@ import org.springframework.data.neo4j.core.NodeManager;
 import org.springframework.data.neo4j.core.NodeManagerFactory;
 import org.springframework.data.neo4j.core.mapping.MappingContextBasedScannerImpl;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.core.transaction.ManagedTransactionProvider;
-import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 
 /**
  * This is a shim that integrates a {@link NodeManagerFactory} with Spring Datas infrastructure. It takes in the factory
- * that needs to be provided by the user and the mapping context provided by our infrastructure. The node manager factory
- * is than augment by our {@link Neo4jTransactionUtils} so that it doesn't use unmanaged native transaction, but managed
- * native transaction. Furthermore, the default noop scanner is replaced by a scanner based on our Neo4j mapping context.
+ * that needs to be provided by the user and the mapping context provided by our infrastructure. Springs mapping context
+ * replaces the default noop scanner.
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
@@ -60,8 +57,6 @@ public final class NodeManagerFactoryBean implements InitializingBean, FactoryBe
 	@Override
 	public void afterPropertiesSet() {
 
-		// Use managed transactions
-		target.setNativeTransactionProvider(new ManagedTransactionProvider());
 		target.setScanner(new MappingContextBasedScannerImpl(this.neo4jMappingContext));
 		target.initialize();
 	}

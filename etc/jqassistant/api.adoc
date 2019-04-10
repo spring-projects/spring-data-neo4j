@@ -1,0 +1,19 @@
+[[api:Default]]
+[role=group,includesConstraints="api:internal"]
+
+=== Internal API
+
+See ADR-003.
+
+[[api:internal]]
+[source,cypher,role=constraint]
+.Public classes that are only part of internal API must be final
+----
+MATCH (c:Class),
+      (c) - [:ANNOTATED_BY] -> (a) - [:OF_TYPE] -> (t:Type {fqn: 'org.apiguardian.api.API'}),
+      (a) - [:HAS] -> ({name: 'status'}) - [:IS] -> (s)
+WHERE s.signature  =~ ".*INTERNAL"
+  AND c.visibility = 'public'
+  AND not exists(c.final)
+RETURN c.name
+----

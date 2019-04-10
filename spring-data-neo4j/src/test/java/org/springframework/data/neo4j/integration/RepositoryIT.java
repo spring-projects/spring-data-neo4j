@@ -21,13 +21,13 @@ package org.springframework.data.neo4j.integration;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,12 +63,12 @@ class RepositoryIT {
 
 	@Test
 	void callCustomCypher() {
-		List<Record> actual = repository.customQuery();
+		List<Map<String, Object>> actual = repository.customQuery();
 		assertThat(actual)
 			.isNotNull()
 			.isNotEmpty()
-			.first().extracting(record -> record.get("1").asInt())
-			.isEqualTo(1);
+			.first().extracting(record -> record.get("1"))
+			.isEqualTo(1L);
 	}
 
 	@Test

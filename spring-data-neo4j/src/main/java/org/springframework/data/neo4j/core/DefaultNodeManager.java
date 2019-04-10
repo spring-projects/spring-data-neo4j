@@ -33,16 +33,16 @@ class DefaultNodeManager implements NodeManager {
 
 	private final Schema schema;
 
-	private final Neo4jTemplate neo4jTemplate;
+	private final Neo4jClient neo4jClient;
 
 	private final Transaction transaction;
 
 	private final PersistenceContext persistenceContext;
 
-	DefaultNodeManager(Schema schema, Neo4jTemplate neo4jTemplate, @Nullable Transaction transaction) {
+	DefaultNodeManager(Schema schema, Neo4jClient neo4jClient, @Nullable Transaction transaction) {
 
 		this.schema = schema;
-		this.neo4jTemplate = neo4jTemplate;
+		this.neo4jClient = neo4jClient;
 		this.transaction = transaction;
 
 		this.persistenceContext = new DefaultPersistenceContext(schema);
@@ -57,7 +57,7 @@ class DefaultNodeManager implements NodeManager {
 	@Override
 	public Object executeQuery(String query) {
 
-		return neo4jTemplate.executeQuery(query);
+		return neo4jClient.newQuery(query).fetch().one();
 	}
 
 	@Override

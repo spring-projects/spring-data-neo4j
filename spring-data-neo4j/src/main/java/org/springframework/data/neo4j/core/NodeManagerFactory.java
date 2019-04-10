@@ -31,8 +31,7 @@ import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.springframework.data.neo4j.core.schema.Scanner;
 import org.springframework.data.neo4j.core.schema.Schema;
-import org.springframework.data.neo4j.core.transaction.DefaultTransactionProvider;
-import org.springframework.data.neo4j.core.transaction.NativeTransactionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 import org.springframework.lang.Nullable;
 
 /**
@@ -62,11 +61,6 @@ public final class NodeManagerFactory  {
 	private Schema schema;
 
 	/**
-	 * A provider of native transactions, defaults to unmanaged native transactions opened with default parameters.
-	 */
-	private NativeTransactionProvider nativeTransactionProvider = new DefaultTransactionProvider();
-
-	/**
 	 * Creates a new instance of a factory producing {@link NodeManager node managers}. When used in a transactional setup,
 	 * i.e. with the {@link org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager}, make sure to use
 	 * the same {@link Driver driver instance} for both the node and the transaction manager.
@@ -94,21 +88,10 @@ public final class NodeManagerFactory  {
 	public NodeManager createNodeManager() {
 
 		Objects.requireNonNull(schema, "A schema is required. Did you call #initialize() before using this factory?");
-		return new DefaultNodeManager(schema, new Neo4jTemplate(driver, this.nativeTransactionProvider),
-			this.nativeTransactionProvider.retrieveTransaction(driver, null).orElse(null));
-	}
-
-	/**
-	 * Configures a provider for extracting sessions/transactions from a Neo4j driver. This method is not to be called
-	 * from application code and only used by internal API.
-	 *
-	 * @param nativeTransactionProvider A required transaction supplier
-	 */
-	@API(status = API.Status.INTERNAL, since = "1.0")
-	public void setNativeTransactionProvider(NativeTransactionProvider nativeTransactionProvider) {
-
-		Objects.requireNonNull(nativeTransactionProvider, "A node manager factory requires a transaction provider.");
-		this.nativeTransactionProvider = nativeTransactionProvider;
+		// The call here to our Spring transaction shim has to be rethought in case we move this out of a Spring scope.
+		// I dropped all the methods to configure that in an effort to make the setup more simple. ^mjs
+		return new DefaultNodeManager(schema, Neo4jClient.create(driver),
+			Neo4jTransactionUtils.retrieveTransaction(driver, null).orElse(null));
 	}
 
 	/**

@@ -42,7 +42,7 @@ import org.springframework.data.neo4j.core.schema.Schema;
  * @author Michael J. Simons
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public class MappingContextBasedScannerImpl implements Scanner {
+public final class MappingContextBasedScannerImpl implements Scanner {
 
 	private final Neo4jMappingContext neo4jMappingContext;
 
