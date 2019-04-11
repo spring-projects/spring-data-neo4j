@@ -44,7 +44,6 @@ public interface NodeManager {
 	@Nullable
 	Transaction getTransaction();
 
-	@API(status = API.Status.EXPERIMENTAL)
 	Object executeQuery(String query);
 
 	/**
@@ -64,7 +63,4 @@ public interface NodeManager {
 	 * @param managedEntity Object to be removed
 	 */
 	void delete(Object managedEntity);
-
-
-
 }
