@@ -1,6 +1,16 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.2.0.M3 (2019-04-11)
+----------------------------------------
+* DATAGRAPH-1210 - Fix treatment of collection-like constructor parameters.
+* DATAGRAPH-1209 - Upgrade Checkstyle Maven plugin.
+* DATAGRAPH-1206 - Move off deprecations in Spring Data Commons.
+* DATAGRAPH-1205 - Upgrade to Neo4j OGM 3.2.0-alpha05.
+* DATAGRAPH-1204 - Release 5.2 M3 (Moore).
+* DATAGRAPH-1171 - Provide native Point to Spring Data Commons Point converter.
+
+
 Changes in version 5.1.6.RELEASE (2019-04-01)
 ---------------------------------------------
 * DATAGRAPH-1213 - Upgrade to Neo4j OGM 3.1.8.
