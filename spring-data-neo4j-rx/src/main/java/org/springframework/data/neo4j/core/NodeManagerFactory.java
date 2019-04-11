@@ -41,7 +41,7 @@ import org.springframework.lang.Nullable;
  */
 @API(status = API.Status.STABLE, since = "1.0")
 @Slf4j
-public final class NodeManagerFactory  {
+public final class NodeManagerFactory {
 
 	/**
 	 * Driver that is used to create new sessions, either by directly invoking it or through Springs transactional utils.
@@ -100,7 +100,6 @@ public final class NodeManagerFactory  {
 	 *
 	 * @param scanner
 	 */
-	@API(status = API.Status.INTERNAL, since = "1.0")
 	public void setScanner(Scanner scanner) {
 
 		Objects.requireNonNull(scanner, "A node manager factory requires a scanner.");

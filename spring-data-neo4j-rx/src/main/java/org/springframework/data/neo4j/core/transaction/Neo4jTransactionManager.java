@@ -55,6 +55,7 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  */
+@API(status = API.Status.STABLE, since = "1.0")
 @Slf4j
 public class Neo4jTransactionManager extends AbstractPlatformTransactionManager implements BeanFactoryAware {
 
@@ -63,7 +64,6 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 	@Nullable
 	private NodeManagerFactory nodeManagerFactory;
 
-	@API(status = API.Status.STABLE, since = "1.0")
 	public Neo4jTransactionManager(Driver driver) {
 		this.driver = driver;
 	}
