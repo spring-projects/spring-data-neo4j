@@ -21,7 +21,7 @@ package org.springframework.data.neo4j.core.schema;
 import org.apiguardian.api.API;
 
 /**
- * Description howto generate Ids for entities.
+ * Description how to generate Ids for entities.
  *
  * @author Michael J. Simons
  */

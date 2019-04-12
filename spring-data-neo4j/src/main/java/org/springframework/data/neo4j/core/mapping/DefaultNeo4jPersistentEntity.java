@@ -18,8 +18,19 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
+import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.IdDescription;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 
 /**
@@ -30,19 +41,70 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 
 	private final String primaryLabel;
 
+	private final Lazy<IdDescription> idDescription;
+
+	private final Lazy<Collection<GraphPropertyDescription>> graphProperties;
+
+	/**
+	 * A view on all simple properties stored on a node.
+	 */
+	private Lazy<Collection<GraphPropertyDescription>> properties;
+
 	DefaultNeo4jPersistentEntity(TypeInformation<T> information) {
 		super(information);
 
-		Node nodeAnnotation = this.findAnnotation(Node.class);
-		if (nodeAnnotation == null || nodeAnnotation.labels().length != 1) {
-			primaryLabel = this.getType().getSimpleName();
-		} else {
-			primaryLabel = nodeAnnotation.labels()[0];
-		}
+		this.primaryLabel = computePrimaryLabel();
+		this.idDescription = Lazy.of(() -> computeIdDescription());
+		this.graphProperties = Lazy.of(() -> computeGraphProperties());
 	}
 
 	@Override
 	public String getPrimaryLabel() {
 		return primaryLabel;
+	}
+
+	@Override
+	public Class<T> getUnderlyingClass() {
+		return getType();
+	}
+
+	@Override
+	public IdDescription getIdDescription() {
+		return this.idDescription.get();
+	}
+
+	@Override
+	public Collection<GraphPropertyDescription> getGraphProperties() {
+		return this.graphProperties.get();
+	}
+
+	String computePrimaryLabel() {
+
+		Node nodeAnnotation = this.findAnnotation(Node.class);
+		if (nodeAnnotation == null || nodeAnnotation.labels().length != 1) {
+			return this.getType().getSimpleName();
+		} else {
+			return nodeAnnotation.labels()[0];
+		}
+	}
+
+	IdDescription computeIdDescription() {
+
+		final Neo4jPersistentProperty idProperty = this.getRequiredIdProperty();
+		final Optional<Id> optionalIdAnnotation = Optional
+			.ofNullable(AnnotatedElementUtils.findMergedAnnotation(idProperty.getField(), Id.class));
+		return optionalIdAnnotation
+			.map(idAnnotation -> new IdDescription(idAnnotation.strategy(), idAnnotation.generator()))
+			.orElseGet(() -> new IdDescription());
+	}
+
+	Collection<GraphPropertyDescription> computeGraphProperties() {
+
+		final List<GraphPropertyDescription> computedGraphProperties = new ArrayList<>();
+
+		doWithProperties(
+			(Neo4jPersistentProperty property) -> computedGraphProperties.add(property));
+
+		return Collections.unmodifiableCollection(computedGraphProperties);
 	}
 }

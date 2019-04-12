@@ -21,29 +21,25 @@ package org.springframework.data.neo4j.core.schema;
 import org.apiguardian.api.API;
 
 /**
+ * Provides minimal information how to map class attributes to the properties of a node or a relationship.
+ * <p>
+ * Spring Datas persistent properties have slightly different semantics. They have an entity centric approach of properties.
+ * Spring Data properties contain - if not marked otherwise - also associations.
+ * <p>
+ * Associations between different node types can be queried on the {@link Schema} itself.
+ *
  * @author Michael J. Simons
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public final class PropertyDescription {
+public interface GraphPropertyDescription {
 
-	private final String fieldName;
+	/**
+	 * @return The name of the attribute of the mapped class
+	 */
+	String getFieldName();
 
-	private final String propertyName;
-
-	// TODO basically all the properties from Springs PersistentProperty are needed.
-	// Two options: Turn that classes ending in XXXDescription into interfaces and let Neo4jPersistentProperty extend
-	// from it as well, or copy needed stuff into a format that fits our needs best.
-
-	public PropertyDescription(String fieldName, String propertyName) {
-		this.fieldName = fieldName;
-		this.propertyName = propertyName;
-	}
-
-	public String getFieldName() {
-		return fieldName;
-	}
-
-	public String getPropertyName() {
-		return propertyName;
-	}
+	/**
+	 * @return The name of the property as stored in the graph.
+	 */
+	String getPropertyName();
 }

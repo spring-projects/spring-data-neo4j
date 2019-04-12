@@ -21,15 +21,13 @@ package org.springframework.data.neo4j.core;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
-import org.springframework.data.neo4j.core.schema.Scanner;
 import org.springframework.data.neo4j.core.schema.Schema;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 import org.springframework.lang.Nullable;
@@ -43,19 +41,18 @@ import org.springframework.lang.Nullable;
 @Slf4j
 public final class NodeManagerFactory {
 
+	private final AtomicBoolean initialized = new AtomicBoolean(false);
+
 	/**
 	 * Driver that is used to create new sessions, either by directly invoking it or through Springs transactional utils.
 	 */
 	private final Driver driver;
 
 	/**
-	 * The initial set of classes that will be scanned in {@link #initialize()} to build the schema for node managers
+	 * The initial set of classes that will be registered with the schema {@link #initialize()} to build the schema for node managers
 	 * belonging to this factory.
 	 */
 	private final Set<Class<?>> initialPersistentClasses;
-
-	/** The scanner used to scan the initial set of persistent classes for creating a schema. */
-	private Scanner scanner = new NoopScanner();
 
 	@Nullable
 	private Schema schema;
@@ -67,7 +64,7 @@ public final class NodeManagerFactory {
 	 * <p>
 	 * Spring Boots autoconfiguration for SDN RX will make sure that the same driver is used for both concerns.
 	 *
-	 * @param driver                   The driver used to obtain statement runners from when creating instances of node managers.
+	 * @param driver The driver used to obtain statement runners from when creating instances of node managers.
 	 * @param initialPersistentClasses The set of classes that should be initially scanned
 	 */
 	public NodeManagerFactory(Driver driver, Class<?>... initialPersistentClasses) {
@@ -87,7 +84,10 @@ public final class NodeManagerFactory {
 	 */
 	public NodeManager createNodeManager() {
 
-		Objects.requireNonNull(schema, "A schema is required. Did you call #initialize() before using this factory?");
+		if (!initialized.get()) {
+			throw new IllegalStateException(
+				"This factory has not been correctly initialized. Please provider a schema and register your persistent classes.");
+		}
 		// The call here to our Spring transaction shim has to be rethought in case we move this out of a Spring scope.
 		// I dropped all the methods to configure that in an effort to make the setup more simple. ^mjs
 		return new DefaultNodeManager(schema, Neo4jClient.create(driver),
@@ -95,15 +95,12 @@ public final class NodeManagerFactory {
 	}
 
 	/**
-	 * Configures the scanner used to build a schema for domain objects. This method is not to be called from application
-	 * code and only used by internal API.
+	 * Provides the schema for this node manager factory. The schemas has to be set before a node manager is retrieved from this factory.
 	 *
-	 * @param scanner
+	 * @param schema
 	 */
-	public void setScanner(Scanner scanner) {
-
-		Objects.requireNonNull(scanner, "A node manager factory requires a scanner.");
-		this.scanner = scanner;
+	public void setSchema(@Nullable Schema schema) {
+		this.schema = schema;
 	}
 
 	/**
@@ -112,19 +109,10 @@ public final class NodeManagerFactory {
 	 */
 	public void initialize() {
 
-		log.info("Initializing schema with {} persistent classes", this.initialPersistentClasses.size());
-		this.schema = scanner.scan(Collections.unmodifiableSet(this.initialPersistentClasses));
-	}
-
-	/**
-	 * A noop implementation of a Schema scanner, only provided to create instances of a {@link NodeManagerFactory} that
-	 * are in a valid state without booting up a whole context.
-	 */
-	private static class NoopScanner implements Scanner {
-
-		@Override
-		public Schema scan(Collection<Class<?>> persistentClasses) {
-			return new Schema();
+		if (this.initialized.compareAndSet(false, true)) {
+			Objects.requireNonNull(schema, "A schema is required. Did you provide one with #setSchema() beforehand?");
+			log.info("Initializing schema with {} persistent classes", this.initialPersistentClasses.size());
+			this.schema.register(this.initialPersistentClasses);
 		}
 	}
 }

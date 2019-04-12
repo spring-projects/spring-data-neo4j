@@ -21,37 +21,33 @@ package org.springframework.data.neo4j.core.mapping;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.Property;
-import org.springframework.data.neo4j.core.schema.PropertyDescription;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
-import org.springframework.data.neo4j.core.schema.Scanner;
-import org.springframework.data.neo4j.core.schema.Schema;
 
 /**
  * @author Michael J. Simons
  */
-class MappingContextBasedScannerImplTest {
+public class Neo4jMappingContextTest {
 
 	@Test
 	void initializationOfSchemaShouldWork() {
 
-		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
-		neo4jMappingContext.setInitialEntitySet(new HashSet<>(Arrays.asList(BikeNode.class, UserNode.class)));
-		neo4jMappingContext.initialize();
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(BikeNode.class, UserNode.class)));
+		schema.initialize();
 
-		final Scanner scanner = new MappingContextBasedScannerImpl(neo4jMappingContext);
-		Schema schema = scanner.scan(new HashSet<>(Arrays.asList(BikeNode.class, UserNode.class)));
-
-		Optional<NodeDescription> optionalUserNodeDescription = schema.getNodeDescription("User");
+		Optional<NodeDescription<?>> optionalUserNodeDescription = schema.getNodeDescription("User");
 		assertThat(optionalUserNodeDescription)
 			.isPresent()
 			.hasValueSatisfying(description -> {
@@ -60,16 +56,16 @@ class MappingContextBasedScannerImplTest {
 				assertThat(description.getIdDescription().getIdStrategy())
 					.isEqualTo(Id.Strategy.INTERNAL);
 
-				assertThat(description.getProperties())
-					.extracting(PropertyDescription::getFieldName)
+				assertThat(description.getGraphProperties())
+					.extracting(GraphPropertyDescription::getFieldName)
 					.containsExactlyInAnyOrder("id", "name", "first_name");
 
-				assertThat(description.getProperties())
-					.extracting(PropertyDescription::getPropertyName)
+				assertThat(description.getGraphProperties())
+					.extracting(GraphPropertyDescription::getPropertyName)
 					.containsExactlyInAnyOrder("id", "name", "firstName");
 			});
 
-		Optional<NodeDescription> optionalBikeNodeDescription = schema.getNodeDescription("BikeNode");
+		Optional<NodeDescription<?>> optionalBikeNodeDescription = schema.getNodeDescription("BikeNode");
 		assertThat(optionalBikeNodeDescription)
 			.isPresent()
 			.hasValueSatisfying(description -> {
@@ -78,10 +74,13 @@ class MappingContextBasedScannerImplTest {
 				assertThat(description.getIdDescription().getIdStrategy())
 					.isEqualTo(Id.Strategy.ASSIGNED);
 
-				assertThat(description.getRelationships())
-					.containsExactlyInAnyOrder(
-						new RelationshipDescription("owner", "User"),
-						new RelationshipDescription("renter", "User"));
+				Collection<String> expectedRelationships = Arrays.asList("[:owner] -> (:User)", "[:renter] -> (:User)");
+
+				Collection<RelationshipDescription> relationships = schema
+					.getRelationshipsOf(description.getPrimaryLabel());
+				assertThat(relationships)
+					.allMatch(d -> expectedRelationships
+						.contains(String.format("[:%s] -> (:%s)", d.getType(), d.getTarget())));
 			});
 	}
 

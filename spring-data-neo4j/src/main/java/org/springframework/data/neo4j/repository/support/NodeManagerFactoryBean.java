@@ -25,7 +25,6 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.neo4j.core.NodeManager;
 import org.springframework.data.neo4j.core.NodeManagerFactory;
-import org.springframework.data.neo4j.core.mapping.MappingContextBasedScannerImpl;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 
 /**
@@ -57,7 +56,7 @@ public final class NodeManagerFactoryBean implements InitializingBean, FactoryBe
 	@Override
 	public void afterPropertiesSet() {
 
-		target.setScanner(new MappingContextBasedScannerImpl(this.neo4jMappingContext));
+		target.setSchema(this.neo4jMappingContext);
 		target.initialize();
 	}
 }

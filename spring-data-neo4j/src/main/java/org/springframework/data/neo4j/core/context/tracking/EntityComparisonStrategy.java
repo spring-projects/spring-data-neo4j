@@ -31,8 +31,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
-import org.springframework.data.neo4j.core.schema.PropertyDescription;
 
 /**
  * Dirty tracking strategy based on property comparison. The strategy can compare two states of the same instance on
@@ -40,6 +40,7 @@ import org.springframework.data.neo4j.core.schema.PropertyDescription;
  * will get compared.
  *
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 public class EntityComparisonStrategy implements EntityTrackingStrategy {
 
@@ -74,7 +75,7 @@ public class EntityComparisonStrategy implements EntityTrackingStrategy {
 
 		EntityState(NodeDescription nodeDescription, Object entity, Function<Object, Integer> objectIdentifyingFuction) {
 
-			Collection<PropertyDescription> properties = nodeDescription.getProperties();
+			Collection<GraphPropertyDescription> properties = nodeDescription.getGraphProperties();
 			this.objectFields = getFieldsFromProperties(entity, properties);
 
 			this.objectIdentifyingFuction = objectIdentifyingFuction;
@@ -105,13 +106,13 @@ public class EntityComparisonStrategy implements EntityTrackingStrategy {
 			return changes;
 		}
 
-		private List<Field> getFieldsFromProperties(Object entity, Collection<PropertyDescription> properties) {
+		private List<Field> getFieldsFromProperties(Object entity, Collection<GraphPropertyDescription> properties) {
 
 			List<Field> fields = new ArrayList<>();
 
 			Class<?> entityClass = entity.getClass();
 			Map<String, Field> classFields = retrieveAllFields(entityClass);
-			for (PropertyDescription property : properties) {
+			for (GraphPropertyDescription property : properties) {
 				fields.add(classFields.get(property.getFieldName()));
 			}
 

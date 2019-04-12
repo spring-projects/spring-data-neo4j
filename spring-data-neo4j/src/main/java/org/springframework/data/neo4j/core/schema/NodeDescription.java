@@ -18,16 +18,7 @@
  */
 package org.springframework.data.neo4j.core.schema;
 
-import lombok.Builder;
-
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 
@@ -35,78 +26,29 @@ import org.apiguardian.api.API;
  * Describes how a class is mapped to a node inside the database. It provides navigable links to relationships and
  * access to the nodes properties.
  *
+ * @param <T> The type of the underlying class
  * @author Michael J. Simons
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public final class NodeDescription {
+public interface NodeDescription<T> {
 
 	/**
-	 * The class being mapped to the node.
+	 * @return The primary label of this entity inside Neo4j.
 	 */
-	private final Class<?> underlyingClass;
+	String getPrimaryLabel();
 
 	/**
-	 * The primary label of this node.
+	 * @return The concrete class to which a node with the given {@link #getPrimaryLabel()} is mapped to
 	 */
-	private final String primaryLabel;
-
-	private final IdDescription idDescription;
-
-	private final Map<String, PropertyDescription> propertiesByFieldName;
-
-	private final List<RelationshipDescription> relationships;
-
-	@Builder
-	private NodeDescription(Class<?> underlyingClass, String primaryLabel, IdDescription idDescription,
-		List<PropertyDescription> properties,
-		List<RelationshipDescription> relationships) {
-
-		this.underlyingClass = underlyingClass;
-		this.primaryLabel = primaryLabel;
-		this.idDescription = idDescription;
-		this.propertiesByFieldName = properties.stream()
-			.collect(Collectors.toMap(PropertyDescription::getFieldName, Function.identity()));
-		this.relationships = new ArrayList<>(relationships);
-	}
-
-	public Class<?> getUnderlyingClass() {
-		return underlyingClass;
-	}
+	Class<T> getUnderlyingClass();
 
 	/**
-	 * @return The primary label of this node
+	 * @return A description how to determine primary ids for nodes fitting this description
 	 */
-	public String getPrimaryLabel() {
-		return primaryLabel;
-	}
-
-	public IdDescription getIdDescription() {
-		return idDescription;
-	}
+	IdDescription getIdDescription();
 
 	/**
-	 * @return The properties of this node
+	 * @return A collection of persistent properties that are mapped to graph properties and not to relationships
 	 */
-	public Collection<PropertyDescription> getProperties() {
-		return Collections.unmodifiableCollection(propertiesByFieldName.values());
-	}
-
-	/**
-	 * Retrieves a properties description by its field name.
-	 *
-	 * @param fieldName The field name under which the node is described
-	 * @return The description if any
-	 */
-	public Optional<PropertyDescription> getPropertyDescription(String fieldName) {
-		return Optional.ofNullable(this.propertiesByFieldName.get(fieldName));
-	}
-
-	/**
-	 * This returns the outgoing relationships this node has to other nodes directions.
-	 *
-	 * @return The relationships defined by instances of this node.
-	 */
-	public Collection<RelationshipDescription> getRelationships() {
-		return Collections.unmodifiableCollection(relationships);
-	}
+	Collection<GraphPropertyDescription> getGraphProperties();
 }

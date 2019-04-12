@@ -16,26 +16,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.schema;
+package org.springframework.data.neo4j.core.mapping;
 
-import java.util.Collection;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
-import org.apiguardian.api.API;
+import org.springframework.data.neo4j.core.schema.RelationshipDescription;
 
 /**
- * A scanner produces an instance of schema. The default scanner is based on all the information we can get from
- * a Spring Mapping context (in our case, the {@link org.springframework.data.neo4j.core.mapping.Neo4jMappingContext}.
- *
  * @author Michael J. Simons
  */
-@API(status = API.Status.STABLE, since = "1.0")
-public interface Scanner {
+@RequiredArgsConstructor
+@Getter
+@ToString
+@EqualsAndHashCode(of = { "type", "target" })
+class DefaultRelationshipDescription implements RelationshipDescription {
 
-	/**
-	 * Scans the relevant classes and creates a schema.
-	 *
-	 * @param persistentClasses The classes to scan
-	 * @return The new schema.
-	 */
-	Schema scan(Collection<Class<?>> persistentClasses);
+	private final String type;
+
+	private final String target;
 }

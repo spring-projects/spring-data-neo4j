@@ -20,6 +20,7 @@ package org.springframework.data.neo4j.core.mapping;
 
 import org.apiguardian.api.API;
 import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 
 /**
  * A {@link org.springframework.data.mapping.PersistentProperty} interface with additional methods for metadata related to Neo4j.
@@ -27,5 +28,6 @@ import org.springframework.data.mapping.PersistentProperty;
  * @author Michael J. Simons
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersistentProperty> {
+public interface Neo4jPersistentProperty
+	extends PersistentProperty<Neo4jPersistentProperty>, GraphPropertyDescription {
 }
