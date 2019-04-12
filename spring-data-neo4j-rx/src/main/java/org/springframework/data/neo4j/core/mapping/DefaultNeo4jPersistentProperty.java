@@ -18,17 +18,23 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.util.Optional;
+
 import org.springframework.data.mapping.Association;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.data.util.Lazy;
 
 /**
  * @author Michael J. Simons
  */
 class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<Neo4jPersistentProperty>
 	implements Neo4jPersistentProperty {
+
+	private final Lazy<Optional<String>> graphPropertyName;
 
 	/**
 	 * Creates a new {@link AnnotationBasedPersistentProperty}.
@@ -42,6 +48,8 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 		SimpleTypeHolder simpleTypeHolder) {
 
 		super(property, owner, simpleTypeHolder);
+
+		this.graphPropertyName = Lazy.of(() -> computeGraphPropertyName());
 	}
 
 	@Override
@@ -55,5 +63,36 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 		return !SimpleTypeHolder.DEFAULT.isSimpleType(super.getType());
 	}
 
+	/**
+	 * Computes the target name of this property.
+	 *
+	 * @return An empty optional if this property describes an association, a given target name otherwise.
+	 */
+	Optional<String> computeGraphPropertyName() {
 
+		if (this.isAssociation()) {
+			return Optional.empty();
+		}
+
+		org.springframework.data.neo4j.core.schema.Property propertyAnnotation =
+			this.findAnnotation(org.springframework.data.neo4j.core.schema.Property.class);
+
+		String targetName = this.getName();
+		if (propertyAnnotation != null && !propertyAnnotation.name().isEmpty()
+			&& propertyAnnotation.name().trim().length() != 0) {
+			targetName = propertyAnnotation.name().trim();
+		}
+
+		return Optional.of(targetName);
+	}
+
+	@Override
+	public String getFieldName() {
+		return this.getName();
+	}
+
+	@Override
+	public String getPropertyName() {
+		return this.graphPropertyName.get().orElseThrow(() -> new MappingException("This property is not mapped to a Graph property!"));
+	}
 }

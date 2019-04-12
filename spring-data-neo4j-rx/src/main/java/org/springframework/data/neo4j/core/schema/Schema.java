@@ -18,60 +18,26 @@
  */
 package org.springframework.data.neo4j.core.schema;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.Collection;
 import java.util.Optional;
-import java.util.function.Predicate;
+import java.util.Set;
 
 import org.apiguardian.api.API;
 
 /**
  * Contains the descriptions of all nodes, their properties and relationships known to SDN-RX.
  *
- * The schema is currently designed to be mutual.
+ * @author Michael J. Simons
  */
 @API(status = API.Status.STABLE, since = "1.0")
-public final class Schema {
-
-	private final Map<String, NodeDescription> nodeDescriptionsByPrimaryLabel = new HashMap<>();
+public interface Schema {
 
 	/**
-	 * Registers a node description under it's primary label.
+	 * Registers and scans the given set of classes to be available as Neo4j domain entities.
 	 *
-	 * @param newDescription The new node description.
-	 * @return This schema.
-	 * @throws IllegalSchemaChangeException when the description is already registered (under any label)
+	 * @param entityClasses The additional set of classes to register with this schema
 	 */
-	public Schema registerNodeDescription(NodeDescription newDescription) {
-
-		String primaryLabel = newDescription.getPrimaryLabel();
-		if (this.nodeDescriptionsByPrimaryLabel.containsKey(primaryLabel)) {
-			throw new IllegalSchemaChangeException(String
-				.format(Locale.ENGLISH, "The schema already contains a node description under the primary label %s",
-					primaryLabel));
-		}
-
-		if (this.nodeDescriptionsByPrimaryLabel.containsValue(newDescription)) {
-			Optional<String> label = this.nodeDescriptionsByPrimaryLabel.entrySet().stream()
-				.filter(e -> e.getValue().equals(newDescription)).map(
-					Map.Entry::getKey).findFirst();
-
-			throw new IllegalSchemaChangeException(String
-				.format(Locale.ENGLISH, "The schema already contains description %s under the primary label %s",
-					newDescription, label.orElse("n/a")));
-		}
-
-		this.getNodeDescription(newDescription.getUnderlyingClass()).ifPresent(existingDescription -> {
-			throw new IllegalSchemaChangeException(String
-				.format(Locale.ENGLISH,
-					"The schema already contains description with the underlying class %s under the primary label %s",
-					newDescription.getUnderlyingClass().getName(), existingDescription.getPrimaryLabel()));
-		});
-
-		this.nodeDescriptionsByPrimaryLabel.put(primaryLabel, newDescription);
-		return this;
-	}
+	void register(Set<? extends Class<?>> entityClasses);
 
 	/**
 	 * Retrieves a nodes description by its primary label.
@@ -79,9 +45,7 @@ public final class Schema {
 	 * @param primaryLabel The primary label under which the node is described
 	 * @return The description if any
 	 */
-	public Optional<NodeDescription> getNodeDescription(String primaryLabel) {
-		return Optional.ofNullable(this.nodeDescriptionsByPrimaryLabel.get(primaryLabel));
-	}
+	Optional<NodeDescription<?>> getNodeDescription(String primaryLabel);
 
 	/**
 	 * Retrieves a nodes description by its underlying class.
@@ -89,9 +53,13 @@ public final class Schema {
 	 * @param underlyingClass The underlying class of the node description to be retrieved
 	 * @return The description if any
 	 */
-	public Optional<NodeDescription> getNodeDescription(Class<?> underlyingClass) {
+	Optional<NodeDescription<?>> getNodeDescription(Class<?> underlyingClass);
 
-		Predicate<NodeDescription> underlyingClassMatches = n -> n.getUnderlyingClass().equals(underlyingClass);
-		return this.nodeDescriptionsByPrimaryLabel.values().stream().filter(underlyingClassMatches).findFirst();
-	}
+	/**
+	 * This returns the outgoing relationships this node has to other nodes.
+	 *
+	 * @param primaryLabel The primary label of the node whos relationships should be retrieved
+	 * @return The relationships defined by instances of this node.
+	 */
+	Collection<RelationshipDescription> getRelationshipsOf(String primaryLabel);
 }

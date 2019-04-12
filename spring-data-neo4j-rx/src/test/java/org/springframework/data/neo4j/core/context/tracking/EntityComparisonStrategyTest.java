@@ -18,8 +18,8 @@
  */
 package org.springframework.data.neo4j.core.context.tracking;
 
-import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,23 +29,42 @@ import java.util.List;
 import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
-import org.springframework.data.neo4j.core.schema.PropertyDescription;
 
 /**
  * @author Gerrit Meier
  */
 class EntityComparisonStrategyTest {
 
-	private PropertyDescription valuePropertyDescription = new PropertyDescription("value", "value");
+	private final GraphPropertyDescription valuePropertyDescription;
 
-	private PropertyDescription informationPropertyDescription = new PropertyDescription("information", "information");
+	private final GraphPropertyDescription informationPropertyDescription;
 
-	private PropertyDescription parentPropertyDescription = new PropertyDescription("parentValue", "parentValue");
+	private final GraphPropertyDescription parentPropertyDescription;
 
-	private NodeDescription description = NodeDescription.builder().primaryLabel("Something")
-			.properties(Arrays.asList(valuePropertyDescription, informationPropertyDescription, parentPropertyDescription))
-			.relationships(emptyList()).underlyingClass(Something.class).build();
+	private final NodeDescription description;
+
+	EntityComparisonStrategyTest() {
+		this.valuePropertyDescription = mock(GraphPropertyDescription.class);
+		when(this.valuePropertyDescription.getFieldName()).thenReturn("value");
+		when(this.valuePropertyDescription.getPropertyName()).thenReturn("value");
+
+		this.informationPropertyDescription = mock(GraphPropertyDescription.class);
+		when(this.informationPropertyDescription.getFieldName()).thenReturn("information");
+		when(this.informationPropertyDescription.getPropertyName()).thenReturn("information");
+
+		this.parentPropertyDescription = mock(GraphPropertyDescription.class);
+		when(this.parentPropertyDescription.getFieldName()).thenReturn("parentValue");
+		when(this.parentPropertyDescription.getPropertyName()).thenReturn("parentValue");
+
+		this.description = mock(NodeDescription.class);
+		when(this.description.getPrimaryLabel()).thenReturn("Something");
+		when(this.description.getGraphProperties()).thenReturn(Arrays
+			.asList(this.valuePropertyDescription, this.informationPropertyDescription,
+				this.parentPropertyDescription));
+		when(this.description.getUnderlyingClass()).thenReturn(Something.class);
+	}
 
 	@Test
 	void trackSimplePropertyChange() {

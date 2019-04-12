@@ -18,26 +18,27 @@
  */
 package org.springframework.data.neo4j.core.schema;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 import org.apiguardian.api.API;
 
 /**
  * Description of a relationship. Those descriptions always describe outgoing relationships. The inverse direction
  * is maybe defined on the {@link NodeDescription} reachable in the {@link Schema} via it's primary label defined by
- * {@link #target}.
+ * {@link #getTarget}.
  *
  * @author Michael J. Simons
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-@RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode(of = { "type", "target" })
-public final class RelationshipDescription {
+public interface RelationshipDescription {
 
-	private final String type;
+	/**
+	 * @return The type of this relationship
+	 */
+	String getType();
 
-	private final String target;
+	/**
+	 * The target of this relationship is described by the primary label of the node in question.
+	 *
+	 * @return The target of this relationship
+	 */
+	String getTarget();
 }

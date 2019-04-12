@@ -18,18 +18,19 @@
  */
 package org.springframework.data.neo4j.core.context;
 
-import static java.util.Collections.*;
 import static org.mockito.Mockito.*;
+
+import java.util.Arrays;
+import java.util.HashSet;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.neo4j.core.context.tracking.EntityTrackingStrategy;
-import org.springframework.data.neo4j.core.schema.NodeDescription;
-import org.springframework.data.neo4j.core.schema.PropertyDescription;
-import org.springframework.data.neo4j.core.schema.Schema;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 class DefaultPersistenceContextTest {
 
@@ -42,13 +43,9 @@ class DefaultPersistenceContextTest {
 		when(entityTrackingStrategy.getObjectIdentifier(any()))
 				.thenAnswer(invocation -> System.identityHashCode(invocation.getArguments()[0]));
 
-		Schema schema = new Schema();
-		PropertyDescription valuePropertyDescription = new PropertyDescription("value", "value");
-		NodeDescription somethingNodeDescription = NodeDescription.builder()
-				.properties(singletonList(valuePropertyDescription)).relationships(emptyList()).underlyingClass(Something.class)
-				.build();
-
-		schema.registerNodeDescription(somethingNodeDescription);
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		schema.setInitialEntitySet(new HashSet<Class<?>>(Arrays.asList(Something.class)));
+		schema.initialize();
 
 		// override method to return a verifiable mock
 		context = new DefaultPersistenceContext(schema) {

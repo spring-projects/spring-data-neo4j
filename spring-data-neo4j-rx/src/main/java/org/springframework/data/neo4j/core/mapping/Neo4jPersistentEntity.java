@@ -19,18 +19,21 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import org.apiguardian.api.API;
+import org.springframework.data.mapping.AssociationHandler;
+import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.MutablePersistentEntity;
+import org.springframework.data.neo4j.core.schema.NodeDescription;
 
 /**
  * A {@link org.springframework.data.mapping.PersistentEntity} interface with additional methods for metadata related to Neo4j.
  *
+ * Both Spring Data methods {@link #doWithProperties(PropertyHandler)} and {@link #doWithAssociations(AssociationHandler)} are
+ * aware which field of a class is meant to be mapped as a property of a node or a relationship or if it is a relationship
+ * (in Spring Data terms: if it is an association).
+ *
  * @author Michael J. Simons
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public interface Neo4jPersistentEntity<T> extends MutablePersistentEntity<T, Neo4jPersistentProperty> {
-
-	/**
-	 * @return The primary label of this entity inside Neo4j.
-	 */
-	String getPrimaryLabel();
+public interface Neo4jPersistentEntity<T>
+	extends MutablePersistentEntity<T, Neo4jPersistentProperty>, NodeDescription<T> {
 }

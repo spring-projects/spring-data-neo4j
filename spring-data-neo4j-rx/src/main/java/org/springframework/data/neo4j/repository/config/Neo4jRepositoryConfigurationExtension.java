@@ -111,7 +111,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		String nameOfMappingContextBean = registerWithSourceAndGeneratedBeanName(
 			neo4jMappingContextBeanDefinition, registry, config);
 
-		// Augmented node manager factory (creating injectable, shared instances of NodeManager)
+		// Augmented node manager factory (creating injectable, shared instances of NodeManager that are aware of the mapping context).
 		String nameOfNodeManagerFactory = config.getAttribute("nodeManagerFactoryRef")
 			.orElse(DEFAULT_NODE_MANAGER_FACTORY_BEAN_NAME);
 		AbstractBeanDefinition sharedSessionCreatorBeanDefinition = BeanDefinitionBuilder
