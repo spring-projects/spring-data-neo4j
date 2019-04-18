@@ -21,13 +21,15 @@ package org.springframework.data.neo4j.integration;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,9 +53,86 @@ class RepositoryIT {
 	private static Neo4jContainer neo4jContainer = new Neo4jContainer().withoutAuthentication();
 
 	private final PersonRepository repository;
+	private final Driver driver;
 
-	RepositoryIT(@Autowired PersonRepository repository) {
+	@Autowired
+	RepositoryIT(PersonRepository repository, Driver driver) {
+
 		this.repository = repository;
+		this.driver = driver;
+	}
+
+	@BeforeEach
+	void setupDb() {
+
+		Transaction transaction = driver.session().beginTransaction();
+		transaction.run("MATCH (n) detach delete n");
+		transaction.run("CREATE (n:PersonWithAllConstructor) SET n.name = 'Test'");
+		transaction.run("CREATE (n:PersonWithNoConstructor) SET n.name = 'Test'");
+		transaction.run("CREATE (n:PersonWithWither) SET n.name = 'Test'");
+		transaction.success();
+		transaction.close();
+
+	}
+
+	@Test
+	void loadAllPersonsWithAllConstructor() {
+		List<PersonWithAllConstructor> persons = repository.getAllPersonsViaQuery();
+
+		assertThat(persons).anyMatch(person -> person.getName().equals("Test"));
+	}
+
+	@Test
+	void loadOnePersonWithAllConstructor() {
+		PersonWithAllConstructor person = repository.getOnePersonViaQuery();
+		assertThat(person.getName()).isEqualTo("Test");
+	}
+
+	@Test
+	void loadOptionalPersonWithAllConstructor() {
+		Optional<PersonWithAllConstructor> person = repository.getOptionalPersonsViaQuery();
+		assertThat(person).isPresent();
+		assertThat(person.get().getName()).isEqualTo("Test");
+	}
+
+	@Test
+	void loadAllPersonsWithNoConstructor() {
+		List<PersonWithNoConstructor> persons = repository.getAllPersonsWithNoConstructorViaQuery();
+
+		assertThat(persons).anyMatch(person -> person.getName().equals("Test"));
+	}
+
+	@Test
+	void loadOnePersonWithNoConstructor() {
+		PersonWithNoConstructor person = repository.getOnePersonWithNoConstructorViaQuery();
+		assertThat(person.getName()).isEqualTo("Test");
+	}
+
+	@Test
+	void loadOptionalPersonWithNoConstructor() {
+		Optional<PersonWithNoConstructor> person = repository.getOptionalPersonsWithNoConstructorViaQuery();
+		assertThat(person).isPresent();
+		assertThat(person.get().getName()).isEqualTo("Test");
+	}
+
+	@Test
+	void loadAllPersonsWithWither() {
+		List<PersonWithWither> persons = repository.getAllPersonsWithWitherViaQuery();
+
+		assertThat(persons).anyMatch(person -> person.getName().equals("Test"));
+	}
+
+	@Test
+	void loadOnePersonWithWither() {
+		PersonWithWither person = repository.getOnePersonWithWitherViaQuery();
+		assertThat(person.getName()).isEqualTo("Test");
+	}
+
+	@Test
+	void loadOptionalPersonWithWither() {
+		Optional<PersonWithWither> person = repository.getOptionalPersonsWithWitherViaQuery();
+		assertThat(person).isPresent();
+		assertThat(person.get().getName()).isEqualTo("Test");
 	}
 
 	@Test
@@ -63,17 +142,13 @@ class RepositoryIT {
 
 	@Test
 	void callCustomCypher() {
-		List<Map<String, Object>> actual = repository.customQuery();
-		assertThat(actual)
-			.isNotNull()
-			.isNotEmpty()
-			.first().extracting(record -> record.get("1"))
-			.isEqualTo(1L);
+		Long fixedLong = repository.customQuery();
+		assertThat(fixedLong).isEqualTo(1L);
 	}
 
 	@Test
 	void findBySimpleProperty() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findByName());
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findByName("Test"));
 	}
 
 	@Configuration
@@ -91,7 +166,8 @@ class RepositoryIT {
 		@Bean
 		public NodeManagerFactory nodeManagerFactory(Driver driver) {
 
-			return new NodeManagerFactory(driver, Person.class);
+			return new NodeManagerFactory(driver, PersonWithAllConstructor.class, PersonWithNoConstructor.class,
+					PersonWithWither.class);
 		}
 
 		@Bean

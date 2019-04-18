@@ -18,14 +18,33 @@
  */
 package org.springframework.data.neo4j.integration;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
+@Getter
+@Setter
 @Node
-public class Person {
+@ToString
+public class PersonWithWither {
 
-	@Id
-	private Long id;
+	@Id private final Long id;
 
-	private String name;
+	private final String name;
+
+	private PersonWithWither(Long id, String name) {
+		this.id = id;
+		this.name = name;
+	}
+
+	public PersonWithWither withId(Long newId) {
+		return new PersonWithWither(newId, this.name);
+	}
+
+	public PersonWithWither withName(String newName) {
+		return new PersonWithWither(this.id, newName);
+	}
 }
