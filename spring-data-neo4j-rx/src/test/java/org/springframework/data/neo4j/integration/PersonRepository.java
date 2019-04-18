@@ -20,6 +20,7 @@ package org.springframework.data.neo4j.integration;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -29,11 +30,38 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Gerrit Meier
  * @author Michael J. Simon
  */
-public interface PersonRepository extends Neo4jRepository<Person, Long> {
+public interface PersonRepository extends Neo4jRepository<PersonWithAllConstructor, Long> {
 
 	@Transactional
 	@Query("RETURN 1")
-	List<Map<String, Object>> customQuery();
+	Long customQuery();
 
-	List<Map<String, Object>> findByName();
+	@Query("MATCH (n:PersonWithAllConstructor) return n")
+	List<PersonWithAllConstructor> getAllPersonsViaQuery();
+
+	@Query("MATCH (n:PersonWithAllConstructor{name:'Test'}) return n")
+	PersonWithAllConstructor getOnePersonViaQuery();
+
+	@Query("MATCH (n:PersonWithAllConstructor{name:'Test'}) return n")
+	Optional<PersonWithAllConstructor> getOptionalPersonsViaQuery();
+
+	@Query("MATCH (n:PersonWithNoConstructor) return n")
+	List<PersonWithNoConstructor> getAllPersonsWithNoConstructorViaQuery();
+
+	@Query("MATCH (n:PersonWithNoConstructor{name:'Test'}) return n")
+	PersonWithNoConstructor getOnePersonWithNoConstructorViaQuery();
+
+	@Query("MATCH (n:PersonWithNoConstructor{name:'Test'}) return n")
+	Optional<PersonWithNoConstructor> getOptionalPersonsWithNoConstructorViaQuery();
+
+	@Query("MATCH (n:PersonWithWither) return n")
+	List<PersonWithWither> getAllPersonsWithWitherViaQuery();
+
+	@Query("MATCH (n:PersonWithWither{name:'Test'}) return n")
+	PersonWithWither getOnePersonWithWitherViaQuery();
+
+	@Query("MATCH (n:PersonWithWither{name:'Test'}) return n")
+	Optional<PersonWithWither> getOptionalPersonsWithWitherViaQuery();
+
+	List<Map<String, Object>> findByName(String name);
 }

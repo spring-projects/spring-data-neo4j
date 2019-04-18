@@ -41,7 +41,15 @@ public class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
 	@Override
 	public Object execute(Object[] parameters) {
-		return nodeManager.executeQuery(queryMethod.getAnnotatedQuery());
+
+		Class<?> returnedType = queryMethod.getReturnedObjectType();
+		boolean collectionQuery = queryMethod.isCollectionQuery();
+
+		if (collectionQuery) {
+			return nodeManager.executeTypedQueryForObjects(queryMethod.getAnnotatedQuery(), returnedType);
+		} else {
+			return nodeManager.executeTypedQueryForObject(queryMethod.getAnnotatedQuery(), returnedType);
+		}
 	}
 
 	@Override

@@ -18,6 +18,9 @@
  */
 package org.springframework.data.neo4j.core;
 
+import java.util.Collection;
+import java.util.Optional;
+
 import org.apiguardian.api.API;
 import org.neo4j.driver.Transaction;
 import org.springframework.lang.Nullable;
@@ -46,6 +49,10 @@ public interface NodeManager {
 
 	Object executeQuery(String query);
 
+	<T> Collection<T> executeTypedQueryForObjects(String query, Class<T> returnedType);
+
+	<T> Optional<T> executeTypedQueryForObject(String query, Class<T> returnedType);
+
 	/**
 	 * Saves an entity. When the entity is not yet managed in this instance of the NodeManager, and will be registered as
 	 * a managed instance. In either way, the state of the entity will be written to the underlying store afterwards.
@@ -63,4 +70,5 @@ public interface NodeManager {
 	 * @param managedEntity Object to be removed
 	 */
 	void delete(Object managedEntity);
+
 }
