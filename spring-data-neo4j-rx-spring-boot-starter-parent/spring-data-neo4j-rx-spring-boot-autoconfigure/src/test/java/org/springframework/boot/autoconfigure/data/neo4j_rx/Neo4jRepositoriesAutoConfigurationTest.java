@@ -20,14 +20,18 @@ package org.springframework.boot.autoconfigure.data.neo4j_rx;
 
 import static org.assertj.core.api.Assertions.*;
 
+import reactor.core.publisher.Flux;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.data.neo4j_rx.bikes.BikeNode;
 import org.springframework.boot.autoconfigure.data.neo4j_rx.bikes.BikeRepository;
 import org.springframework.boot.autoconfigure.data.neo4j_rx.empty.EmptyDataPackage;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverAutoConfiguration;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -62,9 +66,11 @@ class Neo4jRepositoriesAutoConfigurationTest {
 		this.contextRunner
 			.withPropertyValues("spring.data.neo4j.repositories.type=none")
 			.withUserConfiguration(TestConfiguration.class)
+			.withClassLoader(new FilteredClassLoader(Flux.class))
 			.run(ctx ->
 				assertThat(ctx)
 					.hasSingleBean(Neo4jTransactionManager.class)
+					.doesNotHaveBean(ReactiveNeo4jClient.class)
 					.doesNotHaveBean(Neo4jRepository.class)
 			);
 
@@ -74,6 +80,7 @@ class Neo4jRepositoriesAutoConfigurationTest {
 			.run(ctx ->
 				assertThat(ctx)
 					.hasSingleBean(Neo4jTransactionManager.class)
+					.hasSingleBean(ReactiveNeo4jClient.class)
 					.doesNotHaveBean(Neo4jRepository.class)
 			);
 	}

@@ -28,7 +28,7 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
 /**
  * @author Michael J. Simons
  */
-class Neo4jRepositoriesAutoConfigureRegistrar extends AbstractRepositoryConfigurationSourceSupport {
+class Neo4jImperativeRepositoriesConfigureRegistrar extends AbstractRepositoryConfigurationSourceSupport {
 
 	@Override
 	protected Class<? extends Annotation> getAnnotation() {

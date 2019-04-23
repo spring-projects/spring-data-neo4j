@@ -18,10 +18,21 @@
  */
 package org.springframework.boot.autoconfigure.data.neo4j_rx;
 
+import reactor.core.publisher.Flux;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.data.ConditionalOnRepositoryType;
+import org.springframework.boot.autoconfigure.data.RepositoryType;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
+
 /**
  * TODO This is a stub.
  *
  * @author Michael J. Simons
  */
-class Neo4jReactiveRepositoriesAutoConfigureRegistrar {
+@Configuration
+@ConditionalOnClass({ Flux.class, ReactiveNeo4jRepository.class })
+@ConditionalOnRepositoryType(store = "neo4j", type = RepositoryType.REACTIVE)
+class Neo4jReactiveRepositoriesConfiguration {
 }

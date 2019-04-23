@@ -19,57 +19,20 @@
 package org.springframework.boot.autoconfigure.data.neo4j_rx;
 
 import org.neo4j.driver.Driver;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverAutoConfiguration;
-import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.core.Neo4jClient;
-import org.springframework.data.neo4j.core.NodeManagerFactory;
-import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.context.annotation.Import;
 
 /**
- * Automatic configuration of base infrastructure for both standard and reactive Neo4j repositories. Depends on the
- * configured Neo4j driver.
+ * Automatic configuration of base infrastructure that imports configuration for both imperative and reactive Neo4j
+ * repositories. Depends on the configured Neo4j driver.
  *
  * @author Michael J. Simons
  */
 @Configuration
-@ConditionalOnClass({ Driver.class, Neo4jTransactionManager.class, PlatformTransactionManager.class })
+@ConditionalOnClass(Driver.class)
 @ConditionalOnBean(Driver.class)
-@AutoConfigureAfter(Neo4jDriverAutoConfiguration.class)
-@AutoConfigureBefore({ Neo4jRepositoriesAutoConfiguration.class, Neo4jReactiveRepositoriesAutoConfiguration.class })
+@Import({ Neo4jImperativeDataAutoConfiguration.class, Neo4jReactiveDataAutoConfiguration.class })
 public class Neo4jDataAutoConfiguration {
-
-	@Bean
-	@ConditionalOnMissingBean
-	public Neo4jClient neo4jClient(Driver driver) {
-		return Neo4jClient.create(driver);
-	}
-
-
-	@Bean
-	@ConditionalOnMissingBean
-	public NodeManagerFactory nodeManagerFactory(Driver driver) {
-
-		// TODO Scan classes like JPA or Mongo if not defined otherwise
-		return new NodeManagerFactory(driver);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean(PlatformTransactionManager.class)
-	public Neo4jTransactionManager transactionManager(Driver driver,
-		ObjectProvider<TransactionManagerCustomizers> optionalCustomizers) {
-
-		final Neo4jTransactionManager transactionManager = new Neo4jTransactionManager(driver);
-		optionalCustomizers.ifAvailable(customizer -> customizer.customize(transactionManager));
-
-		return transactionManager;
-	}
 }

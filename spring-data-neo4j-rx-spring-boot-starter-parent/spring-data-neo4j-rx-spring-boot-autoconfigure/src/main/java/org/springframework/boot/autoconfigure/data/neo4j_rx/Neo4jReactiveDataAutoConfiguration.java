@@ -18,20 +18,31 @@
  */
 package org.springframework.boot.autoconfigure.data.neo4j_rx;
 
+import reactor.core.publisher.Flux;
+
 import org.neo4j.driver.Driver;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 
 /**
- * Shared entry point for the configuration of SDN-RX reposistories in their imperative and reactive forms.
+ * Internal configuration for the reactive Neo4j client.
  *
  * @author Michael J. Simons
  */
-@Configuration
-@ConditionalOnClass(Driver.class)
-@AutoConfigureAfter(Neo4jDataAutoConfiguration.class)
-@Import({ Neo4jImperativeRepositoriesConfiguration.class, Neo4jReactiveRepositoriesConfiguration.class })
-public class Neo4jRepositoriesAutoConfiguration {
+// TODO Add @ConditionalOnClass({ Neo4jTransactionManager.class, PlatformTransactionManager.class }) for reactive pendans!
+@ConditionalOnClass(Flux.class)
+@AutoConfigureAfter(Neo4jDriverAutoConfiguration.class)
+@AutoConfigureBefore(Neo4jReactiveRepositoriesConfiguration.class)
+class Neo4jReactiveDataAutoConfiguration {
+
+	@Bean
+	@ConditionalOnMissingBean
+	public ReactiveNeo4jClient reactiveNeo4jClient(Driver driver) {
+		return ReactiveNeo4jClient.create(driver);
+	}
 }

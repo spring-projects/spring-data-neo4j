@@ -18,13 +18,10 @@
  */
 package org.springframework.boot.autoconfigure.data.neo4j_rx;
 
-import org.springframework.context.annotation.Configuration;
-
 /**
  * TODO This is a stub.
  *
  * @author Michael J. Simons
  */
-@Configuration
-public class Neo4jReactiveRepositoriesAutoConfiguration {
+class Neo4jReactiveRepositoriesConfigureRegistrar {
 }
