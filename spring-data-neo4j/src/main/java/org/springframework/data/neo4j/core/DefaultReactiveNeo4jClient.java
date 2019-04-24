@@ -22,6 +22,7 @@ import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionUt
 
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -50,6 +51,7 @@ import org.springframework.data.neo4j.core.Neo4jClient.RecordFetchSpec;
  * @since 1.0
  * @soundtrack Die Toten Hosen - Im Auftrag des Herrn
  */
+@Slf4j
 class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 	private final Driver driver;
@@ -81,25 +83,20 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 			return ((RxTransaction) runner).commit();
 		}
 
-		if (runner instanceof RxSession) {
-			return ((RxSession) runner).close();
-		}
-
 		return Mono.empty();
 	}
 
 	static Publisher<Void> asyncCancel(RxStatementRunner runner) {
-		return asyncError(runner);
+
+		log.debug("Request has been cancelled, ongoing transactions will be committed.");
+
+		return asyncComplete(runner);
 	}
 
 	static Publisher<Void> asyncError(RxStatementRunner runner) {
 
 		if (runner instanceof RxTransaction && !isSpringTransactionManagementActive()) {
 			return ((RxTransaction) runner).rollback();
-		}
-
-		if (runner instanceof RxTransaction) {
-			((RxTransaction) runner).commit();
 		}
 
 		return Mono.empty();
