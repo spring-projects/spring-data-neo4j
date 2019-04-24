@@ -1,5 +1,5 @@
 /**
- * Contains all necessary infrastructur for the context of a session, i.e. dirty tracking and related.
+ * Contains all necessary infrastructure for the context of a session, i.e. dirty tracking and related.
  *
  * @author Michael J. Simons
  */
