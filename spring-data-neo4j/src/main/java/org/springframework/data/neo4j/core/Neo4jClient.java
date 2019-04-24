@@ -176,10 +176,26 @@ public interface Neo4jClient {
 	 */
 	interface RecordFetchSpec<S, M, T> {
 
+		/**
+		 * Fetches exactly one record and throws an exception if there are zero or more than one records.
+		 *
+		 * @return The one and only record.
+		 * @throws org.neo4j.driver.exceptions.NoSuchRecordException
+		 */
 		S one();
 
+		/**
+		 * Fetches only the first record. Returns an empty holder if there are no records.
+		 *
+		 * @return The first record if any.
+		 */
 		S first();
 
+		/**
+		 * Fetches all records.
+		 *
+		 * @return All records.
+		 */
 		M all();
 	}
 
