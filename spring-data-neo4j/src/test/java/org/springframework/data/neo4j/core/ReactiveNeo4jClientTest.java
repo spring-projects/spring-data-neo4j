@@ -49,6 +49,7 @@ import org.neo4j.driver.Values;
 import org.neo4j.driver.internal.SessionParameters;
 import org.neo4j.driver.reactive.RxResult;
 import org.neo4j.driver.reactive.RxSession;
+import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.summary.ResultSummary;
 import org.springframework.data.neo4j.core.Neo4jClientTest.Bike;
 import org.springframework.data.neo4j.core.Neo4jClientTest.BikeOwner;
@@ -77,6 +78,9 @@ class ReactiveNeo4jClientTest {
 	private RxResult statementResult;
 
 	@Mock
+	private RxTransaction transaction;
+
+	@Mock
 	private ResultSummary resultSummary;
 
 	@Mock
@@ -94,13 +98,16 @@ class ReactiveNeo4jClientTest {
 			.thenReturn(sessionParametersTemplate);
 
 		when(driver.rxSession(any(Consumer.class))).thenReturn(session);
+		when(session.beginTransaction()).thenReturn(Mono.just(transaction));
+
+		when(transaction.commit()).thenReturn(Mono.empty());
 
 		when(session.close()).thenReturn(Mono.empty());
 	}
 
 	@AfterEach
 	void verifyNoMoreInteractionsWithMocks() {
-		verifyNoMoreInteractions(driver, session, statementResult, resultSummary, record1, record2);
+		verifyNoMoreInteractions(driver, session, transaction, statementResult, resultSummary, record1, record2);
 	}
 
 
@@ -108,7 +115,7 @@ class ReactiveNeo4jClientTest {
 	@DisplayName("Creation of queries and binding parameters should feel natural")
 	void queryCreationShouldFeelGood() {
 
-		when(session.run(anyString(), anyMap())).thenReturn(statementResult);
+		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(statementResult.records()).thenReturn(Flux.just(record1, record2));
 
 		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
@@ -141,18 +148,19 @@ class ReactiveNeo4jClientTest {
 		expectedParameters.putAll(parameters);
 		expectedParameters.put("name", "michael");
 		expectedParameters.put("aDate", LocalDate.of(2019, 1, 1));
-		verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
+		verify(transaction).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 
 		verify(statementResult).records();
 		verify(record1).asMap();
 		verify(record2).asMap();
+		verify(transaction).commit();
 		verify(session).close();
 	}
 
 	@Test
 	void databaseSelectionShouldBePossibleOnlyOnce() {
 
-		when(session.run(anyString(), anyMap())).thenReturn(statementResult);
+		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(statementResult.records()).thenReturn(Flux.just(record1, record2));
 
 		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
@@ -174,9 +182,10 @@ class ReactiveNeo4jClientTest {
 		Map<String, Object> expectedParameters = new HashMap<>();
 		expectedParameters.put("name", "Someone.*");
 
-		verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
+		verify(transaction).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(statementResult).records();
 		verify(record1).asMap();
+		verify(transaction).commit();
 		verify(session).close();
 	}
 
@@ -198,6 +207,7 @@ class ReactiveNeo4jClientTest {
 
 			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
 
+			verify(transaction).commit();
 			verify(session).close();
 		}
 
@@ -216,6 +226,7 @@ class ReactiveNeo4jClientTest {
 
 			verifyDatabaseSelection("aDatabase");
 
+			verify(transaction).commit();
 			verify(session).close();
 		}
 	}
@@ -227,7 +238,7 @@ class ReactiveNeo4jClientTest {
 		@Test
 		void reading() {
 
-			when(session.run(anyString(), anyMap())).thenReturn(statementResult);
+			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 			when(statementResult.records()).thenReturn(Flux.just(record1));
 			when(record1.get("name")).thenReturn(Values.value("michael"));
 
@@ -252,16 +263,17 @@ class ReactiveNeo4jClientTest {
 			Map<String, Object> expectedParameters = new HashMap<>();
 			expectedParameters.put("name", "michael");
 
-			verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
+			verify(transaction).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 			verify(statementResult).records();
 			verify(record1).get("name");
+			verify(transaction).commit();
 			verify(session).close();
 		}
 
 		@Test
 		void writing() {
 
-			when(session.run(anyString(), anyMap())).thenReturn(statementResult);
+			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 			when(statementResult.summary()).thenReturn(Mono.just(resultSummary));
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
@@ -286,8 +298,9 @@ class ReactiveNeo4jClientTest {
 			Map<String, Object> expectedParameters = new HashMap<>();
 			expectedParameters.put("name", "Michael");
 
-			verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
+			verify(transaction).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 			verify(statementResult).summary();
+			verify(transaction).commit();
 			verify(session).close();
 		}
 
@@ -295,7 +308,7 @@ class ReactiveNeo4jClientTest {
 		@DisplayName("Some automatic conversion is ok")
 		void automaticConversion() {
 
-			when(session.run(anyString(), anyMap())).thenReturn(statementResult);
+			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 			when(statementResult.records()).thenReturn(Flux.just(record1));
 			when(record1.size()).thenReturn(1);
 			when(record1.get(0)).thenReturn(Values.value(23L));
@@ -314,7 +327,8 @@ class ReactiveNeo4jClientTest {
 
 			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
 
-			verify(session).run(eq(cypher), anyMap());
+			verify(transaction).run(eq(cypher), anyMap());
+			verify(transaction).commit();
 			verify(session).close();
 		}
 	}
@@ -323,7 +337,7 @@ class ReactiveNeo4jClientTest {
 	@DisplayName("Queries that return nothing should fit in")
 	void queriesWithoutResultShouldFitInAsWell() {
 
-		when(session.run(anyString(), anyMap())).thenReturn(statementResult);
+		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(statementResult.summary()).thenReturn(Mono.just(resultSummary));
 
 		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
@@ -344,8 +358,9 @@ class ReactiveNeo4jClientTest {
 		Map<String, Object> expectedParameters = new HashMap<>();
 		expectedParameters.put("name", "fixie");
 
-		verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
+		verify(transaction).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(statementResult).summary();
+		verify(transaction).commit();
 		verify(session).close();
 	}
 

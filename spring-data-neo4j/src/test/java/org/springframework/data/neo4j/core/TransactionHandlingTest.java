@@ -41,6 +41,7 @@ import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.internal.SessionParameters;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxStatementRunner;
+import org.neo4j.driver.reactive.RxTransaction;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -141,6 +142,9 @@ class TransactionHandlingTest {
 		@Mock
 		private RxSession session;
 
+		@Mock
+		private RxTransaction transaction;
+
 		@Test
 		public void shouldNotOpenTransactionsWithoutSubscription() {
 
@@ -159,6 +163,7 @@ class TransactionHandlingTest {
 		public void shouldFallbackToImplicitTransaction() {
 
 			when(driver.rxSession(any(Consumer.class))).thenReturn(session);
+			when(session.beginTransaction()).thenReturn(Mono.just(transaction));
 
 			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
 
@@ -170,13 +175,16 @@ class TransactionHandlingTest {
 				.verifyComplete();
 
 			verify(driver).rxSession(any(Consumer.class));
-			verifyZeroInteractions(driver, session);
+			verify(session).close();
+			verifyZeroInteractions(driver, session, transaction);
 		}
 
 		@Test
 		public void shouldCloseUnmanagedSessionOnComplete() {
 
 			when(driver.rxSession(any(Consumer.class))).thenReturn(session);
+			when(session.beginTransaction()).thenReturn(Mono.just(transaction));
+			when(transaction.commit()).thenReturn(Mono.empty());
 			when(session.close()).thenReturn(Mono.empty());
 
 			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
@@ -190,14 +198,17 @@ class TransactionHandlingTest {
 				.verifyComplete();
 
 			verify(driver).rxSession(any(Consumer.class));
+			verify(transaction).commit();
 			verify(session).close();
-			verifyZeroInteractions(driver, session);
+			verifyZeroInteractions(driver, session, transaction);
 		}
 
 		@Test
 		public void shouldCloseUnmanagedSessionOnError() {
 
 			when(driver.rxSession(any(Consumer.class))).thenReturn(session);
+			when(session.beginTransaction()).thenReturn(Mono.just(transaction));
+			when(transaction.rollback()).thenReturn(Mono.empty());
 			when(session.close()).thenReturn(Mono.empty());
 
 			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
@@ -211,8 +222,9 @@ class TransactionHandlingTest {
 				.verify();
 
 			verify(driver).rxSession(any(Consumer.class));
+			verify(transaction).rollback();
 			verify(session).close();
-			verifyZeroInteractions(driver, session);
+			verifyZeroInteractions(driver, session, transaction);
 		}
 	}
 }
