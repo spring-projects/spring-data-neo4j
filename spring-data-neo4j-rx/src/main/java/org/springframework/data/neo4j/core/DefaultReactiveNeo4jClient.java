@@ -34,6 +34,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxStatementRunner;
+import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.summary.ResultSummary;
 import org.reactivestreams.Publisher;
 import org.springframework.data.neo4j.core.Neo4jClient.MappingSpec;
@@ -61,14 +62,24 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 	// Internal helper methods for managing transactional state
 
 	Mono<RxStatementRunner> getStatementRunner(final String targetDatabase) {
-
 		return retrieveReactiveTransaction(driver, targetDatabase)
-			.map(RxStatementRunner.class::cast)
-			// Open the transaction inside a supplier to avoid eager initialization
-			.switchIfEmpty(Mono.fromSupplier(() -> driver.rxSession(defaultSessionParameters(targetDatabase))));
+			.switchIfEmpty(
+				Mono.using(() -> driver.rxSession(defaultSessionParameters(targetDatabase)),
+					session -> Mono.from(session.beginTransaction()), RxSession::close)
+			)
+			.map(RxStatementRunner.class::cast);
+	}
+
+	static boolean isSpringTransactionManagementActive() {
+		// TODO Something along the lines of if TransactionSynchronizationManager#isSynchronizationActive but for reactive
+		return false;
 	}
 
 	static Publisher<Void> asyncComplete(RxStatementRunner runner) {
+
+		if (runner instanceof RxTransaction && !isSpringTransactionManagementActive()) {
+			return ((RxTransaction) runner).commit();
+		}
 
 		if (runner instanceof RxSession) {
 			return ((RxSession) runner).close();
@@ -77,10 +88,18 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		return Mono.empty();
 	}
 
+	static Publisher<Void> asyncCancel(RxStatementRunner runner) {
+		return asyncError(runner);
+	}
+
 	static Publisher<Void> asyncError(RxStatementRunner runner) {
 
-		if (runner instanceof RxSession) {
-			return ((RxSession) runner).close();
+		if (runner instanceof RxTransaction && !isSpringTransactionManagementActive()) {
+			return ((RxTransaction) runner).rollback();
+		}
+
+		if (runner instanceof RxTransaction) {
+			((RxTransaction) runner).commit();
 		}
 
 		return Mono.empty();
@@ -207,7 +226,8 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 				getStatementRunner(targetDatabase),
 				runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).single(),
 				DefaultReactiveNeo4jClient::asyncComplete,
-				DefaultReactiveNeo4jClient::asyncError
+				DefaultReactiveNeo4jClient::asyncError,
+				DefaultReactiveNeo4jClient::asyncCancel
 			);
 		}
 
@@ -218,7 +238,8 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 				getStatementRunner(targetDatabase),
 				runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).next(),
 				DefaultReactiveNeo4jClient::asyncComplete,
-				DefaultReactiveNeo4jClient::asyncError
+				DefaultReactiveNeo4jClient::asyncError,
+				DefaultReactiveNeo4jClient::asyncCancel
 			);
 		}
 
@@ -229,7 +250,8 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 				getStatementRunner(targetDatabase),
 				runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner)),
 				DefaultReactiveNeo4jClient::asyncComplete,
-				DefaultReactiveNeo4jClient::asyncError
+				DefaultReactiveNeo4jClient::asyncError,
+				DefaultReactiveNeo4jClient::asyncCancel
 			);
 		}
 
@@ -240,7 +262,8 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 					getStatementRunner(targetDatabase),
 					runner -> prepareStatement().flatMap(t -> Mono.from(runner.run(t.getT1(), t.getT2()).summary())),
 					DefaultReactiveNeo4jClient::asyncComplete,
-					DefaultReactiveNeo4jClient::asyncError
+					DefaultReactiveNeo4jClient::asyncError,
+					DefaultReactiveNeo4jClient::asyncCancel
 				);
 		}
 	}
@@ -266,7 +289,8 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 				getStatementRunner(targetDatabase),
 				callback::apply,
 				DefaultReactiveNeo4jClient::asyncComplete,
-				DefaultReactiveNeo4jClient::asyncError);
+				DefaultReactiveNeo4jClient::asyncError,
+				DefaultReactiveNeo4jClient::asyncCancel);
 		}
 	}
 }
