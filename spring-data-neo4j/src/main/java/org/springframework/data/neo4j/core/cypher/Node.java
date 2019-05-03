@@ -65,6 +65,7 @@ public class Node implements PatternElement, Named, Expression {
 	Node(SymbolicName symbolicName, List<String> labels) {
 
 		this.symbolicName = symbolicName;
+
 		this.labels = new ArrayList<>(labels);
 	}
 
@@ -104,6 +105,10 @@ public class Node implements PatternElement, Named, Expression {
 	public Property property(String name) {
 
 		return Property.create(this, name);
+	}
+
+	public FunctionInvocation internalId() {
+		return Functions.id(this);
 	}
 
 	public OngoingRelationshipDefinition<Relationship> outgoingRelationShipTo(Node other) {

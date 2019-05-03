@@ -18,24 +18,61 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.springframework.util.Assert;
+
 /**
- * Builder for various conditions. Used internally from properties and other expressions that should take part in conditions.
+ * Builder for various conditions. Used internally from properties and other expressions that should take part in
+ * conditions.
  *
  * @author Michael J. Simons
+ * @author Gerrit Meier
  * @since 1.0
  */
-public final class Conditions {
+public class Conditions {
 
 	/**
 	 * Creates a condition that matches if the right hand side is a regular expression that matches the the left hand side via
 	 * {@code =~}.
 	 *
 	 * @param lhs The left hand side of the comparision
-	 * @param rhs The right hand side of the comparions
+	 * @param rhs The right hand side of the comparision
 	 * @return A "matches" comparision
 	 */
 	static Condition matches(Expression lhs, Expression rhs) {
 		return Comparison.create(lhs, "=~", rhs);
+	}
+
+	/**
+	 * Negates the given condition.
+	 *
+	 * @param condition The condition to negate. Must not be null.
+	 * @return The negated condition.
+	 */
+	static Condition not(Condition condition) {
+
+		Assert.notNull(condition, "Condition to negate must not be null.");
+		return condition.not();
+	}
+
+	/**
+	 * Creates a placeholder condition which is not rendered in the final statement but is usefull
+	 * while chaining conditions together.
+	 *
+	 * @return A placeholder condition.
+	 */
+	public static Condition noCondition() {
+
+		return CompoundCondition.empty();
+	}
+
+	static Condition isNull(Expression expression) {
+
+		return IsNull.create(expression, false);
+	}
+
+	static Condition isNotNull(Expression expression) {
+
+		return IsNull.create(expression, true);
 	}
 
 	/**

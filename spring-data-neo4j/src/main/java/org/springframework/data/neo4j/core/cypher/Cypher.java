@@ -19,7 +19,7 @@
 package org.springframework.data.neo4j.core.cypher;
 
 import org.apiguardian.api.API;
-import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatch;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchWithoutWhere;
 import org.springframework.lang.Nullable;
 
 /**
@@ -48,7 +48,30 @@ public final class Cypher {
 	}
 
 	/**
-	 * Creates a new {@link StringLiteral} from the {@code content}.
+	 * Starts building a statement based on a match clause. Use {@link Cypher#node(String, String...)} and related to
+	 * retrieve a node or a relationship, which both are pattern elements.
+	 *
+	 * @param pattern The patterns to match
+	 * @return An ongoing match that is used to specify an optional where and a required return clause
+	 */
+	public static OngoingMatchWithoutWhere match(PatternElement... pattern) {
+
+		return Statement.builder().match(pattern);
+	}
+
+	/**
+	 * Creates a new {@link SortItem} to be used as part of an {@link Order}.
+	 *
+	 * @param expression The expression by which things should be sorted
+	 * @return A sort item, providing means to specify ascending or descending order
+	 */
+	public static SortItem sort(Expression expression) {
+
+		return SortItem.create(expression, null);
+	}
+
+	/**
+	 * Creates a new {@link StringLiteral} from a {@code content}.
 	 *
 	 * @param content the literal content.
 	 * @return a new {@link StringLiteral}.
@@ -58,15 +81,29 @@ public final class Cypher {
 	}
 
 	/**
-	 * Starts building a statement based on a match clause. Use {@link Cypher#node(String, String...)} and related to
-	 * retrieve a node or a relationship, which both are pattern elements.
+	 * Creates a new {@link NumberLiteral} from the given {@code number}.
 	 *
-	 * @param pattern The patterns to match
-	 * @return An ongoing match that is used to specify an optional where and a required return clause
+	 * @param number the number.
+	 * @return a new {@link NumberLiteral}.
 	 */
-	public static OngoingMatch match(PatternElement... pattern) {
+	public static NumberLiteral literalOf(@Nullable Number number) {
+		return new NumberLiteral(number);
+	}
 
-		return Statement.builder().match(pattern);
+	/**
+	 * Creates a new {@link ObjectLiteral} from the given {@code object}.
+	 *
+	 * @param object the object to represent.
+	 * @return a new {@link ObjectLiteral}.
+	 */
+	public static Literal literalOf(@Nullable Object object) {
+		if (object instanceof CharSequence) {
+			return new StringLiteral((CharSequence) object);
+		}
+		if (object instanceof Number) {
+			return new NumberLiteral((Number) object);
+		}
+		return new ObjectLiteral(object);
 	}
 
 	/**

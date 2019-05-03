@@ -18,6 +18,7 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.springframework.data.neo4j.core.cypher.CompoundCondition.LogicalOperator;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
 
 /**
@@ -27,4 +28,20 @@ import org.springframework.data.neo4j.core.cypher.support.Visitable;
  * @since 1.0
  */
 public interface Condition extends Visitable {
+
+	default Condition and(Condition condition) {
+		return CompoundCondition.create(this, LogicalOperator.AND, condition);
+	}
+
+	default Condition or(Condition condition) {
+		return CompoundCondition.create(this, LogicalOperator.OR, condition);
+	}
+
+	default Condition xor(Condition condition) {
+		return CompoundCondition.create(this, LogicalOperator.XOR, condition);
+	}
+
+	default Condition not() {
+		return new NotCondition(this);
+	}
 }

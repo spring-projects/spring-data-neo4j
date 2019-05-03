@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Transaction;
+import org.springframework.data.neo4j.core.schema.Schema;
 import org.springframework.lang.Nullable;
 
 /**
@@ -70,5 +71,7 @@ public interface NodeManager {
 	 * @param managedEntity Object to be removed
 	 */
 	void delete(Object managedEntity);
+
+	Schema getSchema();
 
 }

@@ -40,4 +40,19 @@ public interface Expression extends Visitable {
 		Assert.hasText(alias, "The alias may not be null or empty.");
 		return new AliasedExpression(this, alias);
 	}
+
+	default Condition isEqualTo(Expression rhs) {
+		return Comparison.create(this, "=", rhs);
+	}
+
+	// WIP
+	// TODO Make longs a list of expressions or something
+	// WIP
+	default Condition isIn(Iterable<Long> ids) {
+		return Comparison.create(
+			this,
+			"in",
+			new ListLiteral(ids));
+	}
+
 }

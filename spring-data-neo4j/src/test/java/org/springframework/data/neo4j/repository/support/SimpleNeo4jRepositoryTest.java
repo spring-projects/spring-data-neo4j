@@ -22,13 +22,15 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.NodeManager;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.NodeDescription;
+import org.springframework.data.neo4j.core.schema.Schema;
 
 /**
  * @author Gerrit Meier
@@ -37,12 +39,23 @@ class SimpleNeo4jRepositoryTest {
 
 	private NodeManager nodeManager;
 
-	private SimpleNeo4jRepository repository;
+	private Schema schema;
+
+	private NodeDescription nodeDescription;
+
+	private SimpleNeo4jRepository<TestNode, Long> repository;
 
 	@BeforeEach
 	void setupMock() {
 		nodeManager = mock(NodeManager.class);
-		repository = new SimpleNeo4jRepository(this.nodeManager);
+
+		schema = mock(Schema.class);
+		when(nodeManager.getSchema()).thenReturn(schema);
+
+		nodeDescription = mock(NodeDescription.class);
+		when(nodeDescription.getPrimaryLabel()).thenReturn("TestNode");
+		when(schema.getNodeDescription(TestNode.class)).thenReturn(Optional.of(nodeDescription));
+		repository = new SimpleNeo4jRepository(this.nodeManager, TestNode.class);
 	}
 
 	@Test
@@ -57,21 +70,6 @@ class SimpleNeo4jRepositoryTest {
 	}
 
 	@Test
-	void findByIdNotImplemented() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findById(null));
-	}
-
-	@Test
-	void existsByIdNotImplemented() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.existsById(null));
-	}
-
-	@Test
-	void findAllByIdNotImplemented() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findAllById(null));
-	}
-
-	@Test
 	void deleteByIdNotImplemented() {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.deleteById(null));
 	}
@@ -82,70 +80,16 @@ class SimpleNeo4jRepositoryTest {
 	}
 
 	@Test
-	void deleteAllNotImplemented() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.deleteAll());
-	}
-
-	@Test
 	void deleteAll1NotImplemented() {
 		assertThatExceptionOfType(UnsupportedOperationException.class)
 				.isThrownBy(() -> repository.deleteAll(Collections.emptyList()));
 	}
 
-	@Test
-	void findOneNotImplemented() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findOne(null));
-	}
+	@Node
+	class TestNode {
+		@Id
+		private Long id;
 
-	@Test
-	void findAllNotImplemented() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findAll());
-	}
-
-	@Test
-	void findAllExampleNotImplemented() {
-		Example example = Example.of("");
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findAll(example));
-	}
-
-	@Test
-	void findAllPageableNotImplemented() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
-				.isThrownBy(() -> repository.findAll(Pageable.unpaged()));
-	}
-
-	@Test
-	void findAllSortByNotImplemented() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
-				.isThrownBy(() -> repository.findAll(Sort.by("property")));
-	}
-
-	@Test
-	void findAllExampleAndSortNotImplemented() {
-		Example example = Example.of("");
-		assertThatExceptionOfType(UnsupportedOperationException.class)
-				.isThrownBy(() -> repository.findAll(example, Sort.by("property")));
-	}
-
-	@Test
-	void findAllExampleAndPageableNotImplemented() {
-		Example example = Example.of("");
-		assertThatExceptionOfType(UnsupportedOperationException.class)
-				.isThrownBy(() -> repository.findAll(example, Pageable.unpaged()));
-	}
-
-	@Test
-	void countNotImplemented() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.count());
-	}
-
-	@Test
-	void countWithExampleNotImplemented() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.count(null));
-	}
-
-	@Test
-	void existsNotImplemented() {
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findAll());
+		private String value;
 	}
 }

@@ -18,39 +18,27 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
-import org.springframework.lang.Nullable;
-
 /**
- * Represents a literal with an optional content.
+ * Utility methods for dealing with expressions.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
-public abstract class Literal<T> implements Expression {
+public final class Expressions {
 
 	/**
-	 * The content of this literal.
+	 * @param expression Possibly named with a non-empty symbolic name.
+	 * @return The name of the expression if the expression is named or the expression itself.
 	 */
-	private @Nullable T content;
+	static Expression nameOrExpression(Expression expression) {
 
-	Literal(@Nullable T content) {
-		this.content = content;
+		if (expression instanceof Named) {
+			return ((Named) expression).getSymbolicName().map(Expression.class::cast).orElse(expression);
+		} else {
+			return expression;
+		}
 	}
 
-	/**
-	 * @return The content of this literal, may be {@literal null}
-	 */
-	public @Nullable T getContent() {
-		return content;
+	private Expressions() {
 	}
-
-	/**
-	 * The string representation should be designed in such a way the a renderer can use it correctly in
-	 * the given context of the literal, i.e. a literal containing a string should quote that string
-	 * and escape all reservered characters.
-	 *
-	 * @return A string representation to be used literally in a cypher statement.
-	 */
-	public abstract String asString();
 }
-

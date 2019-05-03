@@ -65,4 +65,44 @@ public class Property implements Expression {
 
 		return Conditions.matches(this, Cypher.literalOf(s));
 	}
+
+	/**
+	 * The property does not track the condition created here.
+	 *
+	 * @return A condition based on this property that evaluates to true when this property is null
+	 */
+	public Condition isNull() {
+
+		return Conditions.isNull(this);
+	}
+
+	/**
+	 * The property does not track the condition created here.
+	 *
+	 * @return A condition based on this property that evaluates to true when this property is not null
+	 */
+	public Condition isNotNull() {
+
+		return Conditions.isNotNull(this);
+	}
+
+	/**
+	 * The property does not track the sort items created here.
+	 *
+	 * @return A sort item for this property in descending order
+	 */
+	public SortItem descending() {
+
+		return SortItem.create(this, SortItem.Direction.DESC);
+	}
+
+	/**
+	 * The property does not track the sort items created here.
+	 *
+	 * @return A sort item for this property in ascending order
+	 */
+	public SortItem ascending() {
+
+		return SortItem.create(this, SortItem.Direction.ASC);
+	}
 }

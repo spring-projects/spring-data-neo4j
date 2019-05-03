@@ -16,33 +16,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration;
+package org.springframework.data.neo4j.core.cypher;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
+/**
+ * @author Gerrit Meier
+ * @author Michael J. Simons
+ * @since 1.0
+ */
+public class ListLiteral extends Literal<Iterable> {
 
-@Getter
-@Setter
-@Node
-@ToString
-@AllArgsConstructor
-@EqualsAndHashCode
-public class PersonWithAllConstructor {
+	ListLiteral(Iterable content) {
+		super(content);
+	}
 
-	@Id
-	private final Long id;
+	@Override
+	public String asString() {
 
-	private final String name;
-
-	private final String sameValue;
-
-	static PersonWithAllConstructor of(String sameValue) {
-		return new PersonWithAllConstructor(null, null, sameValue);
+		return "["
+				+ StreamSupport.stream(getContent().spliterator(), false).map(Object::toString).collect(Collectors.joining(","))
+				+ "]";
 	}
 }

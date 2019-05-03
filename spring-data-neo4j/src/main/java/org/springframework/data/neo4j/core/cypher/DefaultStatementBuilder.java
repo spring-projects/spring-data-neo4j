@@ -18,14 +18,15 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
-import static java.util.stream.Collectors.*;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatch;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchAndReturn;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchWithWhere;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchWithoutWhere;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingOrderDefinition;
 import org.springframework.util.Assert;
 
 /**
@@ -34,14 +35,23 @@ import org.springframework.util.Assert;
  * @since 1.0
  */
 class DefaultStatementBuilder
-	implements StatementBuilder, OngoingMatch, OngoingMatchAndReturn {
+	implements StatementBuilder,
+	OngoingMatch,
+	OngoingMatchWithWhere,
+	OngoingMatchWithoutWhere,
+	OngoingMatchAndReturn,
+	OngoingOrderDefinition, StatementBuilder.OngoingMatchAndReturnWithOrder {
 
 	private List<PatternElement> matchList = new ArrayList<>();
 	private List<Expression> returnList = new ArrayList<>();
-	private Condition where;
+	private List<SortItem> sortItemList = new ArrayList<>();
+	private SortItem lastSortItem;
+	private Skip skip;
+	private Limit limit;
+	private Condition condition;
 
 	@Override
-	public OngoingMatch match(PatternElement... pattern) {
+	public OngoingMatchWithoutWhere match(PatternElement... pattern) {
 
 		Assert.notNull(pattern, "Patterns to match are required.");
 		Assert.notEmpty(pattern, "At least one pattern to match is required.");
@@ -56,30 +66,72 @@ class DefaultStatementBuilder
 		Assert.notNull(expressions, "Expressions to return are required.");
 		Assert.notEmpty(expressions, "At least one expressions to return is required.");
 
-		this.returnList.addAll(Arrays.stream(expressions)
-			.map(expression -> expression instanceof Named ?
-				((Named) expression).getSymbolicName().map(Expression.class::cast).orElse(expression) :
-				expression)
-			.collect(toList()));
+		this.returnList.addAll(Arrays.asList(expressions));
 		return this;
 	}
 
 	@Override
-	public OngoingMatchAndReturn returning(Node... nodes) {
-
-		Assert.notNull(nodes, "Nodes to return are required.");
-		Assert.notEmpty(nodes, "At least one node to return is required.");
-
-		this.returnList.addAll(Arrays.stream(nodes)
-			.map(node -> node.getSymbolicName().map(Expression.class::cast).orElse(node))
-			.collect(toList()));
+	public OngoingMatchAndReturn orderBy(SortItem... sortItem) {
+		Arrays.stream(sortItem).forEach(this.sortItemList::add);
 		return this;
 	}
 
 	@Override
-	public OngoingMatch where(Condition condition) {
+	public OngoingOrderDefinition orderBy(Expression expression) {
+		this.lastSortItem = Cypher.sort(expression);
+		return this;
 
-		this.where = condition;
+	}
+
+	@Override
+	public OngoingMatchAndReturn descending() {
+		this.sortItemList.add(this.lastSortItem.descending());
+		this.lastSortItem = null;
+		return this;
+	}
+
+	@Override
+	public OngoingMatchAndReturn ascending() {
+		this.sortItemList.add(this.lastSortItem.ascending());
+		this.lastSortItem = null;
+		return this;
+	}
+
+	@Override
+	public OngoingOrderDefinition and(Expression expression) {
+		return orderBy(expression);
+	}
+
+	@Override
+	public OngoingMatchAndReturn skip(Number number) {
+		skip = Skip.of(number);
+		return this;
+	}
+
+	@Override
+	public OngoingMatchAndReturn limit(Number number) {
+		limit = Limit.of(number);
+		return this;
+	}
+
+	@Override
+	public OngoingMatchWithWhere where(Condition newCondition) {
+
+		this.condition = newCondition;
+		return this;
+	}
+
+	@Override
+	public OngoingMatchWithWhere and(Condition additionalCondition) {
+
+		this.condition = this.condition.and(additionalCondition);
+		return this;
+	}
+
+	@Override
+	public OngoingMatchWithWhere or(Condition additionalCondition) {
+
+		this.condition = this.condition.or(additionalCondition);
 		return this;
 	}
 
@@ -87,7 +139,18 @@ class DefaultStatementBuilder
 	public Statement build() {
 
 		Pattern pattern = new Pattern(this.matchList);
-		Match match = new Match(pattern, this.where == null ? null : new Where(this.where));
-		return new SinglePartQuery(match, new Return(returnList.stream().map(ReturnItem::new).collect(toList())));
+		Match match = new Match(pattern, hasCondition() ? new Where(this.condition) : null);
+		ExpressionList returnItems = new ExpressionList(this.returnList);
+
+		if (lastSortItem != null) {
+			sortItemList.add(lastSortItem);
+		}
+		Order order = sortItemList.size() > 0 ? new Order(sortItemList) : null;
+
+		return new SinglePartQuery(match, new Return(returnItems, order, skip, limit));
+	}
+
+	private boolean hasCondition() {
+		return !(this.condition == null || this.condition == CompoundCondition.EMPTY_CONDITION);
 	}
 }

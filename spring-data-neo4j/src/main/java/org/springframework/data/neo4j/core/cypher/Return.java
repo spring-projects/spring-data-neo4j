@@ -18,17 +18,45 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
-import java.util.List;
-
-import org.springframework.data.neo4j.core.cypher.support.TypedSubtree;
+import org.springframework.data.neo4j.core.cypher.support.Visitable;
+import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
+ * The container or "body" for return items, order and optional skip and things.
+ *
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/ReturnBody.html">ReturnBody</a>.
+ *
  * @author Michael J. Simons
  * @since 1.0
  */
-public class Return extends TypedSubtree<ReturnItem> {
+public class Return implements Visitable {
 
-	Return(List<ReturnItem> returnItems) {
-		super(returnItems);
+	private final ExpressionList returnItems;
+
+	private final Order order;
+	private final Skip skip;
+	private final Limit limit;
+
+	Return(ExpressionList returnItems, Order order, Skip skip, Limit limit) {
+		this.returnItems = returnItems;
+		this.order = order;
+		this.skip = skip;
+		this.limit = limit;
+	}
+
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.enter(this);
+		returnItems.accept(visitor);
+		if (order != null) {
+			order.accept(visitor);
+		}
+		if (skip != null) {
+			skip.accept(visitor);
+		}
+		if (limit != null) {
+			limit.accept(visitor);
+		}
+		visitor.leave(this);
 	}
 }
