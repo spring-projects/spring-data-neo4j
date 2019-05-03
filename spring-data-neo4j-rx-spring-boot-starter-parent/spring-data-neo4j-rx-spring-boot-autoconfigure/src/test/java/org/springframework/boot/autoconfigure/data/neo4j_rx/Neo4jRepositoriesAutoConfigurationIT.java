@@ -56,8 +56,7 @@ public class Neo4jRepositoriesAutoConfigurationIT {
 	@Test
 	void ensureRepositoryIsReady() {
 
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> bikeRepository.count())
-				.withMessage("Not there yet.");
+		assertThat(bikeRepository.count()).isEqualTo(0);
 	}
 
 	static class Neo4jContainerBasedTestPropertyProvider

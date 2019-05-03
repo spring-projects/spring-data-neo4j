@@ -21,13 +21,18 @@ package org.springframework.data.neo4j.core.cypher.renderer;
 import static java.util.stream.Collectors.*;
 
 import java.util.HashSet;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.data.neo4j.core.cypher.*;
-import org.springframework.data.neo4j.core.cypher.Relationship.Direction;
+import org.springframework.data.neo4j.core.cypher.CompoundCondition.LogicalOperator;
 import org.springframework.data.neo4j.core.cypher.support.ReflectiveVisitor;
 import org.springframework.data.neo4j.core.cypher.support.TypedSubtree;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
+import org.springframework.lang.Nullable;
 
 /**
  * This is a simple (some would call it naive) implementation of a visitor to the Cypher AST created by the Cypher builder
@@ -47,6 +52,7 @@ class RenderingVisitor extends ReflectiveVisitor {
 
 	private static final String LABEL_SEPARATOR = ":";
 	private static final String TYPE_SEPARATOR = ":";
+	private static final Pattern LABEL_AND_TYPE_QUOTATION = Pattern.compile("`");
 
 	/**
 	 * Target of all rendering.
@@ -129,11 +135,40 @@ class RenderingVisitor extends ReflectiveVisitor {
 		builder.append(" AS ").append(aliased.getAlias());
 	}
 
+	void enter(Order order) {
+		builder.append(" ORDER BY ");
+	}
+
+	void enter(Skip skip) {
+		builder.append(" SKIP ");
+	}
+
+	void enter(Limit limit) {
+		builder.append(" LIMIT ");
+	}
+
+	void enter(SortItem.Direction direction) {
+		builder
+			.append(" ")
+			.append(direction.getSymbol());
+	}
+
 	void enter(Property property) {
 		builder
 			.append(property.getParentAlias())
 			.append(".")
 			.append(property.getName());
+	}
+
+	void enter(FunctionInvocation functionInvocation) {
+		builder
+			.append(functionInvocation.getFunctionName())
+			.append("(");
+	}
+
+	void leave(FunctionInvocation functionInvocation) {
+		builder
+			.append(")");
 	}
 
 	void enter(Comparison comparison) {
@@ -143,15 +178,50 @@ class RenderingVisitor extends ReflectiveVisitor {
 			.append(" ");
 	}
 
-	void enter(StringLiteral expression) {
-		builder.append(expression.toString());
+	void leave(IsNull isNull) {
+		builder
+			.append(" IS ")
+			.append(isNull.isNegated() ? "NOT" : "")
+			.append(" NULL");
+	}
+
+	void enter(CompoundCondition compoundCondition) {
+		builder.append("(");
+	}
+
+	void leave(CompoundCondition compoundCondition) {
+		builder.append(")");
+	}
+
+	void enter(LogicalOperator logicalOperator) {
+		builder
+			.append(" ")
+			.append(logicalOperator.getSymbol())
+			.append(" ");
+	}
+
+	void enter(NotCondition notCondition) {
+		builder
+			.append("NOT (");
+	}
+
+	void leave(NotCondition notCondition) {
+		builder
+			.append(")");
+	}
+
+	void enter(Literal<?> expression) {
+		builder.append(expression.asString());
 	}
 
 	void enter(Node node) {
 		builder.append("(")
 			.append(node.getSymbolicName().map(SymbolicName::getName).orElse(""))
 			.append(node.isLabeled() ? LABEL_SEPARATOR : "")
-			.append(node.getLabels().stream().map(RenderUtils::escapeName).collect(joining(LABEL_SEPARATOR)))
+			.append(node.getLabels().stream().map(RenderingVisitor::escapeName)
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.collect(joining(LABEL_SEPARATOR)))
 			.append(")");
 	}
 
@@ -161,13 +231,16 @@ class RenderingVisitor extends ReflectiveVisitor {
 
 	void enter(RelationshipDetail details) {
 
-		Direction direction = details.getDirection();
+		Relationship.Direction direction = details.getDirection();
 		builder.append(direction.getSymbolLeft());
 		builder
 			.append("[")
 			.append(details.getSymbolicName().map(SymbolicName::getName).orElse(""))
 			.append(details.isTyped() ? TYPE_SEPARATOR : "")
-			.append(details.getTypes().stream().map(RenderUtils::escapeName).collect(joining(TYPE_SEPARATOR)))
+			.append(details.getTypes().stream().map(RenderingVisitor::escapeName)
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.collect(joining(TYPE_SEPARATOR)))
 			.append("]");
 		builder.append(direction.getSymbolRight());
 	}
@@ -175,5 +248,23 @@ class RenderingVisitor extends ReflectiveVisitor {
 	public String getRenderedContent() {
 		return this.builder.toString();
 	}
+
+	/**
+	 * Escapes a symbolic name. Such a symbolic name is either used for a nodes label, the type of a relationship or a
+	 * variable.
+	 *
+	 * @param unescapedName The name to escape.
+	 * @return An empty optional when the unescaped name is {@literal null}, otherwise the correctly escaped name, safe to be used in statements.
+	 */
+	static Optional<String> escapeName(@Nullable CharSequence unescapedName) {
+
+		if (unescapedName == null) {
+			return Optional.empty();
+		}
+
+		Matcher matcher = LABEL_AND_TYPE_QUOTATION.matcher(unescapedName);
+		return Optional.of(String.format(Locale.ENGLISH, "`%s`", matcher.replaceAll("``")));
+	}
+
 }
 

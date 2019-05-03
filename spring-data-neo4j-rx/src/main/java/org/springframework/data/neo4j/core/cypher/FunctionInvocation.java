@@ -18,51 +18,35 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
-import static org.springframework.data.neo4j.core.cypher.Expressions.*;
-
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
-import org.springframework.util.Assert;
 
 /**
- * An aliased expression, that deals with named expressions when accepting visitors.
+ * See
+ * <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/FunctionInvocation.html">FunctionInvocation</a>
  *
+ * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.0
  */
-public class AliasedExpression implements Aliased, Expression {
+public class FunctionInvocation implements Expression {
 
-	private final Expression delegate;
+	private final String functionName;
 
-	private final String alias;
+	private final ExpressionList arguments;
 
-	AliasedExpression(Expression delegate, String alias) {
+	FunctionInvocation(String functionName, Expression... arguments) {
 
-		this.delegate = delegate;
-		this.alias = alias;
+		this.functionName = functionName;
+		this.arguments = new ExpressionList(arguments);
 	}
 
-	public String getAlias() {
-		return alias;
-	}
-
-	/**
-	 * This takes the originally aliased expression and re-aliases it. Aliases are not nested.
-	 *
-	 * @param newAlias The new alias to use
-	 * @return A new aliased, expression.
-	 */
-	@Override
-	public AliasedExpression as(String newAlias) {
-
-		Assert.hasText(newAlias, "The alias may not be null or empty.");
-		return new AliasedExpression(this.delegate, newAlias);
+	public String getFunctionName() {
+		return functionName;
 	}
 
 	@Override
 	public void accept(Visitor visitor) {
-
 		visitor.enter(this);
-		nameOrExpression(this.delegate).accept(visitor);
+		this.arguments.accept(visitor);
 		visitor.leave(this);
 	}
 }

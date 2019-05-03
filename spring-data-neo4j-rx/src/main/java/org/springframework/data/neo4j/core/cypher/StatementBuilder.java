@@ -20,9 +20,10 @@ package org.springframework.data.neo4j.core.cypher;
 
 /**
  * @author Michael J. Simons
+ * @author Gerrit Meier
  * @since 1.0
  */
-interface StatementBuilder {
+public interface StatementBuilder {
 
 	/**
 	 * See {@link Cypher#match(PatternElement...)}.
@@ -30,16 +31,53 @@ interface StatementBuilder {
 	 * @param pattern
 	 * @return
 	 */
-	OngoingMatch match(PatternElement... pattern);
-
-	/**
-	 * A match that knows what to return and which is ready to be build.
-	 */
-	interface OngoingMatchAndReturn extends BuildableMatch {
-	}
+	OngoingMatchWithoutWhere match(PatternElement... pattern);
 
 	/**
 	 * A match that exposes {@code returning} and {@code where} methods to add required information.
+	 * While the where clause is optional, an returning clause needs to be specified before the
+	 * statement can be build.
+	 */
+	interface OngoingMatchWithoutWhere extends OngoingMatch {
+
+		/**
+		 * Adds a where clause to this match.
+		 *
+		 * @param condition The new condition
+		 * @return A match restricted by a where clause with no return items yet.
+		 */
+		OngoingMatchWithWhere where(Condition condition);
+	}
+
+	/**
+	 * A match that has a non-empty {@code where}-part. THe returning clause is still open.
+	 */
+	interface OngoingMatchWithWhere extends OngoingMatch {
+
+		/**
+		 * Adds an additional condition to the existing conditions, connected by an {@literal and}.
+		 * Existing conditions will be logically grouped by using {@code ()} in the statement if previous
+		 * conditions used another logical operator.
+		 *
+		 * @param condition An additional condition
+		 * @return The ongoing definition of a match
+		 */
+		OngoingMatchWithWhere and(Condition condition);
+
+		/**
+		 * Adds an additional condition to the existing conditions, connected by an {@literal or}.
+		 * Existing conditions will be logically grouped by using {@code ()} in the statement if previous
+		 * conditions used another logical operator.
+		 *
+		 * @param condition An additional condition
+		 * @return The ongoing definition of a match
+		 */
+		OngoingMatchWithWhere or(Condition condition);
+	}
+
+	/**
+	 * A match that exposes {@code returning} and for which it is not decided whether the optional
+	 * where part has been used or note.
 	 */
 	interface OngoingMatch {
 
@@ -50,27 +88,46 @@ interface StatementBuilder {
 		 * @return A match that can be build now
 		 */
 		OngoingMatchAndReturn returning(Expression... expressions);
-
-		/**
-		 * Creates a match that returns one ore more nodes. If the nodes have a symbolic name, that symbolic name is
-		 * used in the return clause, otherwise the whole node pattern.
-		 *
-		 * @param nodes The nodes to be returned. Must not be null and be at least one node.
-		 * @return A match that can be build now
-		 */
-		OngoingMatchAndReturn returning(Node... nodes);
-
-		/**
-		 * Adds a where clause to this match.
-		 *
-		 * @param condition The new condition
-		 * @return A match restricted by a where clause with no return items yet.
-		 */
-		OngoingMatch where(Condition condition);
 	}
 
 	/**
-	 * A match that has all information required to be build.
+	 * A match that knows what to return and which is ready to be build.
+	 */
+	interface OngoingMatchAndReturn extends ExposesOrderBy, ExposesSkip, ExposesLimit {
+	}
+
+	interface OngoingMatchAndReturnWithOrder extends ExposesSkip, ExposesLimit {
+
+		/**
+		 * Adds another expression to the list of order items.
+		 *
+		 * @return A new order specifying step.
+		 */
+		OngoingOrderDefinition and(Expression expression);
+	}
+
+	/**
+	 * An intermediate step while defining the order of a resultset.
+	 */
+	interface OngoingOrderDefinition extends ExposesSkip, ExposesLimit {
+
+		/**
+		 * Specifies descending order and jumps back to defining the match and return statement.
+		 *
+		 * @return The ongoing definition of a match
+		 */
+		<T extends ExposesSkip & ExposesLimit & OngoingMatchAndReturnWithOrder> T descending();
+
+		/**
+		 * Specifies ascending order and jumps back to defining the match and return statement.
+		 *
+		 * @return The ongoing definition of a match
+		 */
+		<T extends ExposesSkip & ExposesLimit & OngoingMatchAndReturnWithOrder> T ascending();
+	}
+
+	/**
+	 * A match that has all information required to be build and exposes a build method.
 	 */
 	interface BuildableMatch {
 
@@ -78,5 +135,57 @@ interface StatementBuilder {
 		 * @return The statement ready to be used, i.e. in a renderer.
 		 */
 		Statement build();
+	}
+
+	/**
+	 * A step that exposes several methods to speficy ordering.
+	 */
+	interface ExposesOrderBy extends BuildableMatch {
+
+		/**
+		 * Order the result set by one or more {@link SortItem sort items}. Those can be retrieved for
+		 * all expression with {@link Cypher#sort(Expression)} or directly from properties.
+		 *
+		 * @param sortItem One or more sort items
+		 * @param <T>      The type of the step being returned
+		 * @return A build step that still offers methods for defining skip and limit
+		 */
+		<T extends ExposesSkip & ExposesLimit> T orderBy(SortItem... sortItem);
+
+		/**
+		 * Order the result set by an expression.
+		 *
+		 * @param expression The expression to order by
+		 * @return A step that allows for adding more expression or finetuning the sort direction of the last expression
+		 */
+		OngoingOrderDefinition orderBy(Expression expression);
+	}
+
+	/**
+	 * A step that exposes the {@link #skip(Number)} method.
+	 */
+	interface ExposesSkip extends BuildableMatch {
+
+		/**
+		 * Adds a skip clause, skipping the given number of records.
+		 *
+		 * @param number How many records to skip
+		 * @return A step that only allows the limit of records to be specified
+		 */
+		ExposesLimit skip(Number number);
+
+	}
+
+	/**
+	 * A step that exposes the {@link #limit(Number)} method.
+	 */
+	interface ExposesLimit extends BuildableMatch {
+
+		/**
+		 * Limits the number of returned records.
+		 * @param number How many records to return
+		 * @return A buildable match statement
+		 */
+		BuildableMatch limit(Number number);
 	}
 }

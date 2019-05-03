@@ -18,29 +18,20 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
-import org.springframework.data.neo4j.core.cypher.support.Visitable;
-import org.springframework.data.neo4j.core.cypher.support.Visitor;
-
 /**
- * This is a wrapper around an expression.
- * <p/>
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/ReturnBody.html#ReturnItem">ReturnItem</a>.
- *
+ * @author Gerrit Meier
  * @author Michael J. Simons
  * @since 1.0
  */
-class ReturnItem implements Visitable {
+public class NumberLiteral extends Literal<Number> {
 
-	private final Expression expression;
-
-	ReturnItem(Expression expression) {
-		this.expression = expression;
+	NumberLiteral(Number content) {
+		super(content);
 	}
 
 	@Override
-	public void accept(Visitor visitor) {
-		visitor.enter(this);
-		expression.accept(visitor);
-		visitor.leave(this);
+	public String asString() {
+
+		return String.valueOf(getContent());
 	}
 }

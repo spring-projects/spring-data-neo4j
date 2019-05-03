@@ -18,51 +18,30 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
-import static org.springframework.data.neo4j.core.cypher.Expressions.*;
-
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
-import org.springframework.util.Assert;
 
 /**
- * An aliased expression, that deals with named expressions when accepting visitors.
+ * A negated version of the condition passed during construnction of this condition.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
-public class AliasedExpression implements Aliased, Expression {
-
-	private final Expression delegate;
-
-	private final String alias;
-
-	AliasedExpression(Expression delegate, String alias) {
-
-		this.delegate = delegate;
-		this.alias = alias;
-	}
-
-	public String getAlias() {
-		return alias;
-	}
+public class NotCondition implements Condition {
 
 	/**
-	 * This takes the originally aliased expression and re-aliases it. Aliases are not nested.
-	 *
-	 * @param newAlias The new alias to use
-	 * @return A new aliased, expression.
+	 * The condition to which the visit is delegated to after entering this condition.
 	 */
-	@Override
-	public AliasedExpression as(String newAlias) {
+	private final Condition condition;
 
-		Assert.hasText(newAlias, "The alias may not be null or empty.");
-		return new AliasedExpression(this.delegate, newAlias);
+	NotCondition(Condition condition) {
+		this.condition = condition;
 	}
 
 	@Override
 	public void accept(Visitor visitor) {
 
 		visitor.enter(this);
-		nameOrExpression(this.delegate).accept(visitor);
+		condition.accept(visitor);
 		visitor.leave(this);
 	}
 }

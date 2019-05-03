@@ -49,15 +49,5 @@ class DefaultStatementBuilderTest {
 			assertThatIllegalArgumentException().isThrownBy(() -> builder.returning(new Expression[0]))
 				.withMessage("At least one expressions to return is required.");
 		}
-
-		@Test
-		void forNodes() {
-
-			DefaultStatementBuilder builder = new DefaultStatementBuilder();
-			assertThatIllegalArgumentException().isThrownBy(() -> builder.returning((Node[]) null))
-				.withMessage("Nodes to return are required.");
-			assertThatIllegalArgumentException().isThrownBy(() -> builder.returning(new Node[0]))
-				.withMessage("At least one node to return is required.");
-		}
 	}
 }

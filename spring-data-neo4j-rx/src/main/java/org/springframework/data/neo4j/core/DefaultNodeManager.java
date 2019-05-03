@@ -72,7 +72,7 @@ class DefaultNodeManager implements NodeManager {
 	@Override
 	public Object executeQuery(String query) {
 
-		return neo4jClient.newQuery(query).fetch().one();
+		return neo4jClient.newQuery(query).fetch().all();
 	}
 
 	@Override
@@ -127,6 +127,12 @@ class DefaultNodeManager implements NodeManager {
 		this.persistenceContext.deregister(managedEntity);
 
 		throw new UnsupportedOperationException("Not there yet.");
+	}
+
+	// todo I don't like this exposure here
+	@Override
+	public Schema getSchema() {
+		return schema;
 	}
 
 	private class ReflectionBasedMappingFunction<T> implements Function<Record, T> {
@@ -194,4 +200,5 @@ class DefaultNodeManager implements NodeManager {
 		}
 
 	}
+
 }

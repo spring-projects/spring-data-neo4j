@@ -19,11 +19,12 @@
 package org.springframework.data.neo4j.core.cypher.support;
 
 import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -96,29 +97,43 @@ public abstract class ReflectiveVisitor implements Visitor {
 			try {
 				handle.invoke(onVisitable);
 			} catch (Throwable throwable) {
+				throwable.printStackTrace();
 			}
 		});
 	}
 
 	private Optional<MethodHandle> findHandleFor(TargetAndPhase targetAndPhase) {
 
-		try {
-			// Using MethodHandles.lookup().findVirtual() doesn't allow to make a protected method accessible.
-			Method method = this.getClass()
-				.getDeclaredMethod(targetAndPhase.phase.methodName, targetAndPhase.classOfVisitable);
-			method.setAccessible(true);
-			return Optional.of(MethodHandles.lookup().in(this.getClass()).unreflect(method).bindTo(this));
-		} catch (IllegalAccessException | NoSuchMethodException e) {
-			// We don't do anything if the method doesn't exists
-			return Optional.empty();
+		for (Class<?> clazz : targetAndPhase.classHierarchyOfVisitable) {
+			try {
+				// Using MethodHandles.lookup().findVirtual() doesn't allow to make a protected method accessible.
+				Method method = this.getClass()
+					.getDeclaredMethod(targetAndPhase.phase.methodName, clazz);
+				method.setAccessible(true);
+				return Optional.of(MethodHandles.lookup().in(this.getClass()).unreflect(method).bindTo(this));
+			} catch (IllegalAccessException | NoSuchMethodException e) {
+				// We don't do anything if the method doesn't exists
+				// Try the next parameter type in the hierarchy
+			}
 		}
+		return Optional.empty();
 	}
 
-	@RequiredArgsConstructor
 	@EqualsAndHashCode
 	private static class TargetAndPhase {
-		private final Class<? extends Visitable> classOfVisitable;
+		private final List<Class<?>> classHierarchyOfVisitable;
 
 		private final Phase phase;
+
+		TargetAndPhase(Class<? extends Visitable> concreteVisitableClass, Phase phase) {
+			this.phase = phase;
+			this.classHierarchyOfVisitable = new ArrayList<>();
+
+			Class<?> classOfVisitable = concreteVisitableClass;
+			do {
+				this.classHierarchyOfVisitable.add(classOfVisitable);
+				classOfVisitable = classOfVisitable.getSuperclass();
+			} while (classOfVisitable != null);
+		}
 	}
 }

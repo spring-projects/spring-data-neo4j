@@ -16,33 +16,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration;
+package org.springframework.data.neo4j.core.cypher;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import org.springframework.data.neo4j.core.cypher.support.Visitable;
+import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
+/**
+ * @author Gerrit Meier
+ */
+public class Skip implements Visitable {
 
-@Getter
-@Setter
-@Node
-@ToString
-@AllArgsConstructor
-@EqualsAndHashCode
-public class PersonWithAllConstructor {
+	public static Skip of(Number value) {
+		return new Skip(new NumberLiteral(value));
+	}
 
-	@Id
-	private final Long id;
+	private final NumberLiteral skipAmount;
 
-	private final String name;
+	private Skip(NumberLiteral skipAmount) {
+		this.skipAmount = skipAmount;
+	}
 
-	private final String sameValue;
-
-	static PersonWithAllConstructor of(String sameValue) {
-		return new PersonWithAllConstructor(null, null, sameValue);
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.enter(this);
+		skipAmount.accept(visitor);
 	}
 }

@@ -20,13 +20,14 @@ package org.springframework.data.neo4j.core.cypher.renderer;
 
 import static org.assertj.core.api.Assertions.*;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * @author Michael J. Simons
  */
-class RenderUtilsTest {
+class RenderingVisitorTest {
 
 	@ParameterizedTest
 	@CsvSource({
@@ -38,6 +39,12 @@ class RenderUtilsTest {
 	})
 	void shouldCorrectlyEscapeNames(String name, String expectedEscapedName) {
 
-		assertThat(RenderUtils.escapeName(name)).isEqualTo(expectedEscapedName);
+		assertThat(RenderingVisitor.escapeName(name)).hasValue(expectedEscapedName);
+	}
+
+	@Test
+	void shouldNotTryToEscapeNullNames() {
+
+		assertThat(RenderingVisitor.escapeName(null)).isEmpty();
 	}
 }

@@ -16,30 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.cypher.renderer;
+package org.springframework.data.neo4j.core.cypher;
 
-import java.util.Locale;
+import java.util.List;
+
+import org.springframework.data.neo4j.core.cypher.support.TypedSubtree;
 
 /**
- * Helper methods dealing with the formatting of various Cypher nodes and such.
+ * Represents the list of sort items that make up the order of records in a result set.
  *
- * @author Michael J. Simons
  * @author Gerrit Meier
+ * @author Michael J. Simons
  * @since 1.0
  */
-final class RenderUtils {
+public class Order extends TypedSubtree<SortItem> {
 
-	/**
-	 * Escapes a symbolic name. Such a symbolic name is either used for a nodes label, the type of a relationship or a
-	 * variable.
-	 *
-	 * @param unescapedName
-	 * @return The correctly escaped name, safe to be used in statements.
-	 */
-	static CharSequence escapeName(String unescapedName) {
-		return String.format(Locale.ENGLISH, "`%s`", unescapedName.replaceAll("`", "``"));
-	}
-
-	private RenderUtils() {
+	Order(List<SortItem> sortItems) {
+		super(sortItems);
 	}
 }

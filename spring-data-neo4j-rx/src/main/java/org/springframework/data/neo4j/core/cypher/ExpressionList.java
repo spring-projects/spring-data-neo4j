@@ -18,39 +18,32 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
-import org.springframework.lang.Nullable;
+import static org.springframework.data.neo4j.core.cypher.Expressions.*;
+
+import java.util.List;
+
+import org.springframework.data.neo4j.core.cypher.support.TypedSubtree;
+import org.springframework.data.neo4j.core.cypher.support.Visitable;
 
 /**
- * Represents a literal with an optional content.
+ * Represents a list of expressions. When visited, the expressions are treated as named expression if they have declared
+ * a symbolic name as variable or as unnamed expression when nameless.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
-public abstract class Literal<T> implements Expression {
+class ExpressionList extends TypedSubtree<Expression> {
 
-	/**
-	 * The content of this literal.
-	 */
-	private @Nullable T content;
-
-	Literal(@Nullable T content) {
-		this.content = content;
+	ExpressionList(List<Expression> returnItems) {
+		super(returnItems);
 	}
 
-	/**
-	 * @return The content of this literal, may be {@literal null}
-	 */
-	public @Nullable T getContent() {
-		return content;
+	ExpressionList(Expression... children) {
+		super(children);
 	}
 
-	/**
-	 * The string representation should be designed in such a way the a renderer can use it correctly in
-	 * the given context of the literal, i.e. a literal containing a string should quote that string
-	 * and escape all reservered characters.
-	 *
-	 * @return A string representation to be used literally in a cypher statement.
-	 */
-	public abstract String asString();
+	@Override
+	protected Visitable prepareVisit(Expression child) {
+		return nameOrExpression(child);
+	}
 }
-

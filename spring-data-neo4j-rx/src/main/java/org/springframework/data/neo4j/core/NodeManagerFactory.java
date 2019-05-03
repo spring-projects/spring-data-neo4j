@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.core;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -68,11 +69,15 @@ public final class NodeManagerFactory {
 	 * @param initialPersistentClasses The set of classes that should be initially scanned
 	 */
 	public NodeManagerFactory(Driver driver, Class<?>... initialPersistentClasses) {
+		this(driver, Arrays.asList(initialPersistentClasses));
+	}
 
+	/**
+	 * @see NodeManagerFactory#NodeManagerFactory(Driver, Class...)
+	 */
+	public NodeManagerFactory(Driver driver, Collection<Class<?>> initialPersistentClasses) {
 		this.driver = driver;
-		this.initialPersistentClasses = new HashSet<>();
-
-		Arrays.stream(initialPersistentClasses).forEach(this.initialPersistentClasses::add);
+		this.initialPersistentClasses = new HashSet<>(initialPersistentClasses);
 	}
 
 	/**

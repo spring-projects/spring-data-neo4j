@@ -58,7 +58,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	@Override
 	protected Object getTargetRepository(RepositoryInformation metadata) {
-		return getTargetRepositoryViaReflection(metadata, nodeManager);
+		return getTargetRepositoryViaReflection(metadata, nodeManager, metadata.getDomainType());
 	}
 
 	@Override

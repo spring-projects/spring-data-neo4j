@@ -23,6 +23,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * This class helps to group items of the same type on the same level of the tree into a list structure that can be
+ * recognized by visitors.
+ *
  * @author Michael J. Simons
  * @since 1.0
  */
@@ -33,7 +36,6 @@ public abstract class TypedSubtree<T extends Visitable> implements Visitable {
 	protected TypedSubtree(T... children) {
 
 		this.children = Arrays.asList(children);
-
 	}
 
 	protected TypedSubtree(List<T> children) {
@@ -42,10 +44,19 @@ public abstract class TypedSubtree<T extends Visitable> implements Visitable {
 	}
 
 	@Override
-	public void accept(Visitor visitor) {
+	public final void accept(Visitor visitor) {
 
 		visitor.enter(this);
-		this.children.forEach(child -> child.accept(visitor));
+		this.children.forEach(child -> prepareVisit(child).accept(visitor));
 		visitor.leave(this);
+	}
+
+	/**
+	 * A hook for interfere with the visitation of child elements.
+	 *
+	 * @param child The current child element
+	 */
+	protected Visitable prepareVisit(T child) {
+		return child;
 	}
 }
