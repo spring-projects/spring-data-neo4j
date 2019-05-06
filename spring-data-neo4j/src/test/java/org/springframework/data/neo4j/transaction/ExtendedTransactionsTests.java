@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.transactions;
+package org.springframework.data.neo4j.transaction;
 
 import static org.junit.Assert.*;
 
@@ -27,9 +27,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
-import org.springframework.data.neo4j.transactions.service.ServiceA;
-import org.springframework.data.neo4j.transactions.service.ServiceB;
-import org.springframework.data.neo4j.transactions.service.WrapperService;
+import org.springframework.data.neo4j.transaction.service.ServiceA;
+import org.springframework.data.neo4j.transaction.service.ServiceB;
+import org.springframework.data.neo4j.transaction.service.WrapperService;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -138,8 +138,8 @@ public class ExtendedTransactionsTests {
 	}
 
 	@Configuration
-	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.transactions.domain",
-			repositoryPackages = "org.springframework.data.neo4j.transactions.repo")
-	@ComponentScan("org.springframework.data.neo4j.transactions.service")
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.transaction.domain",
+			repositoryPackages = "org.springframework.data.neo4j.transaction.repo")
+	@ComponentScan("org.springframework.data.neo4j.transaction.service")
 	static class ApplicationConfig {}
 }

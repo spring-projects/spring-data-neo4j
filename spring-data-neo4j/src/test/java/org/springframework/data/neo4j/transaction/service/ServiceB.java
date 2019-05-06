@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.transactions.service;
+package org.springframework.data.neo4j.transaction.service;
+
+import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.neo4j.transactions.domain.User;
-import org.springframework.data.neo4j.transactions.repo.UserRepository;
+import org.springframework.data.neo4j.transaction.domain.User;
+import org.springframework.data.neo4j.transaction.repo.UserRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,19 +27,21 @@ import org.springframework.transaction.annotation.Transactional;
  * @author vince
  */
 @Component
-public class ServiceA {
+public class ServiceB {
 
 	@Autowired private UserRepository userRepository;
 
-	@Autowired private ServiceB serviceB;
-
 	@Transactional(rollbackFor = Exception.class)
-	public void run() throws Exception {
-		saveBilbo();
-		serviceB.update();
+	public void update() throws Exception {
+		getBilbo();
+		throw new Exception();
 	}
 
-	public User saveBilbo() {
-		return userRepository.save(new User("Bilbo baggins"));
+	public User getBilbo() {
+		Collection<User> userList = userRepository.findUserByName("Bilbo Baggins");
+		if (userList.iterator().hasNext()) {
+			return userList.iterator().next();
+		}
+		return null;
 	}
 }
