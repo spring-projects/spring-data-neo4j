@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.integration.constructors;
 
 import static java.util.stream.Collectors.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
@@ -24,8 +25,10 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 import org.assertj.core.util.DateUtil;
+import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -54,6 +57,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Nicolas Mervaillie
@@ -84,6 +88,10 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 	@Autowired PersonWithManyToOneRelRepository manyToOneRepository;
 
 	@Autowired KotlinPersonRepository kotlinRepository;
+
+	@Autowired KotlinDataPersonRepository kotlinDataPersonRepository;
+
+	@Autowired TransactionTemplate transactionTemplate;
 
 	@Test
 	public void shouldHandleSimpleEntityWithConstructor() {
@@ -212,6 +220,49 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 		assertEquals("foo", persons.iterator().next().getName());
 	}
 
+	@Test // DATAGRAPH-1220
+	public void shouldSupportKotlinDataClassesWithGeneratedIds() {
+
+		KotlinDataPerson person0 = KotlinPersonKt.newDataPerson("Not to be persisted");
+
+		// Make sure we don't interfere with OGMs session cache but also don't clean it externally
+
+		KotlinDataPerson person1 = transactionTemplate
+				.execute(t -> kotlinDataPersonRepository.save(KotlinPersonKt.newDataPerson("Data Person 1")));
+		KotlinDataPerson person2 = transactionTemplate
+				.execute(t -> kotlinDataPersonRepository.save(KotlinPersonKt.newDataPerson("Data Person 2")));
+
+		// Assert that the id is actually null without database interaction
+		assertThat(person0.getId(), is(nullValue()));
+		assertThat(person1.getId(), is(notNullValue()));
+		assertThat(person2.getId(), is(notNullValue()));
+
+		// Load the rest
+		transactionTemplate.execute(t -> {
+			List<KotlinDataPerson> loadedPersons = kotlinDataPersonRepository.findAll();
+			assertThat(loadedPersons.size(), is(2));
+			assertThat(loadedPersons, CoreMatchers.hasItems(person1, person2));
+			return null;
+		});
+
+		transactionTemplate.execute(t -> {
+			Optional<KotlinDataPerson> loadedPerson1 = kotlinDataPersonRepository.findById(person1.getId());
+			Optional<KotlinDataPerson> loadedPerson2 = kotlinDataPersonRepository.findById(person2.getId());
+
+			assertThat(loadedPerson1.isPresent(), is(true));
+			assertThat(loadedPerson2.isPresent(), is(true));
+			return null;
+		});
+
+		// Double check the finder by another index field
+		transactionTemplate.execute(t -> {
+
+			Optional<KotlinDataPerson> loadedPerson1 = kotlinDataPersonRepository.findByName(person1.getName());
+			assertThat(loadedPerson1.isPresent(), is(true));
+			return null;
+		});
+	}
+
 	@Test
 	public void shouldSupportQueryResults() {
 		session.query(
@@ -253,6 +304,11 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 		}
 
 		@Bean
+		public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
+			return new TransactionTemplate(transactionManager);
+		}
+
+		@Bean
 		public SessionFactory sessionFactory() {
 			return new SessionFactory(getBaseConfiguration().build(),
 					"org.springframework.data.neo4j.integration.constructors.domain");
@@ -270,6 +326,14 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 
 	@Repository
 	public interface KotlinPersonRepository extends Neo4jRepository<KotlinPerson, String> {}
+
+	@Repository
+	public interface KotlinDataPersonRepository extends Neo4jRepository<KotlinDataPerson, Long> {
+
+		List<KotlinDataPerson> findAll();
+
+		Optional<KotlinDataPerson> findByName(String name);
+	}
 
 	@Repository
 	public interface PersonMultipleConstructorsRepository extends Neo4jRepository<PersonMultipleConstructors, String> {}

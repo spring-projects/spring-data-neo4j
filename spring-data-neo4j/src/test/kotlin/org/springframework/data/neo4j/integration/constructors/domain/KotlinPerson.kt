@@ -15,12 +15,15 @@
  */
 package org.springframework.data.neo4j.integration.constructors.domain
 
+import org.neo4j.ogm.annotation.GeneratedValue
 import org.neo4j.ogm.annotation.Id
+import org.neo4j.ogm.annotation.Index
 import org.neo4j.ogm.annotation.NodeEntity
 import org.neo4j.ogm.annotation.Relationship
 
 /**
  * @author Nicolas Mervaillie
+ * @author Michael J. Simons
  */
 @NodeEntity
 data class KotlinPerson(
@@ -28,3 +31,12 @@ data class KotlinPerson(
         @Relationship var friendships: List<KotlinFriendship> = ArrayList()) {
 
 }
+
+@NodeEntity
+data class KotlinDataPerson(
+        @Id @GeneratedValue var id: Long? = null,
+        @Index(unique = true) var name: String
+)
+
+// Just a helper to omit the id constructor parameter completely when calling from Java.
+fun newDataPerson(name: String) = KotlinDataPerson(name = name)
