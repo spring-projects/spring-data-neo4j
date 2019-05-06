@@ -13,19 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.transactions.repo;
+package org.springframework.data.neo4j.transaction.domain;
 
-import java.util.Collection;
-
-import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.data.neo4j.transactions.domain.User;
-import org.springframework.stereotype.Repository;
+import org.neo4j.ogm.annotation.Transient;
 
 /**
  * @author Michal Bachman
  */
-@Repository
-public interface UserRepository extends Neo4jRepository<User, Long> {
+public class User {
 
-	Collection<User> findUserByName(String name);
+	private Long id;
+	private String name;
+	@Transient private String species;
+
+	public User() {}
+
+	public Long id() {
+		return this.id;
+	}
+
+	public User(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getSpecies() {
+		return species;
+	}
+
+	public void setSpecies(String species) {
+		this.species = species;
+	}
+
 }
