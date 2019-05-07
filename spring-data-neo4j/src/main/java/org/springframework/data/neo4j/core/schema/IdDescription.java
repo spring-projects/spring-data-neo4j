@@ -18,7 +18,10 @@
  */
 package org.springframework.data.neo4j.core.schema;
 
+import java.util.Optional;
+
 import org.apiguardian.api.API;
+import org.springframework.lang.Nullable;
 
 /**
  * Description how to generate Ids for entities.
@@ -28,32 +31,41 @@ import org.apiguardian.api.API;
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class IdDescription {
 
+	/**
+	 * The selected strategy.
+	 */
 	private final Id.Strategy idStrategy;
 
-	private final Class<? extends IdGenerator> idGeneratorClass;
+	/**
+	 * The class representing a generator for new ids.
+	 */
+	private @Nullable final Class<? extends IdGenerator> idGeneratorClass;
+
+	/**
+	 * The property that stores the id if applicable.
+	 */
+	private @Nullable final String graphPropertyName;
 
 	public IdDescription() {
-		this(Id.Strategy.INTERNAL, NoopIdGenerator.class);
+		this(Id.Strategy.INTERNAL, null, null);
 	}
 
-	public IdDescription(Id.Strategy idStrategy, Class<? extends IdGenerator> idGeneratorClass) {
+	public IdDescription(Id.Strategy idStrategy,
+		@Nullable Class<? extends IdGenerator> idGeneratorClass, @Nullable String graphPropertyName) {
 		this.idStrategy = idStrategy;
 		this.idGeneratorClass = idGeneratorClass;
+		this.graphPropertyName = graphPropertyName;
 	}
 
 	public Id.Strategy getIdStrategy() {
 		return idStrategy;
 	}
 
-	public Class<? extends IdGenerator> getIdGeneratorClass() {
-		return idGeneratorClass;
+	public Optional<Class<? extends IdGenerator>> getIdGeneratorClass() {
+		return Optional.ofNullable(idGeneratorClass);
 	}
 
-	static class NoopIdGenerator implements IdGenerator {
-
-		@Override
-		public Object generateId(Object entity) {
-			return null;
-		}
+	public Optional<String> getGraphPropertyName() {
+		return Optional.ofNullable(graphPropertyName);
 	}
 }

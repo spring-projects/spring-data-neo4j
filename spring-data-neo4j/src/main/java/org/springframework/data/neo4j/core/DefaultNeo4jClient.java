@@ -221,7 +221,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		public Optional<T> one() {
 
 			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(this.targetDatabase)) {
-				StatementResult result = statementRunner.run(cypherSupplier.get(), parameters.get());
+				StatementResult result = runWith(statementRunner);
 				return result.hasNext() ? Optional.of(mappingFunction.apply(result.single())) : Optional.empty();
 			}
 		}
@@ -230,7 +230,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		public Optional<T> first() {
 
 			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(this.targetDatabase)) {
-				StatementResult result = statementRunner.run(cypherSupplier.get(), parameters.get());
+				StatementResult result = runWith(statementRunner);
 				return result.stream().map(mappingFunction).findFirst();
 			}
 		}
@@ -239,9 +239,18 @@ class DefaultNeo4jClient implements Neo4jClient {
 		public Collection<T> all() {
 
 			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(this.targetDatabase)) {
-				StatementResult result = statementRunner.run(cypherSupplier.get(), parameters.get());
+				StatementResult result = runWith(statementRunner);
 				return result.stream().map(mappingFunction).collect(toList());
 			}
+		}
+
+		private StatementResult runWith(AutoCloseableStatementRunner statementRunner) {
+			String statementTemplate = cypherSupplier.get();
+			if (cypherLog.isDebugEnabled()) {
+				cypherLog.debug(statementTemplate);
+			}
+			StatementResult result = statementRunner.run(statementTemplate, parameters.get());
+			return result;
 		}
 	}
 
