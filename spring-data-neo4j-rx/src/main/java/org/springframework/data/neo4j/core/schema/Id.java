@@ -60,5 +60,14 @@ public @interface Id {
 
 	Strategy strategy() default Strategy.INTERNAL;
 
-	Class<? extends IdGenerator> generator() default IdDescription.NoopIdGenerator.class;
+	Class<? extends IdGenerator> generator() default NoopIdGenerator.class;
+
+	// Needed to make the generator attribute defaultable (null is not a constant)
+	class NoopIdGenerator implements IdGenerator {
+
+		@Override
+		public Object generateId(Object entity) {
+			return null;
+		}
+	}
 }

@@ -44,7 +44,7 @@ public class Neo4jMappingContextTest {
 	void initializationOfSchemaShouldWork() {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
-		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(BikeNode.class, UserNode.class)));
+		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(BikeNode.class, UserNode.class, TripNode.class)));
 		schema.initialize();
 
 		Optional<NodeDescription<?>> optionalUserNodeDescription = schema.getNodeDescription("User");
@@ -84,6 +84,17 @@ public class Neo4jMappingContextTest {
 			});
 	}
 
+
+	@Test
+	void shouldPreventIllegalIdAnnotations() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(InvalidId.class)));
+		assertThatIllegalArgumentException()
+			.isThrownBy(() -> schema.initialize())
+			.withMessage("Cannot use internal id strategy with custom property poef on entity class org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidId");
+	}
+
 	@Node("User")
 	static class UserNode {
 
@@ -107,5 +118,19 @@ public class Neo4jMappingContextTest {
 		UserNode owner;
 
 		List<UserNode> renter;
+	}
+
+	static class TripNode {
+
+		@Id
+		private String id;
+
+		String name;
+	}
+
+	static class InvalidId {
+
+		@Id @Property("poef")
+		private String id;
 	}
 }

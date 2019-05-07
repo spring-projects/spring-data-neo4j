@@ -22,24 +22,22 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Collections;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.neo4j.core.NodeManager;
 import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.IdDescription;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
-import org.springframework.data.neo4j.core.schema.Schema;
 
 /**
  * @author Gerrit Meier
- **/
+ * @author Michael J. Simons
+ */
 class SimpleNeo4jRepositoryTest {
 
 	private NodeManager nodeManager;
-
-	private Schema schema;
 
 	private NodeDescription nodeDescription;
 
@@ -49,12 +47,10 @@ class SimpleNeo4jRepositoryTest {
 	void setupMock() {
 		nodeManager = mock(NodeManager.class);
 
-		schema = mock(Schema.class);
-		when(nodeManager.getSchema()).thenReturn(schema);
-
 		nodeDescription = mock(NodeDescription.class);
 		when(nodeDescription.getPrimaryLabel()).thenReturn("TestNode");
-		when(schema.getNodeDescription(TestNode.class)).thenReturn(Optional.of(nodeDescription));
+		when(nodeDescription.getIdDescription()).thenReturn(new IdDescription());
+		when(nodeManager.describe(TestNode.class)).thenReturn(nodeDescription);
 		repository = new SimpleNeo4jRepository(this.nodeManager, TestNode.class);
 	}
 

@@ -62,16 +62,17 @@ class RepositoryIT {
 	private static Neo4jContainer neo4jContainer = new Neo4jContainer().withoutAuthentication();
 
 	private final PersonRepository repository;
+	private final ThingRepository thingRepository;
 	private final Driver driver;
 	private Long id1;
 	private Long id2;
 	private PersonWithAllConstructor person1;
 	private PersonWithAllConstructor person2;
 
-	@Autowired
-	RepositoryIT(PersonRepository repository, Driver driver) {
+	@Autowired RepositoryIT(PersonRepository repository, ThingRepository thingRepository, Driver driver) {
 
 		this.repository = repository;
+		this.thingRepository = thingRepository;
 		this.driver = driver;
 	}
 
@@ -86,6 +87,7 @@ class RepositoryIT {
 				.next().get(0).asLong();
 		transaction.run("CREATE (n:PersonWithNoConstructor) SET n.name = '" + TEST_PERSON1_NAME + "'");
 		transaction.run("CREATE (n:PersonWithWither) SET n.name = '" + TEST_PERSON1_NAME + "'");
+		transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})");
 		transaction.success();
 		transaction.close();
 
@@ -118,6 +120,14 @@ class RepositoryIT {
 	void findAllById() {
 		Iterable<PersonWithAllConstructor> persons = repository.findAllById(Arrays.asList(id1, id2));
 		assertThat(persons).hasSize(2);
+	}
+
+	@Test
+	void findByAssignedId() {
+		Optional<ThingWithAssignedId> optionalThing = thingRepository.findById("anId");
+		assertThat(optionalThing).isPresent();
+		assertThat(optionalThing).map(ThingWithAssignedId::getTheId).contains("anId");
+		assertThat(optionalThing).map(ThingWithAssignedId::getName).contains("Homer");
 	}
 
 	@Test
@@ -290,14 +300,14 @@ class RepositoryIT {
 		public Driver driver() {
 
 			String boltUrl = neo4jContainer.getBoltUrl();
-			return GraphDatabase.driver(boltUrl, AuthTokens.basic("neo4j", "secret"));
+			return GraphDatabase.driver(boltUrl, AuthTokens.none());
 		}
 
 		@Bean
 		public NodeManagerFactory nodeManagerFactory(Driver driver) {
 
 			return new NodeManagerFactory(driver, PersonWithAllConstructor.class, PersonWithNoConstructor.class,
-					PersonWithWither.class);
+				PersonWithWither.class, ThingWithAssignedId.class);
 		}
 
 		@Bean

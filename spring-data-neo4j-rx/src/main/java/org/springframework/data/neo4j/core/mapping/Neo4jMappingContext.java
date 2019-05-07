@@ -41,6 +41,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.Schema;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.util.Assert;
 
 /**
  * An implementation of both a {@link Schema} as well as a Neo4j version of Spring Datas
@@ -167,5 +168,20 @@ public class Neo4jMappingContext
 		});
 
 		return Collections.unmodifiableCollection(relationships);
+	}
+
+	@Override
+	public void initialize() {
+
+		// Initialize with the starter set
+		super.initialize();
+		// And then validate everything
+		this.getPersistentEntities().forEach(this::validate);
+	}
+
+	private void validate(Neo4jPersistentEntity<?> entity) {
+
+		// Make sure there is a valid id
+		Assert.notNull(entity.getIdDescription(), "An entity is required to describe its id property.");
 	}
 }

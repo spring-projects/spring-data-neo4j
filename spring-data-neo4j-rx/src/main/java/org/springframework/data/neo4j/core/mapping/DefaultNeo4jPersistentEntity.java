@@ -30,6 +30,7 @@ import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.IdDescription;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 
@@ -94,7 +95,17 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		final Optional<Id> optionalIdAnnotation = Optional
 			.ofNullable(AnnotatedElementUtils.findMergedAnnotation(idProperty.getField(), Id.class));
 		return optionalIdAnnotation
-			.map(idAnnotation -> new IdDescription(idAnnotation.strategy(), idAnnotation.generator()))
+			.map(idAnnotation -> {
+
+				if (idAnnotation.strategy() == Id.Strategy.INTERNAL
+					&& idProperty.findAnnotation(Property.class) != null) {
+					throw new IllegalArgumentException(
+						"Cannot use internal id strategy with custom property " + idProperty.getPropertyName()
+							+ " on entity class " + this.getUnderlyingClass().getName());
+				}
+
+				return new IdDescription(idAnnotation.strategy(), idAnnotation.generator(), idProperty.getPropertyName());
+			})
 			.orElseGet(() -> new IdDescription());
 	}
 

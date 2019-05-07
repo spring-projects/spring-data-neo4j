@@ -129,10 +129,11 @@ class DefaultNodeManager implements NodeManager {
 		throw new UnsupportedOperationException("Not there yet.");
 	}
 
-	// todo I don't like this exposure here
 	@Override
-	public Schema getSchema() {
-		return schema;
+	public NodeDescription<?> describe(Class<?> clazz) {
+		return schema.getNodeDescription(clazz)
+			.orElseThrow(
+				() -> new IllegalArgumentException(String.format("%s is not a managed class", clazz.getName())));
 	}
 
 	private class ReflectionBasedMappingFunction<T> implements Function<Record, T> {

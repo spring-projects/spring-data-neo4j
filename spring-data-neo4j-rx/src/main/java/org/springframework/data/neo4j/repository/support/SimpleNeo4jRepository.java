@@ -35,6 +35,7 @@ import org.springframework.data.neo4j.core.NodeManager;
 import org.springframework.data.neo4j.core.cypher.Condition;
 import org.springframework.data.neo4j.core.cypher.Conditions;
 import org.springframework.data.neo4j.core.cypher.Cypher;
+import org.springframework.data.neo4j.core.cypher.Expression;
 import org.springframework.data.neo4j.core.cypher.Functions;
 import org.springframework.data.neo4j.core.cypher.Node;
 import org.springframework.data.neo4j.core.cypher.SortItem;
@@ -43,6 +44,7 @@ import org.springframework.data.neo4j.core.cypher.StatementBuilder;
 import org.springframework.data.neo4j.core.cypher.renderer.CypherRenderer;
 import org.springframework.data.neo4j.core.cypher.renderer.Renderer;
 import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
+import org.springframework.data.neo4j.core.schema.IdDescription;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.support.PageableExecutionUtils;
@@ -68,15 +70,28 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 
 	private final NodeDescription nodeDescription;
 	private Node node;
+	private Expression idExpression;
 
 	SimpleNeo4jRepository(NodeManager nodeManager, Class<T> nodeClass) {
 		this.nodeManager = nodeManager;
 		this.nodeClass = nodeClass;
 
-		this.nodeDescription = nodeManager.getSchema().getNodeDescription(nodeClass)
-				.orElseThrow(() -> new IllegalArgumentException("unsupported class"));
-
+		this.nodeDescription = nodeManager.describe(nodeClass);
 		this.node = Cypher.node(nodeDescription.getPrimaryLabel()).named("n");
+
+		IdDescription idDescription = this.nodeDescription.getIdDescription();
+		switch (idDescription.getIdStrategy()) {
+			case INTERNAL:
+				idExpression = node.internalId();
+				break;
+			case ASSIGNED:
+			case GENERATED:
+				idExpression = idDescription.getGraphPropertyName()
+					.map(this.node::property).get();
+				break;
+			default:
+				throw new IllegalStateException("Unsupported ID strategy: %s" + idDescription.getIdStrategy());
+		}
 	}
 
 	@Override
@@ -139,8 +154,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 
 	@Override
 	public Optional<T> findById(ID id) {
-		// todo only works for internal ids right now
-		Statement statement = match(node).where(node.internalId().isEqualTo(literalOf((Number) id))).returning(node)
+		Statement statement = match(node).where(idExpression.isEqualTo(literalOf(id))).returning(node)
 				.build();
 		return nodeManager.executeTypedQueryForObject(renderer.render(statement), nodeClass);
 	}
@@ -159,8 +173,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 
 	@Override
 	public Iterable<T> findAllById(Iterable<ID> ids) {
-		// todo only works for internal ids right now
-		Statement statement = match(node).where(node.internalId().isIn((Iterable<Long>) ids)).returning(node)
+		Statement statement = match(node).where(idExpression.isIn((Iterable<Long>) ids)).returning(node)
 				.build();
 		return nodeManager.executeTypedQueryForObjects(renderer.render(statement), nodeClass);
 	}

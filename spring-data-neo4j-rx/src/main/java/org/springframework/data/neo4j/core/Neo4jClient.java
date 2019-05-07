@@ -29,6 +29,8 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.StatementRunner;
 import org.neo4j.driver.summary.ResultSummary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Definition of a modern Neo4j client.
@@ -42,6 +44,8 @@ import org.neo4j.driver.summary.ResultSummary;
  */
 @API(status = API.Status.STABLE, since = "1.0")
 public interface Neo4jClient {
+
+	Logger cypherLog = LoggerFactory.getLogger(Neo4jClient.class.getPackage().getName() + ".cypher");
 
 	static Neo4jClient create(Driver driver) {
 

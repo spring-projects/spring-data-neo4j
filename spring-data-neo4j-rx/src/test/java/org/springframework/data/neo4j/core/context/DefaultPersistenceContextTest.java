@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.neo4j.core.context.tracking.EntityTrackingStrategy;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.schema.Id;
 
 /**
  * @author Gerrit Meier
@@ -112,6 +113,9 @@ class DefaultPersistenceContextTest {
 	}
 
 	class Something {
+
+		@Id
+		private Long id;
 
 		String value;
 	}
