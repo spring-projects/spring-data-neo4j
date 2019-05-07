@@ -16,30 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.cypher.renderer;
+package org.springframework.data.neo4j.core.cypher;
 
-import org.springframework.data.neo4j.core.cypher.Statement;
+import org.springframework.data.neo4j.core.cypher.support.Visitable;
 
 /**
  * @author Michael J. Simons
- * @author Gerrit Meier
  * @since 1.0
  */
-public class CypherRenderer implements Renderer {
-
-	private CypherRenderer() {
-	}
-
-	public static Renderer create() {
-		return new CypherRenderer();
-	}
-
-	@Override
-	public String render(Statement statement) {
-
-		RenderingVisitor renderingVisitor = new RenderingVisitor();
-		statement.accept(renderingVisitor);
-
-		return renderingVisitor.getRenderedContent().trim();
-	}
+interface UpdatingClause extends Visitable {
 }

@@ -131,6 +131,19 @@ class RenderingVisitor extends ReflectiveVisitor {
 		builder.append("RETURN ");
 	}
 
+	void enter(Delete delete) {
+
+		if (delete.isDetach()) {
+			builder.append("DETACH ");
+		}
+
+		builder.append("DELETE ");
+	}
+
+	void leave(Delete match) {
+		builder.append(" ");
+	}
+
 	void leave(AliasedExpression aliased) {
 		builder.append(" AS ").append(aliased.getAlias());
 	}
@@ -181,8 +194,8 @@ class RenderingVisitor extends ReflectiveVisitor {
 	void leave(IsNull isNull) {
 		builder
 			.append(" IS ")
-			.append(isNull.isNegated() ? "NOT" : "")
-			.append(" NULL");
+			.append(isNull.isNegated() ? "NOT " : "")
+			.append("NULL");
 	}
 
 	void enter(CompoundCondition compoundCondition) {

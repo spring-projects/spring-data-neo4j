@@ -16,30 +16,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.cypher.renderer;
+package org.springframework.data.neo4j.core.cypher;
 
-import org.springframework.data.neo4j.core.cypher.Statement;
+import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/Delete.html">Delete</a>.
+ *
  * @author Michael J. Simons
- * @author Gerrit Meier
- * @since 1.0
  */
-public class CypherRenderer implements Renderer {
+public class Delete implements UpdatingClause {
 
-	private CypherRenderer() {
+	private final ExpressionList deleteItems;
+
+	private final boolean detach;
+
+	Delete(ExpressionList deleteItems, boolean detach) {
+		this.deleteItems = deleteItems;
+		this.detach = detach;
 	}
 
-	public static Renderer create() {
-		return new CypherRenderer();
+	public boolean isDetach() {
+		return detach;
 	}
 
 	@Override
-	public String render(Statement statement) {
-
-		RenderingVisitor renderingVisitor = new RenderingVisitor();
-		statement.accept(renderingVisitor);
-
-		return renderingVisitor.getRenderedContent().trim();
+	public void accept(Visitor visitor) {
+		visitor.enter(this);
+		deleteItems.accept(visitor);
+		visitor.leave(this);
 	}
 }

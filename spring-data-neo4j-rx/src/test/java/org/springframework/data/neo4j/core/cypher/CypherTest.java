@@ -69,7 +69,7 @@ public class CypherTest {
 			@Test
 			void simpleRelationship() {
 				Statement statement = Cypher
-					.match(userNode.outgoingRelationShipTo(bikeNode).withType("OWNS").create())
+					.match(userNode.relationshipTo(bikeNode).withType("OWNS").create())
 					.returning(bikeNode, userNode)
 					.build();
 
@@ -80,7 +80,7 @@ public class CypherTest {
 			@Test
 			void simpleRelationshipWithReturn() {
 				Relationship owns = userNode
-					.outgoingRelationShipTo(bikeNode).withType("OWNS").named("o").create();
+					.relationshipTo(bikeNode).withType("OWNS").named("o").create();
 
 				Statement statement = Cypher
 					.match(owns)
@@ -96,7 +96,7 @@ public class CypherTest {
 				Node tripNode = Cypher.node("Trip").named("u");
 				Statement statement = Cypher
 					.match(userNode
-						.outgoingRelationShipTo(bikeNode).withType("OWNS").named("r1")
+						.relationshipTo(bikeNode).withType("OWNS").named("r1")
 						.outgoingRelationShipTo(tripNode).withType("USED_ON").named("r2")
 						.create()
 					)
@@ -600,6 +600,65 @@ public class CypherTest {
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo(
 					"MATCH (u:`User`) WHERE u.name = 'test' RETURN u");
+		}
+	}
+
+	@Nested
+	class DeleteClause {
+
+		@Test
+		void shouldRenderDeleteWithoutReturn() {
+
+			Statement statement;
+			statement = Cypher.match(userNode)
+				.detach().delete(userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (u:`User`) DETACH DELETE u");
+
+			statement = Cypher.match(userNode)
+				.where(userNode.property("a").isNotNull()).and(userNode.property("b").isNull())
+				.delete(userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (u:`User`) WHERE (u.a IS NOT NULL AND u.b IS NULL) DELETE u");
+
+			statement = Cypher.match(userNode, bikeNode)
+				.delete(userNode, bikeNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (u:`User`), (b:`Bike`) DELETE u, b");
+		}
+
+		@Test
+		void shouldRenderDeleteWithReturn() {
+
+			Statement statement;
+			statement = Cypher.match(userNode)
+				.detach().delete(userNode)
+				.returning(userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (u:`User`) DETACH DELETE u RETURN u");
+
+			statement = Cypher.match(userNode)
+				.where(userNode.property("a").isNotNull()).and(userNode.property("b").isNull())
+				.detach().delete(userNode)
+				.returning(userNode).orderBy(userNode.property("a").ascending()).skip(2).limit(1)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (u:`User`) WHERE (u.a IS NOT NULL AND u.b IS NULL) DETACH DELETE u RETURN u ORDER BY u.a ASC SKIP 2 LIMIT 1");
+
 		}
 	}
 }

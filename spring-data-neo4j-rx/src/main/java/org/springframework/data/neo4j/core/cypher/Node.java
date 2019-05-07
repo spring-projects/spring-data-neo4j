@@ -111,15 +111,33 @@ public class Node implements PatternElement, Named, Expression {
 		return Functions.id(this);
 	}
 
-	public OngoingRelationshipDefinition<Relationship> outgoingRelationShipTo(Node other) {
+	/**
+	 * Starts building an outgoing relationship to the {@code other} {@link Node node}.
+	 *
+	 * @param other The other end of the outgoing relationship
+	 * @return An ongoing relationship definition, that can be used to specify the type
+	 */
+	public OngoingRelationshipDefinition<Relationship> relationshipTo(Node other) {
 		return new DefaultOngoingRelationshipDefinition(this, Direction.LTR, other);
 	}
 
-	public OngoingRelationshipDefinition<Relationship> incomingRelationShipFrom(Node other) {
+	/**
+	 * Starts building an incoming relationship starting at the {@code other} {@link Node node}.
+	 *
+	 * @param other The source of the incoming relationship
+	 * @return An ongoing relationship definition, that can be used to specify the type
+	 */
+	public OngoingRelationshipDefinition<Relationship> relationshipFrom(Node other) {
 		return new DefaultOngoingRelationshipDefinition(this, Direction.RTR, other);
 	}
 
-	public OngoingRelationshipDefinition<Relationship> relationshipWith(Node other) {
+	/**
+	 * Starts building an undirected relationship between this {@link Node node} and the {@code other}.
+	 *
+	 * @param other The other end of the relationship
+	 * @return An ongoing relationship definition, that can be used to specify the type
+	 */
+	public OngoingRelationshipDefinition<Relationship> relationshipBetween(Node other) {
 		return new DefaultOngoingRelationshipDefinition(this, Direction.UNI, other);
 	}
 

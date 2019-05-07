@@ -24,5 +24,5 @@ import org.springframework.data.neo4j.core.cypher.support.Visitable;
  * @author Michael J. Simons
  * @since 1.0
  */
-public interface ReadingClause extends Visitable {
+interface ReadingClause extends Visitable {
 }
