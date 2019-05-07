@@ -79,15 +79,14 @@ public interface StatementBuilder {
 	 * A match that exposes {@code returning} and for which it is not decided whether the optional
 	 * where part has been used or note.
 	 */
-	interface OngoingMatch {
+	interface OngoingMatch extends ExposesReturning, OngoingDetachDelete {
 
 		/**
-		 * Create a match that returns one or more expressions.
+		 * Starts building a delete step that will use {@code DETACH} to remove relationships.
 		 *
-		 * @param expressions The expressions to be returned. Must not be null and be at least one expression.
-		 * @return A match that can be build now
+		 * @return An ongoing delete step that is used to specify things to be deleted.
 		 */
-		OngoingMatchAndReturn returning(Expression... expressions);
+		OngoingDetachDelete detach();
 	}
 
 	/**
@@ -135,6 +134,16 @@ public interface StatementBuilder {
 		 * @return The statement ready to be used, i.e. in a renderer.
 		 */
 		Statement build();
+	}
+
+	interface ExposesReturning {
+		/**
+		 * Create a match that returns one or more expressions.
+		 *
+		 * @param expressions The expressions to be returned. Must not be null and be at least one expression.
+		 * @return A match that can be build now
+		 */
+		OngoingMatchAndReturn returning(Expression... expressions);
 	}
 
 	/**
@@ -187,5 +196,24 @@ public interface StatementBuilder {
 		 * @return A buildable match statement
 		 */
 		BuildableMatch limit(Number number);
+	}
+
+	/**
+	 * A step that exposes only the delete clause.
+	 */
+	interface OngoingDetachDelete {
+		/**
+		 * Creates a delete step with one or more expressions to be deleted.
+		 *
+		 * @param expressions The expressions to be deleted.
+		 * @return A match with a delete clause that can be build now
+		 */
+		OngoingMatchAndDelete delete(Expression... expressions);
+	}
+
+	/**
+	 * A buildable step that will create a MATCH ... DELETE statement.
+	 */
+	interface OngoingMatchAndDelete extends BuildableMatch, ExposesReturning {
 	}
 }

@@ -19,8 +19,10 @@
 package org.springframework.data.neo4j.core.cypher;
 
 import org.springframework.data.neo4j.core.cypher.Statement.SingleQuery;
+import org.springframework.data.neo4j.core.cypher.support.Visitable;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/SinglePartQuery.html">SinglePartQuery</a>.
@@ -32,20 +34,53 @@ public class SinglePartQuery implements SingleQuery {
 
 	private @Nullable final ReadingClause readingClause;
 
-	private final Return aReturn;
+	private @Nullable final UpdatingClause updatingClause;
 
-	SinglePartQuery(@Nullable ReadingClause readingClause, Return aReturn) {
+	private @Nullable final Return aReturn;
+
+	/**
+	 * Creates a single part query consisting of a return clause with an optional reading clause
+	 *
+	 * @param aReturn       The expressions to return
+	 * @param readingClause The optional reading clause
+	 * @return
+	 */
+	static SinglePartQuery createReturningQuery(Return aReturn, @Nullable ReadingClause readingClause) {
+
+		Assert.notNull(aReturn, "A return clause is required.");
+
+		return new SinglePartQuery(readingClause, null, aReturn);
+	}
+
+	/**
+	 * Creates a single part query representing an update of some kind. Updates have an optional return clause.
+	 *
+	 * @param readingClause  The expressions to match
+	 * @param updatingClause The expressions to update
+	 * @param aReturn        The expressions to return, optional
+	 * @return
+	 */
+	static SinglePartQuery createUpdatingQuery(ReadingClause readingClause, UpdatingClause updatingClause,
+		@Nullable Return aReturn) {
+
+		Assert.notNull(readingClause, "The reading clause is required.");
+		Assert.notNull(updatingClause, "The update clause is required.");
+
+		return new SinglePartQuery(readingClause, updatingClause, aReturn);
+	}
+
+	private SinglePartQuery(@Nullable ReadingClause readingClause, @Nullable UpdatingClause updatingClause,
+		@Nullable Return aReturn) {
 		this.readingClause = readingClause;
+		this.updatingClause = updatingClause;
 		this.aReturn = aReturn;
 	}
 
 	@Override
 	public void accept(Visitor visitor) {
 
-		if (readingClause != null) {
-			readingClause.accept(visitor);
-		}
-
-		aReturn.accept(visitor);
+		Visitable.visitIfNotNull(readingClause, visitor);
+		Visitable.visitIfNotNull(updatingClause, visitor);
+		Visitable.visitIfNotNull(aReturn, visitor);
 	}
 }
