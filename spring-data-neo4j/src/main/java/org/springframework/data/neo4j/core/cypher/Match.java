@@ -28,15 +28,22 @@ import org.springframework.lang.Nullable;
  * @author Michael J. Simons
  * @since 1.0
  */
-public class Match implements ReadingClause {
+public class Match implements Visitable {
+
+	private final boolean optional;
 
 	private final Pattern pattern;
 
 	private @Nullable final Where optionalWhere;
 
-	Match(Pattern pattern, @Nullable Where optionalWhere) {
+	Match(boolean optional, Pattern pattern, @Nullable Where optionalWhere) {
+		this.optional = optional;
 		this.pattern = pattern;
 		this.optionalWhere = optionalWhere;
+	}
+
+	public boolean isOptional() {
+		return optional;
 	}
 
 	@Override

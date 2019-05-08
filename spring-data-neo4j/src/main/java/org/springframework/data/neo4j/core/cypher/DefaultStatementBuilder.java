@@ -22,7 +22,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.springframework.data.neo4j.core.cypher.ReadingClause.MatchList;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatch;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchWithWhere;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchWithoutWhere;
@@ -39,9 +43,25 @@ class DefaultStatementBuilder
 	OngoingMatchWithWhere,
 	OngoingMatchWithoutWhere {
 
-	private List<PatternElement> matchList = new ArrayList<>();
+	/**
+	 * Current list of matches to be generated.
+	 */
+	private final List<DefaultOngoingMatch> matchesList = new ArrayList<>();
+	/**
+	 * Will the next match generated be optional?
+	 */
+	private final AtomicBoolean nextMatchShouldBeOptional = new AtomicBoolean(false);
+	/**
+	 * The latest ongoing match,
+	 */
+	private DefaultOngoingMatch currentOngoingMatch;
 
-	private Condition condition;
+	@Override
+	public ExposesMatch optional() {
+
+		nextMatchShouldBeOptional.set(true);
+		return this;
+	}
 
 	@Override
 	public OngoingMatchWithoutWhere match(PatternElement... pattern) {
@@ -49,7 +69,11 @@ class DefaultStatementBuilder
 		Assert.notNull(pattern, "Patterns to match are required.");
 		Assert.notEmpty(pattern, "At least one pattern to match is required.");
 
-		this.matchList.addAll(Arrays.asList(pattern));
+		if (this.currentOngoingMatch != null) {
+			this.matchesList.add(this.currentOngoingMatch);
+		}
+		this.currentOngoingMatch = new DefaultOngoingMatch(this.nextMatchShouldBeOptional.getAndSet(false));
+		this.currentOngoingMatch.matchList.addAll(Arrays.asList(pattern));
 		return this;
 	}
 
@@ -76,31 +100,30 @@ class DefaultStatementBuilder
 	@Override
 	public OngoingMatchWithWhere where(Condition newCondition) {
 
-		this.condition = newCondition;
+		this.currentOngoingMatch.where(newCondition);
 		return this;
 	}
 
 	@Override
 	public OngoingMatchWithWhere and(Condition additionalCondition) {
 
-		this.condition = this.condition.and(additionalCondition);
+		this.currentOngoingMatch.and(additionalCondition);
 		return this;
 	}
 
 	@Override
 	public OngoingMatchWithWhere or(Condition additionalCondition) {
 
-		this.condition = this.condition.or(additionalCondition);
+		this.currentOngoingMatch.or(additionalCondition);
 		return this;
 	}
 
-	private boolean hasCondition() {
-		return !(this.condition == null || this.condition == CompoundCondition.EMPTY_CONDITION);
-	}
-
-	protected Match buildMatch() {
-		Pattern pattern = new Pattern(DefaultStatementBuilder.this.matchList);
-		return new Match(pattern, hasCondition() ? new Where(DefaultStatementBuilder.this.condition) : null);
+	protected MatchList buildMatchList() {
+		List<Match> matchList = Stream.concat(this.matchesList.stream(),
+			this.currentOngoingMatch == null ? Stream.empty() : Stream.of(this.currentOngoingMatch))
+			.map(DefaultOngoingMatch::buildMatch)
+			.collect(Collectors.toList());
+		return new MatchList(matchList);
 	}
 
 	class DefaultStatementWithReturnBuilder
@@ -182,10 +205,10 @@ class DefaultStatementBuilder
 		@Override
 		public Statement build() {
 
-			Match match = buildMatch();
+			MatchList matchList = buildMatchList();
 			// This must be filled at this stage
 			Return aReturn = buildReturn().get();
-			return SinglePartQuery.createReturningQuery(aReturn, match);
+			return SinglePartQuery.createReturningQuery(aReturn, matchList);
 		}
 	}
 
@@ -213,7 +236,6 @@ class DefaultStatementBuilder
 		@Override
 		public OngoingMatchAndReturn returning(Expression... expressions) {
 
-
 			Assert.notNull(expressions, "Expressions to return are required.");
 			Assert.notEmpty(expressions, "At least one expressions to return is required.");
 
@@ -230,11 +252,49 @@ class DefaultStatementBuilder
 		@Override
 		public Statement build() {
 
-			Match match = buildMatch();
+			MatchList matchList = buildMatchList();
 			Delete delete = buildDelete();
 			Optional<Return> optionalReturn = buildReturn();
 
-			return SinglePartQuery.createUpdatingQuery(match, delete, optionalReturn.orElse(null));
+			return SinglePartQuery.createUpdatingQuery(matchList, delete, optionalReturn.orElse(null));
 		}
 	}
+
+	class DefaultOngoingMatch {
+
+		private final List<PatternElement> matchList = new ArrayList<>();
+
+		private final boolean optional;
+
+		private Condition condition;
+
+		DefaultOngoingMatch(boolean optional) {
+			this.optional = optional;
+		}
+
+		void where(Condition newCondition) {
+
+			this.condition = newCondition;
+		}
+
+		void and(Condition additionalCondition) {
+
+			this.condition = this.condition.and(additionalCondition);
+		}
+
+		void or(Condition additionalCondition) {
+
+			this.condition = this.condition.or(additionalCondition);
+		}
+
+		boolean hasCondition() {
+			return !(this.condition == null || this.condition == CompoundCondition.EMPTY_CONDITION);
+		}
+
+		Match buildMatch() {
+			Pattern pattern = new Pattern(this.matchList);
+			return new Match(optional, pattern, hasCondition() ? new Where(this.condition) : null);
+		}
+	}
+
 }

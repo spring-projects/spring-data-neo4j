@@ -49,6 +49,13 @@ public class Node implements PatternElement, Named, Expression {
 		return new Node(primaryLabel, additionalLabels);
 	}
 
+	/**
+	 * @return A node without labels
+	 */
+	static Node create() {
+		return new Node(null);
+	}
+
 	private @Nullable final SymbolicName symbolicName;
 
 	private final List<String> labels;
@@ -58,7 +65,9 @@ public class Node implements PatternElement, Named, Expression {
 		this.symbolicName = null;
 
 		this.labels = new ArrayList<>();
-		this.labels.add(primaryLabel);
+		if (!(primaryLabel == null || primaryLabel.isEmpty())) {
+			this.labels.add(primaryLabel);
+		}
 		this.labels.addAll(Arrays.asList(additionalLabels));
 	}
 
