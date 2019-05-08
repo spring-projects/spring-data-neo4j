@@ -73,7 +73,7 @@ class DefaultNodeManager implements NodeManager {
 		MappingSpec<Optional<T>, Collection<T>, T> mappingSpec = neo4jClient.newQuery(query).fetchAs(returnedType);
 		return schema.getMappingFunctionFor(returnedType)
 			.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction))
-			.orElseGet(() -> mappingSpec)
+			.orElse(mappingSpec)
 			.one();
 	}
 
@@ -83,7 +83,7 @@ class DefaultNodeManager implements NodeManager {
 		MappingSpec<Optional<T>, Collection<T>, T> mappingSpec = neo4jClient.newQuery(query).fetchAs(returnedType);
 		return schema.getMappingFunctionFor(returnedType)
 			.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction))
-			.orElseGet(() -> mappingSpec)
+			.orElse(mappingSpec)
 			.all();
 	}
 
@@ -107,7 +107,7 @@ class DefaultNodeManager implements NodeManager {
 	@Override
 	public NodeDescription<?> describe(Class<?> clazz) {
 
-		// // @formatter:off
+		// @formatter:off
 		return schema.getNodeDescription(clazz)
 			.orElseThrow(() -> new IllegalArgumentException(String.format("%s is not a managed class", clazz.getName())));
 		// @formatter:on

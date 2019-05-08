@@ -19,6 +19,7 @@
 package org.springframework.data.neo4j.core.cypher;
 
 import org.apiguardian.api.API;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.ExposesMatch;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchWithoutWhere;
 import org.springframework.lang.Nullable;
 
@@ -45,6 +46,23 @@ public final class Cypher {
 	public static Node node(String primaryLabel, String... additionalLabels) {
 
 		return Node.create(primaryLabel, additionalLabels);
+	}
+
+	/**
+	 * @return A node matching any node.
+	 */
+	public static Node anyNode() {
+		return Node.create();
+	}
+
+	/**
+	 * Prepares an optional match statement.
+	 *
+	 * @return An optional match without any patterns yet.
+	 */
+	public static ExposesMatch optional() {
+
+		return Statement.builder().optional();
 	}
 
 	/**

@@ -18,11 +18,27 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
+import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
  * @author Michael J. Simons
  * @since 1.0
  */
 interface ReadingClause extends Visitable {
+
+	class MatchList implements ReadingClause {
+		private final List<Match> matchList;
+
+		MatchList(List<Match> matchList) {
+			this.matchList = matchList;
+		}
+
+		@Override
+		public void accept(Visitor visitor) {
+			matchList.forEach(match -> match.accept(visitor));
+		}
+	}
 }

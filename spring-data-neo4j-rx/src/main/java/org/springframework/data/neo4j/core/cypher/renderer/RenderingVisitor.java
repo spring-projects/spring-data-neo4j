@@ -116,6 +116,9 @@ class RenderingVisitor extends ReflectiveVisitor {
 	}
 
 	void enter(Match match) {
+		if (match.isOptional()) {
+			builder.append("OPTIONAL ");
+		}
 		builder.append("MATCH ");
 	}
 

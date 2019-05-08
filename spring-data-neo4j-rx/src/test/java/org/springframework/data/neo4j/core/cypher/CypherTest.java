@@ -224,6 +224,91 @@ public class CypherTest {
 	}
 
 	@Nested
+	class MultipleMatches {
+		@Test
+		void simple() {
+			Statement statement = Cypher
+				.match(bikeNode)
+				.match(userNode, Cypher.node("U").named("o"))
+				.returning(bikeNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (b:`Bike`) MATCH (u:`User`), (o:`U`) RETURN b");
+		}
+
+		@Test
+		void simpleWhere() {
+			Statement statement = Cypher
+				.match(bikeNode)
+				.match(userNode, Cypher.node("U").named("o"))
+				.where(userNode.property("a").isNull())
+				.returning(bikeNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (b:`Bike`) MATCH (u:`User`), (o:`U`) WHERE u.a IS NULL RETURN b");
+		}
+
+		@Test
+		void multiWhere() {
+			Statement statement = Cypher
+				.match(bikeNode)
+				.where(bikeNode.property("a").isNotNull())
+				.match(userNode, Cypher.node("U").named("o"))
+				.where(userNode.property("a").isNull())
+				.returning(bikeNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (b:`Bike`) WHERE b.a IS NOT NULL MATCH (u:`User`), (o:`U`) WHERE u.a IS NULL RETURN b");
+		}
+
+		@Test
+		void multiWhereMultiConditions() {
+			Statement statement = Cypher
+				.match(bikeNode)
+				.where(bikeNode.property("a").isNotNull())
+				.and(bikeNode.property("b").isNull())
+				.match(userNode, Cypher.node("U").named("o"))
+				.where(userNode.property("a").isNull().or(userNode.internalId().isEqualTo(literalOf(4711))))
+				.returning(bikeNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (b:`Bike`) WHERE (b.a IS NOT NULL AND b.b IS NULL) MATCH (u:`User`), (o:`U`) WHERE (u.a IS NULL OR id(u) = 4711) RETURN b");
+		}
+
+		@Test
+		void optional() {
+			Statement statement = Cypher
+				.optional()
+				.match(bikeNode)
+				.match(userNode, Cypher.node("U").named("o"))
+				.where(userNode.property("a").isNull())
+				.returning(bikeNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("OPTIONAL MATCH (b:`Bike`) MATCH (u:`User`), (o:`U`) WHERE u.a IS NULL RETURN b");
+		}
+
+		@Test
+		void optionalNext() {
+			Statement statement = Cypher
+				.match(bikeNode)
+				.optional()
+				.match(userNode, Cypher.node("U").named("o"))
+				.where(userNode.property("a").isNull())
+				.returning(bikeNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (b:`Bike`) OPTIONAL MATCH (u:`User`), (o:`U`) WHERE u.a IS NULL RETURN b");
+		}
+	}
+
+	@Nested
 	class FunctionRendering {
 		@Test
 		void inWhereClause() {
@@ -659,6 +744,21 @@ public class CypherTest {
 				.isEqualTo(
 					"MATCH (u:`User`) WHERE (u.a IS NOT NULL AND u.b IS NULL) DETACH DELETE u RETURN u ORDER BY u.a ASC SKIP 2 LIMIT 1");
 
+		}
+
+		@Test
+		void shouldRenderNodeDelete() {
+			Node n = anyNode().named("n");
+			Relationship r = n.relationshipBetween(anyNode()).named("r0").create();
+			Statement statement = Cypher
+				.match(n).where(n.internalId().isEqualTo(literalOf(4711)))
+				.optional().match(r)
+				.delete(r, n)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (n) WHERE id(n) = 4711 OPTIONAL MATCH (n)-[r0]-() DELETE r0, n");
 		}
 	}
 }

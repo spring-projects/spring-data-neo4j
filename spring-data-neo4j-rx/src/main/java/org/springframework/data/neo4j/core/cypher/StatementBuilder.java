@@ -26,6 +26,13 @@ package org.springframework.data.neo4j.core.cypher;
 public interface StatementBuilder {
 
 	/**
+	 * See {@link Cypher#optional()}.
+	 *
+	 * @return
+	 */
+	ExposesMatch optional();
+
+	/**
 	 * See {@link Cypher#match(PatternElement...)}.
 	 *
 	 * @param pattern
@@ -38,7 +45,14 @@ public interface StatementBuilder {
 	 * While the where clause is optional, an returning clause needs to be specified before the
 	 * statement can be build.
 	 */
-	interface OngoingMatchWithoutWhere extends OngoingMatch {
+	interface OngoingMatchWithoutWhere extends OngoingMatch, ExposesMatch {
+
+		/**
+		 * Marks the next match as optional match.
+		 *
+		 * @return A step exposing a {@link ExposesMatch#match(PatternElement...)} method for adding patterns to match.
+		 */
+		ExposesMatch optional();
 
 		/**
 		 * Adds a where clause to this match.
@@ -52,7 +66,9 @@ public interface StatementBuilder {
 	/**
 	 * A match that has a non-empty {@code where}-part. THe returning clause is still open.
 	 */
-	interface OngoingMatchWithWhere extends OngoingMatch {
+	interface OngoingMatchWithWhere extends OngoingMatch, ExposesMatch {
+
+		ExposesMatch optional();
 
 		/**
 		 * Adds an additional condition to the existing conditions, connected by an {@literal and}.
@@ -209,6 +225,20 @@ public interface StatementBuilder {
 		 * @return A match with a delete clause that can be build now
 		 */
 		OngoingMatchAndDelete delete(Expression... expressions);
+	}
+
+	/**
+	 * A step exposing a {@link #match(PatternElement...)} method.
+	 */
+	interface ExposesMatch {
+
+		/**
+		 * Adds another match clause.
+		 *
+		 * @param pattern The patterns to match
+		 * @return An ongoing match that is used to specify an optional where and a required return clause
+		 */
+		OngoingMatchWithoutWhere match(PatternElement... pattern);
 	}
 
 	/**
