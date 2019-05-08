@@ -26,7 +26,12 @@
 		</encoder>
 	</appender>
 
+	<logger name="org.neo4j.driver" level="info"/>
+	<logger name="GraphDatabase" level="info" />
+	<logger name="Driver" level="info" />
+
 	<logger name="org.springframework.data.neo4j" level="warn"/>
+	<logger name="org.springframework.data.neo4j.test" level="debug"/>
 
 	<root level="warn">
 		<appender-ref ref="console" />
