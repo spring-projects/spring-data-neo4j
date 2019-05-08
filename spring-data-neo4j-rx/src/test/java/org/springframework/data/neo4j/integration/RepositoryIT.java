@@ -27,9 +27,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -42,24 +40,22 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.NodeManagerFactory;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.testcontainers.containers.Neo4jContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 @ExtendWith(SpringExtension.class)
+@ExtendWith(Neo4jExtension.class)
 @ContextConfiguration(classes = RepositoryIT.Config.class)
-@Testcontainers
 class RepositoryIT {
 	private static final String TEST_PERSON1_NAME = "Test";
 	private static final String TEST_PERSON2_NAME = "Test2";
 	private static final String TEST_PERSON_SAMEVALUE = "SameValue";
 
-	@Container
-	private static Neo4jContainer neo4jContainer = new Neo4jContainer().withoutAuthentication();
+	private static Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private final PersonRepository repository;
 	private final ThingRepository thingRepository;
@@ -299,8 +295,7 @@ class RepositoryIT {
 		@Bean
 		public Driver driver() {
 
-			String boltUrl = neo4jContainer.getBoltUrl();
-			return GraphDatabase.driver(boltUrl, AuthTokens.none());
+			return neo4jConnectionSupport.openConnection();
 		}
 
 		@Bean
