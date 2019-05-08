@@ -32,6 +32,7 @@ import org.springframework.core.annotation.AliasFor;
  * Annotation to configure mappings of relationship.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
@@ -40,6 +41,9 @@ import org.springframework.core.annotation.AliasFor;
 @API(status = API.Status.STABLE, since = "1.0")
 public @interface Relationship {
 
+	/**
+	 * Enumeration of the direction a relationship can take.
+	 */
 	enum Direction {
 
 		/**
@@ -58,6 +62,9 @@ public @interface Relationship {
 		UNDIRECTED
 	}
 
+	/**
+	 * @return See {@link #type()}.
+	 */
 	@AliasFor("type")
 	String value() default "";
 
@@ -67,6 +74,9 @@ public @interface Relationship {
 	@AliasFor("value")
 	String type() default "";
 
+	/**
+	 * @return The name of the attribute containing the other end of the relationship.
+	 */
 	String inverse() default "";
 
 	/**

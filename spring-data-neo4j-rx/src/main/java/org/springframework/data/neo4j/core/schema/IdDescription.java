@@ -27,6 +27,7 @@ import org.springframework.lang.Nullable;
  * Description how to generate Ids for entities.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class IdDescription {

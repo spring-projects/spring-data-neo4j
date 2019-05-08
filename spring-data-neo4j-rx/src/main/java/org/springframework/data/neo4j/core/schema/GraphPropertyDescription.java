@@ -23,12 +23,13 @@ import org.apiguardian.api.API;
 /**
  * Provides minimal information how to map class attributes to the properties of a node or a relationship.
  * <p>
- * Spring Datas persistent properties have slightly different semantics. They have an entity centric approach of properties.
+ * Spring Data's persistent properties have slightly different semantics. They have an entity centric approach of properties.
  * Spring Data properties contain - if not marked otherwise - also associations.
  * <p>
  * Associations between different node types can be queried on the {@link Schema} itself.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public interface GraphPropertyDescription {

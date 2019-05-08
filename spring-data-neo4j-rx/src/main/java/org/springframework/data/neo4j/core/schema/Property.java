@@ -32,6 +32,7 @@ import org.springframework.core.annotation.AliasFor;
  * The annotation to configure the mapping from a property to an attribute and vice versa.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
@@ -40,9 +41,16 @@ import org.springframework.core.annotation.AliasFor;
 @API(status = API.Status.STABLE, since = "1.0")
 public @interface Property {
 
+	/**
+	 * @return See {@link #name()}.
+	 */
 	@AliasFor("name")
 	String value() default "";
 
+	/**
+	 *
+	 * @return The name of the property in the graph.
+	 */
 	@AliasFor("value")
 	String name() default "";
 }

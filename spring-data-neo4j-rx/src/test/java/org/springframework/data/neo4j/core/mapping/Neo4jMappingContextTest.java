@@ -92,7 +92,14 @@ public class Neo4jMappingContextTest {
 		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(InvalidId.class)));
 		assertThatIllegalArgumentException()
 			.isThrownBy(() -> schema.initialize())
-			.withMessage("Cannot use internal id strategy with custom property poef on entity class org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidId");
+			.withMessageMatching("Cannot use internal id strategy with custom property getMappingFunctionFor on entity .*");
+	}
+
+	@Test
+	void shouldNotProvideMappingForUnknownClasses() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		assertThat(schema.getMappingFunctionFor(UserNode.class)).isEmpty();
 	}
 
 	@Node("User")
@@ -130,7 +137,7 @@ public class Neo4jMappingContextTest {
 
 	static class InvalidId {
 
-		@Id @Property("poef")
+		@Id @Property("getMappingFunctionFor")
 		private String id;
 	}
 }

@@ -24,11 +24,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Transaction;
+import org.neo4j.driver.Values;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,13 +49,23 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+/**
+ * @author Michael J. Simons
+ * @author Gerrit Meier
+ */
 @ExtendWith(SpringExtension.class)
 @ExtendWith(Neo4jExtension.class)
 @ContextConfiguration(classes = RepositoryIT.Config.class)
 class RepositoryIT {
 	private static final String TEST_PERSON1_NAME = "Test";
 	private static final String TEST_PERSON2_NAME = "Test2";
+	private static final String TEST_PERSON1_FIRST_NAME = "A";
+	private static final String TEST_PERSON2_FIRST_NAME = "B";
 	private static final String TEST_PERSON_SAMEVALUE = "SameValue";
+
+	static PersonWithAllConstructor personExample(String sameValue) {
+		return new PersonWithAllConstructor(null, null, null, sameValue);
+	}
 
 	private static Neo4jConnectionSupport neo4jConnectionSupport;
 
@@ -77,19 +89,25 @@ class RepositoryIT {
 
 		Transaction transaction = driver.session().beginTransaction();
 		transaction.run("MATCH (n) detach delete n");
-		id1 = transaction.run("CREATE (n:PersonWithAllConstructor) SET n.name = '" + TEST_PERSON1_NAME + "', n.sameValue = '" + TEST_PERSON_SAMEVALUE + "' return id(n)")
-				.next().get(0).asLong();
-		id2 = transaction.run("CREATE (n:PersonWithAllConstructor) SET n.name = '" + TEST_PERSON2_NAME + "', n.sameValue = '" + TEST_PERSON_SAMEVALUE + "' return id(n)")
-				.next().get(0).asLong();
-		transaction.run("CREATE (n:PersonWithNoConstructor) SET n.name = '" + TEST_PERSON1_NAME + "'");
+
+		id1 = transaction.run(
+			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName return id(n)",
+			Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName", TEST_PERSON1_FIRST_NAME)
+		).next().get(0).asLong();
+		id2 = transaction.run(
+			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName return id(n)",
+			Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName", TEST_PERSON2_FIRST_NAME)
+		).next().get(0).asLong();
+		transaction.run("CREATE (n:PersonWithNoConstructor) SET n.name = $name, n.first_name = $firstName",
+			Values.parameters("name", TEST_PERSON1_NAME, "firstName", TEST_PERSON1_FIRST_NAME));
 		transaction.run("CREATE (n:PersonWithWither) SET n.name = '" + TEST_PERSON1_NAME + "'");
 		transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})");
 		transaction.success();
 		transaction.close();
 
 		// note that there is no id setting in the mapping right now
-		person1 = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON_SAMEVALUE);
-		person2 = new PersonWithAllConstructor(null, TEST_PERSON2_NAME, TEST_PERSON_SAMEVALUE);
+		person1 = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE);
+		person2 = new PersonWithAllConstructor(null, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE);
 	}
 
 	@Test
@@ -185,7 +203,7 @@ class RepositoryIT {
 
 	@Test
 	void findAllByExampleWithSort() {
-		Example<PersonWithAllConstructor> example = Example.of(PersonWithAllConstructor.of(TEST_PERSON_SAMEVALUE));
+		Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
 		Iterable<PersonWithAllConstructor> persons = repository.findAll(example, Sort.by(Sort.Direction.DESC, "name"));
 
 		assertThat(persons).containsExactly(person2, person1);
@@ -193,7 +211,7 @@ class RepositoryIT {
 
 	@Test
 	void findAllByExampleWithPagination() {
-		Example<PersonWithAllConstructor> example = Example.of(PersonWithAllConstructor.of(TEST_PERSON_SAMEVALUE));
+		Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
 		Iterable<PersonWithAllConstructor> persons = repository.findAll(example, PageRequest.of(1, 1, Sort.by("name")));
 
 		assertThat(persons).containsExactly(person2);
@@ -201,7 +219,7 @@ class RepositoryIT {
 
 	@Test
 	void existsByExample() {
-		Example<PersonWithAllConstructor> example = Example.of(PersonWithAllConstructor.of(TEST_PERSON_SAMEVALUE));
+		Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
 		boolean exists = repository.exists(example);
 
 		assertThat(exists).isTrue();
@@ -239,20 +257,26 @@ class RepositoryIT {
 	void loadAllPersonsWithNoConstructor() {
 		List<PersonWithNoConstructor> persons = repository.getAllPersonsWithNoConstructorViaQuery();
 
-		assertThat(persons).anyMatch(person -> person.getName().equals(TEST_PERSON1_NAME));
+		assertThat(persons)
+			.extracting(PersonWithNoConstructor::getName, PersonWithNoConstructor::getFirstName)
+			.containsExactlyInAnyOrder(
+				Tuple.tuple(TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME)
+			);
 	}
 
 	@Test
 	void loadOnePersonWithNoConstructor() {
 		PersonWithNoConstructor person = repository.getOnePersonWithNoConstructorViaQuery();
 		assertThat(person.getName()).isEqualTo(TEST_PERSON1_NAME);
+		assertThat(person.getFirstName()).isEqualTo(TEST_PERSON1_FIRST_NAME);
 	}
 
 	@Test
 	void loadOptionalPersonWithNoConstructor() {
 		Optional<PersonWithNoConstructor> person = repository.getOptionalPersonsWithNoConstructorViaQuery();
 		assertThat(person).isPresent();
-		assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
+		assertThat(person).map(PersonWithNoConstructor::getName).contains(TEST_PERSON1_NAME);
+		assertThat(person).map(PersonWithNoConstructor::getFirstName).contains(TEST_PERSON1_FIRST_NAME);
 	}
 
 	@Test

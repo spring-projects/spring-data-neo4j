@@ -213,7 +213,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		public RecordFetchSpec<Optional<T>, Collection<T>, T> mappedBy(
 			@SuppressWarnings("HiddenField") Function<Record, T> mappingFunction) {
 
-			this.mappingFunction = mappingFunction;
+			this.mappingFunction = new DelegatingMappingFunctionWithNullCheck<>(mappingFunction);
 			return this;
 		}
 

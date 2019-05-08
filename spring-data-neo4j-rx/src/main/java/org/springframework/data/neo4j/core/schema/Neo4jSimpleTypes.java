@@ -28,6 +28,7 @@ import org.neo4j.driver.Value;
  * established for attributes of a node that are simple types.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class Neo4jSimpleTypes {

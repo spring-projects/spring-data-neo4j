@@ -32,6 +32,7 @@ import org.springframework.core.annotation.AliasFor;
  * The annotation to configure the mapping from a node with a given set of labels to a class and vice versa.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
@@ -40,11 +41,14 @@ import org.springframework.core.annotation.AliasFor;
 @API(status = API.Status.STABLE, since = "1.0")
 public @interface Node {
 
+	/**
+	 * @return See {@link #labels()}.
+	 */
 	@AliasFor("labels")
 	String[] value() default {};
 
 	/**
-	 * The labels to identify a node with that is supposed to be mapped to the class annotated with {@link Node @Node}.
+	 * @return The labels to identify a node with that is supposed to be mapped to the class annotated with {@link Node @Node}.
 	 */
 	@AliasFor("value")
 	String[] labels() default {};

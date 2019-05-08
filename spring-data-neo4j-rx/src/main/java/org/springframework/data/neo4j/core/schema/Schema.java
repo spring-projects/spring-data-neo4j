@@ -21,13 +21,16 @@ package org.springframework.data.neo4j.core.schema;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.apiguardian.api.API;
+import org.neo4j.driver.Record;
 
 /**
  * Contains the descriptions of all nodes, their properties and relationships known to SDN-RX.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @API(status = API.Status.STABLE, since = "1.0")
 public interface Schema {
@@ -62,4 +65,20 @@ public interface Schema {
 	 * @return The relationships defined by instances of this node.
 	 */
 	Collection<RelationshipDescription> getRelationshipsOf(String primaryLabel);
+
+	/**
+	 * Retrieves a schema based mapping function for the {@code targetClass}. The mapping function will expect a
+	 * record containing all the nodes and relationships necessary to fully populate an instance of the given class.
+	 * It will not try to fetch data from any other records or queries. The mapping function is free to throw a {@link RuntimeException},
+	 * most likely a {@code org.springframework.data.mapping.MappingException} or {@link IllegalStateException} when
+	 * mapping is not possible.
+	 * <p/>
+	 * In case the mapping function returns a {@literal null}, the Neo4j client will throw an exception and prevent further
+	 * processing.
+	 *
+	 * @param targetClass The target class to which to map to.
+	 * @param <T>         Type of the target class
+	 * @return An emtpy optional if the target class is unknown, otherwise an optional containing a stateless, reusable mapping function
+	 */
+	<T> Optional<Function<Record, T>> getMappingFunctionFor(Class<T> targetClass);
 }
