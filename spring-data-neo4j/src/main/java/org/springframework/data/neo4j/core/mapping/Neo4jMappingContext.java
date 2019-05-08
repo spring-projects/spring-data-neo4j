@@ -29,8 +29,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.neo4j.driver.Record;
+import org.springframework.data.convert.EntityInstantiators;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.context.AbstractMappingContext;
@@ -41,7 +44,6 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.Schema;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.util.Assert;
 
 /**
  * An implementation of both a {@link Schema} as well as a Neo4j version of Spring Datas
@@ -52,6 +54,13 @@ import org.springframework.util.Assert;
  */
 public class Neo4jMappingContext
 	extends AbstractMappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> implements Schema {
+
+	/**
+	 * The shared entity instantiators of this context. Those should not be recreated for each entity or even not for
+	 * each query, as otherwise the cache of Spring's org.springframework.data.convert.ClassGeneratingEntityInstantiator
+	 * won't apply
+	 */
+	private final EntityInstantiators instantiators = new EntityInstantiators();
 
 	/**
 	 * A lookup of entities based on their primary label. We depend on the locking mechanism provided by the
@@ -141,10 +150,22 @@ public class Neo4jMappingContext
 	@Override
 	public Collection<RelationshipDescription> getRelationshipsOf(String primaryLabel) {
 
-		return this.relationshipsByPrimaryLabel.computeIfAbsent(primaryLabel, this::thing);
+		return this.relationshipsByPrimaryLabel.computeIfAbsent(primaryLabel, this::computeRelationshipsOf);
 	}
 
-	Collection<RelationshipDescription> thing(String primaryLabel) {
+	@Override
+	public <T> Optional<Function<Record, T>> getMappingFunctionFor(Class<T> targetClass) {
+
+		if (!this.hasPersistentEntityFor(targetClass)) {
+			return Optional.empty();
+		}
+
+		return this.getNodeDescription(targetClass)
+			.map(Neo4jPersistentEntity.class::cast)
+			.map(neo4jPersistentEntity -> new DefaultNeo4jMappingFunction<>(instantiators, neo4jPersistentEntity));
+	}
+
+	private Collection<RelationshipDescription> computeRelationshipsOf(String primaryLabel) {
 
 		NodeDescription<?> nodeDescription = getRequiredNodeDescription(primaryLabel);
 
@@ -168,20 +189,5 @@ public class Neo4jMappingContext
 		});
 
 		return Collections.unmodifiableCollection(relationships);
-	}
-
-	@Override
-	public void initialize() {
-
-		// Initialize with the starter set
-		super.initialize();
-		// And then validate everything
-		this.getPersistentEntities().forEach(this::validate);
-	}
-
-	private void validate(Neo4jPersistentEntity<?> entity) {
-
-		// Make sure there is a valid id
-		Assert.notNull(entity.getIdDescription(), "An entity is required to describe its id property.");
 	}
 }

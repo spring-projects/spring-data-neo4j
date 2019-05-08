@@ -33,6 +33,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.util.Assert;
 
 /**
  * @author Michael J. Simons
@@ -77,6 +78,18 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	@Override
 	public Collection<GraphPropertyDescription> getGraphProperties() {
 		return this.graphProperties.get();
+	}
+
+	@Override
+	public Optional<GraphPropertyDescription> getGraphProperty(String fieldName) {
+		return Optional.ofNullable(this.getPersistentProperty(fieldName));
+	}
+
+	@Override
+	public void verify() {
+
+		super.verify();
+		Assert.notNull(this.getIdDescription(), "An entity is required to describe its id property.");
 	}
 
 	String computePrimaryLabel() {

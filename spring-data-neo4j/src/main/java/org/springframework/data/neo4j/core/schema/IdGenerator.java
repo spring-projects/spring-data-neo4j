@@ -24,13 +24,14 @@ import org.apiguardian.api.API;
  * Interface for generating ids for entities.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @FunctionalInterface
 @API(status = API.Status.STABLE, since = "1.0")
 public interface IdGenerator {
 
 	/**
-	 * Generates a new id for given entity
+	 * Generates a new id for given entity.
 	 *
 	 * @param entity the entity to be saved
 	 * @return id to be assigned to the entity

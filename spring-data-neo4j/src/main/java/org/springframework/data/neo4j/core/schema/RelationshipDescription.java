@@ -26,6 +26,7 @@ import org.apiguardian.api.API;
  * {@link #getTarget}.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public interface RelationshipDescription {

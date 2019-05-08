@@ -19,6 +19,7 @@
 package org.springframework.data.neo4j.core.schema;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import org.apiguardian.api.API;
 
@@ -28,6 +29,7 @@ import org.apiguardian.api.API;
  *
  * @param <T> The type of the underlying class
  * @author Michael J. Simons
+ * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public interface NodeDescription<T> {
@@ -51,4 +53,12 @@ public interface NodeDescription<T> {
 	 * @return A collection of persistent properties that are mapped to graph properties and not to relationships
 	 */
 	Collection<GraphPropertyDescription> getGraphProperties();
+
+	/**
+	 * Retrieves a {@link GraphPropertyDescription} by its field name.
+	 *
+	 * @param fieldName The field name for which the graph property description should be retrieved
+	 * @return An empty optional if there is no property known for the given field.
+	 */
+	Optional<GraphPropertyDescription> getGraphProperty(String fieldName);
 }

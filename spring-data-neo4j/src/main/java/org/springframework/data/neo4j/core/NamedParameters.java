@@ -27,6 +27,7 @@ import org.apiguardian.api.API;
 /**
  * @author Michael J. Simons
  * @soundtrack Bananafishbones - Viva Conputa
+ * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 final class NamedParameters {

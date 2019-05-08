@@ -247,6 +247,34 @@ class Neo4jClientTest {
 		}
 
 		@Test
+		void shouldApplyNullChecksDuringReading() {
+
+			when(session.run(anyString(), anyMap())).thenReturn(statementResult);
+			when(statementResult.stream()).thenReturn(Stream.of(record1, record2));
+			when(record1.get("name")).thenReturn(Values.value("michael"));
+
+			Neo4jClient client = Neo4jClient.create(driver);
+
+			assertThatIllegalStateException().isThrownBy(() -> client
+				.newQuery("MATCH (n) RETURN n")
+				.fetchAs(BikeOwner.class).mappedBy(r -> {
+					if (r == record1) {
+						return new BikeOwner(r.get("name").asString(), Collections.emptyList());
+					} else {
+						return null;
+					}
+				})
+				.all());
+
+			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+
+			verify(session).run(eq("MATCH (n) RETURN n"), argThat(new MapAssertionMatcher(Collections.emptyMap())));
+			verify(statementResult).stream();
+			verify(record1).get("name");
+			verify(session).close();
+		}
+
+		@Test
 		void writing() {
 
 			when(session.run(anyString(), anyMap())).thenReturn(statementResult);

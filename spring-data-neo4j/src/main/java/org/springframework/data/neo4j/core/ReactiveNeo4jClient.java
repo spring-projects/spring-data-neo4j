@@ -38,8 +38,8 @@ import org.springframework.data.neo4j.core.Neo4jClient.RecordFetchSpec;
  * operations will only be executed once something subscribes to the reactive sequence defined.
  *
  * @author Michael J. Simons
- * @since 1.0
  * @soundtrack Die Toten Hosen - Im Auftrag des Herrn
+ * @since 1.0
  */
 @API(status = API.Status.STABLE, since = "1.0")
 public interface ReactiveNeo4jClient {

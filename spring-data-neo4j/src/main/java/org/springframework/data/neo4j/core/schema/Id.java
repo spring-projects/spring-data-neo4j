@@ -31,6 +31,7 @@ import org.apiguardian.api.API;
  * Annotation to configure assigment of ids.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
@@ -40,6 +41,9 @@ import org.apiguardian.api.API;
 @API(status = API.Status.STABLE, since = "1.0")
 public @interface Id {
 
+	/**
+	 * Enumerating available strategies for providing ids for new entities.
+	 */
 	enum Strategy {
 
 		/**
@@ -53,13 +57,22 @@ public @interface Id {
 		ASSIGNED,
 
 		/**
-		 * Use generated values, generator class is required.
+		 * Use generated values, a generator class is required.
 		 */
 		GENERATED
 	}
 
+	/**
+	 * Configure the strategy for generating ids. Some strategies require a {@link #generator()}.
+	 *
+	 * @return The strategy applied for generating ids for new entities. Defaults to use Neo4j internal database identifiers.
+	 */
 	Strategy strategy() default Strategy.INTERNAL;
 
+	/**
+	 *
+	 * @return The generator that fits the selected {@link #strategy()}. Defaults to a Noop generator.
+	 */
 	Class<? extends IdGenerator> generator() default NoopIdGenerator.class;
 
 	// Needed to make the generator attribute defaultable (null is not a constant)

@@ -26,6 +26,7 @@ import lombok.ToString;
 
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Property;
 
 @Getter
 @Setter
@@ -40,9 +41,8 @@ public class PersonWithAllConstructor {
 
 	private final String name;
 
-	private final String sameValue;
+	@Property("first_name")
+	private final String firstName;
 
-	static PersonWithAllConstructor of(String sameValue) {
-		return new PersonWithAllConstructor(null, null, sameValue);
-	}
+	private final String sameValue;
 }

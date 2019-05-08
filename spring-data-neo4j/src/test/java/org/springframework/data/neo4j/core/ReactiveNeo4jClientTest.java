@@ -29,6 +29,7 @@ import reactor.test.StepVerifier;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -100,8 +101,6 @@ class ReactiveNeo4jClientTest {
 		when(driver.rxSession(any(Consumer.class))).thenReturn(session);
 		when(session.beginTransaction()).thenReturn(Mono.just(transaction));
 
-		when(transaction.commit()).thenReturn(Mono.empty());
-
 		when(session.close()).thenReturn(Mono.empty());
 	}
 
@@ -116,6 +115,7 @@ class ReactiveNeo4jClientTest {
 	void queryCreationShouldFeelGood() {
 
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+		when(transaction.commit()).thenReturn(Mono.empty());
 		when(statementResult.records()).thenReturn(Flux.just(record1, record2));
 
 		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
@@ -161,6 +161,7 @@ class ReactiveNeo4jClientTest {
 	void databaseSelectionShouldBePossibleOnlyOnce() {
 
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+		when(transaction.commit()).thenReturn(Mono.empty());
 		when(statementResult.records()).thenReturn(Flux.just(record1, record2));
 
 		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
@@ -196,6 +197,8 @@ class ReactiveNeo4jClientTest {
 		@Test
 		void withDefaultDatabase() {
 
+			when(transaction.commit()).thenReturn(Mono.empty());
+
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 			Mono<Integer> result = client
 				.delegateTo(runner -> Mono.just(21))
@@ -213,6 +216,8 @@ class ReactiveNeo4jClientTest {
 
 		@Test
 		void withDatabase() {
+
+			when(transaction.commit()).thenReturn(Mono.empty());
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 			Mono<Integer> result = client
@@ -239,6 +244,7 @@ class ReactiveNeo4jClientTest {
 		void reading() {
 
 			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+			when(transaction.commit()).thenReturn(Mono.empty());
 			when(statementResult.records()).thenReturn(Flux.just(record1));
 			when(record1.get("name")).thenReturn(Values.value("michael"));
 
@@ -271,9 +277,43 @@ class ReactiveNeo4jClientTest {
 		}
 
 		@Test
+		void shouldApplyNullChecksDuringReading() {
+
+			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+			when(transaction.rollback()).thenReturn(Mono.empty());
+			when(statementResult.records()).thenReturn(Flux.just(record1, record2));
+			when(record1.get("name")).thenReturn(Values.value("michael"));
+
+			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
+			Flux<BikeOwner> bikeOwners = client
+				.newQuery("MATCH (n) RETURN n")
+				.fetchAs(BikeOwner.class).mappedBy(r -> {
+					if (r == record1) {
+						return new BikeOwner(r.get("name").asString(), Collections.emptyList());
+					} else {
+						return null;
+					}
+				})
+				.all();
+
+			StepVerifier.create(bikeOwners)
+				.expectNextCount(1)
+				.verifyError();
+
+			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+
+			verify(transaction).run(eq("MATCH (n) RETURN n"), argThat(new MapAssertionMatcher(Collections.emptyMap())));
+			verify(statementResult).records();
+			verify(record1).get("name");
+			verify(transaction).rollback();
+			verify(session).close();
+		}
+
+		@Test
 		void writing() {
 
 			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+			when(transaction.commit()).thenReturn(Mono.empty());
 			when(statementResult.summary()).thenReturn(Mono.just(resultSummary));
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
@@ -309,6 +349,7 @@ class ReactiveNeo4jClientTest {
 		void automaticConversion() {
 
 			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+			when(transaction.commit()).thenReturn(Mono.empty());
 			when(statementResult.records()).thenReturn(Flux.just(record1));
 			when(record1.size()).thenReturn(1);
 			when(record1.get(0)).thenReturn(Values.value(23L));
@@ -338,6 +379,7 @@ class ReactiveNeo4jClientTest {
 	void queriesWithoutResultShouldFitInAsWell() {
 
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+		when(transaction.commit()).thenReturn(Mono.empty());
 		when(statementResult.summary()).thenReturn(Mono.just(resultSummary));
 
 		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);

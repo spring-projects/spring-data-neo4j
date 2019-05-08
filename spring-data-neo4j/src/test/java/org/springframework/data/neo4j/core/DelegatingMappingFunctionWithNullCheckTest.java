@@ -16,29 +16,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.mapping;
+package org.springframework.data.neo4j.core;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.neo4j.core.schema.Node;
+import org.neo4j.driver.Record;
 
 /**
  * @author Michael J. Simons
  */
-public class DefaultNeo4JPersistentEntityTest {
-
-	private Neo4jMappingContext mappingContext = new Neo4jMappingContext();
+class DelegatingMappingFunctionWithNullCheckTest {
 
 	@Test
-	void shouldDiscoverAnnotatedPrimaryLabel() {
-
-		Neo4jPersistentEntity<?> entity = mappingContext.getPersistentEntity(DummySubEntity.class);
-
-		assertThat(entity).isNotNull();
+	void shouldBeHappyWithNonNullValues() {
+		DelegatingMappingFunctionWithNullCheck<String> function = new DelegatingMappingFunctionWithNullCheck(
+			record -> "Tada.");
+		assertThat(function.apply(mock(Record.class))).isEqualTo("Tada.");
 	}
 
-	@Node("DummySubNode")
-	static class DummySubEntity {
+	@Test
+	void shouldThrowExceptions() {
+		DelegatingMappingFunctionWithNullCheck<String> function = new DelegatingMappingFunctionWithNullCheck(
+			record -> null);
+		assertThatIllegalStateException().isThrownBy(() -> function.apply(mock(Record.class)))
+			.withMessageMatching("Mapping function .* returned illegal null value for record .*");
 	}
 }

@@ -48,8 +48,8 @@ import org.springframework.data.neo4j.core.Neo4jClient.RecordFetchSpec;
  * TODO Reactive transaction management is pretty obvious still open
  *
  * @author Michael J. Simons
- * @since 1.0
  * @soundtrack Die Toten Hosen - Im Auftrag des Herrn
+ * @since 1.0
  */
 @Slf4j
 class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
@@ -202,7 +202,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		@Override
 		public RecordFetchSpec<Mono<T>, Flux<T>, T> mappedBy(Function<Record, T> mappingFunction) {
 
-			this.mappingFunction = mappingFunction;
+			this.mappingFunction = new DelegatingMappingFunctionWithNullCheck<>(mappingFunction);
 			return this;
 		}
 
