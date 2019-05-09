@@ -18,6 +18,7 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
 import org.springframework.util.Assert;
 
 /**
@@ -28,7 +29,8 @@ import org.springframework.util.Assert;
  * @author Gerrit Meier
  * @since 1.0
  */
-public class Conditions {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class Conditions {
 
 	/**
 	 * Creates a condition that matches if the right hand side is a regular expression that matches the the left hand side via

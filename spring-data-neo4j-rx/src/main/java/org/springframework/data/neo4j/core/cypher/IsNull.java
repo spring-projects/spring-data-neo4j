@@ -18,6 +18,7 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 import org.springframework.util.Assert;
 
@@ -29,7 +30,8 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-public class IsNull implements Condition {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class IsNull implements Condition {
 
 	/**
 	 * Creates a new {@link IsNull IsNull-condition}.

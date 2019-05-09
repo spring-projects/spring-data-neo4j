@@ -18,6 +18,7 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 import org.springframework.util.Assert;
 
@@ -28,7 +29,8 @@ import org.springframework.util.Assert;
  * @author Gerrit Meier
  * @since 1.0
  */
-public class Comparison implements Condition {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class Comparison implements Condition {
 
 	static Comparison create(Expression lhs, String comparator, Expression rhs) {
 

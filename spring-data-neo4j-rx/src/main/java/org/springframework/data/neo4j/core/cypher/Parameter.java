@@ -19,40 +19,23 @@
 package org.springframework.data.neo4j.core.cypher;
 
 import org.apiguardian.api.API;
-import org.springframework.lang.Nullable;
 
 /**
- * Represents a literal with an optional content.
+ * Represents a named parameter inside a Cypher statement.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public abstract class Literal<T> implements Expression {
+public final class Parameter implements Expression {
 
-	/**
-	 * The content of this literal.
-	 */
-	private @Nullable T content;
+	private final String name;
 
-	Literal(@Nullable T content) {
-		this.content = content;
+	Parameter(String name) {
+		this.name = name;
 	}
 
-	/**
-	 * @return The content of this literal, may be {@literal null}
-	 */
-	public @Nullable T getContent() {
-		return content;
+	public String getName() {
+		return name;
 	}
-
-	/**
-	 * The string representation should be designed in such a way the a renderer can use it correctly in
-	 * the given context of the literal, i.e. a literal containing a string should quote that string
-	 * and escape all reservered characters.
-	 *
-	 * @return A string representation to be used literally in a cypher statement.
-	 */
-	public abstract String asString();
 }
-

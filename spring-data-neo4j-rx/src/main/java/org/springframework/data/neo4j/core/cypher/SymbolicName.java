@@ -18,6 +18,8 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
+
 /**
  * A symbolic name to identify nodes and relationships.
  * <p/>
@@ -27,7 +29,8 @@ package org.springframework.data.neo4j.core.cypher;
  * @author Michael J. Simons
  * @since 1.0
  */
-public class SymbolicName implements Expression {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class SymbolicName implements Expression {
 
 	private final String name;
 

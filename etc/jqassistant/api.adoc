@@ -42,10 +42,11 @@ See ADR-003.
 
 [[api:internal]]
 [source,cypher,role="constraint",requiresConcepts="api:api-guardian-api-concept"]
-.Public classes that are only part of internal API must be final
+.Non abstract, public classes that are only part of internal API must be final
 ----
 MATCH (c:Class) - [:IS_PART_OF] -> (:Api {type: 'Internal'})
 WHERE c.visibility = 'public'
+  AND coalesce(c.abstract, false) = false
   AND NOT exists(c.final)
 RETURN c.name
 ----

@@ -18,6 +18,7 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
 
 /**
@@ -30,7 +31,9 @@ import org.springframework.data.neo4j.core.cypher.support.Visitable;
  * @author Michael J. Simons
  * @since 1.0
  */
+@API(status = API.Status.INTERNAL, since = "1.0")
 public interface Statement extends Visitable {
+
 	static StatementBuilder builder() {
 
 		return new DefaultStatementBuilder();

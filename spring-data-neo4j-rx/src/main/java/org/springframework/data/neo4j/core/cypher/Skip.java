@@ -18,13 +18,17 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
+ * @since 1.0
  */
-public class Skip implements Visitable {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class Skip implements Visitable {
 
 	public static Skip of(Number value) {
 		return new Skip(new NumberLiteral(value));

@@ -18,12 +18,15 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
+
 /**
  * Utility methods for dealing with expressions.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
+@API(status = API.Status.INTERNAL, since = "1.0")
 public final class Expressions {
 
 	/**

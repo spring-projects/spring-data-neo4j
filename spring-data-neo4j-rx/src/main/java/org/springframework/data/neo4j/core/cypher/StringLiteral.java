@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apiguardian.api.API;
 import org.springframework.lang.Nullable;
 
 /**
@@ -34,7 +35,8 @@ import org.springframework.lang.Nullable;
  * @author Michael J. Simons
  * @since 1.0
  */
-public class StringLiteral extends Literal<CharSequence> {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class StringLiteral extends Literal<CharSequence> {
 
 	private static final Pattern RESERVED_CHARS = Pattern.compile("([" + quote("\\'\"") + "])");
 	private static final String QUOTED_LITERAL_FORMAT = "'%s'";

@@ -18,11 +18,14 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
+
 /**
  * @author Michael J. Simons
  * @author Gerrit Meier
  * @since 1.0
  */
+@API(status = API.Status.INTERNAL, since = "1.0")
 public interface StatementBuilder {
 
 	/**

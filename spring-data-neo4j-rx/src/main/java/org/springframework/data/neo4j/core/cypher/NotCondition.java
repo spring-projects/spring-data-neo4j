@@ -18,6 +18,7 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
@@ -26,7 +27,8 @@ import org.springframework.data.neo4j.core.cypher.support.Visitor;
  * @author Michael J. Simons
  * @since 1.0
  */
-public class NotCondition implements Condition {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class NotCondition implements Condition {
 
 	/**
 	 * The condition to which the visit is delegated to after entering this condition.

@@ -18,11 +18,14 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
+
 /**
  * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/Cypher.html#RegularQuery">RegularQuery</a>.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
+@API(status = API.Status.INTERNAL, since = "1.0")
 public interface RegularQuery {
 }
