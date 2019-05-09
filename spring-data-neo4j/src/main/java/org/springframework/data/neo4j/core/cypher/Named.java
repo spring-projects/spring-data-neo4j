@@ -20,12 +20,15 @@ package org.springframework.data.neo4j.core.cypher;
 
 import java.util.Optional;
 
+import org.apiguardian.api.API;
+
 /**
  * A named thing exposes an optional {@link #getSymbolicName() symbolic name}.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
+@API(status = API.Status.INTERNAL, since = "1.0")
 public interface Named {
 
 	Optional<SymbolicName> getSymbolicName();

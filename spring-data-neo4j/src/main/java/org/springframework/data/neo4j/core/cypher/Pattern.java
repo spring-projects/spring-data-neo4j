@@ -20,6 +20,7 @@ package org.springframework.data.neo4j.core.cypher;
 
 import java.util.List;
 
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.TypedSubtree;
 
 /**
@@ -31,7 +32,8 @@ import org.springframework.data.neo4j.core.cypher.support.TypedSubtree;
  * @author Michael J. Simons
  * @since 1.0
  */
-public class Pattern extends TypedSubtree<PatternElement> {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class Pattern extends TypedSubtree<PatternElement> {
 
 	Pattern(List<PatternElement> patternElements) {
 		super(patternElements);

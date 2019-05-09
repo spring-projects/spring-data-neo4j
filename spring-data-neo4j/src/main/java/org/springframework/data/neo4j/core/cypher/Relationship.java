@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.core.cypher;
 import java.util.Arrays;
 import java.util.Optional;
 
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -31,7 +32,10 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-public class Relationship implements PatternElement, Named, Expression {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class Relationship implements
+	PatternElement, Named, Expression,
+	ExposesRelationships<RelationshipChain> {
 
 	/**
 	 * While the direction in the schema package is centered around the node, the direction here is the direction between two nodes.
@@ -69,14 +73,14 @@ public class Relationship implements PatternElement, Named, Expression {
 	}
 
 	static Relationship create(Node left,
-		@Nullable Direction direction, Node right, @Nullable String symbolicName, String... types) {
+		@Nullable Direction direction, Node right, String... types) {
 
 		Assert.notNull(left, "Left node is required.");
 		Assert.notNull(right, "Right node is required.");
 
 		RelationshipDetail details = new RelationshipDetail(
 			Optional.ofNullable(direction).orElse(Direction.UNI),
-			Optional.ofNullable(symbolicName).map(SymbolicName::new).orElse(null), Arrays.asList(types));
+			null, Arrays.asList(types));
 		return new Relationship(left, details, right);
 	}
 
@@ -104,8 +108,41 @@ public class Relationship implements PatternElement, Named, Expression {
 		return details;
 	}
 
+	/**
+	 * Creates a copy of this relationship with a new symbolic name.
+	 *
+	 * @param newSymbolicName the new symbolic name.
+	 * @return The new relationship.
+	 */
+	public Relationship named(String newSymbolicName) {
+
+		// Sanity check of newSymbolicName delegated to the details.
+		return new Relationship(this.left, this.details.named(newSymbolicName), this.right);
+	}
+
 	public Optional<SymbolicName> getSymbolicName() {
 		return details.getSymbolicName();
+	}
+
+	@Override
+	public RelationshipChain relationshipTo(Node other, String... types) {
+		return RelationshipChain
+			.create(this)
+			.add(this.right.relationshipTo(other, types));
+	}
+
+	@Override
+	public RelationshipChain relationshipFrom(Node other, String... types) {
+		return RelationshipChain
+			.create(this)
+			.add(this.right.relationshipFrom(other, types));
+	}
+
+	@Override
+	public RelationshipChain relationshipBetween(Node other, String... types) {
+		return RelationshipChain
+			.create(this)
+			.add(this.right.relationshipBetween(other, types));
 	}
 
 	@Override

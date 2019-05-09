@@ -22,6 +22,7 @@ import static org.springframework.data.neo4j.core.cypher.Expressions.*;
 
 import java.util.Optional;
 
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 import org.springframework.lang.Nullable;
@@ -31,7 +32,8 @@ import org.springframework.lang.Nullable;
  * @author Michael J. Simons
  * @since 1.0
  */
-public class SortItem implements Visitable {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class SortItem implements Visitable {
 
 	private final Expression expression;
 	private final Direction direction;

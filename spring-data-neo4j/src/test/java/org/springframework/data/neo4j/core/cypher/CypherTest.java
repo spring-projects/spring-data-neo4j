@@ -69,7 +69,7 @@ public class CypherTest {
 			@Test
 			void simpleRelationship() {
 				Statement statement = Cypher
-					.match(userNode.relationshipTo(bikeNode).withType("OWNS").create())
+					.match(userNode.relationshipTo(bikeNode, "OWNS"))
 					.returning(bikeNode, userNode)
 					.build();
 
@@ -80,7 +80,7 @@ public class CypherTest {
 			@Test
 			void simpleRelationshipWithReturn() {
 				Relationship owns = userNode
-					.relationshipTo(bikeNode).withType("OWNS").named("o").create();
+					.relationshipTo(bikeNode, "OWNS").named("o");
 
 				Statement statement = Cypher
 					.match(owns)
@@ -93,12 +93,11 @@ public class CypherTest {
 
 			@Test
 			void chainedRelations() {
-				Node tripNode = Cypher.node("Trip").named("u");
+				Node tripNode = Cypher.node("Trip").named("t");
 				Statement statement = Cypher
 					.match(userNode
-						.relationshipTo(bikeNode).withType("OWNS").named("r1")
-						.outgoingRelationShipTo(tripNode).withType("USED_ON").named("r2")
-						.create()
+						.relationshipTo(bikeNode, "OWNS").named("r1")
+						.relationshipTo(tripNode, "USED_ON").named("r2")
 					)
 					.where(userNode.property("name").matches(".*aName"))
 					.returning(bikeNode, userNode)
@@ -106,7 +105,36 @@ public class CypherTest {
 
 				assertThat(cypherRenderer.render(statement))
 					.isEqualTo(
-						"MATCH (u:`User`)-[r1:`OWNS`]->(b:`Bike`)-[r2:`USED_ON`]->(u:`Trip`) WHERE u.name =~ '.*aName' RETURN b, u");
+						"MATCH (u:`User`)-[r1:`OWNS`]->(b:`Bike`)-[r2:`USED_ON`]->(t:`Trip`) WHERE u.name =~ '.*aName' RETURN b, u");
+
+				statement = Cypher
+					.match(userNode
+						.relationshipTo(bikeNode, "OWNS")
+						.relationshipTo(tripNode, "USED_ON").named("r2")
+					)
+					.where(userNode.property("name").matches(".*aName"))
+					.returning(bikeNode, userNode)
+					.build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo(
+						"MATCH (u:`User`)-[:`OWNS`]->(b:`Bike`)-[r2:`USED_ON`]->(t:`Trip`) WHERE u.name =~ '.*aName' RETURN b, u");
+
+
+				statement = Cypher
+					.match(userNode
+						.relationshipTo(bikeNode, "OWNS")
+						.relationshipTo(tripNode, "USED_ON").named("r2")
+						.relationshipFrom(userNode, "WAS_ON").named("x")
+						.relationshipBetween(Cypher.node("SOMETHING")).named("y")
+					)
+					.where(userNode.property("name").matches(".*aName"))
+					.returning(bikeNode, userNode)
+					.build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo(
+						"MATCH (u:`User`)-[:`OWNS`]->(b:`Bike`)-[r2:`USED_ON`]->(t:`Trip`)<-[x:`WAS_ON`]-(u)-[y]-(:`SOMETHING`) WHERE u.name =~ '.*aName' RETURN b, u");
 			}
 
 			@Test
@@ -748,8 +776,8 @@ public class CypherTest {
 
 		@Test
 		void shouldRenderNodeDelete() {
-			Node n = anyNode().named("n");
-			Relationship r = n.relationshipBetween(anyNode()).named("r0").create();
+			Node n = anyNode("n");
+			Relationship r = n.relationshipBetween(anyNode()).named("r0");
 			Statement statement = Cypher
 				.match(n).where(n.internalId().isEqualTo(literalOf(4711)))
 				.optional().match(r)
@@ -759,6 +787,23 @@ public class CypherTest {
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo(
 					"MATCH (n) WHERE id(n) = 4711 OPTIONAL MATCH (n)-[r0]-() DELETE r0, n");
+		}
+	}
+
+	@Nested
+	class Expressions {
+		@Test
+		void shouldRenderParameters() {
+			Statement statement;
+			statement = Cypher.match(userNode)
+				.where(userNode.property("a").isEqualTo(parameter("aParameter")))
+				.detach().delete(userNode)
+				.returning(userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (u:`User`) WHERE u.a = $aParameter DETACH DELETE u RETURN u");
 		}
 	}
 }

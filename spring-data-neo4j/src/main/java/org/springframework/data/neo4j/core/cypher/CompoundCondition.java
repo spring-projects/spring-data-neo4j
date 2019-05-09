@@ -23,6 +23,7 @@ import static org.springframework.data.neo4j.core.cypher.CompoundCondition.Logic
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 import org.springframework.lang.Nullable;
@@ -33,8 +34,10 @@ import org.springframework.util.Assert;
  * <a href="https://en.wikipedia.org/wiki/Logical_connective">Logical connective (operator)</a>.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
-public class CompoundCondition implements Condition {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class CompoundCondition implements Condition {
 
 	/**
 	 * The empty, compound condition.

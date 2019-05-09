@@ -18,15 +18,16 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
-import lombok.RequiredArgsConstructor;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.Relationship.Direction;
+import org.springframework.data.neo4j.core.cypher.support.Visitable;
+import org.springframework.data.neo4j.core.cypher.support.Visitor;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -36,7 +37,8 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-public class Node implements PatternElement, Named, Expression {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class Node implements PatternElement, Named, Expression, ExposesRelationships<Relationship> {
 
 	static Node create(String primaryLabel, String... additionalLabels) {
 
@@ -79,7 +81,7 @@ public class Node implements PatternElement, Named, Expression {
 	}
 
 	/**
-	 * Creates a copy of that node with a new symbolic name.
+	 * Creates a copy of this node with a new symbolic name.
 	 *
 	 * @param newSymbolicName the new symbolic name.
 	 * @return The new node.
@@ -120,171 +122,26 @@ public class Node implements PatternElement, Named, Expression {
 		return Functions.id(this);
 	}
 
-	/**
-	 * Starts building an outgoing relationship to the {@code other} {@link Node node}.
-	 *
-	 * @param other The other end of the outgoing relationship
-	 * @return An ongoing relationship definition, that can be used to specify the type
-	 */
-	public OngoingRelationshipDefinition<Relationship> relationshipTo(Node other) {
-		return new DefaultOngoingRelationshipDefinition(this, Direction.LTR, other);
+	@Override
+	public Relationship relationshipTo(Node other, String... types) {
+		return Relationship.create(this, Direction.LTR, other, types);
 	}
 
-	/**
-	 * Starts building an incoming relationship starting at the {@code other} {@link Node node}.
-	 *
-	 * @param other The source of the incoming relationship
-	 * @return An ongoing relationship definition, that can be used to specify the type
-	 */
-	public OngoingRelationshipDefinition<Relationship> relationshipFrom(Node other) {
-		return new DefaultOngoingRelationshipDefinition(this, Direction.RTR, other);
+	@Override
+	public Relationship relationshipFrom(Node other, String... types) {
+		return Relationship.create(this, Direction.RTR, other, types);
 	}
 
-	/**
-	 * Starts building an undirected relationship between this {@link Node node} and the {@code other}.
-	 *
-	 * @param other The other end of the relationship
-	 * @return An ongoing relationship definition, that can be used to specify the type
-	 */
-	public OngoingRelationshipDefinition<Relationship> relationshipBetween(Node other) {
-		return new DefaultOngoingRelationshipDefinition(this, Direction.UNI, other);
+	@Override
+	public Relationship relationshipBetween(Node other, String... types) {
+		return Relationship.create(this, Direction.UNI, other, types);
 	}
 
-	/**
-	 * Exposes {@code withType) and terminal operations for creating a relationship.
-	 *
-	 * @param <P> The final thing to be defined
-	 */
-	public interface OngoingRelationshipDefinition<P>
-		extends OngoingRelationshipDefinitionWithType<P>, OngoingRelationshipDefinitionWithSymbolicName<P> {
+	@Override
+	public void accept(Visitor visitor) {
 
-		/**
-		 * Specifies the type of the relationship.
-		 *
-		 * @param types Zero or more types for this relationship
-		 * @return The ongoing relationship definition
-		 */
-		OngoingRelationshipDefinitionWithType<P> withType(String... types);
-	}
-
-	/**
-	 * Exposes {@code withType} to specify types for the relationship or the the last element of a chain of relationships,
-	 * {@code as} to specify a symbolic name for the last element in the chain as well as terminal operations
-	 * to create the chain or continue it with the next hop.
-	 *
-	 * @param <P> The final thing to be defined
-	 */
-	public interface OngoingRelationshipDefinitionWithType<P> extends OngoingRelationshipDefinitionWithSymbolicName<P> {
-
-		/**
-		 * Gives the relationship a new, symbolic name.
-		 *
-		 * @param symbolicName The symbolic name to use.
-		 * @return The ongoing relationship definition
-		 */
-		OngoingRelationshipDefinitionWithSymbolicName<P> named(String symbolicName);
-	}
-
-	/**
-	 * @param <P> The final thing to be defined
-	 */
-	public interface OngoingRelationshipDefinitionWithSymbolicName<P> {
-
-		/**
-		 * Creates the chain of relationships.
-		 *
-		 * @return A chain of relationship with at least one element.
-		 */
-		P create();
-
-		/**
-		 * Adds a new link to this chain of relationships.
-		 *
-		 * @param tripNode The end node of the next link
-		 * @return The ongoing relationship definition
-		 */
-		OngoingRelationshipDefinition<Relationships> outgoingRelationShipTo(Node tripNode);
-	}
-
-	@RequiredArgsConstructor
-	private static class DefaultOngoingRelationshipDefinition
-		implements OngoingRelationshipDefinition<Relationship> {
-
-		private final Node left;
-
-		private final Direction direction;
-
-		private final Node right;
-
-		private String[] types = new String[0];
-
-		private String symbolicName;
-
-		@Override
-		public OngoingRelationshipDefinitionWithType withType(@SuppressWarnings("HiddenField") String... types) {
-			this.types = types;
-			return this;
-		}
-
-		@Override
-		public Relationship create() {
-			return Relationship.create(left, direction, right, symbolicName, types);
-		}
-
-		@Override
-		public OngoingRelationshipDefinitionWithSymbolicName named(@SuppressWarnings("HiddenField") String symbolicName) {
-			this.symbolicName = symbolicName;
-			return this;
-		}
-
-		@Override
-		public OngoingRelationshipDefinition<Relationships> outgoingRelationShipTo(Node next) {
-			return new DefaultOngoingRelationshipsDefinition(this.create(),
-				new DefaultOngoingRelationshipDefinition(right, Direction.LTR, next));
-		}
-	}
-
-	private static class DefaultOngoingRelationshipsDefinition
-		implements OngoingRelationshipDefinition<Relationships> {
-
-		private final List<Relationship> chain;
-
-		private OngoingRelationshipDefinition<Relationship> nextElement;
-
-		DefaultOngoingRelationshipsDefinition(
-			Relationship firstElement,
-			OngoingRelationshipDefinition nextElement) {
-			this.chain = new ArrayList<>();
-			this.chain.add(firstElement);
-			this.nextElement = nextElement;
-		}
-
-		@Override
-		public OngoingRelationshipDefinitionWithType<Relationships> withType(String... types) {
-			this.nextElement.withType(types);
-			return this;
-		}
-
-		@Override
-		public OngoingRelationshipDefinitionWithSymbolicName<Relationships> named(String symbolicName) {
-			this.nextElement.named(symbolicName);
-			return this;
-		}
-
-		@Override
-		public Relationships create() {
-			this.chain.add(this.nextElement.create());
-			return new Relationships(this.chain);
-		}
-
-		@Override
-		public OngoingRelationshipDefinition<Relationships> outgoingRelationShipTo(Node next) {
-			Relationship lastRelationship = this.nextElement.create();
-			this.chain.add(lastRelationship);
-			this.nextElement =
-				new DefaultOngoingRelationshipDefinition(lastRelationship.getRight(), Direction.LTR, next);
-
-			return this;
-		}
+		visitor.enter(this);
+		Visitable.visitIfNotNull(this.symbolicName, visitor);
+		visitor.leave(this);
 	}
 }

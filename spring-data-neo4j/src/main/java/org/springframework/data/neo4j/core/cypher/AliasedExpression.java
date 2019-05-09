@@ -20,6 +20,7 @@ package org.springframework.data.neo4j.core.cypher;
 
 import static org.springframework.data.neo4j.core.cypher.Expressions.*;
 
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 import org.springframework.util.Assert;
 
@@ -29,7 +30,8 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-public class AliasedExpression implements Aliased, Expression {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class AliasedExpression implements Aliased, Expression {
 
 	private final Expression delegate;
 

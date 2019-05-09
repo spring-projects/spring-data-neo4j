@@ -18,6 +18,7 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
@@ -27,7 +28,8 @@ import org.springframework.data.neo4j.core.cypher.support.Visitor;
  * @author Michael J. Simons
  * @since 1.0
  */
-public class Where implements Visitable {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class Where implements Visitable {
 
 	private final Condition condition;
 

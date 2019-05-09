@@ -21,12 +21,15 @@ package org.springframework.data.neo4j.core.cypher;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import org.apiguardian.api.API;
+
 /**
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @since 1.0
  */
-public class ListLiteral extends Literal<Iterable> {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class ListLiteral extends Literal<Iterable> {
 
 	ListLiteral(Iterable content) {
 		super(content);

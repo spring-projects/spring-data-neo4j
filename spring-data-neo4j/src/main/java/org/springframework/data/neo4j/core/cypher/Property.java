@@ -18,6 +18,7 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
 import org.springframework.util.Assert;
 
 /**
@@ -26,7 +27,8 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-public class Property implements Expression {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class Property implements Expression {
 
 	static Property create(Node parentContainer, String name) {
 

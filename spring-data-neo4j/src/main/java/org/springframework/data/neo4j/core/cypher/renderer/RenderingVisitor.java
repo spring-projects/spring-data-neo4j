@@ -70,6 +70,11 @@ class RenderingVisitor extends ReflectiveVisitor {
 	private final Set<Integer> separatorOnLevel = new HashSet<>();
 
 	/**
+	 * Keeps track of named objects that have been already visited.
+	 */
+	private final Set<Named> visitedNamed = new HashSet<>();
+
+	/**
 	 * The current level in the tree of cypher elements.
 	 */
 	private int currentLevel = 0;
@@ -231,14 +236,24 @@ class RenderingVisitor extends ReflectiveVisitor {
 	}
 
 	void enter(Node node) {
-		builder.append("(")
-			.append(node.getSymbolicName().map(SymbolicName::getName).orElse(""))
-			.append(node.isLabeled() ? LABEL_SEPARATOR : "")
-			.append(node.getLabels().stream().map(RenderingVisitor::escapeName)
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.collect(joining(LABEL_SEPARATOR)))
-			.append(")");
+		builder.append("(");
+
+	}
+
+	void leave(Node node) {
+
+		// This is only relevant for nodes in relationships.
+		if (!(node.getSymbolicName().isPresent() && visitedNamed.contains(node))) {
+			builder
+				.append(node.isLabeled() ? LABEL_SEPARATOR : "")
+				.append(node.getLabels().stream().map(RenderingVisitor::escapeName)
+					.filter(Optional::isPresent)
+					.map(Optional::get)
+					.collect(joining(LABEL_SEPARATOR)));
+			visitedNamed.add(node);
+		}
+
+		builder.append(")");
 	}
 
 	void enter(SymbolicName symbolicName) {
@@ -250,8 +265,13 @@ class RenderingVisitor extends ReflectiveVisitor {
 		Relationship.Direction direction = details.getDirection();
 		builder.append(direction.getSymbolLeft());
 		builder
-			.append("[")
-			.append(details.getSymbolicName().map(SymbolicName::getName).orElse(""))
+			.append("[");
+	}
+
+	void leave(RelationshipDetail details) {
+
+		Relationship.Direction direction = details.getDirection();
+		builder
 			.append(details.isTyped() ? TYPE_SEPARATOR : "")
 			.append(details.getTypes().stream().map(RenderingVisitor::escapeName)
 				.filter(Optional::isPresent)
@@ -259,6 +279,11 @@ class RenderingVisitor extends ReflectiveVisitor {
 				.collect(joining(TYPE_SEPARATOR)))
 			.append("]");
 		builder.append(direction.getSymbolRight());
+	}
+
+	void enter(Parameter parameter) {
+
+		builder.append("$").append(parameter.getName());
 	}
 
 	public String getRenderedContent() {

@@ -56,6 +56,22 @@ public final class Cypher {
 	}
 
 	/**
+	 * @return A node matching any node with the symbolic the given {@code symbolicName}.
+	 */
+	public static Node anyNode(String symbolicName) {
+		return Node.create().named(symbolicName);
+	}
+
+	/**
+	 * Creates a new parameter placeholder.
+	 * @param name
+	 * @return
+	 */
+	public static Parameter parameter(String name) {
+		return new Parameter(name);
+	}
+
+	/**
 	 * Prepares an optional match statement.
 	 *
 	 * @return An optional match without any patterns yet.

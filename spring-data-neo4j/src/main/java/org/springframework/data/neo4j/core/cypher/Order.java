@@ -20,6 +20,7 @@ package org.springframework.data.neo4j.core.cypher;
 
 import java.util.List;
 
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.TypedSubtree;
 
 /**
@@ -29,7 +30,8 @@ import org.springframework.data.neo4j.core.cypher.support.TypedSubtree;
  * @author Michael J. Simons
  * @since 1.0
  */
-public class Order extends TypedSubtree<SortItem> {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class Order extends TypedSubtree<SortItem> {
 
 	Order(List<SortItem> sortItems) {
 		super(sortItems);

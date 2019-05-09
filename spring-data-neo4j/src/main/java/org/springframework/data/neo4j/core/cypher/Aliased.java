@@ -18,6 +18,8 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
+
 /**
  * An element with an alias. An alias has a subtle difference to a symbolic name in cypher. Nodes and relationships can
  * have symbolic names which in turn can be aliased as well.
@@ -27,6 +29,7 @@ package org.springframework.data.neo4j.core.cypher;
  * @author Michael J. Simons
  * @since 1.0
  */
+@API(status = API.Status.INTERNAL, since = "1.0")
 public interface Aliased {
 
 	/**

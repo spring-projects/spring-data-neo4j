@@ -18,6 +18,7 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
 import org.springframework.util.Assert;
 
 /**
@@ -26,6 +27,7 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
+@API(status = API.Status.INTERNAL, since = "1.0")
 public final class Functions {
 
 	private static final String F_ID = "id";

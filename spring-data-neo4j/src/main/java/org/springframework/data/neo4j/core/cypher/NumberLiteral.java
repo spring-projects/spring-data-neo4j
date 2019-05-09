@@ -18,12 +18,15 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import org.apiguardian.api.API;
+
 /**
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @since 1.0
  */
-public class NumberLiteral extends Literal<Number> {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class NumberLiteral extends Literal<Number> {
 
 	NumberLiteral(Number content) {
 		super(content);
