@@ -135,8 +135,6 @@ public class OpenSessionInViewFilter extends OncePerRequestFilter {
 				TransactionSynchronizationManager.unbindResource(sessionFactory);
 				if (!isAsyncStarted(request)) {
 					logger.debug("Closed Neo4J OGM Session in OpenSessionInViewFilter");
-					// close session.
-					// SessionFactoryUtils.closeSession(session);
 				}
 			}
 		}

@@ -126,20 +126,15 @@ public class SharedSessionCreator {
 			}
 
 			// Regular Session operations.
-			boolean isNewSession = false;
 			if (targetSession == null) {
 				logger.debug("Creating new Session for shared Session invocation");
 				targetSession = this.sessionFactory.openSession();
-				isNewSession = true;
 			}
 
 			// Invoke method on current Session.
 			try {
 				return methodCall.apply(targetSession);
 			} finally {
-				if (isNewSession) {
-					SessionFactoryUtils.closeSession(targetSession);
-				}
 			}
 		}
 	}
