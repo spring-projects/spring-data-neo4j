@@ -58,6 +58,11 @@ public class SessionFactoryUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(SessionFactoryUtils.class);
 
+	/**
+	 * @deprecated since 5.2, this has been a Noop since 4.2 and has no meaning since then. It will be removed in the next major version.
+	 * @param session
+	 */
+	@Deprecated
 	public static void closeSession(Session session) {}
 
 	public static Session getSession(SessionFactory sessionFactory) throws IllegalStateException {

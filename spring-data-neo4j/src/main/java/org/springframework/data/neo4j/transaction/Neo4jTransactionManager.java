@@ -248,10 +248,8 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager
 			} catch (Throwable ex) {
 				logger.debug("Could not rollback Session after failed transaction begin", ex);
 			} finally {
-				// close session.
-				SessionFactoryUtils.closeSession(session);
+				txObject.setSessionHolder(null, false);
 			}
-			txObject.setSessionHolder(null, false);
 		}
 	}
 
@@ -365,8 +363,6 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager
 			if (logger.isDebugEnabled()) {
 				logger.debug("Closing Neo4j Session [" + session + "] after transaction");
 			}
-			// close session.
-			SessionFactoryUtils.closeSession(session);
 		} else {
 			logger.debug("Not closing pre-bound Neo4j Session after transaction");
 		}

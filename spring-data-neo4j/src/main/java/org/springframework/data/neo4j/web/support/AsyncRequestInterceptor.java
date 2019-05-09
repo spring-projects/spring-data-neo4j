@@ -79,8 +79,6 @@ class AsyncRequestInterceptor implements CallableProcessingInterceptor, Deferred
 	private void closeAfterTimeout() {
 		if (this.timeoutInProgress) {
 			logger.debug("Closing Neo4j OGM Session after async request timeout");
-			// close session.
-			// SessionFactoryUtils.closeSession(session);
 		}
 	}
 
