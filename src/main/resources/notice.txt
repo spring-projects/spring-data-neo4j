@@ -1,4 +1,4 @@
-Spring Data Neo4j 4.2.20
+Spring Data Neo4j 4.2.21
 Copyright 2011-2019 the original author or authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
