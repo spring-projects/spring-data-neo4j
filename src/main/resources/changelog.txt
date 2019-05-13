@@ -1,6 +1,14 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.2.0.M4 (2019-05-13)
+----------------------------------------
+* DATAGRAPH-1223 - Deprecate SessionFactoryUtils#closeSession.
+* DATAGRAPH-1221 - Cleanup test-package structure.
+* DATAGRAPH-1220 - Ensure Kotlin Data classes support @Id @Generated value.
+* DATAGRAPH-1219 - Release 5.2 M4 (Moore).
+
+
 Changes in version 4.2.21.RELEASE (2019-05-10)
 ----------------------------------------------
 * DATAGRAPH-1215 - Release 4.2.21 (Ingalls SR21).
