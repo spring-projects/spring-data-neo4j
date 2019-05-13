@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.8.RELEASE (2019-05-13)
+---------------------------------------------
+* DATAGRAPH-1224 - Release 5.1.8 (Lovelace SR8).
+
+
 Changes in version 5.2.0.M4 (2019-05-13)
 ----------------------------------------
 * DATAGRAPH-1223 - Deprecate SessionFactoryUtils#closeSession.
