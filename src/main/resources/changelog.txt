@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.2.22.RELEASE (2019-05-13)
+----------------------------------------------
+* DATAGRAPH-1225 - Release 4.2.22 (Ingalls SR22).
+
+
 Changes in version 5.1.8.RELEASE (2019-05-13)
 ---------------------------------------------
 * DATAGRAPH-1224 - Release 5.1.8 (Lovelace SR8).
