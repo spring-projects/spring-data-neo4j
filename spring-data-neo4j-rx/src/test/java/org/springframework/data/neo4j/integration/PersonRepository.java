@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.integration;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,4 +89,16 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	List<PersonWithAllConstructor> findAllByFirstNameNotContaining(String name);
 
 	List<PersonWithAllConstructor> findAllByFirstNameEndingWith(String name);
+
+	List<PersonWithAllConstructor> findAllByPersonNumberIsLessThan(Long number);
+
+	List<PersonWithAllConstructor> findAllByPersonNumberIsLessThanEqual(Long number);
+
+	List<PersonWithAllConstructor> findAllByPersonNumberIsGreaterThanEqual(Long number);
+
+	List<PersonWithAllConstructor> findAllByPersonNumberIsGreaterThan(Long number);
+
+	List<PersonWithAllConstructor> findAllByPersonNumberIsBetween(Range range);
+
+	List<PersonWithAllConstructor> findAllByPersonNumberIsBetween(Long low, Long high);
 }

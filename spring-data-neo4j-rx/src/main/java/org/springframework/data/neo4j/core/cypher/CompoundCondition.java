@@ -18,9 +18,10 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
-import static org.springframework.data.neo4j.core.cypher.CompoundCondition.LogicalOperator.*;
+import static org.springframework.data.neo4j.core.cypher.Operator.*;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import org.apiguardian.api.API;
@@ -43,8 +44,12 @@ public final class CompoundCondition implements Condition {
 	 * The empty, compound condition.
 	 */
 	static final CompoundCondition EMPTY_CONDITION = new CompoundCondition(null);
+	static final EnumSet<Operator> VALID_OPERATORS = EnumSet.of(AND, OR, XOR);
 
-	static CompoundCondition create(Condition left, LogicalOperator operator, Condition right) {
+	static CompoundCondition create(Condition left, Operator operator, Condition right) {
+
+		Assert.state(VALID_OPERATORS.contains(operator),
+			"Operator " + operator + " is not a valid operator for a compound condition.");
 
 		Assert.notNull(left, "Left hand side condition is required.");
 		Assert.notNull(operator, "Operator is required.");
@@ -60,11 +65,11 @@ public final class CompoundCondition implements Condition {
 		return EMPTY_CONDITION;
 	}
 
-	private @Nullable final LogicalOperator operator;
+	private @Nullable final Operator operator;
 
 	private final List<Condition> conditions;
 
-	private CompoundCondition(@Nullable LogicalOperator operator) {
+	private CompoundCondition(@Nullable Operator operator) {
 		this.operator = operator;
 		this.conditions = new ArrayList<>();
 	}
@@ -85,7 +90,7 @@ public final class CompoundCondition implements Condition {
 	}
 
 	private CompoundCondition add(
-		LogicalOperator chainingOperator,
+		Operator chainingOperator,
 		Condition condition
 	) {
 		if (this == EMPTY_CONDITION) {
@@ -125,7 +130,7 @@ public final class CompoundCondition implements Condition {
 			visitor.enter(this);
 		}
 
-		LogicalOperator currentOperator = null;
+		Operator currentOperator = null;
 		for (Condition condition : conditions) {
 			Visitable.visitIfNotNull(currentOperator, visitor);
 			condition.accept(visitor);
@@ -134,32 +139,6 @@ public final class CompoundCondition implements Condition {
 
 		if (hasManyConditions) {
 			visitor.leave(this);
-		}
-	}
-
-	/**
-	 * Shared interface for all logical operators.
-	 */
-	public enum LogicalOperator implements org.springframework.data.neo4j.core.cypher.support.Visitable {
-		// Note the full import above: JDK 8 fails to compile this class otherwise.
-		/*
-		sdn-rx/spring-data-neo4j-rx/src/main/java/org/springframework/data/neo4j/core/cypher/CompoundCondition.java:[140,48] cannot find symbol
-			symbol:   class Visitable
-			location: class org.springframework.data.neo4j.core.cypher.CompoundCondition
-		 */
-
-		AND("AND"),
-		OR("OR"),
-		XOR("XOR");
-
-		private final String symbol;
-
-		LogicalOperator(String symbol) {
-			this.symbol = symbol;
-		}
-
-		public String getSymbol() {
-			return symbol;
 		}
 	}
 }

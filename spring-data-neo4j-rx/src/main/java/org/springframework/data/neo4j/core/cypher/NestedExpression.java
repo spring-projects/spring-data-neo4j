@@ -18,30 +18,29 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import static org.springframework.data.neo4j.core.cypher.Expressions.*;
+
 import org.apiguardian.api.API;
+import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
- * Shared interface for all conditions.
- *
  * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public interface Condition extends Expression {
+public final class NestedExpression implements Expression {
 
-	default Condition and(Condition condition) {
-		return CompoundCondition.create(this, Operator.AND, condition);
+	private final Expression delegate;
+
+	NestedExpression(Expression delegate) {
+		this.delegate = delegate;
 	}
 
-	default Condition or(Condition condition) {
-		return CompoundCondition.create(this, Operator.OR, condition);
-	}
+	@Override
+	public void accept(Visitor visitor) {
 
-	default Condition xor(Condition condition) {
-		return CompoundCondition.create(this, Operator.XOR, condition);
-	}
-
-	default Condition not() {
-		return Comparison.create(Operator.NOT, this);
+		visitor.enter(this);
+		nameOrExpression(this.delegate).accept(visitor);
+		visitor.leave(this);
 	}
 }

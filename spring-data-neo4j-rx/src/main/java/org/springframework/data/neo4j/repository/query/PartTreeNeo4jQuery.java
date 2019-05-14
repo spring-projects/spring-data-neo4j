@@ -20,8 +20,10 @@ package org.springframework.data.neo4j.repository.query;
 
 import static java.util.stream.Collectors.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.neo4j.core.NodeManager;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -67,12 +69,25 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 		String cypherQuery = queryCreator.createQuery();
 		Map<String, Object> boundedParameters = formalParameters
 			.getBindableParameters().stream()
-			.collect(toMap(Neo4jQueryMethod.Neo4jParameter::getNameOrIndex, formalParameter -> parameters[formalParameter.getIndex()]));
+			.collect(toMap(Neo4jQueryMethod.Neo4jParameter::getNameOrIndex,
+				formalParameter -> convertParameter(parameters[formalParameter.getIndex()])));
 
 		return PreparedQuery.queryFor(super.domainType).withCypherQuery(cypherQuery)
 			.withParameters(boundedParameters)
 			.usingMappingFunction(mappingContext.getMappingFunctionFor(super.domainType).orElse(null))
 			.build();
+	}
+
+	// TODO Have fun with a bunch of conversion services
+	static Object convertParameter(Object parameter) {
+		if (parameter instanceof Range) {
+			Range range = (Range) parameter;
+			Map<String, Object> map = new HashMap<>();
+			range.getLowerBound().getValue().ifPresent(v -> map.put("lb", v));
+			range.getUpperBound().getValue().ifPresent(v -> map.put("ub", v));
+			return map;
+		}
+		return parameter;
 	}
 
 	@Override

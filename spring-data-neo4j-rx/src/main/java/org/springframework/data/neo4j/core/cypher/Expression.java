@@ -53,6 +53,22 @@ public interface Expression extends Visitable {
 		return Conditions.isNotEqualTo(this, rhs);
 	}
 
+	default Condition lt(Expression rhs) {
+		return Conditions.lt(this, rhs);
+	}
+
+	default Condition lte(Expression rhs) {
+		return Conditions.lte(this, rhs);
+	}
+
+	default Condition gt(Expression rhs) {
+		return Conditions.gt(this, rhs);
+	}
+
+	default Condition gte(Expression rhs) {
+		return Conditions.gte(this, rhs);
+	}
+
 	/**
 	 * Creates a condition that checks whether this {@code expression} is {@literal true}.
 	 *
@@ -138,7 +154,7 @@ public interface Expression extends Visitable {
 	default Condition isIn(Iterable<Long> ids) {
 		return Comparison.create(
 			this,
-			"in",
+			Operator.IN,
 			new ListLiteral(ids));
 	}
 }

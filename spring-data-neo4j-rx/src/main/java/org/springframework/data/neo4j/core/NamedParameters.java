@@ -83,6 +83,6 @@ final class NamedParameters {
 			.entrySet()
 			.stream()
 			.map(e -> String.format("%s: %s", e.getKey(), e.getValue()))
-			.collect(Collectors.joining(",", "params {", "}"));
+			.collect(Collectors.joining(", ", "params {", "}"));
 	}
 }

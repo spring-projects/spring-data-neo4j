@@ -18,15 +18,21 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import static lombok.AccessLevel.*;
 import static org.springframework.data.neo4j.core.cypher.Cypher.*;
+
+import lombok.RequiredArgsConstructor;
 
 import java.util.Iterator;
 import java.util.Optional;
 
+import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.neo4j.core.cypher.Condition;
+import org.springframework.data.neo4j.core.cypher.Conditions;
 import org.springframework.data.neo4j.core.cypher.Cypher;
+import org.springframework.data.neo4j.core.cypher.Expression;
 import org.springframework.data.neo4j.core.cypher.Property;
 import org.springframework.data.neo4j.core.cypher.Statement;
 import org.springframework.data.neo4j.core.cypher.renderer.CypherRenderer;
@@ -69,7 +75,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 
 	@Override
 	protected Condition create(Part part, Iterator<Object> actualParameters) {
-		return createImpl(part);
+		return createImpl(part, actualParameters);
 	}
 
 	@Override
@@ -79,7 +85,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 			return create(part, actualParameters);
 		}
 
-		return base.and(createImpl(part));
+		return base.and(createImpl(part, actualParameters));
 	}
 
 	@Override
@@ -98,7 +104,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		return CypherRenderer.create().render(statement);
 	}
 
-	private Condition createImpl(Part part) {
+	private Condition createImpl(Part part, Iterator<Object> actualParameters) {
 
 		PersistentPropertyPath<Neo4jPersistentProperty> path = mappingContext
 			.getPersistentPropertyPath(part.getProperty());
@@ -107,33 +113,43 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		// TODO case insensitive (like, notlike, simpleProperty, negatedSimpleProperty)
 
 		switch (part.getType()) {
+			case BETWEEN:
+				return betweenCondition(persistentProperty, actualParameters);
 			case CONTAINING:
 				return property(persistentProperty)
-					.contains(parameter(nextRequiredParameterNameOrIndex()));
+					.contains(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
 			case ENDING_WITH:
 				return property(persistentProperty)
-					.endsWith(parameter(nextRequiredParameterNameOrIndex()));
+					.endsWith(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
 			case FALSE:
 				return property(persistentProperty).isFalse();
+			case GREATER_THAN:
+				return property(persistentProperty).gt(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+			case GREATER_THAN_EQUAL:
+				return property(persistentProperty).gte(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+			case LESS_THAN:
+				return property(persistentProperty).lt(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+			case LESS_THAN_EQUAL:
+				return property(persistentProperty).lte(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
 			case LIKE:
-				return likeCondition(persistentProperty);
+				return likeCondition(persistentProperty, nextRequiredParameter(actualParameters).nameOrIndex);
 			case SIMPLE_PROPERTY:
 				return property(persistentProperty)
-					.isEqualTo(parameter(nextRequiredParameterNameOrIndex()));
+					.isEqualTo(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
 			case STARTING_WITH:
 				return property(persistentProperty)
-					.startsWith(parameter(nextRequiredParameterNameOrIndex()));
+					.startsWith(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
 			case REGEX:
 				return property(persistentProperty)
-					.matches(parameter(nextRequiredParameterNameOrIndex()));
+					.matches(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
 			case NEGATING_SIMPLE_PROPERTY:
 				return property(persistentProperty)
-					.isNotEqualTo(parameter(nextRequiredParameterNameOrIndex()));
+					.isNotEqualTo(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
 			case NOT_CONTAINING:
 				return property(persistentProperty)
-					.contains(parameter(nextRequiredParameterNameOrIndex())).not();
+					.contains(parameter(nextRequiredParameter(actualParameters).nameOrIndex)).not();
 			case NOT_LIKE:
-				return likeCondition(persistentProperty).not();
+				return likeCondition(persistentProperty, nextRequiredParameter(actualParameters).nameOrIndex).not();
 			case TRUE:
 				return property(persistentProperty).isTrue();
 			default:
@@ -141,20 +157,58 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		}
 	}
 
-	private Condition likeCondition(Neo4jPersistentProperty persistentProperty) {
+	private Condition likeCondition(Neo4jPersistentProperty persistentProperty, String parameterName) {
 		return property(persistentProperty)
-			.matches(literalOf(".*").plus(parameter(nextRequiredParameterNameOrIndex())).plus(literalOf(".*")));
+			.matches(literalOf(".*").plus(parameter(parameterName)).plus(literalOf(".*")));
+	}
+
+	private Condition betweenCondition(Neo4jPersistentProperty persistentProperty, Iterator<Object> actualParameters) {
+
+		Parameter lowerBoundOrRange = nextRequiredParameter(actualParameters);
+
+		Property property = property(persistentProperty);
+		Condition betweenCondition = Conditions.noCondition();
+		if (lowerBoundOrRange.value instanceof Range) {
+			Range range = (Range) lowerBoundOrRange.value;
+
+			if (range.getLowerBound().isBounded()) {
+				Expression parameterPlaceholder = parameter(lowerBoundOrRange.nameOrIndex + ".lb");
+				betweenCondition = betweenCondition.and(range.getLowerBound().isInclusive() ?
+					property.gte(parameterPlaceholder) :
+					property.gt(parameterPlaceholder));
+			}
+
+			if (range.getUpperBound().isBounded()) {
+				Expression parameterPlaceholder = parameter(lowerBoundOrRange.nameOrIndex + ".ub");
+				betweenCondition = betweenCondition.and(range.getUpperBound().isInclusive() ?
+					property.lte(parameterPlaceholder) :
+					property.lt(parameterPlaceholder));
+			}
+		} else {
+			Parameter upperBound = nextRequiredParameter(actualParameters);
+			betweenCondition = property.gte(parameter(lowerBoundOrRange.nameOrIndex))
+				.and(property.lte(parameter(upperBound.nameOrIndex)));
+		}
+		return betweenCondition;
 	}
 
 	private Property property(Neo4jPersistentProperty persistentProperty) {
 		return Cypher.property("n", persistentProperty.getPropertyName());
 	}
 
-	private String nextRequiredParameterNameOrIndex() {
+	private Parameter nextRequiredParameter(Iterator<Object> actualParameters) {
 		if (!formalParameters.hasNext()) {
 			throw new IllegalStateException("Not enough formal, bindable parameters for parts");
 		}
 
-		return formalParameters.next().getNameOrIndex();
+		//System.out.println(actualParameters());
+		return new Parameter(formalParameters.next().getNameOrIndex(), actualParameters.next());
+	}
+
+	@RequiredArgsConstructor(access = PACKAGE)
+	static class Parameter {
+		final String nameOrIndex;
+
+		final Object value;
 	}
 }

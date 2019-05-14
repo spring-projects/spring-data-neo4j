@@ -32,13 +32,11 @@ class ComparisonTest {
 	void preconditionsShouldBeAsserted() {
 
 		Expression expression = Cypher.literalOf("Arbitrary expression");
-		assertThatIllegalArgumentException().isThrownBy(() -> Comparison.create(null, "=", expression))
+		assertThatIllegalArgumentException().isThrownBy(() -> Comparison.create(null, Operator.EQUALITY, expression))
 			.withMessage("Left expression must not be null.");
-		assertThatIllegalArgumentException().isThrownBy(() -> Comparison.create(expression, "=", null))
+		assertThatIllegalArgumentException().isThrownBy(() -> Comparison.create(expression, Operator.EQUALITY, null))
 			.withMessage("Right expression must not be null.");
 		assertThatIllegalArgumentException().isThrownBy(() -> Comparison.create(expression, null, expression))
-			.withMessage("Comparator must not be empty.");
-		assertThatIllegalArgumentException().isThrownBy(() -> Comparison.create(expression, "", expression))
-			.withMessage("Comparator must not be empty.");
+			.withMessage("Operator must not be empty.");
 	}
 }

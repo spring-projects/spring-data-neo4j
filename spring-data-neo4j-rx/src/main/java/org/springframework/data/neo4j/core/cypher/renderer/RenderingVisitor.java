@@ -28,7 +28,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.data.neo4j.core.cypher.*;
-import org.springframework.data.neo4j.core.cypher.CompoundCondition.LogicalOperator;
 import org.springframework.data.neo4j.core.cypher.support.ReflectiveVisitor;
 import org.springframework.data.neo4j.core.cypher.support.TypedSubtree;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
@@ -170,6 +169,14 @@ class RenderingVisitor extends ReflectiveVisitor {
 		builder.append(" AS ").append(aliased.getAlias());
 	}
 
+	void enter(NestedExpression nested) {
+		builder.append("(");
+	}
+
+	void leave(NestedExpression nested) {
+		builder.append(")");
+	}
+
 	void enter(Order order) {
 		builder.append(" ORDER BY ");
 	}
@@ -205,33 +212,24 @@ class RenderingVisitor extends ReflectiveVisitor {
 			.append(")");
 	}
 
-	void enter(Comparison comparison) {
-		builder
-			.append(" ")
-			.append(comparison.getComparator())
-			.append(" ");
-	}
-
 	void enter(Operation operation) {
 		builder.append("(");
 	}
 
 	void enter(Operator operator) {
-		builder
-			.append(" ")
-			.append(operator.getRepresentation())
-			.append(" ");
+
+		Operator.Type type = operator.getType();
+		if (type == Operator.Type.BINARY || type == Operator.Type.POSTFIX) {
+			builder.append(" ");
+		}
+		builder.append(operator.getRepresentation());
+		if (type == Operator.Type.BINARY || type == Operator.Type.PREFIX) {
+			builder.append(" ");
+		}
 	}
 
 	void leave(Operation operation) {
 		builder.append(")");
-	}
-
-	void leave(IsNull isNull) {
-		builder
-			.append(" IS ")
-			.append(isNull.isNegated() ? "NOT " : "")
-			.append("NULL");
 	}
 
 	void enter(CompoundCondition compoundCondition) {
@@ -242,30 +240,12 @@ class RenderingVisitor extends ReflectiveVisitor {
 		builder.append(")");
 	}
 
-	void enter(LogicalOperator logicalOperator) {
-		builder
-			.append(" ")
-			.append(logicalOperator.getSymbol())
-			.append(" ");
-	}
-
-	void enter(NotCondition notCondition) {
-		builder
-			.append("NOT (");
-	}
-
-	void leave(NotCondition notCondition) {
-		builder
-			.append(")");
-	}
-
 	void enter(Literal<?> expression) {
 		builder.append(expression.asString());
 	}
 
 	void enter(Node node) {
 		builder.append("(");
-
 	}
 
 	void leave(Node node) {

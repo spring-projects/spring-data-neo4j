@@ -41,7 +41,7 @@ public final class Conditions {
 	 * @return A "matches" comparision
 	 */
 	static Condition matches(Expression lhs, Expression rhs) {
-		return Comparison.create(lhs, "=~", rhs);
+		return Comparison.create(lhs, Operator.MATCHES, rhs);
 	}
 
 	/**
@@ -52,7 +52,7 @@ public final class Conditions {
 	 * @return An "equals" comparision
 	 */
 	static Condition isEqualTo(Expression lhs, Expression rhs) {
-		return Comparison.create(lhs, "=", rhs);
+		return Comparison.create(lhs, Operator.EQUALITY, rhs);
 	}
 
 	/**
@@ -63,7 +63,51 @@ public final class Conditions {
 	 * @return An "not equals" comparision
 	 */
 	static Condition isNotEqualTo(Expression lhs, Expression rhs) {
-		return Comparison.create(lhs, "<>", rhs);
+		return Comparison.create(lhs, Operator.INEQUALITY, rhs);
+	}
+
+	/**
+	 * Creates a condition that matches if the left hand side is less than the right hand side..
+	 *
+	 * @param lhs The left hand side of the comparision
+	 * @param rhs The right hand side of the comparision
+	 * @return An "less than" comparision
+	 */
+	static Condition lt(Expression lhs, Expression rhs) {
+		return Comparison.create(lhs, Operator.LESS_THAN, rhs);
+	}
+
+	/**
+	 * Creates a condition that matches if the left hand side is less than or equal the right hand side..
+	 *
+	 * @param lhs The left hand side of the comparision
+	 * @param rhs The right hand side of the comparision
+	 * @return An "less than or equal" comparision
+	 */
+	static Condition lte(Expression lhs, Expression rhs) {
+		return Comparison.create(lhs, Operator.LESS_THAN_OR_EQUAL_TO, rhs);
+	}
+
+	/**
+	 * Creates a condition that matches if the left hand side is greater than or equal the right hand side..
+	 *
+	 * @param lhs The left hand side of the comparision
+	 * @param rhs The right hand side of the comparision
+	 * @return An "greater than or equal" comparision
+	 */
+	static Condition gte(Expression lhs, Expression rhs) {
+		return Comparison.create(lhs, Operator.GREATER_THAN_OR_EQUAL_TO, rhs);
+	}
+
+	/**
+	 * Creates a condition that matches if the left hand side is greater than the right hand side..
+	 *
+	 * @param lhs The left hand side of the comparision
+	 * @param rhs The right hand side of the comparision
+	 * @return An "greater than" comparision
+	 */
+	static Condition gt(Expression lhs, Expression rhs) {
+		return Comparison.create(lhs, Operator.GREATER_THAN, rhs);
 	}
 
 	/**
@@ -86,7 +130,7 @@ public final class Conditions {
 	 * @return A new condition.
 	 */
 	static Condition startsWith(Expression lhs, Expression rhs) {
-		return Comparison.create(lhs, "STARTS WITH", rhs);
+		return Comparison.create(lhs, Operator.STARTS_WITH, rhs);
 	}
 
 	/**
@@ -97,7 +141,7 @@ public final class Conditions {
 	 * @return A new condition.
 	 */
 	static Condition contains(Expression lhs, Expression rhs) {
-		return Comparison.create(lhs, "CONTAINS", rhs);
+		return Comparison.create(lhs, Operator.CONTAINS, rhs);
 	}
 
 	/**
@@ -108,7 +152,7 @@ public final class Conditions {
 	 * @return A new condition.
 	 */
 	static Condition endsWith(Expression lhs, Expression rhs) {
-		return Comparison.create(lhs, "ENDS WITH", rhs);
+		return Comparison.create(lhs, Operator.ENDS_WITH, rhs);
 	}
 
 	/**
@@ -130,7 +174,7 @@ public final class Conditions {
 	 */
 	static Condition isNull(Expression expression) {
 
-		return IsNull.create(expression, false);
+		return Comparison.create(Operator.IS_NULL, expression);
 	}
 
 	/**
@@ -141,7 +185,7 @@ public final class Conditions {
 	 */
 	static Condition isNotNull(Expression expression) {
 
-		return IsNull.create(expression, true);
+		return Comparison.create(Operator.IS_NOT_NULL, expression);
 	}
 
 	/**

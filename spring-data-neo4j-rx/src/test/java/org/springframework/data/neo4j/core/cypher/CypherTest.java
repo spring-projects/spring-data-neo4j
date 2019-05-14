@@ -928,4 +928,49 @@ public class CypherTest {
 					"MATCH (u:`User`) WHERE u.a = $aParameter DETACH DELETE u RETURN u");
 		}
 	}
+
+	@Nested
+	class OperationsAndComparisions {
+
+		@Test
+		void shouldRenderOperations() {
+			Statement statement;
+			statement = Cypher.match(Cypher.anyNode("n"))
+				.returning(literalOf(1).plus(literalOf(2)))
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (n) RETURN (1 + 2)");
+		}
+
+		@Test
+		void shouldRenderComparision() {
+			Statement statement;
+			statement = Cypher.match(Cypher.anyNode("n"))
+				.returning(literalOf(1).gt(literalOf(2)))
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (n) RETURN 1 > 2");
+
+			statement = Cypher.match(Cypher.anyNode("n"))
+				.returning(literalOf(1).gt(literalOf(2)).isTrue())
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (n) RETURN (1 > 2) = true");
+
+			statement = Cypher.match(Cypher.anyNode("n"))
+				.returning(literalOf(1).gt(literalOf(2)).isTrue().isFalse())
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (n) RETURN ((1 > 2) = true) = false");
+		}
+
+	}
 }
