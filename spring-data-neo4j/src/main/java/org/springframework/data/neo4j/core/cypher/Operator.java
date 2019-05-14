@@ -22,7 +22,7 @@ import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
 
 /**
- * An operator
+ * An operator. See <a href="https://neo4j.com/docs/cypher-manual/current/syntax/operators/#query-operators-summary">Operators</a>.
  *
  * @author Michael J. Simons
  * @since 1.0
@@ -30,18 +30,64 @@ import org.springframework.data.neo4j.core.cypher.support.Visitable;
 @API(status = API.Status.INTERNAL, since = "1.0")
 public enum Operator implements Visitable {
 
-	/**
-	 * The {@code +} operator.
-	 */
-	PLUS("+");
+	// Mathematical operators
+	ADDITION("+"),
+	SUBTRACTION("-"),
+
+	// Comparison operators
+	EQUALITY("="),
+	INEQUALITY("<>"),
+	LESS_THAN("<"),
+	GREATER_THAN(">"),
+	LESS_THAN_OR_EQUAL_TO("<="),
+	GREATER_THAN_OR_EQUAL_TO(">="),
+	IS_NULL("IS NULL", Type.POSTFIX),
+	IS_NOT_NULL("IS NOT NULL", Type.POSTFIX),
+
+	STARTS_WITH("STARTS WITH"),
+	ENDS_WITH("ENDS WITH"),
+	CONTAINS("CONTAINS"),
+
+	// Boolean operators
+	AND("AND"),
+	OR("OR"),
+	XOR("XOR"),
+	NOT("NOT", Type.PREFIX),
+
+	// String operators
+	MATCHES("=~"),
+
+	// List operators
+	IN("IN");
 
 	private final String representation;
 
+	private final Type type;
+
 	Operator(String representation) {
+		this(representation, Type.BINARY);
+	}
+
+	Operator(String representation, Type type) {
 		this.representation = representation;
+		this.type = type;
 	}
 
 	public String getRepresentation() {
 		return representation;
+	}
+
+	public boolean isUnary() {
+		return type != Type.BINARY;
+	}
+
+	public Type getType() {
+		return type;
+	}
+
+	public enum Type {
+		BINARY,
+		PREFIX,
+		POSTFIX,
 	}
 }

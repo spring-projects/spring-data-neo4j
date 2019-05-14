@@ -18,8 +18,11 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+
 import org.apiguardian.api.API;
+import org.springframework.data.neo4j.core.cypher.support.Visitable;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -32,39 +35,53 @@ import org.springframework.util.Assert;
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class Comparison implements Condition {
 
-	static Comparison create(Expression lhs, String comparator, Expression rhs) {
+	static Comparison create(Operator operator, Expression expression) {
+
+		Assert.state(operator.isUnary(), "Operator must be unary.");
+		Assert.notNull(expression, "Expression must not be null.");
+
+		switch (operator.getType()) {
+			case PREFIX:
+				return new Comparison(null, operator, expression);
+			case POSTFIX:
+				return new Comparison(expression, operator, null);
+			default:
+				throw new IllegalArgumentException("Invalid operator type " + operator.getType());
+		}
+	}
+
+	static Comparison create(Expression lhs, Operator operator, Expression rhs) {
 
 		Assert.notNull(lhs, "Left expression must not be null.");
-		Assert.hasText(comparator, "Comparator must not be empty.");
+		Assert.notNull(operator, "Operator must not be empty.");
 		Assert.notNull(rhs, "Right expression must not be null.");
 
-		return new Comparison(lhs, comparator, rhs);
+		return new Comparison(lhs, operator, rhs);
+	}
+
+	private static Expression nestedIfCondition(Expression expression) {
+		return expression instanceof Condition ? new NestedExpression(expression) : expression;
 	}
 
 	private final Expression left;
-	private final String comparator;
-	private final Expression right;
+	private final Operator comparator;
+	private @Nullable final Expression right;
 
-	private Comparison(Expression left, String comparator, Expression right) {
+	private Comparison(Expression left, Operator operator, Expression right) {
 
-		this.left = left;
-		this.comparator = comparator;
-		this.right = right;
-	}
-
-	public String getComparator() {
-		return comparator;
+		this.left = nestedIfCondition(left);
+		this.comparator = operator;
+		this.right = nestedIfCondition(right);
 	}
 
 	@Override
 	public void accept(Visitor visitor) {
 
-		left.accept(visitor);
-
 		visitor.enter(this);
+		Visitable.visitIfNotNull(left, visitor);
+		comparator.accept(visitor);
+		Visitable.visitIfNotNull(right, visitor);
 		visitor.leave(this);
-
-		right.accept(visitor);
 	}
 }
 

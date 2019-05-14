@@ -51,4 +51,6 @@ public class PersonWithAllConstructor {
 	private final String sameValue;
 
 	private final Boolean cool;
+
+	private final Long personNumber;
 }

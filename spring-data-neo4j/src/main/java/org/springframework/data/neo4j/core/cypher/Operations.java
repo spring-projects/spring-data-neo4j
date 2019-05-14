@@ -38,7 +38,7 @@ public final class Operations {
 	 */
 	static Operation plus(Expression op1, Expression op2) {
 
-		return Operation.create(op1, Operator.PLUS, op2);
+		return Operation.create(op1, Operator.ADDITION, op2);
 	}
 
 	/**

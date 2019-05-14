@@ -19,6 +19,7 @@
 package org.springframework.data.neo4j.integration;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.domain.Range.Bound.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,6 +39,8 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Range;
+import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.NodeManagerFactory;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
@@ -64,7 +67,7 @@ class RepositoryIT {
 	private static final String TEST_PERSON_SAMEVALUE = "SameValue";
 
 	static PersonWithAllConstructor personExample(String sameValue) {
-		return new PersonWithAllConstructor(null, null, null, sameValue, null);
+		return new PersonWithAllConstructor(null, null, null, sameValue, null, null);
 	}
 
 	private static Neo4jConnectionSupport neo4jConnectionSupport;
@@ -91,14 +94,14 @@ class RepositoryIT {
 		transaction.run("MATCH (n) detach delete n");
 
 		id1 = transaction.run(
-			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool return id(n)",
+			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber return id(n)",
 			Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-				TEST_PERSON1_FIRST_NAME, "cool", true)
+				TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1)
 		).next().get(0).asLong();
 		id2 = transaction.run(
-			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool return id(n)",
+			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber return id(n)",
 			Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-				TEST_PERSON2_FIRST_NAME, "cool", false)
+				TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2)
 		).next().get(0).asLong();
 		transaction.run("CREATE (n:PersonWithNoConstructor) SET n.name = $name, n.first_name = $firstName",
 			Values.parameters("name", TEST_PERSON1_NAME, "firstName", TEST_PERSON1_FIRST_NAME));
@@ -109,9 +112,9 @@ class RepositoryIT {
 
 		// note that there is no id setting in the mapping right now
 		person1 = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
-			true);
+			true, 1L);
 		person2 = new PersonWithAllConstructor(null, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
-			false);
+			false, 2L);
 	}
 
 	@Test
@@ -401,10 +404,97 @@ class RepositoryIT {
 	@Test
 	void findByEndingWith() {
 
-		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameContaining("nie");
+		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameEndingWith("nie");
 		assertThat(persons)
 			.hasSize(1)
 			.contains(person1);
+	}
+
+	@Test
+	void findByLessThan() {
+
+		List<PersonWithAllConstructor> persons = repository.findAllByPersonNumberIsLessThan(2L);
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+	}
+
+	@Test
+	void findByLessThanEqual() {
+
+		List<PersonWithAllConstructor> persons = repository.findAllByPersonNumberIsLessThanEqual(2L);
+		assertThat(persons)
+			.containsExactlyInAnyOrder(person1, person2);
+	}
+
+	@Test
+	void findByGreaterThanEqual() {
+
+		List<PersonWithAllConstructor> persons = repository.findAllByPersonNumberIsGreaterThanEqual(1L);
+		assertThat(persons)
+			.containsExactlyInAnyOrder(person1, person2);
+	}
+
+	@Test
+	void findByGreaterThan() {
+
+		List<PersonWithAllConstructor> persons = repository.findAllByPersonNumberIsGreaterThan(1L);
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person2);
+	}
+
+	@Test
+	void findByBetweenRange() {
+
+		List<PersonWithAllConstructor> persons;
+		persons = repository.findAllByPersonNumberIsBetween(Range.from(inclusive(1L)).to(inclusive(2L)));
+		assertThat(persons)
+			.containsExactlyInAnyOrder(person1, person2);
+
+		persons = repository.findAllByPersonNumberIsBetween(Range.from(inclusive(1L)).to(exclusive(2L)));
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+
+		persons = repository.findAllByPersonNumberIsBetween(Range.from(inclusive(1L)).to(unbounded()));
+		assertThat(persons)
+			.containsExactlyInAnyOrder(person1, person2);
+
+		persons = repository.findAllByPersonNumberIsBetween(Range.from(exclusive(1L)).to(unbounded()));
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person2);
+
+		persons = repository.findAllByPersonNumberIsBetween(Range.from(Bound.<Long>unbounded()).to(inclusive(2L)));
+		assertThat(persons)
+			.containsExactlyInAnyOrder(person1, person2);
+
+		persons = repository.findAllByPersonNumberIsBetween(Range.from(Bound.<Long>unbounded()).to(exclusive(2L)));
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+
+		persons = repository.findAllByPersonNumberIsBetween(Range.unbounded());
+		assertThat(persons)
+			.containsExactlyInAnyOrder(person1, person2);
+	}
+
+	@Test
+	void findByBetween() {
+
+		List<PersonWithAllConstructor> persons;
+		persons = repository.findAllByPersonNumberIsBetween(1L, 2L);
+		assertThat(persons)
+			.containsExactlyInAnyOrder(person1, person2);
+
+		persons = repository.findAllByPersonNumberIsBetween(3L, 5L);
+		assertThat(persons).isEmpty();
+
+		persons = repository.findAllByPersonNumberIsBetween(2L, 3L);
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person2);
 	}
 
 	@Configuration
