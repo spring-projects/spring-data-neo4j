@@ -18,12 +18,19 @@
  */
 package org.springframework.data.neo4j.core;
 
+import static java.util.stream.Collectors.*;
+
+import lombok.RequiredArgsConstructor;
+
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Transaction;
+import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.springframework.data.neo4j.core.Neo4jClient.MappingSpec;
+import org.springframework.data.neo4j.core.Neo4jClient.RecordFetchSpec;
 import org.springframework.data.neo4j.core.context.DefaultPersistenceContext;
 import org.springframework.data.neo4j.core.context.PersistenceContext;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
@@ -52,7 +59,7 @@ class DefaultNodeManager implements NodeManager {
 		this.neo4jClient = neo4jClient;
 		this.transaction = transaction;
 
-		this.persistenceContext = new DefaultPersistenceContext(schema);
+		this.persistenceContext = new DefaultPersistenceContext();
 	}
 
 	@Override
@@ -62,36 +69,25 @@ class DefaultNodeManager implements NodeManager {
 	}
 
 	@Override
-	public Object executeQuery(String query) {
+	public <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery) {
 
-		return neo4jClient.newQuery(query).fetch().all();
-	}
-
-	@Override
-	public <T> Optional<T> executeTypedQueryForObject(String query, Class<T> returnedType) {
-
-		MappingSpec<Optional<T>, Collection<T>, T> mappingSpec = neo4jClient.newQuery(query).fetchAs(returnedType);
-		return schema.getMappingFunctionFor(returnedType)
+		Class<T> resultType = preparedQuery.getResultType();
+		MappingSpec<Optional<T>, Collection<T>, T> mappingSpec = neo4jClient.newQuery(preparedQuery.getCypherQuery())
+			.bindAll(preparedQuery.getParameters())
+			.fetchAs(resultType);
+		RecordFetchSpec<Optional<T>, Collection<T>, T> fetchSpec = preparedQuery.getOptionalMappingFunction()
 			.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction))
-			.orElse(mappingSpec)
-			.one();
-	}
+			.orElse(mappingSpec);
 
-	@Override
-	public <T> Collection<T> executeTypedQueryForObjects(String query, Class<T> returnedType) {
-
-		MappingSpec<Optional<T>, Collection<T>, T> mappingSpec = neo4jClient.newQuery(query).fetchAs(returnedType);
-		return schema.getMappingFunctionFor(returnedType)
-			.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction))
-			.orElse(mappingSpec)
-			.all();
+		return new DefaultExecutableQuery(preparedQuery, schema.getNodeDescription(resultType), fetchSpec);
 	}
 
 	@Override
 	public <T> T save(T entityWithUnknownState) {
 
 		// TODO if already registered, here or in the context?
-		this.persistenceContext.register(entityWithUnknownState);
+		this.persistenceContext
+			.register(entityWithUnknownState, schema.getRequiredNodeDescription(entityWithUnknownState.getClass()));
 
 		throw new UnsupportedOperationException("Not there yet.");
 	}
@@ -104,12 +100,37 @@ class DefaultNodeManager implements NodeManager {
 		throw new UnsupportedOperationException("Not there yet.");
 	}
 
-	@Override
-	public NodeDescription<?> describe(Class<?> clazz) {
+	@RequiredArgsConstructor
+	class DefaultExecutableQuery<T> implements ExecutableQuery<T> {
 
-		// @formatter:off
-		return schema.getNodeDescription(clazz)
-			.orElseThrow(() -> new IllegalArgumentException(String.format("%s is not a managed class", clazz.getName())));
-		// @formatter:on
+		private final PreparedQuery<T> preparedQuery;
+		private final Optional<NodeDescription<?>> optionalNodeDescription;
+		private final RecordFetchSpec<Optional<T>, Collection<T>, T> fetchSpec;
+
+		@Override
+		public List<T> getResults() {
+			return fetchSpec.all().stream().map(this::register).collect(toList());
+		}
+
+		@Override
+		public Optional<T> getSingleResult() {
+			try {
+				return fetchSpec.one().map(this::register);
+			} catch (NoSuchRecordException e) {
+				return Optional.empty();
+			}
+		}
+
+		@Override
+		public T getRequiredSingleResult() {
+			return fetchSpec.one().map(this::register)
+				.orElseThrow(() -> new NoResultException(1L, preparedQuery.getCypherQuery()));
+		}
+
+		private T register(T entity) {
+			this.optionalNodeDescription.ifPresent(
+				nodeDescription -> DefaultNodeManager.this.persistenceContext.register(entity, nodeDescription));
+			return entity;
+		}
 	}
 }

@@ -32,7 +32,7 @@ class DefaultStatementBuilderTest {
 	void matchPreconditionsShouldBeAsserted() {
 
 		DefaultStatementBuilder builder = new DefaultStatementBuilder();
-		assertThatIllegalArgumentException().isThrownBy(() -> builder.match(null))
+		assertThatIllegalArgumentException().isThrownBy(() -> builder.match((PatternElement[]) null))
 			.withMessage("Patterns to match are required.");
 		assertThatIllegalArgumentException().isThrownBy(() -> builder.match())
 			.withMessage("At least one pattern to match is required.");

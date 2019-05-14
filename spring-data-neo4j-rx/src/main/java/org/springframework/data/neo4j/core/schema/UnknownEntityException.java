@@ -16,26 +16,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.query;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package org.springframework.data.neo4j.core.schema;
 
 import org.apiguardian.api.API;
 
 /**
- * Specialized version of {@link Query} whose values is always used as exists projection.
+ * Thrown when required information about a class or primary label is requested from the {@link Schema} and those information
+ * is not available.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
-@Documented
-@Query(exists = true)
 @API(status = API.Status.STABLE, since = "1.0")
-public @interface ExistsQuery {
+public final class UnknownEntityException extends IllegalStateException {
+
+	private final Class<?> targetClass;
+
+	UnknownEntityException(Class<?> targetClass) {
+		super(String.format("%s is not a known entity", targetClass.getName()));
+		this.targetClass = targetClass;
+	}
+
+	public Class<?> getTargetClass() {
+		return targetClass;
+	}
 }

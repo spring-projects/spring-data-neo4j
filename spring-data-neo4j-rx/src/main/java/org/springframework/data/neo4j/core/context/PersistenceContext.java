@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.core.context;
 import java.util.Collection;
 
 import org.apiguardian.api.API;
+import org.springframework.data.neo4j.core.schema.NodeDescription;
 
 /**
  * Represents the state of varies instances being tracked. Those include:
@@ -37,11 +38,12 @@ import org.apiguardian.api.API;
 public interface PersistenceContext {
 
 	/**
-	 * Registers an entity within the context and starts tracking the entitys state.
+	 * Registers an entity within the context and starts tracking the entities state.
 	 *
 	 * @param entity The entity to register
+	 * @param description The schema description of the entities class
 	 */
-	void register(Object entity);
+	void register(Object entity, NodeDescription<?> description);
 
 	/**
 	 * Removes an entity from this context and stops tracking the entitys state.

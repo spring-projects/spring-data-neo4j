@@ -16,17 +16,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.query;
+package org.springframework.data.neo4j.core.cypher;
 
-import org.springframework.data.repository.core.EntityInformation;
+import org.apiguardian.api.API;
 
 /**
- * Neo4j specific {@link EntityInformation}
+ * The boolean literal.
  *
- * @author Gerrit Meier
+ * @author Michael J. Simons
+ * @soundtrack Bad Religion - Age Of Unreason
+ * @since 1.0
  */
-public interface Neo4jEntityInformation<T, ID> extends EntityInformation<T, ID> {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class BooleanLiteral extends Literal<Boolean> {
 
-	String getIdPropertyName();
+	static BooleanLiteral TRUE = new BooleanLiteral(true);
+	static BooleanLiteral FALSE = new BooleanLiteral(false);
 
+	private BooleanLiteral(boolean content) {
+		super(content);
+	}
+
+	@Override
+	public String asString() {
+		return getContent().toString();
+	}
 }

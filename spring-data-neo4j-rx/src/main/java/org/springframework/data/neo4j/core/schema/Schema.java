@@ -25,6 +25,9 @@ import java.util.function.Function;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Record;
+import org.springframework.data.neo4j.core.cypher.Condition;
+import org.springframework.data.neo4j.core.cypher.Cypher;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchAndWith;
 
 /**
  * Contains the descriptions of all nodes, their properties and relationships known to SDN-RX.
@@ -59,6 +62,16 @@ public interface Schema {
 	Optional<NodeDescription<?>> getNodeDescription(Class<?> underlyingClass);
 
 	/**
+	 * @param underlyingClass
+	 * @return The node description for the given. class
+	 * @throws UnknownEntityException When {@code targetClass} is not a known entity class.
+	 */
+	default NodeDescription<?> getRequiredNodeDescription(Class<?> underlyingClass) {
+
+		return getNodeDescription(underlyingClass).orElseThrow(() -> new UnknownEntityException(underlyingClass));
+	}
+
+	/**
 	 * This returns the outgoing relationships this node has to other nodes.
 	 *
 	 * @param primaryLabel The primary label of the node whos relationships should be retrieved
@@ -78,7 +91,34 @@ public interface Schema {
 	 *
 	 * @param targetClass The target class to which to map to.
 	 * @param <T>         Type of the target class
-	 * @return An emtpy optional if the target class is unknown, otherwise an optional containing a stateless, reusable mapping function
+	 * @return An empty optional if the target class is unknown, otherwise an optional containing a stateless, reusable mapping function
 	 */
 	<T> Optional<Function<Record, T>> getMappingFunctionFor(Class<T> targetClass);
+
+	/**
+	 * @param targetClass The target class to which to map to.
+	 * @param <T>         Type of the target class
+	 * @return The default mapping function for the given target class
+	 * @throws IllegalStateException When {@code targetClass} is not a managed class
+	 * @see #getMappingFunctionFor(Class)
+	 */
+	default <T> Function<Record, T> getRequiredMappingFunctionFor(Class<T> targetClass) {
+
+		return getMappingFunctionFor(targetClass).orElseThrow(() -> new UnknownEntityException(targetClass));
+	}
+
+	/**
+	 * This will create a match statement that fits the given node description and may contains additional conditions.
+	 * The {@code WITH} clause of this statement contains all nodes and relationships necessary to map a record to
+	 * the given {@code nodeDescription}.
+	 * <p/>
+	 * It is recommended to use {@link Cypher#asterisk()} to return everything from the query in the end.
+	 * <p/>
+	 * The root node is guaranted to have the symbolic name {@code n}.
+	 *
+	 * @param nodeDescription The node description for which a match clause should be generated
+	 * @param condition       Optional conditions to add
+	 * @return An ongoing match
+	 */
+	OngoingMatchAndWith prepareMatchOf(NodeDescription<?> nodeDescription, Optional<Condition> condition);
 }

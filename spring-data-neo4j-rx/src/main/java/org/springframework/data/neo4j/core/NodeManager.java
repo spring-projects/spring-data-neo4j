@@ -18,12 +18,8 @@
  */
 package org.springframework.data.neo4j.core;
 
-import java.util.Collection;
-import java.util.Optional;
-
 import org.apiguardian.api.API;
 import org.neo4j.driver.Transaction;
-import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.lang.Nullable;
 
 /**
@@ -48,11 +44,7 @@ public interface NodeManager {
 	@Nullable
 	Transaction getTransaction();
 
-	Object executeQuery(String query);
-
-	<T> Collection<T> executeTypedQueryForObjects(String query, Class<T> returnedType);
-
-	<T> Optional<T> executeTypedQueryForObject(String query, Class<T> returnedType);
+	<T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery);
 
 	/**
 	 * Saves an entity. When the entity is not yet managed in this instance of the NodeManager, and will be registered as
@@ -71,6 +63,4 @@ public interface NodeManager {
 	 * @param managedEntity Object to be removed
 	 */
 	void delete(Object managedEntity);
-
-	NodeDescription<?> describe(Class<?> clazz);
 }

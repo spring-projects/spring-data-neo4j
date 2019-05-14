@@ -41,10 +41,10 @@ public interface EntityTrackingStrategy {
 	 * Register an entity in the entity tracking strategy. {@link NodeDescription} is needed to determine the fields that
 	 * are considered mapping relevant.
 	 *
-	 * @param nodeDescription the "rich" entity's class description.
 	 * @param entity the object that should get tracked.
+	 * @param nodeDescription the "rich" entity's class description.
 	 */
-	void track(NodeDescription nodeDescription, Object entity);
+	void track(Object entity, NodeDescription nodeDescription);
 
 	/**
 	 * Remove an entity from tracking. This method should get called after an entity was deleted to have a clean change

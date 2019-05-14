@@ -19,41 +19,45 @@
 package org.springframework.data.neo4j.core.cypher;
 
 import org.apiguardian.api.API;
-import org.springframework.data.neo4j.core.cypher.support.Visitable;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
-import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/Match.html">Match</a>.
+ * A binary operation.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public final class Match implements ReadingClause {
+public final class Operation implements Expression {
 
-	private final boolean optional;
+	static Operation create(Expression op1, Operator operator, Expression op2) {
 
-	private final Pattern pattern;
+		Assert.notNull(op1, "The first operand must not be null.");
+		Assert.notNull(operator, "Operator must not be empty.");
+		Assert.notNull(op2, "The second operand must not be null.");
 
-	private @Nullable final Where optionalWhere;
-
-	Match(boolean optional, Pattern pattern, @Nullable Where optionalWhere) {
-		this.optional = optional;
-		this.pattern = pattern;
-		this.optionalWhere = optionalWhere;
+		return new Operation(op1, operator, op2);
 	}
 
-	public boolean isOptional() {
-		return optional;
+	private final Expression left;
+	private final Operator operator;
+	private final Expression right;
+
+	private Operation(Expression left, Operator operator, Expression right) {
+
+		this.left = left;
+		this.operator = operator;
+		this.right = right;
 	}
 
 	@Override
 	public void accept(Visitor visitor) {
 
 		visitor.enter(this);
-		this.pattern.accept(visitor);
-		Visitable.visitIfNotNull(optionalWhere, visitor);
+		left.accept(visitor);
+		operator.accept(visitor);
+		right.accept(visitor);
 		visitor.leave(this);
 	}
 }

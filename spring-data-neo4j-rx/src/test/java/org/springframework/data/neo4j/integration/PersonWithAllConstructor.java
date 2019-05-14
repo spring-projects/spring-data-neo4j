@@ -28,6 +28,10 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 
+/**
+ * @author Gerrit Meier
+ * @author Michael J. Simons
+ */
 @Getter
 @Setter
 @Node
@@ -45,4 +49,6 @@ public class PersonWithAllConstructor {
 	private final String firstName;
 
 	private final String sameValue;
+
+	private final Boolean cool;
 }

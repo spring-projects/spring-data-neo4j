@@ -47,7 +47,7 @@ public class EntityComparisonStrategy implements EntityTrackingStrategy {
 	private final Map<Integer, EntityState> statesOfEntities = new HashMap<>();
 
 	@Override
-	public void track(NodeDescription nodeDescription, Object entity) {
+	public void track(Object entity, NodeDescription nodeDescription) {
 		statesOfEntities.put(getObjectIdentifier(entity),
 				new EntityState(nodeDescription, entity, getDefaultObjectIdentifier()));
 	}

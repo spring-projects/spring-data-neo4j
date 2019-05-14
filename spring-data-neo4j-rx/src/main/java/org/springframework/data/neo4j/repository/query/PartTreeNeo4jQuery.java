@@ -18,28 +18,80 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import static java.util.stream.Collectors.*;
+
+import java.util.Map;
+
 import org.springframework.data.neo4j.core.NodeManager;
-import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.neo4j.core.PreparedQuery;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.repository.query.Neo4jQueryMethod.Neo4jParameters;
+import org.springframework.data.repository.query.ParameterAccessor;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.repository.query.parser.PartTree;
 
 /**
  * Implementation of {@link RepositoryQuery} for derived finder methods.
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @since 1.0
  */
-public class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
+final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 
-	public PartTreeNeo4jQuery(Neo4jQueryMethod queryMethod, NodeManager nodeManager) {
+	private final ResultProcessor processor;
+	private final PartTree tree;
+
+	PartTreeNeo4jQuery(
+		NodeManager nodeManager,
+		Neo4jMappingContext mappingContext,
+		Neo4jQueryMethod queryMethod
+	) {
+		super(nodeManager, mappingContext, queryMethod);
+
+		this.processor = queryMethod.getResultProcessor();
+		this.tree = new PartTree(queryMethod.getName(), domainType);
 	}
 
 	@Override
-	public Object execute(Object[] parameters) {
-		throw new UnsupportedOperationException("Not there yet.");
+	protected PreparedQuery<?> prepareQuery(Object[] parameters) {
+
+		Neo4jParameters formalParameters = (Neo4jParameters) this.queryMethod.getParameters();
+		ParameterAccessor actualParameters = new ParametersParameterAccessor(formalParameters, parameters);
+		CypherQueryCreator queryCreator = new CypherQueryCreator(
+			mappingContext, domainType, tree, formalParameters, actualParameters
+		);
+
+		String cypherQuery = queryCreator.createQuery();
+		Map<String, Object> boundedParameters = formalParameters
+			.getBindableParameters().stream()
+			.collect(toMap(Neo4jQueryMethod.Neo4jParameter::getNameOrIndex, formalParameter -> parameters[formalParameter.getIndex()]));
+
+		return PreparedQuery.queryFor(super.domainType).withCypherQuery(cypherQuery)
+			.withParameters(boundedParameters)
+			.usingMappingFunction(mappingContext.getMappingFunctionFor(super.domainType).orElse(null))
+			.build();
 	}
 
 	@Override
-	public QueryMethod getQueryMethod() {
-		return null;
+	protected boolean isCountQuery() {
+		return tree.isCountProjection();
+	}
+
+	@Override
+	protected boolean isExistsQuery() {
+		return tree.isExistsProjection();
+	}
+
+	@Override
+	protected boolean isDeleteQuery() {
+		return tree.isDelete();
+	}
+
+	@Override
+	protected boolean isLimiting() {
+		return tree.isLimiting();
 	}
 }

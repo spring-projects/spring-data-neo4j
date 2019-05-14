@@ -18,8 +18,12 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import java.util.Collections;
+import java.util.Optional;
+
 import org.springframework.data.neo4j.core.NodeManager;
-import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.neo4j.core.PreparedQuery;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.RepositoryQuery;
 
 /**
@@ -27,33 +31,63 @@ import org.springframework.data.repository.query.RepositoryQuery;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @since 1.0
  */
-public class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
+final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
-	private final Neo4jQueryMethod queryMethod;
-	private final NodeManager nodeManager;
+	private final String cypherQuery;
 
-	public StringBasedNeo4jQuery(Neo4jQueryMethod queryMethod, NodeManager nodeManager) {
+	private final boolean countQuery;
+	private final boolean existsQuery;
+	private final boolean deleteQuery;
 
-		this.queryMethod = queryMethod;
-		this.nodeManager = nodeManager;
-	}
+	StringBasedNeo4jQuery(NodeManager nodeManager, Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod,
+		String cypherQuery,
+		Optional<Query> optionalQueryAnnotation) {
 
-	@Override
-	public Object execute(Object[] parameters) {
+		super(nodeManager, mappingContext, queryMethod);
 
-		Class<?> returnedType = queryMethod.getReturnedObjectType();
-		boolean collectionQuery = queryMethod.isCollectionQuery();
+		this.cypherQuery = cypherQuery;
 
-		if (collectionQuery) {
-			return nodeManager.executeTypedQueryForObjects(queryMethod.getAnnotatedQuery(), returnedType);
+		if (optionalQueryAnnotation.isPresent()) {
+			Query queryAnnotation = optionalQueryAnnotation.get();
+			countQuery = queryAnnotation.count();
+			existsQuery = queryAnnotation.exists();
+			deleteQuery = queryAnnotation.delete();
 		} else {
-			return nodeManager.executeTypedQueryForObject(queryMethod.getAnnotatedQuery(), returnedType);
+			countQuery = false;
+			existsQuery = false;
+			deleteQuery = false;
 		}
 	}
 
 	@Override
-	public QueryMethod getQueryMethod() {
-		return null;
+	protected PreparedQuery<?> prepareQuery(Object[] parameters) {
+
+		return PreparedQuery.queryFor(super.domainType)
+			.withCypherQuery(cypherQuery)
+			.withParameters(Collections.emptyMap()) // TODO Map parameters.
+			.usingMappingFunction(mappingContext.getMappingFunctionFor(super.domainType).orElse(null)) // Null is fine
+			.build();
+	}
+
+	@Override
+	public boolean isCountQuery() {
+		return countQuery;
+	}
+
+	@Override
+	public boolean isExistsQuery() {
+		return existsQuery;
+	}
+
+	@Override
+	public boolean isDeleteQuery() {
+		return deleteQuery;
+	}
+
+	@Override
+	protected boolean isLimiting() {
+		return false;
 	}
 }

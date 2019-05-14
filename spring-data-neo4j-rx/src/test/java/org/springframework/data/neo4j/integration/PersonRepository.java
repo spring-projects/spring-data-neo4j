@@ -19,7 +19,6 @@
 package org.springframework.data.neo4j.integration;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -63,5 +62,30 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	@Query("MATCH (n:PersonWithWither{name:'Test'}) return n")
 	Optional<PersonWithWither> getOptionalPersonsWithWitherViaQuery();
 
-	List<Map<String, Object>> findByName(String name);
+	// Derived finders, should be extracted into another repo.
+	Optional<PersonWithAllConstructor> findOneByNameAndFirstName(String name, String firstName);
+
+	List<PersonWithAllConstructor> findAllByNameOrName(String aName, String anotherName);
+
+	List<PersonWithAllConstructor> findAllBySameValue(String sameValue);
+
+	List<PersonWithAllConstructor> findAllByNameNot(String name);
+
+	List<PersonWithAllConstructor> findAllByFirstNameLike(String name);
+
+	List<PersonWithAllConstructor> findAllByFirstNameMatches(String name);
+
+	List<PersonWithAllConstructor> findAllByFirstNameNotLike(String name);
+
+	List<PersonWithAllConstructor> findAllByCoolTrue();
+
+	List<PersonWithAllConstructor> findAllByCoolFalse();
+
+	List<PersonWithAllConstructor> findAllByFirstNameStartingWith(String name);
+
+	List<PersonWithAllConstructor> findAllByFirstNameContaining(String name);
+
+	List<PersonWithAllConstructor> findAllByFirstNameNotContaining(String name);
+
+	List<PersonWithAllConstructor> findAllByFirstNameEndingWith(String name);
 }

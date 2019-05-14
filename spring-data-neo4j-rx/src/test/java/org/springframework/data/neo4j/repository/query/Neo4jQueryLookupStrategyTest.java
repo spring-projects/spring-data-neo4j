@@ -22,44 +22,59 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.projection.ProjectionFactory;
-import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.repository.Repository;
-import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 
 /**
  * @author Gerrit Meier
- **/
-class Neo4jQueryMethodTest {
+ * @author Michael J. Simons
+ */
+class Neo4jQueryLookupStrategyTest {
 
 	private static final String CUSTOM_CYPHER_QUERY = "MATCH (n) return n";
 
 	@Test
 	void shouldFindAnnotatedQuery() throws Exception {
-		Neo4jQueryMethod queryMethod = queryMethod("annotatedQuery");
-		assertThat(queryMethod.getAnnotatedQuery()).isEqualTo(CUSTOM_CYPHER_QUERY);
+
+		Method method = queryMethod("annotatedQuery");
+		Optional<Query> optionalQueryAnnotation = Neo4jQueryLookupStrategy.getQueryAnnotationOf(method);
+		assertThat(Neo4jQueryLookupStrategy.getCypherQuery(optionalQueryAnnotation)).isEqualTo(CUSTOM_CYPHER_QUERY);
+	}
+
+	@Test
+	void shouldDetectInvalidAnnotation() throws Exception {
+
+		Method method = queryMethod("invalidAnnotatedQuery");
+		Optional<Query> optionalQueryAnnotation = Neo4jQueryLookupStrategy.getQueryAnnotationOf(method);
+		assertThatExceptionOfType(MappingException.class)
+			.isThrownBy(() -> Neo4jQueryLookupStrategy.getCypherQuery(optionalQueryAnnotation))
+			.withMessage("Expected @Query annotation to have a value, but it did not.");
 	}
 
 	@Test
 	void findQueryAnnotation() throws Exception {
-		Neo4jQueryMethod queryMethod = queryMethod("annotatedQuery");
-		assertThat(queryMethod.hasAnnotatedQuery()).isTrue();
+
+		Method method = queryMethod("annotatedQuery");
+		Optional<Query> optionalQueryAnnotation = Neo4jQueryLookupStrategy.getQueryAnnotationOf(method);
+		assertThat(optionalQueryAnnotation).isPresent();
 	}
 
-	private Neo4jQueryMethod queryMethod(String name, Class<?>... parameters) throws Exception {
+	private Method queryMethod(String name, Class<?>... parameters) throws Exception {
 		Class<PersonRepository> repositoryClass = PersonRepository.class;
 
-		Method method = repositoryClass.getMethod(name, parameters);
-		ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
-		return new Neo4jQueryMethod(method, new DefaultRepositoryMetadata(repositoryClass), factory);
+		return repositoryClass.getMethod(name, parameters);
 	}
 
 	interface PersonRepository extends Repository<Person, Long> {
 
 		@Query(CUSTOM_CYPHER_QUERY)
 		List<Person> annotatedQuery();
+
+		@Query
+		List<Person> invalidAnnotatedQuery();
 	}
 
 	class Person {

@@ -71,7 +71,7 @@ class EntityComparisonStrategyTest {
 		EntityComparisonStrategy strategy = new EntityComparisonStrategy();
 		Something something = new Something("oldValue");
 
-		strategy.track(description, something);
+		strategy.track(something, description);
 
 		String fieldName = "value";
 		String newValue = "newValue";
@@ -89,7 +89,7 @@ class EntityComparisonStrategyTest {
 		EntityComparisonStrategy strategy = new EntityComparisonStrategy();
 		Something something = new Something("oldValue");
 
-		strategy.track(description, something);
+		strategy.track(something, description);
 
 		String fieldName = "information";
 		something.information.add("additional entry");
@@ -108,7 +108,7 @@ class EntityComparisonStrategyTest {
 		something.information.add("entry 1");
 		something.information.add("entry 2");
 
-		strategy.track(description, something);
+		strategy.track(something, description);
 
 		something.information.sort(Comparator.reverseOrder());
 
@@ -126,7 +126,7 @@ class EntityComparisonStrategyTest {
 		EntityComparisonStrategy strategy = new EntityComparisonStrategy();
 		Something something = new Something("oldValue");
 
-		strategy.track(description, something);
+		strategy.track(something, description);
 
 		String fieldName = "parentValue";
 		String newValue = "newValue";
@@ -145,8 +145,8 @@ class EntityComparisonStrategyTest {
 		Something something1 = new Something("oldValue");
 		Something something2 = new Something("oldValue");
 
-		strategy.track(description, something1);
-		strategy.track(description, something2);
+		strategy.track(something1, description);
+		strategy.track(something2, description);
 
 		String fieldName = "value";
 		String newValue1 = "newValue1";

@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.repository.support;
 import java.io.Serializable;
 
 import org.springframework.data.neo4j.core.NodeManager;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
@@ -37,6 +38,8 @@ public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID exten
 
 	private NodeManager nodeManager;
 
+	private Neo4jMappingContext neo4jMappingContext;
+
 	/**
 	 * Creates a new {@link TransactionalRepositoryFactoryBeanSupport} for the given repository interface.
 	 *
@@ -50,9 +53,13 @@ public class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID exten
 		this.nodeManager = nodeManager;
 	}
 
+	public void setNeo4jMappingContext(Neo4jMappingContext neo4jMappingContext) {
+		this.neo4jMappingContext = neo4jMappingContext;
+	}
+
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
-		return new Neo4jRepositoryFactory(nodeManager);
+		return new Neo4jRepositoryFactory(nodeManager, neo4jMappingContext);
 	}
 
 }

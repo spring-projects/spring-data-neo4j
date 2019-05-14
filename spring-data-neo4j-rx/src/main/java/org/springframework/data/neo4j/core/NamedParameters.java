@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.core;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 
@@ -38,13 +39,10 @@ final class NamedParameters {
 	 * Adds all of the values contained in {@code newParameters} to this list of named parameters.
 	 *
 	 * @param newParameters Additional parameters to add
-	 * @return This object
 	 * @throws IllegalStateException when any value in {@code newParameters} exists under the same name in the current parameters.
 	 */
-	NamedParameters addAll(Map<String, Object> newParameters) {
+	void addAll(Map<String, Object> newParameters) {
 		newParameters.forEach(this::add);
-
-		return this;
 	}
 
 	/**
@@ -52,10 +50,9 @@ final class NamedParameters {
 	 *
 	 * @param name  The name of the new parameter
 	 * @param value The value of the new parameter
-	 * @return This object
 	 * @throws IllegalStateException when a parameter with the given name already exists
 	 */
-	NamedParameters add(String name, Object value) {
+	void add(String name, Object value) {
 
 		if (this.parameters.containsKey(name)) {
 			Object previousValue = this.parameters.get(name);
@@ -67,7 +64,6 @@ final class NamedParameters {
 			));
 		}
 		this.parameters.put(name, value);
-		return this;
 	}
 
 	/**
@@ -75,5 +71,18 @@ final class NamedParameters {
 	 */
 	Map<String, Object> get() {
 		return Collections.unmodifiableMap(parameters);
+	}
+
+	public boolean isEmpty() {
+		return parameters.isEmpty();
+	}
+
+	@Override
+	public String toString() {
+		return parameters
+			.entrySet()
+			.stream()
+			.map(e -> String.format("%s: %s", e.getKey(), e.getValue()))
+			.collect(Collectors.joining(",", "params {", "}"));
 	}
 }

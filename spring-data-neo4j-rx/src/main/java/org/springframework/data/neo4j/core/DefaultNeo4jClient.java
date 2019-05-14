@@ -246,9 +246,15 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		private StatementResult runWith(AutoCloseableStatementRunner statementRunner) {
 			String statementTemplate = cypherSupplier.get();
+
 			if (cypherLog.isDebugEnabled()) {
-				cypherLog.debug(statementTemplate);
+				cypherLog.debug("Executing:{}{}", System.lineSeparator(), statementTemplate);
+
+				if (cypherLog.isTraceEnabled() && !parameters.isEmpty()) {
+					cypherLog.trace("with parameters:{}{}", System.lineSeparator(), parameters);
+				}
 			}
+
 			StatementResult result = statementRunner.run(statementTemplate, parameters.get());
 			return result;
 		}

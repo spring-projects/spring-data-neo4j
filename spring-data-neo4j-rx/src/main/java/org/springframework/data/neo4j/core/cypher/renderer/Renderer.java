@@ -21,10 +21,16 @@ package org.springframework.data.neo4j.core.cypher.renderer;
 import org.springframework.data.neo4j.core.cypher.Statement;
 
 /**
+ * Instances of this class are supposed to be threadsafe.
  * @author Michael J. Simons
  * @since 1.0
  */
 public interface Renderer {
 
+	/**
+	 * Renders a statement.
+	 * @param statement
+	 * @return
+	 */
 	String render(Statement statement);
 }

@@ -55,6 +55,16 @@ public class CypherTest {
 			}
 
 			@Test
+			void asterikShouldWork() {
+				Statement statement = Cypher.match(bikeNode, userNode, Cypher.node("U").named("o"))
+					.returning(Cypher.asterisk())
+					.build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo("MATCH (b:`Bike`), (u:`User`), (o:`U`) RETURN *");
+			}
+
+			@Test
 			void aliasedExpressionsInReturn() {
 				Node unnamedNode = Cypher.node("ANode");
 				Node namedNode = Cypher.node("AnotherNode").named("o");
@@ -248,6 +258,94 @@ public class CypherTest {
 					.isEqualTo(
 						"MATCH (u:`User`) RETURN u SKIP 1 LIMIT 1");
 			}
+
+			@Test
+			void distinct() {
+				Statement statement = Cypher.match(userNode).returningDistinct(userNode).skip(1).limit(1).build();
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo(
+						"MATCH (u:`User`) RETURN DISTINCT u SKIP 1 LIMIT 1");
+			}
+		}
+	}
+
+	@Nested
+	class SingleQueryMultiPart {
+		@Test
+		void simpleWith() {
+			Statement statement = Cypher
+				.match(userNode.relationshipTo(bikeNode, "OWNS"))
+				.where(userNode.property("a").isNull())
+				.with(bikeNode, userNode)
+				.returning(bikeNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (u:`User`)-[:`OWNS`]->(b:`Bike`) WHERE u.a IS NULL WITH b, u RETURN b");
+		}
+
+		@Test
+		void simpleWithChained() {
+
+			Node tripNode = Cypher.node("Trip").named("t");
+			Statement statement = Cypher
+				.match(userNode.relationshipTo(bikeNode, "OWNS"))
+				.where(userNode.property("a").isNull())
+				.with(bikeNode, userNode)
+				.match(tripNode)
+				.where(tripNode.property("name").isEqualTo(literalOf("Festive500")))
+				.with(tripNode)
+				.returning(bikeNode, userNode, tripNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (u:`User`)-[:`OWNS`]->(b:`Bike`) WHERE u.a IS NULL WITH b, u MATCH (t:`Trip`) WHERE t.name = 'Festive500' WITH t RETURN b, u, t");
+		}
+
+		@Test
+		void deletingSimpleWith() {
+			Statement statement = Cypher
+				.match(userNode.relationshipTo(bikeNode, "OWNS"))
+				.where(userNode.property("a").isNull())
+				.delete(userNode)
+				.with(bikeNode, userNode)
+				.returning(bikeNode, userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (u:`User`)-[:`OWNS`]->(b:`Bike`) WHERE u.a IS NULL DELETE u WITH b, u RETURN b, u");
+		}
+
+		@Test
+		void deletingSimpleWithReverse() {
+			Statement statement = Cypher
+				.match(userNode.relationshipTo(bikeNode, "OWNS"))
+				.where(userNode.property("a").isNull())
+				.with(bikeNode, userNode)
+				.delete(userNode)
+				.returning(bikeNode, userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (u:`User`)-[:`OWNS`]->(b:`Bike`) WHERE u.a IS NULL WITH b, u DELETE u RETURN b, u");
+		}
+
+		@Test
+		void mixedClausesWithWith() {
+
+			Node tripNode = Cypher.node("Trip").named("t");
+			Statement statement = Cypher
+				.match(userNode.relationshipTo(bikeNode, "OWNS"))
+				.match(tripNode)
+				.delete(tripNode)
+				.with(bikeNode, tripNode)
+				.match(userNode)
+				.with(bikeNode, userNode)
+				.returning(bikeNode, userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (u:`User`)-[:`OWNS`]->(b:`Bike`) MATCH (t:`Trip`) DELETE t WITH b, t MATCH (u) WITH b, u RETURN b, u");
 		}
 	}
 
@@ -310,8 +408,7 @@ public class CypherTest {
 		@Test
 		void optional() {
 			Statement statement = Cypher
-				.optional()
-				.match(bikeNode)
+				.optionalMatch(bikeNode)
 				.match(userNode, Cypher.node("U").named("o"))
 				.where(userNode.property("a").isNull())
 				.returning(bikeNode)
@@ -325,8 +422,7 @@ public class CypherTest {
 		void optionalNext() {
 			Statement statement = Cypher
 				.match(bikeNode)
-				.optional()
-				.match(userNode, Cypher.node("U").named("o"))
+				.optionalMatch(userNode, Cypher.node("U").named("o"))
 				.where(userNode.property("a").isNull())
 				.returning(bikeNode)
 				.build();
@@ -724,7 +820,7 @@ public class CypherTest {
 
 			Statement statement;
 			statement = Cypher.match(userNode)
-				.detach().delete(userNode)
+				.detachDelete(userNode)
 				.build();
 
 			assertThat(cypherRenderer.render(statement))
@@ -754,7 +850,7 @@ public class CypherTest {
 
 			Statement statement;
 			statement = Cypher.match(userNode)
-				.detach().delete(userNode)
+				.detachDelete(userNode)
 				.returning(userNode)
 				.build();
 
@@ -764,7 +860,7 @@ public class CypherTest {
 
 			statement = Cypher.match(userNode)
 				.where(userNode.property("a").isNotNull()).and(userNode.property("b").isNull())
-				.detach().delete(userNode)
+				.detachDelete(userNode)
 				.returning(userNode).orderBy(userNode.property("a").ascending()).skip(2).limit(1)
 				.build();
 
@@ -772,6 +868,15 @@ public class CypherTest {
 				.isEqualTo(
 					"MATCH (u:`User`) WHERE (u.a IS NOT NULL AND u.b IS NULL) DETACH DELETE u RETURN u ORDER BY u.a ASC SKIP 2 LIMIT 1");
 
+			statement = Cypher.match(userNode)
+				.where(userNode.property("a").isNotNull()).and(userNode.property("b").isNull())
+				.detachDelete(userNode)
+				.returningDistinct(userNode).orderBy(userNode.property("a").ascending()).skip(2).limit(1)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (u:`User`) WHERE (u.a IS NOT NULL AND u.b IS NULL) DETACH DELETE u RETURN DISTINCT u ORDER BY u.a ASC SKIP 2 LIMIT 1");
 		}
 
 		@Test
@@ -780,13 +885,30 @@ public class CypherTest {
 			Relationship r = n.relationshipBetween(anyNode()).named("r0");
 			Statement statement = Cypher
 				.match(n).where(n.internalId().isEqualTo(literalOf(4711)))
-				.optional().match(r)
+				.optionalMatch(r)
 				.delete(r, n)
 				.build();
 
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo(
 					"MATCH (n) WHERE id(n) = 4711 OPTIONAL MATCH (n)-[r0]-() DELETE r0, n");
+		}
+
+		@Test
+		void shouldRenderChainedDeletes() {
+			Node n = anyNode("n");
+			Relationship r = n.relationshipBetween(anyNode()).named("r0");
+			Statement statement = Cypher
+				.match(n).where(n.internalId().isEqualTo(literalOf(4711)))
+				.optionalMatch(r)
+				.delete(r, n)
+				.delete(bikeNode)
+				.detachDelete(userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (n) WHERE id(n) = 4711 OPTIONAL MATCH (n)-[r0]-() DELETE r0, n DELETE b DETACH DELETE u");
 		}
 	}
 
@@ -797,7 +919,7 @@ public class CypherTest {
 			Statement statement;
 			statement = Cypher.match(userNode)
 				.where(userNode.property("a").isEqualTo(parameter("aParameter")))
-				.detach().delete(userNode)
+				.detachDelete(userNode)
 				.returning(userNode)
 				.build();
 
