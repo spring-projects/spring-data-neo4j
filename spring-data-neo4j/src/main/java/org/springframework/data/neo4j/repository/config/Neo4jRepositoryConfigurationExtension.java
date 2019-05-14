@@ -59,6 +59,11 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 	 */
 	private String generatedNodeManagerBeanName;
 
+	/**
+	 * Holds the name of the shared Neo4j mapping context..
+	 */
+	private String generatedMappingContextBeanName;
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.config14.RepositoryConfigurationExtension#getRepositoryFactoryBeanClassName()
@@ -98,6 +103,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 			source.getAttribute("transactionManagerRef").orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
 
 		builder.addPropertyReference("nodeManager", this.generatedNodeManagerBeanName);
+		builder.addPropertyReference("neo4jMappingContext", this.generatedMappingContextBeanName);
 	}
 
 	@Override
@@ -108,7 +114,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		AbstractBeanDefinition neo4jMappingContextBeanDefinition = BeanDefinitionBuilder
 			.rootBeanDefinition(Neo4jMappingContext.class)
 			.getBeanDefinition();
-		String nameOfMappingContextBean = registerWithSourceAndGeneratedBeanName(
+		this.generatedMappingContextBeanName = registerWithSourceAndGeneratedBeanName(
 			neo4jMappingContextBeanDefinition, registry, config);
 
 		// Augmented node manager factory (creating injectable, shared instances of NodeManager that are aware of the mapping context).
@@ -117,7 +123,7 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		AbstractBeanDefinition sharedSessionCreatorBeanDefinition = BeanDefinitionBuilder
 			.rootBeanDefinition(NodeManagerFactoryBean.class)
 			.addConstructorArgReference(nameOfNodeManagerFactory)
-			.addConstructorArgReference(nameOfMappingContextBean)
+			.addConstructorArgReference(generatedMappingContextBeanName)
 			.getBeanDefinition();
 		this.generatedNodeManagerBeanName = registerWithSourceAndGeneratedBeanName(
 			sharedSessionCreatorBeanDefinition, registry, config);

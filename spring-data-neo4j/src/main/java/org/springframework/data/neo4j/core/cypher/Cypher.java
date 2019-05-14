@@ -56,29 +56,50 @@ public final class Cypher {
 	}
 
 	/**
+	 * @return The {@code *} wildcard literal.
+	 */
+	public static Asterisk asterisk() {
+		return Asterisk.INSTANCE;
+	}
+
+	/**
 	 * @return A node matching any node with the symbolic the given {@code symbolicName}.
 	 */
 	public static Node anyNode(String symbolicName) {
 		return Node.create().named(symbolicName);
 	}
 
+	public static Property property(String containerName, String name) {
+		return property(symbolicName(containerName), name);
+	}
+
+	public static Property property(SymbolicName containerName, String name) {
+		return Property.create(containerName, name);
+	}
+
+	public static SymbolicName symbolicName(String value) {
+		return new SymbolicName(value);
+	}
+
 	/**
-	 * Creates a new parameter placeholder.
-	 * @param name
-	 * @return
+	 * Creates a new parameter placeholder. Existing $-signs will be removed.
+	 *
+	 * @param name The name of the parameter, must not be null
+	 * @return The new parameter
 	 */
 	public static Parameter parameter(String name) {
-		return new Parameter(name);
+		return Parameter.create(name);
 	}
 
 	/**
 	 * Prepares an optional match statement.
 	 *
-	 * @return An optional match without any patterns yet.
+	 * @param pattern The patterns to match
+	 * @return An ongoing match that is used to specify an optional where and a required return clause
 	 */
-	public static ExposesMatch optional() {
+	public static ExposesMatch optionalMatch(PatternElement... pattern) {
 
-		return Statement.builder().optional();
+		return Statement.builder().optionalMatch(pattern);
 	}
 
 	/**
@@ -138,6 +159,20 @@ public final class Cypher {
 			return new NumberLiteral((Number) object);
 		}
 		return new ObjectLiteral(object);
+	}
+
+	/**
+	 * @return The {@literal true} literal.
+	 */
+	public static Literal literalTrue() {
+		return BooleanLiteral.TRUE;
+	}
+
+	/**
+	 * @return The {@literal false} literal.
+	 */
+	public static Literal literalFalse() {
+		return BooleanLiteral.FALSE;
 	}
 
 	/**

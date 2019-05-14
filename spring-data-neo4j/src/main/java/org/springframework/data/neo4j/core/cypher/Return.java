@@ -23,9 +23,7 @@ import org.springframework.data.neo4j.core.cypher.support.Visitable;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
- * The container or "body" for return items, order and optional skip and things.
- *
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/ReturnBody.html">ReturnBody</a>.
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/Return.html">Return</a>.
  *
  * @author Michael J. Simons
  * @since 1.0
@@ -33,32 +31,23 @@ import org.springframework.data.neo4j.core.cypher.support.Visitor;
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class Return implements Visitable {
 
-	private final ExpressionList returnItems;
+	private final boolean distinct;
 
-	private final Order order;
-	private final Skip skip;
-	private final Limit limit;
+	private final ReturnBody body;
 
-	Return(ExpressionList returnItems, Order order, Skip skip, Limit limit) {
-		this.returnItems = returnItems;
-		this.order = order;
-		this.skip = skip;
-		this.limit = limit;
+	Return(boolean distinct, ExpressionList returnItems, Order order, Skip skip, Limit limit) {
+		this.distinct = distinct;
+		this.body = new ReturnBody(returnItems, order, skip, limit);
+	}
+
+	public boolean isDistinct() {
+		return distinct;
 	}
 
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.enter(this);
-		returnItems.accept(visitor);
-		if (order != null) {
-			order.accept(visitor);
-		}
-		if (skip != null) {
-			skip.accept(visitor);
-		}
-		if (limit != null) {
-			limit.accept(visitor);
-		}
+		this.body.accept(visitor);
 		visitor.leave(this);
 	}
 }

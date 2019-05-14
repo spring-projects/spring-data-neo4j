@@ -29,11 +29,11 @@ import org.apiguardian.api.API;
 public interface StatementBuilder {
 
 	/**
-	 * See {@link Cypher#optional()}.
+	 * See {@link Cypher#optionalMatch(PatternElement...)}.
 	 *
 	 * @return
 	 */
-	ExposesMatch optional();
+	OngoingMatchWithoutWhere optionalMatch(PatternElement... pattern);
 
 	/**
 	 * See {@link Cypher#match(PatternElement...)}.
@@ -51,13 +51,6 @@ public interface StatementBuilder {
 	interface OngoingMatchWithoutWhere extends OngoingMatch, ExposesMatch {
 
 		/**
-		 * Marks the next match as optional match.
-		 *
-		 * @return A step exposing a {@link ExposesMatch#match(PatternElement...)} method for adding patterns to match.
-		 */
-		ExposesMatch optional();
-
-		/**
 		 * Adds a where clause to this match.
 		 *
 		 * @param condition The new condition
@@ -69,10 +62,10 @@ public interface StatementBuilder {
 	/**
 	 * A match that has a non-empty {@code where}-part. THe returning clause is still open.
 	 */
-	interface OngoingMatchWithWhere extends OngoingMatch, ExposesMatch {
+	interface OngoingMatchWithWhere extends OngoingMatch, ExposesMatch, ExposesConditions<OngoingMatchWithWhere> {
+	}
 
-		ExposesMatch optional();
-
+	interface ExposesConditions<T> {
 		/**
 		 * Adds an additional condition to the existing conditions, connected by an {@literal and}.
 		 * Existing conditions will be logically grouped by using {@code ()} in the statement if previous
@@ -81,7 +74,7 @@ public interface StatementBuilder {
 		 * @param condition An additional condition
 		 * @return The ongoing definition of a match
 		 */
-		OngoingMatchWithWhere and(Condition condition);
+		T and(Condition condition);
 
 		/**
 		 * Adds an additional condition to the existing conditions, connected by an {@literal or}.
@@ -91,27 +84,42 @@ public interface StatementBuilder {
 		 * @param condition An additional condition
 		 * @return The ongoing definition of a match
 		 */
-		OngoingMatchWithWhere or(Condition condition);
+		T or(Condition condition);
 	}
 
 	/**
 	 * A match that exposes {@code returning} and for which it is not decided whether the optional
 	 * where part has been used or note.
 	 */
-	interface OngoingMatch extends ExposesReturning, OngoingDetachDelete {
-
-		/**
-		 * Starts building a delete step that will use {@code DETACH} to remove relationships.
-		 *
-		 * @return An ongoing delete step that is used to specify things to be deleted.
-		 */
-		OngoingDetachDelete detach();
+	interface OngoingMatch extends ExposesReturning, ExposesWith, ExposesDelete {
 	}
 
 	/**
 	 * A match that knows what to return and which is ready to be build.
 	 */
 	interface OngoingMatchAndReturn extends ExposesOrderBy, ExposesSkip, ExposesLimit {
+	}
+
+	/**
+	 * A match that knows what to pipe to the next part of a multi part query.
+	 */
+	interface OngoingMatchAndWithWithoutWhere extends OngoingMatchAndWith {
+
+		/**
+		 * Adds a where clause to this match.
+		 *
+		 * @param condition The new condition
+		 * @return A match restricted by a where clause with no return items yet.
+		 */
+		OngoingMatchAndWithWithWhere where(Condition condition);
+	}
+
+	interface OngoingMatchAndWithWithWhere
+		extends OngoingMatchAndWith, ExposesConditions<OngoingMatchAndWithWithWhere> {
+	}
+
+	interface OngoingMatchAndWith
+		extends OngoingMatch, ExposesMatch, ExposesOrderBy, ExposesSkip, ExposesLimit, ExposesReturning {
 	}
 
 	interface OngoingMatchAndReturnWithOrder extends ExposesSkip, ExposesLimit {
@@ -156,6 +164,7 @@ public interface StatementBuilder {
 	}
 
 	interface ExposesReturning {
+
 		/**
 		 * Create a match that returns one or more expressions.
 		 *
@@ -163,10 +172,40 @@ public interface StatementBuilder {
 		 * @return A match that can be build now
 		 */
 		OngoingMatchAndReturn returning(Expression... expressions);
+
+		/**
+		 * Create a match that returns the distinct set of one or more expressions.
+		 *
+		 * @param expressions The expressions to be returned. Must not be null and be at least one expression.
+		 * @return A match that can be build now
+		 */
+		OngoingMatchAndReturn returningDistinct(Expression... expressions);
 	}
 
 	/**
-	 * A step that exposes several methods to speficy ordering.
+	 * A step that exposes the {@code WITH} clause.
+	 */
+	interface ExposesWith {
+
+		/**
+		 * Create a match that returns one or more expressions.
+		 *
+		 * @param expressions The expressions to be returned. Must not be null and be at least one expression.
+		 * @return A match that can be build now
+		 */
+		OngoingMatchAndWithWithoutWhere with(Expression... expressions);
+
+		/**
+		 * Create a match that returns the distinct set of one or more expressions.
+		 *
+		 * @param expressions The expressions to be returned. Must not be null and be at least one expression.
+		 * @return A match that can be build now
+		 */
+		OngoingMatchAndWithWithoutWhere withDistinct(Expression... expressions);
+	}
+
+	/**
+	 * A step that exposes several methods to specify ordering.
 	 */
 	interface ExposesOrderBy extends BuildableMatch {
 
@@ -220,7 +259,8 @@ public interface StatementBuilder {
 	/**
 	 * A step that exposes only the delete clause.
 	 */
-	interface OngoingDetachDelete {
+	interface ExposesDelete {
+
 		/**
 		 * Creates a delete step with one or more expressions to be deleted.
 		 *
@@ -228,6 +268,14 @@ public interface StatementBuilder {
 		 * @return A match with a delete clause that can be build now
 		 */
 		OngoingMatchAndDelete delete(Expression... expressions);
+
+		/**
+		 * Starts building a delete step that will use {@code DETACH} to remove relationships.
+		 *
+		 * @param expressions The expressions to be deleted.
+		 * @return A match with a delete clause that can be build now
+		 */
+		OngoingMatchAndDelete detachDelete(Expression... expressions);
 	}
 
 	/**
@@ -242,11 +290,19 @@ public interface StatementBuilder {
 		 * @return An ongoing match that is used to specify an optional where and a required return clause
 		 */
 		OngoingMatchWithoutWhere match(PatternElement... pattern);
+
+		/**
+		 * Adds another optional match clause.
+		 *
+		 * @param pattern The patterns to match
+		 * @return An ongoing match that is used to specify an optional where and a required return clause
+		 */
+		OngoingMatchWithoutWhere optionalMatch(PatternElement... pattern);
 	}
 
 	/**
 	 * A buildable step that will create a MATCH ... DELETE statement.
 	 */
-	interface OngoingMatchAndDelete extends BuildableMatch, ExposesReturning {
+	interface OngoingMatchAndDelete extends BuildableMatch, ExposesReturning, ExposesWith, ExposesDelete {
 	}
 }

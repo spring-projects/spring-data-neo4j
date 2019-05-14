@@ -59,12 +59,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 class RepositoryIT {
 	private static final String TEST_PERSON1_NAME = "Test";
 	private static final String TEST_PERSON2_NAME = "Test2";
-	private static final String TEST_PERSON1_FIRST_NAME = "A";
-	private static final String TEST_PERSON2_FIRST_NAME = "B";
+	private static final String TEST_PERSON1_FIRST_NAME = "Ernie";
+	private static final String TEST_PERSON2_FIRST_NAME = "Bert";
 	private static final String TEST_PERSON_SAMEVALUE = "SameValue";
 
 	static PersonWithAllConstructor personExample(String sameValue) {
-		return new PersonWithAllConstructor(null, null, null, sameValue);
+		return new PersonWithAllConstructor(null, null, null, sameValue, null);
 	}
 
 	private static Neo4jConnectionSupport neo4jConnectionSupport;
@@ -91,12 +91,14 @@ class RepositoryIT {
 		transaction.run("MATCH (n) detach delete n");
 
 		id1 = transaction.run(
-			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName return id(n)",
-			Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName", TEST_PERSON1_FIRST_NAME)
+			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool return id(n)",
+			Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+				TEST_PERSON1_FIRST_NAME, "cool", true)
 		).next().get(0).asLong();
 		id2 = transaction.run(
-			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName return id(n)",
-			Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName", TEST_PERSON2_FIRST_NAME)
+			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool return id(n)",
+			Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+				TEST_PERSON2_FIRST_NAME, "cool", false)
 		).next().get(0).asLong();
 		transaction.run("CREATE (n:PersonWithNoConstructor) SET n.name = $name, n.first_name = $firstName",
 			Values.parameters("name", TEST_PERSON1_NAME, "firstName", TEST_PERSON1_FIRST_NAME));
@@ -106,8 +108,10 @@ class RepositoryIT {
 		transaction.close();
 
 		// note that there is no id setting in the mapping right now
-		person1 = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE);
-		person2 = new PersonWithAllConstructor(null, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE);
+		person1 = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+			true);
+		person2 = new PersonWithAllConstructor(null, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+			false);
 	}
 
 	@Test
@@ -307,8 +311,100 @@ class RepositoryIT {
 
 	@Test
 	void findBySimpleProperty() {
-		assertThatExceptionOfType(UnsupportedOperationException.class)
-				.isThrownBy(() -> repository.findByName(TEST_PERSON1_NAME));
+
+		List<PersonWithAllConstructor> persons = repository.findAllBySameValue(TEST_PERSON_SAMEVALUE);
+		assertThat(persons).containsExactlyInAnyOrder(person1, person2);
+	}
+
+	@Test
+	void findBySimplePropertiesAnded() {
+
+		Optional<PersonWithAllConstructor> optionalPerson = repository.findOneByNameAndFirstName(TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME);
+		assertThat(optionalPerson).isPresent().contains(person1);
+	}
+
+	@Test
+	void findBySimplePropertiesOred() {
+
+		List<PersonWithAllConstructor> persons = repository.findAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME);
+		assertThat(persons).containsExactlyInAnyOrder(person1, person2);
+	}
+
+	@Test
+	void findByNegatedSimpleProperty() {
+
+		List<PersonWithAllConstructor> persons = repository.findAllByNameNot(TEST_PERSON1_NAME);
+		assertThat(persons).doesNotContain(person1);
+	}
+
+	@Test
+	void findByTrueAndFalse() {
+
+		List<PersonWithAllConstructor> coolPeople = repository.findAllByCoolTrue();
+		List<PersonWithAllConstructor> theRest = repository.findAllByCoolFalse();
+		assertThat(coolPeople).doesNotContain(person2);
+		assertThat(theRest).doesNotContain(person1);
+	}
+
+	@Test
+	void findByLike() {
+
+		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameLike("Ern");
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+	}
+
+	@Test
+	void findByMatches() {
+
+		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameMatches("(?i)ern.*");
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+	}
+
+	@Test
+	void findByNotLike() {
+
+		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameNotLike("Ern");
+		assertThat(persons).doesNotContain(person1);
+	}
+
+	@Test
+	void findByStartingWith() {
+
+		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameStartingWith("Er");
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+	}
+
+	@Test
+	void findByContaining() {
+
+		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameContaining("ni");
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+	}
+
+	@Test
+	void findByNotContaining() {
+
+		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameNotContaining("ni");
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person2);
+	}
+
+	@Test
+	void findByEndingWith() {
+
+		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameContaining("nie");
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
 	}
 
 	@Configuration

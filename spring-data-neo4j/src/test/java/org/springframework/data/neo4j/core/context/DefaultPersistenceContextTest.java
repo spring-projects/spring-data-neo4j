@@ -28,6 +28,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.neo4j.core.context.tracking.EntityTrackingStrategy;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.NodeDescription;
+import org.springframework.data.neo4j.core.schema.Schema;
 
 /**
  * @author Gerrit Meier
@@ -35,6 +37,7 @@ import org.springframework.data.neo4j.core.schema.Id;
  */
 class DefaultPersistenceContextTest {
 
+	private Schema schema;
 	private PersistenceContext context;
 	private EntityTrackingStrategy entityTrackingStrategy;
 
@@ -44,12 +47,13 @@ class DefaultPersistenceContextTest {
 		when(entityTrackingStrategy.getObjectIdentifier(any()))
 				.thenAnswer(invocation -> System.identityHashCode(invocation.getArguments()[0]));
 
-		Neo4jMappingContext schema = new Neo4jMappingContext();
-		schema.setInitialEntitySet(new HashSet<Class<?>>(Arrays.asList(Something.class)));
-		schema.initialize();
+		Neo4jMappingContext mappingContext = new Neo4jMappingContext();
+		mappingContext.setInitialEntitySet(new HashSet<Class<?>>(Arrays.asList(Something.class)));
+		mappingContext.initialize();
+		schema = mappingContext;
 
 		// override method to return a verifiable mock
-		context = new DefaultPersistenceContext(schema) {
+		context = new DefaultPersistenceContext() {
 			@Override
 			EntityTrackingStrategy getEntityTrackingStrategy() {
 				return entityTrackingStrategy;
@@ -59,35 +63,46 @@ class DefaultPersistenceContextTest {
 
 	@Test
 	void registerAddsEntityToTrackingStrategy() {
-		context.register(new Something());
+
+		NodeDescription<?> nodeDescription = schema.getRequiredNodeDescription(Something.class);
+
+		context.register(new Something(), nodeDescription);
 
 		verify(entityTrackingStrategy).track(any(), any());
 	}
 
 	@Test
 	void registerTheSameObjectMultipleTimesCallsTrackJustOnce() {
+
+		NodeDescription<?> nodeDescription = schema.getRequiredNodeDescription(Something.class);
 		Something entity = new Something();
-		context.register(entity);
-		context.register(entity);
+
+		context.register(entity, nodeDescription);
+		context.register(entity, nodeDescription);
 
 		verify(entityTrackingStrategy).track(any(), any());
 	}
 
 	@Test
 	void registerTwoObjectOfTheSameTypeCallsTrackTwice() {
+
+		NodeDescription<?> nodeDescription = schema.getRequiredNodeDescription(Something.class);
 		Something entity1 = new Something();
 		Something entity2 = new Something();
 
-		context.register(entity1);
-		context.register(entity2);
+		context.register(entity1, nodeDescription);
+		context.register(entity2, nodeDescription);
 
 		verify(entityTrackingStrategy, times(2)).track(any(), any());
 	}
 
 	@Test
 	void triggersDeltaCalculationOnDeltaCall() {
+
+		NodeDescription<?> nodeDescription = schema.getRequiredNodeDescription(Something.class);
 		Something entity = new Something();
-		context.register(entity);
+
+		context.register(entity, nodeDescription);
 		context.getEntityChanges(entity);
 
 		verify(entityTrackingStrategy).getAggregatedEntityChangeEvents(entity);
@@ -95,9 +110,11 @@ class DefaultPersistenceContextTest {
 
 	@Test
 	void deregisterRemovesEntityFromTracking() {
-		Something entity = new Something();
-		context.register(entity);
 
+		NodeDescription<?> nodeDescription = schema.getRequiredNodeDescription(Something.class);
+		Something entity = new Something();
+
+		context.register(entity, nodeDescription);
 		context.deregister(entity);
 
 		verify(entityTrackingStrategy).untrack(entity);

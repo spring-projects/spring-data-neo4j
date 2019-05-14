@@ -59,7 +59,7 @@ class FunctionsTest {
 		@Test
 		void preconditionsShouldBeAsserted() {
 
-			assertThatIllegalArgumentException().isThrownBy(() -> Functions.coalesce(null))
+			assertThatIllegalArgumentException().isThrownBy(() -> Functions.coalesce((Expression[]) null))
 				.withMessage("At least one expression is required.");
 
 			assertThatIllegalArgumentException().isThrownBy(() -> Functions.coalesce(new Expression[0]))

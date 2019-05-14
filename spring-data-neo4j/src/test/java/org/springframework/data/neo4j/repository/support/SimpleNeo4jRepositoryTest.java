@@ -26,6 +26,7 @@ import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.neo4j.core.NodeManager;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.IdDescription;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -39,6 +40,8 @@ class SimpleNeo4jRepositoryTest {
 
 	private NodeManager nodeManager;
 
+	private Neo4jMappingContext mappingContext;
+
 	private NodeDescription nodeDescription;
 
 	private SimpleNeo4jRepository<TestNode, Long> repository;
@@ -50,8 +53,10 @@ class SimpleNeo4jRepositoryTest {
 		nodeDescription = mock(NodeDescription.class);
 		when(nodeDescription.getPrimaryLabel()).thenReturn("TestNode");
 		when(nodeDescription.getIdDescription()).thenReturn(new IdDescription());
-		when(nodeManager.describe(TestNode.class)).thenReturn(nodeDescription);
-		repository = new SimpleNeo4jRepository(this.nodeManager, TestNode.class);
+
+		mappingContext = mock(Neo4jMappingContext.class);
+		when(mappingContext.getRequiredNodeDescription(TestNode.class)).thenReturn(nodeDescription);
+		repository = new SimpleNeo4jRepository(this.nodeManager, this.mappingContext, TestNode.class);
 	}
 
 	@Test

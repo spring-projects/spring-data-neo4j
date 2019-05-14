@@ -19,6 +19,7 @@
 package org.springframework.data.neo4j.core.cypher;
 
 import org.apiguardian.api.API;
+import org.springframework.util.Assert;
 
 /**
  * Represents a named parameter inside a Cypher statement.
@@ -31,7 +32,18 @@ public final class Parameter implements Expression {
 
 	private final String name;
 
-	Parameter(String name) {
+	static Parameter create(String name) {
+
+		Assert.hasText(name, "The name of the parameter is required!");
+
+		if (name.startsWith("$")) {
+			return create(name.substring(1));
+		}
+
+		return new Parameter(name);
+	}
+
+	private Parameter(String name) {
 		this.name = name;
 	}
 

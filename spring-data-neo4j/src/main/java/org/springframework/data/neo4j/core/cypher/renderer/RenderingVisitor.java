@@ -137,6 +137,20 @@ class RenderingVisitor extends ReflectiveVisitor {
 
 	void enter(Return returning) {
 		builder.append("RETURN ");
+		if (returning.isDistinct()) {
+			builder.append("DISTINCT ");
+		}
+	}
+
+	void enter(With with) {
+		builder.append("WITH ");
+		if (with.isDistinct()) {
+			builder.append("DISTINCT ");
+		}
+	}
+
+	void leave(With with) {
+		builder.append(" ");
 	}
 
 	void enter(Delete delete) {
@@ -174,9 +188,8 @@ class RenderingVisitor extends ReflectiveVisitor {
 			.append(direction.getSymbol());
 	}
 
-	void enter(Property property) {
+	void leave(Property property) {
 		builder
-			.append(property.getParentAlias())
 			.append(".")
 			.append(property.getName());
 	}
@@ -197,6 +210,21 @@ class RenderingVisitor extends ReflectiveVisitor {
 			.append(" ")
 			.append(comparison.getComparator())
 			.append(" ");
+	}
+
+	void enter(Operation operation) {
+		builder.append("(");
+	}
+
+	void enter(Operator operator) {
+		builder
+			.append(" ")
+			.append(operator.getRepresentation())
+			.append(" ");
+	}
+
+	void leave(Operation operation) {
+		builder.append(")");
 	}
 
 	void leave(IsNull isNull) {

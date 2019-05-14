@@ -24,6 +24,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.apiguardian.api.API;
 import org.springframework.data.annotation.QueryAnnotation;
 
 /**
@@ -32,11 +33,13 @@ import org.springframework.data.annotation.QueryAnnotation;
  * parameters will get bound to the arguments of the annotated method.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @QueryAnnotation
 @Documented
+@API(status = API.Status.STABLE, since = "1.0")
 public @interface Query {
 
 	/**
@@ -53,4 +56,10 @@ public @interface Query {
 	 * @return whether the query defined should be executed as exists projection.
 	 */
 	boolean exists() default false;
+
+
+	/**
+	 * @return whether the query defined should be used to delete nodes or relationships.
+	 */
+	boolean delete() default false;
 }

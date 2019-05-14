@@ -16,26 +16,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.query;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package org.springframework.data.neo4j.core.cypher;
 
 import org.apiguardian.api.API;
+import org.springframework.data.neo4j.core.cypher.support.Visitable;
 
 /**
- * Specialized version of {@link Query} whose values is always used as exists projection.
+ * An operator
  *
  * @author Michael J. Simons
  * @since 1.0
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
-@Documented
-@Query(exists = true)
-@API(status = API.Status.STABLE, since = "1.0")
-public @interface ExistsQuery {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public enum Operator implements Visitable {
+
+	/**
+	 * The {@code +} operator.
+	 */
+	PLUS("+");
+
+	private final String representation;
+
+	Operator(String representation) {
+		this.representation = representation;
+	}
+
+	public String getRepresentation() {
+		return representation;
+	}
 }

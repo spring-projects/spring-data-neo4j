@@ -19,6 +19,7 @@
 package org.springframework.data.neo4j.core.cypher;
 
 import org.apiguardian.api.API;
+import org.springframework.data.neo4j.core.cypher.support.Visitor;
 import org.springframework.util.Assert;
 
 /**
@@ -36,36 +37,43 @@ public final class Property implements Expression {
 			"A property derived from a node needs a parent with a symbolic name.");
 		Assert.hasText(name, "The properties name is required.");
 
-		return new Property(parentContainer, name);
+		return new Property(parentContainer.getSymbolicName().get(), name);
+	}
+
+	static Property create(SymbolicName containerName, String name) {
+
+		Assert.notNull(containerName, "The property containers name is required.");
+		Assert.hasText(name, "The properties name is required.");
+
+		return new Property(containerName, name);
+
 	}
 
 	/**
-	 * The property container this property belongs to.
+	 * The symbolic name of the parent container.
 	 */
-	private final Node parentContainer;
+	private final SymbolicName containerName;
 
 	/**
 	 * The name of this property.
 	 */
 	private final String name;
 
-	Property(Node parentContainer, String name) {
+	Property(SymbolicName containerName, String name) {
 
-		this.parentContainer = parentContainer;
+		this.containerName = containerName;
 		this.name = name;
-	}
-
-	public String getParentAlias() {
-		return parentContainer.getSymbolicName().get().getName();
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public Condition matches(String s) {
-
-		return Conditions.matches(this, Cypher.literalOf(s));
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.enter(this);
+		this.containerName.accept(visitor);
+		visitor.leave(this);
 	}
 
 	/**

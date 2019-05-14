@@ -16,26 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.query;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package org.springframework.data.neo4j.core;
 
 import org.apiguardian.api.API;
+import org.springframework.data.neo4j.core.PersistenceException.IllegalResultSizeException;
 
 /**
- * Specialized version of {@link Query} whose values is always used as exists projection.
+ * Throw when a query doesn't return a required result.
  *
  * @author Michael J. Simons
+ * @soundtrack Deichkind - Niveau weshalb warum
  * @since 1.0
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
-@Documented
-@Query(exists = true)
 @API(status = API.Status.STABLE, since = "1.0")
-public @interface ExistsQuery {
+public class NoResultException extends IllegalResultSizeException {
+
+	NoResultException(long expectedNumberOfResults, String query) {
+		super(expectedNumberOfResults, 0L, query);
+	}
 }

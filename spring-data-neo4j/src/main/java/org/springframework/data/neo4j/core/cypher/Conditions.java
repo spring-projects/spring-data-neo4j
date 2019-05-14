@@ -45,6 +45,28 @@ public final class Conditions {
 	}
 
 	/**
+	 * Creates a condition that matches if both expressions are equals according to {@code =}.
+	 *
+	 * @param lhs The left hand side of the comparision
+	 * @param rhs The right hand side of the comparision
+	 * @return An "equals" comparision
+	 */
+	static Condition isEqualTo(Expression lhs, Expression rhs) {
+		return Comparison.create(lhs, "=", rhs);
+	}
+
+	/**
+	 * Creates a condition that matches if both expressions are equals according to {@code <>}.
+	 *
+	 * @param lhs The left hand side of the comparision
+	 * @param rhs The right hand side of the comparision
+	 * @return An "not equals" comparision
+	 */
+	static Condition isNotEqualTo(Expression lhs, Expression rhs) {
+		return Comparison.create(lhs, "<>", rhs);
+	}
+
+	/**
 	 * Negates the given condition.
 	 *
 	 * @param condition The condition to negate. Must not be null.
@@ -54,6 +76,39 @@ public final class Conditions {
 
 		Assert.notNull(condition, "Condition to negate must not be null.");
 		return condition.not();
+	}
+
+	/**
+	 * Creates a condition that checks whether the {@code lhs} starts with the {@code rhs}.
+	 *
+	 * @param lhs The left hand side of the comparision
+	 * @param rhs The right hand side of the comparision
+	 * @return A new condition.
+	 */
+	static Condition startsWith(Expression lhs, Expression rhs) {
+		return Comparison.create(lhs, "STARTS WITH", rhs);
+	}
+
+	/**
+	 * Creates a condition that checks whether the {@code lhs} contains with the {@code rhs}.
+	 *
+	 * @param lhs The left hand side of the comparision
+	 * @param rhs The right hand side of the comparision
+	 * @return A new condition.
+	 */
+	static Condition contains(Expression lhs, Expression rhs) {
+		return Comparison.create(lhs, "CONTAINS", rhs);
+	}
+
+	/**
+	 * Creates a condition that checks whether the {@code lhs} ends with the {@code rhs}.
+	 *
+	 * @param lhs The left hand side of the comparision
+	 * @param rhs The right hand side of the comparision
+	 * @return A new condition.
+	 */
+	static Condition endsWith(Expression lhs, Expression rhs) {
+		return Comparison.create(lhs, "ENDS WITH", rhs);
 	}
 
 	/**
@@ -67,11 +122,23 @@ public final class Conditions {
 		return CompoundCondition.empty();
 	}
 
+	/**
+	 * Creates a condition that checks whether the {@code expression} is {@literal null}.
+	 *
+	 * @param expression The expression to check for {@literal null}
+	 * @return A new condition.
+	 */
 	static Condition isNull(Expression expression) {
 
 		return IsNull.create(expression, false);
 	}
 
+	/**
+	 * Creates a condition that checks whether the {@code expression} is not {@literal null}.
+	 *
+	 * @param expression The expression to check for {@literal null}
+	 * @return A new condition.
+	 */
 	static Condition isNotNull(Expression expression) {
 
 		return IsNull.create(expression, true);

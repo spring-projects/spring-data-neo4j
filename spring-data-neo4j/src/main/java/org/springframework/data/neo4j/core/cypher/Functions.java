@@ -60,6 +60,13 @@ public final class Functions {
 		return new FunctionInvocation(F_ID, relationship);
 	}
 
+	public static FunctionInvocation id(SymbolicName symbolicName) {
+
+		Assert.notNull(symbolicName, "The symbolic name is required.");
+
+		return new FunctionInvocation(F_ID, symbolicName);
+	}
+
 	/**
 	 * Creates a function invocation for the {@code count()} function.
 	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/aggregating/#functions-count">count</a>.

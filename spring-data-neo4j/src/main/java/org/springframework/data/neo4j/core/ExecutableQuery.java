@@ -16,26 +16,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.query;
+package org.springframework.data.neo4j.core;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.List;
+import java.util.Optional;
 
 import org.apiguardian.api.API;
 
 /**
- * Specialized version of {@link Query} whose values is always used as exists projection.
+ * Interface for controlling query execution.
  *
+ * @param <T> The type of the objects returned by this query.
  * @author Michael J. Simons
+ * @soundtrack Deichkind - Niveau weshalb warum
  * @since 1.0
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
-@Documented
-@Query(exists = true)
 @API(status = API.Status.STABLE, since = "1.0")
-public @interface ExistsQuery {
+public interface ExecutableQuery<T> {
+
+	/**
+	 * @return All results returned by this query.
+	 */
+	List<T> getResults();
+
+	/**
+	 * @return A single result
+	 * @throws NonUniqueResultException
+	 */
+	Optional<T> getSingleResult();
+
+	/**
+	 * @return A single result
+	 * @throws NonUniqueResultException
+	 * @throws NoResultException
+	 */
+	T getRequiredSingleResult();
 }

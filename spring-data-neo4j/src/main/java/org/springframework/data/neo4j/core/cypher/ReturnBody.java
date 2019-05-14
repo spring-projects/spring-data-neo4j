@@ -18,48 +18,40 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apiguardian.api.API;
-import org.springframework.data.neo4j.core.cypher.Statement.SingleQuery;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/SinglePartQuery.html">SinglePartQuery</a>.
+ * The container or "body" for return items, order and optional skip and things.
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/ReturnBody.html">ReturnBody</a>
  *
  * @author Michael J. Simons
+ * @soundtrack Ferris MC - Ferris MC's Audiobiographie
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public final class SinglePartQuery implements SingleQuery {
+public final class ReturnBody implements Visitable {
 
-	private final List<Visitable> precedingClauses;
+	private final ExpressionList returnItems;
 
-	@Nullable private final Return aReturn;
+	@Nullable private final Order order;
+	@Nullable private final Skip skip;
+	@Nullable private final Limit limit;
 
-	static SinglePartQuery create(List<Visitable> precedingClauses, @Nullable Return aReturn) {
-
-		if (precedingClauses.isEmpty() || precedingClauses.get(precedingClauses.size() - 1) instanceof Match) {
-			Assert.notNull(aReturn, "A return clause is required.");
-		}
-
-		return new SinglePartQuery(precedingClauses, aReturn);
-	}
-
-	private SinglePartQuery(List<Visitable> precedingClauses, @Nullable Return aReturn) {
-
-		this.precedingClauses = new ArrayList(precedingClauses);
-		this.aReturn = aReturn;
+	ReturnBody(ExpressionList returnItems, @Nullable Order order, @Nullable Skip skip, @Nullable Limit limit) {
+		this.returnItems = returnItems;
+		this.order = order;
+		this.skip = skip;
+		this.limit = limit;
 	}
 
 	@Override
 	public void accept(Visitor visitor) {
-
-		precedingClauses.forEach(c -> c.accept(visitor));
-		Visitable.visitIfNotNull(aReturn, visitor);
+		returnItems.accept(visitor);
+		Visitable.visitIfNotNull(order, visitor);
+		Visitable.visitIfNotNull(skip, visitor);
+		Visitable.visitIfNotNull(limit, visitor);
 	}
 }

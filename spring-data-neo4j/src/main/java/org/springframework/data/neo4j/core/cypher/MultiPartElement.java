@@ -19,47 +19,40 @@
 package org.springframework.data.neo4j.core.cypher;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import org.apiguardian.api.API;
-import org.springframework.data.neo4j.core.cypher.Statement.SingleQuery;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/SinglePartQuery.html">SinglePartQuery</a>.
- *
  * @author Michael J. Simons
+ * @soundtrack Deichkind - Bitte ziehen Sie durch
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
-public final class SinglePartQuery implements SingleQuery {
-
+class MultiPartElement implements Visitable {
 	private final List<Visitable> precedingClauses;
 
-	@Nullable private final Return aReturn;
+	private final With with;
 
-	static SinglePartQuery create(List<Visitable> precedingClauses, @Nullable Return aReturn) {
+	MultiPartElement(@Nullable List<Visitable> precedingClauses, With with) {
 
-		if (precedingClauses.isEmpty() || precedingClauses.get(precedingClauses.size() - 1) instanceof Match) {
-			Assert.notNull(aReturn, "A return clause is required.");
+		if (precedingClauses == null || precedingClauses.isEmpty()) {
+			this.precedingClauses = Collections.emptyList();
+		} else {
+			this.precedingClauses = new ArrayList<>(precedingClauses);
 		}
 
-		return new SinglePartQuery(precedingClauses, aReturn);
-	}
-
-	private SinglePartQuery(List<Visitable> precedingClauses, @Nullable Return aReturn) {
-
-		this.precedingClauses = new ArrayList(precedingClauses);
-		this.aReturn = aReturn;
+		this.with = with;
 	}
 
 	@Override
 	public void accept(Visitor visitor) {
 
+		visitor.enter(this);
 		precedingClauses.forEach(c -> c.accept(visitor));
-		Visitable.visitIfNotNull(aReturn, visitor);
+		with.accept(visitor);
+		visitor.leave(this);
 	}
 }
