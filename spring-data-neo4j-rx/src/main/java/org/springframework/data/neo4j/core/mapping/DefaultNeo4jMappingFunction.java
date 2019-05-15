@@ -38,7 +38,6 @@ import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.model.ParameterValueProvider;
-import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 
 /**
@@ -72,7 +71,7 @@ class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Record, T
 			Optional<Node> optionalRootNode = nodes.stream()
 				.filter(node -> node.hasLabel(nodeDescription.getPrimaryLabel())).findFirst();
 
-			return optionalRootNode.map(value -> {
+			return optionalRootNode.map(rootNode -> {
 				PreferredConstructor<T, Neo4jPersistentProperty> persistenceConstructor = nodeDescription
 					.getPersistenceConstructor();
 
@@ -83,13 +82,9 @@ class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Record, T
 						@Override
 						public Object getParameterValue(PreferredConstructor.Parameter parameter) {
 
-							boolean isInternalIdProperty = isInternalIdProperty(parameter);
-							if (isInternalIdProperty) {
-								return record.get(NodeDescription.NAME_OF_INTERNAL_ID, value.id());
-							} else {
-								String graphPropertyName = getGraphPropertyNameFor(parameter);
-								return getValueFor(graphPropertyName, value);
-							}
+							Neo4jPersistentProperty matchingProperty = nodeDescription
+								.getRequiredPersistentProperty(parameter.getName());
+							return extractValueOf(matchingProperty, record, rootNode);
 						}
 					});
 
@@ -100,8 +95,8 @@ class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Record, T
 							return;
 						}
 
-						String graphPropertyName = property.getPropertyName();
-						propertyAccessor.setProperty(property, getValueFor(graphPropertyName, value));
+						Object value = extractValueOf(property, record, rootNode);
+						propertyAccessor.setProperty(property, value);
 					});
 					instance = propertyAccessor.getBean();
 				}
@@ -114,34 +109,15 @@ class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Record, T
 		} catch (Exception e) {
 			throw new MappingException("Error mapping " + record.toString(), e);
 		}
-
 	}
 
-	/**
-	 * Extracts the name of the graph property for a field and also for a constructor parameter. The {@link NodeDescription} should
-	 * contain property descriptions for all fields, but may not contain a description for a constructor parameter if the parameter
-	 * has a different name than the field. In this case the name itself is returned.
-	 * <p/>
-	 * Otherwise the name of the property in the graph will be returned.
-	 *
-	 * @param parameter The constructor parameter for which the property name is needed
-	 * @return The name of the graph property or the name of {@code parameter} if a corresponding property was not found
-	 */
-	String getGraphPropertyNameFor(PreferredConstructor.Parameter parameter) {
-		return nodeDescription
-			.getGraphProperty(parameter.getName())
-			.map(GraphPropertyDescription::getPropertyName)
-			.orElse(parameter.getName());
-	}
-
-	/**
-	 * @param parameter
-	 * @return True if the given parameter fits the internal id property.
-	 */
-	Boolean isInternalIdProperty(PreferredConstructor.Parameter parameter) {
-
-		return nodeDescription.useInternalIds() && nodeDescription.getRequiredIdProperty().getFieldName()
-			.equals(parameter.getName());
+	Object extractValueOf(Neo4jPersistentProperty property, Record record, Entity propertyContainer) {
+		if (property.isInternalIdProperty()) {
+			return record.get(NodeDescription.NAME_OF_INTERNAL_ID, propertyContainer.id());
+		} else {
+			String graphPropertyName = property.getPropertyName();
+			return getValueFor(graphPropertyName, propertyContainer);
+		}
 	}
 
 	Object getValueFor(String graphProperty, Entity from) {

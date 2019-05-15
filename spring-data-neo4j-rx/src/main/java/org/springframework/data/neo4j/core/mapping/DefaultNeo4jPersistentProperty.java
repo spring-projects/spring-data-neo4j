@@ -95,4 +95,10 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	public String getPropertyName() {
 		return this.graphPropertyName.get().orElseThrow(() -> new MappingException("This property is not mapped to a Graph property!"));
 	}
+
+	@Override
+	public boolean isInternalIdProperty() {
+
+		return this.isIdProperty() && ((Neo4jPersistentEntity) this.getOwner()).useInternalIds();
+	}
 }

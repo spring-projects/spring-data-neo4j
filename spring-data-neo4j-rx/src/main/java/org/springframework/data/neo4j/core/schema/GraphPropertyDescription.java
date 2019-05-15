@@ -48,4 +48,9 @@ public interface GraphPropertyDescription {
 	 * @return True if this property is the id property.
 	 */
 	boolean isIdProperty();
+
+	/**
+	 * @return True, if this property is the id property and the owner uses internal ids.
+	 */
+	boolean isInternalIdProperty();
 }
