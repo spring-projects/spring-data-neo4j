@@ -98,7 +98,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 
 		Statement statement = mappingContext
 			.prepareMatchOf(nodeDescription, Optional.of(condition))
-			.returning(Cypher.symbolicName("n"))
+			.returning(Cypher.asterisk())
 			.build();
 
 		return CypherRenderer.create().render(statement);

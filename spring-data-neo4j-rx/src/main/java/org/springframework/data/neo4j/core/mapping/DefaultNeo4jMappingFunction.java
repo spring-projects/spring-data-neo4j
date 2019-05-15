@@ -18,13 +18,20 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import static java.util.stream.Collectors.*;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
+import org.neo4j.driver.types.Entity;
+import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.convert.EntityInstantiators;
 import org.springframework.data.mapping.MappingException;
@@ -55,51 +62,59 @@ class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Record, T
 	public T apply(TypeSystem typeSystem, Record record) {
 
 		try {
+			Predicate<Value> isNode = v -> v.hasType(typeSystem.NODE());
+			List<Node> nodes = record.values().stream().filter(isNode).map(Value::asNode).collect(toList());
 
-			for (Value value : record.values()) {
-				// todo
-				// 1. determine type of returned value: node or relationship
-				// 2. find most fitting label value.asNode().labels().forEach();
-				// strictly assume just to work with nodes for now and every matching type label is the root node
-				if (value.asNode().hasLabel(nodeDescription.getPrimaryLabel())) {
+			// todo
+			// 1. determine type of returned value: node or relationship
+			// 2. find most fitting label value.asNode().labels().forEach();
+			// For now strictly assume just to work with nodes for now and every matching type label is the root node
+			Optional<Node> optionalRootNode = nodes.stream()
+				.filter(node -> node.hasLabel(nodeDescription.getPrimaryLabel())).findFirst();
 
-					PreferredConstructor<T, Neo4jPersistentProperty> persistenceConstructor = nodeDescription
-						.getPersistenceConstructor();
+			return optionalRootNode.map(value -> {
+				PreferredConstructor<T, Neo4jPersistentProperty> persistenceConstructor = nodeDescription
+					.getPersistenceConstructor();
 
-					// todo: neo4jPersistentEntity.requiresPropertyPopulation()
+				// todo: neo4jPersistentEntity.requiresPropertyPopulation()
 
-					T instance = instantiators.getInstantiatorFor(nodeDescription).createInstance(nodeDescription,
-						new ParameterValueProvider<Neo4jPersistentProperty>() {
-							@Override
-							public Object getParameterValue(PreferredConstructor.Parameter parameter) {
+				T instance = instantiators.getInstantiatorFor(nodeDescription).createInstance(nodeDescription,
+					new ParameterValueProvider<Neo4jPersistentProperty>() {
+						@Override
+						public Object getParameterValue(PreferredConstructor.Parameter parameter) {
 
+							boolean isInternalIdProperty = isInternalIdProperty(parameter);
+							if (isInternalIdProperty) {
+								return record.get(NodeDescription.NAME_OF_INTERNAL_ID, value.id());
+							} else {
 								String graphPropertyName = getGraphPropertyNameFor(parameter);
 								return getValueFor(graphPropertyName, value);
 							}
-						});
+						}
+					});
 
-					PersistentPropertyAccessor<T> propertyAccessor = nodeDescription.getPropertyAccessor(instance);
-					if (nodeDescription.requiresPropertyPopulation()) {
-						nodeDescription.doWithProperties((Neo4jPersistentProperty property) -> {
-							if (persistenceConstructor.isConstructorParameter(property)) {
-								return;
-							}
+				PersistentPropertyAccessor<T> propertyAccessor = nodeDescription.getPropertyAccessor(instance);
+				if (nodeDescription.requiresPropertyPopulation()) {
+					nodeDescription.doWithProperties((Neo4jPersistentProperty property) -> {
+						if (persistenceConstructor.isConstructorParameter(property)) {
+							return;
+						}
 
-							String graphPropertyName = property.getPropertyName();
-							propertyAccessor.setProperty(property, getValueFor(graphPropertyName, value));
-						});
-						instance = propertyAccessor.getBean();
-					}
-
-					return instance;
+						String graphPropertyName = property.getPropertyName();
+						propertyAccessor.setProperty(property, getValueFor(graphPropertyName, value));
+					});
+					instance = propertyAccessor.getBean();
 				}
-			}
+
+				return instance;
+			}).orElseGet(() -> {
+				log.warn("Could not find mappable nodes or relationships inside {} for {}", record, nodeDescription);
+				return null;
+			});
 		} catch (Exception e) {
 			throw new MappingException("Error mapping " + record.toString(), e);
 		}
 
-		log.warn("Could not find mappable nodes or relationships inside {} for {}", record, nodeDescription);
-		return null;
 	}
 
 	/**
@@ -119,7 +134,17 @@ class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Record, T
 			.orElse(parameter.getName());
 	}
 
-	Object getValueFor(String graphProperty, Value from) {
+	/**
+	 * @param parameter
+	 * @return True if the given parameter fits the internal id property.
+	 */
+	Boolean isInternalIdProperty(PreferredConstructor.Parameter parameter) {
+
+		return nodeDescription.useInternalIds() && nodeDescription.getRequiredIdProperty().getFieldName()
+			.equals(parameter.getName());
+	}
+
+	Object getValueFor(String graphProperty, Entity from) {
 
 		// TODO conversion, Type system
 		return from.get(graphProperty).asObject();

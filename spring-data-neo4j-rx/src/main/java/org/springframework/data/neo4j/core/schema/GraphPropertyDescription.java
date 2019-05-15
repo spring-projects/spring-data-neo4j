@@ -43,4 +43,9 @@ public interface GraphPropertyDescription {
 	 * @return The name of the property as stored in the graph.
 	 */
 	String getPropertyName();
+
+	/**
+	 * @return True if this property is the id property.
+	 */
+	boolean isIdProperty();
 }
