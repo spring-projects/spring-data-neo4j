@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Range;
@@ -205,6 +206,51 @@ class RepositoryIT {
 		Iterable<PersonWithAllConstructor> persons = repository.findAll(example);
 
 		assertThat(persons).containsExactly(person1);
+	}
+
+	@Test
+	void findAllByExampleWithDifferentMatchers() {
+		PersonWithAllConstructor person;
+		Example<PersonWithAllConstructor> example;
+		Iterable<PersonWithAllConstructor> persons;
+
+		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON2_FIRST_NAME, null, null, null);
+		example = Example.of(person, ExampleMatcher.matchingAny());
+
+		persons = repository.findAll(example);
+		assertThat(persons).containsExactlyInAnyOrder(person1, person2);
+
+		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME.toUpperCase(), TEST_PERSON2_FIRST_NAME, null,
+			null, null);
+		example = Example.of(person, ExampleMatcher.matchingAny().withIgnoreCase("name"));
+
+		persons = repository.findAll(example);
+		assertThat(persons).containsExactlyInAnyOrder(person1, person2);
+
+		person = new PersonWithAllConstructor(null,
+			TEST_PERSON2_NAME.substring(TEST_PERSON2_NAME.length() - 2).toUpperCase(),
+			TEST_PERSON2_FIRST_NAME.substring(0, 2), TEST_PERSON_SAMEVALUE.substring(3, 5), null, null);
+		example = Example.of(person, ExampleMatcher
+			.matchingAll()
+			.withMatcher("name", ExampleMatcher.GenericPropertyMatcher.of(StringMatcher.ENDING, true))
+			.withMatcher("firstName", ExampleMatcher.GenericPropertyMatcher.of(StringMatcher.STARTING))
+			.withMatcher("sameValue", ExampleMatcher.GenericPropertyMatcher.of(StringMatcher.CONTAINING))
+		);
+
+		persons = repository.findAll(example);
+		assertThat(persons).containsExactlyInAnyOrder(person2);
+
+		person = new PersonWithAllConstructor(null, null, "(?i)ern.*", null, null, null);
+		example = Example.of(person, ExampleMatcher.matchingAll().withStringMatcher(StringMatcher.REGEX));
+
+		persons = repository.findAll(example);
+		assertThat(persons).containsExactlyInAnyOrder(person1);
+
+		example = Example
+			.of(person, ExampleMatcher.matchingAll().withStringMatcher(StringMatcher.REGEX).withIncludeNullValues());
+
+		persons = repository.findAll(example);
+		assertThat(persons).isEmpty();
 	}
 
 	@Test

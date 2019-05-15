@@ -83,7 +83,7 @@ public final class Functions {
 	}
 
 	/**
-	 * Creates a function invocation for the {@code } function.
+	 * Creates a function invocation for the {@code coalesce()} function.
 	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/scalar/#functions-coalesce">coalesce</a>.
 	 *
 	 * @param expressions One or more expressions to be coalesced
@@ -95,6 +95,20 @@ public final class Functions {
 		Assert.notNull(expressions[0], "At least one expression is required.");
 
 		return new FunctionInvocation("coalesce", expressions);
+	}
+
+	/**
+	 * Creates a function invocation for the {@code toLower()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/string/#functions-toLower">toLower</a>.
+	 *
+	 * @param expression An expression resolving to a string
+	 * @return A function call for {@code toLower()} for one  expression
+	 */
+	public static FunctionInvocation toLower(Expression expression) {
+
+		Assert.notNull(expression, "The expression for toLower() is required.");
+
+		return new FunctionInvocation("toLower", expression);
 	}
 
 	private Functions() {
