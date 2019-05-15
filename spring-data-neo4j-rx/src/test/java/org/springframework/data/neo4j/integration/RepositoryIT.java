@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.integration;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.domain.Range.Bound.*;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -65,10 +66,12 @@ class RepositoryIT {
 	private static final String TEST_PERSON2_NAME = "Test2";
 	private static final String TEST_PERSON1_FIRST_NAME = "Ernie";
 	private static final String TEST_PERSON2_FIRST_NAME = "Bert";
+	private static final LocalDate TEST_PERSON1_BORN_ON = LocalDate.of(2019, 1, 1);
+	private static final LocalDate TEST_PERSON2_BORN_ON = LocalDate.of(2019, 2, 1);
 	private static final String TEST_PERSON_SAMEVALUE = "SameValue";
 
 	static PersonWithAllConstructor personExample(String sameValue) {
-		return new PersonWithAllConstructor(null, null, null, sameValue, null, null);
+		return new PersonWithAllConstructor(null, null, null, sameValue, null, null, null);
 	}
 
 	private static Neo4jConnectionSupport neo4jConnectionSupport;
@@ -95,14 +98,14 @@ class RepositoryIT {
 		transaction.run("MATCH (n) detach delete n");
 
 		id1 = transaction.run(
-			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber return id(n)",
+			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn return id(n)",
 			Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-				TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1)
+				TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON)
 		).next().get(0).asLong();
 		id2 = transaction.run(
-			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber return id(n)",
+			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn return id(n)",
 			Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-				TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2)
+				TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON)
 		).next().get(0).asLong();
 		transaction.run("CREATE (n:PersonWithNoConstructor) SET n.name = $name, n.first_name = $firstName",
 			Values.parameters("name", TEST_PERSON1_NAME, "firstName", TEST_PERSON1_FIRST_NAME));
@@ -112,9 +115,9 @@ class RepositoryIT {
 		transaction.close();
 
 		person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
-			true, 1L);
+			true, 1L, TEST_PERSON1_BORN_ON);
 		person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
-			false, 2L);
+			false, 2L, TEST_PERSON2_BORN_ON);
 	}
 
 	@Test
@@ -193,7 +196,8 @@ class RepositoryIT {
 
 	@Test
 	void findOneByExample() {
-		Example<PersonWithAllConstructor> example = Example.of(person1, ExampleMatcher.matchingAll().withIgnoreNullValues());
+		Example<PersonWithAllConstructor> example = Example
+			.of(person1, ExampleMatcher.matchingAll().withIgnoreNullValues());
 		Optional<PersonWithAllConstructor> person = repository.findOne(example);
 
 		assertThat(person).isPresent();
@@ -202,7 +206,8 @@ class RepositoryIT {
 
 	@Test
 	void findAllByExample() {
-		Example<PersonWithAllConstructor> example = Example.of(person1, ExampleMatcher.matchingAll().withIgnoreNullValues());
+		Example<PersonWithAllConstructor> example = Example
+			.of(person1, ExampleMatcher.matchingAll().withIgnoreNullValues());
 		Iterable<PersonWithAllConstructor> persons = repository.findAll(example);
 
 		assertThat(persons).containsExactly(person1);
@@ -214,14 +219,14 @@ class RepositoryIT {
 		Example<PersonWithAllConstructor> example;
 		Iterable<PersonWithAllConstructor> persons;
 
-		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON2_FIRST_NAME, null, null, null);
+		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON2_FIRST_NAME, null, null, null, null);
 		example = Example.of(person, ExampleMatcher.matchingAny());
 
 		persons = repository.findAll(example);
 		assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 
 		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME.toUpperCase(), TEST_PERSON2_FIRST_NAME, null,
-			null, null);
+			null, null, null);
 		example = Example.of(person, ExampleMatcher.matchingAny().withIgnoreCase("name"));
 
 		persons = repository.findAll(example);
@@ -229,7 +234,7 @@ class RepositoryIT {
 
 		person = new PersonWithAllConstructor(null,
 			TEST_PERSON2_NAME.substring(TEST_PERSON2_NAME.length() - 2).toUpperCase(),
-			TEST_PERSON2_FIRST_NAME.substring(0, 2), TEST_PERSON_SAMEVALUE.substring(3, 5), null, null);
+			TEST_PERSON2_FIRST_NAME.substring(0, 2), TEST_PERSON_SAMEVALUE.substring(3, 5), null, null, null);
 		example = Example.of(person, ExampleMatcher
 			.matchingAll()
 			.withMatcher("name", ExampleMatcher.GenericPropertyMatcher.of(StringMatcher.ENDING, true))
@@ -240,7 +245,7 @@ class RepositoryIT {
 		persons = repository.findAll(example);
 		assertThat(persons).containsExactlyInAnyOrder(person2);
 
-		person = new PersonWithAllConstructor(null, null, "(?i)ern.*", null, null, null);
+		person = new PersonWithAllConstructor(null, null, "(?i)ern.*", null, null, null, null);
 		example = Example.of(person, ExampleMatcher.matchingAll().withStringMatcher(StringMatcher.REGEX));
 
 		persons = repository.findAll(example);
@@ -367,7 +372,8 @@ class RepositoryIT {
 	@Test
 	void findBySimplePropertiesAnded() {
 
-		Optional<PersonWithAllConstructor> optionalPerson = repository.findOneByNameAndFirstName(TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME);
+		Optional<PersonWithAllConstructor> optionalPerson = repository
+			.findOneByNameAndFirstName(TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME);
 		assertThat(optionalPerson).isPresent().contains(person1);
 	}
 
@@ -540,6 +546,22 @@ class RepositoryIT {
 		assertThat(persons)
 			.hasSize(1)
 			.contains(person2);
+	}
+
+	@Test
+	void findByAfter() {
+		List<PersonWithAllConstructor> persons = repository.findAllByBornOnAfter(TEST_PERSON1_BORN_ON);
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person2);
+	}
+
+	@Test
+	void findByBefore() {
+		List<PersonWithAllConstructor> persons = repository.findAllByBornOnBefore(TEST_PERSON2_BORN_ON);
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
 	}
 
 	@Configuration

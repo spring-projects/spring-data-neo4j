@@ -20,8 +20,18 @@ package org.springframework.data.neo4j.repository.query;
 
 import static java.util.stream.Collectors.*;
 
+import lombok.extern.slf4j.Slf4j;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetTime;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.neo4j.core.NodeManager;
@@ -32,7 +42,9 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.util.Assert;
 
 /**
  * Implementation of {@link RepositoryQuery} for derived finder methods.
@@ -41,7 +53,18 @@ import org.springframework.data.repository.query.parser.PartTree;
  * @author Michael J. Simons
  * @since 1.0
  */
+@Slf4j
 final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
+
+	//
+	/**
+	 * A set of the temporal types that are directly passable to the driver and support a meaningful comparision in a
+	 * temporal sense (after, before).
+	 * See <a href="See https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system"
+	 */
+	private static final Set<Class<?>> COMPARABLE_TEMPORAL_TYPES = Collections
+		.unmodifiableSet(new HashSet<>(Arrays.asList(LocalDate.class, OffsetTime.class, ZonedDateTime.class,
+			LocalDateTime.class)));
 
 	private final ResultProcessor processor;
 	private final PartTree tree;
@@ -55,6 +78,8 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 
 		this.processor = queryMethod.getResultProcessor();
 		this.tree = new PartTree(queryMethod.getName(), domainType);
+
+		this.tree.flatMap(op -> op.stream()).forEach(this::validatePart);
 	}
 
 	@Override
@@ -76,6 +101,23 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 			.withParameters(boundedParameters)
 			.usingMappingFunction(mappingContext.getMappingFunctionFor(super.domainType).orElse(null))
 			.build();
+	}
+
+	void validatePart(Part part) {
+
+		switch (part.getType()) {
+			case AFTER:
+			case BEFORE:
+				validateTemporal(part);
+				break;
+		}
+	}
+
+	void validateTemporal(Part part) {
+
+		Assert.state(COMPARABLE_TEMPORAL_TYPES.contains(part.getProperty().getLeafType()), () -> String
+			.format("%s works only with properties with one of the following types: %s", part.getType(),
+				COMPARABLE_TEMPORAL_TYPES));
 	}
 
 	// TODO Have fun with a bunch of conversion services

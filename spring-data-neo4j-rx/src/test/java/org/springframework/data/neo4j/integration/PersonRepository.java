@@ -18,6 +18,7 @@
  */
 package org.springframework.data.neo4j.integration;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -101,4 +102,8 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	List<PersonWithAllConstructor> findAllByPersonNumberIsBetween(Range range);
 
 	List<PersonWithAllConstructor> findAllByPersonNumberIsBetween(Long low, Long high);
+
+	List<PersonWithAllConstructor> findAllByBornOnAfter(LocalDate date);
+
+	List<PersonWithAllConstructor> findAllByBornOnBefore(LocalDate date);
 }
