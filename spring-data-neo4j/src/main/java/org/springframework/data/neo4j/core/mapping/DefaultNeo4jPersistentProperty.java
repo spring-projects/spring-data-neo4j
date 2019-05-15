@@ -35,6 +35,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	implements Neo4jPersistentProperty {
 
 	private final Lazy<Optional<String>> graphPropertyName;
+	private final Lazy<Boolean> isAssociation;
 
 	/**
 	 * Creates a new {@link AnnotationBasedPersistentProperty}.
@@ -50,6 +51,17 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 		super(property, owner, simpleTypeHolder);
 
 		this.graphPropertyName = Lazy.of(() -> computeGraphPropertyName());
+		this.isAssociation = Lazy.of(() -> {
+
+			Class<?> targetType = getType();
+			if (isCollectionLike()) {
+				targetType = getComponentType();
+			} else if (isMap()) {
+				targetType = getMapValueType();
+			}
+
+			return !simpleTypeHolder.isSimpleType(targetType);
+		});
 	}
 
 	@Override
@@ -60,7 +72,8 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 	@Override
 	public boolean isAssociation() {
-		return !SimpleTypeHolder.DEFAULT.isSimpleType(super.getType());
+
+		return this.isAssociation.orElse(false);
 	}
 
 	/**

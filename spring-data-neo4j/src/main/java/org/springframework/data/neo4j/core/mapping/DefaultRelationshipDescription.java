@@ -37,4 +37,10 @@ class DefaultRelationshipDescription implements RelationshipDescription {
 	private final String type;
 
 	private final String target;
+
+	/**
+	 * If this is set to true, then the type name here is just a placeholder and the actual types shall be retrieved
+	 * from the map key.
+	 */
+	private final boolean dynamic;
 }

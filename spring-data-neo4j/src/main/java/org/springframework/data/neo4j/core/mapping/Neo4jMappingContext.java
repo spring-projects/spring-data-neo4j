@@ -51,6 +51,7 @@ import org.springframework.data.neo4j.core.cypher.Node;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchAndWith;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.IdDescription;
+import org.springframework.data.neo4j.core.schema.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
@@ -81,6 +82,10 @@ public class Neo4jMappingContext
 	private final Map<String, NodeDescription<?>> nodeDescriptionsByPrimaryLabel = new HashMap<>();
 
 	private final ConcurrentMap<String, Collection<RelationshipDescription>> relationshipsByPrimaryLabel = new ConcurrentHashMap<>();
+
+	public Neo4jMappingContext() {
+		super.setSimpleTypeHolder(Neo4jSimpleTypes.SIMPLE_TYPE_HOLDER);
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -211,7 +216,8 @@ public class Neo4jMappingContext
 				type = association.getInverse().getName();
 			}
 
-			relationships.add(new DefaultRelationshipDescription(type, obverseOwner.getPrimaryLabel()));
+			relationships
+				.add(new DefaultRelationshipDescription(type, obverseOwner.getPrimaryLabel(), association.getInverse().isMap()));
 		});
 
 		return Collections.unmodifiableCollection(relationships);

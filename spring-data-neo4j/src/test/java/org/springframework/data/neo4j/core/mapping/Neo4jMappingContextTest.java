@@ -24,9 +24,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.data.mapping.Association;
 import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -74,7 +76,8 @@ public class Neo4jMappingContextTest {
 				assertThat(description.getIdDescription().getIdStrategy())
 					.isEqualTo(Id.Strategy.ASSIGNED);
 
-				Collection<String> expectedRelationships = Arrays.asList("[:owner] -> (:User)", "[:renter] -> (:User)");
+				Collection<String> expectedRelationships = Arrays
+					.asList("[:owner] -> (:User)", "[:renter] -> (:User)", "[:dynamicRelationships] -> (:User)");
 
 				Collection<RelationshipDescription> relationships = schema
 					.getRelationshipsOf(description.getPrimaryLabel());
@@ -82,8 +85,17 @@ public class Neo4jMappingContextTest {
 					.allMatch(d -> expectedRelationships
 						.contains(String.format("[:%s] -> (:%s)", d.getType(), d.getTarget())));
 			});
-	}
 
+		Neo4jPersistentEntity<?> bikeNodeEntity = schema.getPersistentEntity(BikeNode.class);
+
+		assertThat(bikeNodeEntity.getPersistentProperty("owner").isAssociation()).isTrue();
+		assertThat(bikeNodeEntity.getPersistentProperty("renter").isAssociation()).isTrue();
+		assertThat(bikeNodeEntity.getPersistentProperty("dynamicRelationships").isAssociation()).isTrue();
+		assertThat(bikeNodeEntity.getPersistentProperty("someValues").isAssociation()).isFalse();
+		assertThat(bikeNodeEntity.getPersistentProperty("someMoreValues").isAssociation()).isFalse();
+		assertThat(bikeNodeEntity.getPersistentProperty("evenMoreValues").isAssociation()).isFalse();
+		assertThat(bikeNodeEntity.getPersistentProperty("funnyDynamicProperties").isAssociation()).isFalse();
+	}
 
 	@Test
 	void shouldPreventIllegalIdAnnotations() {
@@ -100,6 +112,15 @@ public class Neo4jMappingContextTest {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
 		assertThat(schema.getMappingFunctionFor(UserNode.class)).isEmpty();
+	}
+
+	@Test
+	void targetTypeOfAssociationsShouldBeKnownToTheMappingContext() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> bikeNodeEntity = schema.getPersistentEntity(BikeNode.class);
+		bikeNodeEntity.doWithAssociations((Association<Neo4jPersistentProperty> association) ->
+			assertThat(schema.getMappingFunctionFor(association.getInverse().getAssociationTargetType())).isPresent());
 	}
 
 	@Node("User")
@@ -125,6 +146,13 @@ public class Neo4jMappingContextTest {
 		UserNode owner;
 
 		List<UserNode> renter;
+
+		Map<String, UserNode> dynamicRelationships;
+
+		List<String> someValues;
+		String[] someMoreValues;
+		byte[] evenMoreValues;
+		Map<String, Object> funnyDynamicProperties;
 	}
 
 	static class TripNode {
