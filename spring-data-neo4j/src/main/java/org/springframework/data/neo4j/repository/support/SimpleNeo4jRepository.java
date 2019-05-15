@@ -96,7 +96,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 				break;
 			case ASSIGNED:
 			case GENERATED:
-				idExpression = idDescription.getGraphPropertyName()
+				idExpression = idDescription.getOptionalGraphPropertyName()
 					.map(propertyName -> property(rootNode.getName(), propertyName)).get();
 				break;
 			default:
@@ -325,9 +325,13 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 				continue;
 			}
 
-			String propertyName = graphProperty.getPropertyName();
-
-			Condition condition = property(rootNode, propertyName).isEqualTo(literalOf(propertyValue));
+			Condition condition;
+			if (graphProperty.isIdProperty() && probeNodeDescription.useInternalIds()) {
+				condition = idExpression.isEqualTo(literalOf(propertyValue));
+			} else {
+				String propertyName = graphProperty.getPropertyName();
+				condition = property(rootNode, propertyName).isEqualTo(literalOf(propertyValue));
+			}
 			conditionList.add(condition);
 		}
 

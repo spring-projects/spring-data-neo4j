@@ -117,7 +117,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 							+ " on entity class " + this.getUnderlyingClass().getName());
 				}
 
-				return new IdDescription(idAnnotation.strategy(), idAnnotation.generator(), idProperty.getPropertyName());
+				return new IdDescription(idAnnotation.strategy(), idAnnotation.generator(), idProperty);
 			})
 			.orElseGet(() -> new IdDescription());
 	}

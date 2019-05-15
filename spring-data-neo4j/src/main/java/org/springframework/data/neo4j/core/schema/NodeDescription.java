@@ -34,6 +34,9 @@ import org.apiguardian.api.API;
 @API(status = API.Status.INTERNAL, since = "1.0")
 public interface NodeDescription<T> {
 
+	String NAME_OF_ROOT_NODE = "n";
+	String NAME_OF_INTERNAL_ID = "__internalNeo4jId__";
+
 	/**
 	 * @return The primary label of this entity inside Neo4j.
 	 */
@@ -61,4 +64,11 @@ public interface NodeDescription<T> {
 	 * @return An empty optional if there is no property known for the given field.
 	 */
 	Optional<GraphPropertyDescription> getGraphProperty(String fieldName);
+
+	/**
+	 * @return True if entities for this node use Neo4j internal ids.
+	 */
+	default boolean useInternalIds() {
+		return this.getIdDescription().getIdStrategy() == Id.Strategy.INTERNAL;
+	}
 }

@@ -110,10 +110,9 @@ class RepositoryIT {
 		transaction.success();
 		transaction.close();
 
-		// note that there is no id setting in the mapping right now
-		person1 = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+		person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
 			true, 1L);
-		person2 = new PersonWithAllConstructor(null, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+		person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
 			false, 2L);
 	}
 

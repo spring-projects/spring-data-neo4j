@@ -18,6 +18,8 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import static org.springframework.data.neo4j.core.schema.NodeDescription.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,8 +45,12 @@ import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.core.cypher.Condition;
 import org.springframework.data.neo4j.core.cypher.Conditions;
 import org.springframework.data.neo4j.core.cypher.Cypher;
+import org.springframework.data.neo4j.core.cypher.Expression;
+import org.springframework.data.neo4j.core.cypher.Functions;
 import org.springframework.data.neo4j.core.cypher.Node;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchAndWith;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.IdDescription;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
@@ -173,8 +179,16 @@ public class Neo4jMappingContext
 
 	@Override
 	public OngoingMatchAndWith prepareMatchOf(NodeDescription<?> nodeDescription, Optional<Condition> condition) {
-		Node rootNode = Cypher.node(nodeDescription.getPrimaryLabel()).named("n");
-		return Cypher.match(rootNode).where(condition.orElse(Conditions.noCondition())).with(rootNode);
+		Node rootNode = Cypher.node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
+		IdDescription idDescription = nodeDescription.getIdDescription();
+
+		List<Expression> expressions = new ArrayList<>();
+		expressions.add(rootNode);
+		if (idDescription.getIdStrategy() == Id.Strategy.INTERNAL) {
+			expressions.add(Functions.id(rootNode).as(NAME_OF_INTERNAL_ID));
+		}
+		return Cypher.match(rootNode).where(condition.orElse(Conditions.noCondition()))
+			.with(expressions.toArray(new Expression[expressions.size()]));
 	}
 
 	private Collection<RelationshipDescription> computeRelationshipsOf(String primaryLabel) {

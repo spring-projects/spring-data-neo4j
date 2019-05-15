@@ -45,17 +45,17 @@ public final class IdDescription {
 	/**
 	 * The property that stores the id if applicable.
 	 */
-	private @Nullable final String graphPropertyName;
+	private @Nullable final GraphPropertyDescription graphProperty;
 
 	public IdDescription() {
 		this(Id.Strategy.INTERNAL, null, null);
 	}
 
 	public IdDescription(Id.Strategy idStrategy,
-		@Nullable Class<? extends IdGenerator> idGeneratorClass, @Nullable String graphPropertyName) {
+		@Nullable Class<? extends IdGenerator> idGeneratorClass, @Nullable GraphPropertyDescription graphProperty) {
 		this.idStrategy = idStrategy;
 		this.idGeneratorClass = idGeneratorClass;
-		this.graphPropertyName = graphPropertyName;
+		this.graphProperty = graphProperty;
 	}
 
 	public Id.Strategy getIdStrategy() {
@@ -66,7 +66,7 @@ public final class IdDescription {
 		return Optional.ofNullable(idGeneratorClass);
 	}
 
-	public Optional<String> getGraphPropertyName() {
-		return Optional.ofNullable(graphPropertyName);
+	public Optional<String> getOptionalGraphPropertyName() {
+		return Optional.ofNullable(graphProperty).map(GraphPropertyDescription::getPropertyName);
 	}
 }
