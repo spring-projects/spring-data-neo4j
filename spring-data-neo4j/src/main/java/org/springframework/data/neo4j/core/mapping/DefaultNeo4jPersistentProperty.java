@@ -53,13 +53,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 		this.graphPropertyName = Lazy.of(() -> computeGraphPropertyName());
 		this.isAssociation = Lazy.of(() -> {
 
-			Class<?> targetType = getType();
-			if (isCollectionLike()) {
-				targetType = getComponentType();
-			} else if (isMap()) {
-				targetType = getMapValueType();
-			}
-
+			Class<?> targetType = getActualType();
 			return !simpleTypeHolder.isSimpleType(targetType);
 		});
 	}
@@ -113,5 +107,11 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	public boolean isInternalIdProperty() {
 
 		return this.isIdProperty() && ((Neo4jPersistentEntity) this.getOwner()).useInternalIds();
+	}
+
+	@Override
+	public boolean isRelationship() {
+
+		return isAssociation();
 	}
 }

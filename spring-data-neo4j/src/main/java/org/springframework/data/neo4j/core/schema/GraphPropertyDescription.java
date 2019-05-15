@@ -53,4 +53,16 @@ public interface GraphPropertyDescription {
 	 * @return True, if this property is the id property and the owner uses internal ids.
 	 */
 	boolean isInternalIdProperty();
+
+	/**
+	 * This will return the type of a simple property or the component type of a collection like property.
+	 *
+	 * @return The type of this property.
+	 */
+	Class<?> getActualType();
+
+	/**
+	 * @return Whether this property describes a relationship or not.
+	 */
+	boolean isRelationship();
 }
