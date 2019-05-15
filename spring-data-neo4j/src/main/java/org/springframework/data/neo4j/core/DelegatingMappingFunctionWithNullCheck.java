@@ -18,9 +18,10 @@
  */
 package org.springframework.data.neo4j.core;
 
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import org.neo4j.driver.Record;
+import org.neo4j.driver.types.TypeSystem;
 
 /**
  * A delegating mapping function that first calls the delegate to get a record map and than checks the returned
@@ -34,17 +35,17 @@ import org.neo4j.driver.Record;
  * @soundtrack Manowar - Fighting The World
  * @since 1.0
  */
-class DelegatingMappingFunctionWithNullCheck<T> implements Function<Record, T> {
+class DelegatingMappingFunctionWithNullCheck<T> implements BiFunction<TypeSystem, Record, T> {
 
-	Function<Record, T> delegate;
+	BiFunction<TypeSystem, Record, T> delegate;
 
-	DelegatingMappingFunctionWithNullCheck(Function<Record, T> delegate) {
+	DelegatingMappingFunctionWithNullCheck(BiFunction<TypeSystem, Record, T> delegate) {
 		this.delegate = delegate;
 	}
 
 	@Override
-	public T apply(Record record) {
-		T t = delegate.apply(record);
+	public T apply(TypeSystem typeSystem, Record record) {
+		T t = delegate.apply(typeSystem, record);
 		if (t == null) {
 			throw new IllegalStateException(
 				"Mapping function " + delegate + " returned illegal null value for record " + record);

@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -54,6 +55,7 @@ import org.neo4j.driver.StatementResult;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.internal.SessionParameters;
 import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.types.TypeSystem;
 
 /**
  * @author Michael J. Simons
@@ -71,6 +73,9 @@ class Neo4jClientTest {
 
 	@Mock
 	private Session session;
+
+	@Mock
+	private TypeSystem typeSystem;
 
 	@Mock
 	private StatementResult statementResult;
@@ -93,6 +98,7 @@ class Neo4jClientTest {
 			.thenReturn(sessionParametersTemplate);
 
 		when(driver.session(any(Consumer.class))).thenReturn(session);
+		when(session.typeSystem()).thenReturn(typeSystem);
 	}
 
 	@AfterEach
@@ -140,7 +146,7 @@ class Neo4jClientTest {
 		verify(statementResult).stream();
 		verify(record1).asMap();
 		verify(record2).asMap();
-		verify(session).close();
+		verify(session, times(2)).close();
 	}
 
 	@Test
@@ -170,7 +176,7 @@ class Neo4jClientTest {
 		verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(statementResult).stream();
 		verify(record1).asMap();
-		verify(session).close();
+		verify(session, times(2)).close();
 	}
 
 	@Nested
@@ -189,7 +195,7 @@ class Neo4jClientTest {
 
 			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
 
-			verify(session).close();
+			verify(session, times(2)).close();
 		}
 
 		@Test
@@ -205,7 +211,7 @@ class Neo4jClientTest {
 
 			verifyDatabaseSelection("aDatabase");
 
-			verify(session).close();
+			verify(session, times(2)).close();
 		}
 	}
 
@@ -243,7 +249,7 @@ class Neo4jClientTest {
 			verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 			verify(statementResult).stream();
 			verify(record1).get("name");
-			verify(session).close();
+			verify(session, times(2)).close();
 		}
 
 		@Test
@@ -257,7 +263,7 @@ class Neo4jClientTest {
 
 			assertThatIllegalStateException().isThrownBy(() -> client
 				.newQuery("MATCH (n) RETURN n")
-				.fetchAs(BikeOwner.class).mappedBy(r -> {
+				.fetchAs(BikeOwner.class).mappedBy((t, r) -> {
 					if (r == record1) {
 						return new BikeOwner(r.get("name").asString(), Collections.emptyList());
 					} else {
@@ -271,7 +277,7 @@ class Neo4jClientTest {
 			verify(session).run(eq("MATCH (n) RETURN n"), argThat(new MapAssertionMatcher(Collections.emptyMap())));
 			verify(statementResult).stream();
 			verify(record1).get("name");
-			verify(session).close();
+			verify(session, times(2)).close();
 		}
 
 		@Test
@@ -299,7 +305,7 @@ class Neo4jClientTest {
 
 			verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 			verify(statementResult).consume();
-			verify(session).close();
+			verify(session, times(2)).close();
 		}
 
 		@Test
@@ -327,7 +333,7 @@ class Neo4jClientTest {
 			verify(session).run(eq(cypher), anyMap());
 			verify(statementResult).hasNext();
 			verify(statementResult).single();
-			verify(session).close();
+			verify(session, times(2)).close();
 		}
 	}
 
@@ -354,7 +360,7 @@ class Neo4jClientTest {
 
 		verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(statementResult).consume();
-		verify(session).close();
+		verify(session, times(2)).close();
 	}
 
 	static class BikeOwner {
@@ -390,10 +396,10 @@ class Neo4jClientTest {
 		}
 	}
 
-	static class BikeOwnerReader implements Function<Record, BikeOwner> {
+	static class BikeOwnerReader implements BiFunction<TypeSystem, Record, BikeOwner> {
 
 		@Override
-		public BikeOwner apply(Record record) {
+		public BikeOwner apply(TypeSystem typeSystem, Record record) {
 			return new BikeOwner(record.get("name").asString(), Collections.emptyList());
 		}
 	}
@@ -411,7 +417,7 @@ class Neo4jClientTest {
 	}
 
 	void verifyDatabaseSelection(String targetDatabase) {
-		verify(driver).session(sessionTemplateCaptor.capture());
+		verify(driver, times(2)).session(sessionTemplateCaptor.capture());
 		sessionTemplateCaptor.getValue().accept(sessionParametersTemplate);
 		verify(sessionParametersTemplate).withDatabase(targetDatabase);
 	}

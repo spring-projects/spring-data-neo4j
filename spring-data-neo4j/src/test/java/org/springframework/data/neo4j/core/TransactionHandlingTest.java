@@ -27,6 +27,8 @@ import reactor.test.StepVerifier;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +44,7 @@ import org.neo4j.driver.internal.SessionParameters;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxStatementRunner;
 import org.neo4j.driver.reactive.RxTransaction;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -57,13 +60,30 @@ class TransactionHandlingTest {
 	private Driver driver;
 
 	@Mock
+	private Session session;
+
+	@Mock
+	private TypeSystem typeSystem;
+
+	@Mock
 	private SessionParameters.Template sessionParametersTemplate;
+
+	@BeforeEach
+	void prepareMocks() {
+
+		when(driver.session(any(Consumer.class))).thenReturn(session);
+		when(session.typeSystem()).thenReturn(typeSystem);
+	}
+
+
+	@AfterEach
+	void verifyTypeSystemOnSession() {
+
+		verify(session).typeSystem();
+	}
 
 	@Nested
 	class Neo4jClientTest {
-
-		@Mock
-		private Session session;
 
 		@Mock
 		private Transaction transaction;
@@ -75,7 +95,6 @@ class TransactionHandlingTest {
 			public void shouldCallCloseOnSession() {
 
 				ArgumentCaptor<Consumer> consumerCaptor = ArgumentCaptor.forClass(Consumer.class);
-				when(driver.session(any(Consumer.class))).thenReturn(session);
 
 				when(sessionParametersTemplate.withDatabase(anyString())).thenReturn(sessionParametersTemplate);
 				when(sessionParametersTemplate.withBookmarks(anyList())).thenReturn(sessionParametersTemplate);
@@ -88,12 +107,12 @@ class TransactionHandlingTest {
 					s.run("MATCH (n) RETURN n");
 				}
 
-				verify(driver).session(consumerCaptor.capture());
+				verify(driver, times(2)).session(consumerCaptor.capture());
 				consumerCaptor.getValue().accept(sessionParametersTemplate);
 				verify(sessionParametersTemplate).withDatabase("aDatabase");
 
 				verify(session).run(any(String.class));
-				verify(session).close();
+				verify(session, times(2)).close();
 
 				verifyNoMoreInteractions(driver, sessionParametersTemplate, session, transaction);
 			}
@@ -103,7 +122,6 @@ class TransactionHandlingTest {
 
 				AtomicBoolean transactionIsOpen = new AtomicBoolean(true);
 
-				when(driver.session(any(Consumer.class))).thenReturn(session);
 				when(session.isOpen()).thenReturn(true);
 				when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
 				// Mock closing of the transaction
@@ -130,7 +148,7 @@ class TransactionHandlingTest {
 				verify(transaction).success();
 				verify(transaction).close();
 				verify(session).isOpen();
-				verify(session).close();
+				verify(session, times(2)).close();
 				verifyNoMoreInteractions(driver, session, transaction);
 			}
 		}

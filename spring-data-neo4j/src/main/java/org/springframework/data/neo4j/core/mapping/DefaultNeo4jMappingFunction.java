@@ -21,10 +21,11 @@ package org.springframework.data.neo4j.core.mapping;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.convert.EntityInstantiators;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -44,14 +45,14 @@ import org.springframework.data.neo4j.core.schema.NodeDescription;
  */
 @RequiredArgsConstructor
 @Slf4j
-class DefaultNeo4jMappingFunction<T> implements Function<Record, T> {
+class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Record, T> {
 
 	private final EntityInstantiators instantiators;
 
 	private final Neo4jPersistentEntity<T> nodeDescription;
 
 	@Override
-	public T apply(Record record) {
+	public T apply(TypeSystem typeSystem, Record record) {
 
 		try {
 

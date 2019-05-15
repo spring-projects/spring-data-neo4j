@@ -28,15 +28,19 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxStatementRunner;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.types.TypeSystem;
 import org.reactivestreams.Publisher;
 import org.springframework.data.neo4j.core.Neo4jClient.MappingSpec;
 import org.springframework.data.neo4j.core.Neo4jClient.OngoingBindSpec;
@@ -55,10 +59,15 @@ import org.springframework.data.neo4j.core.Neo4jClient.RecordFetchSpec;
 class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 	private final Driver driver;
+	private final TypeSystem typeSystem;
 
 	DefaultReactiveNeo4jClient(Driver driver) {
 
 		this.driver = driver;
+		// This will go away
+		try (Session session = this.driver.session(t -> t.withDefaultAccessMode(AccessMode.READ))) {
+			typeSystem = session.typeSystem();
+		}
 	}
 
 	// Internal helper methods for managing transactional state
@@ -173,7 +182,8 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		@Override
 		public RecordFetchSpec<Mono<Map<String, Object>>, Flux<Map<String, Object>>, Map<String, Object>> fetch() {
 
-			return new DefaultReactiveRecordFetchSpec<>(targetDatabase, cypherSupplier, parameters, Record::asMap);
+			return new DefaultReactiveRecordFetchSpec<>(targetDatabase, cypherSupplier, parameters,
+				(t, r) -> r.asMap());
 		}
 
 		@Override
@@ -197,10 +207,10 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		private final NamedParameters parameters;
 
-		private Function<Record, T> mappingFunction;
+		private BiFunction<TypeSystem, Record, T> mappingFunction;
 
 		@Override
-		public RecordFetchSpec<Mono<T>, Flux<T>, T> mappedBy(Function<Record, T> mappingFunction) {
+		public RecordFetchSpec<Mono<T>, Flux<T>, T> mappedBy(BiFunction<TypeSystem, Record, T> mappingFunction) {
 
 			this.mappingFunction = new DelegatingMappingFunctionWithNullCheck<>(mappingFunction);
 			return this;
@@ -213,7 +223,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		Flux<T> executeWith(Tuple2<String, Map<String, Object>> t, RxStatementRunner runner) {
 
-			return Flux.from(runner.run(t.getT1(), t.getT2()).records()).map(mappingFunction);
+			return Flux.from(runner.run(t.getT1(), t.getT2()).records()).map(r -> mappingFunction.apply(typeSystem, r));
 		}
 
 		@Override
