@@ -20,10 +20,11 @@ package org.springframework.data.neo4j.core;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.schema.Neo4jSimpleTypes;
 
 /**
@@ -33,12 +34,12 @@ import org.springframework.data.neo4j.core.schema.Neo4jSimpleTypes;
  * @author Michael J. Simons
  */
 @RequiredArgsConstructor
-final class SingleValueMappingFunction<T> implements Function<Record, T> {
+final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Record, T> {
 
 	private final Class<T> targetClass;
 
 	@Override
-	public T apply(Record record) {
+	public T apply(TypeSystem typeSystem, Record record) {
 
 		if (record.size() == 0) {
 			throw new IllegalArgumentException("Record has no elements, cannot map nothing.");

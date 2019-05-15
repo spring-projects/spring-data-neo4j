@@ -20,9 +20,10 @@ package org.springframework.data.neo4j.core;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import org.neo4j.driver.Record;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.lang.Nullable;
 
 /**
@@ -42,11 +43,11 @@ final class DefaultPreparedQuery<T> implements PreparedQuery<T> {
 	private final Class<T> resultType;
 	private final String cypherQuery;
 	private final Map<String, Object> parameters;
-	private final @Nullable Function<Record, T> mappingFunction;
+	private final @Nullable BiFunction<TypeSystem, Record, T> mappingFunction;
 
 	DefaultPreparedQuery(OptionalBuildSteps<T> optionalBuildSteps) {
 		this.resultType = optionalBuildSteps.resultType;
-		this.mappingFunction = (Function<Record, T>) optionalBuildSteps.mappingFunction;
+		this.mappingFunction = (BiFunction<TypeSystem, Record, T>) optionalBuildSteps.mappingFunction;
 		this.cypherQuery = optionalBuildSteps.cypherQuery;
 		this.parameters = optionalBuildSteps.parameters;
 	}
@@ -57,7 +58,7 @@ final class DefaultPreparedQuery<T> implements PreparedQuery<T> {
 	}
 
 	@Override
-	public Optional<Function<Record, T>> getOptionalMappingFunction() {
+	public Optional<BiFunction<TypeSystem, Record, T>> getOptionalMappingFunction() {
 		return Optional.ofNullable(mappingFunction);
 	}
 

@@ -46,12 +46,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.internal.SessionParameters;
 import org.neo4j.driver.reactive.RxResult;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.Neo4jClientTest.Bike;
 import org.springframework.data.neo4j.core.Neo4jClientTest.BikeOwner;
 import org.springframework.data.neo4j.core.Neo4jClientTest.BikeOwnerBinder;
@@ -66,6 +68,12 @@ class ReactiveNeo4jClientTest {
 
 	@Mock
 	private Driver driver;
+
+	@Mock
+	private Session goAwaySession;
+
+	@Mock
+	private TypeSystem typeSystem;
 
 	private ArgumentCaptor<Consumer> sessionTemplateCaptor = ArgumentCaptor.forClass(Consumer.class);
 
@@ -92,6 +100,9 @@ class ReactiveNeo4jClientTest {
 
 	@BeforeEach
 	void prepareMocks() {
+
+		when(driver.session(any(Consumer.class))).thenReturn(goAwaySession);
+		when(goAwaySession.typeSystem()).thenReturn(typeSystem);
 
 		when(sessionParametersTemplate.withDatabase(anyString())).thenReturn(sessionParametersTemplate);
 		when(sessionParametersTemplate.withBookmarks(anyList())).thenReturn(sessionParametersTemplate);
@@ -287,7 +298,7 @@ class ReactiveNeo4jClientTest {
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 			Flux<BikeOwner> bikeOwners = client
 				.newQuery("MATCH (n) RETURN n")
-				.fetchAs(BikeOwner.class).mappedBy(r -> {
+				.fetchAs(BikeOwner.class).mappedBy((t, r) -> {
 					if (r == record1) {
 						return new BikeOwner(r.get("name").asString(), Collections.emptyList());
 					} else {

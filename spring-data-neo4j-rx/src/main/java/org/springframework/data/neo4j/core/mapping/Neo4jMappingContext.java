@@ -29,10 +29,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 import org.neo4j.driver.Record;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.convert.EntityInstantiators;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
@@ -159,7 +160,7 @@ public class Neo4jMappingContext
 	}
 
 	@Override
-	public <T> Optional<Function<Record, T>> getMappingFunctionFor(Class<T> targetClass) {
+	public <T> Optional<BiFunction<TypeSystem, Record, T>> getMappingFunctionFor(Class<T> targetClass) {
 
 		if (!this.hasPersistentEntityFor(targetClass)) {
 			return Optional.empty();

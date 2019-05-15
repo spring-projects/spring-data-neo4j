@@ -21,10 +21,11 @@ package org.springframework.data.neo4j.core.schema;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.cypher.Condition;
 import org.springframework.data.neo4j.core.cypher.Cypher;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchAndWith;
@@ -93,7 +94,7 @@ public interface Schema {
 	 * @param <T>         Type of the target class
 	 * @return An empty optional if the target class is unknown, otherwise an optional containing a stateless, reusable mapping function
 	 */
-	<T> Optional<Function<Record, T>> getMappingFunctionFor(Class<T> targetClass);
+	<T> Optional<BiFunction<TypeSystem, Record, T>> getMappingFunctionFor(Class<T> targetClass);
 
 	/**
 	 * @param targetClass The target class to which to map to.
@@ -102,7 +103,7 @@ public interface Schema {
 	 * @throws IllegalStateException When {@code targetClass} is not a managed class
 	 * @see #getMappingFunctionFor(Class)
 	 */
-	default <T> Function<Record, T> getRequiredMappingFunctionFor(Class<T> targetClass) {
+	default <T> BiFunction<TypeSystem, Record, T> getRequiredMappingFunctionFor(Class<T> targetClass) {
 
 		return getMappingFunctionFor(targetClass).orElseThrow(() -> new UnknownEntityException(targetClass));
 	}

@@ -19,12 +19,17 @@
 package org.springframework.boot.autoconfigure.data.neo4j_rx;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.util.function.Consumer;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverAutoConfiguration;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -127,7 +132,12 @@ class Neo4jDataAutoConfigurationTest {
 	static class MockedDriverConfiguration {
 		@Bean
 		Driver driver() {
-			return Mockito.mock(Driver.class);
+			Driver driver = Mockito.mock(Driver.class);
+			TypeSystem typeSystem = Mockito.mock(TypeSystem.class);
+			Session session = Mockito.mock(Session.class);
+			when(driver.session(Mockito.any(Consumer.class))).thenReturn(session);
+			when(session.typeSystem()).thenReturn(typeSystem);
+			return driver;
 		}
 	}
 

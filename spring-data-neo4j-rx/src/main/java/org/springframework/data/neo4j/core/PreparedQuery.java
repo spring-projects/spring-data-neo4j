@@ -22,10 +22,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.lang.Nullable;
 
 /**
@@ -43,7 +44,7 @@ public interface PreparedQuery<T> {
 
 	Class<T> getResultType();
 
-	Optional<Function<Record, T>> getOptionalMappingFunction();
+	Optional<BiFunction<TypeSystem, Record, T>> getOptionalMappingFunction();
 
 	String getCypherQuery();
 
@@ -72,7 +73,7 @@ public interface PreparedQuery<T> {
 		final Class<CT> resultType;
 		final String cypherQuery;
 		Map<String, Object> parameters = Collections.emptyMap();
-		@Nullable Function<Record, ?> mappingFunction;
+		@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction;
 
 		OptionalBuildSteps(Class<CT> resultType, String cypherQuery) {
 			this.resultType = resultType;
@@ -90,7 +91,8 @@ public interface PreparedQuery<T> {
 			return this;
 		}
 
-		public OptionalBuildSteps<CT> usingMappingFunction(@Nullable Function<Record, ?> newMappingFunction) {
+		public OptionalBuildSteps<CT> usingMappingFunction(
+			@Nullable BiFunction<TypeSystem, Record, ?> newMappingFunction) {
 			this.mappingFunction = newMappingFunction;
 			return this;
 		}

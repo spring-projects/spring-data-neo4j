@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.core;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -29,6 +30,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.StatementRunner;
 import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.types.TypeSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +47,7 @@ import org.slf4j.LoggerFactory;
 @API(status = API.Status.STABLE, since = "1.0")
 public interface Neo4jClient {
 
-	Logger cypherLog = LoggerFactory.getLogger(Neo4jClient.class.getPackage().getName() + ".cypher");
+	Logger cypherLog = LoggerFactory.getLogger("org.springframework.data.neo4j.cypher");
 
 	static Neo4jClient create(Driver driver) {
 
@@ -170,7 +172,14 @@ public interface Neo4jClient {
 	 */
 	interface MappingSpec<S, M, T> extends RecordFetchSpec<S, M, T> {
 
-		RecordFetchSpec<S, M, T> mappedBy(Function<Record, T> mappingFunction);
+		/**
+		 * The mapping function is responsible to turn one record into one domain object. It will receive the record
+		 * itself and in addition, the type system that the Neo4j Java-Driver used while executing the query.
+		 *
+		 * @param mappingFunction The mapping function used to create new domain objects
+		 * @return A specification how to fetch one or more records
+		 */
+		RecordFetchSpec<S, M, T> mappedBy(BiFunction<TypeSystem, Record, T> mappingFunction);
 	}
 
 	/**

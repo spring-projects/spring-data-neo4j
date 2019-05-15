@@ -31,6 +31,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.StatementResult;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -46,6 +47,8 @@ class Neo4jTransactionManagerTest {
 	@Mock
 	private Session session;
 	@Mock
+	private TypeSystem typeSystem;
+	@Mock
 	private Transaction transaction;
 	@Mock
 	private StatementResult statementResult;
@@ -57,6 +60,7 @@ class Neo4jTransactionManagerTest {
 		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(session.isOpen()).thenReturn(true);
+		when(session.typeSystem()).thenReturn(typeSystem);
 		when(transaction.isOpen()).thenReturn(true, false);
 
 		Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
@@ -67,7 +71,7 @@ class Neo4jTransactionManagerTest {
 
 		txManager.commit(txStatus);
 
-		verify(driver).session(any(Consumer.class));
+		verify(driver, times(2)).session(any(Consumer.class));
 
 		verify(session).isOpen();
 		verify(session).beginTransaction(any(TransactionConfig.class));
@@ -76,6 +80,6 @@ class Neo4jTransactionManagerTest {
 		verify(transaction).success();
 		verify(transaction).close();
 
-		verify(session).close();
+		verify(session, times(2)).close();
 	}
 }

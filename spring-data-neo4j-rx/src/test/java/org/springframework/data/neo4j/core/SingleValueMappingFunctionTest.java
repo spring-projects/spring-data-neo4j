@@ -31,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.types.TypeSystem;
 
 /**
  * @author Michael J. Simons
@@ -38,9 +39,12 @@ import org.neo4j.driver.Values;
 @ExtendWith(MockitoExtension.class)
 class SingleValueMappingFunctionTest {
 
+	private final TypeSystem typeSystem;
+
 	private final Record record;
 
-	SingleValueMappingFunctionTest(@Mock Record record) {
+	SingleValueMappingFunctionTest(@Mock TypeSystem typeSystem, @Mock Record record) {
+		this.typeSystem = typeSystem;
 		this.record = record;
 	}
 
@@ -53,7 +57,7 @@ class SingleValueMappingFunctionTest {
 			when(record.size()).thenReturn(0);
 
 			SingleValueMappingFunction<String> mappingFunction = new SingleValueMappingFunction<>(String.class);
-			assertThatIllegalArgumentException().isThrownBy(() -> mappingFunction.apply(record))
+			assertThatIllegalArgumentException().isThrownBy(() -> mappingFunction.apply(typeSystem, record))
 				.withMessage("Record has no elements, cannot map nothing.");
 		}
 
@@ -63,7 +67,7 @@ class SingleValueMappingFunctionTest {
 			when(record.size()).thenReturn(23);
 
 			SingleValueMappingFunction<String> mappingFunction = new SingleValueMappingFunction<>(String.class);
-			assertThatIllegalArgumentException().isThrownBy(() -> mappingFunction.apply(record))
+			assertThatIllegalArgumentException().isThrownBy(() -> mappingFunction.apply(typeSystem, record))
 				.withMessage("Records with more than one value cannot be converted without a mapper.");
 		}
 	}
@@ -75,7 +79,7 @@ class SingleValueMappingFunctionTest {
 		when(record.get(0)).thenReturn(Values.NULL);
 
 		SingleValueMappingFunction<String> mappingFunction = new SingleValueMappingFunction<>(String.class);
-		assertThat(mappingFunction.apply(record)).isNull();
+		assertThat(mappingFunction.apply(typeSystem, record)).isNull();
 	}
 
 	@Test
@@ -85,7 +89,7 @@ class SingleValueMappingFunctionTest {
 		when(record.get(0)).thenReturn(Values.value("Guten Tag."));
 
 		SingleValueMappingFunction<Period> mappingFunction = new SingleValueMappingFunction<>(Period.class);
-		assertThatIllegalArgumentException().isThrownBy(() -> mappingFunction.apply(record))
+		assertThatIllegalArgumentException().isThrownBy(() -> mappingFunction.apply(typeSystem, record))
 			.withMessage("java.time.Period is not assignable from java.lang.String");
 	}
 
@@ -98,6 +102,6 @@ class SingleValueMappingFunctionTest {
 		when(record.get(0)).thenReturn(Values.value(aDate));
 
 		SingleValueMappingFunction<LocalDate> mappingFunction = new SingleValueMappingFunction<>(LocalDate.class);
-		assertThat(mappingFunction.apply(record)).isEqualTo(aDate);
+		assertThat(mappingFunction.apply(typeSystem, record)).isEqualTo(aDate);
 	}
 }

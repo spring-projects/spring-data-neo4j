@@ -24,10 +24,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.function.LongSupplier;
 
 import org.neo4j.driver.Record;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
@@ -75,7 +76,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	private final Class<T> nodeClass;
 
 	private final NodeDescription<?> nodeDescription;
-	private final Function<Record, ?> mappingFunction;
+	private final BiFunction<TypeSystem, Record, ?> mappingFunction;
 	private Expression idExpression;
 
 	SimpleNeo4jRepository(NodeManager nodeManager, Neo4jMappingContext mappingContext, Class<T> nodeClass) {
@@ -355,7 +356,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 
 	private <T> PreparedQuery<T> prepareQuery(Class<T> resultType, Statement statement) {
 
-		Function<Record, ?> mappingFunctionToUse = this.mappingFunction;
+		BiFunction<TypeSystem, Record, ?> mappingFunctionToUse = this.mappingFunction;
 		if (!this.nodeClass.equals(resultType)) {
 			mappingFunctionToUse = mappingContext.getMappingFunctionFor(resultType).orElse(null);
 		}

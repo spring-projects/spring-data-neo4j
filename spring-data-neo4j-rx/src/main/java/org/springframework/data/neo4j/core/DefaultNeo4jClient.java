@@ -33,15 +33,18 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.StatementResult;
 import org.neo4j.driver.StatementRunner;
 import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.types.TypeSystem;
 
 /**
  * Default implementation of {@link Neo4jClient}. Uses the Neo4j Java driver to connect to and interact with the database.
@@ -53,10 +56,15 @@ import org.neo4j.driver.summary.ResultSummary;
 class DefaultNeo4jClient implements Neo4jClient {
 
 	private final Driver driver;
+	private final TypeSystem typeSystem;
 
 	DefaultNeo4jClient(Driver driver) {
 
 		this.driver = driver;
+		// This will go away
+		try (Session session = this.driver.session(t -> t.withDefaultAccessMode(AccessMode.READ))) {
+			typeSystem = session.typeSystem();
+		}
 	}
 
 	AutoCloseableStatementRunner getStatementRunner(final String targetDatabase) {
@@ -184,7 +192,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 			return new DefaultRecordFetchSpec<>(
 				this.targetDatabase,
 				this.cypherSupplier,
-				this.parameters, Record::asMap);
+				this.parameters, (t, r) -> r.asMap());
 		}
 
 		@Override
@@ -207,11 +215,11 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		private final NamedParameters parameters;
 
-		private Function<Record, T> mappingFunction;
+		private BiFunction<TypeSystem, Record, T> mappingFunction;
 
 		@Override
 		public RecordFetchSpec<Optional<T>, Collection<T>, T> mappedBy(
-			@SuppressWarnings("HiddenField") Function<Record, T> mappingFunction) {
+			@SuppressWarnings("HiddenField") BiFunction<TypeSystem, Record, T> mappingFunction) {
 
 			this.mappingFunction = new DelegatingMappingFunctionWithNullCheck<>(mappingFunction);
 			return this;
@@ -222,7 +230,9 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(this.targetDatabase)) {
 				StatementResult result = runWith(statementRunner);
-				return result.hasNext() ? Optional.of(mappingFunction.apply(result.single())) : Optional.empty();
+				return result.hasNext() ?
+					Optional.of(mappingFunction.apply(typeSystem, result.single())) :
+					Optional.empty();
 			}
 		}
 
@@ -231,7 +241,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(this.targetDatabase)) {
 				StatementResult result = runWith(statementRunner);
-				return result.stream().map(mappingFunction).findFirst();
+				return result.stream().map(partialMappingFunction(typeSystem)).findFirst();
 			}
 		}
 
@@ -240,7 +250,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(this.targetDatabase)) {
 				StatementResult result = runWith(statementRunner);
-				return result.stream().map(mappingFunction).collect(toList());
+				return result.stream().map(partialMappingFunction(typeSystem)).collect(toList());
 			}
 		}
 
@@ -257,6 +267,14 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			StatementResult result = statementRunner.run(statementTemplate, parameters.get());
 			return result;
+		}
+
+		/**
+		 * @param typeSystem The actual type system
+		 * @return The partially evaluated mapping function
+		 */
+		private Function<Record, T> partialMappingFunction(TypeSystem typeSystem) {
+			return r -> mappingFunction.apply(typeSystem, r);
 		}
 	}
 

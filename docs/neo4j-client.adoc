@@ -291,7 +291,7 @@ Mono<ResultSummary> summary = client
 Both clients return collections or publishers of maps (`Map<String, Object>`).
 Those maps corresponds exactly with the records that a query might have produced.
 
-In addition, you can plugin your own `Function<Record, T>` through `fetchAs` to reproduce your domain object.
+In addition, you can plugin your own `BiFunction<TypeSystem, Record, T>` through `fetchAs` to reproduce your domain object.
 
 [[neo4j-client-reader]]
 [source,java]
@@ -302,13 +302,15 @@ Mono<BikeOwner> bikeOwner = client
         + " MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike)"
         + "RETURN o, collect(b) as bikes")
     .bind("michael").to("name")
-    .fetchAs(BikeOwner.class).mappedBy((Record record) -> {
+    .fetchAs(BikeOwner.class).mappedBy((TypeSystem t, Record record) -> {
         List<Bike> bikes = record.get("bikes")
             .asList(v -> new Bike((v.get("name").asString())));
         return new BikeOwner(record.get("name").asString(), bikes);
     })
     .one();
 ----
+
+`TypeSystem` gives access to the types the underlying Java driver used to fill the record.
 
 ==== Interacting directly with the driver while using managed transactions
 
