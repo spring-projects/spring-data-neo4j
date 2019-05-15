@@ -126,39 +126,24 @@ public final class Cypher {
 	}
 
 	/**
-	 * Creates a new {@link StringLiteral} from a {@code content}.
-	 *
-	 * @param content the literal content.
-	 * @return a new {@link StringLiteral}.
-	 */
-	public static StringLiteral literalOf(@Nullable CharSequence content) {
-		return new StringLiteral(content);
-	}
-
-	/**
-	 * Creates a new {@link NumberLiteral} from the given {@code number}.
-	 *
-	 * @param number the number.
-	 * @return a new {@link NumberLiteral}.
-	 */
-	public static NumberLiteral literalOf(@Nullable Number number) {
-		return new NumberLiteral(number);
-	}
-
-	/**
-	 * Creates a new {@link ObjectLiteral} from the given {@code object}.
+	 * Creates a new {@link NullLiteral} from the given {@code object}.
 	 *
 	 * @param object the object to represent.
-	 * @return a new {@link ObjectLiteral}.
+	 * @return a new {@link NullLiteral}.
+	 * @throws IllegalArgumentException when the object cannot be represented as a literal
 	 */
 	public static Literal literalOf(@Nullable Object object) {
+
+		if (object == null) {
+			return NullLiteral.INSTANCE;
+		}
 		if (object instanceof CharSequence) {
 			return new StringLiteral((CharSequence) object);
 		}
 		if (object instanceof Number) {
 			return new NumberLiteral((Number) object);
 		}
-		return new ObjectLiteral(object);
+		throw new IllegalArgumentException("Unsupported literal type: " + object.getClass());
 	}
 
 	/**

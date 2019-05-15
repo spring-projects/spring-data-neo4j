@@ -21,23 +21,24 @@ package org.springframework.data.neo4j.core.cypher;
 import org.apiguardian.api.API;
 
 /**
- * The most generic implementation of {@link Literal}. Takes an arbitrary object and calls {@code toString} on it to get
- * its value representation.
+ * Represents the literal value {@literal null}.
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public final class ObjectLiteral extends Literal<Object> {
+public final class NullLiteral extends Literal<Void> {
 
-	ObjectLiteral(Object content) {
+	static final NullLiteral INSTANCE = new NullLiteral();
 
-		super(content);
+	private NullLiteral() {
+
+		super(null);
 	}
 
 	@Override
 	public String asString() {
-		return String.valueOf(getContent());
+		return "NULL";
 	}
 }
