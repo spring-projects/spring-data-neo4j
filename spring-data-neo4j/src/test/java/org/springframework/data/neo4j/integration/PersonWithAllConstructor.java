@@ -24,6 +24,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.LocalDate;
+
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
@@ -53,4 +55,6 @@ public class PersonWithAllConstructor {
 	private final Boolean cool;
 
 	private final Long personNumber;
+
+	private final LocalDate bornOn;
 }

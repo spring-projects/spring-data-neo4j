@@ -113,6 +113,12 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		// TODO case insensitive (like, notlike, simpleProperty, negatedSimpleProperty)
 
 		switch (part.getType()) {
+			case AFTER:
+			case GREATER_THAN:
+				return property(persistentProperty).gt(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+			case BEFORE:
+			case LESS_THAN:
+				return property(persistentProperty).lt(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
 			case BETWEEN:
 				return betweenCondition(persistentProperty, actualParameters);
 			case CONTAINING:
@@ -123,12 +129,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 					.endsWith(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
 			case FALSE:
 				return property(persistentProperty).isFalse();
-			case GREATER_THAN:
-				return property(persistentProperty).gt(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
 			case GREATER_THAN_EQUAL:
 				return property(persistentProperty).gte(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
-			case LESS_THAN:
-				return property(persistentProperty).lt(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
 			case LESS_THAN_EQUAL:
 				return property(persistentProperty).lte(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
 			case LIKE:
