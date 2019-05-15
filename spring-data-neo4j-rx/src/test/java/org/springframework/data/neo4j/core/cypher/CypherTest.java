@@ -472,6 +472,17 @@ public class CypherTest {
 				.isEqualTo(
 					"MATCH (u:`User`) RETURN coalesce(u.a, u.b, '¯\\\\_(ツ)_/¯')");
 		}
+
+		@Test
+		void literalsShouldDealWithNull() {
+			Statement statement = Cypher.match(userNode)
+				.returning(Functions.coalesce(Cypher.literalOf(null), userNode.property("field")).as("p"))
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (u:`User`) RETURN coalesce(NULL, u.field) AS p");
+		}
 	}
 
 	@Nested
@@ -499,26 +510,6 @@ public class CypherTest {
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo(
 					"MATCH (u:`User`) WHERE u.age = 21 RETURN u");
-		}
-
-		@Test
-		void equalsWithObjectLiteral() {
-			Statement statement = Cypher.match(userNode)
-				.where(userNode.property("field").isEqualTo(Cypher.literalOf(new CustomType())))
-				.returning(userNode)
-				.build();
-
-			assertThat(cypherRenderer.render(statement))
-				.isEqualTo(
-					"MATCH (u:`User`) WHERE u.field = Value RETURN u");
-		}
-
-
-		private class CustomType {
-			@Override
-			public String toString() {
-				return "Value";
-			}
 		}
 	}
 
