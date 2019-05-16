@@ -147,14 +147,43 @@ public interface Expression extends Visitable {
 		return Operations.plus(this, expression);
 	}
 
-	// WIP
-	// TODO Make longs a list of expressions or something
-	// WIP
+	/**
+	 * Creates a {@code IS NULL} operation for this {@code expression}.
+	 * The expression does not track the condition created here.
+	 *
+	 * @return A condition based on this expression that evaluates to true when this expression is null.
+	 */
+	default Condition isNull() {
+		return Conditions.isNull(this);
+	}
 
-	default Condition isIn(Iterable<Long> ids) {
-		return Comparison.create(
-			this,
-			Operator.IN,
-			new ListLiteral(ids));
+	/**
+	 * Creates a {@code IS NOT NULL} operation for this {@code expression}.
+	 * The expression does not track the condition created here.
+	 *
+	 * @return A condition based on this expression that evaluates to true when this expression is not null.
+	 */
+	default Condition isNotNull() {
+		return Conditions.isNotNull(this);
+	}
+
+	/**
+	 * Creates a {@code IN} operation for this expression and that {@code expression}.
+	 * The expression does not track the condition created here.
+	 *
+	 * @param expression The expression to search for this expression
+	 * @return A new condition.
+	 */
+	default Condition in(Expression expression) {
+		return Conditions.in(this, expression);
+	}
+
+	/**
+	 * Creates a condition that evaluates to true if this expression is empty.
+	 *
+	 * @return A new condition.
+	 */
+	default Condition isEmpty() {
+		return Conditions.isEmpty(this);
 	}
 }

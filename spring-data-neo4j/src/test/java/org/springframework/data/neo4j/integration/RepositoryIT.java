@@ -23,6 +23,7 @@ import static org.springframework.data.domain.Range.Bound.*;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.types.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,6 +46,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.Metrics;
 import org.springframework.data.neo4j.core.NodeManagerFactory;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -69,9 +73,13 @@ class RepositoryIT {
 	private static final LocalDate TEST_PERSON1_BORN_ON = LocalDate.of(2019, 1, 1);
 	private static final LocalDate TEST_PERSON2_BORN_ON = LocalDate.of(2019, 2, 1);
 	private static final String TEST_PERSON_SAMEVALUE = "SameValue";
+	private static final Point NEO4J_HQ = Values.point(4326, 12.994823, 55.612191).asPoint();
+	private static final Point SFO = Values.point(4326, -122.38681, 37.61649).asPoint();
+	private static final Point CLARION = Values.point(4326, 12.994243, 55.607726).asPoint();
+	private static final Point MINC = Values.point(4326, 12.994039, 55.611496).asPoint();
 
 	static PersonWithAllConstructor personExample(String sameValue) {
-		return new PersonWithAllConstructor(null, null, null, sameValue, null, null, null);
+		return new PersonWithAllConstructor(null, null, null, sameValue, null, null, null, null, null, null);
 	}
 
 	private static Neo4jConnectionSupport neo4jConnectionSupport;
@@ -97,15 +105,19 @@ class RepositoryIT {
 		Transaction transaction = driver.session().beginTransaction();
 		transaction.run("MATCH (n) detach delete n");
 
-		id1 = transaction.run(
-			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn return id(n)",
+		id1 = transaction.run("" +
+				"CREATE (n:PersonWithAllConstructor) " +
+				"  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
+				+
+				"RETURN id(n)",
 			Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-				TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON)
+				TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
+				NEO4J_HQ)
 		).next().get(0).asLong();
 		id2 = transaction.run(
-			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn return id(n)",
+			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
 			Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-				TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON)
+				TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO)
 		).next().get(0).asLong();
 		transaction.run("CREATE (n:PersonWithNoConstructor) SET n.name = $name, n.first_name = $firstName",
 			Values.parameters("name", TEST_PERSON1_NAME, "firstName", TEST_PERSON1_FIRST_NAME));
@@ -115,9 +127,9 @@ class RepositoryIT {
 		transaction.close();
 
 		person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
-			true, 1L, TEST_PERSON1_BORN_ON);
+			true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ);
 		person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
-			false, 2L, TEST_PERSON2_BORN_ON);
+			false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO);
 	}
 
 	@Test
@@ -219,14 +231,15 @@ class RepositoryIT {
 		Example<PersonWithAllConstructor> example;
 		Iterable<PersonWithAllConstructor> persons;
 
-		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON2_FIRST_NAME, null, null, null, null);
+		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON2_FIRST_NAME, null, null, null, null,
+			null, null, null);
 		example = Example.of(person, ExampleMatcher.matchingAny());
 
 		persons = repository.findAll(example);
 		assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 
 		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME.toUpperCase(), TEST_PERSON2_FIRST_NAME, null,
-			null, null, null);
+			null, null, null, null, null, null);
 		example = Example.of(person, ExampleMatcher.matchingAny().withIgnoreCase("name"));
 
 		persons = repository.findAll(example);
@@ -234,7 +247,8 @@ class RepositoryIT {
 
 		person = new PersonWithAllConstructor(null,
 			TEST_PERSON2_NAME.substring(TEST_PERSON2_NAME.length() - 2).toUpperCase(),
-			TEST_PERSON2_FIRST_NAME.substring(0, 2), TEST_PERSON_SAMEVALUE.substring(3, 5), null, null, null);
+			TEST_PERSON2_FIRST_NAME.substring(0, 2), TEST_PERSON_SAMEVALUE.substring(3, 5), null, null, null, null,
+			null, null);
 		example = Example.of(person, ExampleMatcher
 			.matchingAll()
 			.withMatcher("name", ExampleMatcher.GenericPropertyMatcher.of(StringMatcher.ENDING, true))
@@ -245,7 +259,7 @@ class RepositoryIT {
 		persons = repository.findAll(example);
 		assertThat(persons).containsExactlyInAnyOrder(person2);
 
-		person = new PersonWithAllConstructor(null, null, "(?i)ern.*", null, null, null, null);
+		person = new PersonWithAllConstructor(null, null, "(?i)ern.*", null, null, null, null, null, null, null);
 		example = Example.of(person, ExampleMatcher.matchingAll().withStringMatcher(StringMatcher.REGEX));
 
 		persons = repository.findAll(example);
@@ -562,6 +576,93 @@ class RepositoryIT {
 		assertThat(persons)
 			.hasSize(1)
 			.contains(person1);
+	}
+
+	@Test
+	void findByIsNotNull() {
+		List<PersonWithAllConstructor> persons = repository.findAllByNullableIsNotNull();
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+	}
+
+	@Test
+	void findByIsNull() {
+		List<PersonWithAllConstructor> persons = repository.findAllByNullableIsNull();
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person2);
+	}
+
+	@Test
+	void findByIn() {
+		List<PersonWithAllConstructor> persons = repository
+			.findAllByFirstNameIn(Arrays.asList("a", "b", TEST_PERSON2_FIRST_NAME, "c"));
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person2);
+	}
+
+	@Test
+	void findByNotIn() {
+		List<PersonWithAllConstructor> persons = repository
+			.findAllByFirstNameNotIn(Arrays.asList("a", "b", TEST_PERSON2_FIRST_NAME, "c"));
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+	}
+
+	@Test
+	void findByEmpty() {
+		List<PersonWithAllConstructor> persons = repository.findAllByThingsIsEmpty();
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person2);
+	}
+
+	@Test
+	void findByNotEmpty() {
+		List<PersonWithAllConstructor> persons = repository.findAllByThingsIsNotEmpty();
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+	}
+
+	@Test
+	void findByExists() {
+		List<PersonWithAllConstructor> persons = repository.findAllByNullableExists();
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+	}
+
+	@Test
+	void findByNear() {
+		List<PersonWithAllConstructor> persons;
+
+		persons = repository.findAllByPlaceNear(MINC, new Distance(200.0 / 1000.0, Metrics.KILOMETERS));
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+
+		persons = repository.findAllByPlaceNear(CLARION, new Distance(200.0 / 1000.0, Metrics.KILOMETERS));
+		assertThat(persons).isEmpty();
+
+		persons = repository.findAllByPlaceNear(MINC,
+			Distance.between(60.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+
+		persons = repository.findAllByPlaceNear(MINC,
+			Distance.between(100.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
+		assertThat(persons).isEmpty();
+
+		persons = repository.findAllByPlaceNear(MINC,
+			Range.of(Bound.inclusive(new Distance(100.0 / 1000.0, Metrics.KILOMETERS)), Bound.unbounded()));
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person2);
 	}
 
 	@Configuration

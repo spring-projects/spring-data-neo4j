@@ -22,7 +22,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.neo4j.driver.types.Point;
 import org.springframework.data.domain.Range;
+import org.springframework.data.geo.Distance;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,4 +108,32 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	List<PersonWithAllConstructor> findAllByBornOnAfter(LocalDate date);
 
 	List<PersonWithAllConstructor> findAllByBornOnBefore(LocalDate date);
+
+	List<PersonWithAllConstructor> findAllByNullableIsNotNull();
+
+	List<PersonWithAllConstructor> findAllByNullableIsNull();
+
+	List<PersonWithAllConstructor> findAllByFirstNameIn(List<String> haystack);
+
+	List<PersonWithAllConstructor> findAllByFirstNameNotIn(List<String> haystack);
+
+	List<PersonWithAllConstructor> findAllByThingsIsEmpty();
+
+	List<PersonWithAllConstructor> findAllByThingsIsNotEmpty();
+
+	List<PersonWithAllConstructor> findAllByNullableExists();
+
+	List<PersonWithAllConstructor> findAllByPlaceNear(Point p, Distance max);
+
+	List<PersonWithAllConstructor> findAllByPlaceNear(Point p, Distance min, Distance max);
+
+	List<PersonWithAllConstructor> findAllByPlaceNear(Point p, Range<Distance> between);
+
+	// TODO Integration tests for failed validations
+	// 	List<PersonWithAllConstructor> findAllByBornOnAfter(String date);
+	// List<PersonWithAllConstructor> findAllByNameOrPersonNumberIsBetweenAndFirstNameNotInAndFirstNameEquals(String name, Long low, Long high, String wrong, List<String> haystack);
+	// List<PersonWithAllConstructor> findAllByNameOrPersonNumberIsBetweenAndCoolIsTrueAndFirstNameNotInAndFirstNameEquals(String name, Long low, Long high, String wrong, List<String> haystack);
+	// List<PersonWithAllConstructor> findAllByNameNotEmpty();
+	// List<PersonWithAllConstructor> findAllByPlaceNear(Point p);
+	// List<PersonWithAllConstructor> findAllByPlaceNear(Point p, String);
 }

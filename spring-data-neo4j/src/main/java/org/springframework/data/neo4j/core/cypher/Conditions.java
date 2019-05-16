@@ -156,8 +156,8 @@ public final class Conditions {
 	}
 
 	/**
-	 * Creates a placeholder condition which is not rendered in the final statement but is usefull
-	 * while chaining conditions together.
+	 * Creates a placeholder condition which is not rendered in the final statement but is useful while chaining
+	 * conditions together.
 	 *
 	 * @return A placeholder condition.
 	 */
@@ -187,6 +187,42 @@ public final class Conditions {
 
 		return Comparison.create(Operator.IS_NOT_NULL, expression);
 	}
+
+	/**
+	 * Creates a condition that checkts whether the expression {@code searchFor} is in the expression {@code in}.
+	 * {@code in} is supposed to represent a list object.
+	 *
+	 * @param searchFor The expression to search for.
+	 * @param in        The expression to search in.
+	 * @return A new condition.
+	 */
+	static Condition in(Expression searchFor, Expression in) {
+
+		return Comparison.create(searchFor, Operator.IN, in);
+	}
+
+	/**
+	 * A condition that evaluates to true if a list or a string represented by {@code expression} is empty or has the length of 0.
+	 *
+	 * @param expression The expression to test for emptiness.
+	 * @return A new condition.
+	 */
+	static Condition isEmpty(Expression expression) {
+
+		return Functions.size(expression).isEqualTo(Cypher.literalOf(0L));
+	}
+
+	/**
+	 * A condition that evaluates to true if the expression {@code expression} exists.
+	 *
+	 * @param expression The expression to check whether it exists or not
+	 * @return A new condition.
+	 */
+	public static Condition exists(Expression expression) {
+
+		return new BooleanFunctionCondition(Functions.exists(expression));
+	}
+
 
 	/**
 	 * Not to be instantiated.
