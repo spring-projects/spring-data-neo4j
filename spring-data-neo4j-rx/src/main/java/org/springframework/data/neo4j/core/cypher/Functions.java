@@ -102,13 +102,62 @@ public final class Functions {
 	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/string/#functions-toLower">toLower</a>.
 	 *
 	 * @param expression An expression resolving to a string
-	 * @return A function call for {@code toLower()} for one  expression
+	 * @return A function call for {@code toLower()} for one expression
 	 */
 	public static FunctionInvocation toLower(Expression expression) {
 
 		Assert.notNull(expression, "The expression for toLower() is required.");
 
 		return new FunctionInvocation("toLower", expression);
+	}
+
+	/**
+	 * Creates a function invocation for the {@code size()} function. {@code size} can be applied to
+	 * <ul>
+	 * <li><a href="https://neo4j.com/docs/cypher-manual/current/functions/scalar/#functions-size">a list</a></li>
+	 * <li><a href="https://neo4j.com/docs/cypher-manual/current/functions/scalar/#functions-size-of-string">to a string</a></li>
+	 * <li><a href="https://neo4j.com/docs/cypher-manual/current/functions/scalar/#functions-size-of-pattern-expression">to a pattern expression</a></li>
+	 * </ul>
+	 *
+	 * @param expression The expression whos size is to be returned
+	 * @return A function call for {@code size()} for one expression
+	 */
+	public static FunctionInvocation size(Expression expression) {
+
+		Assert.notNull(expression, "The expression for size() is required.");
+
+		return new FunctionInvocation("size", expression);
+	}
+
+	/**
+	 * Creates a function invocation for the {@code exists()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-exists">exists</a>
+	 *
+	 * @param expression The expression whos existence is to be evaluated
+	 * @return A function call for {@code exists()} for one expression
+	 */
+	public static FunctionInvocation exists(Expression expression) {
+
+		Assert.notNull(expression, "The expression for exists() is required.");
+
+		return new FunctionInvocation("exists", expression);
+	}
+
+	/**
+	 * Creates a function invocation for the {@code distance()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/spatial/#functions-distance">exists</a>
+	 * Both points need to be in the same coordinate system.
+	 *
+	 * @param point1 Point 1
+	 * @param point2 Point 2
+	 * @return A function call for {@code distance()}
+	 */
+	public static FunctionInvocation distance(Expression point1, Expression point2) {
+
+		Assert.notNull(point1, "The distance function requires two points.");
+		Assert.notNull(point2, "The distance function requires two points.");
+
+		return new FunctionInvocation("distance", point1, point2);
 	}
 
 	private Functions() {

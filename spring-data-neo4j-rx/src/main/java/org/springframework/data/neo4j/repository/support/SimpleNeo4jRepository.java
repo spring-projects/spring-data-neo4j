@@ -18,6 +18,7 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
+import static java.util.Collections.*;
 import static lombok.AccessLevel.*;
 import static org.springframework.data.neo4j.core.cypher.Cypher.*;
 import static org.springframework.data.neo4j.core.schema.NodeDescription.*;
@@ -208,9 +209,11 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	public Iterable<T> findAllById(Iterable<ID> ids) {
 
 		Statement statement = mappingContext
-			.prepareMatchOf(nodeDescription, Optional.of(idExpression.isIn((Iterable<Long>) ids))).returning(asterisk())
+			.prepareMatchOf(nodeDescription, Optional.of(idExpression.in((parameter("ids")))))
+			.returning(asterisk())
 			.build();
-		return nodeManager.toExecutableQuery(prepareQuery(statement)).getResults();
+
+		return nodeManager.toExecutableQuery(prepareQuery(nodeClass, statement, singletonMap("ids", ids))).getResults();
 	}
 
 	@Override

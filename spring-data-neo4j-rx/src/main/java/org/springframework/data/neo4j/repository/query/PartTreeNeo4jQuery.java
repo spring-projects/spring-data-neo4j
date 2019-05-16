@@ -32,18 +32,26 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.neo4j.driver.types.Point;
 import org.springframework.data.domain.Range;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.Metrics;
 import org.springframework.data.neo4j.core.NodeManager;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.query.Neo4jQueryMethod.Neo4jParameters;
+import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.data.repository.query.parser.PartTree.OrPart;
+import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**
@@ -79,7 +87,9 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 		this.processor = queryMethod.getResultProcessor();
 		this.tree = new PartTree(queryMethod.getName(), domainType);
 
-		this.tree.flatMap(op -> op.stream()).forEach(this::validatePart);
+		AtomicInteger parameterCounter = new AtomicInteger();
+		this.tree.flatMap(OrPart::stream)
+			.forEach(part -> validatePart(parameterCounter, part));
 	}
 
 	@Override
@@ -103,21 +113,56 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 			.build();
 	}
 
-	void validatePart(Part part) {
+	void validatePart(AtomicInteger index, Part part) {
 
+		int currentParameterIndex = index.getAndAdd(part.getNumberOfArguments());
 		switch (part.getType()) {
 			case AFTER:
 			case BEFORE:
-				validateTemporal(part);
+				validateTemporalProperty(part);
+				break;
+			case IN:
+			case NOT_IN:
+				Parameter parameter = this.queryMethod.getParameters()
+					.getBindableParameter(currentParameterIndex);
+				validateCollectionParameter(part, parameter);
+				break;
+			case IS_EMPTY:
+			case IS_NOT_EMPTY:
+				validateCollectionProperty(part);
+				break;
+			case WITHIN:
+				validatePointPropertyAndParameters(part);
 				break;
 		}
 	}
 
-	void validateTemporal(Part part) {
+	void validateTemporalProperty(Part part) {
 
 		Assert.state(COMPARABLE_TEMPORAL_TYPES.contains(part.getProperty().getLeafType()), () -> String
 			.format("%s works only with properties with one of the following types: %s", part.getType(),
 				COMPARABLE_TEMPORAL_TYPES));
+	}
+
+	void validateCollectionParameter(Part part, Parameter parameter) {
+
+		TypeInformation<?> information = ClassTypeInformation.from(parameter.getType());
+		Assert.state(information.isCollectionLike(),
+			() -> String.format("%s works only with collection parameters", part.getType()));
+	}
+
+	void validateCollectionProperty(Part part) {
+		Assert.state(part.getProperty().getLeafProperty().isCollection(), () -> String
+			.format("%s works only with collection properties", part.getType()));
+	}
+
+	void validatePointPropertyAndParameters(Part part) {
+
+		Assert.state(ClassTypeInformation.from(Point.class)
+			.isAssignableFrom(part.getProperty().getLeafProperty().getTypeInformation()), () -> String
+			.format("%s works only with spatial properties", part.getType()));
+		// TODO Check if 2 or 3 parameters are always bound correctly.
+		// Assert.state(part.getNumberOfArguments() == 2,"The distance operation needs two arguments: The reference point and the distance!");
 	}
 
 	// TODO Have fun with a bunch of conversion services
@@ -125,12 +170,26 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 		if (parameter instanceof Range) {
 			Range range = (Range) parameter;
 			Map<String, Object> map = new HashMap<>();
-			range.getLowerBound().getValue().ifPresent(v -> map.put("lb", v));
-			range.getUpperBound().getValue().ifPresent(v -> map.put("ub", v));
+			range.getLowerBound().getValue().map(PartTreeNeo4jQuery::convertParameter).ifPresent(v -> map.put("lb", v));
+			range.getUpperBound().getValue().map(PartTreeNeo4jQuery::convertParameter).ifPresent(v -> map.put("ub", v));
 			return map;
+		} else if (parameter instanceof Distance) {
+			return calculateDistanceInMeter((Distance) parameter);
 		}
 		return parameter;
 	}
+
+	private static double calculateDistanceInMeter(Distance distance) {
+
+		if (distance.getMetric() == Metrics.KILOMETERS) {
+			return distance.getValue() / 0.001d;
+		} else if (distance.getMetric() == Metrics.MILES) {
+			return distance.getValue() / 0.00062137d;
+		} else {
+			return distance.getValue();
+		}
+	}
+
 
 	@Override
 	protected boolean isCountQuery() {
