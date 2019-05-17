@@ -400,15 +400,29 @@ class RepositoryIT {
 	@Test
 	void findBySimpleProperty() {
 
-		List<PersonWithAllConstructor> persons = repository.findAllBySameValue(TEST_PERSON_SAMEVALUE);
+		List<PersonWithAllConstructor> persons;
+
+		persons = repository.findAllBySameValue(TEST_PERSON_SAMEVALUE);
 		assertThat(persons).containsExactlyInAnyOrder(person1, person2);
+
+		persons = repository.findAllBySameValueIgnoreCase(TEST_PERSON_SAMEVALUE.toUpperCase());
+		assertThat(persons).containsExactlyInAnyOrder(person1, person2);
+
+		persons = repository.findAllByBornOn(TEST_PERSON1_BORN_ON);
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
 	}
 
 	@Test
 	void findBySimplePropertiesAnded() {
 
-		Optional<PersonWithAllConstructor> optionalPerson = repository
-			.findOneByNameAndFirstName(TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME);
+		Optional<PersonWithAllConstructor> optionalPerson;
+
+		optionalPerson = repository.findOneByNameAndFirstName(TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME);
+		assertThat(optionalPerson).isPresent().contains(person1);
+
+		optionalPerson = repository.findOneByNameAndFirstNameAllIgnoreCase(TEST_PERSON1_NAME.toUpperCase(), TEST_PERSON1_FIRST_NAME.toUpperCase());
 		assertThat(optionalPerson).isPresent().contains(person1);
 	}
 
@@ -422,7 +436,12 @@ class RepositoryIT {
 	@Test
 	void findByNegatedSimpleProperty() {
 
-		List<PersonWithAllConstructor> persons = repository.findAllByNameNot(TEST_PERSON1_NAME);
+		List<PersonWithAllConstructor> persons;
+
+		persons = repository.findAllByNameNot(TEST_PERSON1_NAME);
+		assertThat(persons).doesNotContain(person1);
+
+		persons = repository.findAllByNameNotIgnoreCase(TEST_PERSON1_NAME.toUpperCase());
 		assertThat(persons).doesNotContain(person1);
 	}
 
@@ -438,7 +457,14 @@ class RepositoryIT {
 	@Test
 	void findByLike() {
 
-		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameLike("Ern");
+		List<PersonWithAllConstructor> persons;
+
+		persons = repository.findAllByFirstNameLike("Ern");
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+
+		persons = repository.findAllByFirstNameLikeIgnoreCase("eRN");
 		assertThat(persons)
 			.hasSize(1)
 			.contains(person1);
@@ -456,14 +482,26 @@ class RepositoryIT {
 	@Test
 	void findByNotLike() {
 
-		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameNotLike("Ern");
+		List<PersonWithAllConstructor> persons;
+
+		persons = repository.findAllByFirstNameNotLike("Ern");
+		assertThat(persons).doesNotContain(person1);
+
+		persons = repository.findAllByFirstNameNotLikeIgnoreCase("eRN");
 		assertThat(persons).doesNotContain(person1);
 	}
 
 	@Test
 	void findByStartingWith() {
 
-		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameStartingWith("Er");
+		List<PersonWithAllConstructor> persons;
+
+		persons = repository.findAllByFirstNameStartingWith("Er");
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+
+		persons = repository.findAllByFirstNameStartingWithIgnoreCase("eRN");
 		assertThat(persons)
 			.hasSize(1)
 			.contains(person1);
@@ -472,7 +510,14 @@ class RepositoryIT {
 	@Test
 	void findByContaining() {
 
-		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameContaining("ni");
+		List<PersonWithAllConstructor> persons;
+
+		persons = repository.findAllByFirstNameContaining("ni");
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+
+		persons = repository.findAllByFirstNameContainingIgnoreCase("NI");
 		assertThat(persons)
 			.hasSize(1)
 			.contains(person1);
@@ -481,7 +526,14 @@ class RepositoryIT {
 	@Test
 	void findByNotContaining() {
 
-		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameNotContaining("ni");
+		List<PersonWithAllConstructor> persons;
+
+		persons = repository.findAllByFirstNameNotContaining("ni");
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person2);
+
+		persons = repository.findAllByFirstNameNotContainingIgnoreCase("NI");
 		assertThat(persons)
 			.hasSize(1)
 			.contains(person2);
@@ -490,7 +542,14 @@ class RepositoryIT {
 	@Test
 	void findByEndingWith() {
 
-		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameEndingWith("nie");
+		List<PersonWithAllConstructor> persons;
+
+		persons = repository.findAllByFirstNameEndingWith("nie");
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+
+		persons = repository.findAllByFirstNameEndingWithIgnoreCase("NIE");
 		assertThat(persons)
 			.hasSize(1)
 			.contains(person1);
@@ -687,8 +746,13 @@ class RepositoryIT {
 			Distance.between(100.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
 		assertThat(persons).isEmpty();
 
-		persons = repository.findAllByPlaceNear(MINC,
-			Range.of(Bound.inclusive(new Distance(100.0 / 1000.0, Metrics.KILOMETERS)), Bound.unbounded()));
+		final Range<Distance> distanceRange = Range.of(inclusive(new Distance(100.0 / 1000.0, Metrics.KILOMETERS)), unbounded());
+		persons = repository.findAllByPlaceNear(MINC, distanceRange);
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person2);
+
+		persons = repository.findAllByPlaceNear(distanceRange, MINC);
 		assertThat(persons)
 			.hasSize(1)
 			.contains(person2);
@@ -700,7 +764,15 @@ class RepositoryIT {
 
 		persons = repository.findAllByPlaceNear(CLARION, new Distance(200.0 / 1000.0, Metrics.KILOMETERS));
 		assertThat(persons).isEmpty();
+	}
 
+	@Test
+	void findBySomeCaseInsensitiveProperties() {
+
+		List<PersonWithAllConstructor> persons;
+		persons = repository.findAllByPlaceNearAndFirstNameAllIgnoreCase(SFO, TEST_PERSON1_FIRST_NAME.toUpperCase());
+		assertThat(persons)
+			.containsExactly(person1);
 	}
 
 	@Configuration
