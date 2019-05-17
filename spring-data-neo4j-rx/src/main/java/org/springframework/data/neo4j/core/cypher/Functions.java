@@ -167,7 +167,7 @@ public final class Functions {
 	 * @param parameterMap The map of parameters for {@code point()}
 	 * @return A function call for {@code point()}
 	 */
-	public static FunctionInvocation point(Expression parameterMap) {
+	public static FunctionInvocation point(MapExpression parameterMap) {
 
 		Assert.notNull(parameterMap, "The parameter map is required.");
 

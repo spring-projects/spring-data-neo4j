@@ -151,7 +151,7 @@ public final class Cypher {
 	 * @param keysAndValues A list of key and values. Must be an even number, with alternating {@link String} and {@link Expression}
 	 * @return A new map expression.
 	 */
-	public static Expression mapOf(Object... keysAndValues) {
+	public static MapExpression mapOf(Object... keysAndValues) {
 
 		return MapExpression.create(keysAndValues);
 	}

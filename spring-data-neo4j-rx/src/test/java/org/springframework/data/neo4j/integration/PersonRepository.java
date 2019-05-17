@@ -24,6 +24,7 @@ import java.util.Optional;
 
 import org.neo4j.driver.types.Point;
 import org.springframework.data.domain.Range;
+import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -132,11 +133,15 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	List<PersonWithAllConstructor> findAllByNullableExists();
 
+	List<PersonWithAllConstructor> findAllByPlaceNear(Point p);
+
 	List<PersonWithAllConstructor> findAllByPlaceNear(Point p, Distance max);
 
-	List<PersonWithAllConstructor> findAllByPlaceNear(Point p, Distance min, Distance max);
-
 	List<PersonWithAllConstructor> findAllByPlaceNear(Point p, Range<Distance> between);
+
+	List<PersonWithAllConstructor> findAllByPlaceNearAndFirstNameIn(Point p, List<String> haystack);
+
+	List<PersonWithAllConstructor> findAllByPlaceWithin(Circle circle);
 
 	// TODO Integration tests for failed validations
 	// 	List<PersonWithAllConstructor> findAllByBornOnAfter(String date);
