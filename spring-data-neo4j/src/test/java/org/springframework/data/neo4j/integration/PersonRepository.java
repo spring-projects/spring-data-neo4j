@@ -46,7 +46,7 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	PersonWithAllConstructor getOnePersonViaQuery();
 
 	@Query("MATCH (n:PersonWithAllConstructor{name:'Test'}) return n")
-	Optional<PersonWithAllConstructor> getOptionalPersonsViaQuery();
+	Optional<PersonWithAllConstructor> getOptionalPersonViaQuery();
 
 	@Query("MATCH (n:PersonWithNoConstructor) return n")
 	List<PersonWithNoConstructor> getAllPersonsWithNoConstructorViaQuery();
@@ -55,7 +55,7 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	PersonWithNoConstructor getOnePersonWithNoConstructorViaQuery();
 
 	@Query("MATCH (n:PersonWithNoConstructor{name:'Test'}) return n")
-	Optional<PersonWithNoConstructor> getOptionalPersonsWithNoConstructorViaQuery();
+	Optional<PersonWithNoConstructor> getOptionalPersonWithNoConstructorViaQuery();
 
 	@Query("MATCH (n:PersonWithWither) return n")
 	List<PersonWithWither> getAllPersonsWithWitherViaQuery();
@@ -64,7 +64,16 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	PersonWithWither getOnePersonWithWitherViaQuery();
 
 	@Query("MATCH (n:PersonWithWither{name:'Test'}) return n")
-	Optional<PersonWithWither> getOptionalPersonsWithWitherViaQuery();
+	Optional<PersonWithWither> getOptionalPersonWithWitherViaQuery();
+
+	@Query("MATCH (n:KotlinPerson) return n")
+	List<KotlinPerson> getAllKotlinPersonsViaQuery();
+
+	@Query("MATCH (n:KotlinPerson{name:'Test'}) return n")
+	KotlinPerson getOneKotlinPersonViaQuery();
+
+	@Query("MATCH (n:KotlinPerson{name:'Test'}) return n")
+	Optional<KotlinPerson> getOptionalKotlinPersonViaQuery();
 
 	// Derived finders, should be extracted into another repo.
 	Optional<PersonWithAllConstructor> findOneByNameAndFirstName(String name, String firstName);

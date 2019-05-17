@@ -122,6 +122,7 @@ class RepositoryIT {
 		transaction.run("CREATE (n:PersonWithNoConstructor) SET n.name = $name, n.first_name = $firstName",
 			Values.parameters("name", TEST_PERSON1_NAME, "firstName", TEST_PERSON1_FIRST_NAME));
 		transaction.run("CREATE (n:PersonWithWither) SET n.name = '" + TEST_PERSON1_NAME + "'");
+		transaction.run("CREATE (n:KotlinPerson) SET n.name = '" + TEST_PERSON1_NAME + "'");
 		transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})");
 		transaction.success();
 		transaction.close();
@@ -319,7 +320,7 @@ class RepositoryIT {
 
 	@Test
 	void loadOptionalPersonWithAllConstructor() {
-		Optional<PersonWithAllConstructor> person = repository.getOptionalPersonsViaQuery();
+		Optional<PersonWithAllConstructor> person = repository.getOptionalPersonViaQuery();
 		assertThat(person).isPresent();
 		assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
@@ -344,7 +345,7 @@ class RepositoryIT {
 
 	@Test
 	void loadOptionalPersonWithNoConstructor() {
-		Optional<PersonWithNoConstructor> person = repository.getOptionalPersonsWithNoConstructorViaQuery();
+		Optional<PersonWithNoConstructor> person = repository.getOptionalPersonWithNoConstructorViaQuery();
 		assertThat(person).isPresent();
 		assertThat(person).map(PersonWithNoConstructor::getName).contains(TEST_PERSON1_NAME);
 		assertThat(person).map(PersonWithNoConstructor::getFirstName).contains(TEST_PERSON1_FIRST_NAME);
@@ -365,7 +366,26 @@ class RepositoryIT {
 
 	@Test
 	void loadOptionalPersonWithWither() {
-		Optional<PersonWithWither> person = repository.getOptionalPersonsWithWitherViaQuery();
+		Optional<PersonWithWither> person = repository.getOptionalPersonWithWitherViaQuery();
+		assertThat(person).isPresent();
+		assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
+	}
+
+	@Test
+	void loadAllKotlinPersons() {
+		List<KotlinPerson> persons = repository.getAllKotlinPersonsViaQuery();
+		assertThat(persons).anyMatch(person -> person.getName().equals(TEST_PERSON1_NAME));
+	}
+
+	@Test
+	void loadOneKotlinPerson() {
+		KotlinPerson person = repository.getOneKotlinPersonViaQuery();
+		assertThat(person.getName()).isEqualTo(TEST_PERSON1_NAME);
+	}
+
+	@Test
+	void loadOptionalKotlinPerson() {
+		Optional<KotlinPerson> person = repository.getOptionalKotlinPersonViaQuery();
 		assertThat(person).isPresent();
 		assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
@@ -680,7 +700,7 @@ class RepositoryIT {
 		public NodeManagerFactory nodeManagerFactory(Driver driver) {
 
 			return new NodeManagerFactory(driver, PersonWithAllConstructor.class, PersonWithNoConstructor.class,
-				PersonWithWither.class, ThingWithAssignedId.class);
+				PersonWithWither.class, ThingWithAssignedId.class, KotlinPerson.class);
 		}
 
 		@Bean
