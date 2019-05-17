@@ -22,6 +22,7 @@ import static java.util.Collections.*;
 import static lombok.AccessLevel.*;
 import static org.springframework.data.neo4j.core.cypher.Cypher.*;
 import static org.springframework.data.neo4j.core.schema.NodeDescription.*;
+import static org.springframework.data.neo4j.repository.query.CypherAdapterUtils.*;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,6 @@ import org.springframework.data.neo4j.core.cypher.Conditions;
 import org.springframework.data.neo4j.core.cypher.Cypher;
 import org.springframework.data.neo4j.core.cypher.Expression;
 import org.springframework.data.neo4j.core.cypher.Functions;
-import org.springframework.data.neo4j.core.cypher.SortItem;
 import org.springframework.data.neo4j.core.cypher.Statement;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder;
 import org.springframework.data.neo4j.core.cypher.SymbolicName;
@@ -121,7 +121,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 
 		Statement statement = mappingContext.prepareMatchOf(nodeDescription, Optional.empty())
 			.returning(asterisk())
-			.orderBy(createSort(sort))
+			.orderBy(toSortItems(nodeDescription, sort))
 			.build();
 
 		return nodeManager.toExecutableQuery(prepareQuery(statement)).getResults();
@@ -167,7 +167,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 
 		int pageSize = pageable.getPageSize();
 
-		return returning.orderBy(createSort(sort)).skip(skip).limit(pageSize);
+		return returning.orderBy(toSortItems(nodeDescription, sort)).skip(skip).limit(pageSize);
 	}
 
 	@Override
@@ -286,7 +286,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 		Statement statement = mappingContext
 			.prepareMatchOf(predicate.nodeDescription, Optional.of(predicate.condition))
 			.returning(asterisk())
-			.orderBy(createSort(sort)).build();
+			.orderBy(toSortItems(nodeDescription, sort)).build();
 
 		PreparedQuery<S> preparedQuery = prepareQuery(example.getProbeType(), statement, predicate.parameters);
 		return nodeManager.toExecutableQuery(preparedQuery).getResults();
@@ -417,22 +417,6 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 		}
 
 		return predicate;
-	}
-
-	private SortItem[] createSort(Sort sort) {
-
-		SymbolicName rootNode = Cypher.symbolicName("n");
-
-		return sort.stream().map(order -> {
-			String property = order.getProperty();
-			SortItem sortItem = Cypher.sort(property(rootNode, property));
-
-			// Spring's Sort.Order defaults to ascending, so we just need to change this if we have descending order.
-			if (order.isDescending()) {
-				sortItem = sortItem.descending();
-			}
-			return sortItem;
-		}).toArray(SortItem[]::new);
 	}
 
 	private PreparedQuery<T> prepareQuery(Statement statement) {

@@ -92,8 +92,8 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 		this.processor = queryMethod.getResultProcessor();
 		this.tree = new PartTree(queryMethod.getName(), domainType);
 
-		this.tree.flatMap(OrPart::stream)
-			.forEach(part -> validatePart(part));
+		// Validate parts. Sort properties will be validated by Spring Data already.
+		this.tree.flatMap(OrPart::stream).forEach(part -> validatePart(part));
 	}
 
 	@Override
