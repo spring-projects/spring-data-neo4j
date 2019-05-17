@@ -294,6 +294,21 @@ class RenderingVisitor extends ReflectiveVisitor {
 		builder.append("$").append(parameter.getName());
 	}
 
+	void enter(MapExpression map) {
+
+		builder.append("{");
+	}
+
+	void enter(MapEntry map) {
+
+		builder.append(map.getKey()).append(": ");
+	}
+
+	void leave(MapExpression map) {
+
+		builder.append("}");
+	}
+
 	public String getRenderedContent() {
 		return this.builder.toString();
 	}

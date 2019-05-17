@@ -962,6 +962,28 @@ public class CypherTest {
 				.isEqualTo(
 					"MATCH (n) RETURN ((1 > 2) = true) = false");
 		}
+	}
 
+	@Nested
+	class ExpressionsRendering {
+		@Test
+		void shouldRenderMap() {
+			Statement statement;
+			statement = Cypher.match(Cypher.anyNode("n"))
+				.returning(
+					Functions.point(
+						Cypher.mapOf(
+							"latitude", Cypher.parameter("latitude"),
+							"longitude", Cypher.parameter("longitude"),
+							"crs", Cypher.literalOf(4326)
+						)
+					)
+				)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (n) RETURN point({latitude: $latitude, longitude: $longitude, crs: 4326})");
+		}
 	}
 }

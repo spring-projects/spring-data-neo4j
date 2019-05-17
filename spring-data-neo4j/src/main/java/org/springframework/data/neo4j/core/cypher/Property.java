@@ -40,28 +40,28 @@ public final class Property implements Expression {
 		return new Property(parentContainer.getSymbolicName().get(), name);
 	}
 
-	static Property create(SymbolicName containerName, String name) {
+	static Property create(Expression container, String name) {
 
-		Assert.notNull(containerName, "The property containers name is required.");
+		Assert.notNull(container, "The property container is required.");
 		Assert.hasText(name, "The properties name is required.");
 
-		return new Property(containerName, name);
+		return new Property(container, name);
 
 	}
 
 	/**
-	 * The symbolic name of the parent container.
+	 * The expression describinng the container.
 	 */
-	private final SymbolicName containerName;
+	private final Expression container;
 
 	/**
 	 * The name of this property.
 	 */
 	private final String name;
 
-	Property(SymbolicName containerName, String name) {
+	Property(Expression container, String name) {
 
-		this.containerName = containerName;
+		this.container = container;
 		this.name = name;
 	}
 
@@ -72,27 +72,7 @@ public final class Property implements Expression {
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.enter(this);
-		this.containerName.accept(visitor);
+		this.container.accept(visitor);
 		visitor.leave(this);
-	}
-
-	/**
-	 * The property does not track the sort items created here.
-	 *
-	 * @return A sort item for this property in descending order
-	 */
-	public SortItem descending() {
-
-		return SortItem.create(this, SortItem.Direction.DESC);
-	}
-
-	/**
-	 * The property does not track the sort items created here.
-	 *
-	 * @return A sort item for this property in ascending order
-	 */
-	public SortItem ascending() {
-
-		return SortItem.create(this, SortItem.Direction.ASC);
 	}
 }
