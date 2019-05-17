@@ -27,7 +27,9 @@ import java.time.LocalDateTime;
 import java.time.OffsetTime;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -72,6 +74,11 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 		.unmodifiableSet(new HashSet<>(Arrays.asList(LocalDate.class, OffsetTime.class, ZonedDateTime.class,
 			LocalDateTime.class)));
 
+	private static final EnumSet<Part.Type> TYPES_SUPPORTING_CASE_INSENSITIVITY = EnumSet
+		.of(Part.Type.CONTAINING, Part.Type.ENDING_WITH, Part.Type.LIKE, Part.Type.NEGATING_SIMPLE_PROPERTY,
+			Part.Type.NOT_CONTAINING,
+			Part.Type.NOT_LIKE, Part.Type.SIMPLE_PROPERTY, Part.Type.STARTING_WITH);
+
 	private final ResultProcessor processor;
 	private final PartTree tree;
 
@@ -112,6 +119,7 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 
 	void validatePart(Part part) {
 
+		validateIgnoreCase(part);
 		switch (part.getType()) {
 			case AFTER:
 			case BEFORE:
@@ -128,23 +136,46 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 		}
 	}
 
+	static boolean canIgnoreCase(Part part) {
+		return part.getProperty().getLeafType() == String.class && TYPES_SUPPORTING_CASE_INSENSITIVITY
+			.contains(part.getType());
+	}
+
+	private String formatTypes(Collection<Part.Type> types) {
+		return types.stream().flatMap(t -> t.getKeywords().stream()).collect(joining(", ", "[", "]"));
+	}
+
+	void validateIgnoreCase(Part part) {
+
+		Assert.state(part.shouldIgnoreCase() != Part.IgnoreCaseType.ALWAYS || canIgnoreCase(part),
+			() -> String.format(
+				"Can not derive query for '%s': Only the case of String based properties can be ignored within the following keywords: %s",
+				super.queryMethod,
+				formatTypes(TYPES_SUPPORTING_CASE_INSENSITIVITY)));
+	}
+
 	void validateTemporalProperty(Part part) {
 
 		Assert.state(COMPARABLE_TEMPORAL_TYPES.contains(part.getProperty().getLeafType()), () -> String
-			.format("%s works only with properties with one of the following types: %s", part.getType(),
+			.format(
+				"Can not derive query for '%s': The keywords %s work only with properties with one of the following types: %s",
+				super.queryMethod, formatTypes(Collections.singletonList(part.getType())),
 				COMPARABLE_TEMPORAL_TYPES));
 	}
 
 	void validateCollectionProperty(Part part) {
 		Assert.state(part.getProperty().getLeafProperty().isCollection(), () -> String
-			.format("%s works only with collection properties", part.getType()));
+			.format("Can not derive query for '%s': The keywords %s work only with collection properties",
+				super.queryMethod,
+				formatTypes(Collections.singletonList(part.getType()))));
 	}
 
 	void validatePointProperty(Part part) {
 
 		Assert.state(ClassTypeInformation.from(Point.class)
 			.isAssignableFrom(part.getProperty().getLeafProperty().getTypeInformation()), () -> String
-			.format("%s works only with spatial properties", part.getType()));
+			.format("Can not derive query for '%s': %s works only with spatial properties", super.queryMethod,
+				part.getType()));
 	}
 
 	/**

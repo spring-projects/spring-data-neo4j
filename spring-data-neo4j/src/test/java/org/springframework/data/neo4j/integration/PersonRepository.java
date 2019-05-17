@@ -79,17 +79,27 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	// Derived finders, should be extracted into another repo.
 	Optional<PersonWithAllConstructor> findOneByNameAndFirstName(String name, String firstName);
 
+	Optional<PersonWithAllConstructor> findOneByNameAndFirstNameAllIgnoreCase(String name, String firstName);
+
 	List<PersonWithAllConstructor> findAllByNameOrName(String aName, String anotherName);
 
 	List<PersonWithAllConstructor> findAllBySameValue(String sameValue);
 
+	List<PersonWithAllConstructor> findAllBySameValueIgnoreCase(String sameValue);
+
 	List<PersonWithAllConstructor> findAllByNameNot(String name);
 
+	List<PersonWithAllConstructor> findAllByNameNotIgnoreCase(String name);
+
 	List<PersonWithAllConstructor> findAllByFirstNameLike(String name);
+
+	List<PersonWithAllConstructor> findAllByFirstNameLikeIgnoreCase(String name);
 
 	List<PersonWithAllConstructor> findAllByFirstNameMatches(String name);
 
 	List<PersonWithAllConstructor> findAllByFirstNameNotLike(String name);
+
+	List<PersonWithAllConstructor> findAllByFirstNameNotLikeIgnoreCase(String name);
 
 	List<PersonWithAllConstructor> findAllByCoolTrue();
 
@@ -97,11 +107,19 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	List<PersonWithAllConstructor> findAllByFirstNameStartingWith(String name);
 
+	List<PersonWithAllConstructor> findAllByFirstNameStartingWithIgnoreCase(String name);
+
 	List<PersonWithAllConstructor> findAllByFirstNameContaining(String name);
+
+	List<PersonWithAllConstructor> findAllByFirstNameContainingIgnoreCase(String name);
 
 	List<PersonWithAllConstructor> findAllByFirstNameNotContaining(String name);
 
+	List<PersonWithAllConstructor> findAllByFirstNameNotContainingIgnoreCase(String name);
+
 	List<PersonWithAllConstructor> findAllByFirstNameEndingWith(String name);
+
+	List<PersonWithAllConstructor> findAllByFirstNameEndingWithIgnoreCase(String name);
 
 	List<PersonWithAllConstructor> findAllByPersonNumberIsLessThan(Long number);
 
@@ -114,6 +132,8 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	List<PersonWithAllConstructor> findAllByPersonNumberIsBetween(Range range);
 
 	List<PersonWithAllConstructor> findAllByPersonNumberIsBetween(Long low, Long high);
+
+	List<PersonWithAllConstructor> findAllByBornOn(LocalDate date);
 
 	List<PersonWithAllConstructor> findAllByBornOnAfter(LocalDate date);
 
@@ -139,7 +159,11 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	List<PersonWithAllConstructor> findAllByPlaceNear(Point p, Range<Distance> between);
 
+	List<PersonWithAllConstructor> findAllByPlaceNear(Range<Distance> between, Point p);
+
 	List<PersonWithAllConstructor> findAllByPlaceNearAndFirstNameIn(Point p, List<String> haystack);
+
+	List<PersonWithAllConstructor> findAllByPlaceNearAndFirstNameAllIgnoreCase(Point p, String firstName);
 
 	List<PersonWithAllConstructor> findAllByPlaceWithin(Circle circle);
 

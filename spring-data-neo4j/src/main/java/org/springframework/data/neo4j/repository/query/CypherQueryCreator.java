@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.repository.query;
 import static lombok.AccessLevel.*;
 import static org.springframework.data.neo4j.core.cypher.Cypher.*;
 import static org.springframework.data.neo4j.core.cypher.Functions.*;
+import static org.springframework.data.neo4j.repository.query.PartTreeNeo4jQuery.*;
 
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -43,7 +44,6 @@ import org.springframework.data.neo4j.core.cypher.Conditions;
 import org.springframework.data.neo4j.core.cypher.Cypher;
 import org.springframework.data.neo4j.core.cypher.Expression;
 import org.springframework.data.neo4j.core.cypher.Functions;
-import org.springframework.data.neo4j.core.cypher.Property;
 import org.springframework.data.neo4j.core.cypher.SortItem;
 import org.springframework.data.neo4j.core.cypher.Statement;
 import org.springframework.data.neo4j.core.cypher.renderer.CypherRenderer;
@@ -128,68 +128,77 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 
 		PersistentPropertyPath<Neo4jPersistentProperty> path = mappingContext
 			.getPersistentPropertyPath(part.getProperty());
-		Neo4jPersistentProperty persistentProperty = path.getLeafProperty();
-
+		Neo4jPersistentProperty persistentProperty = path.getRequiredLeafProperty();
 		// TODO case insensitive (like, notlike, simpleProperty, negatedSimpleProperty)
+
+		boolean ignoreCase = ignoreCase(part);
 		switch (part.getType()) {
 			case AFTER:
 			case GREATER_THAN:
-				return property(persistentProperty).gt(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+				return toCypherProperty(persistentProperty, ignoreCase)
+					.gt(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case BEFORE:
 			case LESS_THAN:
-				return property(persistentProperty).lt(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+				return toCypherProperty(persistentProperty, ignoreCase)
+					.lt(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case BETWEEN:
-				return betweenCondition(persistentProperty, actualParameters);
+				return betweenCondition(persistentProperty, actualParameters, ignoreCase);
 			case CONTAINING:
-				return property(persistentProperty)
-					.contains(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+				return toCypherProperty(persistentProperty, ignoreCase)
+					.contains(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case ENDING_WITH:
-				return property(persistentProperty)
-					.endsWith(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+				return toCypherProperty(persistentProperty, ignoreCase)
+					.endsWith(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case EXISTS:
-				return Conditions.exists(property(persistentProperty));
+				return Conditions.exists(toCypherProperty(persistentProperty, ignoreCase));
 			case FALSE:
-				return property(persistentProperty).isFalse();
+				return toCypherProperty(persistentProperty, ignoreCase).isFalse();
 			case GREATER_THAN_EQUAL:
-				return property(persistentProperty).gte(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+				return toCypherProperty(persistentProperty, ignoreCase)
+					.gte(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case IN:
-				return property(persistentProperty).in(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+				return toCypherProperty(persistentProperty, ignoreCase)
+					.in(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case IS_EMPTY:
-				return property(persistentProperty).isEmpty();
+				return toCypherProperty(persistentProperty, ignoreCase).isEmpty();
 			case IS_NOT_EMPTY:
-				return property(persistentProperty).isEmpty().not();
+				return toCypherProperty(persistentProperty, ignoreCase).isEmpty().not();
 			case IS_NOT_NULL:
-				return property(persistentProperty).isNotNull();
+				return toCypherProperty(persistentProperty, ignoreCase).isNotNull();
 			case IS_NULL:
-				return property(persistentProperty).isNull();
+				return toCypherProperty(persistentProperty, ignoreCase).isNull();
 			case LESS_THAN_EQUAL:
-				return property(persistentProperty).lte(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+				return toCypherProperty(persistentProperty, ignoreCase)
+					.lte(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case LIKE:
-				return likeCondition(persistentProperty, nextRequiredParameter(actualParameters).nameOrIndex);
+				return likeCondition(persistentProperty, nextRequiredParameter(actualParameters).nameOrIndex,
+					ignoreCase);
 			case NEAR:
 				return createNearCondition(persistentProperty, actualParameters);
 			case NEGATING_SIMPLE_PROPERTY:
-				return property(persistentProperty)
-					.isNotEqualTo(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+				return toCypherProperty(persistentProperty, ignoreCase)
+					.isNotEqualTo(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case NOT_CONTAINING:
-				return property(persistentProperty)
-					.contains(parameter(nextRequiredParameter(actualParameters).nameOrIndex)).not();
+				return toCypherProperty(persistentProperty, ignoreCase)
+					.contains(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase)).not();
 			case NOT_IN:
-				return property(persistentProperty).in(parameter(nextRequiredParameter(actualParameters).nameOrIndex))
+				return toCypherProperty(persistentProperty, ignoreCase)
+					.in(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase))
 					.not();
 			case NOT_LIKE:
-				return likeCondition(persistentProperty, nextRequiredParameter(actualParameters).nameOrIndex).not();
+				return likeCondition(persistentProperty, nextRequiredParameter(actualParameters).nameOrIndex,
+					ignoreCase).not();
 			case SIMPLE_PROPERTY:
-				return property(persistentProperty)
-					.isEqualTo(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+				return toCypherProperty(persistentProperty, ignoreCase)
+					.isEqualTo(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case STARTING_WITH:
-				return property(persistentProperty)
-					.startsWith(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+				return toCypherProperty(persistentProperty, ignoreCase)
+					.startsWith(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case REGEX:
-				return property(persistentProperty)
-					.matches(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
+				return toCypherProperty(persistentProperty, ignoreCase)
+					.matches(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case TRUE:
-				return property(persistentProperty).isTrue();
+				return toCypherProperty(persistentProperty, ignoreCase).isTrue();
 			case WITHIN:
 				return createWithinCondition(persistentProperty, actualParameters);
 			default:
@@ -197,22 +206,46 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		}
 	}
 
-	private Condition likeCondition(Neo4jPersistentProperty persistentProperty, String parameterName) {
-		return property(persistentProperty)
-			.matches(literalOf(".*").plus(parameter(parameterName)).plus(literalOf(".*")));
+	/**
+	 * Checks whether or not to ignore the case for some operations. {@link PartTreeNeo4jQuery} will already have validated
+	 * which properties can be made case insenstive given a certain keyword.
+	 *
+	 * @param p
+	 * @return
+	 */
+	boolean ignoreCase(Part p) {
+
+		switch (p.shouldIgnoreCase()) {
+			case ALWAYS:
+				return true;
+			case WHEN_POSSIBLE:
+				return canIgnoreCase(p);
+			case NEVER:
+				return false;
+			default:
+				throw new IllegalArgumentException("Unsupported option for ignoring case: " + p.shouldIgnoreCase());
+		}
 	}
 
-	private Condition betweenCondition(Neo4jPersistentProperty persistentProperty, Iterator<Object> actualParameters) {
+	private Condition likeCondition(Neo4jPersistentProperty persistentProperty, String parameterName,
+		boolean ignoreCase) {
+		String regexOptions = ignoreCase ? "(?i)" : "";
+		return toCypherProperty(persistentProperty, false)
+			.matches(literalOf(regexOptions + ".*").plus(Cypher.parameter(parameterName)).plus(literalOf(".*")));
+	}
+
+	private Condition betweenCondition(Neo4jPersistentProperty persistentProperty, Iterator<Object> actualParameters,
+		boolean ignoreCase) {
 
 		Parameter lowerBoundOrRange = nextRequiredParameter(actualParameters);
 
-		Property property = property(persistentProperty);
+		Expression property = toCypherProperty(persistentProperty, ignoreCase);
 		if (lowerBoundOrRange.value instanceof Range) {
 			return createRangeConditionForProperty(property, lowerBoundOrRange);
 		} else {
 			Parameter upperBound = nextRequiredParameter(actualParameters);
-			return property.gte(parameter(lowerBoundOrRange.nameOrIndex))
-				.and(property.lte(parameter(upperBound.nameOrIndex)));
+			return property.gte(toCypherParameter(lowerBoundOrRange, ignoreCase))
+				.and(property.lte(toCypherParameter(upperBound, ignoreCase)));
 		}
 	}
 
@@ -226,24 +259,24 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 
 		Optional<Parameter> other;
 		if (p1.value instanceof Point) {
-			referencePoint = parameter(p1.nameOrIndex);
+			referencePoint = toCypherParameter(p1, false);
 			other = p2;
 		} else if (p2.isPresent() && p2.get().value instanceof Point) {
-			referencePoint = parameter(p2.get().nameOrIndex);
+			referencePoint = toCypherParameter(p2.get(), false);
 			other = Optional.of(p1);
 		} else {
 			throw new IllegalArgumentException(
 				String.format("The NEAR operation requires a reference point of type %s", Point.class));
 		}
 
-		Expression distanceFunction = Functions.distance(property(persistentProperty), referencePoint);
+		Expression distanceFunction = Functions.distance(toCypherProperty(persistentProperty, false), referencePoint);
 
 		if (other.filter(p -> p.hasValueOfType(Distance.class)).isPresent()) {
-			return distanceFunction.lte(parameter(other.get().nameOrIndex));
+			return distanceFunction.lte(toCypherParameter(other.get(), false));
 		} else if (other.filter(p -> p.hasValueOfType(Range.class)).isPresent()) {
 			return createRangeConditionForProperty(distanceFunction, other.get());
 		} else {
-			// We only have a point parameter, that's ok, but we have to put back the last parameter when it wasn't null
+			// We only have a point toCypherParameter, that's ok, but we have to put back the last toCypherParameter when it wasn't null
 			other.ifPresent(this.lastParameter::offer);
 
 			// Also, we cannot filter, but need to sort in the end.
@@ -257,14 +290,15 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 
 		Parameter area = nextRequiredParameter(actualParameters);
 		if (area.hasValueOfType(Circle.class)) {
-			// We don't know the CRS of the point, so we assume the same as the reference property
+			// We don't know the CRS of the point, so we assume the same as the reference toCypherProperty
 			Expression referencePoint = point(mapOf(
-				"x", parameter(area.nameOrIndex + ".x"),
-				"y", parameter(area.nameOrIndex + ".y"),
-				"srid", Cypher.property(property(persistentProperty), "srid"))
+				"x", createCypherParameter(area.nameOrIndex + ".x", false),
+				"y", createCypherParameter(area.nameOrIndex + ".y", false),
+				"srid", Cypher.property(toCypherProperty(persistentProperty, false), "srid"))
 			);
-			Expression distanceFunction = Functions.distance(property(persistentProperty), referencePoint);
-			return distanceFunction.lte(parameter(area.nameOrIndex + ".radius"));
+			Expression distanceFunction = Functions
+				.distance(toCypherProperty(persistentProperty, false), referencePoint);
+			return distanceFunction.lte(createCypherParameter(area.nameOrIndex + ".radius", false));
 		} else {
 			throw new IllegalArgumentException(
 				String.format("The WITHIN operation requires an area of type %s or %s.", Circle.class));
@@ -281,14 +315,14 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		Range range = (Range) rangeParameter.value;
 		Condition betweenCondition = Conditions.noCondition();
 		if (range.getLowerBound().isBounded()) {
-			Expression parameterPlaceholder = parameter(rangeParameter.nameOrIndex + ".lb");
+			Expression parameterPlaceholder = createCypherParameter(rangeParameter.nameOrIndex + ".lb", false);
 			betweenCondition = betweenCondition.and(range.getLowerBound().isInclusive() ?
 				property.gte(parameterPlaceholder) :
 				property.gt(parameterPlaceholder));
 		}
 
 		if (range.getUpperBound().isBounded()) {
-			Expression parameterPlaceholder = parameter(rangeParameter.nameOrIndex + ".ub");
+			Expression parameterPlaceholder = createCypherParameter(rangeParameter.nameOrIndex + ".ub", false);
 			betweenCondition = betweenCondition.and(range.getUpperBound().isInclusive() ?
 				property.lte(parameterPlaceholder) :
 				property.lt(parameterPlaceholder));
@@ -296,8 +330,28 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		return betweenCondition;
 	}
 
-	private static Property property(Neo4jPersistentProperty persistentProperty) {
-		return Cypher.property(NodeDescription.NAME_OF_ROOT_NODE, persistentProperty.getPropertyName());
+	private static Expression toCypherProperty(Neo4jPersistentProperty persistentProperty, boolean addToLower) {
+
+		Expression expression = Cypher
+			.property(NodeDescription.NAME_OF_ROOT_NODE, persistentProperty.getPropertyName());
+		if (addToLower) {
+			expression = Functions.toLower(expression);
+		}
+		return expression;
+	}
+
+	private static Expression toCypherParameter(Parameter parameter, boolean addToLower) {
+
+		return createCypherParameter(parameter.nameOrIndex, addToLower);
+	}
+
+	private static Expression createCypherParameter(String name, boolean addToLower) {
+
+		Expression expression = Cypher.parameter(name);
+		if (addToLower) {
+			expression = Functions.toLower(expression);
+		}
+		return expression;
 	}
 
 	private Optional<Parameter> nextOptionalParameter(Iterator<Object> actualParameters) {
