@@ -717,6 +717,15 @@ class RepositoryIT {
 	}
 
 	@Test
+	void shouldSupportSort() {
+		List<PersonWithAllConstructor> persons;
+
+		persons = repository.findAllByOrderByFirstNameAscBornOnDesc();
+		assertThat(persons)
+			.containsExactly(person2, person1);
+	}
+
+	@Test
 	void findByNear() {
 		List<PersonWithAllConstructor> persons;
 

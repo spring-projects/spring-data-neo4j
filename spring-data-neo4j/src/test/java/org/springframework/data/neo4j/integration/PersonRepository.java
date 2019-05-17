@@ -167,6 +167,8 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	List<PersonWithAllConstructor> findAllByPlaceWithin(Circle circle);
 
+	List<PersonWithAllConstructor> findAllByOrderByFirstNameAscBornOnDesc();
+
 	// TODO Integration tests for failed validations
 	// 	List<PersonWithAllConstructor> findAllByBornOnAfter(String date);
 	// List<PersonWithAllConstructor> findAllByNameOrPersonNumberIsBetweenAndFirstNameNotInAndFirstNameEquals(String name, Long low, Long high, String wrong, List<String> haystack);

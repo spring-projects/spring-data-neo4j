@@ -21,6 +21,8 @@ package org.springframework.data.neo4j.repository.query;
 import static lombok.AccessLevel.*;
 import static org.springframework.data.neo4j.core.cypher.Cypher.*;
 import static org.springframework.data.neo4j.core.cypher.Functions.*;
+import static org.springframework.data.neo4j.core.schema.NodeDescription.*;
+import static org.springframework.data.neo4j.repository.query.CypherAdapterUtils.*;
 import static org.springframework.data.neo4j.repository.query.PartTreeNeo4jQuery.*;
 
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.stream.Stream;
 
 import org.neo4j.driver.types.Point;
 import org.springframework.data.domain.Range;
@@ -116,9 +119,14 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 	protected String complete(Condition condition, Sort sort) {
 
 		Statement statement = mappingContext
-			.prepareMatchOf(nodeDescription, Optional.of(condition))
+			.prepareMatchOf(nodeDescription, Optional.ofNullable(condition))
 			.returning(Cypher.asterisk())
-			.orderBy(sortItems.toArray(new SortItem[sortItems.size()]))
+			.orderBy(
+				Stream.concat(
+					sortItems.stream(),
+					sort.stream().map(sortAdapterFor(nodeDescription))
+				).toArray(SortItem[]::new)
+			)
 			.build();
 
 		return CypherRenderer.create().render(statement);
@@ -129,7 +137,6 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		PersistentPropertyPath<Neo4jPersistentProperty> path = mappingContext
 			.getPersistentPropertyPath(part.getProperty());
 		Neo4jPersistentProperty persistentProperty = path.getRequiredLeafProperty();
-		// TODO case insensitive (like, notlike, simpleProperty, negatedSimpleProperty)
 
 		boolean ignoreCase = ignoreCase(part);
 		switch (part.getType()) {
@@ -332,8 +339,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 
 	private static Expression toCypherProperty(Neo4jPersistentProperty persistentProperty, boolean addToLower) {
 
-		Expression expression = Cypher
-			.property(NodeDescription.NAME_OF_ROOT_NODE, persistentProperty.getPropertyName());
+		Expression expression = Cypher.property(NAME_OF_ROOT_NODE, persistentProperty.getPropertyName());
 		if (addToLower) {
 			expression = Functions.toLower(expression);
 		}
