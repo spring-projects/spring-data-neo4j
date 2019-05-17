@@ -186,4 +186,24 @@ public interface Expression extends Visitable {
 	default Condition isEmpty() {
 		return Conditions.isEmpty(this);
 	}
+
+	/**
+	 * The property does not track the sort items created here.
+	 *
+	 * @return A sort item for this property in descending order
+	 */
+	default SortItem descending() {
+
+		return SortItem.create(this, SortItem.Direction.DESC);
+	}
+
+	/**
+	 * The property does not track the sort items created here.
+	 *
+	 * @return A sort item for this property in ascending order
+	 */
+	default SortItem ascending() {
+
+		return SortItem.create(this, SortItem.Direction.ASC);
+	}
 }

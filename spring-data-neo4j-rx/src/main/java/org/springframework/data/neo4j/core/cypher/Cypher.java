@@ -69,14 +69,34 @@ public final class Cypher {
 		return Node.create().named(symbolicName);
 	}
 
+	/**
+	 * Dereferences a property for a symbolic name, most likely pointing to a property container like a node or a relationship.
+	 *
+	 * @param containerName The symbolic name of a property container
+	 * @param name          The name of the property to dereference
+	 * @return A new property
+	 */
 	public static Property property(String containerName, String name) {
 		return property(symbolicName(containerName), name);
 	}
 
-	public static Property property(SymbolicName containerName, String name) {
-		return Property.create(containerName, name);
+	/**
+	 * Dereferences a property on a arbitrary expression.
+	 *
+	 * @param expression The expression that describes some sort of accessible map
+	 * @param name       The name of the property to dereference
+	 * @return A new property.
+	 */
+	public static Property property(Expression expression, String name) {
+		return Property.create(expression, name);
 	}
 
+	/**
+	 * Creates a new symbolic name.
+	 *
+	 * @param value The value of the symbolic name
+	 * @return A new symoblic name
+	 */
 	public static SymbolicName symbolicName(String value) {
 		return new SymbolicName(value);
 	}
@@ -123,6 +143,17 @@ public final class Cypher {
 	public static SortItem sort(Expression expression) {
 
 		return SortItem.create(expression, null);
+	}
+
+	/**
+	 * Creates a map of expression from a list of key/value pairs.
+	 *
+	 * @param keysAndValues A list of key and values. Must be an even number, with alternating {@link String} and {@link Expression}
+	 * @return A new map expression.
+	 */
+	public static Expression mapOf(Object... keysAndValues) {
+
+		return MapExpression.create(keysAndValues);
 	}
 
 	/**

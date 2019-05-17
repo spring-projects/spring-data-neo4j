@@ -160,6 +160,20 @@ public final class Functions {
 		return new FunctionInvocation("distance", point1, point2);
 	}
 
+	/**
+	 * Creates a function invocation for the {@code point()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/spatial/#functions-point">point</a>
+	 *
+	 * @param parameterMap The map of parameters for {@code point()}
+	 * @return A function call for {@code point()}
+	 */
+	public static FunctionInvocation point(Expression parameterMap) {
+
+		Assert.notNull(parameterMap, "The parameter map is required.");
+
+		return new FunctionInvocation("point", parameterMap);
+	}
+
 	private Functions() {
 	}
 }
