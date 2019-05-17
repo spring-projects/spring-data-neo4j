@@ -46,6 +46,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.neo4j.core.NodeManagerFactory;
@@ -660,6 +661,14 @@ class RepositoryIT {
 	void findByNear() {
 		List<PersonWithAllConstructor> persons;
 
+		persons = repository.findAllByPlaceNear(SFO);
+		assertThat(persons)
+			.containsExactly(person2, person1);
+
+		persons = repository.findAllByPlaceNearAndFirstNameIn(SFO, Collections.singletonList(TEST_PERSON1_FIRST_NAME));
+		assertThat(persons)
+			.containsExactly(person1);
+
 		persons = repository.findAllByPlaceNear(MINC, new Distance(200.0 / 1000.0, Metrics.KILOMETERS));
 		assertThat(persons)
 			.hasSize(1)
@@ -683,6 +692,15 @@ class RepositoryIT {
 		assertThat(persons)
 			.hasSize(1)
 			.contains(person2);
+
+		persons = repository.findAllByPlaceWithin(new Circle(new org.springframework.data.geo.Point(MINC.x(), MINC.y()), new Distance(200.0 / 1000.0, Metrics.KILOMETERS)));
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+
+		persons = repository.findAllByPlaceNear(CLARION, new Distance(200.0 / 1000.0, Metrics.KILOMETERS));
+		assertThat(persons).isEmpty();
+
 	}
 
 	@Configuration

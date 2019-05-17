@@ -20,16 +20,22 @@ package org.springframework.data.neo4j.repository.query;
 
 import static lombok.AccessLevel.*;
 import static org.springframework.data.neo4j.core.cypher.Cypher.*;
+import static org.springframework.data.neo4j.core.cypher.Functions.*;
 
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
+import java.util.Queue;
 
 import org.neo4j.driver.types.Point;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.neo4j.core.cypher.Condition;
@@ -38,6 +44,7 @@ import org.springframework.data.neo4j.core.cypher.Cypher;
 import org.springframework.data.neo4j.core.cypher.Expression;
 import org.springframework.data.neo4j.core.cypher.Functions;
 import org.springframework.data.neo4j.core.cypher.Property;
+import org.springframework.data.neo4j.core.cypher.SortItem;
 import org.springframework.data.neo4j.core.cypher.Statement;
 import org.springframework.data.neo4j.core.cypher.renderer.CypherRenderer;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -54,6 +61,8 @@ import org.springframework.data.repository.query.parser.PartTree;
 /**
  * A Cypher-DSL based implementation of the {@link AbstractQueryCreator} that eventually creates Cypher queries as strings
  * to be used by a Neo4j client or driver as statement template.
+ * <p />
+ * This class is not thread safe and not reusable.
  *
  * @author Michael J. Simons
  * @since 1.0
@@ -65,6 +74,12 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 	private final NodeDescription<?> nodeDescription;
 
 	private Iterator<Neo4jParameter> formalParameters;
+	private final Queue<Parameter> lastParameter = new LinkedList<>();
+
+	/**
+	 * Sort items may already be needed for some parts, i.e. of type NEAR.
+	 */
+	private final List<SortItem> sortItems = new ArrayList<>();
 
 	CypherQueryCreator(Neo4jMappingContext mappingContext, Class<?> domainType, PartTree tree,
 		Parameters<Neo4jParameters, Neo4jParameter> formalParameters, ParameterAccessor actualParameters
@@ -103,6 +118,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		Statement statement = mappingContext
 			.prepareMatchOf(nodeDescription, Optional.of(condition))
 			.returning(Cypher.asterisk())
+			.orderBy(sortItems.toArray(new SortItem[sortItems.size()]))
 			.build();
 
 		return CypherRenderer.create().render(statement);
@@ -174,6 +190,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 					.matches(parameter(nextRequiredParameter(actualParameters).nameOrIndex));
 			case TRUE:
 				return property(persistentProperty).isTrue();
+			case WITHIN:
+				return createWithinCondition(persistentProperty, actualParameters);
 			default:
 				throw new IllegalArgumentException("Unsupported part type: " + part.getType());
 		}
@@ -202,17 +220,17 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		Iterator<Object> actualParameters) {
 
 		Parameter p1 = nextRequiredParameter(actualParameters);
-		Parameter p2 = nextRequiredParameter(actualParameters);
+		Optional<Parameter> p2 = nextOptionalParameter(actualParameters);
 
 		Expression referencePoint;
 
-		Parameter other;
+		Optional<Parameter> other;
 		if (p1.value instanceof Point) {
 			referencePoint = parameter(p1.nameOrIndex);
 			other = p2;
-		} else if (p2.value instanceof Point) {
-			referencePoint = parameter(p2.nameOrIndex);
-			other = p1;
+		} else if (p2.isPresent() && p2.get().value instanceof Point) {
+			referencePoint = parameter(p2.get().nameOrIndex);
+			other = Optional.of(p1);
 		} else {
 			throw new IllegalArgumentException(
 				String.format("The NEAR operation requires a reference point of type %s", Point.class));
@@ -220,13 +238,36 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 
 		Expression distanceFunction = Functions.distance(property(persistentProperty), referencePoint);
 
-		if (other.value instanceof Distance) {
-			return distanceFunction.lte(parameter(other.nameOrIndex));
-		} else if (other.value instanceof Range) {
-			return createRangeConditionForProperty(distanceFunction, other);
+		if (other.filter(p -> p.hasValueOfType(Distance.class)).isPresent()) {
+			return distanceFunction.lte(parameter(other.get().nameOrIndex));
+		} else if (other.filter(p -> p.hasValueOfType(Range.class)).isPresent()) {
+			return createRangeConditionForProperty(distanceFunction, other.get());
+		} else {
+			// We only have a point parameter, that's ok, but we have to put back the last parameter when it wasn't null
+			other.ifPresent(this.lastParameter::offer);
+
+			// Also, we cannot filter, but need to sort in the end.
+			this.sortItems.add(distanceFunction.ascending());
+			return Conditions.noCondition();
+		}
+	}
+
+	private Condition createWithinCondition(Neo4jPersistentProperty persistentProperty,
+		Iterator<Object> actualParameters) {
+
+		Parameter area = nextRequiredParameter(actualParameters);
+		if (area.hasValueOfType(Circle.class)) {
+			// We don't know the CRS of the point, so we assume the same as the reference property
+			Expression referencePoint = point(mapOf(
+				"x", parameter(area.nameOrIndex + ".x"),
+				"y", parameter(area.nameOrIndex + ".y"),
+				"srid", Cypher.property(property(persistentProperty), "srid"))
+			);
+			Expression distanceFunction = Functions.distance(property(persistentProperty), referencePoint);
+			return distanceFunction.lte(parameter(area.nameOrIndex + ".radius"));
 		} else {
 			throw new IllegalArgumentException(
-				String.format("The NEAR operation requires a distance or a range of distances."));
+				String.format("The WITHIN operation requires an area of type %s or %s.", Circle.class));
 		}
 	}
 
@@ -259,12 +300,31 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		return Cypher.property(NodeDescription.NAME_OF_ROOT_NODE, persistentProperty.getPropertyName());
 	}
 
-	private Parameter nextRequiredParameter(Iterator<Object> actualParameters) {
-		if (!formalParameters.hasNext()) {
-			throw new IllegalStateException("Not enough formal, bindable parameters for parts");
+	private Optional<Parameter> nextOptionalParameter(Iterator<Object> actualParameters) {
+
+		Parameter nextRequiredParameter = lastParameter.poll();
+		if (nextRequiredParameter != null) {
+			return Optional.of(nextRequiredParameter);
+		} else if (formalParameters.hasNext()) {
+			final Neo4jParameter parameter = formalParameters.next();
+			return Optional.of(new Parameter(parameter.getNameOrIndex(), actualParameters.next()));
+		} else {
+			return Optional.empty();
 		}
-		final Neo4jParameter parameter = formalParameters.next();
-		return new Parameter(parameter.getNameOrIndex(), actualParameters.next());
+	}
+
+	private Parameter nextRequiredParameter(Iterator<Object> actualParameters) {
+
+		Parameter nextRequiredParameter = lastParameter.poll();
+		if (nextRequiredParameter != null) {
+			return nextRequiredParameter;
+		} else {
+			if (!formalParameters.hasNext()) {
+				throw new IllegalStateException("Not enough formal, bindable parameters for parts");
+			}
+			final Neo4jParameter parameter = formalParameters.next();
+			return new Parameter(parameter.getNameOrIndex(), actualParameters.next());
+		}
 	}
 
 	@RequiredArgsConstructor(access = PACKAGE)
@@ -274,5 +334,9 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		final String nameOrIndex;
 
 		final Object value;
+
+		boolean hasValueOfType(Class<?> type) {
+			return type.isInstance(value);
+		}
 	}
 }
