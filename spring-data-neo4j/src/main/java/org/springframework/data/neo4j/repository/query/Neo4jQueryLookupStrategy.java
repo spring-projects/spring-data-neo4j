@@ -21,11 +21,8 @@ package org.springframework.data.neo4j.repository.query;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Method;
-import java.util.Optional;
 
 import org.apiguardian.api.API;
-import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.NodeManager;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.projection.ProjectionFactory;
@@ -59,24 +56,11 @@ public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 
 		Neo4jQueryMethod queryMethod = new Neo4jQueryMethod(method, metadata, factory);
 
-		Optional<Query> optionalQueryAnnotation = getQueryAnnotationOf(method);
-		if (optionalQueryAnnotation.isPresent()) {
-			return new StringBasedNeo4jQuery(nodeManager, mappingContext, queryMethod,
-				getCypherQuery(optionalQueryAnnotation), optionalQueryAnnotation);
+		if (queryMethod.hasQueryAnnotation()) {
+			return StringBasedNeo4jQuery
+				.create(nodeManager, mappingContext, evaluationContextProvider, queryMethod);
 		}
 
 		return new PartTreeNeo4jQuery(nodeManager, mappingContext, queryMethod);
-	}
-
-	/**
-	 * @return the {@link Query} annotation that is applied to the method or an empty {@link Optional} if none available.
-	 */
-	static Optional<Query> getQueryAnnotationOf(Method method) {
-		return Optional.ofNullable(AnnotatedElementUtils.findMergedAnnotation(method, Query.class));
-	}
-
-	static String getCypherQuery(Optional<Query> optionalQueryAnnotation) {
-		return optionalQueryAnnotation.map(Query::value).filter(s -> !s.isEmpty())
-			.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not."));
 	}
 }

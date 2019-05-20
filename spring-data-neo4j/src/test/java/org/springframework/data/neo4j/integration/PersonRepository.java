@@ -28,6 +28,7 @@ import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -48,6 +49,13 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	@Query("MATCH (n:PersonWithAllConstructor{name:'Test'}) return n")
 	Optional<PersonWithAllConstructor> getOptionalPersonViaQuery();
+
+	@Query("MATCH (n:PersonWithAllConstructor{name:$name}) return n")
+	Optional<PersonWithAllConstructor> getOptionalPersonViaQuery(@Param("name") String name);
+
+	@Query("MATCH (n:PersonWithAllConstructor{name::#{#part1 + #part2}}) return n")
+	Optional<PersonWithAllConstructor> getOptionalPersonViaQuery(@Param("part1") String part1,
+		@Param("part2") String part2);
 
 	@Query("MATCH (n:PersonWithNoConstructor) return n")
 	List<PersonWithNoConstructor> getAllPersonsWithNoConstructorViaQuery();
