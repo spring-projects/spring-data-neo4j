@@ -30,16 +30,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.neo4j.driver.types.Point;
-import org.springframework.data.domain.Range;
-import org.springframework.data.geo.Circle;
-import org.springframework.data.geo.Distance;
-import org.springframework.data.geo.Metrics;
 import org.springframework.data.neo4j.core.NodeManager;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -64,7 +59,6 @@ import org.springframework.util.Assert;
 @Slf4j
 final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 
-	//
 	/**
 	 * A set of the temporal types that are directly passable to the driver and support a meaningful comparision in a
 	 * temporal sense (after, before).
@@ -93,7 +87,8 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 		this.tree = new PartTree(queryMethod.getName(), domainType);
 
 		// Validate parts. Sort properties will be validated by Spring Data already.
-		this.tree.flatMap(OrPart::stream).forEach(part -> validatePart(part));
+		PartValidator validator = new PartValidator(queryMethod);
+		this.tree.flatMap(OrPart::stream).forEach(validator::validatePart);
 	}
 
 	@Override
@@ -118,104 +113,16 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 			.build();
 	}
 
-	void validatePart(Part part) {
-
-		validateIgnoreCase(part);
-		switch (part.getType()) {
-			case AFTER:
-			case BEFORE:
-				validateTemporalProperty(part);
-				break;
-			case IS_EMPTY:
-			case IS_NOT_EMPTY:
-				validateCollectionProperty(part);
-				break;
-			case NEAR:
-			case WITHIN:
-				validatePointProperty(part);
-				break;
-		}
-	}
-
+	/**
+	 * Checks whether the given part can be queried without case sensitivity.
+	 *
+	 * @param part
+	 * @return True when {@code part} can be queried case insensitive.
+	 */
 	static boolean canIgnoreCase(Part part) {
 		return part.getProperty().getLeafType() == String.class && TYPES_SUPPORTING_CASE_INSENSITIVITY
 			.contains(part.getType());
 	}
-
-	private String formatTypes(Collection<Part.Type> types) {
-		return types.stream().flatMap(t -> t.getKeywords().stream()).collect(joining(", ", "[", "]"));
-	}
-
-	void validateIgnoreCase(Part part) {
-
-		Assert.state(part.shouldIgnoreCase() != Part.IgnoreCaseType.ALWAYS || canIgnoreCase(part),
-			() -> String.format(
-				"Can not derive query for '%s': Only the case of String based properties can be ignored within the following keywords: %s",
-				super.queryMethod,
-				formatTypes(TYPES_SUPPORTING_CASE_INSENSITIVITY)));
-	}
-
-	void validateTemporalProperty(Part part) {
-
-		Assert.state(COMPARABLE_TEMPORAL_TYPES.contains(part.getProperty().getLeafType()), () -> String
-			.format(
-				"Can not derive query for '%s': The keywords %s work only with properties with one of the following types: %s",
-				super.queryMethod, formatTypes(Collections.singletonList(part.getType())),
-				COMPARABLE_TEMPORAL_TYPES));
-	}
-
-	void validateCollectionProperty(Part part) {
-		Assert.state(part.getProperty().getLeafProperty().isCollection(), () -> String
-			.format("Can not derive query for '%s': The keywords %s work only with collection properties",
-				super.queryMethod,
-				formatTypes(Collections.singletonList(part.getType()))));
-	}
-
-	void validatePointProperty(Part part) {
-
-		Assert.state(ClassTypeInformation.from(Point.class)
-			.isAssignableFrom(part.getProperty().getLeafProperty().getTypeInformation()), () -> String
-			.format("Can not derive query for '%s': %s works only with spatial properties", super.queryMethod,
-				part.getType()));
-	}
-
-	/**
-	 * Converts parameter as needed by the query generated, which is not covered by standard conversion services
-	 *
-	 * @param parameter The parameter to fit into the generated query.
-	 * @return A parameter that fits the place holders of a generated query
-	 */
-	static Object convertParameter(Object parameter) {
-		if (parameter instanceof Range) {
-			Range range = (Range) parameter;
-			Map<String, Object> map = new HashMap<>();
-			range.getLowerBound().getValue().map(PartTreeNeo4jQuery::convertParameter).ifPresent(v -> map.put("lb", v));
-			range.getUpperBound().getValue().map(PartTreeNeo4jQuery::convertParameter).ifPresent(v -> map.put("ub", v));
-			return map;
-		} else if (parameter instanceof Distance) {
-			return calculateDistanceInMeter((Distance) parameter);
-		} else if (parameter instanceof Circle) {
-			Circle circle = (Circle) parameter;
-			Map<String, Object> map = new HashMap<>();
-			map.put("x", convertParameter(circle.getCenter().getX()));
-			map.put("y", convertParameter(circle.getCenter().getY()));
-			map.put("radius", convertParameter(calculateDistanceInMeter(circle.getRadius())));
-			return map;
-		}
-		return parameter;
-	}
-
-	private static double calculateDistanceInMeter(Distance distance) {
-
-		if (distance.getMetric() == Metrics.KILOMETERS) {
-			return distance.getValue() / 0.001d;
-		} else if (distance.getMetric() == Metrics.MILES) {
-			return distance.getValue() / 0.00062137d;
-		} else {
-			return distance.getValue();
-		}
-	}
-
 
 	@Override
 	protected boolean isCountQuery() {
@@ -235,5 +142,72 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 	@Override
 	protected boolean isLimiting() {
 		return tree.isLimiting();
+	}
+
+	static class PartValidator {
+
+		private final Neo4jQueryMethod queryMethod;
+
+		PartValidator(Neo4jQueryMethod queryMethod) {
+			this.queryMethod = queryMethod;
+		}
+
+		void validatePart(Part part) {
+
+			validateIgnoreCase(part);
+			switch (part.getType()) {
+				case AFTER:
+				case BEFORE:
+					validateTemporalProperty(part);
+					break;
+				case IS_EMPTY:
+				case IS_NOT_EMPTY:
+					validateCollectionProperty(part);
+					break;
+				case NEAR:
+				case WITHIN:
+					validatePointProperty(part);
+					break;
+			}
+		}
+
+		private void validateIgnoreCase(Part part) {
+
+			Assert.state(part.shouldIgnoreCase() != Part.IgnoreCaseType.ALWAYS || canIgnoreCase(part),
+				() -> String.format(
+					"Can not derive query for '%s': Only the case of String based properties can be ignored within the following keywords: %s",
+					queryMethod,
+					formatTypes(TYPES_SUPPORTING_CASE_INSENSITIVITY)));
+		}
+
+		private void validateTemporalProperty(Part part) {
+
+			Assert.state(COMPARABLE_TEMPORAL_TYPES.contains(part.getProperty().getLeafType()), () -> String
+				.format(
+					"Can not derive query for '%s': The keywords %s work only with properties with one of the following types: %s",
+					queryMethod, formatTypes(Collections.singletonList(part.getType())),
+					COMPARABLE_TEMPORAL_TYPES));
+		}
+
+		private void validateCollectionProperty(Part part) {
+
+			Assert.state(part.getProperty().getLeafProperty().isCollection(), () -> String
+				.format("Can not derive query for '%s': The keywords %s work only with collection properties",
+					queryMethod,
+					formatTypes(Collections.singletonList(part.getType()))));
+		}
+
+		private void validatePointProperty(Part part) {
+
+			Assert.state(ClassTypeInformation.from(Point.class)
+				.isAssignableFrom(part.getProperty().getLeafProperty().getTypeInformation()), () -> String
+				.format("Can not derive query for '%s': %s works only with spatial properties", queryMethod,
+					part.getType()));
+		}
+
+		private static String formatTypes(Collection<Part.Type> types) {
+			return types.stream().flatMap(t -> t.getKeywords().stream()).collect(joining(", ", "[", "]"));
+		}
+
 	}
 }
