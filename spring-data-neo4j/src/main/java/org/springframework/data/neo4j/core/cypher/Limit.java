@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.core.cypher;
 import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
+import org.springframework.util.Assert;
 
 /**
  * @author Gerrit Meier
@@ -30,7 +31,10 @@ import org.springframework.data.neo4j.core.cypher.support.Visitor;
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class Limit implements Visitable {
 
-	public static Limit of(Number value) {
+	static Limit create(Number value) {
+
+		Assert.notNull(value, "A limit cannot have a null value.");
+
 		return new Limit(new NumberLiteral(value));
 	}
 
@@ -44,5 +48,6 @@ public final class Limit implements Visitable {
 	public void accept(Visitor visitor) {
 		visitor.enter(this);
 		limitAmount.accept(visitor);
+		visitor.leave(this);
 	}
 }

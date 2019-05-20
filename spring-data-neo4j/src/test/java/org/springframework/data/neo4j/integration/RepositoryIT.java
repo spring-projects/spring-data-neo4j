@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
@@ -125,6 +126,10 @@ class RepositoryIT {
 		transaction.run("CREATE (n:PersonWithWither) SET n.name = '" + TEST_PERSON1_NAME + "'");
 		transaction.run("CREATE (n:KotlinPerson) SET n.name = '" + TEST_PERSON1_NAME + "'");
 		transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})");
+
+		IntStream.rangeClosed(1, 20).forEach(i ->
+			transaction.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})", Values.parameters("i", String.format("%02d", i))));
+
 		transaction.success();
 		transaction.close();
 
@@ -784,13 +789,30 @@ class RepositoryIT {
 			.containsExactly(person1);
 	}
 
+	@Test
+	void limitClauseShouldWork() {
+
+		List<ThingWithAssignedId> things;
+
+		things = thingRepository.findTop5ByOrderByNameDesc();
+		assertThat(things)
+			.hasSize(5)
+			.extracting(ThingWithAssignedId::getName)
+			.containsExactlyInAnyOrder("name20", "name19", "name18", "name17", "name16");
+
+		things = thingRepository.findFirstByOrderByNameDesc();
+		assertThat(things)
+			.extracting(ThingWithAssignedId::getName)
+			.containsExactlyInAnyOrder("name20");
+	}
+
 	@Configuration
 	@EnableNeo4jRepositories
 	@EnableTransactionManagement
 	static class Config {
 
 		@Bean
-		public Driver driver() {
+		public static Driver driver() {
 
 			return neo4jConnectionSupport.openConnection();
 		}

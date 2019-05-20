@@ -242,12 +242,30 @@ public class CypherTest {
 			}
 
 			@Test
+			void nullSkip() {
+				Statement statement = Cypher.match(userNode).returning(userNode).skip(null).build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo(
+						"MATCH (u:`User`) RETURN u");
+			}
+
+			@Test
 			void limit() {
 				Statement statement = Cypher.match(userNode).returning(userNode).limit(1).build();
 
 				assertThat(cypherRenderer.render(statement))
 					.isEqualTo(
 						"MATCH (u:`User`) RETURN u LIMIT 1");
+			}
+
+			@Test
+			void nullLimit() {
+				Statement statement = Cypher.match(userNode).returning(userNode).limit(null).build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo(
+						"MATCH (u:`User`) RETURN u");
 			}
 
 			@Test
@@ -258,6 +276,16 @@ public class CypherTest {
 					.isEqualTo(
 						"MATCH (u:`User`) RETURN u SKIP 1 LIMIT 1");
 			}
+
+			@Test
+			void nullskipAndLimit() {
+				Statement statement = Cypher.match(userNode).returning(userNode).skip(null).limit(null).build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo(
+						"MATCH (u:`User`) RETURN u");
+			}
+
 
 			@Test
 			void distinct() {

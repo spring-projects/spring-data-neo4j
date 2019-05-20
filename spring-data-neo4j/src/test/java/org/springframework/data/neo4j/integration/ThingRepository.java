@@ -18,10 +18,15 @@
  */
 package org.springframework.data.neo4j.integration;
 
+import java.util.List;
+
 import org.springframework.data.repository.CrudRepository;
 
 /**
  * @author Michael J. Simons
  */
 public interface ThingRepository extends CrudRepository<ThingWithAssignedId, String> {
+	List<ThingWithAssignedId> findFirstByOrderByNameDesc();
+
+	List<ThingWithAssignedId> findTop5ByOrderByNameDesc();
 }
