@@ -80,6 +80,11 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 	private final Queue<Parameter> lastParameter = new LinkedList<>();
 
 	/**
+	 * Stores the number of max results, if the {@link PartTree tree} is limiting.
+	 */
+	private final Number maxResults;
+
+	/**
 	 * Sort items may already be needed for some parts, i.e. of type NEAR.
 	 */
 	private final List<SortItem> sortItems = new ArrayList<>();
@@ -93,6 +98,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		this.domainType = domainType;
 		this.nodeDescription = this.mappingContext.getRequiredNodeDescription(this.domainType);
 		this.formalParameters = formalParameters.iterator();
+		this.maxResults = tree.isLimiting() ? tree.getMaxResults() : null;
 	}
 
 	@Override
@@ -127,6 +133,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 					sort.stream().map(sortAdapterFor(nodeDescription))
 				).toArray(SortItem[]::new)
 			)
+			.limit(maxResults)
 			.build();
 
 		return CypherRenderer.create().render(statement);

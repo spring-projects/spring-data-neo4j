@@ -19,6 +19,7 @@
 package org.springframework.data.neo4j.core.cypher;
 
 import org.apiguardian.api.API;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
@@ -236,10 +237,10 @@ public interface StatementBuilder {
 		/**
 		 * Adds a skip clause, skipping the given number of records.
 		 *
-		 * @param number How many records to skip
-		 * @return A step that only allows the limit of records to be specified
+		 * @param number How many records to skip. If this is null, then no records are skipped.
+		 * @return A step that only allows the limit of records to be specified.
 		 */
-		ExposesLimit skip(Number number);
+		ExposesLimit skip(@Nullable Number number);
 
 	}
 
@@ -250,10 +251,10 @@ public interface StatementBuilder {
 
 		/**
 		 * Limits the number of returned records.
-		 * @param number How many records to return
-		 * @return A buildable match statement
+		 * @param number How many records to return. If this is null, all the records are returned.
+		 * @return A buildable match statement.
 		 */
-		BuildableMatch limit(Number number);
+		BuildableMatch limit(@Nullable Number number);
 	}
 
 	/**

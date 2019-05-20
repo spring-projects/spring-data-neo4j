@@ -27,6 +27,7 @@ import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatch;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchWithWhere;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchWithoutWhere;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -225,14 +226,20 @@ class DefaultStatementBuilder
 		}
 
 		@Override
-		public final OngoingMatchAndReturn skip(Number number) {
-			skip = Skip.of(number);
+		public final OngoingMatchAndReturn skip(@Nullable Number number) {
+
+			if (number != null) {
+				skip = Skip.create(number);
+			}
 			return this;
 		}
 
 		@Override
-		public final OngoingMatchAndReturn limit(Number number) {
-			limit = Limit.of(number);
+		public final OngoingMatchAndReturn limit(@Nullable Number number) {
+
+			if (number != null) {
+				limit = Limit.create(number);
+			}
 			return this;
 		}
 

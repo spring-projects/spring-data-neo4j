@@ -105,6 +105,7 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 			mappingContext, domainType, tree, formalParameters, actualParameters
 		);
 
+
 		String cypherQuery = queryCreator.createQuery();
 		Map<String, Object> boundedParameters = formalParameters
 			.getBindableParameters().stream()

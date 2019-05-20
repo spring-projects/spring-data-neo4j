@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.core.cypher;
 import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
+import org.springframework.util.Assert;
 
 /**
  * @author Gerrit Meier
@@ -30,7 +31,10 @@ import org.springframework.data.neo4j.core.cypher.support.Visitor;
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class Skip implements Visitable {
 
-	public static Skip of(Number value) {
+	static Skip create(Number value) {
+
+		Assert.notNull(value, "Cannot skip a value of null.");
+
 		return new Skip(new NumberLiteral(value));
 	}
 
@@ -44,5 +48,6 @@ public final class Skip implements Visitable {
 	public void accept(Visitor visitor) {
 		visitor.enter(this);
 		skipAmount.accept(visitor);
+		visitor.leave(this);
 	}
 }
