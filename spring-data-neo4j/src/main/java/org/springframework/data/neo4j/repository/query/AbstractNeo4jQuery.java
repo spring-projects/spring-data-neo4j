@@ -102,20 +102,11 @@ abstract class AbstractNeo4jQuery implements RepositoryQuery {
 	 */
 	final Object convertParameter(Object parameter) {
 		if (parameter instanceof Range) {
-			Range range = (Range) parameter;
-			Map<String, Object> map = new HashMap<>();
-			range.getLowerBound().getValue().map(this::convertParameter).ifPresent(v -> map.put("lb", v));
-			range.getUpperBound().getValue().map(this::convertParameter).ifPresent(v -> map.put("ub", v));
-			return map;
+			return convertRange((Range) parameter);
 		} else if (parameter instanceof Distance) {
 			return calculateDistanceInMeter((Distance) parameter);
 		} else if (parameter instanceof Circle) {
-			Circle circle = (Circle) parameter;
-			Map<String, Object> map = new HashMap<>();
-			map.put("x", convertParameter(circle.getCenter().getX()));
-			map.put("y", convertParameter(circle.getCenter().getY()));
-			map.put("radius", convertParameter(calculateDistanceInMeter(circle.getRadius())));
-			return map;
+			return convertCircle((Circle) parameter);
 		}
 
 		// Good hook to check the NodeManager whether the thing is an entity and we replace the value with a known id.
@@ -123,12 +114,31 @@ abstract class AbstractNeo4jQuery implements RepositoryQuery {
 		return parameter;
 	}
 
+	private Map<String, Object> convertRange(Range range) {
+		Map<String, Object> map = new HashMap<>();
+		range.getLowerBound().getValue().map(this::convertParameter).ifPresent(v -> map.put("lb", v));
+		range.getUpperBound().getValue().map(this::convertParameter).ifPresent(v -> map.put("ub", v));
+		return map;
+	}
+
+	private Map<String, Object> convertCircle(Circle circle) {
+		Map<String, Object> map = new HashMap<>();
+		map.put("x", convertParameter(circle.getCenter().getX()));
+		map.put("y", convertParameter(circle.getCenter().getY()));
+		map.put("radius", convertParameter(calculateDistanceInMeter(circle.getRadius())));
+		return map;
+	}
+
 	private static double calculateDistanceInMeter(Distance distance) {
 
 		if (distance.getMetric() == Metrics.KILOMETERS) {
-			return distance.getValue() / 0.001d;
+			double kilometersDivisor = 0.001d;
+			return distance.getValue() / kilometersDivisor;
+
 		} else if (distance.getMetric() == Metrics.MILES) {
-			return distance.getValue() / 0.00062137d;
+			double milesDivisor = 0.00062137d;
+			return distance.getValue() / milesDivisor;
+
 		} else {
 			return distance.getValue();
 		}
