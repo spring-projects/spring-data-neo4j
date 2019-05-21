@@ -50,14 +50,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
-import org.springframework.data.neo4j.core.NodeManagerFactory;
-import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -830,25 +828,12 @@ class RepositoryIT {
 	@Configuration
 	@EnableNeo4jRepositories
 	@EnableTransactionManagement
-	static class Config {
+	static class Config extends AbstractNeo4jConfig {
 
 		@Bean
-		public static Driver driver() {
+		public Driver driver() {
 
 			return neo4jConnectionSupport.openConnection();
-		}
-
-		@Bean
-		public NodeManagerFactory nodeManagerFactory(Driver driver) {
-
-			return new NodeManagerFactory(driver, PersonWithAllConstructor.class, PersonWithNoConstructor.class,
-				PersonWithWither.class, ThingWithAssignedId.class, KotlinPerson.class);
-		}
-
-		@Bean
-		public PlatformTransactionManager transactionManager(Driver driver) {
-
-			return new Neo4jTransactionManager(driver);
 		}
 	}
 }

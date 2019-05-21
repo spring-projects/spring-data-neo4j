@@ -49,14 +49,7 @@ Each property of a class that is not identified as a simple type by `org.springf
 
 NOTE: Context in this sections refers especially to dirty tracking and dealing with state of entities.
 
-It is unlikely that we can do completely without context.
-While it's easy enough to update on entity as is with the <<schema>>, it's unlikely that we can deal this way with collections of relationships.
-Spring Data JDBC's approach is as follow
-____
-If the aggregate root is not new, all referenced entities get deleted, the aggregate root gets updated, and all referenced entities get inserted again.
-____
-
-That sounds good in theory, but the Graph itself being more optimized for reads than ongoing large chunks of writes probably won't like that.
+We decided against a context for tracking changes, much like Spring Data JDBC did.
 
 === Other principles
 
@@ -182,7 +175,8 @@ It is only meant to be a basic for discussions.
 note "Implementation of Spring Data Commons SPI" as SDC_note
 package "org.springframework.data.neo4j" {
 package "core" {
-    interface Neo4jTemplate
+    interface Neo4jClient
+    interface ReactiveNeo4jClient
     package "schema" {
             package "internal" {
                 note "Schema description" as schemaDescription
@@ -194,8 +188,8 @@ package "core" {
             interface Neo4jPersistentEntity
             interface Neo4jPersistentProperty
         }
-    package "session" {
-        interface Neo4jSessionFactory
+    package "transaction" {
+        class Neo4jTransactionManager
     }
     package "convert" {
         note "conversion support" as conversionNote
@@ -234,7 +228,6 @@ core-[hidden]--->repository
 |`Neo4jTemplate` and related classes.
 |core.schema
 |Annotations for marking classes as nodes to be saved as well as internal schema description.
-|context
 |Infrastructure for dirty tracking etc.
 |core.mapping
 |Spring mapping information.
@@ -291,10 +284,10 @@ The other execution paths are only drafts right now and marked with a `*`.
 From our previous experience and handling in other Spring Data stores this would branch off in two (technical three) directions:
 
 . `StringBasedNeo4jQuery` for custom Cypher queries that are provided with the `@Query` annotation.
-. `*` `StringBasedNeo4jQuery` for named queries that are outsourced in property files.
-. `*` `PartTreeNeo4jQuery` for derived finder methods.
+. `StringBasedNeo4jQuery` for named queries that are outsourced in property files.
+. `PartTreeNeo4jQuery` for derived finder methods.
 
-All three of them will get a custom `Neo4jQueryMethod` besides `Neo4jOperations` and `QueryMethodEvaluationContextProvider` (not used yet) provided.
+All three of them will get a custom `Neo4jQueryMethod` besides `Neo4jClient` and `QueryMethodEvaluationContextProvider` (not used yet) provided.
 This is a wrapper around the `java.lang.reflect.Method` passed into the `resolveQuery` method of the `Neo4jQueryLookupStrategy` to provide additional metadata.
 
 ==== `StringBasedNeo4jQuery` execution
@@ -314,30 +307,7 @@ We considered several approaches of dirty tracking in SDN-RX:
 . Shallow copy of objects to get compared on save.
     _A full copy of the objects will occupy twice the memory._
 
-Picking the third option for now (_using some kind of event / listener_) would allow us to track single field / relationship changes per object.
-An entity will get tracked after it gets initially saved into or loaded from the database.
-
-[NOTE]
-.Architecture evaluation fragment (not current anymore but should get archived)
-====
-As the technical solution we decided to use proxies to listen for the changes.
-It will then be required for the user to work with the returned (proxy) object after calling `save` to set additional fields etc.
-The event tracking and event triggering through the proxies should communicate via an API to have the option of using another tracking approach in the future.
-
-Moved back to evaluation: It is not possible to simply intercept arbitrary property changes in Java.
-We would need some kind of byte code enhancement/maven plugin to achieve this.
-====
-
-The information about object changes will be based on an object comparison.
-We will store the saved or loaded object state and compare it with the actual version that should get saved.
-To keep the eventing idea up this will create an one-shot event containing multiple changed properties.
-This will also be needed if we implement the support for property changes through the byte code enhancement,
-because a change / domain interaction could affect more than one property at a time.
-The events will then get used to construct the matching cypher for the next save interaction.
-
-==== Side-effect on "flush mode"
-We can also track repository interactions like `save` and defer them depending on the flush mode.
-This would make it possible to remove the need for calling `save` explicitly but be more JPA-ish.
+We have settled with option 1 (See ADR-004), analogue to Spring Data JDBC.
 
 [[starter]]
 == Spring Boot Starter

@@ -18,22 +18,16 @@
  */
 package org.springframework.boot.autoconfigure.data.neo4j_rx;
 
-import java.util.Set;
-
 import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverAutoConfiguration;
 import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.neo4j.core.Neo4jClient;
-import org.springframework.data.neo4j.core.NodeManagerFactory;
-import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -51,16 +45,6 @@ class Neo4jImperativeDataAutoConfiguration {
 	@ConditionalOnMissingBean
 	public Neo4jClient neo4jClient(Driver driver) {
 		return Neo4jClient.create(driver);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public NodeManagerFactory nodeManagerFactory(Driver driver, ApplicationContext applicationContext)
-		throws ClassNotFoundException {
-
-		Set<Class<?>> initialEntityClasses = new EntityScanner(applicationContext).scan(Node.class);
-
-		return new NodeManagerFactory(driver, initialEntityClasses);
 	}
 
 	@Bean

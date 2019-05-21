@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core;
+package org.springframework.data.neo4j.repository.support;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,12 +30,19 @@ import org.neo4j.driver.types.TypeSystem;
 import org.springframework.lang.Nullable;
 
 /**
+ * Typed preparation of a query that is used to create an {@link ExecutableQuery} of the same type.
+ * <p/>
+ * When no mapping function is provided, the Neo4j client will assume a simple type to be returned. Otherwise make sure
+ * that the query fits to the mapping function, that is: It must return all nodes, relationships and paths that is expected
+ * by the mapping function to work correctly.
+ *
  * @param <T> The type of the objects returned by this query.
+ * @see ExecutableQuery#create(PreparedQuery, org.springframework.data.neo4j.core.Neo4jClient)
  * @author Michael J. Simons
  * @soundtrack Deichkind - Arbeit nervt
  * @since 1.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "1.0")
 public interface PreparedQuery<T> {
 
 	static <CT> RequiredBuildStep<CT> queryFor(Class<CT> resultType) {

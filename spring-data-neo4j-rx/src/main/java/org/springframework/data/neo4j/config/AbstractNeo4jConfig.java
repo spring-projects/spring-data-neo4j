@@ -16,22 +16,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core;
+package org.springframework.data.neo4j.config;
 
 import org.apiguardian.api.API;
-import org.springframework.data.neo4j.core.PersistenceException.IllegalResultSizeException;
+import org.neo4j.driver.Driver;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.core.Neo4jClient;
 
 /**
- * Throw when a query doesn't return a unique result.
+ * Base class for imperative SDN-RX configuration using JavaConfig.
+ * This can be included in all scenarios in which Spring Boot is not an option.
  *
  * @author Michael J. Simons
- * @soundtrack Deichkind - Niveau weshalb warum
+ * @author Gerrit Meier
  * @since 1.0
  */
+@Configuration
 @API(status = API.Status.STABLE, since = "1.0")
-public class NonUniqueResultException extends IllegalResultSizeException {
+public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 
-	public NonUniqueResultException(String query, long actualNumberOfResults) {
-		super(1L, actualNumberOfResults, query);
+	/**
+	 * The driver used here should be the driver resulting from {@link #driver()}, which is the default.
+	 *
+	 * @param driver The driver to connect with.
+	 * @return A imperative Neo4j client.
+	 */
+	@Bean
+	public Neo4jClient neo4jClient(Driver driver) {
+		return Neo4jClient.create(driver);
 	}
 }

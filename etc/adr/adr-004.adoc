@@ -1,0 +1,22 @@
+== ADR 4: Drop the notion of the `NodeManager`
+
+=== Status
+
+accepted
+
+=== Context
+
+We introduced the `NodeManager` as a pendan to Hibernates `EntityManager` and with it, a concept of a persistence context, tracking changes.
+This setup is required for updating only changed properties and also having implicit saves.
+
+=== Decision
+
+The previous versions of SDN and OGM all copied the concept of having a tracking of entities.
+We decided against it this time to remove complexity.
+We will update all properties each time a node is save, relying on the database to do this in an efficient way.
+
+Relationships will be updated via smart queries.
+
+=== Consequences
+
+The biggest impact will probably more network traffic with models having a huge number of properties on a single domain object.

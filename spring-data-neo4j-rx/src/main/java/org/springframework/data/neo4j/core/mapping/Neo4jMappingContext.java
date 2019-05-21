@@ -139,13 +139,6 @@ public class Neo4jMappingContext
 	}
 
 	@Override
-	public synchronized void register(Set<? extends Class<?>> entityClasses) {
-
-		this.setInitialEntitySet(entityClasses);
-		this.initialize();
-	}
-
-	@Override
 	public Optional<NodeDescription<?>> getNodeDescription(String primaryLabel) {
 		return Optional.ofNullable(this.nodeDescriptionsByPrimaryLabel.get(primaryLabel));
 	}

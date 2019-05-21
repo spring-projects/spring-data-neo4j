@@ -18,11 +18,19 @@
  */
 package org.springframework.boot.autoconfigure.data.neo4j_rx;
 
+import java.util.Set;
+
 import org.neo4j.driver.Driver;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.domain.EntityScanner;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * Automatic configuration of base infrastructure that imports configuration for both imperative and reactive Neo4j
@@ -35,4 +43,16 @@ import org.springframework.context.annotation.Import;
 @ConditionalOnBean(Driver.class)
 @Import({ Neo4jImperativeDataAutoConfiguration.class, Neo4jReactiveDataAutoConfiguration.class })
 public class Neo4jDataAutoConfiguration {
+
+	@Bean
+	@ConditionalOnMissingBean
+	public Neo4jMappingContext neo4jMappingContext(ApplicationContext applicationContext)
+		throws ClassNotFoundException {
+
+		Set<Class<?>> initialEntityClasses = new EntityScanner(applicationContext).scan(Node.class);
+		Neo4jMappingContext context = new Neo4jMappingContext();
+		context.setInitialEntitySet(initialEntityClasses);
+
+		return context;
+	}
 }

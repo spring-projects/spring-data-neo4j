@@ -25,9 +25,9 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
-import org.springframework.data.neo4j.core.NodeManager;
-import org.springframework.data.neo4j.core.PreparedQuery;
+import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.repository.support.PreparedQuery;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.util.Assert;
@@ -41,19 +41,19 @@ import org.springframework.util.Assert;
  */
 abstract class AbstractNeo4jQuery implements RepositoryQuery {
 
-	protected final NodeManager nodeManager;
+	protected final Neo4jClient neo4jClient;
 	protected final Neo4jMappingContext mappingContext;
 	protected final Neo4jQueryMethod queryMethod;
 	protected final Class<?> domainType;
 
-	AbstractNeo4jQuery(NodeManager nodeManager,
+	AbstractNeo4jQuery(Neo4jClient neo4jClient,
 		Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod) {
 
-		Assert.notNull(nodeManager, "The node manager is required.");
+		Assert.notNull(neo4jClient, "The Neo4j client is required.");
 		Assert.notNull(mappingContext, "The mapping context is required.");
 		Assert.notNull(queryMethod, "Query method must not be null!");
 
-		this.nodeManager = nodeManager;
+		this.neo4jClient = neo4jClient;
 		this.mappingContext = mappingContext;
 		this.queryMethod = queryMethod;
 		this.domainType = queryMethod.getReturnedObjectType();
@@ -66,7 +66,7 @@ abstract class AbstractNeo4jQuery implements RepositoryQuery {
 
 	@Override
 	public final Object execute(Object[] parameters) {
-		return new Neo4jQueryExecution.DefaultQueryExecution(nodeManager)
+		return new Neo4jQueryExecution.DefaultQueryExecution(neo4jClient)
 			.execute(prepareQuery(parameters), queryMethod.isCollectionQuery());
 	}
 

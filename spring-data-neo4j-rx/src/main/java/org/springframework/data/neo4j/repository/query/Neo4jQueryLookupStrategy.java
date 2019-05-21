@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 import java.lang.reflect.Method;
 
 import org.apiguardian.api.API;
-import org.springframework.data.neo4j.core.NodeManager;
+import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
@@ -43,7 +43,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
 @RequiredArgsConstructor
 public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 
-	private final NodeManager nodeManager;
+	private final Neo4jClient neo4jClient;
 	private final Neo4jMappingContext mappingContext;
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 
@@ -58,12 +58,12 @@ public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 		String namedQueryName = queryMethod.getNamedQueryName();
 
 		if (namedQueries.hasQuery(namedQueryName)) {
-			return StringBasedNeo4jQuery.create(nodeManager, mappingContext, evaluationContextProvider, queryMethod,
+			return StringBasedNeo4jQuery.create(neo4jClient, mappingContext, evaluationContextProvider, queryMethod,
 				namedQueries.getQuery(namedQueryName));
 		} else if (queryMethod.hasQueryAnnotation()) {
-			return StringBasedNeo4jQuery.create(nodeManager, mappingContext, evaluationContextProvider, queryMethod);
+			return StringBasedNeo4jQuery.create(neo4jClient, mappingContext, evaluationContextProvider, queryMethod);
 		} else {
-			return new PartTreeNeo4jQuery(nodeManager, mappingContext, queryMethod);
+			return new PartTreeNeo4jQuery(neo4jClient, mappingContext, queryMethod);
 		}
 	}
 }

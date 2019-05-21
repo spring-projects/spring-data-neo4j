@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core;
+package org.springframework.data.neo4j.repository.support;
 
 import java.util.Map;
 import java.util.Optional;
@@ -27,9 +27,9 @@ import org.neo4j.driver.types.TypeSystem;
 import org.springframework.lang.Nullable;
 
 /**
- * Typed preparation of a query that is used to create an {@link org.springframework.data.neo4j.core.ExecutableQuery} of the same type.
+ * Typed preparation of a query that is used to create an {@link ExecutableQuery} of the same type.
  * <p/>
- * When no mapping function is provided, the node manager will assume a simple type to be returned. Otherwise make sure
+ * When no mapping function is provided, the Neo4j client will assume a simple type to be returned. Otherwise make sure
  * that the query fits to the mapping function, that is: It must return all nodes, relationships and paths that is expected
  * by the mapping function to work correctly.
  *

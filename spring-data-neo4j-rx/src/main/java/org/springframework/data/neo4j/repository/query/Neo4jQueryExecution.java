@@ -20,9 +20,9 @@ package org.springframework.data.neo4j.repository.query;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.neo4j.core.ExecutableQuery;
-import org.springframework.data.neo4j.core.NodeManager;
-import org.springframework.data.neo4j.core.PreparedQuery;
+import org.springframework.data.neo4j.core.Neo4jClient;
+import org.springframework.data.neo4j.repository.support.ExecutableQuery;
+import org.springframework.data.neo4j.repository.support.PreparedQuery;
 
 /**
  * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a
@@ -40,12 +40,12 @@ interface Neo4jQueryExecution {
 	@RequiredArgsConstructor
 	class DefaultQueryExecution implements Neo4jQueryExecution {
 
-		private final NodeManager nodeManager;
+		private final Neo4jClient neo4jClient;
 
 		@Override
-		public Object execute(PreparedQuery preparedQuery, boolean asCollectionQuery) {
+		public Object execute(PreparedQuery description, boolean asCollectionQuery) {
 
-			ExecutableQuery executableQuery = nodeManager.toExecutableQuery(preparedQuery);
+			ExecutableQuery executableQuery = ExecutableQuery.create(description, neo4jClient);
 			if (asCollectionQuery) {
 				return executableQuery.getResults();
 			} else {

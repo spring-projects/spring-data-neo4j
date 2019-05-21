@@ -40,11 +40,16 @@ import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchA
 public interface Schema {
 
 	/**
-	 * Registers and scans the given set of classes to be available as Neo4j domain entities.
+	 * Registers  the given set of classes to be available as Neo4j domain entities.
 	 *
-	 * @param entityClasses The additional set of classes to register with this schema
+	 * @param initialEntitySet The set of classes to register with this schema
 	 */
-	void register(Set<? extends Class<?>> entityClasses);
+	void setInitialEntitySet(Set<? extends Class<?>> initialEntitySet);
+
+	/**
+	 * Triggers the scanning of the registered, initial entity set.
+	 */
+	void initialize();
 
 	/**
 	 * Retrieves a nodes description by its primary label.
