@@ -42,7 +42,6 @@ import org.springframework.data.neo4j.repository.query.Neo4jQueryMethod.Neo4jPar
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
-import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.repository.query.parser.PartTree.OrPart;
@@ -73,7 +72,6 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 			Part.Type.NOT_CONTAINING,
 			Part.Type.NOT_LIKE, Part.Type.SIMPLE_PROPERTY, Part.Type.STARTING_WITH);
 
-	private final ResultProcessor processor;
 	private final PartTree tree;
 
 	PartTreeNeo4jQuery(
@@ -83,7 +81,6 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 	) {
 		super(nodeManager, mappingContext, queryMethod);
 
-		this.processor = queryMethod.getResultProcessor();
 		this.tree = new PartTree(queryMethod.getName(), domainType);
 
 		// Validate parts. Sort properties will be validated by Spring Data already.

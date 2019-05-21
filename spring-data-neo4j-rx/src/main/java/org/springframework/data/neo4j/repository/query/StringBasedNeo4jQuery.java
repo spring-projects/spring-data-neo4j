@@ -33,7 +33,6 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.SpelEvaluator;
 import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.data.repository.query.SpelQueryContext.SpelExtractor;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -113,26 +112,6 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 			cypherTemplate, queryAnnotation.count(), queryAnnotation.exists(), queryAnnotation.delete());
 	}
 
-	/**
-	 * Create a {@link StringBasedNeo4jQuery} based on an explicit Cypher template.
-	 *
-	 * @param nodeManager
-	 * @param mappingContext
-	 * @param evaluationContextProvider
-	 * @param queryMethod
-	 * @param cypherTemplate            The template to use.
-	 * @return A new instance of a String based Neo4j query.
-	 */
-	static StringBasedNeo4jQuery create(NodeManager nodeManager, Neo4jMappingContext mappingContext,
-		QueryMethodEvaluationContextProvider evaluationContextProvider,
-		Neo4jQueryMethod queryMethod, String cypherTemplate) {
-
-		Assert.hasText(cypherTemplate, "Cannot create String based Neo4j query without a cypher template.");
-
-		return new StringBasedNeo4jQuery(nodeManager, mappingContext, evaluationContextProvider, queryMethod,
-			cypherTemplate, false, false, false);
-	}
-
 	private StringBasedNeo4jQuery(NodeManager nodeManager,
 		Neo4jMappingContext mappingContext, QueryMethodEvaluationContextProvider evaluationContextProvider,
 		Neo4jQueryMethod queryMethod, String cypherTemplate, boolean countQuery,
@@ -198,7 +177,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 				int parameterIndex = parameter.getIndex();
 				Object parameterValue = super.convertParameter(actualParameters[parameterIndex]);
 
-				// Add the parameter under it's name when possible
+				// Add the parameter under its name when possible
 				parameter.getName()
 					.ifPresent(parameterName -> resolvedParameters.put(parameterName, parameterValue));
 				// Always add under its index.
