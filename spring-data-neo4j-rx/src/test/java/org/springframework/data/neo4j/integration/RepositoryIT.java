@@ -346,6 +346,13 @@ class RepositoryIT {
 	}
 
 	@Test
+	void loadOptionalPersonWithAllConstructorWithSpelParametersAndNamedQuery() {
+		Optional<PersonWithAllConstructor> person = repository.getOptionalPersonViaNamedQuery(TEST_PERSON1_NAME.substring(0, 2), TEST_PERSON1_NAME.substring(2));
+		assertThat(person).isPresent();
+		assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
+	}
+
+	@Test
 	void loadAllPersonsWithNoConstructor() {
 		List<PersonWithNoConstructor> persons = repository.getAllPersonsWithNoConstructorViaQuery();
 
