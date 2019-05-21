@@ -16,24 +16,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.context.tracking;
-
-import lombok.Getter;
+package org.springframework.data.neo4j.repository;
 
 import org.apiguardian.api.API;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 /**
- * @author Gerrit Meier
+ * Throw when a query doesn't return a required result.
+ *
  * @author Michael J. Simons
+ * @soundtrack Deichkind - Niveau weshalb warum
+ * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
-@Getter
-public final class EntityChangeEvent {
-	private final String propertyField;
-	private final Object value;
+@API(status = API.Status.STABLE, since = "1.0")
+public class NoResultException extends EmptyResultDataAccessException {
 
-	EntityChangeEvent(String propertyField, Object value) {
-		this.propertyField = propertyField;
-		this.value = value;
+	private final String query;
+
+	public NoResultException(int expectedNumberOfResults, String query) {
+		super(expectedNumberOfResults);
+		this.query = query;
+	}
+
+	public String getQuery() {
+		return query;
 	}
 }

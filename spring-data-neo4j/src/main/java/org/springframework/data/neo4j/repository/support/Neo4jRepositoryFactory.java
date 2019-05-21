@@ -20,7 +20,7 @@ package org.springframework.data.neo4j.repository.support;
 
 import java.util.Optional;
 
-import org.springframework.data.neo4j.core.NodeManager;
+import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Neo4jQueryLookupStrategy;
@@ -41,12 +41,12 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
  */
 final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
-	private final NodeManager nodeManager;
+	private final Neo4jClient neo4jClient;
 
 	private final Neo4jMappingContext mappingContext;
 
-	Neo4jRepositoryFactory(NodeManager nodeManager, Neo4jMappingContext mappingContext) {
-		this.nodeManager = nodeManager;
+	Neo4jRepositoryFactory(Neo4jClient neo4jClient, Neo4jMappingContext mappingContext) {
+		this.neo4jClient = neo4jClient;
 		this.mappingContext = mappingContext;
 	}
 
@@ -57,7 +57,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	@Override
 	protected Object getTargetRepository(RepositoryInformation metadata) {
-		return getTargetRepositoryViaReflection(metadata, nodeManager, mappingContext, metadata.getDomainType());
+		return getTargetRepositoryViaReflection(metadata, neo4jClient, mappingContext, metadata.getDomainType());
 	}
 
 	@Override
@@ -73,6 +73,6 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
-		return Optional.of(new Neo4jQueryLookupStrategy(nodeManager, mappingContext, evaluationContextProvider));
+		return Optional.of(new Neo4jQueryLookupStrategy(neo4jClient, mappingContext, evaluationContextProvider));
 	}
 }

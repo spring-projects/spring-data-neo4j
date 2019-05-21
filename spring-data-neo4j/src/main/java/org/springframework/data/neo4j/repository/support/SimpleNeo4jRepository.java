@@ -19,6 +19,7 @@
 package org.springframework.data.neo4j.repository.support;
 
 import static java.util.Collections.*;
+import static java.util.stream.Collectors.*;
 import static lombok.AccessLevel.*;
 import static org.springframework.data.neo4j.core.cypher.Cypher.*;
 import static org.springframework.data.neo4j.core.schema.NodeDescription.*;
@@ -45,8 +46,7 @@ import org.springframework.data.domain.ExampleMatcher.PropertyValueTransformer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.core.NodeManager;
-import org.springframework.data.neo4j.core.PreparedQuery;
+import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.cypher.Condition;
 import org.springframework.data.neo4j.core.cypher.Conditions;
 import org.springframework.data.neo4j.core.cypher.Cypher;
@@ -81,7 +81,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 
 	private static final Renderer renderer = CypherRenderer.create();
 
-	private final NodeManager nodeManager;
+	private final Neo4jClient neo4jClient;
 
 	private final Neo4jMappingContext mappingContext;
 
@@ -91,9 +91,9 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	private final BiFunction<TypeSystem, Record, ?> mappingFunction;
 	private Expression idExpression;
 
-	SimpleNeo4jRepository(NodeManager nodeManager, Neo4jMappingContext mappingContext, Class<T> nodeClass) {
+	SimpleNeo4jRepository(Neo4jClient neo4jClient, Neo4jMappingContext mappingContext, Class<T> nodeClass) {
 
-		this.nodeManager = nodeManager;
+		this.neo4jClient = neo4jClient;
 		this.mappingContext = mappingContext;
 		this.nodeClass = nodeClass;
 
@@ -124,7 +124,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 			.orderBy(toSortItems(nodeDescription, sort))
 			.build();
 
-		return nodeManager.toExecutableQuery(prepareQuery(statement)).getResults();
+		return createExecutableQuery(statement).getResults();
 	}
 
 	@Override
@@ -137,7 +137,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 
 		Statement statement = returningWithPaging.build();
 
-		List<T> allResult = nodeManager.toExecutableQuery(prepareQuery(statement)).getResults();
+		List<T> allResult = createExecutableQuery(statement).getResults();
 		LongSupplier totalCountSupplier = this::count;
 		return PageableExecutionUtils.getPage(allResult, pageable, totalCountSupplier);
 	}
@@ -153,8 +153,8 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 
 		Statement statement = returningWithPaging.build();
 
-		List<S> page = nodeManager
-			.toExecutableQuery(prepareQuery(example.getProbeType(), statement, predicate.parameters)).getResults();
+		List<S> page = createExecutableQuery(example.getProbeType(), statement, predicate.parameters)
+			.getResults();
 		LongSupplier totalCountSupplier = this::count;
 		return PageableExecutionUtils.getPage(page, pageable, totalCountSupplier);
 	}
@@ -173,7 +173,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	@Override
 	@Transactional
 	public <S extends T> S save(S entity) {
-		return this.nodeManager.save(entity);
+		throw new UnsupportedOperationException("Not there yet.");
 	}
 
 	@Override
@@ -189,7 +189,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 			.prepareMatchOf(nodeDescription, Optional.of(idExpression.isEqualTo(literalOf(id))))
 			.returning(asterisk())
 			.build();
-		return nodeManager.toExecutableQuery(prepareQuery(statement)).getSingleResult();
+		return createExecutableQuery(statement).getSingleResult();
 	}
 
 	@Override
@@ -200,9 +200,9 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	@Override
 	public Iterable<T> findAll() {
 
-		Statement statement = mappingContext.prepareMatchOf(nodeDescription, Optional.empty()).returning(asterisk())
-			.build();
-		return nodeManager.toExecutableQuery(prepareQuery(statement)).getResults();
+		Statement statement = mappingContext.prepareMatchOf(nodeDescription, Optional.empty())
+			.returning(asterisk()).build();
+		return createExecutableQuery(statement).getResults();
 	}
 
 	@Override
@@ -213,7 +213,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 			.returning(asterisk())
 			.build();
 
-		return nodeManager.toExecutableQuery(prepareQuery(nodeClass, statement, singletonMap("ids", ids))).getResults();
+		return createExecutableQuery(nodeClass, statement, singletonMap("ids", ids)).getResults();
 	}
 
 	@Override
@@ -222,8 +222,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 		Statement statement = mappingContext.prepareMatchOf(nodeDescription, Optional.empty())
 			.returning(Functions.count(asterisk())).build();
 
-		return nodeManager.toExecutableQuery(prepareQuery(Long.class, statement, Collections.emptyMap()))
-			.getRequiredSingleResult();
+		return createExecutableQuery(Long.class, statement, Collections.emptyMap()).getRequiredSingleResult();
 	}
 
 	@Override
@@ -263,8 +262,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 			.returning(asterisk())
 			.build();
 
-		PreparedQuery<S> preparedQuery = prepareQuery(example.getProbeType(), statement, predicate.parameters);
-		return nodeManager.toExecutableQuery(preparedQuery).getSingleResult();
+		return createExecutableQuery(example.getProbeType(), statement, predicate.parameters).getSingleResult();
 	}
 
 	@Override
@@ -275,8 +273,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 			.returning(asterisk())
 			.build();
 
-		PreparedQuery<S> preparedQuery = prepareQuery(example.getProbeType(), statement, predicate.parameters);
-		return nodeManager.toExecutableQuery(preparedQuery).getResults();
+		return createExecutableQuery(example.getProbeType(), statement, predicate.parameters).getResults();
 	}
 
 	@Override
@@ -288,8 +285,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 			.returning(asterisk())
 			.orderBy(toSortItems(nodeDescription, sort)).build();
 
-		PreparedQuery<S> preparedQuery = prepareQuery(example.getProbeType(), statement, predicate.parameters);
-		return nodeManager.toExecutableQuery(preparedQuery).getResults();
+		return createExecutableQuery(example.getProbeType(), statement, predicate.parameters).getResults();
 	}
 
 	@Override
@@ -301,8 +297,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 			.returning(Functions.count(asterisk()))
 			.build();
 
-		PreparedQuery<Long> preparedQuery = prepareQuery(Long.class, statement, predicate.parameters);
-		return nodeManager.toExecutableQuery(preparedQuery).getRequiredSingleResult();
+		return createExecutableQuery(Long.class, statement, predicate.parameters).getRequiredSingleResult();
 	}
 
 	@Override
@@ -419,11 +414,11 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 		return predicate;
 	}
 
-	private PreparedQuery<T> prepareQuery(Statement statement) {
-		return prepareQuery(nodeClass, statement, Collections.emptyMap());
+	private ExecutableQuery<T> createExecutableQuery(Statement statement) {
+		return createExecutableQuery(nodeClass, statement, Collections.emptyMap());
 	}
 
-	private <T> PreparedQuery<T> prepareQuery(Class<T> resultType, Statement statement,
+	private <RS> ExecutableQuery<RS> createExecutableQuery(Class<RS> resultType, Statement statement,
 		Map<String, Object> parameters) {
 
 		BiFunction<TypeSystem, Record, ?> mappingFunctionToUse = this.mappingFunction;
@@ -431,10 +426,12 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 			mappingFunctionToUse = mappingContext.getMappingFunctionFor(resultType).orElse(null);
 		}
 
-		return PreparedQuery.queryFor(resultType)
+		PreparedQuery queryDescription = PreparedQuery.queryFor(resultType)
 			.withCypherQuery(renderer.render(statement))
 			.withParameters(parameters)
 			.usingMappingFunction(mappingFunctionToUse)
 			.build();
+
+		return ExecutableQuery.create(queryDescription, neo4jClient);
 	}
 }

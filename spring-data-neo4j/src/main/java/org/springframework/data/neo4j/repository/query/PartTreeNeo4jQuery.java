@@ -35,10 +35,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.neo4j.driver.types.Point;
-import org.springframework.data.neo4j.core.NodeManager;
-import org.springframework.data.neo4j.core.PreparedQuery;
+import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.query.Neo4jQueryMethod.Neo4jParameters;
+import org.springframework.data.neo4j.repository.support.PreparedQuery;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -75,11 +75,11 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 	private final PartTree tree;
 
 	PartTreeNeo4jQuery(
-		NodeManager nodeManager,
+		Neo4jClient neo4jClient,
 		Neo4jMappingContext mappingContext,
 		Neo4jQueryMethod queryMethod
 	) {
-		super(nodeManager, mappingContext, queryMethod);
+		super(neo4jClient, mappingContext, queryMethod);
 
 		this.tree = new PartTree(queryMethod.getName(), domainType);
 
@@ -96,7 +96,6 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 		CypherQueryCreator queryCreator = new CypherQueryCreator(
 			mappingContext, domainType, tree, formalParameters, actualParameters
 		);
-
 
 		String cypherQuery = queryCreator.createQuery();
 		Map<String, Object> boundedParameters = formalParameters

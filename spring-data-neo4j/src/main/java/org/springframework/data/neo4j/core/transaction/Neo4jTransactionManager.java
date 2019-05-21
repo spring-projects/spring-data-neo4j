@@ -23,18 +23,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.TransactionConfig;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.data.neo4j.core.NodeManagerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.InvalidIsolationLevelException;
@@ -57,30 +51,12 @@ import org.springframework.util.Assert;
  */
 @API(status = API.Status.STABLE, since = "1.0")
 @Slf4j
-public class Neo4jTransactionManager extends AbstractPlatformTransactionManager implements BeanFactoryAware {
+public class Neo4jTransactionManager extends AbstractPlatformTransactionManager {
 
 	private final Driver driver;
 
-	@Nullable
-	private NodeManagerFactory nodeManagerFactory;
-
 	public Neo4jTransactionManager(Driver driver) {
 		this.driver = driver;
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		try {
-			this.setNodeManagerFactory(beanFactory.getBean(NodeManagerFactory.class));
-		} catch (NoSuchBeanDefinitionException ex) {
-			log.warn("Found no instance of {}", NodeManagerFactory.class);
-		}
-	}
-
-	public void setNodeManagerFactory(@Nullable NodeManagerFactory nodeManagerFactory) {
-
-		// TODO Check if the NodeManager uses the same datasource aka driver as we do
-		this.nodeManagerFactory = nodeManagerFactory;
 	}
 
 	@Override
@@ -118,13 +94,6 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 			connectionHolder.setSynchronizedWithTransaction(true);
 			transactionObject.setResourceHolder(connectionHolder);
 			TransactionSynchronizationManager.bindResource(this.driver, connectionHolder);
-
-			if (this.nodeManagerFactory != null) {
-				NodeManagerHolder nodeManagerHolder = new NodeManagerHolder(this.nodeManagerFactory.createNodeManager());
-				nodeManagerHolder.setSynchronizedWithTransaction(true);
-				transactionObject.setNodeManagerHolder(nodeManagerHolder);
-				TransactionSynchronizationManager.bindResource(this.nodeManagerFactory, nodeManagerHolder);
-			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			throw new TransactionSystemException(String.format("Could not open a new Neo4j session: %s", ex.getMessage()));
@@ -173,14 +142,8 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 
 		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
 		transactionObject.getRequiredResourceHolder().close();
-		transactionObject.getNodeManagerHolder()
-			.map(NodeManagerHolder::getNodeManager)
-			.ifPresent(nodeManager -> nodeManager.flush());
 
 		TransactionSynchronizationManager.unbindResource(driver);
-		if (this.nodeManagerFactory != null) {
-			TransactionSynchronizationManager.unbindResource(this.nodeManagerFactory);
-		}
 	}
 
 	private static TransactionConfig createTransactionConfigFrom(TransactionDefinition definition) {
@@ -227,9 +190,6 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		@Nullable
 		private Neo4jConnectionHolder resourceHolder;
 
-		@Nullable
-		private NodeManagerHolder nodeManagerHolder;
-
 		Neo4jTransactionObject(@Nullable Neo4jConnectionHolder resourceHolder) {
 			this.resourceHolder = resourceHolder;
 		}
@@ -244,10 +204,6 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 			this.resourceHolder = resourceHolder;
 		}
 
-		void setNodeManagerHolder(@Nullable NodeManagerHolder nodeManagerHolder) {
-			this.nodeManagerHolder = nodeManagerHolder;
-		}
-
 		/**
 		 * @return {@literal true} if a {@link Neo4jConnectionHolder} is set.
 		 */
@@ -259,10 +215,6 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 
 			Assert.state(hasResourceHolder(), RESOURCE_HOLDER_NOT_PRESENT_MESSAGE);
 			return resourceHolder;
-		}
-
-		Optional<NodeManagerHolder> getNodeManagerHolder() {
-			return Optional.ofNullable(nodeManagerHolder);
 		}
 
 		void setRollbackOnly() {

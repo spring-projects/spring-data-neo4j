@@ -29,8 +29,6 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.SessionParametersTemplate;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.reactive.RxTransaction;
-import org.springframework.data.neo4j.core.NodeManager;
-import org.springframework.data.neo4j.core.NodeManagerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -48,12 +46,10 @@ public final class Neo4jTransactionUtils {
 	 * @return Session parameters to configure the default session used
 	 */
 	public static Consumer<SessionParametersTemplate> defaultSessionParameters(@Nullable String databaseName) {
-		return t -> {
-			t
-				.withDefaultAccessMode(AccessMode.WRITE)
-				.withBookmarks(Collections.EMPTY_LIST)
-				.withDatabase(Optional.ofNullable(databaseName).orElse(DEFAULT_DATABASE_NAME));
-		};
+		return t -> t
+			.withDefaultAccessMode(AccessMode.WRITE)
+			.withBookmarks(Collections.EMPTY_LIST)
+			.withDatabase(Optional.ofNullable(databaseName).orElse(DEFAULT_DATABASE_NAME));
 	}
 
 	/**
@@ -103,33 +99,6 @@ public final class Neo4jTransactionUtils {
 
 		// TODO Hook into Springs reactive transaction management (Coming 5.2 M2)
 		return Mono.empty();
-	}
-
-	public static NodeManager retrieveTransactionalNodeManager(NodeManagerFactory nodeManagerFactory) {
-
-		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-			return nodeManagerFactory.createNodeManager();
-		}
-
-		// Try existing transaction
-		NodeManagerHolder nodeManagerHolder = (NodeManagerHolder) TransactionSynchronizationManager
-			.getResource(nodeManagerFactory);
-
-		if (nodeManagerHolder != null) {
-
-			return nodeManagerHolder.getNodeManager();
-		}
-
-		// Manually create a new synchronization
-		nodeManagerHolder = new NodeManagerHolder(nodeManagerFactory.createNodeManager());
-		nodeManagerHolder.setSynchronizedWithTransaction(true);
-
-		TransactionSynchronizationManager.registerSynchronization(
-			new NodeManagerSynchronization(nodeManagerHolder, nodeManagerFactory));
-
-		TransactionSynchronizationManager.bindResource(nodeManagerFactory, nodeManagerHolder);
-
-		return nodeManagerHolder.getNodeManager();
 	}
 
 	private Neo4jTransactionUtils() {

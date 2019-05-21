@@ -23,9 +23,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.data.mapping.MappingException;
-import org.springframework.data.neo4j.core.NodeManager;
-import org.springframework.data.neo4j.core.PreparedQuery;
+import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.repository.support.PreparedQuery;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
@@ -92,13 +92,13 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	 * Create a {@link StringBasedNeo4jQuery} for a query method that is annotated with {@link Query @Query}. The annotation
 	 * is expected to have a value.
 	 *
-	 * @param nodeManager
+	 * @param neo4jClient
 	 * @param mappingContext
 	 * @param evaluationContextProvider
 	 * @param queryMethod
 	 * @return A new instance of a String based Neo4j query.
 	 */
-	static StringBasedNeo4jQuery create(NodeManager nodeManager, Neo4jMappingContext mappingContext,
+	static StringBasedNeo4jQuery create(Neo4jClient neo4jClient, Neo4jMappingContext mappingContext,
 		QueryMethodEvaluationContextProvider evaluationContextProvider,
 		Neo4jQueryMethod queryMethod) {
 
@@ -109,36 +109,36 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 			.filter(StringUtils::hasText)
 			.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not."));
 
-		return new StringBasedNeo4jQuery(nodeManager, mappingContext, evaluationContextProvider, queryMethod,
+		return new StringBasedNeo4jQuery(neo4jClient, mappingContext, evaluationContextProvider, queryMethod,
 			cypherTemplate, queryAnnotation.count(), queryAnnotation.exists(), queryAnnotation.delete());
 	}
 
 	/**
 	 * Create a {@link StringBasedNeo4jQuery} based on an explicit Cypher template.
 	 *
-	 * @param nodeManager
+	 * @param neo4jClient
 	 * @param mappingContext
 	 * @param evaluationContextProvider
 	 * @param queryMethod
 	 * @param cypherTemplate            The template to use.
 	 * @return A new instance of a String based Neo4j query.
 	 */
-	static StringBasedNeo4jQuery create(NodeManager nodeManager, Neo4jMappingContext mappingContext,
+	static StringBasedNeo4jQuery create(Neo4jClient neo4jClient, Neo4jMappingContext mappingContext,
 		QueryMethodEvaluationContextProvider evaluationContextProvider,
 		Neo4jQueryMethod queryMethod, String cypherTemplate) {
 
 		Assert.hasText(cypherTemplate, "Cannot create String based Neo4j query without a cypher template.");
 
-		return new StringBasedNeo4jQuery(nodeManager, mappingContext, evaluationContextProvider, queryMethod,
+		return new StringBasedNeo4jQuery(neo4jClient, mappingContext, evaluationContextProvider, queryMethod,
 			cypherTemplate, false, false, false);
 	}
 
-	private StringBasedNeo4jQuery(NodeManager nodeManager,
+	private StringBasedNeo4jQuery(Neo4jClient neo4jClient,
 		Neo4jMappingContext mappingContext, QueryMethodEvaluationContextProvider evaluationContextProvider,
 		Neo4jQueryMethod queryMethod, String cypherTemplate, boolean countQuery,
 		boolean existsQuery, boolean deleteQuery) {
 
-		super(nodeManager, mappingContext, queryMethod);
+		super(neo4jClient, mappingContext, queryMethod);
 
 		this.countQuery = countQuery;
 		this.existsQuery = existsQuery;
