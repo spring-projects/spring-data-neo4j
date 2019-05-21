@@ -55,12 +55,15 @@ public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 		NamedQueries namedQueries) {
 
 		Neo4jQueryMethod queryMethod = new Neo4jQueryMethod(method, metadata, factory);
+		String namedQueryName = queryMethod.getNamedQueryName();
 
-		if (queryMethod.hasQueryAnnotation()) {
-			return StringBasedNeo4jQuery
-				.create(nodeManager, mappingContext, evaluationContextProvider, queryMethod);
+		if (namedQueries.hasQuery(namedQueryName)) {
+			return StringBasedNeo4jQuery.create(nodeManager, mappingContext, evaluationContextProvider, queryMethod,
+				namedQueries.getQuery(namedQueryName));
+		} else if (queryMethod.hasQueryAnnotation()) {
+			return StringBasedNeo4jQuery.create(nodeManager, mappingContext, evaluationContextProvider, queryMethod);
+		} else {
+			return new PartTreeNeo4jQuery(nodeManager, mappingContext, queryMethod);
 		}
-
-		return new PartTreeNeo4jQuery(nodeManager, mappingContext, queryMethod);
 	}
 }

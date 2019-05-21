@@ -117,6 +117,22 @@ final class RepositoryQueryTest {
 					PROJECTION_FACTORY, namedQueries);
 			assertThat(query).isInstanceOf(StringBasedNeo4jQuery.class);
 		}
+
+		@Test
+		void shouldSelectStringBasedNeo4jQueryForNamedQuery() {
+
+			final String namedQueryName = "TestEntity.findAllByANamedQuery";
+			when(namedQueries.hasQuery(namedQueryName)).thenReturn(true);
+			when(namedQueries.getQuery(namedQueryName)).thenReturn("MATCH (n) RETURN n");
+
+			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(mock(NodeManager.class), mock(
+				Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT);
+
+			RepositoryQuery query = lookupStrategy
+				.resolveQuery(queryMethod("findAllByANamedQuery"), TEST_REPOSITORY_METADATA,
+					PROJECTION_FACTORY, namedQueries);
+			assertThat(query).isInstanceOf(StringBasedNeo4jQuery.class);
+		}
 	}
 
 	@Nested
@@ -246,6 +262,8 @@ final class RepositoryQueryTest {
 
 		@Query
 		List<TestEntity> annotatedQueryWithoutTemplate();
+
+		List<TestEntity> findAllByANamedQuery();
 	}
 
 	private RepositoryQueryTest() {
