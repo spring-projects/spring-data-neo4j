@@ -16,39 +16,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration;
+package org.springframework.data.neo4j.integration.rx;
 
-import static org.springframework.data.neo4j.core.schema.Id.Strategy.*;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
+import java.time.LocalDate;
+import java.util.List;
+
+import org.neo4j.driver.types.Point;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Property;
 
 /**
- * Has an assigned id and a changeable name.
- *
+ * @author Gerrit Meier
  * @author Michael J. Simons
  */
-@Node("Thing")
-public class ThingWithAssignedId {
+@Getter
+@Setter
+@Node
+@ToString
+@AllArgsConstructor
+@EqualsAndHashCode
+public class PersonWithAllConstructor {
 
-	@Id(strategy = ASSIGNED)
-	private final String theId;
+	@Id
+	private final Long id;
 
-	private String name;
+	private final String name;
 
-	public ThingWithAssignedId(String theId) {
-		this.theId = theId;
-	}
+	@Property("first_name")
+	private final String firstName;
 
-	public String getTheId() {
-		return theId;
-	}
+	private final String sameValue;
 
-	public String getName() {
-		return name;
-	}
+	private final Boolean cool;
 
-	public void setName(String name) {
-		this.name = name;
-	}
+	private final Long personNumber;
+
+	private final LocalDate bornOn;
+
+	private final String nullable;
+
+	private final List<String> things;
+
+	private final Point place;
 }

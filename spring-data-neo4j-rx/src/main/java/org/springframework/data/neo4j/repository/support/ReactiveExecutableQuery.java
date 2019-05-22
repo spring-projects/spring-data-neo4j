@@ -18,32 +18,26 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
-import static java.util.stream.Collectors.*;
-
 import lombok.RequiredArgsConstructor;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.core.Neo4jClient;
-import org.springframework.data.neo4j.repository.NoResultException;
 
 @RequiredArgsConstructor
-public final class DefaultExecutableQuery<T> implements ExecutableQuery<T> {
+public final class ReactiveExecutableQuery<T> implements ExecutableReactiveQuery<T> {
 
-	private final PreparedQuery<T> preparedQuery;
-	private final Neo4jClient.RecordFetchSpec<Optional<T>, Collection<T>, T> fetchSpec;
+	private final Neo4jClient.RecordFetchSpec<Mono<T>, Flux<T>, T> fetchSpec;
 
 	@Override
-	public List<T> getResults() {
-		return fetchSpec.all().stream().collect(toList());
+	public Flux<T> getResults() {
+		return fetchSpec.all();
 	}
 
 	@Override
-	public Optional<T> getSingleResult() {
+	public Mono<T> getSingleResult() {
 		try {
 			return fetchSpec.one();
 		} catch (NoSuchRecordException e) {
@@ -53,9 +47,4 @@ public final class DefaultExecutableQuery<T> implements ExecutableQuery<T> {
 		}
 	}
 
-	@Override
-	public T getRequiredSingleResult() {
-		return fetchSpec.one()
-			.orElseThrow(() -> new NoResultException(1, preparedQuery.getCypherQuery()));
-	}
 }
