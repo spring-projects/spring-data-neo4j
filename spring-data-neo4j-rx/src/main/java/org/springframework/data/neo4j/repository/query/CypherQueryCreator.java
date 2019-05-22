@@ -73,10 +73,11 @@ import org.springframework.data.repository.query.parser.PartTree;
 final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 
 	private final Neo4jMappingContext mappingContext;
+
 	private final Class<?> domainType;
 	private final NodeDescription<?> nodeDescription;
 
-	private Iterator<Neo4jParameter> formalParameters;
+	private final Iterator<Neo4jParameter> formalParameters;
 	private final Queue<Parameter> lastParameter = new LinkedList<>();
 
 	/**
@@ -93,10 +94,11 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		Parameters<Neo4jParameters, Neo4jParameter> formalParameters, ParameterAccessor actualParameters
 	) {
 		super(tree, actualParameters);
-
 		this.mappingContext = mappingContext;
+
 		this.domainType = domainType;
 		this.nodeDescription = this.mappingContext.getRequiredNodeDescription(this.domainType);
+
 		this.formalParameters = formalParameters.iterator();
 		this.maxResults = tree.isLimiting() ? tree.getMaxResults() : null;
 	}
@@ -124,7 +126,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 	@Override
 	protected String complete(Condition condition, Sort sort) {
 
-		Statement statement = mappingContext
+		Statement statement = createSchemaBasedStatementBuilder(mappingContext)
 			.prepareMatchOf(nodeDescription, Optional.ofNullable(condition))
 			.returning(Cypher.asterisk())
 			.orderBy(

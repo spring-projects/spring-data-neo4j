@@ -158,6 +158,40 @@ class RepositoryIT {
 	}
 
 	@Test
+	void delete() {
+
+		repository.delete(person1);
+
+		assertThat(repository.existsById(id1)).isFalse();
+		assertThat(repository.existsById(id2)).isTrue();
+	}
+
+	@Test
+	void deleteById() {
+
+		repository.deleteById(id1);
+
+		assertThat(repository.existsById(id1)).isFalse();
+		assertThat(repository.existsById(id2)).isTrue();
+	}
+
+	@Test
+	void deleteAllEntities() {
+
+		repository.deleteAll(Arrays.asList(person1, person2));
+
+		assertThat(repository.existsById(id1)).isFalse();
+		assertThat(repository.existsById(id2)).isFalse();
+	}
+
+	@Test
+	void deleteAll() {
+
+		repository.deleteAll();
+		assertThat(repository.count()).isEqualTo(0L);
+	}
+
+	@Test
 	void findAllById() {
 		Iterable<PersonWithAllConstructor> persons = repository.findAllById(Arrays.asList(id1, id2));
 		assertThat(persons).hasSize(2);

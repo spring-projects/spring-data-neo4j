@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -86,6 +87,12 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	}
 
 	@Override
+	public Object extractId(T instance) {
+		PersistentPropertyAccessor<T> propertyAccessor = this.getPropertyAccessor(instance);
+		return propertyAccessor.getProperty(this.getRequiredIdProperty());
+	}
+
+	@Override
 	public void verify() {
 
 		super.verify();
@@ -117,7 +124,8 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 							+ " on entity class " + this.getUnderlyingClass().getName());
 				}
 
-				return new IdDescription(idAnnotation.strategy(), idAnnotation.generator(), idProperty);
+				return new IdDescription(idAnnotation.strategy(), idAnnotation.generator(),
+					idAnnotation.strategy() == Id.Strategy.INTERNAL ? null : idProperty.getPropertyName());
 			})
 			.orElseGet(() -> new IdDescription());
 	}

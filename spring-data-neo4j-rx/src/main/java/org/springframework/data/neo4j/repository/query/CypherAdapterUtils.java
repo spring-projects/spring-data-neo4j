@@ -19,16 +19,30 @@
 package org.springframework.data.neo4j.repository.query;
 
 import static org.springframework.data.neo4j.core.cypher.Cypher.*;
+import static org.springframework.data.neo4j.core.schema.NodeDescription.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.core.cypher.Condition;
+import org.springframework.data.neo4j.core.cypher.Conditions;
 import org.springframework.data.neo4j.core.cypher.Cypher;
+import org.springframework.data.neo4j.core.cypher.Expression;
+import org.springframework.data.neo4j.core.cypher.Functions;
+import org.springframework.data.neo4j.core.cypher.Node;
 import org.springframework.data.neo4j.core.cypher.SortItem;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchAndDelete;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchAndWith;
 import org.springframework.data.neo4j.core.cypher.SymbolicName;
 import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.IdDescription;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
+import org.springframework.data.neo4j.core.schema.Schema;
 
 /**
  * A set of shared utils to adapt {@code org.springframework.data.neo4j.core.cypher} functionality with Spring Data
@@ -76,6 +90,61 @@ public final class CypherAdapterUtils {
 	public static SortItem[] toSortItems(NodeDescription<?> nodeDescription, Sort sort) {
 
 		return sort.stream().map(sortAdapterFor(nodeDescription)).toArray(SortItem[]::new);
+	}
+
+	/**
+	 * Provides a builder for statements based on the schema of entity classes.
+	 *
+	 * @param schema The schema used for creating queries.
+	 * @return
+	 */
+	public static SchemaBasedStatementBuilder createSchemaBasedStatementBuilder(Schema schema) {
+		return new SchemaBasedStatementBuilder(schema);
+	}
+
+	/**
+	 * This is a adapter between the Schema and the Cypher module.
+	 */
+	public static class SchemaBasedStatementBuilder {
+
+		private final Schema schema;
+
+		private SchemaBasedStatementBuilder(Schema schema) {
+			this.schema = schema;
+		}
+
+		/**
+		 * This will create a match statement that fits the given node description and may contains additional conditions.
+		 * The {@code WITH} clause of this statement contains all nodes and relationships necessary to map a record to
+		 * the given {@code nodeDescription}.
+		 * <p/>
+		 * It is recommended to use {@link Cypher#asterisk()} to return everything from the query in the end.
+		 * <p/>
+		 * The root node is guaranted to have the symbolic name {@code n}.
+		 *
+		 * @param nodeDescription The node description for which a match clause should be generated
+		 * @param condition       Optional conditions to add
+		 * @return An ongoing match
+		 */
+		public OngoingMatchAndWith prepareMatchOf(NodeDescription<?> nodeDescription, Optional<Condition> condition) {
+			Node rootNode = Cypher.node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
+			IdDescription idDescription = nodeDescription.getIdDescription();
+
+			List<Expression> expressions = new ArrayList<>();
+			expressions.add(rootNode);
+			if (idDescription.getIdStrategy() == Id.Strategy.INTERNAL) {
+				expressions.add(Functions.id(rootNode).as(NAME_OF_INTERNAL_ID));
+			}
+			return Cypher.match(rootNode).where(condition.orElse(Conditions.noCondition()))
+				.with(expressions.toArray(new Expression[expressions.size()]));
+		}
+
+		public OngoingMatchAndDelete prepareDeleteOf(NodeDescription<?> nodeDescription,
+			Optional<Condition> condition) {
+
+			Node rootNode = Cypher.node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
+			return Cypher.match(rootNode).where(condition.orElse(Conditions.noCondition())).delete(rootNode);
+		}
 	}
 
 	private CypherAdapterUtils() {

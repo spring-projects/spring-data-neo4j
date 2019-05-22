@@ -26,9 +26,6 @@ import java.util.function.BiFunction;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
-import org.springframework.data.neo4j.core.cypher.Condition;
-import org.springframework.data.neo4j.core.cypher.Cypher;
-import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchAndWith;
 
 /**
  * Contains the descriptions of all nodes, their properties and relationships known to SDN-RX.
@@ -112,19 +109,4 @@ public interface Schema {
 
 		return getMappingFunctionFor(targetClass).orElseThrow(() -> new UnknownEntityException(targetClass));
 	}
-
-	/**
-	 * This will create a match statement that fits the given node description and may contains additional conditions.
-	 * The {@code WITH} clause of this statement contains all nodes and relationships necessary to map a record to
-	 * the given {@code nodeDescription}.
-	 * <p/>
-	 * It is recommended to use {@link Cypher#asterisk()} to return everything from the query in the end.
-	 * <p/>
-	 * The root node is guaranted to have the symbolic name {@code n}.
-	 *
-	 * @param nodeDescription The node description for which a match clause should be generated
-	 * @param condition       Optional conditions to add
-	 * @return An ongoing match
-	 */
-	OngoingMatchAndWith prepareMatchOf(NodeDescription<?> nodeDescription, Optional<Condition> condition);
 }

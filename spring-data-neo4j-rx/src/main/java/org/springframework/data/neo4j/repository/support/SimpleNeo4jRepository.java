@@ -19,7 +19,6 @@
 package org.springframework.data.neo4j.repository.support;
 
 import static java.util.Collections.*;
-import static java.util.stream.Collectors.*;
 import static lombok.AccessLevel.*;
 import static org.springframework.data.neo4j.core.cypher.Cypher.*;
 import static org.springframework.data.neo4j.core.schema.NodeDescription.*;
@@ -36,8 +35,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.LongSupplier;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.neo4j.driver.Record;
+import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -87,9 +89,12 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 
 	private final Class<T> nodeClass;
 
-	private final NodeDescription<?> nodeDescription;
+	private final NodeDescription<T> nodeDescription;
 	private final BiFunction<TypeSystem, Record, ?> mappingFunction;
-	private Expression idExpression;
+
+	private final SchemaBasedStatementBuilder statementBuilder;
+
+	private final Expression idExpression;
 
 	SimpleNeo4jRepository(Neo4jClient neo4jClient, Neo4jMappingContext mappingContext, Class<T> nodeClass) {
 
@@ -97,8 +102,10 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 		this.mappingContext = mappingContext;
 		this.nodeClass = nodeClass;
 
-		this.nodeDescription = mappingContext.getRequiredNodeDescription(nodeClass);
+		this.nodeDescription = (NodeDescription<T>) mappingContext.getRequiredNodeDescription(nodeClass);
 		this.mappingFunction = mappingContext.getRequiredMappingFunctionFor(nodeClass);
+
+		this.statementBuilder = createSchemaBasedStatementBuilder(mappingContext);
 
 		final SymbolicName rootNode = Cypher.symbolicName("n");
 		final IdDescription idDescription = this.nodeDescription.getIdDescription();
@@ -119,7 +126,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	@Override
 	public Iterable<T> findAll(Sort sort) {
 
-		Statement statement = mappingContext.prepareMatchOf(nodeDescription, Optional.empty())
+		Statement statement = statementBuilder.prepareMatchOf(nodeDescription, Optional.empty())
 			.returning(asterisk())
 			.orderBy(toSortItems(nodeDescription, sort))
 			.build();
@@ -130,7 +137,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	@Override
 	public Page<T> findAll(Pageable pageable) {
 
-		StatementBuilder.OngoingMatchAndReturn returning = mappingContext
+		StatementBuilder.OngoingMatchAndReturn returning = statementBuilder
 			.prepareMatchOf(nodeDescription, Optional.empty()).returning(asterisk());
 
 		StatementBuilder.BuildableMatch returningWithPaging = addPagingParameter(pageable, returning);
@@ -146,7 +153,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
 		Predicate predicate = createPredicate(example);
-		StatementBuilder.OngoingMatchAndReturn returning = mappingContext
+		StatementBuilder.OngoingMatchAndReturn returning = statementBuilder
 			.prepareMatchOf(predicate.nodeDescription, Optional.of(predicate.condition)).returning(asterisk());
 
 		StatementBuilder.BuildableMatch returningWithPaging = addPagingParameter(pageable, returning);
@@ -185,7 +192,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	@Override
 	public Optional<T> findById(ID id) {
 
-		Statement statement = mappingContext
+		Statement statement = statementBuilder
 			.prepareMatchOf(nodeDescription, Optional.of(idExpression.isEqualTo(literalOf(id))))
 			.returning(asterisk())
 			.build();
@@ -200,7 +207,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	@Override
 	public Iterable<T> findAll() {
 
-		Statement statement = mappingContext.prepareMatchOf(nodeDescription, Optional.empty())
+		Statement statement = statementBuilder.prepareMatchOf(nodeDescription, Optional.empty())
 			.returning(asterisk()).build();
 		return createExecutableQuery(statement).getResults();
 	}
@@ -208,7 +215,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	@Override
 	public Iterable<T> findAllById(Iterable<ID> ids) {
 
-		Statement statement = mappingContext
+		Statement statement = statementBuilder
 			.prepareMatchOf(nodeDescription, Optional.of(idExpression.in((parameter("ids")))))
 			.returning(asterisk())
 			.build();
@@ -219,7 +226,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	@Override
 	public long count() {
 
-		Statement statement = mappingContext.prepareMatchOf(nodeDescription, Optional.empty())
+		Statement statement = statementBuilder.prepareMatchOf(nodeDescription, Optional.empty())
 			.returning(Functions.count(asterisk())).build();
 
 		return createExecutableQuery(Long.class, statement, Collections.emptyMap()).getRequiredSingleResult();
@@ -228,36 +235,65 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	@Override
 	@Transactional
 	public void deleteById(ID id) {
-		throw new UnsupportedOperationException("Not there yet.");
+
+		String nameOfParameter = "id";
+		Condition condition = idExpression.isEqualTo(parameter(nameOfParameter));
+
+		log.debug("Deleting entity with id {} ", id);
+
+		Statement statement = statementBuilder.prepareDeleteOf(nodeDescription, Optional.of(condition)).build();
+		ResultSummary summary = this.neo4jClient.newQuery(renderer.render(statement))
+			.bind(id).to(nameOfParameter)
+			.run();
+
+		log.debug("Deleted {} entities.", summary.counters().nodesDeleted());
 	}
 
 	@Override
 	@Transactional
 	public void delete(T entity) {
-		throw new UnsupportedOperationException("Not there yet.");
+
+		ID id = (ID) this.nodeDescription.extractId(entity);
+		this.deleteById(id);
 	}
 
 	@Override
 	@Transactional
 	public void deleteAll(Iterable<? extends T> entities) {
 
-		throw new UnsupportedOperationException("Not there yet.");
+		String nameOfParameter = "ids";
+		Condition condition = idExpression.in(parameter(nameOfParameter));
+
+		List<Object> ids = StreamSupport.stream(entities.spliterator(), false)
+			.map(this.nodeDescription::extractId).collect(Collectors.toList());
+
+		log.debug("Deleting all entities with the following ids: {} ", ids);
+
+		Statement statement = statementBuilder.prepareDeleteOf(nodeDescription, Optional.of(condition)).build();
+		ResultSummary summary = this.neo4jClient.newQuery(renderer.render(statement))
+			.bind(ids).to(nameOfParameter)
+			.run();
+
+		log.debug("Deleted {} entities.", summary.counters().nodesDeleted());
 	}
 
 	@Override
 	@Transactional
 	public void deleteAll() {
 
-		for (T element : findAll()) {
-			delete(element);
-		}
+		log.debug("Deleting all nodes with primary label {}", nodeDescription.getPrimaryLabel());
+
+		Statement statement = statementBuilder.prepareDeleteOf(nodeDescription, Optional.empty()).build();
+		ResultSummary summary = this.neo4jClient.newQuery(renderer.render(statement)).run();
+
+		log.debug("Deleted {} entities.", summary.counters().nodesDeleted());
 	}
 
 	@Override
 	public <S extends T> Optional<S> findOne(Example<S> example) {
 
 		Predicate predicate = createPredicate(example);
-		Statement statement = mappingContext
+		Statement statement = statementBuilder
 			.prepareMatchOf(predicate.nodeDescription, Optional.of(predicate.condition))
 			.returning(asterisk())
 			.build();
@@ -269,7 +305,8 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	public <S extends T> Iterable<S> findAll(Example<S> example) {
 
 		Predicate predicate = createPredicate(example);
-		Statement statement = mappingContext.prepareMatchOf(predicate.nodeDescription, Optional.of(predicate.condition))
+		Statement statement = statementBuilder
+			.prepareMatchOf(predicate.nodeDescription, Optional.of(predicate.condition))
 			.returning(asterisk())
 			.build();
 
@@ -280,7 +317,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	public <S extends T> Iterable<S> findAll(Example<S> example, Sort sort) {
 
 		Predicate predicate = createPredicate(example);
-		Statement statement = mappingContext
+		Statement statement = statementBuilder
 			.prepareMatchOf(predicate.nodeDescription, Optional.of(predicate.condition))
 			.returning(asterisk())
 			.orderBy(toSortItems(nodeDescription, sort)).build();
@@ -292,7 +329,7 @@ class SimpleNeo4jRepository<T, ID> implements Neo4jRepository<T, ID> {
 	public <S extends T> long count(Example<S> example) {
 
 		Predicate predicate = createPredicate(example);
-		Statement statement = mappingContext
+		Statement statement = statementBuilder
 			.prepareMatchOf(predicate.nodeDescription, Optional.of(predicate.condition))
 			.returning(Functions.count(asterisk()))
 			.build();
