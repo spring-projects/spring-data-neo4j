@@ -71,4 +71,6 @@ public interface NodeDescription<T> {
 	default boolean useInternalIds() {
 		return this.getIdDescription().getIdStrategy() == Id.Strategy.INTERNAL;
 	}
+
+	Object extractId(T entity);
 }

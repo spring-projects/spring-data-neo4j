@@ -135,14 +135,50 @@ class DefaultNeo4jClient implements Neo4jClient {
 		return new DefaultRunnableDelegation<>(callback);
 	}
 
-	@RequiredArgsConstructor
-	class DefaultRunnableSpec implements RunnableSpec {
+	/**
+	 * Basically a holder of a cypher template supplier and a set of named parameters. It's main purpose is to
+	 * orchestrate the running of things with a bit of logging.
+	 */
+	class RunnableStatement {
+
+		RunnableStatement(Supplier<String> cypherSupplier) {
+			this(cypherSupplier, new NamedParameters());
+		}
+
+		RunnableStatement(Supplier<String> cypherSupplier, NamedParameters parameters) {
+			this.cypherSupplier = cypherSupplier;
+			this.parameters = parameters;
+		}
 
 		private final Supplier<String> cypherSupplier;
 
-		private final NamedParameters parameters = new NamedParameters();
+		private final NamedParameters parameters;
+
+		protected final StatementResult runWith(AutoCloseableStatementRunner statementRunner) {
+			String statementTemplate = cypherSupplier.get();
+
+			if (cypherLog.isDebugEnabled()) {
+				cypherLog.debug("Executing:{}{}", System.lineSeparator(), statementTemplate);
+
+				if (cypherLog.isTraceEnabled() && !parameters.isEmpty()) {
+					cypherLog.trace("with parameters:{}{}", System.lineSeparator(), parameters);
+				}
+			}
+
+			StatementResult result = statementRunner.run(statementTemplate, parameters.get());
+			return result;
+		}
+	}
+
+	class DefaultRunnableSpec implements RunnableSpec {
+
+		private RunnableStatement runnableStatement;
 
 		private String targetDatabase;
+
+		DefaultRunnableSpec(Supplier<String> cypherSupplier) {
+			this.runnableStatement = new RunnableStatement(cypherSupplier);
+		}
 
 		@Override
 		public RunnableSpecTightToDatabase in(@SuppressWarnings("HiddenField") String targetDatabase) {
@@ -158,7 +194,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 			@Override
 			public RunnableSpecTightToDatabase to(String name) {
 
-				DefaultRunnableSpec.this.parameters.add(name, value);
+				DefaultRunnableSpec.this.runnableStatement.parameters.add(name, value);
 				return DefaultRunnableSpec.this;
 			}
 
@@ -175,14 +211,14 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		@Override
 		public RunnableSpecTightToDatabase bindAll(Map<String, Object> newParameters) {
-			this.parameters.addAll(newParameters);
+			this.runnableStatement.parameters.addAll(newParameters);
 			return this;
 		}
 
 		@Override
 		public <T> MappingSpec<Optional<T>, Collection<T>, T> fetchAs(Class<T> targetClass) {
 
-			return new DefaultRecordFetchSpec(this.targetDatabase, this.cypherSupplier, this.parameters,
+			return new DefaultRecordFetchSpec(this.targetDatabase, this.runnableStatement,
 				new SingleValueMappingFunction(targetClass));
 		}
 
@@ -191,31 +227,34 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			return new DefaultRecordFetchSpec<>(
 				this.targetDatabase,
-				this.cypherSupplier,
-				this.parameters, (t, r) -> r.asMap());
+				this.runnableStatement, (t, r) -> r.asMap());
 		}
 
 		@Override
 		public ResultSummary run() {
 
 			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(this.targetDatabase)) {
-				StatementResult result = statementRunner.run(cypherSupplier.get(), parameters.get());
+				StatementResult result = runnableStatement.runWith(statementRunner);
 				return result.consume();
 			}
 		}
 	}
 
-	@AllArgsConstructor
 	class DefaultRecordFetchSpec<T>
 		implements RecordFetchSpec<Optional<T>, Collection<T>, T>, MappingSpec<Optional<T>, Collection<T>, T> {
 
 		private final String targetDatabase;
 
-		private final Supplier<String> cypherSupplier;
-
-		private final NamedParameters parameters;
+		private final RunnableStatement runnableStatement;
 
 		private BiFunction<TypeSystem, Record, T> mappingFunction;
+
+		DefaultRecordFetchSpec(String targetDatabase, RunnableStatement runnableStatement,
+			BiFunction<TypeSystem, Record, T> mappingFunction) {
+			this.targetDatabase = targetDatabase;
+			this.runnableStatement = runnableStatement;
+			this.mappingFunction = mappingFunction;
+		}
 
 		@Override
 		public RecordFetchSpec<Optional<T>, Collection<T>, T> mappedBy(
@@ -229,7 +268,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		public Optional<T> one() {
 
 			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(this.targetDatabase)) {
-				StatementResult result = runWith(statementRunner);
+				StatementResult result = runnableStatement.runWith(statementRunner);
 				return result.hasNext() ?
 					Optional.of(mappingFunction.apply(typeSystem, result.single())) :
 					Optional.empty();
@@ -240,7 +279,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		public Optional<T> first() {
 
 			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(this.targetDatabase)) {
-				StatementResult result = runWith(statementRunner);
+				StatementResult result = runnableStatement.runWith(statementRunner);
 				return result.stream().map(partialMappingFunction(typeSystem)).findFirst();
 			}
 		}
@@ -249,24 +288,9 @@ class DefaultNeo4jClient implements Neo4jClient {
 		public Collection<T> all() {
 
 			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(this.targetDatabase)) {
-				StatementResult result = runWith(statementRunner);
+				StatementResult result = runnableStatement.runWith(statementRunner);
 				return result.stream().map(partialMappingFunction(typeSystem)).collect(toList());
 			}
-		}
-
-		private StatementResult runWith(AutoCloseableStatementRunner statementRunner) {
-			String statementTemplate = cypherSupplier.get();
-
-			if (cypherLog.isDebugEnabled()) {
-				cypherLog.debug("Executing:{}{}", System.lineSeparator(), statementTemplate);
-
-				if (cypherLog.isTraceEnabled() && !parameters.isEmpty()) {
-					cypherLog.trace("with parameters:{}{}", System.lineSeparator(), parameters);
-				}
-			}
-
-			StatementResult result = statementRunner.run(statementTemplate, parameters.get());
-			return result;
 		}
 
 		/**
