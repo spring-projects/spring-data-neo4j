@@ -16,26 +16,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration;
+package org.springframework.data.neo4j.integration.rx;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import static org.springframework.data.neo4j.core.schema.Id.Strategy.*;
 
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Property;
 
-@Getter
-@Setter
-@Node
-@ToString
-public class PersonWithNoConstructor {
+/**
+ * Has an assigned id and a changeable name.
+ *
+ * @author Michael J. Simons
+ */
+@Node("Thing")
+public class ThingWithAssignedId {
 
-	@Id private Long id;
+	@Id(strategy = ASSIGNED)
+	private final String theId;
 
 	private String name;
 
-	@Property("first_name")
-	private String firstName;
+	public ThingWithAssignedId(String theId) {
+		this.theId = theId;
+	}
+
+	public String getTheId() {
+		return theId;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 }

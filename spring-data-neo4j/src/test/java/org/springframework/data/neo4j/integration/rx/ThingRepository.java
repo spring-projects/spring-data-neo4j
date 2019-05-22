@@ -16,35 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration;
+package org.springframework.data.neo4j.integration.rx;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import java.util.List;
 
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.repository.CrudRepository;
 
-@Getter
-@Setter
-@Node
-@ToString
-public class PersonWithWither {
+/**
+ * @author Michael J. Simons
+ */
+public interface ThingRepository extends CrudRepository<ThingWithAssignedId, String> {
+	List<ThingWithAssignedId> findFirstByOrderByNameDesc();
 
-	@Id private final Long id;
-
-	private final String name;
-
-	private PersonWithWither(Long id, String name) {
-		this.id = id;
-		this.name = name;
-	}
-
-	public PersonWithWither withId(Long newId) {
-		return new PersonWithWither(newId, this.name);
-	}
-
-	public PersonWithWither withName(String newName) {
-		return new PersonWithWither(this.id, newName);
-	}
+	List<ThingWithAssignedId> findTop5ByOrderByNameDesc();
 }

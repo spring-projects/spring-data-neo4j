@@ -231,7 +231,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 			return Mono.usingWhen(
 				getStatementRunner(targetDatabase),
-				runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).single(),
+				runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).singleOrEmpty(),
 				DefaultReactiveNeo4jClient::asyncComplete,
 				DefaultReactiveNeo4jClient::asyncError,
 				DefaultReactiveNeo4jClient::asyncCancel

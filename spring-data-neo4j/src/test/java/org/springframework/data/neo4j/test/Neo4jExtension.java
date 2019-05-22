@@ -105,7 +105,9 @@ public class Neo4jExtension implements BeforeAllCallback {
 
 	static class ContainerAdapter implements ExtensionContext.Store.CloseableResource {
 
-		private final Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>()
+		private final String imageName = Optional.ofNullable(System.getenv("SDN_RX_NEO4J_VERSION")).orElse("3.5.0");
+
+		private final Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>("neo4j:" + imageName)
 			.withoutAuthentication();
 
 		public String getBoltUrl() {

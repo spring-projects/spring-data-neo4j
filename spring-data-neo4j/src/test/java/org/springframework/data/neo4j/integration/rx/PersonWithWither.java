@@ -16,14 +16,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.neo4j.integration.rx;
 
-package org.springframework.data.neo4j.integration
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import org.springframework.data.neo4j.core.schema.Id
-import org.springframework.data.neo4j.core.schema.Node
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
 
-/**
- * @author Gerrit Meier
- */
+@Getter
+@Setter
 @Node
-data class KotlinPerson(@Id val id: Long, val name: String)
+@ToString
+public class PersonWithWither {
+
+	@Id private final Long id;
+
+	private final String name;
+
+	private PersonWithWither(Long id, String name) {
+		this.id = id;
+		this.name = name;
+	}
+
+	public PersonWithWither withId(Long newId) {
+		return new PersonWithWither(newId, this.name);
+	}
+
+	public PersonWithWither withName(String newName) {
+		return new PersonWithWither(this.id, newName);
+	}
+}
