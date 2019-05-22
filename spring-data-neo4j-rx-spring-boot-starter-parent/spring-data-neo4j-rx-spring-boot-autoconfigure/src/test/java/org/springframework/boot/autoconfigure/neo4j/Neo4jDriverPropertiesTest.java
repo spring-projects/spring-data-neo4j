@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.internal.async.pool.PoolSettings;
+import org.neo4j.driver.internal.logging.JULogging;
 import org.neo4j.driver.internal.logging.Slf4jLogging;
 import org.neo4j.driver.internal.retry.RetrySettings;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -299,6 +300,17 @@ class Neo4jDriverPropertiesTest {
 
 		@Test
 		void loggingClassSettingsShouldWork() {
+
+			ConfigProperties configProperties = new ConfigProperties();
+			configProperties.setLoggingClass(JULogging.class);
+			assertThat(configProperties.toInternalRepresentation().logging())
+				.isNotNull()
+				.isInstanceOf(JULogging.class);
+
+		}
+
+		@Test
+		void loggingClassSettingsShouldWorkWithCustomClass() {
 
 			ConfigProperties configProperties = new ConfigProperties();
 			configProperties.setLoggingClass(TestLoggingClass.class);

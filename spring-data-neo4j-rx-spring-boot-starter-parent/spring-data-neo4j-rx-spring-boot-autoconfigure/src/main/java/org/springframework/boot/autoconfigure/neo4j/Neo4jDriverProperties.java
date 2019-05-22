@@ -31,14 +31,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.internal.async.pool.PoolSettings;
+import org.neo4j.driver.internal.logging.ConsoleLogging;
+import org.neo4j.driver.internal.logging.JULogging;
 import org.neo4j.driver.internal.logging.Slf4jLogging;
 import org.neo4j.driver.net.ServerAddressResolver;
+import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.source.InvalidConfigurationPropertyValueException;
@@ -279,6 +283,11 @@ public class Neo4jDriverProperties {
 		 */
 		private Class<? extends Logging> loggingClass = Slf4jLogging.class;
 
+		/**
+		 * Log level for the bolt driver. This has only meaning of a Logging implementation other than Slf4jLogging has been chosen.
+		 */
+		private Level driverLoggingLevel = Level.WARNING;
+
 		public boolean isLogLeakedSessions() {
 			return logLeakedSessions;
 		}
@@ -403,7 +412,21 @@ public class Neo4jDriverProperties {
 				builder.withResolver(BeanUtils.instantiateClass(serverAddressResolverClass));
 			}
 
-			builder.withLogging(BeanUtils.instantiateClass(this.loggingClass));
+			Logging logging;
+			if (this.loggingClass == JULogging.class) {
+				logging = Logging.javaUtilLogging(driverLoggingLevel);
+			} else if (this.loggingClass == ConsoleLogging.class) {
+				logging = Logging.console(driverLoggingLevel);
+			} else if (this.loggingClass == Slf4jLogging.class) {
+				logging = Logging.slf4j();
+			} else {
+				try {
+					logging = BeanUtils.instantiateClass(this.loggingClass);
+				} catch (BeanInstantiationException e) {
+					logging = Logging.none();
+				}
+			}
+			builder.withLogging(logging);
 
 			return builder.build();
 		}

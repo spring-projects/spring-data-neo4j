@@ -96,6 +96,10 @@ Otherwise, it passes all URIs to the Java driver which in turn uses the first on
 |`+org.neo4j.driver.internal.logging.Slf4jLogging+`
 |+++Used to configure a different Neo4j-Java-Driver logging implementation.+++
 
+|`+spring.neo4j.config.driver-logging-level+`
+|`+java.util.logging.Level.WARNING+`
+|+++Log level for the bolt driver. This has only meaning of a Logging implementation other than Slf4jLogging has been chosen.+++
+
 |`+spring.neo4j.config.max-connection-lifetime+`
 |`+1h+`
 |+++Pooled connections older than this threshold will be closed and removed from the pool.+++
