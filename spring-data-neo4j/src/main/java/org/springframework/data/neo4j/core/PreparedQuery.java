@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.support;
+package org.springframework.data.neo4j.core;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,7 +30,9 @@ import org.neo4j.driver.types.TypeSystem;
 import org.springframework.lang.Nullable;
 
 /**
- * Typed preparation of a query that is used to create an {@link ExecutableQuery} of the same type.
+ * Typed preparation of a query that is used to create either an executable query.
+ * Executable queries come in two fashions: imperative and reactive. Depending on which client is used to retrieve one,
+ * you get one or the other.
  * <p/>
  * When no mapping function is provided, the Neo4j client will assume a simple type to be returned. Otherwise make sure
  * that the query fits to the mapping function, that is: It must return all nodes, relationships and paths that is expected

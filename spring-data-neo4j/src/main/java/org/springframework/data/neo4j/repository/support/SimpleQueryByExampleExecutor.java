@@ -38,6 +38,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.Neo4jClient;
+import org.springframework.data.neo4j.core.Neo4jClient.ExecutableQuery;
+import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.cypher.Functions;
 import org.springframework.data.neo4j.core.cypher.Statement;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder;
@@ -112,8 +114,7 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 			.withCypherQuery(renderer.render(statement))
 			.withParameters(predicate.getParameters())
 			.build();
-		return ExecutableQuery.create(this.neo4jClient, preparedQuery)
-			.getRequiredSingleResult();
+		return neo4jClient.toExecutableQuery(preparedQuery).getRequiredSingleResult();
 	}
 
 	@Override
@@ -149,6 +150,6 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 			.withParameters(parameters)
 			.usingMappingFunction(mappingFunctionToUse)
 			.build();
-		return ExecutableQuery.create(this.neo4jClient, preparedQuery);
+		return neo4jClient.toExecutableQuery(preparedQuery);
 	}
 }

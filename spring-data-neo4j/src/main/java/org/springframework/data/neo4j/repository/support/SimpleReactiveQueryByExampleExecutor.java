@@ -34,7 +34,9 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
+import org.springframework.data.neo4j.core.ReactiveNeo4jClient.ExecutableQuery;
 import org.springframework.data.neo4j.core.cypher.Functions;
 import org.springframework.data.neo4j.core.cypher.Statement;
 import org.springframework.data.neo4j.core.cypher.renderer.CypherRenderer;
@@ -111,18 +113,18 @@ class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleE
 		return findAll(example).hasElements();
 	}
 
-	private <RS> ExecutableReactiveQuery<RS> createExecutableQuery(Class<RS> resultType, Statement statement,
+	private <RS> ExecutableQuery<RS> createExecutableQuery(Class<RS> resultType, Statement statement,
 		Map<String, Object> parameters) {
 
 		BiFunction<TypeSystem, Record, ?> mappingFunctionToUse
 			= this.mappingContext.getMappingFunctionFor(resultType).orElse(null);
 
-		PreparedQuery queryDescription = PreparedQuery.queryFor(resultType)
+		PreparedQuery preparedQuery = PreparedQuery.queryFor(resultType)
 			.withCypherQuery(renderer.render(statement))
 			.withParameters(parameters)
 			.usingMappingFunction(mappingFunctionToUse)
 			.build();
 
-		return ExecutableReactiveQuery.create(neo4jClient, queryDescription);
+		return neo4jClient.toExecutableQuery(preparedQuery);
 	}
 }

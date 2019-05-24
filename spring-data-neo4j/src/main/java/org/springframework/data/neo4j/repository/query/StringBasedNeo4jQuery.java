@@ -25,7 +25,7 @@ import java.util.Optional;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.repository.support.PreparedQuery;
+import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
