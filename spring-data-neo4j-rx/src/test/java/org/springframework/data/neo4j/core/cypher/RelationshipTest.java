@@ -30,9 +30,9 @@ class RelationshipTest {
 	@Test
 	void preconditionsShouldBeAsserted() {
 
-		assertThatIllegalArgumentException().isThrownBy(() -> Relationship.create(null, null, Node.create("a"), null))
+		assertThatIllegalArgumentException().isThrownBy(() -> Relationship.create(null, null, Node.create("a"), new String[0]))
 			.withMessage("Left node is required.");
-		assertThatIllegalArgumentException().isThrownBy(() -> Relationship.create(Node.create("a"), null, null, null))
+		assertThatIllegalArgumentException().isThrownBy(() -> Relationship.create(Node.create("a"), null, null, new String[0]))
 			.withMessage("Right node is required.");
 	}
 }

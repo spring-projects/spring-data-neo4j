@@ -16,39 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration.rx;
 
-import static org.springframework.data.neo4j.core.schema.Id.Strategy.*;
+package org.springframework.data.neo4j.integration.shared
 
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Id
+import org.springframework.data.neo4j.core.schema.Node
 
 /**
- * Has an assigned id and a changeable name.
- *
- * @author Michael J. Simons
+ * @author Gerrit Meier
  */
-@Node("Thing")
-public class ThingWithAssignedId {
-
-	@Id(strategy = ASSIGNED)
-	private final String theId;
-
-	private String name;
-
-	public ThingWithAssignedId(String theId) {
-		this.theId = theId;
-	}
-
-	public String getTheId() {
-		return theId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-}
+@Node
+data class KotlinPerson(@Id val id: Long, val name: String)

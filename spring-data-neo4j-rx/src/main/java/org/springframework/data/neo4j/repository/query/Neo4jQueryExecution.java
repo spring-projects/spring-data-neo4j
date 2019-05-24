@@ -46,9 +46,9 @@ interface Neo4jQueryExecution {
 		private final Neo4jClient neo4jClient;
 
 		@Override
-		public Object execute(PreparedQuery description, boolean asCollectionQuery) {
+		public Object execute(PreparedQuery preparedQuery, boolean asCollectionQuery) {
 
-			ExecutableQuery executableQuery = ExecutableQuery.create(description, neo4jClient);
+			ExecutableQuery executableQuery = ExecutableQuery.create(neo4jClient, preparedQuery);
 			if (asCollectionQuery) {
 				return executableQuery.getResults();
 			} else {
@@ -65,7 +65,7 @@ interface Neo4jQueryExecution {
 		@Override
 		public Object execute(PreparedQuery description, boolean asCollectionQuery) {
 
-			ExecutableReactiveQuery executableQuery = ExecutableReactiveQuery.create(description, neo4jClient);
+			ExecutableReactiveQuery executableQuery = ExecutableReactiveQuery.create(neo4jClient, description);
 			if (asCollectionQuery) {
 				return executableQuery.getResults();
 			} else {

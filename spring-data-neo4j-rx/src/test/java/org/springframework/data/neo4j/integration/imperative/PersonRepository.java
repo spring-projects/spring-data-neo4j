@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration.blocking;
+package org.springframework.data.neo4j.integration.imperative;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,6 +26,10 @@ import org.neo4j.driver.types.Point;
 import org.springframework.data.domain.Range;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
+import org.springframework.data.neo4j.integration.shared.KotlinPerson;
+import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
+import org.springframework.data.neo4j.integration.shared.PersonWithNoConstructor;
+import org.springframework.data.neo4j.integration.shared.PersonWithWither;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.Param;

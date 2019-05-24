@@ -92,7 +92,7 @@ public abstract class Neo4jConfigurationSupport {
 	 * @return the base packages to scan for mapped {@link Node} classes
 	 * or an empty collection to not enable scanning for entities.
 	 */
-	protected final Collection<String> getMappingBasePackages() {
+	protected Collection<String> getMappingBasePackages() {
 
 		Package mappingBasePackage = getClass().getPackage();
 		return Collections.singleton(mappingBasePackage == null ? null : mappingBasePackage.getName());
