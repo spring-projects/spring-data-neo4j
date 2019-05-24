@@ -38,7 +38,7 @@ import org.neo4j.driver.types.Point;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.query.Neo4jQueryMethod.Neo4jParameters;
-import org.springframework.data.neo4j.repository.support.PreparedQuery;
+import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;

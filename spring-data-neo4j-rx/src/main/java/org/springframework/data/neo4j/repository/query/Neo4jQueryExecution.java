@@ -21,10 +21,8 @@ package org.springframework.data.neo4j.repository.query;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.neo4j.core.Neo4jClient;
+import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
-import org.springframework.data.neo4j.repository.support.ExecutableQuery;
-import org.springframework.data.neo4j.repository.support.ExecutableReactiveQuery;
-import org.springframework.data.neo4j.repository.support.PreparedQuery;
 
 /**
  * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a
@@ -48,7 +46,7 @@ interface Neo4jQueryExecution {
 		@Override
 		public Object execute(PreparedQuery preparedQuery, boolean asCollectionQuery) {
 
-			ExecutableQuery executableQuery = ExecutableQuery.create(neo4jClient, preparedQuery);
+			Neo4jClient.ExecutableQuery executableQuery = neo4jClient.toExecutableQuery(preparedQuery);
 			if (asCollectionQuery) {
 				return executableQuery.getResults();
 			} else {
@@ -63,9 +61,9 @@ interface Neo4jQueryExecution {
 		private final ReactiveNeo4jClient neo4jClient;
 
 		@Override
-		public Object execute(PreparedQuery description, boolean asCollectionQuery) {
+		public Object execute(PreparedQuery preparedQuery, boolean asCollectionQuery) {
 
-			ExecutableReactiveQuery executableQuery = ExecutableReactiveQuery.create(neo4jClient, description);
+			ReactiveNeo4jClient.ExecutableQuery executableQuery = neo4jClient.toExecutableQuery(preparedQuery);
 			if (asCollectionQuery) {
 				return executableQuery.getResults();
 			} else {

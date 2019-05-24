@@ -20,6 +20,7 @@ package org.springframework.data.neo4j.core;
 
 import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils.*;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,12 +37,14 @@ import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxStatementRunner;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.reactivestreams.Publisher;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.core.Neo4jClient.MappingSpec;
 import org.springframework.data.neo4j.core.Neo4jClient.OngoingBindSpec;
 import org.springframework.data.neo4j.core.Neo4jClient.RecordFetchSpec;
@@ -126,6 +129,23 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 	@Override
 	public <T> OngoingReactiveDelegation<T> delegateTo(Function<RxStatementRunner, Mono<T>> callback) {
 		return new DefaultReactiveRunnableDelegation<>(callback);
+	}
+
+	@Override
+	public <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery) {
+
+		Class<T> resultType = preparedQuery.getResultType();
+		Neo4jClient.MappingSpec<Mono<T>, Flux<T>, T> mappingSpec = this
+			.newQuery(preparedQuery.getCypherQuery())
+			.bindAll(preparedQuery.getParameters())
+			.fetchAs(resultType);
+
+		Neo4jClient.RecordFetchSpec<Mono<T>, Flux<T>, T> fetchSpec = preparedQuery
+			.getOptionalMappingFunction()
+			.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction))
+			.orElse(mappingSpec);
+
+		return new DefaultReactiveExecutableQuery<>(fetchSpec);
 	}
 
 	@RequiredArgsConstructor
@@ -298,6 +318,33 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 				DefaultReactiveNeo4jClient::asyncComplete,
 				DefaultReactiveNeo4jClient::asyncError,
 				DefaultReactiveNeo4jClient::asyncCancel);
+		}
+	}
+
+	@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+	final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {
+
+		private final Neo4jClient.RecordFetchSpec<Mono<T>, Flux<T>, T> fetchSpec;
+
+		/**
+		 * @return All results returned by this query.
+		 */
+		public Flux<T> getResults() {
+			return fetchSpec.all();
+		}
+
+		/**
+		 * @return A single result
+		 * @throws IncorrectResultSizeDataAccessException
+		 */
+		public Mono<T> getSingleResult() {
+			try {
+				return fetchSpec.one();
+			} catch (NoSuchRecordException e) {
+				// This exception is thrown by the driver in both cases when there are 0 or 1+n records
+				// So there has been an incorrect result size, but not to few results but to many.
+				throw new IncorrectResultSizeDataAccessException(1);
+			}
 		}
 	}
 }

@@ -37,6 +37,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.Neo4jClient;
+import org.springframework.data.neo4j.core.Neo4jClient.ExecutableQuery;
+import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.cypher.Condition;
 import org.springframework.data.neo4j.core.cypher.Functions;
 import org.springframework.data.neo4j.core.cypher.Statement;
@@ -162,7 +164,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 		PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class)
 			.withCypherQuery(renderer.render(statement))
 			.build();
-		return ExecutableQuery.create(this.neo4jClient, preparedQuery)
+		return neo4jClient.toExecutableQuery(preparedQuery)
 			.getRequiredSingleResult();
 	}
 
@@ -235,6 +237,6 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 			.withParameters(parameters)
 			.usingMappingFunction(this.entityInformation.getMappingFunction())
 			.build();
-		return ExecutableQuery.create(this.neo4jClient, preparedQuery);
+		return neo4jClient.toExecutableQuery(preparedQuery);
 	}
 }

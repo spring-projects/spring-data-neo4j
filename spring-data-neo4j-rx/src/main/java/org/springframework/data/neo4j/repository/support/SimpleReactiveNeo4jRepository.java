@@ -32,7 +32,9 @@ import java.util.Optional;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
+import org.springframework.data.neo4j.core.ReactiveNeo4jClient.ExecutableQuery;
 import org.springframework.data.neo4j.core.cypher.Functions;
 import org.springframework.data.neo4j.core.cypher.Statement;
 import org.springframework.data.neo4j.core.cypher.renderer.CypherRenderer;
@@ -136,7 +138,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 		PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class)
 			.withCypherQuery(renderer.render(statement))
 			.build();
-		return ExecutableReactiveQuery.create(this.neo4jClient, preparedQuery)
+		return this.neo4jClient.toExecutableQuery(preparedQuery)
 			.getSingleResult();
 	}
 
@@ -176,17 +178,17 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 		return null;
 	}
 
-	private ExecutableReactiveQuery<T> createExecutableQuery(Statement statement) {
+	private ExecutableQuery<T> createExecutableQuery(Statement statement) {
 		return createExecutableQuery(statement, Collections.emptyMap());
 	}
 
-	private ExecutableReactiveQuery<T> createExecutableQuery(Statement statement, Map<String, Object> parameters) {
+	private ExecutableQuery<T> createExecutableQuery(Statement statement, Map<String, Object> parameters) {
 
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(this.entityInformation.getJavaType())
 			.withCypherQuery(renderer.render(statement))
 			.withParameters(parameters)
 			.usingMappingFunction(this.entityInformation.getMappingFunction())
 			.build();
-		return ExecutableReactiveQuery.create(neo4jClient, preparedQuery);
+		return neo4jClient.toExecutableQuery(preparedQuery);
 	}
 }

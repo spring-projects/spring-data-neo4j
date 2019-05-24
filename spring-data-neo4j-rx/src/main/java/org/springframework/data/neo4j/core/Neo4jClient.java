@@ -19,6 +19,7 @@
 package org.springframework.data.neo4j.core;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -81,6 +82,16 @@ public interface Neo4jClient {
 	 * @return A single result object or an empty optional if the callback didn't produce a result
 	 */
 	<T> OngoingDelegation<T> delegateTo(Function<StatementRunner, Optional<T>> callback);
+
+	/**
+	 * Takes a prepared query, containing all the information about the cypher template to be used, needed parameters and
+	 * an optional mapping function, and turns it into an executable query.
+	 *
+	 * @param preparedQuery
+	 * @param <T>           The type of the objects returned by this query.
+	 * @return
+	 */
+	<T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery);
 
 	/**
 	 * Contract for a runnable query that can be either run returning it's result, run without results or be parameterized.
@@ -240,5 +251,19 @@ public interface Neo4jClient {
 		 * @return
 		 */
 		Optional<T> run();
+	}
+
+	/**
+	 * An interface for controlling query execution.
+	 *
+	 * @param <T>
+	 */
+	interface ExecutableQuery<T> {
+
+		List<T> getResults();
+
+		Optional<T> getSingleResult();
+
+		T getRequiredSingleResult();
 	}
 }
