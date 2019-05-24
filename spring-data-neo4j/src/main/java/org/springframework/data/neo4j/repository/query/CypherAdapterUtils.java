@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.cypher.Condition;
 import org.springframework.data.neo4j.core.cypher.Conditions;
@@ -35,6 +36,8 @@ import org.springframework.data.neo4j.core.cypher.Expression;
 import org.springframework.data.neo4j.core.cypher.Functions;
 import org.springframework.data.neo4j.core.cypher.Node;
 import org.springframework.data.neo4j.core.cypher.SortItem;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.BuildableMatch;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchAndDelete;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchAndWith;
 import org.springframework.data.neo4j.core.cypher.SymbolicName;
@@ -43,6 +46,7 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.IdDescription;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.Schema;
+import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;
 
 /**
  * A set of shared utils to adapt {@code org.springframework.data.neo4j.core.cypher} functionality with Spring Data
@@ -114,13 +118,22 @@ public final class CypherAdapterUtils {
 		}
 
 		/**
+		 * @param nodeDescription
+		 * @return
+		 * @see #prepareMatchOf(NodeDescription, Optional)
+		 */
+		public OngoingMatchAndWith prepareMatchOf(NodeDescription<?> nodeDescription) {
+			return prepareMatchOf(nodeDescription, Optional.empty());
+		}
+
+		/**
 		 * This will create a match statement that fits the given node description and may contains additional conditions.
 		 * The {@code WITH} clause of this statement contains all nodes and relationships necessary to map a record to
 		 * the given {@code nodeDescription}.
 		 * <p/>
 		 * It is recommended to use {@link Cypher#asterisk()} to return everything from the query in the end.
 		 * <p/>
-		 * The root node is guaranted to have the symbolic name {@code n}.
+		 * The root node is guaranteed to have the symbolic name {@code n}.
 		 *
 		 * @param nodeDescription The node description for which a match clause should be generated
 		 * @param condition       Optional conditions to add
@@ -146,6 +159,47 @@ public final class CypherAdapterUtils {
 			return Cypher.match(rootNode).where(condition.orElse(Conditions.noCondition())).delete(rootNode);
 		}
 	}
+
+	public static BuildableMatch addPagingParameter(
+		NodeDescription<?> nodeDescription,
+		Pageable pageable,
+		StatementBuilder.OngoingMatchAndReturn returning) {
+
+		Sort sort = pageable.getSort();
+
+		long skip = pageable.getOffset();
+
+		int pageSize = pageable.getPageSize();
+
+		return returning.orderBy(toSortItems(nodeDescription, sort)).skip(skip).limit(pageSize);
+	}
+
+	/**
+	 * @param nodeDescription
+	 * @return
+	 * @see Neo4jEntityInformation#getIdExpression()
+	 */
+	public static Expression createIdExpression(final NodeDescription<?> nodeDescription) {
+
+		final SymbolicName rootNode = Cypher.symbolicName(NAME_OF_ROOT_NODE);
+		final IdDescription idDescription = nodeDescription.getIdDescription();
+		Expression idExpression;
+		switch (idDescription.getIdStrategy()) {
+			case INTERNAL:
+				idExpression = Functions.id(rootNode);
+				break;
+			case ASSIGNED:
+			case GENERATED:
+				idExpression = idDescription.getOptionalGraphPropertyName()
+					.map(propertyName -> property(rootNode.getName(), propertyName)).get();
+				break;
+			default:
+				throw new IllegalStateException("Unsupported ID strategy: %s" + idDescription.getIdStrategy());
+		}
+
+		return idExpression;
+	}
+
 
 	private CypherAdapterUtils() {
 	}

@@ -18,10 +18,13 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.apiguardian.api.API;
+import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
@@ -31,36 +34,50 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
  *
  * @param <T> The type of the objects returned by this query.
  * @author Gerrit Meier
+ * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public interface ExecutableReactiveQuery<T> {
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ExecutableReactiveQuery<T> {
 
-	static <T> ExecutableReactiveQuery<T> create(PreparedQuery<T> description, ReactiveNeo4jClient neo4jClient) {
+	public static <T> ExecutableReactiveQuery<T> create(ReactiveNeo4jClient neo4jClient, PreparedQuery<T> preparedQuery) {
 
-		Class<T> resultType = description.getResultType();
+		Class<T> resultType = preparedQuery.getResultType();
 		Neo4jClient.MappingSpec<Mono<T>, Flux<T>, T> mappingSpec = neo4jClient
-			.newQuery(description.getCypherQuery())
-			.bindAll(description.getParameters())
+			.newQuery(preparedQuery.getCypherQuery())
+			.bindAll(preparedQuery.getParameters())
 			.fetchAs(resultType);
 
-		Neo4jClient.RecordFetchSpec<Mono<T>, Flux<T>, T> fetchSpec = description
+		Neo4jClient.RecordFetchSpec<Mono<T>, Flux<T>, T> fetchSpec = preparedQuery
 			.getOptionalMappingFunction()
 			.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction))
 			.orElse(mappingSpec);
 
-		return new ReactiveExecutableQuery<>(fetchSpec);
+		return new ExecutableReactiveQuery<>(fetchSpec);
 	}
+
+	private final Neo4jClient.RecordFetchSpec<Mono<T>, Flux<T>, T> fetchSpec;
 
 	/**
 	 * @return All results returned by this query.
 	 */
-	Flux<T> getResults();
+	public Flux<T> getResults() {
+		return fetchSpec.all();
+	}
 
 	/**
 	 * @return A single result
 	 * @throws IncorrectResultSizeDataAccessException
 	 */
-	Mono<T> getSingleResult();
+	public Mono<T> getSingleResult() {
+		try {
+			return fetchSpec.one();
+		} catch (NoSuchRecordException e) {
+			// This exception is thrown by the driver in both cases when there are 0 or 1+n records
+			// So there has been an incorrect result size, but not to few results but to many.
+			throw new IncorrectResultSizeDataAccessException(1);
+		}
+	}
 
 }

@@ -37,30 +37,49 @@ import org.springframework.lang.Nullable;
  * by the mapping function to work correctly.
  *
  * @param <T> The type of the objects returned by this query.
- * @see ExecutableQuery#create(PreparedQuery, org.springframework.data.neo4j.core.Neo4jClient)
  * @author Michael J. Simons
  * @soundtrack Deichkind - Arbeit nervt
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public interface PreparedQuery<T> {
+public final class PreparedQuery<T> {
 
-	static <CT> RequiredBuildStep<CT> queryFor(Class<CT> resultType) {
+	public static <CT> RequiredBuildStep<CT> queryFor(Class<CT> resultType) {
 		return new RequiredBuildStep<CT>(resultType);
 	}
 
-	Class<T> getResultType();
+	private final Class<T> resultType;
+	private final String cypherQuery;
+	private final Map<String, Object> parameters;
+	private final @Nullable BiFunction<TypeSystem, Record, T> mappingFunction;
 
-	Optional<BiFunction<TypeSystem, Record, T>> getOptionalMappingFunction();
+	private PreparedQuery(OptionalBuildSteps<T> optionalBuildSteps) {
+		this.resultType = optionalBuildSteps.resultType;
+		this.mappingFunction = (BiFunction<TypeSystem, Record, T>) optionalBuildSteps.mappingFunction;
+		this.cypherQuery = optionalBuildSteps.cypherQuery;
+		this.parameters = optionalBuildSteps.parameters;
+	}
 
-	String getCypherQuery();
+	public Class<T> getResultType() {
+		return this.resultType;
+	}
 
-	Map<String, Object> getParameters();
+	public Optional<BiFunction<TypeSystem, Record, T>> getOptionalMappingFunction() {
+		return Optional.ofNullable(mappingFunction);
+	}
+
+	public String getCypherQuery() {
+		return this.cypherQuery;
+	}
+
+	public Map<String, Object> getParameters() {
+		return this.parameters;
+	}
 
 	/**
 	 * @param <CT> The concrete type of this build step.
 	 */
-	class RequiredBuildStep<CT> {
+	public static class RequiredBuildStep<CT> {
 		private final Class<CT> resultType;
 
 		private RequiredBuildStep(Class<CT> resultType) {
@@ -75,7 +94,7 @@ public interface PreparedQuery<T> {
 	/**
 	 * @param <CT> The concrete type of this build step.
 	 */
-	class OptionalBuildSteps<CT> {
+	public static class OptionalBuildSteps<CT> {
 
 		final Class<CT> resultType;
 		final String cypherQuery;
@@ -105,7 +124,7 @@ public interface PreparedQuery<T> {
 		}
 
 		public PreparedQuery<CT> build() {
-			return new DefaultPreparedQuery<>(this);
+			return new PreparedQuery<>(this);
 		}
 	}
 }

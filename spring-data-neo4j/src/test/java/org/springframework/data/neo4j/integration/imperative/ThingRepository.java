@@ -16,14 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.neo4j.integration.imperative;
 
-package org.springframework.data.neo4j.integration.blocking
+import java.util.List;
 
-import org.springframework.data.neo4j.core.schema.Id
-import org.springframework.data.neo4j.core.schema.Node
+import org.springframework.data.neo4j.integration.shared.ThingWithAssignedId;
+import org.springframework.data.repository.CrudRepository;
 
 /**
- * @author Gerrit Meier
+ * @author Michael J. Simons
  */
-@Node
-data class KotlinPerson(@Id val id: Long, val name: String)
+public interface ThingRepository extends CrudRepository<ThingWithAssignedId, String> {
+	List<ThingWithAssignedId> findFirstByOrderByNameDesc();
+
+	List<ThingWithAssignedId> findTop5ByOrderByNameDesc();
+}

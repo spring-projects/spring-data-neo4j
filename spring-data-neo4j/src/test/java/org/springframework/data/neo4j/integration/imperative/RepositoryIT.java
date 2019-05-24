@@ -16,13 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration.blocking;
+package org.springframework.data.neo4j.integration.imperative;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.domain.Range.Bound.*;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -51,6 +52,11 @@ import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.integration.shared.KotlinPerson;
+import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
+import org.springframework.data.neo4j.integration.shared.PersonWithNoConstructor;
+import org.springframework.data.neo4j.integration.shared.PersonWithWither;
+import org.springframework.data.neo4j.integration.shared.ThingWithAssignedId;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
@@ -866,8 +872,12 @@ class RepositoryIT {
 
 		@Bean
 		public Driver driver() {
-
 			return neo4jConnectionSupport.openConnection();
+		}
+
+		@Override
+		protected Collection<String> getMappingBasePackages() {
+			return Collections.singletonList(PersonWithAllConstructor.class.getPackage().getName());
 		}
 	}
 }

@@ -18,11 +18,17 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
+import static java.util.stream.Collectors.*;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
+import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.repository.NoResultException;
@@ -36,36 +42,42 @@ import org.springframework.data.neo4j.repository.NoResultException;
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public interface ExecutableQuery<T> {
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ExecutableQuery<T> {
 
-	static <T> ExecutableQuery<T> create(PreparedQuery<T> description, Neo4jClient neo4jClient) {
+	public static <T> ExecutableQuery<T> create(Neo4jClient neo4jClient, PreparedQuery<T> preparedQuery) {
 
-		Class<T> resultType = description.getResultType();
 		Neo4jClient.MappingSpec<Optional<T>, Collection<T>, T> mappingSpec = neo4jClient
-			.newQuery(description.getCypherQuery())
-			.bindAll(description.getParameters())
-			.fetchAs(resultType);
-		Neo4jClient.RecordFetchSpec<Optional<T>, Collection<T>, T> fetchSpec = description.getOptionalMappingFunction()
-			.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction))
+			.newQuery(preparedQuery.getCypherQuery())
+			.bindAll(preparedQuery.getParameters())
+			.fetchAs(preparedQuery.getResultType());
+		Neo4jClient.RecordFetchSpec<Optional<T>, Collection<T>, T> fetchSpec = preparedQuery
+			.getOptionalMappingFunction()
+			.map(f -> mappingSpec.mappedBy(f))
 			.orElse(mappingSpec);
 
-		return new DefaultExecutableQuery<>(description, fetchSpec);
+		return new ExecutableQuery<>(preparedQuery, fetchSpec);
 	}
 
-	/**
-	 * @return All results returned by this query.
-	 */
-	List<T> getResults();
+	private final PreparedQuery<T> preparedQuery;
+	private final Neo4jClient.RecordFetchSpec<Optional<T>, Collection<T>, T> fetchSpec;
 
-	/**
-	 * @return A single result
-	 * @throws IncorrectResultSizeDataAccessException
-	 */
-	Optional<T> getSingleResult();
+	public List<T> getResults() {
+		return fetchSpec.all().stream().collect(toList());
+	}
 
-	/**
-	 * @return A single result
-	 * @throws NoResultException
-	 */
-	T getRequiredSingleResult();
+	public Optional<T> getSingleResult() {
+		try {
+			return fetchSpec.one();
+		} catch (NoSuchRecordException e) {
+			// This exception is thrown by the driver in both cases when there are 0 or 1+n records
+			// So there has been an incorrect result size, but not to few results but to many.
+			throw new IncorrectResultSizeDataAccessException(1);
+		}
+	}
+
+	public T getRequiredSingleResult() {
+		return fetchSpec.one()
+			.orElseThrow(() -> new NoResultException(1, preparedQuery.getCypherQuery()));
+	}
 }

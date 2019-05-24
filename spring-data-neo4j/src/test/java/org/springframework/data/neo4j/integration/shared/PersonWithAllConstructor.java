@@ -16,35 +16,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration.rx;
+package org.springframework.data.neo4j.integration.shared;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.LocalDate;
+import java.util.List;
+
+import org.neo4j.driver.types.Point;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Property;
 
+/**
+ * @author Gerrit Meier
+ * @author Michael J. Simons
+ */
 @Getter
 @Setter
 @Node
 @ToString
-public class PersonWithWither {
+@AllArgsConstructor
+@EqualsAndHashCode
+public class PersonWithAllConstructor {
 
-	@Id private final Long id;
+	@Id
+	private final Long id;
 
 	private final String name;
 
-	private PersonWithWither(Long id, String name) {
-		this.id = id;
-		this.name = name;
-	}
+	@Property("first_name")
+	private final String firstName;
 
-	public PersonWithWither withId(Long newId) {
-		return new PersonWithWither(newId, this.name);
-	}
+	private final String sameValue;
 
-	public PersonWithWither withName(String newName) {
-		return new PersonWithWither(this.id, newName);
-	}
+	private final Boolean cool;
+
+	private final Long personNumber;
+
+	private final LocalDate bornOn;
+
+	private final String nullable;
+
+	private final List<String> things;
+
+	private final Point place;
 }

@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -84,12 +83,6 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	@Override
 	public Optional<GraphPropertyDescription> getGraphProperty(String fieldName) {
 		return Optional.ofNullable(this.getPersistentProperty(fieldName));
-	}
-
-	@Override
-	public Object extractId(T instance) {
-		PersistentPropertyAccessor<T> propertyAccessor = this.getPropertyAccessor(instance);
-		return propertyAccessor.getProperty(this.getRequiredIdProperty());
 	}
 
 	@Override

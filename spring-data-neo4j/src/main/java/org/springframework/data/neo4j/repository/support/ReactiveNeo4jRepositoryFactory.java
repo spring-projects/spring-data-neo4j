@@ -19,15 +19,22 @@
 package org.springframework.data.neo4j.repository.support;
 
 import java.util.Optional;
+import java.util.function.BiFunction;
 
+import org.neo4j.driver.Record;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
+import org.springframework.data.neo4j.repository.query.CypherAdapterUtils;
+import org.springframework.data.neo4j.repository.query.CypherAdapterUtils.SchemaBasedStatementBuilder;
 import org.springframework.data.neo4j.repository.query.ReactiveNeo4jQueryLookupStrategy;
-import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.core.support.RepositoryComposition.RepositoryFragments;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
+import org.springframework.data.repository.core.support.RepositoryFragment;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
@@ -36,6 +43,7 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
  * Factory to create {@link ReactiveNeo4jRepository} instances.
  *
  * @author Gerrit Meier
+ * @author Michael J. Simons
  * @since 1.0
  */
 final class ReactiveNeo4jRepositoryFactory extends RepositoryFactorySupport {
@@ -44,19 +52,45 @@ final class ReactiveNeo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	private final Neo4jMappingContext mappingContext;
 
+	private final SchemaBasedStatementBuilder schemaBasedStatementBuilder;
+
 	ReactiveNeo4jRepositoryFactory(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext mappingContext) {
 		this.neo4jClient = neo4jClient;
 		this.mappingContext = mappingContext;
+
+		this.schemaBasedStatementBuilder = CypherAdapterUtils.createSchemaBasedStatementBuilder(this.mappingContext);
 	}
 
 	@Override
-	public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
-		return null;
+	public <T, ID> Neo4jEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
+
+		Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(domainClass);
+		BiFunction<TypeSystem, Record, T> mappingFunction = mappingContext.getRequiredMappingFunctionFor(domainClass);
+
+		return new DefaultNeo4jEntityInformation<>((Neo4jPersistentEntity<T>) entity, mappingFunction);
 	}
 
 	@Override
 	protected Object getTargetRepository(RepositoryInformation metadata) {
-		return getTargetRepositoryViaReflection(metadata, neo4jClient, mappingContext, metadata.getDomainType());
+
+		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
+		return getTargetRepositoryViaReflection(metadata,
+			neo4jClient, entityInformation, schemaBasedStatementBuilder
+		);
+	}
+
+	@Override
+	protected RepositoryFragments getRepositoryFragments(RepositoryMetadata metadata) {
+
+		RepositoryFragments fragments = RepositoryFragments.empty();
+
+		SimpleReactiveQueryByExampleExecutor byExampleExecutor = getTargetRepositoryViaReflection(
+			SimpleReactiveQueryByExampleExecutor.class,
+			neo4jClient, mappingContext, schemaBasedStatementBuilder);
+
+		fragments = fragments.append(RepositoryFragment.implemented(byExampleExecutor));
+
+		return fragments;
 	}
 
 	@Override

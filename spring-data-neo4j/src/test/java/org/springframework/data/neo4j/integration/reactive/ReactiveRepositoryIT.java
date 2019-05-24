@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration.rx;
+package org.springframework.data.neo4j.integration.reactive;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -24,6 +24,7 @@ import reactor.test.StepVerifier;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,6 +42,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
+import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
@@ -322,9 +324,12 @@ class ReactiveRepositoryIT {
 
 		@Bean
 		public Driver driver() {
-
 			return neo4jConnectionSupport.openConnection();
 		}
 
+		@Override
+		protected Collection<String> getMappingBasePackages() {
+			return Collections.singletonList(PersonWithAllConstructor.class.getPackage().getName());
+		}
 	}
 }
