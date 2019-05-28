@@ -25,7 +25,6 @@ import static org.springframework.data.neo4j.core.cypher.Functions.*;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.neo4j.core.cypher.renderer.CypherRenderer;
 import org.springframework.data.neo4j.core.cypher.renderer.Renderer;
 
 /**
@@ -34,7 +33,7 @@ import org.springframework.data.neo4j.core.cypher.renderer.Renderer;
  */
 class CypherIT {
 
-	private final Renderer cypherRenderer = CypherRenderer.create();
+	private static final Renderer cypherRenderer = Renderer.getDefaultRenderer();
 	private final Node bikeNode = Cypher.node("Bike").named("b");
 	private final Node userNode = Cypher.node("User").named("u");
 

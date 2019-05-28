@@ -33,4 +33,13 @@ public interface Renderer {
 	 * @return
 	 */
 	String render(Statement statement);
+
+	/**
+	 * Provides the default renderer. This method may or may not provide shared instances of the renderer.
+	 *
+	 * @return The default renderer
+	 */
+	static Renderer getDefaultRenderer() {
+		return CypherRenderer.INSTANCE;
+	}
 }

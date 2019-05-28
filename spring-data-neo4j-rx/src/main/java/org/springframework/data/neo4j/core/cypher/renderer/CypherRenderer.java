@@ -18,6 +18,13 @@
  */
 package org.springframework.data.neo4j.core.cypher.renderer;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.springframework.data.neo4j.core.cypher.Statement;
 
 /**
@@ -25,21 +32,58 @@ import org.springframework.data.neo4j.core.cypher.Statement;
  * @author Gerrit Meier
  * @since 1.0
  */
-public class CypherRenderer implements Renderer {
+enum CypherRenderer implements Renderer {
 
-	private CypherRenderer() {
-	}
+	INSTANCE;
 
-	public static Renderer create() {
-		return new CypherRenderer();
-	}
+	private final int STATEMENT_CACHE_SIZE = 128;
+	private final LinkedHashMap<Integer, String> renderedStatementCache = new LRUCache<>(STATEMENT_CACHE_SIZE);
+
+	private final ReadWriteLock lock = new ReentrantReadWriteLock();
+	private final Lock read = lock.readLock();
+	private final Lock write = lock.writeLock();
 
 	@Override
 	public String render(Statement statement) {
 
-		RenderingVisitor renderingVisitor = new RenderingVisitor();
-		statement.accept(renderingVisitor);
+		int key = Objects.hashCode(statement);
 
-		return renderingVisitor.getRenderedContent().trim();
+		String renderedContent;
+		try {
+			read.lock();
+			renderedContent = renderedStatementCache.get(key);
+		} finally {
+			read.unlock();
+		}
+
+		if (renderedContent == null) {
+			try {
+				write.lock();
+
+				RenderingVisitor renderingVisitor = new RenderingVisitor();
+				statement.accept(renderingVisitor);
+				renderedContent = renderingVisitor.getRenderedContent().trim();
+
+				renderedStatementCache.put(key, renderedContent);
+			} finally {
+				write.unlock();
+			}
+		}
+
+		return renderedContent;
+	}
+
+	private static class LRUCache<K, V> extends LinkedHashMap<K, V> {
+		private int cacheSize;
+
+		LRUCache(int cacheSize) {
+			super(cacheSize / 4, 0.75f, true);
+			this.cacheSize = cacheSize;
+		}
+
+		@Override
+		protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+			return size() >= cacheSize;
+		}
 	}
 }

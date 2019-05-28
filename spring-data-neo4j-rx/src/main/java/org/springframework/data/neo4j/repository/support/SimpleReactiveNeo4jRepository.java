@@ -37,7 +37,6 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient.ExecutableQuery;
 import org.springframework.data.neo4j.core.cypher.Functions;
 import org.springframework.data.neo4j.core.cypher.Statement;
-import org.springframework.data.neo4j.core.cypher.renderer.CypherRenderer;
 import org.springframework.data.neo4j.core.cypher.renderer.Renderer;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
@@ -56,7 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<T, ID> {
 
-	private static final Renderer renderer = CypherRenderer.create();
+	private static final Renderer renderer = Renderer.getDefaultRenderer();
 
 	private final ReactiveNeo4jClient neo4jClient;
 
