@@ -23,7 +23,7 @@
 	<parent>
 		<artifactId>spring-data-parent</artifactId>
 		<groupId>org.springframework.data.build</groupId>
-		<version>2.1.5.RELEASE</version>
+		<version>2.2.0.BUILD-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.springframework.data</groupId>
@@ -106,8 +106,8 @@
 		<reactor-bom.version>Californium-SR4</reactor-bom.version>
 		<rxjava.version>1.3.8</rxjava.version>
 		<rxjava2.version>2.2.5</rxjava2.version>
-		<slf4j.version>1.7.25</slf4j.version>
-		<springdata-commons.version>2.1.5.RELEASE</springdata-commons.version>
+		<slf4j.version>1.7.26</slf4j.version>
+		<springdata-commons.version>2.2.0.M4</springdata-commons.version>
 		<testcontainers.version>1.10.7</testcontainers.version>
 
 		<skipUnitTests>${skipTests}</skipUnitTests>
@@ -384,4 +384,11 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<repositories>
+		<repository>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
+		</repository>
+	</repositories>
 </project>

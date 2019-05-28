@@ -114,7 +114,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	public <S extends T> S save(S entity) {
 
 		Long internalId = neo4jClient
-			.newQuery(() -> renderer.render(statementBuilder.prepareSaveOf(entityMetaData)))
+			.query(() -> renderer.render(statementBuilder.prepareSaveOf(entityMetaData)))
 			.bind((T) entity)
 			.with(entityInformation.getBinderFunction())
 			.fetchAs(Long.class).one().get();
@@ -193,7 +193,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 		Statement statement = statementBuilder
 			.prepareDeleteOf(entityMetaData, Optional.of(condition));
-		ResultSummary summary = this.neo4jClient.newQuery(renderer.render(statement))
+		ResultSummary summary = this.neo4jClient.query(renderer.render(statement))
 			.bind(id).to(nameOfParameter)
 			.run();
 
@@ -221,7 +221,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 		log.debug("Deleting all entities with the following ids: {} ", ids);
 
 		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
-		ResultSummary summary = this.neo4jClient.newQuery(renderer.render(statement))
+		ResultSummary summary = this.neo4jClient.query(renderer.render(statement))
 			.bind(ids).to(nameOfParameter)
 			.run();
 
@@ -235,7 +235,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 		log.debug("Deleting all nodes with primary label {}", entityMetaData.getPrimaryLabel());
 
 		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.empty());
-		ResultSummary summary = this.neo4jClient.newQuery(renderer.render(statement)).run();
+		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).run();
 
 		log.debug("Deleted {} entities.", summary.counters().nodesDeleted());
 	}

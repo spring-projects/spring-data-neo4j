@@ -29,6 +29,8 @@ import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.reactive.RxStatementRunner;
 import org.neo4j.driver.summary.ResultSummary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.core.Neo4jClient.BindSpec;
 import org.springframework.data.neo4j.core.Neo4jClient.MappingSpec;
@@ -45,6 +47,8 @@ import org.springframework.data.neo4j.core.Neo4jClient.RecordFetchSpec;
 @API(status = API.Status.STABLE, since = "1.0")
 public interface ReactiveNeo4jClient {
 
+	Logger cypherLog = LoggerFactory.getLogger("org.springframework.data.neo4j.cypher");
+
 	static ReactiveNeo4jClient create(Driver driver) {
 
 		return new DefaultReactiveNeo4jClient(driver);
@@ -57,7 +61,7 @@ public interface ReactiveNeo4jClient {
 	 * @param cypher The cypher code that shall be executed
 	 * @return A new CypherSpec
 	 */
-	ReactiveRunnableSpec newQuery(String cypher);
+	ReactiveRunnableSpec query(String cypher);
 
 	/**
 	 * Entrypoint for creating a new Cypher query based on a supplier. Doesn't matter at this point whether it's a match,
@@ -67,7 +71,7 @@ public interface ReactiveNeo4jClient {
 	 * @param cypherSupplier A supplier of arbitrary Cypher code
 	 * @return
 	 */
-	ReactiveRunnableSpec newQuery(Supplier<String> cypherSupplier);
+	ReactiveRunnableSpec query(Supplier<String> cypherSupplier);
 
 	/**
 	 * Delegates interaction with the default database to the given callback.

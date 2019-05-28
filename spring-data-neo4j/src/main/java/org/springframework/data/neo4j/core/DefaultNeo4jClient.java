@@ -19,6 +19,7 @@
 package org.springframework.data.neo4j.core;
 
 import static java.util.stream.Collectors.*;
+import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager.*;
 import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils.*;
 
 import lombok.AccessLevel;
@@ -49,6 +50,7 @@ import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.repository.NoResultException;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -81,7 +83,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 	}
 
 	/**
-	 * Makes a statement runner autoclosable and aware wether it's session or a transaction
+	 * Makes a statement runner automatically closeable and aware whether it's session or a transaction
 	 */
 	interface AutoCloseableStatementRunner extends StatementRunner, AutoCloseable {
 
@@ -123,12 +125,12 @@ class DefaultNeo4jClient implements Neo4jClient {
 	// Below are all the implementations (methods and classes) as defined by the contracts of Neo4jClient
 
 	@Override
-	public RunnableSpec newQuery(String cypher) {
-		return newQuery(() -> cypher);
+	public RunnableSpec query(String cypher) {
+		return query(() -> cypher);
 	}
 
 	@Override
-	public RunnableSpec newQuery(Supplier<String> cypherSupplier) {
+	public RunnableSpec query(Supplier<String> cypherSupplier) {
 		return new DefaultRunnableSpec(cypherSupplier);
 	}
 
@@ -141,7 +143,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 	public <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery) {
 
 		Neo4jClient.MappingSpec<Optional<T>, Collection<T>, T> mappingSpec = this
-			.newQuery(preparedQuery.getCypherQuery())
+			.query(preparedQuery.getCypherQuery())
 			.bindAll(preparedQuery.getParameters())
 			.fetchAs(preparedQuery.getResultType());
 		Neo4jClient.RecordFetchSpec<Optional<T>, Collection<T>, T> fetchSpec = preparedQuery
@@ -206,6 +208,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@RequiredArgsConstructor
 		class DefaultOngoingBindSpec<T> implements OngoingBindSpec<T, RunnableSpecTightToDatabase> {
 
+			@Nullable
 			private final T value;
 
 			@Override
@@ -225,7 +228,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		}
 
 		@Override
-		public OngoingBindSpec<?, RunnableSpecTightToDatabase> bind(Object value) {
+		public OngoingBindSpec<?, RunnableSpecTightToDatabase> bind(@Nullable Object value) {
 			return new DefaultOngoingBindSpec(value);
 		}
 

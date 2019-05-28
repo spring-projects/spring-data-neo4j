@@ -27,11 +27,11 @@ import org.springframework.transaction.support.TransactionSynchronization;
  * participating in a non-native Neo4j transaction, such as a Jta transaction.
  */
 class Neo4jSessionSynchronization
-	extends ResourceHolderSynchronization<Neo4jConnectionHolder, Object> {
+	extends ResourceHolderSynchronization<Neo4jTransactionHolder, Object> {
 
-	private final Neo4jConnectionHolder localConnectionHolder;
+	private final Neo4jTransactionHolder localConnectionHolder;
 
-	Neo4jSessionSynchronization(Neo4jConnectionHolder connectionHolder, Driver driver) {
+	Neo4jSessionSynchronization(Neo4jTransactionHolder connectionHolder, Driver driver) {
 
 		super(connectionHolder, driver);
 		this.localConnectionHolder = connectionHolder;
@@ -51,7 +51,7 @@ class Neo4jSessionSynchronization
 	 * @see org.springframework.transaction.support.ResourceHolderSynchronization#processResourceAfterCommit(java.lang.Object)
 	 */
 	@Override
-	protected void processResourceAfterCommit(Neo4jConnectionHolder resourceHolder) {
+	protected void processResourceAfterCommit(Neo4jTransactionHolder resourceHolder) {
 
 		super.processResourceAfterCommit(resourceHolder);
 
@@ -79,7 +79,7 @@ class Neo4jSessionSynchronization
 	 * @see org.springframework.transaction.support.ResourceHolderSynchronization#releaseResource(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	protected void releaseResource(Neo4jConnectionHolder resourceHolder, Object resourceKey) {
+	protected void releaseResource(Neo4jTransactionHolder resourceHolder, Object resourceKey) {
 
 		if (resourceHolder.hasActiveSession()) {
 			resourceHolder.close();

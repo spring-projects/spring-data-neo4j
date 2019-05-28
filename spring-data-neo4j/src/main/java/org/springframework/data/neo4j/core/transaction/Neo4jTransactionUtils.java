@@ -18,19 +18,17 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
-import reactor.core.publisher.Mono;
-
+import java.time.Duration;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.neo4j.driver.AccessMode;
-import org.neo4j.driver.Driver;
 import org.neo4j.driver.SessionParametersTemplate;
-import org.neo4j.driver.Transaction;
-import org.neo4j.driver.reactive.RxTransaction;
+import org.neo4j.driver.TransactionConfig;
 import org.springframework.lang.Nullable;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.IllegalTransactionStateException;
+import org.springframework.transaction.InvalidIsolationLevelException;
+import org.springframework.transaction.TransactionDefinition;
 
 /**
  * Internal use only.
@@ -55,53 +53,37 @@ public final class Neo4jTransactionUtils {
 	}
 
 	/**
-	 * A hook into Springs transaction management to provide managed, native transactions.
+	 * Maps a Spring {@link TransactionDefinition transaction definition} to a native Neo4j driver transaction.
+	 * Only the default isolation leven ({@link TransactionDefinition#ISOLATION_DEFAULT}) and
+	 * {@link TransactionDefinition#PROPAGATION_REQUIRED propagation required} behaviour are supported.
 	 *
-	 * @param driver         The driver that has been used as a synchronization object.
-	 * @param targetDatabase The target database
-	 * @return An optional containing a managed transaction or an empty optional if the method hasn't been called inside
-	 * an ongoing Spring transaction
+	 * @param definition The transaction definition passed to a Neo4j transaction manager
+	 * @return A Neo4j native transaction configuration
 	 */
-	public static Optional<Transaction> retrieveTransaction(final Driver driver, final String targetDatabase) {
+	static TransactionConfig createTransactionConfigFrom(TransactionDefinition definition) {
 
-		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-			return Optional.empty();
+		if (definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT) {
+			throw new InvalidIsolationLevelException(
+				"Neo4jTransactionManager is not allowed to support custom isolation levels.");
 		}
 
-		// Try existing transaction
-		Neo4jConnectionHolder connectionHolder = (Neo4jConnectionHolder) TransactionSynchronizationManager
-			.getResource(driver);
-
-		if (connectionHolder != null) {
-
-			return Optional.of(connectionHolder.getTransaction(targetDatabase));
+		if (definition.getPropagationBehavior() != TransactionDefinition.PROPAGATION_REQUIRED) {
+			throw new IllegalTransactionStateException("Neo4jTransactionManager only supports 'required' propagation.");
 		}
 
-		// Manually create a new synchronization
-		connectionHolder = new Neo4jConnectionHolder(targetDatabase,
-			driver.session(defaultSessionParameters(targetDatabase)));
-		connectionHolder.setSynchronizedWithTransaction(true);
+		TransactionConfig.Builder builder = TransactionConfig.builder();
+		if (definition.getTimeout() > 0) {
+			builder = builder.withTimeout(Duration.ofSeconds(definition.getTimeout()));
+		}
 
-		TransactionSynchronizationManager.registerSynchronization(
-			new Neo4jSessionSynchronization(connectionHolder, driver));
-
-		TransactionSynchronizationManager.bindResource(driver, connectionHolder);
-		return Optional.of(connectionHolder.getTransaction(targetDatabase));
+		return builder.build();
 	}
 
-	/**
-	 * A stub to retrieve a reactive transaction that may is already synchronized with Springs context.
-	 *
-	 * @param driver         The driver that has been used as a synchronization object.
-	 * @param targetDatabase The target database
-	 * @return A Mono containing a managed transaction or an empty Mono if the method hasn't been called inside
-	 * an ongoing Spring transaction
-	 */
-	public static Mono<RxTransaction> retrieveReactiveTransaction(final Driver driver, final String targetDatabase) {
+	static boolean namesMapToTheSameDatabase(@Nullable String name1, @Nullable String name2) {
 
-		// TODO Hook into Springs reactive transaction management (Coming 5.2 M2)
-		return Mono.empty();
+		return name1 == null && name2 == null || (name1 != null && name1.equals(name2));
 	}
+
 
 	private Neo4jTransactionUtils() {
 	}

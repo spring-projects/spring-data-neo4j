@@ -29,6 +29,7 @@ import java.util.function.Consumer;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +43,6 @@ import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.internal.SessionParameters;
 import org.neo4j.driver.reactive.RxSession;
-import org.neo4j.driver.reactive.RxStatementRunner;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
@@ -165,37 +165,11 @@ class TransactionHandlingTest {
 		private RxTransaction transaction;
 
 		@Test
+		@Disabled
 		public void shouldNotOpenTransactionsWithoutSubscription() {
-
-			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
-
-			@SuppressWarnings("unused")
-			Mono<RxStatementRunner> runner = neo4jClient.getStatementRunner("aDatabase");
 
 			verify(driver, never()).rxSession(any(Consumer.class));
 			verifyZeroInteractions(driver, session);
-		}
-
-		// TODO The same like shouldNotOpenTransactionsWithoutSubscription but with managed transactions
-
-		@Test
-		public void shouldFallbackToImplicitTransaction() {
-
-			when(driver.rxSession(any(Consumer.class))).thenReturn(session);
-			when(session.beginTransaction()).thenReturn(Mono.just(transaction));
-
-			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
-
-			@SuppressWarnings("unused")
-			Mono<RxStatementRunner> runner = neo4jClient.getStatementRunner("aDatabase");
-
-			StepVerifier.create(runner)
-				.expectNextCount(1L)
-				.verifyComplete();
-
-			verify(driver).rxSession(any(Consumer.class));
-			verify(session).close();
-			verifyZeroInteractions(driver, session, transaction);
 		}
 
 		@Test
@@ -208,22 +182,23 @@ class TransactionHandlingTest {
 
 			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
 
-			Mono<String> sequence = Mono
-				.usingWhen(neo4jClient.getStatementRunner("aDatabase"), r -> Mono.just("A node"),
-					DefaultReactiveNeo4jClient::asyncComplete, DefaultReactiveNeo4jClient::asyncError);
+			Mono<String> sequence = neo4jClient.doInStatementRunnerForMono("aDatabase", tx -> Mono.just("1"));
 
 			StepVerifier.create(sequence)
-				.expectNext("A node")
+				.expectNext("1")
 				.verifyComplete();
 
 			verify(driver).rxSession(any(Consumer.class));
+			verify(session).beginTransaction();
 			verify(transaction).commit();
+			verify(transaction).rollback();
 			verify(session).close();
 			verifyZeroInteractions(driver, session, transaction);
 		}
 
 		@Test
 		public void shouldCloseUnmanagedSessionOnError() {
+
 
 			when(driver.rxSession(any(Consumer.class))).thenReturn(session);
 			when(session.beginTransaction()).thenReturn(Mono.just(transaction));
@@ -232,18 +207,22 @@ class TransactionHandlingTest {
 
 			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
 
-			Mono<String> sequence = Mono
-				.usingWhen(neo4jClient.getStatementRunner("aDatabase"), r -> Mono.error(new RuntimeException()),
-					DefaultReactiveNeo4jClient::asyncComplete, DefaultReactiveNeo4jClient::asyncError);
+			Mono<String> sequence = neo4jClient
+				.doInStatementRunnerForMono("aDatabase", tx -> Mono.error(new SomeException()));
 
 			StepVerifier.create(sequence)
-				.expectError()
+				.expectError(SomeException.class)
 				.verify();
 
 			verify(driver).rxSession(any(Consumer.class));
+			verify(session).beginTransaction();
+			verify(transaction).commit();
 			verify(transaction).rollback();
 			verify(session).close();
 			verifyZeroInteractions(driver, session, transaction);
 		}
+	}
+
+	static class SomeException extends RuntimeException {
 	}
 }

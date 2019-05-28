@@ -18,10 +18,10 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
+import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils.*;
+
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
-import org.neo4j.driver.TransactionConfig;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.ResourceHolderSupport;
 import org.springframework.util.Assert;
 
@@ -33,23 +33,17 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  */
-class Neo4jConnectionHolder extends ResourceHolderSupport {
+class Neo4jTransactionHolder extends ResourceHolderSupport {
 
 	private final String databaseName;
-
 	private final Session session;
-
 	private final Transaction transaction;
 
-	Neo4jConnectionHolder(String databaseName, Session session) {
-		this(databaseName, session, TransactionConfig.empty());
-	}
-
-	Neo4jConnectionHolder(String databaseName, Session session, TransactionConfig transactionConfig) {
+	Neo4jTransactionHolder(String databaseName, Session session, Transaction transaction) {
 
 		this.databaseName = databaseName;
 		this.session = session;
-		this.transaction = this.session.beginTransaction(transactionConfig);
+		this.transaction = transaction;
 	}
 
 	/**
@@ -61,11 +55,6 @@ class Neo4jConnectionHolder extends ResourceHolderSupport {
 	Transaction getTransaction(String inDatabase) {
 
 		return namesMapToTheSameDatabase(this.databaseName, inDatabase) ? transaction : null;
-	}
-
-	static boolean namesMapToTheSameDatabase(@Nullable String name1, @Nullable String name2) {
-
-		return name1 == null && name2 == null || (name1 != null && name1.equals(name2));
 	}
 
 	void commit() {
@@ -97,7 +86,9 @@ class Neo4jConnectionHolder extends ResourceHolderSupport {
 
 	@Override
 	public void setRollbackOnly() {
+
 		super.setRollbackOnly();
+		transaction.failure();
 	}
 
 	@Override

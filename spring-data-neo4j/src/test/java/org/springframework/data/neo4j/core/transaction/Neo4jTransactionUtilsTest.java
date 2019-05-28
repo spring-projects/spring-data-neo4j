@@ -19,33 +19,15 @@
 package org.springframework.data.neo4j.core.transaction;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils.*;
 
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-
-import javax.transaction.Status;
-import javax.transaction.UserTransaction;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.neo4j.driver.Driver;
-import org.neo4j.driver.Session;
-import org.neo4j.driver.Transaction;
-import org.neo4j.driver.TransactionConfig;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.jta.JtaTransactionManager;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Michael J. Simons
@@ -54,218 +36,29 @@ import org.springframework.transaction.support.TransactionTemplate;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class Neo4jTransactionUtilsTest {
 
-	private String databaseName = "aDatabase";
-
-	@Mock
-	private Driver driver;
-	@Mock
-	private Session session;
-	@Mock
-	private Transaction transaction;
-	@Mock
-	UserTransaction userTransaction;
-
-	@BeforeEach
-	void setUp() {
-
-		AtomicBoolean sessionIsOpen = new AtomicBoolean(true);
-		AtomicBoolean transactionIsOpen = new AtomicBoolean(true);
-
-		when(driver.session(any(Consumer.class))).thenReturn(session);
-
-		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
-		doAnswer(invocation -> {
-			sessionIsOpen.set(false);
-			return null;
-		}).when(session).close();
-		when(session.isOpen()).thenAnswer(invocation -> sessionIsOpen.get());
-
-		doAnswer(invocation -> {
-			transactionIsOpen.set(false);
-			return null;
-		}).when(transaction).close();
-		when(transaction.isOpen()).thenAnswer(invocation -> transactionIsOpen.get());
-	}
-
-	@Test
-	void shouldWorkWithoutSynchronizations() {
-		Optional<Transaction> optionalTransaction = Neo4jTransactionUtils.retrieveTransaction(driver, databaseName);
-
-		assertThat(optionalTransaction).isEmpty();
-
-		verifyZeroInteractions(driver, session, transaction);
-	}
-
 	@Nested
-	class BasedOnNeo4jTransactions {
-		@Test
-		void shouldOpenNewTransaction() {
+	class DatabaseNameComparision {
 
-			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver, databaseName);
-			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
+		@ParameterizedTest
+		@CsvSource({
+			",",
+			"a,a"
+		})
+		void nameComparisionShouldWorkForNamesTargetingTheSame(String name1, String name2) {
 
-			txTemplate.execute(new TransactionCallbackWithoutResult() {
-
-				@Override
-				protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-
-					assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isTrue();
-					assertThat(transactionStatus.isNewTransaction()).isTrue();
-					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
-
-					Optional<Transaction> optionalTransaction = Neo4jTransactionUtils.retrieveTransaction(driver, databaseName);
-					assertThat(optionalTransaction).isPresent();
-
-					transactionStatus.setRollbackOnly();
-				}
-			});
-
-			verify(driver).session(any(Consumer.class));
-
-			verify(session).isOpen();
-			verify(session).beginTransaction(any(TransactionConfig.class));
-			verify(session).close();
-
-			verify(transaction, times(2)).isOpen();
-			verify(transaction).failure();
-			verify(transaction).close();
+			assertThat(namesMapToTheSameDatabase(name1, name2)).isTrue();
 		}
 
-		@Test
-		void shouldParticipateInOngoingTransaction() {
+		@ParameterizedTest
+		@CsvSource({
+			"a,",
+			",b",
+			"a,b"
+		})
+		void nameComparisionShouldWorkForNamesTargetingOther(String name1, String name2) {
 
-			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver, databaseName);
-			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
-
-			txTemplate.execute(new TransactionCallbackWithoutResult() {
-
-				@Override
-				protected void doInTransactionWithoutResult(TransactionStatus outerStatus) {
-
-					Optional<Transaction> outerNativeTransaction = Neo4jTransactionUtils.retrieveTransaction(driver, databaseName);
-					assertThat(outerNativeTransaction).isPresent();
-					assertThat(outerStatus.isNewTransaction()).isTrue();
-
-					txTemplate.execute(new TransactionCallbackWithoutResult() {
-
-						@Override
-						protected void doInTransactionWithoutResult(TransactionStatus innerStatus) {
-
-							assertThat(innerStatus.isNewTransaction()).isFalse();
-
-							Optional<Transaction> innerNativeTransaction = Neo4jTransactionUtils
-								.retrieveTransaction(driver, databaseName);
-							assertThat(innerNativeTransaction).isPresent();
-						}
-					});
-
-					outerStatus.setRollbackOnly();
-				}
-			});
-
-			verify(driver).session(any(Consumer.class));
-
-			verify(session).isOpen();
-			verify(session).beginTransaction(any(TransactionConfig.class));
-			verify(session).close();
-
-			verify(transaction, times(2)).isOpen();
-			verify(transaction).failure();
-			verify(transaction).close();
+			assertThat(namesMapToTheSameDatabase(name1, name2)).isFalse();
 		}
 	}
 
-	@Nested
-	class BasedOnJtaTransactions {
-
-		@Test
-		void shouldParticipateInOngoingTransactionWithCommit() throws Exception {
-
-			when(userTransaction.getStatus()).thenReturn(Status.STATUS_NO_TRANSACTION, Status.STATUS_ACTIVE,
-				Status.STATUS_ACTIVE);
-
-			JtaTransactionManager txManager = new JtaTransactionManager(userTransaction);
-			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
-
-			txTemplate.execute(new TransactionCallbackWithoutResult() {
-
-				@Override
-				protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-
-					assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isTrue();
-					assertThat(transactionStatus.isNewTransaction()).isTrue();
-					assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
-
-					Optional<Transaction> nativeTransaction = Neo4jTransactionUtils.retrieveTransaction(driver, databaseName);
-
-					assertThat(nativeTransaction).isPresent();
-					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
-				}
-			});
-
-			verify(userTransaction).begin();
-
-			verify(driver).session(any(Consumer.class));
-
-			verify(session, times(2)).isOpen();
-			verify(session).beginTransaction(any(TransactionConfig.class));
-			verify(session).close();
-
-			verify(transaction, times(3)).isOpen();
-			verify(transaction).success();
-			verify(transaction).close();
-		}
-
-		@Test
-		void shouldParticipateInOngoingTransactionWithRollback() throws Exception {
-
-			when(userTransaction.getStatus()).thenReturn(Status.STATUS_NO_TRANSACTION, Status.STATUS_ACTIVE,
-				Status.STATUS_ACTIVE);
-
-			JtaTransactionManager txManager = new JtaTransactionManager(userTransaction);
-			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
-
-			txTemplate.execute(new TransactionCallbackWithoutResult() {
-
-				@Override
-				protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-
-					assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isTrue();
-					assertThat(transactionStatus.isNewTransaction()).isTrue();
-					assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
-
-					Optional<Transaction> nativeTransaction = Neo4jTransactionUtils.retrieveTransaction(driver, databaseName);
-
-					assertThat(nativeTransaction).isPresent();
-					assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
-
-					transactionStatus.setRollbackOnly();
-				}
-			});
-
-			verify(userTransaction).begin();
-			verify(userTransaction).rollback();
-
-			verify(driver).session(any(Consumer.class));
-
-			verify(session, times(2)).isOpen();
-			verify(session).beginTransaction(any(TransactionConfig.class));
-			verify(session).close();
-
-			verify(transaction, times(3)).isOpen();
-			verify(transaction).failure();
-			verify(transaction).close();
-		}
-	}
-
-	@AfterEach
-	void verifyTransactionSynchronizationManagerState() {
-
-		assertThat(TransactionSynchronizationManager.getResourceMap().isEmpty()).isTrue();
-		assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isFalse();
-		assertThat(TransactionSynchronizationManager.getCurrentTransactionName()).isNull();
-		assertThat(TransactionSynchronizationManager.isCurrentTransactionReadOnly()).isFalse();
-		assertThat(TransactionSynchronizationManager.getCurrentTransactionIsolationLevel()).isNull();
-		assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
-	}
 }
