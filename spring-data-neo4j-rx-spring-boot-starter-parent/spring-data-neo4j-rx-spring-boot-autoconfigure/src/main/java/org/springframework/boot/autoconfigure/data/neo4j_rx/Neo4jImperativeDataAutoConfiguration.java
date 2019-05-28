@@ -18,15 +18,19 @@
  */
 package org.springframework.boot.autoconfigure.data.neo4j_rx;
 
+import static org.springframework.boot.autoconfigure.data.RepositoryType.*;
+
 import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.data.ConditionalOnRepositoryType;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverAutoConfiguration;
 import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -36,7 +40,9 @@ import org.springframework.transaction.PlatformTransactionManager;
  *
  * @author Michael J. Simons
  */
+@Configuration
 @ConditionalOnClass({ Neo4jTransactionManager.class, PlatformTransactionManager.class })
+@ConditionalOnRepositoryType(store = "neo4j", type = IMPERATIVE)
 @AutoConfigureAfter(Neo4jDriverAutoConfiguration.class)
 @AutoConfigureBefore(Neo4jImperativeRepositoriesConfiguration.class)
 class Neo4jImperativeDataAutoConfiguration {
@@ -50,7 +56,7 @@ class Neo4jImperativeDataAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(PlatformTransactionManager.class)
 	public Neo4jTransactionManager transactionManager(Driver driver,
-		ObjectProvider<TransactionManagerCustomizers> optionalCustomizers) {
+			ObjectProvider<TransactionManagerCustomizers> optionalCustomizers) {
 
 		final Neo4jTransactionManager transactionManager = new Neo4jTransactionManager(driver);
 		optionalCustomizers.ifAvailable(customizer -> customizer.customize(transactionManager));

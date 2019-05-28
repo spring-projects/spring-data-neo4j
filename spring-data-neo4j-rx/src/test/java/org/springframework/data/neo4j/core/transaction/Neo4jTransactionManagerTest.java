@@ -18,10 +18,20 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager.*;
 
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import javax.transaction.Status;
+import javax.transaction.UserTransaction;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -34,13 +44,19 @@ import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Michael J. Simons
  */
 @ExtendWith(MockitoExtension.class)
 class Neo4jTransactionManagerTest {
+
+	private String databaseName = "aDatabase";
 
 	@Mock
 	private Driver driver;
@@ -52,9 +68,21 @@ class Neo4jTransactionManagerTest {
 	private Transaction transaction;
 	@Mock
 	private StatementResult statementResult;
+	@Mock
+	private UserTransaction userTransaction;
+
 
 	@Test
-	public void triggerCommitCorrectly() {
+	void shouldWorkWithoutSynchronizations() {
+		Optional<Transaction> optionalTransaction = retrieveTransaction(driver, databaseName);
+
+		assertThat(optionalTransaction).isEmpty();
+
+		verifyZeroInteractions(driver, session, transaction);
+	}
+
+	@Test
+	void triggerCommitCorrectly() {
 
 		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 		when(driver.session(any(Consumer.class))).thenReturn(session);
@@ -67,7 +95,7 @@ class Neo4jTransactionManagerTest {
 		TransactionStatus txStatus = txManager.getTransaction(new DefaultTransactionDefinition());
 
 		Neo4jClient client = Neo4jClient.create(driver);
-		client.newQuery("RETURN 1").run();
+		client.query("RETURN 1").run();
 
 		txManager.commit(txStatus);
 
@@ -81,5 +109,205 @@ class Neo4jTransactionManagerTest {
 		verify(transaction).close();
 
 		verify(session).close();
+	}
+
+	@Nested
+	class TransactionParticipation {
+
+		@BeforeEach
+		void setUp() {
+
+			AtomicBoolean sessionIsOpen = new AtomicBoolean(true);
+			AtomicBoolean transactionIsOpen = new AtomicBoolean(true);
+
+			when(driver.session(any(Consumer.class))).thenReturn(session);
+
+			when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
+			doAnswer(invocation -> {
+				sessionIsOpen.set(false);
+				return null;
+			}).when(session).close();
+			when(session.isOpen()).thenAnswer(invocation -> sessionIsOpen.get());
+
+			doAnswer(invocation -> {
+				transactionIsOpen.set(false);
+				return null;
+			}).when(transaction).close();
+			when(transaction.isOpen()).thenAnswer(invocation -> transactionIsOpen.get());
+		}
+
+		@AfterEach
+		void verifyTransactionSynchronizationManagerState() {
+
+			assertThat(TransactionSynchronizationManager.getResourceMap().isEmpty()).isTrue();
+			assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isFalse();
+			assertThat(TransactionSynchronizationManager.getCurrentTransactionName()).isNull();
+			assertThat(TransactionSynchronizationManager.isCurrentTransactionReadOnly()).isFalse();
+			assertThat(TransactionSynchronizationManager.getCurrentTransactionIsolationLevel()).isNull();
+			assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
+		}
+
+		@Nested
+		class BasedOnNeo4jTransactions {
+
+			@Test
+			void shouldUseTxFromNeo4jTxManager() {
+
+				Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver, databaseName);
+				TransactionTemplate txTemplate = new TransactionTemplate(txManager);
+
+				txTemplate.execute(new TransactionCallbackWithoutResult() {
+
+					@Override
+					protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+
+						assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isTrue();
+						assertThat(transactionStatus.isNewTransaction()).isTrue();
+						assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
+
+						Optional<Transaction> optionalTransaction = retrieveTransaction(driver, databaseName);
+						assertThat(optionalTransaction).isPresent();
+
+						transactionStatus.setRollbackOnly();
+					}
+				});
+
+				verify(driver).session(any(Consumer.class));
+
+				verify(session).isOpen();
+				verify(session).beginTransaction(any(TransactionConfig.class));
+				verify(session).close();
+
+				verify(transaction, times(2)).isOpen();
+				verify(transaction).failure();
+				verify(transaction).close();
+			}
+
+			@Test
+			void shouldParticipateInOngoingTransaction() {
+
+				Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver, databaseName);
+				TransactionTemplate txTemplate = new TransactionTemplate(txManager);
+
+				txTemplate.execute(new TransactionCallbackWithoutResult() {
+
+					@Override
+					protected void doInTransactionWithoutResult(TransactionStatus outerStatus) {
+
+						Optional<Transaction> outerNativeTransaction = retrieveTransaction(driver, databaseName);
+						assertThat(outerNativeTransaction).isPresent();
+						assertThat(outerStatus.isNewTransaction()).isTrue();
+
+						txTemplate.execute(new TransactionCallbackWithoutResult() {
+
+							@Override
+							protected void doInTransactionWithoutResult(TransactionStatus innerStatus) {
+
+								assertThat(innerStatus.isNewTransaction()).isFalse();
+
+								Optional<Transaction> innerNativeTransaction = retrieveTransaction(driver, databaseName);
+								assertThat(innerNativeTransaction).isPresent();
+							}
+						});
+
+						outerStatus.setRollbackOnly();
+					}
+				});
+
+				verify(driver).session(any(Consumer.class));
+
+				verify(session).isOpen();
+				verify(session).beginTransaction(any(TransactionConfig.class));
+				verify(session).close();
+
+				verify(transaction, times(2)).isOpen();
+				verify(transaction).failure();
+				verify(transaction).close();
+			}
+
+		}
+
+		@Nested
+		class BasedOnJtaTransactions {
+
+			@Test
+			void shouldParticipateInOngoingTransactionWithCommit() throws Exception {
+
+				when(userTransaction.getStatus()).thenReturn(Status.STATUS_NO_TRANSACTION, Status.STATUS_ACTIVE,
+						Status.STATUS_ACTIVE);
+
+				JtaTransactionManager txManager = new JtaTransactionManager(userTransaction);
+				TransactionTemplate txTemplate = new TransactionTemplate(txManager);
+
+				txTemplate.execute(new TransactionCallbackWithoutResult() {
+
+					@Override
+					protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+
+						assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isTrue();
+						assertThat(transactionStatus.isNewTransaction()).isTrue();
+						assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
+
+						Optional<Transaction> nativeTransaction = retrieveTransaction(driver, databaseName);
+
+						assertThat(nativeTransaction).isPresent();
+						assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
+					}
+				});
+
+				verify(userTransaction).begin();
+
+				verify(driver).session(any(Consumer.class));
+
+				verify(session, times(2)).isOpen();
+				verify(session).beginTransaction(any(TransactionConfig.class));
+				verify(session).close();
+
+				verify(transaction, times(3)).isOpen();
+				verify(transaction).success();
+				verify(transaction).close();
+			}
+
+			@Test
+			void shouldParticipateInOngoingTransactionWithRollback() throws Exception {
+
+				when(userTransaction.getStatus()).thenReturn(Status.STATUS_NO_TRANSACTION, Status.STATUS_ACTIVE,
+						Status.STATUS_ACTIVE);
+
+				JtaTransactionManager txManager = new JtaTransactionManager(userTransaction);
+				TransactionTemplate txTemplate = new TransactionTemplate(txManager);
+
+				txTemplate.execute(new TransactionCallbackWithoutResult() {
+
+					@Override
+					protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+
+						assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isTrue();
+						assertThat(transactionStatus.isNewTransaction()).isTrue();
+						assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
+
+						Optional<Transaction> nativeTransaction = retrieveTransaction(driver, databaseName);
+
+						assertThat(nativeTransaction).isPresent();
+						assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
+
+						transactionStatus.setRollbackOnly();
+					}
+				});
+
+				verify(userTransaction).begin();
+				verify(userTransaction).rollback();
+
+				verify(driver).session(any(Consumer.class));
+
+				verify(session, times(2)).isOpen();
+				verify(session).beginTransaction(any(TransactionConfig.class));
+				verify(session).close();
+
+				verify(transaction, times(3)).isOpen();
+				verify(transaction).failure();
+				verify(transaction).close();
+			}
+		}
 	}
 }

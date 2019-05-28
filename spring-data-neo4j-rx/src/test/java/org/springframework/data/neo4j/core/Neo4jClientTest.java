@@ -124,7 +124,7 @@ class Neo4jClientTest {
 			"RETURN b";
 
 		Collection<Map<String, Object>> usedBikes = client
-			.newQuery(cypher)
+			.query(cypher)
 			.bind("michael").to("name")
 			.bindAll(parameters)
 			.bind(LocalDate.of(2019, 1, 1)).to("aDate")
@@ -159,7 +159,7 @@ class Neo4jClientTest {
 		String cypher = "MATCH (u:User) WHERE u.name =~ $name";
 
 		Optional<Map<String, Object>> firstMatchingUser = client
-			.newQuery(cypher)
+			.query(cypher)
 			.in("bikingDatabase")
 			.bind("Someone.*").to("name")
 			.fetch()
@@ -234,7 +234,7 @@ class Neo4jClientTest {
 
 			BikeOwnerReader mappingFunction = new BikeOwnerReader();
 			Collection<BikeOwner> bikeOwners = client
-				.newQuery(cypher)
+				.query(cypher)
 				.bind("michael").to("name")
 				.fetchAs(BikeOwner.class).mappedBy(mappingFunction)
 				.all();
@@ -263,7 +263,7 @@ class Neo4jClientTest {
 			Neo4jClient client = Neo4jClient.create(driver);
 
 			assertThatIllegalStateException().isThrownBy(() -> client
-				.newQuery("MATCH (n) RETURN n")
+				.query("MATCH (n) RETURN n")
 				.fetchAs(BikeOwner.class).mappedBy((t, r) -> {
 					if (r == record1) {
 						return new BikeOwner(r.get("name").asString(), Collections.emptyList());
@@ -295,7 +295,7 @@ class Neo4jClientTest {
 				+ "MERGE (b:Bike {name: bike}) "
 				+ "MERGE (u) - [o:OWNS] -> (b) ";
 			ResultSummary summary = client
-				.newQuery(cypher)
+				.query(cypher)
 				.bind(michael).with(new BikeOwnerBinder())
 				.run();
 
@@ -323,7 +323,7 @@ class Neo4jClientTest {
 
 			String cypher = "MATCH (b:Bike) RETURN count(b)";
 			Optional<Long> numberOfBikes = client
-				.newQuery(cypher)
+				.query(cypher)
 				.fetchAs(Long.class)
 				.one();
 
@@ -350,7 +350,7 @@ class Neo4jClientTest {
 		String cypher = "DETACH DELETE (b) WHERE name = $name";
 
 		client
-			.newQuery(cypher)
+			.query(cypher)
 			.bind("fixie").to("name")
 			.run();
 

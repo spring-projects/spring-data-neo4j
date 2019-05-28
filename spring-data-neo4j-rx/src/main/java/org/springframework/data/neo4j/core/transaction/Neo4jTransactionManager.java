@@ -18,20 +18,21 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
+import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils.*;
+
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
 import org.springframework.lang.Nullable;
-import org.springframework.transaction.IllegalTransactionStateException;
-import org.springframework.transaction.InvalidIsolationLevelException;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionSystemException;
@@ -44,8 +45,7 @@ import org.springframework.util.Assert;
 
 /**
  * Dedicated {@link org.springframework.transaction.PlatformTransactionManager} for native Neo4j transactions. This
- * transaction manager will synchronize a pair of a native Neo4j session/transaction and one instance of a
- * {@link org.springframework.data.neo4j.core.NodeManager} with the transaction.
+ * transaction manager will synchronize a pair of a native Neo4j session/transaction with the transaction.
  *
  * @author Michael J. Simons
  */
@@ -71,10 +71,64 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		this.databaseName = databaseName;
 	}
 
+	/**
+	 * This methods provides a native Neo4j transaction to be used from within a {@link org.springframework.data.neo4j.core.Neo4jClient}.
+	 * In most cases this the native transaction will be controlled from the Neo4j specific
+	 * {@link org.springframework.transaction.PlatformTransactionManager}. However, SDN-RX provides support for other
+	 * transaction managers as well. This methods registers a session synchronization in such cases on the foreign transaction manager.
+	 *
+	 * @param driver         The driver that has been used as a synchronization object.
+	 * @param targetDatabase The target database
+	 * @return An optional containing a managed transaction or an empty optional if the method hasn't been called inside
+	 * an ongoing Spring transaction
+	 */
+	public static Optional<Transaction> retrieveTransaction(final Driver driver, final String targetDatabase) {
+
+		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+			return Optional.empty();
+		}
+
+		// Check whether we have a transaction managed by a Neo4j transaction manager
+		Neo4jTransactionHolder connectionHolder = (Neo4jTransactionHolder) TransactionSynchronizationManager
+			.getResource(driver);
+
+		if (connectionHolder != null) {
+
+			return Optional.of(connectionHolder.getTransaction(targetDatabase));
+		}
+
+		// Otherwise we open a session and synchronize it.
+		Session session = driver.session(defaultSessionParameters(targetDatabase));
+		Transaction transaction = session.beginTransaction(TransactionConfig.empty());
+		// Manually create a new synchronization
+		connectionHolder = new Neo4jTransactionHolder(targetDatabase, session, transaction);
+		connectionHolder.setSynchronizedWithTransaction(true);
+
+		TransactionSynchronizationManager.registerSynchronization(
+			new Neo4jSessionSynchronization(connectionHolder, driver));
+
+		TransactionSynchronizationManager.bindResource(driver, connectionHolder);
+		return Optional.of(connectionHolder.getTransaction(targetDatabase));
+	}
+
+	private static Neo4jTransactionObject extractNeo4jTransaction(Object transaction) {
+
+		Assert.isInstanceOf(Neo4jTransactionObject.class, transaction,
+			() -> String.format("Expected to find a %s but it turned out to be %s.", Neo4jTransactionObject.class,
+				transaction.getClass()));
+
+		return (Neo4jTransactionObject) transaction;
+	}
+
+	private static Neo4jTransactionObject extractNeo4jTransaction(DefaultTransactionStatus status) {
+
+		return extractNeo4jTransaction(status.getTransaction());
+	}
+
 	@Override
 	protected Object doGetTransaction() throws TransactionException {
 
-		Neo4jConnectionHolder resourceHolder = (Neo4jConnectionHolder) TransactionSynchronizationManager
+		Neo4jTransactionHolder resourceHolder = (Neo4jTransactionHolder) TransactionSynchronizationManager
 			.getResource(driver);
 		return new Neo4jTransactionObject(resourceHolder);
 	}
@@ -100,15 +154,15 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		try {
 			Session session = this.driver
 				.session(t -> t.withDefaultAccessMode(accessMode).withBookmarks(bookmarks).withDatabase(databaseName));
+			Transaction nativeTransaction = session.beginTransaction(transactionConfig);
 
-			Neo4jConnectionHolder connectionHolder = new Neo4jConnectionHolder(databaseName, session, transactionConfig);
-			connectionHolder.setSynchronizedWithTransaction(true);
-			transactionObject.setResourceHolder(connectionHolder);
-			TransactionSynchronizationManager.bindResource(this.driver, connectionHolder);
+			Neo4jTransactionHolder transactionHolder =
+				new Neo4jTransactionHolder(databaseName, session, nativeTransaction);
+			transactionHolder.setSynchronizedWithTransaction(true);
+			transactionObject.setResourceHolder(transactionHolder);
+			TransactionSynchronizationManager.bindResource(this.driver, transactionHolder);
 		} catch (Exception ex) {
-			ex.printStackTrace();
 			throw new TransactionSystemException(String.format("Could not open a new Neo4j session: %s", ex.getMessage()));
-
 		}
 	}
 
@@ -157,39 +211,6 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		TransactionSynchronizationManager.unbindResource(driver);
 	}
 
-	private static TransactionConfig createTransactionConfigFrom(TransactionDefinition definition) {
-
-		if (definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT) {
-			throw new InvalidIsolationLevelException(
-				"Neo4jTransactionManager is not allowed to support custom isolation levels.");
-		}
-
-		if (definition.getPropagationBehavior() != TransactionDefinition.PROPAGATION_REQUIRED) {
-			throw new IllegalTransactionStateException("Neo4jTransactionManager only supports 'required' propagation.");
-		}
-
-		TransactionConfig.Builder builder = TransactionConfig.builder();
-		if (definition.getTimeout() > 0) {
-			builder = builder.withTimeout(Duration.ofSeconds(definition.getTimeout()));
-		}
-
-		return builder.build();
-	}
-
-	private static Neo4jTransactionObject extractNeo4jTransaction(Object transaction) {
-
-		Assert.isInstanceOf(Neo4jTransactionObject.class, transaction,
-			() -> String.format("Expected to find a %s but it turned out to be %s.", Neo4jTransactionObject.class,
-				transaction.getClass()));
-
-		return (Neo4jTransactionObject) transaction;
-	}
-
-	private static Neo4jTransactionObject extractNeo4jTransaction(DefaultTransactionStatus status) {
-
-		return extractNeo4jTransaction(status.getTransaction());
-	}
-
 
 	static class Neo4jTransactionObject implements SmartTransactionObject {
 
@@ -199,9 +220,9 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		// in Neo4jTransactionManager.doGetTransaction didn't return a corresponding resource holder.
 		// If it is null, there's no existing session / transaction.
 		@Nullable
-		private Neo4jConnectionHolder resourceHolder;
+		private Neo4jTransactionHolder resourceHolder;
 
-		Neo4jTransactionObject(@Nullable Neo4jConnectionHolder resourceHolder) {
+		Neo4jTransactionObject(@Nullable Neo4jTransactionHolder resourceHolder) {
 			this.resourceHolder = resourceHolder;
 		}
 
@@ -211,18 +232,18 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		 *
 		 * @param resourceHolder A newly created resource holder with a fresh drivers session,
 		 */
-		void setResourceHolder(@Nullable Neo4jConnectionHolder resourceHolder) {
+		void setResourceHolder(@Nullable Neo4jTransactionHolder resourceHolder) {
 			this.resourceHolder = resourceHolder;
 		}
 
 		/**
-		 * @return {@literal true} if a {@link Neo4jConnectionHolder} is set.
+		 * @return {@literal true} if a {@link Neo4jTransactionHolder} is set.
 		 */
 		boolean hasResourceHolder() {
 			return resourceHolder != null;
 		}
 
-		Neo4jConnectionHolder getRequiredResourceHolder() {
+		Neo4jTransactionHolder getRequiredResourceHolder() {
 
 			Assert.state(hasResourceHolder(), RESOURCE_HOLDER_NOT_PRESENT_MESSAGE);
 			return resourceHolder;

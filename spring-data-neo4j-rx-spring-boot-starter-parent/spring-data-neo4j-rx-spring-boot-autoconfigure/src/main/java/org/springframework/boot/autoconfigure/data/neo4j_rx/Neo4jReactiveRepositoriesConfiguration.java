@@ -24,6 +24,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.data.ConditionalOnRepositoryType;
 import org.springframework.boot.autoconfigure.data.RepositoryType;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 
 /**
@@ -34,5 +35,6 @@ import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 @Configuration
 @ConditionalOnClass({ Flux.class, ReactiveNeo4jRepository.class })
 @ConditionalOnRepositoryType(store = "neo4j", type = RepositoryType.REACTIVE)
+@Import(Neo4jReactiveRepositoriesConfigureRegistrar.class)
 class Neo4jReactiveRepositoriesConfiguration {
 }

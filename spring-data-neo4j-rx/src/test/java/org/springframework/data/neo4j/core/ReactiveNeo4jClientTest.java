@@ -113,7 +113,6 @@ class ReactiveNeo4jClientTest {
 		verifyNoMoreInteractions(driver, session, transaction, statementResult, resultSummary, record1, record2);
 	}
 
-
 	@Test
 	@DisplayName("Creation of queries and binding parameters should feel natural")
 	void queryCreationShouldFeelGood() {
@@ -135,7 +134,7 @@ class ReactiveNeo4jClientTest {
 			"RETURN b";
 
 		Flux<Map<String, Object>> usedBikes = client
-			.newQuery(cypher)
+			.query(cypher)
 			.bind("michael").to("name")
 			.bindAll(parameters)
 			.bind(LocalDate.of(2019, 1, 1)).to("aDate")
@@ -158,6 +157,7 @@ class ReactiveNeo4jClientTest {
 		verify(record1).asMap();
 		verify(record2).asMap();
 		verify(transaction).commit();
+		verify(transaction).rollback();
 		verify(session).close();
 	}
 
@@ -173,7 +173,7 @@ class ReactiveNeo4jClientTest {
 
 		String cypher = "MATCH (u:User) WHERE u.name =~ $name";
 		Mono<Map<String, Object>> firstMatchingUser = client
-			.newQuery(cypher)
+			.query(cypher)
 			.in("bikingDatabase")
 			.bind("Someone.*").to("name")
 			.fetch()
@@ -192,6 +192,7 @@ class ReactiveNeo4jClientTest {
 		verify(statementResult).records();
 		verify(record1).asMap();
 		verify(transaction).commit();
+		verify(transaction).rollback();
 		verify(session).close();
 	}
 
@@ -216,6 +217,7 @@ class ReactiveNeo4jClientTest {
 			verifyDatabaseSelection(null);
 
 			verify(transaction).commit();
+			verify(transaction).rollback();
 			verify(session).close();
 		}
 
@@ -238,6 +240,7 @@ class ReactiveNeo4jClientTest {
 			verifyDatabaseSelection("aDatabase");
 
 			verify(transaction).commit();
+			verify(transaction).rollback();
 			verify(session).close();
 		}
 	}
@@ -261,7 +264,7 @@ class ReactiveNeo4jClientTest {
 
 			BikeOwnerReader mappingFunction = new BikeOwnerReader();
 			Flux<BikeOwner> bikeOwners = client
-				.newQuery(cypher)
+				.query(cypher)
 				.bind("michael").to("name")
 				.fetchAs(BikeOwner.class).mappedBy(mappingFunction)
 				.all();
@@ -279,6 +282,7 @@ class ReactiveNeo4jClientTest {
 			verify(statementResult).records();
 			verify(record1).get("name");
 			verify(transaction).commit();
+			verify(transaction).rollback();
 			verify(session).close();
 		}
 
@@ -292,7 +296,7 @@ class ReactiveNeo4jClientTest {
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 			Flux<BikeOwner> bikeOwners = client
-				.newQuery("MATCH (n) RETURN n")
+				.query("MATCH (n) RETURN n")
 				.fetchAs(BikeOwner.class).mappedBy((t, r) -> {
 					if (r == record1) {
 						return new BikeOwner(r.get("name").asString(), Collections.emptyList());
@@ -311,6 +315,7 @@ class ReactiveNeo4jClientTest {
 			verify(transaction).run(eq("MATCH (n) RETURN n"), argThat(new MapAssertionMatcher(Collections.emptyMap())));
 			verify(statementResult).records();
 			verify(record1).get("name");
+			verify(transaction).commit();
 			verify(transaction).rollback();
 			verify(session).close();
 		}
@@ -331,7 +336,7 @@ class ReactiveNeo4jClientTest {
 				+ "MERGE (u) - [o:OWNS] -> (b) ";
 
 			Mono<ResultSummary> summary = client
-				.newQuery(cypher)
+				.query(cypher)
 				.bind(michael).with(new BikeOwnerBinder())
 				.run();
 
@@ -347,6 +352,7 @@ class ReactiveNeo4jClientTest {
 			verify(transaction).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 			verify(statementResult).summary();
 			verify(transaction).commit();
+			verify(transaction).rollback();
 			verify(session).close();
 		}
 
@@ -364,7 +370,7 @@ class ReactiveNeo4jClientTest {
 
 			String cypher = "MATCH (b:Bike) RETURN count(b)";
 			Mono<Long> numberOfBikes = client
-				.newQuery(cypher)
+				.query(cypher)
 				.fetchAs(Long.class)
 				.one();
 
@@ -376,6 +382,7 @@ class ReactiveNeo4jClientTest {
 
 			verify(transaction).run(eq(cypher), anyMap());
 			verify(transaction).commit();
+			verify(transaction).rollback();
 			verify(session).close();
 		}
 	}
@@ -393,7 +400,7 @@ class ReactiveNeo4jClientTest {
 		String cypher = "DETACH DELETE (b) WHERE name = $name";
 
 		Mono<ResultSummary> deletionResult = client
-			.newQuery(cypher)
+			.query(cypher)
 			.bind("fixie").to("name")
 			.run();
 
@@ -409,6 +416,7 @@ class ReactiveNeo4jClientTest {
 		verify(transaction).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(statementResult).summary();
 		verify(transaction).commit();
+		verify(transaction).rollback();
 		verify(session).close();
 	}
 

@@ -33,7 +33,7 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
  */
 @Configuration
 @API(status = API.Status.STABLE, since = "1.0")
-public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupport {
+public abstract class AbstractReactiveNeo4jConfig extends ReactiveNeo4jConfigurationSupport {
 
 	/**
 	 * The driver used here should be the driver resulting from {@link #driver()}, which is the default.

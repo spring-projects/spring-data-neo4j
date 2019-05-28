@@ -110,7 +110,7 @@ The fluent API of the client allows to specify the target database exactly once,
 .Selecting the target database
 ----
 Flux<Map<String, Object>> allUsers = client
-	.newQuery("MATCH (u:User) RETURN u")
+	.query("MATCH (u:User) RETURN u")
 	.in("userDatabase") // <1>
 	.fetch()
 	.all();
@@ -128,7 +128,7 @@ The supplier will be evaluated as late as possible and can be provided by any qu
 .Specifiying a query
 ----
 Mono<Map<String, Object>> firstUser = client
-	.newQuery(() -> "MATCH (u:User) RETURN u")
+	.query(() -> "MATCH (u:User) RETURN u")
 	.fetch()
 	.first();
 ----
@@ -140,7 +140,7 @@ Both reactive and imperative client offer
 
 `one()`:: Expect exactly one result from the query
 `first()`:: Expect results and return the first record
-`all()``:: Retrieve all records returned
+`all()`:: Retrieve all records returned
 
 The imperative client returns `Optional<T>` and `Collection<T>` respectively,
 while the reactive client returns `Mono<T>` and `Flux<T>`, the later one being executed only when subscribed to.
@@ -152,7 +152,7 @@ If you don't expect any results from your query, than use `run()` after specific
 .Retrieving result summaries in a reactive way
 ----
 Mono<ResultSummary> summary = reactiveClient
-    .newQuery("MATCH (n:Unused) DELETE n")
+    .query("MATCH (n:Unused) DELETE n")
     .run();
 
 summary
@@ -170,7 +170,7 @@ Please take a moment to compare both listings and understand the difference when
 .Retrieving result summaries in a imperative way
 ----
 Optional<ResultSummary> optionalSummary = imperativeClient
-    .newQuery("MATCH (n:Unused) DELETE n")
+    .query("MATCH (n:Unused) DELETE n")
     .run(); // <1>
 
 optionalSummary
@@ -202,7 +202,7 @@ parameters.put("bikeName", "M.*");
 parameters.put("location", "Sweden");
 
 Flux<Map<String, Object>> usedBikes = client
-    .newQuery(
+    .query(
         "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike) - [:USED_ON] -> (t:Trip) " +
         "WHERE t.takenOn > $aDate " +
         "  AND b.name =~ $bikeName " +
@@ -268,7 +268,7 @@ The mapping function has to fill in all named parameters that might occur in the
 .Using a mapping function for binding domain objects
 ----
 Mono<ResultSummary> summary = client
-    .newQuery(""
+    .query(""
         + "MERGE (u:User {name: 'Michael'}) "
         + "WITH u UNWIND $bikes as bike "
         + "MERGE (b:Bike {name: bike}) "
@@ -298,7 +298,7 @@ In addition, you can plugin your own `BiFunction<TypeSystem, Record, T>` through
 .Using a mapping function for reading domain objects
 ----
 Mono<BikeOwner> bikeOwner = client
-    .newQuery(""
+    .query(""
         + " MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike)"
         + "RETURN o, collect(b) as bikes")
     .bind("michael").to("name")

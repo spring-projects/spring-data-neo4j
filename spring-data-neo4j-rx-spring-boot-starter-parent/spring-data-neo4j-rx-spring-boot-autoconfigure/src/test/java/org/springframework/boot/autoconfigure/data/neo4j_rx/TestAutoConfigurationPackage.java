@@ -25,6 +25,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.PropertySource;
 
 /**
  * Copied over from Spring Boot for the time being.
@@ -32,6 +33,7 @@ import org.springframework.context.annotation.Import;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+@PropertySource("classpath:/application.properties")
 @Import(TestAutoConfigurationPackageRegistrar.class)
 @interface TestAutoConfigurationPackage {
 

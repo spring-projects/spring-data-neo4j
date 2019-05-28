@@ -19,6 +19,7 @@
 package org.springframework.data.neo4j.core;
 
 import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils.*;
+import static org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager.*;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -38,7 +39,6 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxStatementRunner;
-import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.reactivestreams.Publisher;
@@ -46,14 +46,14 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.core.Neo4jClient.MappingSpec;
 import org.springframework.data.neo4j.core.Neo4jClient.OngoingBindSpec;
 import org.springframework.data.neo4j.core.Neo4jClient.RecordFetchSpec;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  * Reactive variant of the {@link Neo4jClient}.
  *
- * TODO Reactive transaction management is pretty obvious still open
- *
  * @author Michael J. Simons
+ * @author Gerrit Meier
  * @soundtrack Die Toten Hosen - Im Auftrag des Herrn
  * @since 1.0
  */
@@ -69,56 +69,41 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		this.typeSystem = driver.defaultTypeSystem();
 	}
 
-	// Internal helper methods for managing transactional state
+	Mono<RxStatementRunnerHolder> retrieveRxStatementRunnerHolder(String targetDatabase) {
 
-	Mono<RxStatementRunner> getStatementRunner(final String targetDatabase) {
 		return retrieveReactiveTransaction(driver, targetDatabase)
+			.map(rxTransaction -> new RxStatementRunnerHolder(rxTransaction, Mono.empty(), Mono.empty())) //
 			.switchIfEmpty(
 				Mono.using(() -> driver.rxSession(defaultSessionParameters(targetDatabase)),
-					session -> Mono.from(session.beginTransaction()), RxSession::close)
-			)
-			.map(RxStatementRunner.class::cast);
+					session -> Mono.from(session.beginTransaction())
+						.map(tx -> new RxStatementRunnerHolder(tx, tx.commit(), tx.rollback())), RxSession::close)
+			);
 	}
 
-	static boolean isSpringTransactionManagementActive() {
-		// TODO Something along the lines of if TransactionSynchronizationManager#isSynchronizationActive but for reactive
-		return false;
+	<T> Mono<T> doInStatementRunnerForMono(final String targetDatabase, Function<RxStatementRunner, Mono<T>> func) {
+
+		return Mono.usingWhen(retrieveRxStatementRunnerHolder(targetDatabase),
+			holder -> func.apply(holder.getRxStatementRunner()),
+			RxStatementRunnerHolder::getCommit,
+			RxStatementRunnerHolder::getRollback);
+
 	}
 
-	static Publisher<Void> asyncComplete(RxStatementRunner runner) {
+	<T> Flux<T> doInStatementRunnerForFlux(final String targetDatabase, Function<RxStatementRunner, Flux<T>> func) {
 
-		if (runner instanceof RxTransaction && !isSpringTransactionManagementActive()) {
-			return ((RxTransaction) runner).commit();
-		}
-
-		return Mono.empty();
-	}
-
-	static Publisher<Void> asyncCancel(RxStatementRunner runner) {
-
-		log.debug("Request has been cancelled, ongoing transactions will be committed.");
-
-		return asyncComplete(runner);
-	}
-
-	static Publisher<Void> asyncError(RxStatementRunner runner) {
-
-		if (runner instanceof RxTransaction && !isSpringTransactionManagementActive()) {
-			return ((RxTransaction) runner).rollback();
-		}
-
-		return Mono.empty();
-	}
-
-	// Below are all the implementations (methods and classes) as defined by the contracts of ReactiveNeo4jClient
-
-	@Override
-	public ReactiveRunnableSpec newQuery(String cypher) {
-		return newQuery(() -> cypher);
+		return Flux.usingWhen(retrieveRxStatementRunnerHolder(targetDatabase),
+			holder -> func.apply(holder.getRxStatementRunner()),
+			RxStatementRunnerHolder::getCommit,
+			RxStatementRunnerHolder::getRollback);
 	}
 
 	@Override
-	public ReactiveRunnableSpec newQuery(Supplier<String> cypherSupplier) {
+	public ReactiveRunnableSpec query(String cypher) {
+		return query(() -> cypher);
+	}
+
+	@Override
+	public ReactiveRunnableSpec query(Supplier<String> cypherSupplier) {
 		return new DefaultReactiveRunnableSpec(cypherSupplier);
 	}
 
@@ -132,7 +117,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		Class<T> resultType = preparedQuery.getResultType();
 		Neo4jClient.MappingSpec<Mono<T>, Flux<T>, T> mappingSpec = this
-			.newQuery(preparedQuery.getCypherQuery())
+			.query(preparedQuery.getCypherQuery())
 			.bindAll(preparedQuery.getParameters())
 			.fetchAs(resultType);
 
@@ -162,6 +147,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		@RequiredArgsConstructor
 		class DefaultOngoingBindSpec<T> implements OngoingBindSpec<T, ReactiveRunnableSpecTightToDatabase> {
 
+			@Nullable
 			private final T value;
 
 			@Override
@@ -181,7 +167,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		}
 
 		@Override
-		public OngoingBindSpec<?, ReactiveRunnableSpecTightToDatabase> bind(Object value) {
+		public OngoingBindSpec<?, ReactiveRunnableSpecTightToDatabase> bind(@Nullable Object value) {
 			return new DefaultOngoingBindSpec(value);
 		}
 
@@ -236,7 +222,14 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		}
 
 		Mono<Tuple2<String, Map<String, Object>>> prepareStatement() {
+			if (cypherLog.isDebugEnabled()) {
+				String cypher = cypherSupplier.get();
+				cypherLog.debug("Executing:{}{}", System.lineSeparator(), cypher);
 
+				if (cypherLog.isTraceEnabled() && !parameters.isEmpty()) {
+					cypherLog.trace("with parameters:{}{}", System.lineSeparator(), parameters);
+				}
+			}
 			return Mono.fromSupplier(cypherSupplier).zipWith(Mono.just(parameters.get()));
 		}
 
@@ -248,49 +241,33 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		@Override
 		public Mono<T> one() {
 
-			return Mono.usingWhen(
-				getStatementRunner(targetDatabase),
-				runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).singleOrEmpty(),
-				DefaultReactiveNeo4jClient::asyncComplete,
-				DefaultReactiveNeo4jClient::asyncError,
-				DefaultReactiveNeo4jClient::asyncCancel
-			);
+			return doInStatementRunnerForMono(
+				targetDatabase,
+				(runner) -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).singleOrEmpty());
 		}
 
 		@Override
 		public Mono<T> first() {
 
-			return Mono.usingWhen(
-				getStatementRunner(targetDatabase),
-				runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).next(),
-				DefaultReactiveNeo4jClient::asyncComplete,
-				DefaultReactiveNeo4jClient::asyncError,
-				DefaultReactiveNeo4jClient::asyncCancel
-			);
+			return doInStatementRunnerForMono(
+				targetDatabase,
+				runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).next());
 		}
 
 		@Override
 		public Flux<T> all() {
 
-			return Flux.usingWhen(
-				getStatementRunner(targetDatabase),
-				runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner)),
-				DefaultReactiveNeo4jClient::asyncComplete,
-				DefaultReactiveNeo4jClient::asyncError,
-				DefaultReactiveNeo4jClient::asyncCancel
+			return doInStatementRunnerForFlux(
+				targetDatabase,
+				runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner))
 			);
 		}
 
 		Mono<ResultSummary> run() {
 
-			return Mono
-				.usingWhen(
-					getStatementRunner(targetDatabase),
-					runner -> prepareStatement().flatMap(t -> Mono.from(runner.run(t.getT1(), t.getT2()).summary())),
-					DefaultReactiveNeo4jClient::asyncComplete,
-					DefaultReactiveNeo4jClient::asyncError,
-					DefaultReactiveNeo4jClient::asyncCancel
-				);
+			return doInStatementRunnerForMono(
+				targetDatabase,
+				runner -> prepareStatement().flatMap(t -> Mono.from(runner.run(t.getT1(), t.getT2()).summary())));
 		}
 	}
 
@@ -311,12 +288,11 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		@Override
 		public Mono<T> run() {
 
-			return Mono.usingWhen(
-				getStatementRunner(targetDatabase),
-				callback::apply,
-				DefaultReactiveNeo4jClient::asyncComplete,
-				DefaultReactiveNeo4jClient::asyncError,
-				DefaultReactiveNeo4jClient::asyncCancel);
+			return doInStatementRunnerForMono(
+				targetDatabase,
+				callback
+			);
+
 		}
 	}
 
@@ -346,4 +322,30 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 			}
 		}
 	}
+
+	final class RxStatementRunnerHolder {
+		private final RxStatementRunner rxStatementRunner;
+
+		private final Publisher<Void> commit;
+		private final Publisher<Void> rollback;
+
+		RxStatementRunnerHolder(RxStatementRunner rxStatementRunner, Publisher<Void> commit, Publisher<Void> rollback) {
+			this.rxStatementRunner = rxStatementRunner;
+			this.commit = commit;
+			this.rollback = rollback;
+		}
+
+		public RxStatementRunner getRxStatementRunner() {
+			return rxStatementRunner;
+		}
+
+		public Publisher<Void> getCommit() {
+			return commit;
+		}
+
+		public Publisher<Void> getRollback() {
+			return rollback;
+		}
+	}
+
 }

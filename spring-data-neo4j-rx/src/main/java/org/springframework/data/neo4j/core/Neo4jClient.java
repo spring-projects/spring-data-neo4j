@@ -34,6 +34,7 @@ import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 
 /**
  * Definition of a modern Neo4j client.
@@ -62,7 +63,7 @@ public interface Neo4jClient {
 	 * @param cypher The cypher code that shall be executed
 	 * @return A new CypherSpec
 	 */
-	RunnableSpec newQuery(String cypher);
+	RunnableSpec query(String cypher);
 
 	/**
 	 * Entrypoint for creating a new Cypher query based on a supplier. Doesn't matter at this point whether it's a match,
@@ -72,7 +73,7 @@ public interface Neo4jClient {
 	 * @param cypherSupplier A supplier of arbitrary Cypher code
 	 * @return
 	 */
-	RunnableSpec newQuery(Supplier<String> cypherSupplier);
+	RunnableSpec query(Supplier<String> cypherSupplier);
 
 	/**
 	 * Delegates interaction with the default database to the given callback.
@@ -147,7 +148,7 @@ public interface Neo4jClient {
 		 * @param value The value to bind to a query
 		 * @return An ongoing bind spec for specifying the name that {@code value} should be bound to or a binder function
 		 */
-		<T> OngoingBindSpec<T, S> bind(T value);
+		<T> OngoingBindSpec<T, S> bind(@Nullable T value);
 
 		S bindAll(Map<String, Object> parameters);
 	}

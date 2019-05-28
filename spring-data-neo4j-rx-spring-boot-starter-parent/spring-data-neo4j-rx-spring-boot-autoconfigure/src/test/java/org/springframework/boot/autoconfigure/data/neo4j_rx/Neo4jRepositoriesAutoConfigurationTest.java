@@ -31,9 +31,11 @@ import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverAutoConfiguration
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 
 /**
@@ -46,14 +48,16 @@ class Neo4jRepositoriesAutoConfigurationTest {
 			Neo4jRepositoriesAutoConfiguration.class));
 
 	@Test
-	public void defaultRepositoryConfigurationShouldWork() {
+	void defaultRepositoryConfigurationShouldWork() {
 		this.contextRunner.withUserConfiguration(TestConfiguration.class)
+			.withPropertyValues("spring.data.neo4j.repositories.type=imperative")
 			.run(ctx -> assertThat(ctx).hasSingleBean(BikeRepository.class));
 	}
 
 	@Test
-	public void repositoryConfigurationShouldNotCreateArbitraryRepos() {
+	void repositoryConfigurationShouldNotCreateArbitraryRepos() {
 		this.contextRunner.withUserConfiguration(EmptyConfiguration.class)
+			.withPropertyValues("spring.data.neo4j.repositories.type=imperative")
 			.run(ctx ->
 				assertThat(ctx)
 					.hasSingleBean(Neo4jTransactionManager.class)
@@ -62,32 +66,33 @@ class Neo4jRepositoriesAutoConfigurationTest {
 	}
 
 	@Test
-	public void configurationOfRepositoryTypeShouldWork() {
+	void configurationOfRepositoryTypeShouldWork() {
 		this.contextRunner
 			.withPropertyValues("spring.data.neo4j.repositories.type=none")
 			.withUserConfiguration(TestConfiguration.class)
 			.withClassLoader(new FilteredClassLoader(Flux.class))
 			.run(ctx ->
 				assertThat(ctx)
-					.hasSingleBean(Neo4jTransactionManager.class)
+					.doesNotHaveBean(Neo4jTransactionManager.class)
 					.doesNotHaveBean(ReactiveNeo4jClient.class)
 					.doesNotHaveBean(Neo4jRepository.class)
 			);
 
 		this.contextRunner
-			.withPropertyValues("spring.data.neo4j.repositories.type=reactive")
+			.withPropertyValues("spring.data.neo4j.repositories.type=imperative")
 			.withUserConfiguration(TestConfiguration.class)
 			.run(ctx ->
 				assertThat(ctx)
 					.hasSingleBean(Neo4jTransactionManager.class)
-					.hasSingleBean(ReactiveNeo4jClient.class)
-					.doesNotHaveBean(Neo4jRepository.class)
+					.hasSingleBean(Neo4jClient.class)
+					.doesNotHaveBean(ReactiveNeo4jRepository.class)
 			);
 	}
 
 	@Test
-	public void autoConfigurationShouldNotKickInEvenIfManualConfigDidNotCreateAnyRepositories() {
+	void autoConfigurationShouldNotKickInEvenIfManualConfigDidNotCreateAnyRepositories() {
 		this.contextRunner.withUserConfiguration(SortOfInvalidCustomConfiguration.class)
+			.withPropertyValues("spring.data.neo4j.repositories.type=imperative")
 			.run(ctx -> assertThat(ctx)
 				.hasSingleBean(Neo4jTransactionManager.class)
 				.doesNotHaveBean(Neo4jRepository.class));

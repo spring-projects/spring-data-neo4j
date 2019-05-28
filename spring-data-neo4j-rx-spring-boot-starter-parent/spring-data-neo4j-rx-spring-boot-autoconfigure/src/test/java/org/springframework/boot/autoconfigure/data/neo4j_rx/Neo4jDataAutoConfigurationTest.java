@@ -68,6 +68,7 @@ class Neo4jDataAutoConfigurationTest {
 		@DisplayName("…should create new Neo4j Client")
 		void shouldCreateNew() {
 			contextRunner
+				.withPropertyValues("spring.data.neo4j.repositories.type=imperative")
 				.run(ctx -> assertThat(ctx).hasSingleBean(Neo4jClient.class));
 		}
 
@@ -90,6 +91,7 @@ class Neo4jDataAutoConfigurationTest {
 		@DisplayName("…should create new Neo4j transaction manager")
 		void shouldCreateNew() {
 			contextRunner
+				.withPropertyValues("spring.data.neo4j.repositories.type=imperative")
 				.run(ctx -> assertThat(ctx).hasSingleBean(Neo4jTransactionManager.class));
 		}
 
