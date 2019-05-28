@@ -150,8 +150,8 @@ import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 
 	private final Map<String, Object> parameters = new HashMap<>();
 
-	StatementBuilder.OngoingMatchAndWith f(
-		BiFunction<NodeDescription<?>, Optional<Condition>, StatementBuilder.OngoingMatchAndWith> ff) {
+	StatementBuilder.OngoingReadingAndWith f(
+		BiFunction<NodeDescription<?>, Optional<Condition>, StatementBuilder.OngoingReadingAndWith> ff) {
 		return ff.apply(this.nodeDescription, Optional.of(this.condition));
 	}
 

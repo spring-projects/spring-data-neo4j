@@ -49,7 +49,7 @@ public abstract class Literal<T> implements Expression {
 	/**
 	 * The string representation should be designed in such a way the a renderer can use it correctly in
 	 * the given context of the literal, i.e. a literal containing a string should quote that string
-	 * and escape all reservered characters.
+	 * and escape all reserved characters.
 	 *
 	 * @return A string representation to be used literally in a cypher statement.
 	 */

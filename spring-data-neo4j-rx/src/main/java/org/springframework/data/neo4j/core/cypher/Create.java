@@ -18,32 +18,30 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
-import static org.springframework.data.neo4j.core.cypher.Expressions.*;
-
-import java.util.List;
-
-import org.springframework.data.neo4j.core.cypher.support.TypedSubtree;
-import org.springframework.data.neo4j.core.cypher.support.Visitable;
+import org.apiguardian.api.API;
+import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
- * Represents a list of expressions. When visited, the expressions are treated as named expression if they have declared
- * a symbolic name as variable or as unnamed expression when nameless.
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Create.html">Create</a>.
  *
  * @author Michael J. Simons
+ * @soundtrack Die Ärzte - Seitenhirsch
  * @since 1.0
  */
-class ExpressionList<S extends ExpressionList<S>> extends TypedSubtree<Expression, S> {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class Create implements UpdatingClause {
 
-	ExpressionList(List<Expression> returnItems) {
-		super(returnItems);
-	}
+	private final Pattern pattern;
 
-	ExpressionList(Expression... children) {
-		super(children);
+	Create(Pattern pattern) {
+		this.pattern = pattern;
 	}
 
 	@Override
-	protected Visitable prepareVisit(Expression child) {
-		return nameOrExpression(child);
+	public void accept(Visitor visitor) {
+
+		visitor.enter(this);
+		this.pattern.accept(visitor);
+		visitor.leave(this);
 	}
 }

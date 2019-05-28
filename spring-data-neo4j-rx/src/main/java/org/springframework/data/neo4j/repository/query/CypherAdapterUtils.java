@@ -37,9 +37,8 @@ import org.springframework.data.neo4j.core.cypher.Functions;
 import org.springframework.data.neo4j.core.cypher.Node;
 import org.springframework.data.neo4j.core.cypher.SortItem;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder;
-import org.springframework.data.neo4j.core.cypher.StatementBuilder.BuildableMatch;
-import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchAndDelete;
-import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchAndWith;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.BuildableStatement;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingReadingAndWith;
 import org.springframework.data.neo4j.core.cypher.SymbolicName;
 import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -122,7 +121,7 @@ public final class CypherAdapterUtils {
 		 * @return
 		 * @see #prepareMatchOf(NodeDescription, Optional)
 		 */
-		public OngoingMatchAndWith prepareMatchOf(NodeDescription<?> nodeDescription) {
+		public OngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription) {
 			return prepareMatchOf(nodeDescription, Optional.empty());
 		}
 
@@ -139,7 +138,7 @@ public final class CypherAdapterUtils {
 		 * @param condition       Optional conditions to add
 		 * @return An ongoing match
 		 */
-		public OngoingMatchAndWith prepareMatchOf(NodeDescription<?> nodeDescription, Optional<Condition> condition) {
+		public OngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription, Optional<Condition> condition) {
 			Node rootNode = Cypher.node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
 			IdDescription idDescription = nodeDescription.getIdDescription();
 
@@ -152,7 +151,7 @@ public final class CypherAdapterUtils {
 				.with(expressions.toArray(new Expression[expressions.size()]));
 		}
 
-		public OngoingMatchAndDelete prepareDeleteOf(NodeDescription<?> nodeDescription,
+		public BuildableStatement prepareDeleteOf(NodeDescription<?> nodeDescription,
 			Optional<Condition> condition) {
 
 			Node rootNode = Cypher.node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
@@ -160,10 +159,10 @@ public final class CypherAdapterUtils {
 		}
 	}
 
-	public static BuildableMatch addPagingParameter(
+	public static BuildableStatement addPagingParameter(
 		NodeDescription<?> nodeDescription,
 		Pageable pageable,
-		StatementBuilder.OngoingMatchAndReturn returning) {
+		StatementBuilder.OngoingReadingAndReturn returning) {
 
 		Sort sort = pageable.getSort();
 

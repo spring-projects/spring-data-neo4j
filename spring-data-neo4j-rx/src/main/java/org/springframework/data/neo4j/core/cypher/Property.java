@@ -50,7 +50,7 @@ public final class Property implements Expression {
 	}
 
 	/**
-	 * The expression describinng the container.
+	 * The expression describing the container.
 	 */
 	private final Expression container;
 
@@ -67,6 +67,16 @@ public final class Property implements Expression {
 
 	public String getName() {
 		return name;
+	}
+
+	/**
+	 * Creates a {@link Operation} setting this property to a new value.
+	 *
+	 * @param expression
+	 * @return
+	 */
+	public Operation to(Expression expression) {
+		return Operations.set(this, expression);
 	}
 
 	@Override

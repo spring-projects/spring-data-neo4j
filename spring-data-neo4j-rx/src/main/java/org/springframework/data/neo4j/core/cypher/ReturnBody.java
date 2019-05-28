@@ -25,7 +25,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * The container or "body" for return items, order and optional skip and things.
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/ReturnBody.html">ReturnBody</a>
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/ReturnBody.html">ReturnBody</a>
  *
  * @author Michael J. Simons
  * @soundtrack Ferris MC - Ferris MC's Audiobiographie

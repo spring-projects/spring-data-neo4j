@@ -22,31 +22,37 @@ import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Delete.html">Delete</a>.
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Unwind.html">Unwind</a>.
  *
  * @author Michael J. Simons
+ * @soundtrack Queen - Jazz
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public final class Delete implements UpdatingClause {
+public final class Unwind implements ReadingClause {
 
-	private final ExpressionList deleteItems;
+	private final Expression expressionToUnwind;
 
-	private final boolean detach;
+	private final String variable;
 
-	Delete(ExpressionList deleteItems, boolean detach) {
-		this.deleteItems = deleteItems;
-		this.detach = detach;
+	Unwind(Expression expressionToUnwind, String variable) {
+
+		if (expressionToUnwind instanceof Aliased) {
+			this.expressionToUnwind = new SymbolicName(((Aliased) expressionToUnwind).getAlias());
+		} else {
+			this.expressionToUnwind = expressionToUnwind;
+		}
+		this.variable = variable;
 	}
 
-	public boolean isDetach() {
-		return detach;
+	public String getVariable() {
+		return variable;
 	}
 
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.enter(this);
-		deleteItems.accept(visitor);
+		expressionToUnwind.accept(visitor);
 		visitor.leave(this);
 	}
 }

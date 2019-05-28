@@ -24,7 +24,7 @@ import org.springframework.data.neo4j.core.cypher.support.Visitor;
 import org.springframework.lang.Nullable;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/With.html">With</a>.
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/With.html">With</a>.
  *
  * @author Michael J. Simons
  * @soundtrack Ferris MC - Ferris MC's Audiobiographie

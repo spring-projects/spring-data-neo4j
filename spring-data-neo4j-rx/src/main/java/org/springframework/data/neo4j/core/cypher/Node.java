@@ -18,9 +18,12 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import static java.util.stream.Collectors.*;
+
+import lombok.ToString;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,15 +35,21 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/NodePattern.html">NodePattern</a>.
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/NodePattern.html">NodePattern</a>.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
+@ToString(of = { "symbolicName", "labels" })
 public final class Node implements PatternElement, Named, Expression, ExposesRelationships<Relationship> {
 
 	static Node create(String primaryLabel, String... additionalLabels) {
+
+		return create(primaryLabel, null, additionalLabels);
+	}
+
+	static Node create(String primaryLabel, MapExpression properties, String... additionalLabels) {
 
 		Assert.hasText(primaryLabel, "A primary label is required.");
 
@@ -48,36 +57,40 @@ public final class Node implements PatternElement, Named, Expression, ExposesRel
 			Assert.hasText(additionalLabel, "An empty label is not allowed.");
 		}
 
-		return new Node(primaryLabel, additionalLabels);
+		return new Node(primaryLabel, properties == null ? null : new Properties(properties), additionalLabels);
 	}
 
 	/**
-	 * @return A node without labels
+	 * @return A node without labels and properties
 	 */
 	static Node create() {
-		return new Node(null);
+		return new Node(null, null);
 	}
 
 	private @Nullable final SymbolicName symbolicName;
 
-	private final List<String> labels;
+	private final List<NodeLabel> labels;
 
-	Node(String primaryLabel, String... additionalLabels) {
+	private @Nullable final Properties properties;
+
+	private Node(String primaryLabel, Properties properties, String... additionalLabels) {
 
 		this.symbolicName = null;
 
 		this.labels = new ArrayList<>();
 		if (!(primaryLabel == null || primaryLabel.isEmpty())) {
-			this.labels.add(primaryLabel);
+			this.labels.add(new NodeLabel(primaryLabel));
 		}
-		this.labels.addAll(Arrays.asList(additionalLabels));
+		this.labels.addAll(Arrays.stream(additionalLabels).map(NodeLabel::new).collect(toList()));
+		this.properties = properties;
 	}
 
-	Node(SymbolicName symbolicName, List<String> labels) {
+	private Node(SymbolicName symbolicName, Properties properties, List<NodeLabel> labels) {
 
 		this.symbolicName = symbolicName;
 
 		this.labels = new ArrayList<>(labels);
+		this.properties = properties;
 	}
 
 	/**
@@ -89,19 +102,39 @@ public final class Node implements PatternElement, Named, Expression, ExposesRel
 	public Node named(String newSymbolicName) {
 
 		Assert.hasText(newSymbolicName, "Symbolic name is required.");
-		return new Node(new SymbolicName(newSymbolicName), labels);
+		return new Node(new SymbolicName(newSymbolicName), properties, labels);
+	}
+
+	/**
+	 * Creates a a copy of this node with additional properties. Creates a node without properties when no properties
+	 * * are passed to this method.
+	 *
+	 * @param newProperties the new properties
+	 * @return The new node.
+	 */
+	public Node properties(@Nullable MapExpression<?> newProperties) {
+
+		return new Node(this.symbolicName, newProperties == null ? null : new Properties(newProperties), labels);
+	}
+
+	/**
+	 * Creates a a copy of this node with additional properties. Creates a node without properties when no properties
+	 * are passed to this method.
+	 *
+	 * @param keysAndValues A list of key and values. Must be an even number, with alternating {@link String} and {@link Expression}.
+	 * @return The new node.
+	 */
+	public Node properties(Object... keysAndValues) {
+
+		MapExpression<?> newProperties = null;
+		if (keysAndValues != null && keysAndValues.length != 0) {
+			newProperties = MapExpression.create(keysAndValues);
+		}
+		return properties(newProperties);
 	}
 
 	public Optional<SymbolicName> getSymbolicName() {
 		return Optional.ofNullable(symbolicName);
-	}
-
-	public List<String> getLabels() {
-		return Collections.unmodifiableList(labels);
-	}
-
-	public boolean isLabeled() {
-		return !this.labels.isEmpty();
 	}
 
 	/**
@@ -142,6 +175,8 @@ public final class Node implements PatternElement, Named, Expression, ExposesRel
 
 		visitor.enter(this);
 		Visitable.visitIfNotNull(this.symbolicName, visitor);
+		this.labels.forEach(label -> label.accept(visitor));
+		Visitable.visitIfNotNull(this.properties, visitor);
 		visitor.leave(this);
 	}
 }

@@ -131,7 +131,7 @@ public final class Functions {
 
 	/**
 	 * Creates a function invocation for the {@code exists()} function.
-	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-exists">exists</a>
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-exists">exists</a>.
 	 *
 	 * @param expression The expression whos existence is to be evaluated
 	 * @return A function call for {@code exists()} for one expression
@@ -145,7 +145,7 @@ public final class Functions {
 
 	/**
 	 * Creates a function invocation for the {@code distance()} function.
-	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/spatial/#functions-distance">exists</a>
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/spatial/#functions-distance">exists</a>.
 	 * Both points need to be in the same coordinate system.
 	 *
 	 * @param point1 Point 1
@@ -162,7 +162,7 @@ public final class Functions {
 
 	/**
 	 * Creates a function invocation for the {@code point()} function.
-	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/spatial/#functions-point">point</a>
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/spatial/#functions-point">point</a>.
 	 *
 	 * @param parameterMap The map of parameters for {@code point()}
 	 * @return A function call for {@code point()}
@@ -172,6 +172,20 @@ public final class Functions {
 		Assert.notNull(parameterMap, "The parameter map is required.");
 
 		return new FunctionInvocation("point", parameterMap);
+	}
+
+	/**
+	 * Creates a function invocation for the {@code collect()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/aggregating/#functions-collect">collect</a>.
+	 *
+	 * @param expression The things to collect
+	 * @return A function call for {@code collect()}
+	 */
+	public static FunctionInvocation collect(Expression expression) {
+
+		Assert.notNull(expression, "The expression to collect is required.");
+
+		return new FunctionInvocation("collect", expression);
 	}
 
 	private Functions() {

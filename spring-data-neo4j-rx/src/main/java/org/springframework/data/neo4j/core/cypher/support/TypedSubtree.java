@@ -26,12 +26,14 @@ import java.util.List;
  * This class helps to group items of the same type on the same level of the tree into a list structure that can be
  * recognized by visitors.
  *
+ * @param <T> The children's type
+ * @param <SELF> The concrete type of the implementing class.
  * @author Michael J. Simons
  * @since 1.0
  */
-public abstract class TypedSubtree<T extends Visitable> implements Visitable {
+public abstract class TypedSubtree<T extends Visitable, SELF extends TypedSubtree<T, SELF>> implements Visitable {
 
-	private final List<T> children;
+	protected final List<T> children;
 
 	protected TypedSubtree(T... children) {
 

@@ -58,7 +58,16 @@ public enum Operator implements Visitable {
 	MATCHES("=~"),
 
 	// List operators
-	IN("IN");
+	IN("IN"),
+
+	// Property operators
+	SET("=", Type.PROPERTY),
+	GET(".", Type.PROPERTY),
+	MUTATE("+=", Type.PROPERTY),
+
+	// Node operators
+	SET_LABEL("", Type.LABEL),
+	REMOVE_LABEL("", Type.LABEL);
 
 	private final String representation;
 
@@ -89,5 +98,7 @@ public enum Operator implements Visitable {
 		BINARY,
 		PREFIX,
 		POSTFIX,
+		PROPERTY,
+		LABEL
 	}
 }

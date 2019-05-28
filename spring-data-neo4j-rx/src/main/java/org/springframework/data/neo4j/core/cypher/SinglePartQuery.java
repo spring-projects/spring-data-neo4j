@@ -29,7 +29,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/SinglePartQuery.html">SinglePartQuery</a>.
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/SinglePartQuery.html">SinglePartQuery</a>.
  *
  * @author Michael J. Simons
  * @since 1.0

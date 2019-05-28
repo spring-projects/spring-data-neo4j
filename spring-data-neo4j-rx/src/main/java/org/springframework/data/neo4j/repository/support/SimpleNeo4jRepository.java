@@ -43,7 +43,7 @@ import org.springframework.data.neo4j.core.cypher.Condition;
 import org.springframework.data.neo4j.core.cypher.Functions;
 import org.springframework.data.neo4j.core.cypher.Statement;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder;
-import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchAndReturn;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingReadingAndReturn;
 import org.springframework.data.neo4j.core.cypher.renderer.CypherRenderer;
 import org.springframework.data.neo4j.core.cypher.renderer.Renderer;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
@@ -96,10 +96,11 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	@Override
 	public Page<T> findAll(Pageable pageable) {
 
-		OngoingMatchAndReturn returning = statementBuilder.prepareMatchOf(nodeDescription)
+		OngoingReadingAndReturn returning = statementBuilder.prepareMatchOf(nodeDescription)
 			.returning(asterisk());
 
-		StatementBuilder.BuildableMatch returningWithPaging = addPagingParameter(nodeDescription, pageable, returning);
+		StatementBuilder.BuildableStatement returningWithPaging = addPagingParameter(nodeDescription, pageable,
+			returning);
 
 		Statement statement = returningWithPaging.build();
 

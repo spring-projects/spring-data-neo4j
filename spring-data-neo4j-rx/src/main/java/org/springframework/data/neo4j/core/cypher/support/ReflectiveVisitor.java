@@ -24,6 +24,8 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,14 +63,18 @@ public abstract class ReflectiveVisitor implements Visitor {
 
 	private final Map<TargetAndPhase, Optional<MethodHandle>> cachedHandles = new ConcurrentHashMap<>();
 
+	/** Keeps track of the ASTs current level. */
+	private Deque<Visitable> currentVisitedElements = new LinkedList<>();
+
 	/**
 	 * This is a hook that is called with the uncasted, raw visitable just before entering a visitable.
 	 * <p/>
 	 * The hook is called regardless wither a matching {@code enter} is found or not.
 	 *
 	 * @param visitable The visitable that is passed on to a matching enter after this call.
+	 * @return true, when visiting of elements should be stopped until this element is left again.
 	 */
-	protected abstract void preEnter(Visitable visitable);
+	protected abstract boolean preEnter(Visitable visitable);
 
 	/**
 	 * This is a hook that is called with the uncasted, raw visitable just after leaving the visitable.
@@ -81,14 +87,21 @@ public abstract class ReflectiveVisitor implements Visitor {
 
 	@Override
 	public final void enter(Visitable visitable) {
-		preEnter(visitable);
-		executeConcreteMethodIn(new TargetAndPhase(visitable.getClass(), Phase.ENTER), visitable);
+
+		if (preEnter(visitable)) {
+			currentVisitedElements.push(visitable);
+			executeConcreteMethodIn(new TargetAndPhase(visitable.getClass(), Phase.ENTER), visitable);
+		}
 	}
 
 	@Override
 	public final void leave(Visitable visitable) {
-		executeConcreteMethodIn(new TargetAndPhase(visitable.getClass(), Phase.LEAVE), visitable);
-		postLeave(visitable);
+
+		if (currentVisitedElements.peek() == visitable) {
+			executeConcreteMethodIn(new TargetAndPhase(visitable.getClass(), Phase.LEAVE), visitable);
+			postLeave(visitable);
+			currentVisitedElements.pop();
+		}
 	}
 
 	private void executeConcreteMethodIn(TargetAndPhase targetAndPhase, Visitable onVisitable) {

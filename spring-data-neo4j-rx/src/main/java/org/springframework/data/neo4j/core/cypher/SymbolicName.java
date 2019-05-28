@@ -18,18 +18,21 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import lombok.ToString;
+
 import org.apiguardian.api.API;
 
 /**
  * A symbolic name to identify nodes and relationships.
  * <p/>
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/SchemaName.html">SchemaName</a>
- * <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/SymbolicName.html">SymbolicName</a>
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/SchemaName.html">SchemaName</a>
+ * <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/SymbolicName.html">SymbolicName</a>
  *
  * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
+@ToString(of = { "name" })
 public final class SymbolicName implements Expression {
 
 	private final String name;

@@ -24,7 +24,7 @@ import org.springframework.data.neo4j.core.cypher.support.Visitor;
 import org.springframework.lang.Nullable;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/Match.html">Match</a>.
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Match.html">Match</a>.
  *
  * @author Michael J. Simons
  * @since 1.0

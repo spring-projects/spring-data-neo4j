@@ -26,7 +26,7 @@ import org.springframework.data.neo4j.core.cypher.Statement.SingleQuery;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/MultiPartQuery.html">MultiPartQuery</a>.
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/MultiPartQuery.html">MultiPartQuery</a>.
  *
  * @author Michael J. Simons
  * @soundtrack Ferris MC - Ferris MC's Audiobiographie

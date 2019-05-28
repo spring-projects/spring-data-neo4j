@@ -23,7 +23,7 @@ import org.springframework.data.neo4j.core.cypher.support.Visitable;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/Return.html">Return</a>.
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Return.html">Return</a>.
  *
  * @author Michael J. Simons
  * @since 1.0
