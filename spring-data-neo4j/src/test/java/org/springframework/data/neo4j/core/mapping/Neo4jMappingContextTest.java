@@ -56,7 +56,7 @@ public class Neo4jMappingContextTest {
 				assertThat(description.getUnderlyingClass()).isEqualTo(UserNode.class);
 
 				assertThat(description.getIdDescription().getIdStrategy())
-					.isEqualTo(Id.Strategy.INTERNAL);
+					.isEqualTo(Id.Strategy.INTERNALLY_GENERATED);
 
 				assertThat(description.getGraphProperties())
 					.extracting(GraphPropertyDescription::getFieldName)

@@ -19,9 +19,11 @@
 package org.springframework.data.neo4j.core.schema;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Record;
@@ -108,5 +110,12 @@ public interface Schema {
 	default <T> BiFunction<TypeSystem, Record, T> getRequiredMappingFunctionFor(Class<T> targetClass) {
 
 		return getMappingFunctionFor(targetClass).orElseThrow(() -> new UnknownEntityException(targetClass));
+	}
+
+	<T> Optional<Function<T, Map<String, Object>>> getBinderFunctionFor(Class<T> sourceClass);
+
+	default <T> Function<T, Map<String, Object>> getRequiredBinderFunctionFor(Class<T> sourceClass) {
+
+		return getBinderFunctionFor(sourceClass).orElseThrow(() -> new UnknownEntityException(sourceClass));
 	}
 }

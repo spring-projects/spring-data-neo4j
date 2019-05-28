@@ -31,6 +31,7 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.IdDescription;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
+import org.springframework.data.support.IsNewStrategy;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
@@ -60,29 +61,58 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		this.graphProperties = Lazy.of(() -> computeGraphProperties());
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see NodeDescription#getPrimaryLabel()
+	 */
 	@Override
 	public String getPrimaryLabel() {
 		return primaryLabel;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see NodeDescription#getUnderlyingClass()
+	 */
 	@Override
 	public Class<T> getUnderlyingClass() {
 		return getType();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see NodeDescription#getIdDescription()
+	 */
 	@Override
 	public IdDescription getIdDescription() {
 		return this.idDescription.get();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see NodeDescription#getGraphProperties()
+	 */
 	@Override
 	public Collection<GraphPropertyDescription> getGraphProperties() {
 		return this.graphProperties.get();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see NodeDescription#getGraphProperty(String)
+	 */
 	@Override
 	public Optional<GraphPropertyDescription> getGraphProperty(String fieldName) {
 		return Optional.ofNullable(this.getPersistentProperty(fieldName));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see BasicPersistentEntity#getFallbackIsNewStrategy()
+	 */
+	@Override
+	protected IsNewStrategy getFallbackIsNewStrategy() {
+		return DefaultNeo4jIsNewStrategy.basedOn(this);
 	}
 
 	@Override
@@ -110,7 +140,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		return optionalIdAnnotation
 			.map(idAnnotation -> {
 
-				if (idAnnotation.strategy() == Id.Strategy.INTERNAL
+				if (idAnnotation.strategy() == Id.Strategy.INTERNALLY_GENERATED
 					&& idProperty.findAnnotation(Property.class) != null) {
 					throw new IllegalArgumentException(
 						"Cannot use internal id strategy with custom property " + idProperty.getPropertyName()
@@ -118,7 +148,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 				}
 
 				return new IdDescription(idAnnotation.strategy(), idAnnotation.generator(),
-					idAnnotation.strategy() == Id.Strategy.INTERNAL ? null : idProperty.getPropertyName());
+					idAnnotation.strategy() == Id.Strategy.INTERNALLY_GENERATED ? null : idProperty.getPropertyName());
 			})
 			.orElseGet(() -> new IdDescription());
 	}
@@ -132,4 +162,5 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 
 		return Collections.unmodifiableCollection(computedGraphProperties);
 	}
+
 }

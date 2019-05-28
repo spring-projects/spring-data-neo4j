@@ -36,6 +36,7 @@ import org.neo4j.driver.summary.ResultSummary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.Neo4jClient.ExecutableQuery;
 import org.springframework.data.neo4j.core.PreparedQuery;
@@ -45,7 +46,7 @@ import org.springframework.data.neo4j.core.cypher.Statement;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingReadingAndReturn;
 import org.springframework.data.neo4j.core.cypher.renderer.Renderer;
-import org.springframework.data.neo4j.core.schema.NodeDescription;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
@@ -69,7 +70,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 	private final Neo4jEntityInformation<T, ID> entityInformation;
 
-	private final NodeDescription<T> nodeDescription;
+	private final Neo4jPersistentEntity<T> entityMetaData;
 
 	private final SchemaBasedStatementBuilder statementBuilder;
 
@@ -77,16 +78,16 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 		SchemaBasedStatementBuilder statementBuilder) {
 		this.neo4jClient = neo4jClient;
 		this.entityInformation = entityInformation;
-		this.nodeDescription = this.entityInformation.getNodeDescription();
+		this.entityMetaData = this.entityInformation.getEntityMetaData();
 		this.statementBuilder = statementBuilder;
 	}
 
 	@Override
 	public Iterable<T> findAll(Sort sort) {
 
-		Statement statement = statementBuilder.prepareMatchOf(nodeDescription)
+		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
 			.returning(asterisk())
-			.orderBy(toSortItems(nodeDescription, sort))
+			.orderBy(toSortItems(entityMetaData, sort))
 			.build();
 
 		return createExecutableQuery(statement).getResults();
@@ -95,10 +96,10 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	@Override
 	public Page<T> findAll(Pageable pageable) {
 
-		OngoingReadingAndReturn returning = statementBuilder.prepareMatchOf(nodeDescription)
+		OngoingReadingAndReturn returning = statementBuilder.prepareMatchOf(entityMetaData)
 			.returning(asterisk());
 
-		StatementBuilder.BuildableStatement returningWithPaging = addPagingParameter(nodeDescription, pageable,
+		StatementBuilder.BuildableStatement returningWithPaging = addPagingParameter(entityMetaData, pageable,
 			returning);
 
 		Statement statement = returningWithPaging.build();
@@ -111,7 +112,20 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	@Override
 	@Transactional
 	public <S extends T> S save(S entity) {
-		throw new UnsupportedOperationException("Not there yet.");
+
+		Long internalId = neo4jClient
+			.newQuery(() -> renderer.render(statementBuilder.prepareSaveOf(entityMetaData)))
+			.bind((T) entity)
+			.with(entityInformation.getBinderFunction())
+			.fetchAs(Long.class).one().get();
+
+		if (!entityMetaData.isUsingInternalIds()) {
+			return entity;
+		} else {
+			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entity);
+			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
+			return (S) propertyAccessor.getBean();
+		}
 	}
 
 	@Override
@@ -124,7 +138,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	public Optional<T> findById(ID id) {
 
 		Statement statement = statementBuilder
-			.prepareMatchOf(nodeDescription,
+			.prepareMatchOf(entityMetaData,
 				Optional.of(entityInformation.getIdExpression().isEqualTo(literalOf(id))))
 			.returning(asterisk())
 			.build();
@@ -139,7 +153,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	@Override
 	public Iterable<T> findAll() {
 
-		Statement statement = statementBuilder.prepareMatchOf(nodeDescription)
+		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
 			.returning(asterisk()).build();
 		return createExecutableQuery(statement).getResults();
 	}
@@ -148,7 +162,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	public Iterable<T> findAllById(Iterable<ID> ids) {
 
 		Statement statement = statementBuilder
-			.prepareMatchOf(nodeDescription, Optional.of(entityInformation.getIdExpression().in((parameter("ids")))))
+			.prepareMatchOf(entityMetaData, Optional.of(entityInformation.getIdExpression().in((parameter("ids")))))
 			.returning(asterisk())
 			.build();
 
@@ -158,7 +172,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	@Override
 	public long count() {
 
-		Statement statement = statementBuilder.prepareMatchOf(nodeDescription)
+		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
 			.returning(Functions.count(asterisk())).build();
 
 		PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class)
@@ -178,7 +192,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 		log.debug("Deleting entity with id {} ", id);
 
 		Statement statement = statementBuilder
-			.prepareDeleteOf(nodeDescription, Optional.of(condition)).build();
+			.prepareDeleteOf(entityMetaData, Optional.of(condition));
 		ResultSummary summary = this.neo4jClient.newQuery(renderer.render(statement))
 			.bind(id).to(nameOfParameter)
 			.run();
@@ -206,7 +220,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 		log.debug("Deleting all entities with the following ids: {} ", ids);
 
-		Statement statement = statementBuilder.prepareDeleteOf(nodeDescription, Optional.of(condition)).build();
+		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
 		ResultSummary summary = this.neo4jClient.newQuery(renderer.render(statement))
 			.bind(ids).to(nameOfParameter)
 			.run();
@@ -218,9 +232,9 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	@Transactional
 	public void deleteAll() {
 
-		log.debug("Deleting all nodes with primary label {}", nodeDescription.getPrimaryLabel());
+		log.debug("Deleting all nodes with primary label {}", entityMetaData.getPrimaryLabel());
 
-		Statement statement = statementBuilder.prepareDeleteOf(nodeDescription, Optional.empty()).build();
+		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.empty());
 		ResultSummary summary = this.neo4jClient.newQuery(renderer.render(statement)).run();
 
 		log.debug("Deleted {} entities.", summary.counters().nodesDeleted());

@@ -34,8 +34,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -164,6 +167,46 @@ class RepositoryIT {
 	}
 
 	@Test
+	void saveSingleEntity() {
+
+		PersonWithAllConstructor person = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
+			LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null);
+		PersonWithAllConstructor savedPerson = repository.save(person);
+		try (Session session = driver.session()) {
+			Record record = session.run("MATCH (n:PersonWithAllConstructor) WHERE n.first_name = $first_name RETURN n",
+					Values.parameters("first_name", "Freddie")).single();
+
+			assertThat(record.containsKey("n")).isTrue();
+			Node node = record.get("n").asNode();
+			assertThat(savedPerson.getId()).isEqualTo(node.id());
+		}
+	}
+
+	@Test
+	void updateSingleEntity() {
+
+		PersonWithAllConstructor originalPerson = repository.findById(id1).get();
+		originalPerson.setFirstName("Updated first name");
+		originalPerson.setNullable("Updated nullable field");
+
+		PersonWithAllConstructor savedPerson = repository.save(originalPerson);
+		try (Session session = driver.session()) {
+			session.readTransaction(tx -> {
+				Record record = tx.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n",
+					Values.parameters("id", originalPerson.getId())).single();
+				assertThat(record.containsKey("n")).isTrue();
+				Node node = record.get("n").asNode();
+				assertThat(savedPerson.getId()).isEqualTo(node.id());
+
+				assertThat(savedPerson.getId()).isEqualTo(originalPerson.getId());
+				assertThat(savedPerson.getFirstName()).isEqualTo(originalPerson.getFirstName());
+				assertThat(savedPerson.getNullable()).isEqualTo(originalPerson.getNullable());
+				return null;
+			});
+		}
+	}
+
+	@Test
 	void delete() {
 
 		repository.delete(person1);
@@ -209,6 +252,53 @@ class RepositoryIT {
 		assertThat(optionalThing).isPresent();
 		assertThat(optionalThing).map(ThingWithAssignedId::getTheId).contains("anId");
 		assertThat(optionalThing).map(ThingWithAssignedId::getName).contains("Homer");
+	}
+
+	@Test
+	void saveWithAssignedId() {
+
+		assertThat(thingRepository.count()).isEqualTo(21);
+
+		ThingWithAssignedId thing = new ThingWithAssignedId("aaBB");
+		thing.setName("That's the thing.");
+		thing = thingRepository.save(thing);
+
+		try (Session session = driver.session()) {
+			Record record = session
+				.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", Values.parameters("id", thing.getTheId()))
+				.single();
+
+			assertThat(record.containsKey("n")).isTrue();
+			Node node = record.get("n").asNode();
+			assertThat(node.get("theId").asString()).isEqualTo(thing.getTheId());
+			assertThat(node.get("name").asString()).isEqualTo(thing.getName());
+
+			assertThat(thingRepository.count()).isEqualTo(22);
+		}
+	}
+
+	@Test
+	void updateWithAssignedId() {
+
+		assertThat(thingRepository.count()).isEqualTo(21);
+
+		ThingWithAssignedId thing = new ThingWithAssignedId("id07");
+		thing.setName("An updated thing");
+		thingRepository.save(thing);
+
+		thing = thingRepository.findById("id15").get();
+		thing.setName("Another updated thing");
+		thingRepository.save(thing);
+
+		try (Session session = driver.session()) {
+			List<String> records = session
+				.run("MATCH (n:Thing) WHERE n.theId in $ids RETURN n ORDER BY n.name ASC",
+					Values.parameters("ids", Arrays.asList("id07", "id15")))
+				.list(r -> r.get("n").get("name").asString());
+
+			assertThat(records).hasSize(2).containsExactly("An updated thing", "Another updated thing");
+			assertThat(thingRepository.count()).isEqualTo(21);
+		}
 	}
 
 	@Test

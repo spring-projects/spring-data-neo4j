@@ -61,7 +61,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 	private final Neo4jEntityInformation<T, ID> entityInformation;
 
-	private final NodeDescription<T> nodeDescription;
+	private final NodeDescription<T> entityMetaData;
 
 	private final SchemaBasedStatementBuilder statementBuilder;
 
@@ -69,14 +69,14 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 		SchemaBasedStatementBuilder statementBuilder) {
 		this.neo4jClient = neo4jClient;
 		this.entityInformation = entityInformation;
-		this.nodeDescription = this.entityInformation.getNodeDescription();
+		this.entityMetaData = this.entityInformation.getEntityMetaData();
 		this.statementBuilder = statementBuilder;
 	}
 
 	@Override
 	public Mono<T> findById(ID id) {
 		Statement statement = statementBuilder
-			.prepareMatchOf(nodeDescription, Optional.of(entityInformation.getIdExpression().isEqualTo(literalOf(id))))
+			.prepareMatchOf(entityMetaData, Optional.of(entityInformation.getIdExpression().isEqualTo(literalOf(id))))
 			.returning(asterisk())
 			.build();
 		return createExecutableQuery(statement).getSingleResult();
@@ -89,9 +89,9 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 	@Override
 	public Flux<T> findAll(Sort sort) {
-		Statement statement = statementBuilder.prepareMatchOf(nodeDescription, Optional.empty())
+		Statement statement = statementBuilder.prepareMatchOf(entityMetaData, Optional.empty())
 			.returning(asterisk())
-			.orderBy(toSortItems(nodeDescription, sort))
+			.orderBy(toSortItems(entityMetaData, sort))
 			.build();
 
 		return createExecutableQuery(statement).getResults();
@@ -109,7 +109,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 	@Override
 	public Flux<T> findAll() {
-		Statement statement = statementBuilder.prepareMatchOf(nodeDescription, Optional.empty())
+		Statement statement = statementBuilder.prepareMatchOf(entityMetaData, Optional.empty())
 			.returning(asterisk()).build();
 		return createExecutableQuery(statement).getResults();
 	}
@@ -117,7 +117,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	@Override
 	public Flux<T> findAllById(Iterable<ID> ids) {
 		Statement statement = statementBuilder
-			.prepareMatchOf(nodeDescription, Optional.of(entityInformation.getIdExpression().in((parameter("ids")))))
+			.prepareMatchOf(entityMetaData, Optional.of(entityInformation.getIdExpression().in((parameter("ids")))))
 			.returning(asterisk())
 			.build();
 
@@ -131,7 +131,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 	@Override
 	public Mono<Long> count() {
-		Statement statement = statementBuilder.prepareMatchOf(nodeDescription, Optional.empty())
+		Statement statement = statementBuilder.prepareMatchOf(entityMetaData, Optional.empty())
 			.returning(Functions.count(asterisk())).build();
 
 		PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class)

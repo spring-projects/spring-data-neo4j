@@ -48,6 +48,7 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.core.Neo4jClient.MappingSpec;
 import org.springframework.data.neo4j.core.Neo4jClient.OngoingBindSpec;
 import org.springframework.data.neo4j.core.Neo4jClient.RecordFetchSpec;
+import org.springframework.util.Assert;
 
 /**
  * Reactive variant of the {@link Neo4jClient}.
@@ -177,6 +178,9 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 			@Override
 			public ReactiveRunnableSpecTightToDatabase with(Function<T, Map<String, Object>> binder) {
+
+				Assert.notNull(binder, "Binder is required.");
+
 				return bindAll(binder.apply(value));
 			}
 		}

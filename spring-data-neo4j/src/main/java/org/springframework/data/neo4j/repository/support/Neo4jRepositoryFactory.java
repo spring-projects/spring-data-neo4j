@@ -20,8 +20,10 @@ package org.springframework.data.neo4j.repository.support;
 
 import static org.springframework.data.neo4j.repository.query.CypherAdapterUtils.*;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
@@ -67,8 +69,9 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(domainClass);
 		BiFunction<TypeSystem, Record, T> mappingFunction = mappingContext.getRequiredMappingFunctionFor(domainClass);
+		Function<T, Map<String, Object>> binderFUnction = mappingContext.getRequiredBinderFunctionFor(domainClass);
 
-		return new DefaultNeo4jEntityInformation<>((Neo4jPersistentEntity<T>) entity, mappingFunction);
+		return new DefaultNeo4jEntityInformation<>((Neo4jPersistentEntity<T>) entity, mappingFunction, binderFUnction);
 	}
 
 	@Override

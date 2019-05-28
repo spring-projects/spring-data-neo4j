@@ -50,6 +50,7 @@ import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.repository.NoResultException;
+import org.springframework.util.Assert;
 
 /**
  * Default implementation of {@link Neo4jClient}. Uses the Neo4j Java driver to connect to and interact with the database.
@@ -220,6 +221,9 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			@Override
 			public RunnableSpecTightToDatabase with(Function<T, Map<String, Object>> binder) {
+
+				Assert.notNull(binder, "Binder is required.");
+
 				return bindAll(binder.apply(value));
 			}
 		}

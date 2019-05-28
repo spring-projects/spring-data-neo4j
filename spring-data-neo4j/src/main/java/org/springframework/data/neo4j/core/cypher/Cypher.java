@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.Statement.SingleQuery;
-import org.springframework.data.neo4j.core.cypher.StatementBuilder.ExposesMatch;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.ExposesSet;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingReadingAndWith;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingReadingWithoutWhere;
@@ -91,7 +90,7 @@ public final class Cypher {
 	 * @return A new property
 	 */
 	public static Property property(String containerName, String name) {
-		return property(symbolicName(containerName), name);
+		return property(name(containerName), name);
 	}
 
 	/**
@@ -111,7 +110,7 @@ public final class Cypher {
 	 * @param value The value of the symbolic name
 	 * @return A new symoblic name
 	 */
-	public static SymbolicName symbolicName(String value) {
+	public static SymbolicName name(String value) {
 		return new SymbolicName(value);
 	}
 
@@ -131,7 +130,7 @@ public final class Cypher {
 	 * @param pattern The patterns to match
 	 * @return An ongoing match that is used to specify an optional where and a required return clause
 	 */
-	public static ExposesMatch optionalMatch(PatternElement... pattern) {
+	public static OngoingReadingWithoutWhere optionalMatch(PatternElement... pattern) {
 
 		return Statement.builder().optionalMatch(pattern);
 	}
