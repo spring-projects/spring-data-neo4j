@@ -30,16 +30,17 @@ import org.springframework.util.Assert;
 /**
  * A dedicated map expression.<p/>
  * Most of the comparision methods on this expression will not result in a sensible query fragment.
- * A {@link MapExpression} will be useful as a concrete parameter to functions.
+ * A {@link MapExpression} is be useful as a concrete parameter to functions or as properties on {@link Node nodes}
+ * or {@link Relationship relationships}.
  *
  * @author Michael J. Simons
  * @soundtrack Rammstein - RAMMSTEIN
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public final class MapExpression extends TypedSubtree<MapEntry> implements Expression {
+public final class MapExpression<S extends MapExpression<S>> extends TypedSubtree<MapEntry, S> implements Expression {
 
-	static MapExpression create(Object... input) {
+	static MapExpression<?> create(Object... input) {
 
 		Assert.state(input.length % 2 == 0, "Need an even number of input parameters");
 		List<MapEntry> newContent = new ArrayList<>(input.length / 2);
@@ -55,10 +56,10 @@ public final class MapExpression extends TypedSubtree<MapEntry> implements Expre
 			knownKeys.add(entry.getKey());
 		}
 
-		return new MapExpression(newContent);
+		return new MapExpression<>(newContent);
 	}
 
-	public MapExpression(List<MapEntry> children) {
+	private MapExpression(List<MapEntry> children) {
 		super(children);
 	}
 }

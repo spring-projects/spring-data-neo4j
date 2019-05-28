@@ -19,6 +19,8 @@
 package org.springframework.data.neo4j.core.cypher;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.data.neo4j.core.cypher.Cypher.*;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,6 +29,8 @@ import org.junit.jupiter.api.Test;
  * @author Michael J. Simons
  */
 class FunctionsTest {
+
+	private static final String FUNCTION_NAME_FIELD = "functionName";
 
 	@Nested
 	class id {
@@ -40,6 +44,13 @@ class FunctionsTest {
 			assertThatIllegalArgumentException().isThrownBy(() -> Functions.id((Relationship) null))
 				.withMessage("The relationship parameter is required.");
 		}
+
+		@Test
+		void shouldCreateCorrectInvocation() {
+
+			FunctionInvocation invocation = Functions.id(node("Test"));
+			assertThat(invocation).hasFieldOrPropertyWithValue(FUNCTION_NAME_FIELD, "id");
+		}
 	}
 
 	@Nested
@@ -50,6 +61,13 @@ class FunctionsTest {
 
 			assertThatIllegalArgumentException().isThrownBy(() -> Functions.count(null))
 				.withMessage("The expression to count is required.");
+		}
+
+		@Test
+		void shouldCreateCorrectInvocation() {
+
+			FunctionInvocation invocation = Functions.count(mock(Expression.class));
+			assertThat(invocation).hasFieldOrPropertyWithValue(FUNCTION_NAME_FIELD, "count");
 		}
 	}
 
@@ -67,6 +85,31 @@ class FunctionsTest {
 
 			assertThatIllegalArgumentException().isThrownBy(() -> Functions.coalesce(new Expression[] { null }))
 				.withMessage("At least one expression is required.");
+		}
+
+		@Test
+		void shouldCreateCorrectInvocation() {
+
+			FunctionInvocation invocation = Functions.coalesce(mock(Expression.class));
+			assertThat(invocation).hasFieldOrPropertyWithValue(FUNCTION_NAME_FIELD, "coalesce");
+		}
+	}
+
+	@Nested
+	class collect {
+
+		@Test
+		void preconditionsShouldBeAsserted() {
+
+			assertThatIllegalArgumentException().isThrownBy(() -> Functions.collect(null))
+				.withMessage("The expression to collect is required.");
+		}
+
+		@Test
+		void shouldCreateCorrectInvocation() {
+
+			FunctionInvocation invocation = Functions.collect(mock(Expression.class));
+			assertThat(invocation).hasFieldOrPropertyWithValue(FUNCTION_NAME_FIELD, "collect");
 		}
 	}
 }

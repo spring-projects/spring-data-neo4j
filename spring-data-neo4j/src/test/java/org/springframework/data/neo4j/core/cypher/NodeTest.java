@@ -20,7 +20,12 @@ package org.springframework.data.neo4j.core.cypher;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
+import org.springframework.data.neo4j.core.cypher.support.Visitable;
+import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
  * @author Michael J. Simons
@@ -46,6 +51,17 @@ class NodeTest {
 	void shouldCreateNodes() {
 
 		Node node = Node.create("primary", "secondary");
-		assertThat(node.getLabels()).contains("primary", "secondary");
+		List<String> labels = new ArrayList<>();
+		node.accept(new Visitor() {
+			@Override
+			public void enter(Visitable segment) {
+
+				if (segment instanceof NodeLabel) {
+					labels.add(((NodeLabel) segment).getValue());
+				}
+
+			}
+		});
+		assertThat(labels).contains("primary", "secondary");
 	}
 }

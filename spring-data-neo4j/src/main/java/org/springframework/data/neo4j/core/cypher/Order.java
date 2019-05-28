@@ -31,7 +31,7 @@ import org.springframework.data.neo4j.core.cypher.support.TypedSubtree;
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public final class Order extends TypedSubtree<SortItem> {
+public final class Order<S extends Order<S>> extends TypedSubtree<SortItem, S> {
 
 	Order(List<SortItem> sortItems) {
 		super(sortItems);

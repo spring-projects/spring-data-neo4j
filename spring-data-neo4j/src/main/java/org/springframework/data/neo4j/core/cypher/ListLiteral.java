@@ -18,7 +18,8 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.*;
+
 import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
@@ -29,17 +30,16 @@ import org.apiguardian.api.API;
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public final class ListLiteral extends Literal<Iterable> {
+public final class ListLiteral extends Literal<Iterable<Literal<?>>> {
 
-	ListLiteral(Iterable content) {
+	ListLiteral(Iterable<Literal<?>> content) {
 		super(content);
 	}
 
 	@Override
 	public String asString() {
 
-		return "["
-				+ StreamSupport.stream(getContent().spliterator(), false).map(Object::toString).collect(Collectors.joining(","))
-				+ "]";
+		return StreamSupport.stream(getContent().spliterator(), false).map(Literal::asString).collect(
+			joining(", ", "[", "]"));
 	}
 }

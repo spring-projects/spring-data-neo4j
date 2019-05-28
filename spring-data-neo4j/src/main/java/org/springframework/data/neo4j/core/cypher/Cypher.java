@@ -20,7 +20,10 @@ package org.springframework.data.neo4j.core.cypher;
 
 import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.ExposesMatch;
-import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingMatchWithoutWhere;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingReadingAndWith;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingReadingWithoutWhere;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingUnwind;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingUpdate;
 import org.springframework.lang.Nullable;
 
 /**
@@ -46,6 +49,11 @@ public final class Cypher {
 	public static Node node(String primaryLabel, String... additionalLabels) {
 
 		return Node.create(primaryLabel, additionalLabels);
+	}
+
+	public static Node node(String primaryLabel, MapExpression properties, String... additionalLabels) {
+
+		return Node.create(primaryLabel, properties, additionalLabels);
 	}
 
 	/**
@@ -129,9 +137,67 @@ public final class Cypher {
 	 * @param pattern The patterns to match
 	 * @return An ongoing match that is used to specify an optional where and a required return clause
 	 */
-	public static OngoingMatchWithoutWhere match(PatternElement... pattern) {
+	public static OngoingReadingWithoutWhere match(PatternElement... pattern) {
 
 		return Statement.builder().match(pattern);
+	}
+
+	/**
+	 * Starts building a statement based on a {@code CREATE} clause.
+	 *
+	 * @param pattern The patterns to create
+	 * @return An ongoing {@code CREATE} that can be used to specify {@code WITH} and {@code RETURNING} etc.
+	 */
+	public static OngoingUpdate create(PatternElement... pattern) {
+
+		return Statement.builder().create(pattern);
+	}
+
+	/**
+	 * Starts a statement with a leading {@code WITH}. Those are usefull for passing on lists of various type that
+	 * can be unwound later on etc. A leading {@code WITH} cannot be used with patterns obviously and needs its
+	 * arguments to have an alias.
+	 *
+	 * @param expressions One ore more aliased expressions.
+	 * @return An onging with clause.
+	 */
+	public static OngoingReadingAndWith with(AliasedExpression... expressions) {
+
+		return Statement.builder().with(expressions);
+	}
+
+	/**
+	 * Starts building a statement based on a {@code MERGE} clause.
+	 *
+	 * @param pattern The patterns to merge
+	 * @return An ongoing {@code MERGE} that can be used to specify {@code WITH} and {@code RETURNING} etc.
+	 */
+	public static OngoingUpdate merge(PatternElement... pattern) {
+
+		return Statement.builder().merge(pattern);
+	}
+
+	/**
+	 * Starts building a statement starting with an {@code UNWIND} clause. The expression needs to be an expression
+	 * evaluating to a list, otherwise the query will fail.
+	 *
+	 * @param expression The expression to unwind
+	 * @return An ongoing {@code UNWIND}.
+	 */
+	public static OngoingUnwind unwind(Expression expression) {
+
+		return Statement.builder().unwind(expression);
+	}
+
+	/**
+	 * Starts building a statement starting with an {@code UNWIND} clause. The expressions passed will be turned into a
+	 * list expression
+	 * @param expressions
+	 * @return
+	 */
+	public static OngoingUnwind unwind(Expression... expressions) {
+
+		return Statement.builder().unwind(Cypher.listOf(expressions));
 	}
 
 	/**
@@ -157,13 +223,24 @@ public final class Cypher {
 	}
 
 	/**
+	 * Creates a {@link ListExpression list-expression} from several expressions.
+	 *
+	 * @param expressions
+	 * @return
+	 */
+	public static ListExpression listOf(Expression... expressions) {
+
+		return ListExpression.create(expressions);
+	}
+
+	/**
 	 * Creates a new {@link NullLiteral} from the given {@code object}.
 	 *
 	 * @param object the object to represent.
 	 * @return a new {@link NullLiteral}.
 	 * @throws IllegalArgumentException when the object cannot be represented as a literal
 	 */
-	public static Literal literalOf(@Nullable Object object) {
+	public static Literal<?> literalOf(@Nullable Object object) {
 
 		if (object == null) {
 			return NullLiteral.INSTANCE;
@@ -173,6 +250,9 @@ public final class Cypher {
 		}
 		if (object instanceof Number) {
 			return new NumberLiteral((Number) object);
+		}
+		if (object instanceof Iterable) {
+			return new ListLiteral((Iterable<Literal<?>>) object);
 		}
 		throw new IllegalArgumentException("Unsupported literal type: " + object.getClass());
 	}

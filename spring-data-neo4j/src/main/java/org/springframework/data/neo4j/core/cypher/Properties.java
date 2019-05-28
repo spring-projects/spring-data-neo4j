@@ -18,32 +18,30 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
-import static org.springframework.data.neo4j.core.cypher.Expressions.*;
-
-import java.util.List;
-
-import org.springframework.data.neo4j.core.cypher.support.TypedSubtree;
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
+import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
- * Represents a list of expressions. When visited, the expressions are treated as named expression if they have declared
- * a symbolic name as variable or as unnamed expression when nameless.
+ * Represents the properties of a {@link Node node} or a {@link Relationship relationship}.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
-class ExpressionList<S extends ExpressionList<S>> extends TypedSubtree<Expression, S> {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class Properties implements Visitable {
 
-	ExpressionList(List<Expression> returnItems) {
-		super(returnItems);
-	}
+	private final MapExpression<?> properties;
 
-	ExpressionList(Expression... children) {
-		super(children);
+	Properties(MapExpression<?> properties) {
+		this.properties = properties;
 	}
 
 	@Override
-	protected Visitable prepareVisit(Expression child) {
-		return nameOrExpression(child);
+	public void accept(Visitor visitor) {
+
+		visitor.enter(this);
+		this.properties.accept(visitor);
+		visitor.leave(this);
 	}
 }

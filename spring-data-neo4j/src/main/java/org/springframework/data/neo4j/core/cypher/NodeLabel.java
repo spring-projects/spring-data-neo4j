@@ -18,32 +18,29 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
-import static org.springframework.data.neo4j.core.cypher.Expressions.*;
+import lombok.ToString;
 
-import java.util.List;
-
-import org.springframework.data.neo4j.core.cypher.support.TypedSubtree;
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.support.Visitable;
 
 /**
- * Represents a list of expressions. When visited, the expressions are treated as named expression if they have declared
- * a symbolic name as variable or as unnamed expression when nameless.
+ * Expression for a single Node label.
  *
  * @author Michael J. Simons
+ * @soundtrack Richard Gibbs - Battlestar Galactica OST
  * @since 1.0
  */
-class ExpressionList<S extends ExpressionList<S>> extends TypedSubtree<Expression, S> {
+@API(status = API.Status.INTERNAL, since = "1.0")
+@ToString(of = { "value" })
+public final class NodeLabel implements Visitable {
 
-	ExpressionList(List<Expression> returnItems) {
-		super(returnItems);
+	private final String value;
+
+	NodeLabel(String value) {
+		this.value = value;
 	}
 
-	ExpressionList(Expression... children) {
-		super(children);
-	}
-
-	@Override
-	protected Visitable prepareVisit(Expression child) {
-		return nameOrExpression(child);
+	public String getValue() {
+		return value;
 	}
 }

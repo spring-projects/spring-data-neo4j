@@ -23,7 +23,7 @@ import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
  * See
- * <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/FunctionInvocation.html">FunctionInvocation</a>
+ * <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/FunctionInvocation.html">FunctionInvocation</a>
  *
  * @author Gerrit Meier
  * @author Michael J. Simons

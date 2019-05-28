@@ -27,7 +27,7 @@ import org.apiguardian.api.API;
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public final class Operations {
+final class Operations {
 
 	/**
 	 * Creates a {@code +} operation. Both operands must evaluate to a compatible type.
@@ -39,6 +39,24 @@ public final class Operations {
 	static Operation plus(Expression op1, Expression op2) {
 
 		return Operation.create(op1, Operator.ADDITION, op2);
+	}
+
+	/**
+	 * Creates a {@code =} operation. The left hand side should resolve to a property or to something which has labels
+	 * or types to modify and the right hand side should either be new properties or labels.
+	 *
+	 * @param target The target that should be modified
+	 * @param value  The new value of the target
+	 * @return A new operation.
+	 */
+	static Operation set(Expression target, Expression value) {
+
+		return Operation.create(target, Operator.SET, value);
+	}
+
+	static Operation set(Node target, String... label) {
+
+		return Operation.create(target, Operator.SET_LABEL, label);
 	}
 
 	/**

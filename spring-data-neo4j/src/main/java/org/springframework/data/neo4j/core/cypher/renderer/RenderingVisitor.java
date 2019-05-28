@@ -23,7 +23,6 @@ import static java.util.stream.Collectors.*;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,7 +48,6 @@ import org.springframework.lang.Nullable;
  */
 class RenderingVisitor extends ReflectiveVisitor {
 
-	private static final String LABEL_SEPARATOR = ":";
 	private static final String TYPE_SEPARATOR = ":";
 	private static final Pattern LABEL_AND_TYPE_QUOTATION = Pattern.compile("`");
 
@@ -66,17 +64,22 @@ class RenderingVisitor extends ReflectiveVisitor {
 	/**
 	 * This keeps track on which level of the tree a separator is needed.
 	 */
-	private final Set<Integer> separatorOnLevel = new HashSet<>();
+	private final java.util.Set<Integer> separatorOnLevel = new HashSet<>();
 
 	/**
 	 * Keeps track of named objects that have been already visited.
 	 */
-	private final Set<Named> visitedNamed = new HashSet<>();
+	private final java.util.Set<Named> visitedNamed = new HashSet<>();
 
 	/**
 	 * The current level in the tree of cypher elements.
 	 */
 	private int currentLevel = 0;
+
+	/**
+	 * Will be set to true when entering an already visited node.
+	 */
+	private boolean skipNodeContent = false;
 
 	private void enableSeparator(int level, boolean on) {
 		if (on) {
@@ -92,7 +95,11 @@ class RenderingVisitor extends ReflectiveVisitor {
 	}
 
 	@Override
-	protected void preEnter(Visitable visitable) {
+	protected boolean preEnter(Visitable visitable) {
+
+		if (skipNodeContent) {
+			return false;
+		}
 
 		int nextLevel = ++currentLevel + 1;
 		if (visitable instanceof TypedSubtree) {
@@ -103,6 +110,8 @@ class RenderingVisitor extends ReflectiveVisitor {
 			builder.append(separator);
 			separator = null;
 		}
+
+		return !skipNodeContent;
 	}
 
 	@Override
@@ -132,6 +141,22 @@ class RenderingVisitor extends ReflectiveVisitor {
 
 	void enter(Where where) {
 		builder.append(" WHERE ");
+	}
+
+	void enter(Create create) {
+		builder.append("CREATE ");
+	}
+
+	void leave(Create create) {
+		builder.append(" ");
+	}
+
+	void enter(Merge merge) {
+		builder.append("MERGE ");
+	}
+
+	void leave(Merge merge) {
+		builder.append(" ");
 	}
 
 	void enter(Return returning) {
@@ -213,23 +238,32 @@ class RenderingVisitor extends ReflectiveVisitor {
 	}
 
 	void enter(Operation operation) {
-		builder.append("(");
+
+		if (operation.needsGrouping()) {
+			builder.append("(");
+		}
 	}
 
 	void enter(Operator operator) {
 
 		Operator.Type type = operator.getType();
-		if (type == Operator.Type.BINARY || type == Operator.Type.POSTFIX) {
+		if (type == Operator.Type.LABEL) {
+			return;
+		}
+		if (type != Operator.Type.PREFIX) {
 			builder.append(" ");
 		}
 		builder.append(operator.getRepresentation());
-		if (type == Operator.Type.BINARY || type == Operator.Type.PREFIX) {
+		if (type != Operator.Type.POSTFIX) {
 			builder.append(" ");
 		}
 	}
 
 	void leave(Operation operation) {
-		builder.append(")");
+
+		if (operation.needsGrouping()) {
+			builder.append(")");
+		}
 	}
 
 	void enter(CompoundCondition compoundCondition) {
@@ -245,23 +279,36 @@ class RenderingVisitor extends ReflectiveVisitor {
 	}
 
 	void enter(Node node) {
+
 		builder.append("(");
+
+		// This is only relevant for nodes in relationships.
+		// Otherwise all the labels would be rendered again.
+		node.getSymbolicName().map(SymbolicName::getName).ifPresent(symbolicName -> {
+			skipNodeContent = visitedNamed.contains(node);
+			visitedNamed.add(node);
+
+			if (skipNodeContent) {
+				builder.append(symbolicName);
+			}
+		});
 	}
 
 	void leave(Node node) {
 
-		// This is only relevant for nodes in relationships.
-		if (!(node.getSymbolicName().isPresent() && visitedNamed.contains(node))) {
-			builder
-				.append(node.isLabeled() ? LABEL_SEPARATOR : "")
-				.append(node.getLabels().stream().map(RenderingVisitor::escapeName)
-					.filter(Optional::isPresent)
-					.map(Optional::get)
-					.collect(joining(LABEL_SEPARATOR)));
-			visitedNamed.add(node);
-		}
-
 		builder.append(")");
+
+		skipNodeContent = false;
+	}
+
+	void enter(NodeLabel nodeLabel) {
+
+		escapeName(nodeLabel.getValue()).ifPresent(label -> builder.append(":").append(label));
+	}
+
+	void enter(Properties properties) {
+
+		builder.append(" ");
 	}
 
 	void enter(SymbolicName symbolicName) {
@@ -309,6 +356,47 @@ class RenderingVisitor extends ReflectiveVisitor {
 		builder.append("}");
 	}
 
+	void enter(ListExpression list) {
+
+		builder.append("[");
+	}
+
+	void leave(ListExpression list) {
+
+		builder.append("]");
+	}
+
+	void enter(Unwind unwind) {
+
+		builder.append("UNWIND ");
+	}
+
+	void leave(Unwind unwind) {
+
+		builder.append(" AS ")
+			.append(unwind.getVariable())
+			.append(" ");
+	}
+
+
+	void enter(Set set) {
+
+		builder.append("SET ");
+	}
+
+	void leave(Set set) {
+		builder.append(" ");
+	}
+
+	void enter(Remove remove) {
+
+		builder.append("REMOVE ");
+	}
+
+	void leave(Remove remove) {
+		builder.append(" ");
+	}
+
 	public String getRenderedContent() {
 		return this.builder.toString();
 	}
@@ -329,6 +417,4 @@ class RenderingVisitor extends ReflectiveVisitor {
 		Matcher matcher = LABEL_AND_TYPE_QUOTATION.matcher(unescapedName);
 		return Optional.of(String.format(Locale.ENGLISH, "`%s`", matcher.replaceAll("``")));
 	}
-
 }
-

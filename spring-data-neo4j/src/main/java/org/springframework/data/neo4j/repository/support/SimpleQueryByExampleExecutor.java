@@ -43,7 +43,7 @@ import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.cypher.Functions;
 import org.springframework.data.neo4j.core.cypher.Statement;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder;
-import org.springframework.data.neo4j.core.cypher.StatementBuilder.BuildableMatch;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.BuildableStatement;
 import org.springframework.data.neo4j.core.cypher.renderer.CypherRenderer;
 import org.springframework.data.neo4j.core.cypher.renderer.Renderer;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -126,11 +126,11 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		StatementBuilder.OngoingMatchAndReturn returning = predicate
+		StatementBuilder.OngoingReadingAndReturn returning = predicate
 			.f(statementBuilder::prepareMatchOf)
 			.returning(asterisk());
 
-		BuildableMatch returningWithPaging = addPagingParameter(predicate.getNodeDescription(), pageable, returning);
+		BuildableStatement returningWithPaging = addPagingParameter(predicate.getNodeDescription(), pageable, returning);
 
 		Statement statement = returningWithPaging.build();
 

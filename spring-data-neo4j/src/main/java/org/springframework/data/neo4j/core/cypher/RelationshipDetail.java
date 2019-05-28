@@ -32,7 +32,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/RelationshipDetail.html">RelationshipDetail</a>
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/RelationshipDetail.html">RelationshipDetail</a>
  *
  * @author Michael J. Simons
  * @since 1.0

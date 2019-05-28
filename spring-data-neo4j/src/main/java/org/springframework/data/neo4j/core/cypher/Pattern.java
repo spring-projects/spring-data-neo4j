@@ -27,13 +27,13 @@ import org.springframework.data.neo4j.core.cypher.support.TypedSubtree;
  * A pattern is something that can be matched. It consists of one or more pattern elements. Those can be nodes or chains
  * of nodes and relationships.
  * <p/>
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/Pattern.html">Pattern</a>.
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Pattern.html">Pattern</a>.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public final class Pattern extends TypedSubtree<PatternElement> {
+public final class Pattern<S extends Pattern<S>> extends TypedSubtree<PatternElement, S> {
 
 	Pattern(List<PatternElement> patternElements) {
 		super(patternElements);

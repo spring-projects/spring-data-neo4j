@@ -18,6 +18,8 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import java.util.Arrays;
+
 import org.apiguardian.api.API;
 
 /**
@@ -40,6 +42,10 @@ public final class Expressions {
 		} else {
 			return expression;
 		}
+	}
+
+	static Expression[] createSymbolicNames(String[] variables) {
+		return Arrays.stream(variables).map(SymbolicName::new).toArray(Expression[]::new);
 	}
 
 	private Expressions() {
