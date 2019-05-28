@@ -20,6 +20,7 @@ package org.springframework.data.neo4j.core.cypher;
 
 import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.ExposesMatch;
+import org.springframework.data.neo4j.core.cypher.StatementBuilder.ExposesSet;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingReadingAndWith;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingReadingWithoutWhere;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingUnwind;
@@ -148,7 +149,7 @@ public final class Cypher {
 	 * @param pattern The patterns to create
 	 * @return An ongoing {@code CREATE} that can be used to specify {@code WITH} and {@code RETURNING} etc.
 	 */
-	public static OngoingUpdate create(PatternElement... pattern) {
+	public static <T extends OngoingUpdate & ExposesSet> T create(PatternElement... pattern) {
 
 		return Statement.builder().create(pattern);
 	}

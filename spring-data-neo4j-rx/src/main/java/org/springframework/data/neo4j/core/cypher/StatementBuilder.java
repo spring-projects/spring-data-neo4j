@@ -49,7 +49,7 @@ public interface StatementBuilder {
 	 * @param pattern
 	 * @return
 	 */
-	OngoingUpdate create(PatternElement... pattern);
+	<T extends OngoingUpdate & ExposesSet> T create(PatternElement... pattern);
 
 	/**
 	 * @see Cypher#merge(PatternElement...)
@@ -340,10 +340,7 @@ public interface StatementBuilder {
 		<T extends OngoingMatchAndUpdate & BuildableStatement> T detachDelete(Expression... expressions);
 	}
 
-	/**
-	 * A step that exposes the set clause.
-	 */
-	interface ExposesSetAndRemove {
+	interface ExposesSet {
 
 		/**
 		 * Adds a {@code SET} clause to the statement. The list of expressions must be even, each pair will be turned into
@@ -353,6 +350,12 @@ public interface StatementBuilder {
 		 * @return An ongoing match and update
 		 */
 		<T extends OngoingMatchAndUpdate & BuildableStatement> T set(Expression... expressions);
+	}
+
+	/**
+	 * A step that exposes the set clause.
+	 */
+	interface ExposesSetAndRemove extends ExposesSet {
 
 		<T extends OngoingMatchAndUpdate & BuildableStatement> T set(Node node, String... label);
 
@@ -385,7 +388,7 @@ public interface StatementBuilder {
 
 	interface ExposesCreate {
 
-		OngoingUpdate create(PatternElement... pattern);
+		<T extends OngoingUpdate & ExposesSet> T create(PatternElement... pattern);
 	}
 
 	interface ExposesMerge {

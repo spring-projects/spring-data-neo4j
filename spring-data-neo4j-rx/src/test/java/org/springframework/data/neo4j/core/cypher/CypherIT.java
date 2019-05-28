@@ -902,6 +902,18 @@ class CypherIT {
 	class SetClause {
 
 		@Test
+		void shouldRenderSetAfterCreate() {
+			Statement statement;
+			statement = Cypher.create(userNode)
+				.set(userNode.property("p").to(literalOf("Hallo, Welt")))
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"CREATE (u:`User`) SET u.p = 'Hallo, Welt'");
+		}
+
+		@Test
 		void shouldRenderSet() {
 
 			Statement statement;
