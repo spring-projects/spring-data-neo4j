@@ -183,7 +183,10 @@ class DefaultStatementBuilder
 
 	@Override
 	public OngoingMatchAndUpdate set(Expression... expressions) {
-
+		if (this.currentOngoingUpdate != null) {
+			this.currentSinglePartElements.add(this.currentOngoingUpdate.buildUpdatingClause());
+			this.currentOngoingUpdate = null;
+		}
 		return new DefaultStatementWithUpdateBuilder(SET, expressions);
 	}
 
@@ -435,7 +438,7 @@ class DefaultStatementBuilder
 
 			return DefaultStatementBuilder.this
 				.addWith(buildWith())
-				.detachDelete(expressions);
+				.set(expressions);
 		}
 
 		@Override
