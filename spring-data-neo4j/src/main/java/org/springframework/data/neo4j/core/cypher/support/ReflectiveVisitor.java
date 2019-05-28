@@ -61,7 +61,11 @@ public abstract class ReflectiveVisitor implements Visitor {
 		}
 	}
 
-	private final Map<TargetAndPhase, Optional<MethodHandle>> cachedHandles = new ConcurrentHashMap<>();
+	/**
+	 * A shared cache of unbound method handles for entering and leaving phases.
+	 * The key is the concrete class of the visitor as well as the hierarchy of the visitable.
+	 */
+	private static final Map<TargetAndPhase, Optional<MethodHandle>> VISITING_METHODS_CACHE = new ConcurrentHashMap<>();
 
 	/** Keeps track of the ASTs current level. */
 	private Deque<Visitable> currentVisitedElements = new LinkedList<>();
@@ -90,7 +94,7 @@ public abstract class ReflectiveVisitor implements Visitor {
 
 		if (preEnter(visitable)) {
 			currentVisitedElements.push(visitable);
-			executeConcreteMethodIn(new TargetAndPhase(visitable.getClass(), Phase.ENTER), visitable);
+			executeConcreteMethodIn(new TargetAndPhase(this, visitable.getClass(), Phase.ENTER), visitable);
 		}
 	}
 
@@ -98,32 +102,33 @@ public abstract class ReflectiveVisitor implements Visitor {
 	public final void leave(Visitable visitable) {
 
 		if (currentVisitedElements.peek() == visitable) {
-			executeConcreteMethodIn(new TargetAndPhase(visitable.getClass(), Phase.LEAVE), visitable);
+			executeConcreteMethodIn(new TargetAndPhase(this, visitable.getClass(), Phase.LEAVE), visitable);
 			postLeave(visitable);
 			currentVisitedElements.pop();
 		}
 	}
 
 	private void executeConcreteMethodIn(TargetAndPhase targetAndPhase, Visitable onVisitable) {
-		Optional<MethodHandle> optionalHandle = this.cachedHandles.computeIfAbsent(targetAndPhase, this::findHandleFor);
+		Optional<MethodHandle> optionalHandle = VISITING_METHODS_CACHE
+			.computeIfAbsent(targetAndPhase, ReflectiveVisitor::findHandleFor);
 		optionalHandle.ifPresent(handle -> {
 			try {
-				handle.invoke(onVisitable);
+				handle.invoke(this, onVisitable);
 			} catch (Throwable throwable) {
 				throwable.printStackTrace();
 			}
 		});
 	}
 
-	private Optional<MethodHandle> findHandleFor(TargetAndPhase targetAndPhase) {
+	private static Optional<MethodHandle> findHandleFor(TargetAndPhase targetAndPhase) {
 
 		for (Class<?> clazz : targetAndPhase.classHierarchyOfVisitable) {
 			try {
 				// Using MethodHandles.lookup().findVirtual() doesn't allow to make a protected method accessible.
-				Method method = this.getClass()
+				Method method = targetAndPhase.visitorClass
 					.getDeclaredMethod(targetAndPhase.phase.methodName, clazz);
 				method.setAccessible(true);
-				return Optional.of(MethodHandles.lookup().in(this.getClass()).unreflect(method).bindTo(this));
+				return Optional.of(MethodHandles.lookup().in(targetAndPhase.visitorClass).unreflect(method));
 			} catch (IllegalAccessException | NoSuchMethodException e) {
 				// We don't do anything if the method doesn't exists
 				// Try the next parameter type in the hierarchy
@@ -134,11 +139,15 @@ public abstract class ReflectiveVisitor implements Visitor {
 
 	@EqualsAndHashCode
 	private static class TargetAndPhase {
+		private final Class<? extends ReflectiveVisitor> visitorClass;
+
 		private final List<Class<?>> classHierarchyOfVisitable;
 
 		private final Phase phase;
 
-		TargetAndPhase(Class<? extends Visitable> concreteVisitableClass, Phase phase) {
+		<T extends ReflectiveVisitor> TargetAndPhase(T visitor, Class<? extends Visitable> concreteVisitableClass,
+			Phase phase) {
+			this.visitorClass = visitor.getClass();
 			this.phase = phase;
 			this.classHierarchyOfVisitable = new ArrayList<>();
 

@@ -49,7 +49,7 @@ import org.springframework.data.neo4j.core.cypher.Expression;
 import org.springframework.data.neo4j.core.cypher.Functions;
 import org.springframework.data.neo4j.core.cypher.SortItem;
 import org.springframework.data.neo4j.core.cypher.Statement;
-import org.springframework.data.neo4j.core.cypher.renderer.CypherRenderer;
+import org.springframework.data.neo4j.core.cypher.renderer.Renderer;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
@@ -138,7 +138,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 			.limit(maxResults)
 			.build();
 
-		return CypherRenderer.create().render(statement);
+		return Renderer.getDefaultRenderer().render(statement);
 	}
 
 	private Condition createImpl(Part part, Iterator<Object> actualParameters) {

@@ -39,7 +39,6 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient.ExecutableQuery;
 import org.springframework.data.neo4j.core.cypher.Functions;
 import org.springframework.data.neo4j.core.cypher.Statement;
-import org.springframework.data.neo4j.core.cypher.renderer.CypherRenderer;
 import org.springframework.data.neo4j.core.cypher.renderer.Renderer;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
@@ -56,7 +55,7 @@ import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
 @RequiredArgsConstructor(access = PACKAGE)
 class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleExecutor<T> {
 
-	private static final Renderer renderer = CypherRenderer.create();
+	private static final Renderer renderer = Renderer.getDefaultRenderer();
 
 	private final ReactiveNeo4jClient neo4jClient;
 
