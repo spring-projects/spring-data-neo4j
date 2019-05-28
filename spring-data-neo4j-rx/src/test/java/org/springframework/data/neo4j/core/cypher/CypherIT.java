@@ -914,6 +914,44 @@ class CypherIT {
 		}
 
 		@Test
+		void shouldRenderSetAfterMerge() {
+			Statement statement;
+			statement = Cypher.merge(userNode)
+				.set(userNode.property("p").to(literalOf("Hallo, Welt")))
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MERGE (u:`User`) SET u.p = 'Hallo, Welt'");
+		}
+
+		@Test
+		void shouldRenderSetAfterCreateAndWith() {
+			Statement statement;
+			statement = Cypher.create(userNode)
+				.with(userNode)
+				.set(userNode.property("p").to(literalOf("Hallo, Welt")))
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"CREATE (u:`User`) WITH u SET u.p = 'Hallo, Welt'");
+		}
+
+		@Test
+		void shouldRenderSetAfterMergeAndWith() {
+			Statement statement;
+			statement = Cypher.merge(userNode)
+				.with(userNode)
+				.set(userNode.property("p").to(literalOf("Hallo, Welt")))
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MERGE (u:`User`) WITH u SET u.p = 'Hallo, Welt'");
+		}
+
+		@Test
 		void shouldRenderSet() {
 
 			Statement statement;
@@ -1361,6 +1399,15 @@ class CypherIT {
 					"MATCH (u:`User`) DETACH DELETE u");
 
 			statement = Cypher.match(userNode)
+				.with(userNode)
+				.detachDelete(userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (u:`User`) WITH u DETACH DELETE u");
+
+			statement = Cypher.match(userNode)
 				.where(userNode.property("a").isNotNull()).and(userNode.property("b").isNull())
 				.delete(userNode)
 				.build();
@@ -1598,7 +1645,7 @@ class CypherIT {
 
 			Statement statement;
 			statement = Cypher.unwind(Cypher.literalOf(1), Cypher.literalTrue(), Cypher.literalFalse())
-				.as("n").returning(symbolicName("n"))
+				.as("n").returning(name("n"))
 				.build();
 
 			assertThat(cypherRenderer.render(statement))
@@ -1612,7 +1659,7 @@ class CypherIT {
 			Statement statement;
 			statement = Cypher.unwind(Cypher.literalOf(1), Cypher.literalTrue(), Cypher.literalFalse())
 				.as("n")
-				.merge(bikeNode.properties("b", symbolicName("n")))
+				.merge(bikeNode.properties("b", name("n")))
 				.returning(bikeNode)
 				.build();
 
@@ -1631,7 +1678,7 @@ class CypherIT {
 				.with(collected)
 				.unwind(collected).as("x")
 				.with("x")
-				.delete(symbolicName("x"))
+				.delete(name("x"))
 				.returning("x")
 				.build();
 

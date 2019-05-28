@@ -403,7 +403,7 @@ public interface StatementBuilder {
 		}
 
 		default OngoingUnwind unwind(String variable) {
-			return unwind(Cypher.symbolicName(variable));
+			return unwind(Cypher.name(variable));
 		}
 
 		OngoingUnwind unwind(Expression expression);

@@ -64,7 +64,7 @@ import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 
 		NodeDescription<?> probeNodeDescription = mappingContext.getRequiredNodeDescription(example.getProbeType());
 
-		SymbolicName rootNode = Cypher.symbolicName(NAME_OF_ROOT_NODE);
+		SymbolicName rootNode = Cypher.name(NAME_OF_ROOT_NODE);
 		Collection<GraphPropertyDescription> graphProperties = probeNodeDescription.getGraphProperties();
 		DirectFieldAccessFallbackBeanWrapper beanWrapper = new DirectFieldAccessFallbackBeanWrapper(example.getProbe());
 		ExampleMatcher matcher = example.getMatcher();
@@ -81,7 +81,7 @@ import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 				continue;
 			}
 
-			boolean internalId = graphProperty.isIdProperty() && probeNodeDescription.useInternalIds();
+			boolean internalId = graphProperty.isIdProperty() && probeNodeDescription.isUsingInternalIds();
 			String propertyName = graphProperty.getPropertyName();
 
 			ExampleMatcher.PropertyValueTransformer transformer = matcherAccessor
@@ -98,7 +98,7 @@ import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 
 			if (graphProperty.isRelationship()) {
 				log.error("Querying by example does not support traversing of relationships.");
-			} else if (graphProperty.isIdProperty() && probeNodeDescription.useInternalIds()) {
+			} else if (graphProperty.isIdProperty() && probeNodeDescription.isUsingInternalIds()) {
 				predicate
 					.add(mode, createIdExpression(predicate.nodeDescription).isEqualTo(literalOf(optionalValue.get())));
 			} else {

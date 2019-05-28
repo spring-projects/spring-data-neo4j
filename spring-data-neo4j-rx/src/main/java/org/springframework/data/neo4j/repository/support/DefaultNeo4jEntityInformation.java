@@ -18,13 +18,14 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
+import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.cypher.Expression;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.repository.query.CypherAdapterUtils;
 import org.springframework.data.repository.core.support.PersistentEntityInformation;
 
@@ -38,34 +39,59 @@ import org.springframework.data.repository.core.support.PersistentEntityInformat
 final class DefaultNeo4jEntityInformation<T, ID> extends PersistentEntityInformation<T, ID>
 	implements Neo4jEntityInformation<T, ID> {
 
-	private final NodeDescription<T> nodeDescription;
+	private final Neo4jPersistentEntity<T> entityMetaData;
 	private final BiFunction<TypeSystem, Record, T> mappingFunction;
+	private final Function<T, Map<String, Object>> binderFunction;
+
 	private final Expression idExpression;
 
 	DefaultNeo4jEntityInformation(
 		Neo4jPersistentEntity<T> entityMetaData,
-		BiFunction<TypeSystem, Record, T> mappingFunction
+		BiFunction<TypeSystem, Record, T> mappingFunction,
+		Function<T, Map<String, Object>> binderFunction
 	) {
 		super(entityMetaData);
 
-		this.nodeDescription = entityMetaData;
+		this.entityMetaData = entityMetaData;
 		this.mappingFunction = mappingFunction;
+		this.binderFunction = binderFunction;
 
-		this.idExpression = CypherAdapterUtils.createIdExpression(nodeDescription);
+		this.idExpression = CypherAdapterUtils.createIdExpression(entityMetaData);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see Neo4jEntityInformation#getIdExpression()
+	 */
 	@Override
 	public Expression getIdExpression() {
 		return this.idExpression;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see Neo4jEntityInformation#getEntityMetaData()
+	 */
 	@Override
-	public NodeDescription getNodeDescription() {
-		return this.nodeDescription;
+	public Neo4jPersistentEntity<T> getEntityMetaData() {
+		return this.entityMetaData;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see Neo4jEntityInformation#getMappingFunction()
+	 */
 	@Override
 	public BiFunction<TypeSystem, Record, T> getMappingFunction() {
 		return mappingFunction;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see Neo4jEntityInformation#getBinderFunction()
+	 */
+	@Override
+	public Function<T, Map<String, Object>> getBinderFunction() {
+		return binderFunction;
 	}
 }

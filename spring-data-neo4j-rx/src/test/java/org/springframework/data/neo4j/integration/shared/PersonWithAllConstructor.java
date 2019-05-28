@@ -23,6 +23,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.Wither;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -45,12 +46,13 @@ import org.springframework.data.neo4j.core.schema.Property;
 public class PersonWithAllConstructor {
 
 	@Id
+	@Wither
 	private final Long id;
 
 	private final String name;
 
 	@Property("first_name")
-	private final String firstName;
+	private String firstName;
 
 	private final String sameValue;
 
@@ -60,7 +62,7 @@ public class PersonWithAllConstructor {
 
 	private final LocalDate bornOn;
 
-	private final String nullable;
+	private String nullable;
 
 	private final List<String> things;
 

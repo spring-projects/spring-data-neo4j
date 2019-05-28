@@ -67,7 +67,7 @@ final class ReactiveNeo4jRepositoryFactory extends RepositoryFactorySupport {
 		Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(domainClass);
 		BiFunction<TypeSystem, Record, T> mappingFunction = mappingContext.getRequiredMappingFunctionFor(domainClass);
 
-		return new DefaultNeo4jEntityInformation<>((Neo4jPersistentEntity<T>) entity, mappingFunction);
+		return new DefaultNeo4jEntityInformation<>((Neo4jPersistentEntity<T>) entity, mappingFunction, null);
 	}
 
 	@Override

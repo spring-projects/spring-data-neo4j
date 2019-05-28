@@ -29,17 +29,10 @@ import java.util.function.Function;
 import org.apiguardian.api.API;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.core.cypher.Condition;
-import org.springframework.data.neo4j.core.cypher.Conditions;
-import org.springframework.data.neo4j.core.cypher.Cypher;
-import org.springframework.data.neo4j.core.cypher.Expression;
-import org.springframework.data.neo4j.core.cypher.Functions;
-import org.springframework.data.neo4j.core.cypher.Node;
-import org.springframework.data.neo4j.core.cypher.SortItem;
-import org.springframework.data.neo4j.core.cypher.StatementBuilder;
+import org.springframework.data.mapping.MappingException;
+import org.springframework.data.neo4j.core.cypher.*;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.BuildableStatement;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingReadingAndWith;
-import org.springframework.data.neo4j.core.cypher.SymbolicName;
 import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.IdDescription;
@@ -66,7 +59,7 @@ public final class CypherAdapterUtils {
 	 * @return A stream if sort items. Will be empty when sort is unsorted.
 	 */
 	public static Function<Sort.Order, SortItem> sortAdapterFor(NodeDescription<?> nodeDescription) {
-		SymbolicName rootNode = Cypher.symbolicName(NodeDescription.NAME_OF_ROOT_NODE);
+		SymbolicName rootNode = Cypher.name(NodeDescription.NAME_OF_ROOT_NODE);
 
 		return order -> {
 			String property = nodeDescription.getGraphProperty(order.getProperty())
@@ -139,23 +132,59 @@ public final class CypherAdapterUtils {
 		 * @return An ongoing match
 		 */
 		public OngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription, Optional<Condition> condition) {
-			Node rootNode = Cypher.node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
+			Node rootNode = node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
 			IdDescription idDescription = nodeDescription.getIdDescription();
 
 			List<Expression> expressions = new ArrayList<>();
 			expressions.add(rootNode);
-			if (idDescription.getIdStrategy() == Id.Strategy.INTERNAL) {
+			if (idDescription.getIdStrategy() == Id.Strategy.INTERNALLY_GENERATED) {
 				expressions.add(Functions.id(rootNode).as(NAME_OF_INTERNAL_ID));
 			}
 			return Cypher.match(rootNode).where(condition.orElse(Conditions.noCondition()))
 				.with(expressions.toArray(new Expression[expressions.size()]));
 		}
 
-		public BuildableStatement prepareDeleteOf(NodeDescription<?> nodeDescription,
+		public Statement prepareDeleteOf(NodeDescription<?> nodeDescription,
 			Optional<Condition> condition) {
 
-			Node rootNode = Cypher.node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
-			return Cypher.match(rootNode).where(condition.orElse(Conditions.noCondition())).delete(rootNode);
+			Node rootNode = node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
+			return Cypher.match(rootNode).where(condition.orElse(Conditions.noCondition())).delete(rootNode).build();
+		}
+
+		public Statement prepareSaveOf(NodeDescription<?> nodeDescription) {
+
+			Node rootNode = node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
+			IdDescription idDescription = nodeDescription.getIdDescription();
+			Parameter idParameter = parameter(NAME_OF_ID_PARAM);
+			if (idDescription.getIdStrategy().isExternal()) {
+				String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
+					.orElseThrow(() -> new MappingException("External id does not correspond to a graph property!"));
+
+				return Cypher.merge(rootNode.properties(nameOfIdProperty, idParameter))
+					.set(rootNode, parameter(NAME_OF_PROPERTIES_PARAM))
+					.returning(rootNode.internalId())
+					.build();
+			} else {
+				Node possibleExistingNode = node(nodeDescription.getPrimaryLabel()).named("hlp");
+
+				Statement createIfNew = Cypher
+					.optionalMatch(possibleExistingNode)
+					.where(possibleExistingNode.internalId().isEqualTo(idParameter))
+					.with(possibleExistingNode).where(possibleExistingNode.isNull())
+					.create(rootNode)
+					.set(rootNode, parameter(NAME_OF_PROPERTIES_PARAM))
+					.returning(rootNode.internalId())
+					.build();
+
+				Statement updateIfExists = Cypher
+					.match(rootNode)
+					.where(rootNode.internalId().isEqualTo(idParameter))
+					.set(rootNode, parameter(NAME_OF_PROPERTIES_PARAM))
+					.returning(rootNode.internalId())
+					.build();
+
+				return Cypher.union(createIfNew, updateIfExists);
+			}
 		}
 	}
 
@@ -180,15 +209,15 @@ public final class CypherAdapterUtils {
 	 */
 	public static Expression createIdExpression(final NodeDescription<?> nodeDescription) {
 
-		final SymbolicName rootNode = Cypher.symbolicName(NAME_OF_ROOT_NODE);
+		final SymbolicName rootNode = Cypher.name(NAME_OF_ROOT_NODE);
 		final IdDescription idDescription = nodeDescription.getIdDescription();
 		Expression idExpression;
 		switch (idDescription.getIdStrategy()) {
-			case INTERNAL:
+			case INTERNALLY_GENERATED:
 				idExpression = Functions.id(rootNode);
 				break;
 			case ASSIGNED:
-			case GENERATED:
+			case EXTERNALLY_GENERATED:
 				idExpression = idDescription.getOptionalGraphPropertyName()
 					.map(propertyName -> property(rootNode.getName(), propertyName)).get();
 				break;

@@ -48,7 +48,7 @@ public final class IdDescription {
 	private @Nullable final String graphPropertyName;
 
 	public IdDescription() {
-		this(Id.Strategy.INTERNAL, null, null);
+		this(Id.Strategy.INTERNALLY_GENERATED, null, null);
 	}
 
 	public IdDescription(Id.Strategy idStrategy,
@@ -68,7 +68,7 @@ public final class IdDescription {
 
 	/**
 	 * An ID description has only a corresponding graph property name when it's based on either {@link Id.Strategy#ASSIGNED}
-	 * or {@link Id.Strategy#GENERATED}. An internal id has no corresponding graph property and therefor this method
+	 * or {@link Id.Strategy#EXTERNALLY_GENERATED}. An internal id has no corresponding graph property and therefor this method
 	 * will return an empty {@link Optional} in such cases.
 	 *
 	 * @return The name of an optional graph property.

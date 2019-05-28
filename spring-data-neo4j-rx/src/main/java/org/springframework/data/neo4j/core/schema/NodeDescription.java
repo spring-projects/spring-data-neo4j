@@ -36,6 +36,8 @@ public interface NodeDescription<T> {
 
 	String NAME_OF_ROOT_NODE = "n";
 	String NAME_OF_INTERNAL_ID = "__internalNeo4jId__";
+	String NAME_OF_ID_PARAM = "__id__";
+	String NAME_OF_PROPERTIES_PARAM = "__properties__";
 
 	/**
 	 * @return The primary label of this entity inside Neo4j.
@@ -68,7 +70,7 @@ public interface NodeDescription<T> {
 	/**
 	 * @return True if entities for this node use Neo4j internal ids.
 	 */
-	default boolean useInternalIds() {
-		return this.getIdDescription().getIdStrategy() == Id.Strategy.INTERNAL;
+	default boolean isUsingInternalIds() {
+		return this.getIdDescription().getIdStrategy() == Id.Strategy.INTERNALLY_GENERATED;
 	}
 }

@@ -51,7 +51,7 @@ import org.springframework.data.neo4j.core.schema.NodeDescription;
  */
 @RequiredArgsConstructor
 @Slf4j
-class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Record, T> {
+final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Record, T> {
 
 	private final EntityInstantiators instantiators;
 

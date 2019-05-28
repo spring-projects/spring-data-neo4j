@@ -106,7 +106,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	@Override
 	public boolean isInternalIdProperty() {
 
-		return this.isIdProperty() && ((Neo4jPersistentEntity) this.getOwner()).useInternalIds();
+		return this.isIdProperty() && ((Neo4jPersistentEntity) this.getOwner()).isUsingInternalIds();
 	}
 
 	@Override

@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.neo4j.driver.Record;
@@ -162,6 +163,17 @@ public class Neo4jMappingContext
 		return this.getNodeDescription(targetClass)
 			.map(Neo4jPersistentEntity.class::cast)
 			.map(neo4jPersistentEntity -> new DefaultNeo4jMappingFunction<>(instantiators, neo4jPersistentEntity));
+	}
+
+	@Override
+	public <T> Optional<Function<T, Map<String, Object>>> getBinderFunctionFor(Class<T> sourceClass) {
+		if (!this.hasPersistentEntityFor(sourceClass)) {
+			return Optional.empty();
+		}
+
+		return this.getNodeDescription(sourceClass)
+			.map(Neo4jPersistentEntity.class::cast)
+			.map(neo4jPersistentEntity -> new DefaultNeo4jBinderFunction<>(neo4jPersistentEntity));
 	}
 
 	private Collection<RelationshipDescription> computeRelationshipsOf(String primaryLabel) {

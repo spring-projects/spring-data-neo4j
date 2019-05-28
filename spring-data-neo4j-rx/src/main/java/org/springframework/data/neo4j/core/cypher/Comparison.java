@@ -18,9 +18,9 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import static org.springframework.data.neo4j.core.cypher.Expressions.*;
 
 import org.apiguardian.api.API;
-import org.springframework.data.neo4j.core.cypher.support.Visitable;
 import org.springframework.data.neo4j.core.cypher.support.Visitor;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -78,9 +78,13 @@ public final class Comparison implements Condition {
 	public void accept(Visitor visitor) {
 
 		visitor.enter(this);
-		Visitable.visitIfNotNull(left, visitor);
+		if (left != null) {
+			nameOrExpression(left).accept(visitor);
+		}
 		comparator.accept(visitor);
-		Visitable.visitIfNotNull(right, visitor);
+		if (right != null) {
+			nameOrExpression(right).accept(visitor);
+		}
 		visitor.leave(this);
 	}
 }

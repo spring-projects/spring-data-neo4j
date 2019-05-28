@@ -24,6 +24,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.EnumSet;
 
 import org.apiguardian.api.API;
 
@@ -49,7 +50,7 @@ public @interface Id {
 		/**
 		 * The default, use Neo4js internal ids.
 		 */
-		INTERNAL,
+		INTERNALLY_GENERATED,
 
 		/**
 		 * Use assigned values.
@@ -57,9 +58,23 @@ public @interface Id {
 		ASSIGNED,
 
 		/**
-		 * Use generated values, a generator class is required.
+		 * Use externally generated values, a generator class is required.
 		 */
-		GENERATED
+		EXTERNALLY_GENERATED;
+
+		/**
+		 * @return True, if the database generated the ID.
+		 */
+		public boolean isInternal() {
+			return this == INTERNALLY_GENERATED;
+		}
+
+		/**
+		 * @return True, if the ID is assigned to the entity before the entity hits the database
+		 */
+		public boolean isExternal() {
+			return EnumSet.of(ASSIGNED, EXTERNALLY_GENERATED).contains(this);
+		}
 	}
 
 	/**
@@ -67,7 +82,7 @@ public @interface Id {
 	 *
 	 * @return The strategy applied for generating ids for new entities. Defaults to use Neo4j internal database identifiers.
 	 */
-	Strategy strategy() default Strategy.INTERNAL;
+	Strategy strategy() default Strategy.INTERNALLY_GENERATED;
 
 	/**
 	 *
