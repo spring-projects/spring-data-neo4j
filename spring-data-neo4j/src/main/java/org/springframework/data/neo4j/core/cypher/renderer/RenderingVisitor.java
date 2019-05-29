@@ -378,7 +378,13 @@ class RenderingVisitor extends ReflectiveVisitor {
 			.append(" ");
 	}
 
+	void enter(UnionPart unionPart) {
 
+		builder.append(" UNION ");
+		if (unionPart.isAll()) {
+			builder.append("ALL ");
+		}
+	}
 	void enter(Set set) {
 
 		builder.append("SET ");

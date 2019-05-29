@@ -19,13 +19,41 @@
 package org.springframework.data.neo4j.core.cypher;
 
 import org.apiguardian.api.API;
+import org.springframework.data.neo4j.core.cypher.Statement.SingleQuery;
+import org.springframework.data.neo4j.core.cypher.support.Visitable;
+import org.springframework.data.neo4j.core.cypher.support.Visitor;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Cypher.html#RegularQuery">RegularQuery</a>.
+ * Represents a part of an union.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public interface RegularQuery {
+public final class UnionPart implements Visitable {
+
+	private final boolean all;
+
+	private final SingleQuery query;
+
+	UnionPart(boolean all, SingleQuery query) {
+		this.all = all;
+		this.query = query;
+	}
+
+	public boolean isAll() {
+		return all;
+	}
+
+	SingleQuery getQuery() {
+		return query;
+	}
+
+	@Override
+	public void accept(Visitor visitor) {
+
+		visitor.enter(this);
+		query.accept(visitor);
+		visitor.leave(this);
+	}
 }

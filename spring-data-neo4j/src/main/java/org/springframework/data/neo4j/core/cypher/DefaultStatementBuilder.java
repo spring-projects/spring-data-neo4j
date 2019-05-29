@@ -435,10 +435,10 @@ class DefaultStatementBuilder
 
 		@Override
 		public OngoingMatchAndUpdate detachDelete(Expression... expressions) {
-
 			return DefaultStatementBuilder.this
+
 				.addWith(buildWith())
-				.set(expressions);
+				.detachDelete(expressions);
 		}
 
 		@Override
@@ -651,6 +651,11 @@ class DefaultStatementBuilder
 		@Override
 		public OngoingMatchAndUpdate detachDelete(Expression... deletedExpressions) {
 			return delete(true, deletedExpressions);
+		}
+
+		@Override
+		public <T extends OngoingUpdate & ExposesSet> T merge(PatternElement... pattern) {
+			throw new UnsupportedOperationException("Not supported yet");
 		}
 
 		private OngoingMatchAndUpdate delete(boolean nextDetach, Expression... deletedExpressions) {

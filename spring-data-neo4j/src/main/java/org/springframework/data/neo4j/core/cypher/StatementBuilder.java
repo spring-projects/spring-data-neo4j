@@ -56,7 +56,7 @@ public interface StatementBuilder {
 	 * @param pattern
 	 * @return
 	 */
-	OngoingUpdate merge(PatternElement... pattern);
+	<T extends OngoingUpdate & ExposesSet> T merge(PatternElement... pattern);
 
 	OngoingUnwind unwind(Expression expression);
 
@@ -307,7 +307,7 @@ public interface StatementBuilder {
 	/**
 	 * A step providing all the supported updating clauses (DELETE, SET)
 	 */
-	interface ExposesUpdatingClause extends ExposesDelete, ExposesSetAndRemove {
+	interface ExposesUpdatingClause extends ExposesDelete, ExposesMerge, ExposesSetAndRemove {
 	}
 
 	/**
@@ -393,7 +393,7 @@ public interface StatementBuilder {
 
 	interface ExposesMerge {
 
-		OngoingUpdate merge(PatternElement... pattern);
+		<T extends OngoingUpdate & ExposesSet> T merge(PatternElement... pattern);
 	}
 
 	interface ExposesUnwind {
