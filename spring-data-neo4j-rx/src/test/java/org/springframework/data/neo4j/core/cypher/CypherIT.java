@@ -1607,6 +1607,21 @@ class CypherIT {
 		}
 
 		@Test
+		void shouldRenderLeadingUnwindWithUpdate() {
+
+			Statement statement;
+			statement = Cypher.unwind(Cypher.literalOf(1), Cypher.literalTrue(), Cypher.literalFalse())
+				.as("n")
+				.merge(bikeNode.properties("b", symbolicName("n")))
+				.returning(bikeNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"UNWIND [1, true, false] AS n MERGE (b:`Bike` {b: n}) RETURN b");
+		}
+
+		@Test
 		void shouldRenderUnwind() {
 
 			Statement statement;
@@ -1616,13 +1631,113 @@ class CypherIT {
 				.with(collected)
 				.unwind(collected).as("x")
 				.with("x")
-				.delete(Cypher.symbolicName("x"))
+				.delete(symbolicName("x"))
 				.returning("x")
 				.build();
 
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo(
 					"MATCH (b:`Bike`) WITH collect(b) AS collected UNWIND collected AS x WITH x DELETE x RETURN x");
+		}
+	}
+
+	@Nested
+	class Unions {
+
+		@Test
+		void shouldRenderUnions() {
+
+			Statement statement1 = Cypher.match(bikeNode)
+				.where(bikeNode.property("a").isEqualTo(literalOf("A")))
+				.returning(bikeNode)
+				.build();
+
+			Statement statement2 = Cypher.match(bikeNode)
+				.where(bikeNode.property("b").isEqualTo(literalOf("B")))
+				.returning(bikeNode)
+				.build();
+
+			Statement statement;
+			statement = Cypher.union(statement1, statement2);
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (b:`Bike`) WHERE b.a = 'A' RETURN b UNION MATCH (b) WHERE b.b = 'B' RETURN b");
+		}
+
+		@Test
+		void shouldRenderAllUnions() {
+
+			Statement statement1 = Cypher.match(bikeNode)
+				.where(bikeNode.property("a").isEqualTo(literalOf("A")))
+				.returning(bikeNode)
+				.build();
+
+			Statement statement2 = Cypher.match(bikeNode)
+				.where(bikeNode.property("b").isEqualTo(literalOf("B")))
+				.returning(bikeNode)
+				.build();
+
+			Statement statement;
+			statement = Cypher.unionAll(statement1, statement2);
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (b:`Bike`) WHERE b.a = 'A' RETURN b UNION ALL MATCH (b) WHERE b.b = 'B' RETURN b");
+		}
+
+		@Test
+		void shouldAppendToExistingUnions() {
+
+			Statement statement1 = Cypher.match(bikeNode)
+				.where(bikeNode.property("a").isEqualTo(literalOf("A")))
+				.returning(bikeNode)
+				.build();
+
+			Statement statement2 = Cypher.match(bikeNode)
+				.where(bikeNode.property("b").isEqualTo(literalOf("B")))
+				.returning(bikeNode)
+				.build();
+
+			Statement statement;
+			statement = Cypher.unionAll(statement1, statement2);
+
+			Statement statement3 = Cypher.match(bikeNode)
+				.where(bikeNode.property("c").isEqualTo(literalOf("C")))
+				.returning(bikeNode)
+				.build();
+
+			statement = Cypher.unionAll(statement, statement3);
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (b:`Bike`) WHERE b.a = 'A' RETURN b UNION ALL MATCH (b) WHERE b.b = 'B' RETURN b UNION ALL MATCH (b) WHERE b.c = 'C' RETURN b");
+		}
+
+		@Test
+		void shouldNotMix() {
+
+			Statement statement1 = Cypher.match(bikeNode)
+				.where(bikeNode.property("a").isEqualTo(literalOf("A")))
+				.returning(bikeNode)
+				.build();
+
+			Statement statement2 = Cypher.match(bikeNode)
+				.where(bikeNode.property("b").isEqualTo(literalOf("B")))
+				.returning(bikeNode)
+				.build();
+
+			Statement statement;
+			statement = Cypher.unionAll(statement1, statement2);
+
+			Statement statement3 = Cypher.match(bikeNode)
+				.where(bikeNode.property("c").isEqualTo(literalOf("C")))
+				.returning(bikeNode)
+				.build();
+
+			assertThatIllegalStateException().isThrownBy(() ->
+				Cypher.union(statement, statement3)).withMessage("Cannot mix union and union all!");
+
 		}
 	}
 }

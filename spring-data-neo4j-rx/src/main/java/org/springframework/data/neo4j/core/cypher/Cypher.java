@@ -18,7 +18,11 @@
  */
 package org.springframework.data.neo4j.core.cypher;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apiguardian.api.API;
+import org.springframework.data.neo4j.core.cypher.Statement.SingleQuery;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.ExposesMatch;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.ExposesSet;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingReadingAndWith;
@@ -26,6 +30,7 @@ import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingReadin
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingUnwind;
 import org.springframework.data.neo4j.core.cypher.StatementBuilder.OngoingUpdate;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * The main entry point into the Cypher DSL.
@@ -173,7 +178,7 @@ public final class Cypher {
 	 * @param pattern The patterns to merge
 	 * @return An ongoing {@code MERGE} that can be used to specify {@code WITH} and {@code RETURNING} etc.
 	 */
-	public static OngoingUpdate merge(PatternElement... pattern) {
+	public static <T extends OngoingUpdate & ExposesSet> T merge(PatternElement... pattern) {
 
 		return Statement.builder().merge(pattern);
 	}
@@ -270,6 +275,40 @@ public final class Cypher {
 	 */
 	public static Literal literalFalse() {
 		return BooleanLiteral.FALSE;
+	}
+
+	public static Statement union(Statement... statement) {
+		return unionImpl(false, statement);
+	}
+
+	public static Statement unionAll(Statement... statement) {
+		return unionImpl(true, statement);
+	}
+
+	private static Statement unionImpl(boolean unionAll, Statement... statements) {
+
+		Assert.notEmpty(statements, "At least two statements are required!");
+
+		int i = 0;
+		UnionQuery existingUnionQuery = null;
+		if (statements[0] instanceof UnionQuery) {
+			existingUnionQuery = (UnionQuery) statements[0];
+			Assert.state(existingUnionQuery.isAll() == unionAll, "Cannot mix union and union all!");
+			i = 1;
+		}
+
+		List<SingleQuery> listOfQueries = new ArrayList<>();
+		while (i < statements.length) {
+			Assert.isInstanceOf(SingleQuery.class, statements[i], "Can only union single queries!");
+			listOfQueries.add((SingleQuery) statements[i]);
+			++i;
+		}
+
+		if (existingUnionQuery == null) {
+			return UnionQuery.create(unionAll, listOfQueries);
+		} else {
+			return existingUnionQuery.addAdditionalQueries(listOfQueries);
+		}
 	}
 
 	/**
