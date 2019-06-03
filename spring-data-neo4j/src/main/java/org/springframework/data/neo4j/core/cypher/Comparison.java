@@ -37,7 +37,7 @@ public final class Comparison implements Condition {
 
 	static Comparison create(Operator operator, Expression expression) {
 
-		Assert.state(operator.isUnary(), "Operator must be unary.");
+		Assert.isTrue(operator.isUnary(), "Operator must be unary.");
 		Assert.notNull(expression, "Expression must not be null.");
 
 		switch (operator.getType()) {

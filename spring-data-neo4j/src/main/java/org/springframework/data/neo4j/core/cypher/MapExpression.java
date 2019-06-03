@@ -42,14 +42,14 @@ public final class MapExpression<S extends MapExpression<S>> extends TypedSubtre
 
 	static MapExpression<?> create(Object... input) {
 
-		Assert.state(input.length % 2 == 0, "Need an even number of input parameters");
+		Assert.isTrue(input.length % 2 == 0, "Need an even number of input parameters");
 		List<MapEntry> newContent = new ArrayList<>(input.length / 2);
 		Set<String> knownKeys = new HashSet<>();
 
 		for (int i = 0; i < input.length; i += 2) {
 			Assert.isInstanceOf(String.class, input[i], "Key needs to be of type String.");
 			Assert.isInstanceOf(Expression.class, input[i + 1], "Value needs to be of type Expression.");
-			Assert.state(!knownKeys.contains(input[i]), "Duplicate key '" + input[i] + "'");
+			Assert.isTrue(!knownKeys.contains(input[i]), "Duplicate key '" + input[i] + "'");
 
 			final MapEntry entry = new MapEntry((String) input[i], (Expression) input[i + 1]);
 			newContent.add(entry);

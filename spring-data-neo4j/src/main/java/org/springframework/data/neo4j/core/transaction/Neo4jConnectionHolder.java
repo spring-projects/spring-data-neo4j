@@ -74,7 +74,7 @@ class Neo4jConnectionHolder extends ResourceHolderSupport {
 	void commit() {
 
 		Assert.state(hasActiveTransaction(), "Transaction must be open, but has already been closed.");
-		Assert.state(!isRollbackOnly(), "Resource msut not be marked as rollback only.");
+		Assert.state(!isRollbackOnly(), "Resource must not be marked as rollback only.");
 
 		transaction.success();
 		transaction.close();

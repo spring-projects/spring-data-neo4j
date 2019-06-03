@@ -30,7 +30,7 @@ class PropertyTest {
 	@Test
 	void preconditionsShouldBeAsserted() {
 
-		assertThatIllegalStateException().isThrownBy(() -> Property.create(Node.create("a"), ""))
+		assertThatIllegalArgumentException().isThrownBy(() -> Property.create(Node.create("a"), ""))
 			.withMessage("A property derived from a node needs a parent with a symbolic name.");
 		String expectedMessage = "The properties name is required.";
 		assertThatIllegalArgumentException().isThrownBy(() -> Property.create(Node.create("a").named("s"), null))
