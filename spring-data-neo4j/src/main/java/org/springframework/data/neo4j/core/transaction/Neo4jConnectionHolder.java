@@ -18,11 +18,10 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
-import java.util.Optional;
-
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.ResourceHolderSupport;
 import org.springframework.util.Assert;
 
@@ -64,11 +63,9 @@ class Neo4jConnectionHolder extends ResourceHolderSupport {
 		return namesMapToTheSameDatabase(this.databaseName, inDatabase) ? transaction : null;
 	}
 
-	static boolean namesMapToTheSameDatabase(String name1, String name2) {
-		String d1 = Optional.ofNullable(name1).orElse(Neo4jTransactionUtils.DEFAULT_DATABASE_NAME);
-		String d2 = Optional.ofNullable(name2).orElse(Neo4jTransactionUtils.DEFAULT_DATABASE_NAME);
+	static boolean namesMapToTheSameDatabase(@Nullable String name1, @Nullable String name2) {
 
-		return d1.equals(d2);
+		return name1 == null && name2 == null || (name1 != null && name1.equals(name2));
 	}
 
 	void commit() {

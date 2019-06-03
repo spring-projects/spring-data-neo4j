@@ -53,10 +53,22 @@ import org.springframework.util.Assert;
 @Slf4j
 public class Neo4jTransactionManager extends AbstractPlatformTransactionManager {
 
+	/**
+	 * The underlying driver, which is also the synchronisation object.
+	 */
 	private final Driver driver;
+	/**
+	 * The name of the target database.
+	 */
+	private final String databaseName;
 
 	public Neo4jTransactionManager(Driver driver) {
+		this(driver, null);
+	}
+
+	public Neo4jTransactionManager(Driver driver, String databaseName) {
 		this.driver = driver;
+		this.databaseName = databaseName;
 	}
 
 	@Override
@@ -82,15 +94,14 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		boolean readOnly = definition.isReadOnly();
 		AccessMode accessMode = readOnly ? AccessMode.READ : AccessMode.WRITE;
 		List<String> bookmarks = Collections.emptyList(); // TODO Bookmarksupport
-		String database = ""; // TODO Database selection
 
 		TransactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
 
 		try {
 			Session session = this.driver
-				.session(t -> t.withDefaultAccessMode(accessMode).withBookmarks(bookmarks).withDatabase(database));
+				.session(t -> t.withDefaultAccessMode(accessMode).withBookmarks(bookmarks).withDatabase(databaseName));
 
-			Neo4jConnectionHolder connectionHolder = new Neo4jConnectionHolder(database, session, transactionConfig);
+			Neo4jConnectionHolder connectionHolder = new Neo4jConnectionHolder(databaseName, session, transactionConfig);
 			connectionHolder.setSynchronizedWithTransaction(true);
 			transactionObject.setResourceHolder(connectionHolder);
 			TransactionSynchronizationManager.bindResource(this.driver, connectionHolder);

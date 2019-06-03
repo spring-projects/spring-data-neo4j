@@ -21,7 +21,6 @@ package org.springframework.data.neo4j.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
-import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -92,13 +91,12 @@ class Neo4jClientTest {
 	@BeforeEach
 	void prepareMocks() {
 
-		when(sessionParametersTemplate.withDatabase(anyString())).thenReturn(sessionParametersTemplate);
 		when(sessionParametersTemplate.withBookmarks(anyList())).thenReturn(sessionParametersTemplate);
 		when(sessionParametersTemplate.withDefaultAccessMode(any(AccessMode.class)))
 			.thenReturn(sessionParametersTemplate);
 
 		when(driver.session(any(Consumer.class))).thenReturn(session);
-		when(session.typeSystem()).thenReturn(typeSystem);
+		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 	}
 
 	@AfterEach
@@ -135,7 +133,7 @@ class Neo4jClientTest {
 
 		assertThat(usedBikes).hasSize(2);
 
-		verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+		verifyDatabaseSelection(null);
 
 		Map<String, Object> expectedParameters = new HashMap<>();
 		expectedParameters.putAll(parameters);
@@ -146,12 +144,13 @@ class Neo4jClientTest {
 		verify(statementResult).stream();
 		verify(record1).asMap();
 		verify(record2).asMap();
-		verify(session, times(2)).close();
+		verify(session).close();
 	}
 
 	@Test
 	void databaseSelectionShouldBePossibleOnlyOnce() {
 
+		when(sessionParametersTemplate.withDatabase(anyString())).thenReturn(sessionParametersTemplate);
 		when(session.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(statementResult.stream()).thenReturn(Stream.of(record1, record2));
 
@@ -176,7 +175,7 @@ class Neo4jClientTest {
 		verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(statementResult).stream();
 		verify(record1).asMap();
-		verify(session, times(2)).close();
+		verify(session).close();
 	}
 
 	@Nested
@@ -193,13 +192,15 @@ class Neo4jClientTest {
 
 			assertThat(result).isPresent().hasValue(42);
 
-			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+			verifyDatabaseSelection(null);
 
-			verify(session, times(2)).close();
+			verify(session).close();
 		}
 
 		@Test
 		void withDatabase() {
+
+			when(sessionParametersTemplate.withDatabase(anyString())).thenReturn(sessionParametersTemplate);
 
 			Neo4jClient client = Neo4jClient.create(driver);
 			Optional<Integer> result = client
@@ -211,7 +212,7 @@ class Neo4jClientTest {
 
 			verifyDatabaseSelection("aDatabase");
 
-			verify(session, times(2)).close();
+			verify(session).close();
 		}
 	}
 
@@ -241,7 +242,7 @@ class Neo4jClientTest {
 			assertThat(bikeOwners).hasSize(1).first()
 				.hasFieldOrPropertyWithValue("name", "michael");
 
-			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+			verifyDatabaseSelection(null);
 
 			Map<String, Object> expectedParameters = new HashMap<>();
 			expectedParameters.put("name", "michael");
@@ -249,7 +250,7 @@ class Neo4jClientTest {
 			verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 			verify(statementResult).stream();
 			verify(record1).get("name");
-			verify(session, times(2)).close();
+			verify(session).close();
 		}
 
 		@Test
@@ -272,12 +273,12 @@ class Neo4jClientTest {
 				})
 				.all());
 
-			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+			verifyDatabaseSelection(null);
 
 			verify(session).run(eq("MATCH (n) RETURN n"), argThat(new MapAssertionMatcher(Collections.emptyMap())));
 			verify(statementResult).stream();
 			verify(record1).get("name");
-			verify(session, times(2)).close();
+			verify(session).close();
 		}
 
 		@Test
@@ -298,14 +299,14 @@ class Neo4jClientTest {
 				.bind(michael).with(new BikeOwnerBinder())
 				.run();
 
-			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+			verifyDatabaseSelection(null);
 
 			Map<String, Object> expectedParameters = new HashMap<>();
 			expectedParameters.put("name", "Michael");
 
 			verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 			verify(statementResult).consume();
-			verify(session, times(2)).close();
+			verify(session).close();
 		}
 
 		@Test
@@ -328,12 +329,12 @@ class Neo4jClientTest {
 
 			assertThat(numberOfBikes).isPresent().hasValue(23L);
 
-			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+			verifyDatabaseSelection(null);
 
 			verify(session).run(eq(cypher), anyMap());
 			verify(statementResult).hasNext();
 			verify(statementResult).single();
-			verify(session, times(2)).close();
+			verify(session).close();
 		}
 	}
 
@@ -353,14 +354,14 @@ class Neo4jClientTest {
 			.bind("fixie").to("name")
 			.run();
 
-		verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+		verifyDatabaseSelection(null);
 
 		Map<String, Object> expectedParameters = new HashMap<>();
 		expectedParameters.put("name", "fixie");
 
 		verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(statementResult).consume();
-		verify(session, times(2)).close();
+		verify(session).close();
 	}
 
 	static class BikeOwner {
@@ -417,9 +418,14 @@ class Neo4jClientTest {
 	}
 
 	void verifyDatabaseSelection(String targetDatabase) {
-		verify(driver, times(2)).session(sessionTemplateCaptor.capture());
+
+		verify(driver).session(sessionTemplateCaptor.capture());
 		sessionTemplateCaptor.getValue().accept(sessionParametersTemplate);
-		verify(sessionParametersTemplate).withDatabase(targetDatabase);
+		if (targetDatabase != null) {
+			verify(sessionParametersTemplate).withDatabase(targetDatabase);
+		} else {
+			verify(sessionParametersTemplate, never()).withDatabase(any());
+		}
 	}
 
 	static class MapAssertionMatcher extends AssertionMatcher<Map<String, Object>> {

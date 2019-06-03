@@ -56,11 +56,11 @@ class Neo4jTransactionManagerTest {
 	@Test
 	public void triggerCommitCorrectly() {
 
+		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 		when(driver.session(any(Consumer.class))).thenReturn(session);
 		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(session.isOpen()).thenReturn(true);
-		when(session.typeSystem()).thenReturn(typeSystem);
 		when(transaction.isOpen()).thenReturn(true, false);
 
 		Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
@@ -71,7 +71,7 @@ class Neo4jTransactionManagerTest {
 
 		txManager.commit(txStatus);
 
-		verify(driver, times(2)).session(any(Consumer.class));
+		verify(driver).session(any(Consumer.class));
 
 		verify(session).isOpen();
 		verify(session).beginTransaction(any(TransactionConfig.class));
@@ -80,6 +80,6 @@ class Neo4jTransactionManagerTest {
 		verify(transaction).success();
 		verify(transaction).close();
 
-		verify(session, times(2)).close();
+		verify(session).close();
 	}
 }

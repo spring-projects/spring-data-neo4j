@@ -37,8 +37,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 public final class Neo4jTransactionUtils {
 
-	public static final String DEFAULT_DATABASE_NAME = "";
-
 	/**
 	 * The default session uses {@link AccessMode#WRITE} and an empty list of bookmarks.
 	 *
@@ -46,10 +44,14 @@ public final class Neo4jTransactionUtils {
 	 * @return Session parameters to configure the default session used
 	 */
 	public static Consumer<SessionParametersTemplate> defaultSessionParameters(@Nullable String databaseName) {
-		return t -> t
-			.withDefaultAccessMode(AccessMode.WRITE)
-			.withBookmarks(Collections.EMPTY_LIST)
-			.withDatabase(Optional.ofNullable(databaseName).orElse(DEFAULT_DATABASE_NAME));
+		return (SessionParametersTemplate t) -> {
+			t.withDefaultAccessMode(AccessMode.WRITE)
+				.withBookmarks(Collections.EMPTY_LIST);
+
+			if (databaseName != null) {
+				t.withDatabase(databaseName);
+			}
+		};
 	}
 
 	/**

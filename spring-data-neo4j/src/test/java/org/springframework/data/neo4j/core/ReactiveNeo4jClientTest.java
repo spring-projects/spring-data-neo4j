@@ -21,7 +21,6 @@ package org.springframework.data.neo4j.core;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
-import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils.*;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -46,11 +45,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
-import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.internal.SessionParameters;
-import org.neo4j.driver.reactive.RxResult;
 import org.neo4j.driver.reactive.RxSession;
+import org.neo4j.driver.reactive.RxStatementResult;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
@@ -70,9 +68,6 @@ class ReactiveNeo4jClientTest {
 	private Driver driver;
 
 	@Mock
-	private Session goAwaySession;
-
-	@Mock
 	private TypeSystem typeSystem;
 
 	private ArgumentCaptor<Consumer> sessionTemplateCaptor = ArgumentCaptor.forClass(Consumer.class);
@@ -84,7 +79,7 @@ class ReactiveNeo4jClientTest {
 	private RxSession session;
 
 	@Mock
-	private RxResult statementResult;
+	private RxStatementResult statementResult;
 
 	@Mock
 	private RxTransaction transaction;
@@ -101,10 +96,8 @@ class ReactiveNeo4jClientTest {
 	@BeforeEach
 	void prepareMocks() {
 
-		when(driver.session(any(Consumer.class))).thenReturn(goAwaySession);
-		when(goAwaySession.typeSystem()).thenReturn(typeSystem);
+		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 
-		when(sessionParametersTemplate.withDatabase(anyString())).thenReturn(sessionParametersTemplate);
 		when(sessionParametersTemplate.withBookmarks(anyList())).thenReturn(sessionParametersTemplate);
 		when(sessionParametersTemplate.withDefaultAccessMode(any(AccessMode.class)))
 			.thenReturn(sessionParametersTemplate);
@@ -153,7 +146,7 @@ class ReactiveNeo4jClientTest {
 			.expectNextCount(2L)
 			.verifyComplete();
 
-		verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+		verifyDatabaseSelection(null);
 
 		Map<String, Object> expectedParameters = new HashMap<>();
 		expectedParameters.putAll(parameters);
@@ -171,6 +164,7 @@ class ReactiveNeo4jClientTest {
 	@Test
 	void databaseSelectionShouldBePossibleOnlyOnce() {
 
+		when(sessionParametersTemplate.withDatabase(anyString())).thenReturn(sessionParametersTemplate);
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(transaction.commit()).thenReturn(Mono.empty());
 		when(statementResult.records()).thenReturn(Flux.just(record1, record2));
@@ -219,7 +213,7 @@ class ReactiveNeo4jClientTest {
 				.expectNext(21)
 				.verifyComplete();
 
-			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+			verifyDatabaseSelection(null);
 
 			verify(transaction).commit();
 			verify(session).close();
@@ -228,6 +222,7 @@ class ReactiveNeo4jClientTest {
 		@Test
 		void withDatabase() {
 
+			when(sessionParametersTemplate.withDatabase(anyString())).thenReturn(sessionParametersTemplate);
 			when(transaction.commit()).thenReturn(Mono.empty());
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
@@ -275,7 +270,7 @@ class ReactiveNeo4jClientTest {
 				.expectNextMatches(o -> o.getName().equals("michael"))
 				.verifyComplete();
 
-			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+			verifyDatabaseSelection(null);
 
 			Map<String, Object> expectedParameters = new HashMap<>();
 			expectedParameters.put("name", "michael");
@@ -311,7 +306,7 @@ class ReactiveNeo4jClientTest {
 				.expectNextCount(1)
 				.verifyError();
 
-			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+			verifyDatabaseSelection(null);
 
 			verify(transaction).run(eq("MATCH (n) RETURN n"), argThat(new MapAssertionMatcher(Collections.emptyMap())));
 			verify(statementResult).records();
@@ -344,7 +339,7 @@ class ReactiveNeo4jClientTest {
 				.expectNext(resultSummary)
 				.verifyComplete();
 
-			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+			verifyDatabaseSelection(null);
 
 			Map<String, Object> expectedParameters = new HashMap<>();
 			expectedParameters.put("name", "Michael");
@@ -377,7 +372,7 @@ class ReactiveNeo4jClientTest {
 				.expectNext(23L)
 				.verifyComplete();
 
-			verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+			verifyDatabaseSelection(null);
 
 			verify(transaction).run(eq(cypher), anyMap());
 			verify(transaction).commit();
@@ -406,7 +401,7 @@ class ReactiveNeo4jClientTest {
 			.expectNext(resultSummary)
 			.verifyComplete();
 
-		verifyDatabaseSelection(DEFAULT_DATABASE_NAME);
+		verifyDatabaseSelection(null);
 
 		Map<String, Object> expectedParameters = new HashMap<>();
 		expectedParameters.put("name", "fixie");
@@ -420,6 +415,10 @@ class ReactiveNeo4jClientTest {
 	void verifyDatabaseSelection(String targetDatabase) {
 		verify(driver).rxSession(sessionTemplateCaptor.capture());
 		sessionTemplateCaptor.getValue().accept(sessionParametersTemplate);
-		verify(sessionParametersTemplate).withDatabase(targetDatabase);
+		if (targetDatabase != null) {
+			verify(sessionParametersTemplate).withDatabase(targetDatabase);
+		} else {
+			verify(sessionParametersTemplate, never()).withDatabase(any());
+		}
 	}
 }

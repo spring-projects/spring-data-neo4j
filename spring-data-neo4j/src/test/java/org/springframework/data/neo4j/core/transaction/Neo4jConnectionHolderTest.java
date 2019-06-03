@@ -19,7 +19,6 @@
 package org.springframework.data.neo4j.core.transaction;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils.*;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -36,9 +35,6 @@ class Neo4jConnectionHolderTest {
 		@ParameterizedTest
 		@CsvSource({
 			",",
-			"," + DEFAULT_DATABASE_NAME,
-			DEFAULT_DATABASE_NAME + ",",
-			DEFAULT_DATABASE_NAME + "," + DEFAULT_DATABASE_NAME,
 			"a,a"
 		})
 		void nameComparisionShouldWorkForNamesTargetingTheSame(String name1, String name2) {
