@@ -112,8 +112,8 @@ class Neo4jDataAutoConfigurationTest {
 			Driver driver = Mockito.mock(Driver.class);
 			TypeSystem typeSystem = Mockito.mock(TypeSystem.class);
 			Session session = Mockito.mock(Session.class);
+			when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 			when(driver.session(Mockito.any(Consumer.class))).thenReturn(session);
-			when(session.typeSystem()).thenReturn(typeSystem);
 			return driver;
 		}
 	}

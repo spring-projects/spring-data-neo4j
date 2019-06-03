@@ -33,10 +33,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
-import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxStatementRunner;
@@ -68,10 +66,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 	DefaultReactiveNeo4jClient(Driver driver) {
 
 		this.driver = driver;
-		// This will go away
-		try (Session session = this.driver.session(t -> t.withDefaultAccessMode(AccessMode.READ))) {
-			typeSystem = session.typeSystem();
-		}
+		this.typeSystem = driver.defaultTypeSystem();
 	}
 
 	// Internal helper methods for managing transactional state

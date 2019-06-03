@@ -71,15 +71,14 @@ class TransactionHandlingTest {
 	@BeforeEach
 	void prepareMocks() {
 
-		when(driver.session(any(Consumer.class))).thenReturn(session);
-		when(session.typeSystem()).thenReturn(typeSystem);
+		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 	}
 
 
 	@AfterEach
 	void verifyTypeSystemOnSession() {
 
-		verify(session).typeSystem();
+		verify(driver).defaultTypeSystem();
 	}
 
 	@Nested
@@ -96,6 +95,7 @@ class TransactionHandlingTest {
 
 				ArgumentCaptor<Consumer> consumerCaptor = ArgumentCaptor.forClass(Consumer.class);
 
+				when(driver.session(any(Consumer.class))).thenReturn(session);
 				when(sessionParametersTemplate.withDatabase(anyString())).thenReturn(sessionParametersTemplate);
 				when(sessionParametersTemplate.withBookmarks(anyList())).thenReturn(sessionParametersTemplate);
 				when(sessionParametersTemplate.withDefaultAccessMode(any(AccessMode.class)))
@@ -107,12 +107,12 @@ class TransactionHandlingTest {
 					s.run("MATCH (n) RETURN n");
 				}
 
-				verify(driver, times(2)).session(consumerCaptor.capture());
+				verify(driver).session(consumerCaptor.capture());
 				consumerCaptor.getValue().accept(sessionParametersTemplate);
 				verify(sessionParametersTemplate).withDatabase("aDatabase");
 
 				verify(session).run(any(String.class));
-				verify(session, times(2)).close();
+				verify(session).close();
 
 				verifyNoMoreInteractions(driver, sessionParametersTemplate, session, transaction);
 			}
@@ -122,6 +122,7 @@ class TransactionHandlingTest {
 
 				AtomicBoolean transactionIsOpen = new AtomicBoolean(true);
 
+				when(driver.session(any(Consumer.class))).thenReturn(session);
 				when(session.isOpen()).thenReturn(true);
 				when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
 				// Mock closing of the transaction
@@ -148,7 +149,7 @@ class TransactionHandlingTest {
 				verify(transaction).success();
 				verify(transaction).close();
 				verify(session).isOpen();
-				verify(session, times(2)).close();
+				verify(session).close();
 				verifyNoMoreInteractions(driver, session, transaction);
 			}
 		}

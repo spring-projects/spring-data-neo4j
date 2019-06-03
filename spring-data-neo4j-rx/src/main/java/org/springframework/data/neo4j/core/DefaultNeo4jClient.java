@@ -39,7 +39,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
@@ -67,10 +66,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 	DefaultNeo4jClient(Driver driver) {
 
 		this.driver = driver;
-		// This will go away
-		try (Session session = this.driver.session(t -> t.withDefaultAccessMode(AccessMode.READ))) {
-			typeSystem = session.typeSystem();
-		}
+		this.typeSystem = driver.defaultTypeSystem();
 	}
 
 	AutoCloseableStatementRunner getStatementRunner(final String targetDatabase) {

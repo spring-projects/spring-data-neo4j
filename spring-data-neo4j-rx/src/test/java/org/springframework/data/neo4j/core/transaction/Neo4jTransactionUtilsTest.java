@@ -54,7 +54,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class Neo4jTransactionUtilsTest {
 
-	private String databaseName = Neo4jTransactionUtils.DEFAULT_DATABASE_NAME;
+	private String databaseName = "aDatabase";
 
 	@Mock
 	private Driver driver;
@@ -101,7 +101,7 @@ class Neo4jTransactionUtilsTest {
 		@Test
 		void shouldOpenNewTransaction() {
 
-			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
+			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver, databaseName);
 			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
 			txTemplate.execute(new TransactionCallbackWithoutResult() {
@@ -134,7 +134,7 @@ class Neo4jTransactionUtilsTest {
 		@Test
 		void shouldParticipateInOngoingTransaction() {
 
-			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
+			Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver, databaseName);
 			TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
 			txTemplate.execute(new TransactionCallbackWithoutResult() {
