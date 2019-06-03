@@ -37,8 +37,7 @@ public final class UnionQuery implements RegularQuery {
 
 	static UnionQuery create(boolean unionAll, List<SingleQuery> queries) {
 
-		Assert.notNull(queries, "Queries are needed.");
-		Assert.state(queries.size() >= 2, "At least two queries are needed.");
+		Assert.isTrue(queries != null && queries.size() >= 2, "At least two queries are needed.");
 
 		List<UnionPart> unionParts = queries.stream().skip(1).map(q -> new UnionPart(unionAll, q)).collect(toList());
 		return new UnionQuery(unionAll, queries.get(0), unionParts);

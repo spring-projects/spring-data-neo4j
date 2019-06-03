@@ -286,22 +286,21 @@ public final class Cypher {
 
 	private static Statement unionImpl(boolean unionAll, Statement... statements) {
 
-		Assert.notEmpty(statements, "At least two statements are required!");
+		Assert.isTrue(statements != null && statements.length >= 2, "At least two statements are required!");
 
 		int i = 0;
 		UnionQuery existingUnionQuery = null;
 		if (statements[0] instanceof UnionQuery) {
 			existingUnionQuery = (UnionQuery) statements[0];
-			Assert.state(existingUnionQuery.isAll() == unionAll, "Cannot mix union and union all!");
+			Assert.isTrue(existingUnionQuery.isAll() == unionAll, "Cannot mix union and union all!");
 			i = 1;
 		}
 
 		List<SingleQuery> listOfQueries = new ArrayList<>();
-		while (i < statements.length) {
+		do {
 			Assert.isInstanceOf(SingleQuery.class, statements[i], "Can only union single queries!");
 			listOfQueries.add((SingleQuery) statements[i]);
-			++i;
-		}
+		} while (++i < statements.length);
 
 		if (existingUnionQuery == null) {
 			return UnionQuery.create(unionAll, listOfQueries);

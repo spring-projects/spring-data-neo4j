@@ -57,8 +57,8 @@ public final class Operation implements Expression {
 	static Operation create(Node op1, Operator operator, String... nodeLabels) {
 
 		Assert.notNull(op1, "The first operand must not be null.");
-		Assert.state(op1.getSymbolicName().isPresent(), "The node must have a name.");
-		Assert.state(LABEL_OPERATORS.contains(operator),
+		Assert.isTrue(op1.getSymbolicName().isPresent(), "The node must have a name.");
+		Assert.isTrue(LABEL_OPERATORS.contains(operator),
 			() -> String.format("Only operators %s can be used to modify labels",
 				LABEL_OPERATORS));
 		Assert.notEmpty(nodeLabels, "The labels cannot be empty.");

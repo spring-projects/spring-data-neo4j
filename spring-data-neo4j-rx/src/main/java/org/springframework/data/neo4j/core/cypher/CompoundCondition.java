@@ -48,7 +48,7 @@ public final class CompoundCondition implements Condition {
 
 	static CompoundCondition create(Condition left, Operator operator, Condition right) {
 
-		Assert.state(VALID_OPERATORS.contains(operator),
+		Assert.isTrue(VALID_OPERATORS.contains(operator),
 			"Operator " + operator + " is not a valid operator for a compound condition.");
 
 		Assert.notNull(left, "Left hand side condition is required.");

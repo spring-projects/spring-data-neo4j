@@ -1704,12 +1704,16 @@ class CypherIT {
 				.returning(bikeNode)
 				.build();
 
+			Statement statement3 = Cypher.match(bikeNode)
+				.where(bikeNode.property("c").isEqualTo(literalOf("C")))
+				.returning(bikeNode)
+				.build();
 			Statement statement;
-			statement = Cypher.union(statement1, statement2);
+			statement = Cypher.union(statement1, statement2, statement3);
 
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo(
-					"MATCH (b:`Bike`) WHERE b.a = 'A' RETURN b UNION MATCH (b) WHERE b.b = 'B' RETURN b");
+					"MATCH (b:`Bike`) WHERE b.a = 'A' RETURN b UNION MATCH (b) WHERE b.b = 'B' RETURN b UNION MATCH (b) WHERE b.c = 'C' RETURN b");
 		}
 
 		@Test
@@ -1754,11 +1758,16 @@ class CypherIT {
 				.returning(bikeNode)
 				.build();
 
-			statement = Cypher.unionAll(statement, statement3);
+			Statement statement4 = Cypher.match(bikeNode)
+				.where(bikeNode.property("d").isEqualTo(literalOf("D")))
+				.returning(bikeNode)
+				.build();
+
+			statement = Cypher.unionAll(statement, statement3, statement4);
 
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo(
-					"MATCH (b:`Bike`) WHERE b.a = 'A' RETURN b UNION ALL MATCH (b) WHERE b.b = 'B' RETURN b UNION ALL MATCH (b) WHERE b.c = 'C' RETURN b");
+					"MATCH (b:`Bike`) WHERE b.a = 'A' RETURN b UNION ALL MATCH (b) WHERE b.b = 'B' RETURN b UNION ALL MATCH (b) WHERE b.c = 'C' RETURN b UNION ALL MATCH (b) WHERE b.d = 'D' RETURN b");
 		}
 
 		@Test
@@ -1782,7 +1791,7 @@ class CypherIT {
 				.returning(bikeNode)
 				.build();
 
-			assertThatIllegalStateException().isThrownBy(() ->
+			assertThatIllegalArgumentException().isThrownBy(() ->
 				Cypher.union(statement, statement3)).withMessage("Cannot mix union and union all!");
 
 		}
