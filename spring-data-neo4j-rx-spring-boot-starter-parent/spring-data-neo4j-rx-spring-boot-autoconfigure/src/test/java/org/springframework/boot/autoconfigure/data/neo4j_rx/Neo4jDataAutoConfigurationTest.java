@@ -29,15 +29,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
 import org.neo4j.driver.types.TypeSystem;
+import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverAutoConfiguration;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.neo4j.springframework.data.core.Neo4jClient;
-import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**

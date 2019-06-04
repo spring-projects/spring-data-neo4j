@@ -2,7 +2,7 @@
 
 [abstract]
 --
-Provides automatic configuration for both the Neo4j Java Driver and Spring Data Neo4j⚡️RX.
+Provides automatic configuration for Spring Data Neo4j⚡️RX.
 --
 
 == Architectural guidelines and principles
@@ -20,10 +20,9 @@ As it is the officially recommended way for starters, this is not gonna change, 
 
 === Responsibilities
 
-The starter and it's automatic configuration consists of two parts
-
-* Configuring an instance of https://github.com/neo4j/neo4j-java-driver[neo4j-java-driver]
-* Configuring Spring Data Neo4j RX repositories and infrastructure using that driver
+The starter and it's automatic configuration is responsible for configuring Spring Data Neo4j RX repositories and infrastructure.
+It needs a configured Neo4j Java Driver and therefor is itself dependent on `org.neo4j.driver:neo4j-java-driver-spring-boot-starter`,
+the official starter for the Neo4j Java Driver.
 
 Having the starter provide automatic configuration is in accordance with the plans for Spring Data Neo4j RX.
 Spring Data Neo4j RX should only deal with configured, ready to use driver objects and not be responsible for configuring those.
@@ -34,106 +33,3 @@ It would be nice having this starter here moved into https://github.com/spring-p
 Regardless of that, we might suggest backporting `Neo4jDriverAutoConfiguration` alone to Spring Boot and enhance https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/data/neo4j/Neo4jDataAutoConfiguration.java[the existing `Neo4jDataAutoConfiguration`] to check whether there's a Driver bean available
 and if so, pass this one to OGM instead of creating a new driver.
 That would also remove the need for being able to unwrap the native driver.
-
-== Automatic configuration
-
-=== Driver
-
-The automatic configuration of the drivers only provides officially supported, non-deprecated properties like the the plain Java driver.
-The automatic configuration will fail fast if the driver cannot connect to a single Neo4j database or to a routing server.
-If only a single URI is provided, than the configuration tries to use that.
-Otherwise, it passes all URIs to the Java driver which in turn uses the first one that is a reachable `bolt+routing` instance.
-
-== Configuration properties
-
-=== Driver
-
-[cols="1,1,2", options="header"]
-|===
-|Key|Default Value|Description
-
-|`+spring.neo4j.authentication.kerberos-ticket+`
-|
-|+++A kerberos ticket for connecting to the database. Mutual exclusive with a given username.+++
-
-|`+spring.neo4j.authentication.password+`
-|
-|+++The password of the user connecting to the database.+++
-
-|`+spring.neo4j.authentication.realm+`
-|
-|+++The realm to connect to.+++
-
-|`+spring.neo4j.authentication.username+`
-|
-|+++The login of the user connecting to the database.+++
-
-|`+spring.neo4j.config.connection-acquisition-timeout+`
-|`+1m+`
-|+++Acquisition of new connections will be attempted for at most configured timeout.+++
-
-|`+spring.neo4j.config.connection-timeout+`
-|`+5s+`
-|+++Specify socket connection timeout.+++
-
-|`+spring.neo4j.config.encrypted+`
-|`+true+`
-|+++Flag, if the driver should use encrypted traffic.+++
-
-|`+spring.neo4j.config.idle-time-before-connection-test+`
-|
-|+++Pooled connections that have been idle in the pool for longer than this timeout will be tested before they are used again.+++
-
-|`+spring.neo4j.config.load-balancing-strategy+`
-|
-|+++Provide an alternative load balancing strategy for the routing driver to use.+++
-
-|`+spring.neo4j.config.log-leaked-sessions+`
-|`+false+`
-|+++Flag, if leaked sessions logging is enabled.+++
-
-|`+spring.neo4j.config.logging-class+`
-|`+org.neo4j.driver.internal.logging.Slf4jLogging+`
-|+++Used to configure a different Neo4j-Java-Driver logging implementation.+++
-
-|`+spring.neo4j.config.driver-logging-level+`
-|`+java.util.logging.Level.WARNING+`
-|+++Log level for the bolt driver. This has only meaning of a Logging implementation other than Slf4jLogging has been chosen.+++
-
-|`+spring.neo4j.config.max-connection-lifetime+`
-|`+1h+`
-|+++Pooled connections older than this threshold will be closed and removed from the pool.+++
-
-|`+spring.neo4j.config.max-connection-pool-size+`
-|`+100+`
-|+++The maximum amount of connections in the connection pool towards a single database.+++
-
-|`+spring.neo4j.config.max-transaction-retry-time+`
-|`+30s+`
-|+++Specify the maximum time transactions are allowed to retry.+++
-
-|`+spring.neo4j.config.server-address-resolver-class+`
-|
-|+++Specify a custom server address resolver used by the routing driver to resolve the initial address used to create the driver.+++
-
-|`+spring.neo4j.config.trust-settings.cert-file+`
-|
-|+++The file of the certificate to use.+++
-
-|`+spring.neo4j.config.trust-settings.hostname-verification-enabled+`
-|`+false+`
-|+++Flag, if hostname verification is used.+++
-
-|`+spring.neo4j.config.trust-settings.strategy+`
-|
-|+++Configures the strategy to use use.+++
-
-|`+spring.neo4j.uri+`
-|
-|+++The uri this driver should connect to. The driver supports bolt, bolt+routing or neo4j as schemes. Both uri and uris are empty, the driver tries to connect to 'neo4j://localhost:7687'.+++
-
-|`+spring.neo4j.uris+`
-|
-|+++This is a fallback for usecases when multiple uris have to provided to get into a Neo4j cluster. Usually one logical entry point is recommended (through DNS or a loadbalancer for example).+++
-
-|===

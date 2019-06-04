@@ -88,7 +88,6 @@
 		<junit-jupiter.version>5.4.0</junit-jupiter.version>
 		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
 		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
-		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
 		<maven-enforcer-plugin.version>3.0.0-M2</maven-enforcer-plugin.version>
 		<maven-failsafe-plugin.version>3.0.0-M3</maven-failsafe-plugin.version>
 		<maven-install-plugin.version>3.0.0-M1</maven-install-plugin.version>
@@ -108,6 +107,7 @@
 		<rxjava2.version>2.2.5</rxjava2.version>
 		<slf4j.version>1.7.26</slf4j.version>
 		<springdata-commons.version>2.2.0.M4</springdata-commons.version>
+		<neo4j-java-driver-spring-boot-starter.version>1.0.0.BUILD-SNAPSHOT</neo4j-java-driver-spring-boot-starter.version>
 		<testcontainers.version>1.10.7</testcontainers.version>
 
 		<skipUnitTests>${skipTests}</skipUnitTests>
@@ -182,6 +182,11 @@
 				<groupId>org.neo4j.driver</groupId>
 				<artifactId>neo4j-java-driver</artifactId>
 				<version>${neo4j-java-driver.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j.driver</groupId>
+				<artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
+				<version>${neo4j-java-driver-spring-boot-starter.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.neo4j.test</groupId>

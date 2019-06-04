@@ -23,16 +23,16 @@ import static org.springframework.boot.autoconfigure.data.RepositoryType.*;
 import reactor.core.publisher.Flux;
 
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
+import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
+import org.neo4j.springframework.data.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.ConditionalOnRepositoryType;
-import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
-import org.neo4j.springframework.data.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.transaction.ReactiveTransactionManager;
 
 /**

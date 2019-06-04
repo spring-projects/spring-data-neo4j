@@ -21,18 +21,18 @@ package org.springframework.boot.autoconfigure.data.neo4j_rx;
 import static org.springframework.boot.autoconfigure.data.RepositoryType.*;
 
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
+import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.ConditionalOnRepositoryType;
-import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverAutoConfiguration;
 import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.neo4j.springframework.data.core.Neo4jClient;
-import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
