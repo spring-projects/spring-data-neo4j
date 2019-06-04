@@ -49,6 +49,11 @@
 			<artifactId>junit-jupiter</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.neo4j.springframework.data</groupId>
+			<artifactId>spring-data-neo4j-rx-spring-boot-starter</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
 		</dependency>
@@ -56,11 +61,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-neo4j-rx-spring-boot-starter</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 
