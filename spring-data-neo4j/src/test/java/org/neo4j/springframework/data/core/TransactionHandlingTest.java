@@ -91,7 +91,7 @@ class TransactionHandlingTest {
 		class AutoCloseableStatementRunnerHandlerTest {
 
 			@Test
-			public void shouldCallCloseOnSession() {
+			void shouldCallCloseOnSession() {
 
 				ArgumentCaptor<Consumer> consumerCaptor = ArgumentCaptor.forClass(Consumer.class);
 
@@ -118,7 +118,7 @@ class TransactionHandlingTest {
 			}
 
 			@Test
-			public void shouldNotInvokeCloseOnTransaction() {
+			void shouldNotInvokeCloseOnTransaction() {
 
 				AtomicBoolean transactionIsOpen = new AtomicBoolean(true);
 
@@ -165,15 +165,16 @@ class TransactionHandlingTest {
 		private RxTransaction transaction;
 
 		@Test
-		@Disabled
-		public void shouldNotOpenTransactionsWithoutSubscription() {
+		void shouldNotOpenTransactionsWithoutSubscription() {
+			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
+			neo4jClient.query("RETURN 1").in("aDatabase").fetch().one();
 
 			verify(driver, never()).rxSession(any(Consumer.class));
 			verifyZeroInteractions(driver, session);
 		}
 
 		@Test
-		public void shouldCloseUnmanagedSessionOnComplete() {
+		void shouldCloseUnmanagedSessionOnComplete() {
 
 			when(driver.rxSession(any(Consumer.class))).thenReturn(session);
 			when(session.beginTransaction()).thenReturn(Mono.just(transaction));
@@ -197,7 +198,7 @@ class TransactionHandlingTest {
 		}
 
 		@Test
-		public void shouldCloseUnmanagedSessionOnError() {
+		void shouldCloseUnmanagedSessionOnError() {
 
 
 			when(driver.rxSession(any(Consumer.class))).thenReturn(session);
@@ -223,6 +224,6 @@ class TransactionHandlingTest {
 		}
 	}
 
-	static class SomeException extends RuntimeException {
+	private static class SomeException extends RuntimeException {
 	}
 }
