@@ -28,7 +28,7 @@
 		<!-- lookup parent from repository -->
 	</parent>
 
-	<groupId>org.springframework.data</groupId>
+	<groupId>org.neo4j.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-rx-examples-spring-boot</artifactId>
 	<version>1.0.0.BUILD-SNAPSHOT</version>
 

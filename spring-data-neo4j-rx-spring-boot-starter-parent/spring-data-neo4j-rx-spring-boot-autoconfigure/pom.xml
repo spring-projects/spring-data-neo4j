@@ -22,7 +22,7 @@
 
 	<parent>
 		<artifactId>spring-data-neo4j-rx-spring-boot-starter-parent</artifactId>
-		<groupId>org.springframework.data</groupId>
+		<groupId>org.neo4j.springframework.data</groupId>
 		<version>1.0.0.BUILD-SNAPSHOT</version>
 	</parent>
 
@@ -56,7 +56,7 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.data</groupId>
+			<groupId>org.neo4j.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-rx</artifactId>
 			<version>${project.version}</version>
 		</dependency>

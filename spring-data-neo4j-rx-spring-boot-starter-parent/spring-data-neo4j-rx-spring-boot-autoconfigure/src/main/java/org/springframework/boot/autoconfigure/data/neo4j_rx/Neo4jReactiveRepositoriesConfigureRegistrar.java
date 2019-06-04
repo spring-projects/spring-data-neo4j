@@ -21,8 +21,8 @@ package org.springframework.boot.autoconfigure.data.neo4j_rx;
 import java.lang.annotation.Annotation;
 
 import org.springframework.boot.autoconfigure.data.AbstractRepositoryConfigurationSourceSupport;
-import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
-import org.springframework.data.neo4j.repository.config.ReactiveNeo4jRepositoryConfigurationExtension;
+import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
+import org.neo4j.springframework.data.repository.config.ReactiveNeo4jRepositoryConfigurationExtension;
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 
 /**

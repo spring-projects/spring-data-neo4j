@@ -18,7 +18,7 @@
  */
 package org.springframework.boot.autoconfigure.data.neo4j_rx.bikes;
 
-import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.neo4j.springframework.data.repository.Neo4jRepository;
 
 /**
  * @author Michael J. Simons

@@ -25,9 +25,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.data.ConditionalOnRepositoryType;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.data.neo4j.repository.config.Neo4jRepositoryConfigurationExtension;
-import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryBean;
+import org.neo4j.springframework.data.repository.Neo4jRepository;
+import org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension;
+import org.neo4j.springframework.data.repository.support.Neo4jRepositoryFactoryBean;
 
 /**
  * @author Michael J. Simons

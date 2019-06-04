@@ -26,7 +26,7 @@
 		<version>2.2.0.BUILD-SNAPSHOT</version>
 	</parent>
 
-	<groupId>org.springframework.data</groupId>
+	<groupId>org.neo4j.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-rx-parent</artifactId>
 	<version>1.0.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>

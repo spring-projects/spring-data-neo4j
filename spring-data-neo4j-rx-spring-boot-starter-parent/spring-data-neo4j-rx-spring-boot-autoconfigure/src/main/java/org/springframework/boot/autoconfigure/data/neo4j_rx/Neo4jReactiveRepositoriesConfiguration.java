@@ -25,7 +25,7 @@ import org.springframework.boot.autoconfigure.data.ConditionalOnRepositoryType;
 import org.springframework.boot.autoconfigure.data.RepositoryType;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
+import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 
 /**
  * TODO This is a stub.

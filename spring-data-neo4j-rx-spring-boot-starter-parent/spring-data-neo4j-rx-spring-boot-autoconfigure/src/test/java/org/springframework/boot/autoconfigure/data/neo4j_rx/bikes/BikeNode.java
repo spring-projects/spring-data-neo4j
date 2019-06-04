@@ -19,7 +19,7 @@
 package org.springframework.boot.autoconfigure.data.neo4j_rx.bikes;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.neo4j.core.schema.Node;
+import org.neo4j.springframework.data.core.schema.Node;
 
 /**
  * @author Michael J. Simons

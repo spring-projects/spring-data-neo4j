@@ -16,8 +16,8 @@ SDN-RX uses it as directly as possible while being as user friendly and idiomati
 
 The Neo4j Client comes in two flavors:
 
-* `org.springframework.data.neo4j.core.Neo4jClient`
-* `org.springframework.data.neo4j.core.ReactiveNeo4jClient`
+* `org.neo4j.springframework.data.core.Neo4jClient`
+* `org.neo4j.springframework.data.core.ReactiveNeo4jClient`
 
 While both versions provide an API using the same vocabulary and syntax, they are not API compatible.
 Both versions feature the same, fluent API to specify queries, bind parameters and extract results.
@@ -50,7 +50,7 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 
-import org.org.springframework.data.neo4j.core.Neo4jClient;
+import org.neo4j.springframework.data.core.Neo4jClient;
 
 public class Demo
 
@@ -74,7 +74,7 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 
-import org.org.springframework.data.neo4j.core.ReactiveNeo4jClient;
+import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 
 public class Demo
 

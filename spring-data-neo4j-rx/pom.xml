@@ -22,7 +22,7 @@
 
 	<parent>
 		<artifactId>spring-data-neo4j-rx-parent</artifactId>
-		<groupId>org.springframework.data</groupId>
+		<groupId>org.neo4j.springframework.data</groupId>
 		<version>1.0.0.BUILD-SNAPSHOT</version>
 	</parent>
 

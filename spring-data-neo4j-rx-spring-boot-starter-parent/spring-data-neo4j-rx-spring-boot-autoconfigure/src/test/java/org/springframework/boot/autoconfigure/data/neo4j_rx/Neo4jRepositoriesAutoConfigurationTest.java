@@ -31,12 +31,12 @@ import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverAutoConfiguration
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.core.Neo4jClient;
-import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
-import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
-import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
+import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
+import org.neo4j.springframework.data.repository.Neo4jRepository;
+import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
+import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
 
 /**
  * @author Michael J. Simons

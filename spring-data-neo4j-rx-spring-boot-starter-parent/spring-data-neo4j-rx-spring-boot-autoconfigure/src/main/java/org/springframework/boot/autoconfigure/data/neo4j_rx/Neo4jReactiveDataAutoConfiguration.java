@@ -31,8 +31,8 @@ import org.springframework.boot.autoconfigure.data.ConditionalOnRepositoryType;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jDriverAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
-import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
+import org.neo4j.springframework.data.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.transaction.ReactiveTransactionManager;
 
 /**
