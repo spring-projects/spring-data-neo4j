@@ -65,9 +65,9 @@ public class Neo4jRepositoriesAutoConfigurationIT {
 		@Override
 		public void initialize(ConfigurableApplicationContext applicationContext) {
 			TestPropertyValues.of(
-				"spring.neo4j.uris = " + neo4jServer.getBoltUrl(),
-				"spring.neo4j.authentication.username = neo4j",
-				"spring.neo4j.authentication.password = " + neo4jServer.getAdminPassword()
+				"org.neo4j.driver.uri = " + neo4jServer.getBoltUrl(),
+				"org.neo4j.driver.authentication.username = neo4j",
+				"org.neo4j.driver.authentication.password = " + neo4jServer.getAdminPassword()
 			).applyTo(applicationContext.getEnvironment());
 		}
 	}
