@@ -29,8 +29,8 @@ import org.springframework.data.annotation.QueryAnnotation;
 
 /**
  * Annotation to provide Cypher statements that will be used for executing the method. The Cypher statement may contain named
- * parameters as supported by the <a href="https://neo4j.com/docs/driver-manual/1.7/get-started/#driver-get-started-hello-world-example">>Neo4j Java Driver</a. Those
- * parameters will get bound to the arguments of the annotated method.
+ * parameters as supported by the <a href="https://neo4j.com/docs/driver-manual/1.7/get-started/#driver-get-started-hello-world-example">>Neo4j Java Driver</a>.
+ * Those parameters will get bound to the arguments of the annotated method.
  *
  * @author Michael J. Simons
  * @since 1.0

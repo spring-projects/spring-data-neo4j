@@ -310,7 +310,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		/**
 		 * @return A single result
-		 * @throws IncorrectResultSizeDataAccessException
+		 * @throws IncorrectResultSizeDataAccessException if there is no or more than one result
 		 */
 		public Mono<T> getSingleResult() {
 			try {

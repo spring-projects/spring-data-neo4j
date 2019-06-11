@@ -30,6 +30,7 @@ import org.neo4j.springframework.data.core.cypher.support.TypedSubtree;
  * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Pattern.html">Pattern</a>.
  *
  * @author Michael J. Simons
+ * @param <S> The pattern's entry type
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")

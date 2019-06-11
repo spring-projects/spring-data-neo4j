@@ -197,8 +197,8 @@ public final class Cypher {
 	/**
 	 * Starts building a statement starting with an {@code UNWIND} clause. The expressions passed will be turned into a
 	 * list expression
-	 * @param expressions
-	 * @return
+	 * @param expressions expressions to unwind
+	 * @return a new instance of {@link OngoingUnwind}
 	 */
 	public static OngoingUnwind unwind(Expression... expressions) {
 
@@ -230,8 +230,8 @@ public final class Cypher {
 	/**
 	 * Creates a {@link ListExpression list-expression} from several expressions.
 	 *
-	 * @param expressions
-	 * @return
+	 * @param expressions expressions to get combined into a list
+	 * @return a new instance of {@link ListExpression}
 	 */
 	public static ListExpression listOf(Expression... expressions) {
 

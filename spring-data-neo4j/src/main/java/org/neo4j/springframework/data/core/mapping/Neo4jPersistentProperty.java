@@ -26,6 +26,7 @@ import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
  * A {@link org.springframework.data.mapping.PersistentProperty} interface with additional methods for metadata related to Neo4j.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public interface Neo4jPersistentProperty

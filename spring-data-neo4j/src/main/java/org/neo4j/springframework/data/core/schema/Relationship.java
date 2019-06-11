@@ -43,6 +43,7 @@ public @interface Relationship {
 
 	/**
 	 * Enumeration of the direction a relationship can take.
+	 * @since 1.0
 	 */
 	enum Direction {
 

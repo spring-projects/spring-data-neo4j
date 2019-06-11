@@ -22,6 +22,8 @@ import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUt
 
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
+
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.springframework.transaction.support.ResourceHolderSupport;
@@ -29,6 +31,7 @@ import org.springframework.transaction.support.ResourceHolderSupport;
 /**
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @since 1.0
  */
 class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 
@@ -47,9 +50,9 @@ class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 		return session;
 	}
 
-	RxTransaction getTransaction(String inDatabase) {
+	Optional<RxTransaction> getTransaction(String inDatabase) {
 
-		return namesMapToTheSameDatabase(this.databaseName, inDatabase) ? transaction : null;
+		return namesMapToTheSameDatabase(this.databaseName, inDatabase) ? Optional.of(transaction) : Optional.empty();
 	}
 
 	Mono<Void> commit() {

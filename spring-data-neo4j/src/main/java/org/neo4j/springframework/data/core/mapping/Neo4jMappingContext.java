@@ -55,6 +55,7 @@ import org.springframework.data.util.TypeInformation;
  * the initial set of classes through {@link #setInitialEntitySet(Set)}.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class Neo4jMappingContext

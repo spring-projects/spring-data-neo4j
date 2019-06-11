@@ -20,6 +20,8 @@ package org.neo4j.springframework.data.core.transaction;
 
 import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUtils.*;
 
+import java.util.Optional;
+
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.springframework.transaction.support.ResourceHolderSupport;
@@ -32,6 +34,7 @@ import org.springframework.util.Assert;
  * <strong>Note:</strong> Intended for internal usage only.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 class Neo4jTransactionHolder extends ResourceHolderSupport {
 
@@ -47,14 +50,14 @@ class Neo4jTransactionHolder extends ResourceHolderSupport {
 	}
 
 	/**
-	 * Returns the transaction if it has been opened in a session for the requested database.
+	 * Returns the transaction if it has been opened in a session for the requested database or an empty optional.
 	 *
-	 * @param inDatabase
-	 * @return
+	 * @param inDatabase selected database to use
+	 * @return An optional, ongoing transaction.
 	 */
-	Transaction getTransaction(String inDatabase) {
+	Optional<Transaction> getTransaction(String inDatabase) {
 
-		return namesMapToTheSameDatabase(this.databaseName, inDatabase) ? transaction : null;
+		return namesMapToTheSameDatabase(this.databaseName, inDatabase) ? Optional.of(transaction) : Optional.empty();
 	}
 
 	void commit() {

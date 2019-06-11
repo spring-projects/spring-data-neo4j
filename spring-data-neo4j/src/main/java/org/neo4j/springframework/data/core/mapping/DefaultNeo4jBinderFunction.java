@@ -30,7 +30,7 @@ import java.util.function.Function;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 
 /**
- * @param <T>
+ * @param <T> type that should get mapped by the binder function
  * @author Michael J. Simons
  * @since 1.0
  */

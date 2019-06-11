@@ -30,8 +30,9 @@ import org.neo4j.springframework.data.core.schema.Neo4jSimpleTypes;
 /**
  * Used to automatically map single valued records to a sensible Java type based on {@link Value#asObject()}.
  *
- * @param <T>
  * @author Michael J. Simons
+ * @param <T> type of the domain class to map
+ * @since 1.0
  */
 @RequiredArgsConstructor
 final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Record, T> {

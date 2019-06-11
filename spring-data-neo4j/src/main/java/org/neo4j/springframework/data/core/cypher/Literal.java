@@ -25,6 +25,7 @@ import org.springframework.lang.Nullable;
  * Represents a literal with an optional content.
  *
  * @author Michael J. Simons
+ * @param <T> type of content
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")

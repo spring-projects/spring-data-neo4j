@@ -61,7 +61,7 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 	/**
 	 * A set of the temporal types that are directly passable to the driver and support a meaningful comparision in a
 	 * temporal sense (after, before).
-	 * See <a href="See https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system"
+	 * See <a href="See https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system" />
 	 */
 	private static final Set<Class<?>> COMPARABLE_TEMPORAL_TYPES = Collections
 		.unmodifiableSet(new HashSet<>(Arrays.asList(LocalDate.class, OffsetTime.class, ZonedDateTime.class,
@@ -112,7 +112,7 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 	/**
 	 * Checks whether the given part can be queried without case sensitivity.
 	 *
-	 * @param part
+	 * @param part query part to check if ignoring case sensitivity is possible
 	 * @return True when {@code part} can be queried case insensitive.
 	 */
 	static boolean canIgnoreCase(Part part) {

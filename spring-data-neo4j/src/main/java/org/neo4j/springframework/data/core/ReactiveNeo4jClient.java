@@ -29,12 +29,12 @@ import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.reactive.RxStatementRunner;
 import org.neo4j.driver.summary.ResultSummary;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.neo4j.springframework.data.core.Neo4jClient.BindSpec;
 import org.neo4j.springframework.data.core.Neo4jClient.MappingSpec;
 import org.neo4j.springframework.data.core.Neo4jClient.RecordFetchSpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 
 /**
  * Reactive Neo4j client. The main difference to the {@link Neo4jClient imperative Neo4j client} is the fact that all
@@ -69,7 +69,7 @@ public interface ReactiveNeo4jClient {
 	 * the Cypher statement.
 	 *
 	 * @param cypherSupplier A supplier of arbitrary Cypher code
-	 * @return
+	 * @return A runnable query specification.
 	 */
 	ReactiveRunnableSpec query(Supplier<String> cypherSupplier);
 
@@ -86,28 +86,30 @@ public interface ReactiveNeo4jClient {
 	 * Takes a prepared query, containing all the information about the cypher template to be used, needed parameters and
 	 * an optional mapping function, and turns it into an executable query.
 	 *
-	 * @param preparedQuery
+	 * @param preparedQuery prepared query that should get converted to an executable query
 	 * @param <T>           The type of the objects returned by this query.
-	 * @return
+	 * @return              An executable query
 	 */
 	<T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery);
 
 	/**
 	 * Contract for a runnable query that can be either run returning it's result, run without results or be parameterized.
+	 * @since 1.0
 	 */
 	interface ReactiveRunnableSpec extends ReactiveRunnableSpecTightToDatabase {
 
 		/**
 		 * Pins the previously defined query to a specific database.
 		 *
-		 * @param targetDatabase
-		 * @return
+		 * @param targetDatabase selected database to use
+		 * @return A runnable query specification that is now tight to a given database.
 		 */
 		ReactiveRunnableSpecTightToDatabase in(String targetDatabase);
 	}
 
 	/**
 	 * Contract for a runnable query inside a dedicated database.
+	 * @since 1.0
 	 */
 	interface ReactiveRunnableSpecTightToDatabase extends BindSpec<ReactiveRunnableSpecTightToDatabase> {
 
@@ -128,9 +130,10 @@ public interface ReactiveNeo4jClient {
 		RecordFetchSpec<Mono<Map<String, Object>>, Flux<Map<String, Object>>, Map<String, Object>> fetch();
 
 		/**
-		 * Execute the query and discard the results
+		 * Execute the query and discard the results. It returns the drivers result summary, including various counters
+		 * and other statistics.
 		 *
-		 * @return
+		 * @return A mono containing the native summary of the query.
 		 */
 		Mono<ResultSummary> run();
 	}
@@ -139,13 +142,14 @@ public interface ReactiveNeo4jClient {
 	 * A contract for an ongoing delegation in the selected database.
 	 *
 	 * @param <T> The type of the returned value.
+	 * @since 1.0
 	 */
 	interface OngoingReactiveDelegation<T> extends ReactiveRunnableDelegation<T> {
 
 		/**
 		 * Runs the delegation in the given target database.
 		 *
-		 * @param targetDatabase
+		 * @param targetDatabase selected database to use
 		 * @return An ongoing delegation
 		 */
 		ReactiveRunnableDelegation<T> in(String targetDatabase);
@@ -154,14 +158,15 @@ public interface ReactiveNeo4jClient {
 	/**
 	 * A runnable delegation.
 	 *
-	 * @param <T>
+	 * @param <T> the type that gets returned by the query
+	 * @since 1.0
 	 */
 	interface ReactiveRunnableDelegation<T> {
 
 		/**
 		 * Runs the stored callback.
 		 *
-		 * @return
+		 * @return The optional result of the callback that has been executed with the given database.
 		 */
 		Mono<T> run();
 	}
@@ -169,7 +174,8 @@ public interface ReactiveNeo4jClient {
 	/**
 	 * An interface for controlling query execution in a reactive fashion.
 	 *
-	 * @param <T>
+	 * @param <T> the type that gets returned by the query
+	 * @since 1.0
 	 */
 	interface ExecutableQuery<T> {
 
@@ -180,7 +186,7 @@ public interface ReactiveNeo4jClient {
 
 		/**
 		 * @return A single result
-		 * @throws IncorrectResultSizeDataAccessException
+		 * @throws IncorrectResultSizeDataAccessException if there are more than one result
 		 */
 		Mono<T> getSingleResult();
 	}

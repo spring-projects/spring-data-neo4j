@@ -27,6 +27,7 @@ import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 
 /**
  * @author Michael J. Simons
+ * @since 1.0
  */
 @RequiredArgsConstructor
 @Getter

@@ -23,9 +23,8 @@ import org.springframework.lang.Nullable;
 /**
  * Interface for implementations that accepts {@link Visitor visitors}.
  *
- * @see Visitor
- *
  * @author Michael Simons
+ * @see Visitor
  * @since 1.0
  */
 public interface Visitable {

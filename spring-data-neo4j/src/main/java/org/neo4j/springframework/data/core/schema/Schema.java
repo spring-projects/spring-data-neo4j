@@ -67,7 +67,7 @@ public interface Schema {
 	Optional<NodeDescription<?>> getNodeDescription(Class<?> underlyingClass);
 
 	/**
-	 * @param underlyingClass
+	 * @param underlyingClass the type to find in the schema registry
 	 * @return The node description for the given. class
 	 * @throws UnknownEntityException When {@code targetClass} is not a known entity class.
 	 */

@@ -44,6 +44,7 @@ public @interface Id {
 
 	/**
 	 * Enumerating available strategies for providing ids for new entities.
+	 * @since 1.0
 	 */
 	enum Strategy {
 
@@ -90,6 +91,10 @@ public @interface Id {
 	 */
 	Class<? extends IdGenerator> generator() default NoopIdGenerator.class;
 
+	/**
+	 * This {@link IdGenerator} does nothing. It is used for relying on the internal, database-side created id.
+	 * @since 1.0
+	 */
 	// Needed to make the generator attribute defaultable (null is not a constant)
 	class NoopIdGenerator implements IdGenerator {
 

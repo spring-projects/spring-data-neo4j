@@ -94,6 +94,10 @@ public enum Operator implements Visitable {
 		return type;
 	}
 
+	/**
+	 * {@link Operator} type.
+	 * @since 1.0
+	 */
 	public enum Type {
 		BINARY,
 		PREFIX,

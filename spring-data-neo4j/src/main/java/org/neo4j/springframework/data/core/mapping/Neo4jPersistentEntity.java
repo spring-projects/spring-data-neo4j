@@ -32,6 +32,8 @@ import org.neo4j.springframework.data.core.schema.NodeDescription;
  * (in Spring Data terms: if it is an association).
  *
  * @author Michael J. Simons
+ * @param <T> type of the underlying class
+ * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public interface Neo4jPersistentEntity<T>

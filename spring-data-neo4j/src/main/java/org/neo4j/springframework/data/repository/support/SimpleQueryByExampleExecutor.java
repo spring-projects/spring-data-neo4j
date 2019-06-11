@@ -52,8 +52,8 @@ import org.springframework.data.repository.support.PageableExecutionUtils;
 /**
  * A fragment for repositories providing "Query by example" functionality.
  *
- * @param <T>
  * @author Michael J. Simons
+ * @param <T> type of the domain class
  * @since 1.0
  */
 @Slf4j

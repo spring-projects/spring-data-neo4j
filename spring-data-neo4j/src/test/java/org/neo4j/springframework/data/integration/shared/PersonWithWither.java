@@ -25,6 +25,10 @@ import lombok.ToString;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
 
+/**
+ * Example domain object that works with wither.
+ * Read more about this <a href="https://docs.spring.io/spring-data/commons/docs/current/reference/html/#mapping.property-population">here</a>.
+ */
 @Getter
 @Setter
 @Node

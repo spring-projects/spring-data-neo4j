@@ -39,6 +39,7 @@ import org.springframework.data.repository.config.RepositoryConfigurationSource;
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
+ * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {

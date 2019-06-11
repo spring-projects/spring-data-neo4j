@@ -51,7 +51,7 @@ public abstract class Neo4jConfigurationSupport {
 	/**
 	 * The driver to be used for interacting with Neo4j.
 	 *
-	 * @return
+	 * @return the Neo4j Java driver instance to work with.
 	 */
 	public abstract Driver driver();
 
@@ -59,7 +59,7 @@ public abstract class Neo4jConfigurationSupport {
 	 * Creates a {@link org.neo4j.springframework.data.core.mapping.Neo4jMappingContext} equipped with entity classes
 	 * scanned from the mapping base package.
 	 *
-	 * @return
+	 * @return A new {@link Neo4jMappingContext} with initial classes to scan for entities set.
 	 * @see #getMappingBasePackages()
 	 */
 	@Bean
@@ -102,8 +102,8 @@ public abstract class Neo4jConfigurationSupport {
 	 * Scans the mapping base package for classes annotated with {@link Node}.
 	 * By default, it scans for entities in all packages returned by {@link #getMappingBasePackages()}.
 	 *
-	 * @return
-	 * @throws ClassNotFoundException
+	 * @return initial set of domain classes
+	 * @throws ClassNotFoundException if the given class cannot be found in the class path.
 	 * @see #getMappingBasePackages()
 	 */
 	protected final Set<Class<?>> getInitialEntitySet() throws ClassNotFoundException {
@@ -121,8 +121,8 @@ public abstract class Neo4jConfigurationSupport {
 	 * Scans the given base package for entities, i.e. Neo4j specific types annotated with {@link Node}.
 	 *
 	 * @param basePackage must not be {@literal null}.
-	 * @return
-	 * @throws ClassNotFoundException
+	 * @return found entities in the package to scan.
+	 * @throws ClassNotFoundException if the given class cannot be loaded by the class loader.
 	 */
 	protected final Set<Class<?>> scanForEntities(String basePackage) throws ClassNotFoundException {
 

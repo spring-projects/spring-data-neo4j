@@ -24,6 +24,7 @@ import org.apiguardian.api.API;
  * A marker interface for things that expose methods to create new relationships to other elements.
  *
  * @author Michael J. Simons
+ * @param <T> Typically a {@link Relationship} or {@link RelationshipChain}
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")

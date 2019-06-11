@@ -32,8 +32,10 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.StatementRunner;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
+import org.neo4j.springframework.data.repository.NoResultException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.lang.Nullable;
 
 /**
@@ -61,7 +63,7 @@ public interface Neo4jClient {
 	 * removal of things.
 	 *
 	 * @param cypher The cypher code that shall be executed
-	 * @return A new CypherSpec
+	 * @return A runnable query specification.
 	 */
 	RunnableSpec query(String cypher);
 
@@ -71,7 +73,7 @@ public interface Neo4jClient {
 	 * the Cypher statement.
 	 *
 	 * @param cypherSupplier A supplier of arbitrary Cypher code
-	 * @return
+	 * @return A runnable query specification.
 	 */
 	RunnableSpec query(Supplier<String> cypherSupplier);
 
@@ -88,28 +90,30 @@ public interface Neo4jClient {
 	 * Takes a prepared query, containing all the information about the cypher template to be used, needed parameters and
 	 * an optional mapping function, and turns it into an executable query.
 	 *
-	 * @param preparedQuery
+	 * @param preparedQuery prepared query that should get converted to an executable query
 	 * @param <T>           The type of the objects returned by this query.
-	 * @return
+	 * @return              An executable query
 	 */
 	<T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery);
 
 	/**
 	 * Contract for a runnable query that can be either run returning it's result, run without results or be parameterized.
+	 * @since 1.0
 	 */
 	interface RunnableSpec extends RunnableSpecTightToDatabase {
 
 		/**
 		 * Pins the previously defined query to a specific database.
 		 *
-		 * @param targetDatabase
-		 * @return
+		 * @param targetDatabase selected database to use
+		 * @return A runnable query specification that is now tight to a given database.
 		 */
 		RunnableSpecTightToDatabase in(String targetDatabase);
 	}
 
 	/**
 	 * Contract for a runnable query inside a dedicated database.
+	 * @since 1.0
 	 */
 	interface RunnableSpecTightToDatabase extends BindSpec<RunnableSpecTightToDatabase> {
 
@@ -118,21 +122,22 @@ public interface Neo4jClient {
 		 *
 		 * @param targetClass The class each record should be mapped to
 		 * @param <T>         The type of the class
-		 * @return A mapping spec that allows specifying a mapping function
+		 * @return A mapping spec that allows specifying a mapping function.
 		 */
 		<T> MappingSpec<Optional<T>, Collection<T>, T> fetchAs(Class<T> targetClass);
 
 		/**
 		 * Fetch all records mapped into generic maps
 		 *
-		 * @return A fetch specification that maps into generic maps
+		 * @return A fetch specification that maps into generic maps.
 		 */
 		RecordFetchSpec<Optional<Map<String, Object>>, Collection<Map<String, Object>>, Map<String, Object>> fetch();
 
 		/**
-		 * Execute the query and discard the results
+		 * Execute the query and discard the results. It returns the drivers result summary, including various counters
+		 * and other statistics.
 		 *
-		 * @return
+		 * @return The native summary of the query.
 		 */
 		ResultSummary run();
 	}
@@ -141,6 +146,7 @@ public interface Neo4jClient {
 	 * Contract for binding parameters to a query.
 	 *
 	 * @param <S> This {@link BindSpec specs} own type
+	 * @since 1.0
 	 */
 	interface BindSpec<S extends BindSpec<S>> {
 
@@ -157,6 +163,8 @@ public interface Neo4jClient {
 	 * Ongoing bind specification.
 	 *
 	 * @param <S> This {@link OngoingBindSpec specs} own type
+	 * @param <T> Binding value type
+	 * @since 1.0
 	 */
 	interface OngoingBindSpec<T, S extends BindSpec<S>> {
 
@@ -164,7 +172,7 @@ public interface Neo4jClient {
 		 * Bind one convertible object to the given name.
 		 *
 		 * @param name The named parameter to bind the value to
-		 * @return
+		 * @return The bind specification itself for binding more values or execution.
 		 */
 		S to(String name);
 
@@ -172,7 +180,7 @@ public interface Neo4jClient {
 		 * Use a binder function for the previously defined value.
 		 *
 		 * @param binder The binder function to create a map of parameters from the given value
-		 * @return
+		 * @return The bind specification itself for binding more values or execution.
 		 */
 		S with(Function<T, Map<String, Object>> binder);
 	}
@@ -181,6 +189,7 @@ public interface Neo4jClient {
 	 * @param <S> The type of the class holding zero or one result element
 	 * @param <M> The type of the class holding zero or more result elements
 	 * @param <T> The resulting type of this mapping
+	 * @since 1.0
 	 */
 	interface MappingSpec<S, M, T> extends RecordFetchSpec<S, M, T> {
 
@@ -189,7 +198,7 @@ public interface Neo4jClient {
 		 * itself and in addition, the type system that the Neo4j Java-Driver used while executing the query.
 		 *
 		 * @param mappingFunction The mapping function used to create new domain objects
-		 * @return A specification how to fetch one or more records
+		 * @return A specification how to fetch one or more records.
 		 */
 		RecordFetchSpec<S, M, T> mappedBy(BiFunction<TypeSystem, Record, T> mappingFunction);
 	}
@@ -198,6 +207,7 @@ public interface Neo4jClient {
 	 * @param <S> The type of the class holding zero or one result element
 	 * @param <M> The type of the class holding zero or more result elements
 	 * @param <T> The type to which the fetched records are eventually mapped
+	 * @since 1.0
 	 */
 	interface RecordFetchSpec<S, M, T> {
 
@@ -227,13 +237,14 @@ public interface Neo4jClient {
 	 * A contract for an ongoing delegation in the selected database.
 	 *
 	 * @param <T> The type of the returned value.
+	 * @since 1.0
 	 */
 	interface OngoingDelegation<T> extends RunnableDelegation<T> {
 
 		/**
 		 * Runs the delegation in the given target database.
 		 *
-		 * @param targetDatabase
+		 * @param targetDatabase selected database to use
 		 * @return An ongoing delegation
 		 */
 		RunnableDelegation<T> in(String targetDatabase);
@@ -242,14 +253,15 @@ public interface Neo4jClient {
 	/**
 	 * A runnable delegation.
 	 *
-	 * @param <T>
+	 * @param <T> the type that gets returned
+	 * @since 1.0
 	 */
 	interface RunnableDelegation<T> {
 
 		/**
 		 * Runs the stored callback.
 		 *
-		 * @return
+		 * @return The optional result of the callback that has been executed with the given database.
 		 */
 		Optional<T> run();
 	}
@@ -257,14 +269,26 @@ public interface Neo4jClient {
 	/**
 	 * An interface for controlling query execution.
 	 *
-	 * @param <T>
+	 * @param <T> the type that gets returned by the query
+	 * @since 1.0
 	 */
 	interface ExecutableQuery<T> {
 
+		/**
+		 * @return The list of all results. That can be an empty list but is never null.
+		 */
 		List<T> getResults();
 
+		/**
+		 * @return An optional, single result.
+		 * @throws IncorrectResultSizeDataAccessException when there is more than one result
+		 */
 		Optional<T> getSingleResult();
 
+		/**
+		 * @return A required, single result.
+		 * @throws NoResultException when there is no result
+		 */
 		T getRequiredSingleResult();
 	}
 }

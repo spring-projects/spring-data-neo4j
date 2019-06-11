@@ -30,6 +30,7 @@ import org.springframework.data.util.Lazy;
 
 /**
  * @author Michael J. Simons
+ * @since 1.0
  */
 class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<Neo4jPersistentProperty>
 	implements Neo4jPersistentProperty {
@@ -42,7 +43,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	 *
 	 * @param property         must not be {@literal null}.
 	 * @param owner            must not be {@literal null}.
-	 * @param simpleTypeHolder
+	 * @param simpleTypeHolder type holder
 	 */
 	DefaultNeo4jPersistentProperty(Property property,
 		PersistentEntity<?, Neo4jPersistentProperty> owner,

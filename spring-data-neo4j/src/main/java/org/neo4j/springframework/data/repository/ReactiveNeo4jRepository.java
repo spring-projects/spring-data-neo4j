@@ -26,6 +26,9 @@ import org.springframework.data.repository.reactive.ReactiveSortingRepository;
  * Neo4j specific {@link org.springframework.data.repository.Repository} interface with reactive support.
  *
  * @author Michael J. Simons
+ * @param <T> type of the domain class to map
+ * @param <ID> identifier type in the domain class
+ * @since 1.0
  */
 @NoRepositoryBean
 public interface ReactiveNeo4jRepository<T, ID>
