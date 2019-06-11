@@ -27,6 +27,7 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
 
 /**
  * @author Michael J. Simons
+ * @since 1.0
  */
 class Neo4jImperativeRepositoriesConfigureRegistrar extends AbstractRepositoryConfigurationSourceSupport {
 

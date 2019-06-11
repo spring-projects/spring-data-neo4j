@@ -66,9 +66,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 	protected abstract PreparedQuery prepareQuery(Object[] parameters);
 
 	/**
-	 * Returns whether the query should get a count projection applied.
-	 *
-	 * @return
+	 * @return True if the query should get a count projection applied.
 	 */
 	protected abstract boolean isCountQuery();
 

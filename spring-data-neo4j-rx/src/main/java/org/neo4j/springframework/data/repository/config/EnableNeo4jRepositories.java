@@ -39,6 +39,7 @@ import org.neo4j.springframework.data.repository.support.Neo4jRepositoryFactoryB
  * configuration class.
  *
  * @author Gerrit Meier
+ * @since 1.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

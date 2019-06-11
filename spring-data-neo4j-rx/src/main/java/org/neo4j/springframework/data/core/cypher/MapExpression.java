@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * or {@link Relationship relationships}.
  *
  * @author Michael J. Simons
+ * @param <S> type of properties or parameter
  * @soundtrack Rammstein - RAMMSTEIN
  * @since 1.0
  */

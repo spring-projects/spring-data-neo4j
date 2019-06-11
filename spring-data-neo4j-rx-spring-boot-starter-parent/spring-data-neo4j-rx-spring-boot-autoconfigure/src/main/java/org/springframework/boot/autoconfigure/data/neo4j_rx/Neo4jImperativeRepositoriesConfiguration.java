@@ -31,6 +31,7 @@ import org.neo4j.springframework.data.repository.support.Neo4jRepositoryFactoryB
 
 /**
  * @author Michael J. Simons
+ * @since 1.0
  */
 @Configuration
 @ConditionalOnClass(Neo4jRepository.class)

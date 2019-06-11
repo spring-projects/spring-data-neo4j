@@ -25,6 +25,8 @@ import org.springframework.transaction.support.TransactionSynchronization;
 /**
  * Neo4j specific {@link ResourceHolderSynchronization} for resource cleanup at the end of a transaction when
  * participating in a non-native Neo4j transaction, such as a Jta transaction.
+ *
+ * @since 1.0
  */
 class Neo4jSessionSynchronization
 	extends ResourceHolderSynchronization<Neo4jTransactionHolder, Object> {

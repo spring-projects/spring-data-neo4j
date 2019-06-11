@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Michael J. Simons
+ * @since 1.0
  */
 class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty>
 	implements Neo4jPersistentEntity<T> {

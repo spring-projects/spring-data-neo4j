@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Gerrit Meier
+ * @since 1.0
  */
 @API(status = API.Status.STABLE, since = "1.0")
 public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransactionManager {
@@ -98,7 +99,7 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 					});
 				});
 			})
-			.map(connectionHolder -> connectionHolder.getTransaction(targetDatabase))
+			.map(connectionHolder -> connectionHolder.getTransaction(targetDatabase).get())
 			// If not, than just don't open a transaction
 			.onErrorResume(NoTransactionException.class, nte -> Mono.empty());
 	}
@@ -181,7 +182,7 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 
 		ReactiveNeo4jTransactionHolder holder = (ReactiveNeo4jTransactionHolder) transactionSynchronizationManager
 				.getResource(driver);
-		return Mono.from(holder.getTransaction(databaseName).commit()).then();
+		return Mono.from(holder.getTransaction(databaseName).get().commit()).then();
 	}
 
 	@Override
@@ -190,7 +191,7 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 
 		ReactiveNeo4jTransactionHolder holder = (ReactiveNeo4jTransactionHolder) transactionSynchronizationManager
 			.getResource(driver);
-		return Mono.from(holder.getTransaction(databaseName).rollback()).then();
+		return Mono.from(holder.getTransaction(databaseName).get().rollback()).then();
 	}
 	/*
 	 * (non-Javadoc)

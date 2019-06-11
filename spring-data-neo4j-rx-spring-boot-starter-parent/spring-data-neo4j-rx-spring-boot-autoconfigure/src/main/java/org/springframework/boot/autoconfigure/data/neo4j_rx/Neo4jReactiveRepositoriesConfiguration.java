@@ -31,6 +31,7 @@ import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
  * TODO This is a stub.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @Configuration
 @ConditionalOnClass({ Flux.class, ReactiveNeo4jRepository.class })

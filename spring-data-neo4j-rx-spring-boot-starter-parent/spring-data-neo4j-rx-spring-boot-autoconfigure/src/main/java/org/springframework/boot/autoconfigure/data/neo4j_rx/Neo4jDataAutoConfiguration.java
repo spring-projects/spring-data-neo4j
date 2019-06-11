@@ -37,6 +37,7 @@ import org.neo4j.springframework.data.core.schema.Node;
  * repositories. Depends on the configured Neo4j driver.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @Configuration
 @ConditionalOnClass(Driver.class)

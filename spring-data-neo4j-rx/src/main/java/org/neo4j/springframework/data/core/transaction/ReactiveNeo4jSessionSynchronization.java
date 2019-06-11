@@ -28,6 +28,7 @@ import org.springframework.transaction.reactive.TransactionSynchronizationManage
 /**
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @since 1.0
  */
 class ReactiveNeo4jSessionSynchronization extends ReactiveResourceSynchronization<ReactiveNeo4jTransactionHolder, Object> {
 

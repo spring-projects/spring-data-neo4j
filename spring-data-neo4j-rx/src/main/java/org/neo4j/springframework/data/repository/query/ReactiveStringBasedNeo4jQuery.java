@@ -92,10 +92,10 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	 * Create a {@link ReactiveStringBasedNeo4jQuery} for a query method that is annotated with {@link Query @Query}. The annotation
 	 * is expected to have a value.
 	 *
-	 * @param neo4jClient
-	 * @param mappingContext
-	 * @param evaluationContextProvider
-	 * @param queryMethod
+	 * @param neo4jClient a reactive Neo4jClient instance
+	 * @param mappingContext a Neo4jMappingContext instance
+	 * @param evaluationContextProvider a QueryMethodEvaluationContextProvider instance
+	 * @param queryMethod the query method
 	 * @return A new instance of a String based Neo4j query.
 	 */
 	static ReactiveStringBasedNeo4jQuery create(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext mappingContext,
@@ -116,10 +116,10 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	/**
 	 * Create a {@link ReactiveStringBasedNeo4jQuery} based on an explicit Cypher template.
 	 *
-	 * @param neo4jClient
-	 * @param mappingContext
-	 * @param evaluationContextProvider
-	 * @param queryMethod
+	 * @param neo4jClient a reactive Neo4jClient instance
+	 * @param mappingContext a Neo4jMappingContext instance
+	 * @param evaluationContextProvider a QueryMethodEvaluationContextProvider instance
+	 * @param queryMethod the query method
 	 * @param cypherTemplate            The template to use.
 	 * @return A new instance of a String based Neo4j query.
 	 */
@@ -209,9 +209,9 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	}
 
 	/**
-	 * @param index
+	 * @param index position of this parameter placeholder
 	 * @param originalSpelExpression Not used for configuring parameter names atm.
-	 * @return
+	 * @return A new parameter name for the given index.
 	 */
 	private static String parameterNameSource(int index, @SuppressWarnings("unused") String originalSpelExpression) {
 		return "__SpEL__" + index;
@@ -220,8 +220,8 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	/**
 	 * @param originalPrefix The prefix passed to the replacement source is either ':' or '?', so that isn't usable for
 	 *                       Cypher templates and therefore ignored.
-	 * @param parameterName
-	 * @return
+	 * @param parameterName name of the parameter
+	 * @return The name of the parameter in its native Cypher form.
 	 */
 	private static String replacementSource(@SuppressWarnings("unused") String originalPrefix, String parameterName) {
 		return "$" + parameterName;

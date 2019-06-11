@@ -39,6 +39,7 @@ public final class Relationship implements
 
 	/**
 	 * While the direction in the schema package is centered around the node, the direction here is the direction between two nodes.
+	 * @since 1.0
 	 */
 	public enum Direction {
 		/**

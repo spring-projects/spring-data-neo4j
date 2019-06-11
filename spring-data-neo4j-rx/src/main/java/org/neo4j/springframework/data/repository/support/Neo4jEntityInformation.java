@@ -31,9 +31,9 @@ import org.springframework.data.repository.core.EntityInformation;
 /**
  * Neo4j specific contract for {@link EntityInformation entity informations}.
  *
+ * @author Michael J. Simons
  * @param <T>  The type of the entity
  * @param <ID> The type of the id
- * @author Michael J. Simons
  * @soundtrack Bear McCreary - Battlestar Galactica Season 1
  * @since 1.0
  */

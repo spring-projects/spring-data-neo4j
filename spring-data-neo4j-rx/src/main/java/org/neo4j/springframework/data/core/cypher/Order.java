@@ -28,6 +28,7 @@ import org.neo4j.springframework.data.core.cypher.support.TypedSubtree;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @param <S> The order's entry type
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")

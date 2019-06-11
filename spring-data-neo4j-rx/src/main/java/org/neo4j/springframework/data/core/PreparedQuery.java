@@ -80,6 +80,7 @@ public final class PreparedQuery<T> {
 
 	/**
 	 * @param <CT> The concrete type of this build step.
+	 * @since 1.0
 	 */
 	public static class RequiredBuildStep<CT> {
 		private final Class<CT> resultType;
@@ -95,6 +96,7 @@ public final class PreparedQuery<T> {
 
 	/**
 	 * @param <CT> The concrete type of this build step.
+	 * @since 1.0
 	 */
 	public static class OptionalBuildSteps<CT> {
 

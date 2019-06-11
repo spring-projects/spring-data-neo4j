@@ -52,7 +52,7 @@ public abstract class ReactiveNeo4jConfigurationSupport {
 	/**
 	 * The driver to be used for interacting with Neo4j.
 	 *
-	 * @return
+	 * @return the Neo4j Java driver instance to work with.
 	 */
 	public abstract Driver driver();
 
@@ -60,7 +60,7 @@ public abstract class ReactiveNeo4jConfigurationSupport {
 	 * Creates a {@link Neo4jMappingContext} equipped with entity classes
 	 * scanned from the mapping base package.
 	 *
-	 * @return
+	 * @return A new {@link Neo4jMappingContext} with initial classes to scan for entities set.
 	 * @see #getMappingBasePackages()
 	 */
 	@Bean

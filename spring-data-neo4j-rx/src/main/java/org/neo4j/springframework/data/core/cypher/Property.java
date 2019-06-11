@@ -70,10 +70,11 @@ public final class Property implements Expression {
 	}
 
 	/**
-	 * Creates a {@link Operation} setting this property to a new value.
+	 * Creates an {@link Operation} setting this property to a new value. The property does not track the operations
+	 * created with this method.
 	 *
-	 * @param expression
-	 * @return
+	 * @param expression expression describing the new value
+	 * @return A new operation.
 	 */
 	public Operation to(Expression expression) {
 		return Operations.set(this, expression);

@@ -33,6 +33,10 @@ import org.springframework.data.repository.core.support.TransactionalRepositoryF
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
+ * @param <T> the type of the repository
+ * @param <S> type of the domain class to map
+ * @param <ID> identifier type in the domain class
+ * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>

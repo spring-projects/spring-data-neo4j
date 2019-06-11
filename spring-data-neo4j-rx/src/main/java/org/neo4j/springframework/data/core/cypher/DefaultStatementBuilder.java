@@ -400,7 +400,7 @@ class DefaultStatementBuilder
 	}
 
 	/**
-	 * Ongoing with extends from {@link WithBuilderSupport} and therefore from {@Defaultd}
+	 * Ongoing with extends from {@link WithBuilderSupport} and therefore from {@link DefaultStatementWithReturnBuilder}.
 	 */
 	protected final class DefaultStatementWithWithBuilder extends WithBuilderSupport
 		implements OngoingReadingAndWithWithoutWhere, OngoingReadingAndWithWithWhere {

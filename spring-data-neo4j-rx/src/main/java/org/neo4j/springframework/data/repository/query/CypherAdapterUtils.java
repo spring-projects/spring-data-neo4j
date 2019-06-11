@@ -56,7 +56,7 @@ public final class CypherAdapterUtils {
 	 * Maps Spring Datas {@link Sort.Order} to a {@link SortItem}.
 	 * See {@link #toSortItems(NodeDescription, Sort)}.
 	 *
-	 * @param nodeDescription
+	 * @param nodeDescription {@link NodeDescription} to get properties for sorting from.
 	 * @return A stream if sort items. Will be empty when sort is unsorted.
 	 */
 	public static Function<Sort.Order, SortItem> sortAdapterFor(NodeDescription<?> nodeDescription) {
@@ -93,7 +93,7 @@ public final class CypherAdapterUtils {
 	 * Provides a builder for statements based on the schema of entity classes.
 	 *
 	 * @param schema The schema used for creating queries.
-	 * @return
+	 * @return new {@link SchemaBasedStatementBuilder} instance based on the given {@link Schema}
 	 */
 	public static SchemaBasedStatementBuilder createSchemaBasedStatementBuilder(Schema schema) {
 		return new SchemaBasedStatementBuilder(schema);
@@ -101,6 +101,8 @@ public final class CypherAdapterUtils {
 
 	/**
 	 * This is a adapter between the Schema and the Cypher module.
+	 *
+	 * @since 1.0
 	 */
 	public static class SchemaBasedStatementBuilder {
 
@@ -111,8 +113,8 @@ public final class CypherAdapterUtils {
 		}
 
 		/**
-		 * @param nodeDescription
-		 * @return
+		 * @param nodeDescription The node description for which a match clause should be generated
+		 * @return An ongoing match
 		 * @see #prepareMatchOf(NodeDescription, Optional)
 		 */
 		public OngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription) {
@@ -224,8 +226,8 @@ public final class CypherAdapterUtils {
 	}
 
 	/**
-	 * @param nodeDescription
-	 * @return
+	 * @param nodeDescription The node description for which a id expression gets generated
+	 * @return An expression that represents the right identifier type.
 	 * @see Neo4jEntityInformation#getIdExpression()
 	 */
 	public static Expression createIdExpression(final NodeDescription<?> nodeDescription) {

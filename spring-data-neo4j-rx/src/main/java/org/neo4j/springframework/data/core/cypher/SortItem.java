@@ -68,6 +68,10 @@ public final class SortItem implements Visitable {
 		visitor.leave(this);
 	}
 
+	/**
+	 * Sort direction.
+	 * @since 1.0
+	 */
 	public enum Direction implements Visitable {
 		UNDEFINED(""), ASC("ASC"), DESC("DESC");
 

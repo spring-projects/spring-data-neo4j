@@ -39,6 +39,7 @@ import org.springframework.transaction.ReactiveTransactionManager;
  * Internal configuration for the reactive Neo4j client.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @Configuration
 @ConditionalOnClass({ ReactiveNeo4jTransactionManager.class, ReactiveTransactionManager.class, Flux.class })

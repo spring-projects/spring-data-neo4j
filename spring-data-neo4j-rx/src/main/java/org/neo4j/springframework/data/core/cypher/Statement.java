@@ -39,9 +39,17 @@ public interface Statement extends Visitable {
 		return new DefaultStatementBuilder();
 	}
 
+	/**
+	 * Represents {@code RegularQuery}.
+	 * @since 1.0
+	 */
 	interface RegularQuery extends Statement {
 	}
 
+	/**
+	 * Represents a {@code StandaloneCall}.
+	 * @since 1.0
+	 */
 	interface SingleQuery extends RegularQuery {
 	}
 }

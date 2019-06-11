@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
  * transaction manager will synchronize a pair of a native Neo4j session/transaction with the transaction.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @Slf4j
 @API(status = API.Status.STABLE, since = "1.0")
@@ -94,7 +95,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 
 		if (connectionHolder != null) {
 
-			return Optional.of(connectionHolder.getTransaction(targetDatabase));
+			return connectionHolder.getTransaction(targetDatabase);
 		}
 
 		// Otherwise we open a session and synchronize it.
@@ -108,7 +109,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 			new Neo4jSessionSynchronization(connectionHolder, driver));
 
 		TransactionSynchronizationManager.bindResource(driver, connectionHolder);
-		return Optional.of(connectionHolder.getTransaction(targetDatabase));
+		return connectionHolder.getTransaction(targetDatabase);
 	}
 
 	private static Neo4jTransactionObject extractNeo4jTransaction(Object transaction) {

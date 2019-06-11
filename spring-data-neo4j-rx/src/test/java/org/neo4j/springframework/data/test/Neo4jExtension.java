@@ -42,6 +42,7 @@ import org.testcontainers.containers.Neo4jContainer;
  * otherwise it will start a test container and use that connection.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @Slf4j
 public class Neo4jExtension implements BeforeAllCallback {
@@ -84,6 +85,10 @@ public class Neo4jExtension implements BeforeAllCallback {
 		field.set(null, neo4jConnectionSupport);
 	}
 
+	/**
+	 * Support class that holds the connection information and opens a new connection on demand.
+	 * @since 1.0
+	 */
 	public static class Neo4jConnectionSupport {
 
 		public final String url;

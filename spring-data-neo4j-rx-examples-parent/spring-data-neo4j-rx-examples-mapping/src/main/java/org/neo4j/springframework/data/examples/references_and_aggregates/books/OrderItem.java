@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.examples.references_and_aggregates.books;
 
 /**
  * @author Michael J. Simons
+ * @since 1.0
  */
 public class OrderItem {
 	private final String product;

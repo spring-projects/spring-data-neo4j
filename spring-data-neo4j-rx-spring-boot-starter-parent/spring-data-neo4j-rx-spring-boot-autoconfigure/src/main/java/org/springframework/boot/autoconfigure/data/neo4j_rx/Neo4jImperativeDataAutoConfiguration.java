@@ -39,6 +39,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  * Internal configuration of Neo4j client and transaction manager.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 @Configuration
 @ConditionalOnClass({ Neo4jTransactionManager.class, PlatformTransactionManager.class })

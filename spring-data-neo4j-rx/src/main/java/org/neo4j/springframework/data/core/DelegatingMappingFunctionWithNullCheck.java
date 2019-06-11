@@ -30,8 +30,8 @@ import org.neo4j.driver.types.TypeSystem;
  * This class has been introduced instead of {@code Function#andThen} notion to be able throw a decent exception
  * containing some information about the delegate used and which record was problematic.
  *
- * @param <T> The expected type of this function
  * @author Michael J. Simons
+ * @param <T> The expected type of this function
  * @soundtrack Manowar - Fighting The World
  * @since 1.0
  */

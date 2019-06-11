@@ -85,7 +85,7 @@ public abstract class ReflectiveVisitor implements Visitor {
 	 * <p/>
 	 * The hook is called regardless wither a matching {@code leave} is found or not.
 	 *
-	 * @param visitable
+	 * @param visitable The visitable that is passed on to a matching leave after this call.
 	 */
 	protected abstract void postLeave(Visitable visitable);
 

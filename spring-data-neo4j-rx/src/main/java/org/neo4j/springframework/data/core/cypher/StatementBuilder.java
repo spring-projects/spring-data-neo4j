@@ -32,29 +32,30 @@ import org.springframework.lang.Nullable;
 public interface StatementBuilder {
 
 	/**
+	 * @param pattern patterns to match
+	 * @return An ongoing match
 	 * @see Cypher#optionalMatch(PatternElement...)
-	 * @return
 	 */
 	OngoingReadingWithoutWhere optionalMatch(PatternElement... pattern);
 
 	/**
+	 * @param pattern patterns to match
+	 * @return An ongoing match
 	 * @see Cypher#match(PatternElement...)
-	 * @param pattern
-	 * @return
 	 */
 	OngoingReadingWithoutWhere match(PatternElement... pattern);
 
 	/**
+	 * @param pattern patterns to create
+	 * @return An ongoing merge
 	 * @see Cypher#create(PatternElement...)
-	 * @param pattern
-	 * @return
 	 */
 	<T extends OngoingUpdate & ExposesSet> T create(PatternElement... pattern);
 
 	/**
+	 * @param pattern patterns to merge
+	 * @return An ongoing merge
 	 * @see Cypher#merge(PatternElement...)
-	 * @param pattern
-	 * @return
 	 */
 	<T extends OngoingUpdate & ExposesSet> T merge(PatternElement... pattern);
 
@@ -64,6 +65,7 @@ public interface StatementBuilder {
 
 	/**
 	 * An ongoing update statement that can be used to chain more update statements or add a with or return clause.
+	 * @since 1.0
 	 */
 	interface OngoingUpdate extends BuildableStatement, ExposesCreate, ExposesMerge, ExposesReturning, ExposesWith {
 	}
@@ -72,6 +74,7 @@ public interface StatementBuilder {
 	 * A match that exposes {@code returning} and {@code where} methods to add required information.
 	 * While the where clause is optional, an returning clause needs to be specified before the
 	 * statement can be build.
+	 * @since 1.0
 	 */
 	interface OngoingReadingWithoutWhere extends OngoingReading, ExposesMatch, ExposesCreate, ExposesMerge {
 
@@ -86,10 +89,15 @@ public interface StatementBuilder {
 
 	/**
 	 * A match that has a non-empty {@code where}-part. THe returning clause is still open.
+	 * @since 1.0
 	 */
 	interface OngoingReadingWithWhere extends OngoingReading, ExposesMatch, ExposesConditions<OngoingReadingWithWhere> {
 	}
 
+	/**
+	 * @param <T> Type of ongoing query.
+	 * @since 1.0
+	 */
 	interface ExposesConditions<T> {
 		/**
 		 * Adds an additional condition to the existing conditions, connected by an {@literal and}.
@@ -115,10 +123,15 @@ public interface StatementBuilder {
 	/**
 	 * A match that exposes {@code returning} and for which it is not decided whether the optional
 	 * where part has been used or note.
+	 * @since 1.0
 	 */
 	interface OngoingReading extends ExposesReturning, ExposesWith, ExposesUpdatingClause, ExposesUnwind {
 	}
 
+	/**
+	 * Builder part for unwinding.
+	 * @since 1.0
+	 */
 	interface OngoingUnwind {
 
 		OngoingReading as(String variable);
@@ -126,12 +139,14 @@ public interface StatementBuilder {
 
 	/**
 	 * A match that knows what to return and which is ready to be build.
+	 * @since 1.0
 	 */
 	interface OngoingReadingAndReturn extends ExposesOrderBy, ExposesSkip, ExposesLimit, BuildableStatement {
 	}
 
 	/**
 	 * A match that knows what to pipe to the next part of a multi part query.
+	 * @since 1.0
 	 */
 	interface OngoingReadingAndWithWithoutWhere extends OngoingReadingAndWith {
 
@@ -144,15 +159,28 @@ public interface StatementBuilder {
 		OngoingReadingAndWithWithWhere where(Condition condition);
 	}
 
+	/**
+	 * @see OngoingReadingAndWith
+	 * @see ExposesConditions
+	 * @since 1.0
+	 */
 	interface OngoingReadingAndWithWithWhere
 		extends OngoingReadingAndWith, ExposesConditions<OngoingReadingAndWithWithWhere> {
 	}
 
+	/**
+	 * @see OngoingReading
+	 * @since 1.0
+	 */
 	interface OngoingReadingAndWith
 		extends OngoingReading, ExposesMatch, ExposesOrderBy, ExposesSkip, ExposesLimit, ExposesReturning,
 		ExposesCreate, ExposesMerge {
 	}
 
+	/**
+	 * Combines the capabilities of skip, limit and adds additional expressions to the order-by items.
+	 * @since 1.0
+	 */
 	interface OngoingMatchAndReturnWithOrder extends ExposesSkip, ExposesLimit, BuildableStatement {
 
 		/**
@@ -164,7 +192,8 @@ public interface StatementBuilder {
 	}
 
 	/**
-	 * An intermediate step while defining the order of a resultset.
+	 * An intermediate step while defining the order of a result set.
+	 * @since 1.0
 	 */
 	interface OngoingOrderDefinition extends ExposesSkip, ExposesLimit {
 
@@ -185,6 +214,7 @@ public interface StatementBuilder {
 
 	/**
 	 * A statement that has all information required to be build and exposes a build method.
+	 * @since 1.0
 	 */
 	interface BuildableStatement {
 
@@ -194,6 +224,10 @@ public interface StatementBuilder {
 		Statement build();
 	}
 
+	/**
+	 * Return part of a statement.
+	 * @since 1.0
+	 */
 	interface ExposesReturning {
 
 		default OngoingReadingAndReturn returning(String... variables) {
@@ -224,6 +258,7 @@ public interface StatementBuilder {
 
 	/**
 	 * A step that exposes the {@code WITH} clause.
+	 * @since 1.0
 	 */
 	interface ExposesWith {
 
@@ -254,6 +289,7 @@ public interface StatementBuilder {
 
 	/**
 	 * A step that exposes several methods to specify ordering.
+	 * @since 1.0
 	 */
 	interface ExposesOrderBy {
 
@@ -278,6 +314,7 @@ public interface StatementBuilder {
 
 	/**
 	 * A step that exposes the {@link #skip(Number)} method.
+	 * @since 1.0
 	 */
 	interface ExposesSkip {
 
@@ -293,6 +330,7 @@ public interface StatementBuilder {
 
 	/**
 	 * A step that exposes the {@link #limit(Number)} method.
+	 * @since 1.0
 	 */
 	interface ExposesLimit {
 
@@ -306,12 +344,14 @@ public interface StatementBuilder {
 
 	/**
 	 * A step providing all the supported updating clauses (DELETE, SET)
+	 * @since 1.0
 	 */
 	interface ExposesUpdatingClause extends ExposesDelete, ExposesMerge, ExposesSetAndRemove {
 	}
 
 	/**
 	 * A step that exposes only the delete clause.
+	 * @since 1.0
 	 */
 	interface ExposesDelete {
 
@@ -340,6 +380,10 @@ public interface StatementBuilder {
 		<T extends OngoingMatchAndUpdate & BuildableStatement> T detachDelete(Expression... expressions);
 	}
 
+	/**
+	 * Set part of a statement.
+	 * @since 1.0
+	 */
 	interface ExposesSet {
 
 		/**
@@ -354,6 +398,7 @@ public interface StatementBuilder {
 
 	/**
 	 * A step that exposes the set clause.
+	 * @since 1.0
 	 */
 	interface ExposesSetAndRemove extends ExposesSet {
 
@@ -366,6 +411,7 @@ public interface StatementBuilder {
 
 	/**
 	 * A step exposing a {@link #match(PatternElement...)} method.
+	 * @since 1.0
 	 */
 	interface ExposesMatch {
 
@@ -386,16 +432,28 @@ public interface StatementBuilder {
 		OngoingReadingWithoutWhere optionalMatch(PatternElement... pattern);
 	}
 
+	/**
+	 * A step exposing a {@link #create(PatternElement...)} method.
+	 * @since 1.0
+	 */
 	interface ExposesCreate {
 
 		<T extends OngoingUpdate & ExposesSet> T create(PatternElement... pattern);
 	}
 
+	/**
+	 * A step exposing a {@link #merge(PatternElement...)} method.
+	 * @since 1.0
+	 */
 	interface ExposesMerge {
 
 		<T extends OngoingUpdate & ExposesSet> T merge(PatternElement... pattern);
 	}
 
+	/**
+	 * A step exposing a {@link #unwind(Expression...)},{@link #unwind(Expression)}, {@link #unwind(String)} and method.
+	 * @since 1.0
+	 */
 	interface ExposesUnwind {
 
 		default OngoingUnwind unwind(Expression... expressions) {
@@ -411,6 +469,7 @@ public interface StatementBuilder {
 
 	/**
 	 * A buildable step that will create a MATCH ... DELETE statement.
+	 * @since 1.0
 	 */
 	interface OngoingMatchAndUpdate extends ExposesReturning, ExposesWith, ExposesUpdatingClause {
 	}

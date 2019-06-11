@@ -59,6 +59,7 @@ import org.springframework.util.Assert;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @since 1.0
  */
 class DefaultNeo4jClient implements Neo4jClient {
 

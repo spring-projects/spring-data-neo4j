@@ -224,22 +224,22 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 
 	/**
 	 * Checks whether or not to ignore the case for some operations. {@link PartTreeNeo4jQuery} will already have validated
-	 * which properties can be made case insenstive given a certain keyword.
+	 * which properties can be made case insensitive given a certain keyword.
 	 *
-	 * @param p
-	 * @return
+	 * @param part query part to get checked if case should get ignored
+	 * @return should the case get ignored
 	 */
-	boolean ignoreCase(Part p) {
+	boolean ignoreCase(Part part) {
 
-		switch (p.shouldIgnoreCase()) {
+		switch (part.shouldIgnoreCase()) {
 			case ALWAYS:
 				return true;
 			case WHEN_POSSIBLE:
-				return canIgnoreCase(p);
+				return canIgnoreCase(part);
 			case NEVER:
 				return false;
 			default:
-				throw new IllegalArgumentException("Unsupported option for ignoring case: " + p.shouldIgnoreCase());
+				throw new IllegalArgumentException("Unsupported option for ignoring case: " + part.shouldIgnoreCase());
 		}
 	}
 
@@ -322,8 +322,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 	}
 
 	/**
-	 * @param property
-	 * @param rangeParameter
+	 * @param property property for which the range should get checked
+	 * @param rangeParameter parameter that expresses the range
 	 * @return The equivalent of a A BETWEEN B AND C expression for a given range.
 	 */
 	private static Condition createRangeConditionForProperty(Expression property, Parameter rangeParameter) {

@@ -46,9 +46,9 @@ import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
 /**
  * A fragment for repositories providing "Query by example" functionality in a reactive way.
  *
- * @param <T>
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @param <T> type of the domain class
  * @since 1.0
  */
 @Slf4j

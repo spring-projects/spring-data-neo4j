@@ -29,6 +29,7 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
  * TODO This is a stub.
  *
  * @author Michael J. Simons
+ * @since 1.0
  */
 class Neo4jReactiveRepositoriesConfigureRegistrar extends AbstractRepositoryConfigurationSourceSupport {
 

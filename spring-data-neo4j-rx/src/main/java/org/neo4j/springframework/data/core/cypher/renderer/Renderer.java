@@ -29,15 +29,15 @@ public interface Renderer {
 
 	/**
 	 * Renders a statement.
-	 * @param statement
-	 * @return
+	 * @param statement the statement to render
+	 * @return The rendered Cypher statement.
 	 */
 	String render(Statement statement);
 
 	/**
 	 * Provides the default renderer. This method may or may not provide shared instances of the renderer.
 	 *
-	 * @return The default renderer
+	 * @return The default renderer.
 	 */
 	static Renderer getDefaultRenderer() {
 		return CypherRenderer.INSTANCE;
