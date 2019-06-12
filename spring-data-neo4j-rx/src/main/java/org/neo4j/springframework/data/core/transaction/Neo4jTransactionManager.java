@@ -49,8 +49,8 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  */
-@API(status = API.Status.STABLE, since = "1.0")
 @Slf4j
+@API(status = API.Status.STABLE, since = "1.0")
 public class Neo4jTransactionManager extends AbstractPlatformTransactionManager {
 
 	/**

@@ -25,6 +25,7 @@ import reactor.core.publisher.Mono;
 import java.util.Collections;
 import java.util.List;
 
+import org.apiguardian.api.API;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.TransactionConfig;
@@ -44,6 +45,7 @@ import org.springframework.util.Assert;
 /**
  * @author Gerrit Meier
  */
+@API(status = API.Status.STABLE, since = "1.0")
 public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransactionManager {
 
 	/**
