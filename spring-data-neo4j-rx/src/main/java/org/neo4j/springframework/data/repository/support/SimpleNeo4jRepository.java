@@ -216,8 +216,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 		log.debug("Deleting entity with id {} ", id);
 
-		Statement statement = statementBuilder
-			.prepareDeleteOf(entityMetaData, Optional.of(condition));
+		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
 		ResultSummary summary = this.neo4jClient.query(renderer.render(statement))
 			.bind(id).to(nameOfParameter)
 			.run();
@@ -230,7 +229,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	@Transactional
 	public void delete(T entity) {
 
-		ID id = (ID) this.entityInformation.getId(entity);
+		ID id = this.entityInformation.getId(entity);
 		this.deleteById(id);
 	}
 

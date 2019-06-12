@@ -35,17 +35,17 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Point;
+import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
+import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
+import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
+import org.neo4j.springframework.data.test.Neo4jExtension;
+import org.neo4j.springframework.data.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Sort;
-import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
-import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
-import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
-import org.neo4j.springframework.data.test.Neo4jExtension;
-import org.neo4j.springframework.data.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -315,6 +315,71 @@ class ReactiveRepositoryIT {
 
 		StepVerifier.create(repository.findAllBySameValue(TEST_PERSON_SAMEVALUE)).expectNextMatches(personList::contains)
 				.expectNextMatches(personList::contains).verifyComplete();
+	}
+
+	@Test
+	void deleteAll() {
+
+		repository.deleteAll()
+			.then(repository.count())
+			.as(StepVerifier::create)
+			.expectNext(0L)
+			.verifyComplete();
+	}
+
+	@Test
+	void deleteById() {
+
+		repository.deleteById(id1)
+			.then(repository.existsById(id1))
+			.concatWith(repository.existsById(id2))
+			.as(StepVerifier::create)
+			.expectNext(false, true)
+			.verifyComplete();
+	}
+
+	@Test
+	void deleteByIdPublisher() {
+
+		repository.deleteById(Mono.just(id1))
+			.then(repository.existsById(id1))
+			.concatWith(repository.existsById(id2))
+			.as(StepVerifier::create)
+			.expectNext(false, true)
+			.verifyComplete();
+	}
+
+	@Test
+	void delete() {
+
+		repository.delete(person1)
+			.then(repository.existsById(id1))
+			.concatWith(repository.existsById(id2))
+			.as(StepVerifier::create)
+			.expectNext(false, true)
+			.verifyComplete();
+	}
+
+	@Test
+	void deleteAllEntities() {
+
+		repository.deleteAll(Arrays.asList(person1, person2))
+			.then(repository.existsById(id1))
+			.concatWith(repository.existsById(id2))
+			.as(StepVerifier::create)
+			.expectNext(false, false)
+			.verifyComplete();
+	}
+
+	@Test
+	void deleteAllEntitiesPublisher() {
+
+		repository.deleteAll(Flux.just(person1, person2))
+			.then(repository.existsById(id1))
+			.concatWith(repository.existsById(id2))
+			.as(StepVerifier::create)
+			.expectNext(false, false)
+			.verifyComplete();
 	}
 
 	@Configuration
