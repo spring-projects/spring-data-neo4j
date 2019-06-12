@@ -33,11 +33,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.neo4j.driver</groupId>
-			<artifactId>neo4j-java-driver</artifactId>
-		</dependency>
-
-		<dependency>
 			<groupId>org.neo4j.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-rx-spring-boot-autoconfigure</artifactId>
 			<version>${project.version}</version>

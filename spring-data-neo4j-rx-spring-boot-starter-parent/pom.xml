@@ -21,12 +21,15 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<artifactId>spring-data-neo4j-rx-parent</artifactId>
-		<groupId>org.neo4j.springframework.data</groupId>
-		<version>1.0.0.BUILD-SNAPSHOT</version>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<groupId>org.springframework.boot</groupId>
+		<version>2.2.0.M3</version>
+		<relativePath></relativePath>
 	</parent>
 
+	<groupId>org.neo4j.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-rx-spring-boot-starter-parent</artifactId>
+	<version>1.0.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>SDN⚡️RX Spring Boot Starter Parent</name>
@@ -38,17 +41,34 @@
 	</modules>
 
 	<properties>
-		<spring-boot.version>2.2.0.M3</spring-boot.version>
+		<neo4j-java-driver-spring-boot-starter.version>1.0.0-alpha02</neo4j-java-driver-spring-boot-starter.version>
+		<spring-data-neo4j-rx.version>1.0.0.BUILD-SNAPSHOT</spring-data-neo4j-rx.version>
+		<testcontainers.version>1.10.7</testcontainers.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-dependencies</artifactId>
-				<version>${spring-boot.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
+				<groupId>org.neo4j.springframework.data</groupId>
+				<artifactId>spring-data-neo4j-rx</artifactId>
+				<version>${spring-data-neo4j-rx.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j.driver</groupId>
+				<artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
+				<version>${neo4j-java-driver-spring-boot-starter.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>junit-jupiter</artifactId>
+				<version>${testcontainers.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>neo4j</artifactId>
+				<version>${testcontainers.version}</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

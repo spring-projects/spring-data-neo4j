@@ -73,8 +73,6 @@
 
 	<modules>
 		<module>spring-data-neo4j-rx</module>
-		<module>spring-data-neo4j-rx-spring-boot-starter-parent</module>
-		<module>spring-data-neo4j-rx-examples-parent</module>
 	</modules>
 
 	<properties>

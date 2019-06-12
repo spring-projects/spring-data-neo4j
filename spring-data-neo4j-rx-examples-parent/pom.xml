@@ -20,14 +20,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<artifactId>spring-data-neo4j-rx-parent</artifactId>
-		<groupId>org.neo4j.springframework.data</groupId>
-		<version>1.0.0.BUILD-SNAPSHOT</version>
-	</parent>
-
+	<groupId>org.neo4j.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-rx-examples-parent</artifactId>
-	<packaging>pom</packaging>
+	<version>1.0.0.BUILD-SNAPSHOT</version><packaging>pom</packaging>
 
 	<name>SDN⚡️RX Examples Parent</name>
 	<description>Contains several example projects, among them demonstration of mapping and concepts as well as Spring
@@ -37,4 +32,9 @@
 		<module>spring-data-neo4j-rx-examples-mapping</module>
 		<module>spring-data-neo4j-rx-examples-spring-boot</module>
 	</modules>
+
+	<properties>
+		<maven.compiler.source>12</maven.compiler.source>
+		<maven.compiler.target>12</maven.compiler.target>
+	</properties>
 </project>
