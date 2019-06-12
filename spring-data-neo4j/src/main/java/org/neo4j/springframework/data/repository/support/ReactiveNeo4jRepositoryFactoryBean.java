@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.repository.support;
 
 import java.io.Serializable;
 
+import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.Repository;
@@ -32,7 +33,8 @@ import org.springframework.data.repository.core.support.TransactionalRepositoryF
  *
  * @author Gerrit Meier
  */
-public class ReactiveNeo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class ReactiveNeo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
 	extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
 	private ReactiveNeo4jClient neo4jClient;
