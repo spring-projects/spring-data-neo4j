@@ -29,19 +29,22 @@ import reactor.core.publisher.Mono;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-import org.reactivestreams.Publisher;
-import org.springframework.data.domain.Sort;
 import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient.ExecutableQuery;
+import org.neo4j.springframework.data.core.cypher.Condition;
 import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
+import org.reactivestreams.Publisher;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 /**
  * Repository base implementation for Neo4j.
@@ -153,28 +156,104 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 		return null;
 	}
 
-	@Override public Mono<Void> deleteById(ID id) {
-		return null;
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteById(java.lang.Object)
+	 */
+	@Override
+	@Transactional
+	public Mono<Void> deleteById(ID id) {
+
+		Assert.notNull(id, "The given id must not be null!");
+
+		return Mono.just(id).as(this::deleteById);
 	}
 
-	@Override public Mono<Void> deleteById(Publisher<ID> id) {
-		return null;
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#delete(java.lang.Object)
+	 */
+	@Override
+	@Transactional
+	public Mono<Void> delete(T entity) {
+
+		Assert.notNull(entity, "The given entity must not be null!");
+
+		return Mono.just(entity)
+			.map(this.entityInformation::getId)
+			.as(this::deleteById);
 	}
 
-	@Override public Mono<Void> delete(T entity) {
-		return null;
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteById(org.reactivestreams.Publisher)
+	 */
+	@Override
+	@Transactional
+	public Mono<Void> deleteById(Publisher<ID> idPublisher) {
+
+		Assert.notNull(idPublisher, "The given Publisher of an id must not be null!");
+
+		return Mono.from(idPublisher)
+			.flatMap(id -> {
+				String nameOfParameter = "id";
+				Condition condition = this.entityInformation.getIdExpression().isEqualTo(parameter(nameOfParameter));
+
+				Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
+				return this.neo4jClient.query(() -> renderer.render(statement))
+					.bind(id).to(nameOfParameter).run();
+			})
+			.then();
 	}
 
-	@Override public Mono<Void> deleteAll(Iterable<? extends T> entities) {
-		return null;
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteAll(java.lang.Iterable)
+	 */
+	@Override
+	@Transactional
+	public Mono<Void> deleteAll(Iterable<? extends T> entities) {
+
+		Assert.notNull(entities, "The given Iterable of entities must not be null!");
+
+		return Flux.fromIterable(entities)
+			.as(this::deleteAll);
 	}
 
-	@Override public Mono<Void> deleteAll(Publisher<? extends T> entityStream) {
-		return null;
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteAll(org.reactivestreams.Publisher)
+	 */
+	@Override
+	@Transactional
+	public Mono<Void> deleteAll(Publisher<? extends T> entitiesPublisher) {
+
+		Assert.notNull(entitiesPublisher, "The given Publisher of entities must not be null!");
+
+		return Flux.from(entitiesPublisher)
+			.map(this.entityInformation::getId)
+			.collect(Collectors.toList())
+			.flatMap(ids -> {
+
+				String nameOfParameter = "ids";
+				Condition condition = entityInformation.getIdExpression().in(parameter(nameOfParameter));
+				Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
+
+				return this.neo4jClient.query(() -> renderer.render(statement)).bind(ids).to(nameOfParameter).run();
+			})
+			.then();
 	}
 
-	@Override public Mono<Void> deleteAll() {
-		return null;
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteAll()
+	 */
+	@Override
+	@Transactional
+	public Mono<Void> deleteAll() {
+
+		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.empty());
+		return this.neo4jClient.query(() -> renderer.render(statement)).run().then();
 	}
 
 	private ExecutableQuery<T> createExecutableQuery(Statement statement) {
