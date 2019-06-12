@@ -27,9 +27,6 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.mapping.MappingException;
 import org.neo4j.springframework.data.core.cypher.*;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.BuildableStatement;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingAndWith;
@@ -39,6 +36,10 @@ import org.neo4j.springframework.data.core.schema.IdDescription;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Schema;
 import org.neo4j.springframework.data.repository.support.Neo4jEntityInformation;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.MappingException;
+import org.springframework.util.Assert;
 
 /**
  * A set of shared utils to adapt {@code org.neo4j.springframework.data.core.cypher} functionality with Spring Data
@@ -185,6 +186,26 @@ public final class CypherAdapterUtils {
 
 				return Cypher.union(createIfNew, updateIfExists);
 			}
+		}
+
+		public Statement prepareSaveOfMultipleInstancesOf(NodeDescription<?> nodeDescription) {
+
+			Assert.isTrue(!nodeDescription.isUsingInternalIds(),
+				"Only entities that use external IDs can be saved in a batch.");
+
+			Node rootNode = node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
+			IdDescription idDescription = nodeDescription.getIdDescription();
+
+			String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
+				.orElseThrow(() -> new MappingException("External id does not correspond to a graph property!"));
+
+			String row = "entity";
+			return Cypher
+				.unwind(parameter(NAME_OF_ENTITY_LIST_PARAM)).as(row)
+				.merge(rootNode.properties(nameOfIdProperty, property(row, NAME_OF_ID_PARAM)))
+				.set(rootNode, property(row, NAME_OF_PROPERTIES_PARAM))
+				.returning(rootNode.internalId())
+				.build();
 		}
 	}
 

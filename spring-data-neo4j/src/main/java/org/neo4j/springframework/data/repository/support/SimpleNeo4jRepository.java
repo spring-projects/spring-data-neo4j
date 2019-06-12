@@ -19,7 +19,9 @@
 package org.neo4j.springframework.data.repository.support;
 
 import static java.util.Collections.*;
+import static java.util.stream.Collectors.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
+import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 
 import lombok.extern.slf4j.Slf4j;
@@ -28,15 +30,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.LongSupplier;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.neo4j.driver.summary.ResultSummary;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.mapping.PersistentPropertyAccessor;
+import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.springframework.data.core.Neo4jClient;
 import org.neo4j.springframework.data.core.Neo4jClient.ExecutableQuery;
 import org.neo4j.springframework.data.core.PreparedQuery;
@@ -47,6 +46,10 @@ import org.neo4j.springframework.data.core.cypher.StatementBuilder;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingAndReturn;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
@@ -131,7 +134,29 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	@Override
 	@Transactional
 	public <S extends T> Iterable<S> saveAll(Iterable<S> entities) {
-		throw new UnsupportedOperationException("Not there yet.");
+
+		if (entityMetaData.isUsingInternalIds()) {
+			log.debug("Saving entities using single statements.");
+			return StreamSupport.stream(entities.spliterator(), false)
+				.map(this::save)
+				.collect(toList());
+		}
+
+		final Function<T, Map<String, Object>> binderFunction = entityInformation.getBinderFunction();
+		List<Map<String, Object>> entityList = StreamSupport.stream(entities.spliterator(), false)
+			.map(binderFunction).collect(toList());
+
+		ResultSummary resultSummary = neo4jClient
+			.query(() -> renderer.render(statementBuilder.prepareSaveOfMultipleInstancesOf(entityMetaData)))
+			.bind(entityList).to(NAME_OF_ENTITY_LIST_PARAM)
+			.run();
+
+		SummaryCounters counters = resultSummary.counters();
+		log.debug("Created {} and deleted {} nodes, created {} and deleted {} relationships and set {} properties.",
+			counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
+			counters.relationshipsDeleted(), counters.propertiesSet());
+
+		return entities;
 	}
 
 	@Override
@@ -197,7 +222,8 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 			.bind(id).to(nameOfParameter)
 			.run();
 
-		log.debug("Deleted {} entities.", summary.counters().nodesDeleted());
+		log.debug("Deleted {} nodes and {} relationships.", summary.counters().nodesDeleted(),
+			summary.counters().relationshipsDeleted());
 	}
 
 	@Override
@@ -216,7 +242,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 		Condition condition = entityInformation.getIdExpression().in(parameter(nameOfParameter));
 
 		List<Object> ids = StreamSupport.stream(entities.spliterator(), false)
-			.map(this.entityInformation::getId).collect(Collectors.toList());
+			.map(this.entityInformation::getId).collect(toList());
 
 		log.debug("Deleting all entities with the following ids: {} ", ids);
 
@@ -225,7 +251,8 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 			.bind(ids).to(nameOfParameter)
 			.run();
 
-		log.debug("Deleted {} entities.", summary.counters().nodesDeleted());
+		log.debug("Deleted {} nodes and {} relationships.", summary.counters().nodesDeleted(),
+			summary.counters().relationshipsDeleted());
 	}
 
 	@Override
@@ -237,7 +264,8 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.empty());
 		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).run();
 
-		log.debug("Deleted {} entities.", summary.counters().nodesDeleted());
+		log.debug("Deleted {} nodes and {} relationships.", summary.counters().nodesDeleted(),
+			summary.counters().relationshipsDeleted());
 	}
 
 	private ExecutableQuery<T> createExecutableQuery(Statement statement) {
