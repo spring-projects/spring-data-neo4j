@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.integration.imperative;
 
+import static java.util.stream.Collectors.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.domain.Range.Bound.*;
 
@@ -28,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +39,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Point;
@@ -183,6 +186,36 @@ class RepositoryIT {
 	}
 
 	@Test
+	void saveAll() {
+
+		PersonWithAllConstructor newPerson = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
+			LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null);
+
+		PersonWithAllConstructor existingPerson = repository.findById(id1).get();
+		existingPerson.setFirstName("Updated first name");
+		existingPerson.setNullable("Updated nullable field");
+
+		assertThat(repository.count()).isEqualTo(2);
+
+		List<Long> ids = StreamSupport.stream(repository.saveAll(Arrays.asList(existingPerson, newPerson)).spliterator(), false)
+			.map(PersonWithAllConstructor::getId)
+			.collect(toList());
+
+		assertThat(repository.count()).isEqualTo(3);
+
+		try (Session session = driver.session()) {
+
+			Record record = session
+				.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) IN ($ids) WITH n ORDER BY n.name ASC RETURN COLLECT(n.name) as names", Values.parameters("ids", ids))
+				.single();
+
+			assertThat(record.containsKey("names")).isTrue();
+			List<String> names = record.get("names").asList(Value::asString);
+			assertThat(names).contains("Mercury", TEST_PERSON1_NAME);
+		}
+	}
+
+	@Test
 	void updateSingleEntity() {
 
 		PersonWithAllConstructor originalPerson = repository.findById(id1).get();
@@ -272,6 +305,32 @@ class RepositoryIT {
 			Node node = record.get("n").asNode();
 			assertThat(node.get("theId").asString()).isEqualTo(thing.getTheId());
 			assertThat(node.get("name").asString()).isEqualTo(thing.getName());
+
+			assertThat(thingRepository.count()).isEqualTo(22);
+		}
+	}
+
+	@Test
+	void saveAllWithAssignedId() {
+
+		assertThat(thingRepository.count()).isEqualTo(21);
+
+		ThingWithAssignedId newThing = new ThingWithAssignedId("aaBB");
+		newThing.setName("That's the thing.");
+
+		ThingWithAssignedId existingThing = thingRepository.findById("anId").get();
+		existingThing.setName("Updated name.");
+
+		thingRepository.saveAll(Arrays.asList(newThing, existingThing));
+
+		try (Session session = driver.session()) {
+			Record record = session
+				.run("MATCH (n:Thing) WHERE n.theId IN ($ids) WITH n ORDER BY n.name ASC RETURN COLLECT(n.name) as names", Values.parameters("ids", Arrays.asList(newThing.getTheId(), existingThing.getTheId())))
+				.single();
+
+			assertThat(record.containsKey("names")).isTrue();
+			List<String> names = record.get("names").asList(Value::asString);
+			assertThat(names).contains(newThing.getName(), existingThing.getName());
 
 			assertThat(thingRepository.count()).isEqualTo(22);
 		}
