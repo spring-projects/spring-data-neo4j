@@ -40,7 +40,6 @@ import org.neo4j.springframework.data.core.schema.Node;
  * @since 1.0
  */
 @Configuration
-@ConditionalOnClass(Driver.class)
 @ConditionalOnBean(Driver.class)
 @Import({ Neo4jImperativeDataAutoConfiguration.class, Neo4jReactiveDataAutoConfiguration.class })
 public class Neo4jDataAutoConfiguration {

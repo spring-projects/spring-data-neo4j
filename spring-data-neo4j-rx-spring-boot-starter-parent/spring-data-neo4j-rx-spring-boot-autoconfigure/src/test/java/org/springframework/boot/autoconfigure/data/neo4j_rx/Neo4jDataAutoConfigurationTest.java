@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.internal.InternalDriver;
 import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.Neo4jClient;
@@ -50,61 +49,64 @@ class Neo4jDataAutoConfigurationTest {
 		.withUserConfiguration(MockedDriverConfiguration.class)
 		.withConfiguration(AutoConfigurations.of(Neo4jDriverAutoConfiguration.class, Neo4jDataAutoConfiguration.class));
 
-	@Test
-	@DisplayName("Should require all needed classes")
-	void shouldRequireAllNeededClasses() {
-		contextRunner
-			.withClassLoader(
-				new FilteredClassLoader(Driver.class, Neo4jTransactionManager.class, PlatformTransactionManager.class))
-			.run(ctx -> assertThat(ctx)
-				.doesNotHaveBean(Neo4jClient.class)
-				.doesNotHaveBean(Neo4jTransactionManager.class)
-			);
-	}
-
 	@Nested
-	@DisplayName("Automatic configuration…")
-	class ConfigurationOfClient {
+	class Neo4jImperativeDataAutoConfigurationTest {
 		@Test
-		@DisplayName("…should create new Neo4j Client")
-		void shouldCreateNew() {
+		@DisplayName("Should require all needed classes")
+		void shouldRequireAllNeededClasses() {
 			contextRunner
-				.withPropertyValues("spring.data.neo4j.repositories.type=imperative")
-				.run(ctx -> assertThat(ctx).hasSingleBean(Neo4jClient.class));
-		}
-
-		@Test
-		@DisplayName("…should not replace existing Neo4j Client")
-		void shouldNotReplaceExisting() {
-			contextRunner
-				.withUserConfiguration(ConfigurationWithExistingClient.class)
+				.withClassLoader(
+					new FilteredClassLoader(Neo4jTransactionManager.class, PlatformTransactionManager.class))
 				.run(ctx -> assertThat(ctx)
-					.hasSingleBean(Neo4jClient.class)
-					.hasBean("myCustomClient")
+					.doesNotHaveBean(Neo4jClient.class)
+					.doesNotHaveBean(Neo4jTransactionManager.class)
 				);
 		}
-	}
 
-	@Nested
-	@DisplayName("Automatic configuration…")
-	class ConfigurationOfTransactionManager {
-		@Test
-		@DisplayName("…should create new Neo4j transaction manager")
-		void shouldCreateNew() {
-			contextRunner
-				.withPropertyValues("spring.data.neo4j.repositories.type=imperative")
-				.run(ctx -> assertThat(ctx).hasSingleBean(Neo4jTransactionManager.class));
+		@Nested
+		@DisplayName("Automatic configuration…")
+		class ConfigurationOfClient {
+			@Test
+			@DisplayName("…should create new Neo4j Client")
+			void shouldCreateNew() {
+				contextRunner
+					.withPropertyValues("spring.data.neo4j.repositories.type=imperative")
+					.run(ctx -> assertThat(ctx).hasSingleBean(Neo4jClient.class));
+			}
+
+			@Test
+			@DisplayName("…should not replace existing Neo4j Client")
+			void shouldNotReplaceExisting() {
+				contextRunner
+					.withUserConfiguration(ConfigurationWithExistingClient.class)
+					.run(ctx -> assertThat(ctx)
+						.hasSingleBean(Neo4jClient.class)
+						.hasBean("myCustomClient")
+					);
+			}
 		}
 
-		@Test
-		@DisplayName("…should honour existing transaction manager")
-		void shouldHonourExisting() {
-			contextRunner
-				.withUserConfiguration(ConfigurationWithExistingTransactionManager.class)
-				.run(ctx -> assertThat(ctx)
-					.hasSingleBean(PlatformTransactionManager.class)
-					.hasBean("myCustomTransactionManager")
-				);
+		@Nested
+		@DisplayName("Automatic configuration…")
+		class ConfigurationOfTransactionManager {
+			@Test
+			@DisplayName("…should create new Neo4j transaction manager")
+			void shouldCreateNew() {
+				contextRunner
+					.withPropertyValues("spring.data.neo4j.repositories.type=imperative")
+					.run(ctx -> assertThat(ctx).hasSingleBean(Neo4jTransactionManager.class));
+			}
+
+			@Test
+			@DisplayName("…should honour existing transaction manager")
+			void shouldHonourExisting() {
+				contextRunner
+					.withUserConfiguration(ConfigurationWithExistingTransactionManager.class)
+					.run(ctx -> assertThat(ctx)
+						.hasSingleBean(PlatformTransactionManager.class)
+						.hasBean("myCustomTransactionManager")
+					);
+			}
 		}
 	}
 
@@ -112,7 +114,7 @@ class Neo4jDataAutoConfigurationTest {
 	static class MockedDriverConfiguration {
 		@Bean
 		Driver driver() {
-			Driver driver = Mockito.mock(InternalDriver.class);
+			Driver driver = Mockito.mock(Driver.class);
 			TypeSystem typeSystem = Mockito.mock(TypeSystem.class);
 			Session session = Mockito.mock(Session.class);
 			when(driver.defaultTypeSystem()).thenReturn(typeSystem);
