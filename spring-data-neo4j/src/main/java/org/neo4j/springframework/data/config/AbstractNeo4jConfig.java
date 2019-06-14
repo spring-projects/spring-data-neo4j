@@ -20,9 +20,10 @@ package org.neo4j.springframework.data.config;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
+import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.neo4j.springframework.data.core.Neo4jClient;
 
 /**
  * Base class for imperative SDN-RX configuration using JavaConfig.
@@ -42,7 +43,7 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	 * @param driver The driver to connect with.
 	 * @return A imperative Neo4j client.
 	 */
-	@Bean
+	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
 	public Neo4jClient neo4jClient(Driver driver) {
 		return Neo4jClient.create(driver);
 	}

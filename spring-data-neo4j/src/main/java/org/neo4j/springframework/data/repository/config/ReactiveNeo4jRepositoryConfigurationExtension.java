@@ -23,11 +23,11 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.apiguardian.api.API;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.repository.Neo4jRepository;
 import org.neo4j.springframework.data.repository.support.Neo4jRepositoryFactoryBean;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -50,7 +50,9 @@ public final class ReactiveNeo4jRepositoryConfigurationExtension extends Reposit
 	/**
 	 * See {@link AbstractBeanDefinition#INFER_METHOD}.
 	 */
-	static final String DEFAULT_NEO4J_CLIENT_NAME = "neo4jClient";
+	public static final String DEFAULT_NEO4J_CLIENT_BEAN_NAME = "reactiveNeo4jClient";
+
+	public static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "reactiveTransactionManager";
 
 	/**
 	 * See {@link AbstractBeanDefinition#INFER_METHOD}.
@@ -87,7 +89,7 @@ public final class ReactiveNeo4jRepositoryConfigurationExtension extends Reposit
 
 	@Override
 	protected boolean useRepositoryConfiguration(RepositoryMetadata metadata) {
-		return true;
+		return metadata.isReactiveRepository();
 	}
 
 	/*
@@ -98,7 +100,7 @@ public final class ReactiveNeo4jRepositoryConfigurationExtension extends Reposit
 	public void postProcess(BeanDefinitionBuilder builder, RepositoryConfigurationSource source) {
 
 		builder.addPropertyReference("neo4jClient",
-			source.getAttribute("neo4jClientRef").orElse(DEFAULT_NEO4J_CLIENT_NAME));
+			source.getAttribute("neo4jClientRef").orElse(DEFAULT_NEO4J_CLIENT_BEAN_NAME));
 		builder.addPropertyReference("neo4jMappingContext",
 			source.getAttribute("neo4jMappingContextRef").orElse(DEFAULT_MAPPING_CONTEXT_BEAN_NAME));
 	}
