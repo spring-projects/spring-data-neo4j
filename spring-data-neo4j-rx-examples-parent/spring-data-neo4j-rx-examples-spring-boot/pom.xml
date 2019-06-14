@@ -36,7 +36,7 @@
 	<description>Demonstrating how to use SDN⚡️RX from within Spring Boot.</description>
 
 	<properties>
-		<java.version>1.8</java.version>
+		<java.version>12</java.version>
 		<jqassistant.plugin.version>1.6.0</jqassistant.plugin.version>
 		<junit-jupiter.version>5.4.0</junit-jupiter.version>
 		<testcontainers.version>1.10.6</testcontainers.version>
