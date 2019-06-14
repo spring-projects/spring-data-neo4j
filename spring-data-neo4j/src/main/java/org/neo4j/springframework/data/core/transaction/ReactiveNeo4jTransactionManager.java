@@ -182,7 +182,7 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 
 		ReactiveNeo4jTransactionHolder holder = (ReactiveNeo4jTransactionHolder) transactionSynchronizationManager
 				.getResource(driver);
-		return Mono.from(holder.getTransaction(databaseName).get().commit()).then();
+		return holder.commit().then();
 	}
 
 	@Override
@@ -191,7 +191,7 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 
 		ReactiveNeo4jTransactionHolder holder = (ReactiveNeo4jTransactionHolder) transactionSynchronizationManager
 			.getResource(driver);
-		return Mono.from(holder.getTransaction(databaseName).get().rollback()).then();
+		return holder.rollback().then();
 	}
 	/*
 	 * (non-Javadoc)
