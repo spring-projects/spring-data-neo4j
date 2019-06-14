@@ -18,25 +18,33 @@
  */
 package org.neo4j.springframework.data.integration.reactive;
 
+import static org.neo4j.driver.Values.*;
+
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Transaction;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.types.Point;
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
+import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
 import org.neo4j.springframework.data.test.Neo4jExtension;
 import org.neo4j.springframework.data.test.Neo4jExtension.Neo4jConnectionSupport;
@@ -52,10 +60,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @ExtendWith(Neo4jExtension.class)
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ReactiveRepositoryIT.Config.class)
+@Slf4j
 class ReactiveRepositoryIT {
 
 	private static final String TEST_PERSON1_NAME = "Test";
@@ -72,6 +82,7 @@ class ReactiveRepositoryIT {
 	private static final long NOT_EXISTING_NODE_ID = 3123131231L;
 	private static Neo4jConnectionSupport neo4jConnectionSupport;
 	@Autowired private ReactivePersonRepository repository;
+	@Autowired private ReactiveThingRepository thingRepository;
 	@Autowired private Driver driver;
 	private long id1;
 	private long id2;
@@ -91,16 +102,21 @@ class ReactiveRepositoryIT {
 		id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
 				+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
 				+ "RETURN id(n)",
-				Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+			parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 						TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
 						NEO4J_HQ))
 				.next().get(0).asLong();
 
 		id2 = transaction.run(
 				"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-				Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+			parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 						TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
 				.next().get(0).asLong();
+
+		transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})");
+		IntStream.rangeClosed(1, 20).forEach(i ->
+			transaction.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})",
+				parameters("i", String.format("%02d", i))));
 
 		transaction.success();
 		transaction.close();
@@ -380,6 +396,148 @@ class ReactiveRepositoryIT {
 			.as(StepVerifier::create)
 			.expectNext(false, false)
 			.verifyComplete();
+	}
+
+	@Test
+	void saveSingleEntity() {
+
+		PersonWithAllConstructor person = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
+			LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null);
+
+		List<Long> ids = new ArrayList<>();
+		repository
+			.save(person)
+			.map(PersonWithAllConstructor::getId)
+			.as(StepVerifier::create)
+			.recordWith(() -> ids)
+			.expectNextCount(1L)
+			.verifyComplete();
+
+		driverWorkaround();
+
+		Flux.usingWhen(
+			Mono.fromSupplier(() -> driver.rxSession()),
+			s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n", parameters("ids", ids))
+				.records(),
+			RxSession::close
+		).map(r -> r.get("n").asNode().get("first_name").asString())
+			.as(StepVerifier::create)
+			.expectNext("Freddie")
+			.verifyComplete();
+	}
+
+	@Test
+	void updateSingleEntity() {
+
+		repository.findById(id1)
+			.map(originalPerson -> {
+				originalPerson.setFirstName("Updated first name");
+				originalPerson.setNullable("Updated nullable field");
+				return originalPerson;
+			})
+			.flatMap(repository::save)
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
+
+		driverWorkaround();
+
+		Flux.usingWhen(
+			Mono.fromSupplier(() -> driver.rxSession()),
+			s -> {
+				Value parameters = parameters("id", id1);
+				return s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n", parameters).records();
+			},
+			RxSession::close
+		)
+			.map(r -> r.get("n").asNode())
+			.as(StepVerifier::create)
+			.expectNextMatches(node -> node.get("first_name").asString().equals("Updated first name") &&
+				node.get("nullable").asString().equals("Updated nullable field"))
+			.verifyComplete();
+	}
+
+	@Test
+	void saveWithAssignedId() {
+
+		thingRepository.count().as(StepVerifier::create).expectNext(21L).verifyComplete();
+
+		Mono.fromSupplier(() -> {
+			ThingWithAssignedId thing = new ThingWithAssignedId("aaBB");
+			thing.setName("That's the thing.");
+			return thing;
+		})
+			.flatMap(thingRepository::save)
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
+
+		driverWorkaround();
+
+		Flux.usingWhen(
+			Mono.fromSupplier(() -> driver.rxSession()),
+			s -> s.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", parameters("id", "aaBB")).records(),
+			RxSession::close
+		)
+			.map(r -> r.get("n").asNode().get("name").asString())
+			.as(StepVerifier::create)
+			.expectNext("That's the thing.")
+			.verifyComplete();
+
+		thingRepository.count().as(StepVerifier::create).expectNext(22L).verifyComplete();
+	}
+
+	@Test
+	void updateWithAssignedId() {
+		thingRepository.count().as(StepVerifier::create).expectNext(21L).verifyComplete();
+
+		Flux.concat(
+			// Without prior selection
+			Mono.fromSupplier(() -> {
+				ThingWithAssignedId thing = new ThingWithAssignedId("id07");
+				thing.setName("An updated thing");
+				return thing;
+			}).flatMap(thingRepository::save),
+
+			// With prior selection
+			thingRepository.findById("id15")
+				.flatMap(thing -> {
+					thing.setName("Another updated thing");
+					return thingRepository.save(thing);
+				})
+		)
+			.as(StepVerifier::create)
+			.expectNextCount(2L)
+			.verifyComplete();
+
+		driverWorkaround();
+
+		Flux.usingWhen(
+			Mono.fromSupplier(() -> driver.rxSession()),
+			s -> {
+				Value parameters = parameters("ids", Arrays.asList("id07", "id15"));
+				return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC",
+					parameters).records();
+			},
+			RxSession::close
+		)
+			.map(r -> r.get("name").asString())
+			.as(StepVerifier::create)
+			.expectNext("An updated thing", "Another updated thing")
+			.verifyComplete();
+
+		thingRepository.count().as(StepVerifier::create).expectNext(21L).verifyComplete();
+	}
+
+	@Deprecated
+	static void driverWorkaround() {
+		log.warn(
+			"Sleeping a bit to let the driver finish it's commit. This is a workaround and needs to be removed in the future!!");
+		try {
+			Thread.sleep(1000L);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Configuration

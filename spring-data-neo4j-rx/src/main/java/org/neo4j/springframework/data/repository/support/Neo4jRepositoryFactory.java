@@ -69,9 +69,9 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(domainClass);
 		BiFunction<TypeSystem, Record, T> mappingFunction = mappingContext.getRequiredMappingFunctionFor(domainClass);
-		Function<T, Map<String, Object>> binderFUnction = mappingContext.getRequiredBinderFunctionFor(domainClass);
+		Function<T, Map<String, Object>> binderFunction = mappingContext.getRequiredBinderFunctionFor(domainClass);
 
-		return new DefaultNeo4jEntityInformation<>((Neo4jPersistentEntity<T>) entity, mappingFunction, binderFUnction);
+		return new DefaultNeo4jEntityInformation<>((Neo4jPersistentEntity<T>) entity, mappingFunction, binderFunction);
 	}
 
 	@Override

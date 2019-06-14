@@ -43,6 +43,15 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Point;
+import org.neo4j.springframework.data.config.AbstractNeo4jConfig;
+import org.neo4j.springframework.data.integration.shared.KotlinPerson;
+import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
+import org.neo4j.springframework.data.integration.shared.PersonWithNoConstructor;
+import org.neo4j.springframework.data.integration.shared.PersonWithWither;
+import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
+import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
+import org.neo4j.springframework.data.test.Neo4jExtension;
+import org.neo4j.springframework.data.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,15 +66,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
-import org.neo4j.springframework.data.config.AbstractNeo4jConfig;
-import org.neo4j.springframework.data.integration.shared.KotlinPerson;
-import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
-import org.neo4j.springframework.data.integration.shared.PersonWithNoConstructor;
-import org.neo4j.springframework.data.integration.shared.PersonWithWither;
-import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
-import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
-import org.neo4j.springframework.data.test.Neo4jExtension;
-import org.neo4j.springframework.data.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -226,14 +226,15 @@ class RepositoryIT {
 		try (Session session = driver.session()) {
 			session.readTransaction(tx -> {
 				Record record = tx.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n",
-					Values.parameters("id", originalPerson.getId())).single();
+					Values.parameters("id", id1)).single();
+
 				assertThat(record.containsKey("n")).isTrue();
 				Node node = record.get("n").asNode();
-				assertThat(savedPerson.getId()).isEqualTo(node.id());
 
-				assertThat(savedPerson.getId()).isEqualTo(originalPerson.getId());
-				assertThat(savedPerson.getFirstName()).isEqualTo(originalPerson.getFirstName());
-				assertThat(savedPerson.getNullable()).isEqualTo(originalPerson.getNullable());
+				assertThat(node.id()).isEqualTo(savedPerson.getId());
+				assertThat(node.get("first_name").asString()).isEqualTo(savedPerson.getFirstName());
+				assertThat(node.get("nullable").asString()).isEqualTo(savedPerson.getNullable());
+
 				return null;
 			});
 		}
@@ -330,7 +331,7 @@ class RepositoryIT {
 
 			assertThat(record.containsKey("names")).isTrue();
 			List<String> names = record.get("names").asList(Value::asString);
-			assertThat(names).contains(newThing.getName(), existingThing.getName());
+			assertThat(names).containsExactly(newThing.getName(), existingThing.getName());
 
 			assertThat(thingRepository.count()).isEqualTo(22);
 		}
@@ -350,12 +351,15 @@ class RepositoryIT {
 		thingRepository.save(thing);
 
 		try (Session session = driver.session()) {
-			List<String> records = session
-				.run("MATCH (n:Thing) WHERE n.theId in $ids RETURN n ORDER BY n.name ASC",
+			Record record = session
+				.run("MATCH (n:Thing) WHERE n.theId IN ($ids) WITH n ORDER BY n.name ASC RETURN COLLECT(n.name) as names",
 					Values.parameters("ids", Arrays.asList("id07", "id15")))
-				.list(r -> r.get("n").get("name").asString());
+				.single();
 
-			assertThat(records).hasSize(2).containsExactly("An updated thing", "Another updated thing");
+			assertThat(record.containsKey("names")).isTrue();
+			List<String> names = record.get("names").asList(Value::asString);
+			assertThat(names).containsExactly("An updated thing", "Another updated thing");
+
 			assertThat(thingRepository.count()).isEqualTo(21);
 		}
 	}

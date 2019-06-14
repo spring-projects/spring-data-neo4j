@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.repository.support;
 
 import static java.util.Collections.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
+import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +30,10 @@ import reactor.core.publisher.Mono;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient.ExecutableQuery;
@@ -38,9 +41,10 @@ import org.neo4j.springframework.data.core.cypher.Condition;
 import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
-import org.neo4j.springframework.data.core.schema.NodeDescription;
+import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,12 +68,12 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 	private final Neo4jEntityInformation<T, ID> entityInformation;
 
-	private final NodeDescription<T> entityMetaData;
+	private final Neo4jPersistentEntity<T> entityMetaData;
 
 	private final SchemaBasedStatementBuilder statementBuilder;
 
 	SimpleReactiveNeo4jRepository(ReactiveNeo4jClient neo4jClient, Neo4jEntityInformation<T, ID> entityInformation,
-		SchemaBasedStatementBuilder statementBuilder) {
+			SchemaBasedStatementBuilder statementBuilder) {
 		this.neo4jClient = neo4jClient;
 		this.entityInformation = entityInformation;
 		this.entityMetaData = this.entityInformation.getEntityMetaData();
@@ -144,16 +148,53 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 			.getSingleResult();
 	}
 
-	@Override public <S extends T> Mono<S> save(S entity) {
-		return null;
+	@Override
+	@Transactional
+	public <S extends T> Mono<S> save(S entity) {
+
+		Statement saveStatement = statementBuilder.prepareSaveOf(entityMetaData);
+
+		Mono<Long> idMono = this.neo4jClient.query(() -> renderer.render(saveStatement)).bind((T) entity)
+				.with(entityInformation.getBinderFunction()).fetchAs(Long.class).one();
+
+		if (!entityMetaData.isUsingInternalIds()) {
+			return idMono.thenReturn(entity);
+		} else {
+			return idMono.map(internalId -> {
+				PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entity);
+				propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
+				return (S) propertyAccessor.getBean();
+			});
+		}
 	}
 
-	@Override public <S extends T> Flux<S> saveAll(Iterable<S> entities) {
-		return null;
+	@Override
+	@Transactional
+	public <S extends T> Flux<S> saveAll(Iterable<S> entities) {
+		return Flux.fromIterable(entities).as(this::saveAll);
 	}
 
-	@Override public <S extends T> Flux<S> saveAll(Publisher<S> entityStream) {
-		return null;
+	@Override
+	@Transactional
+	public <S extends T> Flux<S> saveAll(Publisher<S> entityStream) {
+
+		if (entityMetaData.isUsingInternalIds()) {
+			log.debug("Saving entities using single statements.");
+
+			return Flux.from(entityStream).flatMap(this::save);
+		}
+
+		final Function<T, Map<String, Object>> binderFunction = entityInformation.getBinderFunction();
+		return Flux.from(entityStream).map(binderFunction)
+				.flatMap(entities -> neo4jClient
+						.query(() -> renderer.render(statementBuilder.prepareSaveOfMultipleInstancesOf(entityMetaData)))
+						.bind(entities).to(NAME_OF_ENTITY_LIST_PARAM).run())
+				.doOnNext(resultSummary -> {
+					SummaryCounters counters = resultSummary.counters();
+					log.debug("Created {} and deleted {} nodes, created {} and deleted {} relationships and set {} properties.",
+							counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
+							counters.relationshipsDeleted(), counters.propertiesSet());
+				}).thenMany(entityStream);
 	}
 
 	/*

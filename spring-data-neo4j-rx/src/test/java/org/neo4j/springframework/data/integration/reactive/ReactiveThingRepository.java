@@ -18,16 +18,11 @@
  */
 package org.neo4j.springframework.data.integration.reactive;
 
-import java.util.List;
-
 import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
 /**
  * @author Michael J. Simons
  */
-public interface ReactiveThingRepository extends CrudRepository<ThingWithAssignedId, String> {
-	List<ThingWithAssignedId> findFirstByOrderByNameDesc();
-
-	List<ThingWithAssignedId> findTop5ByOrderByNameDesc();
+public interface ReactiveThingRepository extends ReactiveCrudRepository<ThingWithAssignedId, String> {
 }
