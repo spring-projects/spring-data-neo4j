@@ -33,6 +33,7 @@ import org.springframework.data.repository.core.support.TransactionalRepositoryF
  * repository factories via Spring configuration.
  *
  * @author Gerrit Meier
+ * @author Michael J. Simons
  * @param <T> the type of the repository
  * @param <S> type of the domain class to map
  * @param <ID> identifier type in the domain class
