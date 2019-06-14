@@ -39,7 +39,6 @@
 		<java.version>1.8</java.version>
 		<jqassistant.plugin.version>1.6.0</jqassistant.plugin.version>
 		<junit-jupiter.version>5.4.0</junit-jupiter.version>
-		<neo4j-java-driver.version>1.7.3</neo4j-java-driver.version>
 		<testcontainers.version>1.10.6</testcontainers.version>
 	</properties>
 
@@ -61,6 +60,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
 	</dependencies>
 
@@ -88,6 +91,7 @@
 	</pluginRepositories>
 
 	<build>
+		<finalName>movie-api</finalName>
 		<plugins>
 			<plugin>
 				<groupId>com.github.ekryd.sortpom</groupId>
@@ -115,9 +119,8 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
-				<groupId>com.buschmais.jqassistant</groupId>
-				<artifactId>jqassistant-maven-plugin</artifactId>
-				<version>${jqassistant.plugin.version}</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
 				<configuration>
 					<skip>true</skip>
 				</configuration>

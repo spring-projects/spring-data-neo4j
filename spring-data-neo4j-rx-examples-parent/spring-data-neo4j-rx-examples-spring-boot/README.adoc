@@ -1,0 +1,69 @@
+== Spring Boot Example
+
+=== Building SDN-RX and Examples.
+
+As of writing, SDN-RX has not bean deployed to central.
+You have to build SDN-RX yourself by following these instructions.
+*You need to have JDK 12 installed.*
+
+[source,bash]
+----
+git clone git@github.com:neo4j/sdn-rx
+cd sdn-rx
+./mvnw -DskipTests clean package
+----
+
+=== Running the examples.
+
+You'll need a Neo4j 4 instance that supports reactive database access and has a user name `neo4j` with a password of `secret`.
+Please use `:play movies` in Neo4j browser to get some data in your graph.
+With from SDN-RX root folder run
+
+[source,bash]
+----
+java -jar spring-data-neo4j-rx-examples-parent/spring-data-neo4j-rx-examples-spring-boot/target/movie-api.jar
+----
+
+If your database has different credentials or is on a different host, run
+
+[source,bash]
+----
+java -jar spring-data-neo4j-rx-examples-parent/spring-data-neo4j-rx-examples-spring-boot/target/movie-api.jar \
+--org.neo4j.driver.uri=neo4j://yourhost:7687 \
+--org.neo4j.driver.authentication.username=youruser \
+--org.neo4j.driver.authentication.password=yourpassword
+----
+
+with parameters fitting to your needs.
+
+Here are some CURL commands, you can try out.
+The same examples are also available in the file `movie-api-examples.http` that you can call from IDEA.
+
+[source,bash]
+.Create a new movie
+----
+curl -X "PUT" "http://localhost:8080/movies" \
+     -H 'Content-Type: application/json; charset=utf-8' \
+     -d $'{
+  "title": "Aeon Flux",
+  "description": "Reactive is the new cool"
+}'
+----
+
+[source,bash]
+.List all movies.
+----
+curl http://localhost:8080/movies
+----
+
+[source,bash]
+.Query a movie by title.
+----
+curl http://localhost:8080/movies/by-title\?title\=Aeon%20Flux
+----
+
+[source,bash]
+.Delete a movie by id (use the one returned above for example)
+----
+curl -X DELETE http://localhost:8080/movies/847
+----
