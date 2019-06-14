@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.9.RELEASE (2019-06-14)
+---------------------------------------------
+* DATAGRAPH-1232 - Upgrade to Neo4j OGM 3.1.11.
+* DATAGRAPH-1228 - Cleanup Neo4jQueryPlaceholderSupplier.
+* DATAGRAPH-1226 - Release 5.1.9 (Lovelace SR9).
+
+
 Changes in version 4.2.22.RELEASE (2019-05-13)
 ----------------------------------------------
 * DATAGRAPH-1225 - Release 4.2.22 (Ingalls SR22).
