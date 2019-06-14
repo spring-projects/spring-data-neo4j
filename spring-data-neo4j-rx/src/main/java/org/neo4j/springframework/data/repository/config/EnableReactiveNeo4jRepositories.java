@@ -18,7 +18,7 @@
  */
 package org.neo4j.springframework.data.repository.config;
 
-import static org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension.*;
+import static org.neo4j.springframework.data.repository.config.ReactiveNeo4jRepositoryConfigurationExtension.*;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -39,6 +39,7 @@ import org.neo4j.springframework.data.repository.support.ReactiveNeo4jRepository
  * configuration class.
  *
  * @author Gerrit Meier
+ * @author Michael J. Simons
  * @since 1.0
  */
 @Target(ElementType.TYPE)
@@ -84,7 +85,7 @@ public @interface EnableReactiveNeo4jRepositories {
 	/**
 	 * Configures the name of the {@link org.neo4j.springframework.data.core.Neo4jClient} bean to be used with the repositories detected.
 	 */
-	String neo4jClientRef() default DEFAULT_NEO4J_CLIENT_NAME;
+	String neo4jClientRef() default DEFAULT_NEO4J_CLIENT_BEAN_NAME;
 
 	/**
 	 * Specifies which types are eligible for component scanning. Further narrows the set of candidate components from

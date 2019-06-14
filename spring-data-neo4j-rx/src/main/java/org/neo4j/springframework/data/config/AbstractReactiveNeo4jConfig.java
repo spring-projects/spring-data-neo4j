@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.config;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
+import org.neo4j.springframework.data.repository.config.ReactiveNeo4jRepositoryConfigurationExtension;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
@@ -41,7 +42,7 @@ public abstract class AbstractReactiveNeo4jConfig extends ReactiveNeo4jConfigura
 	 * @param driver The driver to connect with.
 	 * @return A reactive Neo4j client.
 	 */
-	@Bean
+	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
 	public ReactiveNeo4jClient neo4jClient(Driver driver) {
 		return ReactiveNeo4jClient.create(driver);
 	}

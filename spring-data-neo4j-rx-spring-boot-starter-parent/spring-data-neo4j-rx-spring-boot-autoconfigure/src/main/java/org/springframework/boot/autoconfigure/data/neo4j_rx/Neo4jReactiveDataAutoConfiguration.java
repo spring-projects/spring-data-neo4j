@@ -26,6 +26,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.transaction.ReactiveNeo4jTransactionManager;
+import org.neo4j.springframework.data.repository.config.ReactiveNeo4jRepositoryConfigurationExtension;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -48,13 +49,13 @@ import org.springframework.transaction.ReactiveTransactionManager;
 @AutoConfigureBefore(Neo4jReactiveRepositoriesConfiguration.class)
 class Neo4jReactiveDataAutoConfiguration {
 
-	@Bean
+	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
 	@ConditionalOnMissingBean
 	public ReactiveNeo4jClient neo4jClient(Driver driver) {
 		return ReactiveNeo4jClient.create(driver);
 	}
 
-	@Bean
+	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
 	@ConditionalOnMissingBean(ReactiveTransactionManager.class)
 	public ReactiveTransactionManager transactionManager(Driver driver) {
 

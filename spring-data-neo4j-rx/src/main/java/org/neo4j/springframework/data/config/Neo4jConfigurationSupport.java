@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
+import org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -77,7 +78,7 @@ public abstract class Neo4jConfigurationSupport {
 	 * @param driver The driver to synchronize against
 	 * @return A platform transaction manager
 	 */
-	@Bean
+	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
 	public PlatformTransactionManager transactionManager(Driver driver) {
 
 		return new Neo4jTransactionManager(driver);
