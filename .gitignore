@@ -24,6 +24,9 @@ target/
 /.nb-gradle/
 /build/
 
+### Visual Studio Code ###
+.vscode
+
 ### Misc ###
 .DS_Store
 

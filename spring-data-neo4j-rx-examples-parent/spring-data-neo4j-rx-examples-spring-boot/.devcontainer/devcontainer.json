@@ -1,0 +1,24 @@
+{
+	"name": "SDN⚡️RX Examples for Spring Boot",
+	"dockerFile": "Dockerfile",
+	"context": "../../../",
+	"appPort": 8080,
+	"extensions": [
+		"vscjava.vscode-java-pack",
+		"vscjava.vscode-spring-initializr",
+		"pivotal.vscode-spring-boot",
+		"redhat.vscode-xml",
+		"humao.rest-client"
+	],
+	"settings":{
+		"java.home": "/docker-java-home"
+	},
+	"runArgs": [
+		// Omitting the network here makes it impossible (I think) to reach the docker host from the container on Linux, as
+		// host.docker.internal is not supported there, but while connecting to the hosts network does nothing on macOS,
+		// it prevents exposing local ports :/ 
+		// Would be cool if someone tries this out on a Linux machine
+		// "--network", "host",
+		"-e", "ORG_NEO4J_DRIVER_URI=bolt://host.docker.internal:7687"
+	]
+}

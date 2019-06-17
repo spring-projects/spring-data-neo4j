@@ -67,3 +67,16 @@ curl http://localhost:8080/movies/by-title\?title\=Aeon%20Flux
 ----
 curl -X DELETE http://localhost:8080/movies/847
 ----
+
+=== Experimental support for Visual Studio Remote Containers
+
+To make playing with the examples a bit easier, we have support for https://code.visualstudio.com/docs/remote/remote-overview[VS Code Remote Development].
+Please follow the instructions at the link above for setting up your Visual Studio Code environment.
+
+Open `spring-data-neo4j-rx-examples-spring-boot` in Visual Studio Code and let it build the container.
+The container will for now contain a locally build snapshot of SDN-RX that serves as dependencies for the example.
+The example than can be build and run via Visual Studios support for Spring Boot, which is automatically added to the development container.
+
+The running example can be accessed from the outside as shown above without any further actions.
+
+At the moment, a locally running Neo4j 4.0 instance is still required, as there is no officially available image yet.
