@@ -56,7 +56,9 @@ import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.reactive.TransactionalOperator;
 
 /**
  * @author Gerrit Meier
@@ -84,6 +86,7 @@ class ReactiveRepositoryIT {
 	@Autowired private ReactivePersonRepository repository;
 	@Autowired private ReactiveThingRepository thingRepository;
 	@Autowired private Driver driver;
+	@Autowired private ReactiveTransactionManager transactionManager;
 	private long id1;
 	private long id2;
 	private PersonWithAllConstructor person1;
@@ -411,16 +414,19 @@ class ReactiveRepositoryIT {
 		PersonWithAllConstructor person = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
 			LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null);
 
-		List<Long> ids = new ArrayList<>();
-		repository
+		Mono<Long> operationUnderTest = repository
 			.save(person)
-			.map(PersonWithAllConstructor::getId)
+			.map(PersonWithAllConstructor::getId);
+
+		List<Long> ids = new ArrayList<>();
+
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		transactionalOperator
+			.execute(t -> operationUnderTest)
 			.as(StepVerifier::create)
 			.recordWith(() -> ids)
 			.expectNextCount(1L)
 			.verifyComplete();
-
-		driverWorkaround();
 
 		Flux.usingWhen(
 			Mono.fromSupplier(() -> driver.rxSession()),
@@ -436,18 +442,20 @@ class ReactiveRepositoryIT {
 	@Test
 	void updateSingleEntity() {
 
-		repository.findById(id1)
+		Mono<PersonWithAllConstructor> operationUnderTest = repository.findById(id1)
 			.map(originalPerson -> {
 				originalPerson.setFirstName("Updated first name");
 				originalPerson.setNullable("Updated nullable field");
 				return originalPerson;
 			})
-			.flatMap(repository::save)
+			.flatMap(repository::save);
+
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		transactionalOperator
+			.execute(t -> operationUnderTest)
 			.as(StepVerifier::create)
 			.expectNextCount(1L)
 			.verifyComplete();
-
-		driverWorkaround();
 
 		Flux.usingWhen(
 			Mono.fromSupplier(() -> driver.rxSession()),
@@ -467,19 +475,19 @@ class ReactiveRepositoryIT {
 	@Test
 	void saveWithAssignedId() {
 
-		thingRepository.count().as(StepVerifier::create).expectNext(21L).verifyComplete();
+		Mono<ThingWithAssignedId> operationUnderTest =
+			Mono.fromSupplier(() -> {
+				ThingWithAssignedId thing = new ThingWithAssignedId("aaBB");
+				thing.setName("That's the thing.");
+				return thing;
+			}).flatMap(thingRepository::save);
 
-		Mono.fromSupplier(() -> {
-			ThingWithAssignedId thing = new ThingWithAssignedId("aaBB");
-			thing.setName("That's the thing.");
-			return thing;
-		})
-			.flatMap(thingRepository::save)
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		transactionalOperator
+			.execute(t -> operationUnderTest)
 			.as(StepVerifier::create)
 			.expectNextCount(1L)
 			.verifyComplete();
-
-		driverWorkaround();
 
 		Flux.usingWhen(
 			Mono.fromSupplier(() -> driver.rxSession()),
@@ -496,9 +504,8 @@ class ReactiveRepositoryIT {
 
 	@Test
 	void updateWithAssignedId() {
-		thingRepository.count().as(StepVerifier::create).expectNext(21L).verifyComplete();
 
-		Flux.concat(
+		Flux<ThingWithAssignedId> operationUnderTest = Flux.concat(
 			// Without prior selection
 			Mono.fromSupplier(() -> {
 				ThingWithAssignedId thing = new ThingWithAssignedId("id07");
@@ -512,12 +519,14 @@ class ReactiveRepositoryIT {
 					thing.setName("Another updated thing");
 					return thingRepository.save(thing);
 				})
-		)
+		);
+
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		transactionalOperator
+			.execute(t -> operationUnderTest)
 			.as(StepVerifier::create)
 			.expectNextCount(2L)
 			.verifyComplete();
-
-		driverWorkaround();
 
 		Flux.usingWhen(
 			Mono.fromSupplier(() -> driver.rxSession()),
@@ -534,17 +543,6 @@ class ReactiveRepositoryIT {
 			.verifyComplete();
 
 		thingRepository.count().as(StepVerifier::create).expectNext(21L).verifyComplete();
-	}
-
-	@Deprecated
-	static void driverWorkaround() {
-		log.warn(
-			"Sleeping a bit to let the driver finish it's commit. This is a workaround and needs to be removed in the future!!");
-		try {
-			Thread.sleep(1000L);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 	}
 
 	@Configuration
