@@ -226,7 +226,11 @@ class ReactiveRepositoryIT {
 				null, null, null, null, null);
 		example = Example.of(person, ExampleMatcher.matchingAny().withIgnoreCase("name"));
 
-		StepVerifier.create(repository.findAll(example)).expectNext(person1, person2).verifyComplete();
+		StepVerifier.create(repository.findAll(example))
+			.recordWith(ArrayList::new)
+			.expectNextCount(2)
+			.expectRecordedMatches(recordedPersons -> recordedPersons.containsAll(Arrays.asList(person1, person2)))
+			.verifyComplete();
 
 		person = new PersonWithAllConstructor(null,
 				TEST_PERSON2_NAME.substring(TEST_PERSON2_NAME.length() - 2).toUpperCase(),
@@ -440,6 +444,51 @@ class ReactiveRepositoryIT {
 	}
 
 	@Test
+	void saveAll() {
+
+		Flux<PersonWithAllConstructor> persons = repository
+			.findById(id1)
+			.map(existingPerson -> {
+				existingPerson.setFirstName("Updated first name");
+				existingPerson.setNullable("Updated nullable field");
+				return existingPerson;
+			})
+			.concatWith(
+				Mono.fromSupplier(() -> {
+					PersonWithAllConstructor newPerson = new PersonWithAllConstructor(
+						null, "Mercury", "Freddie", "Queen", true, 1509L,
+						LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null);
+					return newPerson;
+				}));
+
+		Flux<Long> operationUnderTest = repository
+			.saveAll(persons)
+			.map(PersonWithAllConstructor::getId);
+
+		List<Long> ids = new ArrayList<>();
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		transactionalOperator
+			.execute(t -> operationUnderTest)
+			.as(StepVerifier::create)
+			.recordWith(() -> ids)
+			.expectNextCount(2L)
+			.verifyComplete();
+
+		Flux
+			.usingWhen(
+				Mono.fromSupplier(() -> driver.rxSession()),
+				s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
+					parameters("ids", ids))
+					.records(),
+				RxSession::close
+			).map(r -> r.get("n").asNode().get("name").asString())
+			.as(StepVerifier::create)
+			.expectNext("Mercury")
+			.expectNext(TEST_PERSON1_NAME)
+			.verifyComplete();
+	}
+
+	@Test
 	void updateSingleEntity() {
 
 		Mono<PersonWithAllConstructor> operationUnderTest = repository.findById(id1)
@@ -457,14 +506,15 @@ class ReactiveRepositoryIT {
 			.expectNextCount(1L)
 			.verifyComplete();
 
-		Flux.usingWhen(
-			Mono.fromSupplier(() -> driver.rxSession()),
-			s -> {
-				Value parameters = parameters("id", id1);
-				return s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n", parameters).records();
-			},
-			RxSession::close
-		)
+		Flux
+			.usingWhen(
+				Mono.fromSupplier(() -> driver.rxSession()),
+				s -> {
+					Value parameters = parameters("id", id1);
+					return s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n", parameters).records();
+				},
+				RxSession::close
+			)
 			.map(r -> r.get("n").asNode())
 			.as(StepVerifier::create)
 			.expectNextMatches(node -> node.get("first_name").asString().equals("Updated first name") &&
@@ -489,16 +539,65 @@ class ReactiveRepositoryIT {
 			.expectNextCount(1L)
 			.verifyComplete();
 
-		Flux.usingWhen(
-			Mono.fromSupplier(() -> driver.rxSession()),
-			s -> s.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", parameters("id", "aaBB")).records(),
-			RxSession::close
-		)
+		Flux
+			.usingWhen(
+				Mono.fromSupplier(() -> driver.rxSession()),
+				s -> s.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", parameters("id", "aaBB")).records(),
+				RxSession::close
+			)
 			.map(r -> r.get("n").asNode().get("name").asString())
 			.as(StepVerifier::create)
 			.expectNext("That's the thing.")
 			.verifyComplete();
 
+		thingRepository.count().as(StepVerifier::create).expectNext(22L).verifyComplete();
+	}
+
+	@Test
+	void saveAllWithAssignedId() {
+
+		Flux<ThingWithAssignedId> things = thingRepository
+			.findById("anId")
+			.map(existingThing -> {
+				existingThing.setName("Updated name.");
+				return existingThing;
+			})
+			.concatWith(
+				Mono.fromSupplier(() -> {
+					ThingWithAssignedId newThing = new ThingWithAssignedId("aaBB");
+					newThing.setName("That's the thing.");
+					return newThing;
+				})
+			);
+
+		Flux<ThingWithAssignedId> operationUnderTest = thingRepository
+			.saveAll(things);
+
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		transactionalOperator
+			.execute(t -> operationUnderTest)
+			.as(StepVerifier::create)
+			.expectNextCount(2L)
+			.verifyComplete();
+
+		Flux
+			.usingWhen(
+				Mono.fromSupplier(() -> driver.rxSession()),
+				s -> {
+					Value parameters = parameters("ids", Arrays.asList("anId", "aaBB"));
+					return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC",
+						parameters)
+						.records();
+				},
+				RxSession::close
+			)
+			.map(r -> r.get("name").asString())
+			.as(StepVerifier::create)
+			.expectNext("That's the thing.")
+			.expectNext("Updated name.")
+			.verifyComplete();
+
+		// Make sure we triggered on insert, one update
 		thingRepository.count().as(StepVerifier::create).expectNext(22L).verifyComplete();
 	}
 
@@ -528,15 +627,16 @@ class ReactiveRepositoryIT {
 			.expectNextCount(2L)
 			.verifyComplete();
 
-		Flux.usingWhen(
-			Mono.fromSupplier(() -> driver.rxSession()),
-			s -> {
-				Value parameters = parameters("ids", Arrays.asList("id07", "id15"));
-				return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC",
-					parameters).records();
-			},
-			RxSession::close
-		)
+		Flux
+			.usingWhen(
+				Mono.fromSupplier(() -> driver.rxSession()),
+				s -> {
+					Value parameters = parameters("ids", Arrays.asList("id07", "id15"));
+					return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC",
+						parameters).records();
+				},
+				RxSession::close
+			)
 			.map(r -> r.get("name").asString())
 			.as(StepVerifier::create)
 			.expectNext("An updated thing", "Another updated thing")
