@@ -43,6 +43,7 @@
 		<project.type>multi</project.type>
 
 		<checkstyle.version>8.18</checkstyle.version>
+		<nohttp.version>0.0.3.RELEASE</nohttp.version>
 		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
 		<neo4j.ogm.version>3.1.11</neo4j.ogm.version>
 		<springdata.commons>2.1.10.BUILD-SNAPSHOT</springdata.commons>
@@ -281,22 +282,27 @@
 							<artifactId>checkstyle</artifactId>
 							<version>${checkstyle.version}</version>
 						</dependency>
+						<dependency>
+							<groupId>io.spring.nohttp</groupId>
+							<artifactId>nohttp-checkstyle</artifactId>
+							<version>${nohttp.version}</version>
+						</dependency>
 					</dependencies>
-					<configuration>
-						<configLocation>checkstyle/config.xml</configLocation>
-						<suppressionsLocation>checkstyle/suppressions.xml</suppressionsLocation>
-						<headerLocation>checkstyle/java-header.txt</headerLocation>
-						<encoding>${project.build.sourceEncoding}</encoding>
-						<consoleOutput>true</consoleOutput>
-						<failsOnError>true</failsOnError>
-						<includeTestSourceDirectory>true</includeTestSourceDirectory>
-					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
 			<plugin>
 				<artifactId>maven-checkstyle-plugin</artifactId>
+				<configuration combine.self="override">
+					<configLocation>checkstyle/config.xml</configLocation>
+					<suppressionsLocation>checkstyle/suppressions.xml</suppressionsLocation>
+					<headerLocation>checkstyle/java-header.txt</headerLocation>
+					<encoding>${project.build.sourceEncoding}</encoding>
+					<consoleOutput>true</consoleOutput>
+					<failsOnError>true</failsOnError>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+				</configuration>
 				<executions>
 					<execution>
 						<id>validate</id>

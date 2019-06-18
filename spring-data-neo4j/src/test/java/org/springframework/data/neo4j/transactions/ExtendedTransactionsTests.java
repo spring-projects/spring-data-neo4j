@@ -42,7 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author: Vince Bickers
- * @see http://stackoverflow.com/questions/17224887/java-spring-transactional-method-not-rolling-back-as-expected
+ * @see https://stackoverflow.com/questions/17224887/java-spring-transactional-method-not-rolling-back-as-expected
  * @see DATAGRAPH-602
  */
 @ContextConfiguration(classes = { ExtendedTransactionsTests.ApplicationConfig.class })
