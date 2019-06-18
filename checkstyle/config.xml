@@ -18,4 +18,6 @@
     <module name="NewlineAtEndOfFile"/>
 
     <module name="SuppressWarningsFilter" />
+
+    <module name="io.spring.nohttp.checkstyle.check.NoHttpCheck" />
 </module>
