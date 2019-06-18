@@ -208,13 +208,16 @@ class ReactiveRepositoryIT {
 	void findAllByExampleWithDifferentMatchers() {
 		PersonWithAllConstructor person;
 		Example<PersonWithAllConstructor> example;
-		Iterable<PersonWithAllConstructor> persons;
 
 		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON2_FIRST_NAME, null, null, null, null,
 				null, null, null);
 		example = Example.of(person, ExampleMatcher.matchingAny());
 
-		StepVerifier.create(repository.findAll(example)).expectNext(person1, person2).verifyComplete();
+		StepVerifier.create(repository.findAll(example))
+			.recordWith(ArrayList::new)
+			.expectNextCount(2)
+			.expectRecordedMatches(recordedPersons -> recordedPersons.containsAll(Arrays.asList(person1, person2)))
+			.verifyComplete();
 
 		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME.toUpperCase(), TEST_PERSON2_FIRST_NAME, null, null,
 				null, null, null, null, null);
@@ -321,8 +324,12 @@ class ReactiveRepositoryIT {
 
 	@Test
 	void findBySimplePropertiesOred() {
-		StepVerifier.create(repository.findAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME))
-			.expectNext(person1, person2).verifyComplete();
+		repository.findAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME)
+			.as(StepVerifier::create)
+			.recordWith(ArrayList::new)
+			.expectNextCount(2)
+			.expectRecordedMatches(recordedPersons -> recordedPersons.containsAll(Arrays.asList(person1, person2)))
+			.verifyComplete();
 	}
 
 	@Test
