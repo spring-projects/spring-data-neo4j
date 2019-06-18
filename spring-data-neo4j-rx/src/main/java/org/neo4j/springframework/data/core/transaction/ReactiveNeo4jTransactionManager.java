@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.STABLE, since = "1.0")
@@ -125,11 +126,11 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 				.getResource(driver);
 		return new ReactiveNeo4jTransactionObject(resourceHolder);
 	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.transaction.reactive.AbstractReactiveTransactionManager#isExistingTransaction(Object)
 	 */
-
 	@Override
 	protected boolean isExistingTransaction(Object transaction) throws TransactionException {
 
@@ -167,13 +168,12 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 	}
 
 	@Override
-	protected Mono<Void> doCleanupAfterCompletion(TransactionSynchronizationManager synchronizationManager,
+	protected Mono<Void> doCleanupAfterCompletion(TransactionSynchronizationManager transactionSynchronizationManager,
 		Object transaction) {
 
-		ReactiveNeo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
-
-		return Mono.defer(() -> transactionObject.getRequiredResourceHolder().close()
-			.doOnNext(ignoreMe -> synchronizationManager.unbindResource(driver)));
+		ReactiveNeo4jTransactionHolder holder = (ReactiveNeo4jTransactionHolder) transactionSynchronizationManager
+			.getResource(driver);
+		return holder.close().doOnNext(ignoreMe -> transactionSynchronizationManager.unbindResource(driver)).then();
 	}
 
 	@Override
@@ -193,11 +193,11 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 			.getResource(driver);
 		return holder.rollback().then();
 	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.transaction.reactive.AbstractReactiveTransactionManager#doSetRollbackOnly(org.springframework.transaction.reactive.TransactionSynchronizationManager, org.springframework.transaction.reactive.GenericReactiveTransaction)
 	 */
-
 	@Override
 	protected Mono<Void> doSetRollbackOnly(TransactionSynchronizationManager synchronizationManager,
 		GenericReactiveTransaction status) throws TransactionException {
