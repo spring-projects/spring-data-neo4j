@@ -50,7 +50,7 @@ class Neo4jDataAutoConfigurationTest {
 		.withConfiguration(AutoConfigurations.of(Neo4jDriverAutoConfiguration.class, Neo4jDataAutoConfiguration.class));
 
 	@Nested
-	class Neo4jImperativeDataAutoConfigurationTest {
+	class Neo4JImperativeDataConfigurationTest {
 		@Test
 		@DisplayName("Should require all needed classes")
 		void shouldRequireAllNeededClasses() {

@@ -47,7 +47,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 @ConditionalOnRepositoryType(store = "neo4j", type = IMPERATIVE)
 @AutoConfigureAfter(Neo4jDriverAutoConfiguration.class)
 @AutoConfigureBefore(Neo4jImperativeRepositoriesConfiguration.class)
-class Neo4jImperativeDataAutoConfiguration {
+class Neo4jImperativeDataConfiguration {
 
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
 	@ConditionalOnMissingBean

@@ -47,7 +47,7 @@ import org.springframework.transaction.ReactiveTransactionManager;
 @ConditionalOnRepositoryType(store = "neo4j", type = REACTIVE)
 @AutoConfigureAfter(Neo4jDriverAutoConfiguration.class)
 @AutoConfigureBefore(Neo4jReactiveRepositoriesConfiguration.class)
-class Neo4jReactiveDataAutoConfiguration {
+class Neo4jReactiveDataConfiguration {
 
 	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
 	@ConditionalOnMissingBean

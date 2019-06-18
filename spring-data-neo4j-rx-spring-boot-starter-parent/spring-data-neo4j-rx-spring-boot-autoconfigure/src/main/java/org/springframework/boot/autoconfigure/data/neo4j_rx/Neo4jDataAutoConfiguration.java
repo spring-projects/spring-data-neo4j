@@ -22,7 +22,6 @@ import java.util.Set;
 
 import org.neo4j.driver.Driver;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.context.ApplicationContext;
@@ -41,7 +40,7 @@ import org.neo4j.springframework.data.core.schema.Node;
  */
 @Configuration
 @ConditionalOnBean(Driver.class)
-@Import({ Neo4jImperativeDataAutoConfiguration.class, Neo4jReactiveDataAutoConfiguration.class })
+@Import({ Neo4jImperativeDataConfiguration.class, Neo4jReactiveDataConfiguration.class })
 public class Neo4jDataAutoConfiguration {
 
 	@Bean
