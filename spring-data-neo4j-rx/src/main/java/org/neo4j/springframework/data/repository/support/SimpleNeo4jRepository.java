@@ -23,7 +23,9 @@ import static java.util.stream.Collectors.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
+import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.SchemaBasedStatementBuilder.*;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -38,16 +40,22 @@ import org.neo4j.springframework.data.core.Neo4jClient;
 import org.neo4j.springframework.data.core.Neo4jClient.ExecutableQuery;
 import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.cypher.Condition;
+import org.neo4j.springframework.data.core.cypher.Cypher;
 import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingAndReturn;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
+import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
+import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
+import org.neo4j.springframework.data.core.schema.NodeDescription;
+import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.support.PageableExecutionUtils;
@@ -79,21 +87,25 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 	private final Neo4jEvents eventSupport;
 
+	private final Neo4jMappingContext neo4jMappingContext;
+
 	SimpleNeo4jRepository(Neo4jClient neo4jClient, Neo4jEntityInformation<T, ID> entityInformation,
-		SchemaBasedStatementBuilder statementBuilder,
-		Neo4jEvents eventSupport) {
+		SchemaBasedStatementBuilder statementBuilder, Neo4jEvents eventSupport,
+		Neo4jMappingContext neo4jMappingContext) {
+
 		this.neo4jClient = neo4jClient;
 		this.entityInformation = entityInformation;
 		this.entityMetaData = this.entityInformation.getEntityMetaData();
 		this.statementBuilder = statementBuilder;
 		this.eventSupport = eventSupport;
+		this.neo4jMappingContext = neo4jMappingContext;
 	}
 
 	@Override
 	public Iterable<T> findAll(Sort sort) {
 
 		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
-			.returning(asterisk())
+			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData)))
 			.orderBy(toSortItems(entityMetaData, sort))
 			.build();
 
@@ -104,7 +116,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	public Page<T> findAll(Pageable pageable) {
 
 		OngoingReadingAndReturn returning = statementBuilder.prepareMatchOf(entityMetaData)
-			.returning(asterisk());
+			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData)));
 
 		StatementBuilder.BuildableStatement returningWithPaging = addPagingParameter(entityMetaData, pageable,
 			returning);
@@ -127,13 +139,75 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 			.with(entityInformation.getBinderFunction())
 			.fetchAs(Long.class).one().get();
 
+		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
+
 		if (!entityMetaData.isUsingInternalIds()) {
+			processNestedAssociations(entityMetaData, entityToBeSaved);
 			return entityToBeSaved;
 		} else {
-			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
+			processNestedAssociations(entityMetaData, entityToBeSaved);
+
 			return (S) propertyAccessor.getBean();
 		}
+	}
+
+	private void processNestedAssociations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject) {
+
+		PersistentPropertyAccessor<?> propertyAccessor = neo4jPersistentEntity.getPropertyAccessor(parentObject);
+		Object fromId = propertyAccessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty());
+
+		neo4jPersistentEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) handler -> {
+
+			Neo4jPersistentProperty inverse = handler.getInverse();
+
+			Object value = propertyAccessor.getProperty(inverse);
+
+			if (value == null) {
+				return;
+			}
+
+			Collection<Object> relatedValues = inverse.isCollectionLike() ?
+				(Collection<Object>) value :
+				Collections.singleton(value);
+
+			Collection<RelationshipDescription> relationships = neo4jMappingContext
+				.getRelationshipsOf(neo4jPersistentEntity.getPrimaryLabel());
+
+			Class<?> associationTargetType = inverse.getAssociationTargetType();
+
+			Neo4jPersistentEntity<?> targetNodeDescription = (Neo4jPersistentEntity<?>) neo4jMappingContext
+				.getRequiredNodeDescription(associationTargetType);
+
+			RelationshipDescription relationship = relationships.stream()
+				.filter(r -> r.getPropertyName().equals(inverse.getName()))
+				.findFirst().get();
+
+			for (Object relatedValue : relatedValues) {
+
+				Object valueToBeSaved = eventSupport.maybeCallBeforeBind(relatedValue);
+
+				Long relatedInternalId = saveRelatedNode(valueToBeSaved, associationTargetType, targetNodeDescription);
+
+				Statement relationshipCreationQuery = createRelationshipCreationQuery(neo4jPersistentEntity,
+					fromId, relationship, relatedInternalId);
+
+				neo4jClient.query(renderer.render(relationshipCreationQuery)).run();
+
+				// if an internal id is used this must get set to link this entity in the next iteration
+				if (targetNodeDescription.isUsingInternalIds()) {
+					PersistentPropertyAccessor<?> targetPropertyAccessor = targetNodeDescription.getPropertyAccessor(valueToBeSaved);
+					targetPropertyAccessor.setProperty(targetNodeDescription.getRequiredIdProperty(), relatedInternalId);
+				}
+				processNestedAssociations(targetNodeDescription, valueToBeSaved);
+			}
+		});
+	}
+
+	private <Y> Long saveRelatedNode(Object entity, Class<Y> entityType, NodeDescription targetNodeDescription) {
+		return neo4jClient.query(() -> renderer.render(statementBuilder.prepareSaveOf(targetNodeDescription)))
+			.bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
+			.fetchAs(Long.class).one().get();
 	}
 
 	@Override
@@ -159,6 +233,10 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 			.bind(entityList).to(NAME_OF_ENTITY_LIST_PARAM)
 			.run();
 
+		entitiesToBeSaved.forEach(entityToBeSaved -> {
+			processNestedAssociations(entityMetaData, entityToBeSaved);
+		});
+
 		SummaryCounters counters = resultSummary.counters();
 		log.debug(() -> String.format("Created %d and deleted %d nodes, created %d and deleted %d relationships and set %d properties.",
 			counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
@@ -172,7 +250,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 		Statement statement = statementBuilder
 			.prepareMatchOf(entityMetaData, entityInformation.getIdExpression().isEqualTo(literalOf(id)))
-			.returning(asterisk())
+			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData)))
 			.build();
 		return createExecutableQuery(statement).getSingleResult();
 	}
@@ -186,7 +264,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	public Iterable<T> findAll() {
 
 		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
-			.returning(asterisk()).build();
+			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData))).build();
 		return createExecutableQuery(statement).getResults();
 	}
 
@@ -195,7 +273,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 		Statement statement = statementBuilder
 			.prepareMatchOf(entityMetaData, entityInformation.getIdExpression().in((parameter("ids"))))
-			.returning(asterisk())
+			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData)))
 			.build();
 
 		return createExecutableQuery(statement, singletonMap("ids", ids)).getResults();

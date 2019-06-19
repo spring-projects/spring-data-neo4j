@@ -22,17 +22,23 @@ import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
+import org.jetbrains.annotations.NotNull;
 import org.neo4j.springframework.data.core.cypher.*;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.BuildableStatement;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingAndWith;
+import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.IdDescription;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
+import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 import org.neo4j.springframework.data.core.schema.Schema;
+import org.neo4j.springframework.data.core.schema.SchemaUtils;
 import org.neo4j.springframework.data.repository.support.Neo4jEntityInformation;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -134,7 +140,10 @@ public final class CypherAdapterUtils {
 		 * @return An ongoing match
 		 */
 		public OngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription, @Nullable Condition condition) {
-			Node rootNode = node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
+
+			String primaryLabel = nodeDescription.getPrimaryLabel();
+
+			Node rootNode = node(primaryLabel).named(NAME_OF_ROOT_NODE);
 			IdDescription idDescription = nodeDescription.getIdDescription();
 
 			List<Expression> expressions = new ArrayList<>();
@@ -143,7 +152,7 @@ public final class CypherAdapterUtils {
 				expressions.add(Functions.id(rootNode).as(NAME_OF_INTERNAL_ID));
 			}
 			return Cypher.match(rootNode).where(conditionOrNoCondition(condition))
-				.with(expressions.toArray(new Expression[expressions.size()]));
+				.with(expressions.toArray(new Expression[]{}));
 		}
 
 		public Statement prepareDeleteOf(NodeDescription<?> nodeDescription) {
@@ -158,9 +167,11 @@ public final class CypherAdapterUtils {
 
 		public Statement prepareSaveOf(NodeDescription<?> nodeDescription) {
 
-			Node rootNode = node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
+			String primaryLabel = nodeDescription.getPrimaryLabel();
+			Node rootNode = node(primaryLabel).named(NAME_OF_ROOT_NODE);
 			IdDescription idDescription = nodeDescription.getIdDescription();
 			Parameter idParameter = parameter(NAME_OF_ID_PARAM);
+
 			if (!idDescription.isInternallyGeneratedId()) {
 				String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
 					.orElseThrow(() -> new MappingException("External id does not correspond to a graph property!"));
@@ -170,10 +181,9 @@ public final class CypherAdapterUtils {
 					.returning(rootNode.internalId())
 					.build();
 			} else {
-				Node possibleExistingNode = node(nodeDescription.getPrimaryLabel()).named("hlp");
+				Node possibleExistingNode = node(primaryLabel).named("hlp");
 
-				Statement createIfNew = Cypher
-					.optionalMatch(possibleExistingNode)
+				Statement createIfNew = optionalMatch(possibleExistingNode)
 					.where(possibleExistingNode.internalId().isEqualTo(idParameter))
 					.with(possibleExistingNode).where(possibleExistingNode.isNull())
 					.create(rootNode)
@@ -211,6 +221,92 @@ public final class CypherAdapterUtils {
 				.returning(Functions.collect(rootNode.property(nameOfIdProperty)).as(NAME_OF_IDS_RESULT))
 				.build();
 		}
+
+		@NotNull
+		public static Statement createRelationshipCreationQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object fromId,
+			RelationshipDescription relationship, Long relatedInternalId) {
+
+			Node startNode = anyNode("startNode");
+			Node endNode = anyNode("endNode");
+			String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
+
+			return match(startNode)
+				.where(neo4jPersistentEntity.isUsingInternalIds()
+					? startNode.internalId().isEqualTo(literalOf(fromId))
+					: startNode.property(idPropertyName).isEqualTo(literalOf(fromId))
+					)
+				.match(endNode)
+				.where(endNode.internalId().isEqualTo(literalOf(relatedInternalId)))
+				.merge(relationship.isOutgoing()
+					? startNode.relationshipTo(endNode, relationship.getType())
+					: startNode.relationshipFrom(endNode, relationship.getType())
+				)
+				.build();
+		}
+
+		public String createReturnStatementForMatch(NodeDescription<?> nodeDescription) {
+
+			Collection<RelationshipDescription> relationshipDescriptions = schema.getRelationshipsOf(nodeDescription.getPrimaryLabel());
+
+			return NAME_OF_ROOT_NODE + "{"
+				+ getGraphPropertiesAsString(nodeDescription, NAME_OF_ROOT_NODE)
+				+ processRelationshipsForMatch(relationshipDescriptions, NAME_OF_ROOT_NODE)
+				+ "}";
+		}
+
+		private String getGraphPropertiesAsString(NodeDescription<?> nodeDescription, String nodeName) {
+
+			return nodeDescription.getGraphProperties().stream()
+				.map(property -> {
+					if (property.isInternalIdProperty()) {
+						return NAME_OF_INTERNAL_ID + ": id(" + nodeName + ")";
+					}
+					return "." + property.getPropertyName();
+				})
+				.collect(Collectors.joining(","));
+		}
+
+		private String processRelationshipsForMatch(Collection<RelationshipDescription> relationshipDescriptions, String nameOfStartNode) {
+			StringBuilder returnStatementBuilder = new StringBuilder();
+			for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
+
+				String sourceLabel = relationshipDescription.getSource();
+				String relationshipType = relationshipDescription.getType();
+				String targetLabel = relationshipDescription.getTarget();
+				String propertyName = relationshipDescription.getPropertyName();
+
+				// do not follow self-references more than once
+				if (targetLabel.equals(sourceLabel) && nameOfStartNode.equals(propertyName)) {
+					continue;
+				}
+
+				String relationshipTargetName = SchemaUtils.generateRelatedNodesCollectionName(relationshipDescription);
+
+				returnStatementBuilder
+					.append(", ") // next related element
+					.append(relationshipTargetName).append(":")
+					.append("[ (").append(nameOfStartNode).append(")")
+					.append(relationshipDescription.isOutgoing() ? "-" : "<-")
+					.append("[:").append(relationshipType).append("]")
+					.append(relationshipDescription.isOutgoing() ? "->" : "-")
+					.append("(").append(propertyName).append(":").append(targetLabel).append(")")
+					.append("| ").append(getReturnValueForRelationship(targetLabel, propertyName)).append("]");
+			}
+
+			return returnStatementBuilder.toString();
+		}
+
+		private String getReturnValueForRelationship(String targetLabel, String propertyName) {
+
+			Collection<RelationshipDescription> relationships = schema.getRelationshipsOf(targetLabel);
+			NodeDescription<?> nodeDescription = schema.getNodeDescription(targetLabel);
+
+			return propertyName + "{"
+				+ getGraphPropertiesAsString(nodeDescription, propertyName)
+				+ processRelationshipsForMatch(relationships, propertyName)
+				+ "}";
+		}
+
 	}
 
 	private static Condition conditionOrNoCondition(@Nullable Condition condition) {

@@ -19,6 +19,7 @@
 package org.neo4j.springframework.data.core.schema;
 
 import org.apiguardian.api.API;
+import org.neo4j.springframework.data.core.schema.Relationship.Direction;
 
 /**
  * Description of a relationship. Those descriptions always describe outgoing relationships. The inverse direction
@@ -37,9 +38,40 @@ public interface RelationshipDescription {
 	String getType();
 
 	/**
+	 * The source of this relationship is described by the primary label of the node in question.
+	 *
+	 * @return The source of this relationship
+	 */
+	String getSource();
+
+	/**
 	 * The target of this relationship is described by the primary label of the node in question.
 	 *
 	 * @return The target of this relationship
 	 */
 	String getTarget();
+
+	/**
+	 * The name of the property where the relationship was defined. This is used by the Cypher creation to name the
+	 * return values.
+	 *
+	 * @return The name of the relationship property
+	 */
+	String getPropertyName();
+
+	/**
+	 * The direction of the defined relationship. This is used by the Cypher creation to query for relationships
+	 * and create them with the right directions.
+	 *
+	 * @return The direction of the relationship
+	 */
+	Direction getDirection();
+
+	default boolean isOutgoing() {
+		return Direction.OUTGOING.equals(this.getDirection());
+	}
+
+	default boolean isIncoming() {
+		return Direction.INCOMING.equals(this.getDirection());
+	}
 }

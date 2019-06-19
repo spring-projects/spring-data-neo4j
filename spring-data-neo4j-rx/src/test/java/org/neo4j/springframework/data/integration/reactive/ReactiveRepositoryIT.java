@@ -18,6 +18,9 @@
  */
 package org.neo4j.springframework.data.integration.reactive;
 
+import static java.util.Collections.*;
+import static java.util.stream.Collectors.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.neo4j.driver.Values.*;
 import static org.neo4j.springframework.data.test.Neo4jExtension.*;
 
@@ -30,7 +33,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -38,13 +43,21 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.reactive.RxSession;
+import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Point;
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
+import org.neo4j.springframework.data.integration.shared.AnotherThingWithAssignedId;
+import org.neo4j.springframework.data.integration.shared.Club;
+import org.neo4j.springframework.data.integration.shared.Hobby;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
+import org.neo4j.springframework.data.integration.shared.PersonWithRelationship;
+import org.neo4j.springframework.data.integration.shared.Pet;
 import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
 import org.neo4j.springframework.data.test.Neo4jExtension;
@@ -86,6 +99,8 @@ class ReactiveRepositoryIT {
 	private static Neo4jConnectionSupport neo4jConnectionSupport;
 	@Autowired private ReactivePersonRepository repository;
 	@Autowired private ReactiveThingRepository thingRepository;
+	@Autowired private ReactiveRelationshipRepository relationshipRepository;
+	@Autowired private ReactivePetRepository petRepository;
 	@Autowired private Driver driver;
 	@Autowired private ReactiveTransactionManager transactionManager;
 	private long id1;
@@ -117,7 +132,7 @@ class ReactiveRepositoryIT {
 						TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
 				.next().get(0).asLong();
 
-		transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})");
+		transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
 		IntStream.rangeClosed(1, 20).forEach(i ->
 			transaction.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})",
 				parameters("i", String.format("%02d", i))));
@@ -143,6 +158,229 @@ class ReactiveRepositoryIT {
 	@Test
 	void findById() {
 		StepVerifier.create(repository.findById(id1)).expectNext(person1).verifyComplete();
+	}
+
+	@Test
+	void loadEntityWithRelationship() {
+
+		long personId;
+		long clubId;
+		long hobbyNode1Id;
+		long hobbyNode2Id;
+		long petNode1Id;
+		long petNode2Id;
+
+		try (Session session = driver.session()) {
+			Record record = session
+				.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+					+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
+					+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), "
+					+ "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
+					+ "(p1)-[:Has]->(p2)"
+					+ "RETURN n, h1, h2, p1, p2, c").single();
+
+			Node personNode = record.get("n").asNode();
+			Node clubNode = record.get("c").asNode();
+			Node hobbyNode1 = record.get("h1").asNode();
+			Node hobbyNode2 = record.get("h2").asNode();
+			Node petNode1 = record.get("p1").asNode();
+			Node petNode2 = record.get("p2").asNode();
+
+			personId = personNode.id();
+			clubId = clubNode.id();
+			hobbyNode1Id = hobbyNode1.id();
+			hobbyNode2Id = hobbyNode2.id();
+			petNode1Id = petNode1.id();
+			petNode2Id = petNode2.id();
+		}
+
+		StepVerifier.create(relationshipRepository.findById(personId))
+			.assertNext(loadedPerson -> {
+
+				assertThat(loadedPerson.getName()).isEqualTo("Freddie");
+				Hobby hobby = loadedPerson.getHobbies();
+				assertThat(hobby).isNotNull();
+				assertThat(hobby.getId()).isEqualTo(hobbyNode1Id);
+				assertThat(hobby.getName()).isEqualTo("Music");
+
+				Club club = loadedPerson.getClub();
+				assertThat(club).isNotNull();
+				assertThat(club.getId()).isEqualTo(clubId);
+				assertThat(club.getName()).isEqualTo("ClownsClub");
+
+				List<Pet> pets = loadedPerson.getPets();
+				Pet comparisonPet1 = new Pet(petNode1Id, "Jerry");
+				Pet comparisonPet2 = new Pet(petNode2Id, "Tom");
+				assertThat(pets).containsExactlyInAnyOrder(comparisonPet1, comparisonPet2);
+
+				Pet pet1 = pets.get(pets.indexOf(comparisonPet1));
+				Pet pet2 = pets.get(pets.indexOf(comparisonPet2));
+				Hobby petHobby = pet1.getHobbies().iterator().next();
+				assertThat(petHobby.getId()).isEqualTo(hobbyNode2Id);
+				assertThat(petHobby.getName()).isEqualTo("sleeping");
+
+				assertThat(pet1.getFriends()).containsExactly(pet2);
+			})
+			.verifyComplete();
+	}
+
+	@Test
+	void loadEntityWithRelationshipToTheSameNode() {
+
+		long personId;
+		long hobbyNode1Id;
+		long petNode1Id;
+
+		try (Session session = driver.session()) {
+			Record record = session
+				.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+					+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), "
+					+ "(p1)-[:Has]->(h1)"
+					+ "RETURN n, h1, p1").single();
+
+			Node personNode = record.get("n").asNode();
+			Node hobbyNode1 = record.get("h1").asNode();
+			Node petNode1 = record.get("p1").asNode();
+
+			personId = personNode.id();
+			hobbyNode1Id = hobbyNode1.id();
+			petNode1Id = petNode1.id();
+		}
+
+		StepVerifier.create(relationshipRepository.findById(personId))
+			.assertNext(loadedPerson -> {
+
+				assertThat(loadedPerson.getName()).isEqualTo("Freddie");
+				Hobby hobby = loadedPerson.getHobbies();
+				assertThat(hobby).isNotNull();
+				assertThat(hobby.getId()).isEqualTo(hobbyNode1Id);
+				assertThat(hobby.getName()).isEqualTo("Music");
+
+				List<Pet> pets = loadedPerson.getPets();
+				Pet comparisonPet1 = new Pet(petNode1Id, "Jerry");
+				assertThat(pets).containsExactlyInAnyOrder(comparisonPet1);
+
+				Pet pet1 = pets.get(pets.indexOf(comparisonPet1));
+				Hobby petHobby = pet1.getHobbies().iterator().next();
+				assertThat(petHobby.getName()).isEqualTo("Music");
+
+				assertThat(petHobby).isSameAs(hobby);
+			})
+			.verifyComplete();
+	}
+
+	@Test
+	void loadMultipleEntitiesWithRelationship() {
+
+		long hobbyNode1Id;
+		long hobbyNode2Id;
+		long petNode1Id;
+		long petNode2Id;
+
+		try (Session session = driver.session()) {
+			Record record = session
+				.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h:Hobby{name:'Music'}), "
+					+ "(n)-[:Has]->(p:Pet{name: 'Jerry'}) "
+					+ "RETURN n, h, p").single();
+
+			hobbyNode1Id = record.get("h").asNode().id();
+			petNode1Id = record.get("p").asNode().id();
+
+			record = session
+				.run("CREATE (n:PersonWithRelationship{name:'SomeoneElse'})-[:Has]->(h:Hobby{name:'Music2'}), "
+					+ "(n)-[:Has]->(p:Pet{name: 'Jerry2'}) "
+					+ "RETURN n, h, p").single();
+
+			hobbyNode2Id = record.get("h").asNode().id();
+			petNode2Id = record.get("p").asNode().id();
+		}
+
+		StepVerifier.create(relationshipRepository.findAll())
+			.recordWith(ArrayList::new)
+			.expectNextCount(2)
+			.consumeRecordedWith(loadedPersons -> {
+
+				Hobby hobby1 = new Hobby();
+				hobby1.setId(hobbyNode1Id);
+				hobby1.setName("Music");
+
+				Hobby hobby2 = new Hobby();
+				hobby2.setId(hobbyNode2Id);
+				hobby2.setName("Music2");
+
+				Pet pet1 = new Pet(petNode1Id, "Jerry");
+				Pet pet2 = new Pet(petNode2Id, "Jerry2");
+
+				assertThat(loadedPersons).extracting("name").containsExactlyInAnyOrder("Freddie", "SomeoneElse");
+				assertThat(loadedPersons).extracting("hobbies").containsExactlyInAnyOrder(hobby1, hobby2);
+				assertThat(loadedPersons).flatExtracting("pets").containsExactlyInAnyOrder(pet1, pet2);
+			})
+			.verifyComplete();
+	}
+
+	@Test
+	void loadEntityWithRelationshipViaQuery() {
+
+		long personId;
+		long hobbyNodeId;
+		long petNode1Id;
+		long petNode2Id;
+
+		try (Session session = driver.session()) {
+			Record record = session
+				.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+					+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) "
+					+ "RETURN n, h1, p1, p2").single();
+
+			Node personNode = record.get("n").asNode();
+			Node hobbyNode1 = record.get("h1").asNode();
+			Node petNode1 = record.get("p1").asNode();
+			Node petNode2 = record.get("p2").asNode();
+
+			personId = personNode.id();
+			hobbyNodeId = hobbyNode1.id();
+			petNode1Id = petNode1.id();
+			petNode2Id = petNode2.id();
+		}
+
+		StepVerifier.create(relationshipRepository.getPersonWithRelationshipsViaQuery())
+			.assertNext(loadedPerson -> {
+				assertThat(loadedPerson.getName()).isEqualTo("Freddie");
+				assertThat(loadedPerson.getId()).isEqualTo(personId);
+				Hobby hobby = loadedPerson.getHobbies();
+				assertThat(hobby).isNotNull();
+				assertThat(hobby.getId()).isEqualTo(hobbyNodeId);
+				assertThat(hobby.getName()).isEqualTo("Music");
+
+				List<Pet> pets = loadedPerson.getPets();
+				Pet comparisonPet1 = new Pet(petNode1Id, "Jerry");
+				Pet comparisonPet2 = new Pet(petNode2Id, "Tom");
+				assertThat(pets).containsExactlyInAnyOrder(comparisonPet1, comparisonPet2);
+			})
+			.verifyComplete();
+	}
+
+	@Test
+	void loadEntityWithRelationshipWithAssignedId() {
+
+		long petNodeId;
+
+		try (Session session = driver.session()) {
+			Record record = session
+				.run("CREATE (p:Pet{name:'Jerry'})-[:Has]->(t:Thing{theId:'t1', name:'Thing1'}) "
+					+ "RETURN p, t").single();
+
+			Node petNode = record.get("p").asNode();
+			petNodeId = petNode.id();
+		}
+
+		StepVerifier.create(petRepository.findById(petNodeId))
+			.assertNext(pet -> {
+				ThingWithAssignedId relatedThing = pet.getThings().get(0);
+				assertThat(relatedThing.getTheId()).isEqualTo("t1");
+				assertThat(relatedThing.getName()).isEqualTo("Thing1");
+			})
+			.verifyComplete();
 	}
 
 	@Test
@@ -523,6 +761,195 @@ class ReactiveRepositoryIT {
 	}
 
 	@Test
+	void saveSingleEntityWithRelationships() {
+
+		PersonWithRelationship person = new PersonWithRelationship();
+		person.setName("Freddie");
+		Hobby hobby = new Hobby();
+		hobby.setName("Music");
+		person.setHobbies(hobby);
+		Club club = new Club();
+		club.setName("ClownsClub");
+		person.setClub(club);
+		Pet pet1 = new Pet("Jerry");
+		Pet pet2 = new Pet("Tom");
+		Hobby petHobby = new Hobby();
+		petHobby.setName("sleeping");
+		pet1.setHobbies(singleton(petHobby));
+		person.setPets(Arrays.asList(pet1, pet2));
+
+		List<Long> ids = new ArrayList<>();
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		transactionalOperator
+			.execute(t -> relationshipRepository.save(person).map(PersonWithRelationship::getId))
+			.as(StepVerifier::create)
+			.recordWith(() -> ids)
+			.expectNextCount(1L)
+			.verifyComplete();
+
+		try (Session session = driver.session()) {
+
+			Record record = session.run("MATCH (n:PersonWithRelationship)"
+					+ " RETURN n,"
+					+ " [(n)-[:Has]->(p:Pet) | [ p , [ (p)-[:Has]-(h:Hobby) | h ] ] ] as petsWithHobbies,"
+					+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies, "
+					+ " [(n)<-[:Has]-(c:Club) | c] as clubs",
+				Values.parameters("name", "Freddie")).single();
+
+			assertThat(record.containsKey("n")).isTrue();
+			Node rootNode = record.get("n").asNode();
+			assertThat(ids.get(0)).isEqualTo(rootNode.id());
+			assertThat(rootNode.get("name").asString()).isEqualTo("Freddie");
+
+			List<List<Object>> petsWithHobbies = record.get("petsWithHobbies").asList(Value::asList);
+
+			Map<Object, List<Node>> pets = new HashMap<>();
+			for (List<Object> petWithHobbies : petsWithHobbies) {
+				pets.put(petWithHobbies.get(0), ((List<Node>) petWithHobbies.get(1)));
+			}
+
+			assertThat(pets.keySet().stream().map(pet -> ((Node) pet).get("name").asString()).collect(toList()))
+				.containsExactlyInAnyOrder("Jerry", "Tom");
+
+			assertThat(pets.values().stream()
+				.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(toList()))
+				.containsExactlyInAnyOrder("sleeping");
+
+			assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
+				.containsExactlyInAnyOrder("Music");
+
+			assertThat(record.get("clubs").asList(entry -> entry.asNode().get("name").asString()))
+				.containsExactlyInAnyOrder("ClownsClub");
+		}
+	}
+
+	@Test
+	void saveSingleEntityWithRelationshipsTwiceDoesNotCreateMoreRelationships() {
+
+		PersonWithRelationship person = new PersonWithRelationship();
+		person.setName("Freddie");
+		Hobby hobby = new Hobby();
+		hobby.setName("Music");
+		person.setHobbies(hobby);
+		Pet pet1 = new Pet("Jerry");
+		Pet pet2 = new Pet("Tom");
+		Hobby petHobby = new Hobby();
+		petHobby.setName("sleeping");
+		pet1.setHobbies(singleton(petHobby));
+		person.setPets(Arrays.asList(pet1, pet2));
+
+		List<Long> ids = new ArrayList<>();
+
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+
+		transactionalOperator
+			.execute(t -> relationshipRepository.save(person).map(PersonWithRelationship::getId))
+			.as(StepVerifier::create)
+			.recordWith(() -> ids)
+			.expectNextCount(1L)
+			.verifyComplete();
+
+		transactionalOperator
+			.execute(t -> relationshipRepository.save(person))
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
+
+		try (Session session = driver.session()) {
+
+			List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
+					+ " RETURN n,"
+					+ " [(n)-[:Has]->(p:Pet) | [ p , [ (p)-[:Has]-(h:Hobby) | h ] ] ] as petsWithHobbies,"
+					+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
+				Values.parameters("name", "Freddie")).list();
+
+			// assert that there is only one record in the returned list
+			assertThat(recordList).hasSize(1);
+
+			Record record = recordList.get(0);
+
+			assertThat(record.containsKey("n")).isTrue();
+			Node rootNode = record.get("n").asNode();
+			assertThat(ids.get(0)).isEqualTo(rootNode.id());
+			assertThat(rootNode.get("name").asString()).isEqualTo("Freddie");
+
+			List<List<Object>> petsWithHobbies = record.get("petsWithHobbies").asList(Value::asList);
+
+			Map<Object, List<Node>> pets = new HashMap<>();
+			for (List<Object> petWithHobbies : petsWithHobbies) {
+				pets.put(petWithHobbies.get(0), ((List<Node>) petWithHobbies.get(1)));
+			}
+
+			assertThat(pets.keySet().stream().map(pet -> ((Node) pet).get("name").asString()).collect(toList()))
+				.containsExactlyInAnyOrder("Jerry", "Tom");
+
+			assertThat(pets.values().stream()
+				.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(toList()))
+				.containsExactlyInAnyOrder("sleeping");
+
+			assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
+				.containsExactlyInAnyOrder("Music");
+
+			// assert that only two hobbies is stored
+			recordList = session.run("MATCH (h:Hobby) RETURN h").list();
+			assertThat(recordList).hasSize(2);
+
+			// assert that only two pets is stored
+			recordList = session.run("MATCH (p:Pet) RETURN p").list();
+			assertThat(recordList).hasSize(2);
+		}
+	}
+
+	@Test
+	void saveEntityWithAlreadyExistingTargetNode() {
+
+		Long hobbyId;
+		try (Session session = driver.session()) {
+			hobbyId = session.run("CREATE (h:Hobby{name: 'Music'}) return id(h) as hId").single().get("hId").asLong();
+		}
+
+		PersonWithRelationship person = new PersonWithRelationship();
+		person.setName("Freddie");
+		Hobby hobby = new Hobby();
+		hobby.setId(hobbyId);
+		hobby.setName("Music");
+		person.setHobbies(hobby);
+
+		List<Long> ids = new ArrayList<>();
+
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+
+		transactionalOperator
+			.execute(t -> relationshipRepository.save(person).map(PersonWithRelationship::getId))
+			.as(StepVerifier::create)
+			.recordWith(() -> ids)
+			.expectNextCount(1L)
+			.verifyComplete();
+
+		try (Session session = driver.session()) {
+
+			List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
+					+ " RETURN n,"
+					+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
+				Values.parameters("name", "Freddie")).list();
+
+			Record record = recordList.get(0);
+
+			assertThat(record.containsKey("n")).isTrue();
+			Node rootNode = record.get("n").asNode();
+			assertThat(ids.get(0)).isEqualTo(rootNode.id());
+			assertThat(rootNode.get("name").asString()).isEqualTo("Freddie");
+
+			assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
+				.containsExactlyInAnyOrder("Music");
+
+			// assert that only one hobby is stored
+			recordList = session.run("MATCH (h:Hobby) RETURN h").list();
+			assertThat(recordList).hasSize(1);
+		}
+	}
+
+	@Test
 	void updateSingleEntity() {
 
 		Mono<PersonWithAllConstructor> operationUnderTest = repository.findById(id1)
@@ -553,6 +980,35 @@ class ReactiveRepositoryIT {
 			.as(StepVerifier::create)
 			.expectNextMatches(node -> node.get("first_name").asString().equals("Updated first name") &&
 				node.get("nullable").asString().equals("Updated nullable field"))
+			.verifyComplete();
+	}
+
+	@Test
+	void findByAssignedId() {
+		StepVerifier.create(thingRepository.findById("anId"))
+			.assertNext(thing -> {
+
+				assertThat(thing.getTheId()).isEqualTo("anId");
+				assertThat(thing.getName()).isEqualTo("Homer");
+
+				AnotherThingWithAssignedId anotherThing = new AnotherThingWithAssignedId(4711L);
+				anotherThing.setName("Bart");
+				assertThat(thing.getThings()).containsExactlyInAnyOrder(anotherThing);
+			})
+			.verifyComplete();
+	}
+
+	@Test
+	void loadWithAssignedIdViaQuery() {
+		StepVerifier.create(thingRepository.getViaQuery())
+			.assertNext(thing -> {
+				assertThat(thing.getTheId()).isEqualTo("anId");
+				assertThat(thing.getName()).isEqualTo("Homer");
+
+				AnotherThingWithAssignedId anotherThing = new AnotherThingWithAssignedId(4711L);
+				anotherThing.setName("Bart");
+				assertThat(thing.getThings()).containsExactly(anotherThing);
+			})
 			.verifyComplete();
 	}
 

@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.core.mapping;
 
 import java.util.Objects;
 
+import org.neo4j.springframework.data.core.schema.Relationship;
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 
 /**
@@ -30,38 +31,57 @@ class DefaultRelationshipDescription implements RelationshipDescription {
 
 	private final String type;
 
+	private final String source;
+
 	private final String target;
 
-	/**
-	 * If this is set to true, then the type name here is just a placeholder and the actual types shall be retrieved
-	 * from the map key.
-	 */
-	private final boolean dynamic;
+	private final String propertyName;
 
-	DefaultRelationshipDescription(String type, String target, boolean dynamic) {
+	private final Relationship.Direction direction;
+
+	DefaultRelationshipDescription(String type, String source, String target, String propertyName,
+		Relationship.Direction direction) {
+
 		this.type = type;
+		this.source = source;
 		this.target = target;
-		this.dynamic = dynamic;
+		this.propertyName = propertyName;
+		this.direction = direction;
 	}
 
+	@Override
 	public String getType() {
 		return type;
 	}
 
+	@Override
 	public String getTarget() {
 		return target;
 	}
 
-	public boolean isDynamic() {
-		return dynamic;
+	@Override
+	public String getSource() {
+		return source;
 	}
+
+	@Override
+	public String getPropertyName() {
+		return propertyName;
+	}
+
+	@Override
+	public Relationship.Direction getDirection() {
+		return direction;
+	}
+
 
 	@Override
 	public String toString() {
 		return "DefaultRelationshipDescription{" +
 			"type='" + type + '\'' +
-			", target='" + target + '\'' +
-			", dynamic=" + dynamic +
+			", source='" + source + '\'' +
+			", direction='" + direction + '\'' +
+			", target='" + target +
 			'}';
 	}
 
@@ -74,12 +94,12 @@ class DefaultRelationshipDescription implements RelationshipDescription {
 			return false;
 		}
 		DefaultRelationshipDescription that = (DefaultRelationshipDescription) o;
-		return type.equals(that.type) &&
-			target.equals(that.target);
+		return type.equals(that.type) && target.equals(that.target) && source.equals(that.source)
+			&& direction.equals(that.direction);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(type, target);
+		return Objects.hash(type, target, source, direction);
 	}
 }

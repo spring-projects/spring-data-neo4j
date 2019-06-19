@@ -81,7 +81,7 @@ final class ReactiveNeo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
 		return getTargetRepositoryViaReflection(metadata,
-			neo4jClient, entityInformation, schemaBasedStatementBuilder, eventSupport
+			neo4jClient, entityInformation, schemaBasedStatementBuilder, eventSupport, mappingContext
 		);
 	}
 

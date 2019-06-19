@@ -18,39 +18,52 @@
  */
 package org.neo4j.springframework.data.integration.shared;
 
-import java.util.List;
+import java.util.Objects;
 
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
-import org.neo4j.springframework.data.core.schema.Relationship;
 
 /**
- * Has an assigned id.
- *
- * @author Michael J. Simons
+ * @author Gerrit Meier
  */
-@Node("Thing")
-public class ThingWithAssignedId extends AbstractNamedThing {
+@Node
+public class Hobby {
+	@Id @GeneratedValue private Long id;
 
-	@Id
-	private final String theId;
+	private String name;
 
-	@Relationship("Has")
-	private List<AnotherThingWithAssignedId> things;
-
-	public ThingWithAssignedId(String theId) {
-		this.theId = theId;
+	public Long getId() {
+		return id;
 	}
 
-	public String getTheId() {
-		return theId;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
-	public List<AnotherThingWithAssignedId> getThings() {
-		return things;
+	public String getName() {
+		return name;
 	}
 
-	public void setThings(List<AnotherThingWithAssignedId> things) {
-		this.things = things;
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		Hobby hobby = (Hobby) o;
+		return id.equals(hobby.id) &&
+			name.equals(hobby.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, name);
 	}
 }

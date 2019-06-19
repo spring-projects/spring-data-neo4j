@@ -16,22 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.springframework.data.integration.imperative;
+package org.neo4j.springframework.data.integration.reactive;
 
-import java.util.List;
-
-import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
-import org.neo4j.springframework.data.repository.query.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.neo4j.springframework.data.integration.shared.Pet;
+import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 
 /**
- * @author Michael J. Simons
+ * @author Gerrit Meier
  */
-public interface ThingRepository extends CrudRepository<ThingWithAssignedId, String> {
-	List<ThingWithAssignedId> findFirstByOrderByNameDesc();
-
-	List<ThingWithAssignedId> findTop5ByOrderByNameDesc();
-
-	@Query("MATCH (n:Thing{theId:'anId'})-[r:Has]->(b:Thing2) return n, collect(r), collect(b)")
-	ThingWithAssignedId getViaQuery();
+public interface ReactivePetRepository extends ReactiveNeo4jRepository<Pet, Long> {
 }

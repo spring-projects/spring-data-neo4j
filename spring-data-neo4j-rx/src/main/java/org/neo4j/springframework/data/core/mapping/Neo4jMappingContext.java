@@ -54,7 +54,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.convert.EntityInstantiators;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.context.AbstractMappingContext;
@@ -75,13 +74,6 @@ import org.springframework.lang.Nullable;
 public final class Neo4jMappingContext
 	extends AbstractMappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> implements Schema,
 	BeanDefinitionRegistryPostProcessor {
-
-	/**
-	 * The shared entity instantiators of this context. Those should not be recreated for each entity or even not for
-	 * each query, as otherwise the cache of Spring's org.springframework.data.convert.ClassGeneratingEntityInstantiator
-	 * won't apply
-	 */
-	private final EntityInstantiators instantiators = new EntityInstantiators();
 
 	/**
 	 * A lookup of entities based on their primary label. We depend on the locking mechanism provided by the
@@ -192,8 +184,9 @@ public final class Neo4jMappingContext
 	public <T> BiFunction<TypeSystem, Record, T> getMappingFunctionFor(Class<T> targetClass) {
 		if (this.hasPersistentEntityFor(targetClass)) {
 			Neo4jPersistentEntity neo4jPersistentEntity = this.getPersistentEntity(targetClass);
-			return new DefaultNeo4jMappingFunction<T>(instantiators, neo4jPersistentEntity);
+			return new DefaultNeo4jMappingFunction<>(neo4jPersistentEntity, this);
 		}
+
 		return null;
 	}
 
@@ -217,19 +210,28 @@ public final class Neo4jMappingContext
 		Neo4jPersistentEntity<?> entity = this.getPersistentEntity(nodeDescription.getUnderlyingClass());
 		entity.doWithAssociations((Association<Neo4jPersistentProperty> association) -> {
 
+			Neo4jPersistentProperty inverse = association.getInverse();
 			Neo4jPersistentEntity<?> obverseOwner = this
-				.getPersistentEntity(association.getInverse().getAssociationTargetType());
+				.getPersistentEntity(inverse.getAssociationTargetType());
 
-			Relationship outgoingRelationship = association.getInverse().findAnnotation(Relationship.class);
+			Relationship outgoingRelationship = inverse.findAnnotation(Relationship.class);
+
+
 			String type;
 			if (outgoingRelationship != null && outgoingRelationship.type() != null) {
 				type = outgoingRelationship.type();
 			} else {
-				type = association.getInverse().getName();
+				type = inverse.getName();
+			}
+
+			Relationship.Direction direction = Relationship.Direction.OUTGOING;
+			if (outgoingRelationship != null) {
+				direction = outgoingRelationship.direction();
 			}
 
 			relationships
-				.add(new DefaultRelationshipDescription(type, obverseOwner.getPrimaryLabel(), association.getInverse().isMap()));
+				.add(new DefaultRelationshipDescription(type, primaryLabel, obverseOwner.getPrimaryLabel(),
+					inverse.getName(), direction));
 		});
 
 		return Collections.unmodifiableCollection(relationships);

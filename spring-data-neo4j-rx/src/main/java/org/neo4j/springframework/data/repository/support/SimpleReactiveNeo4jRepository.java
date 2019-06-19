@@ -23,10 +23,13 @@ import static java.util.stream.Collectors.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
+import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.SchemaBasedStatementBuilder.*;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -39,13 +42,19 @@ import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient.ExecutableQuery;
 import org.neo4j.springframework.data.core.cypher.Condition;
+import org.neo4j.springframework.data.core.cypher.Cypher;
 import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
+import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
+import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
+import org.neo4j.springframework.data.core.schema.NodeDescription;
+import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 import org.reactivestreams.Publisher;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
 import org.springframework.stereotype.Repository;
@@ -77,21 +86,24 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 	private final ReactiveNeo4jEvents eventSupport;
 
+	private final Neo4jMappingContext neo4jMappingContext;
+
 	SimpleReactiveNeo4jRepository(ReactiveNeo4jClient neo4jClient, Neo4jEntityInformation<T, ID> entityInformation,
-		SchemaBasedStatementBuilder statementBuilder,
-		ReactiveNeo4jEvents eventSupport) {
+		SchemaBasedStatementBuilder statementBuilder, ReactiveNeo4jEvents eventSupport, Neo4jMappingContext neo4jMappingContext) {
+
 		this.neo4jClient = neo4jClient;
 		this.entityInformation = entityInformation;
 		this.entityMetaData = this.entityInformation.getEntityMetaData();
 		this.statementBuilder = statementBuilder;
 		this.eventSupport = eventSupport;
+		this.neo4jMappingContext = neo4jMappingContext;
 	}
 
 	@Override
 	public Mono<T> findById(ID id) {
 		Statement statement = statementBuilder
 			.prepareMatchOf(entityMetaData, entityInformation.getIdExpression().isEqualTo(literalOf(id)))
-			.returning(asterisk())
+			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData)))
 			.build();
 		return createExecutableQuery(statement).getSingleResult();
 	}
@@ -104,7 +116,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	@Override
 	public Flux<T> findAll(Sort sort) {
 		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
-			.returning(asterisk())
+			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData)))
 			.orderBy(toSortItems(entityMetaData, sort))
 			.build();
 
@@ -124,7 +136,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	@Override
 	public Flux<T> findAll() {
 		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
-			.returning(asterisk()).build();
+			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData))).build();
 		return createExecutableQuery(statement).getResults();
 	}
 
@@ -132,7 +144,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	public Flux<T> findAllById(Iterable<ID> ids) {
 		Statement statement = statementBuilder
 			.prepareMatchOf(entityMetaData, entityInformation.getIdExpression().in((parameter("ids"))))
-			.returning(asterisk())
+			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData)))
 			.build();
 
 		return createExecutableQuery(statement, singletonMap("ids", ids)).getResults();
@@ -161,24 +173,99 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 		return Mono.just(entity)
 			.flatMap(eventSupport::maybeCallBeforeBind)
-			.flatMap(it -> {
+			.flatMap(entityToBeSaved -> {
 				Statement saveStatement = statementBuilder.prepareSaveOf(entityMetaData);
 
 				Mono<Long> idMono =
 					this.neo4jClient.query(() -> renderer.render(saveStatement))
-						.bind((T) it).with(entityInformation.getBinderFunction())
+						.bind((T) entityToBeSaved).with(entityInformation.getBinderFunction())
 						.fetchAs(Long.class).one();
 
 				if (!entityMetaData.isUsingInternalIds()) {
-					return idMono.thenReturn(it);
+					return idMono.then(processNestedAssociations(entityMetaData, entityToBeSaved)).thenReturn(entityToBeSaved);
 				} else {
 					return idMono.map(internalId -> {
-						PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(it);
+						PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 						propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
+
 						return (S) propertyAccessor.getBean();
-					});
+					})
+					.flatMap(entity2 -> processNestedAssociations(entityMetaData, entity2).thenReturn(entity2));
 				}
 			});
+	}
+
+	private Mono<Void> processNestedAssociations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject) {
+
+		return Mono.defer(() -> {
+			PersistentPropertyAccessor<?> propertyAccessor = neo4jPersistentEntity.getPropertyAccessor(parentObject);
+			Object fromId = propertyAccessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty());
+			List<Mono<Void>> relationshipCreationMonos = new ArrayList<>();
+
+			neo4jPersistentEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) handler -> {
+
+				Neo4jPersistentProperty inverse = handler.getInverse();
+
+				Object value = propertyAccessor.getProperty(inverse);
+
+				if (value == null) {
+					return;
+				}
+
+				Collection<Object> relatedValues = inverse.isCollectionLike() ?
+					(Collection<Object>) value :
+					Collections.singleton(value);
+
+				Collection<RelationshipDescription> relationships = neo4jMappingContext
+					.getRelationshipsOf(neo4jPersistentEntity.getPrimaryLabel());
+
+				Class<?> associationTargetType = inverse.getAssociationTargetType();
+
+				Neo4jPersistentEntity<?> targetNodeDescription = (Neo4jPersistentEntity<?>) neo4jMappingContext
+					.getRequiredNodeDescription(associationTargetType);
+
+				RelationshipDescription relationship = relationships.stream()
+					.filter(r -> r.getPropertyName().equals(inverse.getName()))
+					.findFirst().get();
+
+				for (Object relatedValue : relatedValues) {
+
+					Mono<Object> valueToBeSavedMono = eventSupport.maybeCallBeforeBind(relatedValue);
+
+					relationshipCreationMonos.add(
+						valueToBeSavedMono
+							.flatMap(valueToBeSaved ->
+								saveRelatedNode(valueToBeSaved, associationTargetType, targetNodeDescription)
+									.flatMap(relatedInternalId -> {
+
+										// if an internal id is used this must get set to link this entity in the next iteration
+										if (targetNodeDescription.isUsingInternalIds()) {
+											PersistentPropertyAccessor<?> targetPropertyAccessor = targetNodeDescription
+												.getPropertyAccessor(valueToBeSaved);
+											targetPropertyAccessor
+												.setProperty(targetNodeDescription.getRequiredIdProperty(),
+													relatedInternalId);
+										}
+										Statement relationshipCreationQuery = createRelationshipCreationQuery(
+											neo4jPersistentEntity, fromId,
+											relationship, relatedInternalId);
+
+										return
+											neo4jClient.query(renderer.render(relationshipCreationQuery))
+											.run()
+											.then(processNestedAssociations(targetNodeDescription, valueToBeSaved));
+									})));
+				}
+
+			});
+			return Flux.concat(relationshipCreationMonos).then();
+		});
+	}
+
+	private <Y> Mono<Long> saveRelatedNode(Object entity, Class<Y> entityType, NodeDescription targetNodeDescription) {
+		return neo4jClient.query(() -> renderer.render(statementBuilder.prepareSaveOf(targetNodeDescription)))
+			.bind((Y) entity)
+			.with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType)).fetchAs(Long.class).one();
 	}
 
 	@Override
