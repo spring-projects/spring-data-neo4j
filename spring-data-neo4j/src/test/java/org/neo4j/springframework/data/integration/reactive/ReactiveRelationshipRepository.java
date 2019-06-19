@@ -16,22 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.springframework.data.integration.imperative;
+package org.neo4j.springframework.data.integration.reactive;
 
-import java.util.List;
+import reactor.core.publisher.Mono;
 
-import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
+import org.neo4j.springframework.data.integration.shared.PersonWithRelationship;
+import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 import org.neo4j.springframework.data.repository.query.Query;
-import org.springframework.data.repository.CrudRepository;
 
 /**
- * @author Michael J. Simons
+ * @author Gerrit Meier
  */
-public interface ThingRepository extends CrudRepository<ThingWithAssignedId, String> {
-	List<ThingWithAssignedId> findFirstByOrderByNameDesc();
+public interface ReactiveRelationshipRepository extends ReactiveNeo4jRepository<PersonWithRelationship, Long> {
 
-	List<ThingWithAssignedId> findTop5ByOrderByNameDesc();
-
-	@Query("MATCH (n:Thing{theId:'anId'})-[r:Has]->(b:Thing2) return n, collect(r), collect(b)")
-	ThingWithAssignedId getViaQuery();
+	@Query("MATCH (n:PersonWithRelationship{name:'Freddie'}) "
+		+ "OPTIONAL MATCH (n)-[r1:Has]->(p:Pet) WITH n, collect(r1) as petRels, collect(p) as pets "
+		+ "OPTIONAL MATCH (n)-[r2:Has]->(h:Hobby) "
+		+ "return n, petRels, pets, collect(r2) as hobbyRels, collect(h) as hobbies")
+	Mono<PersonWithRelationship> getPersonWithRelationshipsViaQuery();
 }

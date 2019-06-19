@@ -55,12 +55,7 @@ public @interface Relationship {
 		/**
 		 * Describes an incoming relationship.
 		 */
-		INCOMING,
-
-		/**
-		 * Describes an undirected relationship.
-		 */
-		UNDIRECTED
+		INCOMING
 	}
 
 	/**
@@ -86,9 +81,6 @@ public @interface Relationship {
 	 * <p>
 	 * If {@code direction} is {@link Direction#INCOMING}, than the attribute annotated with {@link Relationship} will be
 	 * the start node of the relationship and the class containing the annotated attribute will be the end node.
-	 * <p>
-	 * In case of {@code direction} being {@link Direction#UNDIRECTED}, an equally undirected relationships will be used
-	 * between the annotated attribute and the class containing the attribute.
 	 *
 	 * @return The direction of the relationship.
 	 */

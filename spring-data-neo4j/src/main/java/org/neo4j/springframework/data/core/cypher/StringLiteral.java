@@ -41,7 +41,7 @@ public final class StringLiteral extends Literal<CharSequence> {
 	private static final Pattern RESERVED_CHARS = Pattern.compile("([" + quote("\\'\"") + "])");
 	private static final String QUOTED_LITERAL_FORMAT = "'%s'";
 
-	StringLiteral(CharSequence content) {
+	StringLiteral(@Nullable CharSequence content) {
 		super(content);
 	}
 

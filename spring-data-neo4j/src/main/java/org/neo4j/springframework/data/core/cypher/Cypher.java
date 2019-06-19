@@ -284,6 +284,16 @@ public final class Cypher {
 		return unionImpl(true, statement);
 	}
 
+	/**
+	 * Escapes and quotes the {@code unquotedString} for safe usage in Neo4j-Browser and Shell.
+	 *
+	 * @param unquotedString An unquoted string
+	 * @return A quoted string with special chars escaped.
+	 */
+	public static String quote(String unquotedString) {
+		return literalOf(unquotedString).asString();
+	}
+
 	private static Statement unionImpl(boolean unionAll, Statement... statements) {
 
 		Assert.isTrue(statements != null && statements.length >= 2, "At least two statements are required!");

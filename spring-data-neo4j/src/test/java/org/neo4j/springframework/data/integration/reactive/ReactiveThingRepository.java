@@ -18,11 +18,17 @@
  */
 package org.neo4j.springframework.data.integration.reactive;
 
+import reactor.core.publisher.Mono;
+
 import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
+import org.neo4j.springframework.data.repository.query.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
 /**
  * @author Michael J. Simons
  */
 public interface ReactiveThingRepository extends ReactiveCrudRepository<ThingWithAssignedId, String> {
+
+	@Query("MATCH (n:Thing{theId:'anId'})-[r:Has]->(b:Thing2) return n, collect(r), collect(b)")
+	Mono<ThingWithAssignedId> getViaQuery();
 }

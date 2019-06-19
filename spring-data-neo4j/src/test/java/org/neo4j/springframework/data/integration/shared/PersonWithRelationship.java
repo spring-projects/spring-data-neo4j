@@ -20,37 +20,60 @@ package org.neo4j.springframework.data.integration.shared;
 
 import java.util.List;
 
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.Relationship;
 
 /**
- * Has an assigned id.
- *
- * @author Michael J. Simons
+ * @author Gerrit Meier
  */
-@Node("Thing")
-public class ThingWithAssignedId extends AbstractNamedThing {
+@Node
+public class PersonWithRelationship {
 
-	@Id
-	private final String theId;
+	@Id @GeneratedValue private Long id;
 
-	@Relationship("Has")
-	private List<AnotherThingWithAssignedId> things;
+	private String name;
 
-	public ThingWithAssignedId(String theId) {
-		this.theId = theId;
+	@Relationship("Has") private Hobby hobbies;
+
+	@Relationship("Has") private List<Pet> pets;
+
+	@Relationship(type = "Has", direction = Relationship.Direction.INCOMING) private Club club;
+
+	public Long getId() {
+		return id;
 	}
 
-	public String getTheId() {
-		return theId;
+	public String getName() {
+		return name;
 	}
 
-	public List<AnotherThingWithAssignedId> getThings() {
-		return things;
+	public void setName(String name) {
+		this.name = name;
 	}
 
-	public void setThings(List<AnotherThingWithAssignedId> things) {
-		this.things = things;
+	public Hobby getHobbies() {
+		return hobbies;
+	}
+
+	public void setHobbies(Hobby hobbies) {
+		this.hobbies = hobbies;
+	}
+
+	public Club getClub() {
+		return club;
+	}
+
+	public void setClub(Club club) {
+		this.club = club;
+	}
+
+	public List<Pet> getPets() {
+		return pets;
+	}
+
+	public void setPets(List<Pet> pets) {
+		this.pets = pets;
 	}
 }

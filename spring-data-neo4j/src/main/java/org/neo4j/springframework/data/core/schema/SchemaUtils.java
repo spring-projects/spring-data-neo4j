@@ -16,22 +16,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.springframework.data.integration.imperative;
+package org.neo4j.springframework.data.core.schema;
 
-import java.util.List;
-
-import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
-import org.neo4j.springframework.data.repository.query.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.apiguardian.api.API;
+import org.jetbrains.annotations.NotNull;
 
 /**
+ * Internal API for generating unique collection names and similar used during mapping.
+ *
  * @author Michael J. Simons
+ * @since 1.0
  */
-public interface ThingRepository extends CrudRepository<ThingWithAssignedId, String> {
-	List<ThingWithAssignedId> findFirstByOrderByNameDesc();
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class SchemaUtils {
 
-	List<ThingWithAssignedId> findTop5ByOrderByNameDesc();
+	@NotNull
+	public static String generateRelatedNodesCollectionName(RelationshipDescription description) {
 
-	@Query("MATCH (n:Thing{theId:'anId'})-[r:Has]->(b:Thing2) return n, collect(r), collect(b)")
-	ThingWithAssignedId getViaQuery();
+		return description.getSource() + "_" + description.getType() + "_" + description.getTarget();
+	}
+	private SchemaUtils() {
+	}
 }

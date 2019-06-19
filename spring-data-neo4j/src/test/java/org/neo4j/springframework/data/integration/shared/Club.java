@@ -18,39 +18,29 @@
  */
 package org.neo4j.springframework.data.integration.shared;
 
-import java.util.List;
-
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
-import org.neo4j.springframework.data.core.schema.Relationship;
 
 /**
- * Has an assigned id.
- *
- * @author Michael J. Simons
+ * @author Gerrit Meier
  */
-@Node("Thing")
-public class ThingWithAssignedId extends AbstractNamedThing {
+@Node
+public class Club {
 
-	@Id
-	private final String theId;
+	@Id @GeneratedValue private Long id;
 
-	@Relationship("Has")
-	private List<AnotherThingWithAssignedId> things;
+	private String name;
 
-	public ThingWithAssignedId(String theId) {
-		this.theId = theId;
+	public Long getId() {
+		return id;
 	}
 
-	public String getTheId() {
-		return theId;
+	public String getName() {
+		return name;
 	}
 
-	public List<AnotherThingWithAssignedId> getThings() {
-		return things;
-	}
-
-	public void setThings(List<AnotherThingWithAssignedId> things) {
-		this.things = things;
+	public void setName(String name) {
+		this.name = name;
 	}
 }

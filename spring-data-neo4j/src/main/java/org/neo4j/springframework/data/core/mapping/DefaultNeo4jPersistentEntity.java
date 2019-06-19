@@ -32,6 +32,7 @@ import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.IdDescription;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.Property;
+import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.data.util.Lazy;
@@ -173,8 +174,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 
 		final List<GraphPropertyDescription> computedGraphProperties = new ArrayList<>();
 
-		doWithProperties(
-			(Neo4jPersistentProperty property) -> computedGraphProperties.add(property));
+		doWithProperties((PropertyHandler<Neo4jPersistentProperty>) computedGraphProperties::add);
 
 		return Collections.unmodifiableCollection(computedGraphProperties);
 	}

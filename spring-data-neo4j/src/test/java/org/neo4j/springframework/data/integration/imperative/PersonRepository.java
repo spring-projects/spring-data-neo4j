@@ -23,15 +23,15 @@ import java.util.List;
 import java.util.Optional;
 
 import org.neo4j.driver.types.Point;
-import org.springframework.data.domain.Range;
-import org.springframework.data.geo.Circle;
-import org.springframework.data.geo.Distance;
 import org.neo4j.springframework.data.integration.shared.KotlinPerson;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
 import org.neo4j.springframework.data.integration.shared.PersonWithNoConstructor;
 import org.neo4j.springframework.data.integration.shared.PersonWithWither;
 import org.neo4j.springframework.data.repository.Neo4jRepository;
 import org.neo4j.springframework.data.repository.query.Query;
+import org.springframework.data.domain.Range;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Distance;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +47,9 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	@Query("MATCH (n:PersonWithAllConstructor) return n")
 	List<PersonWithAllConstructor> getAllPersonsViaQuery();
+
+	@Query("MATCH (n:UnkownLabel) return n")
+	List<PersonWithAllConstructor> getNobodyViaQuery();
 
 	@Query("MATCH (n:PersonWithAllConstructor{name:'Test'}) return n")
 	PersonWithAllConstructor getOnePersonViaQuery();

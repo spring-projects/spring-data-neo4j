@@ -22,16 +22,19 @@
 
 	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
-			<pattern>%d %5p %40.40c:%4L - %m%n</pattern>
+			<pattern>[%t] %d %5p %40.40c:%4L - %m%n</pattern>
 		</encoder>
 	</appender>
 
 	<logger name="org.neo4j.driver" level="info"/>
 	<logger name="GraphDatabase" level="info" />
 	<logger name="Driver" level="info" />
+	<logger name="OutboundMessageHandler" level="info" />
+	<logger name="InboundMessageDispatcher" level="info" />
 
-	<logger name="org.neo4j.springframework.data" level="warn"/>
-	<logger name="org.neo4j.springframework.data.test" level="debug"/>
+	<logger name="org.neo4j.springframework.data.cypher" level="info"/>
+	<logger name="org.neo4j.springframework.data" level="info"/>
+	<logger name="org.neo4j.springframework.data.test" level="info"/>
 
 	<root level="warn">
 		<appender-ref ref="console" />
