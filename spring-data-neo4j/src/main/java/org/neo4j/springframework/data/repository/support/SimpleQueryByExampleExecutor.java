@@ -72,7 +72,7 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 	public <S extends T> Optional<S> findOne(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.f(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
 			.returning(asterisk())
 			.build();
 
@@ -83,7 +83,7 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 	public <S extends T> Iterable<S> findAll(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.f(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
 			.returning(asterisk())
 			.build();
 
@@ -94,7 +94,7 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 	public <S extends T> Iterable<S> findAll(Example<S> example, Sort sort) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.f(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
 			.returning(asterisk())
 			.orderBy(toSortItems(predicate.getNodeDescription(), sort)).build();
 
@@ -105,7 +105,7 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 	public <S extends T> long count(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.f(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
 			.returning(Functions.count(asterisk()))
 			.build();
 
@@ -126,7 +126,7 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
 		StatementBuilder.OngoingReadingAndReturn returning = predicate
-			.f(statementBuilder::prepareMatchOf)
+			.useWithReadingFragment(statementBuilder::prepareMatchOf)
 			.returning(asterisk());
 
 		BuildableStatement returningWithPaging = addPagingParameter(predicate.getNodeDescription(), pageable, returning);
