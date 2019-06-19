@@ -67,7 +67,7 @@ class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleE
 	public <S extends T> Mono<S> findOne(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.f(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
 			.returning(asterisk())
 			.build();
 
@@ -78,7 +78,7 @@ class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleE
 	public <S extends T> Flux<S> findAll(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.f(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
 			.returning(asterisk())
 			.build();
 
@@ -89,7 +89,7 @@ class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleE
 	public <S extends T> Flux<S> findAll(Example<S> example, Sort sort) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.f(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
 			.returning(asterisk())
 			.orderBy(toSortItems(predicate.getNodeDescription(), sort)).build();
 
@@ -100,7 +100,7 @@ class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleE
 	public <S extends T> Mono<Long> count(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.f(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
 			.returning(Functions.count(asterisk()))
 			.build();
 

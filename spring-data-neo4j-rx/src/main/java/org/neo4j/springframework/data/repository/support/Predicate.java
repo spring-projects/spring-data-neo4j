@@ -58,7 +58,8 @@ import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
  * @since 1.0
  */
 @Slf4j
-@RequiredArgsConstructor(access = PRIVATE) final class Predicate {
+@RequiredArgsConstructor(access = PRIVATE)
+final class Predicate {
 
 	static <S> Predicate create(Neo4jMappingContext mappingContext, Example<S> example) {
 
@@ -150,9 +151,9 @@ import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 
 	private final Map<String, Object> parameters = new HashMap<>();
 
-	StatementBuilder.OngoingReadingAndWith f(
-		BiFunction<NodeDescription<?>, Optional<Condition>, StatementBuilder.OngoingReadingAndWith> ff) {
-		return ff.apply(this.nodeDescription, Optional.of(this.condition));
+	StatementBuilder.OngoingReadingAndWith useWithReadingFragment(
+		BiFunction<NodeDescription<?>, Optional<Condition>, StatementBuilder.OngoingReadingAndWith> readingFragmentSupplier) {
+		return readingFragmentSupplier.apply(this.nodeDescription, Optional.of(this.condition));
 	}
 
 	private void add(ExampleMatcher.MatchMode matchMode, Condition additionalCondition) {
