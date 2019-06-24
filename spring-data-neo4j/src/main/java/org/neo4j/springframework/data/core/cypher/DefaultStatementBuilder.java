@@ -295,6 +295,14 @@ class DefaultStatementBuilder
 			this.distinct = distinct;
 		}
 
+		void reset() {
+			this.returnList.clear();
+			this.sortItemList.clear();
+			this.lastSortItem = null;
+			this.skip = null;
+			this.limit = null;
+		}
+
 		@Override
 		public final OngoingReadingAndReturn orderBy(SortItem... sortItem) {
 			Arrays.stream(sortItem).forEach(this.sortItemList::add);
@@ -395,7 +403,9 @@ class DefaultStatementBuilder
 			Order order = sortItemList.size() > 0 ? new Order(sortItemList) : null;
 			Where where = conditionBuilder.buildCondition().map(Where::new).orElse(null);
 
-			return Optional.of(new With(distinct, returnItems, order, skip, limit, where));
+			Optional<With> returnedWith = Optional.of(new With(distinct, returnItems, order, skip, limit, where));
+			super.reset();
+			return returnedWith;
 		}
 	}
 

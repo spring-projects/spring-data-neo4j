@@ -461,6 +461,31 @@ class CypherIT {
 		}
 
 		@Test
+		void usingSameWithStepWithoutReassign() {
+			StatementBuilder.OngoingReadingAndWith firstStep = match(bikeNode).with(bikeNode);
+
+			firstStep.optionalMatch(userNode);
+			firstStep.optionalMatch(Cypher.node("Trip"));
+
+			Statement statement = firstStep.returning(Cypher.asterisk()).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (b:`Bike`) WITH b OPTIONAL MATCH (u:`User`) OPTIONAL MATCH (:`Trip`) RETURN *");
+		}
+
+		@Test
+		void usingSameWithStepWithReassign() {
+			StatementBuilder.ExposesMatch firstStep = match(bikeNode).with(bikeNode);
+
+			firstStep = firstStep.optionalMatch(userNode);
+			firstStep = firstStep.optionalMatch(Cypher.node("Trip"));
+
+			Statement statement = ((StatementBuilder.ExposesReturning) firstStep).returning(Cypher.asterisk()).build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (b:`Bike`) WITH b OPTIONAL MATCH (u:`User`) OPTIONAL MATCH (:`Trip`) RETURN *");
+		}
+
+		@Test
 		void optionalNext() {
 			Statement statement = Cypher
 				.match(bikeNode)
