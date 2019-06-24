@@ -19,6 +19,7 @@
 package org.neo4j.springframework.data.repository.support;
 
 import static java.util.Collections.*;
+import static java.util.stream.Collectors.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
@@ -28,10 +29,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.springframework.data.core.PreparedQuery;
@@ -236,14 +238,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 		Assert.notNull(idPublisher, "The given Publisher of an id must not be null!");
 
 		return Mono.from(idPublisher)
-			.flatMap(id -> {
-				String nameOfParameter = "id";
-				Condition condition = this.entityInformation.getIdExpression().isEqualTo(parameter(nameOfParameter));
-
-				Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
-				return this.neo4jClient.query(() -> renderer.render(statement))
-					.bind(id).to(nameOfParameter).run();
-			})
+			.flatMap(this::deleteByIdImpl)
 			.then();
 	}
 
@@ -257,8 +252,15 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 		Assert.notNull(entities, "The given Iterable of entities must not be null!");
 
-		return Flux.fromIterable(entities)
-			.as(this::deleteAll);
+		String nameOfParameter = "ids";
+		Condition condition = entityInformation.getIdExpression().in(parameter(nameOfParameter));
+		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
+
+		List<ID> ids = StreamSupport.stream(entities.spliterator(), false)
+			.map(this.entityInformation::getId)
+			.collect(toList());
+
+		return this.neo4jClient.query(() -> renderer.render(statement)).bind(ids).to(nameOfParameter).run().then();
 	}
 
 	/*
@@ -273,15 +275,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 		return Flux.from(entitiesPublisher)
 			.map(this.entityInformation::getId)
-			.collect(Collectors.toList())
-			.flatMap(ids -> {
-
-				String nameOfParameter = "ids";
-				Condition condition = entityInformation.getIdExpression().in(parameter(nameOfParameter));
-				Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
-
-				return this.neo4jClient.query(() -> renderer.render(statement)).bind(ids).to(nameOfParameter).run();
-			})
+			.flatMap(this::deleteByIdImpl)
 			.then();
 	}
 
@@ -309,5 +303,15 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 			.usingMappingFunction(this.entityInformation.getMappingFunction())
 			.build();
 		return neo4jClient.toExecutableQuery(preparedQuery);
+	}
+
+	private Mono<Void> deleteByIdImpl(ID id) {
+
+		String nameOfParameter = "id";
+		Condition condition = this.entityInformation.getIdExpression().isEqualTo(parameter(nameOfParameter));
+
+		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
+		return this.neo4jClient.query(() -> renderer.render(statement))
+			.bind(id).to(nameOfParameter).run().then();
 	}
 }
