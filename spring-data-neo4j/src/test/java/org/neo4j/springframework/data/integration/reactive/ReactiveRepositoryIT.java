@@ -489,6 +489,39 @@ class ReactiveRepositoryIT {
 	}
 
 	@Test
+	void saveAllIterable() {
+
+		PersonWithAllConstructor newPerson = new PersonWithAllConstructor(
+			null, "Mercury", "Freddie", "Queen", true, 1509L,
+			LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null);
+
+		Flux<Long> operationUnderTest = repository
+			.saveAll(Arrays.asList(newPerson))
+			.map(PersonWithAllConstructor::getId);
+
+		List<Long> ids = new ArrayList<>();
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		transactionalOperator
+			.execute(t -> operationUnderTest)
+			.as(StepVerifier::create)
+			.recordWith(() -> ids)
+			.expectNextCount(1L)
+			.verifyComplete();
+
+		Flux
+			.usingWhen(
+				Mono.fromSupplier(() -> driver.rxSession()),
+				s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
+					parameters("ids", ids))
+					.records(),
+				RxSession::close
+			).map(r -> r.get("n").asNode().get("name").asString())
+			.as(StepVerifier::create)
+			.expectNext("Mercury")
+			.verifyComplete();
+	}
+
+	@Test
 	void updateSingleEntity() {
 
 		Mono<PersonWithAllConstructor> operationUnderTest = repository.findById(id1)
@@ -572,6 +605,46 @@ class ReactiveRepositoryIT {
 
 		Flux<ThingWithAssignedId> operationUnderTest = thingRepository
 			.saveAll(things);
+
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		transactionalOperator
+			.execute(t -> operationUnderTest)
+			.as(StepVerifier::create)
+			.expectNextCount(2L)
+			.verifyComplete();
+
+		Flux
+			.usingWhen(
+				Mono.fromSupplier(() -> driver.rxSession()),
+				s -> {
+					Value parameters = parameters("ids", Arrays.asList("anId", "aaBB"));
+					return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC",
+						parameters)
+						.records();
+				},
+				RxSession::close
+			)
+			.map(r -> r.get("name").asString())
+			.as(StepVerifier::create)
+			.expectNext("That's the thing.")
+			.expectNext("Updated name.")
+			.verifyComplete();
+
+		// Make sure we triggered on insert, one update
+		thingRepository.count().as(StepVerifier::create).expectNext(22L).verifyComplete();
+	}
+
+	@Test
+	void saveAllIterableWithAssignedId() {
+
+		ThingWithAssignedId existingThing = new ThingWithAssignedId("anId");
+		existingThing.setName("Updated name.");
+		ThingWithAssignedId newThing = new ThingWithAssignedId("aaBB");
+		newThing.setName("That's the thing.");
+
+		List<ThingWithAssignedId> things = Arrays.asList(existingThing, newThing);
+
+		Flux<ThingWithAssignedId> operationUnderTest = thingRepository.saveAll(things);
 
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
 		transactionalOperator

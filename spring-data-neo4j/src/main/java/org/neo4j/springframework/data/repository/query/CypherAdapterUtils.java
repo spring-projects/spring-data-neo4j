@@ -206,7 +206,7 @@ public final class CypherAdapterUtils {
 				.unwind(parameter(NAME_OF_ENTITY_LIST_PARAM)).as(row)
 				.merge(rootNode.properties(nameOfIdProperty, property(row, NAME_OF_ID_PARAM)))
 				.set(rootNode, property(row, NAME_OF_PROPERTIES_PARAM))
-				.returning(rootNode.internalId())
+				.returning(Functions.collect(rootNode.property(nameOfIdProperty)).as(NAME_OF_IDS_RESULT))
 				.build();
 		}
 	}
