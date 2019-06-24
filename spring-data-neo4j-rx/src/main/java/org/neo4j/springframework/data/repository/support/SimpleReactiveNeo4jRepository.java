@@ -156,8 +156,9 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 		Statement saveStatement = statementBuilder.prepareSaveOf(entityMetaData);
 
-		Mono<Long> idMono = this.neo4jClient.query(() -> renderer.render(saveStatement)).bind((T) entity)
-				.with(entityInformation.getBinderFunction()).fetchAs(Long.class).one();
+		Mono<Long> idMono = this.neo4jClient.query(() -> renderer.render(saveStatement))
+			.bind((T) entity).with(entityInformation.getBinderFunction())
+			.fetchAs(Long.class).one();
 
 		if (!entityMetaData.isUsingInternalIds()) {
 			return idMono.thenReturn(entity);
@@ -173,30 +174,35 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	@Override
 	@Transactional
 	public <S extends T> Flux<S> saveAll(Iterable<S> entities) {
-		return Flux.fromIterable(entities).as(this::saveAll);
+
+		if (entityMetaData.isUsingInternalIds()) {
+			log.debug("Saving entities using single statements.");
+
+			return Flux.fromIterable(entities).flatMap(this::save);
+		}
+
+		final Function<T, Map<String, Object>> binderFunction = entityInformation.getBinderFunction();
+		List<Map<String, Object>> boundedEntityList = StreamSupport.stream(entities.spliterator(), false)
+			.map(binderFunction)
+			.collect(toList());
+
+		return Mono.from(neo4jClient
+			.query(() -> renderer.render(statementBuilder.prepareSaveOfMultipleInstancesOf(entityMetaData)))
+			.bind(boundedEntityList).to(NAME_OF_ENTITY_LIST_PARAM).run())
+			.doOnNext(resultSummary -> {
+				SummaryCounters counters = resultSummary.counters();
+				log.debug(
+					"Created {} and deleted {} nodes, created {} and deleted {} relationships and set {} properties.",
+					counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
+					counters.relationshipsDeleted(), counters.propertiesSet());
+			}).thenMany(Flux.fromIterable(entities));
 	}
 
 	@Override
 	@Transactional
 	public <S extends T> Flux<S> saveAll(Publisher<S> entityStream) {
 
-		if (entityMetaData.isUsingInternalIds()) {
-			log.debug("Saving entities using single statements.");
-
-			return Flux.from(entityStream).flatMap(this::save);
-		}
-
-		final Function<T, Map<String, Object>> binderFunction = entityInformation.getBinderFunction();
-		return Flux.from(entityStream).map(binderFunction)
-				.flatMap(entities -> neo4jClient
-						.query(() -> renderer.render(statementBuilder.prepareSaveOfMultipleInstancesOf(entityMetaData)))
-						.bind(entities).to(NAME_OF_ENTITY_LIST_PARAM).run())
-				.doOnNext(resultSummary -> {
-					SummaryCounters counters = resultSummary.counters();
-					log.debug("Created {} and deleted {} nodes, created {} and deleted {} relationships and set {} properties.",
-							counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
-							counters.relationshipsDeleted(), counters.propertiesSet());
-				}).thenMany(entityStream);
+		return Flux.from(entityStream).flatMap(this::save);
 	}
 
 	/*
@@ -209,7 +215,12 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 		Assert.notNull(id, "The given id must not be null!");
 
-		return Mono.just(id).as(this::deleteById);
+		String nameOfParameter = "id";
+		Condition condition = this.entityInformation.getIdExpression().isEqualTo(parameter(nameOfParameter));
+
+		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
+		return this.neo4jClient.query(() -> renderer.render(statement))
+			.bind(id).to(nameOfParameter).run().then();
 	}
 
 	/*
@@ -221,10 +232,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	public Mono<Void> delete(T entity) {
 
 		Assert.notNull(entity, "The given entity must not be null!");
-
-		return Mono.just(entity)
-			.map(this.entityInformation::getId)
-			.as(this::deleteById);
+		return deleteById(this.entityInformation.getId(entity));
 	}
 
 	/*
@@ -236,10 +244,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	public Mono<Void> deleteById(Publisher<ID> idPublisher) {
 
 		Assert.notNull(idPublisher, "The given Publisher of an id must not be null!");
-
-		return Mono.from(idPublisher)
-			.flatMap(this::deleteByIdImpl)
-			.then();
+		return Mono.from(idPublisher).flatMap(this::deleteById);
 	}
 
 	/*
@@ -272,11 +277,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	public Mono<Void> deleteAll(Publisher<? extends T> entitiesPublisher) {
 
 		Assert.notNull(entitiesPublisher, "The given Publisher of entities must not be null!");
-
-		return Flux.from(entitiesPublisher)
-			.map(this.entityInformation::getId)
-			.flatMap(this::deleteByIdImpl)
-			.then();
+		return Flux.from(entitiesPublisher).flatMap(this::delete).then();
 	}
 
 	/*
@@ -303,15 +304,5 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 			.usingMappingFunction(this.entityInformation.getMappingFunction())
 			.build();
 		return neo4jClient.toExecutableQuery(preparedQuery);
-	}
-
-	private Mono<Void> deleteByIdImpl(ID id) {
-
-		String nameOfParameter = "id";
-		Condition condition = this.entityInformation.getIdExpression().isEqualTo(parameter(nameOfParameter));
-
-		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
-		return this.neo4jClient.query(() -> renderer.render(statement))
-			.bind(id).to(nameOfParameter).run().then();
 	}
 }
