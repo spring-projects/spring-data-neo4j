@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.mapping.Association;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
@@ -36,6 +35,7 @@ import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Property;
 import org.neo4j.springframework.data.core.schema.Relationship;
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
+import org.springframework.data.mapping.Association;
 
 /**
  * @author Michael J. Simons
@@ -108,6 +108,16 @@ public class Neo4jMappingContextTest {
 	}
 
 	@Test
+	void shouldPreventIllegalIdTypes() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(InvalidIdType.class)));
+		assertThatIllegalArgumentException()
+			.isThrownBy(() -> schema.initialize())
+			.withMessageMatching("Internally generated ids can only be assigned to one of .*");
+	}
+
+	@Test
 	void shouldNotProvideMappingForUnknownClasses() {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
@@ -157,7 +167,7 @@ public class Neo4jMappingContextTest {
 
 	static class TripNode {
 
-		@Id
+		@Id(strategy = Id.Strategy.ASSIGNED)
 		private String id;
 
 		String name;
@@ -166,6 +176,12 @@ public class Neo4jMappingContextTest {
 	static class InvalidId {
 
 		@Id @Property("getMappingFunctionFor")
+		private String id;
+	}
+
+	static class InvalidIdType {
+
+		@Id
 		private String id;
 	}
 }
