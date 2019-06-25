@@ -208,7 +208,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 
 		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
 		transactionObject.getRequiredResourceHolder().close();
-
+		transactionObject.setResourceHolder(null);
 		TransactionSynchronizationManager.unbindResource(driver);
 	}
 

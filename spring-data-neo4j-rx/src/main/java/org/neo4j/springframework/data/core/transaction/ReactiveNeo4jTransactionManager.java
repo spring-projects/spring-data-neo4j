@@ -171,27 +171,33 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 	protected Mono<Void> doCleanupAfterCompletion(TransactionSynchronizationManager transactionSynchronizationManager,
 		Object transaction) {
 
-		ReactiveNeo4jTransactionHolder holder = (ReactiveNeo4jTransactionHolder) transactionSynchronizationManager
-			.getResource(driver);
-		return holder.close().doOnNext(ignoreMe -> transactionSynchronizationManager.unbindResource(driver)).then();
+		return Mono
+			.just(extractNeo4jTransaction(transaction))
+			.map(r -> {
+				ReactiveNeo4jTransactionHolder holder = r.getRequiredResourceHolder();
+				r.setResourceHolder(null);
+				return holder;
+			})
+			.flatMap(ReactiveNeo4jTransactionHolder::close)
+			.then(Mono.fromRunnable(() -> transactionSynchronizationManager.unbindResource(driver)));
 	}
 
 	@Override
 	protected Mono<Void> doCommit(TransactionSynchronizationManager transactionSynchronizationManager,
 			GenericReactiveTransaction genericReactiveTransaction) throws TransactionException {
 
-		ReactiveNeo4jTransactionHolder holder = (ReactiveNeo4jTransactionHolder) transactionSynchronizationManager
-				.getResource(driver);
-		return holder.commit().then();
+		ReactiveNeo4jTransactionHolder holder = extractNeo4jTransaction(genericReactiveTransaction)
+			.getRequiredResourceHolder();
+		return holder.commit();
 	}
 
 	@Override
 	protected Mono<Void> doRollback(TransactionSynchronizationManager transactionSynchronizationManager,
 			GenericReactiveTransaction genericReactiveTransaction) throws TransactionException {
 
-		ReactiveNeo4jTransactionHolder holder = (ReactiveNeo4jTransactionHolder) transactionSynchronizationManager
-			.getResource(driver);
-		return holder.rollback().then();
+		ReactiveNeo4jTransactionHolder holder = extractNeo4jTransaction(genericReactiveTransaction)
+			.getRequiredResourceHolder();
+		return holder.rollback();
 	}
 
 	/*
@@ -200,10 +206,10 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 	 */
 	@Override
 	protected Mono<Void> doSetRollbackOnly(TransactionSynchronizationManager synchronizationManager,
-		GenericReactiveTransaction status) throws TransactionException {
+		GenericReactiveTransaction genericReactiveTransaction) throws TransactionException {
 
 		return Mono.fromRunnable(() -> {
-			ReactiveNeo4jTransactionObject transactionObject = extractNeo4jTransaction(status);
+			ReactiveNeo4jTransactionObject transactionObject = extractNeo4jTransaction(genericReactiveTransaction);
 			transactionObject.getRequiredResourceHolder().setRollbackOnly();
 		});
 	}
