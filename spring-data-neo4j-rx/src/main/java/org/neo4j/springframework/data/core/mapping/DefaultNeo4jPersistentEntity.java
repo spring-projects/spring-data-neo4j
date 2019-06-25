@@ -19,10 +19,13 @@
 package org.neo4j.springframework.data.core.mapping;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
@@ -42,6 +45,9 @@ import org.springframework.util.Assert;
  */
 class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty>
 	implements Neo4jPersistentEntity<T> {
+
+	private static final Set<Class<?>> VALID_GENERATED_ID_TYPES = Collections.unmodifiableSet(new HashSet<>(
+		Arrays.asList(Long.class, long.class)));
 
 	private final String primaryLabel;
 
@@ -141,11 +147,16 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		return optionalIdAnnotation
 			.map(idAnnotation -> {
 
-				if (idAnnotation.strategy() == Id.Strategy.INTERNALLY_GENERATED
-					&& idProperty.findAnnotation(Property.class) != null) {
-					throw new IllegalArgumentException(
-						"Cannot use internal id strategy with custom property " + idProperty.getPropertyName()
-							+ " on entity class " + this.getUnderlyingClass().getName());
+				if (idAnnotation.strategy() == Id.Strategy.INTERNALLY_GENERATED) {
+					if (idProperty.findAnnotation(Property.class) != null) {
+						throw new IllegalArgumentException(
+							"Cannot use internal id strategy with custom property " + idProperty.getPropertyName()
+								+ " on entity class " + this.getUnderlyingClass().getName());
+					}
+
+					if (!VALID_GENERATED_ID_TYPES.contains(idProperty.getActualType())) {
+						throw new IllegalArgumentException("Internally generated ids can only be assigned to one of " + VALID_GENERATED_ID_TYPES);
+					}
 				}
 
 				return new IdDescription(idAnnotation.strategy(), idAnnotation.generator(),
