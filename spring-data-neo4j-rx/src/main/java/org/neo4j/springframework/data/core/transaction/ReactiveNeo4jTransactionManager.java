@@ -70,7 +70,7 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 
 	public static Mono<RxTransaction> retrieveReactiveTransaction(final Driver driver, final String targetDatabase) {
 
-		return TransactionSynchronizationManager.currentTransaction() // Do we have a Transaction context?
+		return TransactionSynchronizationManager.forCurrentTransaction() // Do we have a Transaction context?
 			// Bail out early if synchronization between transaction managers is not active
 			.filter(TransactionSynchronizationManager::isSynchronizationActive)
 			.flatMap(tsm -> {

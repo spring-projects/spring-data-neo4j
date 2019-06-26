@@ -97,7 +97,7 @@ class ReactiveNeo4jTransactionManagerTest {
 
 			transactionalOperator
 				.execute(transactionStatus -> TransactionSynchronizationManager
-					.currentTransaction().doOnNext(tsm -> {
+					.forCurrentTransaction().doOnNext(tsm -> {
 						assertThat(tsm.hasResource(driver)).isTrue();
 						transactionStatus.setRollbackOnly();
 					}).then(retrieveReactiveTransaction(driver, databaseName))
@@ -155,9 +155,9 @@ class ReactiveNeo4jTransactionManagerTest {
 
 			transactionalOperator
 				.execute(transactionStatus -> TransactionSynchronizationManager
-					.currentTransaction().doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isFalse())
+					.forCurrentTransaction().doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isFalse())
 					.then(retrieveReactiveTransaction(driver, databaseName))
-					.flatMap(ignoredNativeTx -> TransactionSynchronizationManager.currentTransaction()
+					.flatMap(ignoredNativeTx -> TransactionSynchronizationManager.forCurrentTransaction()
 						.doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isTrue()))
 				)
 				.as(StepVerifier::create)
@@ -182,13 +182,13 @@ class ReactiveNeo4jTransactionManagerTest {
 
 			transactionalOperator
 				.execute(transactionStatus -> TransactionSynchronizationManager
-					.currentTransaction()
+					.forCurrentTransaction()
 					.doOnNext(tsm -> {
 						assertThat(tsm.hasResource(driver)).isFalse();
 						transactionStatus.setRollbackOnly();
 					})
 					.then(retrieveReactiveTransaction(driver, databaseName))
-					.flatMap(ignoredNativeTx -> TransactionSynchronizationManager.currentTransaction()
+					.flatMap(ignoredNativeTx -> TransactionSynchronizationManager.forCurrentTransaction()
 						.doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isTrue()))
 				)
 				.as(StepVerifier::create)

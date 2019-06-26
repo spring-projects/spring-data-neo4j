@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.stream.StreamSupport;
 
@@ -77,12 +76,16 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 	private final SchemaBasedStatementBuilder statementBuilder;
 
+	private final Neo4jEvents eventSupport;
+
 	SimpleNeo4jRepository(Neo4jClient neo4jClient, Neo4jEntityInformation<T, ID> entityInformation,
-		SchemaBasedStatementBuilder statementBuilder) {
+		SchemaBasedStatementBuilder statementBuilder,
+		Neo4jEvents eventSupport) {
 		this.neo4jClient = neo4jClient;
 		this.entityInformation = entityInformation;
 		this.entityMetaData = this.entityInformation.getEntityMetaData();
 		this.statementBuilder = statementBuilder;
+		this.eventSupport = eventSupport;
 	}
 
 	@Override
@@ -116,16 +119,17 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	@Transactional
 	public <S extends T> S save(S entity) {
 
+		S entityToBeSaved = eventSupport.maybeCallBeforeBind(entity);
 		Long internalId = neo4jClient
 			.query(() -> renderer.render(statementBuilder.prepareSaveOf(entityMetaData)))
-			.bind((T) entity)
+			.bind((T) entityToBeSaved)
 			.with(entityInformation.getBinderFunction())
 			.fetchAs(Long.class).one().get();
 
 		if (!entityMetaData.isUsingInternalIds()) {
-			return entity;
+			return entityToBeSaved;
 		} else {
-			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entity);
+			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
 			return (S) propertyAccessor.getBean();
 		}
@@ -137,14 +141,17 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 		if (entityMetaData.isUsingInternalIds()) {
 			log.debug("Saving entities using single statements.");
+
 			return StreamSupport.stream(entities.spliterator(), false)
 				.map(this::save)
 				.collect(toList());
 		}
 
-		final Function<T, Map<String, Object>> binderFunction = entityInformation.getBinderFunction();
-		List<Map<String, Object>> entityList = StreamSupport.stream(entities.spliterator(), false)
-			.map(binderFunction).collect(toList());
+		List<S> entitiesToBeSaved = StreamSupport.stream(entities.spliterator(), false)
+			.map(eventSupport::maybeCallBeforeBind)
+			.collect(toList());
+		List<Map<String, Object>> entityList = entitiesToBeSaved.stream()
+			.map(entityInformation.getBinderFunction()).collect(toList());
 
 		ResultSummary resultSummary = neo4jClient
 			.query(() -> renderer.render(statementBuilder.prepareSaveOfMultipleInstancesOf(entityMetaData)))
@@ -156,7 +163,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 			counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
 			counters.relationshipsDeleted(), counters.propertiesSet());
 
-		return entities;
+		return entitiesToBeSaved;
 	}
 
 	@Override
