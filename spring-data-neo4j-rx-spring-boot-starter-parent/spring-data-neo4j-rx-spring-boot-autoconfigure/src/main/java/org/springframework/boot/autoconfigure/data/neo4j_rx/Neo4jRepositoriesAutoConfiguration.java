@@ -29,9 +29,9 @@ import org.springframework.context.annotation.Import;
  *
  * @author Michael J. Simons
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(Driver.class)
 @AutoConfigureAfter(Neo4jDataAutoConfiguration.class)
 @Import({ Neo4jImperativeRepositoriesConfiguration.class, Neo4jReactiveRepositoriesConfiguration.class })
-public class Neo4jRepositoriesAutoConfiguration {
+public final class Neo4jRepositoriesAutoConfiguration {
 }

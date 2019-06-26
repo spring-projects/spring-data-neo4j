@@ -42,7 +42,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  * @author Michael J. Simons
  * @since 1.0
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({ Neo4jTransactionManager.class, PlatformTransactionManager.class })
 @ConditionalOnRepositoryType(store = "neo4j", type = IMPERATIVE)
 @AutoConfigureAfter(Neo4jDriverAutoConfiguration.class)

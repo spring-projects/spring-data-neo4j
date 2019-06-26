@@ -33,7 +33,7 @@ import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
  * @author Michael J. Simons
  * @since 1.0
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({ Flux.class, ReactiveNeo4jRepository.class })
 @ConditionalOnRepositoryType(store = "neo4j", type = RepositoryType.REACTIVE)
 @Import(Neo4jReactiveRepositoriesConfigureRegistrar.class)

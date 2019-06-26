@@ -33,7 +33,7 @@ import org.neo4j.springframework.data.repository.support.Neo4jRepositoryFactoryB
  * @author Michael J. Simons
  * @since 1.0
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(Neo4jRepository.class)
 @ConditionalOnMissingBean({ Neo4jRepositoryFactoryBean.class, Neo4jRepositoryConfigurationExtension.class })
 @ConditionalOnRepositoryType(store = "neo4j", type = IMPERATIVE)

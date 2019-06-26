@@ -38,10 +38,10 @@ import org.neo4j.springframework.data.core.schema.Node;
  * @author Michael J. Simons
  * @since 1.0
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnBean(Driver.class)
 @Import({ Neo4jImperativeDataConfiguration.class, Neo4jReactiveDataConfiguration.class })
-public class Neo4jDataAutoConfiguration {
+public final class Neo4jDataAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean

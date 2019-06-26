@@ -42,7 +42,7 @@ import org.springframework.transaction.ReactiveTransactionManager;
  * @author Michael J. Simons
  * @since 1.0
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({ ReactiveNeo4jTransactionManager.class, ReactiveTransactionManager.class, Flux.class })
 @ConditionalOnRepositoryType(store = "neo4j", type = REACTIVE)
 @AutoConfigureAfter(Neo4jDriverAutoConfiguration.class)
