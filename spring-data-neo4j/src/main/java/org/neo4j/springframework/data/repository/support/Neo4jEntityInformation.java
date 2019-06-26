@@ -43,7 +43,7 @@ public interface Neo4jEntityInformation<T, ID> extends EntityInformation<T, ID> 
 	 * Retrieves an expression to be used in Cypher statements to retrieve the generated or internal id for a node
 	 * fitting the given {@code nodeDescription} under a symbolic name of {@code 'n'}.
 	 *
-	 * @return An expression to address nodes corresponding to entities of the given typoe by id.
+	 * @return An expression to address nodes corresponding to entities of the given type by id.
 	 */
 	Expression getIdExpression();
 

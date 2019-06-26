@@ -57,9 +57,12 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	private final SchemaBasedStatementBuilder schemaBasedStatementBuilder;
 
-	Neo4jRepositoryFactory(Neo4jClient neo4jClient, Neo4jMappingContext mappingContext) {
+	private final Neo4jEvents eventSupport;
+
+	Neo4jRepositoryFactory(Neo4jClient neo4jClient, Neo4jMappingContext mappingContext, Neo4jEvents eventSupport) {
 		this.neo4jClient = neo4jClient;
 		this.mappingContext = mappingContext;
+		this.eventSupport = eventSupport;
 
 		this.schemaBasedStatementBuilder = CypherAdapterUtils.createSchemaBasedStatementBuilder(this.mappingContext);
 	}
@@ -79,8 +82,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
 		return getTargetRepositoryViaReflection(metadata,
-			neo4jClient, entityInformation, schemaBasedStatementBuilder
-		);
+			neo4jClient, entityInformation, schemaBasedStatementBuilder, eventSupport);
 	}
 
 	@Override

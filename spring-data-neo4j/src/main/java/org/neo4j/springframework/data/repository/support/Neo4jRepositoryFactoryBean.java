@@ -24,9 +24,12 @@ import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.Neo4jClient;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
+import org.springframework.lang.Nullable;
 
 /**
  * Special adapter for Springs {@link org.springframework.beans.factory.FactoryBean} interface to allow easy setup of
@@ -46,6 +49,8 @@ public final class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID
 	private Neo4jClient neo4jClient;
 
 	private Neo4jMappingContext neo4jMappingContext;
+
+	private @Nullable EntityCallbacks entityCallbacks;
 
 	/**
 	 * Creates a new {@link TransactionalRepositoryFactoryBeanSupport} for the given repository interface.
@@ -67,7 +72,13 @@ public final class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID
 
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
-		return new Neo4jRepositoryFactory(neo4jClient, neo4jMappingContext);
+		return new Neo4jRepositoryFactory(neo4jClient, neo4jMappingContext, new Neo4jEvents(entityCallbacks));
 	}
 
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) {
+		super.setBeanFactory(beanFactory);
+
+		this.entityCallbacks = EntityCallbacks.create(beanFactory);
+	}
 }

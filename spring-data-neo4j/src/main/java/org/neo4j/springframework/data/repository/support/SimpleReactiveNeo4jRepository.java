@@ -74,12 +74,16 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 	private final SchemaBasedStatementBuilder statementBuilder;
 
+	private final ReactiveNeo4jEvents eventSupport;
+
 	SimpleReactiveNeo4jRepository(ReactiveNeo4jClient neo4jClient, Neo4jEntityInformation<T, ID> entityInformation,
-			SchemaBasedStatementBuilder statementBuilder) {
+		SchemaBasedStatementBuilder statementBuilder,
+		ReactiveNeo4jEvents eventSupport) {
 		this.neo4jClient = neo4jClient;
 		this.entityInformation = entityInformation;
 		this.entityMetaData = this.entityInformation.getEntityMetaData();
 		this.statementBuilder = statementBuilder;
+		this.eventSupport = eventSupport;
 	}
 
 	@Override
@@ -154,21 +158,26 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	@Transactional
 	public <S extends T> Mono<S> save(S entity) {
 
-		Statement saveStatement = statementBuilder.prepareSaveOf(entityMetaData);
+		return Mono.just(entity)
+			.flatMap(eventSupport::maybeCallBeforeBind)
+			.flatMap(it -> {
+				Statement saveStatement = statementBuilder.prepareSaveOf(entityMetaData);
 
-		Mono<Long> idMono = this.neo4jClient.query(() -> renderer.render(saveStatement))
-			.bind((T) entity).with(entityInformation.getBinderFunction())
-			.fetchAs(Long.class).one();
+				Mono<Long> idMono =
+					this.neo4jClient.query(() -> renderer.render(saveStatement))
+						.bind((T) it).with(entityInformation.getBinderFunction())
+						.fetchAs(Long.class).one();
 
-		if (!entityMetaData.isUsingInternalIds()) {
-			return idMono.thenReturn(entity);
-		} else {
-			return idMono.map(internalId -> {
-				PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entity);
-				propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
-				return (S) propertyAccessor.getBean();
+				if (!entityMetaData.isUsingInternalIds()) {
+					return idMono.thenReturn(it);
+				} else {
+					return idMono.map(internalId -> {
+						PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(it);
+						propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
+						return (S) propertyAccessor.getBean();
+					});
+				}
 			});
-		}
 	}
 
 	@Override
@@ -182,20 +191,30 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 		}
 
 		final Function<T, Map<String, Object>> binderFunction = entityInformation.getBinderFunction();
-		List<Map<String, Object>> boundedEntityList = StreamSupport.stream(entities.spliterator(), false)
-			.map(binderFunction)
-			.collect(toList());
+		return Flux.fromIterable(entities)
+			.flatMap(eventSupport::maybeCallBeforeBind)
+			.collectList()
+			.flatMapMany(
+				entitiesToBeSaved -> Mono
+					.defer(() -> { // Defer the actual save statement until the previous flux completes
+						List<Map<String, Object>> boundedEntityList = entitiesToBeSaved.stream()
+							.map(binderFunction)
+							.collect(toList());
 
-		return Mono.from(neo4jClient
-			.query(() -> renderer.render(statementBuilder.prepareSaveOfMultipleInstancesOf(entityMetaData)))
-			.bind(boundedEntityList).to(NAME_OF_ENTITY_LIST_PARAM).run())
-			.doOnNext(resultSummary -> {
-				SummaryCounters counters = resultSummary.counters();
-				log.debug(
-					"Created {} and deleted {} nodes, created {} and deleted {} relationships and set {} properties.",
-					counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
-					counters.relationshipsDeleted(), counters.propertiesSet());
-			}).thenMany(Flux.fromIterable(entities));
+						return neo4jClient
+							.query(() -> renderer
+								.render(statementBuilder.prepareSaveOfMultipleInstancesOf(entityMetaData)))
+							.bind(boundedEntityList).to(NAME_OF_ENTITY_LIST_PARAM).run();
+					})
+					.doOnNext(resultSummary -> {
+						SummaryCounters counters = resultSummary.counters();
+						log.debug(
+							"Created {} and deleted {} nodes, created {} and deleted {} relationships and set {} properties.",
+							counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
+							counters.relationshipsDeleted(), counters.propertiesSet());
+					})
+					.thenMany(Flux.fromIterable(entitiesToBeSaved))
+			);
 	}
 
 	@Override
