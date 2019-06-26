@@ -200,6 +200,24 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 		return holder.rollback();
 	}
 
+	@Override
+	protected Mono<Object> doSuspend(TransactionSynchronizationManager synchronizationManager, Object transaction) throws TransactionException {
+
+		return Mono
+			.just(extractNeo4jTransaction(transaction))
+			.doOnNext(r -> r.setResourceHolder(null))
+			.then(Mono.fromSupplier(() -> synchronizationManager.unbindResource(driver)));
+	}
+
+	@Override
+	protected Mono<Void> doResume(TransactionSynchronizationManager synchronizationManager, Object transaction, Object suspendedResources) throws TransactionException {
+
+		return Mono
+			.just(extractNeo4jTransaction(transaction))
+			.doOnNext(r -> r.setResourceHolder((ReactiveNeo4jTransactionHolder) suspendedResources))
+			.then(Mono.fromRunnable(() -> synchronizationManager.bindResource(driver, suspendedResources)));
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.transaction.reactive.AbstractReactiveTransactionManager#doSetRollbackOnly(org.springframework.transaction.reactive.TransactionSynchronizationManager, org.springframework.transaction.reactive.GenericReactiveTransaction)
