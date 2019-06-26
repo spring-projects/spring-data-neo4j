@@ -179,6 +179,9 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 	@Override
 	protected void doResume(@Nullable Object transaction, Object suspendedResources) {
 
+		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
+		transactionObject.setResourceHolder((Neo4jTransactionHolder) suspendedResources);
+
 		TransactionSynchronizationManager.bindResource(driver, suspendedResources);
 	}
 
