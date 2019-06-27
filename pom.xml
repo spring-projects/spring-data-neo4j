@@ -107,7 +107,6 @@
 		<rxjava2.version>2.2.5</rxjava2.version>
 		<slf4j.version>1.7.26</slf4j.version>
 		<springdata-commons.version>2.2.0.RC1</springdata-commons.version>
-		<neo4j-java-driver-spring-boot-starter.version>1.0.0.BUILD-SNAPSHOT</neo4j-java-driver-spring-boot-starter.version>
 		<testcontainers.version>1.10.7</testcontainers.version>
 
 		<skipUnitTests>${skipTests}</skipUnitTests>
@@ -182,11 +181,6 @@
 				<groupId>org.neo4j.driver</groupId>
 				<artifactId>neo4j-java-driver</artifactId>
 				<version>${neo4j-java-driver.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.neo4j.driver</groupId>
-				<artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
-				<version>${neo4j-java-driver-spring-boot-starter.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.neo4j.test</groupId>
