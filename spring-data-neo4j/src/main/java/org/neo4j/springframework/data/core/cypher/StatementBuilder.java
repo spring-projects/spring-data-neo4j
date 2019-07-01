@@ -67,7 +67,7 @@ public interface StatementBuilder {
 	 * An ongoing update statement that can be used to chain more update statements or add a with or return clause.
 	 * @since 1.0
 	 */
-	interface OngoingUpdate extends BuildableStatement, ExposesCreate, ExposesMerge, ExposesReturning, ExposesWith {
+	interface OngoingUpdate extends BuildableStatement, ExposesCreate, ExposesMerge, ExposesDelete, ExposesReturning, ExposesWith {
 	}
 
 	/**
@@ -355,7 +355,7 @@ public interface StatementBuilder {
 	 */
 	interface ExposesDelete {
 
-		default OngoingReadingAndWithWithoutWhere delete(String... variables) {
+		default <T extends OngoingUpdate & BuildableStatement> T delete(String... variables) {
 			return delete(createSymbolicNames(variables));
 		}
 
@@ -365,7 +365,7 @@ public interface StatementBuilder {
 		 * @param expressions The expressions to be deleted.
 		 * @return A match with a delete clause that can be build now
 		 */
-		<T extends OngoingMatchAndUpdate & BuildableStatement> T delete(Expression... expressions);
+		<T extends OngoingUpdate & BuildableStatement> T delete(Expression... expressions);
 
 		default OngoingReadingAndWithWithoutWhere detachDelete(String... variables) {
 			return detachDelete(createSymbolicNames(variables));
@@ -377,7 +377,7 @@ public interface StatementBuilder {
 		 * @param expressions The expressions to be deleted.
 		 * @return A match with a delete clause that can be build now
 		 */
-		<T extends OngoingMatchAndUpdate & BuildableStatement> T detachDelete(Expression... expressions);
+		<T extends OngoingUpdate & BuildableStatement> T detachDelete(Expression... expressions);
 	}
 
 	/**
