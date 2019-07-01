@@ -29,8 +29,8 @@
 		Boot integration.</description>
 
 	<modules>
-		<module>spring-data-neo4j-rx-examples-mapping</module>
-		<module>spring-data-neo4j-rx-examples-spring-boot</module>
+		<module>mapping</module>
+		<module>reactive-web</module>
 	</modules>
 
 	<properties>

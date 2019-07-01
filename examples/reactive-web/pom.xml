@@ -29,7 +29,7 @@
 	</parent>
 
 	<groupId>org.neo4j.springframework.data</groupId>
-	<artifactId>spring-data-neo4j-rx-examples-spring-boot</artifactId>
+	<artifactId>spring-data-neo4j-rx-examples-reactive-web</artifactId>
 	<version>1.0.0.BUILD-SNAPSHOT</version>
 
 	<name>SDN⚡️RX Examples for Spring Boot</name>

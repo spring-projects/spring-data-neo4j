@@ -15,7 +15,7 @@ FROM maven:3.6-jdk-12 AS sdn_rx_build
 COPY --from=maven_base /root/.m2 /root/.m2
 COPY --from=maven_base /tmp/sdn-rx /tmp/sdn-rx
 WORKDIR /tmp/sdn-rx
-RUN mvn -DskipTests clean install -pl '!org.neo4j.springframework.data:spring-data-neo4j-rx-examples-parent,!org.neo4j.springframework.data:spring-data-neo4j-rx-examples-spring-boot,!org.neo4j.springframework.data:spring-data-neo4j-rx-examples-mapping' 
+RUN mvn -DskipTests clean install -pl '!org.neo4j.springframework.data:spring-data-neo4j-rx-examples-parent,!org.neo4j.springframework.data:spring-data-neo4j-rx-examples-reactive-web,!org.neo4j.springframework.data:spring-data-neo4j-rx-examples-mapping' 
 
 # ---
 # Create the actual container for the examples
@@ -36,7 +36,7 @@ ENV SHELL /bin/bash
 
 # Make it possible to use a locally running database.
 RUN yum install iputils -y
-COPY spring-data-neo4j-rx-examples-parent/spring-data-neo4j-rx-examples-spring-boot/.devcontainer/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY examples/reactive-web/.devcontainer/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["mvn"]
