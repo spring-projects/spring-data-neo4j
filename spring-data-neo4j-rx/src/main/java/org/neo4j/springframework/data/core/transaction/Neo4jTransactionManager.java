@@ -20,8 +20,6 @@ package org.neo4j.springframework.data.core.transaction;
 
 import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUtils.*;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -50,7 +48,6 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-@Slf4j
 @API(status = API.Status.STABLE, since = "1.0")
 public class Neo4jTransactionManager extends AbstractPlatformTransactionManager {
 
