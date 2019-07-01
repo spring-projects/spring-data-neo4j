@@ -125,7 +125,7 @@ public interface StatementBuilder {
 	 * where part has been used or note.
 	 * @since 1.0
 	 */
-	interface OngoingReading extends ExposesReturning, ExposesWith, ExposesUpdatingClause, ExposesUnwind {
+	interface OngoingReading extends ExposesReturning, ExposesWith, ExposesUpdatingClause, ExposesUnwind, ExposesCreate {
 	}
 
 	/**

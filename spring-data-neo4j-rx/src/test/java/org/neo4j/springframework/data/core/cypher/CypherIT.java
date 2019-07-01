@@ -1694,6 +1694,21 @@ class CypherIT {
 		}
 
 		@Test
+		void shouldRenderLeadingUnwindWithCreate() {
+
+			Statement statement;
+			statement = Cypher.unwind(Cypher.literalOf(1), Cypher.literalTrue(), Cypher.literalFalse())
+				.as("n")
+				.create(bikeNode.properties("b", name("n")))
+				.returning(bikeNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"UNWIND [1, true, false] AS n CREATE (b:`Bike` {b: n}) RETURN b");
+		}
+
+		@Test
 		void shouldRenderUnwind() {
 
 			Statement statement;
