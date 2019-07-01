@@ -26,9 +26,11 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
+import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingMatchAndUpdate;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReading;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingWithWhere;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingWithoutWhere;
+import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingUpdate;
 import org.neo4j.springframework.data.core.cypher.support.Visitable;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -41,9 +43,9 @@ import org.springframework.util.Assert;
 class DefaultStatementBuilder
 	implements StatementBuilder,
 	OngoingReading,
-	StatementBuilder.OngoingUpdate,
+	OngoingUpdate,
 	OngoingReadingWithWhere,
-	OngoingReadingWithoutWhere {
+	OngoingReadingWithoutWhere, OngoingMatchAndUpdate {
 
 	/**
 	 * Current list of reading or update clauses to be generated.
@@ -107,24 +109,28 @@ class DefaultStatementBuilder
 		return new DefaultUnwindBuilder(expression);
 	}
 
-	private OngoingUpdate update(UpdateType updateType, PatternElement... pattern) {
+	private <T extends OngoingUpdate & OngoingMatchAndUpdate> T update(UpdateType updateType, Object[] pattern) {
 
 		Assert.notNull(pattern, "Patterns to create are required.");
 		Assert.notEmpty(pattern, "At least one pattern to create is required.");
-		Assert.isTrue(MERGE_OR_CREATE.contains(updateType),
-			"Only CREATE and MERGE clauses can be used without a preceding reading clause.");
 
 		if (this.currentOngoingMatch != null) {
 			this.currentSinglePartElements.add(this.currentOngoingMatch.buildMatch());
 		}
+
 		this.currentOngoingMatch = null;
 
 		if (this.currentOngoingUpdate != null) {
 			this.currentSinglePartElements.add(this.currentOngoingUpdate.buildUpdatingClause());
 		}
 
-		this.currentOngoingUpdate = new DefaultStatementWithUpdateBuilder(updateType, pattern);
-		return this;
+		if (pattern.getClass().getComponentType() == PatternElement.class) {
+			this.currentOngoingUpdate = new DefaultStatementWithUpdateBuilder(updateType, (PatternElement[]) pattern);
+		} else if (pattern.getClass().getComponentType() == Expression.class) {
+			this.currentOngoingUpdate = new DefaultStatementWithUpdateBuilder(updateType, (Expression[]) pattern);
+		}
+
+		return (T) this;
 	}
 
 	@Override
@@ -170,15 +176,15 @@ class DefaultStatementBuilder
 	}
 
 	@Override
-	public OngoingMatchAndUpdate delete(Expression... expressions) {
+	public OngoingUpdate delete(Expression... expressions) {
 
-		return new DefaultStatementWithUpdateBuilder(DELETE, expressions);
+		return update(DELETE, expressions);
 	}
 
 	@Override
-	public OngoingMatchAndUpdate detachDelete(Expression... expressions) {
+	public OngoingUpdate detachDelete(Expression... expressions) {
 
-		return new DefaultStatementWithUpdateBuilder(DETACH_DELETE, expressions);
+		return update(DETACH_DELETE, expressions);
 	}
 
 	@Override
@@ -436,7 +442,7 @@ class DefaultStatementBuilder
 		}
 
 		@Override
-		public OngoingMatchAndUpdate delete(Expression... expressions) {
+		public OngoingUpdate delete(Expression... expressions) {
 
 			return DefaultStatementBuilder.this
 				.addWith(buildWith())
@@ -444,9 +450,9 @@ class DefaultStatementBuilder
 		}
 
 		@Override
-		public OngoingMatchAndUpdate detachDelete(Expression... expressions) {
-			return DefaultStatementBuilder.this
+		public OngoingUpdate detachDelete(Expression... expressions) {
 
+			return DefaultStatementBuilder.this
 				.addWith(buildWith())
 				.detachDelete(expressions);
 		}
@@ -654,12 +660,12 @@ class DefaultStatementBuilder
 		}
 
 		@Override
-		public OngoingMatchAndUpdate delete(Expression... deletedExpressions) {
+		public OngoingUpdate delete(Expression... deletedExpressions) {
 			return delete(false, deletedExpressions);
 		}
 
 		@Override
-		public OngoingMatchAndUpdate detachDelete(Expression... deletedExpressions) {
+		public OngoingUpdate detachDelete(Expression... deletedExpressions) {
 			return delete(true, deletedExpressions);
 		}
 
@@ -668,10 +674,9 @@ class DefaultStatementBuilder
 			throw new UnsupportedOperationException("Not supported yet");
 		}
 
-		private OngoingMatchAndUpdate delete(boolean nextDetach, Expression... deletedExpressions) {
+		private OngoingUpdate delete(boolean nextDetach, Expression... deletedExpressions) {
 			DefaultStatementBuilder.this.addUpdatingClause(buildUpdatingClause());
-			return DefaultStatementBuilder.this.new DefaultStatementWithUpdateBuilder(
-				nextDetach ? DETACH_DELETE : DELETE, deletedExpressions);
+			return DefaultStatementBuilder.this.update(nextDetach ? DETACH_DELETE : DELETE, deletedExpressions);
 		}
 
 		@Override

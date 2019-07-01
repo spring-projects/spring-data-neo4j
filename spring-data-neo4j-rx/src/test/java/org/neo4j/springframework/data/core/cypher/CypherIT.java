@@ -474,6 +474,20 @@ class CypherIT {
 		}
 
 		@Test
+		void usingSameWithStepWithoutReassignThenUpdate() {
+			StatementBuilder.OngoingReadingAndWith firstStep = match(bikeNode).with(bikeNode);
+
+			firstStep.optionalMatch(userNode);
+			firstStep.optionalMatch(Cypher.node("Trip"));
+			firstStep.delete("u");
+
+			Statement statement = firstStep.returning(Cypher.asterisk()).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (b:`Bike`) WITH b OPTIONAL MATCH (u:`User`) OPTIONAL MATCH (:`Trip`) DELETE u RETURN *");
+		}
+
+		@Test
 		void usingSameWithStepWithReassign() {
 			StatementBuilder.ExposesMatch firstStep = match(bikeNode).with(bikeNode);
 
@@ -496,6 +510,18 @@ class CypherIT {
 
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo("MATCH (b:`Bike`) OPTIONAL MATCH (u:`User`), (o:`U`) WHERE u.a IS NULL RETURN b");
+		}
+
+		@Test
+		void optionalMatchThenDelete() {
+			Statement statement = Cypher
+				.match(bikeNode)
+				.optionalMatch(userNode, Cypher.node("U").named("o"))
+				.delete(userNode, bikeNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (b:`Bike`) OPTIONAL MATCH (u:`User`), (o:`U`) DELETE u, b");
 		}
 	}
 
