@@ -20,9 +20,6 @@ package org.neo4j.springframework.data.core.mapping;
 
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -30,15 +27,17 @@ import java.util.function.Function;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 
 /**
- * @param <T> type that should get mapped by the binder function
  * @author Michael J. Simons
+ * @param <T> type that should get mapped by the binder function
  * @since 1.0
  */
-@RequiredArgsConstructor
-@Slf4j
 final class DefaultNeo4jBinderFunction<T> implements Function<T, Map<String, Object>> {
 
 	private final Neo4jPersistentEntity<T> nodeDescription;
+
+	DefaultNeo4jBinderFunction(Neo4jPersistentEntity<T> nodeDescription) {
+		this.nodeDescription = nodeDescription;
+	}
 
 	@Override
 	public Map<String, Object> apply(T entity) {

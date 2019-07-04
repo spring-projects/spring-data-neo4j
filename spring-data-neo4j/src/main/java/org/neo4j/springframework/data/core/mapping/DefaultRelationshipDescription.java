@@ -18,10 +18,7 @@
  */
 package org.neo4j.springframework.data.core.mapping;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import java.util.Objects;
 
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 
@@ -29,10 +26,6 @@ import org.neo4j.springframework.data.core.schema.RelationshipDescription;
  * @author Michael J. Simons
  * @since 1.0
  */
-@RequiredArgsConstructor
-@Getter
-@ToString
-@EqualsAndHashCode(of = { "type", "target" })
 class DefaultRelationshipDescription implements RelationshipDescription {
 
 	private final String type;
@@ -44,4 +37,49 @@ class DefaultRelationshipDescription implements RelationshipDescription {
 	 * from the map key.
 	 */
 	private final boolean dynamic;
+
+	DefaultRelationshipDescription(String type, String target, boolean dynamic) {
+		this.type = type;
+		this.target = target;
+		this.dynamic = dynamic;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public String getTarget() {
+		return target;
+	}
+
+	public boolean isDynamic() {
+		return dynamic;
+	}
+
+	@Override
+	public String toString() {
+		return "DefaultRelationshipDescription{" +
+			"type='" + type + '\'' +
+			", target='" + target + '\'' +
+			", dynamic=" + dynamic +
+			'}';
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof DefaultRelationshipDescription)) {
+			return false;
+		}
+		DefaultRelationshipDescription that = (DefaultRelationshipDescription) o;
+		return type.equals(that.type) &&
+			target.equals(that.target);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(type, target);
+	}
 }

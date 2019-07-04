@@ -18,8 +18,6 @@
  */
 package org.neo4j.springframework.data.repository.query;
 
-import lombok.RequiredArgsConstructor;
-
 import java.lang.reflect.Method;
 
 import org.apiguardian.api.API;
@@ -40,12 +38,19 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-@RequiredArgsConstructor
 public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 
 	private final Neo4jClient neo4jClient;
 	private final Neo4jMappingContext mappingContext;
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
+
+	public Neo4jQueryLookupStrategy(Neo4jClient neo4jClient,
+		Neo4jMappingContext mappingContext,
+		QueryMethodEvaluationContextProvider evaluationContextProvider) {
+		this.neo4jClient = neo4jClient;
+		this.mappingContext = mappingContext;
+		this.evaluationContextProvider = evaluationContextProvider;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.projection.ProjectionFactory, org.springframework.data.repository.core.NamedQueries)

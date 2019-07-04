@@ -21,10 +21,6 @@ package org.neo4j.springframework.data.core;
 import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUtils.*;
 import static org.neo4j.springframework.data.core.transaction.ReactiveNeo4jTransactionManager.*;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -41,11 +37,11 @@ import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxStatementRunner;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
-import org.reactivestreams.Publisher;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.neo4j.springframework.data.core.Neo4jClient.MappingSpec;
 import org.neo4j.springframework.data.core.Neo4jClient.OngoingBindSpec;
 import org.neo4j.springframework.data.core.Neo4jClient.RecordFetchSpec;
+import org.reactivestreams.Publisher;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -57,7 +53,6 @@ import org.springframework.util.Assert;
  * @soundtrack Die Toten Hosen - Im Auftrag des Herrn
  * @since 1.0
  */
-@Slf4j
 class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 	private final Driver driver;
@@ -129,7 +124,6 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		return new DefaultReactiveExecutableQuery<>(fetchSpec);
 	}
 
-	@RequiredArgsConstructor
 	class DefaultReactiveRunnableSpec implements ReactiveRunnableSpec {
 
 		private final Supplier<String> cypherSupplier;
@@ -138,17 +132,24 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		private final NamedParameters parameters = new NamedParameters();
 
+		DefaultReactiveRunnableSpec(Supplier<String> cypherSupplier) {
+			this.cypherSupplier = cypherSupplier;
+		}
+
 		@Override
 		public ReactiveRunnableSpecTightToDatabase in(@SuppressWarnings("HiddenField") String targetDatabase) {
 			this.targetDatabase = targetDatabase;
 			return this;
 		}
 
-		@RequiredArgsConstructor
 		class DefaultOngoingBindSpec<T> implements OngoingBindSpec<T, ReactiveRunnableSpecTightToDatabase> {
 
 			@Nullable
 			private final T value;
+
+			DefaultOngoingBindSpec(@Nullable T value) {
+				this.value = value;
+			}
 
 			@Override
 			public ReactiveRunnableSpecTightToDatabase to(String name) {
@@ -201,8 +202,6 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		}
 	}
 
-	@AllArgsConstructor
-	@RequiredArgsConstructor
 	class DefaultReactiveRecordFetchSpec<T>
 		implements RecordFetchSpec<Mono<T>, Flux<T>, T>, MappingSpec<Mono<T>, Flux<T>, T> {
 
@@ -213,6 +212,20 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		private final NamedParameters parameters;
 
 		private BiFunction<TypeSystem, Record, T> mappingFunction;
+
+		DefaultReactiveRecordFetchSpec(String targetDatabase, Supplier<String> cypherSupplier,
+			NamedParameters parameters) {
+			this(targetDatabase, cypherSupplier, parameters, null);
+		}
+
+		DefaultReactiveRecordFetchSpec(
+			String targetDatabase, Supplier<String> cypherSupplier, NamedParameters parameters,
+			@Nullable BiFunction<TypeSystem, Record, T> mappingFunction) {
+			this.targetDatabase = targetDatabase;
+			this.cypherSupplier = cypherSupplier;
+			this.parameters = parameters;
+			this.mappingFunction = mappingFunction;
+		}
 
 		@Override
 		public RecordFetchSpec<Mono<T>, Flux<T>, T> mappedBy(BiFunction<TypeSystem, Record, T> mappingFunction) {
@@ -271,13 +284,21 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		}
 	}
 
-	@AllArgsConstructor
-	@RequiredArgsConstructor
 	class DefaultReactiveRunnableDelegation<T> implements ReactiveRunnableDelegation<T>, OngoingReactiveDelegation<T> {
 
 		private final Function<RxStatementRunner, Mono<T>> callback;
 
 		private String targetDatabase;
+
+		DefaultReactiveRunnableDelegation(Function<RxStatementRunner, Mono<T>> callback) {
+			this(callback, null);
+		}
+
+		DefaultReactiveRunnableDelegation(Function<RxStatementRunner, Mono<T>> callback,
+			@Nullable String targetDatabase) {
+			this.callback = callback;
+			this.targetDatabase = targetDatabase;
+		}
 
 		@Override
 		public ReactiveRunnableDelegation in(@SuppressWarnings("HiddenField") String targetDatabase) {
@@ -296,10 +317,13 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		}
 	}
 
-	@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 	final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {
 
 		private final Neo4jClient.RecordFetchSpec<Mono<T>, Flux<T>, T> fetchSpec;
+
+		DefaultReactiveExecutableQuery(RecordFetchSpec<Mono<T>, Flux<T>, T> fetchSpec) {
+			this.fetchSpec = fetchSpec;
+		}
 
 		/**
 		 * @return All results returned by this query.

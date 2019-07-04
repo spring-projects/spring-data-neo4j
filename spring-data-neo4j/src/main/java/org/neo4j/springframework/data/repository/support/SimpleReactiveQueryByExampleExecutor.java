@@ -18,12 +18,9 @@
  */
 package org.neo4j.springframework.data.repository.support;
 
-import static lombok.AccessLevel.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -32,8 +29,6 @@ import java.util.function.BiFunction;
 
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Sort;
 import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient.ExecutableQuery;
@@ -41,6 +36,10 @@ import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
 
 /**
@@ -51,9 +50,10 @@ import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
  * @param <T> type of the domain class
  * @since 1.0
  */
-@Slf4j
-@RequiredArgsConstructor(access = PACKAGE)
 class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleExecutor<T> {
+
+	private static final Logger log = LoggerFactory
+		.getLogger(SimpleReactiveQueryByExampleExecutor.class);
 
 	private static final Renderer renderer = Renderer.getDefaultRenderer();
 
@@ -62,6 +62,13 @@ class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleE
 	private final Neo4jMappingContext mappingContext;
 
 	private final SchemaBasedStatementBuilder statementBuilder;
+
+	SimpleReactiveQueryByExampleExecutor(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext mappingContext,
+		SchemaBasedStatementBuilder statementBuilder) {
+		this.neo4jClient = neo4jClient;
+		this.mappingContext = mappingContext;
+		this.statementBuilder = statementBuilder;
+	}
 
 	@Override
 	public <S extends T> Mono<S> findOne(Example<S> example) {

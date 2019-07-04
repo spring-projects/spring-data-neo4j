@@ -18,15 +18,11 @@
  */
 package org.neo4j.springframework.data.repository.query;
 
-import static lombok.AccessLevel.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.cypher.Functions.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 import static org.neo4j.springframework.data.repository.query.PartTreeNeo4jQuery.*;
-
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -37,11 +33,6 @@ import java.util.Queue;
 import java.util.stream.Stream;
 
 import org.neo4j.driver.types.Point;
-import org.springframework.data.domain.Range;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.geo.Circle;
-import org.springframework.data.geo.Distance;
-import org.springframework.data.mapping.PersistentPropertyPath;
 import org.neo4j.springframework.data.core.cypher.Condition;
 import org.neo4j.springframework.data.core.cypher.Conditions;
 import org.neo4j.springframework.data.core.cypher.Cypher;
@@ -55,6 +46,11 @@ import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.repository.query.Neo4jQueryMethod.Neo4jParameter;
 import org.neo4j.springframework.data.repository.query.Neo4jQueryMethod.Neo4jParameters;
+import org.springframework.data.domain.Range;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
@@ -396,16 +392,27 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		}
 	}
 
-	@RequiredArgsConstructor(access = PACKAGE)
-	@ToString
 	static class Parameter {
 
 		final String nameOrIndex;
 
 		final Object value;
 
+		Parameter(String nameOrIndex, Object value) {
+			this.nameOrIndex = nameOrIndex;
+			this.value = value;
+		}
+
 		boolean hasValueOfType(Class<?> type) {
 			return type.isInstance(value);
+		}
+
+		@Override
+		public String toString() {
+			return "Parameter{" +
+				"nameOrIndex='" + nameOrIndex + '\'' +
+				", value=" + value +
+				'}';
 		}
 	}
 }

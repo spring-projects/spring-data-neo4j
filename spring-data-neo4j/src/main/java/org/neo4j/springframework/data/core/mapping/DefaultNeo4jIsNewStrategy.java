@@ -18,13 +18,11 @@
  */
 package org.neo4j.springframework.data.core.mapping;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.function.Function;
 
 import org.neo4j.springframework.data.core.schema.Id;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -48,9 +46,9 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@Slf4j
 class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
+
+	private static final Logger log = LoggerFactory.getLogger(DefaultNeo4jIsNewStrategy.class);
 
 	static IsNewStrategy basedOn(Neo4jPersistentEntity<?> entityMetaData) {
 
@@ -88,6 +86,12 @@ class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 	private final Class<?> valueType;
 
 	private @Nullable final Function<Object, Object> valueLookup;
+
+	private DefaultNeo4jIsNewStrategy(Id.Strategy strategy, Class<?> valueType, Function<Object, Object> valueLookup) {
+		this.strategy = strategy;
+		this.valueType = valueType;
+		this.valueLookup = valueLookup;
+	}
 
 	/*
 	 * (non-Javadoc)

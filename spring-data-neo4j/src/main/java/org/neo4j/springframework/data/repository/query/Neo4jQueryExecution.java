@@ -18,8 +18,6 @@
  */
 package org.neo4j.springframework.data.repository.query;
 
-import lombok.RequiredArgsConstructor;
-
 import org.neo4j.springframework.data.core.Neo4jClient;
 import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
@@ -38,10 +36,13 @@ interface Neo4jQueryExecution {
 
 	Object execute(PreparedQuery description, boolean asCollectionQuery);
 
-	@RequiredArgsConstructor
 	class DefaultQueryExecution implements Neo4jQueryExecution {
 
 		private final Neo4jClient neo4jClient;
+
+		DefaultQueryExecution(Neo4jClient neo4jClient) {
+			this.neo4jClient = neo4jClient;
+		}
 
 		@Override
 		public Object execute(PreparedQuery preparedQuery, boolean asCollectionQuery) {
@@ -55,10 +56,13 @@ interface Neo4jQueryExecution {
 		}
 	}
 
-	@RequiredArgsConstructor
 	class ReactiveQueryExecution implements Neo4jQueryExecution {
 
 		private final ReactiveNeo4jClient neo4jClient;
+
+		ReactiveQueryExecution(ReactiveNeo4jClient neo4jClient) {
+			this.neo4jClient = neo4jClient;
+		}
 
 		@Override
 		public Object execute(PreparedQuery preparedQuery, boolean asCollectionQuery) {

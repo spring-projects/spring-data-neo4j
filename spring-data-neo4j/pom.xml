@@ -147,6 +147,14 @@
 			<artifactId>neo4j</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- Reduce scope of Lombok to test (it is defined by Spring Data Parent) -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${lombok}</version>
+			<optional>true</optional>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>

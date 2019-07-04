@@ -18,8 +18,6 @@
  */
 package org.neo4j.springframework.data.repository.query;
 
-import lombok.RequiredArgsConstructor;
-
 import java.lang.reflect.Method;
 
 import org.apiguardian.api.API;
@@ -36,15 +34,23 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * Lookup strategy for queries. This is the internal api of the {@code query package}.
  *
  * @author Gerrit Meier
+ * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-@RequiredArgsConstructor
 public final class ReactiveNeo4jQueryLookupStrategy implements QueryLookupStrategy {
 
 	private final ReactiveNeo4jClient neo4jClient;
 	private final Neo4jMappingContext mappingContext;
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
+
+	public ReactiveNeo4jQueryLookupStrategy(ReactiveNeo4jClient neo4jClient,
+		Neo4jMappingContext mappingContext,
+		QueryMethodEvaluationContextProvider evaluationContextProvider) {
+		this.neo4jClient = neo4jClient;
+		this.mappingContext = mappingContext;
+		this.evaluationContextProvider = evaluationContextProvider;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.projection.ProjectionFactory, org.springframework.data.repository.core.NamedQueries)
