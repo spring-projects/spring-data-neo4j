@@ -24,8 +24,6 @@ import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +43,8 @@ import org.neo4j.springframework.data.core.cypher.StatementBuilder;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingAndReturn;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -63,8 +63,9 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Repository
 @Transactional(readOnly = true)
-@Slf4j
 class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> {
+
+	private static final Logger log = LoggerFactory.getLogger(SimpleNeo4jRepository.class);
 
 	private static final Renderer renderer = Renderer.getDefaultRenderer();
 

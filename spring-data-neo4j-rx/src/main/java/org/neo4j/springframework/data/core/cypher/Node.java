@@ -20,8 +20,6 @@ package org.neo4j.springframework.data.core.cypher;
 
 import static java.util.stream.Collectors.*;
 
-import lombok.ToString;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,7 +39,6 @@ import org.springframework.util.Assert;
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-@ToString(of = { "symbolicName", "labels" })
 public final class Node implements PatternElement, Named, Expression, ExposesRelationships<Relationship> {
 
 	static Node create(String primaryLabel, String... additionalLabels) {
@@ -178,5 +175,13 @@ public final class Node implements PatternElement, Named, Expression, ExposesRel
 		this.labels.forEach(label -> label.accept(visitor));
 		Visitable.visitIfNotNull(this.properties, visitor);
 		visitor.leave(this);
+	}
+
+	@Override
+	public String toString() {
+		return "Node{" +
+			"symbolicName=" + symbolicName +
+			", labels=" + labels +
+			'}';
 	}
 }

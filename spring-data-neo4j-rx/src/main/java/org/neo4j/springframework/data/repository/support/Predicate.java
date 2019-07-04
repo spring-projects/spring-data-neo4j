@@ -18,13 +18,9 @@
  */
 package org.neo4j.springframework.data.repository.support;
 
-import static lombok.AccessLevel.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -33,8 +29,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
 import org.neo4j.springframework.data.core.cypher.Condition;
 import org.neo4j.springframework.data.core.cypher.Conditions;
 import org.neo4j.springframework.data.core.cypher.Cypher;
@@ -45,6 +39,10 @@ import org.neo4j.springframework.data.core.cypher.SymbolicName;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.support.ExampleMatcherAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 
@@ -57,9 +55,9 @@ import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
  * @author Michael J. Simons
  * @since 1.0
  */
-@Slf4j
-@RequiredArgsConstructor(access = PRIVATE)
 final class Predicate {
+
+	private static final Logger log = LoggerFactory.getLogger(Predicate.class);
 
 	static <S> Predicate create(Neo4jMappingContext mappingContext, Example<S> example) {
 
@@ -150,6 +148,10 @@ final class Predicate {
 	private Condition condition = Conditions.noCondition();
 
 	private final Map<String, Object> parameters = new HashMap<>();
+
+	private Predicate(NodeDescription<?> nodeDescription) {
+		this.nodeDescription = nodeDescription;
+	}
 
 	StatementBuilder.OngoingReadingAndWith useWithReadingFragment(
 		BiFunction<NodeDescription<?>, Optional<Condition>, StatementBuilder.OngoingReadingAndWith> readingFragmentSupplier) {

@@ -24,7 +24,6 @@ import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 
-import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -45,6 +44,8 @@ import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
@@ -61,8 +62,9 @@ import org.springframework.util.Assert;
  */
 @Repository
 @Transactional(readOnly = true)
-@Slf4j
 class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<T, ID> {
+
+	private static final Logger log = LoggerFactory.getLogger(SimpleReactiveNeo4jRepository.class);
 
 	private static final Renderer renderer = Renderer.getDefaultRenderer();
 

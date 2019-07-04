@@ -20,9 +20,6 @@ package org.neo4j.springframework.data.core.mapping;
 
 import static java.util.stream.Collectors.*;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -33,12 +30,14 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.TypeSystem;
+import org.neo4j.springframework.data.core.schema.NodeDescription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.convert.EntityInstantiators;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.model.ParameterValueProvider;
-import org.neo4j.springframework.data.core.schema.NodeDescription;
 
 /**
  * The central logic of mapping Neo4j's {@link org.neo4j.driver.Record records} to entities based on the Spring
@@ -49,13 +48,18 @@ import org.neo4j.springframework.data.core.schema.NodeDescription;
  * @author Michael J. Simons
  * @since 1.0
  */
-@RequiredArgsConstructor
-@Slf4j
 final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Record, T> {
+
+	private static final Logger log = LoggerFactory.getLogger(DefaultNeo4jMappingFunction.class);
 
 	private final EntityInstantiators instantiators;
 
 	private final Neo4jPersistentEntity<T> nodeDescription;
+
+	DefaultNeo4jMappingFunction(EntityInstantiators instantiators, Neo4jPersistentEntity<T> nodeDescription) {
+		this.instantiators = instantiators;
+		this.nodeDescription = nodeDescription;
+	}
 
 	@Override
 	public T apply(TypeSystem typeSystem, Record record) {

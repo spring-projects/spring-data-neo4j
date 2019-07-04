@@ -18,8 +18,6 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
-import lombok.ToString;
-
 import org.apiguardian.api.API;
 
 /**
@@ -32,7 +30,6 @@ import org.apiguardian.api.API;
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-@ToString(of = { "name" })
 public final class SymbolicName implements Expression {
 
 	private final String name;
@@ -43,5 +40,12 @@ public final class SymbolicName implements Expression {
 
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public String toString() {
+		return "SymbolicName{" +
+			"name='" + name + '\'' +
+			'}';
 	}
 }

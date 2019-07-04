@@ -18,8 +18,6 @@
  */
 package org.neo4j.springframework.data.core.cypher.support;
 
-import lombok.EqualsAndHashCode;
-
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
@@ -28,6 +26,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -137,7 +136,6 @@ public abstract class ReflectiveVisitor implements Visitor {
 		return Optional.empty();
 	}
 
-	@EqualsAndHashCode
 	private static class TargetAndPhase {
 		private final Class<? extends ReflectiveVisitor> visitorClass;
 
@@ -156,6 +154,24 @@ public abstract class ReflectiveVisitor implements Visitor {
 				this.classHierarchyOfVisitable.add(classOfVisitable);
 				classOfVisitable = classOfVisitable.getSuperclass();
 			} while (classOfVisitable != null);
+		}
+
+		@Override public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof TargetAndPhase)) {
+				return false;
+			}
+			TargetAndPhase that = (TargetAndPhase) o;
+			return visitorClass.equals(that.visitorClass) &&
+				classHierarchyOfVisitable.equals(that.classHierarchyOfVisitable) &&
+				phase == that.phase;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(visitorClass, classHierarchyOfVisitable, phase);
 		}
 	}
 }

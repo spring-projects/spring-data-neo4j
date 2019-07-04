@@ -22,10 +22,6 @@ import static java.util.stream.Collectors.*;
 import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager.*;
 import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUtils.*;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationHandler;
@@ -48,8 +44,8 @@ import org.neo4j.driver.StatementRunner;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.neo4j.springframework.data.repository.NoResultException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -206,11 +202,14 @@ class DefaultNeo4jClient implements Neo4jClient {
 			return this;
 		}
 
-		@RequiredArgsConstructor
 		class DefaultOngoingBindSpec<T> implements OngoingBindSpec<T, RunnableSpecTightToDatabase> {
 
 			@Nullable
 			private final T value;
+
+			DefaultOngoingBindSpec(@Nullable T value) {
+				this.value = value;
+			}
 
 			@Override
 			public RunnableSpecTightToDatabase to(String name) {
@@ -326,13 +325,20 @@ class DefaultNeo4jClient implements Neo4jClient {
 		}
 	}
 
-	@AllArgsConstructor
-	@RequiredArgsConstructor
 	class DefaultRunnableDelegation<T> implements RunnableDelegation<T>, OngoingDelegation<T> {
 
 		private final Function<StatementRunner, Optional<T>> callback;
 
 		private String targetDatabase;
+
+		DefaultRunnableDelegation(Function<StatementRunner, Optional<T>> callback) {
+			this(callback, null);
+		}
+
+		DefaultRunnableDelegation(Function<StatementRunner, Optional<T>> callback, @Nullable String targetDatabase) {
+			this.callback = callback;
+			this.targetDatabase = targetDatabase;
+		}
 
 		@Override
 		public RunnableDelegation in(@SuppressWarnings("HiddenField") String targetDatabase) {
@@ -348,11 +354,16 @@ class DefaultNeo4jClient implements Neo4jClient {
 		}
 	}
 
-	@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 	final class DefaultExecutableQuery<T> implements ExecutableQuery<T> {
 
 		private final PreparedQuery<T> preparedQuery;
 		private final Neo4jClient.RecordFetchSpec<Optional<T>, Collection<T>, T> fetchSpec;
+
+		DefaultExecutableQuery(PreparedQuery<T> preparedQuery,
+			RecordFetchSpec<Optional<T>, Collection<T>, T> fetchSpec) {
+			this.preparedQuery = preparedQuery;
+			this.fetchSpec = fetchSpec;
+		}
 
 		public List<T> getResults() {
 			return fetchSpec.all().stream().collect(toList());
@@ -373,5 +384,4 @@ class DefaultNeo4jClient implements Neo4jClient {
 				.orElseThrow(() -> new NoResultException(1, preparedQuery.getCypherQuery()));
 		}
 	}
-
 }

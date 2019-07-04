@@ -20,8 +20,6 @@ package org.neo4j.springframework.data.repository.query;
 
 import static java.util.stream.Collectors.*;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetTime;
@@ -36,9 +34,9 @@ import java.util.Set;
 
 import org.neo4j.driver.types.Point;
 import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.repository.query.Neo4jQueryMethod.Neo4jParameters;
-import org.neo4j.springframework.data.core.PreparedQuery;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -55,7 +53,6 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-@Slf4j
 final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 
 	/**

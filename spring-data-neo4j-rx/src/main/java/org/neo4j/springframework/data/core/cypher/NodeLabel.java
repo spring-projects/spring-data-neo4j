@@ -18,8 +18,6 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
-import lombok.ToString;
-
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.support.Visitable;
 
@@ -31,7 +29,6 @@ import org.neo4j.springframework.data.core.cypher.support.Visitable;
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-@ToString(of = { "value" })
 public final class NodeLabel implements Visitable {
 
 	private final String value;
@@ -42,5 +39,12 @@ public final class NodeLabel implements Visitable {
 
 	public String getValue() {
 		return value;
+	}
+
+	@Override
+	public String toString() {
+		return "NodeLabel{" +
+			"value='" + value + '\'' +
+			'}';
 	}
 }

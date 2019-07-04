@@ -18,8 +18,6 @@
  */
 package org.neo4j.springframework.data.core;
 
-import lombok.RequiredArgsConstructor;
-
 import java.util.function.BiFunction;
 
 import org.neo4j.driver.Record;
@@ -34,10 +32,13 @@ import org.neo4j.springframework.data.core.schema.Neo4jSimpleTypes;
  * @param <T> type of the domain class to map
  * @since 1.0
  */
-@RequiredArgsConstructor
 final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Record, T> {
 
 	private final Class<T> targetClass;
+
+	SingleValueMappingFunction(Class<T> targetClass) {
+		this.targetClass = targetClass;
+	}
 
 	@Override
 	public T apply(TypeSystem typeSystem, Record record) {
