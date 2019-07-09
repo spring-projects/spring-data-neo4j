@@ -24,7 +24,6 @@ import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionMa
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 import javax.transaction.Status;
 import javax.transaction.UserTransaction;
@@ -41,6 +40,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.StatementResult;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.internal.SessionConfig;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.Neo4jClient;
 import org.springframework.transaction.TransactionStatus;
@@ -85,7 +85,7 @@ class Neo4jTransactionManagerTest {
 	void triggerCommitCorrectly() {
 
 		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
-		when(driver.session(any(Consumer.class))).thenReturn(session);
+		when(driver.session(any(SessionConfig.class))).thenReturn(session);
 		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(session.isOpen()).thenReturn(true);
@@ -99,7 +99,7 @@ class Neo4jTransactionManagerTest {
 
 		txManager.commit(txStatus);
 
-		verify(driver).session(any(Consumer.class));
+		verify(driver).session(any(SessionConfig.class));
 
 		verify(session).isOpen();
 		verify(session).beginTransaction(any(TransactionConfig.class));
@@ -120,7 +120,7 @@ class Neo4jTransactionManagerTest {
 			AtomicBoolean sessionIsOpen = new AtomicBoolean(true);
 			AtomicBoolean transactionIsOpen = new AtomicBoolean(true);
 
-			when(driver.session(any(Consumer.class))).thenReturn(session);
+			when(driver.session(any(SessionConfig.class))).thenReturn(session);
 
 			when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
 			doAnswer(invocation -> {
@@ -172,7 +172,7 @@ class Neo4jTransactionManagerTest {
 					}
 				});
 
-				verify(driver).session(any(Consumer.class));
+				verify(driver).session(any(SessionConfig.class));
 
 				verify(session).isOpen();
 				verify(session).beginTransaction(any(TransactionConfig.class));
@@ -214,7 +214,7 @@ class Neo4jTransactionManagerTest {
 					}
 				});
 
-				verify(driver).session(any(Consumer.class));
+				verify(driver).session(any(SessionConfig.class));
 
 				verify(session).isOpen();
 				verify(session).beginTransaction(any(TransactionConfig.class));
@@ -257,7 +257,7 @@ class Neo4jTransactionManagerTest {
 
 				verify(userTransaction).begin();
 
-				verify(driver).session(any(Consumer.class));
+				verify(driver).session(any(SessionConfig.class));
 
 				verify(session, times(2)).isOpen();
 				verify(session).beginTransaction(any(TransactionConfig.class));
@@ -298,7 +298,7 @@ class Neo4jTransactionManagerTest {
 				verify(userTransaction).begin();
 				verify(userTransaction).rollback();
 
-				verify(driver).session(any(Consumer.class));
+				verify(driver).session(any(SessionConfig.class));
 
 				verify(session, times(2)).isOpen();
 				verify(session).beginTransaction(any(TransactionConfig.class));

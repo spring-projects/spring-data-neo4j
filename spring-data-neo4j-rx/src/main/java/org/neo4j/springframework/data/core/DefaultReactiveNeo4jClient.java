@@ -69,7 +69,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		return retrieveReactiveTransaction(driver, targetDatabase)
 			.map(rxTransaction -> new RxStatementRunnerHolder(rxTransaction, Mono.empty(), Mono.empty())) //
 			.switchIfEmpty(
-				Mono.using(() -> driver.rxSession(defaultSessionParameters(targetDatabase)),
+				Mono.using(() -> driver.rxSession(defaultSessionConfig(targetDatabase)),
 					session -> Mono.from(session.beginTransaction())
 						.map(tx -> new RxStatementRunnerHolder(tx, tx.commit(), tx.rollback())), RxSession::close)
 			);

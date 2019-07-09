@@ -41,7 +41,7 @@
 	</modules>
 
 	<properties>
-		<neo4j-java-driver-spring-boot-starter.version>1.0.0-alpha02</neo4j-java-driver-spring-boot-starter.version>
+		<neo4j-java-driver-spring-boot-starter.version>1.0.0-alpha03</neo4j-java-driver-spring-boot-starter.version>
 		<spring-data-neo4j-rx.version>1.0.0.BUILD-SNAPSHOT</spring-data-neo4j-rx.version>
 		<testcontainers.version>1.10.7</testcontainers.version>
 	</properties>

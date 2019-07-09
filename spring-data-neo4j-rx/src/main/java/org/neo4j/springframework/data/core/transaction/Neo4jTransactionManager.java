@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
-import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
@@ -96,7 +95,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		}
 
 		// Otherwise we open a session and synchronize it.
-		Session session = driver.session(defaultSessionParameters(targetDatabase));
+		Session session = driver.session(defaultSessionConfig(targetDatabase));
 		Transaction transaction = session.beginTransaction(TransactionConfig.empty());
 		// Manually create a new synchronization
 		connectionHolder = new Neo4jTransactionHolder(targetDatabase, session, transaction);
@@ -144,14 +143,13 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 
 		TransactionConfig transactionConfig = createTransactionConfigFrom(definition);
 		boolean readOnly = definition.isReadOnly();
-		AccessMode accessMode = readOnly ? AccessMode.READ : AccessMode.WRITE;
-		List<String> bookmarks = Collections.emptyList(); // TODO Bookmarksupport
+
 
 		TransactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
 
 		try {
-			Session session = this.driver
-				.session(t -> t.withDefaultAccessMode(accessMode).withBookmarks(bookmarks).withDatabase(databaseName));
+			List<String> bookmarks = Collections.emptyList(); // TODO Bookmarksupport;
+			Session session = this.driver.session(sessionConfig(readOnly, bookmarks, databaseName));
 			Transaction nativeTransaction = session.beginTransaction(transactionConfig);
 
 			Neo4jTransactionHolder transactionHolder =

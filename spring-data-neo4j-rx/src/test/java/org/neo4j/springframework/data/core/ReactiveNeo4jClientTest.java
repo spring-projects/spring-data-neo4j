@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
@@ -31,7 +32,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,11 +42,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Values;
-import org.neo4j.driver.internal.SessionParameters;
+import org.neo4j.driver.internal.SessionConfig;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxStatementResult;
 import org.neo4j.driver.reactive.RxTransaction;
@@ -70,10 +69,7 @@ class ReactiveNeo4jClientTest {
 	@Mock
 	private TypeSystem typeSystem;
 
-	private ArgumentCaptor<Consumer> sessionTemplateCaptor = ArgumentCaptor.forClass(Consumer.class);
-
-	@Mock
-	private SessionParameters.Template sessionParametersTemplate;
+	private ArgumentCaptor<SessionConfig> configArgumentCaptor = ArgumentCaptor.forClass(SessionConfig.class);
 
 	@Mock
 	private RxSession session;
@@ -98,11 +94,7 @@ class ReactiveNeo4jClientTest {
 
 		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 
-		when(sessionParametersTemplate.withBookmarks(anyList())).thenReturn(sessionParametersTemplate);
-		when(sessionParametersTemplate.withDefaultAccessMode(any(AccessMode.class)))
-			.thenReturn(sessionParametersTemplate);
-
-		when(driver.rxSession(any(Consumer.class))).thenReturn(session);
+		when(driver.rxSession(any(SessionConfig.class))).thenReturn(session);
 		when(session.beginTransaction()).thenReturn(Mono.just(transaction));
 
 		when(session.close()).thenReturn(Mono.empty());
@@ -164,7 +156,6 @@ class ReactiveNeo4jClientTest {
 	@Test
 	void databaseSelectionShouldBePossibleOnlyOnce() {
 
-		when(sessionParametersTemplate.withDatabase(anyString())).thenReturn(sessionParametersTemplate);
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(transaction.commit()).thenReturn(Mono.empty());
 		when(statementResult.records()).thenReturn(Flux.just(record1, record2));
@@ -224,7 +215,6 @@ class ReactiveNeo4jClientTest {
 		@Test
 		void withDatabase() {
 
-			when(sessionParametersTemplate.withDatabase(anyString())).thenReturn(sessionParametersTemplate);
 			when(transaction.commit()).thenReturn(Mono.empty());
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
@@ -421,12 +411,14 @@ class ReactiveNeo4jClientTest {
 	}
 
 	void verifyDatabaseSelection(String targetDatabase) {
-		verify(driver).rxSession(sessionTemplateCaptor.capture());
-		sessionTemplateCaptor.getValue().accept(sessionParametersTemplate);
+
+		verify(driver).rxSession(configArgumentCaptor.capture());
+		SessionConfig config = configArgumentCaptor.getValue();
+
 		if (targetDatabase != null) {
-			verify(sessionParametersTemplate).withDatabase(targetDatabase);
+			assertThat(config.database()).isPresent().contains(targetDatabase);
 		} else {
-			verify(sessionParametersTemplate, never()).withDatabase(any());
+			assertThat(config.database()).isEmpty();
 		}
 	}
 }
