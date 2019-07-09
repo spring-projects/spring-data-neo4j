@@ -18,12 +18,10 @@
  */
 package org.neo4j.springframework.data.repository.event;
 
-import static org.neo4j.springframework.data.core.schema.Id.Strategy.*;
-
 import java.util.Date;
 
-import org.neo4j.springframework.data.core.schema.Id;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.Version;
 
@@ -32,7 +30,7 @@ import org.springframework.data.annotation.Version;
  */
 class Sample {
 
-	@Id(strategy = ASSIGNED) String id;
+	@Id String id;
 	@Version Long version;
 	@CreatedDate Date created;
 	@LastModifiedDate Date modified;

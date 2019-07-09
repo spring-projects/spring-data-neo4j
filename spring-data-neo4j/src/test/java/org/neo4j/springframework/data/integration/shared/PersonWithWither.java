@@ -22,6 +22,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
 
@@ -35,7 +36,8 @@ import org.neo4j.springframework.data.core.schema.Node;
 @ToString
 public class PersonWithWither {
 
-	@Id private final Long id;
+	@Id @GeneratedValue
+	private final Long id;
 
 	private final String name;
 

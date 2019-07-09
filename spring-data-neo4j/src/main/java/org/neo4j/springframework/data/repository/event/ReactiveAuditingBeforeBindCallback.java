@@ -62,7 +62,8 @@ public final class ReactiveAuditingBeforeBindCallback implements ReactiveBeforeB
 	 */
 	@Override
 	public Publisher<Object> onBeforeBind(Object entity) {
-		return Mono.just(auditingHandlerFactory.getObject().markAudited(entity));
+
+		return Mono.fromSupplier(() -> auditingHandlerFactory.getObject().markAudited(entity));
 	}
 
 	/*

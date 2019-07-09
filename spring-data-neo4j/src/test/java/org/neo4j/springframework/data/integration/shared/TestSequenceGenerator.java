@@ -16,15 +16,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.neo4j.springframework.data.integration.shared;
 
-package org.neo4j.springframework.data.integration.shared
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.neo4j.springframework.data.core.schema.GeneratedValue
-import org.neo4j.springframework.data.core.schema.Id
-import org.neo4j.springframework.data.core.schema.Node
+import org.neo4j.springframework.data.core.schema.IdGenerator;
+import org.springframework.util.StringUtils;
 
 /**
- * @author Gerrit Meier
+ * This is a naive sequence generator which must not be used in production.
+ *
+ * @author Michael J. Simons
  */
-@Node
-data class KotlinPerson(@Id @GeneratedValue val id: Long, val name: String)
+public class TestSequenceGenerator implements IdGenerator<String> {
+
+	private final AtomicInteger sequence = new AtomicInteger(0);
+
+	@Override
+	public String generateId(String primaryLabel, Object entity) {
+		return StringUtils.uncapitalize(primaryLabel) + "-" + sequence.incrementAndGet();
+	}
+}

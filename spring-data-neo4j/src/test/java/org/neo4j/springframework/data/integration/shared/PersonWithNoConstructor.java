@@ -22,6 +22,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.Property;
@@ -35,7 +36,8 @@ import org.neo4j.springframework.data.core.schema.Property;
 @ToString
 public class PersonWithNoConstructor {
 
-	@Id private Long id;
+	@Id @GeneratedValue
+	private Long id;
 
 	private String name;
 

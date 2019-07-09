@@ -18,8 +18,6 @@
  */
 package org.neo4j.springframework.data.repository.event;
 
-import static org.neo4j.springframework.data.core.schema.Id.Strategy.*;
-
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Value;
@@ -27,8 +25,8 @@ import lombok.experimental.Wither;
 
 import java.util.Date;
 
-import org.neo4j.springframework.data.core.schema.Id;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 
 /**
@@ -40,7 +38,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 @NoArgsConstructor(force = true)
 public class ImmutableSample {
 
-	@Id(strategy = ASSIGNED) String id;
+	@Id String id;
 	@CreatedDate Date created;
 	@LastModifiedDate Date modified;
 }

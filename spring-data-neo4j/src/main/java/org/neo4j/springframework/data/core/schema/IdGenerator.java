@@ -37,5 +37,5 @@ public interface IdGenerator<T> {
 	 * @param entity the entity to be saved
 	 * @return id to be assigned to the entity
 	 */
-	T generateId(Object entity);
+	T generateId(String primaryLabel, Object entity);
 }

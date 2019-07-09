@@ -31,7 +31,6 @@ import org.neo4j.springframework.data.core.cypher.*;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.BuildableStatement;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingAndWith;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
-import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.IdDescription;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Schema;
@@ -140,7 +139,7 @@ public final class CypherAdapterUtils {
 
 			List<Expression> expressions = new ArrayList<>();
 			expressions.add(rootNode);
-			if (idDescription.getIdStrategy() == Id.Strategy.INTERNALLY_GENERATED) {
+			if (idDescription.isInternallyGeneratedId()) {
 				expressions.add(Functions.id(rootNode).as(NAME_OF_INTERNAL_ID));
 			}
 			return Cypher.match(rootNode).where(condition.orElse(Conditions.noCondition()))
@@ -159,7 +158,7 @@ public final class CypherAdapterUtils {
 			Node rootNode = node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
 			IdDescription idDescription = nodeDescription.getIdDescription();
 			Parameter idParameter = parameter(NAME_OF_ID_PARAM);
-			if (idDescription.getIdStrategy().isExternal()) {
+			if (!idDescription.isInternallyGeneratedId()) {
 				String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
 					.orElseThrow(() -> new MappingException("External id does not correspond to a graph property!"));
 
@@ -235,17 +234,11 @@ public final class CypherAdapterUtils {
 		final SymbolicName rootNode = Cypher.name(NAME_OF_ROOT_NODE);
 		final IdDescription idDescription = nodeDescription.getIdDescription();
 		Expression idExpression;
-		switch (idDescription.getIdStrategy()) {
-			case INTERNALLY_GENERATED:
-				idExpression = Functions.id(rootNode);
-				break;
-			case ASSIGNED:
-			case EXTERNALLY_GENERATED:
-				idExpression = idDescription.getOptionalGraphPropertyName()
-					.map(propertyName -> property(rootNode.getName(), propertyName)).get();
-				break;
-			default:
-				throw new IllegalStateException("Unsupported ID strategy: %s" + idDescription.getIdStrategy());
+		if (idDescription.isInternallyGeneratedId()) {
+			idExpression = Functions.id(rootNode);
+		} else {
+			idExpression = idDescription.getOptionalGraphPropertyName()
+				.map(propertyName -> property(rootNode.getName(), propertyName)).get();
 		}
 
 		return idExpression;

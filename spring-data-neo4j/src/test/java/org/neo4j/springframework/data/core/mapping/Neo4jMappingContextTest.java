@@ -28,8 +28,10 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.Id;
+import org.neo4j.springframework.data.core.schema.IdGenerator;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Property;
@@ -55,8 +57,7 @@ public class Neo4jMappingContextTest {
 			.hasValueSatisfying(description -> {
 				assertThat(description.getUnderlyingClass()).isEqualTo(UserNode.class);
 
-				assertThat(description.getIdDescription().getIdStrategy())
-					.isEqualTo(Id.Strategy.INTERNALLY_GENERATED);
+				assertThat(description.getIdDescription().isInternallyGeneratedId()).isTrue();
 
 				assertThat(description.getGraphProperties())
 					.extracting(GraphPropertyDescription::getFieldName)
@@ -73,8 +74,7 @@ public class Neo4jMappingContextTest {
 			.hasValueSatisfying(description -> {
 				assertThat(description.getUnderlyingClass()).isEqualTo(BikeNode.class);
 
-				assertThat(description.getIdDescription().getIdStrategy())
-					.isEqualTo(Id.Strategy.ASSIGNED);
+				assertThat(description.getIdDescription().isAssignedId()).isTrue();
 
 				Collection<String> expectedRelationships = Arrays
 					.asList("[:owner] -> (:User)", "[:renter] -> (:User)", "[:dynamicRelationships] -> (:User)");
@@ -133,10 +133,28 @@ public class Neo4jMappingContextTest {
 			assertThat(schema.getMappingFunctionFor(association.getInverse().getAssociationTargetType())).isPresent());
 	}
 
+	@Test
+	void shouldCacheIdGenerators() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		IdGenerator<?> dummyIdGenerator1 = schema.getOrCreateIdGeneratorOfType(DummyIdGenerator.class);
+		IdGenerator<?> dummyIdGenerator2 = schema.getOrCreateIdGeneratorOfType(DummyIdGenerator.class);
+
+		assertThat(dummyIdGenerator1).isSameAs(dummyIdGenerator2);
+	}
+
+	static class DummyIdGenerator implements IdGenerator<Void> {
+
+		@Override
+		public Void generateId(String primaryLabel, Object entity) {
+			return null;
+		}
+	}
+
 	@Node("User")
 	static class UserNode {
 
-		@org.springframework.data.annotation.Id
+		@org.springframework.data.annotation.Id @GeneratedValue
 		private long id;
 
 		@Relationship(type = "OWNS", inverse = "owner")
@@ -150,7 +168,7 @@ public class Neo4jMappingContextTest {
 
 	static class BikeNode {
 
-		@Id(strategy = Id.Strategy.ASSIGNED)
+		@Id
 		private String id;
 
 		UserNode owner;
@@ -167,7 +185,7 @@ public class Neo4jMappingContextTest {
 
 	static class TripNode {
 
-		@Id(strategy = Id.Strategy.ASSIGNED)
+		@Id
 		private String id;
 
 		String name;
@@ -175,13 +193,15 @@ public class Neo4jMappingContextTest {
 
 	static class InvalidId {
 
-		@Id @Property("getMappingFunctionFor")
+		@Id
+		@GeneratedValue
+		@Property("getMappingFunctionFor")
 		private String id;
 	}
 
 	static class InvalidIdType {
 
-		@Id
+		@Id @GeneratedValue
 		private String id;
 	}
 }

@@ -118,4 +118,15 @@ public interface Schema {
 
 		return getBinderFunctionFor(sourceClass).orElseThrow(() -> new UnknownEntityException(sourceClass));
 	}
+
+	/**
+	 * Creates or retrieves an instance of the given id generator class. During the lifetime of the schema,
+	 * this method returns the same instance of reoccurring requests of the same type.
+	 *
+	 * @param idGeneratorType The type of the ID generator to return
+	 * @return The id generator.
+	 */
+	<T extends IdGenerator<?>> T getOrCreateIdGeneratorOfType(Class<T> idGeneratorType);
+
+	<T extends IdGenerator<?>> Optional<T> getIdGenerator(String reference);
 }

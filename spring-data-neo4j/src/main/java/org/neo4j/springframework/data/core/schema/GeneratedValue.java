@@ -29,28 +29,49 @@ import org.apiguardian.api.API;
 import org.springframework.core.annotation.AliasFor;
 
 /**
- * The annotation to configure the mapping from a node with a given set of labels to a class and vice versa.
+ * Indicates a generated id. Ids can be generated internally. by the database itself or by an external generator. This annotation
+ * defaults to the internally generated ids.
+ * <p>
+ * An internal id has no corresponding property on a node. It can only retrieved via the built-in Cypher function {@code id()}.
+ * <p>
+ * To use an external id generator, specify on the
  *
  * @author Michael J. Simons
  * @since 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Documented
 @Inherited
-@org.springframework.data.annotation.Persistent
 @API(status = API.Status.STABLE, since = "1.0")
-public @interface Node {
+public @interface GeneratedValue {
 
 	/**
-	 * @return See {@link #labels()}.
+	 * @return The generator to use.
+	 * @see #generatorClass()
 	 */
-	@AliasFor("labels")
-	String[] value() default {};
+	@AliasFor("generatorClass")
+	Class<? extends IdGenerator<?>> value() default GeneratedValue.InternalIdGenerator.class;
 
 	/**
-	 * @return The labels to identify a node with that is supposed to be mapped to the class annotated with {@link Node @Node}.
+	 * @return The generator to use. Defaults to {@link InternalIdGenerator}, which indicates database generated values.
 	 */
 	@AliasFor("value")
-	String[] labels() default {};
+	Class<? extends IdGenerator<?>> generatorClass() default GeneratedValue.InternalIdGenerator.class;
+
+	/**
+	 * @return An optional reference to a bean to be used as ID generator.
+	 */
+	String generatorRef() default "";
+
+	/**
+	 * This {@link IdGenerator} does nothing. It is used for relying on the internal, database-side created id.
+	 */
+	final class InternalIdGenerator implements IdGenerator<Void> {
+
+		@Override
+		public Void generateId(String primaryLabel, Object entity) {
+			return null;
+		}
+	}
 }

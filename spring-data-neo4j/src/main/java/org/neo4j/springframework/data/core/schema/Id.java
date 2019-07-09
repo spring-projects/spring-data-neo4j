@@ -24,12 +24,57 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.EnumSet;
 
 import org.apiguardian.api.API;
 
 /**
- * Annotation to configure assigment of ids.
+ * This annotation is included here for completeness. It marks an attribute as the primary id of a node entity. It can
+ * be used as an alternative to {@link org.springframework.data.annotation.Id} and it may provide additional features
+ * in the future.
+ *
+ * <p>
+ *
+ * To use assigned ids, annotate an arbitrary attribute of your domain class with {@link org.springframework.data.annotation.Id}
+ * or this annotation:
+ * <pre>
+ * &#64;Node
+ * public class MyEntity {
+ *     &#64;Id
+ *     String theId;
+ * }
+ * </pre>
+ * You can combine {@code @Id} with {@code @Property} with assigned ids to rename the node property in which the assigned id is stored.
+ *
+ * <p>
+ *
+ * To use internally generated ids, annotate an arbitrary attribute of type {@code java.lang.long} or {@code java.lang.Long}
+ * with {@code @Id} and {@link GeneratedValue @GeneratedValue}.
+ * <pre>
+ * &#64;Node
+ * public class MyEntity {
+ *     &#64;Id &#64;GeneratedValue
+ *     Long id;
+ * }
+ * </pre>
+ *
+ * It does not need to be named {@code id}, but most people chose this as the attribute in the class. As the attribute
+ * does not correspond to a node property, it cannot be renamed via {@code @Property}.
+ *
+ * <p>
+ *
+ * To use externally generated ids, annotate an arbitrary attribute with a type that your generated returns
+ * with {@code @Id} and {@link GeneratedValue @GeneratedValue} and specify the generator class.
+ *
+ * <pre>
+ * &#64;Node
+ * public class MyEntity {
+ *     &#64;Id &#64;GeneratedValue(UUIDStringGenerator.class)
+ *     String theId;
+ * }
+ * </pre>
+ *
+ * Externally generated ids are indistinguishable to assigned ids from the database perspective and thus can be arbitrarily
+ * named via {@code @Property}.
  *
  * @author Michael J. Simons
  * @since 1.0
@@ -41,66 +86,4 @@ import org.apiguardian.api.API;
 @org.springframework.data.annotation.Id
 @API(status = API.Status.STABLE, since = "1.0")
 public @interface Id {
-
-	/**
-	 * Enumerating available strategies for providing ids for new entities.
-	 * @since 1.0
-	 */
-	enum Strategy {
-
-		/**
-		 * The default, use Neo4js internal ids.
-		 */
-		INTERNALLY_GENERATED,
-
-		/**
-		 * Use assigned values.
-		 */
-		ASSIGNED,
-
-		/**
-		 * Use externally generated values, a generator class is required.
-		 */
-		EXTERNALLY_GENERATED;
-
-		/**
-		 * @return True, if the database generated the ID.
-		 */
-		public boolean isInternal() {
-			return this == INTERNALLY_GENERATED;
-		}
-
-		/**
-		 * @return True, if the ID is assigned to the entity before the entity hits the database
-		 */
-		public boolean isExternal() {
-			return EnumSet.of(ASSIGNED, EXTERNALLY_GENERATED).contains(this);
-		}
-	}
-
-	/**
-	 * Configure the strategy for generating ids. Some strategies require a {@link #generator()}.
-	 *
-	 * @return The strategy applied for generating ids for new entities. Defaults to use Neo4j internal database identifiers.
-	 */
-	Strategy strategy() default Strategy.INTERNALLY_GENERATED;
-
-	/**
-	 *
-	 * @return The generator that fits the selected {@link #strategy()}. Defaults to a Noop generator.
-	 */
-	Class<? extends IdGenerator> generator() default NoopIdGenerator.class;
-
-	/**
-	 * This {@link IdGenerator} does nothing. It is used for relying on the internal, database-side created id.
-	 * @since 1.0
-	 */
-	// Needed to make the generator attribute defaultable (null is not a constant)
-	class NoopIdGenerator implements IdGenerator {
-
-		@Override
-		public Object generateId(Object entity) {
-			return null;
-		}
-	}
 }

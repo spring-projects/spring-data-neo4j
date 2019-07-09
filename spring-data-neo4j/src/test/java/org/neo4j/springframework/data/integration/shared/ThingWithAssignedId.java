@@ -18,23 +18,19 @@
  */
 package org.neo4j.springframework.data.integration.shared;
 
-import static org.neo4j.springframework.data.core.schema.Id.Strategy.*;
-
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
 
 /**
- * Has an assigned id and a changeable name.
+ * Has an assigned id.
  *
  * @author Michael J. Simons
  */
 @Node("Thing")
-public class ThingWithAssignedId {
+public class ThingWithAssignedId extends AbstractNamedThing {
 
-	@Id(strategy = ASSIGNED)
+	@Id
 	private final String theId;
-
-	private String name;
 
 	public ThingWithAssignedId(String theId) {
 		this.theId = theId;
@@ -42,13 +38,5 @@ public class ThingWithAssignedId {
 
 	public String getTheId() {
 		return theId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 }

@@ -27,13 +27,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.data.mapping.model.BasicPersistentEntity;
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
-import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.IdDescription;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.Property;
+import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
@@ -129,7 +128,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		Assert.notNull(this.getIdDescription(), "An entity is required to describe its id property.");
 	}
 
-	String computePrimaryLabel() {
+	private String computePrimaryLabel() {
 
 		Node nodeAnnotation = this.findAnnotation(Node.class);
 		if (nodeAnnotation == null || nodeAnnotation.labels().length != 1) {
@@ -139,33 +138,38 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		}
 	}
 
-	IdDescription computeIdDescription() {
+	private IdDescription computeIdDescription() {
 
-		final Neo4jPersistentProperty idProperty = this.getRequiredIdProperty();
-		final Optional<Id> optionalIdAnnotation = Optional
-			.ofNullable(AnnotatedElementUtils.findMergedAnnotation(idProperty.getField(), Id.class));
-		return optionalIdAnnotation
-			.map(idAnnotation -> {
+		Neo4jPersistentProperty idProperty = this.getRequiredIdProperty();
+		GeneratedValue generatedValueAnnotation = idProperty.findAnnotation(GeneratedValue.class);
 
-				if (idAnnotation.strategy() == Id.Strategy.INTERNALLY_GENERATED) {
-					if (idProperty.findAnnotation(Property.class) != null) {
-						throw new IllegalArgumentException(
-							"Cannot use internal id strategy with custom property " + idProperty.getPropertyName()
-								+ " on entity class " + this.getUnderlyingClass().getName());
-					}
+		// Assigned ids
+		if (generatedValueAnnotation == null) {
+			return IdDescription.forAssignedIds(idProperty.getPropertyName());
+		}
 
-					if (!VALID_GENERATED_ID_TYPES.contains(idProperty.getActualType())) {
-						throw new IllegalArgumentException("Internally generated ids can only be assigned to one of " + VALID_GENERATED_ID_TYPES);
-					}
-				}
+		// Internally generated ids.
+		if (generatedValueAnnotation.generatorClass() == GeneratedValue.InternalIdGenerator.class && generatedValueAnnotation.generatorRef().isEmpty()) {
+			if (idProperty.findAnnotation(Property.class) != null) {
+				throw new IllegalArgumentException(
+					"Cannot use internal id strategy with custom property " + idProperty.getPropertyName()
+						+ " on entity class " + this.getUnderlyingClass().getName());
+			}
 
-				return new IdDescription(idAnnotation.strategy(), idAnnotation.generator(),
-					idAnnotation.strategy() == Id.Strategy.INTERNALLY_GENERATED ? null : idProperty.getPropertyName());
-			})
-			.orElseGet(() -> new IdDescription());
+			if (!VALID_GENERATED_ID_TYPES.contains(idProperty.getActualType())) {
+				throw new IllegalArgumentException("Internally generated ids can only be assigned to one of " + VALID_GENERATED_ID_TYPES);
+			}
+
+			return IdDescription.forInternallyGeneratedIds();
+		}
+
+		// Externally generated ids.
+		return IdDescription
+			.forExternallyGeneratedIds(generatedValueAnnotation.generatorClass(),
+				generatedValueAnnotation.generatorRef(), idProperty.getPropertyName());
 	}
 
-	Collection<GraphPropertyDescription> computeGraphProperties() {
+	private Collection<GraphPropertyDescription> computeGraphProperties() {
 
 		final List<GraphPropertyDescription> computedGraphProperties = new ArrayList<>();
 

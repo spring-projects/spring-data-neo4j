@@ -16,15 +16,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.neo4j.springframework.data.core.support;
 
-package org.neo4j.springframework.data.integration.shared
+import java.util.UUID;
 
-import org.neo4j.springframework.data.core.schema.GeneratedValue
-import org.neo4j.springframework.data.core.schema.Id
-import org.neo4j.springframework.data.core.schema.Node
+import org.apiguardian.api.API;
+import org.neo4j.springframework.data.core.schema.IdGenerator;
 
 /**
- * @author Gerrit Meier
+ * A generator providing UUIDs.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Various - Kung Fury (Original Motion Picture Soundtrack)
+ * @since 1.0
  */
-@Node
-data class KotlinPerson(@Id @GeneratedValue val id: Long, val name: String)
+@API(status = API.Status.STABLE, since = "1.0")
+public final class UUIDStringGenerator implements IdGenerator<String> {
+
+	@Override
+	public String generateId(String primaryLabel, Object entity) {
+		return UUID.randomUUID().toString();
+	}
+}

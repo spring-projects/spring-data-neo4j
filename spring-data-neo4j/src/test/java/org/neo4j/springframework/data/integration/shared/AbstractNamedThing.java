@@ -16,15 +16,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.neo4j.springframework.data.integration.shared
-
-import org.neo4j.springframework.data.core.schema.GeneratedValue
-import org.neo4j.springframework.data.core.schema.Id
-import org.neo4j.springframework.data.core.schema.Node
+package org.neo4j.springframework.data.integration.shared;
 
 /**
- * @author Gerrit Meier
+ * @author Michael J. Simons
  */
-@Node
-data class KotlinPerson(@Id @GeneratedValue val id: Long, val name: String)
+abstract class AbstractNamedThing {
+
+	private String name;
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+}
