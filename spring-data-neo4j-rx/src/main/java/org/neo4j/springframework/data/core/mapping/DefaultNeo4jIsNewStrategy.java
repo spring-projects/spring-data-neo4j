@@ -20,7 +20,7 @@ package org.neo4j.springframework.data.core.mapping;
 
 import java.util.function.Function;
 
-import org.neo4j.springframework.data.core.schema.Id;
+import org.neo4j.springframework.data.core.schema.IdDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.support.IsNewStrategy;
@@ -54,17 +54,17 @@ class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 
 		Assert.notNull(entityMetaData, "Entity meta data must not be null.");
 
-		Id.Strategy idStrategy = entityMetaData.getIdDescription().getIdStrategy();
+		IdDescription idDescription = entityMetaData.getIdDescription();
 		Class<?> valueType = entityMetaData.getRequiredIdProperty().getType();
 
-		if (idStrategy == Id.Strategy.EXTERNALLY_GENERATED && valueType.isPrimitive()) {
+		if (idDescription.isExternallyGeneratedId() && valueType.isPrimitive()) {
 			throw new IllegalArgumentException(String.format("Cannot use %s with externally generated, primitive ids.",
 				DefaultNeo4jIsNewStrategy.class.getName()));
 		}
 
 		Function<Object, Object> valueLookup;
 		Neo4jPersistentProperty versionProperty = entityMetaData.getVersionProperty();
-		if (idStrategy == Id.Strategy.ASSIGNED) {
+		if (idDescription.isAssignedId()) {
 			if (versionProperty == null) {
 				log.warn("Instances of " + entityMetaData.getType()
 					+ " with an assigned id will always be treated as new without version property!");
@@ -78,17 +78,18 @@ class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 			valueLookup = source -> entityMetaData.getIdentifierAccessor(source).getIdentifier();
 		}
 
-		return new DefaultNeo4jIsNewStrategy(idStrategy, valueType, valueLookup);
+		return new DefaultNeo4jIsNewStrategy(idDescription, valueType, valueLookup);
 	}
 
-	private final Id.Strategy strategy;
+	private final IdDescription idDescription;
 
 	private final Class<?> valueType;
 
 	private @Nullable final Function<Object, Object> valueLookup;
 
-	private DefaultNeo4jIsNewStrategy(Id.Strategy strategy, Class<?> valueType, Function<Object, Object> valueLookup) {
-		this.strategy = strategy;
+	private DefaultNeo4jIsNewStrategy(IdDescription idDescription, Class<?> valueType,
+		Function<Object, Object> valueLookup) {
+		this.idDescription = idDescription;
 		this.valueType = valueType;
 		this.valueLookup = valueLookup;
 	}
@@ -101,7 +102,7 @@ class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 	public boolean isNew(Object entity) {
 
 		Object value = valueLookup.apply(entity);
-		if (strategy.isInternal()) {
+		if (idDescription.isInternallyGeneratedId()) {
 
 			boolean isNew = false;
 			if (value != null && valueType.isPrimitive() && Number.class.isInstance(value)) {
@@ -111,9 +112,9 @@ class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 			}
 
 			return isNew;
-		} else if (strategy == Id.Strategy.EXTERNALLY_GENERATED) {
+		} else if (idDescription.isExternallyGeneratedId()) {
 			return value == null;
-		} else if (strategy == Id.Strategy.ASSIGNED) {
+		} else if (idDescription.isAssignedId()) {
 			if (valueType != null && !valueType.isPrimitive()) {
 				return value == null;
 			}

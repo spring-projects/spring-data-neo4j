@@ -73,6 +73,6 @@ public interface NodeDescription<T> {
 	 * @return True if entities for this node use Neo4j internal ids.
 	 */
 	default boolean isUsingInternalIds() {
-		return this.getIdDescription().getIdStrategy() == Id.Strategy.INTERNALLY_GENERATED;
+		return this.getIdDescription().isInternallyGeneratedId();
 	}
 }

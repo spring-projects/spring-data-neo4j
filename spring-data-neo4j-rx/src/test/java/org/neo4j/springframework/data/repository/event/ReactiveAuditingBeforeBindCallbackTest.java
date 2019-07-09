@@ -71,7 +71,8 @@ class ReactiveAuditingBeforeBindCallbackTest {
 			.expectNextMatches(s -> {
 				Sample auditedObject = (Sample) s;
 				return auditedObject.created != null && auditedObject.modified != null;
-			});
+			})
+			.verifyComplete();
 
 		verify(spyOnHandler, times(1)).markCreated(sample);
 		verify(spyOnHandler, times(0)).markModified(any());
@@ -89,7 +90,8 @@ class ReactiveAuditingBeforeBindCallbackTest {
 			.expectNextMatches(s -> {
 				Sample auditedObject = (Sample) s;
 				return auditedObject.created == null && auditedObject.modified != null;
-			});
+			})
+			.verifyComplete();
 
 		verify(spyOnHandler, times(0)).markCreated(any());
 		verify(spyOnHandler, times(1)).markModified(sample);

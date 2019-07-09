@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.examples.spring_boot.domain;
 
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.Property;
@@ -28,7 +29,7 @@ import org.neo4j.springframework.data.core.schema.Property;
 @Node("Movie")
 public class MovieEntity {
 
-	@Id
+	@Id @GeneratedValue
 	private final Long id;
 
 	private final String title;

@@ -33,6 +33,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Point;
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mapping.MappingException;
 import org.neo4j.springframework.data.core.Neo4jClient;
@@ -243,7 +244,7 @@ final class RepositoryQueryTest {
 	}
 
 	static class TestEntity {
-		@Id
+		@Id @GeneratedValue
 		private Long id;
 	}
 

@@ -18,13 +18,14 @@
  */
 package org.neo4j.springframework.data.examples.references_and_aggregates.books;
 
-import org.springframework.data.annotation.Id;
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
+import org.neo4j.springframework.data.core.schema.Id;
 
 /**
  * @author Michael J. Simons
  */
 public class Author {
-	@Id
+	@Id @GeneratedValue
 	private Long id;
 	private final String name;
 

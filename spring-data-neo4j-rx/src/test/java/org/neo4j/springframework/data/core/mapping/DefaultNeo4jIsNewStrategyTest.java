@@ -26,10 +26,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.neo4j.springframework.data.core.schema.IdDescription;
+import org.neo4j.springframework.data.core.schema.IdGenerator;
 import org.springframework.data.mapping.IdentifierAccessor;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
-import org.neo4j.springframework.data.core.schema.Id;
-import org.neo4j.springframework.data.core.schema.IdDescription;
 import org.springframework.data.support.IsNewStrategy;
 
 /**
@@ -54,7 +54,7 @@ class DefaultNeo4jIsNewStrategyTest {
 			Object a = new Object();
 			Object b = new Object();
 
-			IdDescription idDescription = new IdDescription();
+			IdDescription idDescription = IdDescription.forInternallyGeneratedIds();
 			doReturn(Long.class).when(idProperty).getType();
 			doReturn(idDescription).when(entityMetaData).getIdDescription();
 			doReturn(idProperty).when(entityMetaData).getRequiredIdProperty();
@@ -72,7 +72,7 @@ class DefaultNeo4jIsNewStrategyTest {
 			Object b = new Object();
 			Object c = new Object();
 
-			IdDescription idDescription = new IdDescription();
+			IdDescription idDescription = IdDescription.forInternallyGeneratedIds();
 			doReturn(long.class).when(idProperty).getType();
 			doReturn(idDescription).when(entityMetaData).getIdDescription();
 			doReturn(idProperty).when(entityMetaData).getRequiredIdProperty();
@@ -94,7 +94,7 @@ class DefaultNeo4jIsNewStrategyTest {
 
 			Object a = new Object();
 			Object b = new Object();
-			IdDescription idDescription = new IdDescription(Id.Strategy.EXTERNALLY_GENERATED, null, null);
+			IdDescription idDescription = IdDescription.forExternallyGeneratedIds(DummyIdGenerator.class, null, "na");
 			doReturn(String.class).when(idProperty).getType();
 			doReturn(idDescription).when(entityMetaData).getIdDescription();
 			doReturn(idProperty).when(entityMetaData).getRequiredIdProperty();
@@ -109,7 +109,7 @@ class DefaultNeo4jIsNewStrategyTest {
 		@Test
 		void doesntNeedToDealWithPrimitives() {
 
-			IdDescription idDescription = new IdDescription(Id.Strategy.EXTERNALLY_GENERATED, null, null);
+			IdDescription idDescription = IdDescription.forExternallyGeneratedIds(DummyIdGenerator.class, null, "na");
 			doReturn(long.class).when(idProperty).getType();
 			doReturn(idDescription).when(entityMetaData).getIdDescription();
 			doReturn(idProperty).when(entityMetaData).getRequiredIdProperty();
@@ -126,7 +126,7 @@ class DefaultNeo4jIsNewStrategyTest {
 		@Test
 		void shouldAlwaysTreatEntitiesAsNewWithoutVersion() {
 			Object a = new Object();
-			IdDescription idDescription = new IdDescription(Id.Strategy.ASSIGNED, null, null);
+			IdDescription idDescription = IdDescription.forAssignedIds("na");
 			doReturn(String.class).when(idProperty).getType();
 			doReturn(idDescription).when(entityMetaData).getIdDescription();
 			doReturn(idProperty).when(entityMetaData).getRequiredIdProperty();
@@ -139,7 +139,7 @@ class DefaultNeo4jIsNewStrategyTest {
 		void shouldDealWithVersion() {
 			Object a = new Object();
 			Object b = new Object();
-			IdDescription idDescription = new IdDescription(Id.Strategy.ASSIGNED, null, null);
+			IdDescription idDescription = IdDescription.forAssignedIds("na");
 
 			doReturn(String.class).when(idProperty).getType();
 			doReturn(String.class).when(versionProperty).getType();
@@ -166,7 +166,7 @@ class DefaultNeo4jIsNewStrategyTest {
 		void shouldDealWithPrimitiveVersion() {
 			Object a = new Object();
 			Object b = new Object();
-			IdDescription idDescription = new IdDescription(Id.Strategy.ASSIGNED, null, null);
+			IdDescription idDescription = IdDescription.forAssignedIds("na");
 
 			doReturn(String.class).when(idProperty).getType();
 			doReturn(int.class).when(versionProperty).getType();
@@ -187,6 +187,14 @@ class DefaultNeo4jIsNewStrategyTest {
 
 			assertThat(strategy.isNew(a)).isTrue();
 			assertThat(strategy.isNew(b)).isFalse();
+		}
+	}
+
+	static class DummyIdGenerator implements IdGenerator<Void> {
+
+		@Override
+		public Void generateId(String primaryLabel, Object entity) {
+			return null;
 		}
 	}
 }

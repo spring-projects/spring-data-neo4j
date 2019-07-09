@@ -29,6 +29,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.neo4j.driver.types.Point;
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.Property;
@@ -45,7 +46,7 @@ import org.neo4j.springframework.data.core.schema.Property;
 @EqualsAndHashCode
 public class PersonWithAllConstructor {
 
-	@Id
+	@Id @GeneratedValue
 	@Wither
 	private final Long id;
 

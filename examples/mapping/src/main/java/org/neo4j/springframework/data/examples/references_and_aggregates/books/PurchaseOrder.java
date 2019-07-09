@@ -21,13 +21,14 @@ package org.neo4j.springframework.data.examples.references_and_aggregates.books;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.springframework.data.annotation.Id;
 
 /**
  * @author Michael J. Simons
  */
 public class PurchaseOrder {
-	@Id
+	@Id @GeneratedValue
 	private Long id;
 	private final String shippingAddress;
 	private final Set<OrderItem> items = new HashSet<>();

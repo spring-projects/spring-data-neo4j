@@ -18,7 +18,8 @@
  */
 package org.springframework.boot.autoconfigure.data.neo4j_rx.bikes;
 
-import org.springframework.data.annotation.Id;
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
+import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
 
 /**
@@ -27,7 +28,7 @@ import org.neo4j.springframework.data.core.schema.Node;
 @Node
 public class BikeNode {
 
-	@Id
+	@Id @GeneratedValue
 	private Long id;
 
 	private String name;

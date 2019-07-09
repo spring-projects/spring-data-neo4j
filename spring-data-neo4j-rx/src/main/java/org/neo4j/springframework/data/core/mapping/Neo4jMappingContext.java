@@ -32,22 +32,36 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
+import org.neo4j.springframework.data.core.schema.IdDescription;
+import org.neo4j.springframework.data.core.schema.IdGenerator;
+import org.neo4j.springframework.data.core.schema.Neo4jSimpleTypes;
+import org.neo4j.springframework.data.core.schema.NodeDescription;
+import org.neo4j.springframework.data.core.schema.Relationship;
+import org.neo4j.springframework.data.core.schema.RelationshipDescription;
+import org.neo4j.springframework.data.core.schema.Schema;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.convert.EntityInstantiators;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
-import org.neo4j.springframework.data.core.schema.Neo4jSimpleTypes;
-import org.neo4j.springframework.data.core.schema.NodeDescription;
-import org.neo4j.springframework.data.core.schema.Relationship;
-import org.neo4j.springframework.data.core.schema.RelationshipDescription;
-import org.neo4j.springframework.data.core.schema.Schema;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.Nullable;
 
 /**
  * An implementation of both a {@link Schema} as well as a Neo4j version of Spring Datas
@@ -59,7 +73,8 @@ import org.springframework.data.util.TypeInformation;
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class Neo4jMappingContext
-	extends AbstractMappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> implements Schema {
+	extends AbstractMappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> implements Schema,
+	BeanDefinitionRegistryPostProcessor {
 
 	/**
 	 * The shared entity instantiators of this context. Those should not be recreated for each entity or even not for
@@ -75,6 +90,13 @@ public final class Neo4jMappingContext
 	private final Map<String, NodeDescription<?>> nodeDescriptionsByPrimaryLabel = new HashMap<>();
 
 	private final ConcurrentMap<String, Collection<RelationshipDescription>> relationshipsByPrimaryLabel = new ConcurrentHashMap<>();
+
+	/**
+	 * A map of fallback id generators, that have not been added to the application context
+	 */
+	private final Map<Class<? extends IdGenerator<?>>, IdGenerator<?>> fallbackIdGenerators = new ConcurrentHashMap<>();
+
+	private @Nullable ListableBeanFactory beanFactory;
 
 	public Neo4jMappingContext() {
 		super.setSimpleTypeHolder(Neo4jSimpleTypes.SIMPLE_TYPE_HOLDER);
@@ -204,5 +226,59 @@ public final class Neo4jMappingContext
 		});
 
 		return Collections.unmodifiableCollection(relationships);
+	}
+
+	@Override
+	public <T extends IdGenerator<?>> T getOrCreateIdGeneratorOfType(Class<T> idGeneratorType) {
+		Supplier<T> fallbackSupplier = () -> (T) this.fallbackIdGenerators
+			.computeIfAbsent(idGeneratorType, BeanUtils::instantiateClass);
+
+		if (this.beanFactory == null) {
+			return fallbackSupplier.get();
+		} else {
+			return this.beanFactory
+				.getBeanProvider(idGeneratorType)
+				.getIfUnique(fallbackSupplier);
+		}
+	}
+
+	@Override
+	public <T extends IdGenerator<?>> Optional<T> getIdGenerator(String reference) {
+		try {
+			return Optional.of((T) this.beanFactory.getBean(reference));
+		} catch (NoSuchBeanDefinitionException e) {
+			return Optional.empty();
+		}
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		super.setApplicationContext(applicationContext);
+
+		this.beanFactory = applicationContext;
+	}
+
+	@Override
+	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+
+		// Register all the known id generators
+		this.getPersistentEntities().stream()
+			.map(Neo4jPersistentEntity::getIdDescription)
+			.filter(IdDescription::isExternallyGeneratedId).map(IdDescription::getIdGeneratorClass)
+			.filter(Optional::isPresent).map(Optional::get)
+			.distinct()
+			.map(generatorClass -> {
+				RootBeanDefinition definition = new RootBeanDefinition(generatorClass);
+				definition.setRole(RootBeanDefinition.ROLE_INFRASTRUCTURE);
+				return definition;
+			})
+			.forEach(definition -> {
+				String beanName = BeanDefinitionReaderUtils.generateBeanName(definition, registry);
+				registry.registerBeanDefinition(beanName, definition);
+			});
+	}
+
+	@Override
+	public void postProcessBeanFactory(@SuppressWarnings({ "HiddenField" }) ConfigurableListableBeanFactory beanFactory) throws BeansException {
 	}
 }

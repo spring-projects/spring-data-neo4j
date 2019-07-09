@@ -16,41 +16,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.springframework.data.examples.references_and_aggregates.books;
-
-import java.util.HashSet;
-import java.util.Set;
+package org.neo4j.springframework.data.integration.shared;
 
 import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.Id;
-import org.springframework.util.Assert;
+import org.neo4j.springframework.data.core.schema.Node;
 
 /**
  * @author Michael J. Simons
  */
-public class Book {
-	@Id @GeneratedValue
-	private Long id;
+@Node
+public class ThingWithGeneratedId extends AbstractNamedThing {
 
-	private final String title;
-	private final Set<AuthorRef> authors = new HashSet<>();
+	@Id @GeneratedValue(TestSequenceGenerator.class)
+	private String theId;
 
-	public Book(String title) {
-		this.title = title;
+	public ThingWithGeneratedId(String name) {
+		super.setName(name);
 	}
 
-	public Book addAuthor(Author author) {
-		authors.add(createAuthorRef(author));
-
-		return this;
-	}
-
-	private static AuthorRef createAuthorRef(Author author) {
-
-		Assert.notNull(author, "Author must not be null");
-		Assert.notNull(author.getId(), "Author id, must not be null");
-
-		AuthorRef authorRef = new AuthorRef(author.getId());
-		return authorRef;
+	public String getTheId() {
+		return theId;
 	}
 }
