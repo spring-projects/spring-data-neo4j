@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -46,13 +45,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.StatementResult;
 import org.neo4j.driver.Values;
-import org.neo4j.driver.internal.SessionParameters;
+import org.neo4j.driver.internal.SessionConfig;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 
@@ -65,10 +63,7 @@ class Neo4jClientTest {
 	@Mock
 	private Driver driver;
 
-	private ArgumentCaptor<Consumer> sessionTemplateCaptor = ArgumentCaptor.forClass(Consumer.class);
-
-	@Mock
-	private SessionParameters.Template sessionParametersTemplate;
+	private ArgumentCaptor<SessionConfig> configArgumentCaptor = ArgumentCaptor.forClass(SessionConfig.class);
 
 	@Mock
 	private Session session;
@@ -91,11 +86,7 @@ class Neo4jClientTest {
 	@BeforeEach
 	void prepareMocks() {
 
-		when(sessionParametersTemplate.withBookmarks(anyList())).thenReturn(sessionParametersTemplate);
-		when(sessionParametersTemplate.withDefaultAccessMode(any(AccessMode.class)))
-			.thenReturn(sessionParametersTemplate);
-
-		when(driver.session(any(Consumer.class))).thenReturn(session);
+		when(driver.session(any(SessionConfig.class))).thenReturn(session);
 		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 	}
 
@@ -150,7 +141,6 @@ class Neo4jClientTest {
 	@Test
 	void databaseSelectionShouldBePossibleOnlyOnce() {
 
-		when(sessionParametersTemplate.withDatabase(anyString())).thenReturn(sessionParametersTemplate);
 		when(session.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(statementResult.stream()).thenReturn(Stream.of(record1, record2));
 
@@ -199,8 +189,6 @@ class Neo4jClientTest {
 
 		@Test
 		void withDatabase() {
-
-			when(sessionParametersTemplate.withDatabase(anyString())).thenReturn(sessionParametersTemplate);
 
 			Neo4jClient client = Neo4jClient.create(driver);
 			Optional<Integer> result = client
@@ -419,12 +407,13 @@ class Neo4jClientTest {
 
 	void verifyDatabaseSelection(String targetDatabase) {
 
-		verify(driver).session(sessionTemplateCaptor.capture());
-		sessionTemplateCaptor.getValue().accept(sessionParametersTemplate);
+		verify(driver).session(configArgumentCaptor.capture());
+		SessionConfig config = configArgumentCaptor.getValue();
+
 		if (targetDatabase != null) {
-			verify(sessionParametersTemplate).withDatabase(targetDatabase);
+			assertThat(config.database()).isPresent().contains(targetDatabase);
 		} else {
-			verify(sessionParametersTemplate, never()).withDatabase(any());
+			assertThat(config.database()).isEmpty();
 		}
 	}
 

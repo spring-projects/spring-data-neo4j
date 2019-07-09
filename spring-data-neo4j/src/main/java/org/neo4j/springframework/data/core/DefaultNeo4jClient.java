@@ -72,7 +72,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		StatementRunner statementRunner = retrieveTransaction(driver, targetDatabase)
 			.map(StatementRunner.class::cast)
-			.orElseGet(() -> driver.session(defaultSessionParameters(targetDatabase)));
+			.orElseGet(() -> driver.session(defaultSessionConfig(targetDatabase)));
 
 		return (AutoCloseableStatementRunner) Proxy.newProxyInstance(StatementRunner.class.getClassLoader(),
 			new Class<?>[] { AutoCloseableStatementRunner.class },

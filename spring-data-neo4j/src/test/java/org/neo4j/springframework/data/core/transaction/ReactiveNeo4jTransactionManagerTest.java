@@ -28,8 +28,6 @@ import io.r2dbc.h2.H2ConnectionFactory;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.function.Consumer;
-
 import javax.transaction.UserTransaction;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +40,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.internal.SessionConfig;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.springframework.data.r2dbc.connectionfactory.R2dbcTransactionManager;
@@ -71,7 +70,7 @@ class ReactiveNeo4jTransactionManagerTest {
 	@BeforeEach
 	void setUp() {
 
-		when(driver.rxSession(any(Consumer.class))).thenReturn(session);
+		when(driver.rxSession(any(SessionConfig.class))).thenReturn(session);
 		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(Mono.just(transaction));
 		when(transaction.rollback()).thenReturn(Mono.empty());
 		when(transaction.commit()).thenReturn(Mono.empty());
@@ -106,7 +105,7 @@ class ReactiveNeo4jTransactionManagerTest {
 				.expectNextCount(1L)
 				.verifyComplete();
 
-			verify(driver).rxSession(any(Consumer.class));
+			verify(driver).rxSession(any(SessionConfig.class));
 
 			verify(session).beginTransaction(any(TransactionConfig.class));
 			verify(session).close();
@@ -133,7 +132,7 @@ class ReactiveNeo4jTransactionManagerTest {
 				.expectNextCount(1L)
 				.verifyComplete();
 
-			verify(driver).rxSession(any(Consumer.class));
+			verify(driver).rxSession(any(SessionConfig.class));
 
 			verify(session).beginTransaction(any(TransactionConfig.class));
 			verify(session).close();
@@ -164,7 +163,7 @@ class ReactiveNeo4jTransactionManagerTest {
 				.expectNextCount(1L)
 				.verifyComplete();
 
-			verify(driver).rxSession(any(Consumer.class));
+			verify(driver).rxSession(any(SessionConfig.class));
 
 			verify(session).beginTransaction(any(TransactionConfig.class));
 			verify(session).close();
@@ -195,7 +194,7 @@ class ReactiveNeo4jTransactionManagerTest {
 				.expectNextCount(1L)
 				.verifyComplete();
 
-			verify(driver).rxSession(any(Consumer.class));
+			verify(driver).rxSession(any(SessionConfig.class));
 
 			verify(session).beginTransaction(any(TransactionConfig.class));
 			verify(session).close();

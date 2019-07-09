@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -25,7 +26,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,12 +35,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.internal.SessionParameters;
+import org.neo4j.driver.internal.SessionConfig;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.types.TypeSystem;
@@ -64,15 +63,11 @@ class TransactionHandlingTest {
 	@Mock
 	private TypeSystem typeSystem;
 
-	@Mock
-	private SessionParameters.Template sessionParametersTemplate;
-
 	@BeforeEach
 	void prepareMocks() {
 
 		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 	}
-
 
 	@AfterEach
 	void verifyTypeSystemOnSession() {
@@ -92,13 +87,9 @@ class TransactionHandlingTest {
 			@Test
 			void shouldCallCloseOnSession() {
 
-				ArgumentCaptor<Consumer> consumerCaptor = ArgumentCaptor.forClass(Consumer.class);
+				ArgumentCaptor<SessionConfig> configArgumentCaptor = ArgumentCaptor.forClass(SessionConfig.class);
 
-				when(driver.session(any(Consumer.class))).thenReturn(session);
-				when(sessionParametersTemplate.withDatabase(anyString())).thenReturn(sessionParametersTemplate);
-				when(sessionParametersTemplate.withBookmarks(anyList())).thenReturn(sessionParametersTemplate);
-				when(sessionParametersTemplate.withDefaultAccessMode(any(AccessMode.class)))
-					.thenReturn(sessionParametersTemplate);
+				when(driver.session(any(SessionConfig.class))).thenReturn(session);
 
 				// Make template acquire session
 				DefaultNeo4jClient neo4jClient = new DefaultNeo4jClient(driver);
@@ -106,14 +97,14 @@ class TransactionHandlingTest {
 					s.run("MATCH (n) RETURN n");
 				}
 
-				verify(driver).session(consumerCaptor.capture());
-				consumerCaptor.getValue().accept(sessionParametersTemplate);
-				verify(sessionParametersTemplate).withDatabase("aDatabase");
+				verify(driver).session(configArgumentCaptor.capture());
+				SessionConfig sessionConfig = configArgumentCaptor.getValue();
+				assertThat(sessionConfig.database()).isPresent().contains("aDatabase");
 
 				verify(session).run(any(String.class));
 				verify(session).close();
 
-				verifyNoMoreInteractions(driver, sessionParametersTemplate, session, transaction);
+				verifyNoMoreInteractions(driver, session, transaction);
 			}
 
 			@Test
@@ -121,7 +112,7 @@ class TransactionHandlingTest {
 
 				AtomicBoolean transactionIsOpen = new AtomicBoolean(true);
 
-				when(driver.session(any(Consumer.class))).thenReturn(session);
+				when(driver.session(any(SessionConfig.class))).thenReturn(session);
 				when(session.isOpen()).thenReturn(true);
 				when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
 				// Mock closing of the transaction
@@ -168,14 +159,14 @@ class TransactionHandlingTest {
 			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
 			neo4jClient.query("RETURN 1").in("aDatabase").fetch().one();
 
-			verify(driver, never()).rxSession(any(Consumer.class));
+			verify(driver, never()).rxSession(any(SessionConfig.class));
 			verifyZeroInteractions(driver, session);
 		}
 
 		@Test
 		void shouldCloseUnmanagedSessionOnComplete() {
 
-			when(driver.rxSession(any(Consumer.class))).thenReturn(session);
+			when(driver.rxSession(any(SessionConfig.class))).thenReturn(session);
 			when(session.beginTransaction()).thenReturn(Mono.just(transaction));
 			when(transaction.commit()).thenReturn(Mono.empty());
 			when(session.close()).thenReturn(Mono.empty());
@@ -188,7 +179,7 @@ class TransactionHandlingTest {
 				.expectNext("1")
 				.verifyComplete();
 
-			verify(driver).rxSession(any(Consumer.class));
+			verify(driver).rxSession(any(SessionConfig.class));
 			verify(session).beginTransaction();
 			verify(transaction).commit();
 			verify(transaction).rollback();
@@ -199,8 +190,7 @@ class TransactionHandlingTest {
 		@Test
 		void shouldCloseUnmanagedSessionOnError() {
 
-
-			when(driver.rxSession(any(Consumer.class))).thenReturn(session);
+			when(driver.rxSession(any(SessionConfig.class))).thenReturn(session);
 			when(session.beginTransaction()).thenReturn(Mono.just(transaction));
 			when(transaction.rollback()).thenReturn(Mono.empty());
 			when(session.close()).thenReturn(Mono.empty());
@@ -214,7 +204,7 @@ class TransactionHandlingTest {
 				.expectError(SomeException.class)
 				.verify();
 
-			verify(driver).rxSession(any(Consumer.class));
+			verify(driver).rxSession(any(SessionConfig.class));
 			verify(session).beginTransaction();
 			verify(transaction).commit();
 			verify(transaction).rollback();

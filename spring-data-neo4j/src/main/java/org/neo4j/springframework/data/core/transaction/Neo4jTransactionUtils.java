@@ -20,11 +20,11 @@ package org.neo4j.springframework.data.core.transaction;
 
 import java.time.Duration;
 import java.util.Collections;
-import java.util.function.Consumer;
+import java.util.List;
 
 import org.neo4j.driver.AccessMode;
-import org.neo4j.driver.SessionParametersTemplate;
 import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.internal.SessionConfig;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.InvalidIsolationLevelException;
@@ -43,15 +43,21 @@ public final class Neo4jTransactionUtils {
 	 * @param databaseName The database to use. May be null, which then designates the default database.
 	 * @return Session parameters to configure the default session used
 	 */
-	public static Consumer<SessionParametersTemplate> defaultSessionParameters(@Nullable String databaseName) {
-		return (SessionParametersTemplate t) -> {
-			t.withDefaultAccessMode(AccessMode.WRITE)
-				.withBookmarks(Collections.EMPTY_LIST);
+	public static SessionConfig defaultSessionConfig(@Nullable String databaseName) {
+		return sessionConfig(false, Collections.emptyList(), databaseName);
+	}
 
-			if (databaseName != null) {
-				t.withDatabase(databaseName);
-			}
-		};
+	public static SessionConfig sessionConfig(boolean readOnly, List<String> bookmarks,
+		@Nullable String databaseName) {
+		SessionConfig.Builder builder = SessionConfig.builder()
+			.withDefaultAccessMode(readOnly ? AccessMode.READ : AccessMode.WRITE)
+			.withBookmarks(bookmarks);
+
+		if (databaseName != null) {
+			builder.withDatabase(databaseName);
+		}
+
+		return builder.build();
 	}
 
 	/**

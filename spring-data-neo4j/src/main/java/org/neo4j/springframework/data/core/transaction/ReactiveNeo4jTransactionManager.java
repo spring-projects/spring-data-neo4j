@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apiguardian.api.API;
-import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.reactive.RxSession;
@@ -85,7 +84,7 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 
 				// Otherwise open up a new native transaction
 				return Mono.defer(() -> {
-					RxSession session = driver.rxSession(defaultSessionParameters(targetDatabase));
+					RxSession session = driver.rxSession(defaultSessionConfig(targetDatabase));
 					return Mono.from(session.beginTransaction(TransactionConfig.empty())).map(tx -> {
 
 						ReactiveNeo4jTransactionHolder newConnectionHolder = new ReactiveNeo4jTransactionHolder(
@@ -147,13 +146,11 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 
 			TransactionConfig transactionConfig = createTransactionConfigFrom(transactionDefinition);
 			boolean readOnly = transactionDefinition.isReadOnly();
-			AccessMode accessMode = readOnly ? AccessMode.READ : AccessMode.WRITE;
-			List<String> bookmarks = Collections.emptyList(); // TODO Bookmarksupport
 
 			transactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
 
-			RxSession session = this.driver
-					.rxSession(t -> t.withDefaultAccessMode(accessMode).withBookmarks(bookmarks).withDatabase(databaseName));
+			List<String> bookmarks = Collections.emptyList(); // TODO Bookmarksupport;
+			RxSession session = this.driver.rxSession(sessionConfig(readOnly, bookmarks, databaseName));
 
 			return Mono.from(session.beginTransaction(transactionConfig)).doOnNext(nativeTransaction -> {
 
