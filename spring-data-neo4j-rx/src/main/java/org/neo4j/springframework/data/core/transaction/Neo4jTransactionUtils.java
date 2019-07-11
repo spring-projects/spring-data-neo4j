@@ -21,6 +21,7 @@ package org.neo4j.springframework.data.core.transaction;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.TransactionConfig;
@@ -88,11 +89,18 @@ public final class Neo4jTransactionUtils {
 	}
 
 	static boolean namesMapToTheSameDatabase(@Nullable String name1, @Nullable String name2) {
-
-		return name1 == null && name2 == null || (name1 != null && name1.equals(name2));
+		return Objects.equals(name1, name2);
 	}
 
+	static String formatOngoingTxInAnotherDbErrorMessage(String currentDb, String requestedDb) {
+		String defaultDatabase = "the default database";
+		String _currentDb = currentDb == null ? defaultDatabase : String.format("'%s'", currentDb);
+		String _requestedDb = requestedDb == null ? defaultDatabase : String.format("'%s'", requestedDb);
 
+		return String.format("There is already an ongoing Spring transaction for %s, but you request %s", _currentDb,
+			_requestedDb);
+
+	}
 	private Neo4jTransactionUtils() {
 	}
 }

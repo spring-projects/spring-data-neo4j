@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core;
 
+import static org.neo4j.springframework.data.core.Neo4jClient.*;
 import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUtils.*;
 import static org.neo4j.springframework.data.core.transaction.ReactiveNeo4jTransactionManager.*;
 
@@ -138,7 +139,8 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		@Override
 		public ReactiveRunnableSpecTightToDatabase in(@SuppressWarnings("HiddenField") String targetDatabase) {
-			this.targetDatabase = targetDatabase;
+
+			this.targetDatabase = verifyDatabaseName(targetDatabase);
 			return this;
 		}
 
@@ -301,8 +303,9 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		}
 
 		@Override
-		public ReactiveRunnableDelegation in(@SuppressWarnings("HiddenField") String targetDatabase) {
-			this.targetDatabase = targetDatabase;
+		public ReactiveRunnableDelegation in(@Nullable @SuppressWarnings("HiddenField") String targetDatabase) {
+
+			this.targetDatabase = verifyDatabaseName(targetDatabase);
 			return this;
 		}
 

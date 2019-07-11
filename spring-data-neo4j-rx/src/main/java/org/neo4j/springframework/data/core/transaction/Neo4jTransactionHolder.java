@@ -56,7 +56,6 @@ class Neo4jTransactionHolder extends ResourceHolderSupport {
 	 * @return An optional, ongoing transaction.
 	 */
 	Optional<Transaction> getTransaction(String inDatabase) {
-
 		return namesMapToTheSameDatabase(this.databaseName, inDatabase) ? Optional.of(transaction) : Optional.empty();
 	}
 
@@ -108,5 +107,9 @@ class Neo4jTransactionHolder extends ResourceHolderSupport {
 	boolean hasActiveTransaction() {
 
 		return transaction.isOpen();
+	}
+
+	String getDatabaseName() {
+		return databaseName;
 	}
 }

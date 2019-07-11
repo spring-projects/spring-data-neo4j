@@ -75,12 +75,12 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 		List<ThingWithGeneratedId> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
 		transactionalOperator
-			.execute(t -> thingsWithGeneratedIds.save(new ThingWithGeneratedId("Foobar")))
+			.execute(t -> thingsWithGeneratedIds.save(new ThingWithGeneratedId("WrapperService")))
 			.as(StepVerifier::create)
 			.recordWith(() -> savedThings)
 			.consumeNextWith(savedThing -> {
 
-				assertThat(savedThing.getName()).isEqualTo("Foobar");
+				assertThat(savedThing.getName()).isEqualTo("WrapperService");
 				assertThat(savedThing.getTheId())
 					.isNotBlank()
 					.matches("thingWithGeneratedId-\\d+");
@@ -96,12 +96,12 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 		List<ThingWithIdGeneratedByBean> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
 		transactionalOperator
-			.execute(t -> thingsWithBeanGeneratedIds.save(new ThingWithIdGeneratedByBean("Foobar")))
+			.execute(t -> thingsWithBeanGeneratedIds.save(new ThingWithIdGeneratedByBean("WrapperService")))
 			.as(StepVerifier::create)
 			.recordWith(() -> savedThings)
 			.consumeNextWith(savedThing -> {
 
-				assertThat(savedThing.getName()).isEqualTo("Foobar");
+				assertThat(savedThing.getName()).isEqualTo("WrapperService");
 				assertThat(savedThing.getTheId()).isEqualTo("ReactiveID.");
 			})
 			.verifyComplete();

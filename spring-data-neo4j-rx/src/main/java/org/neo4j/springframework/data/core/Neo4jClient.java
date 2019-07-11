@@ -103,12 +103,13 @@ public interface Neo4jClient {
 	interface RunnableSpec extends RunnableSpecTightToDatabase {
 
 		/**
-		 * Pins the previously defined query to a specific database.
+		 * Pins the previously defined query to a specific database. A value of {@literal null} chooses the default database.
+		 * The empty string {@literal ""} is not permitted.
 		 *
 		 * @param targetDatabase selected database to use
 		 * @return A runnable query specification that is now tight to a given database.
 		 */
-		RunnableSpecTightToDatabase in(String targetDatabase);
+		RunnableSpecTightToDatabase in(@Nullable String targetDatabase);
 	}
 
 	/**
@@ -290,5 +291,22 @@ public interface Neo4jClient {
 		 * @throws NoResultException when there is no result
 		 */
 		T getRequiredSingleResult();
+	}
+
+	/**
+	 * This is a utility method to verify and sanitize a database name.
+	 *
+	 * @param databaseName The database name to verify and sanitize
+	 * @return A possibly trimmed name of the database.
+	 * @throws IllegalArgumentException when the database name is not allowed with the underlying driver.
+	 */
+	static String verifyDatabaseName(String databaseName) {
+
+		String newTargetDatabase = databaseName == null ? null : databaseName.trim();
+		if (newTargetDatabase != null && newTargetDatabase.isEmpty()) {
+			throw new IllegalArgumentException(
+				"Either use null to indicate the default database or a valid database name. The empty string is not permitted.");
+		}
+		return newTargetDatabase;
 	}
 }

@@ -81,4 +81,8 @@ class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 
 		throw new UnsupportedOperationException();
 	}
+
+	String getDatabaseName() {
+		return databaseName;
+	}
 }
