@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -89,7 +88,6 @@ class ReactiveNeo4jClientTest {
 	@Mock
 	private Record record2;
 
-	@BeforeEach
 	void prepareMocks() {
 
 		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
@@ -108,6 +106,8 @@ class ReactiveNeo4jClientTest {
 	@Test
 	@DisplayName("Creation of queries and binding parameters should feel natural")
 	void queryCreationShouldFeelGood() {
+
+		prepareMocks();
 
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(transaction.commit()).thenReturn(Mono.empty());
@@ -156,6 +156,8 @@ class ReactiveNeo4jClientTest {
 	@Test
 	void databaseSelectionShouldBePossibleOnlyOnce() {
 
+		prepareMocks();
+
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(transaction.commit()).thenReturn(Mono.empty());
 		when(statementResult.records()).thenReturn(Flux.just(record1, record2));
@@ -187,12 +189,35 @@ class ReactiveNeo4jClientTest {
 		verify(session).close();
 	}
 
+	@Test
+	void databaseSelectionShouldPreventIllegalValues() {
+
+		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
+
+		assertThat(client.query("RETURN 1").in(null)).isNotNull();
+		assertThat(client.query("RETURN 1").in("foobar")).isNotNull();
+
+		String[] invalidDatabaseNames = { "", " ", "\t" };
+		for (String invalidDatabaseName : invalidDatabaseNames) {
+			assertThatIllegalArgumentException()
+				.isThrownBy(() -> client.delegateTo(r -> Mono.empty()).in(invalidDatabaseName));
+		}
+
+		for (String invalidDatabaseName : invalidDatabaseNames) {
+			assertThatIllegalArgumentException().isThrownBy(() -> client.query("RETURN 1").in(invalidDatabaseName));
+		}
+
+		verify(driver).defaultTypeSystem();
+	}
+
 	@Nested
 	@DisplayName("Callback handling should feel good")
 	class CallbackHandlingShouldFeelGood {
 
 		@Test
 		void withDefaultDatabase() {
+
+			prepareMocks();
 
 			when(transaction.commit()).thenReturn(Mono.empty());
 
@@ -214,6 +239,8 @@ class ReactiveNeo4jClientTest {
 
 		@Test
 		void withDatabase() {
+
+			prepareMocks();
 
 			when(transaction.commit()).thenReturn(Mono.empty());
 
@@ -241,6 +268,8 @@ class ReactiveNeo4jClientTest {
 
 		@Test
 		void reading() {
+
+			prepareMocks();
 
 			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 			when(transaction.commit()).thenReturn(Mono.empty());
@@ -279,6 +308,8 @@ class ReactiveNeo4jClientTest {
 		@Test
 		void shouldApplyNullChecksDuringReading() {
 
+			prepareMocks();
+
 			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 			when(transaction.rollback()).thenReturn(Mono.empty());
 			when(statementResult.records()).thenReturn(Flux.just(record1, record2));
@@ -312,6 +343,8 @@ class ReactiveNeo4jClientTest {
 
 		@Test
 		void writing() {
+
+			prepareMocks();
 
 			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 			when(transaction.commit()).thenReturn(Mono.empty());
@@ -350,6 +383,8 @@ class ReactiveNeo4jClientTest {
 		@DisplayName("Some automatic conversion is ok")
 		void automaticConversion() {
 
+			prepareMocks();
+
 			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 			when(transaction.commit()).thenReturn(Mono.empty());
 			when(statementResult.records()).thenReturn(Flux.just(record1));
@@ -380,6 +415,8 @@ class ReactiveNeo4jClientTest {
 	@Test
 	@DisplayName("Queries that return nothing should fit in")
 	void queriesWithoutResultShouldFitInAsWell() {
+
+		prepareMocks();
 
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(transaction.commit()).thenReturn(Mono.empty());

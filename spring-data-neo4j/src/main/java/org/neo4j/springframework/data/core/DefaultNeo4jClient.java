@@ -19,6 +19,7 @@
 package org.neo4j.springframework.data.core;
 
 import static java.util.stream.Collectors.*;
+import static org.neo4j.springframework.data.core.Neo4jClient.*;
 import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager.*;
 import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUtils.*;
 
@@ -68,7 +69,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		this.typeSystem = driver.defaultTypeSystem();
 	}
 
-	AutoCloseableStatementRunner getStatementRunner(final String targetDatabase) {
+	AutoCloseableStatementRunner getStatementRunner(@Nullable final String targetDatabase) {
 
 		StatementRunner statementRunner = retrieveTransaction(driver, targetDatabase)
 			.map(StatementRunner.class::cast)
@@ -198,7 +199,8 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		@Override
 		public RunnableSpecTightToDatabase in(@SuppressWarnings("HiddenField") String targetDatabase) {
-			this.targetDatabase = targetDatabase;
+
+			this.targetDatabase = verifyDatabaseName(targetDatabase);
 			return this;
 		}
 
@@ -329,7 +331,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		private final Function<StatementRunner, Optional<T>> callback;
 
-		private String targetDatabase;
+		@Nullable private String targetDatabase;
 
 		DefaultRunnableDelegation(Function<StatementRunner, Optional<T>> callback) {
 			this(callback, null);
@@ -341,8 +343,9 @@ class DefaultNeo4jClient implements Neo4jClient {
 		}
 
 		@Override
-		public RunnableDelegation in(@SuppressWarnings("HiddenField") String targetDatabase) {
-			this.targetDatabase = targetDatabase;
+		public RunnableDelegation in(@Nullable @SuppressWarnings("HiddenField") String targetDatabase) {
+
+			this.targetDatabase = verifyDatabaseName(targetDatabase);
 			return this;
 		}
 

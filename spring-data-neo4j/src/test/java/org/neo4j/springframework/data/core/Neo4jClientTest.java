@@ -37,7 +37,6 @@ import java.util.stream.Stream;
 
 import org.assertj.core.matcher.AssertionMatcher;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -83,7 +82,6 @@ class Neo4jClientTest {
 	@Mock
 	private Record record2;
 
-	@BeforeEach
 	void prepareMocks() {
 
 		when(driver.session(any(SessionConfig.class))).thenReturn(session);
@@ -98,6 +96,8 @@ class Neo4jClientTest {
 	@Test
 	@DisplayName("Creation of queries and binding parameters should feel natural")
 	void queryCreationShouldFeelGood() {
+
+		prepareMocks();
 
 		when(session.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(statementResult.stream()).thenReturn(Stream.of(record1, record2));
@@ -141,6 +141,8 @@ class Neo4jClientTest {
 	@Test
 	void databaseSelectionShouldBePossibleOnlyOnce() {
 
+		prepareMocks();
+
 		when(session.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(statementResult.stream()).thenReturn(Stream.of(record1, record2));
 
@@ -168,12 +170,35 @@ class Neo4jClientTest {
 		verify(session).close();
 	}
 
+	@Test
+	void databaseSelectionShouldPreventIllegalValues() {
+
+		Neo4jClient client = Neo4jClient.create(driver);
+
+		assertThat(client.query("RETURN 1").in(null)).isNotNull();
+		assertThat(client.query("RETURN 1").in("foobar")).isNotNull();
+
+		String[] invalidDatabaseNames = { "", " ", "\t" };
+		for (String invalidDatabaseName : invalidDatabaseNames) {
+			assertThatIllegalArgumentException()
+				.isThrownBy(() -> client.delegateTo(r -> Optional.empty()).in(invalidDatabaseName));
+		}
+
+		for (String invalidDatabaseName : invalidDatabaseNames) {
+			assertThatIllegalArgumentException().isThrownBy(() -> client.query("RETURN 1").in(invalidDatabaseName));
+		}
+
+		verify(driver).defaultTypeSystem();
+	}
+
 	@Nested
 	@DisplayName("Callback handling should feel good")
 	class CallbackHandlingShouldFeelGood {
 
 		@Test
 		void withDefaultDatabase() {
+
+			prepareMocks();
 
 			Neo4jClient client = Neo4jClient.create(driver);
 			Optional<Integer> result = client
@@ -189,6 +214,8 @@ class Neo4jClientTest {
 
 		@Test
 		void withDatabase() {
+
+			prepareMocks();
 
 			Neo4jClient client = Neo4jClient.create(driver);
 			Optional<Integer> result = client
@@ -210,6 +237,8 @@ class Neo4jClientTest {
 
 		@Test
 		void reading() {
+
+			prepareMocks();
 
 			when(session.run(anyString(), anyMap())).thenReturn(statementResult);
 			when(statementResult.stream()).thenReturn(Stream.of(record1));
@@ -244,6 +273,8 @@ class Neo4jClientTest {
 		@Test
 		void shouldApplyNullChecksDuringReading() {
 
+			prepareMocks();
+
 			when(session.run(anyString(), anyMap())).thenReturn(statementResult);
 			when(statementResult.stream()).thenReturn(Stream.of(record1, record2));
 			when(record1.get("name")).thenReturn(Values.value("michael"));
@@ -271,6 +302,8 @@ class Neo4jClientTest {
 
 		@Test
 		void writing() {
+
+			prepareMocks();
 
 			when(session.run(anyString(), anyMap())).thenReturn(statementResult);
 			when(statementResult.consume()).thenReturn(resultSummary);
@@ -301,6 +334,8 @@ class Neo4jClientTest {
 		@DisplayName("Some automatic conversion is ok")
 		void automaticConversion() {
 
+			prepareMocks();
+
 			when(session.run(anyString(), anyMap())).thenReturn(statementResult);
 			when(statementResult.hasNext()).thenReturn(true);
 			when(statementResult.single()).thenReturn(record1);
@@ -329,6 +364,8 @@ class Neo4jClientTest {
 	@Test
 	@DisplayName("Queries that return nothing should fit in")
 	void queriesWithoutResultShouldFitInAsWell() {
+
+		prepareMocks();
 
 		when(session.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(statementResult.consume()).thenReturn(resultSummary);

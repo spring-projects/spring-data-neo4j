@@ -79,7 +79,8 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 	 * @return An optional containing a managed transaction or an empty optional if the method hasn't been called inside
 	 * an ongoing Spring transaction
 	 */
-	public static Optional<Transaction> retrieveTransaction(final Driver driver, final String targetDatabase) {
+	public static Optional<Transaction> retrieveTransaction(final Driver driver,
+		@Nullable final String targetDatabase) {
 
 		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
 			return Optional.empty();
@@ -90,8 +91,14 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 			.getResource(driver);
 
 		if (connectionHolder != null) {
+			Optional<Transaction> optionalOngoingTransaction = connectionHolder.getTransaction(targetDatabase);
 
-			return connectionHolder.getTransaction(targetDatabase);
+			if (optionalOngoingTransaction.isPresent()) {
+				return optionalOngoingTransaction;
+			}
+
+			throw new IllegalStateException(
+				formatOngoingTxInAnotherDbErrorMessage(connectionHolder.getDatabaseName(), targetDatabase));
 		}
 
 		// Otherwise we open a session and synchronize it.
@@ -138,7 +145,6 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 
 	@Override
 	protected void doBegin(Object transaction, TransactionDefinition definition) throws TransactionException {
-
 		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
 
 		TransactionConfig transactionConfig = createTransactionConfigFrom(definition);
