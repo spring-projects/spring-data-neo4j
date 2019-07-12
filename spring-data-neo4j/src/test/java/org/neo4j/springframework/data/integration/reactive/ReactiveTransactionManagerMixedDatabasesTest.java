@@ -18,20 +18,27 @@
  */
 package org.neo4j.springframework.data.integration.reactive;
 
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.Session;
-import org.neo4j.driver.exceptions.DatabaseException;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.Values;
 import org.neo4j.driver.internal.SessionConfig;
+import org.neo4j.driver.reactive.RxSession;
+import org.neo4j.driver.reactive.RxStatementResult;
+import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
 import org.neo4j.springframework.data.core.Neo4jClient;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
@@ -49,13 +56,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.reactive.TransactionalOperator;
 
 /**
- * The goal of this integration tests is to ensure a sensible coexistence of declarative {@link Transactional @Transactional}
+ * The goal of this tests is to ensure a sensible coexistence of declarative {@link Transactional @Transactional}
  * transaction when the user uses the {@link Neo4jClient} in the same or another database.
+ * <p>
+ * While it does not integrate against a real database (multidatabase is an enterprise feature), it is still an integration
+ * test due to the high integration with Spring framework code.
  */
 @ExtendWith(SpringExtension.class)
-@ExtendWith(Neo4jExtension.class)
-@ContextConfiguration(classes = ReactiveMixedDatabasesTransactionIT.Config.class)
-public class ReactiveMixedDatabasesTransactionIT {
+@ContextConfiguration(classes = ReactiveTransactionManagerMixedDatabasesTest.Config.class)
+public class ReactiveTransactionManagerMixedDatabasesTest {
 
 	protected static final String DATABASE_NAME = "boom";
 	public static final String TEST_QUERY = "MATCH (n:DbTest) RETURN COUNT(n)";
@@ -73,7 +82,7 @@ public class ReactiveMixedDatabasesTransactionIT {
 	private final WrapperService wrappingComponent;
 
 	@Autowired
-	public ReactiveMixedDatabasesTransactionIT(Driver driver, ReactiveNeo4jClient neo4jClient,
+	public ReactiveTransactionManagerMixedDatabasesTest(Driver driver, ReactiveNeo4jClient neo4jClient,
 		ReactiveNeo4jTransactionManager neo4jTransactionManager,
 		ReactivePersonRepository repository,
 		WrapperService wrappingComponent) {
@@ -82,24 +91,6 @@ public class ReactiveMixedDatabasesTransactionIT {
 		this.neo4jTransactionManager = neo4jTransactionManager;
 		this.repository = repository;
 		this.wrappingComponent = wrappingComponent;
-	}
-
-	@BeforeEach
-	protected void setupDatabase() {
-
-		try (Session session = driver.session(SessionConfig.forDatabase("system"))) {
-			session.run("DROP DATABASE " + DATABASE_NAME);
-		} catch (DatabaseException e) {
-			// Database does probably not exist
-		}
-
-		try (Session session = driver.session(SessionConfig.forDatabase("system"))) {
-			session.run("CREATE DATABASE " + DATABASE_NAME);
-		}
-
-		try (Session session = driver.session(SessionConfig.forDatabase(DATABASE_NAME))) {
-			session.run("CREATE (n:DbTest) RETURN n");
-		}
 	}
 
 	@Test
@@ -219,7 +210,53 @@ public class ReactiveMixedDatabasesTransactionIT {
 
 		@Bean
 		public Driver driver() {
-			return neo4jConnectionSupport.openConnection();
+
+			Record boomRecord = mock(Record.class);
+			when(boomRecord.size()).thenReturn(1);
+			when(boomRecord.get(0)).thenReturn(Values.value(1L));
+
+			Record defaultRecord = mock(Record.class);
+			when(defaultRecord.size()).thenReturn(1);
+			when(defaultRecord.get(0)).thenReturn(Values.value(0L));
+
+			RxStatementResult boomStatementResult = mock(RxStatementResult.class);
+			when(boomStatementResult.records()).thenReturn(Mono.just(boomRecord));
+
+			RxStatementResult defaultStatementResult = mock(RxStatementResult.class);
+			when(defaultStatementResult.records()).thenReturn(Mono.just(defaultRecord));
+
+			RxTransaction boomTransaction = mock(RxTransaction.class);
+			when(boomTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomStatementResult);
+			when(boomTransaction.commit()).thenReturn(Mono.empty());
+			when(boomTransaction.rollback()).thenReturn(Mono.empty());
+
+			RxTransaction defaultTransaction = mock(RxTransaction.class);
+			when(defaultTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultStatementResult);
+			when(defaultTransaction.commit()).thenReturn(Mono.empty());
+			when(defaultTransaction.rollback()).thenReturn(Mono.empty());
+
+			RxSession boomSession = mock(RxSession.class);
+			when(boomSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomStatementResult);
+			when(boomSession.beginTransaction()).thenReturn(Mono.just(boomTransaction));
+			when(boomSession.beginTransaction(any(TransactionConfig.class))).thenReturn(Mono.just(boomTransaction));
+			when(boomSession.close()).thenReturn(Mono.empty());
+
+			RxSession defaultSession = mock(RxSession.class);
+			when(defaultSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultStatementResult);
+			when(defaultSession.beginTransaction()).thenReturn(Mono.just(defaultTransaction));
+			when(defaultSession.beginTransaction(any(TransactionConfig.class)))
+				.thenReturn(Mono.just(defaultTransaction));
+			when(defaultSession.close()).thenReturn(Mono.empty());
+
+			Driver driver = mock(Driver.class);
+			when(driver.rxSession()).thenReturn(defaultSession);
+			when(driver.rxSession(any(SessionConfig.class))).then(invocation -> {
+				SessionConfig sessionConfig = invocation.getArgument(0);
+				return sessionConfig.database().map(n -> n.equals(DATABASE_NAME) ? boomSession : defaultSession)
+					.orElse(defaultSession);
+			});
+
+			return driver;
 		}
 
 		@Override
