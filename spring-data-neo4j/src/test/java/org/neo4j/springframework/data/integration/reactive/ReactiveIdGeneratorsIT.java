@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.integration.reactive;
 
 import static java.util.stream.Collectors.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.neo4j.springframework.data.test.Neo4jExtension.*;
 
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
@@ -52,6 +54,7 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 /**
  * @author Michael J. Simons
  */
+@Tag(NEEDS_REACTIVE_SUPPORT)
 @ContextConfiguration(classes = ReactiveIdGeneratorsIT.Config.class)
 class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 
@@ -171,7 +174,7 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 
 		@Bean
 		public Driver driver() {
-			return neo4jConnectionSupport.openConnection();
+			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Override
