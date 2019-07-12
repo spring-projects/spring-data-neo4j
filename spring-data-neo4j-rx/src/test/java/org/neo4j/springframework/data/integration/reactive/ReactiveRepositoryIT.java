@@ -19,6 +19,7 @@
 package org.neo4j.springframework.data.integration.reactive;
 
 import static org.neo4j.driver.Values.*;
+import static org.neo4j.springframework.data.test.Neo4jExtension.*;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
@@ -47,7 +49,7 @@ import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructo
 import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
 import org.neo4j.springframework.data.test.Neo4jExtension;
-import org.neo4j.springframework.data.test.Neo4jExtension.Neo4jConnectionSupport;
+import org.neo4j.springframework.data.test.Neo4jExtension.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -64,6 +66,7 @@ import org.springframework.transaction.reactive.TransactionalOperator;
  * @author Gerrit Meier
  * @author Michael J. Simons
  */
+@Tag(NEEDS_REACTIVE_SUPPORT)
 @ExtendWith(Neo4jExtension.class)
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ReactiveRepositoryIT.Config.class)
@@ -725,7 +728,7 @@ class ReactiveRepositoryIT {
 
 		@Bean
 		public Driver driver() {
-			return neo4jConnectionSupport.openConnection();
+			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Override

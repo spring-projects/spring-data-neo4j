@@ -84,7 +84,7 @@ class KotlinIT {
 
 		@Bean
 		public Driver driver() {
-			return neo4jConnectionSupport.openConnection();
+			return neo4jConnectionSupport.getDriver();
 		}
 
 		public Collection<String> getMappingBasePackages() {

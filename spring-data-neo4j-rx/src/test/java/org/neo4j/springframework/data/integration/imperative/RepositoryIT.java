@@ -1025,7 +1025,7 @@ class RepositoryIT {
 
 		@Bean
 		public Driver driver() {
-			return neo4jConnectionSupport.openConnection();
+			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Override

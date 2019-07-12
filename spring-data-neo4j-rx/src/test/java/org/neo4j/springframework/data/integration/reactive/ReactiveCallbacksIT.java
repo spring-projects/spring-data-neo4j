@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.integration.reactive;
 
+import static org.neo4j.springframework.data.test.Neo4jExtension.*;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -28,6 +30,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
@@ -47,6 +50,7 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 /**
  * @author Michael J. Simons
  */
+@Tag(NEEDS_REACTIVE_SUPPORT)
 @ContextConfiguration(classes = ReactiveCallbacksIT.Config.class)
 class ReactiveCallbacksIT extends CallbacksITBase {
 
@@ -148,7 +152,7 @@ class ReactiveCallbacksIT extends CallbacksITBase {
 
 		@Bean
 		public Driver driver() {
-			return neo4jConnectionSupport.openConnection();
+			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Override
