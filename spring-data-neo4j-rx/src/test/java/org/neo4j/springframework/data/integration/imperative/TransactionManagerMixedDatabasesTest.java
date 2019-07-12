@@ -19,25 +19,29 @@
 package org.neo4j.springframework.data.integration.imperative;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.exceptions.DatabaseException;
+import org.neo4j.driver.StatementResult;
+import org.neo4j.driver.Transaction;
+import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.Values;
 import org.neo4j.driver.internal.SessionConfig;
 import org.neo4j.springframework.data.config.AbstractNeo4jConfig;
 import org.neo4j.springframework.data.core.Neo4jClient;
 import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
 import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
-import org.neo4j.springframework.data.test.Neo4jExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,18 +52,18 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * The goal of this integration tests is to ensure a sensible coexistence of declarative {@link Transactional @Transactional}
+ * The goal of this tests is to ensure a sensible coexistence of declarative {@link Transactional @Transactional}
  * transaction when the user uses the {@link Neo4jClient} in the same or another database.
+ * <p>
+ * While it does not integrate against a real database (multidatabase is an enterprise feature), it is still an integration
+ * test due to the high integration with Spring framework code.
  */
 @ExtendWith(SpringExtension.class)
-@ExtendWith(Neo4jExtension.class)
-@ContextConfiguration(classes = MixedDatabasesTransactionIT.Config.class)
-public class MixedDatabasesTransactionIT {
+@ContextConfiguration(classes = TransactionManagerMixedDatabasesTest.Config.class)
+public class TransactionManagerMixedDatabasesTest {
 
 	protected static final String DATABASE_NAME = "boom";
 	public static final String TEST_QUERY = "MATCH (n:DbTest) RETURN COUNT(n)";
-
-	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private final Driver driver;
 
@@ -70,31 +74,13 @@ public class MixedDatabasesTransactionIT {
 	private final PersonRepository repository;
 
 	@Autowired
-	public MixedDatabasesTransactionIT(Driver driver, Neo4jClient neo4jClient,
+	public TransactionManagerMixedDatabasesTest(Driver driver, Neo4jClient neo4jClient,
 		Neo4jTransactionManager neo4jTransactionManager,
 		PersonRepository repository) {
 		this.driver = driver;
 		this.neo4jClient = neo4jClient;
 		this.transactionTemplate = new TransactionTemplate(neo4jTransactionManager);
 		this.repository = repository;
-	}
-
-	@BeforeEach
-	protected void setupDatabase() {
-
-		try (Session session = driver.session(SessionConfig.forDatabase("system"))) {
-			session.run("DROP DATABASE " + DATABASE_NAME);
-		} catch (DatabaseException e) {
-			// Database does probably not exist
-		}
-
-		try (Session session = driver.session(SessionConfig.forDatabase("system"))) {
-			session.run("CREATE DATABASE " + DATABASE_NAME);
-		}
-
-		try (Session session = driver.session(SessionConfig.forDatabase(DATABASE_NAME))) {
-			session.run("CREATE (n:DbTest) RETURN n");
-		}
 	}
 
 	@Test
@@ -165,7 +151,50 @@ public class MixedDatabasesTransactionIT {
 
 		@Bean
 		public Driver driver() {
-			return neo4jConnectionSupport.openConnection();
+
+			Record boomRecord = mock(Record.class);
+			when(boomRecord.size()).thenReturn(1);
+			when(boomRecord.get(0)).thenReturn(Values.value(1L));
+
+			Record defaultRecord = mock(Record.class);
+			when(defaultRecord.size()).thenReturn(1);
+			when(defaultRecord.get(0)).thenReturn(Values.value(0L));
+
+			StatementResult boomStatementResult = mock(StatementResult.class);
+			when(boomStatementResult.hasNext()).thenReturn(true);
+			when(boomStatementResult.single()).thenReturn(boomRecord);
+
+			StatementResult defaultStatementResult = mock(StatementResult.class);
+			when(defaultStatementResult.hasNext()).thenReturn(true);
+			when(defaultStatementResult.single()).thenReturn(defaultRecord);
+
+			Transaction boomTransaction = mock(Transaction.class);
+			when(boomTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomStatementResult);
+			when(boomTransaction.isOpen()).thenReturn(true);
+
+			Transaction defaultTransaction = mock(Transaction.class);
+			when(defaultTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultStatementResult);
+			when(defaultTransaction.isOpen()).thenReturn(true);
+
+			Session boomSession = mock(Session.class);
+			when(boomSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomStatementResult);
+			when(boomSession.beginTransaction(any(TransactionConfig.class))).thenReturn(boomTransaction);
+			when(boomSession.isOpen()).thenReturn(true);
+
+			Session defaultSession = mock(Session.class);
+			when(defaultSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultStatementResult);
+			when(defaultSession.beginTransaction(any(TransactionConfig.class))).thenReturn(defaultTransaction);
+			when(defaultSession.isOpen()).thenReturn(true);
+
+			Driver driver = mock(Driver.class);
+			when(driver.session()).thenReturn(defaultSession);
+			when(driver.session(any(SessionConfig.class))).then(invocation -> {
+				SessionConfig sessionConfig = invocation.getArgument(0);
+				return sessionConfig.database().map(n -> n.equals(DATABASE_NAME) ? boomSession : defaultSession)
+					.orElse(defaultSession);
+			});
+
+			return driver;
 		}
 
 		@Override
