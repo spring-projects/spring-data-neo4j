@@ -28,17 +28,17 @@
 		<!-- lookup parent from repository -->
 	</parent>
 
-	<groupId>org.neo4j.springframework.data</groupId>
+	<groupId>org.neo4j.doc.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-rx-examples-reactive-web</artifactId>
-	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<version>999-SNAPSHOT</version>
 
 	<name>SDN⚡️RX Examples for Spring Boot</name>
 	<description>Demonstrating how to use SDN⚡️RX from within Spring Boot.</description>
 
 	<properties>
 		<java.version>12</java.version>
-		<jqassistant.plugin.version>1.6.0</jqassistant.plugin.version>
 		<junit-jupiter.version>5.4.0</junit-jupiter.version>
+		<spring-data-neo4j-rx.version>${revision}${sha1}${changelist}</spring-data-neo4j-rx.version>
 		<testcontainers.version>1.10.6</testcontainers.version>
 	</properties>
 
@@ -50,7 +50,7 @@
 		<dependency>
 			<groupId>org.neo4j.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-rx-spring-boot-starter</artifactId>
-			<version>${project.version}</version>
+			<version>${spring-data-neo4j-rx.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -140,4 +140,41 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<!-- Those profiles are not relevant to the examples and are only needed for SDN-RX release chain. -->
+	<profiles>
+		<profile>
+			<id>revisionMissing</id>
+			<activation>
+				<property>
+					<name>!revision</name>
+				</property>
+			</activation>
+			<properties>
+				<revision>1.0.0</revision>
+			</properties>
+		</profile>
+		<profile>
+			<id>sha1Missing</id>
+			<activation>
+				<property>
+					<name>!sha</name>
+				</property>
+			</activation>
+			<properties>
+				<sha1></sha1>
+			</properties>
+		</profile>
+		<profile>
+			<id>changelistMissing</id>
+			<activation>
+				<property>
+					<name>!changelist</name>
+				</property>
+			</activation>
+			<properties>
+				<changelist>-SNAPSHOT</changelist>
+			</properties>
+		</profile>
+	</profiles>
 </project>

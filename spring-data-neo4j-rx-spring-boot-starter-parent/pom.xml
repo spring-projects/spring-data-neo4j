@@ -29,7 +29,7 @@
 
 	<groupId>org.neo4j.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-rx-spring-boot-starter-parent</artifactId>
-	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<version>${revision}${sha1}${changelist}</version>
 	<packaging>pom</packaging>
 
 	<name>SDN⚡️RX Spring Boot Starter Parent</name>
@@ -41,8 +41,12 @@
 	</modules>
 
 	<properties>
+		<changelist>-SNAPSHOT</changelist>
+		<flatten-maven-plugin.version>1.1.0</flatten-maven-plugin.version>
 		<neo4j-java-driver-spring-boot-starter.version>1.0.0-alpha03</neo4j-java-driver-spring-boot-starter.version>
-		<spring-data-neo4j-rx.version>1.0.0.BUILD-SNAPSHOT</spring-data-neo4j-rx.version>
+		<revision>1.0.0</revision>
+		<sha1></sha1>
+		<spring-data-neo4j-rx.version>${revision}${sha1}${changelist}</spring-data-neo4j-rx.version>
 		<testcontainers.version>1.10.7</testcontainers.version>
 	</properties>
 
@@ -72,6 +76,44 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>flatten-maven-plugin</artifactId>
+					<version>${flatten-maven-plugin.version}</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>flatten-maven-plugin</artifactId>
+				<configuration>
+					<updatePomFile>true</updatePomFile>
+					<flattenMode>resolveCiFriendliesOnly</flattenMode>
+				</configuration>
+				<executions>
+					<execution>
+						<id>flatten</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>flatten</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>flatten.clean</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 	<repositories>
 		<repository>

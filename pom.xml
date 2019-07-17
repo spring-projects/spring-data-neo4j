@@ -28,7 +28,7 @@
 
 	<groupId>org.neo4j.springframework.data</groupId>
 	<artifactId>spring-data-neo4j-rx-parent</artifactId>
-	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<version>${revision}${sha1}${changelist}</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Data Neo4j RX</name>
@@ -74,13 +74,16 @@
 	<modules>
 		<module>spring-data-neo4j-rx</module>
 		<module>spring-data-neo4j-rx-spring-boot-starter-parent</module>
-		<module>examples</module>
+		<module>examples/reactive-web</module>
+		<module>examples/mapping</module>
 	</modules>
 
 	<properties>
 		<apiguardian.version>1.0.0</apiguardian.version>
 		<assertj.version>3.11.1</assertj.version>
+		<changelist>-SNAPSHOT</changelist>
 		<checkstyle.version>8.21</checkstyle.version>
+		<flatten-maven-plugin.version>1.1.0</flatten-maven-plugin.version>
 		<jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
 		<java.version>1.8</java.version>
 		<jqassistant.plugin.version>1.6.0</jqassistant.plugin.version>
@@ -103,8 +106,10 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<reactive-streams.version>1.2.1</reactive-streams.version>
 		<reactor-bom.version>Californium-SR4</reactor-bom.version>
+		<revision>1.0.0</revision>
 		<rxjava.version>1.3.8</rxjava.version>
 		<rxjava2.version>2.2.5</rxjava2.version>
+		<sha1></sha1>
 		<slf4j.version>1.7.26</slf4j.version>
 		<springdata-commons.version>2.2.0.RC1</springdata-commons.version>
 		<testcontainers.version>1.10.7</testcontainers.version>
@@ -318,6 +323,11 @@
 						</dependency>
 					</dependencies>
 				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>flatten-maven-plugin</artifactId>
+					<version>${flatten-maven-plugin.version}</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
@@ -389,6 +399,30 @@
 						<goals>
 							<goal>integration-test</goal>
 							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>flatten-maven-plugin</artifactId>
+				<configuration>
+					<updatePomFile>true</updatePomFile>
+					<flattenMode>resolveCiFriendliesOnly</flattenMode>
+				</configuration>
+				<executions>
+					<execution>
+						<id>flatten</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>flatten</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>flatten.clean</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>clean</goal>
 						</goals>
 					</execution>
 				</executions>

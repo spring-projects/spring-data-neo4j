@@ -23,7 +23,7 @@
 	<parent>
 		<artifactId>spring-data-neo4j-rx-spring-boot-starter-parent</artifactId>
 		<groupId>org.neo4j.springframework.data</groupId>
-		<version>1.0.0.BUILD-SNAPSHOT</version>
+		<version>${revision}${sha1}${changelist}</version>
 	</parent>
 
 	<artifactId>spring-data-neo4j-rx-spring-boot-autoconfigure</artifactId>
