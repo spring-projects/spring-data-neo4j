@@ -30,3 +30,4 @@ target/
 ### Misc ###
 .DS_Store
 .flattened-pom.xml
+dependency-reduced-pom.xml

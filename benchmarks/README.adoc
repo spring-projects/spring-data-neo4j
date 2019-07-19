@@ -1,0 +1,77 @@
+= Benchmarks
+:sectanchors:
+
+== Prerequisites
+
+All benchmarks require Java 12.
+
+=== SDN-RX
+
+As long as SDN-RX itself is not yet on central, you have to build a snapshot your self.
+Please do this on the top level of SDN-RX with
+
+```
+./mvnw -DskipTests -Drevision=999 -Dchangelist=-BENCHMARK clean install
+```
+
+=== Neo4j
+
+You either need a running database somewhere or a working Docker installation on your machine.
+
+== Run
+
+Each benchmark can be build with
+
+```
+mvn clean package
+```
+
+and run with
+
+```
+java -jar target/benchmark-name-of-module-999-SNAPSHOT.jar
+```
+
+In this case, the benchmarks will fire up a https://www.testcontainers.org[Testcontainer] with Neo4j and the result is probably lower.
+
+To use a locally running instance, start each test like:
+
+```
+SDN_RX_NEO4J_URL=bolt://localhost:7687 SDN_RX_NEO4J_PASSWORD=benchmark java -jar target/benchmark.jar
+```
+
+=== Results
+
+==== MacBook Pro 13", 3,5GHz i7, 16 GB, macOS 10.14.5
+
+Neo4j 3.5.6 Enterprise Edition, default configuration with memory settings below:
+
+```
+dbms.memory.heap.initial_size=2G
+dbms.memory.heap.max_size=2G
+```
+
+The database has been stopped and restarted after each module.
+
+[cols=3*,options=header]
+|===
+|
+|Version
+|Benchmarks.simpleFindBy
+|Benchmarks.simpleInsert
+
+|SDN+OGM
+|SDN 5.2.0 RC1, OGM 3.2.0-RC1, Bolt 1.7.5
+|1925,729 ± 68,844  ops/s
+|1073,096 ± 67,814  ops/s
+
+|Pure Bolt
+|2.0.0-alpha03
+|3309,650 ± 147,427  ops/s
+|1523,044 ±  51,523  ops/s
+
+|SDN-RX
+|Built 2019-07-19, Bolt 2.0.0-alpha03
+|2486,212 ± 82,633  ops/s
+|1036,926 ± 82,041  ops/s
+|===
