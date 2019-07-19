@@ -102,7 +102,7 @@ final class ReactivePartTreeNeo4jQuery extends AbstractReactiveNeo4jQuery {
 
 		return PreparedQuery.queryFor(super.domainType).withCypherQuery(cypherQuery)
 			.withParameters(boundedParameters)
-			.usingMappingFunction(mappingContext.getMappingFunctionFor(super.domainType).orElse(null))
+			.usingMappingFunction(mappingContext.getMappingFunctionFor(super.domainType))
 			.build();
 	}
 

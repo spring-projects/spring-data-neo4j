@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.apiguardian.api.API;
@@ -44,6 +43,7 @@ import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Relationship;
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 import org.neo4j.springframework.data.core.schema.Schema;
+import org.neo4j.springframework.data.core.schema.UnknownEntityException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -130,12 +130,13 @@ public final class Neo4jMappingContext
 					newEntity, label.orElse("n/a")));
 		}
 
-		this.getNodeDescription(newEntity.getUnderlyingClass()).ifPresent(existingDescription -> {
+		NodeDescription<?> existingDescription = this.getNodeDescription(newEntity.getUnderlyingClass());
+		if (existingDescription != null) {
 
 			throw new MappingException(String.format(Locale.ENGLISH,
 				"The schema already contains description with the underlying class %s under the primary label %s",
 				newEntity.getUnderlyingClass().getName(), existingDescription.getPrimaryLabel()));
-		});
+		}
 
 		this.nodeDescriptionsByPrimaryLabel.put(primaryLabel, newEntity);
 
@@ -154,22 +155,30 @@ public final class Neo4jMappingContext
 	}
 
 	@Override
-	public Optional<NodeDescription<?>> getNodeDescription(String primaryLabel) {
-		return Optional.ofNullable(this.nodeDescriptionsByPrimaryLabel.get(primaryLabel));
+	@Nullable
+	public NodeDescription<?> getNodeDescription(String primaryLabel) {
+		return this.nodeDescriptionsByPrimaryLabel.get(primaryLabel);
 	}
 
 	NodeDescription<?> getRequiredNodeDescription(String primaryLabel) {
-		return this.getNodeDescription(primaryLabel)
-			.orElseThrow(
-				() -> new MappingException(
-					String.format("Required node description not found with primary label '%s'", primaryLabel)));
+
+		NodeDescription<?> nodeDescription = this.getNodeDescription(primaryLabel);
+		if (nodeDescription == null) {
+			throw new MappingException(
+				String.format("Required node description not found with primary label '%s'", primaryLabel));
+		}
+		return nodeDescription;
 	}
 
 	@Override
-	public Optional<NodeDescription<?>> getNodeDescription(Class<?> underlyingClass) {
+	public NodeDescription<?> getNodeDescription(Class<?> underlyingClass) {
 
-		Predicate<NodeDescription> underlyingClassMatches = n -> n.getUnderlyingClass().equals(underlyingClass);
-		return this.nodeDescriptionsByPrimaryLabel.values().stream().filter(underlyingClassMatches).findFirst();
+		for (NodeDescription<?> nodeDescription : this.nodeDescriptionsByPrimaryLabel.values()) {
+			if (nodeDescription.getUnderlyingClass().equals(underlyingClass)) {
+				return nodeDescription;
+			}
+		}
+		return null;
 	}
 
 	@Override
@@ -179,26 +188,24 @@ public final class Neo4jMappingContext
 	}
 
 	@Override
-	public <T> Optional<BiFunction<TypeSystem, Record, T>> getMappingFunctionFor(Class<T> targetClass) {
-
-		if (!this.hasPersistentEntityFor(targetClass)) {
-			return Optional.empty();
+	@Nullable
+	public <T> BiFunction<TypeSystem, Record, T> getMappingFunctionFor(Class<T> targetClass) {
+		if (this.hasPersistentEntityFor(targetClass)) {
+			Neo4jPersistentEntity neo4jPersistentEntity = this.getPersistentEntity(targetClass);
+			return new DefaultNeo4jMappingFunction<T>(instantiators, neo4jPersistentEntity);
 		}
-
-		return this.getNodeDescription(targetClass)
-			.map(Neo4jPersistentEntity.class::cast)
-			.map(neo4jPersistentEntity -> new DefaultNeo4jMappingFunction<>(instantiators, neo4jPersistentEntity));
+		return null;
 	}
 
 	@Override
-	public <T> Optional<Function<T, Map<String, Object>>> getBinderFunctionFor(Class<T> sourceClass) {
+	public <T> Function<T, Map<String, Object>> getRequiredBinderFunctionFor(Class<T> sourceClass) {
+
 		if (!this.hasPersistentEntityFor(sourceClass)) {
-			return Optional.empty();
+			throw new UnknownEntityException(sourceClass);
 		}
 
-		return this.getNodeDescription(sourceClass)
-			.map(Neo4jPersistentEntity.class::cast)
-			.map(neo4jPersistentEntity -> new DefaultNeo4jBinderFunction<>(neo4jPersistentEntity));
+		Neo4jPersistentEntity neo4jPersistentEntity = this.getPersistentEntity(sourceClass);
+		return new DefaultNeo4jBinderFunction<T>(neo4jPersistentEntity);
 	}
 
 	private Collection<RelationshipDescription> computeRelationshipsOf(String primaryLabel) {

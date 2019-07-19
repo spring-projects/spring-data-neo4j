@@ -162,7 +162,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 		return PreparedQuery.queryFor(super.domainType)
 			.withCypherQuery(cypherQuery)
 			.withParameters(bindParameters(parameters))
-			.usingMappingFunction(mappingContext.getMappingFunctionFor(super.domainType).orElse(null)) // Null is fine
+			.usingMappingFunction(mappingContext.getMappingFunctionFor(super.domainType)) // Null is fine
 			.build();
 	}
 

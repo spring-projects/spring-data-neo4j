@@ -148,7 +148,7 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 		Map<String, Object> parameters) {
 
 		BiFunction<TypeSystem, Record, ?> mappingFunctionToUse
-			= this.mappingContext.getMappingFunctionFor(resultType).orElse(null);
+			= this.mappingContext.getMappingFunctionFor(resultType);
 
 		PreparedQuery<S> preparedQuery = PreparedQuery.queryFor(resultType)
 			.withCypherQuery(renderer.render(statement))

@@ -32,7 +32,7 @@ public final class UnknownEntityException extends IllegalStateException {
 
 	private final Class<?> targetClass;
 
-	UnknownEntityException(Class<?> targetClass) {
+	public UnknownEntityException(Class<?> targetClass) {
 		super(String.format("%s is not a known entity", targetClass.getName()));
 		this.targetClass = targetClass;
 	}
