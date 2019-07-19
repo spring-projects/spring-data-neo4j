@@ -25,7 +25,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.springframework.data.core.schema.GeneratedValue;
@@ -51,10 +50,10 @@ public class Neo4jMappingContextTest {
 		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(BikeNode.class, UserNode.class, TripNode.class)));
 		schema.initialize();
 
-		Optional<NodeDescription<?>> optionalUserNodeDescription = schema.getNodeDescription("User");
+		NodeDescription<?> optionalUserNodeDescription = schema.getNodeDescription("User");
 		assertThat(optionalUserNodeDescription)
-			.isPresent()
-			.hasValueSatisfying(description -> {
+			.isNotNull()
+			.satisfies(description -> {
 				assertThat(description.getUnderlyingClass()).isEqualTo(UserNode.class);
 
 				assertThat(description.getIdDescription().isInternallyGeneratedId()).isTrue();
@@ -68,10 +67,10 @@ public class Neo4jMappingContextTest {
 					.containsExactlyInAnyOrder("id", "name", "firstName");
 			});
 
-		Optional<NodeDescription<?>> optionalBikeNodeDescription = schema.getNodeDescription("BikeNode");
+		NodeDescription<?> optionalBikeNodeDescription = schema.getNodeDescription("BikeNode");
 		assertThat(optionalBikeNodeDescription)
-			.isPresent()
-			.hasValueSatisfying(description -> {
+			.isNotNull()
+			.satisfies(description -> {
 				assertThat(description.getUnderlyingClass()).isEqualTo(BikeNode.class);
 
 				assertThat(description.getIdDescription().isAssignedId()).isTrue();
@@ -121,7 +120,7 @@ public class Neo4jMappingContextTest {
 	void shouldNotProvideMappingForUnknownClasses() {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
-		assertThat(schema.getMappingFunctionFor(UserNode.class)).isEmpty();
+		assertThat(schema.getMappingFunctionFor(UserNode.class)).isNull();
 	}
 
 	@Test
@@ -130,7 +129,7 @@ public class Neo4jMappingContextTest {
 		Neo4jMappingContext schema = new Neo4jMappingContext();
 		Neo4jPersistentEntity<?> bikeNodeEntity = schema.getPersistentEntity(BikeNode.class);
 		bikeNodeEntity.doWithAssociations((Association<Neo4jPersistentProperty> association) ->
-			assertThat(schema.getMappingFunctionFor(association.getInverse().getAssociationTargetType())).isPresent());
+			assertThat(schema.getMappingFunctionFor(association.getInverse().getAssociationTargetType())).isNotNull());
 	}
 
 	@Test

@@ -28,6 +28,7 @@ import java.util.function.Function;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
+import org.springframework.lang.Nullable;
 
 /**
  * Contains the descriptions of all nodes, their properties and relationships known to SDN-RX.
@@ -54,26 +55,24 @@ public interface Schema {
 	 * Retrieves a nodes description by its primary label.
 	 *
 	 * @param primaryLabel The primary label under which the node is described
-	 * @return The description if any
+	 * @return The description if any, null otherwise
 	 */
-	Optional<NodeDescription<?>> getNodeDescription(String primaryLabel);
+	@Nullable NodeDescription<?> getNodeDescription(String primaryLabel);
 
 	/**
 	 * Retrieves a nodes description by its underlying class.
 	 *
 	 * @param underlyingClass The underlying class of the node description to be retrieved
-	 * @return The description if any
+	 * @return The description if any, null otherwise
 	 */
-	Optional<NodeDescription<?>> getNodeDescription(Class<?> underlyingClass);
+	@Nullable NodeDescription<?> getNodeDescription(Class<?> underlyingClass);
 
-	/**
-	 * @param underlyingClass the type to find in the schema registry
-	 * @return The node description for the given. class
-	 * @throws UnknownEntityException When {@code targetClass} is not a known entity class.
-	 */
 	default NodeDescription<?> getRequiredNodeDescription(Class<?> underlyingClass) {
-
-		return getNodeDescription(underlyingClass).orElseThrow(() -> new UnknownEntityException(underlyingClass));
+		NodeDescription<?> nodeDescription = getNodeDescription(underlyingClass);
+		if (nodeDescription == null) {
+			throw new UnknownEntityException(underlyingClass);
+		}
+		return nodeDescription;
 	}
 
 	/**
@@ -96,28 +95,20 @@ public interface Schema {
 	 *
 	 * @param targetClass The target class to which to map to.
 	 * @param <T>         Type of the target class
-	 * @return An empty optional if the target class is unknown, otherwise an optional containing a stateless, reusable mapping function
-	 */
-	<T> Optional<BiFunction<TypeSystem, Record, T>> getMappingFunctionFor(Class<T> targetClass);
-
-	/**
-	 * @param targetClass The target class to which to map to.
-	 * @param <T>         Type of the target class
-	 * @return The default mapping function for the given target class
-	 * @throws IllegalStateException When {@code targetClass} is not a managed class
-	 * @see #getMappingFunctionFor(Class)
+	 * @return The default, stateless and reusable mapping function for the given target class
+	 * @throws UnknownEntityException When {@code targetClass} is not a managed class
 	 */
 	default <T> BiFunction<TypeSystem, Record, T> getRequiredMappingFunctionFor(Class<T> targetClass) {
-
-		return getMappingFunctionFor(targetClass).orElseThrow(() -> new UnknownEntityException(targetClass));
+		BiFunction<TypeSystem, Record, T> mappingFunction = getMappingFunctionFor(targetClass);
+		if (mappingFunction == null) {
+			throw new UnknownEntityException(targetClass);
+		}
+		return mappingFunction;
 	}
 
-	<T> Optional<Function<T, Map<String, Object>>> getBinderFunctionFor(Class<T> sourceClass);
+	@Nullable <T> BiFunction<TypeSystem, Record, T> getMappingFunctionFor(Class<T> targetClass);
 
-	default <T> Function<T, Map<String, Object>> getRequiredBinderFunctionFor(Class<T> sourceClass) {
-
-		return getBinderFunctionFor(sourceClass).orElseThrow(() -> new UnknownEntityException(sourceClass));
-	}
+	<T> Function<T, Map<String, Object>> getRequiredBinderFunctionFor(Class<T> sourceClass);
 
 	/**
 	 * Creates or retrieves an instance of the given id generator class. During the lifetime of the schema,

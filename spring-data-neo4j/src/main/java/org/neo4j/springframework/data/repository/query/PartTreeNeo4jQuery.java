@@ -102,7 +102,7 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 
 		return PreparedQuery.queryFor(super.domainType).withCypherQuery(cypherQuery)
 			.withParameters(boundedParameters)
-			.usingMappingFunction(mappingContext.getMappingFunctionFor(super.domainType).orElse(null))
+			.usingMappingFunction(mappingContext.getMappingFunctionFor(super.domainType))
 			.build();
 	}
 
