@@ -53,7 +53,7 @@ dbms.memory.heap.max_size=2G
 
 The database has been stopped and restarted after each module.
 
-[cols=3*,options=header]
+[cols=4*,options=header]
 |===
 |
 |Version
