@@ -22,7 +22,6 @@ import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUt
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
@@ -76,14 +75,14 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 	 *
 	 * @param driver         The driver that has been used as a synchronization object.
 	 * @param targetDatabase The target database
-	 * @return An optional containing a managed transaction or an empty optional if the method hasn't been called inside
+	 * @return An optional managed transaction or {@literal null} if the method hasn't been called inside
 	 * an ongoing Spring transaction
 	 */
-	public static Optional<Transaction> retrieveTransaction(final Driver driver,
+	public static @Nullable Transaction retrieveTransaction(final Driver driver,
 		@Nullable final String targetDatabase) {
 
 		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-			return Optional.empty();
+			return null;
 		}
 
 		// Check whether we have a transaction managed by a Neo4j transaction manager
@@ -91,9 +90,9 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 			.getResource(driver);
 
 		if (connectionHolder != null) {
-			Optional<Transaction> optionalOngoingTransaction = connectionHolder.getTransaction(targetDatabase);
+			Transaction optionalOngoingTransaction = connectionHolder.getTransaction(targetDatabase);
 
-			if (optionalOngoingTransaction.isPresent()) {
+			if (optionalOngoingTransaction != null) {
 				return optionalOngoingTransaction;
 			}
 

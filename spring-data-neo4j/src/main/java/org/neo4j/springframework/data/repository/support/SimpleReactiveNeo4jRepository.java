@@ -30,7 +30,6 @@ import reactor.core.publisher.Mono;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -91,7 +90,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	@Override
 	public Mono<T> findById(ID id) {
 		Statement statement = statementBuilder
-			.prepareMatchOf(entityMetaData, Optional.of(entityInformation.getIdExpression().isEqualTo(literalOf(id))))
+			.prepareMatchOf(entityMetaData, entityInformation.getIdExpression().isEqualTo(literalOf(id)))
 			.returning(asterisk())
 			.build();
 		return createExecutableQuery(statement).getSingleResult();
@@ -104,7 +103,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 	@Override
 	public Flux<T> findAll(Sort sort) {
-		Statement statement = statementBuilder.prepareMatchOf(entityMetaData, Optional.empty())
+		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
 			.returning(asterisk())
 			.orderBy(toSortItems(entityMetaData, sort))
 			.build();
@@ -124,7 +123,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 	@Override
 	public Flux<T> findAll() {
-		Statement statement = statementBuilder.prepareMatchOf(entityMetaData, Optional.empty())
+		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
 			.returning(asterisk()).build();
 		return createExecutableQuery(statement).getResults();
 	}
@@ -132,7 +131,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	@Override
 	public Flux<T> findAllById(Iterable<ID> ids) {
 		Statement statement = statementBuilder
-			.prepareMatchOf(entityMetaData, Optional.of(entityInformation.getIdExpression().in((parameter("ids")))))
+			.prepareMatchOf(entityMetaData, entityInformation.getIdExpression().in((parameter("ids"))))
 			.returning(asterisk())
 			.build();
 
@@ -146,7 +145,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 	@Override
 	public Mono<Long> count() {
-		Statement statement = statementBuilder.prepareMatchOf(entityMetaData, Optional.empty())
+		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
 			.returning(Functions.count(asterisk())).build();
 
 		PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class)
@@ -239,7 +238,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 		String nameOfParameter = "id";
 		Condition condition = this.entityInformation.getIdExpression().isEqualTo(parameter(nameOfParameter));
 
-		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
+		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, condition);
 		return this.neo4jClient.query(() -> renderer.render(statement))
 			.bind(id).to(nameOfParameter).run().then();
 	}
@@ -280,7 +279,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 		String nameOfParameter = "ids";
 		Condition condition = entityInformation.getIdExpression().in(parameter(nameOfParameter));
-		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
+		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, condition);
 
 		List<ID> ids = StreamSupport.stream(entities.spliterator(), false)
 			.map(this.entityInformation::getId)
@@ -309,7 +308,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	@Transactional
 	public Mono<Void> deleteAll() {
 
-		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.empty());
+		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData);
 		return this.neo4jClient.query(() -> renderer.render(statement)).run().then();
 	}
 

@@ -154,8 +154,8 @@ final class Predicate {
 	}
 
 	StatementBuilder.OngoingReadingAndWith useWithReadingFragment(
-		BiFunction<NodeDescription<?>, Optional<Condition>, StatementBuilder.OngoingReadingAndWith> readingFragmentSupplier) {
-		return readingFragmentSupplier.apply(this.nodeDescription, Optional.of(this.condition));
+		BiFunction<NodeDescription<?>, Condition, StatementBuilder.OngoingReadingAndWith> readingFragmentSupplier) {
+		return readingFragmentSupplier.apply(this.nodeDescription, this.condition);
 	}
 
 	private void add(ExampleMatcher.MatchMode matchMode, Condition additionalCondition) {

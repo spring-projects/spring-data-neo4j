@@ -71,9 +71,10 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 	AutoCloseableStatementRunner getStatementRunner(@Nullable final String targetDatabase) {
 
-		StatementRunner statementRunner = retrieveTransaction(driver, targetDatabase)
-			.map(StatementRunner.class::cast)
-			.orElseGet(() -> driver.session(defaultSessionConfig(targetDatabase)));
+		StatementRunner statementRunner = retrieveTransaction(driver, targetDatabase);
+		if (statementRunner == null) {
+			statementRunner = driver.session(defaultSessionConfig(targetDatabase));
+		}
 
 		return (AutoCloseableStatementRunner) Proxy.newProxyInstance(StatementRunner.class.getClassLoader(),
 			new Class<?>[] { AutoCloseableStatementRunner.class },
@@ -106,8 +107,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 				}
 				return null;
 			} else {
-				return cachedHandles.computeIfAbsent(method, this::findHandleFor)
-					.invokeWithArguments(args);
+				return cachedHandles.computeIfAbsent(method, this::findHandleFor).invokeWithArguments(args);
 			}
 		}
 
