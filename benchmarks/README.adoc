@@ -71,7 +71,7 @@ The database has been stopped and restarted after each module.
 |1523,044 ±  51,523  ops/s
 
 |SDN-RX
-|Built 2019-07-19, Bolt 2.0.0-alpha03
-|2486,212 ± 82,633  ops/s
-|1036,926 ± 82,041  ops/s
+|Built #73b2d13, Bolt 2.0.0-alpha03
+|2534,810 ± 121,818  ops/s
+|1064,281 ±  62,642  ops/s
 |===
