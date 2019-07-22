@@ -123,7 +123,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 	protected String complete(Condition condition, Sort sort) {
 
 		Statement statement = createSchemaBasedStatementBuilder(mappingContext)
-			.prepareMatchOf(nodeDescription, Optional.ofNullable(condition))
+			.prepareMatchOf(nodeDescription, condition)
 			.returning(Cypher.asterisk())
 			.orderBy(
 				Stream.concat(

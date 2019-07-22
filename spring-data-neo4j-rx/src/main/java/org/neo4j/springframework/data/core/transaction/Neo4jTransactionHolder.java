@@ -20,10 +20,9 @@ package org.neo4j.springframework.data.core.transaction;
 
 import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUtils.*;
 
-import java.util.Optional;
-
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.ResourceHolderSupport;
 import org.springframework.util.Assert;
 
@@ -55,8 +54,8 @@ class Neo4jTransactionHolder extends ResourceHolderSupport {
 	 * @param inDatabase selected database to use
 	 * @return An optional, ongoing transaction.
 	 */
-	Optional<Transaction> getTransaction(String inDatabase) {
-		return namesMapToTheSameDatabase(this.databaseName, inDatabase) ? Optional.of(transaction) : Optional.empty();
+	@Nullable Transaction getTransaction(String inDatabase) {
+		return namesMapToTheSameDatabase(this.databaseName, inDatabase) ? transaction : null;
 	}
 
 	void commit() {

@@ -23,7 +23,6 @@ import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
@@ -38,6 +37,7 @@ import org.neo4j.springframework.data.repository.support.Neo4jEntityInformation;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -114,10 +114,10 @@ public final class CypherAdapterUtils {
 		/**
 		 * @param nodeDescription The node description for which a match clause should be generated
 		 * @return An ongoing match
-		 * @see #prepareMatchOf(NodeDescription, Optional)
+		 * @see #prepareMatchOf(NodeDescription, Condition)
 		 */
 		public OngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription) {
-			return prepareMatchOf(nodeDescription, Optional.empty());
+			return prepareMatchOf(nodeDescription, null);
 		}
 
 		/**
@@ -133,7 +133,7 @@ public final class CypherAdapterUtils {
 		 * @param condition       Optional conditions to add
 		 * @return An ongoing match
 		 */
-		public OngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription, Optional<Condition> condition) {
+		public OngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription, @Nullable Condition condition) {
 			Node rootNode = node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
 			IdDescription idDescription = nodeDescription.getIdDescription();
 
@@ -142,15 +142,18 @@ public final class CypherAdapterUtils {
 			if (idDescription.isInternallyGeneratedId()) {
 				expressions.add(Functions.id(rootNode).as(NAME_OF_INTERNAL_ID));
 			}
-			return Cypher.match(rootNode).where(condition.orElse(Conditions.noCondition()))
+			return Cypher.match(rootNode).where(conditionOrNoCondition(condition))
 				.with(expressions.toArray(new Expression[expressions.size()]));
 		}
 
-		public Statement prepareDeleteOf(NodeDescription<?> nodeDescription,
-			Optional<Condition> condition) {
+		public Statement prepareDeleteOf(NodeDescription<?> nodeDescription) {
+			return prepareDeleteOf(nodeDescription, null);
+		}
+
+		public Statement prepareDeleteOf(NodeDescription<?> nodeDescription, @Nullable Condition condition) {
 
 			Node rootNode = node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
-			return Cypher.match(rootNode).where(condition.orElse(Conditions.noCondition())).delete(rootNode).build();
+			return Cypher.match(rootNode).where(conditionOrNoCondition(condition)).delete(rootNode).build();
 		}
 
 		public Statement prepareSaveOf(NodeDescription<?> nodeDescription) {
@@ -208,6 +211,10 @@ public final class CypherAdapterUtils {
 				.returning(Functions.collect(rootNode.property(nameOfIdProperty)).as(NAME_OF_IDS_RESULT))
 				.build();
 		}
+	}
+
+	private static Condition conditionOrNoCondition(@Nullable Condition condition) {
+		return condition == null ? Conditions.noCondition() : condition;
 	}
 
 	public static BuildableStatement addPagingParameter(

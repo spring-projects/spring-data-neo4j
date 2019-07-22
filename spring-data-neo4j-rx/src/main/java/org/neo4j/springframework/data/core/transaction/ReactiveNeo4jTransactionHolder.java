@@ -22,10 +22,9 @@ import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUt
 
 import reactor.core.publisher.Mono;
 
-import java.util.Optional;
-
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.ResourceHolderSupport;
 
 /**
@@ -50,9 +49,9 @@ class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 		return session;
 	}
 
-	Optional<RxTransaction> getTransaction(String inDatabase) {
+	@Nullable RxTransaction getTransaction(String inDatabase) {
 
-		return namesMapToTheSameDatabase(this.databaseName, inDatabase) ? Optional.of(transaction) : Optional.empty();
+		return namesMapToTheSameDatabase(this.databaseName, inDatabase) ? transaction : null;
 	}
 
 	Mono<Void> commit() {

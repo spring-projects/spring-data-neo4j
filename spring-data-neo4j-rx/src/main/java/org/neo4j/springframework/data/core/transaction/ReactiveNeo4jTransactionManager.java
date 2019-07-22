@@ -99,9 +99,15 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 					});
 				});
 			})
-			.map(connectionHolder -> connectionHolder.getTransaction(targetDatabase)
-				.orElseThrow(() -> new IllegalStateException(
-					formatOngoingTxInAnotherDbErrorMessage(connectionHolder.getDatabaseName(), targetDatabase))))
+			.map(connectionHolder -> {
+					RxTransaction transaction = connectionHolder.getTransaction(targetDatabase);
+					if (transaction == null) {
+						throw new IllegalStateException(
+							formatOngoingTxInAnotherDbErrorMessage(connectionHolder.getDatabaseName(), targetDatabase));
+					}
+					return transaction;
+				}
+			)
 			// If not, than just don't open a transaction
 			.onErrorResume(NoTransactionException.class, nte -> Mono.empty());
 	}

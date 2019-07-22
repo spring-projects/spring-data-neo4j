@@ -171,8 +171,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	public Optional<T> findById(ID id) {
 
 		Statement statement = statementBuilder
-			.prepareMatchOf(entityMetaData,
-				Optional.of(entityInformation.getIdExpression().isEqualTo(literalOf(id))))
+			.prepareMatchOf(entityMetaData, entityInformation.getIdExpression().isEqualTo(literalOf(id)))
 			.returning(asterisk())
 			.build();
 		return createExecutableQuery(statement).getSingleResult();
@@ -195,7 +194,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	public Iterable<T> findAllById(Iterable<ID> ids) {
 
 		Statement statement = statementBuilder
-			.prepareMatchOf(entityMetaData, Optional.of(entityInformation.getIdExpression().in((parameter("ids")))))
+			.prepareMatchOf(entityMetaData, entityInformation.getIdExpression().in((parameter("ids"))))
 			.returning(asterisk())
 			.build();
 
@@ -224,7 +223,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 		log.debug("Deleting entity with id {} ", id);
 
-		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
+		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, condition);
 		ResultSummary summary = this.neo4jClient.query(renderer.render(statement))
 			.bind(id).to(nameOfParameter)
 			.run();
@@ -253,7 +252,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 		log.debug("Deleting all entities with the following ids: {} ", ids);
 
-		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.of(condition));
+		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, condition);
 		ResultSummary summary = this.neo4jClient.query(renderer.render(statement))
 			.bind(ids).to(nameOfParameter)
 			.run();
@@ -268,7 +267,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 		log.debug("Deleting all nodes with primary label {}", entityMetaData.getPrimaryLabel());
 
-		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, Optional.empty());
+		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData);
 		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).run();
 
 		log.debug("Deleted {} nodes and {} relationships.", summary.counters().nodesDeleted(),
