@@ -33,7 +33,7 @@ import org.springframework.lang.Nullable;
  * Typed preparation of a query that is used to create either an executable query.
  * Executable queries come in two fashions: imperative and reactive. Depending on which client is used to retrieve one,
  * you get one or the other.
- * <p/>
+ * <p>
  * When no mapping function is provided, the Neo4j client will assume a simple type to be returned. Otherwise make sure
  * that the query fits to the mapping function, that is: It must return all nodes, relationships and paths that is expected
  * by the mapping function to work correctly.

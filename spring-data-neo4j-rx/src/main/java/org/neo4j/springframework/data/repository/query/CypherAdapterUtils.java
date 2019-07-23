@@ -124,9 +124,9 @@ public final class CypherAdapterUtils {
 		 * This will create a match statement that fits the given node description and may contains additional conditions.
 		 * The {@code WITH} clause of this statement contains all nodes and relationships necessary to map a record to
 		 * the given {@code nodeDescription}.
-		 * <p/>
+		 * <p>
 		 * It is recommended to use {@link Cypher#asterisk()} to return everything from the query in the end.
-		 * <p/>
+		 * <p>
 		 * The root node is guaranteed to have the symbolic name {@code n}.
 		 *
 		 * @param nodeDescription The node description for which a match clause should be generated

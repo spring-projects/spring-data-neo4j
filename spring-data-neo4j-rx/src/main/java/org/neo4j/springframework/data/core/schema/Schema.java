@@ -89,7 +89,7 @@ public interface Schema {
 	 * It will not try to fetch data from any other records or queries. The mapping function is free to throw a {@link RuntimeException},
 	 * most likely a {@code org.springframework.data.mapping.MappingException} or {@link IllegalStateException} when
 	 * mapping is not possible.
-	 * <p/>
+	 * <p>
 	 * In case the mapping function returns a {@literal null}, the Neo4j client will throw an exception and prevent further
 	 * processing.
 	 *
