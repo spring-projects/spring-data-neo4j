@@ -26,7 +26,7 @@ import org.neo4j.springframework.data.core.cypher.support.TypedSubtree;
 /**
  * A pattern is something that can be matched. It consists of one or more pattern elements. Those can be nodes or chains
  * of nodes and relationships.
- * <p/>
+ * <p>
  * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Pattern.html">Pattern</a>.
  *
  * @author Michael J. Simons

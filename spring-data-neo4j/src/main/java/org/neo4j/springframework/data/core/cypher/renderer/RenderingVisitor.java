@@ -35,10 +35,10 @@ import org.springframework.lang.Nullable;
 /**
  * This is a simple (some would call it naive) implementation of a visitor to the Cypher AST created by the Cypher builder
  * based on the {@link ReflectiveVisitor reflective visitor}.
- * <p/>
+ * <p>
  * It takes care of separating elements of sub trees containing the element type with a separator and provides pairs of
  * {@code enter} / {@code leave} for the structuring elements of the Cypher AST as needed.
- * <p/>
+ * <p>
  * This rendering visitor is not meant to be used outside framework code and we don't give any guarantees on the format
  * being output apart from that it works within the constraints of SDN-RX.
  *

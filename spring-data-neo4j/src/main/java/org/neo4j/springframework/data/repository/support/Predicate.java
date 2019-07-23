@@ -48,7 +48,7 @@ import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 
 /**
  * Support class for "query by example" executors.
- * <p/>
+ * <p>
  * This wraps all information necessary to predicate a match: A root condition and actual parameters to fill
  * in formal parameters inside the condition.
  *

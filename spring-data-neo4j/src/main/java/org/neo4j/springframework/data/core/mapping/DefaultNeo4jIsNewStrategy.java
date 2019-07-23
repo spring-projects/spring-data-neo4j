@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * <li>when using externally generated values and the id is {@literal null},</li>
  * <li>when using assigned values without a version property or with a version property that is {@literal null}.</li>
  * </ul>
- * <p/>
+ * <p>
  * An entity will not be treated as new
  * <ul>
  * <li>when using internally generated (database) ids and the id property has a non-null value greater than {@literal 0},</li>

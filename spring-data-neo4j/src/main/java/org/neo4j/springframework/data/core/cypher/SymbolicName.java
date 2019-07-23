@@ -22,7 +22,7 @@ import org.apiguardian.api.API;
 
 /**
  * A symbolic name to identify nodes and relationships.
- * <p/>
+ * <p>
  * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/SchemaName.html">SchemaName</a>
  * <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/SymbolicName.html">SymbolicName</a>
  *

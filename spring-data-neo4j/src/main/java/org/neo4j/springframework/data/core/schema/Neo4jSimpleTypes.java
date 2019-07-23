@@ -41,7 +41,7 @@ import org.springframework.data.mapping.model.SimpleTypeHolder;
  * A list of Neo4j simple types: All attributes that can be mapped to a property. Some special logic has to be applied
  * for domain attributes of the collection types {@link java.util.List} and {@link java.util.Map}. Those can be mapped
  * to simple properties as well as to relationships to other things.
- * <p/>
+ * <p>
  * The Java driver itself has a good overview of the supported types:
  * <a href="https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system">The Cypher type system</a>.
  *

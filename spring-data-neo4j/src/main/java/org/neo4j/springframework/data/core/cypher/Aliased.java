@@ -23,7 +23,7 @@ import org.apiguardian.api.API;
 /**
  * An element with an alias. An alias has a subtle difference to a symbolic name in cypher. Nodes and relationships can
  * have symbolic names which in turn can be aliased as well.
- * <p/>
+ * <p>
  * Therefor, the Cypher generator needs both {@code Named} and {@code Aliased}.
  *
  * @author Michael J. Simons

@@ -33,10 +33,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * This is a convenience class implementing a {@link Visitor} and it takes care of choosing the right methods
  * to dispatch the {@link Visitor#enter(Visitable)} and {@link Visitor#leave(Visitable)} calls to.
- * <p/>
+ * <p>
  * Classes extending this visitor need to provide corresponding {@code enter} and {@code leave} methods taking exactly
  * one argument of the type of {@link Visitable} they are interested it.
- * <p/>
+ * <p>
  * The type must be an exact match, this support class doesn't try to find a close match up in the class hierarchy if it
  * doesn't find an exact match.
  *
@@ -71,7 +71,7 @@ public abstract class ReflectiveVisitor implements Visitor {
 
 	/**
 	 * This is a hook that is called with the uncasted, raw visitable just before entering a visitable.
-	 * <p/>
+	 * <p>
 	 * The hook is called regardless wither a matching {@code enter} is found or not.
 	 *
 	 * @param visitable The visitable that is passed on to a matching enter after this call.
@@ -81,7 +81,7 @@ public abstract class ReflectiveVisitor implements Visitor {
 
 	/**
 	 * This is a hook that is called with the uncasted, raw visitable just after leaving the visitable.
-	 * <p/>
+	 * <p>
 	 * The hook is called regardless wither a matching {@code leave} is found or not.
 	 *
 	 * @param visitable The visitable that is passed on to a matching leave after this call.

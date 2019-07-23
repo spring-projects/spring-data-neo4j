@@ -28,7 +28,7 @@ import org.neo4j.springframework.data.core.cypher.support.TypedSubtree;
 import org.springframework.util.Assert;
 
 /**
- * A dedicated map expression.<p/>
+ * A dedicated map expression.<p>
  * Most of the comparision methods on this expression will not result in a sensible query fragment.
  * A {@link MapExpression} is be useful as a concrete parameter to functions or as properties on {@link Node nodes}
  * or {@link Relationship relationships}.
