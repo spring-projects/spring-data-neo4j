@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.reactive.RxStatementRunner;
@@ -32,8 +33,7 @@ import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.springframework.data.core.Neo4jClient.BindSpec;
 import org.neo4j.springframework.data.core.Neo4jClient.MappingSpec;
 import org.neo4j.springframework.data.core.Neo4jClient.RecordFetchSpec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 
 /**
@@ -47,7 +47,7 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 @API(status = API.Status.STABLE, since = "1.0")
 public interface ReactiveNeo4jClient {
 
-	Logger cypherLog = LoggerFactory.getLogger("org.neo4j.springframework.data.cypher");
+	LogAccessor cypherLog = new LogAccessor(LogFactory.getLog("org.neo4j.springframework.data.cypher"));
 
 	static ReactiveNeo4jClient create(Driver driver) {
 

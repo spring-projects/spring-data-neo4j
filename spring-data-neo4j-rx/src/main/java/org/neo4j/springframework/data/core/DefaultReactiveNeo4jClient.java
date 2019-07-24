@@ -239,10 +239,10 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		Mono<Tuple2<String, Map<String, Object>>> prepareStatement() {
 			if (cypherLog.isDebugEnabled()) {
 				String cypher = cypherSupplier.get();
-				cypherLog.debug("Executing:{}{}", System.lineSeparator(), cypher);
+				cypherLog.debug(() -> String.format("Executing:%s%s", System.lineSeparator(), cypher));
 
 				if (cypherLog.isTraceEnabled() && !parameters.isEmpty()) {
-					cypherLog.trace("with parameters:{}{}", System.lineSeparator(), parameters);
+					cypherLog.trace(() -> String.format("with parameters:%s%s", System.lineSeparator(), parameters));
 				}
 			}
 			return Mono.fromSupplier(cypherSupplier).zipWith(Mono.just(parameters.get()));

@@ -31,6 +31,7 @@ import java.util.Optional;
 import java.util.function.LongSupplier;
 import java.util.stream.StreamSupport;
 
+import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.springframework.data.core.Neo4jClient;
@@ -43,8 +44,7 @@ import org.neo4j.springframework.data.core.cypher.StatementBuilder;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingAndReturn;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -65,7 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> {
 
-	private static final Logger log = LoggerFactory.getLogger(SimpleNeo4jRepository.class);
+	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(SimpleNeo4jRepository.class));
 
 	private static final Renderer renderer = Renderer.getDefaultRenderer();
 
@@ -160,9 +160,9 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 			.run();
 
 		SummaryCounters counters = resultSummary.counters();
-		log.debug("Created {} and deleted {} nodes, created {} and deleted {} relationships and set {} properties.",
+		log.debug(() -> String.format("Created %d and deleted %d nodes, created %d and deleted %d relationships and set %d properties.",
 			counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
-			counters.relationshipsDeleted(), counters.propertiesSet());
+			counters.relationshipsDeleted(), counters.propertiesSet()));
 
 		return entitiesToBeSaved;
 	}
@@ -221,15 +221,15 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 		String nameOfParameter = "id";
 		Condition condition = this.entityInformation.getIdExpression().isEqualTo(parameter(nameOfParameter));
 
-		log.debug("Deleting entity with id {} ", id);
+		log.debug(() -> String.format("Deleting entity with id %d ", id));
 
 		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, condition);
 		ResultSummary summary = this.neo4jClient.query(renderer.render(statement))
 			.bind(id).to(nameOfParameter)
 			.run();
 
-		log.debug("Deleted {} nodes and {} relationships.", summary.counters().nodesDeleted(),
-			summary.counters().relationshipsDeleted());
+		log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
+			summary.counters().relationshipsDeleted()));
 	}
 
 	@Override
@@ -250,28 +250,28 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 		List<Object> ids = StreamSupport.stream(entities.spliterator(), false)
 			.map(this.entityInformation::getId).collect(toList());
 
-		log.debug("Deleting all entities with the following ids: {} ", ids);
+		log.debug(() -> String.format("Deleting all entities with the following ids: %s ", ids));
 
 		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, condition);
 		ResultSummary summary = this.neo4jClient.query(renderer.render(statement))
 			.bind(ids).to(nameOfParameter)
 			.run();
 
-		log.debug("Deleted {} nodes and {} relationships.", summary.counters().nodesDeleted(),
-			summary.counters().relationshipsDeleted());
+		log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
+			summary.counters().relationshipsDeleted()));
 	}
 
 	@Override
 	@Transactional
 	public void deleteAll() {
 
-		log.debug("Deleting all nodes with primary label {}", entityMetaData.getPrimaryLabel());
+		log.debug(() -> String.format("Deleting all nodes with primary label %s", entityMetaData.getPrimaryLabel()));
 
 		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData);
 		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).run();
 
-		log.debug("Deleted {} nodes and {} relationships.", summary.counters().nodesDeleted(),
-			summary.counters().relationshipsDeleted());
+		log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
+			summary.counters().relationshipsDeleted()));
 	}
 
 	private ExecutableQuery<T> createExecutableQuery(Statement statement) {

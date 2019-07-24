@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
+import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
@@ -43,8 +44,7 @@ import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.reactivestreams.Publisher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
@@ -63,7 +63,7 @@ import org.springframework.util.Assert;
 @Transactional(readOnly = true)
 class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<T, ID> {
 
-	private static final Logger log = LoggerFactory.getLogger(SimpleReactiveNeo4jRepository.class);
+	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(SimpleReactiveNeo4jRepository.class));
 
 	private static final Renderer renderer = Renderer.getDefaultRenderer();
 
@@ -209,10 +209,10 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 					})
 					.doOnNext(resultSummary -> {
 						SummaryCounters counters = resultSummary.counters();
-						log.debug(
-							"Created {} and deleted {} nodes, created {} and deleted {} relationships and set {} properties.",
+						log.debug(() -> String.format(
+							"Created %d and deleted %d nodes, created %d and deleted %d relationships and set %d properties.",
 							counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
-							counters.relationshipsDeleted(), counters.propertiesSet());
+							counters.relationshipsDeleted(), counters.propertiesSet()));
 					})
 					.thenMany(Flux.fromIterable(entitiesToBeSaved))
 			);

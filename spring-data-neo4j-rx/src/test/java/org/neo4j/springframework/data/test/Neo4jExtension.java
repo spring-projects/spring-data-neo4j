@@ -20,7 +20,7 @@ package org.neo4j.springframework.data.test;
 
 import static org.assertj.core.api.Assumptions.*;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.apachecommons.CommonsLog;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -45,6 +45,7 @@ import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.internal.SessionConfig;
 import org.neo4j.driver.internal.util.ServerVersion;
+import org.springframework.core.log.LogMessage;
 import org.testcontainers.containers.Neo4jContainer;
 
 /**
@@ -56,7 +57,7 @@ import org.testcontainers.containers.Neo4jContainer;
  * @author Michael J. Simons
  * @since 1.0
  */
-@Slf4j
+@CommonsLog
 public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 	public final static String NEEDS_REACTIVE_SUPPORT = "reactiveTest";
@@ -98,7 +99,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 		if (neo4jConnectionSupport == null) {
 			if (!(neo4jUrl.isEmpty() || neo4jPassword.isEmpty())) {
-				log.warn("Using Neo4j instance at {}.", neo4jUrl);
+				log.warn(LogMessage.format("Using Neo4j instance at %s.", neo4jUrl));
 				neo4jConnectionSupport = new Neo4jConnectionSupport(neo4jUrl, AuthTokens.basic("neo4j", neo4jPassword));
 			} else {
 				log.warn("Using Neo4j test container.");

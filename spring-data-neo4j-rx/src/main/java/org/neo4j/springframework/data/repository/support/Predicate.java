@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
+import org.apache.commons.logging.LogFactory;
 import org.neo4j.springframework.data.core.cypher.Condition;
 import org.neo4j.springframework.data.core.cypher.Conditions;
 import org.neo4j.springframework.data.core.cypher.Cypher;
@@ -39,8 +40,7 @@ import org.neo4j.springframework.data.core.cypher.SymbolicName;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.support.ExampleMatcherAccessor;
@@ -57,7 +57,7 @@ import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
  */
 final class Predicate {
 
-	private static final Logger log = LoggerFactory.getLogger(Predicate.class);
+	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Predicate.class));
 
 	static <S> Predicate create(Neo4jMappingContext mappingContext, Example<S> example) {
 

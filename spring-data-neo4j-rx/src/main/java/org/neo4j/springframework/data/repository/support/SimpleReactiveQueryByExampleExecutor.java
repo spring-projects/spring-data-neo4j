@@ -36,8 +36,6 @@ import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
@@ -51,9 +49,6 @@ import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
  * @since 1.0
  */
 class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleExecutor<T> {
-
-	private static final Logger log = LoggerFactory
-		.getLogger(SimpleReactiveQueryByExampleExecutor.class);
 
 	private static final Renderer renderer = Renderer.getDefaultRenderer();
 

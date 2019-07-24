@@ -38,8 +38,6 @@ import org.neo4j.springframework.data.core.cypher.StatementBuilder;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.BuildableStatement;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,8 +53,6 @@ import org.springframework.data.repository.support.PageableExecutionUtils;
  * @since 1.0
  */
 class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
-
-	private static final Logger log = LoggerFactory.getLogger(SimpleQueryByExampleExecutor.class);
 
 	private static final Renderer renderer = Renderer.getDefaultRenderer();
 
