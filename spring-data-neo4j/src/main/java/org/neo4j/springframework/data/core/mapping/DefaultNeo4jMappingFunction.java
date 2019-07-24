@@ -25,14 +25,14 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
+import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.data.convert.EntityInstantiators;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -50,7 +50,7 @@ import org.springframework.data.mapping.model.ParameterValueProvider;
  */
 final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Record, T> {
 
-	private static final Logger log = LoggerFactory.getLogger(DefaultNeo4jMappingFunction.class);
+	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(DefaultNeo4jMappingFunction.class));
 
 	private final EntityInstantiators instantiators;
 
@@ -107,7 +107,7 @@ final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Rec
 
 				return instance;
 			}).orElseGet(() -> {
-				log.warn("Could not find mappable nodes or relationships inside {} for {}", record, nodeDescription);
+				log.warn(() -> String.format("Could not find mappable nodes or relationships inside %s for %s", record, nodeDescription));
 				return null;
 			});
 		} catch (Exception e) {

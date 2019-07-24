@@ -20,9 +20,9 @@ package org.neo4j.springframework.data.core.mapping;
 
 import java.util.function.Function;
 
+import org.apache.commons.logging.LogFactory;
 import org.neo4j.springframework.data.core.schema.IdDescription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
  */
 class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 
-	private static final Logger log = LoggerFactory.getLogger(DefaultNeo4jIsNewStrategy.class);
+	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(DefaultNeo4jIsNewStrategy.class));
 
 	static IsNewStrategy basedOn(Neo4jPersistentEntity<?> entityMetaData) {
 
@@ -66,7 +66,7 @@ class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 		Neo4jPersistentProperty versionProperty = entityMetaData.getVersionProperty();
 		if (idDescription.isAssignedId()) {
 			if (versionProperty == null) {
-				log.warn("Instances of " + entityMetaData.getType()
+				log.warn(() -> "Instances of " + entityMetaData.getType()
 					+ " with an assigned id will always be treated as new without version property!");
 				valueType = Void.class;
 				valueLookup = source -> null;

@@ -21,7 +21,6 @@ package org.neo4j.springframework.data.integration.reactive;
 import static org.neo4j.driver.Values.*;
 import static org.neo4j.springframework.data.test.Neo4jExtension.*;
 
-import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -70,7 +69,6 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 @ExtendWith(Neo4jExtension.class)
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ReactiveRepositoryIT.Config.class)
-@Slf4j
 class ReactiveRepositoryIT {
 
 	private static final String TEST_PERSON1_NAME = "Test";

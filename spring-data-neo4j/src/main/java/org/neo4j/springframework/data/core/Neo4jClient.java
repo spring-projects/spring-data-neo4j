@@ -26,6 +26,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
@@ -33,8 +34,7 @@ import org.neo4j.driver.StatementRunner;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.repository.NoResultException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.lang.Nullable;
 
@@ -51,7 +51,7 @@ import org.springframework.lang.Nullable;
 @API(status = API.Status.STABLE, since = "1.0")
 public interface Neo4jClient {
 
-	Logger cypherLog = LoggerFactory.getLogger("org.neo4j.springframework.data.cypher");
+	LogAccessor cypherLog = new LogAccessor(LogFactory.getLog("org.neo4j.springframework.data.cypher"));
 
 	static Neo4jClient create(Driver driver) {
 
