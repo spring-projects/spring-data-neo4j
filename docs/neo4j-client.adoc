@@ -1,3 +1,4 @@
+[[neo4j-client]]
 == Neo4jClient
 
 Spring Data Neo4j⚡️RX comes with a Neo4j Client, providing a human readable layer on top of Neo4js Java driver.
@@ -52,12 +53,12 @@ import org.neo4j.driver.GraphDatabase;
 
 import org.neo4j.springframework.data.core.Neo4jClient;
 
-public class Demo
+public class Demo {
 
     public static void main(String...args) {
 
         Driver driver = GraphDatabase
-            .driver("neo4j://localhost:7687", AuthTokens.basic("neo4j", "password");
+            .driver("neo4j://localhost:7687", AuthTokens.basic("neo4j", "password"));
 
         Neo4jClient client = Neo4jClient.create(driver);
     }

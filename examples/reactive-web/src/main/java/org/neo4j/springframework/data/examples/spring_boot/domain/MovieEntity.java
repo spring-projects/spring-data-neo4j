@@ -30,15 +30,15 @@ import org.neo4j.springframework.data.core.schema.Property;
 public class MovieEntity {
 
 	@Id @GeneratedValue
-	private final Long id;
+	private Long id;
 
 	private final String title;
 
 	@Property("tagline")
 	private final String description;
 
-	MovieEntity(Long id, String title, String description) {
-		this.id = id;
+	public MovieEntity(String title, String description) {
+		this.id = null;
 		this.title = title;
 		this.description = description;
 	}
@@ -56,7 +56,12 @@ public class MovieEntity {
 	}
 
 	public MovieEntity withId(Long id) {
-		return this.id == id ?
-			this : new MovieEntity(id, this.title, this.description);
+		if (this.id == null) {
+			return this;
+		} else {
+			MovieEntity newObject = new MovieEntity(this.title, this.description);
+			newObject.id = this.id;
+			return newObject;
+		}
 	}
 }
