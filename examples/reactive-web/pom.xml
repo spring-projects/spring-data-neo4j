@@ -179,7 +179,7 @@
 				</property>
 			</activation>
 			<properties>
-				<changelist>-SNAPSHOT</changelist>
+				<changelist>-alpha03</changelist>
 			</properties>
 		</profile>
 	</profiles>
