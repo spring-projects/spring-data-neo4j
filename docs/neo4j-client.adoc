@@ -58,7 +58,7 @@ public class Demo {
     public static void main(String...args) {
 
         Driver driver = GraphDatabase
-            .driver("neo4j://localhost:7687", AuthTokens.basic("neo4j", "password"));
+            .driver("neo4j://localhost:7687", AuthTokens.basic("neo4j", "secret"));
 
         Neo4jClient client = Neo4jClient.create(driver);
     }
@@ -77,12 +77,12 @@ import org.neo4j.driver.GraphDatabase;
 
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 
-public class Demo
+public class Demo {
 
     public static void main(String...args) {
 
         Driver driver = GraphDatabase
-            .driver("neo4j://localhost:7687", AuthTokens.basic("neo4j", "password");
+            .driver("neo4j://localhost:7687", AuthTokens.basic("neo4j", "secret"));
 
         ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
     }
@@ -110,9 +110,9 @@ The fluent API of the client allows to specify the target database exactly once,
 [source,java]
 .Selecting the target database
 ----
-Flux<Map<String, Object>> allUsers = client
-	.query("MATCH (u:User) RETURN u")
-	.in("userDatabase") // <1>
+Flux<Map<String, Object>> allActors = client
+	.query("MATCH (p:Person) RETURN p")
+	.in("neo4j") // <1>
 	.fetch()
 	.all();
 ----
@@ -126,10 +126,10 @@ The supplier will be evaluated as late as possible and can be provided by any qu
 
 [[neo4j-client-specifying-queries]]
 [source,java]
-.Specifiying a query
+.Specifying a query
 ----
-Mono<Map<String, Object>> firstUser = client
-	.query(() -> "MATCH (u:User) RETURN u")
+Mono<Map<String, Object>> firstActor = client
+	.query(() -> "MATCH (p:Person) RETURN p")
 	.fetch()
 	.first();
 ----
@@ -153,7 +153,7 @@ If you don't expect any results from your query, than use `run()` after specific
 .Retrieving result summaries in a reactive way
 ----
 Mono<ResultSummary> summary = reactiveClient
-    .query("MATCH (n:Unused) DELETE n")
+    .query("MATCH (m:Movie) where m.title = 'Aeon Flux' DETACH DELETE m")
     .run();
 
 summary
@@ -162,7 +162,7 @@ summary
         System.out.println(counters.nodesDeleted() + " nodes have been deleted")
     ); // <1>
 ----
-<1> Only here the query is triggered
+<1> The actual query is triggered here by subscribing to the publisher
 
 Please take a moment to compare both listings and understand the difference when the actual query is triggered.
 
@@ -170,15 +170,12 @@ Please take a moment to compare both listings and understand the difference when
 [source,java]
 .Retrieving result summaries in a imperative way
 ----
-Optional<ResultSummary> optionalSummary = imperativeClient
-    .query("MATCH (n:Unused) DELETE n")
-    .run(); // <1>
+ResultSummary resultSummary = imperativeClient
+	.query("MATCH (m:Movie) where m.title = 'Aeon Flux' DETACH DELETE m")
+	.run(); // <1>
 
-optionalSummary
-    .map(ResultSummary::counters)
-    .ifPresent(counters ->
-        System.out.println(counters.nodesDeleted() + " nodes have been deleted")
-    );
+SummaryCounters counters = resultSummary.counters();
+System.out.println(counters.nodesDeleted() + " nodes have been deleted")
 ----
 <1> Here the query is triggered immediate
 
@@ -199,22 +196,20 @@ Please have a look at the https://neo4j.com/docs/driver-manual/current/cypher-va
 .Mapping simple types
 ----
 Map<String, Object> parameters = new HashMap<>();
-parameters.put("bikeName", "M.*");
-parameters.put("location", "Sweden");
+parameters.put("name", "Li.*");
 
-Flux<Map<String, Object>> usedBikes = client
-    .query(
-        "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike) - [:USED_ON] -> (t:Trip) " +
-        "WHERE t.takenOn > $aDate " +
-        "  AND b.name =~ $bikeName " +
-        "  AND t.location = $location " +
-        "RETURN b"
-    )
-    .bind("michael").to("name") // <1>
-    .bind(LocalDate.of(2019, 1, 1)).to("aDate")
-    .bindAll(parameters) // <2>
-    .fetch()
-    .all();
+Flux<Map<String, Object>> directorAndMovies = client
+	.query(
+		"MATCH (p:Person) - [:DIRECTED] -> (m:Movie {title: $title}), (p) - [:WROTE] -> (om:Movie) " +
+			"WHERE p.name =~ $name " +
+			"  AND p.born < $someDate.year " +
+			"RETURN p, om"
+	)
+	.bind("The Matrix").to("title") // <1>
+	.bind(LocalDate.of(1979, 9, 21)).to("someDate")
+	.bindAll(parameters) // <2>
+	.fetch()
+	.all();
 ----
 <1> There's a fluent API for binding simple types
 <2> Alternatively parameters can be bound via a map of named parameters
@@ -228,36 +223,36 @@ to the Neo4j client to map those domain objects to parameters the driver can und
 [source,java]
 .Example of a domain type
 ----
-public class BikeOwner {
+public class Director {
 
     private final String name;
 
-    private final List<Bike> bikes;
+    private final List<Movie> movies;
 
-    BikeOwner(String name, List<Bike> bikes) {
+    Director(String name, List<Movie> movies) {
         this.name = name;
-        this.bikes = new ArrayList<>(bikes);
+        this.movies = new ArrayList<>(movies);
     }
 
     public String getName() {
         return name;
     }
 
-    public List<Bike> getBikes() {
-        return Collections.unmodifiableList(bikes);
+    public List<Movie> getMovies() {
+        return Collections.unmodifiableList(movies);
     }
 }
 
-public class Bike {
+public class Movie {
 
-    private final String name;
+    private final String title;
 
-    Bike(String name) {
-        this.name = name;
+    public Movie(String title) {
+        this.title = title;
     }
 
-    public String getName() {
-        return name;
+    public String getTitle() {
+        return title;
     }
 }
 ----
@@ -268,19 +263,22 @@ The mapping function has to fill in all named parameters that might occur in the
 [source,java]
 .Using a mapping function for binding domain objects
 ----
+Director joseph = new Director("Joseph Kosinski",
+        Arrays.asList(new Movie("Tron Legacy"), new Movie("Top Gun: Maverick")));
+
 Mono<ResultSummary> summary = client
     .query(""
-        + "MERGE (u:User {name: 'Michael'}) "
-        + "WITH u UNWIND $bikes as bike "
-        + "MERGE (b:Bike {name: bike}) "
-        + "MERGE (u) - [o:OWNS] -> (b) "
-     )
-    .bind(michael).with(bikeOwner -> { // <1>
+        + "MERGE (p:Person {name: $name}) "
+        + "WITH p UNWIND $movies as movie "
+        + "MERGE (m:Movie {title: movie}) "
+        + "MERGE (p) - [o:DIRECTED] -> (m) "
+    )
+    .bind(joseph).with(director -> { // <1>
         Map<String, Object> mappedValues = new HashMap<>();
-        List<String> bikes = bikeOwner.getBikes().stream()
-            .map(Bike::getName).collect(Collectors.toList());
-        mappedValues.put("name", bikeOwner.getName());
-        mappedValues.put("bikes", bikes)
+        List<String> movies = director.getMovies().stream()
+            .map(Movie::getTitle).collect(Collectors.toList());
+        mappedValues.put("name", director.getName());
+        mappedValues.put("movies", movies);
         return mappedValues;
     })
     .run();
@@ -298,15 +296,15 @@ In addition, you can plugin your own `BiFunction<TypeSystem, Record, T>` through
 [source,java]
 .Using a mapping function for reading domain objects
 ----
-Mono<BikeOwner> bikeOwner = client
+Mono<Director> lily = client
     .query(""
-        + " MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike)"
-        + "RETURN o, collect(b) as bikes")
-    .bind("michael").to("name")
-    .fetchAs(BikeOwner.class).mappedBy((TypeSystem t, Record record) -> {
-        List<Bike> bikes = record.get("bikes")
-            .asList(v -> new Bike((v.get("name").asString())));
-        return new BikeOwner(record.get("name").asString(), bikes);
+        + " MATCH (p:Person {name: $name}) - [:DIRECTED] -> (m:Movie)"
+        + "RETURN p, collect(m) as movies")
+    .bind("Lilly Wachowski").to("name")
+    .fetchAs(Director.class).mappedBy((TypeSystem t, Record record) -> {
+        List<Movie> movies = record.get("movies")
+            .asList(v -> new Movie((v.get("title").asString())));
+        return new Director(record.get("name").asString(), movies);
     })
     .one();
 ----
