@@ -33,36 +33,37 @@ TIP: Backed by those observations, we recommend to make sure you're using only t
 Thus, your application and the access layer of your application is to large extend independent from the databases version.
 From that state, consider moving from SDN+OGM to SDN-RX.
 
-With this considerations in mind, we will cover the following scenarios
-
-=== Switching from SDN+OGM Lovelace or SDN+OGM Moore
+=== Prepare the migration from SDN+OGM Lovelace or SDN+OGM Moore to SDN-RX
 
 NOTE: The _Lovelace_ release train corresponds to SDN 5.1.x and OGM 3.1.x, while the _Moore_ is SDN 5.2.x and OGM 3.2.x.
+
+First, you must make sure that your application runs against Neo4j in server mode over the Bolt protocol, which means work in two of three cases:
 
 ==== You're on embedded
 
 You have added `org.neo4j:neo4j-ogm-embedded-driver` and `org.neo4j:neo4j` to you project and starting the database via OGM facilities.
 This is no longer supported and you have to setup a standard Neo4j server (both standalone and cluster are supported).
 
-The above dependencies have to be removed
+The above dependencies have to be removed.
+
+Migrating from the embedded solution is probably the thoughtest migration, as you need to setup a server, too.
+It is however the one that gives you much value in itself:
+In the future, you will be able to upgrade the database itself without having to consider your application framework,
+and your data access framework as well.
 
 ==== You're using the HTTP transport
 
 You have added `org.neo4j:neo4j-ogm-http-driver` and configured an url like `http://user:password@localhost:7474`.
-The dependency has to be removed and you need to configure a Bolt url like `bolt://localhost:7687` or use the new `neo4j://` protocol, which takes care of routing, too.
+The dependency has to be replaced with `org.neo4j:neo4j-ogm-bolt-driver` and you need to configure a Bolt url like `bolt://localhost:7687` or use the new `neo4j://` protocol, which takes care of routing, too.
 
 ==== You're already using Bolt indirectly
 
 A default SDN+OGM project uses `org.neo4j:neo4j-ogm-bolt-driver` and thus indirectly, the pure Java Driver.
 You can keep your existing URL.
 
-==== You're using XML configuration for your current Spring application
+=== Migrating
 
-You have to move to an annotation or functional based approach first.
-Your best choice these days is Spring Boot.
-SDN-RX does not support XML based configuration at the moment.
-
-==== Migrating
+Once you have made sure, that your SDN+OGM application works over Bolt as expected, you can start migrating to SDN-RX.
 
 * Remove all `org.neo4j:neo4j-ogm-*` dependencies
 * Remove `org.springframework.data:spring-data-neo4j`
@@ -70,6 +71,10 @@ SDN-RX does not support XML based configuration at the moment.
   Any of https://github.com/neo4j/neo4j-java-driver-spring-boot-starter/blob/master/docs/configuration-options.adoc[those properties] can be configured through standard Spring Boot means.
   You'll especially have to adapt the properties for the url and authentication, see <<migrating-auth>>
 
+TIP: You cannot configure SDN-RX through XML.
+     In case you did this with your SDN+OGM application, make sure you learn about annotation-driven or functional configuration of Spring Applications.
+     The easiest choice these days is Spring Boot.
+     With our starter in place, all the necessary bits apart from the connection URL and the authentication is already configured for you.
 
 [source,properties]
 [[migrating-auth]]

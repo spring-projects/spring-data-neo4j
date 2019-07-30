@@ -207,8 +207,7 @@ org.neo4j.driver.authentication.password=secret
 This is the bare minimum of what you need to connect to a Neo4j instance.
 
 NOTE: It is not necessary to add any programmatically configuration of the driver when you use this starter.
-
-SDN-RX repositories will be automatically enabled by this starter.
+      SDN-RX repositories will be automatically enabled by this starter.
 
 === Creating your domain
 
