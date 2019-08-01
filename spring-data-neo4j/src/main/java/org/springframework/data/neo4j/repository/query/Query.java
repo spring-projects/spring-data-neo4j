@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  *
  * @author Nicolas Mervaillie
  * @author Michael J. Simons
+ * @author Ihor Dziuba
  */
 public class Query {
 
@@ -48,13 +49,6 @@ public class Query {
 	public Query(Filters filters) {
 		Assert.notNull(filters, "Filters must not be null.");
 		this.filters = filters;
-	}
-
-	public Query(String cypherQuery, Map<String, Object> parameters) {
-		Assert.notNull(cypherQuery, "Query must not be null.");
-		Assert.notNull(parameters, "Parameters must not be null.");
-		this.cypherQuery = sanitize(cypherQuery);
-		this.parameters = parameters;
 	}
 
 	public Query(String cypherQuery, String countQuery, Map<String, Object> parameters) {

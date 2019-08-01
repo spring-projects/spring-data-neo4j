@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.namedquery.repo;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.namedquery.domain.SampleEntityForNamedQuery;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -30,5 +32,9 @@ public interface SampleEntityForNamedQueryRepository extends Neo4jRepository<Sam
 	SampleEntityForNamedQuery findByQueryWithoutParameter();
 
 	SampleEntityForNamedQuery findByQueryWithParameter(@Param("name") String name);
+
+	Page<SampleEntityForNamedQuery> findByPagedQueryWithParameter(@Param("name") String name, Pageable pageable);
+
+	Page<SampleEntityForNamedQuery> findByPagedQueryWithoutCountQuery(@Param("name") String name, Pageable pageable);
 
 }

@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  * @author Luanne Misquitta
  * @author Oliver Gierke
  * @author Michael J. Simons
+ * @author Ihor Dziuba
  */
 public class GraphQueryMethod extends QueryMethod {
 
@@ -97,6 +98,15 @@ public class GraphQueryMethod extends QueryMethod {
 	 */
 	public String getNamedQueryName() {
 		return String.format("%s.%s", getDomainClass().getSimpleName(), method.getName());
+	}
+
+	/**
+	 * Returns the name of the count query related to named query this method belongs to
+	 *
+	 * @return
+	 */
+	public String getNamedCountQueryName() {
+		return String.format("%s.countQuery", getNamedQueryName());
 	}
 
 	public Integer getQueryDepthParamIndex() {

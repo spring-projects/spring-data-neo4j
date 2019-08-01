@@ -257,6 +257,7 @@ Spring Data Neo4j will look in the `META-INF/neo4j-named-queries.properties` fil
 If you provide a query property like `User.findByQuery=MATCH (e) WHERE e.name={name} RETURN e` you can refer to this method by providing a finder method in your repository.
 The repository has to support the given entity type (in this example `User`) and the method has to be named as the defined one (`findByQuery`).
 As you can see in the example it is possible to parameterize the query.
+Named count query can be specified by adding `.countQuery` suffix to the related query property key. For example, if the next query should return paged result `User.findAllByQuery=MATCH (e) RETURN e`, the count query can be specified by the following way: `User.findAllByQuery.countQuery=MATCH (e) RETURN count(e)`.
 
 === Query results
 

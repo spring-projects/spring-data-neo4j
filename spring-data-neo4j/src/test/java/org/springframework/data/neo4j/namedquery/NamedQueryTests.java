@@ -15,22 +15,19 @@
  */
 package org.springframework.data.neo4j.namedquery;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.neo4j.namedquery.domain.SampleEntityForNamedQuery;
 import org.springframework.data.neo4j.namedquery.repo.SampleEntityForNamedQueryRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
-import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @author Ihor Dziuba
  */
 @ContextConfiguration(classes = { NamedQueryTests.NamedQueryContext.class })
 @RunWith(SpringRunner.class)
@@ -47,6 +45,9 @@ public class NamedQueryTests {
 	private static final String SAMPLE_ENTITY_NAME = "test";
 
 	@Autowired private SampleEntityForNamedQueryRepository repository;
+
+	@Rule
+	public ExpectedException exceptionRule = ExpectedException.none();
 
 	@Test
 	public void findElementByQueryAnnotation() {
@@ -78,6 +79,26 @@ public class NamedQueryTests {
 
 		SampleEntityForNamedQuery titleEntity = repository.findByQueryWithParameter(SAMPLE_ENTITY_NAME);
 		assertThat(titleEntity).isNotNull();
+	}
+
+	@Test  //DATAGRAPH-1241
+	public void findElementsByNamedPagedQueryWithParameter() {
+		createAndSaveSampleEntity();
+		createAndSaveSampleEntity();
+
+		Page<SampleEntityForNamedQuery> page = repository.findByPagedQueryWithParameter(SAMPLE_ENTITY_NAME, PageRequest.of(0,1));
+		assertThat(page.getTotalPages()).isEqualTo(2);
+		assertThat(page.get().count()).isEqualTo(1);
+	}
+
+	@Test  //DATAGRAPH-1241
+	public void findElementsByNamedPagedQueryFailedWithoutCountQuery() {
+		createAndSaveSampleEntity();
+		createAndSaveSampleEntity();
+
+		exceptionRule.expect(IllegalArgumentException.class);
+		exceptionRule.expectMessage("Must specify a count query to get pagination info.");
+		Page<SampleEntityForNamedQuery> page = repository.findByPagedQueryWithoutCountQuery(SAMPLE_ENTITY_NAME, PageRequest.of(0,1));
 	}
 
 	private void createAndSaveSampleEntity() {

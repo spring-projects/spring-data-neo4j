@@ -25,21 +25,24 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @author Ihor Dziuba
  */
 public class NamedGraphRepositoryQuery extends GraphRepositoryQuery {
 
 	private final String cypherQuery;
+	private final String countQuery;
 
 	NamedGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, MetaData metaData, Session session, String cypherQuery,
-			QueryMethodEvaluationContextProvider evaluationContextProvider) {
+			String countQuery, QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 		super(graphQueryMethod, metaData, session, evaluationContextProvider);
 		this.cypherQuery = cypherQuery;
+		this.countQuery = countQuery;
 	}
 
 	@Override
 	protected Query getQuery(Object[] parameters) {
-		return new Query(cypherQuery, resolveParams(queryMethod.getParameters(), parameters));
+		return new Query(cypherQuery, countQuery, resolveParams(queryMethod.getParameters(), parameters));
 	}
 
 }

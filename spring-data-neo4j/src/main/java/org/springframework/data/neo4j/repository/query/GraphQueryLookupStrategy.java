@@ -39,6 +39,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Nicolas Mervaillie
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @author Ihor Dziuba
  */
 public class GraphQueryLookupStrategy implements QueryLookupStrategy {
 
@@ -79,10 +80,15 @@ public class GraphQueryLookupStrategy implements QueryLookupStrategy {
 		GraphQueryMethod queryMethod = new GraphQueryMethod(method, metadata, factory);
 		queryMethod.setMappingContext(this.mappingContext);
 		String namedQueryName = queryMethod.getNamedQueryName();
+		String namedCountQueryName = queryMethod.getNamedCountQueryName();
 
 		if (namedQueries.hasQuery(namedQueryName)) {
 			String cypherQuery = namedQueries.getQuery(namedQueryName);
-			return new NamedGraphRepositoryQuery(queryMethod, metaData, session, cypherQuery, evaluationContextProvider);
+			String countQuery = "";
+			if (namedQueries.hasQuery(namedCountQueryName)){
+				countQuery = namedQueries.getQuery(namedCountQueryName);
+			}
+			return new NamedGraphRepositoryQuery(queryMethod, metaData, session, cypherQuery, countQuery, evaluationContextProvider);
 		} else if (queryMethod.hasAnnotatedQuery()) {
 			return new GraphRepositoryQuery(queryMethod, metaData, session, evaluationContextProvider);
 		} else {
