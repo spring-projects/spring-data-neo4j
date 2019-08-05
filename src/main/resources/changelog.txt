@@ -1,6 +1,12 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 4.2.23.RELEASE (2019-08-05)
+----------------------------------------------
+* DATAGRAPH-1229 - Introduce Jenkins CI.
+* DATAGRAPH-1227 - Release 4.2.23 (Ingalls SR23).
+
+
 Changes in version 5.2.0.RC1 (2019-06-14)
 -----------------------------------------
 * DATAGRAPH-1230 - Create security policy readme.
