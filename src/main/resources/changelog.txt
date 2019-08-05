@@ -1,6 +1,15 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.10.RELEASE (2019-08-05)
+----------------------------------------------
+* DATAGRAPH-1240 - Declare Jackson dependencies without explicit versions.
+* DATAGRAPH-1238 - Unify README.
+* DATAGRAPH-1236 - Integrate nohttp tooling into CI build profile.
+* DATAGRAPH-1233 - Release 5.1.10 (Lovelace SR10).
+* DATAGRAPH-1229 - Introduce Jenkins CI.
+
+
 Changes in version 4.2.23.RELEASE (2019-08-05)
 ----------------------------------------------
 * DATAGRAPH-1229 - Introduce Jenkins CI.
