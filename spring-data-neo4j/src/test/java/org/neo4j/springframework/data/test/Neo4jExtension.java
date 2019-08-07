@@ -169,7 +169,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		public Neo4jConnectionSupport(String url, AuthToken authToken) {
 			this.url = url;
 			this.authToken = authToken;
-			this.config = Config.builder().withLogging(Logging.slf4j()).build();
+			this.config = Config.builder().withoutEncryption().withLogging(Logging.slf4j()).build();
 		}
 
 		/**
