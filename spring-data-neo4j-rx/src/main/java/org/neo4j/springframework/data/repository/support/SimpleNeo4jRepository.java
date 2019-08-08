@@ -163,6 +163,23 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 			Object value = propertyAccessor.getProperty(inverse);
 
+			Class<?> associationTargetType = inverse.getAssociationTargetType();
+
+			Neo4jPersistentEntity<?> targetNodeDescription = (Neo4jPersistentEntity<?>) neo4jMappingContext
+				.getRequiredNodeDescription(associationTargetType);
+
+			Collection<RelationshipDescription> relationships = neo4jMappingContext
+				.getRelationshipsOf(neo4jPersistentEntity.getPrimaryLabel());
+
+			RelationshipDescription relationship = relationships.stream()
+				.filter(r -> r.getPropertyName().equals(inverse.getName()))
+				.findFirst().get();
+
+			// remove all relationships before creating all new
+			// this avoids the usage of cache but might have significant impact on overall performance
+			Statement relationshipRemoveQuery = createRelationshipRemoveQuery(neo4jPersistentEntity, fromId, relationship, targetNodeDescription.getPrimaryLabel());
+			neo4jClient.query(renderer.render(relationshipRemoveQuery)).run();
+
 			if (value == null) {
 				return;
 			}
@@ -170,18 +187,6 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 			Collection<Object> relatedValues = inverse.isCollectionLike() ?
 				(Collection<Object>) value :
 				Collections.singleton(value);
-
-			Collection<RelationshipDescription> relationships = neo4jMappingContext
-				.getRelationshipsOf(neo4jPersistentEntity.getPrimaryLabel());
-
-			Class<?> associationTargetType = inverse.getAssociationTargetType();
-
-			Neo4jPersistentEntity<?> targetNodeDescription = (Neo4jPersistentEntity<?>) neo4jMappingContext
-				.getRequiredNodeDescription(associationTargetType);
-
-			RelationshipDescription relationship = relationships.stream()
-				.filter(r -> r.getPropertyName().equals(inverse.getName()))
-				.findFirst().get();
 
 			for (Object relatedValue : relatedValues) {
 
