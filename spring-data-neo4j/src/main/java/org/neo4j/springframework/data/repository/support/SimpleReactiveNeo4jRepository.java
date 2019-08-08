@@ -208,14 +208,6 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 				Object value = propertyAccessor.getProperty(inverse);
 
-				if (value == null) {
-					return;
-				}
-
-				Collection<Object> relatedValues = inverse.isCollectionLike() ?
-					(Collection<Object>) value :
-					Collections.singleton(value);
-
 				Collection<RelationshipDescription> relationships = neo4jMappingContext
 					.getRelationshipsOf(neo4jPersistentEntity.getPrimaryLabel());
 
@@ -227,6 +219,18 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 				RelationshipDescription relationship = relationships.stream()
 					.filter(r -> r.getPropertyName().equals(inverse.getName()))
 					.findFirst().get();
+
+				// remove all relationships before creating all new
+				// this avoids the usage of cache but might have significant impact on overall performance
+				Statement relationshipRemoveQuery = createRelationshipRemoveQuery(neo4jPersistentEntity, fromId, relationship, targetNodeDescription.getPrimaryLabel());
+				relationshipCreationMonos.add(neo4jClient.query(renderer.render(relationshipRemoveQuery)).run().then());
+				if (value == null) {
+					return;
+				}
+
+				Collection<Object> relatedValues = inverse.isCollectionLike() ?
+					(Collection<Object>) value :
+					Collections.singleton(value);
 
 				for (Object relatedValue : relatedValues) {
 
@@ -252,12 +256,13 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 
 										return
 											neo4jClient.query(renderer.render(relationshipCreationQuery))
-											.run()
-											.then(processNestedAssociations(targetNodeDescription, valueToBeSaved));
+												.run()
+												.then(processNestedAssociations(targetNodeDescription,
+													valueToBeSaved));
 									})));
-				}
-
+					}
 			});
+
 			return Flux.concat(relationshipCreationMonos).then();
 		});
 	}

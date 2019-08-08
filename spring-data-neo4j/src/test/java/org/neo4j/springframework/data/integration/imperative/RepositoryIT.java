@@ -548,6 +548,8 @@ class RepositoryIT {
 					+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
 					Values.parameters("name", "Freddie")).list();
 
+			assertThat(recordList).hasSize(1);
+
 			Record record = recordList.get(0);
 
 			assertThat(record.containsKey("n")).isTrue();
@@ -557,6 +559,55 @@ class RepositoryIT {
 
 			assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
 					.containsExactlyInAnyOrder("Music");
+
+			// assert that only one hobby is stored
+			recordList = session.run("MATCH (h:Hobby) RETURN h").list();
+			assertThat(recordList).hasSize(1);
+		}
+	}
+
+	@Test
+	void saveEntityWithAlreadyExistingSourceAndTargetNode() {
+
+		Long hobbyId;
+		Long personId;
+
+		try (Session session = driver.session()) {
+			Record record = session.run(
+				"CREATE (p:PersonWithRelationship{name: 'Freddie'}), (h:Hobby{name: 'Music'}) return id(h) as hId, id(p) as pId")
+				.single();
+
+			personId = record.get("pId").asLong();
+			hobbyId = record.get("hId").asLong();
+		}
+
+		PersonWithRelationship person = new PersonWithRelationship();
+		person.setName("Freddie");
+		person.setId(personId);
+		Hobby hobby = new Hobby();
+		hobby.setId(hobbyId);
+		hobby.setName("Music");
+		person.setHobbies(hobby);
+
+		PersonWithRelationship savedPerson = relationshipRepository.save(person);
+		try (Session session = driver.session()) {
+
+			List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
+					+ " RETURN n,"
+					+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
+				Values.parameters("name", "Freddie")).list();
+
+			assertThat(recordList).hasSize(1);
+
+			Record record = recordList.get(0);
+
+			assertThat(record.containsKey("n")).isTrue();
+			Node rootNode = record.get("n").asNode();
+			assertThat(savedPerson.getId()).isEqualTo(rootNode.id());
+			assertThat(savedPerson.getName()).isEqualTo("Freddie");
+
+			assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
+				.containsExactlyInAnyOrder("Music");
 
 			// assert that only one hobby is stored
 			recordList = session.run("MATCH (h:Hobby) RETURN h").list();
@@ -651,6 +702,35 @@ class RepositoryIT {
 
 		repository.deleteAll();
 		assertThat(repository.count()).isEqualTo(0L);
+	}
+
+	@Test
+	void deleteSimpleRelationship() {
+		try (Session session = driver.session()) {
+			session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'})");
+		}
+
+		PersonWithRelationship person = relationshipRepository.getPersonWithRelationshipsViaQuery();
+		person.setHobbies(null);
+		relationshipRepository.save(person);
+		person = relationshipRepository.getPersonWithRelationshipsViaQuery();
+
+		assertThat(person.getHobbies()).isNull();
+	}
+
+	@Test
+	void deleteCollectionRelationship() {
+		try (Session session = driver.session()) {
+			session.run("CREATE (n:PersonWithRelationship{name:'Freddie'}), "
+				+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'})");
+		}
+
+		PersonWithRelationship person = relationshipRepository.getPersonWithRelationshipsViaQuery();
+		person.getPets().remove(0);
+		relationshipRepository.save(person);
+		person = relationshipRepository.getPersonWithRelationshipsViaQuery();
+
+		assertThat(person.getPets()).hasSize(1);
 	}
 
 	@Test

@@ -62,6 +62,7 @@ import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
 import org.neo4j.springframework.data.test.Neo4jExtension.*;
 import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
+import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -980,6 +981,49 @@ class ReactiveRepositoryIT {
 			.as(StepVerifier::create)
 			.expectNextMatches(node -> node.get("first_name").asString().equals("Updated first name") &&
 				node.get("nullable").asString().equals("Updated nullable field"))
+			.verifyComplete();
+	}
+
+	@Test
+	void deleteSimpleRelationship() {
+		try (Session session = driver.session()) {
+			session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'})");
+		}
+
+		Publisher<PersonWithRelationship> personLoad = relationshipRepository.getPersonWithRelationshipsViaQuery()
+			.map(person -> {
+				person.setHobbies(null);
+				return person;
+			});
+
+		Flux<PersonWithRelationship> personSave = relationshipRepository.saveAll(personLoad);
+
+		StepVerifier.create(personSave.then(relationshipRepository.getPersonWithRelationshipsViaQuery()))
+			.assertNext(person -> {
+				assertThat(person.getHobbies()).isNull();
+			})
+			.verifyComplete();
+	}
+
+	@Test
+	void deleteCollectionRelationship() {
+		try (Session session = driver.session()) {
+			session.run("CREATE (n:PersonWithRelationship{name:'Freddie'}), "
+				+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'})");
+		}
+
+		Publisher<PersonWithRelationship> personLoad = relationshipRepository.getPersonWithRelationshipsViaQuery()
+			.map(person -> {
+				person.getPets().remove(0);
+				return person;
+			});
+
+		Flux<PersonWithRelationship> personSave = relationshipRepository.saveAll(personLoad);
+
+		StepVerifier.create(personSave.then(relationshipRepository.getPersonWithRelationshipsViaQuery()))
+			.assertNext(person -> {
+				assertThat(person.getPets()).hasSize(1);
+			})
 			.verifyComplete();
 	}
 

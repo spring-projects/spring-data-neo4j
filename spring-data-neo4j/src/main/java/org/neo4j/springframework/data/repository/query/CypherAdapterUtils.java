@@ -244,6 +244,28 @@ public final class CypherAdapterUtils {
 				.build();
 		}
 
+		@NotNull
+		public static Statement createRelationshipRemoveQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object fromId,
+			RelationshipDescription relationshipDescription, String relatedNodeLabel) {
+
+			Node startNode = anyNode("startNode");
+			Node endNode = node(relatedNodeLabel);
+			String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
+			boolean outgoing = relationshipDescription.isOutgoing();
+
+			String relationshipType = relationshipDescription.getType();
+			Relationship relationship = outgoing
+				? startNode.relationshipTo(endNode, relationshipType).named("rel")
+				: startNode.relationshipFrom(endNode, relationshipType).named("rel");
+
+			return match(relationship)
+				.where(neo4jPersistentEntity.isUsingInternalIds()
+					? startNode.internalId().isEqualTo(literalOf(fromId))
+					: startNode.property(idPropertyName).isEqualTo(literalOf(fromId)))
+				.delete(relationship.getSymbolicName().get()).build();
+
+		}
+
 		public String createReturnStatementForMatch(NodeDescription<?> nodeDescription) {
 
 			Collection<RelationshipDescription> relationshipDescriptions = schema.getRelationshipsOf(nodeDescription.getPrimaryLabel());
