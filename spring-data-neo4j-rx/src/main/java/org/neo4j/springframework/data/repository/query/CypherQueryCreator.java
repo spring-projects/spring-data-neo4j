@@ -122,9 +122,10 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 	@Override
 	protected String complete(Condition condition, Sort sort) {
 
-		Statement statement = createSchemaBasedStatementBuilder(mappingContext)
+		SchemaBasedStatementBuilder statementBuilder = createSchemaBasedStatementBuilder(mappingContext);
+		Statement statement = statementBuilder
 			.prepareMatchOf(nodeDescription, condition)
-			.returning(Cypher.asterisk())
+			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(nodeDescription)))
 			.orderBy(
 				Stream.concat(
 					sortItems.stream(),
