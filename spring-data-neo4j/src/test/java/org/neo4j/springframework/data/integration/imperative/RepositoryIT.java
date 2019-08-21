@@ -36,6 +36,7 @@ import java.util.stream.StreamSupport;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
@@ -1542,6 +1543,7 @@ class RepositoryIT {
 			.containsExactly(person1);
 	}
 
+	@DisabledIfEnvironmentVariable(named = "SDN_RX_NEO4J_VERSION", matches = "4\\.0.*")
 	@Test
 	void limitClauseShouldWork() {
 
