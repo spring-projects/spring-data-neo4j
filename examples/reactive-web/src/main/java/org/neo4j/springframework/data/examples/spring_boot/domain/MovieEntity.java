@@ -18,10 +18,14 @@
  */
 package org.neo4j.springframework.data.examples.spring_boot.domain;
 
-import org.neo4j.springframework.data.core.schema.GeneratedValue;
+import static org.neo4j.springframework.data.core.schema.Relationship.Direction.*;
+
+import java.util.Set;
+
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.Property;
+import org.neo4j.springframework.data.core.schema.Relationship;
 
 /**
  * @author Michael J. Simons
@@ -29,22 +33,21 @@ import org.neo4j.springframework.data.core.schema.Property;
 @Node("Movie")
 public class MovieEntity {
 
-	@Id @GeneratedValue
-	private Long id;
-
+	@Id
 	private final String title;
 
 	@Property("tagline")
 	private final String description;
 
+	@Relationship(type = "ACTED_IN", direction = INCOMING)
+	private Set<PersonEntity> actors;
+
+	@Relationship(type = "DIRECTED", direction = INCOMING)
+	private Set<PersonEntity> directors;
+
 	public MovieEntity(String title, String description) {
-		this.id = null;
 		this.title = title;
 		this.description = description;
-	}
-
-	public Long getId() {
-		return id;
 	}
 
 	public String getTitle() {
@@ -55,13 +58,11 @@ public class MovieEntity {
 		return description;
 	}
 
-	public MovieEntity withId(Long id) {
-		if (this.id == null) {
-			return this;
-		} else {
-			MovieEntity newObject = new MovieEntity(this.title, this.description);
-			newObject.id = this.id;
-			return newObject;
-		}
+	public Set<PersonEntity> getActors() {
+		return actors;
+	}
+
+	public Set<PersonEntity> getDirectors() {
+		return directors;
 	}
 }

@@ -18,14 +18,19 @@
  */
 package org.neo4j.springframework.data.examples.spring_boot.domain;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
+import org.neo4j.springframework.data.repository.query.Query;
 
 /**
- * @author Michael J. Simons
+ * @author Gerrit Meier
  */
-public interface MovieRepository extends ReactiveNeo4jRepository<MovieEntity, Long> {
+public interface PersonRepository extends ReactiveNeo4jRepository<PersonEntity, Long> {
 
-	Mono<MovieEntity> findOneByTitle(String title);
+	Mono<PersonEntity> findByName(String name);
+
+	@Query("MATCH (am:Movie)<-[ai:ACTED_IN]-(p:Person)-[d:DIRECTED]->(dm:Movie) return p, collect(ai), collect(d), collect(am), collect(dm)")
+	Flux<PersonEntity> getPersonsWhoActAndDirect();
 }
