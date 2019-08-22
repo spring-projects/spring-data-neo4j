@@ -4,10 +4,10 @@
 Spring Data Neo4j⚡️RX comes with a Neo4j Client, providing a human readable layer on top of Neo4js Java driver.
 It has the following main goals
 
-0. Integrate into Springs transaction management, for both imperative and reactive scenarios
-0. Participate in JTA-Transactions if necessary
-0. Provide a consistent API for both imperative and reactive scenarios
-0. Don't add any mapping overhead
+. Integrate into Springs transaction management, for both imperative and reactive scenarios
+. Participate in JTA-Transactions if necessary
+. Provide a consistent API for both imperative and reactive scenarios
+. Don't add any mapping overhead
 
 SDN-RX relies on all those features and uses them to fulfill it's entity mapping features.
 
