@@ -2,7 +2,7 @@
 :sectanchors:
 
 // tag::versions[]
-:spring-data-neo4j-rx_version: 1.0.0-alpha03
+:spring-data-neo4j-rx_version: 4.0.0-beta01
 :groupId: org.neo4j.springframework.data
 :artifactId: spring-data-neo4j-rx
 :artifactIdStarter: spring-data-neo4j-rx-spring-boot-starter

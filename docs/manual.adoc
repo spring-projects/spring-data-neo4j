@@ -15,7 +15,7 @@ endif::[]
 :xrefstyle: short
 :gh_base: https://github.com/neo4j/sdn-rx
 
-include::../README.adoc[tags=versions]
+include::{manualIncludeDir}/README.adoc[tags=versions]
 
 == Intro
 
