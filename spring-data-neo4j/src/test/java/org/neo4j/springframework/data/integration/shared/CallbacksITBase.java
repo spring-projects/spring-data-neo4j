@@ -34,6 +34,7 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Node;
 import org.neo4j.springframework.data.test.Neo4jExtension;
+import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
@@ -41,8 +42,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  *
  * @author Michael J. Simons
  */
+@Neo4jIntegrationTest
 @ExtendWith(SpringExtension.class)
-@ExtendWith(Neo4jExtension.class)
 public abstract class CallbacksITBase {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;

@@ -60,8 +60,8 @@ import org.neo4j.springframework.data.integration.shared.PersonWithRelationship;
 import org.neo4j.springframework.data.integration.shared.Pet;
 import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
-import org.neo4j.springframework.data.test.Neo4jExtension;
 import org.neo4j.springframework.data.test.Neo4jExtension.*;
+import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -78,8 +78,8 @@ import org.springframework.transaction.reactive.TransactionalOperator;
  * @author Gerrit Meier
  * @author Michael J. Simons
  */
+@Neo4jIntegrationTest
 @Tag(NEEDS_REACTIVE_SUPPORT)
-@ExtendWith(Neo4jExtension.class)
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ReactiveRepositoryIT.Config.class)
 class ReactiveRepositoryIT {

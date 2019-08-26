@@ -33,8 +33,8 @@ import org.neo4j.driver.Values;
 import org.neo4j.springframework.data.config.AbstractNeo4jConfig;
 import org.neo4j.springframework.data.integration.shared.KotlinPerson;
 import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
-import org.neo4j.springframework.data.test.Neo4jExtension;
 import org.neo4j.springframework.data.test.Neo4jExtension.Neo4jConnectionSupport;
+import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,9 +44,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
+@Neo4jIntegrationTest
 @ExtendWith(SpringExtension.class)
-@ExtendWith(Neo4jExtension.class)
 @ContextConfiguration(classes = KotlinIT.Config.class)
 class KotlinIT {
 
