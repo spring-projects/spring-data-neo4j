@@ -28,6 +28,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.internal.Bookmark;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
@@ -153,7 +154,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		TransactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
 
 		try {
-			List<String> bookmarks = Collections.emptyList(); // TODO Bookmarksupport;
+			List<Bookmark> bookmarks = Collections.emptyList(); // TODO Bookmarksupport;
 			Session session = this.driver.session(sessionConfig(readOnly, bookmarks, databaseName));
 			Transaction nativeTransaction = session.beginTransaction(transactionConfig);
 

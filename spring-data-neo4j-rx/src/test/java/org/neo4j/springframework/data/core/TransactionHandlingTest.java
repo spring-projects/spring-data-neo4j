@@ -39,7 +39,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.internal.SessionConfig;
+import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.types.TypeSystem;
@@ -99,7 +99,7 @@ class TransactionHandlingTest {
 
 				verify(driver).session(configArgumentCaptor.capture());
 				SessionConfig sessionConfig = configArgumentCaptor.getValue();
-				assertThat(sessionConfig.database()).isPresent().contains("aDatabase");
+				assertThat(sessionConfig.database()).isPresent().contains("adatabase");
 
 				verify(session).run(any(String.class));
 				verify(session).close();

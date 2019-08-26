@@ -31,6 +31,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
@@ -44,7 +45,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Values;
-import org.neo4j.driver.internal.SessionConfig;
+import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxStatementResult;
 import org.neo4j.driver.reactive.RxTransaction;
@@ -453,7 +454,7 @@ class ReactiveNeo4jClientTest {
 		SessionConfig config = configArgumentCaptor.getValue();
 
 		if (targetDatabase != null) {
-			assertThat(config.database()).isPresent().contains(targetDatabase);
+			assertThat(config.database()).isPresent().contains(targetDatabase.toLowerCase(Locale.ENGLISH));
 		} else {
 			assertThat(config.database()).isEmpty();
 		}

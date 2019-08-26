@@ -43,7 +43,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.internal.SessionConfig;
+import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.internal.util.ServerVersion;
 import org.springframework.core.log.LogMessage;
 import org.testcontainers.containers.Neo4jContainer;
@@ -169,7 +169,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		public Neo4jConnectionSupport(String url, AuthToken authToken) {
 			this.url = url;
 			this.authToken = authToken;
-			this.config = Config.builder().withoutEncryption().withLogging(Logging.slf4j()).build();
+			this.config = Config.builder().withLogging(Logging.slf4j()).build();
 		}
 
 		/**

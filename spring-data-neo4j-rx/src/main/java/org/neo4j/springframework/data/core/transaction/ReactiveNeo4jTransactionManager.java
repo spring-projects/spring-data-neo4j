@@ -28,6 +28,7 @@ import java.util.List;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.internal.Bookmark;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.springframework.lang.Nullable;
@@ -157,7 +158,7 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 
 			transactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
 
-			List<String> bookmarks = Collections.emptyList(); // TODO Bookmarksupport;
+			List<Bookmark> bookmarks = Collections.emptyList(); // TODO Bookmarksupport;
 			RxSession session = this.driver.rxSession(sessionConfig(readOnly, bookmarks, databaseName));
 
 			return Mono.from(session.beginTransaction(transactionConfig)).doOnNext(nativeTransaction -> {

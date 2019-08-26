@@ -43,7 +43,7 @@
 	<properties>
 		<changelist>-SNAPSHOT</changelist>
 		<flatten-maven-plugin.version>1.1.0</flatten-maven-plugin.version>
-		<neo4j-java-driver-spring-boot-starter.version>1.0.0-alpha03</neo4j-java-driver-spring-boot-starter.version>
+		<neo4j-java-driver-spring-boot-starter.version>4.0.0-beta01</neo4j-java-driver-spring-boot-starter.version>
 		<revision>1.0.0</revision>
 		<sha1></sha1>
 		<spring-data-neo4j-rx.version>${revision}${sha1}${changelist}</spring-data-neo4j-rx.version>
