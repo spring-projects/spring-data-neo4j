@@ -29,7 +29,7 @@ mvn clean package
 and run with
 
 ```
-java -jar target/benchmark-name-of-module-999-SNAPSHOT.jar
+java -jar target/benchmark.jar
 ```
 
 In this case, the benchmarks will fire up a https://www.testcontainers.org[Testcontainer] with Neo4j and the result is probably lower.
