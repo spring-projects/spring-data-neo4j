@@ -25,7 +25,8 @@ import java.util.Objects;
 
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.internal.SessionConfig;
+import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.internal.Bookmark;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.InvalidIsolationLevelException;
@@ -48,7 +49,7 @@ public final class Neo4jTransactionUtils {
 		return sessionConfig(false, Collections.emptyList(), databaseName);
 	}
 
-	public static SessionConfig sessionConfig(boolean readOnly, List<String> bookmarks,
+	public static SessionConfig sessionConfig(boolean readOnly, List<Bookmark> bookmarks,
 		@Nullable String databaseName) {
 		SessionConfig.Builder builder = SessionConfig.builder()
 			.withDefaultAccessMode(readOnly ? AccessMode.READ : AccessMode.WRITE)

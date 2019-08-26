@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -49,7 +50,7 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.StatementResult;
 import org.neo4j.driver.Values;
-import org.neo4j.driver.internal.SessionConfig;
+import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 
@@ -448,7 +449,7 @@ class Neo4jClientTest {
 		SessionConfig config = configArgumentCaptor.getValue();
 
 		if (targetDatabase != null) {
-			assertThat(config.database()).isPresent().contains(targetDatabase);
+			assertThat(config.database()).isPresent().contains(targetDatabase.toLowerCase(Locale.ENGLISH));
 		} else {
 			assertThat(config.database()).isEmpty();
 		}

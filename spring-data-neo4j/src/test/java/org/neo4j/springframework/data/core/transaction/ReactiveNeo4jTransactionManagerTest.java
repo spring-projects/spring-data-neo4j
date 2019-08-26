@@ -40,7 +40,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.internal.SessionConfig;
+import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.springframework.data.r2dbc.connectionfactory.R2dbcTransactionManager;
