@@ -5,10 +5,10 @@
 
 All benchmarks require Java 12.
 
-=== SDN-RX
+=== SDN/RX
 
-As long as SDN-RX itself is not yet on central, you have to build a snapshot your self.
-Please do this on the top level of SDN-RX with
+As long as SDN/RX itself is not yet on central, you have to build a snapshot your self.
+Please do this on the top level of SDN/RX with
 
 ```
 ./mvnw -DskipTests -Drevision=999 -Dchangelist=-BENCHMARK clean install
@@ -70,7 +70,7 @@ The database has been stopped and restarted after each module.
 |3309,650 ± 147,427  ops/s
 |1523,044 ±  51,523  ops/s
 
-|SDN-RX
+|SDN/RX
 |Built #73b2d13, Bolt 2.0.0-alpha03
 |2534,810 ± 121,818  ops/s
 |1064,281 ±  62,642  ops/s

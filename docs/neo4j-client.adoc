@@ -9,11 +9,11 @@ It has the following main goals
 . Provide a consistent API for both imperative and reactive scenarios
 . Don't add any mapping overhead
 
-SDN-RX relies on all those features and uses them to fulfill it's entity mapping features.
+SDN/RX relies on all those features and uses them to fulfill it's entity mapping features.
 
 The https://github.com/neo4j/neo4j-java-driver[plain java driver] is a very versatile tool
 and provides an asynchronous API in addition to the imperative and reactive versions.
-SDN-RX uses it as directly as possible while being as user friendly and idiomatic as possible, too.
+SDN/RX uses it as directly as possible while being as user friendly and idiomatic as possible, too.
 
 The Neo4j Client comes in two flavors:
 
@@ -41,7 +41,7 @@ The publisher can only be subscribed once.
 
 === Getting an instance of the client
 
-As with most things in SDN-RX, both clients depend on a configured driver instance.
+As with most things in SDN/RX, both clients depend on a configured driver instance.
 
 [[neo4j-client-create-imperative-client]]
 [source,java]
@@ -214,7 +214,7 @@ Flux<Map<String, Object>> directorAndMovies = client
 <1> There's a fluent API for binding simple types
 <2> Alternatively parameters can be bound via a map of named parameters
 
-SDN-RX does a lot of complex mapping and it uses the same API that you can use from the client.
+SDN/RX does a lot of complex mapping and it uses the same API that you can use from the client.
 
 You can provide a `Function<T, Map<String, Object>>` for any given domain object like an owner of bicycles in <<neo4j-client-domain-example>>
 to the Neo4j client to map those domain objects to parameters the driver can understand.

@@ -147,7 +147,7 @@
 		</plugins>
 	</build>
 
-	<!-- Those profiles are not relevant to the examples and are only needed for SDN-RX release chain. -->
+	<!-- Those profiles are not relevant to the examples and are only needed for SDN/RX release chain. -->
 	<profiles>
 		<profile>
 			<id>revisionMissing</id>

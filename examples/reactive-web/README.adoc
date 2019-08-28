@@ -1,34 +1,46 @@
-== Spring Boot Example
+== Spring Boot / Reactive Web Example
 
-=== Building SDN-RX and Examples.
+=== Building SDN/RX and Examples.
 
-As of writing, SDN-RX has not bean deployed to central.
-You have to build SDN-RX yourself by following these instructions.
-*You need to have JDK 12 installed.*
+NOTE: *You need to have JDK 12 installed.
+
+You can either built the complete project, including the examples.
+Thus, the examples will use your copy of SDN/RX, and any potential changes you made:
 
 [source,bash]
 ----
 git clone git@github.com:neo4j/sdn-rx
 cd sdn-rx
-./mvnw -DskipTests clean package
+./mvnw -DskipTests -Drevision=1.0.0 -Dchangelist=-SNAPSHOT clean package
+----
+
+If you want to only try out the examples with the currently released version,
+pick out the example you like (for example the `reactive-web` example) and build it like this:
+
+[source,bash]
+----
+git clone git@github.com:neo4j/sdn-rx
+cd sdn-rx/examples/reactive-web
+mvn -DskipTests clean package
+cd ../..
 ----
 
 === Running the examples.
 
 You'll need a Neo4j 4 instance that supports reactive database access and has a user name `neo4j` with a password of `secret`.
 Please use `:play movies` in Neo4j browser to get some data in your graph.
-With from SDN-RX root folder run
+With from SDN/RX root folder run
 
 [source,bash]
 ----
-java -jar spring-data-neo4j-rx-examples-parent/spring-data-neo4j-rx-examples-spring-boot/target/movie-api.jar
+java -jar examples/reactive-web/target/movie-api.jar
 ----
 
 If your database has different credentials or is on a different host, run
 
 [source,bash]
 ----
-java -jar spring-data-neo4j-rx-examples-parent/spring-data-neo4j-rx-examples-spring-boot/target/movie-api.jar \
+java -jar examples/reactive-web/target/movie-api.jar \
 --org.neo4j.driver.uri=neo4j://yourhost:7687 \
 --org.neo4j.driver.authentication.username=youruser \
 --org.neo4j.driver.authentication.password=yourpassword
@@ -73,8 +85,8 @@ curl -X DELETE http://localhost:8080/movies/847
 To make playing with the examples a bit easier, we have support for https://code.visualstudio.com/docs/remote/remote-overview[VS Code Remote Development].
 Please follow the instructions at the link above for setting up your Visual Studio Code environment.
 
-Open `spring-data-neo4j-rx-examples-spring-boot` in Visual Studio Code and let it build the container.
-The container will for now contain a locally build snapshot of SDN-RX that serves as dependencies for the example.
+Open `reactive-web` in Visual Studio Code and let it build the container.
+The container will for now contain a locally build snapshot of SDN/RX that serves as dependencies for the example.
 The example than can be build and run via Visual Studios support for Spring Boot, which is automatically added to the development container.
 
 The running example can be accessed from the outside as shown above without any further actions.
