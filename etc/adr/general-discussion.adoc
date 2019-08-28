@@ -97,7 +97,7 @@ Specifying `inverse` removes ambiguity here.
 
 === "Rich" relationships
 
-There should be no means of using a relationship as aggregate root in SDN-RX (like it is today the case with `@RelationshipEntity`).
+There should be no means of using a relationship as aggregate root in SDN/RX (like it is today the case with `@RelationshipEntity`).
 Instead we suggest that properties of relationships are mapped to POJOs.
 This has the following requirements:
 On the node representing the start node, the relationship (either 1:1 or 1:n) has to be annotated with `@Relationship` specifying the type of the end node like this:
@@ -296,7 +296,7 @@ and executes it through the `neo4jOperations` (`Neo4jTemplate`) class.
 
 === Dirty tracking
 
-We considered several approaches of dirty tracking in SDN-RX:
+We considered several approaches of dirty tracking in SDN/RX:
 
 . No dirty tracking at all.
     _Not an option when it comes to relationships._
@@ -323,7 +323,7 @@ we don't use https://projectlombok.org[Lombok] currently in the starter as none 
 
 ==== Project hierarchy and dependency management
 
-While the starter is a module of SDN-RX itself, it's actual parent project is `org.springframework.boot:spring-boot-starter-parent`.
+While the starter is a module of SDN/RX itself, it's actual parent project is `org.springframework.boot:spring-boot-starter-parent`.
 Thus we stay consistent with all other Spring Boot starters, that are actually part of Spring Boot.
 
 ==== Responsibilities

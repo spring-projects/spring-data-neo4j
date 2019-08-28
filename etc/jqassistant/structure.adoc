@@ -5,7 +5,7 @@ Most of the time, the package structure under `org.neo4j.springframework.data` s
 
 [[structure:mapping]]
 [source,cypher,role=constraint,requiresConcepts="dependency:Package"]
-.The mapping package must not depend on any other SDN-RX packages than `schema`
+.The mapping package must not depend on any other SDN/RX packages than `schema`
 ----
 MATCH (a:Main:Artifact)
 MATCH (a) -[:CONTAINS]-> (s:Package) WHERE  s.fqn = 'org.neo4j.springframework.data.core.schema'
