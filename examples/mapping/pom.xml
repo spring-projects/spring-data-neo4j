@@ -137,7 +137,7 @@
 				</property>
 			</activation>
 			<properties>
-				<changelist>-alpha03</changelist>
+				<changelist>-beta01</changelist>
 			</properties>
 		</profile>
 	</profiles>
