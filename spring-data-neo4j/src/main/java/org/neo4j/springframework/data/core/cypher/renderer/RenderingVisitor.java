@@ -220,10 +220,10 @@ class RenderingVisitor extends ReflectiveVisitor {
 			.append(direction.getSymbol());
 	}
 
-	void leave(Property property) {
+	void enter(PropertyLookup propertyLookup) {
 		builder
 			.append(".")
-			.append(property.getName());
+			.append(propertyLookup.getPropertyKeyName());
 	}
 
 	void enter(FunctionInvocation functionInvocation) {
@@ -346,7 +346,7 @@ class RenderingVisitor extends ReflectiveVisitor {
 		builder.append("{");
 	}
 
-	void enter(MapEntry map) {
+	void enter(KeyValueMapEntry map) {
 
 		builder.append(map.getKey()).append(": ");
 	}
@@ -401,6 +401,14 @@ class RenderingVisitor extends ReflectiveVisitor {
 
 	void leave(Remove remove) {
 		builder.append(" ");
+	}
+
+	void enter(PatternComprehension patternComprehension) {
+		builder.append("[");
+	}
+
+	void leave(PatternComprehension patternComprehension) {
+		builder.append("]");
 	}
 
 	public String getRenderedContent() {

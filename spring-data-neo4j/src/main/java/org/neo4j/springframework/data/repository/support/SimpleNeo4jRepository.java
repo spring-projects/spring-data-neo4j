@@ -40,7 +40,6 @@ import org.neo4j.springframework.data.core.Neo4jClient;
 import org.neo4j.springframework.data.core.Neo4jClient.ExecutableQuery;
 import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.cypher.Condition;
-import org.neo4j.springframework.data.core.cypher.Cypher;
 import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder;
@@ -105,7 +104,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	public Iterable<T> findAll(Sort sort) {
 
 		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
-			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData)))
+			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData))
 			.orderBy(toSortItems(entityMetaData, sort))
 			.build();
 
@@ -116,7 +115,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	public Page<T> findAll(Pageable pageable) {
 
 		OngoingReadingAndReturn returning = statementBuilder.prepareMatchOf(entityMetaData)
-			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData)));
+			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData));
 
 		StatementBuilder.BuildableStatement returningWithPaging = addPagingParameter(entityMetaData, pageable,
 			returning);
@@ -255,7 +254,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 		Statement statement = statementBuilder
 			.prepareMatchOf(entityMetaData, entityInformation.getIdExpression().isEqualTo(literalOf(id)))
-			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData)))
+			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData))
 			.build();
 		return createExecutableQuery(statement).getSingleResult();
 	}
@@ -269,7 +268,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 	public Iterable<T> findAll() {
 
 		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
-			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData))).build();
+			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData)).build();
 		return createExecutableQuery(statement).getResults();
 	}
 
@@ -278,7 +277,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 		Statement statement = statementBuilder
 			.prepareMatchOf(entityMetaData, entityInformation.getIdExpression().in((parameter("ids"))))
-			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData)))
+			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData))
 			.build();
 
 		return createExecutableQuery(statement, singletonMap("ids", ids)).getResults();

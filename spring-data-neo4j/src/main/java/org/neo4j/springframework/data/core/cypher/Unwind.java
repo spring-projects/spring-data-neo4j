@@ -38,7 +38,7 @@ public final class Unwind implements ReadingClause {
 	Unwind(Expression expressionToUnwind, String variable) {
 
 		if (expressionToUnwind instanceof Aliased) {
-			this.expressionToUnwind = new SymbolicName(((Aliased) expressionToUnwind).getAlias());
+			this.expressionToUnwind = SymbolicName.create(((Aliased) expressionToUnwind).getAlias());
 		} else {
 			this.expressionToUnwind = expressionToUnwind;
 		}

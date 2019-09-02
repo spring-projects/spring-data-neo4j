@@ -19,12 +19,16 @@
 package org.neo4j.springframework.data.core.cypher;
 
 import org.apiguardian.api.API;
+import org.springframework.util.Assert;
 
 /**
  * A symbolic name to identify nodes and relationships.
  * <p>
  * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/SchemaName.html">SchemaName</a>
  * <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/SymbolicName.html">SymbolicName</a>
+ * <p>
+ * While OpenCypher extends the <a href="https://unicode.org/reports/tr31/">UNICODE IDENTIFIER AND PATTERN SYNTAX</a>
+ * with some characters, this DSL uses the same identifier Java itself uses for simplicity and until otherwise needed.
  *
  * @author Michael J. Simons
  * @since 1.0
@@ -34,7 +38,13 @@ public final class SymbolicName implements Expression {
 
 	private final String name;
 
-	SymbolicName(String name) {
+	static SymbolicName create(String name) {
+
+		Assert.isTrue(Cypher.isIdentifier(name), "Name must be a valid identifier.");
+		return new SymbolicName(name);
+	}
+
+	private SymbolicName(String name) {
 		this.name = name;
 	}
 

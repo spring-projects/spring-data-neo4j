@@ -484,7 +484,8 @@ class CypherIT {
 			Statement statement = firstStep.returning(Cypher.asterisk()).build();
 
 			assertThat(cypherRenderer.render(statement))
-				.isEqualTo("MATCH (b:`Bike`) WITH b OPTIONAL MATCH (u:`User`) OPTIONAL MATCH (:`Trip`) DELETE u RETURN *");
+				.isEqualTo(
+					"MATCH (b:`Bike`) WITH b OPTIONAL MATCH (u:`User`) OPTIONAL MATCH (:`Trip`) DELETE u RETURN *");
 		}
 
 		@Test
@@ -1860,6 +1861,216 @@ class CypherIT {
 			assertThatIllegalArgumentException().isThrownBy(() ->
 				Cypher.union(statement, statement3)).withMessage("Cannot mix union and union all!");
 
+		}
+	}
+
+	@Nested
+	class MapProjections {
+
+		@Nested
+		class OnNodes {
+
+			@Test
+			void simple() {
+
+				Statement statement;
+				Node n = anyNode("n");
+
+				statement = Cypher.match(n)
+					.returning(n.project("__internalNeo4jId__", Functions.id(n), "name"))
+					.build();
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo(
+						"MATCH (n) RETURN n{__internalNeo4jId__: id(n), .name}");
+
+				statement = Cypher.match(n)
+					.returning(n.project("name", "__internalNeo4jId__", Functions.id(n)))
+					.build();
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo(
+						"MATCH (n) RETURN n{.name, __internalNeo4jId__: id(n)}");
+			}
+
+			@Test
+			void nested() {
+
+				Statement statement;
+				Node n = Cypher.node("Person").named("p");
+				Node m = Cypher.node("Movie").named("m");
+
+				statement = Cypher.match(n.relationshipTo(m, "ACTED_IN"))
+					.returning(
+						n.project(
+							"__internalNeo4jId__", Functions.id(n), "name", "nested",
+							m.project("title", "__internalNeo4jId__", Functions.id(m))
+						))
+					.build();
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo(
+						"MATCH (p:`Person`)-[:`ACTED_IN`]->(m:`Movie`) RETURN p{__internalNeo4jId__: id(p), .name, nested: m{.title, __internalNeo4jId__: id(m)}}");
+			}
+
+			@Test
+			void requiresSymbolicName() {
+				assertThatIllegalStateException().isThrownBy(() -> {
+					Node n = Cypher.node("Person");
+					n.project("something");
+				}).withMessage("Cannot project a node without a symbolic name.");
+			}
+		}
+
+		@Nested
+		class OnRelationShips {
+
+			@Test
+			void simple() {
+
+				Statement statement;
+				Node n = Cypher.node("Person").named("p");
+				Node m = Cypher.node("Movie").named("m");
+				Relationship rel = n.relationshipTo(m, "ACTED_IN").named("r");
+
+				statement = Cypher.match(rel)
+					.returning(
+						rel.project(
+							"__internalNeo4jId__", Functions.id(rel), "roles"
+						))
+					.build();
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo(
+						"MATCH (p:`Person`)-[r:`ACTED_IN`]->(m:`Movie`) RETURN r{__internalNeo4jId__: id(r), .roles}");
+			}
+
+			@Test
+			void nested() {
+
+				Statement statement;
+				Node n = Cypher.node("Person").named("p");
+				Node m = Cypher.node("Movie").named("m");
+				Relationship rel = n.relationshipTo(m, "ACTED_IN").named("r");
+
+				statement = Cypher.match(rel)
+					.returning(
+						m.project("title", "roles",
+						rel.project(
+							"__internalNeo4jId__", Functions.id(rel), "roles"
+						)))
+					.build();
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo(
+						"MATCH (p:`Person`)-[r:`ACTED_IN`]->(m:`Movie`) RETURN m{.title, roles: r{__internalNeo4jId__: id(r), .roles}}");
+			}
+
+			@Test
+			void requiresSymbolicName() {
+				assertThatIllegalStateException().isThrownBy(() -> {
+					Node n = Cypher.node("Person").named("p");
+					Node m = Cypher.node("Movie").named("m");
+					Relationship rel = n.relationshipTo(m, "ACTED_IN");
+					rel.project("something");
+				}).withMessage("Cannot project a relationship without a symbolic name.");
+			}
+		}
+
+		@Test
+		void asterisk() {
+
+			Statement statement;
+			Node n = anyNode("n");
+
+			statement = Cypher.match(n)
+				.returning(n.project(Cypher.asterisk()))
+				.build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (n) RETURN n{.*}");
+		}
+
+		@Test
+		void invalid() {
+
+			String expectedMessage = "FunctionInvocation{functionName='id'} of type class org.neo4j.springframework.data.core.cypher.FunctionInvocation cannot be used with an implicit name as map entry.";
+			assertThatIllegalArgumentException().isThrownBy(() -> {
+				Node n = anyNode("n");
+				n.project(Functions.id(n));
+			}).withMessage(expectedMessage);
+
+			assertThatIllegalArgumentException().isThrownBy(() -> {
+				Node n = anyNode("n");
+				n.project("a", Cypher.mapOf("a", Cypher.literalOf("b")), Functions.id(n));
+			}).withMessage(expectedMessage);
+		}
+	}
+
+	@Nested
+	class PatternComprehensions {
+
+		@Test
+		void simple() {
+
+			Statement statement;
+			Node a = Cypher.node("Person").properties("name", literalOf("Keanu Reeves")).named("a");
+			Node b = Cypher.anyNode("b");
+
+			statement = Cypher.match(a)
+				.returning(listBasedOn(a.relationshipBetween(b)).returning(b.property("released")).as("years"))
+				.build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (a:`Person` {name: 'Keanu Reeves'}) RETURN [(a)-[]-(b)|b.released] AS years");
+		}
+
+		@Test
+		void simpleWithWhere() {
+
+			Statement statement;
+			Node a = Cypher.node("Person").properties("name", literalOf("Keanu Reeves")).named("a");
+			Node b = Cypher.anyNode("b");
+
+			statement = Cypher.match(a)
+				.returning(
+					listBasedOn(a.relationshipBetween(b)).where(b.hasLabels("Movie")).returning(b.property("released"))
+						.as("years"))
+				.build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (a:`Person` {name: 'Keanu Reeves'}) RETURN [(a)-[]-(b) WHERE b:`Movie`|b.released] AS years");
+		}
+
+		@Test
+		void nested() {
+
+			Statement statement;
+
+			Node n = Cypher.node("Person").named("n");
+			Node o1 = Cypher.node("Organisation").named("o1");
+			Node l1 = Cypher.node("Location").named("l1");
+			Node p2 = Cypher.node("Person").named("p2");
+
+			Relationship r_f1 = n.relationshipTo(o1, "FOUNDED").named("r_f1");
+			Relationship r_e1 = n.relationshipTo(o1, "EMPLOYED_BY").named("r_e1");
+			Relationship r_l1 = n.relationshipTo(l1, "LIVES_AT").named("r_l1");
+			Relationship r_l2 = l1.relationshipFrom(p2, "LIVES_AT").named("r_l2");
+
+			statement = Cypher.match(n)
+				.returning(n,
+					listOf(
+						listBasedOn(r_f1).returning(r_f1, o1),
+						listBasedOn(r_e1).returning(r_e1, o1),
+						listBasedOn(r_l1).returning(
+							r_l1, l1,
+							// The building of the statement works with and without the outer list,
+							// I'm not sure if it would be necessary for the result, but as I took the query from
+							// Neo4j-OGM, I'd like to keep it
+							listOf(listBasedOn(r_l2).returning(r_l2, p2))
+						)
+					)
+				)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (n:`Person`) RETURN n, [[(n)-[r_f1:`FOUNDED`]->(o1:`Organisation`)|[r_f1, o1]], [(n)-[r_e1:`EMPLOYED_BY`]->(o1)|[r_e1, o1]], [(n)-[r_l1:`LIVES_AT`]->(l1:`Location`)|[r_l1, l1, [[(l1)<-[r_l2:`LIVES_AT`]-(p2:`Person`)|[r_l2, p2]]]]]]");
 		}
 	}
 }

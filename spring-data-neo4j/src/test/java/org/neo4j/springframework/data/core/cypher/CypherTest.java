@@ -54,11 +54,13 @@ class CypherTest {
 		Property property = Cypher.property("a", "b");
 		property.accept(segment -> {
 			if (segment instanceof Property) {
-				assertThat(segment).extracting("name").containsOnly("b");
+				assertThat(segment).extracting(s -> ((Property) s).getName().getPropertyKeyName()).isEqualTo("b");
+			} else if (segment instanceof PropertyLookup) {
+				assertThat(segment).extracting(s -> ((PropertyLookup) s).getPropertyKeyName()).isEqualTo("b");
 			} else if (segment instanceof SymbolicName) {
 				assertThat(segment).extracting("name").containsOnly("a");
 			} else {
-				fail("Unexpected segment");
+				fail("Unexpected segment: " + segment.getClass());
 			}
 		});
 	}

@@ -121,6 +121,7 @@ public final class Relationship implements
 		return new Relationship(this.left, this.details.named(newSymbolicName), this.right);
 	}
 
+	@Override
 	public Optional<SymbolicName> getSymbolicName() {
 		return details.getSymbolicName();
 	}
@@ -156,5 +157,18 @@ public final class Relationship implements
 		right.accept(visitor);
 
 		visitor.leave(this);
+	}
+
+	/**
+	 * Creates a map projection based on this relationship. The relationship needs a symbolic name for this to work.
+	 * <p>
+	 * Entries of type {@code String} in {@code entries} followed by an {@link Expression} will be treated as map keys
+	 * pointing to the expression in the projection, {@code String} entries alone will be treated as property lookups on the node.
+	 *
+	 * @param entries A list of entries for the projection
+	 * @return A map projection.
+	 */
+	public MapProjection project(Object... entries) {
+		return MapProjection.create(this.getSymbolicName().orElseThrow(() -> new IllegalStateException("Cannot project a relationship without a symbolic name.")), entries);
 	}
 }

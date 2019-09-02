@@ -22,7 +22,7 @@ import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.support.Visitor;
 
 /**
- * A negated version of the condition passed during construnction of this condition.
+ * A negated version of the condition passed during construction of this condition.
  *
  * @author Michael J. Simons
  * @since 1.0

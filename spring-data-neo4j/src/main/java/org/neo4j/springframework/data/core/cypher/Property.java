@@ -37,7 +37,7 @@ public final class Property implements Expression {
 			"A property derived from a node needs a parent with a symbolic name.");
 		Assert.hasText(name, "The properties name is required.");
 
-		return new Property(parentContainer.getSymbolicName().get(), name);
+		return new Property(parentContainer.getSymbolicName().get(), new PropertyLookup((name)));
 	}
 
 	static Property create(Expression container, String name) {
@@ -45,7 +45,7 @@ public final class Property implements Expression {
 		Assert.notNull(container, "The property container is required.");
 		Assert.hasText(name, "The properties name is required.");
 
-		return new Property(container, name);
+		return new Property(container, new PropertyLookup(name));
 
 	}
 
@@ -57,15 +57,15 @@ public final class Property implements Expression {
 	/**
 	 * The name of this property.
 	 */
-	private final String name;
+	private final PropertyLookup name;
 
-	Property(Expression container, String name) {
+	Property(Expression container, PropertyLookup name) {
 
 		this.container = container;
 		this.name = name;
 	}
 
-	public String getName() {
+	public PropertyLookup getName() {
 		return name;
 	}
 
@@ -84,6 +84,7 @@ public final class Property implements Expression {
 	public void accept(Visitor visitor) {
 		visitor.enter(this);
 		this.container.accept(visitor);
+		this.name.accept(visitor);
 		visitor.leave(this);
 	}
 }

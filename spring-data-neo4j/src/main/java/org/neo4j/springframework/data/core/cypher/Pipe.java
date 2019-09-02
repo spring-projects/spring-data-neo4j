@@ -19,14 +19,24 @@
 package org.neo4j.springframework.data.core.cypher;
 
 import org.apiguardian.api.API;
-import org.neo4j.springframework.data.core.cypher.support.Visitable;
 
 /**
- * A shared, internally used interface for {@link MapExpression map expressions}.
+ * The pipe ({@code |}) literal.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public interface MapEntry extends Visitable {
+final class Pipe extends Literal<String> {
+
+	public static final Pipe INSTANCE = new Pipe();
+
+	private Pipe() {
+		super("|");
+	}
+
+	@Override
+	public String asString() {
+		return super.getContent();
+	}
 }
