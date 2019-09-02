@@ -64,7 +64,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -72,7 +71,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Gerrit Meier
  */
 @Neo4jIntegrationTest
-@ContextConfiguration(classes = RepositoryIT.Config.class)
 class RepositoryIT {
 	private static final String TEST_PERSON1_NAME = "Test";
 	private static final String TEST_PERSON2_NAME = "Test2";

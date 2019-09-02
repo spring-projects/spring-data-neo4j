@@ -44,7 +44,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
@@ -53,7 +52,6 @@ import org.springframework.transaction.reactive.TransactionalOperator;
  * @author Michael J. Simons
  */
 @Tag(NEEDS_REACTIVE_SUPPORT)
-@ContextConfiguration(classes = ReactiveAuditingIT.Config.class)
 class ReactiveAuditingIT extends AuditingITBase {
 
 	private final ReactiveTransactionManager transactionManager;

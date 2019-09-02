@@ -46,7 +46,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
@@ -55,7 +54,6 @@ import org.springframework.transaction.reactive.TransactionalOperator;
  * @author Michael J. Simons
  */
 @Tag(NEEDS_REACTIVE_SUPPORT)
-@ContextConfiguration(classes = ReactiveIdGeneratorsIT.Config.class)
 class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 
 	private final ReactiveTransactionManager transactionManager;

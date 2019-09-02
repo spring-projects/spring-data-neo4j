@@ -40,13 +40,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Michael J. Simons
  */
-@ContextConfiguration(classes = IdGeneratorsIT.Config.class)
 class IdGeneratorsIT extends IdGeneratorsITBase {
 
 	private final ThingsWithGeneratedIds thingsWithGeneratedIds;

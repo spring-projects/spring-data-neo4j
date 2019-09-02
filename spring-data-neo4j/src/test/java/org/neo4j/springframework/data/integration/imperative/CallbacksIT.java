@@ -34,13 +34,11 @@ import org.neo4j.springframework.data.repository.event.BeforeBindCallback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Michael J. Simons
  */
-@ContextConfiguration(classes = CallbacksIT.Config.class)
 class CallbacksIT extends CallbacksITBase {
 
 	private final ThingRepository thingRepository;
