@@ -25,6 +25,7 @@ import java.lang.annotation.Target;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * This annotations triggers the {@link Neo4jExtension}, that provides a driver instance for Neo4j integration tests.
@@ -39,7 +40,7 @@ import org.springframework.test.annotation.DirtiesContext;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(Neo4jExtension.class)
+@ExtendWith({ SpringExtension.class, Neo4jExtension.class })
 @DirtiesContext
 public @interface Neo4jIntegrationTest {
 }

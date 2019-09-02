@@ -41,7 +41,6 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
@@ -70,7 +69,6 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
@@ -81,7 +79,6 @@ import org.springframework.transaction.reactive.TransactionalOperator;
  */
 @Neo4jIntegrationTest
 @Tag(NEEDS_REACTIVE_SUPPORT)
-@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ReactiveRepositoryIT.Config.class)
 class ReactiveRepositoryIT {
 
