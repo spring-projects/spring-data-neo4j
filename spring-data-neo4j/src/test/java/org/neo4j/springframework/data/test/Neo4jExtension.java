@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assumptions.*;
 import lombok.extern.apachecommons.CommonsLog;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -34,7 +35,8 @@ import java.util.Set;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.platform.commons.util.ReflectionUtils;
+import org.junit.platform.commons.support.HierarchyTraversalMode;
+import org.junit.platform.commons.support.ReflectionSupport;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
@@ -81,10 +83,10 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 	@Override
 	public void beforeAll(ExtensionContext context) throws Exception {
-		List<Field> injectableFields = ReflectionUtils
+		List<Field> injectableFields = ReflectionSupport
 			.findFields(context.getRequiredTestClass(),
-				field -> ReflectionUtils.isStatic(field) && field.getType() == Neo4jConnectionSupport.class,
-				ReflectionUtils.HierarchyTraversalMode.BOTTOM_UP);
+				field -> Modifier.isStatic(field.getModifiers()) && field.getType() == Neo4jConnectionSupport.class,
+				HierarchyTraversalMode.BOTTOM_UP);
 
 		if (injectableFields.size() != 1) {
 			return;
