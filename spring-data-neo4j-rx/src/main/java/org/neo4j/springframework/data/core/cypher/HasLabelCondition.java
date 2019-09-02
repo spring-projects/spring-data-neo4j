@@ -18,44 +18,50 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.support.Visitor;
+import org.springframework.util.Assert;
 
 /**
- * See
- * <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/FunctionInvocation.html">FunctionInvocation</a>
+ * A condition checking for the presence of labels on nodes.
  *
- * @author Gerrit Meier
  * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public final class FunctionInvocation implements Expression {
+public final class HasLabelCondition implements Condition {
 
-	private final String functionName;
+	private final SymbolicName nodeName;
+	private final List<NodeLabel> nodeLabels;
 
-	private final ExpressionList arguments;
+	static HasLabelCondition create(SymbolicName nodeName, String... labels) {
 
-	FunctionInvocation(String functionName, Expression... arguments) {
+		Assert.notNull(nodeName, "A symbolic name for the node is required.");
+		Assert.notNull(labels, "Labels to query are required.");
+		Assert.notEmpty(labels, "At least one label to query is required.");
 
-		this.functionName = functionName;
-		this.arguments = new ExpressionList(arguments);
+		final List<NodeLabel> nodeLabels = new ArrayList<>(labels.length);
+		for (String label : labels) {
+			nodeLabels.add(new NodeLabel(label));
+		}
+
+		return new HasLabelCondition(nodeName, nodeLabels);
 	}
 
-	public String getFunctionName() {
-		return functionName;
+	private HasLabelCondition(SymbolicName nodeName, List<NodeLabel> nodeLabels) {
+		this.nodeName = nodeName;
+		this.nodeLabels = nodeLabels;
 	}
 
 	@Override
 	public void accept(Visitor visitor) {
-		visitor.enter(this);
-		this.arguments.accept(visitor);
-		visitor.leave(this);
-	}
 
-	@Override public String toString() {
-		return "FunctionInvocation{" +
-			"functionName='" + functionName + '\'' +
-			'}';
+		visitor.enter(this);
+		nodeName.accept(visitor);
+		this.nodeLabels.forEach(label -> label.accept(visitor));
+		visitor.leave(this);
 	}
 }

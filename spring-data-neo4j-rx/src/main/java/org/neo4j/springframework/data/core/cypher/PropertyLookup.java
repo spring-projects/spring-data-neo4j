@@ -19,14 +19,23 @@
 package org.neo4j.springframework.data.core.cypher;
 
 import org.apiguardian.api.API;
-import org.neo4j.springframework.data.core.cypher.support.Visitable;
 
 /**
- * A shared, internally used interface for {@link MapExpression map expressions}.
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/PropertyLookup.html">PropertyLookup</a>
  *
  * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public interface MapEntry extends Visitable {
+public final class PropertyLookup implements MapEntry, Expression {
+
+	private final String propertyKeyName;
+
+	PropertyLookup(String propertyKeyName) {
+		this.propertyKeyName = propertyKeyName;
+	}
+
+	public String getPropertyKeyName() {
+		return propertyKeyName;
+	}
 }

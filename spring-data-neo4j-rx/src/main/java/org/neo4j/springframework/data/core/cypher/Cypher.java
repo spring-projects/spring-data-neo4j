@@ -108,10 +108,11 @@ public final class Cypher {
 	 * Creates a new symbolic name.
 	 *
 	 * @param value The value of the symbolic name
-	 * @return A new symoblic name
+	 * @return A new symbolic name
 	 */
 	public static SymbolicName name(String value) {
-		return new SymbolicName(value);
+
+		return SymbolicName.create(value);
 	}
 
 	/**
@@ -284,6 +285,14 @@ public final class Cypher {
 		return unionImpl(true, statement);
 	}
 
+	public static PatternComprehension.OngoingDefinition listBasedOn(Relationship pattern) {
+		return PatternComprehension.basedOn(pattern);
+	}
+
+	public static PatternComprehension.OngoingDefinition listBasedOn(RelationshipChain pattern) {
+		return PatternComprehension.basedOn(pattern);
+	}
+
 	/**
 	 * Escapes and quotes the {@code unquotedString} for safe usage in Neo4j-Browser and Shell.
 	 *
@@ -317,6 +326,34 @@ public final class Cypher {
 		} else {
 			return existingUnionQuery.addAdditionalQueries(listOfQueries);
 		}
+	}
+
+	/**
+	 * This is a literal copy of {@link javax.lang.model.SourceVersion#isIdentifier(CharSequence)} included here to
+	 * be not dependent on the compiler module.
+	 *
+	 * @param name A possible Java identifier
+	 * @return True, if {@code name} represents an identifier.
+	 */
+	static boolean isIdentifier(CharSequence name) {
+		String id = name.toString();
+
+		if (id.length() == 0) {
+			return false;
+		}
+		int cp = id.codePointAt(0);
+		if (!Character.isJavaIdentifierStart(cp)) {
+			return false;
+		}
+		for (int i = Character.charCount(cp);
+			 i < id.length();
+			 i += Character.charCount(cp)) {
+			cp = id.codePointAt(i);
+			if (!Character.isJavaIdentifierPart(cp)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**

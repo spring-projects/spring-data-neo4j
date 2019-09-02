@@ -52,12 +52,16 @@ public final class MapExpression<S extends MapExpression<S>> extends TypedSubtre
 			Assert.isInstanceOf(Expression.class, input[i + 1], "Value needs to be of type Expression.");
 			Assert.isTrue(!knownKeys.contains(input[i]), "Duplicate key '" + input[i] + "'");
 
-			final MapEntry entry = new MapEntry((String) input[i], (Expression) input[i + 1]);
+			final KeyValueMapEntry entry = new KeyValueMapEntry((String) input[i], (Expression) input[i + 1]);
 			newContent.add(entry);
 			knownKeys.add(entry.getKey());
 		}
 
 		return new MapExpression<>(newContent);
+	}
+
+	static MapExpression<?> withEntries(List<MapEntry> entries) {
+		return new MapExpression<>(entries);
 	}
 
 	private MapExpression(List<MapEntry> children) {

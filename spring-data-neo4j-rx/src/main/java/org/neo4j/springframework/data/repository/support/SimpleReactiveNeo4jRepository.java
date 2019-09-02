@@ -42,7 +42,6 @@ import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient.ExecutableQuery;
 import org.neo4j.springframework.data.core.cypher.Condition;
-import org.neo4j.springframework.data.core.cypher.Cypher;
 import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
@@ -103,7 +102,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	public Mono<T> findById(ID id) {
 		Statement statement = statementBuilder
 			.prepareMatchOf(entityMetaData, entityInformation.getIdExpression().isEqualTo(literalOf(id)))
-			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData)))
+			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData))
 			.build();
 		return createExecutableQuery(statement).getSingleResult();
 	}
@@ -116,7 +115,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	@Override
 	public Flux<T> findAll(Sort sort) {
 		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
-			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData)))
+			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData))
 			.orderBy(toSortItems(entityMetaData, sort))
 			.build();
 
@@ -136,7 +135,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	@Override
 	public Flux<T> findAll() {
 		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
-			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData))).build();
+			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData)).build();
 		return createExecutableQuery(statement).getResults();
 	}
 
@@ -144,7 +143,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 	public Flux<T> findAllById(Iterable<ID> ids) {
 		Statement statement = statementBuilder
 			.prepareMatchOf(entityMetaData, entityInformation.getIdExpression().in((parameter("ids"))))
-			.returning(Cypher.name(statementBuilder.createReturnStatementForMatch(entityMetaData)))
+			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData))
 			.build();
 
 		return createExecutableQuery(statement, singletonMap("ids", ids)).getResults();

@@ -19,14 +19,37 @@
 package org.neo4j.springframework.data.core.cypher;
 
 import org.apiguardian.api.API;
-import org.neo4j.springframework.data.core.cypher.support.Visitable;
+import org.neo4j.springframework.data.core.cypher.support.Visitor;
+import org.springframework.lang.Nullable;
 
 /**
- * A shared, internally used interface for {@link MapExpression map expressions}.
+ * Helper class, only for internal use.
  *
  * @author Michael J. Simons
+ * @soundtrack Rammstein - RAMMSTEIN
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public interface MapEntry extends Visitable {
+public final class KeyValueMapEntry implements MapEntry {
+
+	private @Nullable final String key;
+
+	private final Expression value;
+
+	KeyValueMapEntry(@Nullable String key, Expression value) {
+		this.key = key;
+		this.value = value;
+	}
+
+	public @Nullable String getKey() {
+		return key;
+	}
+
+	@Override
+	public void accept(Visitor visitor) {
+
+		visitor.enter(this);
+		value.accept(visitor);
+		visitor.leave(this);
+	}
 }

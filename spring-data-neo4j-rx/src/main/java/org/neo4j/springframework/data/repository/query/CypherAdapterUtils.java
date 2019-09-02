@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.jetbrains.annotations.NotNull;
@@ -101,6 +100,7 @@ public final class CypherAdapterUtils {
 	 * @return new {@link SchemaBasedStatementBuilder} instance based on the given {@link Schema}
 	 */
 	public static SchemaBasedStatementBuilder createSchemaBasedStatementBuilder(Schema schema) {
+
 		return new SchemaBasedStatementBuilder(schema);
 	}
 
@@ -266,35 +266,48 @@ public final class CypherAdapterUtils {
 
 		}
 
-		public String createReturnStatementForMatch(NodeDescription<?> nodeDescription) {
+		public Expression createReturnStatementForMatch(NodeDescription<?> nodeDescription) {
 
-			Collection<RelationshipDescription> relationshipDescriptions = schema.getRelationshipsOf(nodeDescription.getPrimaryLabel());
-
-			return NAME_OF_ROOT_NODE + "{"
-				+ getGraphPropertiesAsString(nodeDescription, NAME_OF_ROOT_NODE)
-				+ processRelationshipsForMatch(relationshipDescriptions, NAME_OF_ROOT_NODE)
-				+ "}";
+			return projectPropertiesAndRelationships(nodeDescription, NAME_OF_ROOT_NODE);
 		}
 
-		private String getGraphPropertiesAsString(NodeDescription<?> nodeDescription, String nodeName) {
+		private MapProjection projectPropertiesAndRelationships(NodeDescription<?> nodeDescription,
+			String propertyName) {
 
-			return nodeDescription.getGraphProperties().stream()
-				.map(property -> {
-					if (property.isInternalIdProperty()) {
-						return NAME_OF_INTERNAL_ID + ": id(" + nodeName + ")";
-					}
-					return "." + property.getPropertyName();
-				})
-				.collect(Collectors.joining(","));
+			Collection<RelationshipDescription> relationships = schema
+				.getRelationshipsOf(nodeDescription.getPrimaryLabel());
+
+			List<Object> contentOfProjection = new ArrayList<>();
+			contentOfProjection.addAll(projectNodeProperties(nodeDescription, propertyName));
+			contentOfProjection.addAll(generateListsOf(relationships, propertyName));
+
+			return Cypher.anyNode(propertyName).project(contentOfProjection);
 		}
 
-		private String processRelationshipsForMatch(Collection<RelationshipDescription> relationshipDescriptions, String nameOfStartNode) {
-			StringBuilder returnStatementBuilder = new StringBuilder();
-			for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
+		private List<Object> projectNodeProperties(NodeDescription<?> nodeDescription, String nodeName) {
+
+			List<Object> nodePropertiesProjection = new ArrayList<>();
+			for (GraphPropertyDescription property : nodeDescription.getGraphProperties()) {
+				if (property.isInternalIdProperty()) {
+					nodePropertiesProjection.add(NAME_OF_INTERNAL_ID);
+					nodePropertiesProjection.add(Functions.id(Cypher.name(nodeName)));
+				} else {
+					nodePropertiesProjection.add(property.getPropertyName());
+				}
+			}
+
+			return nodePropertiesProjection;
+		}
+
+		private List<Object> generateListsOf(Collection<RelationshipDescription> relationships,
+			String nameOfStartNode) {
+
+			List<Object> generatedLists = new ArrayList<>();
+			for (RelationshipDescription relationshipDescription : relationships) {
 
 				String sourceLabel = relationshipDescription.getSource();
-				String relationshipType = relationshipDescription.getType();
 				String targetLabel = relationshipDescription.getTarget();
+
 				String propertyName = relationshipDescription.getPropertyName();
 
 				// do not follow self-references more than once
@@ -302,33 +315,24 @@ public final class CypherAdapterUtils {
 					continue;
 				}
 
+				String relationshipType = relationshipDescription.getType();
 				String relationshipTargetName = SchemaUtils.generateRelatedNodesCollectionName(relationshipDescription);
 
-				returnStatementBuilder
-					.append(", ") // next related element
-					.append(relationshipTargetName).append(":")
-					.append("[ (").append(nameOfStartNode).append(")")
-					.append(relationshipDescription.isOutgoing() ? "-" : "<-")
-					.append("[:").append(relationshipType).append("]")
-					.append(relationshipDescription.isOutgoing() ? "->" : "-")
-					.append("(").append(propertyName).append(":").append(targetLabel).append(")")
-					.append("| ").append(getReturnValueForRelationship(targetLabel, propertyName)).append("]");
+				Node startNode = anyNode(nameOfStartNode);
+				Node endNode = node(targetLabel).named(propertyName);
+				NodeDescription<?> endNodeDescription = schema.getNodeDescription(targetLabel);
+
+				Relationship relationship = relationshipDescription.isOutgoing()
+					? startNode.relationshipTo(endNode, relationshipType)
+					: startNode.relationshipFrom(endNode, relationshipType);
+
+				generatedLists.add(relationshipTargetName);
+				generatedLists.add(listBasedOn(relationship)
+					.returning(projectPropertiesAndRelationships(endNodeDescription, propertyName)));
 			}
 
-			return returnStatementBuilder.toString();
+			return generatedLists;
 		}
-
-		private String getReturnValueForRelationship(String targetLabel, String propertyName) {
-
-			Collection<RelationshipDescription> relationships = schema.getRelationshipsOf(targetLabel);
-			NodeDescription<?> nodeDescription = schema.getNodeDescription(targetLabel);
-
-			return propertyName + "{"
-				+ getGraphPropertiesAsString(nodeDescription, propertyName)
-				+ processRelationshipsForMatch(relationships, propertyName)
-				+ "}";
-		}
-
 	}
 
 	private static Condition conditionOrNoCondition(@Nullable Condition condition) {

@@ -67,7 +67,7 @@ public final class RelationshipDetail implements Visitable {
 	RelationshipDetail named(String newSymbolicName) {
 
 		Assert.hasText(newSymbolicName, "Symbolic name is required.");
-		return new RelationshipDetail(this.direction, new SymbolicName(newSymbolicName), this.types);
+		return new RelationshipDetail(this.direction, SymbolicName.create(newSymbolicName), this.types);
 	}
 
 	RelationshipDetail withType(String... newTypes) {
