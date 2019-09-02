@@ -37,13 +37,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Michael J. Simons
  */
-@ContextConfiguration(classes = AuditingIT.Config.class)
 class AuditingIT extends AuditingITBase {
 
 	private final TestRepository thingRepository;

@@ -42,7 +42,6 @@ import org.neo4j.springframework.data.test.Neo4jExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
@@ -51,7 +50,6 @@ import org.springframework.transaction.reactive.TransactionalOperator;
  * @author Michael J. Simons
  */
 @Tag(NEEDS_REACTIVE_SUPPORT)
-@ContextConfiguration(classes = ReactiveCallbacksIT.Config.class)
 class ReactiveCallbacksIT extends CallbacksITBase {
 
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;

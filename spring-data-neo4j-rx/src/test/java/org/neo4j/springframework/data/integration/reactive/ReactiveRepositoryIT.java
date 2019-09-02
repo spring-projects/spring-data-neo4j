@@ -68,7 +68,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
@@ -79,7 +78,6 @@ import org.springframework.transaction.reactive.TransactionalOperator;
  */
 @Neo4jIntegrationTest
 @Tag(NEEDS_REACTIVE_SUPPORT)
-@ContextConfiguration(classes = ReactiveRepositoryIT.Config.class)
 class ReactiveRepositoryIT {
 
 	private static final String TEST_PERSON1_NAME = "Test";

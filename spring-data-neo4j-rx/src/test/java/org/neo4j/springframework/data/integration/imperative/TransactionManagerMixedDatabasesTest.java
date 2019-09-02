@@ -45,7 +45,6 @@ import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,7 +58,6 @@ import org.springframework.transaction.support.TransactionTemplate;
  * test due to the high integration with Spring framework code.
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = TransactionManagerMixedDatabasesTest.Config.class)
 public class TransactionManagerMixedDatabasesTest {
 
 	protected static final String DATABASE_NAME = "boom";
