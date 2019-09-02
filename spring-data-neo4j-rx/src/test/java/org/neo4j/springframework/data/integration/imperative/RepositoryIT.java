@@ -37,7 +37,6 @@ import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
@@ -66,7 +65,6 @@ import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -74,7 +72,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Gerrit Meier
  */
 @Neo4jIntegrationTest
-@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = RepositoryIT.Config.class)
 class RepositoryIT {
 	private static final String TEST_PERSON1_NAME = "Test";

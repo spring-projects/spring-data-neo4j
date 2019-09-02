@@ -25,7 +25,6 @@ import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
@@ -39,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -47,7 +45,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
-@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = KotlinIT.Config.class)
 class KotlinIT {
 
