@@ -18,12 +18,15 @@
  */
 package org.neo4j.springframework.data.core;
 
+import static java.util.stream.Collectors.*;
+
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
+import org.neo4j.springframework.data.core.cypher.Cypher;
 
 /**
  * @author Michael J. Simons
@@ -82,7 +85,23 @@ final class NamedParameters {
 		return parameters
 			.entrySet()
 			.stream()
-			.map(e -> String.format("%s: %s", e.getKey(), e.getValue()))
-			.collect(Collectors.joining(", ", ":params {", "}"));
+			.map(e -> String.format("%s: %s", e.getKey(), formatValue(e.getValue())))
+			.collect(joining(", ", ":params {", "}"));
+	}
+
+	private static Object formatValue(Object value) {
+		if (value == null) {
+			return null;
+		} else if (value instanceof String) {
+			return Cypher.quote((String) value);
+		} else if (value instanceof Map) {
+			return ((Map<?, ?>) value).entrySet().stream()
+				.map(e -> String.format("%s: %s", e.getKey(), formatValue(e.getValue())))
+				.collect(joining(", ", "{", "}"));
+		} else if (value instanceof Collection) {
+			return ((Collection) value).stream().map(NamedParameters::formatValue).collect(joining(", ", "[", "]"));
+		}
+
+		return value.toString();
 	}
 }
