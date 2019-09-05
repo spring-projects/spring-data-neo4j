@@ -18,15 +18,24 @@ package org.springframework.data.neo4j.transaction;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.neo4j.driver.v1.AccessMode;
-import org.neo4j.driver.v1.AuthTokens;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.GraphDatabase;
+import org.mockito.internal.verification.VerificationModeFactory;
+import org.neo4j.driver.AccessMode;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.internal.Bookmark;
+import org.neo4j.driver.internal.InternalBookmark;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilders;
 import org.neo4j.ogm.drivers.bolt.driver.BoltDriver;
@@ -63,6 +72,9 @@ public class BookmarkTransactionTests {
 
 	@Test
 	public void operationsShouldStoreBookmarkAndUseBookmarkShouldReuseBookmark() throws Exception {
+
+		ArgumentCaptor<SessionConfig> configArgumentCaptor = ArgumentCaptor.forClass(SessionConfig.class);
+
 		userService.saveWithTxAnnotationOnInterface(new User());
 
 		Collection<String> bookmarks = bookmarkManager.getBookmarks();
@@ -71,7 +83,14 @@ public class BookmarkTransactionTests {
 		@SuppressWarnings("unused")
 		Collection<User> users = userService.getAllUsersWithBookmark();
 
-		Mockito.verify(nativeDriver).session(any(AccessMode.class), eq(bookmarks));
+		Mockito.verify(nativeDriver, times(2)).session(configArgumentCaptor.capture());
+		List<Bookmark> bookmarksInDriver = configArgumentCaptor.getAllValues().stream()
+				.flatMap(sc -> StreamSupport.stream(sc.bookmarks().spliterator(), false))
+				.collect(Collectors.toList());
+
+		assertThat(bookmarksInDriver).containsAll(
+				bookmarks.stream().map(InternalBookmark::parse).collect(Collectors.toList()));
+
 	}
 
 	@Test

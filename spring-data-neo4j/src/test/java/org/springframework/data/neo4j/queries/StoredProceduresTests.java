@@ -24,8 +24,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.driver.v1.Config;
-import org.neo4j.driver.v1.GraphDatabase;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.GraphDatabase;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilders;
 import org.neo4j.ogm.drivers.bolt.driver.BoltDriver;
@@ -53,7 +53,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @RunWith(SpringRunner.class)
 public class StoredProceduresTests {
 
-	private static final Config driverConfig = Config.build().withoutEncryption().toConfig();
+	private static final Config driverConfig = Config.builder().withoutEncryption().build();
 
 	private static ServerControls serverControls;
 	private static URI boltURI;

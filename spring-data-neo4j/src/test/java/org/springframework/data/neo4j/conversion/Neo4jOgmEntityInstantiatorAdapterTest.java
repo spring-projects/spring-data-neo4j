@@ -26,8 +26,8 @@ import java.util.stream.Stream;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.driver.v1.Config;
-import org.neo4j.driver.v1.GraphDatabase;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.GraphDatabase;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -59,7 +59,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @RunWith(SpringRunner.class)
 public class Neo4jOgmEntityInstantiatorAdapterTest {
 
-	private static final Config driverConfig = Config.build().withoutEncryption().toConfig();
+	private static final Config driverConfig = Config.builder().withoutEncryption().build();
 
 	private static ServerControls serverControls;
 	private static URI boltURI;
