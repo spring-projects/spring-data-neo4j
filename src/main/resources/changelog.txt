@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.2.0.RC3 (2019-09-06)
+-----------------------------------------
+* DATAGRAPH-1250 - Upgrade to Neo4j OGM 3.2.0-RC2.
+* DATAGRAPH-1247 - Add a test for Map based properties.
+* DATAGRAPH-1245 - Release 5.2 RC3 (Moore).
+
+
 Changes in version 5.2.0.RC2 (2019-08-05)
 -----------------------------------------
 * DATAGRAPH-1240 - Declare Jackson dependencies without explicit versions.
