@@ -55,7 +55,7 @@ class DefaultStatementBuilder
 	/**
 	 * The latest ongoing match.
 	 */
-	private DefaultMatchBuilder currentOngoingMatch;
+	private MatchBuilder currentOngoingMatch;
 
 	/**
 	 * The latest ongoing update to be build
@@ -87,7 +87,7 @@ class DefaultStatementBuilder
 		if (this.currentOngoingMatch != null) {
 			this.currentSinglePartElements.add(this.currentOngoingMatch.buildMatch());
 		}
-		this.currentOngoingMatch = new DefaultMatchBuilder(optional);
+		this.currentOngoingMatch = new MatchBuilder(optional);
 		this.currentOngoingMatch.patternList.addAll(Arrays.asList(pattern));
 		return this;
 	}
@@ -106,7 +106,7 @@ class DefaultStatementBuilder
 
 	@Override
 	public OngoingUnwind unwind(Expression expression) {
-		return new DefaultUnwindBuilder(expression);
+		return new DefaultOngoingUnwind(expression);
 	}
 
 	private <T extends OngoingUpdate & OngoingMatchAndUpdate> T update(UpdateType updateType, Object[] pattern) {
@@ -152,23 +152,23 @@ class DefaultStatementBuilder
 	}
 
 	@Override
-	public OngoingReadingAndWith with(AliasedExpression... expressions) {
+	public OrderableOngoingReadingAndWith with(AliasedExpression... expressions) {
 		return with(false, expressions);
 	}
 
 	@Override
-	public OngoingReadingAndWithWithoutWhere with(Expression... expressions) {
+	public OrderableOngoingReadingAndWithWithoutWhere with(Expression... expressions) {
 
 		return with(false, expressions);
 	}
 
 	@Override
-	public OngoingReadingAndWithWithoutWhere withDistinct(Expression... expressions) {
+	public OrderableOngoingReadingAndWithWithoutWhere withDistinct(Expression... expressions) {
 
 		return with(true, expressions);
 	}
 
-	private OngoingReadingAndWithWithoutWhere with(boolean distinct, Expression... expressions) {
+	private OrderableOngoingReadingAndWithWithoutWhere with(boolean distinct, Expression... expressions) {
 
 		DefaultStatementWithWithBuilder ongoingMatchAndWith = new DefaultStatementWithWithBuilder(distinct);
 		ongoingMatchAndWith.addExpressions(expressions);
@@ -288,73 +288,55 @@ class DefaultStatementBuilder
 	}
 
 	protected class DefaultStatementWithReturnBuilder
-		implements OngoingReadingAndReturn, OngoingOrderDefinition, OngoingMatchAndReturnWithOrder {
+		implements OngoingReadingAndReturn, TerminalOngoingOrderDefinition, OngoingMatchAndReturnWithOrder {
 
 		protected final List<Expression> returnList = new ArrayList<>();
-		protected final List<SortItem> sortItemList = new ArrayList<>();
+		protected final OrderBuilder orderBuilder = new OrderBuilder();
 		protected boolean distinct;
-		protected SortItem lastSortItem;
-		protected Skip skip;
-		protected Limit limit;
 
 		protected DefaultStatementWithReturnBuilder(boolean distinct) {
 			this.distinct = distinct;
 		}
 
-		void reset() {
-			this.returnList.clear();
-			this.sortItemList.clear();
-			this.lastSortItem = null;
-			this.skip = null;
-			this.limit = null;
-		}
-
 		@Override
 		public final OngoingReadingAndReturn orderBy(SortItem... sortItem) {
-			Arrays.stream(sortItem).forEach(this.sortItemList::add);
+			orderBuilder.orderBy(sortItem);
 			return this;
 		}
 
 		@Override
-		public final OngoingOrderDefinition orderBy(Expression expression) {
-			this.lastSortItem = Cypher.sort(expression);
+		public final TerminalOngoingOrderDefinition orderBy(Expression expression) {
+			orderBuilder.orderBy(expression);
 			return this;
 		}
 
 		@Override
-		public final OngoingOrderDefinition and(Expression expression) {
-			return orderBy(expression);
+		public final TerminalOngoingOrderDefinition and(Expression expression) {
+			orderBuilder.and(expression);
+			return this;
 		}
 
 		@Override
 		public final OngoingReadingAndReturn descending() {
-			this.sortItemList.add(this.lastSortItem.descending());
-			this.lastSortItem = null;
+			orderBuilder.descending();
 			return this;
 		}
 
 		@Override
 		public final OngoingReadingAndReturn ascending() {
-			this.sortItemList.add(this.lastSortItem.ascending());
-			this.lastSortItem = null;
+			orderBuilder.ascending();
 			return this;
 		}
 
 		@Override
 		public final OngoingReadingAndReturn skip(@Nullable Number number) {
-
-			if (number != null) {
-				skip = Skip.create(number);
-			}
+			orderBuilder.skip(number);
 			return this;
 		}
 
 		@Override
 		public final OngoingReadingAndReturn limit(@Nullable Number number) {
-
-			if (number != null) {
-				limit = Limit.create(number);
-			}
+			orderBuilder.limit(number);
 			return this;
 		}
 
@@ -365,12 +347,8 @@ class DefaultStatementBuilder
 			if (!returnList.isEmpty()) {
 
 				ExpressionList returnItems = new ExpressionList(this.returnList);
-
-				if (lastSortItem != null) {
-					sortItemList.add(lastSortItem);
-				}
-				Order order = sortItemList.size() > 0 ? new Order(sortItemList) : null;
-				returning = new Return(distinct, returnItems, order, skip, limit);
+				returning = new Return(distinct, returnItems, orderBuilder.buildOrder().orElse(null), orderBuilder.getSkip(),
+					orderBuilder.getLimit());
 			}
 
 			return DefaultStatementBuilder.this.buildImpl(returning);
@@ -388,14 +366,28 @@ class DefaultStatementBuilder
 	/**
 	 * Adds support for With to a return builder.
 	 */
-	protected abstract class WithBuilderSupport extends DefaultStatementWithReturnBuilder {
-		protected final DefaultConditionBuilder conditionBuilder = new DefaultConditionBuilder();
+	protected abstract class WithBuilderSupport {
 
-		protected WithBuilderSupport(boolean distinct) {
-			super(distinct);
+
+	}
+
+	/**
+	 * Ongoing with extends from {@link WithBuilderSupport} and therefore from {@link DefaultStatementWithReturnBuilder}.
+	 */
+	protected final class DefaultStatementWithWithBuilder extends WithBuilderSupport
+		implements OngoingReadingAndWith, OngoingOrderDefinition, OrderableOngoingReadingAndWithWithoutWhere,
+		OrderableOngoingReadingAndWithWithWhere, OngoingReadingAndWithWithWhereAndOrder {
+
+		protected final ConditionBuilder conditionBuilder = new ConditionBuilder();
+		protected final List<Expression> returnList = new ArrayList<>();
+		protected final OrderBuilder orderBuilder = new OrderBuilder();
+		protected boolean distinct;
+
+		protected DefaultStatementWithWithBuilder(boolean distinct) {
+			this.distinct = distinct;
 		}
 
-		protected final Optional<With> buildWith() {
+		protected Optional<With> buildWith() {
 
 			if (returnList.isEmpty()) {
 				return Optional.empty();
@@ -403,26 +395,22 @@ class DefaultStatementBuilder
 
 			ExpressionList returnItems = new ExpressionList(returnList);
 
-			if (lastSortItem != null) {
-				sortItemList.add(lastSortItem);
-			}
-			Order order = sortItemList.size() > 0 ? new Order(sortItemList) : null;
 			Where where = conditionBuilder.buildCondition().map(Where::new).orElse(null);
 
-			Optional<With> returnedWith = Optional.of(new With(distinct, returnItems, order, skip, limit, where));
-			super.reset();
+			Optional<With> returnedWith = Optional
+				.of(new With(distinct, returnItems, orderBuilder.buildOrder().orElse(null), orderBuilder.getSkip(),
+					orderBuilder.getLimit(), where));
+			this.returnList.clear();
+			this.orderBuilder.reset();
 			return returnedWith;
 		}
-	}
 
-	/**
-	 * Ongoing with extends from {@link WithBuilderSupport} and therefore from {@link DefaultStatementWithReturnBuilder}.
-	 */
-	protected final class DefaultStatementWithWithBuilder extends WithBuilderSupport
-		implements OngoingReadingAndWithWithoutWhere, OngoingReadingAndWithWithWhere {
+		protected void addExpressions(Expression... expressions) {
 
-		protected DefaultStatementWithWithBuilder(boolean distinct) {
-			super(distinct);
+			Assert.notNull(expressions, "Expressions to return are required.");
+			Assert.notEmpty(expressions, "At least one expressions to return is required.");
+
+			this.returnList.addAll(Arrays.asList(expressions));
 		}
 
 		@Override
@@ -490,7 +478,7 @@ class DefaultStatementBuilder
 		}
 
 		@Override
-		public OngoingReadingAndWithWithoutWhere with(Expression... expressions) {
+		public OrderableOngoingReadingAndWithWithoutWhere with(Expression... expressions) {
 
 			return DefaultStatementBuilder.this
 				.addWith(buildWith())
@@ -498,7 +486,7 @@ class DefaultStatementBuilder
 		}
 
 		@Override
-		public OngoingReadingAndWithWithoutWhere withDistinct(Expression... expressions) {
+		public OrderableOngoingReadingAndWithWithoutWhere withDistinct(Expression... expressions) {
 
 			return DefaultStatementBuilder.this
 				.addWith(buildWith())
@@ -506,23 +494,23 @@ class DefaultStatementBuilder
 		}
 
 		@Override
-		public OngoingReadingAndWithWithWhere where(Condition newCondition) {
+		public OrderableOngoingReadingAndWithWithWhere where(Condition newCondition) {
 
-			super.conditionBuilder.where(newCondition);
+			conditionBuilder.where(newCondition);
 			return this;
 		}
 
 		@Override
-		public OngoingReadingAndWithWithWhere and(Condition additionalCondition) {
+		public OrderableOngoingReadingAndWithWithWhere and(Condition additionalCondition) {
 
-			super.conditionBuilder.and(additionalCondition);
+			conditionBuilder.and(additionalCondition);
 			return this;
 		}
 
 		@Override
-		public OngoingReadingAndWithWithWhere or(Condition additionalCondition) {
+		public OrderableOngoingReadingAndWithWithWhere or(Condition additionalCondition) {
 
-			super.conditionBuilder.or(additionalCondition);
+			conditionBuilder.or(additionalCondition);
 			return this;
 		}
 
@@ -565,6 +553,48 @@ class DefaultStatementBuilder
 				.addWith(buildWith())
 				.unwind(expression);
 		}
+
+		@Override
+		public OrderableOngoingReadingAndWithWithWhere orderBy(SortItem... sortItem) {
+			orderBuilder.orderBy(sortItem);
+			return this;
+		}
+
+		@Override
+		public OngoingOrderDefinition orderBy(Expression expression) {
+			orderBuilder.orderBy(expression);
+			return this;
+		}
+
+		@Override
+		public OngoingOrderDefinition and(Expression expression) {
+			orderBuilder.and(expression);
+			return this;
+		}
+
+		@Override
+		public OrderableOngoingReadingAndWithWithWhere descending() {
+			orderBuilder.descending();
+			return this;
+		}
+
+		@Override
+		public OrderableOngoingReadingAndWithWithWhere ascending() {
+			orderBuilder.ascending();
+			return this;
+		}
+
+		@Override
+		public OrderableOngoingReadingAndWithWithWhere skip(@Nullable Number number) {
+			orderBuilder.skip(number);
+			return this;
+		}
+
+		@Override
+		public OngoingReadingAndWith limit(@Nullable Number number) {
+			orderBuilder.limit(number);
+			return this;
+		}
 	}
 
 	/**
@@ -577,8 +607,8 @@ class DefaultStatementBuilder
 
 	private static final EnumSet<UpdateType> MERGE_OR_CREATE = EnumSet.of(CREATE, MERGE);
 
-	protected final class DefaultStatementWithUpdateBuilder extends WithBuilderSupport
-		implements OngoingMatchAndUpdate {
+	protected final class DefaultStatementWithUpdateBuilder extends DefaultStatementWithReturnBuilder
+		implements OngoingMatchAndUpdate, OngoingReadingAndReturn {
 
 		private final List<? extends Visitable> expressions;
 		private final UpdateType updateType;
@@ -709,19 +739,18 @@ class DefaultStatementBuilder
 		}
 
 		@Override
-		public OngoingReadingAndWithWithoutWhere with(Expression... returnedExpressions) {
+		public OrderableOngoingReadingAndWithWithoutWhere with(Expression... returnedExpressions) {
 			return this.with(false, returnedExpressions);
 		}
 
 		@Override
-		public OngoingReadingAndWithWithoutWhere withDistinct(Expression... returnedExpressions) {
+		public OrderableOngoingReadingAndWithWithoutWhere withDistinct(Expression... returnedExpressions) {
 			return this.with(true, returnedExpressions);
 		}
 
-		private OngoingReadingAndWithWithoutWhere with(boolean distinct, Expression... returnedExpressions) {
+		private OrderableOngoingReadingAndWithWithoutWhere with(boolean distinct, Expression... returnedExpressions) {
 			DefaultStatementBuilder.this.addUpdatingClause(buildUpdatingClause());
 			return DefaultStatementBuilder.this
-				.addWith(buildWith())
 				.with(distinct, returnedExpressions);
 		}
 
@@ -762,15 +791,15 @@ class DefaultStatementBuilder
 
 	// Static builder and support classes
 
-	static final class DefaultMatchBuilder {
+	static final class MatchBuilder {
 
 		private final List<PatternElement> patternList = new ArrayList<>();
 
-		private final DefaultConditionBuilder conditionBuilder = new DefaultConditionBuilder();
+		private final ConditionBuilder conditionBuilder = new ConditionBuilder();
 
 		private final boolean optional;
 
-		DefaultMatchBuilder(boolean optional) {
+		MatchBuilder(boolean optional) {
 			this.optional = optional;
 		}
 
@@ -780,11 +809,11 @@ class DefaultStatementBuilder
 		}
 	}
 
-	final class DefaultUnwindBuilder implements OngoingUnwind {
+	final class DefaultOngoingUnwind implements OngoingUnwind {
 
 		private final Expression expressionToUnwind;
 
-		DefaultUnwindBuilder(Expression expressionToUnwind) {
+		DefaultOngoingUnwind(Expression expressionToUnwind) {
 			this.expressionToUnwind = expressionToUnwind;
 		}
 
@@ -795,7 +824,7 @@ class DefaultStatementBuilder
 		}
 	}
 
-	static final class DefaultConditionBuilder {
+	static final class ConditionBuilder {
 		protected Condition condition;
 
 		void where(Condition newCondition) {
@@ -819,6 +848,71 @@ class DefaultStatementBuilder
 
 		Optional<Condition> buildCondition() {
 			return hasCondition() ? Optional.of(this.condition) : Optional.empty();
+		}
+	}
+
+	static final class OrderBuilder {
+		protected final List<SortItem> sortItemList = new ArrayList<>();
+		protected SortItem lastSortItem;
+		protected Skip skip;
+		protected Limit limit;
+
+		protected void reset() {
+			this.sortItemList.clear();
+			this.lastSortItem = null;
+			this.skip = null;
+			this.limit = null;
+		}
+
+		protected void orderBy(SortItem... sortItem) {
+			Arrays.stream(sortItem).forEach(this.sortItemList::add);
+		}
+
+		protected void orderBy(Expression expression) {
+			this.lastSortItem = Cypher.sort(expression);
+		}
+
+		protected void and(Expression expression) {
+			orderBy(expression);
+		}
+
+		protected void descending() {
+			this.sortItemList.add(this.lastSortItem.descending());
+			this.lastSortItem = null;
+		}
+
+		protected void ascending() {
+			this.sortItemList.add(this.lastSortItem.ascending());
+			this.lastSortItem = null;
+		}
+
+		protected void skip(@Nullable Number number) {
+
+			if (number != null) {
+				skip = Skip.create(number);
+			}
+		}
+
+		protected void limit(@Nullable Number number) {
+
+			if (number != null) {
+				limit = Limit.create(number);
+			}
+		}
+
+		protected Optional<Order> buildOrder() {
+			if (lastSortItem != null) {
+				sortItemList.add(lastSortItem);
+			}
+			return sortItemList.size() > 0 ? Optional.of(new Order(sortItemList)) : Optional.empty();
+		}
+
+		protected Skip getSkip() {
+			return skip;
+		}
+
+		protected Limit getLimit() {
+			return limit;
 		}
 	}
 }

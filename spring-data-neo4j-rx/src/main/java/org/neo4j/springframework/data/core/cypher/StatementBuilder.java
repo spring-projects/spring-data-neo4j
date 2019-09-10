@@ -61,7 +61,7 @@ public interface StatementBuilder {
 
 	OngoingUnwind unwind(Expression expression);
 
-	OngoingReadingAndWith with(AliasedExpression... expressions);
+	OrderableOngoingReadingAndWith with(AliasedExpression... expressions);
 
 	/**
 	 * An ongoing update statement that can be used to chain more update statements or add a with or return clause.
@@ -141,14 +141,15 @@ public interface StatementBuilder {
 	 * A match that knows what to return and which is ready to be build.
 	 * @since 1.0
 	 */
-	interface OngoingReadingAndReturn extends ExposesOrderBy, ExposesSkip, ExposesLimit, BuildableStatement {
+	interface OngoingReadingAndReturn
+		extends TerminalExposesOrderBy, TerminalExposesSkip, TerminalExposesLimit, BuildableStatement {
 	}
 
 	/**
 	 * A match that knows what to pipe to the next part of a multi part query.
 	 * @since 1.0
 	 */
-	interface OngoingReadingAndWithWithoutWhere extends OngoingReadingAndWith {
+	interface OrderableOngoingReadingAndWithWithoutWhere extends OrderableOngoingReadingAndWith {
 
 		/**
 		 * Adds a where clause to this match.
@@ -156,23 +157,33 @@ public interface StatementBuilder {
 		 * @param condition The new condition
 		 * @return A match restricted by a where clause with no return items yet.
 		 */
-		OngoingReadingAndWithWithWhere where(Condition condition);
+		OrderableOngoingReadingAndWithWithWhere where(Condition condition);
 	}
 
 	/**
-	 * @see OngoingReadingAndWith
+	 * @see OrderableOngoingReadingAndWith
 	 * @see ExposesConditions
 	 * @since 1.0
 	 */
-	interface OngoingReadingAndWithWithWhere
-		extends OngoingReadingAndWith, ExposesConditions<OngoingReadingAndWithWithWhere> {
+	interface OrderableOngoingReadingAndWithWithWhere
+		extends OrderableOngoingReadingAndWith, ExposesConditions<OrderableOngoingReadingAndWithWithWhere> {
+	}
+
+	/**
+	 * Represents a reading statement ending in a with clause, potentially already having an order and not exposing
+	 * order methods.
+	 *
+	 * @since 1.0
+	 */
+	interface OngoingReadingAndWith
+		extends OngoingReading, ExposesMatch, ExposesReturning, ExposesCreate, ExposesMerge {
 	}
 
 	/**
 	 * @see OngoingReading
 	 * @since 1.0
 	 */
-	interface OngoingReadingAndWith
+	interface OrderableOngoingReadingAndWith
 		extends OngoingReading, ExposesMatch, ExposesOrderBy, ExposesSkip, ExposesLimit, ExposesReturning,
 		ExposesCreate, ExposesMerge {
 	}
@@ -181,7 +192,46 @@ public interface StatementBuilder {
 	 * Combines the capabilities of skip, limit and adds additional expressions to the order-by items.
 	 * @since 1.0
 	 */
-	interface OngoingMatchAndReturnWithOrder extends ExposesSkip, ExposesLimit, BuildableStatement {
+	interface OngoingMatchAndReturnWithOrder extends TerminalExposesSkip, TerminalExposesLimit, BuildableStatement {
+
+		/**
+		 * Adds another expression to the list of order items.
+		 *
+		 * @return A new order specifying step.
+		 */
+		TerminalOngoingOrderDefinition and(Expression expression);
+	}
+
+	/**
+	 * An intermediate step while defining the order of a result set. This definitional will eventually return a
+	 * buildable statement and thus is terminal.
+	 *
+	 * @since 1.0
+	 */
+	interface TerminalOngoingOrderDefinition extends TerminalExposesSkip, TerminalExposesLimit {
+
+		/**
+		 * Specifies descending order and jumps back to defining the match and return statement.
+		 *
+		 * @return The ongoing definition of a match
+		 */
+		<T extends TerminalExposesSkip & TerminalExposesLimit & OngoingMatchAndReturnWithOrder> T descending();
+
+		/**
+		 * Specifies ascending order and jumps back to defining the match and return statement.
+		 *
+		 * @return The ongoing definition of a match
+		 */
+		<T extends TerminalExposesSkip & TerminalExposesLimit & OngoingMatchAndReturnWithOrder> T ascending();
+	}
+
+	/**
+	 * Combines the capabilities of skip, limit and adds additional expressions to the order-by items.
+	 *
+	 * @since 1.0
+	 */
+	interface OngoingReadingAndWithWithWhereAndOrder extends ExposesSkip, ExposesLimit,
+		OngoingReadingAndWith {
 
 		/**
 		 * Adds another expression to the list of order items.
@@ -192,7 +242,8 @@ public interface StatementBuilder {
 	}
 
 	/**
-	 * An intermediate step while defining the order of a result set.
+	 * An intermediate step while defining the order of a with clause.
+	 *
 	 * @since 1.0
 	 */
 	interface OngoingOrderDefinition extends ExposesSkip, ExposesLimit {
@@ -202,14 +253,14 @@ public interface StatementBuilder {
 		 *
 		 * @return The ongoing definition of a match
 		 */
-		<T extends ExposesSkip & ExposesLimit & OngoingMatchAndReturnWithOrder> T descending();
+		<T extends ExposesSkip & ExposesLimit & OngoingReadingAndWithWithWhereAndOrder> T descending();
 
 		/**
 		 * Specifies ascending order and jumps back to defining the match and return statement.
 		 *
 		 * @return The ongoing definition of a match
 		 */
-		<T extends ExposesSkip & ExposesLimit & OngoingMatchAndReturnWithOrder> T ascending();
+		<T extends ExposesSkip & ExposesLimit & OngoingReadingAndWithWithWhereAndOrder> T ascending();
 	}
 
 	/**
@@ -258,11 +309,12 @@ public interface StatementBuilder {
 
 	/**
 	 * A step that exposes the {@code WITH} clause.
+	 *
 	 * @since 1.0
 	 */
 	interface ExposesWith {
 
-		default OngoingReadingAndWithWithoutWhere with(String... variables) {
+		default OrderableOngoingReadingAndWithWithoutWhere with(String... variables) {
 			return with(createSymbolicNames(variables));
 		}
 
@@ -272,9 +324,9 @@ public interface StatementBuilder {
 		 * @param expressions The expressions to be returned. Must not be null and be at least one expression.
 		 * @return A match that can be build now
 		 */
-		OngoingReadingAndWithWithoutWhere with(Expression... expressions);
+		OrderableOngoingReadingAndWithWithoutWhere with(Expression... expressions);
 
-		default OngoingReadingAndWithWithoutWhere withDistinct(String... variables) {
+		default OrderableOngoingReadingAndWithWithoutWhere withDistinct(String... variables) {
 			return withDistinct(createSymbolicNames(variables));
 		}
 
@@ -284,11 +336,69 @@ public interface StatementBuilder {
 		 * @param expressions The expressions to be returned. Must not be null and be at least one expression.
 		 * @return A match that can be build now
 		 */
-		OngoingReadingAndWithWithoutWhere withDistinct(Expression... expressions);
+		OrderableOngoingReadingAndWithWithoutWhere withDistinct(Expression... expressions);
 	}
 
 	/**
-	 * A step that exposes several methods to specify ordering.
+	 * A step that exposes several methods to specify ordering. This is a terminal operation just before a statement
+	 * is buildable.
+	 *
+	 * @since 1.0
+	 */
+	interface TerminalExposesOrderBy {
+
+		/**
+		 * Order the result set by one or more {@link SortItem sort items}. Those can be retrieved for
+		 * all expression with {@link Cypher#sort(Expression)} or directly from properties.
+		 *
+		 * @param sortItem One or more sort items
+		 * @param <T>      The type of the step being returned
+		 * @return A build step that still offers methods for defining skip and limit
+		 */
+		<T extends TerminalExposesSkip & TerminalExposesLimit & BuildableStatement> T orderBy(SortItem... sortItem);
+
+		/**
+		 * Order the result set by an expression.
+		 *
+		 * @param expression The expression to order by
+		 * @return A step that allows for adding more expression or finetuning the sort direction of the last expression
+		 */
+		TerminalOngoingOrderDefinition orderBy(Expression expression);
+	}
+
+	/**
+	 * A step that exposes the {@link #skip(Number)} method.
+	 * @since 1.0
+	 */
+	interface TerminalExposesSkip {
+
+		/**
+		 * Adds a skip clause, skipping the given number of records.
+		 *
+		 * @param number How many records to skip. If this is null, then no records are skipped.
+		 * @return A step that only allows the limit of records to be specified.
+		 */
+		<T extends TerminalExposesLimit & BuildableStatement> T skip(@Nullable Number number);
+
+	}
+
+	/**
+	 * A step that exposes the {@link #limit(Number)} method.
+	 * @since 1.0
+	 */
+	interface TerminalExposesLimit {
+
+		/**
+		 * Limits the number of returned records.
+		 * @param number How many records to return. If this is null, all the records are returned.
+		 * @return A buildable match statement.
+		 */
+		BuildableStatement limit(@Nullable Number number);
+	}
+
+	/**
+	 * See {@link TerminalExposesOrderBy}, but on a with clause.
+	 *
 	 * @since 1.0
 	 */
 	interface ExposesOrderBy {
@@ -301,7 +411,7 @@ public interface StatementBuilder {
 		 * @param <T>      The type of the step being returned
 		 * @return A build step that still offers methods for defining skip and limit
 		 */
-		<T extends ExposesSkip & ExposesLimit & BuildableStatement> T orderBy(SortItem... sortItem);
+		<T extends ExposesSkip & ExposesLimit & OngoingReadingAndWith> T orderBy(SortItem... sortItem);
 
 		/**
 		 * Order the result set by an expression.
@@ -314,6 +424,7 @@ public interface StatementBuilder {
 
 	/**
 	 * A step that exposes the {@link #skip(Number)} method.
+	 *
 	 * @since 1.0
 	 */
 	interface ExposesSkip {
@@ -324,12 +435,13 @@ public interface StatementBuilder {
 		 * @param number How many records to skip. If this is null, then no records are skipped.
 		 * @return A step that only allows the limit of records to be specified.
 		 */
-		<T extends ExposesLimit & BuildableStatement> T skip(@Nullable Number number);
+		<T extends ExposesLimit & OngoingReadingAndWith> T skip(@Nullable Number number);
 
 	}
 
 	/**
 	 * A step that exposes the {@link #limit(Number)} method.
+	 *
 	 * @since 1.0
 	 */
 	interface ExposesLimit {
@@ -339,7 +451,7 @@ public interface StatementBuilder {
 		 * @param number How many records to return. If this is null, all the records are returned.
 		 * @return A buildable match statement.
 		 */
-		BuildableStatement limit(@Nullable Number number);
+		OngoingReadingAndWith limit(@Nullable Number number);
 	}
 
 	/**
@@ -367,7 +479,7 @@ public interface StatementBuilder {
 		 */
 		<T extends OngoingUpdate & BuildableStatement> T delete(Expression... expressions);
 
-		default OngoingReadingAndWithWithoutWhere detachDelete(String... variables) {
+		default OrderableOngoingReadingAndWithWithoutWhere detachDelete(String... variables) {
 			return detachDelete(createSymbolicNames(variables));
 		}
 

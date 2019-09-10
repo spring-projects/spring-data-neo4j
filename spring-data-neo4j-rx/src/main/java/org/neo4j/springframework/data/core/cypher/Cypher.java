@@ -24,7 +24,7 @@ import java.util.List;
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.Statement.SingleQuery;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.ExposesSet;
-import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingAndWith;
+import org.neo4j.springframework.data.core.cypher.StatementBuilder.OrderableOngoingReadingAndWith;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingWithoutWhere;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingUnwind;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingUpdate;
@@ -167,7 +167,7 @@ public final class Cypher {
 	 * @param expressions One ore more aliased expressions.
 	 * @return An onging with clause.
 	 */
-	public static OngoingReadingAndWith with(AliasedExpression... expressions) {
+	public static OrderableOngoingReadingAndWith with(AliasedExpression... expressions) {
 
 		return Statement.builder().with(expressions);
 	}
