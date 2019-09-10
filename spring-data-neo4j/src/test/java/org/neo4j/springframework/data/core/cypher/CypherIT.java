@@ -158,7 +158,7 @@ class CypherIT {
 			@Test
 			void sortOrderAscending() {
 				Statement statement = Cypher.match(userNode).returning(userNode)
-					.orderBy(Cypher.sort(userNode.property("name")).ascending()).build();
+					.orderBy(sort(userNode.property("name")).ascending()).build();
 
 				assertThat(cypherRenderer.render(statement))
 					.isEqualTo(
@@ -168,7 +168,7 @@ class CypherIT {
 			@Test
 			void sortOrderDescending() {
 				Statement statement = Cypher.match(userNode).returning(userNode)
-					.orderBy(Cypher.sort(userNode.property("name")).descending()).build();
+					.orderBy(sort(userNode.property("name")).descending()).build();
 
 				assertThat(cypherRenderer.render(statement))
 					.isEqualTo(
@@ -462,7 +462,7 @@ class CypherIT {
 
 		@Test
 		void usingSameWithStepWithoutReassign() {
-			StatementBuilder.OngoingReadingAndWith firstStep = match(bikeNode).with(bikeNode);
+			StatementBuilder.OrderableOngoingReadingAndWith firstStep = match(bikeNode).with(bikeNode);
 
 			firstStep.optionalMatch(userNode);
 			firstStep.optionalMatch(Cypher.node("Trip"));
@@ -475,7 +475,7 @@ class CypherIT {
 
 		@Test
 		void usingSameWithStepWithoutReassignThenUpdate() {
-			StatementBuilder.OngoingReadingAndWith firstStep = match(bikeNode).with(bikeNode);
+			StatementBuilder.OrderableOngoingReadingAndWith firstStep = match(bikeNode).with(bikeNode);
 
 			firstStep.optionalMatch(userNode);
 			firstStep.optionalMatch(Cypher.node("Trip"));
@@ -1999,6 +1999,41 @@ class CypherIT {
 				Node n = anyNode("n");
 				n.project("a", Cypher.mapOf("a", Cypher.literalOf("b")), Functions.id(n));
 			}).withMessage(expectedMessage);
+		}
+	}
+
+	@Nested
+	class WithAndOrder {
+
+		@Test
+		void orderOnWithShouldWork() {
+			Statement statement = Cypher
+				.match(
+					node("Movie").named("m").relationshipFrom(node("Person").named("p"), "ACTED_IN").named("r")
+				)
+				.with(name("m"), name("p"))
+				.orderBy(
+					sort(property("m", "title")),
+					sort(property("p", "name"))
+				).returning(property("m", "title").as("movie"),
+					collect(property("p", "name")).as("actors")).build();
+
+			String expected = "MATCH (m:`Movie`)<-[r:`ACTED_IN`]-(p:`Person`) WITH m, p ORDER BY m.title, p.name RETURN m.title AS movie, collect(p.name) AS actors";
+			assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
+		}
+
+		@Test
+		void concatenatedOrdering() {
+			Statement statement;
+			statement = Cypher.match(
+				node("Movie").named("m").relationshipFrom(node("Person").named("p"), "ACTED_IN").named("r"))
+				.with(name("m"), name("p")).orderBy(property("m", "title")).ascending()
+				.and(property("p", "name")).ascending()
+				.returning(property("m", "title").as("movie"),
+					collect(property("p", "name")).as("actors")).build();
+
+			String expected = "MATCH (m:`Movie`)<-[r:`ACTED_IN`]-(p:`Person`) WITH m, p ORDER BY m.title ASC, p.name ASC RETURN m.title AS movie, collect(p.name) AS actors";
+			assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
 		}
 	}
 

@@ -30,7 +30,7 @@ import org.apiguardian.api.API;
 import org.jetbrains.annotations.NotNull;
 import org.neo4j.springframework.data.core.cypher.*;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.BuildableStatement;
-import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingAndWith;
+import org.neo4j.springframework.data.core.cypher.StatementBuilder.OrderableOngoingReadingAndWith;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.IdDescription;
@@ -122,7 +122,7 @@ public final class CypherAdapterUtils {
 		 * @return An ongoing match
 		 * @see #prepareMatchOf(NodeDescription, Condition)
 		 */
-		public OngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription) {
+		public OrderableOngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription) {
 			return prepareMatchOf(nodeDescription, null);
 		}
 
@@ -139,7 +139,7 @@ public final class CypherAdapterUtils {
 		 * @param condition       Optional conditions to add
 		 * @return An ongoing match
 		 */
-		public OngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription, @Nullable Condition condition) {
+		public OrderableOngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription, @Nullable Condition condition) {
 
 			String primaryLabel = nodeDescription.getPrimaryLabel();
 

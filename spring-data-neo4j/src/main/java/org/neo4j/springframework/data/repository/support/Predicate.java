@@ -153,8 +153,8 @@ final class Predicate {
 		this.nodeDescription = nodeDescription;
 	}
 
-	StatementBuilder.OngoingReadingAndWith useWithReadingFragment(
-		BiFunction<NodeDescription<?>, Condition, StatementBuilder.OngoingReadingAndWith> readingFragmentSupplier) {
+	StatementBuilder.OrderableOngoingReadingAndWith useWithReadingFragment(
+		BiFunction<NodeDescription<?>, Condition, StatementBuilder.OrderableOngoingReadingAndWith> readingFragmentSupplier) {
 		return readingFragmentSupplier.apply(this.nodeDescription, this.condition);
 	}
 
