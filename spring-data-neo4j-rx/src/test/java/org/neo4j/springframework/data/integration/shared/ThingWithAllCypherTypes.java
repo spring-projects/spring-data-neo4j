@@ -18,54 +18,60 @@
  */
 package org.neo4j.springframework.data.integration.shared;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Builder;
+import lombok.Data;
 import lombok.experimental.Wither;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetTime;
+import java.time.ZonedDateTime;
 
+import org.neo4j.driver.types.IsoDuration;
 import org.neo4j.driver.types.Point;
 import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
-import org.neo4j.springframework.data.core.schema.Property;
 
 /**
- * @author Gerrit Meier
+ * Contains properties of all cypher types.
+ *
  * @author Michael J. Simons
  */
-@Getter
-@Setter
-@Node
-@ToString
-@AllArgsConstructor
-@EqualsAndHashCode
-public class PersonWithAllConstructor {
+@Node("CypherTypes")
+@Data
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
+public class ThingWithAllCypherTypes {
 
 	@Id @GeneratedValue
 	@Wither
-	private final Long id;
+	public final Long id;
 
-	private final String name;
+	private boolean aBoolean;
 
-	@Property("first_name")
-	private String firstName;
+	private long aLong;
 
-	private final String sameValue;
+	private double aDouble;
 
-	private final Boolean cool;
+	private String aString;
 
-	private final Long personNumber;
+	private byte[] aByteArray;
 
-	private final LocalDate bornOn;
+	private LocalDate aLocalDate;
 
-	private String nullable;
+	private OffsetTime anOffsetTime;
 
-	private List<String> things;
+	private LocalTime aLocalTime;
 
-	private final Point place;
+	private ZonedDateTime aZoneDateTime;
+
+	private LocalDateTime aLocalDateTime;
+
+	private IsoDuration anIsoDuration;
+
+	private Point aPoint;
 }

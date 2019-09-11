@@ -21,9 +21,11 @@ package org.neo4j.springframework.data.config;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
 import org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * Base class for imperative SDN-RX configuration using JavaConfig.
@@ -38,6 +40,13 @@ import org.springframework.context.annotation.Configuration;
 public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 
 	/**
+	 * The driver to be used for interacting with Neo4j.
+	 *
+	 * @return the Neo4j Java driver instance to work with.
+	 */
+	public abstract Driver driver();
+
+	/**
 	 * The driver used here should be the driver resulting from {@link #driver()}, which is the default.
 	 *
 	 * @param driver The driver to connect with.
@@ -46,5 +55,17 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
 	public Neo4jClient neo4jClient(Driver driver) {
 		return Neo4jClient.create(driver);
+	}
+
+	/**
+	 * Provides a {@link PlatformTransactionManager} for Neo4j based on the driver resulting from {@link #driver()}.
+	 *
+	 * @param driver The driver to synchronize against
+	 * @return A platform transaction manager
+	 */
+	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
+	public PlatformTransactionManager transactionManager(Driver driver) {
+
+		return new Neo4jTransactionManager(driver);
 	}
 }

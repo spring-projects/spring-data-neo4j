@@ -22,8 +22,9 @@ import java.util.function.BiFunction;
 
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
 import org.neo4j.driver.types.TypeSystem;
-import org.neo4j.springframework.data.core.schema.Neo4jSimpleTypes;
+import org.springframework.core.convert.ConversionService;
 
 /**
  * Used to automatically map single valued records to a sensible Java type based on {@link Value#asObject()}.
@@ -34,9 +35,13 @@ import org.neo4j.springframework.data.core.schema.Neo4jSimpleTypes;
  */
 final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Record, T> {
 
+	private final ConversionService conversionService;
+
 	private final Class<T> targetClass;
 
-	SingleValueMappingFunction(Class<T> targetClass) {
+	SingleValueMappingFunction(ConversionService conversionService,
+		Class<T> targetClass) {
+		this.conversionService = conversionService;
 		this.targetClass = targetClass;
 	}
 
@@ -52,6 +57,7 @@ final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Reco
 				"Records with more than one value cannot be converted without a mapper.");
 		}
 
-		return Neo4jSimpleTypes.asObject(record.get(0), targetClass);
+		Value source = record.get(0);
+		return source == null || source == Values.NULL ? null : conversionService.convert(source, targetClass);
 	}
 }

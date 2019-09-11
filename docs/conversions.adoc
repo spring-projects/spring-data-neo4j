@@ -1,0 +1,161 @@
+[[conversions]]
+== Conversions
+
+=== Build-in conversion
+
+We support a broad range of conversions out of the box.
+Find the list of supported cypher types in the official drivers manual: https://neo4j.com/docs/driver-manual/current/cypher-values/[Working with Cypher values].
+
+Primitive types of wrapper types are equally supported.
+
+
+[cols="3,3,1", options="header"]
+|===
+|Domain type|Cypher type|Maps directly to native type
+
+|`java.lang.Boolean`
+|Boolean
+|✔
+
+|`boolean[]`
+|List of Boolean
+|✔
+
+|`java.lang.Long`
+|Integer
+|✔
+
+|`long[]`
+|List of Integer
+|✔
+
+|`java.lang.Double`
+|Float
+|✔
+
+|`java.lang.String`
+|String
+|✔
+
+
+|`java.lang.String[]`
+|List of String
+|✔
+
+|`byte[]`
+|ByteArray
+|✔
+
+|`java.lang.Byte`
+|ByteArray with length 1
+|
+
+|`java.lang.Character`
+|String with length 1
+|
+
+|`char[]`
+|List of String with length 1
+|
+
+|`java.util.Date`
+|String formatted as ISO 8601 Date (`yyyy-MM-dd'T'HH:mm:ss.SSSXXX`
+|
+
+|`double[]`
+|List of Float
+|✔
+
+|`java.lang.Float`
+|String
+|
+
+|`float[]`
+|List of String
+|
+
+|`java.lang.Integer`
+|Integer
+|
+
+|`int[]`
+|List of Integer
+|
+
+|`java.util.Locale`
+|String formatted as BCP 47 language tag
+|
+
+|`java.lang.Short`
+|Integer
+|
+
+|`short[]`
+|List of Integer
+|
+
+|`java.math.BigDecimal`
+|String
+|
+
+|`java.math.BigInteger`
+|String
+|
+
+|`java.time.LocalDate`
+|Date
+|✔
+
+|`java.time.OffsetTime`
+|Time
+|✔
+
+|`java.time.LocalTime`
+|LocalTime
+|✔
+
+|`java.time.ZonedDateTime`
+|DateTime
+|✔
+
+|`java.time.LocalDateTime`
+|LocalDateTime
+|✔
+
+|`java.time.Period`
+|Duration
+|
+
+|`java.time.Duration`
+|Duration
+|
+
+|`org.neo4j.driver.types.IsoDuration`
+|Duration
+|✔
+
+|`org.neo4j.driver.types.Point`
+|Point
+|✔
+
+|`org.neo4j.springframework.data.types.CartesianPoint2d`
+|Point with CRS 4326
+|
+
+|`org.neo4j.springframework.data.types.CartesianPoint3d`
+|Point with CRS 4979
+|
+
+|`org.neo4j.springframework.data.types.GeographicPoint2d`
+|Point with CRS 7203
+|
+
+|`org.neo4j.springframework.data.types.GeographicPoint3d`
+|Point with CRS 9157
+|
+
+|`org.springframework.data.geo.Point`
+|Point with CRS 4326 and x/y corresponding to lat/long
+|
+
+|===

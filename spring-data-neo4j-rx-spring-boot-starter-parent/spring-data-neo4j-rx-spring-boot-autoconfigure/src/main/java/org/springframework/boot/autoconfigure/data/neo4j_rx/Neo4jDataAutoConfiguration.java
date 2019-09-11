@@ -21,6 +21,7 @@ package org.springframework.boot.autoconfigure.data.neo4j_rx;
 import java.util.Set;
 
 import org.neo4j.driver.Driver;
+import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.domain.EntityScanner;
@@ -45,11 +46,17 @@ public final class Neo4jDataAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public Neo4jMappingContext neo4jMappingContext(ApplicationContext applicationContext)
+	public Neo4jConversions neo4jConversions() {
+		return new Neo4jConversions();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public Neo4jMappingContext neo4jMappingContext(ApplicationContext applicationContext, Neo4jConversions neo4jConversions)
 		throws ClassNotFoundException {
 
 		Set<Class<?>> initialEntityClasses = new EntityScanner(applicationContext).scan(Node.class);
-		Neo4jMappingContext context = new Neo4jMappingContext();
+		Neo4jMappingContext context = new Neo4jMappingContext(neo4jConversions);
 		context.setInitialEntitySet(initialEntityClasses);
 
 		return context;

@@ -44,7 +44,7 @@ SDN_RX_NEO4J_URL=bolt://localhost:7687 SDN_RX_NEO4J_PASSWORD=benchmark java -jar
 
 ==== MacBook Pro 13", 3,5GHz i7, 16 GB, macOS 10.14.5
 
-Neo4j 3.5.6 Enterprise Edition, default configuration with memory settings below:
+Neo4j 3.5.7 Enterprise Edition, default configuration with memory settings below:
 
 ```
 dbms.memory.heap.initial_size=2G

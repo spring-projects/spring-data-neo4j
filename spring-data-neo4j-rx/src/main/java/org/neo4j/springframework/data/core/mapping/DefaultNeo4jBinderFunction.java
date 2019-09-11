@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.neo4j.springframework.data.core.convert.Neo4jConverter;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 
 /**
@@ -35,8 +36,11 @@ final class DefaultNeo4jBinderFunction<T> implements Function<T, Map<String, Obj
 
 	private final Neo4jPersistentEntity<T> nodeDescription;
 
-	DefaultNeo4jBinderFunction(Neo4jPersistentEntity<T> nodeDescription) {
+	private final Neo4jConverter converter;
+
+	DefaultNeo4jBinderFunction(Neo4jPersistentEntity<T> nodeDescription, Neo4jConverter converter) {
 		this.nodeDescription = nodeDescription;
+		this.converter = converter;
 	}
 
 	@Override
@@ -51,12 +55,7 @@ final class DefaultNeo4jBinderFunction<T> implements Function<T, Map<String, Obj
 				return;
 			}
 
-			final Object value = propertyAccessor.getProperty(p);
-			// Don't add null values, shave off some bytes for transport
-			if (value == null) {
-				return;
-			}
-
+			final Object value = converter.writeValue(propertyAccessor.getProperty(p), p.getTypeInformation());
 			properties.put(p.getPropertyName(), value);
 		});
 

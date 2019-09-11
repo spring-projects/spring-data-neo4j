@@ -392,7 +392,7 @@ class RepositoryIT {
 	void saveSingleEntity() {
 
 		PersonWithAllConstructor person = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
-			LocalDate.of(1946, 9, 15), null, emptyList(), null);
+			LocalDate.of(1946, 9, 15), null, Arrays.asList("b", "a"), null);
 		PersonWithAllConstructor savedPerson = repository.save(person);
 		try (Session session = driver.session()) {
 			Record record = session.run("MATCH (n:PersonWithAllConstructor) WHERE n.first_name = $first_name RETURN n",
@@ -401,6 +401,7 @@ class RepositoryIT {
 			assertThat(record.containsKey("n")).isTrue();
 			Node node = record.get("n").asNode();
 			assertThat(savedPerson.getId()).isEqualTo(node.id());
+			assertThat(node.get("things").asList()).containsExactly("b", "a");
 		}
 	}
 
@@ -647,6 +648,8 @@ class RepositoryIT {
 		PersonWithAllConstructor originalPerson = repository.findById(id1).get();
 		originalPerson.setFirstName("Updated first name");
 		originalPerson.setNullable("Updated nullable field");
+		assertThat(originalPerson.getThings()).isNotEmpty();
+		originalPerson.setThings(emptyList());
 
 		PersonWithAllConstructor savedPerson = repository.save(originalPerson);
 		try (Session session = driver.session()) {
@@ -660,6 +663,7 @@ class RepositoryIT {
 				assertThat(node.id()).isEqualTo(savedPerson.getId());
 				assertThat(node.get("first_name").asString()).isEqualTo(savedPerson.getFirstName());
 				assertThat(node.get("nullable").asString()).isEqualTo(savedPerson.getNullable());
+				assertThat(node.get("things").asList()).isEmpty();
 
 				return null;
 			});

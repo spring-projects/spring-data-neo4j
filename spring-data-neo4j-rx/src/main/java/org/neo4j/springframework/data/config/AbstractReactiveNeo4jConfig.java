@@ -20,21 +20,32 @@ package org.neo4j.springframework.data.config;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
+import org.neo4j.springframework.data.core.transaction.ReactiveNeo4jTransactionManager;
 import org.neo4j.springframework.data.repository.config.ReactiveNeo4jRepositoryConfigurationExtension;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.ReactiveTransactionManager;
 
 /**
  * Base class for reactive SDN-RX configuration using JavaConfig.
  * This can be included in all scenarios in which Spring Boot is not an option.
  *
  * @author Gerrit Meier
+ * @author Michael J. Simons
  * @since 1.0
  */
 @Configuration
 @API(status = API.Status.STABLE, since = "1.0")
-public abstract class AbstractReactiveNeo4jConfig extends ReactiveNeo4jConfigurationSupport {
+public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupport {
+
+	/**
+	 * The driver to be used for interacting with Neo4j.
+	 *
+	 * @return the Neo4j Java driver instance to work with.
+	 */
+	public abstract Driver driver();
 
 	/**
 	 * The driver used here should be the driver resulting from {@link #driver()}, which is the default.
@@ -45,5 +56,17 @@ public abstract class AbstractReactiveNeo4jConfig extends ReactiveNeo4jConfigura
 	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
 	public ReactiveNeo4jClient neo4jClient(Driver driver) {
 		return ReactiveNeo4jClient.create(driver);
+	}
+
+	/**
+	 * Provides a {@link PlatformTransactionManager} for Neo4j based on the driver resulting from {@link #driver()}.
+	 *
+	 * @param driver The driver to synchronize against
+	 * @return A platform transaction manager
+	 */
+	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
+	public ReactiveTransactionManager reactiveTransactionManager(Driver driver) {
+
+		return new ReactiveNeo4jTransactionManager(driver);
 	}
 }

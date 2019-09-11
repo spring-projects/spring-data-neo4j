@@ -434,6 +434,8 @@ public class MovieController {
 
 TIP: Testing reactive code is done with a `reactor.test.StepVerifier`. Have a look at the corresponding https://projectreactor.io/docs/core/release/reference/#testing[documentation of Project Reactor].
 
+include::{manualIncludeDir}docs/conversions.adoc[]
+
 include::{manualIncludeDir}docs/neo4j-client.adoc[]
 
 == Q&A
