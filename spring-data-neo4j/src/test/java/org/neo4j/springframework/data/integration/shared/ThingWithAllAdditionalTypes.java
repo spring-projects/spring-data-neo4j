@@ -18,54 +18,79 @@
  */
 package org.neo4j.springframework.data.integration.shared;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Builder;
+import lombok.Data;
 import lombok.experimental.Wither;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.Duration;
+import java.time.Period;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
-import org.neo4j.driver.types.Point;
 import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
-import org.neo4j.springframework.data.core.schema.Property;
 
 /**
- * @author Gerrit Meier
+ * Contains properties of all additional types.
+ *
  * @author Michael J. Simons
  */
-@Getter
-@Setter
-@Node
-@ToString
-@AllArgsConstructor
-@EqualsAndHashCode
-public class PersonWithAllConstructor {
+@Node("AdditionalTypes")
+@Data
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
+public class ThingWithAllAdditionalTypes {
 
 	@Id @GeneratedValue
 	@Wither
-	private final Long id;
+	public final Long id;
 
-	private final String name;
+	private boolean[] booleanArray;
 
-	@Property("first_name")
-	private String firstName;
+	private byte aByte;
 
-	private final String sameValue;
+	private char aChar;
 
-	private final Boolean cool;
+	private char[] charArray;
 
-	private final Long personNumber;
+	private Date aDate;
 
-	private final LocalDate bornOn;
+	private BigDecimal aBigDecimal;
 
-	private String nullable;
+	private BigInteger aBigInteger;
 
-	private List<String> things;
+	private double[] doubleArray;
 
-	private final Point place;
+	private float aFloat;
+
+	private float[] floatArray;
+
+	private int anInt;
+
+	private int[] intArray;
+
+	private Locale aLocale;
+
+	private long[] longArray;
+
+	private short aShort;
+
+	private short[] shortArray;
+
+	private Period aPeriod;
+
+	private Duration aDuration;
+
+	private String[] stringArray;
+
+	private List<String> listOfStrings;
+
+	private Set<String> setOfStrings;
 }

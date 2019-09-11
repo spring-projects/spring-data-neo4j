@@ -45,7 +45,11 @@ import org.neo4j.driver.StatementRunner;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
+import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.neo4j.springframework.data.repository.NoResultException;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -62,11 +66,15 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 	private final Driver driver;
 	private final TypeSystem typeSystem;
+	private final ConversionService conversionService;
 
 	DefaultNeo4jClient(Driver driver) {
 
 		this.driver = driver;
 		this.typeSystem = driver.defaultTypeSystem();
+
+		this.conversionService = new DefaultConversionService();
+		new Neo4jConversions().registerConvertersIn((ConverterRegistry) conversionService);
 	}
 
 	AutoCloseableStatementRunner getStatementRunner(@Nullable final String targetDatabase) {
@@ -244,7 +252,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		public <T> MappingSpec<Optional<T>, Collection<T>, T> fetchAs(Class<T> targetClass) {
 
 			return new DefaultRecordFetchSpec(this.targetDatabase, this.runnableStatement,
-				new SingleValueMappingFunction(targetClass));
+				new SingleValueMappingFunction(conversionService, targetClass));
 		}
 
 		@Override

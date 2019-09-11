@@ -18,54 +18,43 @@
  */
 package org.neo4j.springframework.data.integration.shared;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Builder;
+import lombok.Data;
 import lombok.experimental.Wither;
 
-import java.time.LocalDate;
-import java.util.List;
-
-import org.neo4j.driver.types.Point;
 import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
-import org.neo4j.springframework.data.core.schema.Property;
+import org.neo4j.springframework.data.types.CartesianPoint2d;
+import org.neo4j.springframework.data.types.CartesianPoint3d;
+import org.neo4j.springframework.data.types.GeographicPoint2d;
+import org.neo4j.springframework.data.types.GeographicPoint3d;
+import org.springframework.data.geo.Point;
 
 /**
- * @author Gerrit Meier
+ * Contains properties of all spatial types.
+ *
  * @author Michael J. Simons
  */
-@Getter
-@Setter
-@Node
-@ToString
-@AllArgsConstructor
-@EqualsAndHashCode
-public class PersonWithAllConstructor {
+@Node("SpatialTypes")
+@Data
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
+public class ThingWithAllSpatialTypes {
 
 	@Id @GeneratedValue
 	@Wither
-	private final Long id;
+	public final Long id;
 
-	private final String name;
+	private Point sdnPoint;
 
-	@Property("first_name")
-	private String firstName;
+	private GeographicPoint2d geo2d;
 
-	private final String sameValue;
+	private GeographicPoint3d geo3d;
 
-	private final Boolean cool;
+	private CartesianPoint2d car2d;
 
-	private final Long personNumber;
-
-	private final LocalDate bornOn;
-
-	private String nullable;
-
-	private List<String> things;
-
-	private final Point place;
+	private CartesianPoint3d car3d;
 }

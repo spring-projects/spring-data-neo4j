@@ -41,7 +41,11 @@ import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.Neo4jClient.MappingSpec;
 import org.neo4j.springframework.data.core.Neo4jClient.OngoingBindSpec;
 import org.neo4j.springframework.data.core.Neo4jClient.RecordFetchSpec;
+import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.reactivestreams.Publisher;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -58,11 +62,15 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 	private final Driver driver;
 	private final TypeSystem typeSystem;
+	private final ConversionService conversionService;
 
 	DefaultReactiveNeo4jClient(Driver driver) {
 
 		this.driver = driver;
 		this.typeSystem = driver.defaultTypeSystem();
+
+		this.conversionService = new DefaultConversionService();
+		new Neo4jConversions().registerConvertersIn((ConverterRegistry) conversionService);
 	}
 
 	Mono<RxStatementRunnerHolder> retrieveRxStatementRunnerHolder(String targetDatabase) {
@@ -184,7 +192,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		public <R> MappingSpec<Mono<R>, Flux<R>, R> fetchAs(Class<R> targetClass) {
 
 			return new DefaultReactiveRecordFetchSpec<>(this.targetDatabase, this.cypherSupplier, this.parameters,
-				new SingleValueMappingFunction(targetClass));
+				new SingleValueMappingFunction(conversionService, targetClass));
 		}
 
 		@Override

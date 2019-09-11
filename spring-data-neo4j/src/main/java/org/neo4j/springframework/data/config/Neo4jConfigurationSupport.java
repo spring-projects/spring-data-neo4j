@@ -24,37 +24,32 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apiguardian.api.API;
-import org.neo4j.driver.Driver;
-import org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension;
+import org.neo4j.springframework.data.core.convert.Neo4jConversions;
+import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
+import org.neo4j.springframework.data.core.schema.Node;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
-import org.neo4j.springframework.data.core.schema.Node;
-import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
  * Internal support class for basic configuration. The support infrastructure here is basically all around finding out about
- * which classes are to be mapped and which not. The driver is part of the configuration support, as Neo4js Java driver
- * contains both imperative and reactive components.
+ * which classes are to be mapped and which not. The driver needs to be configured from a class either extending
+ * {@link AbstractNeo4jConfig} for imperative or {@link AbstractReactiveNeo4jConfig} for reactive programming model.
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
  * @since 1.0
  */
 @API(status = API.Status.STABLE, since = "1.0")
-public abstract class Neo4jConfigurationSupport {
+abstract class Neo4jConfigurationSupport {
 
-	/**
-	 * The driver to be used for interacting with Neo4j.
-	 *
-	 * @return the Neo4j Java driver instance to work with.
-	 */
-	public abstract Driver driver();
+	@Bean
+	public Neo4jConversions neo4jConversions() {
+		return new Neo4jConversions();
+	}
 
 	/**
 	 * Creates a {@link org.neo4j.springframework.data.core.mapping.Neo4jMappingContext} equipped with entity classes
@@ -64,24 +59,12 @@ public abstract class Neo4jConfigurationSupport {
 	 * @see #getMappingBasePackages()
 	 */
 	@Bean
-	public Neo4jMappingContext neo4jMappingContext() throws ClassNotFoundException {
+	public Neo4jMappingContext neo4jMappingContext(Neo4jConversions neo4JConversions) throws ClassNotFoundException {
 
-		Neo4jMappingContext mappingContext = new Neo4jMappingContext();
+		Neo4jMappingContext mappingContext = new Neo4jMappingContext(neo4JConversions);
 		mappingContext.setInitialEntitySet(getInitialEntitySet());
 
 		return mappingContext;
-	}
-
-	/**
-	 * Provides a {@link PlatformTransactionManager} for Neo4j based on the driver resulting from {@link #driver()}.
-	 *
-	 * @param driver The driver to synchronize against
-	 * @return A platform transaction manager
-	 */
-	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
-	public PlatformTransactionManager transactionManager(Driver driver) {
-
-		return new Neo4jTransactionManager(driver);
 	}
 
 	/**
