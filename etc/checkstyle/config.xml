@@ -61,7 +61,7 @@
             <property name="illegalPkgs"
                       value="^sun.*, ^org\.apache\.commons\.(?!compress|dbcp2|lang|lang3|logging|pool2).*, ^com\.google\.common.*, ^org\.flywaydb\.core\.internal.*, ^org\.testcontainers\.shaded.*, ^org\.neo4j\.driver\.internal\.shaded.*, ^org\.slf4j.*" />
             <property name="illegalClasses"
-                      value="^reactor\.core\.support\.Assert, ^org\.junit\.rules\.ExpectedException" />
+                      value="^reactor\.core\.support\.Assert, ^org\.junit\.rules\.ExpectedException, ^org\.junit\.Test" />
         </module>
         <module name="com.puppycrawl.tools.checkstyle.checks.imports.RedundantImportCheck" />
         <module name="com.puppycrawl.tools.checkstyle.checks.imports.UnusedImportsCheck">
