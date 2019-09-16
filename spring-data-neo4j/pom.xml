@@ -73,10 +73,8 @@
 		<dependency>
 			<groupId>io.r2dbc</groupId>
 			<artifactId>r2dbc-h2</artifactId>
-			<version>0.8.0.M8</version>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apiguardian</groupId>
 			<artifactId>apiguardian-api</artifactId>
@@ -128,10 +126,12 @@
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-stdlib</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-reflect</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
