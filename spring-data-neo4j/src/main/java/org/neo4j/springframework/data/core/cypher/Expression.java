@@ -171,11 +171,11 @@ public interface Expression extends Visitable {
 	 * Creates a {@code IN} operation for this expression and that {@code expression}.
 	 * The expression does not track the condition created here.
 	 *
-	 * @param expression The expression to search for this expression
+	 * @param haystack The expression to search for this expression
 	 * @return A new condition.
 	 */
-	default Condition in(Expression expression) {
-		return Conditions.in(this, expression);
+	default Condition in(Expression haystack) {
+		return Comparison.create(this, Operator.IN, haystack);
 	}
 
 	/**
