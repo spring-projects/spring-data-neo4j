@@ -27,7 +27,7 @@ import org.neo4j.springframework.data.repository.query.Query;
 /**
  * @author Gerrit Meier
  */
-public interface PersonRepository extends ReactiveNeo4jRepository<PersonEntity, Long> {
+public interface PersonRepository extends ReactiveNeo4jRepository<PersonEntity, String> {
 
 	Mono<PersonEntity> findByName(String name);
 

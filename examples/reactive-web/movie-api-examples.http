@@ -20,7 +20,7 @@ Cache-Control: no-cache
 
 ###
 
-DELETE http://localhost:8080/movies/848
+DELETE http://localhost:8080/movies/The Matrix
 Accept: */*
 Cache-Control: no-cache
 

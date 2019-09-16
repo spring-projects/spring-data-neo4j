@@ -72,7 +72,7 @@ public class MovieController {
 	}
 
 	@DeleteMapping("/{id}")
-	Mono<Void> delete(@PathVariable Long id) {
+	Mono<Void> delete(@PathVariable String id) {
 		return movieRepository.deleteById(id);
 	}
 

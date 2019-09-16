@@ -25,7 +25,7 @@ import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 /**
  * @author Michael J. Simons
  */
-public interface MovieRepository extends ReactiveNeo4jRepository<MovieEntity, Long> {
+public interface MovieRepository extends ReactiveNeo4jRepository<MovieEntity, String> {
 
 	Mono<MovieEntity> findOneByTitle(String title);
 }
