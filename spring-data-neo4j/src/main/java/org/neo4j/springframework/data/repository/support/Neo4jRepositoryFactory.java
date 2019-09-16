@@ -19,6 +19,7 @@
 package org.neo4j.springframework.data.repository.support;
 
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
+import static org.neo4j.springframework.data.repository.support.Neo4jRepositoryFactorySupport.*;
 
 import java.util.Map;
 import java.util.Optional;
@@ -81,6 +82,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	protected Object getTargetRepository(RepositoryInformation metadata) {
 
 		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
+		assertIdentifierType(metadata.getIdType(), entityInformation.getIdType());
 		return getTargetRepositoryViaReflection(metadata,
 			neo4jClient, entityInformation, schemaBasedStatementBuilder, eventSupport, mappingContext);
 	}
