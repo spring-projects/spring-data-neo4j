@@ -22,8 +22,9 @@ import static org.springframework.data.convert.ConverterBuilder.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,6 +49,7 @@ import org.springframework.util.StringUtils;
  * Mostly all of {@link org.springframework.data.mapping.model.SimpleTypeHolder SimpleTypeHolder's} defaults.
  *
  * @author Michael J. Simons
+ * @author Gerrit Meier
  * @since 1.0
  */
 final class AdditionalTypes {
@@ -140,14 +142,11 @@ final class AdditionalTypes {
 		return chars[0];
 	}
 
-	private static final String ISO_8601_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+	private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
 	static Date asDate(Value value) {
-		try {
-			return new SimpleDateFormat(ISO_8601_DATE_FORMAT).parse(value.asString());
-		} catch (ParseException e) {
-			throw new IllegalArgumentException("Could not parse " + value.asString(), e);
-		}
+
+		return Date.from(DATE_TIME_FORMATTER.parse(value.asString(), Instant::from));
 	}
 
 	static Value value(Date date) {
@@ -155,7 +154,7 @@ final class AdditionalTypes {
 			return Values.NULL;
 		}
 
-		return Values.value(new SimpleDateFormat(ISO_8601_DATE_FORMAT).format(date));
+		return Values.value(DATE_TIME_FORMATTER.format(date.toInstant().atZone(ZoneOffset.UTC.normalized())));
 	}
 
 	@ReadingConverter

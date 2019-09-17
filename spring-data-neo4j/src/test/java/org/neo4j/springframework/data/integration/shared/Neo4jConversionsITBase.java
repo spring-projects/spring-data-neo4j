@@ -28,6 +28,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetTime;
 import java.time.Period;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -76,7 +77,7 @@ public abstract class Neo4jConversionsITBase {
 		hlp.put("aByte", (byte) 6);
 		hlp.put("aChar", 'x');
 		hlp.put("charArray", new char[] { 'x', 'y', 'z' });
-		hlp.put("aDate", Date.from(LocalDateTime.of(2019, 9, 21, 0, 0, 0).toInstant(ZoneOffset.UTC)));
+		hlp.put("aDate", Date.from(LocalDateTime.of(2019, 9, 21, 15, 23, 11).atZone(ZoneId.of("Europe/Berlin")).toInstant()));
 		hlp.put("aBigDecimal", BigDecimal.valueOf(Double.MAX_VALUE).multiply(BigDecimal.TEN));
 		hlp.put("aBigInteger", BigInteger.valueOf(Long.MAX_VALUE).multiply(BigInteger.TEN));
 		hlp.put("doubleArray", new double[] { 1.1, 2.2, 3.3 });
@@ -178,7 +179,7 @@ public abstract class Neo4jConversionsITBase {
 					+ " n.aByte = $aByte,"
 					+ " n.aChar = 'x',"
 					+ " n.charArray = ['x', 'y', 'z'],"
-					+ " n.aDate = '2019-09-21T02:00:00.000+02:00',"
+					+ " n.aDate = '2019-09-21T13:23:11Z',"
 					+ " n.doubleArray = [1.1, 2.2, 3.3],"
 					+ " n.aFloat = '23.42',"
 					+ " n.floatArray = ['4.4', '5.5'],"
