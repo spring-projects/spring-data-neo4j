@@ -59,7 +59,9 @@ Primitive types of wrapper types are equally supported.
 |
 
 |`java.util.Date`
-|String formatted as ISO 8601 Date (`yyyy-MM-dd'T'HH:mm:ss.SSSXXX`
+|String formatted as ISO 8601 Date (`yyyy-MM-dd'T'HH:mm:ss.SSSZ`).
+ Notice the `Z`: SDN/RX will store all `java.util.Date` instances in `UTC`.
+ If you require the time zone, use a type that supports it (i.e. `ZoneDateTime`) or store the zone as a separate property.
 |
 
 |`double[]`
