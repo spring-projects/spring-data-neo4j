@@ -36,8 +36,8 @@ import java.util.function.Supplier;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
-import org.neo4j.springframework.data.core.convert.Neo4jConverter;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
+import org.neo4j.springframework.data.core.convert.Neo4jConverter;
 import org.neo4j.springframework.data.core.convert.Neo4jSimpleTypes;
 import org.neo4j.springframework.data.core.schema.IdDescription;
 import org.neo4j.springframework.data.core.schema.IdGenerator;
@@ -56,8 +56,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.convert.support.ConfigurableConversionService;
-import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.context.AbstractMappingContext;
@@ -107,10 +105,7 @@ public final class Neo4jMappingContext
 	public Neo4jMappingContext(Neo4jConversions neo4jConversions) {
 
 		super.setSimpleTypeHolder(Neo4jSimpleTypes.HOLDER);
-
-		final ConfigurableConversionService conversionService = new DefaultConversionService();
-		neo4jConversions.registerConvertersIn(conversionService);
-		this.converter = new DefaultNeo4jConverter(conversionService);
+		this.converter = new DefaultNeo4jConverter(neo4jConversions);
 	}
 
 	/*
