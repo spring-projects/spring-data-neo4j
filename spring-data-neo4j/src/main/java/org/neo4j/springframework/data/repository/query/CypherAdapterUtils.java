@@ -162,7 +162,7 @@ public final class CypherAdapterUtils {
 		public Statement prepareDeleteOf(NodeDescription<?> nodeDescription, @Nullable Condition condition) {
 
 			Node rootNode = node(nodeDescription.getPrimaryLabel()).named(NAME_OF_ROOT_NODE);
-			return Cypher.match(rootNode).where(conditionOrNoCondition(condition)).delete(rootNode).build();
+			return Cypher.match(rootNode).where(conditionOrNoCondition(condition)).detachDelete(rootNode).build();
 		}
 
 		public Statement prepareSaveOf(NodeDescription<?> nodeDescription) {
