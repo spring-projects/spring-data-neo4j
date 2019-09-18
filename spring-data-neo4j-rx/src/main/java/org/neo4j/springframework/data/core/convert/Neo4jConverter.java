@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.core.convert;
 
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.TypeSystem;
+import org.springframework.dao.TypeMismatchDataAccessException;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.model.ParameterValueProvider;
@@ -35,6 +36,17 @@ import org.springframework.lang.Nullable;
  */
 public interface Neo4jConverter {
 
+	/**
+	 * Reads a {@link Value} returned by the driver and converts it into a {@link Neo4jSimpleTypes simple type} supported
+	 * by Neo4j SDN/RX.
+	 * If the value cannot be converted, a {@link TypeMismatchDataAccessException} will be thrown, it's cause indicating
+	 * the failed conversion.
+	 *
+	 * @param value The value to be read, may be null.
+	 * @param type  The type information describing the target type
+	 * @return A simple type or null, if the value was {@literal null} or {@link org.neo4j.driver.Values#NULL}.
+	 * @throws TypeMismatchDataAccessException In case the value cannot be converted to the target type
+	 */
 	@Nullable
 	Object readValue(@Nullable Value value, TypeInformation<?> type);
 

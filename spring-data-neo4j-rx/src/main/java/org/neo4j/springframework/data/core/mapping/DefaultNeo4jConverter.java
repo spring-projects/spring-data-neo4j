@@ -21,8 +21,12 @@ package org.neo4j.springframework.data.core.mapping;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.TypeSystem;
+import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.neo4j.springframework.data.core.convert.Neo4jConverter;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.ConfigurableConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.dao.TypeMismatchDataAccessException;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PreferredConstructor;
@@ -41,11 +45,14 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 
 	private final ConversionService conversionService;
 
-	DefaultNeo4jConverter(ConversionService conversionService) {
+	DefaultNeo4jConverter(Neo4jConversions neo4jConversions) {
 
-		Assert.notNull(conversionService, "ConversionService must not be null!");
+		Assert.notNull(neo4jConversions, "Neo4jConversions must not be null!");
 
-		this.conversionService = conversionService;
+		final ConfigurableConversionService configurableConversionService = new DefaultConversionService();
+		neo4jConversions.registerConvertersIn(configurableConversionService);
+
+		this.conversionService = configurableConversionService;
 	}
 
 	@Nullable
@@ -55,7 +62,13 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			return null;
 		}
 
-		return conversionService.convert(value, type.getType());
+		try {
+			return conversionService.convert(value, type.getType());
+		} catch (Exception e) {
+			String msg = String.format("Could not convert %s into %s",
+				(value == null ? "literal null" : value), type.toString());
+			throw new TypeMismatchDataAccessException(msg, e);
+		}
 	}
 
 	@Override
