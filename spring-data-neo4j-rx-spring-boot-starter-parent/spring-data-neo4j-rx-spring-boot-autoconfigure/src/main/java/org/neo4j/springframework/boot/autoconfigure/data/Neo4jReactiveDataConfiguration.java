@@ -16,53 +16,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.boot.autoconfigure.data.neo4j_rx;
+package org.neo4j.springframework.boot.autoconfigure.data;
 
 import static org.springframework.boot.autoconfigure.data.RepositoryType.*;
 
+import reactor.core.publisher.Flux;
+
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
-import org.neo4j.springframework.data.core.Neo4jClient;
-import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
-import org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension;
-import org.springframework.beans.factory.ObjectProvider;
+import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
+import org.neo4j.springframework.data.core.transaction.ReactiveNeo4jTransactionManager;
+import org.neo4j.springframework.data.repository.config.ReactiveNeo4jRepositoryConfigurationExtension;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.ConditionalOnRepositoryType;
-import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.ReactiveTransactionManager;
 
 /**
- * Internal configuration of Neo4j client and transaction manager.
+ * Internal configuration for the reactive Neo4j client.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnClass({ Neo4jTransactionManager.class, PlatformTransactionManager.class })
-@ConditionalOnRepositoryType(store = "neo4j", type = IMPERATIVE)
+@ConditionalOnClass({ ReactiveNeo4jTransactionManager.class, ReactiveTransactionManager.class, Flux.class })
+@ConditionalOnRepositoryType(store = "neo4j", type = REACTIVE)
 @AutoConfigureAfter(Neo4jDriverAutoConfiguration.class)
-@AutoConfigureBefore(Neo4jImperativeRepositoriesConfiguration.class)
-class Neo4jImperativeDataConfiguration {
+@AutoConfigureBefore(Neo4jReactiveRepositoriesConfiguration.class)
+class Neo4jReactiveDataConfiguration {
 
-	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
+	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
 	@ConditionalOnMissingBean
-	public Neo4jClient neo4jClient(Driver driver) {
-		return Neo4jClient.create(driver);
+	public ReactiveNeo4jClient neo4jClient(Driver driver) {
+		return ReactiveNeo4jClient.create(driver);
 	}
 
-	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
-	@ConditionalOnMissingBean(PlatformTransactionManager.class)
-	public Neo4jTransactionManager transactionManager(Driver driver,
-			ObjectProvider<TransactionManagerCustomizers> optionalCustomizers) {
+	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
+	@ConditionalOnMissingBean(ReactiveTransactionManager.class)
+	public ReactiveTransactionManager transactionManager(Driver driver) {
 
-		final Neo4jTransactionManager transactionManager = new Neo4jTransactionManager(driver);
-		optionalCustomizers.ifAvailable(customizer -> customizer.customize(transactionManager));
-
-		return transactionManager;
+		return new ReactiveNeo4jTransactionManager(driver);
 	}
 }

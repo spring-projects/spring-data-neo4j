@@ -18,5 +18,5 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration = \
-  org.springframework.boot.autoconfigure.data.neo4j_rx.Neo4jDataAutoConfiguration, \
-  org.springframework.boot.autoconfigure.data.neo4j_rx.Neo4jRepositoriesAutoConfiguration
+  org.neo4j.springframework.boot.autoconfigure.data.Neo4jDataAutoConfiguration, \
+  org.neo4j.springframework.boot.autoconfigure.data.Neo4jRepositoriesAutoConfiguration

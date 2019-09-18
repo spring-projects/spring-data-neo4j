@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.boot.autoconfigure.data.neo4j_rx;
+package org.neo4j.springframework.boot.autoconfigure.data;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;

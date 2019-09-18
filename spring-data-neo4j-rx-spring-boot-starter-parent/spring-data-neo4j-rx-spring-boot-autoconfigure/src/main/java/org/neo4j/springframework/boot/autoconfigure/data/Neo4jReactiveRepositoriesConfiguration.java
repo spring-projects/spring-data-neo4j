@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.boot.autoconfigure.data.neo4j_rx;
+package org.neo4j.springframework.boot.autoconfigure.data;
 
 import reactor.core.publisher.Flux;
 
@@ -28,8 +28,6 @@ import org.springframework.context.annotation.Import;
 import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 
 /**
- * TODO This is a stub.
- *
  * @author Michael J. Simons
  * @since 1.0
  */

@@ -16,27 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.boot.autoconfigure.data.neo4j_rx;
+package org.neo4j.springframework.boot.autoconfigure.data.bikes;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
+import org.neo4j.springframework.data.repository.Neo4jRepository;
 
 /**
- * Copied over from Spring Boot for the time being.
+ * @author Michael J. Simons
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@PropertySource("classpath:/application.properties")
-@Import(TestAutoConfigurationPackageRegistrar.class)
-@interface TestAutoConfigurationPackage {
-
-	Class<?> value();
-
+public interface BikeRepository extends Neo4jRepository<BikeNode, Long> {
 }
