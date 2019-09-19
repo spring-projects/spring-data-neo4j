@@ -29,8 +29,8 @@ import java.util.stream.Collectors;
 import org.neo4j.benchmarks.springframework.data.sdn.app.Application;
 import org.neo4j.benchmarks.springframework.data.sdn.app.Movie;
 import org.neo4j.benchmarks.springframework.data.sdn.app.MovieRepository;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
@@ -40,7 +40,9 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
-import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
+import org.openjdk.jmh.runner.options.CommandLineOptionException;
+import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -86,13 +88,13 @@ public class Benchmarks {
 	}
 
 	@Benchmark
-	public void simpleFindBy() {
-		this.movieRepository.findByTitle("The Matrix");
+	public Movie simpleFindBy() {
+		return this.movieRepository.findByTitle("The Matrix").get();
 	}
 
 	@Benchmark
-	public void simpleInsert() {
-		this.movieRepository.save(new Movie("The Matrix Reimagined", "Something non existent."));
+	public Movie simpleInsert() {
+		return this.movieRepository.save(new Movie("The Matrix Reimagined", "Something non existent."));
 	}
 
 	@TearDown
@@ -122,15 +124,13 @@ public class Benchmarks {
 		);
 	}
 
-	public static void main(String... args) throws RunnerException {
-		Options opt = new OptionsBuilder()
-			.include(Benchmarks.class.getSimpleName())
-			.warmupIterations(2)
-			.measurementIterations(5)
-			.forks(1)
-			.jvmArgsAppend("-ea")
-			.build();
+	public static void main(String... args) throws RunnerException, CommandLineOptionException {
 
-		new Runner(opt).run();
+		CommandLineOptions commandLineOptions = new CommandLineOptions(args);
+		ChainedOptionsBuilder builder = new OptionsBuilder().parent(commandLineOptions)
+			.include(Benchmarks.class.getSimpleName())
+			.jvmArgsAppend("-ea");
+
+		new Runner(builder.build()).run();
 	}
 }

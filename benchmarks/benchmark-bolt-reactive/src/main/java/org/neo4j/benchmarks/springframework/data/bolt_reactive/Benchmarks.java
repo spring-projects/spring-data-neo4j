@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.benchmarks.springframework.data.bolt;
+package org.neo4j.benchmarks.springframework.data.bolt_reactive;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,9 +26,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.neo4j.benchmarks.springframework.data.bolt.app.Application;
-import org.neo4j.benchmarks.springframework.data.bolt.app.Movie;
-import org.neo4j.benchmarks.springframework.data.bolt.app.MovieRepository;
+import org.neo4j.benchmarks.springframework.data.bolt_reactive.app.Application;
+import org.neo4j.benchmarks.springframework.data.bolt_reactive.app.Movie;
+import org.neo4j.benchmarks.springframework.data.bolt_reactive.app.MovieRepository;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -37,6 +37,7 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
@@ -88,12 +89,12 @@ public class Benchmarks {
 
 	@Benchmark
 	public Movie simpleFindBy() {
-		return this.movieRepository.findByTitle("The Matrix").get();
+		return this.movieRepository.findByTitle("The Matrix").block();
 	}
 
 	@Benchmark
 	public Movie simpleInsert() {
-		return this.movieRepository.save(new Movie("The Matrix Reimagined", "Something non existent."));
+		return this.movieRepository.save(new Movie("The Matrix Reimagined", "Something non existent.")).block();
 	}
 
 	@TearDown

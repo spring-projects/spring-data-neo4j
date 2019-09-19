@@ -53,6 +53,7 @@ dbms.memory.heap.max_size=2G
 
 The database has been stopped and restarted after each module.
 
+
 [cols=4*,options=header]
 |===
 |
@@ -65,13 +66,53 @@ The database has been stopped and restarted after each module.
 |1925,729 ± 68,844  ops/s
 |1073,096 ± 67,814  ops/s
 
+|SDN+OGM
+|SDN 5.2.0 RC3, OGM 3.2.0-RC2, Bolt 4.0.0-beta01
+|2217,894 ± 128,352  ops/s
+|1222,418 ±  58,481  ops/s
+
 |Pure Bolt
 |2.0.0-alpha03
 |3309,650 ± 147,427  ops/s
 |1523,044 ±  51,523  ops/s
 
+|Pure Bolt
+|4.0.0-beta01
+|3874,578 ± 177,166  ops/s
+|1691,686 ±  91,157  ops/s
+
 |SDN/RX
 |Built #73b2d13, Bolt 2.0.0-alpha03
 |2534,810 ± 121,818  ops/s
 |1064,281 ±  62,642  ops/s
+
+|SDN/RX
+|Built #35d329b, Bolt 4.0.0-beta01
+|2794,770 ± 142,225  ops/s
+|1202,379 ±  67,299  ops/s
+|===
+
+Reactive Benchmarks have been tested against Neo4j 4.0.0-alpha09mr02 Enterprise Edition, running on JDK 11.
+They have been run using the maximum number of available threads:
+
+`java -jar target/benchmark.jar -t=MAX`
+
+Also note that both benchmarks have been run with the same connection pool size.
+
+[cols=4*,options=header]
+|===
+|
+|Version
+|Benchmarks.simpleFindBy
+|Benchmarks.simpleInsert
+
+|Pure Bolt (Reactive)
+|4.0.0-beta01
+|7525,577 ± 348,276  ops/s
+| 437,344 ±   7,304  ops/s
+
+|Pure Bolt (Imperative, but against 4.0.0-alpha09mr02)
+|4.0.0-beta01
+|8664,120 ± 125,104  ops/s
+| 448,273 ±  18,449  ops/s
 |===
