@@ -21,9 +21,12 @@ package org.neo4j.springframework.data.integration.reactive;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.neo4j.springframework.data.integration.shared.DtoPersonProjection;
+import org.neo4j.springframework.data.integration.shared.PersonProjection;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
 import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 import org.neo4j.springframework.data.repository.query.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -48,4 +51,22 @@ public interface ReactivePersonRepository extends ReactiveNeo4jRepository<Person
 	Flux<PersonWithAllConstructor> findAllByNameOrName(String aName, String anotherName);
 
 	Flux<PersonWithAllConstructor> findAllBySameValue(String sameValue);
+
+	Mono<PersonProjection> findByName(String name);
+
+	Flux<PersonProjection> findBySameValue(String sameValue);
+
+	Flux<DtoPersonProjection> findByFirstName(String firstName);
+
+	@Query("MATCH (n:PersonWithAllConstructor) where n.name = $name return n{.name}")
+	Mono<PersonProjection> findByNameWithCustomQueryAndMapProjection(@Param("name") String name);
+
+	@Query("MATCH (n:PersonWithAllConstructor) return n{.name}")
+	Flux<PersonProjection> loadAllProjectionsWithMapProjection();
+
+	@Query("MATCH (n:PersonWithAllConstructor) where n.name = $name return n")
+	Mono<PersonProjection> findByNameWithCustomQueryAndNodeReturn(@Param("name") String name);
+
+	@Query("MATCH (n:PersonWithAllConstructor) return n")
+	Flux<PersonProjection> loadAllProjectionsWithNodeReturn();
 }

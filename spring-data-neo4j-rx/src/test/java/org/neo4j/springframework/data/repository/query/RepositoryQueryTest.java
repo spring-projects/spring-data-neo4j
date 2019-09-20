@@ -33,11 +33,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Point;
-import org.neo4j.springframework.data.core.schema.GeneratedValue;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mapping.MappingException;
 import org.neo4j.springframework.data.core.Neo4jClient;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
+import org.neo4j.springframework.data.repository.query.Neo4jQueryMethod.Neo4jParameters;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.CrudRepository;
@@ -197,7 +198,8 @@ final class RepositoryQueryTest {
 				method);
 
 			Map<String, Object> resolveParameters = repositoryQuery
-				.bindParameters(new Object[] { "A String", "Another String" });
+				.bindParameters(new Neo4jParameterAccessor(
+					(Neo4jParameters) method.getParameters(), new Object[] { "A String", "Another String" }));
 
 			assertThat(resolveParameters)
 				.containsEntry("0", "A String")
@@ -217,7 +219,8 @@ final class RepositoryQueryTest {
 
 			Point thePoint = Values.point(4223, 1, 2).asPoint();
 			Map<String, Object> resolveParameters = repositoryQuery.bindParameters(
-				new Object[] { thePoint, "TheName", "TheFirstName" });
+				new Neo4jParameterAccessor((Neo4jParameters) method.getParameters(),
+					new Object[] { thePoint, "TheName", "TheFirstName" }));
 
 			assertThat(resolveParameters)
 				.hasSize(8)

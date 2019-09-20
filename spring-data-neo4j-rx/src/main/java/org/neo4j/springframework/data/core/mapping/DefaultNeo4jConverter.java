@@ -24,6 +24,7 @@ import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.neo4j.springframework.data.core.convert.Neo4jConverter;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.TypeMismatchDataAccessException;
@@ -32,6 +33,7 @@ import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.data.mapping.model.ParameterValueProvider;
+import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -85,7 +87,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 	public <T> PersistentPropertyAccessor<T> decoratePropertyAccessor(TypeSystem typeSystem,
 		PersistentPropertyAccessor<T> targetPropertyAccessor) {
 
-		return new ConvertingPropertyAccessor<>(targetPropertyAccessor, conversionService);
+		return new ConvertingPropertyAccessor<>(targetPropertyAccessor, new DelegatingConversionService(conversionService));
 	}
 
 	@Override
@@ -101,5 +103,36 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 				return readValue((Value) originalValue, parameter.getType());
 			}
 		};
+	}
+
+	class DelegatingConversionService implements ConversionService {
+
+		private final ConversionService delegate;
+
+		DelegatingConversionService(ConversionService delegate) {
+			this.delegate = delegate;
+		}
+
+		@Override
+		public boolean canConvert(Class<?> sourceType, Class<?> targetType) {
+			return sourceType == Value.class;
+		}
+
+		@Override
+		public boolean canConvert(TypeDescriptor sourceType, TypeDescriptor targetType) {
+			return sourceType.isAssignableTo(TypeDescriptor.valueOf(Value.class));
+		}
+
+		@Override @Nullable
+		public <T> T convert(Object source, Class<T> targetType) {
+
+			return (T) readValue((Value) source, ClassTypeInformation.from(targetType));
+		}
+
+		@Override @Nullable
+		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+
+			return readValue((Value) source, ClassTypeInformation.from(targetType.getType()));
+		}
 	}
 }

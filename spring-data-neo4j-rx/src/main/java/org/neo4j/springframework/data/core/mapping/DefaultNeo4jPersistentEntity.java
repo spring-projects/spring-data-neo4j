@@ -37,7 +37,7 @@ import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.util.Assert;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
@@ -51,7 +51,8 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 
 	private final String primaryLabel;
 
-	private final Lazy<IdDescription> idDescription;
+	@Nullable
+	private IdDescription idDescription;
 
 	private final Lazy<Collection<GraphPropertyDescription>> graphProperties;
 
@@ -64,7 +65,6 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		super(information);
 
 		this.primaryLabel = computePrimaryLabel();
-		this.idDescription = Lazy.of(() -> computeIdDescription());
 		this.graphProperties = Lazy.of(() -> computeGraphProperties());
 	}
 
@@ -91,8 +91,9 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	 * @see NodeDescription#getIdDescription()
 	 */
 	@Override
+	@Nullable
 	public IdDescription getIdDescription() {
-		return this.idDescription.get();
+		return this.idDescription;
 	}
 
 	/*
@@ -126,7 +127,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	public void verify() {
 
 		super.verify();
-		Assert.notNull(this.getIdDescription(), "An entity is required to describe its id property.");
+		this.idDescription = computeIdDescription();
 	}
 
 	private String computePrimaryLabel() {
@@ -141,7 +142,10 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 
 	private IdDescription computeIdDescription() {
 
-		Neo4jPersistentProperty idProperty = this.getRequiredIdProperty();
+		Neo4jPersistentProperty idProperty = this.getIdProperty();
+		if (idProperty == null) {
+			return null;
+		}
 		GeneratedValue generatedValueAnnotation = idProperty.findAnnotation(GeneratedValue.class);
 
 		// Assigned ids

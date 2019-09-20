@@ -22,14 +22,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.data.mapping.MappingException;
+import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
-import org.neo4j.springframework.data.core.PreparedQuery;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.SpelEvaluator;
 import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.data.repository.query.SpelQueryContext.SpelExtractor;
@@ -157,12 +158,12 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	}
 
 	@Override
-	protected PreparedQuery<?> prepareQuery(Object[] parameters) {
+	protected PreparedQuery prepareQuery(ResultProcessor resultProcessor,  Neo4jParameterAccessor parameterAccessor) {
 
-		return PreparedQuery.queryFor(super.domainType)
+		return PreparedQuery.queryFor(resultProcessor.getReturnedType().getReturnedType())
 			.withCypherQuery(cypherQuery)
-			.withParameters(bindParameters(parameters))
-			.usingMappingFunction(mappingContext.getMappingFunctionFor(super.domainType)) // Null is fine
+			.withParameters(bindParameters(parameterAccessor))
+			.usingMappingFunction(getMappingFunction(resultProcessor))
 			.build();
 	}
 
@@ -186,17 +187,16 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 		return false;
 	}
 
-	Map<String, Object> bindParameters(Object[] actualParameters) {
+	Map<String, Object> bindParameters(Neo4jParameterAccessor parameterAccessor) {
 
-		final Parameters<?, ?> formalParameters = queryMethod.getParameters();
-
-		Map<String, Object> resolvedParameters = new HashMap<>(spelEvaluator.evaluate(actualParameters));
+		final Parameters<?, ?> formalParameters = parameterAccessor.getParameters();
+		Map<String, Object> resolvedParameters = new HashMap<>(spelEvaluator.evaluate(parameterAccessor.getValues()));
 		formalParameters.stream()
 			.filter(Parameter::isBindable)
 			.forEach(parameter -> {
 
 				int parameterIndex = parameter.getIndex();
-				Object parameterValue = super.convertParameter(actualParameters[parameterIndex]);
+				Object parameterValue = super.convertParameter(parameterAccessor.getBindableValue(parameterIndex));
 
 				// Add the parameter under its name when possible
 				parameter.getName()

@@ -205,6 +205,11 @@ public final class Neo4jMappingContext
 	}
 
 	@Override
+	public Optional<Neo4jPersistentEntity<?>> addPersistentEntity(Class<?> type) {
+		return super.addPersistentEntity(type);
+	}
+
+	@Override
 	public <T> Function<T, Map<String, Object>> getRequiredBinderFunctionFor(Class<T> sourceClass) {
 
 		if (!this.hasPersistentEntityFor(sourceClass)) {

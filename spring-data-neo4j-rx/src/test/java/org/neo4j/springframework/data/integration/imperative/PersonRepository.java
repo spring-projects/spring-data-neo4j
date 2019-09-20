@@ -23,7 +23,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.neo4j.driver.types.Point;
+import org.neo4j.springframework.data.integration.shared.DtoPersonProjection;
 import org.neo4j.springframework.data.integration.shared.KotlinPerson;
+import org.neo4j.springframework.data.integration.shared.PersonProjection;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
 import org.neo4j.springframework.data.integration.shared.PersonWithNoConstructor;
 import org.neo4j.springframework.data.integration.shared.PersonWithWither;
@@ -98,6 +100,8 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	Optional<PersonWithAllConstructor> findOneByNameAndFirstName(String name, String firstName);
 
 	Optional<PersonWithAllConstructor> findOneByNameAndFirstNameAllIgnoreCase(String name, String firstName);
+
+	PersonWithAllConstructor findOneByName(String name);
 
 	List<PersonWithAllConstructor> findAllByNameOrName(String aName, String anotherName);
 
@@ -194,4 +198,22 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	// List<PersonWithAllConstructor> findAllByNameNotEmpty();
 	// List<PersonWithAllConstructor> findAllByPlaceNear(Point p);
 	// List<PersonWithAllConstructor> findAllByPlaceNear(Point p, String);
+
+	PersonProjection findByName(String name);
+
+	List<PersonProjection> findBySameValue(String sameValue);
+
+	List<DtoPersonProjection> findByFirstName(String firstName);
+
+	@Query("MATCH (n:PersonWithAllConstructor) where n.name = $name return n{.name}")
+	PersonProjection findByNameWithCustomQueryAndMapProjection(@Param("name") String name);
+
+	@Query("MATCH (n:PersonWithAllConstructor) return n{.name}")
+	List<PersonProjection> loadAllProjectionsWithMapProjection();
+
+	@Query("MATCH (n:PersonWithAllConstructor) where n.name = $name return n")
+	PersonProjection findByNameWithCustomQueryAndNodeReturn(@Param("name") String name);
+
+	@Query("MATCH (n:PersonWithAllConstructor) return n")
+	List<PersonProjection> loadAllProjectionsWithNodeReturn();
 }
