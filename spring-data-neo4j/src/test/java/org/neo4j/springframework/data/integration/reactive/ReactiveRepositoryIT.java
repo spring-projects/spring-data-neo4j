@@ -1214,6 +1214,55 @@ class ReactiveRepositoryIT {
 		thingRepository.count().as(StepVerifier::create).expectNext(21L).verifyComplete();
 	}
 
+	@Test
+	void mapsInterfaceProjectionWithDerivedFinderMethod() {
+		StepVerifier.create(repository.findByName(TEST_PERSON1_NAME))
+			.assertNext(personProjection -> assertThat(personProjection.getName()).isEqualTo(TEST_PERSON1_NAME))
+			.verifyComplete();
+	}
+
+	@Test
+	void mapsDtoProjectionWithDerivedFinderMethod() {
+		StepVerifier.create(repository.findByFirstName(TEST_PERSON1_FIRST_NAME))
+			.expectNextCount(1)
+			.verifyComplete();
+	}
+
+	@Test
+	void mapsInterfaceProjectionWithDerivedFinderMethodWithMultipleResults() {
+		StepVerifier.create(repository.findBySameValue(TEST_PERSON_SAMEVALUE))
+			.expectNextCount(2)
+			.verifyComplete();
+	}
+
+	@Test
+	void mapsInterfaceProjectionWithCustomQueryAndMapProjection() {
+		StepVerifier.create(repository.findByNameWithCustomQueryAndMapProjection(TEST_PERSON1_NAME))
+			.assertNext(personProjection -> assertThat(personProjection.getName()).isEqualTo(TEST_PERSON1_NAME))
+			.verifyComplete();
+	}
+
+	@Test
+	void mapsInterfaceProjectionWithCustomQueryAndMapProjectionWithMultipleResults() {
+		StepVerifier.create(repository.loadAllProjectionsWithMapProjection())
+			.expectNextCount(2)
+			.verifyComplete();
+	}
+
+	@Test
+	void mapsInterfaceProjectionWithCustomQueryAndNodeReturn() {
+		StepVerifier.create(repository.findByNameWithCustomQueryAndNodeReturn(TEST_PERSON1_NAME))
+			.assertNext(personProjection -> assertThat(personProjection.getName()).isEqualTo(TEST_PERSON1_NAME))
+			.verifyComplete();
+	}
+
+	@Test
+	void mapsInterfaceProjectionWithCustomQueryAndNodeReturnWithMultipleResults() {
+		StepVerifier.create(repository.loadAllProjectionsWithNodeReturn())
+			.expectNextCount(2)
+			.verifyComplete();
+	}
+
 	@Configuration
 	@EnableReactiveNeo4jRepositories
 	@EnableTransactionManagement

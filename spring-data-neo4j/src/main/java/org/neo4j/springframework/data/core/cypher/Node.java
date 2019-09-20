@@ -137,7 +137,7 @@ public final class Node implements PatternElement, Named, Expression, ExposesRel
 	 * @param entries A list of entries for the projection
 	 * @return A map projection.
 	 */
-	public MapProjection project(List<Object> entries) {
+	public MapProjection project(List<?> entries) {
 		return project(entries.toArray());
 	}
 

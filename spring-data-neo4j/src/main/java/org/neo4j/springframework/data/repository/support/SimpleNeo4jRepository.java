@@ -171,7 +171,7 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 				.getRelationshipsOf(neo4jPersistentEntity.getPrimaryLabel());
 
 			RelationshipDescription relationship = relationships.stream()
-				.filter(r -> r.getPropertyName().equals(inverse.getName()))
+				.filter(r -> r.getFieldName().equals(inverse.getName()))
 				.findFirst().get();
 
 			// remove all relationships before creating all new

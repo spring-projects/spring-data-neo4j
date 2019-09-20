@@ -216,7 +216,7 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 					.getRequiredNodeDescription(associationTargetType);
 
 				RelationshipDescription relationship = relationships.stream()
-					.filter(r -> r.getPropertyName().equals(inverse.getName()))
+					.filter(r -> r.getFieldName().equals(inverse.getName()))
 					.findFirst().get();
 
 				// remove all relationships before creating all new

@@ -175,6 +175,27 @@ class RepositoryIT {
 	}
 
 	@Test
+	void dontFindById() {
+		Optional<PersonWithAllConstructor> person = repository.findById(-4711L);
+		assertThat(person).isNotPresent();
+	}
+
+	@Test
+	void dontFindOneByDerivedFinderMethodReturningOptional() {
+		Optional<PersonWithAllConstructor> person = repository.findOneByNameAndFirstName("A", "BB");
+		assertThat(person).isNotPresent();
+	}
+
+	@Test
+	void dontFindOneByDerivedFinderMethodReturning() {
+		PersonWithAllConstructor person = repository.findOneByName("A");
+		assertThat(person).isNull();
+
+		person = repository.findOneByName(TEST_PERSON1_NAME);
+		assertThat(person).extracting(PersonWithAllConstructor::getName).isEqualTo(TEST_PERSON1_NAME);
+	}
+
+	@Test
 	void loadEntityWithRelationship() {
 
 		long personId;
@@ -1558,6 +1579,41 @@ class RepositoryIT {
 		assertThat(things)
 			.extracting(ThingWithAssignedId::getName)
 			.containsExactlyInAnyOrder("name20");
+	}
+
+	@Test
+	void mapsInterfaceProjectionWithDerivedFinderMethod() {
+		assertThat(repository.findByName(TEST_PERSON1_NAME).getName()).isEqualTo(TEST_PERSON1_NAME);
+	}
+
+	@Test
+	void mapsDtoProjectionWithDerivedFinderMethod() {
+		assertThat(repository.findByFirstName(TEST_PERSON1_FIRST_NAME)).hasSize(1);
+	}
+
+	@Test
+	void mapsInterfaceProjectionWithDerivedFinderMethodWithMultipleResults() {
+		assertThat(repository.findBySameValue(TEST_PERSON_SAMEVALUE)).hasSize(2);
+	}
+
+	@Test
+	void mapsInterfaceProjectionWithCustomQueryAndMapProjection() {
+		assertThat(repository.findByNameWithCustomQueryAndMapProjection(TEST_PERSON1_NAME).getName()).isEqualTo(TEST_PERSON1_NAME);
+	}
+
+	@Test
+	void mapsInterfaceProjectionWithCustomQueryAndMapProjectionWithMultipleResults() {
+		assertThat(repository.loadAllProjectionsWithMapProjection()).hasSize(2);
+	}
+
+	@Test
+	void mapsInterfaceProjectionWithCustomQueryAndNodeReturn() {
+		assertThat(repository.findByNameWithCustomQueryAndNodeReturn(TEST_PERSON1_NAME).getName()).isEqualTo(TEST_PERSON1_NAME);
+	}
+
+	@Test
+	void mapsInterfaceProjectionWithCustomQueryAndNodeReturnWithMultipleResults() {
+		assertThat(repository.loadAllProjectionsWithNodeReturn()).hasSize(2);
 	}
 
 	@Configuration

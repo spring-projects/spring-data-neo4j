@@ -19,10 +19,11 @@
 package org.neo4j.springframework.data.repository.query;
 
 import org.neo4j.springframework.data.core.Neo4jClient;
-import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.PreparedQuery;
+import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.util.Assert;
 
 /**
@@ -35,21 +36,13 @@ import org.springframework.util.Assert;
 abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements RepositoryQuery {
 
 	protected final Neo4jClient neo4jClient;
-	protected final Neo4jMappingContext mappingContext;
-	protected final Neo4jQueryMethod queryMethod;
-	protected final Class<?> domainType;
 
-	AbstractNeo4jQuery(Neo4jClient neo4jClient,
-		Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod) {
+	AbstractNeo4jQuery(Neo4jClient neo4jClient, Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod) {
+
+		super(mappingContext, queryMethod);
 
 		Assert.notNull(neo4jClient, "The Neo4j client is required.");
-		Assert.notNull(mappingContext, "The mapping context is required.");
-		Assert.notNull(queryMethod, "Query method must not be null!");
-
 		this.neo4jClient = neo4jClient;
-		this.mappingContext = mappingContext;
-		this.queryMethod = queryMethod;
-		this.domainType = queryMethod.getReturnedObjectType();
 	}
 
 	@Override
@@ -59,11 +52,16 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 
 	@Override
 	public final Object execute(Object[] parameters) {
-		return new Neo4jQueryExecution.DefaultQueryExecution(neo4jClient)
-			.execute(prepareQuery(parameters), queryMethod.isCollectionQuery());
+
+		Neo4jParameterAccessor parameterAccessor = getParameterAccessor(parameters);
+		ResultProcessor resultProcessor = queryMethod.getResultProcessor().withDynamicProjection(parameterAccessor);
+		return resultProcessor.processResult(new Neo4jQueryExecution.DefaultQueryExecution(neo4jClient)
+				.execute(prepareQuery(resultProcessor, parameterAccessor), queryMethod.isCollectionQuery()),
+			OptionalUnwrappingConverter.INSTANCE);
 	}
 
-	protected abstract PreparedQuery prepareQuery(Object[] parameters);
+	protected abstract PreparedQuery prepareQuery(ResultProcessor resultProcessor,
+		Neo4jParameterAccessor parameterAccessor);
 
 	/**
 	 * @return True if the query should get a count projection applied.

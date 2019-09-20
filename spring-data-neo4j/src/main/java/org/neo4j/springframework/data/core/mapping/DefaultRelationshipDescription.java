@@ -25,6 +25,7 @@ import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 
 /**
  * @author Michael J. Simons
+ * @author Gerrit Meier
  * @since 1.0
  */
 class DefaultRelationshipDescription implements RelationshipDescription {
@@ -35,17 +36,17 @@ class DefaultRelationshipDescription implements RelationshipDescription {
 
 	private final String target;
 
-	private final String propertyName;
+	private final String fieldName;
 
 	private final Relationship.Direction direction;
 
-	DefaultRelationshipDescription(String type, String source, String target, String propertyName,
+	DefaultRelationshipDescription(String type, String source, String target, String fieldName,
 		Relationship.Direction direction) {
 
 		this.type = type;
 		this.source = source;
 		this.target = target;
-		this.propertyName = propertyName;
+		this.fieldName = fieldName;
 		this.direction = direction;
 	}
 
@@ -65,8 +66,8 @@ class DefaultRelationshipDescription implements RelationshipDescription {
 	}
 
 	@Override
-	public String getPropertyName() {
-		return propertyName;
+	public String getFieldName() {
+		return fieldName;
 	}
 
 	@Override

@@ -55,9 +55,9 @@ public interface RelationshipDescription {
 	 * The name of the property where the relationship was defined. This is used by the Cypher creation to name the
 	 * return values.
 	 *
-	 * @return The name of the relationship property
+	 * @return The name of the field storing the relationship property
 	 */
-	String getPropertyName();
+	String getFieldName();
 
 	/**
 	 * The direction of the defined relationship. This is used by the Cypher creation to query for relationships

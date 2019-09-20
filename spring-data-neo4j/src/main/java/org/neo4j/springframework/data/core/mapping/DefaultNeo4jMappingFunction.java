@@ -226,7 +226,7 @@ final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Rec
 			Neo4jPersistentProperty inverse = association.getInverse();
 
 			RelationshipDescription relationship = relationships.stream()
-				.filter(r -> r.getPropertyName().equals(inverse.getName()))
+				.filter(r -> r.getFieldName().equals(inverse.getName()))
 				.findFirst().get();
 
 			String relationshipType = relationship.getType();

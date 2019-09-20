@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
+import org.springframework.lang.Nullable;
 
 /**
  * Describes how a class is mapped to a node inside the database. It provides navigable links to relationships and
@@ -54,6 +55,7 @@ public interface NodeDescription<T> {
 	/**
 	 * @return A description how to determine primary ids for nodes fitting this description
 	 */
+	@Nullable
 	IdDescription getIdDescription();
 
 	/**

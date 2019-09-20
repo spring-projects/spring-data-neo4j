@@ -18,8 +18,6 @@
  */
 package org.neo4j.springframework.data.core.mapping;
 
-import java.util.Optional;
-
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
@@ -27,6 +25,7 @@ import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.Lazy;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
@@ -35,7 +34,7 @@ import org.springframework.data.util.Lazy;
 class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<Neo4jPersistentProperty>
 	implements Neo4jPersistentProperty {
 
-	private final Lazy<Optional<String>> graphPropertyName;
+	private final Lazy<String> graphPropertyName;
 	private final Lazy<Boolean> isAssociation;
 
 	/**
@@ -76,10 +75,10 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	 *
 	 * @return An empty optional if this property describes an association, a given target name otherwise.
 	 */
-	Optional<String> computeGraphPropertyName() {
+	@Nullable String computeGraphPropertyName() {
 
 		if (this.isAssociation()) {
-			return Optional.empty();
+			return null;
 		}
 
 		org.neo4j.springframework.data.core.schema.Property propertyAnnotation =
@@ -91,7 +90,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 			targetName = propertyAnnotation.name().trim();
 		}
 
-		return Optional.of(targetName);
+		return targetName;
 	}
 
 	@Override
@@ -101,7 +100,13 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 	@Override
 	public String getPropertyName() {
-		return this.graphPropertyName.get().orElseThrow(() -> new MappingException("This property is not mapped to a Graph property!"));
+
+		String propertyName = this.graphPropertyName.getNullable();
+		if (propertyName == null) {
+			throw new MappingException("This property is not mapped to a Graph property!");
+		}
+
+		return propertyName;
 	}
 
 	@Override

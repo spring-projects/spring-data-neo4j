@@ -43,16 +43,15 @@ import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
+import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.repository.query.Neo4jQueryMethod.Neo4jParameter;
-import org.neo4j.springframework.data.repository.query.Neo4jQueryMethod.Neo4jParameters;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.mapping.PersistentPropertyPath;
-import org.springframework.data.repository.query.ParameterAccessor;
-import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -73,7 +72,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 	private final Class<?> domainType;
 	private final NodeDescription<?> nodeDescription;
 
-	private final Iterator<Neo4jParameter> formalParameters;
+	private final Iterator<?> formalParameters;
 	private final Queue<Parameter> lastParameter = new LinkedList<>();
 
 	/**
@@ -86,8 +85,11 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 	 */
 	private final List<SortItem> sortItems = new ArrayList<>();
 
+	private final List<String> includedProperties;
+
 	CypherQueryCreator(Neo4jMappingContext mappingContext, Class<?> domainType, PartTree tree,
-		Parameters<Neo4jParameters, Neo4jParameter> formalParameters, ParameterAccessor actualParameters
+		ParametersParameterAccessor actualParameters,
+		List<String> includedProperties
 	) {
 		super(tree, actualParameters);
 		this.mappingContext = mappingContext;
@@ -95,8 +97,10 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		this.domainType = domainType;
 		this.nodeDescription = this.mappingContext.getRequiredNodeDescription(this.domainType);
 
-		this.formalParameters = formalParameters.iterator();
+		this.formalParameters = actualParameters.getParameters().iterator();
 		this.maxResults = tree.isLimiting() ? tree.getMaxResults() : null;
+
+		this.includedProperties = includedProperties;
 	}
 
 	@Override
@@ -125,7 +129,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		SchemaBasedStatementBuilder statementBuilder = createSchemaBasedStatementBuilder(mappingContext);
 		Statement statement = statementBuilder
 			.prepareMatchOf(nodeDescription, condition)
-			.returning(statementBuilder.createReturnStatementForMatch(nodeDescription))
+			.returning(statementBuilder.createReturnStatementForMatch(nodeDescription, includedProperties))
 			.orderBy(
 				Stream.concat(
 					sortItems.stream(),
@@ -240,14 +244,14 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		}
 	}
 
-	private Condition likeCondition(Neo4jPersistentProperty persistentProperty, String parameterName,
+	private Condition likeCondition(GraphPropertyDescription persistentProperty, String parameterName,
 		boolean ignoreCase) {
 		String regexOptions = ignoreCase ? "(?i)" : "";
 		return toCypherProperty(persistentProperty, false)
 			.matches(literalOf(regexOptions + ".*").plus(Cypher.parameter(parameterName)).plus(literalOf(".*")));
 	}
 
-	private Condition betweenCondition(Neo4jPersistentProperty persistentProperty, Iterator<Object> actualParameters,
+	private Condition betweenCondition(GraphPropertyDescription persistentProperty, Iterator<Object> actualParameters,
 		boolean ignoreCase) {
 
 		Parameter lowerBoundOrRange = nextRequiredParameter(actualParameters);
@@ -262,7 +266,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		}
 	}
 
-	private Condition createNearCondition(Neo4jPersistentProperty persistentProperty,
+	private Condition createNearCondition(GraphPropertyDescription persistentProperty,
 		Iterator<Object> actualParameters) {
 
 		Parameter p1 = nextRequiredParameter(actualParameters);
@@ -298,7 +302,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		}
 	}
 
-	private Condition createWithinCondition(Neo4jPersistentProperty persistentProperty,
+	private Condition createWithinCondition(GraphPropertyDescription persistentProperty,
 		Iterator<Object> actualParameters) {
 
 		Parameter area = nextRequiredParameter(actualParameters);
@@ -343,7 +347,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		return betweenCondition;
 	}
 
-	private static Expression toCypherProperty(Neo4jPersistentProperty persistentProperty, boolean addToLower) {
+	private static Expression toCypherProperty(GraphPropertyDescription persistentProperty, boolean addToLower) {
 
 		Expression expression = Cypher.property(NAME_OF_ROOT_NODE, persistentProperty.getPropertyName());
 		if (addToLower) {
@@ -372,7 +376,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		if (nextRequiredParameter != null) {
 			return Optional.of(nextRequiredParameter);
 		} else if (formalParameters.hasNext()) {
-			final Neo4jParameter parameter = formalParameters.next();
+			final Neo4jParameter parameter = (Neo4jParameter) formalParameters.next();
 			return Optional.of(new Parameter(parameter.getNameOrIndex(), actualParameters.next()));
 		} else {
 			return Optional.empty();
@@ -388,7 +392,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 			if (!formalParameters.hasNext()) {
 				throw new IllegalStateException("Not enough formal, bindable parameters for parts");
 			}
-			final Neo4jParameter parameter = formalParameters.next();
+			final Neo4jParameter parameter = (Neo4jParameter) formalParameters.next();
 			return new Parameter(parameter.getNameOrIndex(), actualParameters.next());
 		}
 	}
