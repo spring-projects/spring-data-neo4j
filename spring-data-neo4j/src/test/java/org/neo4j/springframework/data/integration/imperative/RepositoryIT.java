@@ -1563,7 +1563,7 @@ class RepositoryIT {
 			.containsExactly(person1);
 	}
 
-	@DisabledIfEnvironmentVariable(named = "SDN_RX_NEO4J_VERSION", matches = "4\\.0.*")
+	@DisabledIfEnvironmentVariable(named = "SDN_RX_NEO4J_VERSION", matches = "4\\.0\\.0-alpha(0.*|10.*)")
 	@Test
 	void limitClauseShouldWork() {
 
