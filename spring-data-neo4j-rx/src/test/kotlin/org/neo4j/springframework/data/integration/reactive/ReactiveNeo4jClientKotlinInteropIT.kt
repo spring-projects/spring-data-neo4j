@@ -18,16 +18,18 @@
  */
 package org.neo4j.springframework.data.integration.reactive
 
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.neo4j.driver.Driver
+import org.neo4j.driver.Record
 import org.neo4j.driver.Values
+import org.neo4j.driver.types.TypeSystem
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig
-import org.neo4j.springframework.data.core.ReactiveNeo4jClient
-import org.neo4j.springframework.data.core.fetchAs
-import org.neo4j.springframework.data.core.mappedBy
+import org.neo4j.springframework.data.core.*
 import org.neo4j.springframework.data.test.Neo4jExtension
 import org.neo4j.springframework.data.test.Neo4jIntegrationTest
 import org.springframework.beans.factory.annotation.Autowired
@@ -98,6 +100,33 @@ class ReactiveNeo4jClientKotlinInteropIT @Autowired constructor(
 
 		StepVerifier.create(neo4jClient.query("MATCH (n:IDontExists) RETURN id(n)").fetchAs<Long>().one())
 				.verifyComplete();
+	}
+
+	@Test
+	fun `The reactive Neo4j client should be usable with Co-Routines`() {
+
+		val recordToArtist: (TypeSystem, Record) -> Artist = { _, r -> Artist(r["m"]["name"].asString()) }
+
+		runBlocking {
+			val artists = neo4jClient
+				.query("MATCH (m:Member) RETURN m ORDER BY m.name ASC")
+				.mappedBy(recordToArtist)
+				.fetchAll()
+				.toList()
+
+			assertThat(artists).hasSize(7)
+			assertThat(artists.map { it.name }).contains("Bela", "Roger")
+		}
+
+		runBlocking {
+			val freddie = neo4jClient
+				.query("MATCH (m:Member) WHERE m.name =~ \$needle RETURN m ORDER BY m.name ASC")
+				.bind("Fre.*").to("needle")
+				.mappedBy(recordToArtist)
+				.awaitOneOrNull()
+
+			assertThat(freddie).isNotNull
+		}
 	}
 
 	@Configuration

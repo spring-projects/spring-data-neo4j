@@ -148,11 +148,11 @@ class DefaultNeo4jClient implements Neo4jClient {
 	@Override
 	public <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery) {
 
-		Neo4jClient.MappingSpec<Optional<T>, Collection<T>, T> mappingSpec = this
+		Neo4jClient.MappingSpec<T> mappingSpec = this
 			.query(preparedQuery.getCypherQuery())
 			.bindAll(preparedQuery.getParameters())
 			.fetchAs(preparedQuery.getResultType());
-		Neo4jClient.RecordFetchSpec<Optional<T>, Collection<T>, T> fetchSpec = preparedQuery
+		Neo4jClient.RecordFetchSpec<T> fetchSpec = preparedQuery
 			.getOptionalMappingFunction()
 			.map(f -> mappingSpec.mappedBy(f))
 			.orElse(mappingSpec);
@@ -249,14 +249,14 @@ class DefaultNeo4jClient implements Neo4jClient {
 		}
 
 		@Override
-		public <T> MappingSpec<Optional<T>, Collection<T>, T> fetchAs(Class<T> targetClass) {
+		public <T> MappingSpec<T> fetchAs(Class<T> targetClass) {
 
 			return new DefaultRecordFetchSpec(this.targetDatabase, this.runnableStatement,
 				new SingleValueMappingFunction(conversionService, targetClass));
 		}
 
 		@Override
-		public RecordFetchSpec<Optional<Map<String, Object>>, Collection<Map<String, Object>>, Map<String, Object>> fetch() {
+		public RecordFetchSpec<Map<String, Object>> fetch() {
 
 			return new DefaultRecordFetchSpec<>(
 				this.targetDatabase,
@@ -273,8 +273,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		}
 	}
 
-	class DefaultRecordFetchSpec<T>
-		implements RecordFetchSpec<Optional<T>, Collection<T>, T>, MappingSpec<Optional<T>, Collection<T>, T> {
+	class DefaultRecordFetchSpec<T> implements RecordFetchSpec<T>, MappingSpec<T> {
 
 		private final String targetDatabase;
 
@@ -290,7 +289,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		}
 
 		@Override
-		public RecordFetchSpec<Optional<T>, Collection<T>, T> mappedBy(
+		public RecordFetchSpec<T> mappedBy(
 			@SuppressWarnings("HiddenField") BiFunction<TypeSystem, Record, T> mappingFunction) {
 
 			this.mappingFunction = new DelegatingMappingFunctionWithNullCheck<>(mappingFunction);
@@ -368,10 +367,9 @@ class DefaultNeo4jClient implements Neo4jClient {
 	final class DefaultExecutableQuery<T> implements ExecutableQuery<T> {
 
 		private final PreparedQuery<T> preparedQuery;
-		private final Neo4jClient.RecordFetchSpec<Optional<T>, Collection<T>, T> fetchSpec;
+		private final Neo4jClient.RecordFetchSpec<T> fetchSpec;
 
-		DefaultExecutableQuery(PreparedQuery<T> preparedQuery,
-			RecordFetchSpec<Optional<T>, Collection<T>, T> fetchSpec) {
+		DefaultExecutableQuery(PreparedQuery<T> preparedQuery, RecordFetchSpec<T> fetchSpec) {
 			this.preparedQuery = preparedQuery;
 			this.fetchSpec = fetchSpec;
 		}
