@@ -41,15 +41,14 @@ import org.springframework.lang.Nullable;
 /**
  * Definition of a modern Neo4j client.
  *
- * TODO Create examples how to use the callbacks etc. with Springs TransactionTemplate to deal with rollbacks etc.
- * TODO database selection
- *
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.STABLE, since = "1.0")
 public interface Neo4jClient {
+
+	// TODO Create examples how to use the callbacks etc. with Springs TransactionTemplate to deal with rollbacks etc.
 
 	LogAccessor cypherLog = new LogAccessor(LogFactory.getLog("org.neo4j.springframework.data.cypher"));
 

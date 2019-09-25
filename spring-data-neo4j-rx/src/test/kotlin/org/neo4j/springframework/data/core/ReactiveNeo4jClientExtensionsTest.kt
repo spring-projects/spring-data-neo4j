@@ -21,6 +21,8 @@ package org.neo4j.springframework.data.core
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Test
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 /**
  * @author Michael J. Simons
@@ -45,5 +47,16 @@ class ReactiveNeo4jClientExtensionsTest {
 		ongoingDelegation.inDatabase("foobar");
 
 		verify(exactly = 1) { ongoingDelegation.`in`("foobar") }
+	}
+
+	@Test
+	fun `ReactiveRunnableDelegation#fetchAs() extension should call its Java counterpart`() {
+
+		val runnableSpec = mockk<ReactiveNeo4jClient.ReactiveRunnableSpecTightToDatabase>(relaxed = true)
+
+		val mappingSpec : Neo4jClient.MappingSpec<Mono<String>, Flux<String>, String> =
+				runnableSpec.fetchAs();
+
+		verify(exactly = 1) { runnableSpec.fetchAs(String::class.java) }
 	}
 }

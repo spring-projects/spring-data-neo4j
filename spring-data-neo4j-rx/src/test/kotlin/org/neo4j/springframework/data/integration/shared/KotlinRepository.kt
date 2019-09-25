@@ -17,9 +17,8 @@
  * limitations under the License.
  */
 
-package org.neo4j.springframework.data.integration.kotlin
+package org.neo4j.springframework.data.integration.shared
 
-import org.neo4j.springframework.data.integration.shared.KotlinPerson
 import org.neo4j.springframework.data.repository.Neo4jRepository
 
 /**

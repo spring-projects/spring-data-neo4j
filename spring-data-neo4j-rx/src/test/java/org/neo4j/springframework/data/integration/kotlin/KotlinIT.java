@@ -31,6 +31,7 @@ import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Values;
 import org.neo4j.springframework.data.config.AbstractNeo4jConfig;
 import org.neo4j.springframework.data.integration.shared.KotlinPerson;
+import org.neo4j.springframework.data.integration.shared.KotlinRepository;
 import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
 import org.neo4j.springframework.data.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.neo4j.springframework.data.test.Neo4jIntegrationTest;

@@ -46,4 +46,15 @@ class Neo4jClientExtensionsTest {
 
 		verify(exactly = 1) { ongoingDelegation.`in`("foobar") }
 	}
+
+	@Test
+	fun `RunnableSpecTightToDatabase#fetchAs() extension should call its Java counterpart`() {
+
+		val runnableSpec = mockk<Neo4jClient.RunnableSpecTightToDatabase>(relaxed = true)
+
+		val mappingSpec: Neo4jClient.RecordFetchSpec<String?, Collection<String>, String> =
+				runnableSpec.mappedBy { _, record -> "Foo" };
+
+		verify(exactly = 1) { runnableSpec.fetchAs(String::class.java) }
+	}
 }
