@@ -124,14 +124,14 @@ public interface Neo4jClient {
 		 * @param <T>         The type of the class
 		 * @return A mapping spec that allows specifying a mapping function.
 		 */
-		<T> MappingSpec<Optional<T>, Collection<T>, T> fetchAs(Class<T> targetClass);
+		<T> MappingSpec<T> fetchAs(Class<T> targetClass);
 
 		/**
 		 * Fetch all records mapped into generic maps
 		 *
 		 * @return A fetch specification that maps into generic maps.
 		 */
-		RecordFetchSpec<Optional<Map<String, Object>>, Collection<Map<String, Object>>, Map<String, Object>> fetch();
+		RecordFetchSpec<Map<String, Object>> fetch();
 
 		/**
 		 * Execute the query and discard the results. It returns the drivers result summary, including various counters
@@ -186,12 +186,10 @@ public interface Neo4jClient {
 	}
 
 	/**
-	 * @param <S> The type of the class holding zero or one result element
-	 * @param <M> The type of the class holding zero or more result elements
 	 * @param <T> The resulting type of this mapping
 	 * @since 1.0
 	 */
-	interface MappingSpec<S, M, T> extends RecordFetchSpec<S, M, T> {
+	interface MappingSpec<T> extends RecordFetchSpec<T> {
 
 		/**
 		 * The mapping function is responsible to turn one record into one domain object. It will receive the record
@@ -200,37 +198,35 @@ public interface Neo4jClient {
 		 * @param mappingFunction The mapping function used to create new domain objects
 		 * @return A specification how to fetch one or more records.
 		 */
-		RecordFetchSpec<S, M, T> mappedBy(BiFunction<TypeSystem, Record, T> mappingFunction);
+		RecordFetchSpec<T> mappedBy(BiFunction<TypeSystem, Record, T> mappingFunction);
 	}
 
 	/**
-	 * @param <S> The type of the class holding zero or one result element
-	 * @param <M> The type of the class holding zero or more result elements
 	 * @param <T> The type to which the fetched records are eventually mapped
 	 * @since 1.0
 	 */
-	interface RecordFetchSpec<S, M, T> {
+	interface RecordFetchSpec<T> {
 
 		/**
 		 * Fetches exactly one record and throws an exception if there are more entries.
 		 *
 		 * @return The one and only record.
 		 */
-		S one();
+		Optional<T> one();
 
 		/**
 		 * Fetches only the first record. Returns an empty holder if there are no records.
 		 *
 		 * @return The first record if any.
 		 */
-		S first();
+		Optional<T> first();
 
 		/**
 		 * Fetches all records.
 		 *
 		 * @return All records.
 		 */
-		M all();
+		Collection<T> all();
 	}
 
 	/**

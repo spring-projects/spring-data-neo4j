@@ -18,9 +18,15 @@
  */
 package org.neo4j.springframework.data.core
 
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.neo4j.driver.summary.ResultSummary
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -32,7 +38,7 @@ class ReactiveNeo4jClientExtensionsTest {
 	@Test
 	fun `RunnableSpec#inDatabase(targetDatabase) extension should call its Java counterpart`() {
 
-		val runnableSpec = mockk<ReactiveNeo4jClient.ReactiveRunnableSpec>(relaxed = true)
+		val runnableSpec = mockk<ReactiveNeo4jClient.RunnableSpec>(relaxed = true)
 
 		runnableSpec.inDatabase("foobar");
 
@@ -42,7 +48,7 @@ class ReactiveNeo4jClientExtensionsTest {
 	@Test
 	fun `OngoingDelegation#inDatabase(targetDatabase) extension should call its Java counterpart`() {
 
-		val ongoingDelegation = mockk<ReactiveNeo4jClient.OngoingReactiveDelegation<Any>>(relaxed = true)
+		val ongoingDelegation = mockk<ReactiveNeo4jClient.OngoingDelegation<Any>>(relaxed = true)
 
 		ongoingDelegation.inDatabase("foobar");
 
@@ -52,11 +58,173 @@ class ReactiveNeo4jClientExtensionsTest {
 	@Test
 	fun `ReactiveRunnableDelegation#fetchAs() extension should call its Java counterpart`() {
 
-		val runnableSpec = mockk<ReactiveNeo4jClient.ReactiveRunnableSpecTightToDatabase>(relaxed = true)
+		val runnableSpec = mockk<ReactiveNeo4jClient.RunnableSpecTightToDatabase>(relaxed = true)
 
-		val mappingSpec : Neo4jClient.MappingSpec<Mono<String>, Flux<String>, String> =
-				runnableSpec.fetchAs();
+		val mappingSpec: ReactiveNeo4jClient.MappingSpec<String> = runnableSpec.fetchAs();
 
 		verify(exactly = 1) { runnableSpec.fetchAs(String::class.java) }
+	}
+
+	@Test
+	fun runnableSpecShouldReturnSuspendedResultSummary() {
+
+		val runnableSpec = mockk<ReactiveNeo4jClient.RunnableSpecTightToDatabase>()
+		val resultSummary = mockk<ResultSummary>()
+		every { runnableSpec.run() } returns Mono.just(resultSummary)
+
+		runBlocking {
+			assertThat(runnableSpec.await()).isEqualTo(resultSummary)
+		}
+
+		verify {
+			runnableSpec.run()
+		}
+	}
+
+
+	@Nested
+	inner class CoroutinesVariantsOfRunnableDelegation {
+
+		private val runnableDelegation = mockk<ReactiveNeo4jClient.RunnableDelegation<String>>()
+
+		@Test
+		fun `awaitFirstOrNull should return value`() {
+
+			every { runnableDelegation.run() } returns Mono.just("bazbar")
+
+			runBlocking {
+				assertThat(runnableDelegation.awaitFirstOrNull()).isEqualTo("bazbar")
+			}
+
+			verify {
+				runnableDelegation.run()
+			}
+		}
+
+		@Test
+		fun `awaitFirstOrNull should return null`() {
+
+			every { runnableDelegation.run() } returns Mono.empty()
+
+			runBlocking {
+				assertThat(runnableDelegation.awaitFirstOrNull()).isNull()
+			}
+
+			verify {
+				runnableDelegation.run()
+			}
+		}
+	}
+
+	@Nested
+	inner class CoroutinesVariantsOfRecordFetchSpec {
+
+		private val recordFetchSpec = mockk<ReactiveNeo4jClient.RecordFetchSpec<String>>()
+
+		@Test
+		fun `awaitOne should return value`() {
+			every { recordFetchSpec.one() } returns Mono.just("foo")
+
+			runBlocking {
+				assertThat(recordFetchSpec.awaitOneOrNull()).isEqualTo("foo")
+			}
+			verify {
+				recordFetchSpec.one()
+			}
+		}
+
+		@Test
+		fun `awaitOne should return null`() {
+			every { recordFetchSpec.one() } returns Mono.empty()
+
+			runBlocking {
+				assertThat(recordFetchSpec.awaitOneOrNull()).isNull()
+			}
+			verify {
+				recordFetchSpec.one()
+			}
+		}
+
+		@Test
+		fun `awaitFirstOrNull should return value`() {
+			every { recordFetchSpec.first() } returns Mono.just("bar")
+
+			runBlocking {
+				assertThat(recordFetchSpec.awaitFirstOrNull()).isEqualTo("bar")
+			}
+			verify {
+				recordFetchSpec.first()
+			}
+		}
+
+		@Test
+		fun `awaitFirstOrNull should return null`() {
+			every { recordFetchSpec.first() } returns Mono.empty()
+
+			runBlocking {
+				assertThat(recordFetchSpec.awaitFirstOrNull()).isNull()
+			}
+			verify {
+				recordFetchSpec.first()
+			}
+		}
+
+		@Test
+		fun `fetchAll should return a flow of thing`() {
+
+			every { recordFetchSpec.all() } returns Flux.just("foo", "bar")
+
+			runBlocking {
+				assertThat(recordFetchSpec.fetchAll().toList()).contains("foo", "bar")
+			}
+
+			verify {
+				recordFetchSpec.all()
+			}
+		}
+	}
+
+	@Nested
+	inner class CoroutinesVariantsOfExecutableQuery {
+
+		private val executableQuery = mockk<ReactiveNeo4jClient.ExecutableQuery<String>>()
+
+		@Test
+		fun `fetchAllResults should return a flow of thing`() {
+
+			every { executableQuery.results } returns Flux.just("foo", "bar")
+
+			runBlocking {
+				assertThat(executableQuery.fetchAllResults().toList()).contains("foo", "bar")
+			}
+
+			verify {
+				executableQuery.results
+			}
+		}
+
+		@Test
+		fun `awaitSingleResultOrNull should return value`() {
+			every { executableQuery.singleResult } returns Mono.just("baz")
+
+			runBlocking {
+				assertThat(executableQuery.awaitSingleResultOrNull()).isEqualTo("baz")
+			}
+			verify {
+				executableQuery.singleResult
+			}
+		}
+
+		@Test
+		fun `awaitFirstOrNull should return null`() {
+			every { executableQuery.singleResult } returns Mono.empty()
+
+			runBlocking {
+				assertThat(executableQuery.awaitSingleResultOrNull()).isNull()
+			}
+			verify {
+				executableQuery.singleResult
+			}
+		}
 	}
 }

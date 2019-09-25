@@ -52,8 +52,8 @@ class Neo4jClientExtensionsTest {
 
 		val runnableSpec = mockk<Neo4jClient.RunnableSpecTightToDatabase>(relaxed = true)
 
-		val mappingSpec: Neo4jClient.RecordFetchSpec<String?, Collection<String>, String> =
-				runnableSpec.mappedBy { _, record -> "Foo" };
+		val mappingSpec: KRecordFetchSpec<String> =
+				runnableSpec.mappedBy { _, _ -> "Foo" };
 
 		verify(exactly = 1) { runnableSpec.fetchAs(String::class.java) }
 	}

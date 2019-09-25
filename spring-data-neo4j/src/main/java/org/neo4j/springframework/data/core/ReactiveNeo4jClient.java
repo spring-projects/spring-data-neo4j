@@ -22,17 +22,18 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.reactive.RxStatementRunner;
 import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.Neo4jClient.BindSpec;
-import org.neo4j.springframework.data.core.Neo4jClient.MappingSpec;
-import org.neo4j.springframework.data.core.Neo4jClient.RecordFetchSpec;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 
@@ -61,7 +62,7 @@ public interface ReactiveNeo4jClient {
 	 * @param cypher The cypher code that shall be executed
 	 * @return A new CypherSpec
 	 */
-	ReactiveRunnableSpec query(String cypher);
+	RunnableSpec query(String cypher);
 
 	/**
 	 * Entrypoint for creating a new Cypher query based on a supplier. Doesn't matter at this point whether it's a match,
@@ -71,7 +72,7 @@ public interface ReactiveNeo4jClient {
 	 * @param cypherSupplier A supplier of arbitrary Cypher code
 	 * @return A runnable query specification.
 	 */
-	ReactiveRunnableSpec query(Supplier<String> cypherSupplier);
+	RunnableSpec query(Supplier<String> cypherSupplier);
 
 	/**
 	 * Delegates interaction with the default database to the given callback.
@@ -80,7 +81,7 @@ public interface ReactiveNeo4jClient {
 	 * @param <T>      The type of the result being produced
 	 * @return A single publisher containing none or exactly one element that will be produced by the callback
 	 */
-	<T> OngoingReactiveDelegation<T> delegateTo(Function<RxStatementRunner, Mono<T>> callback);
+	<T> OngoingDelegation<T> delegateTo(Function<RxStatementRunner, Mono<T>> callback);
 
 	/**
 	 * Takes a prepared query, containing all the information about the cypher template to be used, needed parameters and
@@ -93,10 +94,54 @@ public interface ReactiveNeo4jClient {
 	<T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery);
 
 	/**
+	 * @param <T> The resulting type of this mapping
+	 * @since 1.0
+	 */
+	interface MappingSpec<T> extends RecordFetchSpec<T> {
+
+		/**
+		 * The mapping function is responsible to turn one record into one domain object. It will receive the record
+		 * itself and in addition, the type system that the Neo4j Java-Driver used while executing the query.
+		 *
+		 * @param mappingFunction The mapping function used to create new domain objects
+		 * @return A specification how to fetch one or more records.
+		 */
+		RecordFetchSpec<T> mappedBy(BiFunction<TypeSystem, Record, T> mappingFunction);
+	}
+
+	/**
+	 * @param <T> The type to which the fetched records are eventually mapped
+	 * @since 1.0
+	 */
+	interface RecordFetchSpec<T> {
+
+		/**
+		 * Fetches exactly one record and throws an exception if there are more entries.
+		 *
+		 * @return The one and only record.
+		 */
+		Mono<T> one();
+
+		/**
+		 * Fetches only the first record. Returns an empty holder if there are no records.
+		 *
+		 * @return The first record if any.
+		 */
+		Mono<T> first();
+
+		/**
+		 * Fetches all records.
+		 *
+		 * @return All records.
+		 */
+		Flux<T> all();
+	}
+
+	/**
 	 * Contract for a runnable query that can be either run returning it's result, run without results or be parameterized.
 	 * @since 1.0
 	 */
-	interface ReactiveRunnableSpec extends ReactiveRunnableSpecTightToDatabase {
+	interface RunnableSpec extends RunnableSpecTightToDatabase {
 
 		/**
 		 * Pins the previously defined query to a specific database.
@@ -104,14 +149,14 @@ public interface ReactiveNeo4jClient {
 		 * @param targetDatabase selected database to use
 		 * @return A runnable query specification that is now tight to a given database.
 		 */
-		ReactiveRunnableSpecTightToDatabase in(String targetDatabase);
+		RunnableSpecTightToDatabase in(String targetDatabase);
 	}
 
 	/**
 	 * Contract for a runnable query inside a dedicated database.
 	 * @since 1.0
 	 */
-	interface ReactiveRunnableSpecTightToDatabase extends BindSpec<ReactiveRunnableSpecTightToDatabase> {
+	interface RunnableSpecTightToDatabase extends BindSpec<RunnableSpecTightToDatabase> {
 
 		/**
 		 * Create a mapping for each record return to a specific type.
@@ -120,14 +165,14 @@ public interface ReactiveNeo4jClient {
 		 * @param <T>         The type of the class
 		 * @return A mapping spec that allows specifying a mapping function
 		 */
-		<T> MappingSpec<Mono<T>, Flux<T>, T> fetchAs(Class<T> targetClass);
+		<T> MappingSpec<T> fetchAs(Class<T> targetClass);
 
 		/**
 		 * Fetch all records mapped into generic maps
 		 *
 		 * @return A fetch specification that maps into generic maps
 		 */
-		RecordFetchSpec<Mono<Map<String, Object>>, Flux<Map<String, Object>>, Map<String, Object>> fetch();
+		RecordFetchSpec<Map<String, Object>> fetch();
 
 		/**
 		 * Execute the query and discard the results. It returns the drivers result summary, including various counters
@@ -144,7 +189,7 @@ public interface ReactiveNeo4jClient {
 	 * @param <T> The type of the returned value.
 	 * @since 1.0
 	 */
-	interface OngoingReactiveDelegation<T> extends ReactiveRunnableDelegation<T> {
+	interface OngoingDelegation<T> extends RunnableDelegation<T> {
 
 		/**
 		 * Runs the delegation in the given target database.
@@ -152,7 +197,7 @@ public interface ReactiveNeo4jClient {
 		 * @param targetDatabase selected database to use
 		 * @return An ongoing delegation
 		 */
-		ReactiveRunnableDelegation<T> in(String targetDatabase);
+		RunnableDelegation<T> in(String targetDatabase);
 	}
 
 	/**
@@ -161,7 +206,7 @@ public interface ReactiveNeo4jClient {
 	 * @param <T> the type that gets returned by the query
 	 * @since 1.0
 	 */
-	interface ReactiveRunnableDelegation<T> {
+	interface RunnableDelegation<T> {
 
 		/**
 		 * Runs the stored callback.

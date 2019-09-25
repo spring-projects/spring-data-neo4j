@@ -18,27 +18,31 @@
  */
 package org.neo4j.springframework.data.core
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import org.neo4j.driver.Record
+import org.neo4j.driver.summary.ResultSummary
 import org.neo4j.driver.types.TypeSystem
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 
 /**
- * Extension for [ReactiveNeo4jClient.ReactiveRunnableSpec.in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
+ * Extension for [ReactiveNeo4jClient.RunnableSpec.in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
-fun ReactiveNeo4jClient.ReactiveRunnableSpec.inDatabase(targetDatabase: String): ReactiveNeo4jClient.ReactiveRunnableSpecTightToDatabase =
-		`in`(targetDatabase)
+fun ReactiveNeo4jClient.RunnableSpec.inDatabase(targetDatabase: String): ReactiveNeo4jClient.RunnableSpecTightToDatabase
+		= `in`(targetDatabase)
 
 /**
- * Extension for [ReactiveNeo4jClient.OngoingReactiveDelegation.in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
+ * Extension for [ReactiveNeo4jClient.OngoingDelegation.in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
-fun <T : Any?> ReactiveNeo4jClient.OngoingReactiveDelegation<T>.inDatabase(targetDatabase: String): ReactiveNeo4jClient.ReactiveRunnableDelegation<T>
+fun <T : Any?> ReactiveNeo4jClient.OngoingDelegation<T>.inDatabase(targetDatabase: String): ReactiveNeo4jClient.RunnableDelegation<T>
 		= `in`(targetDatabase)
 
 /**
@@ -46,7 +50,7 @@ fun <T : Any?> ReactiveNeo4jClient.OngoingReactiveDelegation<T>.inDatabase(targe
  * @author Michael J. Simons
  * @since 1.0
  */
-inline fun <reified T : Any> ReactiveNeo4jClient.ReactiveRunnableSpecTightToDatabase.fetchAs(): Neo4jClient.MappingSpec<Mono<T>, Flux<T>, T>
+inline fun <reified T : Any> ReactiveNeo4jClient.RunnableSpecTightToDatabase.fetchAs(): ReactiveNeo4jClient.MappingSpec<T>
 		= fetchAs(T::class.java)
 
 /**
@@ -55,5 +59,64 @@ inline fun <reified T : Any> ReactiveNeo4jClient.ReactiveRunnableSpecTightToData
  * @author Michael J. Simons
  * @since 1.0
  */
-inline fun <reified T : Any> ReactiveNeo4jClient.ReactiveRunnableSpecTightToDatabase.mappedBy(noinline mappingFunction: (TypeSystem, Record) -> T): Neo4jClient.RecordFetchSpec<Mono<T>, Flux<T>, T>
+inline fun <reified T : Any> ReactiveNeo4jClient.RunnableSpecTightToDatabase.mappedBy(noinline mappingFunction: (TypeSystem, Record) -> T): ReactiveNeo4jClient.RecordFetchSpec<T>
 		= fetchAs(T::class.java).mappedBy(mappingFunction)
+
+/**
+ * Non-nullable Coroutines variant of [ReactiveNeo4jClient.RunnableSpecTightToDatabase.run].
+ *
+ * @author Michael J. Simons
+ * @since 1.0
+ */
+suspend inline fun ReactiveNeo4jClient.RunnableSpecTightToDatabase.await(): ResultSummary =
+	run().awaitSingle()
+
+/**
+ * Nullable Coroutines variant of [ReactiveNeo4jClient.RecordFetchSpec.one].
+ *
+ * @author Michael J. Simons
+ * @since 1.0
+ */
+suspend inline fun <reified T : Any> ReactiveNeo4jClient.RecordFetchSpec<T>.awaitOneOrNull(): T? = one().awaitFirstOrNull()
+
+/**
+ * Nullable Coroutines variant of [ReactiveNeo4jClient.RecordFetchSpec.first].
+ *
+ * @author Michael J. Simons
+ * @since 1.0
+ */
+suspend inline fun <reified T : Any> ReactiveNeo4jClient.RecordFetchSpec<T>.awaitFirstOrNull(): T? = first().awaitFirstOrNull()
+
+/**
+ * Coroutines [Flow] variant of [ReactiveNeo4jClient.RecordFetchSpec.all].
+ *
+ * @author Michael J. Simons
+ * @since 1.0
+ */
+@ExperimentalCoroutinesApi
+inline fun <reified T : Any> ReactiveNeo4jClient.RecordFetchSpec<T>.fetchAll(): Flow<T> = all().asFlow()
+
+/**
+ * Coroutines [Flow] variant of [ReactiveNeo4jClient.ExecutableQuery.getResults].
+ *
+ * @author Michael J. Simons
+ * @since 1.0
+ */
+@ExperimentalCoroutinesApi
+inline fun <reified T : Any> ReactiveNeo4jClient.ExecutableQuery<T>.fetchAllResults(): Flow<T> = results.asFlow()
+
+/**
+ * Nullable Coroutines variant of [ReactiveNeo4jClient.ExecutableQuery.getSingleResult].
+ *
+ * @author Michael J. Simons
+ * @since 1.0
+ */
+suspend inline fun <reified T : Any> ReactiveNeo4jClient.ExecutableQuery<T>.awaitSingleResultOrNull(): T? = singleResult.awaitFirstOrNull()
+
+/**
+ * Nullable Coroutines variant of [ReactiveNeo4jClient.RunnableDelegation.run].
+ *
+ * @author Michael J. Simons
+ * @since 1.0
+ */
+suspend inline fun <reified T : Any> ReactiveNeo4jClient.RunnableDelegation<T>.awaitFirstOrNull(): T? = run().awaitFirstOrNull()

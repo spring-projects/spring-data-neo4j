@@ -38,9 +38,7 @@ import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxStatementRunner;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
-import org.neo4j.springframework.data.core.Neo4jClient.MappingSpec;
 import org.neo4j.springframework.data.core.Neo4jClient.OngoingBindSpec;
-import org.neo4j.springframework.data.core.Neo4jClient.RecordFetchSpec;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.reactivestreams.Publisher;
 import org.springframework.core.convert.ConversionService;
@@ -89,8 +87,8 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		return Mono.usingWhen(retrieveRxStatementRunnerHolder(targetDatabase),
 			holder -> func.apply(holder.getRxStatementRunner()),
 			RxStatementRunnerHolder::getCommit,
-			RxStatementRunnerHolder::getRollback);
-
+			(holder, ex) -> holder.getRollback(),
+			RxStatementRunnerHolder::getCommit);
 	}
 
 	<T> Flux<T> doInStatementRunnerForFlux(final String targetDatabase, Function<RxStatementRunner, Flux<T>> func) {
@@ -98,34 +96,35 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		return Flux.usingWhen(retrieveRxStatementRunnerHolder(targetDatabase),
 			holder -> func.apply(holder.getRxStatementRunner()),
 			RxStatementRunnerHolder::getCommit,
-			RxStatementRunnerHolder::getRollback);
+			(holder, ex) -> holder.getRollback(),
+			RxStatementRunnerHolder::getCommit);
 	}
 
 	@Override
-	public ReactiveRunnableSpec query(String cypher) {
+	public RunnableSpec query(String cypher) {
 		return query(() -> cypher);
 	}
 
 	@Override
-	public ReactiveRunnableSpec query(Supplier<String> cypherSupplier) {
-		return new DefaultReactiveRunnableSpec(cypherSupplier);
+	public RunnableSpec query(Supplier<String> cypherSupplier) {
+		return new DefaultRunnableSpec(cypherSupplier);
 	}
 
 	@Override
-	public <T> OngoingReactiveDelegation<T> delegateTo(Function<RxStatementRunner, Mono<T>> callback) {
-		return new DefaultReactiveRunnableDelegation<>(callback);
+	public <T> OngoingDelegation<T> delegateTo(Function<RxStatementRunner, Mono<T>> callback) {
+		return new DefaultRunnableDelegation<>(callback);
 	}
 
 	@Override
 	public <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery) {
 
 		Class<T> resultType = preparedQuery.getResultType();
-		Neo4jClient.MappingSpec<Mono<T>, Flux<T>, T> mappingSpec = this
+		MappingSpec<T> mappingSpec = this
 			.query(preparedQuery.getCypherQuery())
 			.bindAll(preparedQuery.getParameters())
 			.fetchAs(resultType);
 
-		Neo4jClient.RecordFetchSpec<Mono<T>, Flux<T>, T> fetchSpec = preparedQuery
+		RecordFetchSpec<T> fetchSpec = preparedQuery
 			.getOptionalMappingFunction()
 			.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction))
 			.orElse(mappingSpec);
@@ -133,7 +132,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		return new DefaultReactiveExecutableQuery<>(fetchSpec);
 	}
 
-	class DefaultReactiveRunnableSpec implements ReactiveRunnableSpec {
+	class DefaultRunnableSpec implements RunnableSpec {
 
 		private final Supplier<String> cypherSupplier;
 
@@ -141,18 +140,18 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		private final NamedParameters parameters = new NamedParameters();
 
-		DefaultReactiveRunnableSpec(Supplier<String> cypherSupplier) {
+		DefaultRunnableSpec(Supplier<String> cypherSupplier) {
 			this.cypherSupplier = cypherSupplier;
 		}
 
 		@Override
-		public ReactiveRunnableSpecTightToDatabase in(@SuppressWarnings("HiddenField") String targetDatabase) {
+		public RunnableSpecTightToDatabase in(@SuppressWarnings("HiddenField") String targetDatabase) {
 
 			this.targetDatabase = verifyDatabaseName(targetDatabase);
 			return this;
 		}
 
-		class DefaultOngoingBindSpec<T> implements OngoingBindSpec<T, ReactiveRunnableSpecTightToDatabase> {
+		class DefaultOngoingBindSpec<T> implements OngoingBindSpec<T, RunnableSpecTightToDatabase> {
 
 			@Nullable
 			private final T value;
@@ -162,14 +161,14 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 			}
 
 			@Override
-			public ReactiveRunnableSpecTightToDatabase to(String name) {
+			public RunnableSpecTightToDatabase to(String name) {
 
-				DefaultReactiveRunnableSpec.this.parameters.add(name, value);
-				return DefaultReactiveRunnableSpec.this;
+				DefaultRunnableSpec.this.parameters.add(name, value);
+				return DefaultRunnableSpec.this;
 			}
 
 			@Override
-			public ReactiveRunnableSpecTightToDatabase with(Function<T, Map<String, Object>> binder) {
+			public RunnableSpecTightToDatabase with(Function<T, Map<String, Object>> binder) {
 
 				Assert.notNull(binder, "Binder is required.");
 
@@ -178,42 +177,41 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		}
 
 		@Override
-		public OngoingBindSpec<?, ReactiveRunnableSpecTightToDatabase> bind(@Nullable Object value) {
+		public OngoingBindSpec<?, RunnableSpecTightToDatabase> bind(@Nullable Object value) {
 			return new DefaultOngoingBindSpec(value);
 		}
 
 		@Override
-		public ReactiveRunnableSpecTightToDatabase bindAll(Map<String, Object> newParameters) {
+		public RunnableSpecTightToDatabase bindAll(Map<String, Object> newParameters) {
 			this.parameters.addAll(newParameters);
 			return this;
 		}
 
 		@Override
-		public <R> MappingSpec<Mono<R>, Flux<R>, R> fetchAs(Class<R> targetClass) {
+		public <R> MappingSpec<R> fetchAs(Class<R> targetClass) {
 
-			return new DefaultReactiveRecordFetchSpec<>(this.targetDatabase, this.cypherSupplier, this.parameters,
+			return new DefaultRecordFetchSpec<>(this.targetDatabase, this.cypherSupplier, this.parameters,
 				new SingleValueMappingFunction(conversionService, targetClass));
 		}
 
 		@Override
-		public RecordFetchSpec<Mono<Map<String, Object>>, Flux<Map<String, Object>>, Map<String, Object>> fetch() {
+		public RecordFetchSpec<Map<String, Object>> fetch() {
 
-			return new DefaultReactiveRecordFetchSpec<>(targetDatabase, cypherSupplier, parameters,
+			return new DefaultRecordFetchSpec<>(targetDatabase, cypherSupplier, parameters,
 				(t, r) -> r.asMap());
 		}
 
 		@Override
 		public Mono<ResultSummary> run() {
 
-			return new DefaultReactiveRecordFetchSpec<>(
+			return new DefaultRecordFetchSpec<>(
 				this.targetDatabase,
 				this.cypherSupplier,
 				this.parameters).run();
 		}
 	}
 
-	class DefaultReactiveRecordFetchSpec<T>
-		implements RecordFetchSpec<Mono<T>, Flux<T>, T>, MappingSpec<Mono<T>, Flux<T>, T> {
+	class DefaultRecordFetchSpec<T> implements RecordFetchSpec<T>, MappingSpec<T> {
 
 		private final String targetDatabase;
 
@@ -223,12 +221,12 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		private BiFunction<TypeSystem, Record, T> mappingFunction;
 
-		DefaultReactiveRecordFetchSpec(String targetDatabase, Supplier<String> cypherSupplier,
+		DefaultRecordFetchSpec(String targetDatabase, Supplier<String> cypherSupplier,
 			NamedParameters parameters) {
 			this(targetDatabase, cypherSupplier, parameters, null);
 		}
 
-		DefaultReactiveRecordFetchSpec(
+		DefaultRecordFetchSpec(
 			String targetDatabase, Supplier<String> cypherSupplier, NamedParameters parameters,
 			@Nullable BiFunction<TypeSystem, Record, T> mappingFunction) {
 			this.targetDatabase = targetDatabase;
@@ -238,7 +236,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		}
 
 		@Override
-		public RecordFetchSpec<Mono<T>, Flux<T>, T> mappedBy(BiFunction<TypeSystem, Record, T> mappingFunction) {
+		public RecordFetchSpec<T> mappedBy(BiFunction<TypeSystem, Record, T> mappingFunction) {
 
 			this.mappingFunction = new DelegatingMappingFunctionWithNullCheck<>(mappingFunction);
 			return this;
@@ -294,24 +292,24 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		}
 	}
 
-	class DefaultReactiveRunnableDelegation<T> implements ReactiveRunnableDelegation<T>, OngoingReactiveDelegation<T> {
+	class DefaultRunnableDelegation<T> implements RunnableDelegation<T>, OngoingDelegation<T> {
 
 		private final Function<RxStatementRunner, Mono<T>> callback;
 
 		private String targetDatabase;
 
-		DefaultReactiveRunnableDelegation(Function<RxStatementRunner, Mono<T>> callback) {
+		DefaultRunnableDelegation(Function<RxStatementRunner, Mono<T>> callback) {
 			this(callback, null);
 		}
 
-		DefaultReactiveRunnableDelegation(Function<RxStatementRunner, Mono<T>> callback,
+		DefaultRunnableDelegation(Function<RxStatementRunner, Mono<T>> callback,
 			@Nullable String targetDatabase) {
 			this.callback = callback;
 			this.targetDatabase = targetDatabase;
 		}
 
 		@Override
-		public ReactiveRunnableDelegation in(@Nullable @SuppressWarnings("HiddenField") String targetDatabase) {
+		public RunnableDelegation in(@Nullable @SuppressWarnings("HiddenField") String targetDatabase) {
 
 			this.targetDatabase = verifyDatabaseName(targetDatabase);
 			return this;
@@ -330,9 +328,9 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 	final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {
 
-		private final Neo4jClient.RecordFetchSpec<Mono<T>, Flux<T>, T> fetchSpec;
+		private final RecordFetchSpec<T> fetchSpec;
 
-		DefaultReactiveExecutableQuery(RecordFetchSpec<Mono<T>, Flux<T>, T> fetchSpec) {
+		DefaultReactiveExecutableQuery(RecordFetchSpec<T> fetchSpec) {
 			this.fetchSpec = fetchSpec;
 		}
 
