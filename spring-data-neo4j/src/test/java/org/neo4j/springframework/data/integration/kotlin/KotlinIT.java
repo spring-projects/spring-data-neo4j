@@ -75,7 +75,7 @@ class KotlinIT {
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories
+	@EnableNeo4jRepositories(basePackageClasses = KotlinPerson.class)
 	@EnableTransactionManagement
 	static class Config extends AbstractNeo4jConfig {
 
