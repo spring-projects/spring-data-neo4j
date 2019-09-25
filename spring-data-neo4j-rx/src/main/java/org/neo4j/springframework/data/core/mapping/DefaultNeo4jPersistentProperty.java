@@ -50,7 +50,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 		super(property, owner, simpleTypeHolder);
 
-		this.graphPropertyName = Lazy.of(() -> computeGraphPropertyName());
+		this.graphPropertyName = Lazy.of(this::computeGraphPropertyName);
 		this.isAssociation = Lazy.of(() -> {
 
 			Class<?> targetType = getActualType();
@@ -73,9 +73,10 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	/**
 	 * Computes the target name of this property.
 	 *
-	 * @return An empty optional if this property describes an association, a given target name otherwise.
+	 * @return A property on a node or {@literal null} if this property describes an association.
 	 */
-	@Nullable String computeGraphPropertyName() {
+	@Nullable
+	private String computeGraphPropertyName() {
 
 		if (this.isAssociation()) {
 			return null;
