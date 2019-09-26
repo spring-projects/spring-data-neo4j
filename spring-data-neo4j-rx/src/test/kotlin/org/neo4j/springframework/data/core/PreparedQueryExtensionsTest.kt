@@ -26,13 +26,13 @@ import org.junit.jupiter.api.Test
  */
 class PreparedQueryExtensionsTest {
 
-	@Test
-	fun `PreparedQueryFactory call its Java counterpart`() {
+    @Test
+    fun `PreparedQueryFactory call its Java counterpart`() {
 
-		val preparedQuery = PreparedQueryFactory(String::class)
-				.withCypherQuery("RETURN 'Hallo'").
-				build();
+        val preparedQuery = PreparedQueryFactory(String::class)
+                .withCypherQuery("RETURN 'Hallo'")
+                .build()
 
-		assertThat(preparedQuery.resultType).isEqualTo(String::class.java)
-	}
+        assertThat(preparedQuery.resultType).isEqualTo(String::class.java)
+    }
 }

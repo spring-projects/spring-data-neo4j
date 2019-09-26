@@ -27,34 +27,34 @@ import org.junit.jupiter.api.Test
  */
 class Neo4jClientExtensionsTest {
 
-	@Test
-	fun `RunnableSpec#inDatabase(targetDatabase) extension should call its Java counterpart`() {
+    @Test
+    fun `RunnableSpec#inDatabase(targetDatabase) extension should call its Java counterpart`() {
 
-		val runnableSpec = mockk<Neo4jClient.RunnableSpec>(relaxed = true)
+        val runnableSpec = mockk<Neo4jClient.RunnableSpec>(relaxed = true)
 
-		runnableSpec.inDatabase("foobar");
+        runnableSpec.inDatabase("foobar")
 
-		verify(exactly = 1) { runnableSpec.`in`("foobar") }
-	}
+        verify(exactly = 1) { runnableSpec.`in`("foobar") }
+    }
 
-	@Test
-	fun `OngoingDelegation#inDatabase(targetDatabase) extension should call its Java counterpart`() {
+    @Test
+    fun `OngoingDelegation#inDatabase(targetDatabase) extension should call its Java counterpart`() {
 
-		val ongoingDelegation = mockk<Neo4jClient.OngoingDelegation<Any>>(relaxed = true)
+        val ongoingDelegation = mockk<Neo4jClient.OngoingDelegation<Any>>(relaxed = true)
 
-		ongoingDelegation.inDatabase("foobar");
+        ongoingDelegation.inDatabase("foobar")
 
-		verify(exactly = 1) { ongoingDelegation.`in`("foobar") }
-	}
+        verify(exactly = 1) { ongoingDelegation.`in`("foobar") }
+    }
 
-	@Test
-	fun `RunnableSpecTightToDatabase#fetchAs() extension should call its Java counterpart`() {
+    @Test
+    fun `RunnableSpecTightToDatabase#fetchAs() extension should call its Java counterpart`() {
 
-		val runnableSpec = mockk<Neo4jClient.RunnableSpecTightToDatabase>(relaxed = true)
+        val runnableSpec = mockk<Neo4jClient.RunnableSpecTightToDatabase>(relaxed = true)
 
-		val mappingSpec: KRecordFetchSpec<String> =
-				runnableSpec.mappedBy { _, _ -> "Foo" };
+        val mappingSpec: KRecordFetchSpec<String> =
+                runnableSpec.mappedBy { _, _ -> "Foo" }
 
-		verify(exactly = 1) { runnableSpec.fetchAs(String::class.java) }
-	}
+        verify(exactly = 1) { runnableSpec.fetchAs(String::class.java) }
+    }
 }

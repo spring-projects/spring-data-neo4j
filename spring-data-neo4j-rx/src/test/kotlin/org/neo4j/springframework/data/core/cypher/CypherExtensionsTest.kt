@@ -30,37 +30,37 @@ import org.neo4j.springframework.data.core.cypher.Cypher.literalFalse
  */
 class CypherExtensionsTest {
 
-	@Nested
-	inner class ExpressionExtensions {
-		val expression = mockk<Expression>(relaxed = true)
+    @Nested
+    inner class ExpressionExtensions {
+        val expression = mockk<Expression>(relaxed = true)
 
-		@Test
-		fun `inValues(expression) extension should call its Java counterpart`() {
+        @Test
+        fun `inValues(expression) extension should call its Java counterpart`() {
 
-			expression.inValues(listOf(literalFalse()));
+            expression.inValues(listOf(literalFalse()))
 
-			verify(exactly = 1) { expression.`in`(any()) }
-		}
+            verify(exactly = 1) { expression.`in`(any()) }
+        }
 
-		@Test
-		fun `asAlias(alias) extension should call its Java counterpart`() {
+        @Test
+        fun `asAlias(alias) extension should call its Java counterpart`() {
 
-			expression.asAlias("foo")
+            expression.asAlias("foo")
 
-			verify(exactly = 1) { expression.`as`("foo") }
-		}
-	}
+            verify(exactly = 1) { expression.`as`("foo") }
+        }
+    }
 
-	@Nested
-	inner class StatementBuilderExtensions {
+    @Nested
+    inner class StatementBuilderExtensions {
 
-		@Test
-		fun `asAlias(alias) extension should call its Java counterpart`() {
-			val ongoingUnwind = mockk<StatementBuilder.OngoingUnwind>(relaxed = true)
+        @Test
+        fun `asAlias(alias) extension should call its Java counterpart`() {
+            val ongoingUnwind = mockk<StatementBuilder.OngoingUnwind>(relaxed = true)
 
-			ongoingUnwind.asAlias("foo")
+            ongoingUnwind.asAlias("foo")
 
-			verify(exactly = 1) { ongoingUnwind.`as`("foo") }
-		}
-	}
+            verify(exactly = 1) { ongoingUnwind.`as`("foo") }
+        }
+    }
 }
