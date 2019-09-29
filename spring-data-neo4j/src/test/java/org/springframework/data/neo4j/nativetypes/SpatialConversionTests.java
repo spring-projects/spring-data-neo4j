@@ -121,7 +121,7 @@ public class SpatialConversionTests {
 			transaction.run("CREATE (n:SpatialDomain {name: $name, latitude: $latitude, longitude: $longitude})",
 					MINC.toParameterMap());
 
-			transaction.success();
+			transaction.commit();
 		}
 
 		List<SpatialDomain> result = repository.findBySdnPointNear(new Distance(60.0 / 1000.0, Metrics.KILOMETERS),
