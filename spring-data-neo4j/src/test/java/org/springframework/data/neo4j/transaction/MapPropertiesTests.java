@@ -66,7 +66,7 @@ public class MapPropertiesTests {
 				return threadInfo.getId();
 			});
 
-			transactionTemplate.execute(() -> {
+			transactionTemplate.executeWithoutResult((status) -> {
 				ThreadInfo threadInfo = threadInfoRepository.findById(threadInfoId).get();
 				assertThat(threadInfo.getServiceRelationship()).containsEntry("a", 1L);
 
