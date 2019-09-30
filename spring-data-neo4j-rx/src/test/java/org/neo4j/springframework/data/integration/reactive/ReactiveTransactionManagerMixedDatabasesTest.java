@@ -164,7 +164,7 @@ public class ReactiveTransactionManagerMixedDatabasesTest {
 
 		Mono<PersonWithAllConstructor> p =
 			repository.save(new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
-				LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null))
+				LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null))
 				.as(otherTransactionTemplate::transactional);
 
 		StepVerifier
@@ -176,7 +176,7 @@ public class ReactiveTransactionManagerMixedDatabasesTest {
 	}
 
 	/**
-	 * We need this wrapper service, as reactive {@link Transactional @Transactional} annoted methods are not
+	 * We need this wrapper service, as reactive {@link Transactional @Transactional} annotated methods are not
 	 * recognized as such (See other also https://github.com/spring-projects/spring-framework/issues/23277).
 	 *
 	 * The class must be public to make the declarative transactions work. Please don't change its visibility.

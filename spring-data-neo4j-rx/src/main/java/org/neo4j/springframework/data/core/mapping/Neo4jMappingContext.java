@@ -108,6 +108,10 @@ public final class Neo4jMappingContext
 		this.converter = new DefaultNeo4jConverter(neo4jConversions);
 	}
 
+	public Neo4jConverter getConverter() {
+		return converter;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)

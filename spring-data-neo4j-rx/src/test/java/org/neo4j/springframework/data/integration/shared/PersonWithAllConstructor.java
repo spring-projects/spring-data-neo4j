@@ -25,6 +25,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Wither;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -68,4 +69,6 @@ public class PersonWithAllConstructor {
 	private List<String> things;
 
 	private final Point place;
+
+	private final Instant createdAt;
 }

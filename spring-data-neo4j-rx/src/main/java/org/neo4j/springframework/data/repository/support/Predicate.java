@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 
 import org.apache.commons.logging.LogFactory;
+import org.neo4j.springframework.data.core.convert.Neo4jConverter;
 import org.neo4j.springframework.data.core.cypher.Condition;
 import org.neo4j.springframework.data.core.cypher.Conditions;
 import org.neo4j.springframework.data.core.cypher.Cypher;
@@ -38,6 +39,7 @@ import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder;
 import org.neo4j.springframework.data.core.cypher.SymbolicName;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
+import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.springframework.core.log.LogAccessor;
@@ -95,6 +97,8 @@ final class Predicate {
 				continue;
 			}
 
+			Neo4jConverter converter = mappingContext.getConverter();
+
 			if (graphProperty.isRelationship()) {
 				log.error("Querying by example does not support traversing of relationships.");
 			} else if (graphProperty.isIdProperty() && probeNodeDescription.isUsingInternalIds()) {
@@ -136,7 +140,9 @@ final class Predicate {
 					}
 				}
 				predicate.add(mode, condition);
-				predicate.parameters.put(propertyName, optionalValue.get());
+				predicate.parameters.put(propertyName, optionalValue
+					.map(v -> converter.writeValue(v, ((Neo4jPersistentProperty) graphProperty).getTypeInformation()))
+					.get());
 			}
 		}
 

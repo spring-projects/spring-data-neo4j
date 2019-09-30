@@ -138,7 +138,7 @@ public class TransactionManagerMixedDatabasesTest {
 		assertThatIllegalStateException().isThrownBy(
 			() -> otherTransactionTemplate.execute(
 				tx -> repository.save(new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
-					LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null))))
+					LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null))))
 			.withMessage("There is already an ongoing Spring transaction for 'boom', but you request the default database");
 	}
 

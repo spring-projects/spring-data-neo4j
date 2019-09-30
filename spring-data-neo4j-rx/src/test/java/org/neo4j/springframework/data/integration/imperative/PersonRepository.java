@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.integration.imperative;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -160,6 +161,8 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	List<PersonWithAllConstructor> findAllByBornOnAfter(LocalDate date);
 
 	List<PersonWithAllConstructor> findAllByBornOnBefore(LocalDate date);
+
+	List<PersonWithAllConstructor> findAllByCreatedAtBefore(Instant instant);
 
 	List<PersonWithAllConstructor> findAllByNullableIsNotNull();
 

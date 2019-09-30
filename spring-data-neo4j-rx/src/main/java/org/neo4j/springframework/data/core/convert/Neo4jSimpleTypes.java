@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.core.convert;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -59,6 +60,7 @@ public final class Neo4jSimpleTypes {
 	static {
 		Set<Class<?>> neo4jNativeTypes = new HashSet<>();
 
+		neo4jNativeTypes.add(Instant.class);
 		neo4jNativeTypes.add(IsoDuration.class);
 		neo4jNativeTypes.add(LocalDate.class);
 		neo4jNativeTypes.add(LocalDateTime.class);

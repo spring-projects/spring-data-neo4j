@@ -24,6 +24,9 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.domain.Range.Bound.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -85,7 +88,7 @@ class RepositoryIT {
 	private static final Point MINC = Values.point(4326, 12.994039, 55.611496).asPoint();
 
 	static PersonWithAllConstructor personExample(String sameValue) {
-		return new PersonWithAllConstructor(null, null, null, sameValue, null, null, null, null, null, null);
+		return new PersonWithAllConstructor(null, null, null, sameValue, null, null, null, null, null, null, null);
 	}
 
 	private static Neo4jConnectionSupport neo4jConnectionSupport;
@@ -117,14 +120,15 @@ class RepositoryIT {
 		Transaction transaction = driver.session().beginTransaction();
 		transaction.run("MATCH (n) detach delete n");
 
+		ZonedDateTime createdAt = LocalDateTime.of(2019, 1, 1, 23, 23, 42, 0).atZone(ZoneOffset.UTC.normalized());
 		id1 = transaction.run("" +
 				"CREATE (n:PersonWithAllConstructor) " +
-				"  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
+				"  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt "
 				+
 				"RETURN id(n)",
 			Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 				TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
-				NEO4J_HQ)
+				NEO4J_HQ, "createdAt", createdAt)
 		).next().get(0).asLong();
 		id2 = transaction.run(
 			"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
@@ -144,9 +148,9 @@ class RepositoryIT {
 		transaction.close();
 
 		person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
-			true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ);
+			true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, createdAt.toInstant());
 		person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
-			false, 2L, TEST_PERSON2_BORN_ON, null, emptyList(), SFO);
+			false, 2L, TEST_PERSON2_BORN_ON, null, emptyList(), SFO, null);
 	}
 
 	@Test
@@ -413,7 +417,7 @@ class RepositoryIT {
 	void saveSingleEntity() {
 
 		PersonWithAllConstructor person = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
-			LocalDate.of(1946, 9, 15), null, Arrays.asList("b", "a"), null);
+			LocalDate.of(1946, 9, 15), null, Arrays.asList("b", "a"), null, null);
 		PersonWithAllConstructor savedPerson = repository.save(person);
 		try (Session session = driver.session()) {
 			Record record = session.run("MATCH (n:PersonWithAllConstructor) WHERE n.first_name = $first_name RETURN n",
@@ -637,7 +641,7 @@ class RepositoryIT {
 	void saveAll() {
 
 		PersonWithAllConstructor newPerson = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
-			LocalDate.of(1946, 9, 15), null, emptyList(), null);
+			LocalDate.of(1946, 9, 15), null, emptyList(), null, null);
 
 		PersonWithAllConstructor existingPerson = repository.findById(id1).get();
 		existingPerson.setFirstName("Updated first name");
@@ -986,14 +990,14 @@ class RepositoryIT {
 		Iterable<PersonWithAllConstructor> persons;
 
 		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON2_FIRST_NAME, null, null, null, null,
-			null, null, null);
+			null, null, null, null);
 		example = Example.of(person, ExampleMatcher.matchingAny());
 
 		persons = repository.findAll(example);
 		assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 
 		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME.toUpperCase(), TEST_PERSON2_FIRST_NAME, null,
-			null, null, null, null, null, null);
+			null, null, null, null, null, null, null);
 		example = Example.of(person, ExampleMatcher.matchingAny().withIgnoreCase("name"));
 
 		persons = repository.findAll(example);
@@ -1002,7 +1006,7 @@ class RepositoryIT {
 		person = new PersonWithAllConstructor(null,
 			TEST_PERSON2_NAME.substring(TEST_PERSON2_NAME.length() - 2).toUpperCase(),
 			TEST_PERSON2_FIRST_NAME.substring(0, 2), TEST_PERSON_SAMEVALUE.substring(3, 5), null, null, null, null,
-			null, null);
+			null, null, null);
 		example = Example.of(person, ExampleMatcher
 			.matchingAll()
 			.withMatcher("name", ExampleMatcher.GenericPropertyMatcher.of(StringMatcher.ENDING, true))
@@ -1013,7 +1017,7 @@ class RepositoryIT {
 		persons = repository.findAll(example);
 		assertThat(persons).containsExactlyInAnyOrder(person2);
 
-		person = new PersonWithAllConstructor(null, null, "(?i)ern.*", null, null, null, null, null, null, null);
+		person = new PersonWithAllConstructor(null, null, "(?i)ern.*", null, null, null, null, null, null, null, null);
 		example = Example.of(person, ExampleMatcher.matchingAll().withStringMatcher(StringMatcher.REGEX));
 
 		persons = repository.findAll(example);
@@ -1432,6 +1436,14 @@ class RepositoryIT {
 	@Test
 	void findByBefore() {
 		List<PersonWithAllConstructor> persons = repository.findAllByBornOnBefore(TEST_PERSON2_BORN_ON);
+		assertThat(persons)
+			.hasSize(1)
+			.contains(person1);
+	}
+
+	@Test
+	void findByInstant() {
+		List<PersonWithAllConstructor> persons = repository.findAllByCreatedAtBefore(LocalDate.of(2019, 9, 25).atStartOfDay().toInstant(ZoneOffset.UTC));
 		assertThat(persons)
 			.hasSize(1)
 			.contains(person1);

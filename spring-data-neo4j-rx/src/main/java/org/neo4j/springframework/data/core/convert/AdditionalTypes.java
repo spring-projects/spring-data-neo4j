@@ -86,8 +86,17 @@ final class AdditionalTypes {
 			reading(Value.class, BigInteger.class, AdditionalTypes::asBigInteger).andWriting(AdditionalTypes::value));
 		hlp.add(
 			reading(Value.class, TemporalAmount.class, AdditionalTypes::asTemporalAmount).andWriting(AdditionalTypes::value));
+		hlp.add(reading(Value.class, Instant.class, AdditionalTypes::asInstant).andWriting(AdditionalTypes::value));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
+	}
+
+	static Instant asInstant(Value value) {
+		return value.asZonedDateTime().toInstant();
+	}
+
+	static Value value(Instant instant) {
+		return Values.value(instant.atOffset(ZoneOffset.UTC));
 	}
 
 	static TemporalAmount asTemporalAmount(Value value) {

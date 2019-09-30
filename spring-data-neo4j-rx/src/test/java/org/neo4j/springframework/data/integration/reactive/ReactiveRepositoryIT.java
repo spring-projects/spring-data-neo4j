@@ -105,7 +105,7 @@ class ReactiveRepositoryIT {
 	private PersonWithAllConstructor person2;
 
 	static PersonWithAllConstructor personExample(String sameValue) {
-		return new PersonWithAllConstructor(null, null, null, sameValue, null, null, null, null, null, null);
+		return new PersonWithAllConstructor(null, null, null, sameValue, null, null, null, null, null, null, null);
 	}
 
 	@BeforeEach
@@ -137,10 +137,10 @@ class ReactiveRepositoryIT {
 		transaction.close();
 
 		person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE, true,
-				1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ);
+				1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, null);
 
 		person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
-				false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO);
+				false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
 	}
 
 	@Test
@@ -448,7 +448,7 @@ class ReactiveRepositoryIT {
 		Example<PersonWithAllConstructor> example;
 
 		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON2_FIRST_NAME, null, null, null, null,
-				null, null, null);
+				null, null, null, null);
 		example = Example.of(person, ExampleMatcher.matchingAny());
 
 		StepVerifier.create(repository.findAll(example))
@@ -458,7 +458,7 @@ class ReactiveRepositoryIT {
 			.verifyComplete();
 
 		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME.toUpperCase(), TEST_PERSON2_FIRST_NAME, null, null,
-				null, null, null, null, null);
+				null, null, null, null, null, null);
 		example = Example.of(person, ExampleMatcher.matchingAny().withIgnoreCase("name"));
 
 		StepVerifier.create(repository.findAll(example))
@@ -470,7 +470,7 @@ class ReactiveRepositoryIT {
 		person = new PersonWithAllConstructor(null,
 				TEST_PERSON2_NAME.substring(TEST_PERSON2_NAME.length() - 2).toUpperCase(),
 				TEST_PERSON2_FIRST_NAME.substring(0, 2), TEST_PERSON_SAMEVALUE.substring(3, 5), null, null, null, null, null,
-				null);
+				null, null);
 		example = Example.of(person, ExampleMatcher.matchingAll()
 				.withMatcher("name", ExampleMatcher.GenericPropertyMatcher.of(ExampleMatcher.StringMatcher.ENDING, true))
 				.withMatcher("firstName", ExampleMatcher.GenericPropertyMatcher.of(ExampleMatcher.StringMatcher.STARTING))
@@ -478,7 +478,7 @@ class ReactiveRepositoryIT {
 
 		StepVerifier.create(repository.findAll(example)).expectNext(person2).verifyComplete();
 
-		person = new PersonWithAllConstructor(null, null, "(?i)ern.*", null, null, null, null, null, null, null);
+		person = new PersonWithAllConstructor(null, null, "(?i)ern.*", null, null, null, null, null, null, null, null);
 		example = Example.of(person, ExampleMatcher.matchingAll().withStringMatcher(ExampleMatcher.StringMatcher.REGEX));
 
 		StepVerifier.create(repository.findAll(example)).expectNext(person1).verifyComplete();
@@ -651,7 +651,7 @@ class ReactiveRepositoryIT {
 	void saveSingleEntity() {
 
 		PersonWithAllConstructor person = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
-			LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null);
+			LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null);
 
 		Mono<Long> operationUnderTest = repository
 			.save(person)
@@ -692,7 +692,7 @@ class ReactiveRepositoryIT {
 				Mono.fromSupplier(() -> {
 					PersonWithAllConstructor newPerson = new PersonWithAllConstructor(
 						null, "Mercury", "Freddie", "Queen", true, 1509L,
-						LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null);
+						LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null);
 					return newPerson;
 				}));
 
@@ -728,7 +728,7 @@ class ReactiveRepositoryIT {
 
 		PersonWithAllConstructor newPerson = new PersonWithAllConstructor(
 			null, "Mercury", "Freddie", "Queen", true, 1509L,
-			LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null);
+			LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null);
 
 		Flux<Long> operationUnderTest = repository
 			.saveAll(Arrays.asList(newPerson))
