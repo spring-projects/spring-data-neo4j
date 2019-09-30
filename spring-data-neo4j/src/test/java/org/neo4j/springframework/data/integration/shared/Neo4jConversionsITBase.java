@@ -22,15 +22,7 @@ import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetTime;
-import java.time.Period;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.*;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -94,6 +86,7 @@ public abstract class Neo4jConversionsITBase {
 		hlp.put("stringArray", new String[] {"Hallo", "Welt"});
 		hlp.put("listOfStrings", new ArrayList<>(Arrays.asList("Hello", "World"))); // Done on purpose, otherwise the target collection cannot be determined.
 		hlp.put("setOfStrings", new HashSet<>(Arrays.asList("Hallo", "wereld")));
+		hlp.put("anInstant", Instant.from(LocalDateTime.of(2019, 9, 26, 20, 34, 23).atOffset(ZoneOffset.UTC)));
 		ADDITIONAL_TYPES = Collections.unmodifiableMap(hlp);
 	}
 
@@ -195,7 +188,8 @@ public abstract class Neo4jConversionsITBase {
 					+ " n.aDuration = duration('PT26H4M5S'),"
 					+ " n.stringArray = ['Hallo', 'Welt'],"
 					+ " n.listOfStrings = ['Hello', 'World'],"
-					+ " n.setOfStrings = ['Hallo', 'wereld']"
+					+ " n.setOfStrings = ['Hallo', 'wereld'],"
+					+ " n.anInstant = datetime('2019-09-26T20:34:23Z')"
 					+ " RETURN id(n) AS id", parameters).single().get("id").asLong();
 
 				parameters = new HashMap<>();

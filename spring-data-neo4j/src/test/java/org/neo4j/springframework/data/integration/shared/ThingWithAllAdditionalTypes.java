@@ -27,6 +27,7 @@ import lombok.experimental.Wither;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.Period;
 import java.util.Date;
 import java.util.List;
@@ -93,4 +94,6 @@ public class ThingWithAllAdditionalTypes {
 	private List<String> listOfStrings;
 
 	private Set<String> setOfStrings;
+
+	private Instant anInstant;
 }

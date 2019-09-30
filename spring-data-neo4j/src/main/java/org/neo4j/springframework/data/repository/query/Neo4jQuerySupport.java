@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.repository.query;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -108,12 +110,16 @@ abstract class Neo4jQuerySupport {
 	 * @return A parameter that fits the place holders of a generated query
 	 */
 	final Object convertParameter(Object parameter) {
+
+		// Maybe move all of those into Neo4jConverter at some point.
 		if (parameter instanceof Range) {
 			return convertRange((Range) parameter);
 		} else if (parameter instanceof Distance) {
 			return calculateDistanceInMeter((Distance) parameter);
 		} else if (parameter instanceof Circle) {
 			return convertCircle((Circle) parameter);
+		} else if (parameter instanceof Instant) {
+			return ((Instant) parameter).atOffset(ZoneOffset.UTC);
 		}
 
 		// Good hook to check the NodeManager whether the thing is an entity and we replace the value with a known id.
