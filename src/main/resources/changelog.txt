@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.11.RELEASE (2019-09-30)
+----------------------------------------------
+* DATAGRAPH-1252 - Upgrade to Neo4j OGM 3.1.14.
+* DATAGRAPH-1251 - Remove Neo4j repositories declaration.
+* DATAGRAPH-1243 - Release 5.1.11 (Lovelace SR11).
+
+
 Changes in version 5.2.0.RC3 (2019-09-06)
 -----------------------------------------
 * DATAGRAPH-1250 - Upgrade to Neo4j OGM 3.2.0-RC2.
