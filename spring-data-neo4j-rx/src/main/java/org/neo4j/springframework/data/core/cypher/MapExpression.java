@@ -67,4 +67,11 @@ public final class MapExpression<S extends MapExpression<S>> extends TypedSubtre
 	private MapExpression(List<MapEntry> children) {
 		super(children);
 	}
+
+	MapExpression<?> addEntries(List<MapEntry> entries) {
+		List<MapEntry> newContent = new ArrayList<>(super.children.size() + entries.size());
+		newContent.addAll(super.children);
+		newContent.addAll(entries);
+		return new MapExpression<>(newContent);
+	}
 }

@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.support.Visitor;
 import org.springframework.util.Assert;
 
@@ -31,18 +32,42 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  */
-public class MapProjection implements Expression {
+@API(status = API.Status.INTERNAL, since = "1.0")
+public final class MapProjection implements Expression {
 
 	private SymbolicName name;
 
 	private MapExpression<?> map;
 
-	static MapProjection create(SymbolicName name, List<Object> content) {
-		return create(name, content.toArray());
-	}
-
 	static MapProjection create(SymbolicName name, Object... content) {
 
+		return new MapProjection(name, MapExpression.withEntries(createNewContent(content)));
+	}
+
+	MapProjection(SymbolicName name, MapExpression<?> map) {
+		this.name = name;
+		this.map = map;
+	}
+
+	/**
+	 * Adds additional content. The current projection is left unchanged and a new one is returned.
+	 *
+	 * @param content The additional content for a new projection.
+	 * @return A new map projection with additional content.
+	 */
+	public MapProjection and(Object... content) {
+		return new MapProjection(this.name, this.map.addEntries(createNewContent(content)));
+	}
+
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.enter(this);
+		this.name.accept(visitor);
+		this.map.accept(visitor);
+		visitor.leave(this);
+	}
+
+	private static List<MapEntry> createNewContent(Object... content) {
 		final List<MapEntry> newContent = new ArrayList<>(content.length);
 		final Set<String> knownKeys = new HashSet<>();
 
@@ -97,20 +122,6 @@ public class MapProjection implements Expression {
 			lastKey = null;
 			lastExpression = null;
 		}
-
-		return new MapProjection(name, MapExpression.withEntries(newContent));
-	}
-
-	public MapProjection(SymbolicName name, MapExpression<?> map) {
-		this.name = name;
-		this.map = map;
-	}
-
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.enter(this);
-		this.name.accept(visitor);
-		this.map.accept(visitor);
-		visitor.leave(this);
+		return newContent;
 	}
 }

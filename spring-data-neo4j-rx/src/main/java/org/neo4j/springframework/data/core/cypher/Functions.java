@@ -56,6 +56,7 @@ public final class Functions {
 	public static FunctionInvocation id(Relationship relationship) {
 
 		Assert.notNull(relationship, "The relationship parameter is required.");
+		Assert.isTrue(relationship.getSymbolicName().isPresent(), "The relationship needs to be named.");
 
 		return new FunctionInvocation(F_ID, relationship);
 	}
@@ -65,6 +66,21 @@ public final class Functions {
 		Assert.notNull(symbolicName, "The symbolic name is required.");
 
 		return new FunctionInvocation(F_ID, symbolicName);
+	}
+
+	/**
+	 * Creates a function invocation for {@code type{}}.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/scalar/#functions-type">type</a>.
+	 *
+	 * @param relationship The relationship for which the type should be retrieved
+	 * @return A function call for {@code type()} on a relationship.
+	 */
+	public static FunctionInvocation type(Relationship relationship) {
+
+		Assert.notNull(relationship, "The relationship parameter is required.");
+		Assert.isTrue(relationship.getSymbolicName().isPresent(), "The relationship needs to be named.");
+
+		return new FunctionInvocation("type", relationship);
 	}
 
 	/**
