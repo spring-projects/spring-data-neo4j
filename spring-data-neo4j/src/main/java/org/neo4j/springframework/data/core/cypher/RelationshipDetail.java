@@ -19,7 +19,6 @@
 package org.neo4j.springframework.data.core.cypher;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -53,6 +52,9 @@ public final class RelationshipDetail implements Visitable {
 		@Nullable SymbolicName symbolicName, List<String> types) {
 
 		this(direction, symbolicName);
+
+		boolean nullTypePresent = types.stream().filter(type -> type == null || type.isEmpty()).findAny().isPresent();
+		Assert.isTrue(!nullTypePresent, "The list of types may not contain literal null or an empty type.");
 		this.types.addAll(types);
 	}
 
@@ -68,13 +70,6 @@ public final class RelationshipDetail implements Visitable {
 
 		Assert.hasText(newSymbolicName, "Symbolic name is required.");
 		return new RelationshipDetail(this.direction, SymbolicName.create(newSymbolicName), this.types);
-	}
-
-	RelationshipDetail withType(String... newTypes) {
-
-		RelationshipDetail newDetails = new RelationshipDetail(this.direction, this.symbolicName);
-		newDetails.types.addAll(Arrays.asList(newTypes));
-		return newDetails;
 	}
 
 	public Direction getDirection() {

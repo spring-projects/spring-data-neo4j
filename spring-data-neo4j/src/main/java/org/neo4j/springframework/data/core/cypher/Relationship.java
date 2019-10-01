@@ -18,7 +18,10 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static java.util.stream.Collectors.*;
+
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
@@ -79,9 +82,13 @@ public final class Relationship implements
 		Assert.notNull(left, "Left node is required.");
 		Assert.notNull(right, "Right node is required.");
 
+		List<String> listOfTypes = Arrays.stream(types)
+			.filter(type -> !(type == null || type.isEmpty()))
+			.collect(toList());
+
 		RelationshipDetail details = new RelationshipDetail(
 			Optional.ofNullable(direction).orElse(Direction.UNI),
-			null, Arrays.asList(types));
+			null, listOfTypes);
 		return new Relationship(left, details, right);
 	}
 

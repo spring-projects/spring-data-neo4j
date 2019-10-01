@@ -318,8 +318,8 @@ class RenderingVisitor extends ReflectiveVisitor {
 	void enter(RelationshipDetail details) {
 
 		Relationship.Direction direction = details.getDirection();
-		builder.append(direction.getSymbolLeft());
 		builder
+			.append(direction.getSymbolLeft())
 			.append("[");
 	}
 
