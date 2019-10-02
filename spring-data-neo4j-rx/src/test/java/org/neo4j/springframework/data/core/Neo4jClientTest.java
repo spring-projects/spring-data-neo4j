@@ -29,7 +29,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -449,7 +448,7 @@ class Neo4jClientTest {
 		SessionConfig config = configArgumentCaptor.getValue();
 
 		if (targetDatabase != null) {
-			assertThat(config.database()).isPresent().contains(targetDatabase.toLowerCase(Locale.ENGLISH));
+			assertThat(config.database()).isPresent().contains(targetDatabase);
 		} else {
 			assertThat(config.database()).isEmpty();
 		}

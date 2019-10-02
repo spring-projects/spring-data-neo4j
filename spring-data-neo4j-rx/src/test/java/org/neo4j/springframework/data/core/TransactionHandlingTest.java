@@ -99,7 +99,7 @@ class TransactionHandlingTest {
 
 				verify(driver).session(configArgumentCaptor.capture());
 				SessionConfig sessionConfig = configArgumentCaptor.getValue();
-				assertThat(sessionConfig.database()).isPresent().contains("adatabase");
+				assertThat(sessionConfig.database()).isPresent().contains("aDatabase");
 
 				verify(session).run(any(String.class));
 				verify(session).close();
@@ -136,7 +136,7 @@ class TransactionHandlingTest {
 				verify(transaction, times(2)).isOpen();
 				verify(transaction).run(anyString());
 				// Called by the transaction manager
-				verify(transaction).success();
+				verify(transaction).commit();
 				verify(transaction).close();
 				verify(session).isOpen();
 				verify(session).close();

@@ -63,7 +63,7 @@ class Neo4jTransactionHolder extends ResourceHolderSupport {
 		Assert.state(hasActiveTransaction(), "Transaction must be open, but has already been closed.");
 		Assert.state(!isRollbackOnly(), "Resource must not be marked as rollback only.");
 
-		transaction.success();
+		transaction.commit();
 		transaction.close();
 	}
 
@@ -71,7 +71,7 @@ class Neo4jTransactionHolder extends ResourceHolderSupport {
 
 		Assert.state(hasActiveTransaction(), "Transaction must be open, but has already been closed.");
 
-		transaction.failure();
+		transaction.rollback();
 		transaction.close();
 	}
 
@@ -89,7 +89,7 @@ class Neo4jTransactionHolder extends ResourceHolderSupport {
 	public void setRollbackOnly() {
 
 		super.setRollbackOnly();
-		transaction.failure();
+		transaction.rollback();
 	}
 
 	@Override

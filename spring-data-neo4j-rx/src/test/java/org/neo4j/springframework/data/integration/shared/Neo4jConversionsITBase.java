@@ -204,7 +204,7 @@ public abstract class Neo4jConversionsITBase {
 					+ " n.car2d = point({x: 10, y: 20}),"
 					+ " n.car3d = point({x: 30, y: 40, z: 50})"
 					+ " RETURN id(n) AS id", parameters).single().get("id").asLong();
-				w.success();
+				w.commit();
 				return null;
 			});
 		}

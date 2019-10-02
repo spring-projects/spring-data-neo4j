@@ -28,7 +28,7 @@ import java.util.List;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.internal.Bookmark;
+import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.springframework.lang.Nullable;

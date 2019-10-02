@@ -68,7 +68,7 @@ class ProjectionIT {
 			+ "-[:LIVES_AT]->"
 			+ "(:Address{city:'" + CITY + "'})");
 
-		transaction.success();
+		transaction.commit();
 		transaction.close();
 		session.close();
 	}

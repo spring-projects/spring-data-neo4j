@@ -104,7 +104,7 @@ class Neo4jTransactionManagerTest {
 		verify(session).beginTransaction(any(TransactionConfig.class));
 
 		verify(transaction, times(2)).isOpen();
-		verify(transaction).success();
+		verify(transaction).commit();
 		verify(transaction).close();
 
 		verify(session).close();
@@ -178,7 +178,7 @@ class Neo4jTransactionManagerTest {
 				verify(session).close();
 
 				verify(transaction, times(2)).isOpen();
-				verify(transaction).failure();
+				verify(transaction).rollback();
 				verify(transaction).close();
 			}
 
@@ -220,7 +220,7 @@ class Neo4jTransactionManagerTest {
 				verify(session).close();
 
 				verify(transaction, times(2)).isOpen();
-				verify(transaction).failure();
+				verify(transaction).rollback();
 				verify(transaction).close();
 			}
 
@@ -263,7 +263,7 @@ class Neo4jTransactionManagerTest {
 				verify(session).close();
 
 				verify(transaction, times(3)).isOpen();
-				verify(transaction).success();
+				verify(transaction).commit();
 				verify(transaction).close();
 			}
 
@@ -304,7 +304,7 @@ class Neo4jTransactionManagerTest {
 				verify(session).close();
 
 				verify(transaction, times(3)).isOpen();
-				verify(transaction).failure();
+				verify(transaction).rollback();
 				verify(transaction).close();
 			}
 		}
