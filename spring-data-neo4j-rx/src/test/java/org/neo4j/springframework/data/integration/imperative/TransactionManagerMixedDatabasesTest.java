@@ -58,7 +58,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * test due to the high integration with Spring framework code.
  */
 @ExtendWith(SpringExtension.class)
-public class TransactionManagerMixedDatabasesTest {
+class TransactionManagerMixedDatabasesTest {
 
 	protected static final String DATABASE_NAME = "boom";
 	public static final String TEST_QUERY = "MATCH (n:DbTest) RETURN COUNT(n)";

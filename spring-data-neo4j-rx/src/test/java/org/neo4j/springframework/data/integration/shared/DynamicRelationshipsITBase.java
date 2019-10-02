@@ -52,7 +52,7 @@ public abstract class DynamicRelationshipsITBase {
 				+ "CREATE (t) - [:HAS_WIFE] -> (w:Person {firstName: 'B'}) "
 				+ "CREATE (t) - [:HAS_DAUGHTER] -> (d:Person {firstName: 'C'}) "
 				+ " RETURN id(t) as id").single().get("id").asLong();
-			transaction.success();
+			transaction.commit();
 		}
 	}
 }
