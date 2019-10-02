@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.repository.query;
 
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
+import static org.neo4j.springframework.data.core.schema.RelationshipDescription.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -225,12 +226,13 @@ public final class CypherAdapterUtils {
 
 		@NotNull
 		public static Statement createRelationshipCreationQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object fromId,
-			RelationshipDescription relationship, Long relatedInternalId) {
+			RelationshipDescription relationship, @Nullable String dynamicRelationshipType, Long relatedInternalId) {
 
 			Node startNode = anyNode("startNode");
 			Node endNode = anyNode("endNode");
 			String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 
+			String type = relationship.isDynamic() ? dynamicRelationshipType : relationship.getType();
 			return match(startNode)
 				.where(neo4jPersistentEntity.isUsingInternalIds()
 					? startNode.internalId().isEqualTo(literalOf(fromId))
@@ -239,8 +241,8 @@ public final class CypherAdapterUtils {
 				.match(endNode)
 				.where(endNode.internalId().isEqualTo(literalOf(relatedInternalId)))
 				.merge(relationship.isOutgoing()
-					? startNode.relationshipTo(endNode, relationship.getType())
-					: startNode.relationshipFrom(endNode, relationship.getType())
+					? startNode.relationshipTo(endNode, type)
+					: startNode.relationshipFrom(endNode, type)
 				)
 				.build();
 		}
@@ -254,17 +256,17 @@ public final class CypherAdapterUtils {
 			String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 			boolean outgoing = relationshipDescription.isOutgoing();
 
-			String relationshipType = relationshipDescription.getType();
+			String relationshipType = relationshipDescription.isDynamic() ? null : relationshipDescription.getType();
 			Relationship relationship = outgoing
 				? startNode.relationshipTo(endNode, relationshipType).named("rel")
 				: startNode.relationshipFrom(endNode, relationshipType).named("rel");
 
+			Parameter idParameter = parameter("fromId");
 			return match(relationship)
 				.where(neo4jPersistentEntity.isUsingInternalIds()
-					? startNode.internalId().isEqualTo(literalOf(fromId))
-					: startNode.property(idPropertyName).isEqualTo(literalOf(fromId)))
+					? startNode.internalId().isEqualTo(idParameter)
+					: startNode.property(idPropertyName).isEqualTo(idParameter))
 				.delete(relationship.getSymbolicName().get()).build();
-
 		}
 
 		public Expression createReturnStatementForMatch(NodeDescription<?> nodeDescription) {
@@ -349,13 +351,26 @@ public final class CypherAdapterUtils {
 				Node endNode = node(targetLabel).named(fieldName);
 				NodeDescription<?> endNodeDescription = schema.getNodeDescription(targetLabel);
 
-				Relationship relationship = relationshipDescription.isOutgoing()
-					? startNode.relationshipTo(endNode, relationshipType)
-					: startNode.relationshipFrom(endNode, relationshipType);
+				if (relationshipDescription.isDynamic()) {
+					Relationship relationship = relationshipDescription.isOutgoing()
+						? startNode.relationshipTo(endNode)
+						: startNode.relationshipFrom(endNode);
+					relationship = relationship.named(relationshipTargetName);
 
-				generatedLists.add(relationshipTargetName);
-				generatedLists.add(listBasedOn(relationship)
-					.returning(projectAllPropertiesAndRelationships(endNodeDescription, fieldName)));
+					generatedLists.add(relationshipTargetName);
+					generatedLists.add(listBasedOn(relationship)
+						.returning(
+							projectAllPropertiesAndRelationships(endNodeDescription, fieldName)
+								.and(NAME_OF_RELATIONSHIP_TYPE, Functions.type(relationship))));
+				} else {
+					Relationship relationship = relationshipDescription.isOutgoing()
+						? startNode.relationshipTo(endNode, relationshipType)
+						: startNode.relationshipFrom(endNode, relationshipType);
+
+					generatedLists.add(relationshipTargetName);
+					generatedLists.add(listBasedOn(relationship)
+						.returning(projectAllPropertiesAndRelationships(endNodeDescription, fieldName)));
+				}
 			}
 
 			return generatedLists;

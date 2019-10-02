@@ -32,6 +32,8 @@ class DefaultRelationshipDescription implements RelationshipDescription {
 
 	private final String type;
 
+	private final boolean dynamic;
+
 	private final String source;
 
 	private final String target;
@@ -40,10 +42,11 @@ class DefaultRelationshipDescription implements RelationshipDescription {
 
 	private final Relationship.Direction direction;
 
-	DefaultRelationshipDescription(String type, String source, String target, String fieldName,
+	DefaultRelationshipDescription(String type, boolean dynamic, String source, String target, String fieldName,
 		Relationship.Direction direction) {
 
 		this.type = type;
+		this.dynamic = dynamic;
 		this.source = source;
 		this.target = target;
 		this.fieldName = fieldName;
@@ -53,6 +56,11 @@ class DefaultRelationshipDescription implements RelationshipDescription {
 	@Override
 	public String getType() {
 		return type;
+	}
+
+	@Override
+	public boolean isDynamic() {
+		return dynamic;
 	}
 
 	@Override

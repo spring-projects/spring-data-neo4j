@@ -24,6 +24,7 @@ import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.SchemaBasedStatementBuilder.*;
+import static org.neo4j.springframework.data.repository.support.DefaultNeo4jEntityInformation.*;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -222,18 +223,17 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 				// remove all relationships before creating all new
 				// this avoids the usage of cache but might have significant impact on overall performance
 				Statement relationshipRemoveQuery = createRelationshipRemoveQuery(neo4jPersistentEntity, fromId, relationship, targetNodeDescription.getPrimaryLabel());
-				relationshipCreationMonos.add(neo4jClient.query(renderer.render(relationshipRemoveQuery)).run().then());
+				relationshipCreationMonos.add(
+					neo4jClient.query(renderer.render(relationshipRemoveQuery)).bind(fromId).to("fromId").run().then());
 				if (value == null) {
 					return;
 				}
 
-				Collection<Object> relatedValues = inverse.isCollectionLike() ?
-					(Collection<Object>) value :
-					Collections.singleton(value);
+				for (Object relatedValue : unifyRelationshipValue(inverse, value)) {
 
-				for (Object relatedValue : relatedValues) {
-
-					Mono<Object> valueToBeSavedMono = eventSupport.maybeCallBeforeBind(relatedValue);
+					Mono<Object> valueToBeSavedMono = eventSupport
+						.maybeCallBeforeBind(relatedValue instanceof Map.Entry ?
+							((Map.Entry) relatedValue).getValue() : relatedValue);
 
 					relationshipCreationMonos.add(
 						valueToBeSavedMono
@@ -250,8 +250,11 @@ class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<
 													relatedInternalId);
 										}
 										Statement relationshipCreationQuery = createRelationshipCreationQuery(
-											neo4jPersistentEntity, fromId,
-											relationship, relatedInternalId);
+											neo4jPersistentEntity, fromId, relationship,
+											relatedValue instanceof Map.Entry ?
+												((Map.Entry<String, ?>) relatedValue).getKey() :
+												null,
+											relatedInternalId);
 
 										return
 											neo4jClient.query(renderer.render(relationshipCreationQuery))

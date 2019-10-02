@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.repository.support;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -26,6 +28,7 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.cypher.Expression;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
+import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
 import org.neo4j.springframework.data.repository.query.CypherAdapterUtils;
 import org.springframework.data.repository.core.support.PersistentEntityInformation;
 
@@ -93,5 +96,24 @@ final class DefaultNeo4jEntityInformation<T, ID> extends PersistentEntityInforma
 	@Override
 	public Function<T, Map<String, Object>> getBinderFunction() {
 		return binderFunction;
+	}
+
+	/**
+	 * The value for a relationship can be a scalar object (1:1), a collection (1:n) or a map (1:n, but with dynamic
+	 * relationship types). This method unifies the type into something iterable, depending on the given inverse type.
+	 *
+	 * @param rawValue The raw value to unify
+	 * @return A unified collection (Either a collection of Map.Entry or a list of related values)
+	 */
+	static Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, Object rawValue) {
+		Collection<?> unifiedValue;
+		if (property.isDynamicAssociation()) {
+			unifiedValue = ((Map<String, Object>) rawValue).entrySet();
+		} else if (property.isCollectionLike()) {
+			unifiedValue = (Collection<Object>) rawValue;
+		} else {
+			unifiedValue = Collections.singleton(rawValue);
+		}
+		return unifiedValue;
 	}
 }
