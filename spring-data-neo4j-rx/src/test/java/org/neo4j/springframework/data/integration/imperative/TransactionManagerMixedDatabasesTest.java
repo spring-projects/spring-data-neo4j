@@ -72,7 +72,7 @@ class TransactionManagerMixedDatabasesTest {
 	private final PersonRepository repository;
 
 	@Autowired
-	public TransactionManagerMixedDatabasesTest(Driver driver, Neo4jClient neo4jClient,
+	TransactionManagerMixedDatabasesTest(Driver driver, Neo4jClient neo4jClient,
 		Neo4jTransactionManager neo4jTransactionManager,
 		PersonRepository repository) {
 		this.driver = driver;

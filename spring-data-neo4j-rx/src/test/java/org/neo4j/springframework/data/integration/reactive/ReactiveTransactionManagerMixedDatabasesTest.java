@@ -45,7 +45,6 @@ import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.transaction.ReactiveNeo4jTransactionManager;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
-import org.neo4j.springframework.data.test.Neo4jExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -78,7 +77,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 	private final WrapperService wrappingComponent;
 
 	@Autowired
-	public ReactiveTransactionManagerMixedDatabasesTest(Driver driver, ReactiveNeo4jClient neo4jClient,
+	ReactiveTransactionManagerMixedDatabasesTest(Driver driver, ReactiveNeo4jClient neo4jClient,
 		ReactiveNeo4jTransactionManager neo4jTransactionManager,
 		ReactivePersonRepository repository,
 		WrapperService wrappingComponent) {
