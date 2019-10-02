@@ -133,7 +133,7 @@ class ReactiveRepositoryIT {
 			transaction.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})",
 				parameters("i", String.format("%02d", i))));
 
-		transaction.success();
+		transaction.commit();
 		transaction.close();
 
 		person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE, true,

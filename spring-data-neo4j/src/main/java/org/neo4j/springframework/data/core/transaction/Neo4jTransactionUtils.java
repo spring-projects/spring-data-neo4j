@@ -26,7 +26,7 @@ import java.util.Objects;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.SessionConfig;
-import org.neo4j.driver.internal.Bookmark;
+import org.neo4j.driver.Bookmark;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.InvalidIsolationLevelException;
@@ -102,6 +102,7 @@ public final class Neo4jTransactionUtils {
 			_requestedDb);
 
 	}
+
 	private Neo4jTransactionUtils() {
 	}
 }

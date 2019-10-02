@@ -63,7 +63,7 @@ class KotlinIT {
 		Transaction transaction = session.beginTransaction();
 		transaction.run("MATCH (n) detach delete n");
 		transaction.run("CREATE (n:KotlinPerson) SET n.name = $personName", Values.parameters("personName", PERSON_NAME));
-		transaction.success();
+		transaction.commit();
 		transaction.close();
 		session.close();
 	}

@@ -65,7 +65,7 @@ public abstract class AuditingITBase {
 						EXISTING_THING_CREATED_AT))
 				.single().get("id").asLong();
 
-			transaction.success();
+			transaction.commit();
 		}
 	}
 

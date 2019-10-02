@@ -56,7 +56,7 @@ public abstract class CallbacksITBase {
 
 		try (Transaction transaction = driver.session().beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
-			transaction.success();
+			transaction.commit();
 		}
 	}
 
