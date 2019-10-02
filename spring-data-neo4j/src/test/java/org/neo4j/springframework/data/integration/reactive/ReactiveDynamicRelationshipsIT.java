@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.integration.reactive;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
+import static org.neo4j.springframework.data.test.Neo4jExtension.*;
 
 import reactor.test.StepVerifier;
 
@@ -29,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Transaction;
@@ -48,6 +50,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 /**
  * @author Michael J. Simons
  */
+@Tag(NEEDS_REACTIVE_SUPPORT)
 class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase {
 
 	private PersonWithRelativesRepository personsWithRelatives;

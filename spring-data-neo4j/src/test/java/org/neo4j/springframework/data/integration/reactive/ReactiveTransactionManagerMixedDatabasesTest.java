@@ -62,12 +62,10 @@ import org.springframework.transaction.reactive.TransactionalOperator;
  * test due to the high integration with Spring framework code.
  */
 @ExtendWith(SpringExtension.class)
-public class ReactiveTransactionManagerMixedDatabasesTest {
+class ReactiveTransactionManagerMixedDatabasesTest {
 
 	protected static final String DATABASE_NAME = "boom";
 	public static final String TEST_QUERY = "MATCH (n:DbTest) RETURN COUNT(n)";
-
-	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private final Driver driver;
 
