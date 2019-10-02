@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.core.mapping;
 
 import static java.util.stream.Collectors.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
+import static org.neo4j.springframework.data.core.schema.RelationshipDescription.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -235,6 +237,11 @@ final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Rec
 			Neo4jPersistentEntity<?> targetNodeDescription = relatedNodeDescriptionLookup.apply(targetLabel);
 
 			List<Object> value = new ArrayList<>();
+			Map<String, Object> dynamicValue = new HashMap<>();
+
+			BiConsumer<String, Object> mappedObjectHandler = relationship.isDynamic() ?
+				dynamicValue::put : (type, mappedObject) -> value.add(mappedObject);
+
 			Value list = queryResult.get(SchemaUtils.generateRelatedNodesCollectionName(relationship));
 
 			// if the list is null the mapping is based on a custom query
@@ -274,7 +281,8 @@ final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Rec
 
 					for (Relationship possibleRelationship : allMatchingTypeRelationshipsInResult) {
 						if (possibleRelationship.endNodeId() == nodeId) {
-							value.add(map(typeSystem, possibleValueNode, targetNodeDescription, knownObjects));
+							Object mappedObject = map(typeSystem, possibleValueNode, targetNodeDescription, knownObjects);
+							mappedObjectHandler.accept(possibleRelationship.type(), mappedObject);
 							break;
 						}
 					}
@@ -290,7 +298,7 @@ final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Rec
 					Object valueEntry = knownObjects.computeIfAbsent(idValue,
 						(id) -> map(typeSystem, relatedEntity, targetNodeDescription, knownObjects));
 
-					value.add(valueEntry);
+					mappedObjectHandler.accept(relatedEntity.get(NAME_OF_RELATIONSHIP_TYPE).asString(), valueEntry);
 				}
 			}
 
@@ -301,7 +309,11 @@ final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Rec
 					propertyAccessor.setProperty(inverse, value);
 				}
 			} else {
-				propertyAccessor.setProperty(inverse, value.isEmpty() ? null : value.get(0));
+				if (relationship.isDynamic()) {
+					propertyAccessor.setProperty(inverse, dynamicValue.isEmpty() ? null : dynamicValue);
+				} else {
+					propertyAccessor.setProperty(inverse, value.isEmpty() ? null : value.get(0));
+				}
 			}
 		};
 	}

@@ -24,6 +24,7 @@ import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.SchemaBasedStatementBuilder.*;
+import static org.neo4j.springframework.data.repository.support.DefaultNeo4jEntityInformation.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -177,24 +178,25 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 			// remove all relationships before creating all new
 			// this avoids the usage of cache but might have significant impact on overall performance
 			Statement relationshipRemoveQuery = createRelationshipRemoveQuery(neo4jPersistentEntity, fromId, relationship, targetNodeDescription.getPrimaryLabel());
-			neo4jClient.query(renderer.render(relationshipRemoveQuery)).run();
+			neo4jClient.query(renderer.render(relationshipRemoveQuery)).bind(fromId).to("fromId").run();
 
 			if (value == null) {
 				return;
 			}
 
-			Collection<Object> relatedValues = inverse.isCollectionLike() ?
-				(Collection<Object>) value :
-				Collections.singleton(value);
+			for (Object relatedValue : unifyRelationshipValue(inverse, value)) {
 
-			for (Object relatedValue : relatedValues) {
-
-				Object valueToBeSaved = eventSupport.maybeCallBeforeBind(relatedValue);
+				Object valueToBeSaved = relatedValue instanceof Map.Entry ?
+					((Map.Entry) relatedValue).getValue() :
+					relatedValue;
+				valueToBeSaved = eventSupport.maybeCallBeforeBind(valueToBeSaved);
 
 				Long relatedInternalId = saveRelatedNode(valueToBeSaved, associationTargetType, targetNodeDescription);
 
 				Statement relationshipCreationQuery = createRelationshipCreationQuery(neo4jPersistentEntity,
-					fromId, relationship, relatedInternalId);
+					fromId, relationship,
+					relatedValue instanceof Map.Entry ? ((Map.Entry<String, ?>) relatedValue).getKey() : null,
+					relatedInternalId);
 
 				neo4jClient.query(renderer.render(relationshipCreationQuery)).run();
 

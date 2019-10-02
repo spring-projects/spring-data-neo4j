@@ -20,44 +20,90 @@ package org.neo4j.springframework.data.core.mapping;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.Map;
+
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.Property;
+import org.neo4j.springframework.data.core.schema.Relationship;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 class DefaultNeo4jPersistentEntityTest {
 
 	@Test
 	void persistentEntityCreationWorksForCorrectEntity() {
-		new Neo4jMappingContext().getPersistentEntity(CorrectEntity.class);
-
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+		neo4jMappingContext.getPersistentEntity(CorrectEntity1.class);
+		neo4jMappingContext.getPersistentEntity(CorrectEntity2.class);
 	}
 
-	@Test
-	void failsOnDuplicatedEntityProperties() {
-		assertThatIllegalStateException()
+	@Nested
+	class DuplicateProperties {
+		@Test
+		void failsOnDuplicatedProperties() {
+			assertThatIllegalStateException()
 				.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(EntityWithDuplicatedProperties.class))
 				.withMessage("Duplicate definition of property [name] in entity class "
-						+ "org.neo4j.springframework.data.core.mapping.DefaultNeo4jPersistentEntityTest$EntityWithDuplicatedProperties.");
+					+ "org.neo4j.springframework.data.core.mapping.DefaultNeo4jPersistentEntityTest$EntityWithDuplicatedProperties.");
+		}
+
+		@Test
+		void failsOnMultipleDuplicatedProperties() {
+			assertThatIllegalStateException()
+				.isThrownBy(
+					() -> new Neo4jMappingContext().getPersistentEntity(EntityWithMultipleDuplicatedProperties.class))
+				.withMessage("Duplicate definition of properties [foo, name] in entity class "
+					+ "org.neo4j.springframework.data.core.mapping.DefaultNeo4jPersistentEntityTest$EntityWithMultipleDuplicatedProperties.");
+		}
 	}
 
-	@Test
-	void failsOnMultipleDuplicatedEntityProperties() {
-		assertThatIllegalStateException()
-			.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(EntityWithMultipleDuplicatedProperties.class))
-			.withMessage("Duplicate definition of properties [foo, name] in entity class "
-				+ "org.neo4j.springframework.data.core.mapping.DefaultNeo4jPersistentEntityTest$EntityWithMultipleDuplicatedProperties.");
+	@Nested
+	class Relationships {
+
+		@Test
+		void failsOnDynamicRelationshipsWithExplicitType() {
+			assertThatIllegalStateException()
+				.isThrownBy(
+					() -> new Neo4jMappingContext().getPersistentEntity(MixedDynamicAndExplicitRelationship.class))
+				.withMessage("Dynamic relationships cannot be used with a fixed type. Omit @Relationship or use @Relationship(direction = INCOMING).");
+		}
 	}
 
 	@Node
-	private static class CorrectEntity {
+	private static class CorrectEntity1 {
 
 		@Id private Long id;
 
 		private String name;
+
+		private Map<String, CorrectEntity1> dynamicRelationships;
+	}
+
+	@Node
+	private static class CorrectEntity2 {
+
+		@Id private Long id;
+
+		private String name;
+
+		@Relationship(direction = Relationship.Direction.INCOMING)
+		private Map<String, CorrectEntity2> dynamicRelationships;
+	}
+
+	@Node
+	private static class MixedDynamicAndExplicitRelationship {
+
+		@Id private Long id;
+
+		private String name;
+
+		@Relationship(type = "BAMM", direction = Relationship.Direction.INCOMING)
+		private Map<String, MixedDynamicAndExplicitRelationship> dynamicRelationships;
 	}
 
 	@Node

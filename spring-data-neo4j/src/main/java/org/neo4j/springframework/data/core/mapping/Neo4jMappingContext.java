@@ -253,8 +253,8 @@ public final class Neo4jMappingContext
 			}
 
 			relationships
-				.add(new DefaultRelationshipDescription(type, primaryLabel, obverseOwner.getPrimaryLabel(),
-					inverse.getName(), direction));
+				.add(new DefaultRelationshipDescription(type, inverse.isDynamicAssociation(), primaryLabel,
+					obverseOwner.getPrimaryLabel(), inverse.getName(), direction));
 		});
 
 		return Collections.unmodifiableCollection(relationships);

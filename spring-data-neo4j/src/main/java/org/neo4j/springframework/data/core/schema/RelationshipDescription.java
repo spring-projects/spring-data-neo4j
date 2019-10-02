@@ -32,10 +32,21 @@ import org.neo4j.springframework.data.core.schema.Relationship.Direction;
 @API(status = API.Status.INTERNAL, since = "1.0")
 public interface RelationshipDescription {
 
+	String NAME_OF_RELATIONSHIP_TYPE = "__relationshipType__";
+
 	/**
+	 * If this relationship is dynamic, than this method always returns the name of the inverse property.
+	 *
 	 * @return The type of this relationship
 	 */
 	String getType();
+
+	/**
+	 * A relationship is dynamic when it's modelled as a {@code Map<String, ?>}.
+	 *
+	 * @return True, if this relationship is dynamic
+	 */
+	boolean isDynamic();
 
 	/**
 	 * The source of this relationship is described by the primary label of the node in question.
