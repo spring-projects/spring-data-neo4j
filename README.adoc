@@ -104,3 +104,7 @@ Add the Maven dependency:
 
 Nowadays, people prefer Spring Boot and we got you covered with a starter.
 Please consult our link:docs/manual.adoc[manual] for more information.
+
+=== Building SDN/RX
+
+Please have a look at the documentation: link:docs/build.adoc[Building SDN/RX].

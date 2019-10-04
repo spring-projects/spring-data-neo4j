@@ -112,7 +112,7 @@ as it comes for free with every Neo4j instance.
 
 If you don't have a running database but Docker installed, please run:
 
-[source,bash,subs="verbatim,attributes"]
+[source,console,subs="verbatim,attributes"]
 [[start-docker-neo4j]]
 .Start a local Neo4j instance inside Docker.
 ----
