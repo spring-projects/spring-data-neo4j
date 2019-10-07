@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core.mapping;
 
+import org.neo4j.springframework.data.core.schema.Relationship;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
@@ -26,6 +27,7 @@ import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * @author Michael J. Simons
@@ -37,6 +39,8 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	private final Lazy<String> graphPropertyName;
 	private final Lazy<Boolean> isAssociation;
 
+	private final Neo4jMappingContext mappingContext;
+
 	/**
 	 * Creates a new {@link AnnotationBasedPersistentProperty}.
 	 *
@@ -46,6 +50,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	 */
 	DefaultNeo4jPersistentProperty(Property property,
 		PersistentEntity<?, Neo4jPersistentProperty> owner,
+		Neo4jMappingContext mappingContext,
 		SimpleTypeHolder simpleTypeHolder) {
 
 		super(property, owner, simpleTypeHolder);
@@ -56,12 +61,33 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 			Class<?> targetType = getActualType();
 			return !simpleTypeHolder.isSimpleType(targetType);
 		});
+		this.mappingContext = mappingContext;
 	}
 
 	@Override
 	protected Association<Neo4jPersistentProperty> createAssociation() {
 
-		return new Association<>(this, null);
+		Neo4jPersistentEntity<?> obverseOwner = this.mappingContext
+			.getPersistentEntity(this.getAssociationTargetType());
+
+		Relationship outgoingRelationship = this.findAnnotation(Relationship.class);
+
+		String type;
+		if (outgoingRelationship != null && outgoingRelationship.type() != null) {
+			type = outgoingRelationship.type();
+		} else {
+			type = deriveRelationshipType(this.getName());
+		}
+
+		Relationship.Direction direction = Relationship.Direction.OUTGOING;
+		if (outgoingRelationship != null) {
+			direction = outgoingRelationship.direction();
+		}
+
+		Neo4jPersistentProperty obverse = null;
+		return new DefaultRelationshipDescription(this, obverse, type, this.isDynamicAssociation(),
+			((Neo4jPersistentEntity) getOwner()).getPrimaryLabel(),
+			obverseOwner.getPrimaryLabel(), this.getName(), direction);
 	}
 
 	@Override
@@ -120,5 +146,31 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	public boolean isRelationship() {
 
 		return isAssociation();
+	}
+
+	static String deriveRelationshipType(String name) {
+
+		Assert.hasText(name, "The name to derive the type from is required.");
+
+		StringBuilder sb = new StringBuilder();
+
+		int codePoint;
+		int previousIndex = 0;
+		int i = 0;
+		while (i < name.length()) {
+			codePoint = name.codePointAt(i);
+			if (Character.isLowerCase(codePoint)) {
+				if (i > 0 && !Character.isLetter(name.codePointAt(previousIndex))) {
+					sb.append("_");
+				}
+				codePoint = Character.toUpperCase(codePoint);
+			} else if (sb.length() > 0) {
+				sb.append("_");
+			}
+			sb.append(Character.toChars(codePoint));
+			previousIndex = i;
+			i += Character.charCount(codePoint);
+		}
+		return sb.toString();
 	}
 }

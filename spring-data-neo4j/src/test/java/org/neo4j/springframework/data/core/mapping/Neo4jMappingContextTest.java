@@ -65,6 +65,13 @@ public class Neo4jMappingContextTest {
 				assertThat(description.getGraphProperties())
 					.extracting(GraphPropertyDescription::getPropertyName)
 					.containsExactlyInAnyOrder("id", "name", "firstName");
+
+				Collection<String> expectedRelationships = Arrays.asList("[:OWNS] -> (:BikeNode)");
+				Collection<RelationshipDescription> relationships = schema
+					.getRelationshipsOf(description.getPrimaryLabel());
+				assertThat(relationships.stream().filter(r -> !r.isDynamic()))
+					.allMatch(d -> expectedRelationships
+						.contains(String.format("[:%s] -> (:%s)", d.getType(), d.getTarget())));
 			});
 
 		NodeDescription<?> optionalBikeNodeDescription = schema.getNodeDescription("BikeNode");
@@ -75,12 +82,10 @@ public class Neo4jMappingContextTest {
 
 				assertThat(description.getIdDescription().isAssignedId()).isTrue();
 
-				Collection<String> expectedRelationships = Arrays
-					.asList("[:owner] -> (:User)", "[:renter] -> (:User)", "[:dynamicRelationships] -> (:User)");
-
+				Collection<String> expectedRelationships = Arrays.asList("[:OWNER] -> (:User)", "[:RENTER] -> (:User)");
 				Collection<RelationshipDescription> relationships = schema
 					.getRelationshipsOf(description.getPrimaryLabel());
-				assertThat(relationships)
+				assertThat(relationships.stream().filter(r -> !r.isDynamic()))
 					.allMatch(d -> expectedRelationships
 						.contains(String.format("[:%s] -> (:%s)", d.getType(), d.getTarget())));
 			});
@@ -130,6 +135,20 @@ public class Neo4jMappingContextTest {
 		Neo4jPersistentEntity<?> bikeNodeEntity = schema.getPersistentEntity(BikeNode.class);
 		bikeNodeEntity.doWithAssociations((Association<Neo4jPersistentProperty> association) ->
 			assertThat(schema.getMappingFunctionFor(association.getInverse().getAssociationTargetType())).isNotNull());
+	}
+
+	@Test
+	void shouldDeriveARelationshipType() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> bikeNodeEntity = schema.getPersistentEntity(BikeNode.class);
+		assertThat(bikeNodeEntity.getRequiredPersistentProperty("renter").getAssociation())
+			.isNotNull()
+			.satisfies(association -> {
+				assertThat(association).isInstanceOf(RelationshipDescription.class);
+				RelationshipDescription relationshipDescription = (RelationshipDescription) association;
+				assertThat(relationshipDescription.getType()).isEqualTo("RENTER");
+			});
 	}
 
 	@Test

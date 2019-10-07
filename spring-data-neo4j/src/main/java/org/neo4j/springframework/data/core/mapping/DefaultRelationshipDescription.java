@@ -22,13 +22,14 @@ import java.util.Objects;
 
 import org.neo4j.springframework.data.core.schema.Relationship;
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
+import org.springframework.data.mapping.Association;
 
 /**
  * @author Michael J. Simons
  * @author Gerrit Meier
  * @since 1.0
  */
-class DefaultRelationshipDescription implements RelationshipDescription {
+class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty> implements RelationshipDescription {
 
 	private final String type;
 
@@ -42,8 +43,12 @@ class DefaultRelationshipDescription implements RelationshipDescription {
 
 	private final Relationship.Direction direction;
 
-	DefaultRelationshipDescription(String type, boolean dynamic, String source, String target, String fieldName,
+	DefaultRelationshipDescription(Neo4jPersistentProperty inverse,
+		Neo4jPersistentProperty obverse,
+		String type, boolean dynamic, String source, String target, String fieldName,
 		Relationship.Direction direction) {
+
+		super(inverse, obverse);
 
 		this.type = type;
 		this.dynamic = dynamic;
