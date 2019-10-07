@@ -42,7 +42,6 @@ import org.neo4j.springframework.data.core.convert.Neo4jSimpleTypes;
 import org.neo4j.springframework.data.core.schema.IdDescription;
 import org.neo4j.springframework.data.core.schema.IdGenerator;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
-import org.neo4j.springframework.data.core.schema.Relationship;
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 import org.neo4j.springframework.data.core.schema.Schema;
 import org.neo4j.springframework.data.core.schema.UnknownEntityException;
@@ -159,9 +158,9 @@ public final class Neo4jMappingContext
 	 */
 	@Override
 	protected Neo4jPersistentProperty createPersistentProperty(Property property,
-		Neo4jPersistentEntity<?> neo4jPersistentProperties, SimpleTypeHolder simpleTypeHolder) {
+		Neo4jPersistentEntity<?> owner, SimpleTypeHolder simpleTypeHolder) {
 
-		return new DefaultNeo4jPersistentProperty(property, neo4jPersistentProperties, simpleTypeHolder);
+		return new DefaultNeo4jPersistentProperty(property, owner, this, simpleTypeHolder);
 	}
 
 	@Override
@@ -231,31 +230,9 @@ public final class Neo4jMappingContext
 		final List<RelationshipDescription> relationships = new ArrayList<>();
 
 		Neo4jPersistentEntity<?> entity = this.getPersistentEntity(nodeDescription.getUnderlyingClass());
-		entity.doWithAssociations((Association<Neo4jPersistentProperty> association) -> {
-
-			Neo4jPersistentProperty inverse = association.getInverse();
-			Neo4jPersistentEntity<?> obverseOwner = this
-				.getPersistentEntity(inverse.getAssociationTargetType());
-
-			Relationship outgoingRelationship = inverse.findAnnotation(Relationship.class);
-
-
-			String type;
-			if (outgoingRelationship != null && outgoingRelationship.type() != null) {
-				type = outgoingRelationship.type();
-			} else {
-				type = inverse.getName();
-			}
-
-			Relationship.Direction direction = Relationship.Direction.OUTGOING;
-			if (outgoingRelationship != null) {
-				direction = outgoingRelationship.direction();
-			}
-
-			relationships
-				.add(new DefaultRelationshipDescription(type, inverse.isDynamicAssociation(), primaryLabel,
-					obverseOwner.getPrimaryLabel(), inverse.getName(), direction));
-		});
+		entity.doWithAssociations((Association<Neo4jPersistentProperty> association) ->
+			relationships.add((RelationshipDescription) association)
+		);
 
 		return Collections.unmodifiableCollection(relationships);
 	}
