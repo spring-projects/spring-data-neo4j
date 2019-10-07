@@ -7,7 +7,7 @@
 :artifactId: spring-data-neo4j-rx
 :artifactIdStarter: spring-data-neo4j-rx-spring-boot-starter
 :neo4j_version: 4.0.0-alpha09
-:spring-boot_version: 2.2.0.M6
+:spring-boot_version: 2.2.0.RC1
 // end::versions[]
 
 image:https://img.shields.io/maven-central/v/org.neo4j.springframework.data/spring-data-neo4j-rx.svg[Maven Central,link=http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.neo4j.springframework.data%22%20AND%20a%3A%22spring-data-neo4j-rx%22]
