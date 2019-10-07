@@ -18,6 +18,10 @@
  */
 package org.neo4j.springframework.data.repository;
 
+import java.util.List;
+
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
@@ -26,10 +30,50 @@ import org.springframework.data.repository.query.QueryByExampleExecutor;
  * Neo4j specific {@link org.springframework.data.repository.Repository} interface.
  *
  * @author Michael J. Simons
- * @param <T> type of the domain class to map
+ * @author Ján Šúr
+ * @param <T>  type of the domain class to map
  * @param <ID> identifier type in the domain class
  * @since 1.0
  */
 @NoRepositoryBean
 public interface Neo4jRepository<T, ID> extends PagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.CrudRepository#saveAll(java.lang.Iterable)
+	 */
+	@Override <S extends T> List<S> saveAll(Iterable<S> entities);
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.CrudRepository#findAll()
+	 */
+	@Override
+	List<T> findAll();
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.CrudRepository#findAllById(java.lang.Iterable)
+	 */
+	@Override
+	List<T> findAllById(Iterable<ID> iterable);
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.PagingAndSortingRepository#findAll(org.springframework.data.domain.Sort)
+	 */
+	@Override
+	List<T> findAll(Sort sort);
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example)
+	 */
+	@Override <S extends T> List<S> findAll(Example<S> example);
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example, org.springframework.data.domain.Sort)
+	 */
+	@Override <S extends T> List<S> findAll(Example<S> example, Sort sort);
 }

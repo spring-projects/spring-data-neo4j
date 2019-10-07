@@ -72,6 +72,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 /**
  * @author Michael J. Simons
  * @author Gerrit Meier
+ * @author Ján Šúr
  */
 @Neo4jIntegrationTest
 class RepositoryIT {
@@ -155,7 +156,7 @@ class RepositoryIT {
 
 	@Test
 	void findAll() {
-		Iterable<PersonWithAllConstructor> people = repository.findAll();
+		List<PersonWithAllConstructor> people = repository.findAll();
 		assertThat(people).hasSize(2);
 		assertThat(people).extracting("name").containsExactlyInAnyOrder(TEST_PERSON1_NAME, TEST_PERSON2_NAME);
 	}
@@ -167,7 +168,7 @@ class RepositoryIT {
 			session.run("MATCH (n:PersonWithAllConstructor) DETACH DELETE n;");
 		}
 
-		Iterable<PersonWithAllConstructor> people = repository.findAll();
+		List<PersonWithAllConstructor> people = repository.findAll();
 		assertThat(people).hasSize(0);
 	}
 
@@ -328,7 +329,7 @@ class RepositoryIT {
 			petNode2Id = record.get("p").asNode().id();
 		}
 
-		Iterable<PersonWithRelationship> loadedPersons = relationshipRepository.findAll();
+		List<PersonWithRelationship> loadedPersons = relationshipRepository.findAll();
 
 		Hobby hobby1 = new Hobby();
 		hobby1.setId(hobbyNode1Id);
@@ -760,7 +761,7 @@ class RepositoryIT {
 
 	@Test
 	void findAllById() {
-		Iterable<PersonWithAllConstructor> persons = repository.findAllById(Arrays.asList(id1, id2));
+		List<PersonWithAllConstructor> persons = repository.findAllById(Arrays.asList(id1, id2));
 		assertThat(persons).hasSize(2);
 	}
 
@@ -931,21 +932,21 @@ class RepositoryIT {
 
 	@Test
 	void findAllWithSortByOrderDefault() {
-		Iterable<PersonWithAllConstructor> persons = repository.findAll(Sort.by("name"));
+		List<PersonWithAllConstructor> persons = repository.findAll(Sort.by("name"));
 
 		assertThat(persons).containsExactly(person1, person2);
 	}
 
 	@Test
 	void findAllWithSortByOrderAsc() {
-		Iterable<PersonWithAllConstructor> persons = repository.findAll(Sort.by(Sort.Order.asc("name")));
+		List<PersonWithAllConstructor> persons = repository.findAll(Sort.by(Sort.Order.asc("name")));
 
 		assertThat(persons).containsExactly(person1, person2);
 	}
 
 	@Test
 	void findAllWithSortByOrderDesc() {
-		Iterable<PersonWithAllConstructor> persons = repository.findAll(Sort.by(Sort.Order.desc("name")));
+		List<PersonWithAllConstructor> persons = repository.findAll(Sort.by(Sort.Order.desc("name")));
 
 		assertThat(persons).containsExactly(person2, person1);
 	}
@@ -978,7 +979,7 @@ class RepositoryIT {
 	void findAllByExample() {
 		Example<PersonWithAllConstructor> example = Example
 			.of(person1, ExampleMatcher.matchingAll().withIgnoreNullValues());
-		Iterable<PersonWithAllConstructor> persons = repository.findAll(example);
+		List<PersonWithAllConstructor> persons = repository.findAll(example);
 
 		assertThat(persons).containsExactly(person1);
 	}
@@ -987,7 +988,7 @@ class RepositoryIT {
 	void findAllByExampleWithDifferentMatchers() {
 		PersonWithAllConstructor person;
 		Example<PersonWithAllConstructor> example;
-		Iterable<PersonWithAllConstructor> persons;
+		List<PersonWithAllConstructor> persons;
 
 		person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON2_FIRST_NAME, null, null, null, null,
 			null, null, null, null);
@@ -1033,7 +1034,7 @@ class RepositoryIT {
 	@Test
 	void findAllByExampleWithSort() {
 		Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
-		Iterable<PersonWithAllConstructor> persons = repository.findAll(example, Sort.by(Sort.Direction.DESC, "name"));
+		List<PersonWithAllConstructor> persons = repository.findAll(example, Sort.by(Sort.Direction.DESC, "name"));
 
 		assertThat(persons).containsExactly(person2, person1);
 	}
