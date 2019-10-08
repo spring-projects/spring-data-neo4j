@@ -183,9 +183,24 @@ There is no quality gate in place at the moment to ensure that the code/test rat
 We have some rather mild checkstyle rules in place, enforcing more or less default Java formatting rules.
 Your build will break on formatting errors or something like unused imports.
 
-We also use https://jqassistant.org[jQAssistant], a Neo4j-based tool, to verify some aspects of our architecture.
-The rules are described with Cypher and your build will break when they are violated.
-Feel free to run `./mvnw jqassistant:server` after a build to explore SDN/RX from packages, classes and methods in a graphy way. 
-The command starts a standard Neo4j server with a dataset containing all those informations.
+==== jQAssistant
 
-include::../etc/jqassistant/index.adoc[leveloffset=3]
+We also use https://jqassistant.org[jQAssistant], a Neo4j-based tool, to verify some aspects of our architecture.
+The rules are described with Cypher and your build will break when they are violated:
+
+include::../etc/jqassistant/index.adoc[leveloffset=4]
+
+===== Accessing the jQAssistant database
+
+jQAssistant uses Neo4j to store information about a project.
+To access the database, please build the project as described above.
+When the build finishes, execute the following command:
+
+[source,console,subs="verbatim,attributes"]
+[[start-jqassistant]]
+.Start jQAssistant
+----
+$ ./mvnw -f spring-data-neo4j-rx/pom.xml jqassistant:server
+----
+
+Access the standard Neo4j browser at http://localhost:7474 and a dedicated jQA-Dashboard at http://localhost:7474/jqassistant/dashboard/.
