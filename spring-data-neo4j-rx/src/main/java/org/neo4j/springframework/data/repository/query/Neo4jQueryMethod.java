@@ -62,6 +62,10 @@ final class Neo4jQueryMethod extends QueryMethod {
 		this.queryAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, Query.class);
 	}
 
+	boolean isCollectionLikeQuery() {
+		return super.isCollectionQuery() || super.isStreamQuery();
+	}
+
 	/**
 	 * @return True if the underlying method has been annotated with {@code @Query}.
 	 */
