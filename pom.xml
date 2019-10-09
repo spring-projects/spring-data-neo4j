@@ -84,7 +84,7 @@
 		<changelist>-SNAPSHOT</changelist>
 		<checkstyle.version>8.21</checkstyle.version>
 		<flatten-maven-plugin.version>1.1.0</flatten-maven-plugin.version>
-		<jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
+		<jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
 		<java.version>1.8</java.version>
 		<jqassistant.plugin.version>1.7.0</jqassistant.plugin.version>
 		<jqassistant.version>1.7.0</jqassistant.version>
@@ -97,7 +97,7 @@
 		<maven-javadoc-plugin.version>3.1.0</maven-javadoc-plugin.version>
 		<maven-site-plugin.version>3.7.1</maven-site-plugin.version>
 		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
-		<maven-surefire-plugin.version>3.0.0-M2</maven-surefire-plugin.version>
+		<maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<mockito.version>2.28.2</mockito.version>
@@ -359,6 +359,19 @@
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
+						<configuration>
+							<append>true</append>
+						</configuration>
+					</execution>
+					<execution>
+						<id>prepare-agent-integration</id>
+						<goals>
+							<goal>prepare-agent-integration</goal>
+						</goals>
+						<configuration>
+							<append>true</append>
+							<destFile>${project.build.directory}/jacoco.exec</destFile>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
