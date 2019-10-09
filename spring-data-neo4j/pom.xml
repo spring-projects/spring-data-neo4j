@@ -172,12 +172,44 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>report</id>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>com.buschmais.jqassistant</groupId>
 				<artifactId>jqassistant-maven-plugin</artifactId>
 				<executions>
 					<execution>
+						<id>jqassistant-scan</id>
+						<phase>verify</phase>
 						<goals>
 							<goal>scan</goal>
+						</goals>
+						<configuration>
+							<scanProperties>
+								<jqassistant.plugin.jacoco.filename>jacoco.xml</jqassistant.plugin.jacoco.filename>
+							</scanProperties>
+							<scanIncludes>
+								<scanInclude>
+									<path>${project.basedir}/../.git</path>
+								</scanInclude>
+								<scanInclude>
+									<path>${project.reporting.outputDirectory}/jacoco</path>
+								</scanInclude>
+							</scanIncludes>
+						</configuration>
+					</execution>
+					<execution>
+						<id>jqassistant-analyze</id>
+						<goals>
 							<goal>analyze</goal>
 						</goals>
 						<configuration>
@@ -186,11 +218,6 @@
 								<group>default</group>
 								<group>jqassistant-dashboard:Default</group>
 							</groups>
-							<scanIncludes>
-								<scanInclude>
-									<path>${project.basedir}/../.git</path>
-								</scanInclude>
-							</scanIncludes>
 						</configuration>
 					</execution>
 				</executions>
