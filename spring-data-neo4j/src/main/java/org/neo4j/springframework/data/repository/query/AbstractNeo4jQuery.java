@@ -56,7 +56,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		Neo4jParameterAccessor parameterAccessor = getParameterAccessor(parameters);
 		ResultProcessor resultProcessor = queryMethod.getResultProcessor().withDynamicProjection(parameterAccessor);
 		return resultProcessor.processResult(new Neo4jQueryExecution.DefaultQueryExecution(neo4jClient)
-				.execute(prepareQuery(resultProcessor, parameterAccessor), queryMethod.isCollectionQuery()),
+				.execute(prepareQuery(resultProcessor, parameterAccessor), queryMethod.isCollectionLikeQuery()),
 			OptionalUnwrappingConverter.INSTANCE);
 	}
 

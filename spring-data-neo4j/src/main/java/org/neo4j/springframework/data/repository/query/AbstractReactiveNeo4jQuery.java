@@ -57,7 +57,7 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 		Neo4jParameterAccessor parameterAccessor = getParameterAccessor(parameters);
 		ResultProcessor resultProcessor = queryMethod.getResultProcessor().withDynamicProjection(parameterAccessor);
 		return resultProcessor.processResult(new Neo4jQueryExecution.ReactiveQueryExecution(neo4jClient)
-				.execute(prepareQuery(resultProcessor, parameterAccessor), queryMethod.isCollectionQuery()),
+				.execute(prepareQuery(resultProcessor, parameterAccessor), queryMethod.isCollectionLikeQuery()),
 			OptionalUnwrappingConverter.INSTANCE);
 	}
 
