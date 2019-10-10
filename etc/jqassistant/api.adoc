@@ -4,7 +4,8 @@
 === General considerations
 
 We use https://github.com/apiguardian-team/apiguardian[@API Guardian] to keep track of what we expose as public or internal API.
-To keep things both clear and concise, we restrict the usage of those annotations to interfaces, classes and annotations.
+To keep things both clear and concise, we restrict the usage of those annotations to interfaces, classes (incl. constructors)
+and annotations.
 
 [[api:api-guardian-usage]]
 [source,cypher,role="constraint"]
@@ -12,7 +13,7 @@ To keep things both clear and concise, we restrict the usage of those annotation
 ----
 MATCH (c:Java) - [:ANNOTATED_BY] -> (a) - [:OF_TYPE] -> (t:Type {fqn: 'org.apiguardian.api.API'}),
       (p) - [:DECLARES] -> (c)
-WHERE c:Member
+WHERE c:Member AND NOT c:Constructor
 RETURN p.fqn, c.name
 ----
 
