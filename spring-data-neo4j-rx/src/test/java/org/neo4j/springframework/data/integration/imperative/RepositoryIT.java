@@ -1629,6 +1629,17 @@ class RepositoryIT {
 		assertThat(repository.loadAllProjectionsWithNodeReturn()).hasSize(2);
 	}
 
+	@Test
+	void streamMethodsShouldWork() {
+		assertThat(repository.findAllByNameLike("Test")).hasSize(2);
+	}
+
+	@Test
+	void asyncMethodsShouldWork() {
+		PersonWithAllConstructor p = repository.findOneByFirstName(TEST_PERSON1_FIRST_NAME).join();
+		assertThat(p).isNotNull();
+	}
+
 	@Configuration
 	@EnableNeo4jRepositories
 	@EnableTransactionManagement
