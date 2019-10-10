@@ -75,6 +75,7 @@
 		<module>spring-data-neo4j-rx</module>
 		<module>spring-data-neo4j-rx-spring-boot-starter-parent</module>
 		<module>examples/reactive-web</module>
+		<module>examples/imperative-web</module>
 		<module>examples/mapping</module>
 	</modules>
 
