@@ -19,12 +19,14 @@
 package org.neo4j.springframework.data.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -90,6 +92,24 @@ final class RepositoryQueryTest {
 
 			Optional<Query> optionalQueryAnnotation = neo4jQueryMethod.getQueryAnnotation();
 			assertThat(optionalQueryAnnotation).isPresent();
+		}
+
+		@Test
+		void streamQueriesShouldBeTreatedAsCollectionQueries() {
+
+			Neo4jQueryMethod neo4jQueryMethod = neo4jQueryMethod("findAllByIdGreaterThan", long.class);
+
+			assumeThat(neo4jQueryMethod.isStreamQuery()).isTrue();
+			assertThat(neo4jQueryMethod.isCollectionLikeQuery()).isTrue();
+		}
+
+		@Test
+		void collecitonQueriesShouldBeTreatedAsSuch() {
+
+			Neo4jQueryMethod neo4jQueryMethod = neo4jQueryMethod("findAllByANamedQuery");
+
+			assumeThat(neo4jQueryMethod.isCollectionQuery()).isTrue();
+			assertThat(neo4jQueryMethod.isCollectionLikeQuery()).isTrue();
 		}
 	}
 
@@ -268,6 +288,8 @@ final class RepositoryQueryTest {
 		List<TestEntity> annotatedQueryWithoutTemplate();
 
 		List<TestEntity> findAllByANamedQuery();
+
+		Stream<TestEntity> findAllByIdGreaterThan(long id);
 	}
 
 	private RepositoryQueryTest() {

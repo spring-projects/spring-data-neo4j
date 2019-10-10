@@ -22,6 +22,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import org.neo4j.driver.types.Point;
 import org.neo4j.springframework.data.integration.shared.DtoPersonProjection;
@@ -105,6 +107,10 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	PersonWithAllConstructor findOneByName(String name);
 
 	List<PersonWithAllConstructor> findAllByNameOrName(String aName, String anotherName);
+
+	Stream<PersonWithAllConstructor> findAllByNameLike(String aName);
+
+	CompletableFuture<PersonWithAllConstructor> findOneByFirstName(String aName);
 
 	List<PersonWithAllConstructor> findAllBySameValue(String sameValue);
 
