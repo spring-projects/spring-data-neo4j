@@ -1,0 +1,27 @@
+PUT http://localhost:8080/movies
+Content-Type: application/json
+
+{
+  "title": "Aeon Flux",
+  "description": "Reactive is the new cool"
+}
+
+###
+
+GET http://localhost:8080/movies
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+GET http://localhost:8080/movies/by-title?title=Aeon Flux
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+DELETE http://localhost:8080/movies/The Matrix
+Accept: */*
+Cache-Control: no-cache
+
+###

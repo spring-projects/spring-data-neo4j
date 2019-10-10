@@ -137,7 +137,7 @@ WARNING: Don't choose Spring Data Neo4j here, as it will get you the previous ge
 
 ==== Maven
 
-You can issue a CURL request against the Spring Initializer to create a basic Maven project:
+You can issue a _curl_ request against the Spring Initializer to create a basic Maven project:
 
 [source,bash,subs="verbatim,attributes"]
 [[generate-maven-project]]

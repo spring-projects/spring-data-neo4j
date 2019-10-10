@@ -25,7 +25,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 /**
- * Shared entry point for the configuration of SDN-RX reposistories in their imperative and reactive forms.
+ * Shared entry point for the configuration of SDN-RX repositories in their imperative and reactive forms.
  *
  * @author Michael J. Simons
  */

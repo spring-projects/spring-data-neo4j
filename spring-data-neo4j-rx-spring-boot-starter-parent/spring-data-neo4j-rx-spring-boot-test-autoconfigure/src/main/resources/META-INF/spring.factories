@@ -1,0 +1,7 @@
+# AutoConfigureDataNeo4j auto-configuration imports
+org.neo4j.springframework.boot.test.autoconfigure.data.AutoConfigureDataNeo4j=\
+org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration,\
+org.neo4j.springframework.boot.autoconfigure.data.Neo4jDataAutoConfiguration,\
+org.neo4j.springframework.boot.autoconfigure.data.Neo4jRepositoriesAutoConfiguration,\
+org.neo4j.springframework.boot.test.autoconfigure.data.Neo4jTestHarnessAutoConfiguration,\
+org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration

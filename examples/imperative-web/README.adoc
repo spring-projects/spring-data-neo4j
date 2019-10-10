@@ -1,4 +1,4 @@
-== Spring Boot / Reactive Web Example
+== Spring Boot / Imperative Web Example
 
 === Building SDN/RX and Examples.
 
@@ -15,25 +15,25 @@ cd sdn-rx
 ----
 
 If you want to only try out the examples with the currently released version,
-pick out the example you like (for example the `reactive-web` example) and build it like this:
+pick out the example you like (for example the `imperative-web` example) and build it like this:
 
 [source,bash]
 ----
 git clone git@github.com:neo4j/sdn-rx
-cd sdn-rx/examples/reactive-web
+cd sdn-rx/examples/imperative-web
 mvn -DskipTests clean package
 cd ../..
 ----
 
 === Running the examples.
 
-You'll need a Neo4j 4 instance that supports reactive database access and has a user name `neo4j` with a password of `secret`.
+You'll need a Neo4j 4 instance that has a user name `neo4j` with a password of `secret`.
 Please use `:play movies` in Neo4j browser to get some data in your graph.
 With from SDN/RX root folder run
 
 [source,bash]
 ----
-java -jar examples/reactive-web/target/movie-api.jar
+java -jar examples/imperative-web/target/movie-api.jar
 ----
 
 If your database has different credentials or is on a different host, run
@@ -79,16 +79,3 @@ curl http://localhost:8080/movies/by-title\?title\=Aeon%20Flux
 ----
 curl -X DELETE http://localhost:8080/movies/847
 ----
-
-=== Experimental support for Visual Studio Remote Containers
-
-To make playing with the examples a bit easier, we have support for https://code.visualstudio.com/docs/remote/remote-overview[VS Code Remote Development].
-Please follow the instructions at the link above for setting up your Visual Studio Code environment.
-
-Open `reactive-web` in Visual Studio Code and let it build the container.
-The container will for now contain a locally build snapshot of SDN/RX that serves as dependencies for the example.
-The example than can be build and run via Visual Studios support for Spring Boot, which is automatically added to the development container.
-
-The running example can be accessed from the outside as shown above without any further actions.
-
-At the moment, a locally running Neo4j 4.0 instance is still required, as there is no officially available image yet.

@@ -38,6 +38,7 @@
 	<modules>
 		<module>spring-data-neo4j-rx-spring-boot-autoconfigure</module>
 		<module>spring-data-neo4j-rx-spring-boot-starter</module>
+		<module>spring-data-neo4j-rx-spring-boot-test-autoconfigure</module>
 	</modules>
 
 	<properties>

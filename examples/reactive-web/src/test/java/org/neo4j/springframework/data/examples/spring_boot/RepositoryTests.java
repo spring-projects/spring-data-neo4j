@@ -33,10 +33,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+import org.neo4j.springframework.boot.test.autoconfigure.data.DataNeo4jTest;
 import org.neo4j.springframework.data.examples.spring_boot.domain.MovieRepository;
 import org.neo4j.springframework.data.examples.spring_boot.domain.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -50,10 +50,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * @author Gerrit Meier
  */
 @Testcontainers
-@EnabledIfEnvironmentVariable(named = DemoApplicationIT.SYS_PROPERTY_NEO4J_VERSION, matches = "4\\.0.*")
-@SpringBootTest
-@ContextConfiguration(initializers = DemoApplicationIT.Initializer.class)
-class DemoApplicationIT {
+@EnabledIfEnvironmentVariable(named = RepositoryTests.SYS_PROPERTY_NEO4J_VERSION, matches = "4\\.0.*")
+@DataNeo4jTest
+@ContextConfiguration(initializers = RepositoryTests.Initializer.class)
+class RepositoryTests {
 
 	private static final String SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION = "SDN_RX_NEO4J_ACCEPT_COMMERCIAL_EDITION";
 	protected static final String SYS_PROPERTY_NEO4J_VERSION = "SDN_RX_NEO4J_VERSION";

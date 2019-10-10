@@ -29,10 +29,10 @@
 	</parent>
 
 	<groupId>org.neo4j.doc.springframework.data</groupId>
-	<artifactId>spring-data-neo4j-rx-examples-reactive-web</artifactId>
+	<artifactId>spring-data-neo4j-rx-examples-imperative-web</artifactId>
 	<version>999-SNAPSHOT</version>
 
-	<name>SDN⚡️RX Examples for Reactive Spring Boot</name>
+	<name>SDN⚡️RX Examples for Spring Boot</name>
 	<description>Demonstrating how to use SDN⚡️RX from within Spring Boot.</description>
 
 	<properties>
@@ -42,16 +42,12 @@
 		<maven-failsafe-plugin.version>3.0.0-M3</maven-failsafe-plugin.version>
 		<maven-install-plugin.version>3.0.0-M1</maven-install-plugin.version>
 		<maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
+		<neo4j.version>3.5.11</neo4j.version>
 		<spring-data-neo4j-rx.version>${revision}${sha1}${changelist}</spring-data-neo4j-rx.version>
 		<testcontainers.version>1.10.7</testcontainers.version>
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>io.projectreactor</groupId>
-			<artifactId>reactor-test</artifactId>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.neo4j.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-rx-spring-boot-starter</artifactId>
@@ -61,6 +57,12 @@
 			<groupId>org.neo4j.springframework.data</groupId>
 			<artifactId>spring-data-neo4j-rx-spring-boot-test-autoconfigure</artifactId>
 			<version>${spring-data-neo4j-rx.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j.test</groupId>
+			<artifactId>neo4j-harness</artifactId>
+			<version>${neo4j.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -80,19 +82,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webflux</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>junit-jupiter</artifactId>
-			<version>${testcontainers.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>neo4j</artifactId>
-			<version>${testcontainers.version}</version>
-			<scope>test</scope>
+			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 	</dependencies>
 
