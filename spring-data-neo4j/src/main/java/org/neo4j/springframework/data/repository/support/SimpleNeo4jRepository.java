@@ -35,6 +35,7 @@ import java.util.function.LongSupplier;
 import java.util.stream.StreamSupport;
 
 import org.apache.commons.logging.LogFactory;
+import org.apiguardian.api.API;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.springframework.data.core.Neo4jClient;
@@ -69,10 +70,13 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Michael J. Simons
  * @author Ján Šúr
  * @since 1.0
+ * @param <T> the type of the domain class managed by this repository
+ * @param <ID> the type of the unique identifier of the domain class
  */
 @Repository
 @Transactional(readOnly = true)
-class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> {
+@API(status = API.Status.STABLE, since = "1.0")
+public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> {
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(SimpleNeo4jRepository.class));
 
@@ -90,7 +94,8 @@ class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> 
 
 	private final Neo4jMappingContext neo4jMappingContext;
 
-	SimpleNeo4jRepository(Neo4jClient neo4jClient, Neo4jEntityInformation<T, ID> entityInformation,
+	@API(status = API.Status.EXPERIMENTAL, since = "1.0")
+	protected SimpleNeo4jRepository(Neo4jEntityInformation<T, ID> entityInformation, Neo4jClient neo4jClient,
 		SchemaBasedStatementBuilder statementBuilder, Neo4jEvents eventSupport,
 		Neo4jMappingContext neo4jMappingContext) {
 

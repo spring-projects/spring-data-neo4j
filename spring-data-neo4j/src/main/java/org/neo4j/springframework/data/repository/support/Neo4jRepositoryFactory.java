@@ -84,7 +84,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
 		assertIdentifierType(metadata.getIdType(), entityInformation.getIdType());
 		return getTargetRepositoryViaReflection(metadata,
-			neo4jClient, entityInformation, schemaBasedStatementBuilder, eventSupport, mappingContext);
+			entityInformation, neo4jClient, schemaBasedStatementBuilder, eventSupport, mappingContext);
 	}
 
 	@Override
