@@ -87,6 +87,7 @@
 		<flatten-maven-plugin.version>1.1.0</flatten-maven-plugin.version>
 		<jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
 		<java.version>1.8</java.version>
+		<jqassistant-dashboard-plugin.version>1.7.1</jqassistant-dashboard-plugin.version>
 		<jqassistant.plugin.version>1.7.0</jqassistant.plugin.version>
 		<jqassistant.version>1.7.0</jqassistant.version>
 		<junit-jupiter.version>5.4.0</junit-jupiter.version>
@@ -285,7 +286,7 @@
 						<dependency>
 							<groupId>org.jqassistant.contrib.plugin</groupId>
 							<artifactId>jqassistant-dashboard-plugin</artifactId>
-							<version>${jqassistant.version}</version>
+							<version>${jqassistant-dashboard-plugin.version}</version>
 						</dependency>
 						<dependency>
 							<groupId>de.kontext-e.jqassistant.plugin</groupId>

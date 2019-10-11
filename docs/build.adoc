@@ -200,7 +200,17 @@ When the build finishes, execute the following command:
 [[start-jqassistant]]
 .Start jQAssistant
 ----
-$ ./mvnw -f spring-data-neo4j-rx/pom.xml jqassistant:server
+$ ./mvnw -pl org.neo4j.springframework.data:spring-data-neo4j-rx jqassistant:server
 ----
 
 Access the standard Neo4j browser at http://localhost:7474 and a dedicated jQA-Dashboard at http://localhost:7474/jqassistant/dashboard/.
+
+The scanning and analyzing can be triggered individually, without going through the full verify again:
+
+[source,console,subs="verbatim,attributes"]
+[[start-jqassistant]]
+.Manually scan and analyze the main project
+----
+$ ./mvnw -pl org.neo4j.springframework.data:spring-data-neo4j-rx jqassistant:scan@jqassistant-scan
+$ ./mvnw -pl org.neo4j.springframework.data:spring-data-neo4j-rx jqassistant:analyze@jqassistant-analyze
+----

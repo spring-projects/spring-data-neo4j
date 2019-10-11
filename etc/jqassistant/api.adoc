@@ -20,7 +20,7 @@ RETURN p.fqn, c.name
 Public interfaces, classes or annotations are either part of internal or public API and have a status.
 
 [[api:api-guardian-api-concept]]
-[source,cypher,role="concept"]
+[source,cypher,role="concept",verify=rowCount,rowCountMin=0]
 .Define which Java artifacts are part of internal or public API
 ----
 MATCH (c:Java) - [:ANNOTATED_BY] -> (a) - [:OF_TYPE] -> (t:Type {fqn: 'org.apiguardian.api.API'}),
