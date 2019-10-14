@@ -15,9 +15,7 @@
  */
 package org.springframework.data.neo4j.transaction;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import org.junit.Test;
@@ -34,7 +32,7 @@ public class SharedSessionCreatorTests {
 	@Test
 	public void proxyingWorksIfInfoReturnsNullSessionInterface() {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
-		assertThat(SharedSessionCreator.createSharedSession(sessionFactory), is(notNullValue()));
+		assertThat(SharedSessionCreator.createSharedSession(sessionFactory)).isNotNull();
 	}
 
 	@Test(expected = IllegalStateException.class)

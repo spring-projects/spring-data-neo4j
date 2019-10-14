@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.queries;
 
-import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +29,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Vince Bickers
@@ -67,7 +67,7 @@ public class QueryReturnTypesTests {
 
 		session.clear();
 		world = worldRepository.findById(world.getId()).get();
-		assertNotNull(world.getUpdated());
+		assertThat(world.getUpdated()).isNotNull();
 	}
 
 	@Test // DATAGRAPH-704
@@ -84,11 +84,11 @@ public class QueryReturnTypesTests {
 		session.clear();
 		tatooine = worldRepository.findById(tatooine.getId()).get();
 
-		assertNotNull(tatooine.getUpdated());
-		assertEquals(1, tatooine.getReachableByRocket().size());
+		assertThat(tatooine.getUpdated()).isNotNull();
+		assertThat(tatooine.getReachableByRocket().size()).isEqualTo(1);
 
 		for (World world : tatooine.getReachableByRocket()) {
-			assertNotNull(world.getUpdated());
+			assertThat(world.getUpdated()).isNotNull();
 		}
 	}
 
@@ -101,6 +101,6 @@ public class QueryReturnTypesTests {
 
 		QueryStatistics stats = worldRepository.touchAllWorldsWithStatistics().queryStatistics();
 
-		assertEquals(1, stats.getPropertiesSet());
+		assertThat(stats.getPropertiesSet()).isEqualTo(1);
 	}
 }

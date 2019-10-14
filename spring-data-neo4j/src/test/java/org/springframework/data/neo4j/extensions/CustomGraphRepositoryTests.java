@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.extensions;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +23,8 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author: Vince Bickers
@@ -41,7 +41,7 @@ public class CustomGraphRepositoryTests {
 	 */
 	@Test
 	public void shouldExposeCommonMethodOnExtendedRepository() {
-		assertTrue(repository.sharedCustomMethod());
+		assertThat(repository.sharedCustomMethod()).isTrue();
 	}
 
 	@Configuration

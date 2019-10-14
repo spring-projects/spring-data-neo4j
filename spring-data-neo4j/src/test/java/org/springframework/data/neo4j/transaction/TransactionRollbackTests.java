@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.transaction;
 
-import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -35,6 +33,9 @@ import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * See DATAGRAPH-967 DATAGRAPH-997 DATAGRAPH-995 DATAGRAPH-989 DATAGRAPH-952.
@@ -63,7 +64,7 @@ public class TransactionRollbackTests {
 
 	@AfterTransaction
 	public void checkOgmTransactionIsCleanedup() {
-		assertNull(session.getTransaction());
+		assertThat(session.getTransaction()).isNull();
 	}
 
 	@Test
@@ -76,7 +77,7 @@ public class TransactionRollbackTests {
 				try {
 					userRepository.invalidQuery();
 				} finally {
-					assertTrue(TestTransaction.isFlaggedForRollback());
+					assertThat(TestTransaction.isFlaggedForRollback()).isTrue();
 				}
 				return null;
 			});
@@ -84,9 +85,9 @@ public class TransactionRollbackTests {
 		} catch (Exception e) {
 			// expected
 		}
-		assertFalse(TestTransaction.isActive());
+		assertThat(TestTransaction.isActive()).isFalse();
 		try (Transaction tx = graphDatabaseService.beginTx()) {
-			assertFalse(graphDatabaseService.getAllNodes().iterator().hasNext());
+			assertThat(graphDatabaseService.getAllNodes().iterator().hasNext()).isFalse();
 			tx.success();
 		}
 	}
@@ -101,13 +102,13 @@ public class TransactionRollbackTests {
 				userRepository.invalidQuery();
 				fail("Should have failed because of invalid query");
 			} catch (Exception e) {
-				assertTrue(TestTransaction.isActive());
+				assertThat(TestTransaction.isActive()).isTrue();
 			}
 			userRepository.save(new User("bar"));
 			return null;
 		});
 		try (Transaction tx = graphDatabaseService.beginTx()) {
-			assertEquals(2, graphDatabaseService.getAllNodes().stream().count());
+			assertThat(graphDatabaseService.getAllNodes().stream().count()).isEqualTo(2);
 			tx.success();
 		}
 	}

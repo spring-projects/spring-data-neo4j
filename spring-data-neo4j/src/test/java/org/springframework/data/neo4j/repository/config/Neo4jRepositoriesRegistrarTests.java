@@ -15,9 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
 import java.util.Arrays;
 
 import org.junit.Before;
@@ -29,6 +26,8 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.StandardAnnotationMetadata;
 import org.springframework.data.neo4j.repository.sample.UserRepository;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit test for {@link Neo4jRepositoriesRegistrar}.
@@ -56,7 +55,7 @@ public class Neo4jRepositoriesRegistrarTests {
 		registrar.registerBeanDefinitions(metadata, registry);
 
 		Iterable<String> names = Arrays.asList(registry.getBeanDefinitionNames());
-		assertThat(names, hasItems("userRepository"));
+		assertThat(names).contains("userRepository");
 	}
 
 	@EnableNeo4jRepositories(basePackageClasses = UserRepository.class)

@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.template;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.session.Session;
@@ -34,6 +32,8 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test to assert the behaviour of {@link Session}'s interaction with Spring application events.
@@ -53,27 +53,32 @@ public class TemplateApplicationEventTests {
 	@Test
 	@Transactional
 	public void shouldCreateTemplateAndPublishAppropriateApplicationEventsOnSaveAndOnDelete() {
-		assertNotNull("The Neo4jTemplate wasn't autowired into this test", this.session);
+		assertThat(this.session).as("The Neo4jTemplate wasn't autowired into this test")
+				.isNotNull();
 
 		Actor entity = new Actor();
 		entity.setName("John Abraham");
 
-		assertFalse(this.eventListener.receivedPreSaveEvent());
-		assertFalse(this.eventListener.receivedPostSaveEvent());
+		assertThat(this.eventListener.receivedPreSaveEvent()).isFalse();
+		assertThat(this.eventListener.receivedPostSaveEvent()).isFalse();
 		this.session.save(entity);
-		assertTrue(this.eventListener.receivedPreSaveEvent());
+		assertThat(this.eventListener.receivedPreSaveEvent()).isTrue();
 
-		assertSame(entity, this.eventListener.getPreSaveEvent().getSource().getObject());
-		assertTrue(this.eventListener.receivedPostSaveEvent());
-		assertSame(entity, this.eventListener.getPostSaveEvent().getSource().getObject());
+		assertThat(this.eventListener.getPreSaveEvent().getSource().getObject())
+				.isSameAs(entity);
+		assertThat(this.eventListener.receivedPostSaveEvent()).isTrue();
+		assertThat(this.eventListener.getPostSaveEvent().getSource().getObject())
+				.isSameAs(entity);
 
-		assertFalse(this.eventListener.receivedPreDeleteEvent());
-		assertFalse(this.eventListener.receivedPostDeleteEvent());
+		assertThat(this.eventListener.receivedPreDeleteEvent()).isFalse();
+		assertThat(this.eventListener.receivedPostDeleteEvent()).isFalse();
 		this.session.delete(entity);
-		assertTrue(this.eventListener.receivedPreDeleteEvent());
-		assertSame(entity, this.eventListener.getPreDeleteEvent().getSource().getObject());
-		assertTrue(this.eventListener.receivedPostDeleteEvent());
-		assertSame(entity, this.eventListener.getPostDeleteEvent().getSource().getObject());
+		assertThat(this.eventListener.receivedPreDeleteEvent()).isTrue();
+		assertThat(this.eventListener.getPreDeleteEvent().getSource().getObject())
+				.isSameAs(entity);
+		assertThat(this.eventListener.receivedPostDeleteEvent()).isTrue();
+		assertThat(this.eventListener.getPostDeleteEvent().getSource().getObject())
+				.isSameAs(entity);
 	}
 
 	@Configuration
