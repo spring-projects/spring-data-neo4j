@@ -25,9 +25,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.neo4j.ogm.metadata.ClassInfo;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.session.SessionFactory;
@@ -56,8 +54,6 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 	private static final String GENERATED_SESSION_BEAN_NAME = "org.springframework.data.neo4j.transaction.SharedSessionCreator#0";
 	private static final String CUSTOM_SESSION_BEAN_NAME = "mySession";
 	private static final String CUSTOM_MAPPING_CONTEXT_BEAN_NAME = "myMappingContext";
-
-	public @Rule ExpectedException exception = ExpectedException.none();
 
 	@Test
 	public void shouldRegisterSessionFactoryUnderDefaultName() {

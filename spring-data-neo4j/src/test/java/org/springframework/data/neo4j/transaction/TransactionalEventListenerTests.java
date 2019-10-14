@@ -30,9 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -62,8 +60,10 @@ import org.springframework.util.MultiValueMap;
  * spring framework transactional event listener tests</a> and modified to work with a version of the
  * Neo4jTransactionManager.
  *
+ * See DATAGRAPH-883
+ *
  * @author Mark Angrish
- * @see DATAGRAPH-883
+ * @author Michael J. Simons
  */
 public class TransactionalEventListenerTests {
 
@@ -72,8 +72,6 @@ public class TransactionalEventListenerTests {
 	private EventCollector eventCollector;
 
 	private TransactionTemplate transactionTemplate = new TransactionTemplate(new CallCountingTransactionManager());
-
-	@Rule public final ExpectedException thrown = ExpectedException.none();
 
 	@Before
 	public void closeContext() {
