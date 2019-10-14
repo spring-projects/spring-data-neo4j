@@ -53,7 +53,6 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * Default implementation of {@link Neo4jClient}. Uses the Neo4j Java driver to connect to and interact with the database.
@@ -85,7 +84,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 			statementRunner = driver.session(defaultSessionConfig(targetDatabase));
 		}
 
-		return (AutoCloseableStatementRunner) Proxy.newProxyInstance(ClassUtils.getDefaultClassLoader(),
+		return (AutoCloseableStatementRunner) Proxy.newProxyInstance(this.getClass().getClassLoader(),
 			new Class<?>[] { AutoCloseableStatementRunner.class },
 			new AutoCloseableStatementRunnerHandler(statementRunner));
 	}
