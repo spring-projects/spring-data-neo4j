@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.examples.friends;
 
-import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +32,8 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Luanne Misquitta
@@ -62,8 +62,8 @@ public class FriendTests {
 		session.clear();
 		Person john = session.loadAll(Person.class, new Filter("firstName", ComparisonOperator.EQUALS, "John")).iterator()
 				.next();
-		assertNotNull(john);
-		assertEquals(2, john.getFriendships().size());
+		assertThat(john).isNotNull();
+		assertThat(john.getFriendships().size()).isEqualTo(2);
 	}
 
 	@Test // DATAGRAPH-694
@@ -83,9 +83,10 @@ public class FriendTests {
 
 		Friendship queriedFriendship = friendshipRepository.getFriendship(john, bob);
 
-		assertNotNull(queriedFriendship);
-		assertEquals("John", queriedFriendship.getPersonStartNode().getFirstName());
-		assertEquals("Bob", queriedFriendship.getPersonEndNode().getFirstName());
+		assertThat(queriedFriendship).isNotNull();
+		assertThat(queriedFriendship.getPersonStartNode().getFirstName())
+				.isEqualTo("John");
+		assertThat(queriedFriendship.getPersonEndNode().getFirstName()).isEqualTo("Bob");
 	}
 
 	@Configuration

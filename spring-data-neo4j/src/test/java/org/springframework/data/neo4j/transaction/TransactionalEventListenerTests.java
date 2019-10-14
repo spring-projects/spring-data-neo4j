@@ -15,7 +15,8 @@
  */
 package org.springframework.data.neo4j.transaction;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.springframework.transaction.event.TransactionPhase.*;
 
 import java.lang.annotation.ElementType;
@@ -104,8 +105,8 @@ public class TransactionalEventListenerTests {
 				return null;
 			});
 		} catch (IllegalStateException e) {
-			assertTrue(e.getMessage().contains("Test exception"));
-			assertTrue(e.getMessage().contains(EventCollector.IMMEDIATELY));
+			assertThat(e.getMessage().contains("Test exception")).isTrue();
+			assertThat(e.getMessage().contains(EventCollector.IMMEDIATELY)).isTrue();
 		}
 		getEventCollector().assertEvents(EventCollector.IMMEDIATELY, "FAIL");
 		getEventCollector().assertTotalEventsCount(1);
@@ -384,17 +385,13 @@ public class TransactionalEventListenerTests {
 			}
 			for (String phase : phases) {
 				List<Object> eventsForPhase = getEvents(phase);
-				assertEquals("Expected no events for phase '" + phase + "' " + "but got " + eventsForPhase + ":", 0,
-						eventsForPhase.size());
+				assertThat(eventsForPhase).describedAs("Expected no events for phase '" + phase + "' " + "but got " + eventsForPhase + ":").isEmpty();
 			}
 		}
 
 		public void assertEvents(String phase, Object... expected) {
 			List<Object> actual = getEvents(phase);
-			assertEquals("wrong number of events for phase '" + phase + "'", expected.length, actual.size());
-			for (int i = 0; i < expected.length; i++) {
-				assertEquals("Wrong event for phase '" + phase + "' at index " + i, expected[i], actual.get(i));
-			}
+			assertThat(actual).describedAs("wrong number of events for phase '" + phase + "'").hasSameSizeAs(expected).containsAnyOf(expected);
 		}
 
 		public void assertTotalEventsCount(int number) {
@@ -402,7 +399,7 @@ public class TransactionalEventListenerTests {
 			for (Map.Entry<String, List<Object>> entry : this.events.entrySet()) {
 				size += entry.getValue().size();
 			}
-			assertEquals("Wrong number of total events (" + this.events.size() + ") " + "registered phase(s)", number, size);
+			assertThat(size).describedAs("Wrong number of total events (" + this.events.size() + ") " + "registered phase(s)").isEqualTo(number);
 		}
 	}
 

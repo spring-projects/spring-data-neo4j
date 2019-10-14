@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.namedquery;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.session.SessionFactory;
@@ -34,6 +32,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gerrit Meier
@@ -53,7 +53,7 @@ public class NamedQueryTests {
 		createAndSaveSampleEntity();
 
 		SampleEntityForNamedQuery titleEntity = repository.getTitleEntity();
-		assertNotNull(titleEntity);
+		assertThat(titleEntity).isNotNull();
 	}
 
 	@Test
@@ -61,7 +61,7 @@ public class NamedQueryTests {
 		createAndSaveSampleEntity();
 
 		SampleEntityForNamedQuery titleEntity = repository.findByName(SAMPLE_ENTITY_NAME);
-		assertNotNull(titleEntity);
+		assertThat(titleEntity).isNotNull();
 	}
 
 	@Test
@@ -69,7 +69,7 @@ public class NamedQueryTests {
 		createAndSaveSampleEntity();
 
 		SampleEntityForNamedQuery titleEntity = repository.findByQueryWithoutParameter();
-		assertNotNull(titleEntity);
+		assertThat(titleEntity).isNotNull();
 	}
 
 	@Test
@@ -77,7 +77,7 @@ public class NamedQueryTests {
 		createAndSaveSampleEntity();
 
 		SampleEntityForNamedQuery titleEntity = repository.findByQueryWithParameter(SAMPLE_ENTITY_NAME);
-		assertNotNull(titleEntity);
+		assertThat(titleEntity).isNotNull();
 	}
 
 	private void createAndSaveSampleEntity() {

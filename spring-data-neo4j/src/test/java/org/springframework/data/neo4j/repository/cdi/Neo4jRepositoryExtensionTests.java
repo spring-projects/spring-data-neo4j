@@ -15,8 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.cdi;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import java.lang.annotation.Annotation;
@@ -64,8 +63,8 @@ public class Neo4jRepositoryExtensionTests {
 
 		Map<Set<Annotation>, Bean<Session>> sessions = (Map<Set<Annotation>, Bean<Session>>) ReflectionTestUtils
 				.getField(extension, "sessions");
-		assertThat(sessions.size(), is(1));
-		assertThat(sessions.values(), hasItem(em));
+		assertThat(sessions.size()).isEqualTo(1);
+		assertThat(sessions.values()).contains(em);
 	}
 
 	@SuppressWarnings("unchecked")

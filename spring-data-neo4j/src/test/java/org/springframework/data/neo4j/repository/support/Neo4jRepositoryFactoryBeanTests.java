@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import org.junit.Before;
@@ -67,7 +67,7 @@ public class Neo4jRepositoryFactoryBeanTests {
 		factoryBean.setBeanFactory(beanFactory);
 		factoryBean.afterPropertiesSet();
 
-		assertNotNull(factoryBean.getObject());
+		assertThat(factoryBean.getObject()).isNotNull();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
