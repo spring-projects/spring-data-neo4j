@@ -50,10 +50,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * @author Gerrit Meier
  */
 @Testcontainers
-@EnabledIfEnvironmentVariable(named = RepositoryTests.SYS_PROPERTY_NEO4J_VERSION, matches = "4\\.0.*")
+@EnabledIfEnvironmentVariable(named = RepositoryIT.SYS_PROPERTY_NEO4J_VERSION, matches = "4\\.0.*")
 @DataNeo4jTest
-@ContextConfiguration(initializers = RepositoryTests.Initializer.class)
-class RepositoryTests {
+@ContextConfiguration(initializers = RepositoryIT.Initializer.class)
+class RepositoryIT {
 
 	private static final String SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION = "SDN_RX_NEO4J_ACCEPT_COMMERCIAL_EDITION";
 	protected static final String SYS_PROPERTY_NEO4J_VERSION = "SDN_RX_NEO4J_VERSION";

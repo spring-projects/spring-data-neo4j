@@ -38,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Michael J. Simons
  */
 @DataNeo4jTest
-class RepositoryTests {
+class RepositoryIT {
 
 	@Autowired
 	private PersonRepository repository;
