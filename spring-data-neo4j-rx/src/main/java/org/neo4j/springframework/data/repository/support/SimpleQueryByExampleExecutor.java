@@ -22,21 +22,15 @@ import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.LongSupplier;
 
-import org.neo4j.driver.Record;
-import org.neo4j.driver.types.TypeSystem;
-import org.neo4j.springframework.data.core.Neo4jClient;
-import org.neo4j.springframework.data.core.Neo4jClient.ExecutableQuery;
-import org.neo4j.springframework.data.core.PreparedQuery;
+import org.neo4j.springframework.data.core.Neo4jOperations;
 import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.BuildableStatement;
-import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
+import org.neo4j.springframework.data.core.schema.CypherGenerator;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -55,68 +49,61 @@ import org.springframework.data.repository.support.PageableExecutionUtils;
  */
 class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 
-	private static final Renderer renderer = Renderer.getDefaultRenderer();
-
-	private final Neo4jClient neo4jClient;
+	private final Neo4jOperations neo4jOperations;
 
 	private final Neo4jMappingContext mappingContext;
 
-	private final SchemaBasedStatementBuilder statementBuilder;
+	private final CypherGenerator cypherGenerator;
 
-	SimpleQueryByExampleExecutor(Neo4jClient neo4jClient,
-		Neo4jMappingContext mappingContext,
-		SchemaBasedStatementBuilder statementBuilder) {
-		this.neo4jClient = neo4jClient;
+	SimpleQueryByExampleExecutor(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext) {
+
+		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
-		this.statementBuilder = statementBuilder;
+		this.cypherGenerator = CypherGenerator.INSTANCE;
 	}
 
 	@Override
 	public <S extends T> Optional<S> findOne(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
 			.returning(asterisk())
 			.build();
 
-		return createExecutableQuery(example.getProbeType(), statement, predicate.getParameters()).getSingleResult();
+		return this.neo4jOperations.findOne(statement, predicate.getParameters(), example.getProbeType());
 	}
 
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
 			.returning(asterisk())
 			.build();
 
-		return createExecutableQuery(example.getProbeType(), statement, predicate.getParameters()).getResults();
+		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
 	}
 
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
 			.returning(asterisk())
-			.orderBy(toSortItems(predicate.getNodeDescription(), sort)).build();
+			.orderBy(toSortItems(predicate.getNeo4jPersistentEntity(), sort)).build();
 
-		return createExecutableQuery(example.getProbeType(), statement, predicate.getParameters()).getResults();
+		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
 	}
 
 	@Override
 	public <S extends T> long count(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
 			.returning(Functions.count(asterisk()))
 			.build();
 
-		PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class)
-			.withCypherQuery(renderer.render(statement))
-			.withParameters(predicate.getParameters())
-			.build();
-		return neo4jClient.toExecutableQuery(preparedQuery).getRequiredSingleResult();
+		return this.neo4jOperations.count(statement, predicate.getParameters());
 	}
 
 	@Override
@@ -129,29 +116,16 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
 		StatementBuilder.OngoingReadingAndReturn returning = predicate
-			.useWithReadingFragment(statementBuilder::prepareMatchOf)
+			.useWithReadingFragment(cypherGenerator::prepareMatchOf)
 			.returning(asterisk());
 
-		BuildableStatement returningWithPaging = addPagingParameter(predicate.getNodeDescription(), pageable, returning);
+		BuildableStatement returningWithPaging = addPagingParameter(predicate.getNeo4jPersistentEntity(), pageable,
+			returning);
 
 		Statement statement = returningWithPaging.build();
 
-		List<S> page = createExecutableQuery(example.getProbeType(), statement, predicate.getParameters()).getResults();
+		List<S> page = this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
 		LongSupplier totalCountSupplier = () -> this.count(example);
 		return PageableExecutionUtils.getPage(page, pageable, totalCountSupplier);
-	}
-
-	private <S extends T> ExecutableQuery<S> createExecutableQuery(Class<S> resultType, Statement statement,
-		Map<String, Object> parameters) {
-
-		BiFunction<TypeSystem, Record, ?> mappingFunctionToUse
-			= this.mappingContext.getMappingFunctionFor(resultType);
-
-		PreparedQuery<S> preparedQuery = PreparedQuery.queryFor(resultType)
-			.withCypherQuery(renderer.render(statement))
-			.withParameters(parameters)
-			.usingMappingFunction(mappingFunctionToUse)
-			.build();
-		return neo4jClient.toExecutableQuery(preparedQuery);
 	}
 }

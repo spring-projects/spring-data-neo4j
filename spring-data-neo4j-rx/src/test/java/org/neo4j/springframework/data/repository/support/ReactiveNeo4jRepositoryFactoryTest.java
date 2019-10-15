@@ -32,6 +32,7 @@ import org.springframework.data.repository.core.RepositoryInformation;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @ExtendWith(MockitoExtension.class)
 class ReactiveNeo4jRepositoryFactoryTest {
@@ -43,7 +44,7 @@ class ReactiveNeo4jRepositoryFactoryTest {
 	@Nested
 	class IdentifierTypeCheck {
 
-		@Spy private ReactiveNeo4jRepositoryFactory neo4jRepositoryFactory = new ReactiveNeo4jRepositoryFactory(null, null, null);
+		@Spy private ReactiveNeo4jRepositoryFactory neo4jRepositoryFactory = new ReactiveNeo4jRepositoryFactory(null, null);
 		private Neo4jEntityInformation entityInformation;
 		private RepositoryInformation metadata;
 

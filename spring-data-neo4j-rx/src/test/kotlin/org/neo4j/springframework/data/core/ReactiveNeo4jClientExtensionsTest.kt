@@ -182,48 +182,4 @@ class ReactiveNeo4jClientExtensionsTest {
             }
         }
     }
-
-    @Nested
-    inner class CoroutinesVariantsOfExecutableQuery {
-
-        private val executableQuery = mockk<ReactiveNeo4jClient.ExecutableQuery<String>>()
-
-        @Test
-        fun `fetchAllResults should return a flow of thing`() {
-
-            every { executableQuery.results } returns Flux.just("foo", "bar")
-
-            runBlocking {
-                assertThat(executableQuery.fetchAllResults().toList()).contains("foo", "bar")
-            }
-
-            verify {
-                executableQuery.results
-            }
-        }
-
-        @Test
-        fun `awaitSingleResultOrNull should return value`() {
-            every { executableQuery.singleResult } returns Mono.just("baz")
-
-            runBlocking {
-                assertThat(executableQuery.awaitSingleResultOrNull()).isEqualTo("baz")
-            }
-            verify {
-                executableQuery.singleResult
-            }
-        }
-
-        @Test
-        fun `awaitFirstOrNull should return null`() {
-            every { executableQuery.singleResult } returns Mono.empty()
-
-            runBlocking {
-                assertThat(executableQuery.awaitSingleResultOrNull()).isNull()
-            }
-            verify {
-                executableQuery.singleResult
-            }
-        }
-    }
 }

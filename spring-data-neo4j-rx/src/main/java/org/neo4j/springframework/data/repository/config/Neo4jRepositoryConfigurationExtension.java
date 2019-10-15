@@ -57,6 +57,8 @@ public final class Neo4jRepositoryConfigurationExtension extends RepositoryConfi
 	 */
 	public static final String DEFAULT_NEO4J_CLIENT_BEAN_NAME = "neo4jClient";
 
+	public static final String DEFAULT_NEO4J_TEMPLATE_BEAN_NAME = "neo4jTemplate";
+
 	public static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 
 	/**
@@ -105,8 +107,8 @@ public final class Neo4jRepositoryConfigurationExtension extends RepositoryConfi
 	@Override
 	public void postProcess(BeanDefinitionBuilder builder, RepositoryConfigurationSource source) {
 
-		builder.addPropertyReference("neo4jClient",
-			source.getAttribute("neo4jClientRef").orElse(DEFAULT_NEO4J_CLIENT_BEAN_NAME));
+		builder.addPropertyReference("neo4jOperations",
+			source.getAttribute("neo4jTemplateRef").orElse(DEFAULT_NEO4J_TEMPLATE_BEAN_NAME));
 		builder.addPropertyReference("neo4jMappingContext",
 			source.getAttribute("neo4jMappingContextRef").orElse(DEFAULT_MAPPING_CONTEXT_BEAN_NAME));
 	}

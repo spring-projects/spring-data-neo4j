@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core.mapping;
 
+import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Relationship;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
@@ -86,8 +87,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 		Neo4jPersistentProperty obverse = null;
 		return new DefaultRelationshipDescription(this, obverse, type, this.isDynamicAssociation(),
-			((Neo4jPersistentEntity) getOwner()).getPrimaryLabel(),
-			obverseOwner.getPrimaryLabel(), this.getName(), direction);
+			(NodeDescription<?>) getOwner(), this.getName(), obverseOwner, direction);
 	}
 
 	@Override

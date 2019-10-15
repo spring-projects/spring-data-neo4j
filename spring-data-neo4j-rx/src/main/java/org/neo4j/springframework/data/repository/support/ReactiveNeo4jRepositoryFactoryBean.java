@@ -21,10 +21,9 @@ package org.neo4j.springframework.data.repository.support;
 import java.io.Serializable;
 
 import org.apiguardian.api.API;
-import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
+import org.neo4j.springframework.data.core.ReactiveNeo4jOperations;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.repository.config.ReactiveNeo4jRepositoryConfigurationExtension;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
@@ -46,7 +45,7 @@ import org.springframework.lang.Nullable;
 public final class ReactiveNeo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
 	extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
-	private ReactiveNeo4jClient neo4jClient;
+	private ReactiveNeo4jOperations neo4jOperations;
 
 	private Neo4jMappingContext neo4jMappingContext;
 
@@ -62,8 +61,8 @@ public final class ReactiveNeo4jRepositoryFactoryBean<T extends Repository<S, ID
 		super.setTransactionManager(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME);
 	}
 
-	public void setNeo4jClient(ReactiveNeo4jClient neo4jClient) {
-		this.neo4jClient = neo4jClient;
+	public void setNeo4jOperations(ReactiveNeo4jOperations neo4jOperations) {
+		this.neo4jOperations = neo4jOperations;
 	}
 
 	public void setNeo4jMappingContext(Neo4jMappingContext neo4jMappingContext) {
@@ -72,13 +71,6 @@ public final class ReactiveNeo4jRepositoryFactoryBean<T extends Repository<S, ID
 
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
-		return new ReactiveNeo4jRepositoryFactory(neo4jClient, neo4jMappingContext, new ReactiveNeo4jEvents(entityCallbacks));
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		super.setBeanFactory(beanFactory);
-
-		this.entityCallbacks = ReactiveEntityCallbacks.create(beanFactory);
+		return new ReactiveNeo4jRepositoryFactory(neo4jOperations, neo4jMappingContext);
 	}
 }

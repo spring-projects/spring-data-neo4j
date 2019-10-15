@@ -19,6 +19,7 @@
 package org.neo4j.springframework.data.core.schema;
 
 import org.apiguardian.api.API;
+import org.jetbrains.annotations.NotNull;
 import org.neo4j.springframework.data.core.schema.Relationship.Direction;
 
 /**
@@ -53,14 +54,14 @@ public interface RelationshipDescription {
 	 *
 	 * @return The source of this relationship
 	 */
-	String getSource();
+	NodeDescription<?> getSource();
 
 	/**
 	 * The target of this relationship is described by the primary label of the node in question.
 	 *
 	 * @return The target of this relationship
 	 */
-	String getTarget();
+	NodeDescription<?> getTarget();
 
 	/**
 	 * The name of the property where the relationship was defined. This is used by the Cypher creation to name the
@@ -84,5 +85,11 @@ public interface RelationshipDescription {
 
 	default boolean isIncoming() {
 		return Direction.INCOMING.equals(this.getDirection());
+	}
+
+	@NotNull
+	default String generateRelatedNodesCollectionName() {
+
+		return this.getSource().getPrimaryLabel() + "_" + this.getType() + "_" + this.getTarget().getPrimaryLabel();
 	}
 }

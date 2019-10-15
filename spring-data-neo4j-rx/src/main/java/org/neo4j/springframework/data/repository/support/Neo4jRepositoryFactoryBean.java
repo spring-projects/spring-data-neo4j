@@ -21,15 +21,12 @@ package org.neo4j.springframework.data.repository.support;
 import java.io.Serializable;
 
 import org.apiguardian.api.API;
-import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.Neo4jOperations;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
-import org.springframework.lang.Nullable;
 
 /**
  * Special adapter for Springs {@link org.springframework.beans.factory.FactoryBean} interface to allow easy setup of
@@ -46,11 +43,9 @@ import org.springframework.lang.Nullable;
 public final class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
 	extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
-	private Neo4jClient neo4jClient;
+	private Neo4jOperations neo4jOperations;
 
 	private Neo4jMappingContext neo4jMappingContext;
-
-	private @Nullable EntityCallbacks entityCallbacks;
 
 	/**
 	 * Creates a new {@link TransactionalRepositoryFactoryBeanSupport} for the given repository interface.
@@ -62,8 +57,8 @@ public final class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID
 		super.setTransactionManager(Neo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME);
 	}
 
-	public void setNeo4jClient(Neo4jClient neo4jClient) {
-		this.neo4jClient = neo4jClient;
+	public void setNeo4jOperations(Neo4jOperations neo4jOperations) {
+		this.neo4jOperations = neo4jOperations;
 	}
 
 	public void setNeo4jMappingContext(Neo4jMappingContext neo4jMappingContext) {
@@ -72,13 +67,6 @@ public final class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID
 
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
-		return new Neo4jRepositoryFactory(neo4jClient, neo4jMappingContext, new Neo4jEvents(entityCallbacks));
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		super.setBeanFactory(beanFactory);
-
-		this.entityCallbacks = EntityCallbacks.create(beanFactory);
+		return new Neo4jRepositoryFactory(neo4jOperations, neo4jMappingContext);
 	}
 }

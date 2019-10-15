@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.neo4j.driver.types.Point;
-import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.Neo4jOperations;
 import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -71,11 +71,11 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 	private final PartTree tree;
 
 	PartTreeNeo4jQuery(
-		Neo4jClient neo4jClient,
+		Neo4jOperations neo4jOperations,
 		Neo4jMappingContext mappingContext,
 		Neo4jQueryMethod queryMethod
 	) {
-		super(neo4jClient, mappingContext, queryMethod);
+		super(neo4jOperations, mappingContext, queryMethod);
 
 		this.tree = new PartTree(queryMethod.getName(), domainType);
 

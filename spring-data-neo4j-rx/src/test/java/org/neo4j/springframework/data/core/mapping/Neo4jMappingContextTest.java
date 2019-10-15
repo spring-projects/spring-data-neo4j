@@ -67,11 +67,10 @@ public class Neo4jMappingContextTest {
 					.containsExactlyInAnyOrder("id", "name", "firstName");
 
 				Collection<String> expectedRelationships = Arrays.asList("[:OWNS] -> (:BikeNode)");
-				Collection<RelationshipDescription> relationships = schema
-					.getRelationshipsOf(description.getPrimaryLabel());
+				Collection<RelationshipDescription> relationships = description.getRelationships();
 				assertThat(relationships.stream().filter(r -> !r.isDynamic()))
 					.allMatch(d -> expectedRelationships
-						.contains(String.format("[:%s] -> (:%s)", d.getType(), d.getTarget())));
+						.contains(String.format("[:%s] -> (:%s)", d.getType(), d.getTarget().getPrimaryLabel())));
 			});
 
 		NodeDescription<?> optionalBikeNodeDescription = schema.getNodeDescription("BikeNode");
@@ -83,11 +82,10 @@ public class Neo4jMappingContextTest {
 				assertThat(description.getIdDescription().isAssignedId()).isTrue();
 
 				Collection<String> expectedRelationships = Arrays.asList("[:OWNER] -> (:User)", "[:RENTER] -> (:User)");
-				Collection<RelationshipDescription> relationships = schema
-					.getRelationshipsOf(description.getPrimaryLabel());
+				Collection<RelationshipDescription> relationships = description.getRelationships();
 				assertThat(relationships.stream().filter(r -> !r.isDynamic()))
 					.allMatch(d -> expectedRelationships
-						.contains(String.format("[:%s] -> (:%s)", d.getType(), d.getTarget())));
+						.contains(String.format("[:%s] -> (:%s)", d.getType(), d.getTarget().getPrimaryLabel())));
 			});
 
 		Neo4jPersistentEntity<?> bikeNodeEntity = schema.getPersistentEntity(BikeNode.class);

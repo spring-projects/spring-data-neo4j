@@ -41,6 +41,7 @@ import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.SortItem;
 import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
+import org.neo4j.springframework.data.core.schema.CypherGenerator;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
@@ -126,10 +127,10 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 	@Override
 	protected String complete(Condition condition, Sort sort) {
 
-		SchemaBasedStatementBuilder statementBuilder = createSchemaBasedStatementBuilder(mappingContext);
-		Statement statement = statementBuilder
+		CypherGenerator cypherGenerator = CypherGenerator.INSTANCE;
+		Statement statement = cypherGenerator
 			.prepareMatchOf(nodeDescription, condition)
-			.returning(statementBuilder.createReturnStatementForMatch(nodeDescription, includedProperties))
+			.returning(cypherGenerator.createReturnStatementForMatch(nodeDescription, includedProperties))
 			.orderBy(
 				Stream.concat(
 					sortItems.stream(),

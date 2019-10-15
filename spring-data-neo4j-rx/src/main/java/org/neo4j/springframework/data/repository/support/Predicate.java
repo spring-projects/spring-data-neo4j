@@ -20,7 +20,6 @@ package org.neo4j.springframework.data.repository.support;
 
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
-import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -39,6 +38,7 @@ import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder;
 import org.neo4j.springframework.data.core.cypher.SymbolicName;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
+import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
@@ -63,7 +63,7 @@ final class Predicate {
 
 	static <S> Predicate create(Neo4jMappingContext mappingContext, Example<S> example) {
 
-		NodeDescription<?> probeNodeDescription = mappingContext.getRequiredNodeDescription(example.getProbeType());
+		Neo4jPersistentEntity probeNodeDescription = mappingContext.getRequiredPersistentEntity(example.getProbeType());
 
 		SymbolicName rootNode = Cypher.name(NAME_OF_ROOT_NODE);
 		Collection<GraphPropertyDescription> graphProperties = probeNodeDescription.getGraphProperties();
@@ -103,7 +103,7 @@ final class Predicate {
 				log.error("Querying by example does not support traversing of relationships.");
 			} else if (graphProperty.isIdProperty() && probeNodeDescription.isUsingInternalIds()) {
 				predicate
-					.add(mode, createIdExpression(predicate.nodeDescription).isEqualTo(literalOf(optionalValue.get())));
+					.add(mode, predicate.neo4jPersistentEntity.getIdExpression().isEqualTo(literalOf(optionalValue.get())));
 			} else {
 				Expression property = property(rootNode, propertyName);
 				Expression parameter = parameter(propertyName);
@@ -149,19 +149,19 @@ final class Predicate {
 		return predicate;
 	}
 
-	private final NodeDescription<?> nodeDescription;
+	private final Neo4jPersistentEntity neo4jPersistentEntity;
 
 	private Condition condition = Conditions.noCondition();
 
 	private final Map<String, Object> parameters = new HashMap<>();
 
-	private Predicate(NodeDescription<?> nodeDescription) {
-		this.nodeDescription = nodeDescription;
+	private Predicate(Neo4jPersistentEntity neo4jPersistentEntity) {
+		this.neo4jPersistentEntity = neo4jPersistentEntity;
 	}
 
 	StatementBuilder.OrderableOngoingReadingAndWith useWithReadingFragment(
 		BiFunction<NodeDescription<?>, Condition, StatementBuilder.OrderableOngoingReadingAndWith> readingFragmentSupplier) {
-		return readingFragmentSupplier.apply(this.nodeDescription, this.condition);
+		return readingFragmentSupplier.apply(this.neo4jPersistentEntity, this.condition);
 	}
 
 	private void add(ExampleMatcher.MatchMode matchMode, Condition additionalCondition) {
@@ -178,8 +178,8 @@ final class Predicate {
 		}
 	}
 
-	public NodeDescription<?> getNodeDescription() {
-		return nodeDescription;
+	public NodeDescription<?> getNeo4jPersistentEntity() {
+		return neo4jPersistentEntity;
 	}
 
 	public Map<String, Object> getParameters() {

@@ -23,6 +23,9 @@ import static org.springframework.boot.autoconfigure.data.RepositoryType.*;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
 import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.Neo4jOperations;
+import org.neo4j.springframework.data.core.Neo4jTemplate;
+import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
 import org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension;
 import org.springframework.beans.factory.ObjectProvider;
@@ -53,6 +56,12 @@ class Neo4jImperativeDataConfiguration {
 	@ConditionalOnMissingBean
 	public Neo4jClient neo4jClient(Driver driver) {
 		return Neo4jClient.create(driver);
+	}
+
+	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
+	@ConditionalOnMissingBean(Neo4jOperations.class)
+	public Neo4jTemplate neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext) {
+		return new Neo4jTemplate(neo4jClient, neo4jMappingContext);
 	}
 
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)

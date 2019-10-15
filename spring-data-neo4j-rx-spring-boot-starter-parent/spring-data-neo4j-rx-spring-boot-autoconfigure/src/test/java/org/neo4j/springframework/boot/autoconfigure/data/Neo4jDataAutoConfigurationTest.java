@@ -31,6 +31,8 @@ import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.Neo4jOperations;
+import org.neo4j.springframework.data.core.Neo4jTemplate;
 import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -87,6 +89,29 @@ class Neo4jDataAutoConfigurationTest {
 
 		@Nested
 		@DisplayName("Automatic configuration…")
+		class ConfigurationOfTemplate {
+			@Test
+			@DisplayName("…should create new Neo4j Template")
+			void shouldCreateNew() {
+				contextRunner
+					.withPropertyValues("spring.data.neo4j.repositories.type=imperative")
+					.run(ctx -> assertThat(ctx).hasSingleBean(Neo4jTemplate.class));
+			}
+
+			@Test
+			@DisplayName("…should not replace existing Neo4j Operations")
+			void shouldNotReplaceExisting() {
+				contextRunner
+					.withUserConfiguration(ConfigurationWithExistingTemplate.class)
+					.run(ctx -> assertThat(ctx)
+						.hasSingleBean(Neo4jOperations.class)
+						.hasBean("myCustomOperations")
+					);
+			}
+		}
+
+		@Nested
+		@DisplayName("Automatic configuration…")
 		class ConfigurationOfTransactionManager {
 			@Test
 			@DisplayName("…should create new Neo4j transaction manager")
@@ -113,9 +138,9 @@ class Neo4jDataAutoConfigurationTest {
 	static class MockedDriverConfiguration {
 		@Bean
 		Driver driver() {
-			Driver driver = Mockito.mock(Driver.class);
-			TypeSystem typeSystem = Mockito.mock(TypeSystem.class);
-			Session session = Mockito.mock(Session.class);
+			Driver driver = mock(Driver.class);
+			TypeSystem typeSystem = mock(TypeSystem.class);
+			Session session = mock(Session.class);
 			when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 			when(driver.session(Mockito.any(SessionConfig.class))).thenReturn(session);
 			return driver;
@@ -131,10 +156,18 @@ class Neo4jDataAutoConfigurationTest {
 	}
 
 	@Configuration
+	static class ConfigurationWithExistingTemplate {
+		@Bean("myCustomOperations")
+		Neo4jOperations neo4jOperations() {
+			return mock(Neo4jOperations.class);
+		}
+	}
+
+	@Configuration
 	static class ConfigurationWithExistingTransactionManager {
 		@Bean("myCustomTransactionManager")
 		PlatformTransactionManager transactionManager() {
-			return Mockito.mock(PlatformTransactionManager.class);
+			return mock(PlatformTransactionManager.class);
 		}
 	}
 }
