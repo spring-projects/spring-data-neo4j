@@ -21,7 +21,7 @@ package org.neo4j.springframework.data.repository.query;
 import java.lang.reflect.Method;
 
 import org.apiguardian.api.API;
-import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.Neo4jOperations;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
@@ -40,14 +40,14 @@ import org.springframework.data.repository.query.RepositoryQuery;
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 
-	private final Neo4jClient neo4jClient;
 	private final Neo4jMappingContext mappingContext;
+	private final Neo4jOperations neo4jOperations;
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 
-	public Neo4jQueryLookupStrategy(Neo4jClient neo4jClient,
+	public Neo4jQueryLookupStrategy(Neo4jOperations neo4jOperations,
 		Neo4jMappingContext mappingContext,
 		QueryMethodEvaluationContextProvider evaluationContextProvider) {
-		this.neo4jClient = neo4jClient;
+		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
 		this.evaluationContextProvider = evaluationContextProvider;
 	}
@@ -63,12 +63,12 @@ public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 		String namedQueryName = queryMethod.getNamedQueryName();
 
 		if (namedQueries.hasQuery(namedQueryName)) {
-			return StringBasedNeo4jQuery.create(neo4jClient, mappingContext, evaluationContextProvider, queryMethod,
+			return StringBasedNeo4jQuery.create(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
 				namedQueries.getQuery(namedQueryName));
 		} else if (queryMethod.hasQueryAnnotation()) {
-			return StringBasedNeo4jQuery.create(neo4jClient, mappingContext, evaluationContextProvider, queryMethod);
+			return StringBasedNeo4jQuery.create(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod);
 		} else {
-			return new PartTreeNeo4jQuery(neo4jClient, mappingContext, queryMethod);
+			return new PartTreeNeo4jQuery(neo4jOperations, mappingContext, queryMethod);
 		}
 	}
 }

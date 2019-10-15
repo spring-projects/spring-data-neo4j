@@ -18,13 +18,6 @@
  */
 package org.neo4j.springframework.data.repository.support;
 
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
-import org.neo4j.driver.Record;
-import org.neo4j.driver.types.TypeSystem;
-import org.neo4j.springframework.data.core.cypher.Expression;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.repository.core.EntityInformation;
 
@@ -40,23 +33,7 @@ import org.springframework.data.repository.core.EntityInformation;
 public interface Neo4jEntityInformation<T, ID> extends EntityInformation<T, ID> {
 
 	/**
-	 * Retrieves an expression to be used in Cypher statements to retrieve the generated or internal id for a node
-	 * fitting the given {@code nodeDescription} under a symbolic name of {@code 'n'}.
-	 *
-	 * @return An expression to address nodes corresponding to entities of the given type by id.
-	 */
-	Expression getIdExpression();
-
-	/**
 	 * @return The full schema based description for the underlying entity.
 	 */
 	Neo4jPersistentEntity<T> getEntityMetaData();
-
-	/**
-	 * @return A mapping function that creates instances of {@code T} for the given record.
-	 * @see org.neo4j.springframework.data.core.schema.Schema#getMappingFunctionFor(Class)
-	 */
-	BiFunction<TypeSystem, Record, T> getMappingFunction();
-
-	Function<T, Map<String, Object>> getBinderFunction();
 }

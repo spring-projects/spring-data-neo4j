@@ -18,9 +18,9 @@
  */
 package org.neo4j.springframework.data.repository.query;
 
-import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.Neo4jOperations;
 import org.neo4j.springframework.data.core.PreparedQuery;
-import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
+import org.neo4j.springframework.data.core.ReactiveNeo4jOperations;
 
 /**
  * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a
@@ -38,16 +38,16 @@ interface Neo4jQueryExecution {
 
 	class DefaultQueryExecution implements Neo4jQueryExecution {
 
-		private final Neo4jClient neo4jClient;
+		private final Neo4jOperations neo4jOperations;
 
-		DefaultQueryExecution(Neo4jClient neo4jClient) {
-			this.neo4jClient = neo4jClient;
+		DefaultQueryExecution(Neo4jOperations neo4jOperations) {
+			this.neo4jOperations = neo4jOperations;
 		}
 
 		@Override
 		public Object execute(PreparedQuery preparedQuery, boolean asCollectionQuery) {
 
-			Neo4jClient.ExecutableQuery executableQuery = neo4jClient.toExecutableQuery(preparedQuery);
+			Neo4jOperations.ExecutableQuery executableQuery = neo4jOperations.toExecutableQuery(preparedQuery);
 			if (asCollectionQuery) {
 				return executableQuery.getResults();
 			} else {
@@ -58,16 +58,16 @@ interface Neo4jQueryExecution {
 
 	class ReactiveQueryExecution implements Neo4jQueryExecution {
 
-		private final ReactiveNeo4jClient neo4jClient;
+		private final ReactiveNeo4jOperations neo4jOperations;
 
-		ReactiveQueryExecution(ReactiveNeo4jClient neo4jClient) {
-			this.neo4jClient = neo4jClient;
+		ReactiveQueryExecution(ReactiveNeo4jOperations neo4jOperations) {
+			this.neo4jOperations = neo4jOperations;
 		}
 
 		@Override
 		public Object execute(PreparedQuery preparedQuery, boolean asCollectionQuery) {
 
-			ReactiveNeo4jClient.ExecutableQuery executableQuery = neo4jClient.toExecutableQuery(preparedQuery);
+			ReactiveNeo4jOperations.ExecutableQuery executableQuery = neo4jOperations.toExecutableQuery(preparedQuery);
 			if (asCollectionQuery) {
 				return executableQuery.getResults();
 			} else {

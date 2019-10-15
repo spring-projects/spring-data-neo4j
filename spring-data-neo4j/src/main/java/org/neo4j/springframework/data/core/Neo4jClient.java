@@ -19,7 +19,6 @@
 package org.neo4j.springframework.data.core;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -33,9 +32,7 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.StatementRunner;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
-import org.neo4j.springframework.data.repository.NoResultException;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.lang.Nullable;
 
 /**
@@ -84,16 +81,6 @@ public interface Neo4jClient {
 	 * @return A single result object or an empty optional if the callback didn't produce a result
 	 */
 	<T> OngoingDelegation<T> delegateTo(Function<StatementRunner, Optional<T>> callback);
-
-	/**
-	 * Takes a prepared query, containing all the information about the cypher template to be used, needed parameters and
-	 * an optional mapping function, and turns it into an executable query.
-	 *
-	 * @param preparedQuery prepared query that should get converted to an executable query
-	 * @param <T>           The type of the objects returned by this query.
-	 * @return              An executable query
-	 */
-	<T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery);
 
 	/**
 	 * Contract for a runnable query that can be either run returning it's result, run without results or be parameterized.
@@ -260,32 +247,6 @@ public interface Neo4jClient {
 		 * @return The optional result of the callback that has been executed with the given database.
 		 */
 		Optional<T> run();
-	}
-
-	/**
-	 * An interface for controlling query execution.
-	 *
-	 * @param <T> the type that gets returned by the query
-	 * @since 1.0
-	 */
-	interface ExecutableQuery<T> {
-
-		/**
-		 * @return The list of all results. That can be an empty list but is never null.
-		 */
-		List<T> getResults();
-
-		/**
-		 * @return An optional, single result.
-		 * @throws IncorrectResultSizeDataAccessException when there is more than one result
-		 */
-		Optional<T> getSingleResult();
-
-		/**
-		 * @return A required, single result.
-		 * @throws NoResultException when there is no result
-		 */
-		T getRequiredSingleResult();
 	}
 
 	/**

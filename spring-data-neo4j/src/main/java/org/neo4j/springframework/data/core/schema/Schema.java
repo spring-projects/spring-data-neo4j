@@ -18,7 +18,6 @@
  */
 package org.neo4j.springframework.data.core.schema;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -74,14 +73,6 @@ public interface Schema {
 		}
 		return nodeDescription;
 	}
-
-	/**
-	 * This returns the outgoing relationships this node has to other nodes.
-	 *
-	 * @param primaryLabel The primary label of the node whos relationships should be retrieved
-	 * @return The relationships defined by instances of this node.
-	 */
-	Collection<RelationshipDescription> getRelationshipsOf(String primaryLabel);
 
 	/**
 	 * Retrieves a schema based mapping function for the {@code targetClass}. The mapping function will expect a

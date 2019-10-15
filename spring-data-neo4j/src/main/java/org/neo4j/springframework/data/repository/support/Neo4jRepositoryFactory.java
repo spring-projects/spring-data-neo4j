@@ -18,21 +18,14 @@
  */
 package org.neo4j.springframework.data.repository.support;
 
-import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 import static org.neo4j.springframework.data.repository.support.Neo4jRepositoryFactorySupport.*;
 
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
-import org.neo4j.driver.Record;
-import org.neo4j.driver.types.TypeSystem;
-import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.Neo4jOperations;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.neo4j.springframework.data.repository.Neo4jRepository;
-import org.neo4j.springframework.data.repository.query.CypherAdapterUtils;
 import org.neo4j.springframework.data.repository.query.Neo4jQueryLookupStrategy;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -52,30 +45,21 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
  */
 final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
-	private final Neo4jClient neo4jClient;
+	private final Neo4jOperations neo4jOperations;
 
 	private final Neo4jMappingContext mappingContext;
 
-	private final SchemaBasedStatementBuilder schemaBasedStatementBuilder;
+	Neo4jRepositoryFactory(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext) {
 
-	private final Neo4jEvents eventSupport;
-
-	Neo4jRepositoryFactory(Neo4jClient neo4jClient, Neo4jMappingContext mappingContext, Neo4jEvents eventSupport) {
-		this.neo4jClient = neo4jClient;
+		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
-		this.eventSupport = eventSupport;
-
-		this.schemaBasedStatementBuilder = CypherAdapterUtils.createSchemaBasedStatementBuilder(this.mappingContext);
 	}
 
 	@Override
 	public <T, ID> Neo4jEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 
 		Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(domainClass);
-		BiFunction<TypeSystem, Record, T> mappingFunction = mappingContext.getRequiredMappingFunctionFor(domainClass);
-		Function<T, Map<String, Object>> binderFunction = mappingContext.getRequiredBinderFunctionFor(domainClass);
-
-		return new DefaultNeo4jEntityInformation<>((Neo4jPersistentEntity<T>) entity, mappingFunction, binderFunction);
+		return new DefaultNeo4jEntityInformation<>((Neo4jPersistentEntity<T>) entity);
 	}
 
 	@Override
@@ -83,8 +67,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
 		assertIdentifierType(metadata.getIdType(), entityInformation.getIdType());
-		return getTargetRepositoryViaReflection(metadata,
-			entityInformation, neo4jClient, schemaBasedStatementBuilder, eventSupport, mappingContext);
+		return getTargetRepositoryViaReflection(metadata, neo4jOperations, entityInformation);
 	}
 
 	@Override
@@ -93,8 +76,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 		RepositoryFragments fragments = RepositoryFragments.empty();
 
 		Object byExampleExecutor = getTargetRepositoryViaReflection(
-			SimpleQueryByExampleExecutor.class,
-			neo4jClient, mappingContext, schemaBasedStatementBuilder);
+			SimpleQueryByExampleExecutor.class, neo4jOperations, mappingContext);
 
 		fragments = fragments.append(RepositoryFragment.implemented(byExampleExecutor));
 
@@ -114,6 +96,6 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
-		return Optional.of(new Neo4jQueryLookupStrategy(neo4jClient, mappingContext, evaluationContextProvider));
+		return Optional.of(new Neo4jQueryLookupStrategy(neo4jOperations, mappingContext, evaluationContextProvider));
 	}
 }

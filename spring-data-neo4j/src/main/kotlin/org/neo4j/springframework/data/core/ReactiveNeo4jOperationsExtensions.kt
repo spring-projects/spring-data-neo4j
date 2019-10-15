@@ -16,25 +16,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.springframework.data.core.schema;
+package org.neo4j.springframework.data.core
 
-import org.apiguardian.api.API;
-import org.jetbrains.annotations.NotNull;
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 
 /**
- * Internal API for generating unique collection names and similar used during mapping.
+ * Coroutines [Flow] variant of [ReactiveNeo4jOperations.ExecutableQuery.getResults].
  *
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
-public final class SchemaUtils {
+inline fun <reified T : Any> ReactiveNeo4jOperations.ExecutableQuery<T>.fetchAllResults(): Flow<T> =
+    results.asFlow()
 
-	@NotNull
-	public static String generateRelatedNodesCollectionName(RelationshipDescription description) {
-
-		return description.getSource() + "_" + description.getType() + "_" + description.getTarget();
-	}
-	private SchemaUtils() {
-	}
-}
+/**
+ * Nullable Coroutines variant of [ReactiveNeo4jOperations.ExecutableQuery.getSingleResult].
+ *
+ * @author Michael J. Simons
+ * @since 1.0
+ */
+suspend inline fun <reified T : Any> ReactiveNeo4jOperations.ExecutableQuery<T>.awaitSingleResultOrNull(): T? =
+    singleResult.awaitFirstOrNull()

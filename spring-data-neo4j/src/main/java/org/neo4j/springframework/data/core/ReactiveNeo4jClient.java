@@ -35,7 +35,6 @@ import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.Neo4jClient.BindSpec;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
 
 /**
  * Reactive Neo4j client. The main difference to the {@link Neo4jClient imperative Neo4j client} is the fact that all
@@ -82,16 +81,6 @@ public interface ReactiveNeo4jClient {
 	 * @return A single publisher containing none or exactly one element that will be produced by the callback
 	 */
 	<T> OngoingDelegation<T> delegateTo(Function<RxStatementRunner, Mono<T>> callback);
-
-	/**
-	 * Takes a prepared query, containing all the information about the cypher template to be used, needed parameters and
-	 * an optional mapping function, and turns it into an executable query.
-	 *
-	 * @param preparedQuery prepared query that should get converted to an executable query
-	 * @param <T>           The type of the objects returned by this query.
-	 * @return              An executable query
-	 */
-	<T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery);
 
 	/**
 	 * @param <T> The resulting type of this mapping
@@ -214,25 +203,5 @@ public interface ReactiveNeo4jClient {
 		 * @return The optional result of the callback that has been executed with the given database.
 		 */
 		Mono<T> run();
-	}
-
-	/**
-	 * An interface for controlling query execution in a reactive fashion.
-	 *
-	 * @param <T> the type that gets returned by the query
-	 * @since 1.0
-	 */
-	interface ExecutableQuery<T> {
-
-		/**
-		 * @return All results returned by this query.
-		 */
-		Flux<T> getResults();
-
-		/**
-		 * @return A single result
-		 * @throws IncorrectResultSizeDataAccessException if there are more than one result
-		 */
-		Mono<T> getSingleResult();
 	}
 }

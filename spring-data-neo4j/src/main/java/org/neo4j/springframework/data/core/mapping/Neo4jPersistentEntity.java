@@ -19,10 +19,10 @@
 package org.neo4j.springframework.data.core.mapping;
 
 import org.apiguardian.api.API;
+import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.MutablePersistentEntity;
-import org.neo4j.springframework.data.core.schema.NodeDescription;
 
 /**
  * A {@link org.springframework.data.mapping.PersistentEntity} interface with additional methods for metadata related to Neo4j.

@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.core.mapping;
 
 import java.util.Objects;
 
+import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Relationship;
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 import org.springframework.data.mapping.Association;
@@ -35,9 +36,9 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 
 	private final boolean dynamic;
 
-	private final String source;
+	private final NodeDescription<?> source;
 
-	private final String target;
+	private final NodeDescription<?> target;
 
 	private final String fieldName;
 
@@ -45,7 +46,7 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 
 	DefaultRelationshipDescription(Neo4jPersistentProperty inverse,
 		Neo4jPersistentProperty obverse,
-		String type, boolean dynamic, String source, String target, String fieldName,
+		String type, boolean dynamic, NodeDescription<?> source, String fieldName, NodeDescription<?> target,
 		Relationship.Direction direction) {
 
 		super(inverse, obverse);
@@ -53,8 +54,8 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 		this.type = type;
 		this.dynamic = dynamic;
 		this.source = source;
-		this.target = target;
 		this.fieldName = fieldName;
+		this.target = target;
 		this.direction = direction;
 	}
 
@@ -69,12 +70,12 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 	}
 
 	@Override
-	public String getTarget() {
+	public NodeDescription<?>  getTarget() {
 		return target;
 	}
 
 	@Override
-	public String getSource() {
+	public NodeDescription<?>  getSource() {
 		return source;
 	}
 

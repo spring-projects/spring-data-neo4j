@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
+import org.neo4j.springframework.data.core.cypher.Expression;
 import org.springframework.lang.Nullable;
 
 /**
@@ -76,5 +77,20 @@ public interface NodeDescription<T> {
 	 */
 	default boolean isUsingInternalIds() {
 		return this.getIdDescription().isInternallyGeneratedId();
+	}
+
+	/**
+	 * This returns the outgoing relationships this node has to other nodes.
+	 *
+	 * @return The relationships defined by instances of this node.
+	 */
+	Collection<RelationshipDescription> getRelationships();
+
+	/**
+	 * @return An expression that represents the right identifier type.
+	 */
+	default Expression getIdExpression() {
+
+		return this.getIdDescription().asIdExpression();
 	}
 }

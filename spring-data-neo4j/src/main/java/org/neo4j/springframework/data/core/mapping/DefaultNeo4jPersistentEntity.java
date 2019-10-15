@@ -37,6 +37,7 @@ import org.neo4j.springframework.data.core.schema.IdDescription;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.Property;
 import org.neo4j.springframework.data.core.schema.Relationship;
+import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
@@ -209,6 +210,16 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		return IdDescription
 			.forExternallyGeneratedIds(generatedValueAnnotation.generatorClass(),
 				generatedValueAnnotation.generatorRef(), idProperty.getPropertyName());
+	}
+
+	@Override
+	public Collection<RelationshipDescription> getRelationships() {
+
+		final List<RelationshipDescription> relationships = new ArrayList<>();
+		this.doWithAssociations((Association<Neo4jPersistentProperty> association) ->
+			relationships.add((RelationshipDescription) association)
+		);
+		return Collections.unmodifiableCollection(relationships);
 	}
 
 	private Collection<GraphPropertyDescription> computeGraphProperties() {

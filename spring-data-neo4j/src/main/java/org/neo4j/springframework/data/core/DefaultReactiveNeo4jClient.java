@@ -33,18 +33,16 @@ import java.util.function.Supplier;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
-import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxStatementRunner;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
-import org.neo4j.springframework.data.core.Neo4jClient.OngoingBindSpec;
+import org.neo4j.springframework.data.core.Neo4jClient.*;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.reactivestreams.Publisher;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -113,23 +111,6 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 	@Override
 	public <T> OngoingDelegation<T> delegateTo(Function<RxStatementRunner, Mono<T>> callback) {
 		return new DefaultRunnableDelegation<>(callback);
-	}
-
-	@Override
-	public <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery) {
-
-		Class<T> resultType = preparedQuery.getResultType();
-		MappingSpec<T> mappingSpec = this
-			.query(preparedQuery.getCypherQuery())
-			.bindAll(preparedQuery.getParameters())
-			.fetchAs(resultType);
-
-		RecordFetchSpec<T> fetchSpec = preparedQuery
-			.getOptionalMappingFunction()
-			.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction))
-			.orElse(mappingSpec);
-
-		return new DefaultReactiveExecutableQuery<>(fetchSpec);
 	}
 
 	class DefaultRunnableSpec implements RunnableSpec {
@@ -323,36 +304,6 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 				callback
 			);
 
-		}
-	}
-
-	final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {
-
-		private final RecordFetchSpec<T> fetchSpec;
-
-		DefaultReactiveExecutableQuery(RecordFetchSpec<T> fetchSpec) {
-			this.fetchSpec = fetchSpec;
-		}
-
-		/**
-		 * @return All results returned by this query.
-		 */
-		public Flux<T> getResults() {
-			return fetchSpec.all();
-		}
-
-		/**
-		 * @return A single result
-		 * @throws IncorrectResultSizeDataAccessException if there is no or more than one result
-		 */
-		public Mono<T> getSingleResult() {
-			try {
-				return fetchSpec.one();
-			} catch (NoSuchRecordException e) {
-				// This exception is thrown by the driver in both cases when there are 0 or 1+n records
-				// So there has been an incorrect result size, but not to few results but to many.
-				throw new IncorrectResultSizeDataAccessException(1);
-			}
 		}
 	}
 

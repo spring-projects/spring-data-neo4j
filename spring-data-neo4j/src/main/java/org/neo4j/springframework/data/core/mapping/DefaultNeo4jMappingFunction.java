@@ -46,7 +46,6 @@ import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.convert.Neo4jConverter;
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
-import org.neo4j.springframework.data.core.schema.SchemaUtils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.convert.EntityInstantiators;
 import org.springframework.data.mapping.AssociationHandler;
@@ -81,21 +80,16 @@ final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Rec
 	 */
 	private final Neo4jPersistentEntity<T> rootNodeDescription;
 
-	private final Neo4jMappingContext mappingContext;
-
 	private final Neo4jConverter converter;
 
-	DefaultNeo4jMappingFunction(Neo4jPersistentEntity<T> rootNodeDescription, Neo4jMappingContext neo4jMappingContext, Neo4jConverter converter) {
+	DefaultNeo4jMappingFunction(Neo4jPersistentEntity<T> rootNodeDescription, Neo4jConverter converter) {
 
 		this.rootNodeDescription = rootNodeDescription;
-		this.mappingContext = neo4jMappingContext;
 		this.converter = converter;
 	}
 
 	@Override
 	public T apply(TypeSystem typeSystem, Record record) {
-		Map<Object, Object> knownObjects = new ConcurrentHashMap<>();
-
 		// That would be the place to call a custom converter for the whole object, if any such thing would be
 		// available (Converter<Record, DomainObject>
 		try {
@@ -126,6 +120,7 @@ final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Rec
 					rootNodeDescription));
 				return null;
 			} else {
+				Map<Object, Object> knownObjects = new ConcurrentHashMap<>();
 				return map(typeSystem, queryRoot, rootNodeDescription, knownObjects);
 			}
 		} catch (Exception e) {
@@ -174,13 +169,9 @@ final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Rec
 			nodeDescription.doWithProperties(populateFrom(queryResult, propertyAccessor, isConstructorParameter));
 
 			// Fill associations
-			Collection<RelationshipDescription> relationships = mappingContext
-				.getRelationshipsOf(nodeDescription.getPrimaryLabel());
-			Function<String, Neo4jPersistentEntity<?>> relatedNodeDescriptionLookup =
-				relatedLabel -> (Neo4jPersistentEntity<?>) mappingContext.getNodeDescription(relatedLabel);
+			Collection<RelationshipDescription> relationships = nodeDescription.getRelationships();
 			nodeDescription.doWithAssociations(
-				populateFrom(typeSystem, queryResult, propertyAccessor, relationships, relatedNodeDescriptionLookup,
-					knownObjects));
+				populateFrom(typeSystem, queryResult, propertyAccessor, relationships, knownObjects));
 		}
 		return instance;
 	}
@@ -221,7 +212,6 @@ final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Rec
 		MapAccessor queryResult,
 		PersistentPropertyAccessor<?> propertyAccessor,
 		Collection<RelationshipDescription> relationships,
-		Function<String, Neo4jPersistentEntity<?>> relatedNodeDescriptionLookup,
 		Map<Object, Object> knownObjects
 	) {
 		return association -> {
@@ -232,9 +222,9 @@ final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Rec
 				.findFirst().get();
 
 			String relationshipType = relationship.getType();
-			String targetLabel = relationship.getTarget();
+			String targetLabel = relationship.getTarget().getPrimaryLabel();
 
-			Neo4jPersistentEntity<?> targetNodeDescription = relatedNodeDescriptionLookup.apply(targetLabel);
+			Neo4jPersistentEntity<?> targetNodeDescription = (Neo4jPersistentEntity<?>) relationship.getTarget();
 
 			List<Object> value = new ArrayList<>();
 			Map<String, Object> dynamicValue = new HashMap<>();
@@ -242,7 +232,7 @@ final class DefaultNeo4jMappingFunction<T> implements BiFunction<TypeSystem, Rec
 			BiConsumer<String, Object> mappedObjectHandler = relationship.isDynamic() ?
 				dynamicValue::put : (type, mappedObject) -> value.add(mappedObject);
 
-			Value list = queryResult.get(SchemaUtils.generateRelatedNodesCollectionName(relationship));
+			Value list = queryResult.get(relationship.generateRelatedNodesCollectionName());
 
 			// if the list is null the mapping is based on a custom query
 			if (list == Values.NULL) {

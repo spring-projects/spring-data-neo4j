@@ -24,18 +24,11 @@ import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Map;
-import java.util.function.BiFunction;
-
-import org.neo4j.driver.Record;
-import org.neo4j.driver.types.TypeSystem;
-import org.neo4j.springframework.data.core.PreparedQuery;
-import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
-import org.neo4j.springframework.data.core.ReactiveNeo4jClient.ExecutableQuery;
+import org.neo4j.springframework.data.core.ReactiveNeo4jOperations;
 import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.Statement;
-import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
+import org.neo4j.springframework.data.core.schema.CypherGenerator;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
@@ -50,82 +43,65 @@ import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
  */
 class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleExecutor<T> {
 
-	private static final Renderer renderer = Renderer.getDefaultRenderer();
-
-	private final ReactiveNeo4jClient neo4jClient;
+	private final ReactiveNeo4jOperations neo4jOperations;
 
 	private final Neo4jMappingContext mappingContext;
 
-	private final SchemaBasedStatementBuilder statementBuilder;
+	private final CypherGenerator cypherGenerator;
 
-	SimpleReactiveQueryByExampleExecutor(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext mappingContext,
-		SchemaBasedStatementBuilder statementBuilder) {
-		this.neo4jClient = neo4jClient;
+	SimpleReactiveQueryByExampleExecutor(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext) {
+
+		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
-		this.statementBuilder = statementBuilder;
+		this.cypherGenerator = CypherGenerator.INSTANCE;
 	}
 
 	@Override
 	public <S extends T> Mono<S> findOne(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
 			.returning(asterisk())
 			.build();
 
-		return createExecutableQuery(example.getProbeType(), statement, predicate.getParameters()).getSingleResult();
+		return this.neo4jOperations.findOne(statement, predicate.getParameters(), example.getProbeType());
 	}
 
 	@Override
 	public <S extends T> Flux<S> findAll(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
 			.returning(asterisk())
 			.build();
 
-		return createExecutableQuery(example.getProbeType(), statement, predicate.getParameters()).getResults();
+		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
 	}
 
 	@Override
 	public <S extends T> Flux<S> findAll(Example<S> example, Sort sort) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
 			.returning(asterisk())
-			.orderBy(toSortItems(predicate.getNodeDescription(), sort)).build();
+			.orderBy(toSortItems(predicate.getNeo4jPersistentEntity(), sort)).build();
 
-		return createExecutableQuery(example.getProbeType(), statement, predicate.getParameters()).getResults();
+		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
 	}
 
 	@Override
 	public <S extends T> Mono<Long> count(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(statementBuilder::prepareMatchOf)
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
 			.returning(Functions.count(asterisk()))
 			.build();
 
-		return createExecutableQuery(Long.class, statement, predicate.getParameters()).getSingleResult();
+		return this.neo4jOperations.count(statement, predicate.getParameters());
 	}
 
 	@Override
 	public <S extends T> Mono<Boolean> exists(Example<S> example) {
 		return findAll(example).hasElements();
-	}
-
-	private <RS> ExecutableQuery<RS> createExecutableQuery(Class<RS> resultType, Statement statement,
-		Map<String, Object> parameters) {
-
-		BiFunction<TypeSystem, Record, ?> mappingFunctionToUse
-			= this.mappingContext.getMappingFunctionFor(resultType);
-
-		PreparedQuery preparedQuery = PreparedQuery.queryFor(resultType)
-			.withCypherQuery(renderer.render(statement))
-			.withParameters(parameters)
-			.usingMappingFunction(mappingFunctionToUse)
-			.build();
-
-		return neo4jClient.toExecutableQuery(preparedQuery);
 	}
 }

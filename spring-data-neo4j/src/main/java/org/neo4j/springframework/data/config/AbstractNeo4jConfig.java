@@ -21,6 +21,8 @@ package org.neo4j.springframework.data.config;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.Neo4jTemplate;
+import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
 import org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension;
 import org.springframework.context.annotation.Bean;
@@ -55,6 +57,11 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
 	public Neo4jClient neo4jClient(Driver driver) {
 		return Neo4jClient.create(driver);
+	}
+
+	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
+	public Neo4jTemplate neo4jTemplate(final Neo4jClient neo4jClient, final Neo4jMappingContext mappingContext) {
+		return new Neo4jTemplate(neo4jClient, mappingContext);
 	}
 
 	/**

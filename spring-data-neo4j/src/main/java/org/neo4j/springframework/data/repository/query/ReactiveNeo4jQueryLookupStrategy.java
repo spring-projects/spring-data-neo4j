@@ -21,7 +21,7 @@ package org.neo4j.springframework.data.repository.query;
 import java.lang.reflect.Method;
 
 import org.apiguardian.api.API;
-import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
+import org.neo4j.springframework.data.core.ReactiveNeo4jOperations;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
@@ -40,14 +40,14 @@ import org.springframework.data.repository.query.RepositoryQuery;
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class ReactiveNeo4jQueryLookupStrategy implements QueryLookupStrategy {
 
-	private final ReactiveNeo4jClient neo4jClient;
+	private final ReactiveNeo4jOperations neo4jOperations;
 	private final Neo4jMappingContext mappingContext;
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 
-	public ReactiveNeo4jQueryLookupStrategy(ReactiveNeo4jClient neo4jClient,
+	public ReactiveNeo4jQueryLookupStrategy(ReactiveNeo4jOperations neo4jOperations,
 		Neo4jMappingContext mappingContext,
 		QueryMethodEvaluationContextProvider evaluationContextProvider) {
-		this.neo4jClient = neo4jClient;
+		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
 		this.evaluationContextProvider = evaluationContextProvider;
 	}
@@ -63,12 +63,14 @@ public final class ReactiveNeo4jQueryLookupStrategy implements QueryLookupStrate
 		String namedQueryName = queryMethod.getNamedQueryName();
 
 		if (namedQueries.hasQuery(namedQueryName)) {
-			return ReactiveStringBasedNeo4jQuery.create(neo4jClient, mappingContext, evaluationContextProvider, queryMethod,
+			return ReactiveStringBasedNeo4jQuery
+				.create(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
 				namedQueries.getQuery(namedQueryName));
 		} else if (queryMethod.hasQueryAnnotation()) {
-			return ReactiveStringBasedNeo4jQuery.create(neo4jClient, mappingContext, evaluationContextProvider, queryMethod);
+			return ReactiveStringBasedNeo4jQuery
+				.create(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod);
 		} else {
-			return new ReactivePartTreeNeo4jQuery(neo4jClient, mappingContext, queryMethod);
+			return new ReactivePartTreeNeo4jQuery(neo4jOperations, mappingContext, queryMethod);
 		}
 	}
 }

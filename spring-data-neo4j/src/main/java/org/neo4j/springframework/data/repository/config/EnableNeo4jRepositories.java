@@ -82,9 +82,9 @@ public @interface EnableNeo4jRepositories {
 	String neo4jMappingContextRef() default DEFAULT_MAPPING_CONTEXT_BEAN_NAME;
 
 	/**
-	 * Configures the name of the {@link org.neo4j.springframework.data.core.Neo4jClient} bean to be used with the repositories detected.
+	 * Configures the name of the {@link org.neo4j.springframework.data.core.Neo4jTemplate} bean to be used with the repositories detected.
 	 */
-	String neo4jClientRef() default DEFAULT_NEO4J_CLIENT_BEAN_NAME;
+	String neo4jTemplateRef() default DEFAULT_NEO4J_TEMPLATE_BEAN_NAME;
 
 	/**
 	 * Specifies which types are eligible for component scanning. Further narrows the set of candidate components from

@@ -29,7 +29,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,15 +41,12 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.StatementResult;
 import org.neo4j.driver.StatementRunner;
-import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
-import org.neo4j.springframework.data.repository.NoResultException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -143,21 +139,6 @@ class DefaultNeo4jClient implements Neo4jClient {
 	@Override
 	public <T> OngoingDelegation<T> delegateTo(Function<StatementRunner, Optional<T>> callback) {
 		return new DefaultRunnableDelegation<>(callback);
-	}
-
-	@Override
-	public <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery) {
-
-		Neo4jClient.MappingSpec<T> mappingSpec = this
-			.query(preparedQuery.getCypherQuery())
-			.bindAll(preparedQuery.getParameters())
-			.fetchAs(preparedQuery.getResultType());
-		Neo4jClient.RecordFetchSpec<T> fetchSpec = preparedQuery
-			.getOptionalMappingFunction()
-			.map(f -> mappingSpec.mappedBy(f))
-			.orElse(mappingSpec);
-
-		return new DefaultExecutableQuery<>(preparedQuery, fetchSpec);
 	}
 
 	/**
@@ -361,36 +342,6 @@ class DefaultNeo4jClient implements Neo4jClient {
 			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(targetDatabase)) {
 				return callback.apply(statementRunner);
 			}
-		}
-	}
-
-	final class DefaultExecutableQuery<T> implements ExecutableQuery<T> {
-
-		private final PreparedQuery<T> preparedQuery;
-		private final Neo4jClient.RecordFetchSpec<T> fetchSpec;
-
-		DefaultExecutableQuery(PreparedQuery<T> preparedQuery, RecordFetchSpec<T> fetchSpec) {
-			this.preparedQuery = preparedQuery;
-			this.fetchSpec = fetchSpec;
-		}
-
-		public List<T> getResults() {
-			return fetchSpec.all().stream().collect(toList());
-		}
-
-		public Optional<T> getSingleResult() {
-			try {
-				return fetchSpec.one();
-			} catch (NoSuchRecordException e) {
-				// This exception is thrown by the driver in both cases when there are 0 or 1+n records
-				// So there has been an incorrect result size, but not to few results but to many.
-				throw new IncorrectResultSizeDataAccessException(1);
-			}
-		}
-
-		public T getRequiredSingleResult() {
-			return fetchSpec.one()
-				.orElseThrow(() -> new NoResultException(1, preparedQuery.getCypherQuery()));
 		}
 	}
 }

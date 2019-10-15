@@ -18,7 +18,7 @@
  */
 package org.neo4j.springframework.data.repository.query;
 
-import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.Neo4jOperations;
 import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.QueryMethod;
@@ -35,14 +35,15 @@ import org.springframework.util.Assert;
  */
 abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements RepositoryQuery {
 
-	protected final Neo4jClient neo4jClient;
+	protected final Neo4jOperations neo4jOperations;
 
-	AbstractNeo4jQuery(Neo4jClient neo4jClient, Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod) {
+	AbstractNeo4jQuery(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
+		Neo4jQueryMethod queryMethod) {
 
 		super(mappingContext, queryMethod);
 
-		Assert.notNull(neo4jClient, "The Neo4j client is required.");
-		this.neo4jClient = neo4jClient;
+		Assert.notNull(neo4jOperations, "The Neo4j operations are required.");
+		this.neo4jOperations = neo4jOperations;
 	}
 
 	@Override
@@ -55,7 +56,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 
 		Neo4jParameterAccessor parameterAccessor = getParameterAccessor(parameters);
 		ResultProcessor resultProcessor = queryMethod.getResultProcessor().withDynamicProjection(parameterAccessor);
-		return resultProcessor.processResult(new Neo4jQueryExecution.DefaultQueryExecution(neo4jClient)
+		return resultProcessor.processResult(new Neo4jQueryExecution.DefaultQueryExecution(neo4jOperations)
 				.execute(prepareQuery(resultProcessor, parameterAccessor), queryMethod.isCollectionLikeQuery()),
 			OptionalUnwrappingConverter.INSTANCE);
 	}
