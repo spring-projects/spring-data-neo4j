@@ -21,6 +21,7 @@ package org.neo4j.springframework.data.core;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
+import static org.neo4j.springframework.data.core.schema.CypherGenerator.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 
 import java.util.ArrayList;
@@ -333,7 +334,9 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			if (!neo4jPersistentEntity.isNew(parentObject)) {
 				Statement relationshipRemoveQuery = cypherGenerator.createRelationshipRemoveQuery(neo4jPersistentEntity,
 					relationship, targetNodeDescription.getPrimaryLabel());
-				neo4jClient.query(renderer.render(relationshipRemoveQuery)).bind(fromId).to("fromId").run();
+
+				neo4jClient.query(renderer.render(relationshipRemoveQuery))
+					.bind(fromId).to(FROM_ID_PARAMETER_NAME).run();
 			}
 
 			if (value == null) {
@@ -355,7 +358,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 						relatedValue instanceof Map.Entry ? ((Map.Entry<String, ?>) relatedValue).getKey() : null,
 						relatedInternalId);
 
-				neo4jClient.query(renderer.render(relationshipCreationQuery)).bind(fromId).to("fromId").run();
+				neo4jClient.query(renderer.render(relationshipCreationQuery))
+					.bind(fromId).to(FROM_ID_PARAMETER_NAME).run();
 
 				// if an internal id is used this must get set to link this entity in the next iteration
 				if (targetNodeDescription.isUsingInternalIds()) {

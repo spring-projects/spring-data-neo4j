@@ -21,6 +21,7 @@ package org.neo4j.springframework.data.core;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
+import static org.neo4j.springframework.data.core.schema.CypherGenerator.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 import static org.neo4j.springframework.data.core.support.Relationships.*;
 
@@ -322,8 +323,9 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 						.createRelationshipRemoveQuery(neo4jPersistentEntity, relationship,
 							targetNodeDescription.getPrimaryLabel());
 					relationshipCreationMonos.add(
-						neo4jClient.query(renderer.render(relationshipRemoveQuery)).bind(fromId).to("fromId").run()
-							.then());
+						neo4jClient.query(renderer.render(relationshipRemoveQuery))
+							.bind(fromId).to(FROM_ID_PARAMETER_NAME)
+							.run().then());
 				}
 
 				if (value == null) {
@@ -360,7 +362,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 										return
 											neo4jClient.query(renderer.render(relationshipCreationQuery))
-												.bind(fromId).to("fromId")
+												.bind(fromId).to(FROM_ID_PARAMETER_NAME)
 												.run()
 												.then(processNestedAssociations(targetNodeDescription, valueToBeSaved));
 									})));
