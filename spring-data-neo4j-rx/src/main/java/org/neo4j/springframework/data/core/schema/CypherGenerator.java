@@ -51,6 +51,11 @@ public enum CypherGenerator {
 
 	INSTANCE;
 
+	public static final String FROM_ID_PARAMETER_NAME = "fromId";
+
+	private static final String START_NODE_NAME = "startNode";
+	private static final String END_NODE_NAME = "endNode";
+
 	/**
 	 * @param nodeDescription The node description for which a match clause should be generated
 	 * @return An ongoing match
@@ -164,11 +169,11 @@ public enum CypherGenerator {
 	public Statement createRelationshipCreationQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 		RelationshipDescription relationship, @Nullable String dynamicRelationshipType, Long relatedInternalId) {
 
-		Node startNode = anyNode("startNode");
-		Node endNode = anyNode("endNode");
+		Node startNode = anyNode(START_NODE_NAME);
+		Node endNode = anyNode(END_NODE_NAME);
 		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 
-		Parameter idParameter = parameter("fromId");
+		Parameter idParameter = parameter(FROM_ID_PARAMETER_NAME);
 		String type = relationship.isDynamic() ? dynamicRelationshipType : relationship.getType();
 		return match(startNode)
 			.where(neo4jPersistentEntity.isUsingInternalIds()
@@ -187,17 +192,19 @@ public enum CypherGenerator {
 	public Statement createRelationshipRemoveQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 		RelationshipDescription relationshipDescription, String relatedNodeLabel) {
 
-		Node startNode = anyNode("startNode");
+		Node startNode = anyNode(START_NODE_NAME);
 		Node endNode = node(relatedNodeLabel);
 		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 		boolean outgoing = relationshipDescription.isOutgoing();
 
 		String relationshipType = relationshipDescription.isDynamic() ? null : relationshipDescription.getType();
-		Relationship relationship = outgoing
-			? startNode.relationshipTo(endNode, relationshipType).named("rel")
-			: startNode.relationshipFrom(endNode, relationshipType).named("rel");
+		String relationshipToRemoveName = "rel";
 
-		Parameter idParameter = parameter("fromId");
+		Relationship relationship = outgoing
+			? startNode.relationshipTo(endNode, relationshipType).named(relationshipToRemoveName)
+			: startNode.relationshipFrom(endNode, relationshipType).named(relationshipToRemoveName);
+
+		Parameter idParameter = parameter(FROM_ID_PARAMETER_NAME);
 		return match(relationship)
 			.where(neo4jPersistentEntity.isUsingInternalIds()
 				? startNode.internalId().isEqualTo(idParameter)
