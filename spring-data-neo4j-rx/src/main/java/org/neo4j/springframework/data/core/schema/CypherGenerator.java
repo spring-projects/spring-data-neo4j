@@ -78,7 +78,7 @@ public enum CypherGenerator {
 
 		String primaryLabel = nodeDescription.getPrimaryLabel();
 
-		org.neo4j.springframework.data.core.cypher.Node rootNode = node(primaryLabel).named(NAME_OF_ROOT_NODE);
+		Node rootNode = node(primaryLabel).named(NAME_OF_ROOT_NODE);
 		IdDescription idDescription = nodeDescription.getIdDescription();
 
 		List<Expression> expressions = new ArrayList<>();
@@ -96,7 +96,7 @@ public enum CypherGenerator {
 
 	public Statement prepareDeleteOf(NodeDescription<?> nodeDescription, @Nullable Condition condition) {
 
-		org.neo4j.springframework.data.core.cypher.Node rootNode = node(nodeDescription.getPrimaryLabel())
+		Node rootNode = node(nodeDescription.getPrimaryLabel())
 			.named(NAME_OF_ROOT_NODE);
 		return Cypher.match(rootNode).where(conditionOrNoCondition(condition)).detachDelete(rootNode).build();
 	}
@@ -104,7 +104,7 @@ public enum CypherGenerator {
 	public Statement prepareSaveOf(NodeDescription<?> nodeDescription) {
 
 		String primaryLabel = nodeDescription.getPrimaryLabel();
-		org.neo4j.springframework.data.core.cypher.Node rootNode = node(primaryLabel).named(NAME_OF_ROOT_NODE);
+		Node rootNode = node(primaryLabel).named(NAME_OF_ROOT_NODE);
 		IdDescription idDescription = nodeDescription.getIdDescription();
 		Parameter idParameter = parameter(NAME_OF_ID_PARAM);
 
@@ -118,7 +118,7 @@ public enum CypherGenerator {
 				.build();
 		} else {
 			String nameOfPossibleExistingNode = "hlp";
-			org.neo4j.springframework.data.core.cypher.Node possibleExistingNode = node(primaryLabel).named(nameOfPossibleExistingNode);
+			Node possibleExistingNode = node(primaryLabel).named(nameOfPossibleExistingNode);
 
 			Statement createIfNew = optionalMatch(possibleExistingNode)
 				.where(possibleExistingNode.internalId().isEqualTo(idParameter))
@@ -144,7 +144,7 @@ public enum CypherGenerator {
 		Assert.isTrue(!nodeDescription.isUsingInternalIds(),
 			"Only entities that use external IDs can be saved in a batch.");
 
-		org.neo4j.springframework.data.core.cypher.Node rootNode = node(nodeDescription.getPrimaryLabel())
+		Node rootNode = node(nodeDescription.getPrimaryLabel())
 			.named(NAME_OF_ROOT_NODE);
 		IdDescription idDescription = nodeDescription.getIdDescription();
 
@@ -164,8 +164,8 @@ public enum CypherGenerator {
 	public Statement createRelationshipCreationQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 		RelationshipDescription relationship, @Nullable String dynamicRelationshipType, Long relatedInternalId) {
 
-		org.neo4j.springframework.data.core.cypher.Node startNode = anyNode("startNode");
-		org.neo4j.springframework.data.core.cypher.Node endNode = anyNode("endNode");
+		Node startNode = anyNode("startNode");
+		Node endNode = anyNode("endNode");
 		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 
 		Parameter idParameter = parameter("fromId");
@@ -187,13 +187,13 @@ public enum CypherGenerator {
 	public Statement createRelationshipRemoveQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 		RelationshipDescription relationshipDescription, String relatedNodeLabel) {
 
-		org.neo4j.springframework.data.core.cypher.Node startNode = anyNode("startNode");
-		org.neo4j.springframework.data.core.cypher.Node endNode = node(relatedNodeLabel);
+		Node startNode = anyNode("startNode");
+		Node endNode = node(relatedNodeLabel);
 		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 		boolean outgoing = relationshipDescription.isOutgoing();
 
 		String relationshipType = relationshipDescription.isDynamic() ? null : relationshipDescription.getType();
-		org.neo4j.springframework.data.core.cypher.Relationship relationship = outgoing
+		Relationship relationship = outgoing
 			? startNode.relationshipTo(endNode, relationshipType).named("rel")
 			: startNode.relationshipFrom(endNode, relationshipType).named("rel");
 
@@ -283,12 +283,12 @@ public enum CypherGenerator {
 			String relationshipType = relationshipDescription.getType();
 			String relationshipTargetName = relationshipDescription.generateRelatedNodesCollectionName();
 
-			org.neo4j.springframework.data.core.cypher.Node startNode = anyNode(nameOfStartNode);
+			Node startNode = anyNode(nameOfStartNode);
 			Node endNode = node(targetLabel).named(fieldName);
 			NodeDescription<?> endNodeDescription = relationshipDescription.getTarget();
 
 			if (relationshipDescription.isDynamic()) {
-				org.neo4j.springframework.data.core.cypher.Relationship relationship = relationshipDescription
+				Relationship relationship = relationshipDescription
 					.isOutgoing()
 					? startNode.relationshipTo(endNode)
 					: startNode.relationshipFrom(endNode);
