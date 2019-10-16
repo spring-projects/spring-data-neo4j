@@ -328,11 +328,13 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				.filter(r -> r.getFieldName().equals(inverse.getName()))
 				.findFirst().get();
 
-			// remove all relationships before creating all new
+			// remove all relationships before creating all new if the entity is not new
 			// this avoids the usage of cache but might have significant impact on overall performance
-			Statement relationshipRemoveQuery = cypherGenerator.createRelationshipRemoveQuery(neo4jPersistentEntity,
-				relationship, targetNodeDescription.getPrimaryLabel());
-			neo4jClient.query(renderer.render(relationshipRemoveQuery)).bind(fromId).to("fromId").run();
+			if (!neo4jPersistentEntity.isNew(parentObject)) {
+				Statement relationshipRemoveQuery = cypherGenerator.createRelationshipRemoveQuery(neo4jPersistentEntity,
+					relationship, targetNodeDescription.getPrimaryLabel());
+				neo4jClient.query(renderer.render(relationshipRemoveQuery)).bind(fromId).to("fromId").run();
+			}
 
 			if (value == null) {
 				return;
