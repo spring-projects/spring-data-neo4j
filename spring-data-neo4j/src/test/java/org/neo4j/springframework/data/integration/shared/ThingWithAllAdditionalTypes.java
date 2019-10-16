@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 
 import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.Id;
@@ -96,4 +97,6 @@ public class ThingWithAllAdditionalTypes {
 	private Set<String> setOfStrings;
 
 	private Instant anInstant;
+
+	private UUID aUUID;
 }

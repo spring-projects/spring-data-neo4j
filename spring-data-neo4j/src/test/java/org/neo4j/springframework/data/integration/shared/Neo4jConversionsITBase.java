@@ -87,6 +87,7 @@ public abstract class Neo4jConversionsITBase {
 		hlp.put("listOfStrings", new ArrayList<>(Arrays.asList("Hello", "World"))); // Done on purpose, otherwise the target collection cannot be determined.
 		hlp.put("setOfStrings", new HashSet<>(Arrays.asList("Hallo", "wereld")));
 		hlp.put("anInstant", Instant.from(LocalDateTime.of(2019, 9, 26, 20, 34, 23).atOffset(ZoneOffset.UTC)));
+		hlp.put("aUUID", UUID.fromString("d4ec9208-4b17-4ec7-a709-19a5e53865a8"));
 		ADDITIONAL_TYPES = Collections.unmodifiableMap(hlp);
 	}
 
@@ -189,7 +190,8 @@ public abstract class Neo4jConversionsITBase {
 					+ " n.stringArray = ['Hallo', 'Welt'],"
 					+ " n.listOfStrings = ['Hello', 'World'],"
 					+ " n.setOfStrings = ['Hallo', 'wereld'],"
-					+ " n.anInstant = datetime('2019-09-26T20:34:23Z')"
+					+ " n.anInstant = datetime('2019-09-26T20:34:23Z'),"
+					+ " n.aUUID = 'd4ec9208-4b17-4ec7-a709-19a5e53865a8'"
 					+ " RETURN id(n) AS id", parameters).single().get("id").asLong();
 
 				parameters = new HashMap<>();

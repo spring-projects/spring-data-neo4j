@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
@@ -87,8 +88,21 @@ final class AdditionalTypes {
 		hlp.add(
 			reading(Value.class, TemporalAmount.class, AdditionalTypes::asTemporalAmount).andWriting(AdditionalTypes::value));
 		hlp.add(reading(Value.class, Instant.class, AdditionalTypes::asInstant).andWriting(AdditionalTypes::value));
+		hlp.add(reading(Value.class, UUID.class, AdditionalTypes::asUUID).andWriting(AdditionalTypes::value));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
+	}
+
+	static UUID asUUID(Value value) {
+		return UUID.fromString(value.asString());
+	}
+
+	static Value value(UUID uuid) {
+		if (uuid == null) {
+			return Values.NULL;
+		}
+
+		return Values.value(uuid.toString());
 	}
 
 	static Instant asInstant(Value value) {

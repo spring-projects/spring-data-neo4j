@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
@@ -71,6 +72,7 @@ public final class Neo4jSimpleTypes {
 		neo4jNativeTypes.add(Void.class);
 		neo4jNativeTypes.add(ZonedDateTime.class);
 		neo4jNativeTypes.add(void.class);
+		neo4jNativeTypes.add(UUID.class);
 
 		neo4jNativeTypes.add(BigDecimal.class);
 		neo4jNativeTypes.add(BigInteger.class);
