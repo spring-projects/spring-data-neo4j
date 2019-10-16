@@ -268,11 +268,11 @@ public class MovieEntity {
 	}
 
 	public MovieEntity withId(Long id) { // <5>
-		if (this.id == null) {
+		if (this.id == id) {
 			return this;
 		} else {
 			MovieEntity newObject = new MovieEntity(this.title, this.description);
-			newObject.id = this.id;
+			newObject.id = id;
 			return newObject;
 		}
 	}
