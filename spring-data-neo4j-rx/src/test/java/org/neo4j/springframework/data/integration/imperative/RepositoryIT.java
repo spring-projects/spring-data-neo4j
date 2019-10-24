@@ -1199,6 +1199,12 @@ class RepositoryIT {
 	}
 
 	@Test
+	void findBySimplePropertyByEqualsWithNullShouldWork() {
+		int emptyResultSize = 0;
+		assertThat(repository.findAllBySameValue(null)).hasSize(emptyResultSize);
+	}
+
+	@Test
 	void findBySimplePropertiesAnded() {
 
 		Optional<PersonWithAllConstructor> optionalPerson;
