@@ -26,11 +26,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
+import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.Values;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.convert.Neo4jSimpleTypes;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.repository.query.Neo4jQueryMethod.Neo4jParameters;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.data.domain.Range;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -53,6 +56,8 @@ abstract class Neo4jQuerySupport {
 	protected final Neo4jMappingContext mappingContext;
 	protected final Neo4jQueryMethod queryMethod;
 	protected final Class<?> domainType;
+
+	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jQuerySupport.class));
 
 	Neo4jQuerySupport(Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod) {
 
@@ -110,6 +115,16 @@ abstract class Neo4jQuerySupport {
 	 * @return A parameter that fits the place holders of a generated query
 	 */
 	final Object convertParameter(Object parameter) {
+
+		if (parameter == null) {
+			// According to https://neo4j.com/docs/cypher-manual/current/syntax/working-with-null/#cypher-null-intro
+			// it does not make any sense to continue if a `null` value gets into a comparison
+			// but we just warn the users and do not throw an exception on `null`.
+			log.warn("Do not use `null` as a property value for comparison."
+				+ " It will always be false and return an empty result.");
+
+			return Values.NULL;
+		}
 
 		// Maybe move all of those into Neo4jConverter at some point.
 		if (parameter instanceof Range) {
