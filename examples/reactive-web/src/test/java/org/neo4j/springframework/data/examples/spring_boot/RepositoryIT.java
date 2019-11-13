@@ -56,11 +56,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class RepositoryIT {
 
 	private static final String SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION = "SDN_RX_NEO4J_ACCEPT_COMMERCIAL_EDITION";
+	private static final String SYS_PROPERTY_NEO4J_REPOSITORY = "SDN_RX_NEO4J_REPOSITORY";
 	protected static final String SYS_PROPERTY_NEO4J_VERSION = "SDN_RX_NEO4J_VERSION";
 
 	@Container
 	private static Neo4jContainer<?> neo4jContainer =
-		new Neo4jContainer<>("neo4j:" + System.getenv(SYS_PROPERTY_NEO4J_VERSION))
+		new Neo4jContainer<>(Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_REPOSITORY)).orElse("neo4j") + ":" + System.getenv(SYS_PROPERTY_NEO4J_VERSION))
 		.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT",
 			Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION)).orElse("no"));
 

@@ -15,7 +15,7 @@
 	<description>Demo project for Spring Boot</description>
 
 	<properties>
-		<java.version>12</java.version>
+		<java.version>11</java.version>
 		<jmh.version>1.21</jmh.version>
 		<testcontainers.version>1.10.7</testcontainers.version>
 		<spring-data-neo4j-rx.version>999-BENCHMARK</spring-data-neo4j-rx.version>

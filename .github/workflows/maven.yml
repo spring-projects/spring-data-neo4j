@@ -1,0 +1,58 @@
+name: build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+    name: SDN/RX and Spring Boot starter
+    runs-on: ubuntu-latest
+    env:
+      SDN_RX_NEO4J_REPOSITORY: neo4j/neo4j-experimental
+      SDN_RX_NEO4J_VERSION: 4.0.0-beta03mr03  
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - name: Run Maven build
+        run: >
+          ./mvnw --no-transfer-progress clean deploy -Dchangelist= -Dsha1=-$GITHUB_SHA
+          -DaltDeploymentRepository=releases::default::file://$GITHUB_WORKSPACE/target/repository 
+          -pl !org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-imperative-web,!org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-mapping,!org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-reactive-web
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: artifacts
+          path: target/repository
+          
+  build_examples:
+    name: Verify examples with ${{ matrix.java }}
+    runs-on: ubuntu-latest
+    env:
+      SDN_RX_NEO4J_REPOSITORY: neo4j/neo4j-experimental
+      SDN_RX_NEO4J_VERSION: 4.0.0-beta03mr03
+    strategy:
+      matrix:
+        java: [ '11', '13' ]
+    needs: build
+    steps:
+      - uses: actions/checkout@v1
+      - name: Download artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: artifacts
+          path: repository
+      - name: Install dependencies
+        run: "mkdir -p $HOME/.m2 && mv $GITHUB_WORKSPACE/repository $HOME/.m2/"
+      - uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Run Maven build
+        run: >
+          ./mvnw --no-transfer-progress clean verify -Dchangelist= -Dsha1=-$GITHUB_SHA
+          -pl org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-imperative-web,org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-mapping,org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-reactive-web

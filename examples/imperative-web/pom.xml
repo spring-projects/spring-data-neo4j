@@ -36,7 +36,7 @@
 	<description>Demonstrating how to use SDN⚡️RX from within Spring Boot.</description>
 
 	<properties>
-		<java.version>12</java.version>
+		<java.version>11</java.version>
 		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
 		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
 		<maven-failsafe-plugin.version>3.0.0-M3</maven-failsafe-plugin.version>
