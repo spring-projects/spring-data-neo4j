@@ -269,7 +269,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 			return doInStatementRunnerForMono(
 				targetDatabase,
-				runner -> prepareStatement().flatMap(t -> Mono.from(runner.run(t.getT1(), t.getT2()).summary())));
+				runner -> prepareStatement().flatMap(t -> Mono.from(runner.run(t.getT1(), t.getT2()).consume())));
 		}
 	}
 

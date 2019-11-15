@@ -348,7 +348,7 @@ class ReactiveNeo4jClientTest {
 
 			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 			when(transaction.commit()).thenReturn(Mono.empty());
-			when(statementResult.summary()).thenReturn(Mono.just(resultSummary));
+			when(statementResult.consume()).thenReturn(Mono.just(resultSummary));
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 
@@ -373,7 +373,7 @@ class ReactiveNeo4jClientTest {
 			expectedParameters.put("name", "Michael");
 
 			verify(transaction).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
-			verify(statementResult).summary();
+			verify(statementResult).consume();
 			verify(transaction).commit();
 			verify(transaction).rollback();
 			verify(session).close();
@@ -420,7 +420,7 @@ class ReactiveNeo4jClientTest {
 
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(transaction.commit()).thenReturn(Mono.empty());
-		when(statementResult.summary()).thenReturn(Mono.just(resultSummary));
+		when(statementResult.consume()).thenReturn(Mono.just(resultSummary));
 
 		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 
@@ -441,7 +441,7 @@ class ReactiveNeo4jClientTest {
 		expectedParameters.put("name", "fixie");
 
 		verify(transaction).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
-		verify(statementResult).summary();
+		verify(statementResult).consume();
 		verify(transaction).commit();
 		verify(transaction).rollback();
 		verify(session).close();
