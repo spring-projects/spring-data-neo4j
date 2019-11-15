@@ -63,10 +63,10 @@ class Neo4jClientKotlinInteropIT @Autowired constructor(
 
             bands.forEach { b, m ->
                 val summary = it.run("""
-					CREATE (b:Band {name: ${'$'}band}) 
-					WITH b
-					UNWIND ${'$'}names AS name CREATE (n:Member {name: name}) <- [:HAS_MEMBER] - (b)
-					""".trimIndent(), Values.parameters("band", b, "names", m)).summary()
+                    CREATE (b:Band {name: ${'$'}band}) 
+                    WITH b
+                    UNWIND ${'$'}names AS name CREATE (n:Member {name: name}) <- [:HAS_MEMBER] - (b)
+                    """.trimIndent(), Values.parameters("band", b, "names", m)).consume()
                 assertThat(summary.counters().nodesCreated()).isGreaterThan(0)
             }
         }
