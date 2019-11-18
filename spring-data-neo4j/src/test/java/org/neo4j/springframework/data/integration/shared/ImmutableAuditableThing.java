@@ -20,7 +20,7 @@ package org.neo4j.springframework.data.integration.shared;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
-import lombok.experimental.Wither;
+import lombok.With;
 
 import java.time.LocalDateTime;
 
@@ -37,7 +37,7 @@ import org.springframework.data.annotation.Persistent;
  * @author Michael J. Simons
  */
 @Value
-@Wither
+@With
 @AllArgsConstructor(onConstructor = @__(@PersistenceConstructor))
 @Persistent
 public class ImmutableAuditableThing {

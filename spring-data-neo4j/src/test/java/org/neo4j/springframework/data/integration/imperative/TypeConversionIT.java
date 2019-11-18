@@ -34,6 +34,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
 import org.neo4j.springframework.data.config.AbstractNeo4jConfig;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.neo4j.springframework.data.integration.shared.Neo4jConversionsITBase;
@@ -135,7 +136,16 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 		long id = (long) ReflectionTestUtils.getField(thing, "id");
 		Object domainValue = ReflectionTestUtils.getField(thing, fieldName);
-		Value driverValue = conversionService.convert(domainValue, Value.class);
+
+		Value driverValue;
+		if (domainValue != null && Collection.class.isAssignableFrom(domainValue.getClass())) {
+			Collection<?> sourceCollection = (Collection<?>) domainValue;
+			Object[] targetCollection = (sourceCollection).stream().map(element ->
+				conversionService.convert(element, Value.class)).toArray();
+			driverValue = Values.value(targetCollection);
+		} else {
+			driverValue = conversionService.convert(domainValue, Value.class);
+		}
 
 		try (Session session = neo4jConnectionSupport.getDriver().session()) {
 			Map<String, Object> parameters = new HashMap<>();

@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.core.convert;
 
 import static org.springframework.data.convert.ConverterBuilder.*;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -27,18 +28,20 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
+import org.jetbrains.annotations.NotNull;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.value.LossyCoercion;
 import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.ConditionalConverter;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
@@ -182,34 +185,58 @@ final class AdditionalTypes {
 
 	@ReadingConverter
 	@WritingConverter
-	static class EnumConverter implements GenericConverter {
-
-		private final Set<ConvertiblePair> convertiblePairs;
-
-		EnumConverter() {
-			Set<ConvertiblePair> hlp = new HashSet<>();
-			hlp.add(new ConvertiblePair(Enum.class, Value.class));
-			hlp.add(new ConvertiblePair(Value.class, Enum.class));
-			convertiblePairs = Collections.unmodifiableSet(hlp);
-		}
+	static class EnumConverter implements GenericConverter, ConditionalConverter {
 
 		@Override
 		public Set<ConvertiblePair> getConvertibleTypes() {
-			return this.convertiblePairs;
+			return null;
+		}
+
+		@Override
+		public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
+			if (Value.class.isAssignableFrom(sourceType.getType())) {
+				return describesSupportedEnumVariant(targetType);
+			} else if (Value.class.isAssignableFrom(targetType.getType())) {
+				return describesSupportedEnumVariant(sourceType);
+			} else {
+				return false;
+			}
 		}
 
 		@Override
 		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
-			Class<?> concreteTargetType = targetType.getType();
+
 			if (source == null) {
-				return concreteTargetType == Value.class ? Values.NULL : null;
+				return Value.class.isAssignableFrom(targetType.getType()) ? Values.NULL : null;
 			}
 
-			if (sourceType.getType() == Value.class) {
-				return Enum.valueOf((Class<Enum>) concreteTargetType, ((Value) source).asString());
+			if (Value.class.isAssignableFrom(sourceType.getType())) {
+				return read((Value) source, targetType);
 			} else {
+				if (sourceType.isArray()) {
+					return Values.value(Arrays.stream(((Enum[]) source)).map(Enum::name).toArray());
+				}
 				return Values.value(((Enum) source).name());
 			}
+		}
+
+		@NotNull
+		private static Object read(Value source, TypeDescriptor targetType) {
+			if (targetType.isArray()) {
+				Class<?> componentType = targetType.getElementTypeDescriptor().getType();
+				Object[] targetArray = (Object[]) Array.newInstance(componentType, source.size());
+				Arrays.setAll(targetArray, i -> Enum.valueOf((Class<Enum>) componentType, source.get(i).asString()));
+				return targetArray;
+			} else {
+				return Enum.valueOf((Class<Enum>) targetType.getType(), source.asString());
+			}
+		}
+
+		private static boolean describesSupportedEnumVariant(TypeDescriptor typeDescriptor) {
+			TypeDescriptor elementType = typeDescriptor.isArray() ?
+				typeDescriptor.getElementTypeDescriptor() :
+				typeDescriptor;
+			return Enum.class.isAssignableFrom(elementType.getType());
 		}
 	}
 

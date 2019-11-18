@@ -23,7 +23,9 @@ import static org.junit.jupiter.api.DynamicTest.*;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -162,17 +164,36 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 			Value v = session.run("MATCH (n) WHERE labels(n) = [$label] RETURN n[$attribute] as r",
 				Values.parameters("label", label, "attribute", attribute)).single().get("r");
 
-			Object converted = DEFAULT_CONVERSION_SERVICE.convert(v, t.getClass());
-			assertThat(converted).isEqualTo(t);
+			TypeDescriptor typeDescriptor = TypeDescriptor.forObject(t);
+			if (typeDescriptor.isCollection()) {
+				Collection<?> collection = (Collection<?>) t;
+				Class<?> targetType = collection.stream().map(Object::getClass).findFirst().get();
+				List<Object> convertedObjects = v.asList(elem -> DEFAULT_CONVERSION_SERVICE.convert(elem, targetType));
+				assertThat(convertedObjects).containsAll(collection);
+			} else {
+				Object converted = DEFAULT_CONVERSION_SERVICE.convert(v, typeDescriptor.getType());
+				assertThat(converted).isEqualTo(t);
+			}
 		}
 	}
 
 	static void assertWrite(String label, String attribute, Object t) {
+
+		Value driverValue;
+		if (t != null && Collection.class.isAssignableFrom(t.getClass())) {
+			Collection<?> sourceCollection = (Collection<?>) t;
+			Object[] targetCollection = (sourceCollection).stream().map(element ->
+				DEFAULT_CONVERSION_SERVICE.convert(element, Value.class)).toArray();
+			driverValue = Values.value(targetCollection);
+		} else {
+			driverValue = DEFAULT_CONVERSION_SERVICE.convert(t, Value.class);
+		}
+
 		try (Session session = neo4jConnectionSupport.getDriver().session()) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put("label", label);
 			parameters.put("attribute", attribute);
-			parameters.put("v", DEFAULT_CONVERSION_SERVICE.convert(t, TYPE_DESCRIPTOR_OF_VALUE));
+			parameters.put("v", driverValue);
 
 			long cnt = session
 				.run("MATCH (n) WHERE labels(n) = [$label]  AND n[$attribute] = $v RETURN COUNT(n) AS cnt",

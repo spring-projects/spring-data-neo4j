@@ -18,11 +18,14 @@
  */
 package org.neo4j.springframework.data.core.mapping;
 
+import java.util.Collection;
+
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.neo4j.springframework.data.core.convert.Neo4jConverter;
+import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.ConfigurableConversionService;
@@ -65,10 +68,19 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		}
 
 		try {
-			return conversionService.convert(value, type.getType());
+			Class<?> rawType = type.getType();
+
+			if (isCollection(type)) {
+				Collection<Object> target = CollectionFactory.createCollection(rawType,
+					type.getComponentType().getType(), value.size());
+				value.values().forEach(
+					element -> target.add(conversionService.convert(element, type.getComponentType().getType())));
+				return target;
+			}
+
+			return conversionService.convert(value, rawType);
 		} catch (Exception e) {
-			String msg = String.format("Could not convert %s into %s",
-				(value == null ? "literal null" : value), type.toString());
+			String msg = String.format("Could not convert %s into %s", value, type.toString());
 			throw new TypeMismatchDataAccessException(msg, e);
 		}
 	}
@@ -80,14 +92,25 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			return Values.NULL;
 		}
 
+		if (isCollection(type)) {
+			Collection<?> sourceCollection = (Collection<?>) value;
+			Object[] targetCollection = (sourceCollection).stream().map(element ->
+				conversionService.convert(element, Value.class)).toArray();
+			return Values.value(targetCollection);
+		}
+
 		return conversionService.convert(value, Value.class);
+	}
+
+	private static boolean isCollection(TypeInformation<?> type) {
+		return Collection.class.isAssignableFrom(type.getType());
 	}
 
 	@Override
 	public <T> PersistentPropertyAccessor<T> decoratePropertyAccessor(TypeSystem typeSystem,
 		PersistentPropertyAccessor<T> targetPropertyAccessor) {
 
-		return new ConvertingPropertyAccessor<>(targetPropertyAccessor, new DelegatingConversionService(conversionService));
+		return new ConvertingPropertyAccessor<>(targetPropertyAccessor, new DelegatingConversionService());
 	}
 
 	@Override
@@ -106,12 +129,6 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 	}
 
 	class DelegatingConversionService implements ConversionService {
-
-		private final ConversionService delegate;
-
-		DelegatingConversionService(ConversionService delegate) {
-			this.delegate = delegate;
-		}
 
 		@Override
 		public boolean canConvert(Class<?> sourceType, Class<?> targetType) {
