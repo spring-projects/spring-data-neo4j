@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.2.2.RELEASE (2019-11-18)
+---------------------------------------------
+* DATAGRAPH-1264 - Release 5.2.2 (Moore SR2).
+
+
 Changes in version 5.1.13.RELEASE (2019-11-18)
 ----------------------------------------------
 * DATAGRAPH-1263 - Release 5.1.13 (Lovelace SR13).
