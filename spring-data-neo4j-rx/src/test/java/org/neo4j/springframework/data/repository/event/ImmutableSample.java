@@ -21,7 +21,7 @@ package org.neo4j.springframework.data.repository.event;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Value;
-import lombok.experimental.Wither;
+import lombok.With;
 
 import java.util.Date;
 
@@ -33,7 +33,7 @@ import org.springframework.data.annotation.LastModifiedDate;
  * @author Michael J. Simons
  */
 @Value
-@Wither
+@With
 @AllArgsConstructor
 @NoArgsConstructor(force = true)
 public class ImmutableSample {

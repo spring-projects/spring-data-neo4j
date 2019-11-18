@@ -28,6 +28,7 @@ import java.util.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
+import org.neo4j.springframework.data.integration.shared.ThingWithAllAdditionalTypes.SomeEnum;
 import org.neo4j.springframework.data.test.Neo4jExtension;
 import org.neo4j.springframework.data.types.CartesianPoint2d;
 import org.neo4j.springframework.data.types.CartesianPoint3d;
@@ -88,6 +89,10 @@ public abstract class Neo4jConversionsITBase {
 		hlp.put("setOfStrings", new HashSet<>(Arrays.asList("Hallo", "wereld")));
 		hlp.put("anInstant", Instant.from(LocalDateTime.of(2019, 9, 26, 20, 34, 23).atOffset(ZoneOffset.UTC)));
 		hlp.put("aUUID", UUID.fromString("d4ec9208-4b17-4ec7-a709-19a5e53865a8"));
+		hlp.put("anEnum", SomeEnum.TheUsualMisfit);
+		hlp.put("anArrayOfEnums", new SomeEnum[] { SomeEnum.ValueA, SomeEnum.ValueB });
+		hlp.put("aCollectionOfEnums", Arrays.asList(SomeEnum.ValueC, SomeEnum.TheUsualMisfit));
+		hlp.put("listOfDoubles", Arrays.asList(1.0));
 		ADDITIONAL_TYPES = Collections.unmodifiableMap(hlp);
 	}
 
@@ -191,7 +196,11 @@ public abstract class Neo4jConversionsITBase {
 					+ " n.listOfStrings = ['Hello', 'World'],"
 					+ " n.setOfStrings = ['Hallo', 'wereld'],"
 					+ " n.anInstant = datetime('2019-09-26T20:34:23Z'),"
-					+ " n.aUUID = 'd4ec9208-4b17-4ec7-a709-19a5e53865a8'"
+					+ " n.aUUID = 'd4ec9208-4b17-4ec7-a709-19a5e53865a8',"
+					+ " n.listOfDoubles = [1.0],"
+					+ " n.anEnum = 'TheUsualMisfit',"
+					+ " n.anArrayOfEnums = ['ValueA', 'ValueB'],"
+					+ " n.aCollectionOfEnums = ['ValueC', 'TheUsualMisfit']"
 					+ " RETURN id(n) AS id", parameters).single().get("id").asLong();
 
 				parameters = new HashMap<>();

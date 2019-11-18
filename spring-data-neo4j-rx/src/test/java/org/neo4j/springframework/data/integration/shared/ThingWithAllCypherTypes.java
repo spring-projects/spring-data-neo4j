@@ -22,7 +22,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.experimental.Wither;
+import lombok.With;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -48,7 +48,7 @@ import org.neo4j.springframework.data.core.schema.Node;
 public class ThingWithAllCypherTypes {
 
 	@Id @GeneratedValue
-	@Wither
+	@With
 	public final Long id;
 
 	private boolean aBoolean;

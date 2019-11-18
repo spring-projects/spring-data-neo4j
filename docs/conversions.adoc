@@ -160,4 +160,12 @@ Primitive types of wrapper types are equally supported.
 |Point with CRS 4326 and x/y corresponding to lat/long
 |
 
+|Instances of `Enum`
+|String (The name value of the enum)
+|
+
+|Instances of `Enum[]`
+|List of String (The name value of the enum)
+|
+
 |===

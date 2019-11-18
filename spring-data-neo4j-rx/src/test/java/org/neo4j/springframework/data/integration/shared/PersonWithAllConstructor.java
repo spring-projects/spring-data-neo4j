@@ -23,7 +23,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.Wither;
+import lombok.With;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -48,7 +48,7 @@ import org.neo4j.springframework.data.core.schema.Property;
 public class PersonWithAllConstructor {
 
 	@Id @GeneratedValue
-	@Wither
+	@With
 	private final Long id;
 
 	private final String name;
