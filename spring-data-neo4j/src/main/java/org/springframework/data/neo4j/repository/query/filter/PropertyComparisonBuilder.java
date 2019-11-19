@@ -41,13 +41,15 @@ class PropertyComparisonBuilder extends FilterBuilder {
 	@Override
 	public List<Filter> build(Stack<Object> params) {
 
+		NestedAttributes nestedAttributes = getNestedAttributes(part);
+
 		Object value = params.pop();
 
-		Filter filter = new Filter(propertyName(), convertToComparisonOperator(part.getType()), value);
+		Filter filter = new Filter(nestedAttributes.isEmpty() ? propertyName() : nestedAttributes.getLeafPropertySegment(), convertToComparisonOperator(part.getType()), value);
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
-		setNestedAttributes(part, filter);
+		filter.setNestedPath(nestedAttributes.getSegments());
 		applyCaseInsensitivityIfShouldIgnoreCase(part, filter);
 
 		return Collections.singletonList(filter);
@@ -90,8 +92,7 @@ class PropertyComparisonBuilder extends FilterBuilder {
 
 	/**
 	 * Sets the filter to ignore the case in case the underlying {@link Part} requires ignoring case and the property
-	 * actually supports it. Note: The method is modelled after {@link #setNestedAttributes(Part, Filter)} to have some
-	 * consistency. Preferable it should return a new filter.
+	 * actually supports it.
 	 *
 	 * @param part
 	 * @param filter

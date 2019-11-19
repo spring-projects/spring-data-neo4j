@@ -22,7 +22,6 @@ import java.util.Stack;
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
-import org.neo4j.ogm.cypher.function.PropertyComparison;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -39,21 +38,24 @@ class BetweenComparisonBuilder extends FilterBuilder {
 
 	@Override
 	public List<Filter> build(Stack<Object> params) {
+
+		NestedAttributes nestedAttributes = getNestedAttributes(part);
+
 		final Object value1 = params.pop();
-		Filter gt = new Filter(propertyName(), ComparisonOperator.GREATER_THAN_EQUAL, value1);
+		Filter gt = new Filter(nestedAttributes.isEmpty() ? propertyName() : nestedAttributes.getLeafPropertySegment(),
+				ComparisonOperator.GREATER_THAN_EQUAL, value1);
 		gt.setOwnerEntityType(entityType);
 		gt.setBooleanOperator(booleanOperator);
 		gt.setNegated(isNegated());
-		gt.setFunction(new PropertyComparison(value1));
-		setNestedAttributes(part, gt);
+		gt.setNestedPath(nestedAttributes.getSegments());
 
 		final Object value2 = params.pop();
-		Filter lt = new Filter(propertyName(), ComparisonOperator.LESS_THAN_EQUAL, value2);
+		Filter lt = new Filter(nestedAttributes.isEmpty() ? propertyName() : nestedAttributes.getLeafPropertySegment(),
+				ComparisonOperator.LESS_THAN_EQUAL, value2);
 		lt.setOwnerEntityType(entityType);
 		lt.setBooleanOperator(BooleanOperator.AND);
 		lt.setNegated(isNegated());
-		lt.setFunction(new PropertyComparison(value2));
-		setNestedAttributes(part, lt);
+		lt.setNestedPath(nestedAttributes.getSegments());
 
 		return Arrays.asList(gt, lt);
 	}

@@ -43,6 +43,8 @@ class DistanceComparisonBuilder extends FilterBuilder {
 	@Override
 	public List<Filter> build(Stack<Object> params) {
 
+		NestedAttributes nestedAttributes = getNestedAttributes(part);
+
 		Object firstArg = params.pop();
 		Object secondArg = params.pop();
 
@@ -76,7 +78,7 @@ class DistanceComparisonBuilder extends FilterBuilder {
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
-		setNestedAttributes(part, filter);
+		filter.setNestedPath(nestedAttributes.getSegments());
 
 		return Collections.singletonList(filter);
 	}
