@@ -29,6 +29,7 @@ import org.springframework.data.repository.query.parser.Part;
  * Filter for entities having a collection like property (not) containing a given element.
  *
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 class ContainsComparisonBuilder extends FilterBuilder {
 
@@ -38,15 +39,18 @@ class ContainsComparisonBuilder extends FilterBuilder {
 
 	@Override
 	public List<Filter> build(Stack<Object> params) {
+
+		NestedAttributes nestedAttributes = getNestedAttributes(part);
+
 		final Object containingValue = params.pop();
-		Filter containingFilter = new Filter(propertyName(), ComparisonOperator.IN, containingValue);
+		Filter containingFilter = new Filter(
+				nestedAttributes.isEmpty() ? propertyName() : nestedAttributes.getLeafPropertySegment(),
+				new ContainsAnyComparison(containingValue), ComparisonOperator.IN);
 		containingFilter.setOwnerEntityType(entityType);
 		containingFilter.setBooleanOperator(booleanOperator);
 		containingFilter.setNegated(isNegated());
-		containingFilter.setFunction(new ContainsAnyComparison(containingValue));
-		setNestedAttributes(part, containingFilter);
+		containingFilter.setNestedPath(nestedAttributes.getSegments());
 
 		return Collections.singletonList(containingFilter);
 	}
-
 }
