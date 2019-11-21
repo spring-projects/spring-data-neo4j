@@ -103,7 +103,7 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<mockito.version>2.28.2</mockito.version>
-		<neo4j-java-driver.version>4.0.0-beta03</neo4j-java-driver.version>
+		<neo4j-java-driver.version>4.0.0-rc1</neo4j-java-driver.version>
 		<neo4j.version>3.5.8</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version> <!-- mockk requires objenesis >= 3 -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

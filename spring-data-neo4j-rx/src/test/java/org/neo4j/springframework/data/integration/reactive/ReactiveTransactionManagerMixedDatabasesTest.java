@@ -36,8 +36,8 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.reactive.RxResult;
 import org.neo4j.driver.reactive.RxSession;
-import org.neo4j.driver.reactive.RxStatementResult;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
 import org.neo4j.springframework.data.core.Neo4jClient;
@@ -214,30 +214,30 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 			when(defaultRecord.size()).thenReturn(1);
 			when(defaultRecord.get(0)).thenReturn(Values.value(0L));
 
-			RxStatementResult boomStatementResult = mock(RxStatementResult.class);
-			when(boomStatementResult.records()).thenReturn(Mono.just(boomRecord));
+			RxResult boomResult = mock(RxResult.class);
+			when(boomResult.records()).thenReturn(Mono.just(boomRecord));
 
-			RxStatementResult defaultStatementResult = mock(RxStatementResult.class);
-			when(defaultStatementResult.records()).thenReturn(Mono.just(defaultRecord));
+			RxResult defaultResault = mock(RxResult.class);
+			when(defaultResault.records()).thenReturn(Mono.just(defaultRecord));
 
 			RxTransaction boomTransaction = mock(RxTransaction.class);
-			when(boomTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomStatementResult);
+			when(boomTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomResult);
 			when(boomTransaction.commit()).thenReturn(Mono.empty());
 			when(boomTransaction.rollback()).thenReturn(Mono.empty());
 
 			RxTransaction defaultTransaction = mock(RxTransaction.class);
-			when(defaultTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultStatementResult);
+			when(defaultTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultResault);
 			when(defaultTransaction.commit()).thenReturn(Mono.empty());
 			when(defaultTransaction.rollback()).thenReturn(Mono.empty());
 
 			RxSession boomSession = mock(RxSession.class);
-			when(boomSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomStatementResult);
+			when(boomSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomResult);
 			when(boomSession.beginTransaction()).thenReturn(Mono.just(boomTransaction));
 			when(boomSession.beginTransaction(any(TransactionConfig.class))).thenReturn(Mono.just(boomTransaction));
 			when(boomSession.close()).thenReturn(Mono.empty());
 
 			RxSession defaultSession = mock(RxSession.class);
-			when(defaultSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultStatementResult);
+			when(defaultSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultResault);
 			when(defaultSession.beginTransaction()).thenReturn(Mono.just(defaultTransaction));
 			when(defaultSession.beginTransaction(any(TransactionConfig.class)))
 				.thenReturn(Mono.just(defaultTransaction));

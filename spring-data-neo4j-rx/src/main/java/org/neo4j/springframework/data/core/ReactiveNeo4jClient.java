@@ -30,7 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
-import org.neo4j.driver.reactive.RxStatementRunner;
+import org.neo4j.driver.reactive.RxQueryRunner;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.Neo4jClient.BindSpec;
@@ -80,7 +80,7 @@ public interface ReactiveNeo4jClient {
 	 * @param <T>      The type of the result being produced
 	 * @return A single publisher containing none or exactly one element that will be produced by the callback
 	 */
-	<T> OngoingDelegation<T> delegateTo(Function<RxStatementRunner, Mono<T>> callback);
+	<T> OngoingDelegation<T> delegateTo(Function<RxQueryRunner, Mono<T>> callback);
 
 	/**
 	 * @param <T> The resulting type of this mapping

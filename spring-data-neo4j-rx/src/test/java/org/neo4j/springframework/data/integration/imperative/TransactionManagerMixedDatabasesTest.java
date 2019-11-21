@@ -31,8 +31,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.StatementResult;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.Values;
@@ -158,29 +158,29 @@ class TransactionManagerMixedDatabasesTest {
 			when(defaultRecord.size()).thenReturn(1);
 			when(defaultRecord.get(0)).thenReturn(Values.value(0L));
 
-			StatementResult boomStatementResult = mock(StatementResult.class);
-			when(boomStatementResult.hasNext()).thenReturn(true);
-			when(boomStatementResult.single()).thenReturn(boomRecord);
+			Result boomResult = mock(Result.class);
+			when(boomResult.hasNext()).thenReturn(true);
+			when(boomResult.single()).thenReturn(boomRecord);
 
-			StatementResult defaultStatementResult = mock(StatementResult.class);
-			when(defaultStatementResult.hasNext()).thenReturn(true);
-			when(defaultStatementResult.single()).thenReturn(defaultRecord);
+			Result defaultResult = mock(Result.class);
+			when(defaultResult.hasNext()).thenReturn(true);
+			when(defaultResult.single()).thenReturn(defaultRecord);
 
 			Transaction boomTransaction = mock(Transaction.class);
-			when(boomTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomStatementResult);
+			when(boomTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomResult);
 			when(boomTransaction.isOpen()).thenReturn(true);
 
 			Transaction defaultTransaction = mock(Transaction.class);
-			when(defaultTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultStatementResult);
+			when(defaultTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultResult);
 			when(defaultTransaction.isOpen()).thenReturn(true);
 
 			Session boomSession = mock(Session.class);
-			when(boomSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomStatementResult);
+			when(boomSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomResult);
 			when(boomSession.beginTransaction(any(TransactionConfig.class))).thenReturn(boomTransaction);
 			when(boomSession.isOpen()).thenReturn(true);
 
 			Session defaultSession = mock(Session.class);
-			when(defaultSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultStatementResult);
+			when(defaultSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultResult);
 			when(defaultSession.beginTransaction(any(TransactionConfig.class))).thenReturn(defaultTransaction);
 			when(defaultSession.isOpen()).thenReturn(true);
 

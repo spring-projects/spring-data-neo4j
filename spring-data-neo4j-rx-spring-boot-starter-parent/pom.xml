@@ -57,8 +57,8 @@
 		<maven-jar-plugin.version>3.1.2</maven-jar-plugin.version>
 		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
 		<maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
-		<neo4j-java-driver-spring-boot-starter.version>4.0.0-beta03</neo4j-java-driver-spring-boot-starter.version>
-		<neo4j.version>3.5.2</neo4j.version>
+		<neo4j-java-driver-spring-boot-starter.version>4.0.0-rc1</neo4j-java-driver-spring-boot-starter.version>
+		<neo4j.version>3.5.12</neo4j.version>
 		<revision>1.0.0</revision>
 		<sha1></sha1>
 		<spring-data-neo4j-rx.version>${revision}${sha1}${changelist}</spring-data-neo4j-rx.version>
