@@ -37,10 +37,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.StatementResult;
-import org.neo4j.driver.StatementRunner;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
@@ -73,32 +73,32 @@ class DefaultNeo4jClient implements Neo4jClient {
 		new Neo4jConversions().registerConvertersIn((ConverterRegistry) conversionService);
 	}
 
-	AutoCloseableStatementRunner getStatementRunner(@Nullable final String targetDatabase) {
+	AutoCloseableQueryRunner getQueryRunner(@Nullable final String targetDatabase) {
 
-		StatementRunner statementRunner = retrieveTransaction(driver, targetDatabase);
-		if (statementRunner == null) {
-			statementRunner = driver.session(defaultSessionConfig(targetDatabase));
+		QueryRunner queryRunner = retrieveTransaction(driver, targetDatabase);
+		if (queryRunner == null) {
+			queryRunner = driver.session(defaultSessionConfig(targetDatabase));
 		}
 
-		return (AutoCloseableStatementRunner) Proxy.newProxyInstance(this.getClass().getClassLoader(),
-			new Class<?>[] { AutoCloseableStatementRunner.class },
-			new AutoCloseableStatementRunnerHandler(statementRunner));
+		return (AutoCloseableQueryRunner) Proxy.newProxyInstance(this.getClass().getClassLoader(),
+			new Class<?>[] { AutoCloseableQueryRunner.class },
+			new AutoCloseableQueryRunnerHandler(queryRunner));
 	}
 
 	/**
-	 * Makes a statement runner automatically closeable and aware whether it's session or a transaction
+	 * Makes a query runner automatically closeable and aware whether it's session or a transaction
 	 */
-	interface AutoCloseableStatementRunner extends StatementRunner, AutoCloseable {
+	interface AutoCloseableQueryRunner extends QueryRunner, AutoCloseable {
 
 		@Override void close();
 	}
 
-	static class AutoCloseableStatementRunnerHandler implements InvocationHandler {
+	static class AutoCloseableQueryRunnerHandler implements InvocationHandler {
 
 		private final Map<Method, MethodHandle> cachedHandles = new ConcurrentHashMap<>();
-		private final StatementRunner target;
+		private final QueryRunner target;
 
-		AutoCloseableStatementRunnerHandler(StatementRunner target) {
+		AutoCloseableQueryRunnerHandler(QueryRunner target) {
 			this.target = target;
 		}
 
@@ -137,7 +137,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 	}
 
 	@Override
-	public <T> OngoingDelegation<T> delegateTo(Function<StatementRunner, Optional<T>> callback) {
+	public <T> OngoingDelegation<T> delegateTo(Function<QueryRunner, Optional<T>> callback) {
 		return new DefaultRunnableDelegation<>(callback);
 	}
 
@@ -160,7 +160,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		private final NamedParameters parameters;
 
-		protected final StatementResult runWith(AutoCloseableStatementRunner statementRunner) {
+		protected final Result runWith(AutoCloseableQueryRunner statementRunner) {
 			String statementTemplate = cypherSupplier.get();
 
 			if (cypherLog.isDebugEnabled()) {
@@ -171,8 +171,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 				}
 			}
 
-			StatementResult result = statementRunner.run(statementTemplate, parameters.get());
-			return result;
+			return statementRunner.run(statementTemplate, parameters.get());
 		}
 	}
 
@@ -247,8 +246,8 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@Override
 		public ResultSummary run() {
 
-			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(this.targetDatabase)) {
-				StatementResult result = runnableStatement.runWith(statementRunner);
+			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
+				Result result = runnableStatement.runWith(statementRunner);
 				return result.consume();
 			}
 		}
@@ -280,8 +279,8 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@Override
 		public Optional<T> one() {
 
-			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(this.targetDatabase)) {
-				StatementResult result = runnableStatement.runWith(statementRunner);
+			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
+				Result result = runnableStatement.runWith(statementRunner);
 				return result.hasNext() ?
 					Optional.of(mappingFunction.apply(typeSystem, result.single())) :
 					Optional.empty();
@@ -291,8 +290,8 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@Override
 		public Optional<T> first() {
 
-			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(this.targetDatabase)) {
-				StatementResult result = runnableStatement.runWith(statementRunner);
+			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
+				Result result = runnableStatement.runWith(statementRunner);
 				return result.stream().map(partialMappingFunction(typeSystem)).findFirst();
 			}
 		}
@@ -300,8 +299,8 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@Override
 		public Collection<T> all() {
 
-			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(this.targetDatabase)) {
-				StatementResult result = runnableStatement.runWith(statementRunner);
+			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
+				Result result = runnableStatement.runWith(statementRunner);
 				return result.stream().map(partialMappingFunction(typeSystem)).collect(toList());
 			}
 		}
@@ -317,15 +316,15 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 	class DefaultRunnableDelegation<T> implements RunnableDelegation<T>, OngoingDelegation<T> {
 
-		private final Function<StatementRunner, Optional<T>> callback;
+		private final Function<QueryRunner, Optional<T>> callback;
 
 		@Nullable private String targetDatabase;
 
-		DefaultRunnableDelegation(Function<StatementRunner, Optional<T>> callback) {
+		DefaultRunnableDelegation(Function<QueryRunner, Optional<T>> callback) {
 			this(callback, null);
 		}
 
-		DefaultRunnableDelegation(Function<StatementRunner, Optional<T>> callback, @Nullable String targetDatabase) {
+		DefaultRunnableDelegation(Function<QueryRunner, Optional<T>> callback, @Nullable String targetDatabase) {
 			this.callback = callback;
 			this.targetDatabase = targetDatabase;
 		}
@@ -339,8 +338,8 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		@Override
 		public Optional<T> run() {
-			try (AutoCloseableStatementRunner statementRunner = getStatementRunner(targetDatabase)) {
-				return callback.apply(statementRunner);
+			try (AutoCloseableQueryRunner queryRunner = getQueryRunner(targetDatabase)) {
+				return callback.apply(queryRunner);
 			}
 		}
 	}

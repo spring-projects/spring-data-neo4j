@@ -45,8 +45,8 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.reactive.RxResult;
 import org.neo4j.driver.reactive.RxSession;
-import org.neo4j.driver.reactive.RxStatementResult;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
@@ -74,7 +74,7 @@ class ReactiveNeo4jClientTest {
 	private RxSession session;
 
 	@Mock
-	private RxStatementResult statementResult;
+	private RxResult result;
 
 	@Mock
 	private RxTransaction transaction;
@@ -100,7 +100,7 @@ class ReactiveNeo4jClientTest {
 
 	@AfterEach
 	void verifyNoMoreInteractionsWithMocks() {
-		verifyNoMoreInteractions(driver, session, transaction, statementResult, resultSummary, record1, record2);
+		verifyNoMoreInteractions(driver, session, transaction, result, resultSummary, record1, record2);
 	}
 
 	@Test
@@ -109,9 +109,9 @@ class ReactiveNeo4jClientTest {
 
 		prepareMocks();
 
-		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+		when(transaction.run(anyString(), anyMap())).thenReturn(result);
 		when(transaction.commit()).thenReturn(Mono.empty());
-		when(statementResult.records()).thenReturn(Flux.just(record1, record2));
+		when(result.records()).thenReturn(Flux.just(record1, record2));
 
 		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 
@@ -145,7 +145,7 @@ class ReactiveNeo4jClientTest {
 		expectedParameters.put("aDate", LocalDate.of(2019, 1, 1));
 		verify(transaction).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
 
-		verify(statementResult).records();
+		verify(result).records();
 		verify(record1).asMap();
 		verify(record2).asMap();
 		verify(transaction).commit();
@@ -158,9 +158,9 @@ class ReactiveNeo4jClientTest {
 
 		prepareMocks();
 
-		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+		when(transaction.run(anyString(), anyMap())).thenReturn(result);
 		when(transaction.commit()).thenReturn(Mono.empty());
-		when(statementResult.records()).thenReturn(Flux.just(record1, record2));
+		when(result.records()).thenReturn(Flux.just(record1, record2));
 
 		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 
@@ -182,7 +182,7 @@ class ReactiveNeo4jClientTest {
 		expectedParameters.put("name", "Someone.*");
 
 		verify(transaction).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
-		verify(statementResult).records();
+		verify(result).records();
 		verify(record1).asMap();
 		verify(transaction).commit();
 		verify(transaction).rollback();
@@ -222,11 +222,11 @@ class ReactiveNeo4jClientTest {
 			when(transaction.commit()).thenReturn(Mono.empty());
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
-			Mono<Integer> result = client
+			Mono<Integer> singleResult = client
 				.delegateTo(runner -> Mono.just(21))
 				.run();
 
-			StepVerifier.create(result)
+			StepVerifier.create(singleResult)
 				.expectNext(21)
 				.verifyComplete();
 
@@ -245,12 +245,12 @@ class ReactiveNeo4jClientTest {
 			when(transaction.commit()).thenReturn(Mono.empty());
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
-			Mono<Integer> result = client
+			Mono<Integer> singleResult = client
 				.delegateTo(runner -> Mono.just(21))
 				.in("aDatabase")
 				.run();
 
-			StepVerifier.create(result)
+			StepVerifier.create(singleResult)
 				.expectNext(21)
 				.verifyComplete();
 
@@ -271,9 +271,9 @@ class ReactiveNeo4jClientTest {
 
 			prepareMocks();
 
-			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+			when(transaction.run(anyString(), anyMap())).thenReturn(result);
 			when(transaction.commit()).thenReturn(Mono.empty());
-			when(statementResult.records()).thenReturn(Flux.just(record1));
+			when(result.records()).thenReturn(Flux.just(record1));
 			when(record1.get("name")).thenReturn(Values.value("michael"));
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
@@ -298,7 +298,7 @@ class ReactiveNeo4jClientTest {
 			expectedParameters.put("name", "michael");
 
 			verify(transaction).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
-			verify(statementResult).records();
+			verify(result).records();
 			verify(record1).get("name");
 			verify(transaction).commit();
 			verify(transaction).rollback();
@@ -310,9 +310,9 @@ class ReactiveNeo4jClientTest {
 
 			prepareMocks();
 
-			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+			when(transaction.run(anyString(), anyMap())).thenReturn(result);
 			when(transaction.rollback()).thenReturn(Mono.empty());
-			when(statementResult.records()).thenReturn(Flux.just(record1, record2));
+			when(result.records()).thenReturn(Flux.just(record1, record2));
 			when(record1.get("name")).thenReturn(Values.value("michael"));
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
@@ -334,7 +334,7 @@ class ReactiveNeo4jClientTest {
 			verifyDatabaseSelection(null);
 
 			verify(transaction).run(eq("MATCH (n) RETURN n"), argThat(new MapAssertionMatcher(Collections.emptyMap())));
-			verify(statementResult).records();
+			verify(result).records();
 			verify(record1).get("name");
 			verify(transaction).commit();
 			verify(transaction).rollback();
@@ -346,9 +346,9 @@ class ReactiveNeo4jClientTest {
 
 			prepareMocks();
 
-			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+			when(transaction.run(anyString(), anyMap())).thenReturn(result);
 			when(transaction.commit()).thenReturn(Mono.empty());
-			when(statementResult.consume()).thenReturn(Mono.just(resultSummary));
+			when(result.consume()).thenReturn(Mono.just(resultSummary));
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 
@@ -373,7 +373,7 @@ class ReactiveNeo4jClientTest {
 			expectedParameters.put("name", "Michael");
 
 			verify(transaction).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
-			verify(statementResult).consume();
+			verify(result).consume();
 			verify(transaction).commit();
 			verify(transaction).rollback();
 			verify(session).close();
@@ -385,9 +385,9 @@ class ReactiveNeo4jClientTest {
 
 			prepareMocks();
 
-			when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+			when(transaction.run(anyString(), anyMap())).thenReturn(result);
 			when(transaction.commit()).thenReturn(Mono.empty());
-			when(statementResult.records()).thenReturn(Flux.just(record1));
+			when(result.records()).thenReturn(Flux.just(record1));
 			when(record1.size()).thenReturn(1);
 			when(record1.get(0)).thenReturn(Values.value(23L));
 
@@ -418,9 +418,9 @@ class ReactiveNeo4jClientTest {
 
 		prepareMocks();
 
-		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+		when(transaction.run(anyString(), anyMap())).thenReturn(result);
 		when(transaction.commit()).thenReturn(Mono.empty());
-		when(statementResult.consume()).thenReturn(Mono.just(resultSummary));
+		when(result.consume()).thenReturn(Mono.just(resultSummary));
 
 		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 
@@ -441,7 +441,7 @@ class ReactiveNeo4jClientTest {
 		expectedParameters.put("name", "fixie");
 
 		verify(transaction).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
-		verify(statementResult).consume();
+		verify(result).consume();
 		verify(transaction).commit();
 		verify(transaction).rollback();
 		verify(session).close();

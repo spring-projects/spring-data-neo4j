@@ -82,7 +82,7 @@ class TransactionHandlingTest {
 		private Transaction transaction;
 
 		@Nested
-		class AutoCloseableStatementRunnerHandlerTest {
+		class AutoCloseableQueryRunnerHandlerTest {
 
 			@Test
 			void shouldCallCloseOnSession() {
@@ -93,7 +93,7 @@ class TransactionHandlingTest {
 
 				// Make template acquire session
 				DefaultNeo4jClient neo4jClient = new DefaultNeo4jClient(driver);
-				try (DefaultNeo4jClient.AutoCloseableStatementRunner s = neo4jClient.getStatementRunner("aDatabase")) {
+				try (DefaultNeo4jClient.AutoCloseableQueryRunner s = neo4jClient.getQueryRunner("aDatabase")) {
 					s.run("MATCH (n) RETURN n");
 				}
 
@@ -127,7 +127,7 @@ class TransactionHandlingTest {
 
 				DefaultNeo4jClient neo4jClient = new DefaultNeo4jClient(driver);
 				txTemplate.execute(tx -> {
-					try (DefaultNeo4jClient.AutoCloseableStatementRunner s = neo4jClient.getStatementRunner(null)) {
+					try (DefaultNeo4jClient.AutoCloseableQueryRunner s = neo4jClient.getQueryRunner(null)) {
 						s.run("MATCH (n) RETURN n");
 					}
 					return null;
@@ -173,7 +173,7 @@ class TransactionHandlingTest {
 
 			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
 
-			Mono<String> sequence = neo4jClient.doInStatementRunnerForMono("aDatabase", tx -> Mono.just("1"));
+			Mono<String> sequence = neo4jClient.doInQueryRunnerForMono("aDatabase", tx -> Mono.just("1"));
 
 			StepVerifier.create(sequence)
 				.expectNext("1")
@@ -198,7 +198,7 @@ class TransactionHandlingTest {
 			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
 
 			Mono<String> sequence = neo4jClient
-				.doInStatementRunnerForMono("aDatabase", tx -> Mono.error(new SomeException()));
+				.doInQueryRunnerForMono("aDatabase", tx -> Mono.error(new SomeException()));
 
 			StepVerifier.create(sequence)
 				.expectError(SomeException.class)

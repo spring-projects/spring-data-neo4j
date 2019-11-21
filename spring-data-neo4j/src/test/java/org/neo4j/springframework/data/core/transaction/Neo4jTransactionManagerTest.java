@@ -36,7 +36,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.StatementResult;
+import org.neo4j.driver.Result;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.SessionConfig;
@@ -66,7 +66,7 @@ class Neo4jTransactionManagerTest {
 	@Mock
 	private Transaction transaction;
 	@Mock
-	private StatementResult statementResult;
+	private Result statementResult;
 	@Mock
 	private UserTransaction userTransaction;
 

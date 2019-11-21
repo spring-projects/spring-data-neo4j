@@ -29,7 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
-import org.neo4j.driver.StatementRunner;
+import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.log.LogAccessor;
@@ -80,7 +80,7 @@ public interface Neo4jClient {
 	 * @param <T>      The type of the result being produced
 	 * @return A single result object or an empty optional if the callback didn't produce a result
 	 */
-	<T> OngoingDelegation<T> delegateTo(Function<StatementRunner, Optional<T>> callback);
+	<T> OngoingDelegation<T> delegateTo(Function<QueryRunner, Optional<T>> callback);
 
 	/**
 	 * Contract for a runnable query that can be either run returning it's result, run without results or be parameterized.
