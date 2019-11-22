@@ -21,7 +21,7 @@ package org.neo4j.springframework.data.core.cypher.renderer;
 import org.neo4j.springframework.data.core.cypher.Statement;
 
 /**
- * Instances of this class are supposed to be threadsafe.
+ * Instances of this class are supposed to be thread-safe.
  * @author Michael J. Simons
  * @since 1.0
  */

@@ -53,7 +53,7 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	@Query("MATCH (n:PersonWithAllConstructor) return n")
 	List<PersonWithAllConstructor> getAllPersonsViaQuery();
 
-	@Query("MATCH (n:UnkownLabel) return n")
+	@Query("MATCH (n:UnknownLabel) return n")
 	List<PersonWithAllConstructor> getNobodyViaQuery();
 
 	@Query("MATCH (n:PersonWithAllConstructor{name:'Test'}) return n")

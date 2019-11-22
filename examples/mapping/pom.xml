@@ -25,7 +25,7 @@
 	<version>999-SNAPSHOT</version>
 
 	<name>SDN⚡️RX Examples Mapping</name>
-	<description>A showcase for possible mappings, queries and respository handling.</description>
+	<description>A showcase for possible mappings, queries and repository handling.</description>
 
 	<properties>
 		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>

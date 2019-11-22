@@ -63,7 +63,7 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 
 /**
- * An implementation of both a {@link Schema} as well as a Neo4j version of Spring Datas
+ * An implementation of both a {@link Schema} as well as a Neo4j version of Spring Data's
  * {@link org.springframework.data.mapping.context.MappingContext}. It is recommended to provide
  * the initial set of classes through {@link #setInitialEntitySet(Set)}.
  *

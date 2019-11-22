@@ -33,7 +33,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 /**
- * Briding between Spring Data domain Objects and Cypher constructs.
+ * Bridging between Spring Data domain Objects and Cypher constructs.
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
