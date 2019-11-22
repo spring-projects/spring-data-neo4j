@@ -98,7 +98,7 @@ final class RepositoryQueryTest {
 		}
 
 		@Test
-		void collecitonQueriesShouldBeTreatedAsSuch() {
+		void collectionQueriesShouldBeTreatedAsSuch() {
 
 			Neo4jQueryMethod neo4jQueryMethod = neo4jQueryMethod("findAllByANamedQuery");
 

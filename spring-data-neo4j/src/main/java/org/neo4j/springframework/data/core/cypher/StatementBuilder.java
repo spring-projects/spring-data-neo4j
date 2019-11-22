@@ -361,7 +361,7 @@ public interface StatementBuilder {
 		 * Order the result set by an expression.
 		 *
 		 * @param expression The expression to order by
-		 * @return A step that allows for adding more expression or finetuning the sort direction of the last expression
+		 * @return A step that allows for adding more expression or fine-tuning the sort direction of the last expression
 		 */
 		TerminalOngoingOrderDefinition orderBy(Expression expression);
 	}
@@ -417,7 +417,7 @@ public interface StatementBuilder {
 		 * Order the result set by an expression.
 		 *
 		 * @param expression The expression to order by
-		 * @return A step that allows for adding more expression or finetuning the sort direction of the last expression
+		 * @return A step that allows for adding more expression or fine-tuning the sort direction of the last expression
 		 */
 		OngoingOrderDefinition orderBy(Expression expression);
 	}

@@ -54,7 +54,7 @@ class CypherIT {
 			}
 
 			@Test
-			void asterikShouldWork() {
+			void asteriskShouldWork() {
 				Statement statement = Cypher.match(bikeNode, userNode, Cypher.node("U").named("o"))
 					.returning(asterisk())
 					.build();
@@ -277,7 +277,7 @@ class CypherIT {
 			}
 
 			@Test
-			void nullskipAndLimit() {
+			void nullSkipAndLimit() {
 				Statement statement = Cypher.match(userNode).returning(userNode).skip(null).limit(null).build();
 
 				assertThat(cypherRenderer.render(statement))
@@ -1562,7 +1562,7 @@ class CypherIT {
 	}
 
 	@Nested
-	class OperationsAndComparisions {
+	class OperationsAndComparisons {
 
 		@Test
 		void shouldRenderOperations() {

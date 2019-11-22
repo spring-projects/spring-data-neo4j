@@ -84,7 +84,7 @@ abstract class Neo4jQuerySupport {
 		final BiFunction<TypeSystem, Record, ?> mappingFunction;
 		if (Neo4jSimpleTypes.HOLDER.isSimpleType(returnedType)) {
 			// Clients automatically selects a single value mapping function.
-			// It will thrown an error if the query contains more than one columne.
+			// It will thrown an error if the query contains more than one column.
 			mappingFunction = null;
 		} else if (resultProcessor.getReturnedType().isProjecting()) {
 

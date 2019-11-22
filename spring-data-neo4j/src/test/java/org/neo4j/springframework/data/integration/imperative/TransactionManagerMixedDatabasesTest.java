@@ -54,7 +54,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * The goal of this tests is to ensure a sensible coexistence of declarative {@link Transactional @Transactional}
  * transaction when the user uses the {@link Neo4jClient} in the same or another database.
  * <p>
- * While it does not integrate against a real database (multidatabase is an enterprise feature), it is still an integration
+ * While it does not integrate against a real database (multi-database is an enterprise feature), it is still an integration
  * test due to the high integration with Spring framework code.
  */
 @ExtendWith(SpringExtension.class)
@@ -101,7 +101,7 @@ class TransactionManagerMixedDatabasesTest {
 	}
 
 	@Test
-	void usingSameDatabaseExplizitTx() {
+	void usingSameDatabaseExplicitTx() {
 		Neo4jTransactionManager otherTransactionManger = new Neo4jTransactionManager(driver, DATABASE_NAME);
 		TransactionTemplate otherTransactionTemplate = new TransactionTemplate(otherTransactionManger);
 
@@ -121,7 +121,7 @@ class TransactionManagerMixedDatabasesTest {
 	}
 
 	@Test
-	void usingAnotherDatabaseExplizitTx() {
+	void usingAnotherDatabaseExplicitTx() {
 
 		assertThatIllegalStateException().isThrownBy(
 			() -> transactionTemplate.execute(

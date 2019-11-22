@@ -57,7 +57,7 @@ import org.springframework.transaction.reactive.TransactionalOperator;
  * The goal of this tests is to ensure a sensible coexistence of declarative {@link Transactional @Transactional}
  * transaction when the user uses the {@link Neo4jClient} in the same or another database.
  * <p>
- * While it does not integrate against a real database (multidatabase is an enterprise feature), it is still an integration
+ * While it does not integrate against a real database (multi-database is an enterprise feature), it is still an integration
  * test due to the high integration with Spring framework code.
  */
 @ExtendWith(SpringExtension.class)
@@ -110,7 +110,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 	}
 
 	@Test
-	void usingSameDatabaseExplizitTx() {
+	void usingSameDatabaseExplicitTx() {
 		ReactiveNeo4jTransactionManager otherTransactionManger = new ReactiveNeo4jTransactionManager(driver,
 			DATABASE_NAME);
 		TransactionalOperator otherTransactionTemplate = TransactionalOperator.create(otherTransactionManger);
@@ -136,7 +136,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 	}
 
 	@Test
-	void usingAnotherDatabaseExplizitTx() {
+	void usingAnotherDatabaseExplicitTx() {
 
 		TransactionalOperator transactionTemplate = TransactionalOperator.create(neo4jTransactionManager);
 
@@ -217,8 +217,8 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 			RxResult boomResult = mock(RxResult.class);
 			when(boomResult.records()).thenReturn(Mono.just(boomRecord));
 
-			RxResult defaultResault = mock(RxResult.class);
-			when(defaultResault.records()).thenReturn(Mono.just(defaultRecord));
+			RxResult defaultResult = mock(RxResult.class);
+			when(defaultResult.records()).thenReturn(Mono.just(defaultRecord));
 
 			RxTransaction boomTransaction = mock(RxTransaction.class);
 			when(boomTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomResult);
@@ -226,7 +226,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 			when(boomTransaction.rollback()).thenReturn(Mono.empty());
 
 			RxTransaction defaultTransaction = mock(RxTransaction.class);
-			when(defaultTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultResault);
+			when(defaultTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultResult);
 			when(defaultTransaction.commit()).thenReturn(Mono.empty());
 			when(defaultTransaction.rollback()).thenReturn(Mono.empty());
 
@@ -237,7 +237,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 			when(boomSession.close()).thenReturn(Mono.empty());
 
 			RxSession defaultSession = mock(RxSession.class);
-			when(defaultSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultResault);
+			when(defaultSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultResult);
 			when(defaultSession.beginTransaction()).thenReturn(Mono.just(defaultTransaction));
 			when(defaultSession.beginTransaction(any(TransactionConfig.class)))
 				.thenReturn(Mono.just(defaultTransaction));

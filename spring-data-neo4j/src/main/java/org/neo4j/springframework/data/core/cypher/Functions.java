@@ -135,7 +135,7 @@ public final class Functions {
 	 * <li><a href="https://neo4j.com/docs/cypher-manual/current/functions/scalar/#functions-size-of-pattern-expression">to a pattern expression</a></li>
 	 * </ul>
 	 *
-	 * @param expression The expression whos size is to be returned
+	 * @param expression The expression who's size is to be returned
 	 * @return A function call for {@code size()} for one expression
 	 */
 	public static FunctionInvocation size(Expression expression) {
@@ -149,7 +149,7 @@ public final class Functions {
 	 * Creates a function invocation for the {@code exists()} function.
 	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-exists">exists</a>.
 	 *
-	 * @param expression The expression whos existence is to be evaluated
+	 * @param expression The expression who's existence is to be evaluated
 	 * @return A function call for {@code exists()} for one expression
 	 */
 	public static FunctionInvocation exists(Expression expression) {
