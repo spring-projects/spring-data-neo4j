@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.examples.galaxy;
+package org.springframework.data.neo4j.queries.ogmgh552;
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
+import org.neo4j.ogm.annotation.NodeEntity;
 
 /**
  * @author Michael J. Simons
  */
-@Neo4jIntegrationTest(domainPackages = { "org.springframework.data.neo4j.examples.galaxy.domain",
-		"org.springframework.data.neo4j.queries.ogmgh552" },
-		repositoryPackages = { "org.springframework.data.neo4j.examples.galaxy.repo",
-				"org.springframework.data.neo4j.queries.ogmgh552" })
-@ComponentScan("org.springframework.data.neo4j.examples.galaxy.service")
-public class GalaxyContextConfiguration {}
+@NodeEntity("Thing")
+public class ThingEntity {
+    @Id @GeneratedValue
+    private Long id;
+
+    private String name;
+}
+

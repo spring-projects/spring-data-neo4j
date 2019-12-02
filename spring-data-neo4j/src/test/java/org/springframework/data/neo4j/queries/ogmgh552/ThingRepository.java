@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.examples.galaxy;
+package org.springframework.data.neo4j.queries.ogmgh552;
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import java.util.List;
+
+import org.springframework.data.neo4j.annotation.Query;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
  * @author Michael J. Simons
  */
-@Neo4jIntegrationTest(domainPackages = { "org.springframework.data.neo4j.examples.galaxy.domain",
-		"org.springframework.data.neo4j.queries.ogmgh552" },
-		repositoryPackages = { "org.springframework.data.neo4j.examples.galaxy.repo",
-				"org.springframework.data.neo4j.queries.ogmgh552" })
-@ComponentScan("org.springframework.data.neo4j.examples.galaxy.service")
-public class GalaxyContextConfiguration {}
+public interface ThingRepository extends Neo4jRepository<ThingEntity, Long> {
+
+	@Query("return 'NOT A NAME!!!' as notAName")
+	List<Thing> findAllTheThings();
+}
