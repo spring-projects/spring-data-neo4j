@@ -27,10 +27,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.examples.galaxy.GalaxyContextConfiguration;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
 import org.springframework.data.neo4j.examples.galaxy.repo.WorldRepository;
+import org.springframework.data.neo4j.queries.ogmgh552.Thing;
+import org.springframework.data.neo4j.queries.ogmgh552.ThingRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
 
 /**
  * @author Vince Bickers
@@ -38,6 +44,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Mark Angrish
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = GalaxyContextConfiguration.class)
 @RunWith(SpringRunner.class)
@@ -51,6 +58,8 @@ public class QueryReturnTypesTests {
 	@Autowired WorldRepository worldRepository;
 
 	@Autowired Session session;
+
+	@Autowired ThingRepository thingRepository;
 
 	@Before
 	public void clearDatabase() {
@@ -68,6 +77,13 @@ public class QueryReturnTypesTests {
 		session.clear();
 		world = worldRepository.findById(world.getId()).get();
 		assertNotNull(world.getUpdated());
+	}
+
+	@Test
+	public void queryResultsAndEntitiesMappedToTheSameSimpleTypeShouldNotBeMixedUp() {
+
+		List<Thing> result = this.thingRepository.findAllTheThings();
+		assertThat(result).hasSize(1).extracting(Thing::getNotAName).containsExactly("NOT A NAME!!!");
 	}
 
 	@Test // DATAGRAPH-704

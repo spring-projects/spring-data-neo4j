@@ -25,7 +25,6 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.queries.ogmgh551.AnotherThing;
 import org.springframework.data.neo4j.queries.ogmgh551.ThingRepository;
@@ -77,8 +76,7 @@ public class QueryResultIntegrationTests {
 	}
 
 	@Configuration
-	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.queries.ogmgh551")
-	@ComponentScan("org.springframework.data.neo4j.queries.ogmgh551")
+	@Neo4jIntegrationTest(repositoryPackages = "org.springframework.data.neo4j.queries.ogmgh551", domainPackages = "org.springframework.data.neo4j.queries.ogmgh551")
 	static class ContextConfig {
 	}
 }
