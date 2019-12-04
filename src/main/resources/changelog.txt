@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.14.RELEASE (2019-12-04)
+----------------------------------------------
+* DATAGRAPH-1268 - Remove usage of deprecated Filter#setPropertyName..
+* DATAGRAPH-1266 - Release 5.1.14 (Lovelace SR14).
+* DATAGRAPH-1207 - Adjust log level in MetaDataDrivenConversionService.
+
+
 Changes in version 5.2.2.RELEASE (2019-11-18)
 ---------------------------------------------
 * DATAGRAPH-1264 - Release 5.2.2 (Moore SR2).
@@ -1592,3 +1599,4 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
