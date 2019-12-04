@@ -1,6 +1,14 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.2.3.RELEASE (2019-12-04)
+---------------------------------------------
+* DATAGRAPH-1269 - Upgrade to Neo4j OGM 3.2.3.
+* DATAGRAPH-1268 - Remove usage of deprecated Filter#setPropertyName..
+* DATAGRAPH-1267 - Release 5.2.3 (Moore SR3).
+* DATAGRAPH-1207 - Adjust log level in MetaDataDrivenConversionService.
+
+
 Changes in version 5.1.14.RELEASE (2019-12-04)
 ----------------------------------------------
 * DATAGRAPH-1268 - Remove usage of deprecated Filter#setPropertyName..
@@ -1599,4 +1607,5 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
