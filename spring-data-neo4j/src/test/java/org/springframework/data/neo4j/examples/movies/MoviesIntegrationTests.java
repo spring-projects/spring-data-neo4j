@@ -82,6 +82,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = { MoviesIntegrationTests.MoviesContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -512,7 +513,7 @@ public class MoviesIntegrationTests extends MultiDriverTestClass {
 
 		try {
 			assertSameGraph(getGraphDatabaseService(),
-					"CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User:Person {name:'Adam'})");
+					"CREATE (m:User:Person {name:'Michal'})-[:FRIEND_OF]->(a:User:Person {name:'Adam'})");
 		} catch (AssertionError error) {
 			assertSameGraph(getGraphDatabaseService(),
 					"CREATE (m:User:Person {name:'Michal'})<-[:FRIEND_OF]-(a:User:Person {name:'Adam'})");

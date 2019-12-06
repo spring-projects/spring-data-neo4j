@@ -16,6 +16,13 @@
 package org.springframework.data.neo4j.repository;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
+
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,12 +34,17 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+import org.junit.runners.model.Statement;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.ogm.drivers.embedded.driver.EmbeddedDriver;
+import org.neo4j.ogm.session.Neo4jSession;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.slf4j.Logger;
@@ -53,6 +65,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Michael J. Simons
@@ -64,6 +77,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class MultipleSessionFactorySupportTests {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MultipleSessionFactorySupportTests.class);
+
+	@Rule
+	public final LoggerRule loggerRule = new LoggerRule();
 
 	private static final String BEAN_NAME_FRIENDS_SESSION_FACTORY = "sessionFactoryFriends";
 	private static final String BEAN_NAME_FRIENDS_TX_MANAGER = "txManagerFriends";
@@ -78,6 +94,8 @@ public class MultipleSessionFactorySupportTests {
 	private static final String QUERY_COUNT_DINER_NODES = "MATCH (n:Diner) RETURN count(n) as cnt";
 
 	private static DatabaseHolder instance1;
+
+	private static final boolean neo4jOgm3116Plus = ReflectionUtils.findMethod(Neo4jSession.class, "determineLabelsOrTypeForLoading", Class.class) != null;
 
 	private static DatabaseHolder instance2;
 
@@ -99,8 +117,27 @@ public class MultipleSessionFactorySupportTests {
 	@Test // DATAGRAPH-1094
 	public void sessionsShouldUseCorrectMappingContext() {
 
+		assumeThat(neo4jOgm3116Plus)
+				.withFailMessage("This tests is only valid for Neo4j-OGM prior to 3.1.16")
+				.isFalse();
+
 		assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> friendsSession.loadAll(Restaurant.class));
 		assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> restaurantsSession.loadAll(Person.class));
+	}
+
+	@Test // DATAGRAPH-1094 DATAGRAPH-1274
+	public void sessionsShouldUseCorrectMappingContext324() {
+
+		assumeThat(neo4jOgm3116Plus)
+				.withFailMessage("This tests is only valid for Neo4j-OGM 3.1.16+")
+				.isTrue();
+
+		assertThat(friendsSession.loadAll(Restaurant.class)).isEmpty();
+		assertThat(restaurantsSession.loadAll(Person.class)).isEmpty();
+
+		assertThat(loggerRule.getFormattedMessages())
+				.anyMatch(s -> s.contains("Unable to find database label for entity org.springframework.data.neo4j.examples.restaurants.domain.Restaurant : no results will be returned."))
+				.anyMatch(s -> s.contains("Unable to find database label for entity org.springframework.data.neo4j.examples.friends.domain.Person : no results will be returned."));
 	}
 
 	@Test // DATAGRAPH-1094
@@ -242,5 +279,40 @@ public class MultipleSessionFactorySupportTests {
 			return new SessionFactory(new EmbeddedDriver(instance2.graphDatabaseService),
 					PACKAGE_FOR_DOMAIN_OF_INSTANCE2 + ".domain");
 		}
+	}
+
+	static class LoggerRule implements TestRule {
+
+		private final ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+		private final ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(
+				ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+
+		@Override
+		public Statement apply(Statement base, Description description) {
+			return new Statement() {
+				@Override
+				public void evaluate() throws Throwable {
+					setup();
+					base.evaluate();
+					teardown();
+				}
+			};
+		}
+
+		private void setup() {
+			logger.addAppender(listAppender);
+			listAppender.start();
+		}
+
+		private void teardown() {
+			listAppender.stop();
+			listAppender.list.clear();
+			logger.detachAppender(listAppender);
+		}
+
+		public List<String> getFormattedMessages() {
+			return listAppender.list.stream().map(e -> e.getFormattedMessage()).collect(Collectors.toList());
+		}
+
 	}
 }
