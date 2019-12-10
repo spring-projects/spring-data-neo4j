@@ -303,7 +303,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType)
 			.withCypherQuery(renderer.render(statement))
 			.withParameters(parameters)
-			.usingMappingFunction(this.neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
+			.usingMappingFunction(neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
 			.build();
 		return toExecutableQuery(preparedQuery);
 	}

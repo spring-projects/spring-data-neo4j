@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.neo4j.springframework.data.core.cypher.Expressions.*;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +27,7 @@ import java.util.Set;
 
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.support.TypedSubtree;
+import org.neo4j.springframework.data.core.cypher.support.Visitable;
 import org.springframework.util.Assert;
 
 /**
@@ -73,5 +76,10 @@ public final class MapExpression<S extends MapExpression<S>> extends TypedSubtre
 		newContent.addAll(super.children);
 		newContent.addAll(entries);
 		return new MapExpression<>(newContent);
+	}
+
+	@Override
+	protected Visitable prepareVisit(MapEntry child) {
+		return child instanceof Expression ? nameOrExpression((Expression) child) : child;
 	}
 }

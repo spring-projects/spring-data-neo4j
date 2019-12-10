@@ -89,15 +89,15 @@ abstract class Neo4jQuerySupport {
 		} else if (resultProcessor.getReturnedType().isProjecting()) {
 
 			if (returnedType.isInterface()) {
-				mappingFunction = this.mappingContext.getMappingFunctionFor(domainType);
+				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
 			} else if (this.mappingContext.hasPersistentEntityFor(returnedType)) {
-				mappingFunction = this.mappingContext.getMappingFunctionFor(returnedType);
+				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(returnedType);
 			} else {
 				this.mappingContext.addPersistentEntity(returnedType);
-				mappingFunction = this.mappingContext.getMappingFunctionFor(returnedType);
+				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(returnedType);
 			}
 		} else {
-			mappingFunction = this.mappingContext.getMappingFunctionFor(domainType);
+			mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
 		}
 		return mappingFunction;
 	}

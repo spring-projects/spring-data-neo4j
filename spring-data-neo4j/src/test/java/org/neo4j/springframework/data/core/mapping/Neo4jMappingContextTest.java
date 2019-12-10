@@ -120,19 +120,12 @@ public class Neo4jMappingContextTest {
 	}
 
 	@Test
-	void shouldNotProvideMappingForUnknownClasses() {
-
-		Neo4jMappingContext schema = new Neo4jMappingContext();
-		assertThat(schema.getMappingFunctionFor(UserNode.class)).isNull();
-	}
-
-	@Test
 	void targetTypeOfAssociationsShouldBeKnownToTheMappingContext() {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
 		Neo4jPersistentEntity<?> bikeNodeEntity = schema.getPersistentEntity(BikeNode.class);
 		bikeNodeEntity.doWithAssociations((Association<Neo4jPersistentProperty> association) ->
-			assertThat(schema.getMappingFunctionFor(association.getInverse().getAssociationTargetType())).isNotNull());
+			assertThat(schema.getRequiredMappingFunctionFor(association.getInverse().getAssociationTargetType())).isNotNull());
 	}
 
 	@Test

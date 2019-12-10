@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core.schema;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -27,6 +28,8 @@ import java.util.function.Function;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
+import org.neo4j.springframework.data.core.convert.Neo4jConverter;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.lang.Nullable;
 
 /**
@@ -74,6 +77,16 @@ public interface Schema {
 		return nodeDescription;
 	}
 
+	default NodeDescription<?> getRequiredNodeDescription(String primaryLabel) {
+		NodeDescription<?> nodeDescription = getNodeDescription(primaryLabel);
+		if (nodeDescription == null) {
+			throw new MappingException(
+				String.format("Required node description not found with primary label '%s'", primaryLabel));
+		}
+		return nodeDescription;
+	}
+
+
 	/**
 	 * Retrieves a schema based mapping function for the {@code targetClass}. The mapping function will expect a
 	 * record containing all the nodes and relationships necessary to fully populate an instance of the given class.
@@ -90,16 +103,27 @@ public interface Schema {
 	 * @throws UnknownEntityException When {@code targetClass} is not a managed class
 	 */
 	default <T> BiFunction<TypeSystem, Record, T> getRequiredMappingFunctionFor(Class<T> targetClass) {
-		BiFunction<TypeSystem, Record, T> mappingFunction = getMappingFunctionFor(targetClass);
-		if (mappingFunction == null) {
+		NodeDescription<?> nodeDescription = getNodeDescription(targetClass);
+		if (nodeDescription == null) {
 			throw new UnknownEntityException(targetClass);
 		}
-		return mappingFunction;
+		return (typeSystem, record) -> getConverter().read(targetClass, record);
 	}
 
-	@Nullable <T> BiFunction<TypeSystem, Record, T> getMappingFunctionFor(Class<T> targetClass);
+	Neo4jConverter getConverter();
 
-	<T> Function<T, Map<String, Object>> getRequiredBinderFunctionFor(Class<T> sourceClass);
+	default <T> Function<T, Map<String, Object>> getRequiredBinderFunctionFor(Class<T> sourceClass) {
+
+		if (getNodeDescription(sourceClass) == null) {
+			throw new UnknownEntityException(sourceClass);
+		}
+
+		return t -> {
+			Map<String, Object> parameters = new HashMap<>();
+			getConverter().write(t, parameters);
+			return parameters;
+		};
+	}
 
 	/**
 	 * Creates or retrieves an instance of the given id generator class. During the lifetime of the schema,

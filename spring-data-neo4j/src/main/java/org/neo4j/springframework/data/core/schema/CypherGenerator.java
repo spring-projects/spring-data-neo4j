@@ -29,9 +29,9 @@ import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
 import org.jetbrains.annotations.NotNull;
+import org.neo4j.springframework.data.core.cypher.*;
 import org.neo4j.springframework.data.core.cypher.Node;
 import org.neo4j.springframework.data.core.cypher.Relationship;
-import org.neo4j.springframework.data.core.cypher.*;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.lang.Nullable;
@@ -198,8 +198,8 @@ public enum CypherGenerator {
 		boolean outgoing = relationshipDescription.isOutgoing();
 
 		String relationshipType = relationshipDescription.isDynamic() ? null : relationshipDescription.getType();
-		String relationshipToRemoveName = "rel";
 
+		String relationshipToRemoveName = "rel";
 		Relationship relationship = outgoing
 			? startNode.relationshipTo(endNode, relationshipType).named(relationshipToRemoveName)
 			: startNode.relationshipFrom(endNode, relationshipType).named(relationshipToRemoveName);
@@ -311,9 +311,15 @@ public enum CypherGenerator {
 					? startNode.relationshipTo(endNode, relationshipType)
 					: startNode.relationshipFrom(endNode, relationshipType);
 
+				MapProjection mapProjection = projectAllPropertiesAndRelationships(endNodeDescription, fieldName);
+				if (relationshipDescription.hasRelationshipProperties()) {
+					relationship = relationship.named(RelationshipDescription.NAME_OF_RELATIONSHIP);
+					mapProjection = mapProjection.and(relationship);
+				}
+
 				generatedLists.add(relationshipTargetName);
 				generatedLists.add(listBasedOn(relationship)
-					.returning(projectAllPropertiesAndRelationships(endNodeDescription, fieldName)));
+					.returning(mapProjection));
 			}
 		}
 

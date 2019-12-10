@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.core.mapping;
 
 import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Relationship;
+import org.neo4j.springframework.data.core.schema.RelationshipProperties;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
@@ -68,8 +69,14 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	@Override
 	protected Association<Neo4jPersistentProperty> createAssociation() {
 
-		Neo4jPersistentEntity<?> obverseOwner = this.mappingContext
-			.getPersistentEntity(this.getAssociationTargetType());
+		Neo4jPersistentEntity<?> obverseOwner;
+
+		// if the target is a relationship property always take the key type from the map instead of the value type.
+		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
+			obverseOwner = this.mappingContext.getPersistentEntity(this.getComponentType());
+		} else {
+			obverseOwner = this.mappingContext.getPersistentEntity(this.getAssociationTargetType());
+		}
 
 		Relationship outgoingRelationship = this.findAnnotation(Relationship.class);
 
@@ -86,8 +93,14 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 		}
 
 		Neo4jPersistentProperty obverse = null;
-		return new DefaultRelationshipDescription(this, obverse, type, this.isDynamicAssociation(),
-			(NodeDescription<?>) getOwner(), this.getName(), obverseOwner, direction);
+		boolean dynamicAssociation = this.isDynamicAssociation();
+
+		// Because a dynamic association is also represented as a Map, this ensures that the
+		// relationship properties class will only have a value if it's not a dynamic association.
+		Class<?> relationshipPropertiesClass = dynamicAssociation ? null : getMapValueType();
+
+		return new DefaultRelationshipDescription(this, obverse, type, dynamicAssociation, (NodeDescription<?>) getOwner(),
+				this.getName(), obverseOwner, direction, relationshipPropertiesClass);
 	}
 
 	@Override

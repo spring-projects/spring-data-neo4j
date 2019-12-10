@@ -141,7 +141,7 @@ final class Predicate {
 				}
 				predicate.add(mode, condition);
 				predicate.parameters.put(propertyName, optionalValue
-					.map(v -> converter.writeValue(v, ((Neo4jPersistentProperty) graphProperty).getTypeInformation()))
+					.map(v -> converter.writeValueFromProperty(v, ((Neo4jPersistentProperty) graphProperty).getTypeInformation()))
 					.get());
 			}
 		}
