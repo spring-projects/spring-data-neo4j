@@ -18,43 +18,25 @@
  */
 package org.neo4j.springframework.data.core.mapping;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import org.apiguardian.api.API;
-import org.neo4j.driver.Record;
-import org.neo4j.driver.types.TypeSystem;
+import org.neo4j.driver.Driver;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.neo4j.springframework.data.core.convert.Neo4jConverter;
 import org.neo4j.springframework.data.core.convert.Neo4jSimpleTypes;
-import org.neo4j.springframework.data.core.schema.IdDescription;
 import org.neo4j.springframework.data.core.schema.IdGenerator;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
-import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 import org.neo4j.springframework.data.core.schema.Schema;
-import org.neo4j.springframework.data.core.schema.UnknownEntityException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.Property;
@@ -72,26 +54,25 @@ import org.springframework.lang.Nullable;
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class Neo4jMappingContext
-	extends AbstractMappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> implements Schema,
-	BeanDefinitionRegistryPostProcessor {
-
-	/**
-	 * A lookup of entities based on their primary label. We depend on the locking mechanism provided by the
-	 * {@link AbstractMappingContext}, so this lookup is not synchronized further.
-	 */
-	private final Map<String, NodeDescription<?>> nodeDescriptionsByPrimaryLabel = new HashMap<>();
+	extends AbstractMappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> implements Schema {
 
 	/**
 	 * A map of fallback id generators, that have not been added to the application context
 	 */
-	private final Map<Class<? extends IdGenerator<?>>, IdGenerator<?>> fallbackIdGenerators = new ConcurrentHashMap<>();
+	private final Map<Class<? extends IdGenerator<?>>, IdGenerator<?>> idGenerators = new ConcurrentHashMap<>();
+
+	/**
+	 * The {@link NodeDescriptionStore} is basically a {@link Map} and it is used to break the dependency
+	 * cycle between this class and the {@link DefaultNeo4jConverter}.
+	 */
+	private final NodeDescriptionStore nodeDescriptionStore = new NodeDescriptionStore();
 
 	/**
 	 * The converter used in this mapping context.
 	 */
 	private final Neo4jConverter converter;
 
-	private @Nullable ListableBeanFactory beanFactory;
+	private @Nullable AutowireCapableBeanFactory beanFactory;
 
 	public Neo4jMappingContext() {
 
@@ -101,7 +82,7 @@ public final class Neo4jMappingContext
 	public Neo4jMappingContext(Neo4jConversions neo4jConversions) {
 
 		super.setSimpleTypeHolder(Neo4jSimpleTypes.HOLDER);
-		this.converter = new DefaultNeo4jConverter(neo4jConversions);
+		this.converter = new DefaultNeo4jConverter(neo4jConversions, nodeDescriptionStore);
 	}
 
 	public Neo4jConverter getConverter() {
@@ -118,7 +99,7 @@ public final class Neo4jMappingContext
 		final DefaultNeo4jPersistentEntity<T> newEntity = new DefaultNeo4jPersistentEntity<>(typeInformation);
 		String primaryLabel = newEntity.getPrimaryLabel();
 
-		if (this.nodeDescriptionsByPrimaryLabel.containsKey(primaryLabel)) {
+		if (this.nodeDescriptionStore.containsKey(primaryLabel)) {
 			// @formatter:off
 			throw new MappingException(
 				String.format(Locale.ENGLISH, "The schema already contains a node description under the primary label %s",
@@ -126,8 +107,8 @@ public final class Neo4jMappingContext
 			// @formatter:on
 		}
 
-		if (this.nodeDescriptionsByPrimaryLabel.containsValue(newEntity)) {
-			Optional<String> label = this.nodeDescriptionsByPrimaryLabel.entrySet().stream()
+		if (this.nodeDescriptionStore.containsValue(newEntity)) {
+			Optional<String> label = this.nodeDescriptionStore.entrySet().stream()
 				.filter(e -> e.getValue().equals(newEntity)).map(
 					Map.Entry::getKey).findFirst();
 
@@ -144,7 +125,7 @@ public final class Neo4jMappingContext
 				newEntity.getUnderlyingClass().getName(), existingDescription.getPrimaryLabel()));
 		}
 
-		this.nodeDescriptionsByPrimaryLabel.put(primaryLabel, newEntity);
+		this.nodeDescriptionStore.put(primaryLabel, newEntity);
 
 		return newEntity;
 	}
@@ -163,39 +144,12 @@ public final class Neo4jMappingContext
 	@Override
 	@Nullable
 	public NodeDescription<?> getNodeDescription(String primaryLabel) {
-		return this.nodeDescriptionsByPrimaryLabel.get(primaryLabel);
-	}
-
-	NodeDescription<?> getRequiredNodeDescription(String primaryLabel) {
-
-		NodeDescription<?> nodeDescription = this.getNodeDescription(primaryLabel);
-		if (nodeDescription == null) {
-			throw new MappingException(
-				String.format("Required node description not found with primary label '%s'", primaryLabel));
-		}
-		return nodeDescription;
+		return this.nodeDescriptionStore.get(primaryLabel);
 	}
 
 	@Override
 	public NodeDescription<?> getNodeDescription(Class<?> underlyingClass) {
-
-		for (NodeDescription<?> nodeDescription : this.nodeDescriptionsByPrimaryLabel.values()) {
-			if (nodeDescription.getUnderlyingClass().equals(underlyingClass)) {
-				return nodeDescription;
-			}
-		}
-		return null;
-	}
-
-	@Override
-	@Nullable
-	public <T> BiFunction<TypeSystem, Record, T> getMappingFunctionFor(Class<T> targetClass) {
-		if (this.hasPersistentEntityFor(targetClass)) {
-			Neo4jPersistentEntity neo4jPersistentEntity = this.getPersistentEntity(targetClass);
-			return new DefaultNeo4jMappingFunction<>(neo4jPersistentEntity, this.converter);
-		}
-
-		return null;
+		return this.nodeDescriptionStore.getNodeDescription(underlyingClass);
 	}
 
 	@Override
@@ -204,41 +158,20 @@ public final class Neo4jMappingContext
 	}
 
 	@Override
-	public <T> Function<T, Map<String, Object>> getRequiredBinderFunctionFor(Class<T> sourceClass) {
-
-		if (!this.hasPersistentEntityFor(sourceClass)) {
-			throw new UnknownEntityException(sourceClass);
-		}
-
-		Neo4jPersistentEntity neo4jPersistentEntity = this.getPersistentEntity(sourceClass);
-		return new DefaultNeo4jBinderFunction<T>(neo4jPersistentEntity, converter);
-	}
-
-	private Collection<RelationshipDescription> computeRelationshipsOf(String primaryLabel) {
-
-		NodeDescription<?> nodeDescription = getRequiredNodeDescription(primaryLabel);
-
-		final List<RelationshipDescription> relationships = new ArrayList<>();
-
-		Neo4jPersistentEntity<?> entity = this.getPersistentEntity(nodeDescription.getUnderlyingClass());
-		entity.doWithAssociations((Association<Neo4jPersistentProperty> association) ->
-			relationships.add((RelationshipDescription) association)
-		);
-
-		return Collections.unmodifiableCollection(relationships);
-	}
-
-	@Override
 	public <T extends IdGenerator<?>> T getOrCreateIdGeneratorOfType(Class<T> idGeneratorType) {
-		Supplier<T> fallbackSupplier = () -> (T) this.fallbackIdGenerators
-			.computeIfAbsent(idGeneratorType, BeanUtils::instantiateClass);
 
-		if (this.beanFactory == null) {
-			return fallbackSupplier.get();
+		if (this.idGenerators.containsKey(idGeneratorType)) {
+			return (T) this.idGenerators.get(idGeneratorType);
 		} else {
-			return this.beanFactory
-				.getBeanProvider(idGeneratorType)
-				.getIfUnique(fallbackSupplier);
+			T idGenerator;
+			if (this.beanFactory == null) {
+				idGenerator = BeanUtils.instantiateClass(idGeneratorType);
+			} else {
+				idGenerator = this.beanFactory.getBeanProvider(idGeneratorType)
+					.getIfUnique(() -> this.beanFactory.createBean(idGeneratorType));
+			}
+			this.idGenerators.put(idGeneratorType, idGenerator);
+			return idGenerator;
 		}
 	}
 
@@ -255,30 +188,8 @@ public final class Neo4jMappingContext
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		super.setApplicationContext(applicationContext);
 
-		this.beanFactory = applicationContext;
-	}
-
-	@Override
-	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-
-		// Register all the known id generators
-		this.getPersistentEntities().stream()
-			.map(Neo4jPersistentEntity::getIdDescription)
-			.filter(IdDescription::isExternallyGeneratedId).map(IdDescription::getIdGeneratorClass)
-			.filter(Optional::isPresent).map(Optional::get)
-			.distinct()
-			.map(generatorClass -> {
-				RootBeanDefinition definition = new RootBeanDefinition(generatorClass);
-				definition.setRole(RootBeanDefinition.ROLE_INFRASTRUCTURE);
-				return definition;
-			})
-			.forEach(definition -> {
-				String beanName = BeanDefinitionReaderUtils.generateBeanName(definition, registry);
-				registry.registerBeanDefinition(beanName, definition);
-			});
-	}
-
-	@Override
-	public void postProcessBeanFactory(@SuppressWarnings({ "HiddenField" }) ConfigurableListableBeanFactory beanFactory) throws BeansException {
+		this.beanFactory = applicationContext.getAutowireCapableBeanFactory();
+		Driver driver = this.beanFactory.getBean(Driver.class);
+		((DefaultNeo4jConverter) this.converter).setTypeSystem(driver.defaultTypeSystem());
 	}
 }

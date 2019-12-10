@@ -24,6 +24,7 @@ import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Relationship;
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 import org.springframework.data.mapping.Association;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
@@ -44,10 +45,12 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 
 	private final Relationship.Direction direction;
 
+	private Class<?> relationshipPropertiesClass;
+
 	DefaultRelationshipDescription(Neo4jPersistentProperty inverse,
 		Neo4jPersistentProperty obverse,
 		String type, boolean dynamic, NodeDescription<?> source, String fieldName, NodeDescription<?> target,
-		Relationship.Direction direction) {
+		Relationship.Direction direction, @Nullable Class<?> relationshipPropertiesClass) {
 
 		super(inverse, obverse);
 
@@ -57,6 +60,7 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 		this.fieldName = fieldName;
 		this.target = target;
 		this.direction = direction;
+		this.relationshipPropertiesClass = relationshipPropertiesClass;
 	}
 
 	@Override
@@ -89,6 +93,15 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 		return direction;
 	}
 
+	@Override
+	public Class<?> getRelationshipPropertiesClass() {
+		return relationshipPropertiesClass;
+	}
+
+	@Override
+	public boolean hasRelationshipProperties() {
+		return getRelationshipPropertiesClass() != null;
+	}
 
 	@Override
 	public String toString() {

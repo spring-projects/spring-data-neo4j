@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class Relationship implements
-	PatternElement, Named, Expression,
+	PatternElement, Named, Expression, MapEntry,
 	ExposesRelationships<RelationshipChain> {
 
 	/**

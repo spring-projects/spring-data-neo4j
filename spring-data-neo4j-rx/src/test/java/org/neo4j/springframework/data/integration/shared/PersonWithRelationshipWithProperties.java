@@ -18,59 +18,35 @@
  */
 package org.neo4j.springframework.data.integration.shared;
 
-import java.util.Objects;
+import java.util.Map;
 
 import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
+import org.neo4j.springframework.data.core.schema.Relationship;
 
 /**
  * @author Gerrit Meier
  */
 @Node
-public class Hobby {
+public class PersonWithRelationshipWithProperties {
+
 	@Id @GeneratedValue private Long id;
 
-	private String name;
+	private final String name;
 
-	public Long getId() {
-		return id;
-	}
+	@Relationship("LIKES")
+	private Map<Hobby, LikesHobbyRelationship> hobbies;
 
-	public void setId(Long id) {
-		this.id = id;
+	public PersonWithRelationshipWithProperties(String name) {
+		this.name = name;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	@Override public String toString() {
-		return "Hobby{" +
-			"id=" + id +
-			", name='" + name + '\'' +
-			'}';
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		Hobby hobby = (Hobby) o;
-		return id.equals(hobby.id) &&
-			name.equals(hobby.name);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(id, name);
+	public Map<Hobby, LikesHobbyRelationship> getHobbies() {
+		return hobbies;
 	}
 }

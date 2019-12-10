@@ -111,8 +111,8 @@ public final class MapProjection implements Expression {
 				Assert.isTrue(!knownKeys.contains(lastKey), "Duplicate key '" + lastKey + "'");
 				entry = new KeyValueMapEntry(lastKey, lastExpression);
 				knownKeys.add(lastKey);
-			} else if (lastExpression instanceof PropertyLookup) {
-				entry = (PropertyLookup) lastExpression;
+			} else if (lastExpression instanceof MapEntry) {
+				entry = (MapEntry) lastExpression;
 			} else {
 				throw new IllegalArgumentException(lastExpression + " of type " + lastExpression.getClass()
 					+ " cannot be used with an implicit name as map entry.");

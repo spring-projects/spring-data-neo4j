@@ -21,6 +21,7 @@ package org.neo4j.springframework.data.core.schema;
 import org.apiguardian.api.API;
 import org.jetbrains.annotations.NotNull;
 import org.neo4j.springframework.data.core.schema.Relationship.Direction;
+import org.springframework.lang.Nullable;
 
 /**
  * Description of a relationship. Those descriptions always describe outgoing relationships. The inverse direction
@@ -32,6 +33,8 @@ import org.neo4j.springframework.data.core.schema.Relationship.Direction;
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public interface RelationshipDescription {
+
+	String NAME_OF_RELATIONSHIP = "__relationship__";
 
 	String NAME_OF_RELATIONSHIP_TYPE = "__relationshipType__";
 
@@ -78,6 +81,23 @@ public interface RelationshipDescription {
 	 * @return The direction of the relationship
 	 */
 	Direction getDirection();
+
+	/**
+	 * If this is a relationship with properties, the properties-defining class will get returned,
+	 * otherwise {@literal null}.
+	 *
+	 * @return The type of the relationship property class for relationship with properties, otherwise {@literal null}
+	 */
+	@Nullable
+	Class<?> getRelationshipPropertiesClass();
+
+	/**
+	 * Tells if this relationship is a relationship with additional properties.
+	 * In such cases {@code getRelationshipPropertiesClass} will return the type of the properties holding class.
+	 *
+	 * @return {@literal true} if an additional properties are available, otherwise {@literal false}
+	 */
+	boolean hasRelationshipProperties();
 
 	default boolean isOutgoing() {
 		return Direction.OUTGOING.equals(this.getDirection());

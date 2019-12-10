@@ -36,6 +36,7 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
+import org.assertj.core.data.MapEntry;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,7 @@ import org.neo4j.springframework.data.integration.shared.*;
 import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
 import org.neo4j.springframework.data.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
+import org.neo4j.springframework.data.types.CartesianPoint2d;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -97,6 +99,7 @@ class RepositoryIT {
 	private final PersonRepository repository;
 	private final ThingRepository thingRepository;
 	private final RelationshipRepository relationshipRepository;
+	private final PersonWithRelationshipWithPropertiesRepository relationshipWithPropertiesRepository;
 	private final PetRepository petRepository;
 	private final Driver driver;
 	private Long id1;
@@ -106,12 +109,14 @@ class RepositoryIT {
 
 	@Autowired
 	RepositoryIT(PersonRepository repository, ThingRepository thingRepository,
-		RelationshipRepository relationshipRepository, PetRepository petRepository, Driver driver) {
+		RelationshipRepository relationshipRepository, PetRepository petRepository, Driver driver,
+		PersonWithRelationshipWithPropertiesRepository relationshipWithPropertiesRepository) {
 
 		this.repository = repository;
 		this.relationshipRepository = relationshipRepository;
 		this.thingRepository = thingRepository;
 		this.petRepository = petRepository;
+		this.relationshipWithPropertiesRepository = relationshipWithPropertiesRepository;
 		this.driver = driver;
 	}
 
@@ -406,6 +411,111 @@ class RepositoryIT {
 		ThingWithAssignedId relatedThing = pet.getThings().get(0);
 		assertThat(relatedThing.getTheId()).isEqualTo("t1");
 		assertThat(relatedThing.getName()).isEqualTo("Thing1");
+	}
+
+	@Test
+	void loadEntityWithRelationshipWithProperties() {
+
+		long personId;
+		long hobbyNode1Id;
+		long hobbyNode2Id;
+
+		try (Session session = driver.session()) {
+			Record record = session
+				.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
+					+ " (n)-[l1:LIKES"
+					+ "{since: 1995, active: true, localDate: date('1995-02-26'), myEnum: 'SOMETHING', point: point({x: 0, y: 1})}"
+					+ "]->(h1:Hobby{name:'Music'}),"
+					+ " (n)-[l2:LIKES"
+					+ "{since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}"
+					+ "]->(h2:Hobby{name:'Something else'})"
+					+ "RETURN n, h1, h2").single();
+
+			Node personNode = record.get("n").asNode();
+			Node hobbyNode1 = record.get("h1").asNode();
+			Node hobbyNode2 = record.get("h2").asNode();
+
+			personId = personNode.id();
+			hobbyNode1Id = hobbyNode1.id();
+			hobbyNode2Id = hobbyNode2.id();
+		}
+
+		Optional<PersonWithRelationshipWithProperties> optionalPerson = relationshipWithPropertiesRepository.findById(personId);
+		assertThat(optionalPerson).isPresent();
+		PersonWithRelationshipWithProperties person = optionalPerson.get();
+		assertThat(person.getName()).isEqualTo("Freddie");
+
+		Hobby hobby1 = new Hobby();
+		hobby1.setName("Music");
+		hobby1.setId(hobbyNode1Id);
+		LikesHobbyRelationship rel1 = new LikesHobbyRelationship(1995);
+		rel1.setActive(true);
+		rel1.setLocalDate(LocalDate.of(1995, 2, 26));
+		rel1.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING);
+		rel1.setPoint(new CartesianPoint2d(0d, 1d));
+
+		Hobby hobby2 = new Hobby();
+		hobby2.setName("Something else");
+		hobby2.setId(hobbyNode2Id);
+		LikesHobbyRelationship rel2 = new LikesHobbyRelationship(2000);
+		rel2.setActive(false);
+		rel2.setLocalDate(LocalDate.of(2000, 6, 28));
+		rel2.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING_DIFFERENT);
+		rel2.setPoint(new CartesianPoint2d(2d, 3d));
+
+		assertThat(person.getHobbies()).contains(MapEntry.entry(hobby1, rel1), MapEntry.entry(hobby2, rel2));
+	}
+
+
+	@Test
+	void loadEntityWithRelationshipWithPropertiesFromCustomQuery() {
+
+		long personId;
+		long hobbyNode1Id;
+		long hobbyNode2Id;
+
+		try (Session session = driver.session()) {
+			Record record = session
+				.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
+					+ " (n)-[l1:LIKES"
+					+ "{since: 1995, active: true, localDate: date('1995-02-26'), myEnum: 'SOMETHING', point: point({x: 0, y: 1})}"
+					+ "]->(h1:Hobby{name:'Music'}),"
+					+ " (n)-[l2:LIKES"
+					+ "{since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}"
+					+ "]->(h2:Hobby{name:'Something else'})"
+					+ "RETURN n, h1, h2").single();
+
+			Node personNode = record.get("n").asNode();
+			Node hobbyNode1 = record.get("h1").asNode();
+			Node hobbyNode2 = record.get("h2").asNode();
+
+			personId = personNode.id();
+			hobbyNode1Id = hobbyNode1.id();
+			hobbyNode2Id = hobbyNode2.id();
+		}
+
+		PersonWithRelationshipWithProperties person = relationshipWithPropertiesRepository.loadFromCustomQuery(personId);
+		assertThat(person.getName()).isEqualTo("Freddie");
+
+		Hobby hobby1 = new Hobby();
+		hobby1.setName("Music");
+		hobby1.setId(hobbyNode1Id);
+		LikesHobbyRelationship rel1 = new LikesHobbyRelationship(1995);
+		rel1.setActive(true);
+		rel1.setLocalDate(LocalDate.of(1995, 2, 26));
+		rel1.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING);
+		rel1.setPoint(new CartesianPoint2d(0d, 1d));
+
+		Hobby hobby2 = new Hobby();
+		hobby2.setName("Something else");
+		hobby2.setId(hobbyNode2Id);
+		LikesHobbyRelationship rel2 = new LikesHobbyRelationship(2000);
+		rel2.setActive(false);
+		rel2.setLocalDate(LocalDate.of(2000, 6, 28));
+		rel2.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING_DIFFERENT);
+		rel2.setPoint(new CartesianPoint2d(2d, 3d));
+
+		assertThat(person.getHobbies()).contains(MapEntry.entry(hobby1, rel1), MapEntry.entry(hobby2, rel2));
 	}
 
 	@Test

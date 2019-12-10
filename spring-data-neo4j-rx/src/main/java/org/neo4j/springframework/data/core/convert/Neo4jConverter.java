@@ -18,12 +18,13 @@
  */
 package org.neo4j.springframework.data.core.convert;
 
+import java.util.Map;
+
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
-import org.neo4j.driver.types.TypeSystem;
 import org.springframework.dao.TypeMismatchDataAccessException;
-import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.mapping.PersistentPropertyAccessor;
-import org.springframework.data.mapping.model.ParameterValueProvider;
+import org.springframework.data.convert.EntityReader;
+import org.springframework.data.convert.EntityWriter;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 
@@ -34,7 +35,7 @@ import org.springframework.lang.Nullable;
  * @soundtrack The Kleptones - A Night At The Hip-Hopera
  * @since 1.0
  */
-public interface Neo4jConverter {
+public interface Neo4jConverter extends EntityReader<Object, Record>, EntityWriter<Object, Map<String, Object>> {
 
 	/**
 	 * Reads a {@link Value} returned by the driver and converts it into a {@link Neo4jSimpleTypes simple type} supported
@@ -43,34 +44,21 @@ public interface Neo4jConverter {
 	 * the failed conversion.
 	 *
 	 * @param value The value to be read, may be null.
-	 * @param type  The type information describing the target type
+	 * @param type  The type information describing the target type.
 	 * @return A simple type or null, if the value was {@literal null} or {@link org.neo4j.driver.Values#NULL}.
 	 * @throws TypeMismatchDataAccessException In case the value cannot be converted to the target type
 	 */
 	@Nullable
-	Object readValue(@Nullable Value value, TypeInformation<?> type);
+	Object readValueForProperty(@Nullable Value value, TypeInformation<?> type);
 
+	/**
+	 * Converts an {@link Object} to a driver's value object.
+	 *
+	 * @param value The value to get written, may be null.
+	 * @param type  The type information describing the target type.
+	 * @return A driver compatible value object.
+	 */
 	@Nullable
-	Value writeValue(@Nullable Object value, TypeInformation<?> type);
+	Value writeValueFromProperty(@Nullable Object value, TypeInformation<?> type);
 
-	/**
-	 * Returns a {@link PersistentPropertyAccessor} that delegates to {@code targetPropertyAccessor} and applies
-	 * all known conversions before returning a value.
-	 *
-	 * @param targetPropertyAccessor The property accessor to delegate to, must not be {@code null}.
-	 * @param <T>                    The type of the entity to operate on.
-	 * @return A {@link PersistentPropertyAccessor} guaranteed to be not {@code null}.
-	 */
-	<T> PersistentPropertyAccessor<T> decoratePropertyAccessor(TypeSystem typeSystem, PersistentPropertyAccessor<T> targetPropertyAccessor);
-
-	/**
-	 * Returns a {@link ParameterValueProvider} that delegates to {@code targetParameterValueProvider} and applies
-	 * all known conversions before returning a value.
-	 *
-	 * @param targetParameterValueProvider The parameter value provider to delegate to, must not be {@code null}.
-	 * @param <T>                          The type of the entity to operate on.
-	 * @return A {@link ParameterValueProvider} guaranteed to be not {@code null}.
-	 */
-	<T extends PersistentProperty<T>> ParameterValueProvider<T> decorateParameterValueProvider(
-		ParameterValueProvider<T> targetParameterValueProvider);
 }

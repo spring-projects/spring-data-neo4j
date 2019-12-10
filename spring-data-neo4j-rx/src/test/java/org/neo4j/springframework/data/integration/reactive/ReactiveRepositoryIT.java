@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
+import org.assertj.core.data.MapEntry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -54,13 +55,15 @@ import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
 import org.neo4j.springframework.data.integration.shared.AnotherThingWithAssignedId;
 import org.neo4j.springframework.data.integration.shared.Club;
 import org.neo4j.springframework.data.integration.shared.Hobby;
+import org.neo4j.springframework.data.integration.shared.LikesHobbyRelationship;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
 import org.neo4j.springframework.data.integration.shared.PersonWithRelationship;
 import org.neo4j.springframework.data.integration.shared.Pet;
 import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
-import org.neo4j.springframework.data.test.Neo4jExtension.*;
 import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
+import org.neo4j.springframework.data.test.Neo4jExtension.*;
+import org.neo4j.springframework.data.types.CartesianPoint2d;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -97,6 +100,7 @@ class ReactiveRepositoryIT {
 	@Autowired private ReactiveThingRepository thingRepository;
 	@Autowired private ReactiveRelationshipRepository relationshipRepository;
 	@Autowired private ReactivePetRepository petRepository;
+	@Autowired private ReactivePersonWithRelationshipWithPropertiesRepository relationshipWithPropertiesRepository;
 	@Autowired private Driver driver;
 	@Autowired private ReactiveTransactionManager transactionManager;
 	private long id1;
@@ -377,6 +381,116 @@ class ReactiveRepositoryIT {
 				assertThat(relatedThing.getName()).isEqualTo("Thing1");
 			})
 			.verifyComplete();
+	}
+
+	@Test
+	void loadEntityWithRelationshipWithProperties() {
+
+		long personId;
+		long hobbyNode1Id;
+		long hobbyNode2Id;
+
+		try (Session session = driver.session()) {
+			Record record = session
+				.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
+					+ " (n)-[l1:LIKES"
+					+ "{since: 1995, active: true, localDate: date('1995-02-26'), myEnum: 'SOMETHING', point: point({x: 0, y: 1})}"
+					+ "]->(h1:Hobby{name:'Music'}),"
+					+ " (n)-[l2:LIKES"
+					+ "{since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}"
+					+ "]->(h2:Hobby{name:'Something else'})"
+					+ "RETURN n, h1, h2").single();
+
+			Node personNode = record.get("n").asNode();
+			Node hobbyNode1 = record.get("h1").asNode();
+			Node hobbyNode2 = record.get("h2").asNode();
+
+			personId = personNode.id();
+			hobbyNode1Id = hobbyNode1.id();
+			hobbyNode2Id = hobbyNode2.id();
+		}
+
+		StepVerifier.create(relationshipWithPropertiesRepository.findById(personId))
+			.assertNext(person -> {
+				assertThat(person.getName()).isEqualTo("Freddie");
+
+				Hobby hobby1 = new Hobby();
+				hobby1.setName("Music");
+				hobby1.setId(hobbyNode1Id);
+				LikesHobbyRelationship rel1 = new LikesHobbyRelationship(1995);
+				rel1.setActive(true);
+				rel1.setLocalDate(LocalDate.of(1995, 2, 26));
+				rel1.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING);
+				rel1.setPoint(new CartesianPoint2d(0d, 1d));
+
+				Hobby hobby2 = new Hobby();
+				hobby2.setName("Something else");
+				hobby2.setId(hobbyNode2Id);
+				LikesHobbyRelationship rel2 = new LikesHobbyRelationship(2000);
+				rel2.setActive(false);
+				rel2.setLocalDate(LocalDate.of(2000, 6, 28));
+				rel2.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING_DIFFERENT);
+				rel2.setPoint(new CartesianPoint2d(2d, 3d));
+
+				assertThat(person.getHobbies()).contains(MapEntry.entry(hobby1, rel1), MapEntry.entry(hobby2, rel2));
+			})
+			.verifyComplete();
+
+	}
+
+	@Test
+	void loadEntityWithRelationshipWithPropertiesFromCustomQuery() {
+
+		long personId;
+		long hobbyNode1Id;
+		long hobbyNode2Id;
+
+		try (Session session = driver.session()) {
+			Record record = session
+				.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
+					+ " (n)-[l1:LIKES"
+					+ "{since: 1995, active: true, localDate: date('1995-02-26'), myEnum: 'SOMETHING', point: point({x: 0, y: 1})}"
+					+ "]->(h1:Hobby{name:'Music'}),"
+					+ " (n)-[l2:LIKES"
+					+ "{since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}"
+					+ "]->(h2:Hobby{name:'Something else'})"
+					+ "RETURN n, h1, h2").single();
+
+			Node personNode = record.get("n").asNode();
+			Node hobbyNode1 = record.get("h1").asNode();
+			Node hobbyNode2 = record.get("h2").asNode();
+
+			personId = personNode.id();
+			hobbyNode1Id = hobbyNode1.id();
+			hobbyNode2Id = hobbyNode2.id();
+		}
+
+		StepVerifier.create(relationshipWithPropertiesRepository.loadFromCustomQuery(personId))
+			.assertNext(person -> {
+				assertThat(person.getName()).isEqualTo("Freddie");
+
+				Hobby hobby1 = new Hobby();
+				hobby1.setName("Music");
+				hobby1.setId(hobbyNode1Id);
+				LikesHobbyRelationship rel1 = new LikesHobbyRelationship(1995);
+				rel1.setActive(true);
+				rel1.setLocalDate(LocalDate.of(1995, 2, 26));
+				rel1.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING);
+				rel1.setPoint(new CartesianPoint2d(0d, 1d));
+
+				Hobby hobby2 = new Hobby();
+				hobby2.setName("Something else");
+				hobby2.setId(hobbyNode2Id);
+				LikesHobbyRelationship rel2 = new LikesHobbyRelationship(2000);
+				rel2.setActive(false);
+				rel2.setLocalDate(LocalDate.of(2000, 6, 28));
+				rel2.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING_DIFFERENT);
+				rel2.setPoint(new CartesianPoint2d(2d, 3d));
+
+				assertThat(person.getHobbies()).contains(MapEntry.entry(hobby1, rel1), MapEntry.entry(hobby2, rel2));
+			})
+			.verifyComplete();
+
 	}
 
 	@Test

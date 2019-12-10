@@ -42,7 +42,7 @@ import org.springframework.data.util.ClassTypeInformation;
  */
 class DefaultNeo4jConverterTest {
 
-	private final DefaultNeo4jConverter defaultNeo4jConverter = new DefaultNeo4jConverter(new Neo4jConversions());
+	private final DefaultNeo4jConverter defaultNeo4jConverter = new DefaultNeo4jConverter(new Neo4jConversions(), null);
 
 	@Nested
 	class Reads {
@@ -51,7 +51,7 @@ class DefaultNeo4jConverterTest {
 			Value value = Values.value("Das funktioniert nicht.");
 
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class)
-				.isThrownBy(() -> defaultNeo4jConverter.readValue(value, ClassTypeInformation.from(Date.class)))
+				.isThrownBy(() -> defaultNeo4jConverter.readValueForProperty(value, ClassTypeInformation.from(Date.class)))
 				.withMessageStartingWith("Could not convert \"Das funktioniert nicht.\" into java.util.Date;")
 				.withCauseInstanceOf(ConversionFailedException.class)
 				.withRootCauseInstanceOf(DateTimeParseException.class);
@@ -62,7 +62,7 @@ class DefaultNeo4jConverterTest {
 			Value value = Values.value("Das funktioniert nicht.");
 
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class)
-				.isThrownBy(() -> defaultNeo4jConverter.readValue(value, ClassTypeInformation.from(LocalDate.class)))
+				.isThrownBy(() -> defaultNeo4jConverter.readValueForProperty(value, ClassTypeInformation.from(LocalDate.class)))
 				.withMessageStartingWith("Could not convert \"Das funktioniert nicht.\" into java.time.LocalDate;")
 				.withCauseInstanceOf(ConversionFailedException.class)
 				.withRootCauseInstanceOf(Uncoercible.class);
@@ -74,7 +74,7 @@ class DefaultNeo4jConverterTest {
 
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class)
 				.isThrownBy(
-					() -> defaultNeo4jConverter.readValue(value, ClassTypeInformation.from(ReactiveNeo4jClient.class)))
+					() -> defaultNeo4jConverter.readValueForProperty(value, ClassTypeInformation.from(ReactiveNeo4jClient.class)))
 				.withMessageStartingWith(
 					"Could not convert \"Das funktioniert nicht.\" into org.neo4j.springframework.data.core.ReactiveNeo4jClient;")
 				.withRootCauseInstanceOf(ConverterNotFoundException.class);
