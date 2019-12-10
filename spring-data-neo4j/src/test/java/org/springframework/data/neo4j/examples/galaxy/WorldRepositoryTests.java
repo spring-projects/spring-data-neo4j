@@ -43,8 +43,6 @@ public class WorldRepositoryTests {
 
 	@Autowired WorldRepository worldRepository;
 
-	@Autowired TransactionTemplate transactionTemplate;
-
 	boolean failed = false;
 
 	@Test // DATAGRAPH-951
