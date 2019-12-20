@@ -132,7 +132,7 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase {
 		try (Transaction transaction = driver.session().beginTransaction()) {
 			long numberOfRelations = transaction.run(""
 				+ "MATCH (t:PersonWithRelatives) WHERE id(t) = $id "
-				+ "RETURN size((t)-[:RELATIVE_1]->(:Person)) + size((t)-[:RELATIVE_2]->(:Person))"
+				+ "RETURN size((t)-->(:Person))"
 				+ " as numberOfRelations",
 				Values.parameters("id", recorded.iterator().next().getId()))
 				.single().get("numberOfRelations").asLong();
