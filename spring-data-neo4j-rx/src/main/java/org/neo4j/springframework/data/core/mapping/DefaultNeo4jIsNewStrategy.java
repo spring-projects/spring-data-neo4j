@@ -106,7 +106,7 @@ class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 
 			boolean isNew = false;
 			if (value != null && valueType.isPrimitive() && Number.class.isInstance(value)) {
-				isNew = ((Number) value).longValue() <= 0;
+				isNew = ((Number) value).longValue() < 0;
 			} else {
 				isNew = value == null;
 			}

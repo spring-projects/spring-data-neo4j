@@ -112,7 +112,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase {
 		try (Transaction transaction = driver.session().beginTransaction()) {
 			long numberOfRelations = transaction.run(""
 				+ "MATCH (t:PersonWithRelatives) WHERE id(t) = $id "
-				+ "RETURN size((t)-[:RELATIVE_1]->(:Person)) + size((t)-[:RELATIVE_2]->(:Person))"
+				+ "RETURN size((t)-->(:Person))"
 				+ " as numberOfRelations", Values.parameters("id", personWithRelatives.getId()))
 				.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);

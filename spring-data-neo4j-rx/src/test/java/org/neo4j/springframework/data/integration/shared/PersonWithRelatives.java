@@ -32,7 +32,7 @@ import org.neo4j.springframework.data.core.schema.Node;
 public class PersonWithRelatives {
 
 	@Id @GeneratedValue
-	private long id;
+	private Long id;
 
 	private final String name;
 

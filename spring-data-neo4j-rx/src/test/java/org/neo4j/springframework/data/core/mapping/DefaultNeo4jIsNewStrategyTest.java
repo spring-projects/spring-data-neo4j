@@ -82,7 +82,7 @@ class DefaultNeo4jIsNewStrategyTest {
 
 			IsNewStrategy strategy = DefaultNeo4jIsNewStrategy.basedOn(entityMetaData);
 			assertThat(strategy.isNew(a)).isTrue();
-			assertThat(strategy.isNew(b)).isTrue();
+			assertThat(strategy.isNew(b)).isFalse();
 			assertThat(strategy.isNew(c)).isFalse();
 		}
 	}
