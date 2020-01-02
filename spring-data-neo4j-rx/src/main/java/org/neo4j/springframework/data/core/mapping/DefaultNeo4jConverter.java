@@ -66,6 +66,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Michael J. Simons
+ * @author Philipp Tölle
  * @soundtrack The Kleptones - A Night At The Hip-Hopera
  * @since 1.0
  */
@@ -184,8 +185,11 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		});
 
 		parameters.put(NAME_OF_PROPERTIES_PARAM, properties);
-		parameters.put(NAME_OF_ID_PARAM, propertyAccessor.getProperty(nodeDescription.getRequiredIdProperty()));
 
+		// in case of relationship properties ignore internal id property
+		if (nodeDescription.hasIdProperty()) {
+			parameters.put(NAME_OF_ID_PARAM, propertyAccessor.getProperty(nodeDescription.getRequiredIdProperty()));
+		}
 	}
 
 	@Override

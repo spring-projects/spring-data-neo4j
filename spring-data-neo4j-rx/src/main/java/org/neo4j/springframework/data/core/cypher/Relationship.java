@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/RelationshipPattern.html">RelationshipPattern</a>.
  *
  * @author Michael J. Simons
+ * @author Philipp Tölle
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
@@ -42,6 +43,7 @@ public final class Relationship implements
 
 	/**
 	 * While the direction in the schema package is centered around the node, the direction here is the direction between two nodes.
+	 *
 	 * @since 1.0
 	 */
 	public enum Direction {
@@ -78,6 +80,14 @@ public final class Relationship implements
 
 	static Relationship create(Node left,
 		@Nullable Direction direction, Node right, String... types) {
+		return create(left, direction, right, null, types);
+	}
+
+	static Relationship create(Node left,
+		@Nullable Direction direction,
+		Node right,
+		@Nullable Properties properties,
+		String... types) {
 
 		Assert.notNull(left, "Left node is required.");
 		Assert.notNull(right, "Right node is required.");
@@ -88,7 +98,9 @@ public final class Relationship implements
 
 		RelationshipDetail details = new RelationshipDetail(
 			Optional.ofNullable(direction).orElse(Direction.UNI),
-			null, listOfTypes);
+			null,
+			listOfTypes,
+			properties);
 		return new Relationship(left, details, right);
 	}
 
@@ -176,6 +188,8 @@ public final class Relationship implements
 	 * @return A map projection.
 	 */
 	public MapProjection project(Object... entries) {
-		return MapProjection.create(this.getSymbolicName().orElseThrow(() -> new IllegalStateException("Cannot project a relationship without a symbolic name.")), entries);
+		return MapProjection.create(this.getSymbolicName()
+				.orElseThrow(() -> new IllegalStateException("Cannot project a relationship without a symbolic name.")),
+			entries);
 	}
 }

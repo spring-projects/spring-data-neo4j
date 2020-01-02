@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/RelationshipDetail.html">RelationshipDetail</a>
  *
  * @author Michael J. Simons
+ * @author Philipp Tölle
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
@@ -48,10 +49,17 @@ public final class RelationshipDetail implements Visitable {
 
 	private final List<String> types;
 
+	private @Nullable final Properties properties;
+
 	RelationshipDetail(Direction direction,
 		@Nullable SymbolicName symbolicName, List<String> types) {
+		this(direction, symbolicName, types, null);
+	}
 
-		this(direction, symbolicName);
+	RelationshipDetail(Direction direction,
+		@Nullable SymbolicName symbolicName, List<String> types, @Nullable Properties properties) {
+
+		this(direction, symbolicName, properties);
 
 		boolean nullTypePresent = types.stream().filter(type -> type == null || type.isEmpty()).findAny().isPresent();
 		Assert.isTrue(!nullTypePresent, "The list of types may not contain literal null or an empty type.");
@@ -59,17 +67,18 @@ public final class RelationshipDetail implements Visitable {
 	}
 
 	private RelationshipDetail(Direction direction,
-		@Nullable SymbolicName symbolicName) {
+		@Nullable SymbolicName symbolicName, @Nullable Properties properties) {
 
 		this.direction = direction;
 		this.symbolicName = symbolicName;
 		this.types = new ArrayList<>();
+		this.properties = properties;
 	}
 
 	RelationshipDetail named(String newSymbolicName) {
 
 		Assert.hasText(newSymbolicName, "Symbolic name is required.");
-		return new RelationshipDetail(this.direction, SymbolicName.create(newSymbolicName), this.types);
+		return new RelationshipDetail(this.direction, SymbolicName.create(newSymbolicName), this.types, properties);
 	}
 
 	public Direction getDirection() {
@@ -93,6 +102,7 @@ public final class RelationshipDetail implements Visitable {
 
 		visitor.enter(this);
 		Visitable.visitIfNotNull(this.symbolicName, visitor);
+		Visitable.visitIfNotNull(this.properties, visitor);
 		visitor.leave(this);
 	}
 }
