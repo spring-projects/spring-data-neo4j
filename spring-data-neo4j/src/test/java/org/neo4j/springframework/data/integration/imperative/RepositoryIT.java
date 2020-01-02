@@ -49,6 +49,7 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Point;
+import org.neo4j.driver.types.Relationship;
 import org.neo4j.springframework.data.config.AbstractNeo4jConfig;
 import org.neo4j.springframework.data.integration.shared.*;
 import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
@@ -75,6 +76,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Michael J. Simons
  * @author Gerrit Meier
  * @author Ján Šúr
+ * @author Philipp Tölle
  */
 @Neo4jIntegrationTest
 class RepositoryIT {
@@ -466,6 +468,93 @@ class RepositoryIT {
 		assertThat(person.getHobbies()).contains(MapEntry.entry(hobby1, rel1), MapEntry.entry(hobby2, rel2));
 	}
 
+	@Test
+	void saveEntityWithRelationshipWithProperties() {
+		// given
+		Hobby h1 = new Hobby();
+		h1.setName("Music");
+
+		int rel1Since = 1995;
+		boolean rel1Active = true;
+		LocalDate rel1LocalDate = LocalDate.of(1995, 2, 26);
+		LikesHobbyRelationship.MyEnum rel1MyEnum = LikesHobbyRelationship.MyEnum.SOMETHING;
+		CartesianPoint2d rel1Point = new CartesianPoint2d(0.0, 1.0);
+
+		LikesHobbyRelationship rel1 = new LikesHobbyRelationship(rel1Since);
+		rel1.setActive(rel1Active);
+		rel1.setLocalDate(rel1LocalDate);
+		rel1.setMyEnum(rel1MyEnum);
+		rel1.setPoint(rel1Point);
+
+		Hobby h2 = new Hobby();
+		h2.setName("Something else");
+		int rel2Since = 2000;
+		boolean rel2Active = false;
+		LocalDate rel2LocalDate = LocalDate.of(2000, 6, 28);
+		LikesHobbyRelationship.MyEnum rel2MyEnum = LikesHobbyRelationship.MyEnum.SOMETHING_DIFFERENT;
+		CartesianPoint2d rel2Point = new CartesianPoint2d(2.0, 3.0);
+
+		LikesHobbyRelationship rel2 = new LikesHobbyRelationship(rel2Since);
+		rel2.setActive(rel2Active);
+		rel2.setLocalDate(rel2LocalDate);
+		rel2.setMyEnum(rel2MyEnum);
+		rel2.setPoint(rel2Point);
+
+		Map<Hobby, LikesHobbyRelationship> hobbies = new HashMap<>();
+		hobbies.put(h1, rel1);
+		hobbies.put(h2, rel2);
+		PersonWithRelationshipWithProperties clonePerson = new PersonWithRelationshipWithProperties("Freddie clone");
+		clonePerson.setHobbies(hobbies);
+
+		// when
+		PersonWithRelationshipWithProperties shouldBeDifferentPerson = relationshipWithPropertiesRepository
+			.save(clonePerson);
+
+		// then
+		assertThat(shouldBeDifferentPerson)
+			.isNotNull()
+			.isEqualToComparingOnlyGivenFields(clonePerson, "hobbies");
+
+		assertThat(shouldBeDifferentPerson.getName()).isEqualToIgnoringCase("Freddie clone");
+
+		try (Session session = driver.session()) {
+			Record record = session.run(
+				"MATCH (n:PersonWithRelationshipWithProperties {name:'Freddie clone'}) "
+					+ "RETURN n, "
+					+ "[(n) -[:LIKES]->(h:Hobby) |h] as Hobbies, "
+					+ "[(n) -[r:LIKES]->(:Hobby) |r] as rels"
+			).single();
+
+			assertThat(record.containsKey("n")).isTrue();
+			assertThat(record.containsKey("Hobbies")).isTrue();
+			assertThat(record.containsKey("rels")).isTrue();
+			assertThat(record.values()).hasSize(3);
+			assertThat(record.get("Hobbies").values()).hasSize(2);
+			assertThat(record.get("rels").values()).hasSize(2);
+
+			assertThat(record.get("rels").values(Value::asRelationship)).
+				extracting(
+					Relationship::type,
+					rel -> rel.get("active"),
+					rel -> rel.get("localDate"),
+					rel -> rel.get("point"),
+					rel -> rel.get("myEnum"),
+					rel -> rel.get("since")
+				)
+				.containsExactlyInAnyOrder(
+					tuple(
+						"LIKES", Values.value(rel1Active), Values.value(rel1LocalDate),
+						Values.point(rel1Point.getSrid(), rel1Point.getX(), rel1Point.getY()),
+						Values.value(rel1MyEnum.name()), Values.value(rel1Since)
+					),
+					tuple(
+						"LIKES", Values.value(rel2Active), Values.value(rel2LocalDate),
+						Values.point(rel2Point.getSrid(), rel2Point.getX(), rel2Point.getY()),
+						Values.value(rel2MyEnum.name()), Values.value(rel2Since)
+					)
+				);
+		}
+	}
 
 	@Test
 	void loadEntityWithRelationshipWithPropertiesFromCustomQuery() {

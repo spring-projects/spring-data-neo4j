@@ -26,20 +26,25 @@ import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
 
 /**
  * @author Michael J. Simons
+ * @author Philipp Tölle
  */
 public final class Relationships {
 
 	/**
-	 * The value for a relationship can be a scalar object (1:1), a collection (1:n) or a map (1:n, but with dynamic
-	 * relationship types). This method unifies the type into something iterable, depending on the given inverse type.
+	 * The value for a relationship can be a scalar object (1:1), a collection (1:n), a map (1:n, but with dynamic
+	 * relationship types) or a map (1:n) with properties for each relationship.
+	 * This method unifies the type into something iterable, depending on the given inverse type.
 	 *
 	 * @param rawValue The raw value to unify
-	 * @return A unified collection (Either a collection of Map.Entry or a list of related values)
+	 * @return A unified collection (Either a collection of Map.Entry for dynamic and relationships with properties
+	 * or a list of related values)
 	 */
 	public static Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, Object rawValue) {
 		Collection<?> unifiedValue;
 		if (property.isDynamicAssociation()) {
 			unifiedValue = ((Map<String, Object>) rawValue).entrySet();
+		} else if (property.isRelationshipWithProperties()) {
+			unifiedValue = ((Map<Object, Object>) rawValue).entrySet();
 		} else if (property.isCollectionLike()) {
 			unifiedValue = (Collection<Object>) rawValue;
 		} else {

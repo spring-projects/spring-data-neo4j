@@ -29,9 +29,9 @@ import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
 import org.jetbrains.annotations.NotNull;
-import org.neo4j.springframework.data.core.cypher.*;
 import org.neo4j.springframework.data.core.cypher.Node;
 import org.neo4j.springframework.data.core.cypher.Relationship;
+import org.neo4j.springframework.data.core.cypher.*;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.lang.Nullable;
@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
+ * @author Philipp Tölle
  * @soundtrack Rammstein - Herzeleid
  * @since 1.0
  */
@@ -55,6 +56,8 @@ public enum CypherGenerator {
 
 	private static final String START_NODE_NAME = "startNode";
 	private static final String END_NODE_NAME = "endNode";
+
+	private static final String RELATIONSHIP_NAME = "relProps";
 
 	/**
 	 * @param nodeDescription The node description for which a match clause should be generated
@@ -184,6 +187,44 @@ public enum CypherGenerator {
 			.merge(relationship.isOutgoing()
 				? startNode.relationshipTo(endNode, type)
 				: startNode.relationshipFrom(endNode, type)
+			)
+			.build();
+	}
+
+	@NotNull
+	public Statement createRelationshipWithPropertiesCreationQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity,
+		RelationshipDescription relationship, Long relatedInternalId) {
+
+		Assert.isTrue(relationship.hasRelationshipProperties(),
+			"Properties required to create a relationship with properties");
+		Assert.isTrue(!relationship.isDynamic(),
+			"Creation of relationships with properties is only supported for non-dynamic relationships");
+
+		Node startNode = anyNode(START_NODE_NAME);
+		Node endNode = anyNode(END_NODE_NAME);
+		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
+
+		Parameter idParameter = parameter(FROM_ID_PARAMETER_NAME);
+		Parameter relationshipProperties = parameter(NAME_OF_PROPERTIES_PARAM);
+		String type = relationship.getType();
+
+		Relationship relOutgoing = startNode.relationshipTo(endNode, type).named(RELATIONSHIP_NAME);
+		Relationship relIncoming = startNode.relationshipFrom(endNode, type).named(RELATIONSHIP_NAME);
+
+		return match(startNode)
+			.where(neo4jPersistentEntity.isUsingInternalIds()
+				? startNode.internalId().isEqualTo(idParameter)
+				: startNode.property(idPropertyName).isEqualTo(idParameter))
+			.match(endNode)
+			.where(endNode.internalId().isEqualTo(literalOf(relatedInternalId)))
+			.merge(relationship.isOutgoing()
+				? relOutgoing
+				: relIncoming
+			)
+			.set(relationship.isOutgoing()
+					? relOutgoing
+					: relIncoming,
+				relationshipProperties
 			)
 			.build();
 	}

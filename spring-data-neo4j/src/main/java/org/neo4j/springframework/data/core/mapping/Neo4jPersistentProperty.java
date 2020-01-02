@@ -20,12 +20,14 @@ package org.neo4j.springframework.data.core.mapping;
 
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
+import org.neo4j.springframework.data.core.schema.RelationshipProperties;
 import org.springframework.data.mapping.PersistentProperty;
 
 /**
  * A {@link org.springframework.data.mapping.PersistentProperty} interface with additional methods for metadata related to Neo4j.
  *
  * @author Michael J. Simons
+ * @author Philipp Tölle
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
@@ -39,5 +41,17 @@ public interface Neo4jPersistentProperty
 	 */
 	default boolean isDynamicAssociation() {
 		return isAssociation() && isMap() && getComponentType() == String.class;
+	}
+
+	/**
+	 * see if the association has a property class
+	 *
+	 * @return True, if this association has properties
+	 */
+	default boolean isRelationshipWithProperties() {
+		return isAssociation()
+			&& isMap()
+			&& getMapValueType() != null
+			&& getMapValueType().isAnnotationPresent(RelationshipProperties.class);
 	}
 }
