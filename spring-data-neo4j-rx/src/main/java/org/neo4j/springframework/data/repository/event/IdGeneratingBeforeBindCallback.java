@@ -46,6 +46,6 @@ public final class IdGeneratingBeforeBindCallback implements BeforeBindCallback<
 
 	@Override
 	public int getOrder() {
-		return AuditingBeforeBindCallback.NEO4J_AUDITING_ORDER - 10;
+		return AuditingBeforeBindCallback.NEO4J_AUDITING_ORDER + 10;
 	}
 }

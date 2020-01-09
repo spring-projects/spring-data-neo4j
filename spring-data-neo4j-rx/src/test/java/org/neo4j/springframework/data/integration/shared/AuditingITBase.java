@@ -49,6 +49,7 @@ public abstract class AuditingITBase {
 	private final Driver driver;
 
 	protected Long idOfExistingThing;
+	protected String idOfExistingThingWithGeneratedId = "somethingUnique";
 
 	protected AuditingITBase(Driver driver) {
 		this.driver = driver;
@@ -58,12 +59,19 @@ public abstract class AuditingITBase {
 	protected void setupData() {
 		try (Transaction transaction = driver.session().beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
+
 			idOfExistingThing = transaction
 				.run(
 					"CREATE (t:ImmutableAuditableThing {name: $name, createdBy: $createdBy, createdAt: $createdAt}) RETURN id(t) as id",
 					Values.parameters("name", EXISTING_THING_NAME, "createdBy", EXISTING_THING_CREATED_BY, "createdAt",
 						EXISTING_THING_CREATED_AT))
 				.single().get("id").asLong();
+
+			transaction
+				.run(
+					"CREATE (t:ImmutableAuditableThingWithGeneratedId {name: $name, createdBy: $createdBy, createdAt: $createdAt, id: $id}) RETURN t.id as id",
+					Values.parameters("name", EXISTING_THING_NAME, "createdBy", EXISTING_THING_CREATED_BY, "createdAt",
+						EXISTING_THING_CREATED_AT, "id", idOfExistingThingWithGeneratedId));
 
 			transaction.commit();
 		}
@@ -76,24 +84,40 @@ public abstract class AuditingITBase {
 				.run("MATCH (t:ImmutableAuditableThing) WHERE id(t) = $id RETURN t", Values.parameters("id", id))
 				.single().get("t").asNode();
 
-			assertThat(node.get("name").asString()).isEqualTo(expectedValues.getName());
-			assertThat(node.get("createdAt").asLocalDateTime()).isEqualTo(expectedValues.getCreatedAt());
-			assertThat(node.get("createdBy").asString()).isEqualTo(expectedValues.getCreatedBy());
+			assertDataMatch(expectedValues, node);
+		}
+	}
 
-			Value modifiedAt = node.get("modifiedAt");
-			Value modifiedBy = node.get("modifiedBy");
+	protected void verifyDatabase(String id, ImmutableAuditableThingWithGeneratedId expectedValues) {
 
-			if (expectedValues.getModifiedAt() == null) {
-				assertThat(modifiedAt.isNull()).isTrue();
-			} else {
-				assertThat(modifiedAt.asLocalDateTime()).isEqualTo(expectedValues.getModifiedAt());
-			}
+		try (Session session = driver.session()) {
+			Node node = session
+				.run("MATCH (t:ImmutableAuditableThingWithGeneratedId) WHERE t.id = $id RETURN t",
+					Values.parameters("id", id))
+				.single().get("t").asNode();
 
-			if (expectedValues.getModifiedBy() == null) {
-				assertThat(modifiedBy.isNull()).isTrue();
-			} else {
-				assertThat(modifiedBy.asString()).isEqualTo(expectedValues.getModifiedBy());
-			}
+			assertDataMatch(expectedValues, node);
+		}
+	}
+
+	private void assertDataMatch(AuditableThing expectedValues, Node node) {
+		assertThat(node.get("name").asString()).isEqualTo(expectedValues.getName());
+		assertThat(node.get("createdAt").asLocalDateTime()).isEqualTo(expectedValues.getCreatedAt());
+		assertThat(node.get("createdBy").asString()).isEqualTo(expectedValues.getCreatedBy());
+
+		Value modifiedAt = node.get("modifiedAt");
+		Value modifiedBy = node.get("modifiedBy");
+
+		if (expectedValues.getModifiedAt() == null) {
+			assertThat(modifiedAt.isNull()).isTrue();
+		} else {
+			assertThat(modifiedAt.asLocalDateTime()).isEqualTo(expectedValues.getModifiedAt());
+		}
+
+		if (expectedValues.getModifiedBy() == null) {
+			assertThat(modifiedBy.isNull()).isTrue();
+		} else {
+			assertThat(modifiedBy.asString()).isEqualTo(expectedValues.getModifiedBy());
 		}
 	}
 }

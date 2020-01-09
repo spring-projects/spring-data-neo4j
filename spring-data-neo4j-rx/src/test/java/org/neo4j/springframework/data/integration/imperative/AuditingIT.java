@@ -30,6 +30,7 @@ import org.neo4j.springframework.data.config.AbstractNeo4jConfig;
 import org.neo4j.springframework.data.config.EnableNeo4jAuditing;
 import org.neo4j.springframework.data.integration.shared.AuditingITBase;
 import org.neo4j.springframework.data.integration.shared.ImmutableAuditableThing;
+import org.neo4j.springframework.data.integration.shared.ImmutableAuditableThingWithGeneratedId;
 import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -44,12 +45,17 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 class AuditingIT extends AuditingITBase {
 
-	private final TestRepository thingRepository;
+	private final ImmutableEntityTestRepository thingRepository;
+	private final ImmutableEntityWithGeneratedIdRepository thingWithGeneratedIdRepository;
 
 	@Autowired
-	AuditingIT(TestRepository thingRepository, Driver driver) {
+	AuditingIT(ImmutableEntityTestRepository thingRepository,
+		ImmutableEntityWithGeneratedIdRepository thingWithGeneratedIdRepository,
+		Driver driver) {
+
 		super(driver);
 		this.thingRepository = thingRepository;
+		this.thingWithGeneratedIdRepository = thingWithGeneratedIdRepository;
 	}
 
 	@Test
@@ -85,7 +91,46 @@ class AuditingIT extends AuditingITBase {
 		verifyDatabase(idOfExistingThing, thing);
 	}
 
-	public interface TestRepository extends CrudRepository<ImmutableAuditableThing, Long> {
+	@Test
+	void auditingOfEntityWithGeneratedIdCreationShouldWork() {
+
+		ImmutableAuditableThingWithGeneratedId thing = new ImmutableAuditableThingWithGeneratedId("A thing");
+		thing = thingWithGeneratedIdRepository.save(thing);
+
+		assertThat(thing.getCreatedAt()).isEqualTo(DEFAULT_CREATION_AND_MODIFICATION_DATE);
+		assertThat(thing.getCreatedBy()).isEqualTo("A user");
+
+		assertThat(thing.getModifiedAt()).isNull();
+		assertThat(thing.getModifiedBy()).isNull();
+
+		verifyDatabase(thing.getId(), thing);
+	}
+
+	@Test
+	void auditingOfEntityWithGeneratedIdModificationShouldWork() {
+
+		ImmutableAuditableThingWithGeneratedId thing = thingWithGeneratedIdRepository
+			.findById(idOfExistingThingWithGeneratedId).get();
+
+		thing = thing.withName("A new name");
+		thing = thingWithGeneratedIdRepository.save(thing);
+
+		assertThat(thing.getCreatedAt()).isEqualTo(EXISTING_THING_CREATED_AT);
+		assertThat(thing.getCreatedBy()).isEqualTo(EXISTING_THING_CREATED_BY);
+
+		assertThat(thing.getModifiedAt()).isEqualTo(DEFAULT_CREATION_AND_MODIFICATION_DATE);
+		assertThat(thing.getModifiedBy()).isEqualTo("A user");
+
+		assertThat(thing.getName()).isEqualTo("A new name");
+
+		verifyDatabase(idOfExistingThingWithGeneratedId, thing);
+	}
+
+	public interface ImmutableEntityTestRepository extends CrudRepository<ImmutableAuditableThing, Long> {
+	}
+
+	public interface ImmutableEntityWithGeneratedIdRepository
+		extends CrudRepository<ImmutableAuditableThingWithGeneratedId, String> {
 	}
 
 	@Configuration

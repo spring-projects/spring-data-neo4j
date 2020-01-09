@@ -49,6 +49,6 @@ public final class ReactiveIdGeneratingBeforeBindCallback implements ReactiveBef
 
 	@Override
 	public int getOrder() {
-		return ReactiveAuditingBeforeBindCallback.NEO4J_REACTIVE_AUDITING_ORDER - 10;
+		return ReactiveAuditingBeforeBindCallback.NEO4J_REACTIVE_AUDITING_ORDER + 10;
 	}
 }

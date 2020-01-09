@@ -37,6 +37,7 @@ import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
 import org.neo4j.springframework.data.config.EnableNeo4jAuditing;
 import org.neo4j.springframework.data.integration.shared.AuditingITBase;
 import org.neo4j.springframework.data.integration.shared.ImmutableAuditableThing;
+import org.neo4j.springframework.data.integration.shared.ImmutableAuditableThingWithGeneratedId;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -55,14 +56,18 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 class ReactiveAuditingIT extends AuditingITBase {
 
 	private final ReactiveTransactionManager transactionManager;
-	private final ReactiveTestRepository thingRepository;
+	private final ImmutableEntityTestRepository thingRepository;
+	private final ImmutableEntityWithGeneratedIdTestRepository thingWithGeneratedIdRepository;
 
 	@Autowired
-	ReactiveAuditingIT(ReactiveTransactionManager transactionManager, ReactiveTestRepository thingRepository,
-		Driver driver) {
+	ReactiveAuditingIT(ReactiveTransactionManager transactionManager, ImmutableEntityTestRepository thingRepository,
+		Driver driver,
+		ImmutableEntityWithGeneratedIdTestRepository thingWithGeneratedIdRepository) {
+
 		super(driver);
 		this.thingRepository = thingRepository;
 		this.transactionManager = transactionManager;
+		this.thingWithGeneratedIdRepository = thingWithGeneratedIdRepository;
 	}
 
 	@Test
@@ -114,8 +119,62 @@ class ReactiveAuditingIT extends AuditingITBase {
 			new ImmutableAuditableThing(null, EXISTING_THING_CREATED_AT, EXISTING_THING_CREATED_BY,
 				DEFAULT_CREATION_AND_MODIFICATION_DATE, "A user", "A new name"));
 	}
+	@Test
+	void auditingOfEntityWithGeneratedIdCreationShouldWork() {
 
-	public interface ReactiveTestRepository extends ReactiveCrudRepository<ImmutableAuditableThing, Long> {
+		List<ImmutableAuditableThingWithGeneratedId> newThings = new ArrayList<>();
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		transactionalOperator
+			.execute(t -> thingWithGeneratedIdRepository.save(new ImmutableAuditableThingWithGeneratedId("A thing")))
+			.as(StepVerifier::create)
+			.recordWith(() -> newThings)
+			.expectNextCount(1L)
+			.verifyComplete();
+
+		ImmutableAuditableThingWithGeneratedId savedThing = newThings.get(0);
+		assertThat(savedThing.getCreatedAt()).isEqualTo(DEFAULT_CREATION_AND_MODIFICATION_DATE);
+		assertThat(savedThing.getCreatedBy()).isEqualTo("A user");
+
+		assertThat(savedThing.getModifiedAt()).isNull();
+		assertThat(savedThing.getModifiedBy()).isNull();
+
+		verifyDatabase(savedThing.getId(), savedThing);
+	}
+
+	@Test
+	void auditingOfEntityWithGeneratedIdModificationShouldWork() {
+
+		Mono<ImmutableAuditableThingWithGeneratedId> findAndUpdateAThing = thingWithGeneratedIdRepository
+			.findById(idOfExistingThingWithGeneratedId)
+			.flatMap(thing -> thingWithGeneratedIdRepository.save(thing.withName("A new name")));
+
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		transactionalOperator
+			.execute(t -> findAndUpdateAThing)
+			.as(StepVerifier::create)
+			.consumeNextWith(savedThing -> {
+
+				assertThat(savedThing.getCreatedAt()).isEqualTo(EXISTING_THING_CREATED_AT);
+				assertThat(savedThing.getCreatedBy()).isEqualTo(EXISTING_THING_CREATED_BY);
+
+				assertThat(savedThing.getModifiedAt()).isEqualTo(DEFAULT_CREATION_AND_MODIFICATION_DATE);
+				assertThat(savedThing.getModifiedBy()).isEqualTo("A user");
+
+				assertThat(savedThing.getName()).isEqualTo("A new name");
+			})
+			.verifyComplete();
+
+		// Need to happen outside the reactive flow, as we use the blocking session to verify the database
+		verifyDatabase(idOfExistingThingWithGeneratedId,
+			new ImmutableAuditableThingWithGeneratedId(null, EXISTING_THING_CREATED_AT, EXISTING_THING_CREATED_BY,
+				DEFAULT_CREATION_AND_MODIFICATION_DATE, "A user", "A new name"));
+	}
+
+	public interface ImmutableEntityTestRepository extends ReactiveCrudRepository<ImmutableAuditableThing, Long> {
+	}
+
+	public interface ImmutableEntityWithGeneratedIdTestRepository
+		extends ReactiveCrudRepository<ImmutableAuditableThingWithGeneratedId, String> {
 	}
 
 	@Configuration
