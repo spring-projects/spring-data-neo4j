@@ -25,6 +25,7 @@ import lombok.With;
 import java.time.LocalDateTime;
 
 import org.neo4j.springframework.data.core.schema.GeneratedValue;
+import org.neo4j.springframework.data.core.support.UUIDStringGenerator;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -40,9 +41,9 @@ import org.springframework.data.annotation.Persistent;
 @With
 @AllArgsConstructor(onConstructor = @__(@PersistenceConstructor))
 @Persistent
-public class ImmutableAuditableThing implements AuditableThing {
+public class ImmutableAuditableThingWithGeneratedId implements AuditableThing {
 
-	@Id @GeneratedValue Long id;
+	@Id @GeneratedValue(UUIDStringGenerator.class) String id;
 	@CreatedDate LocalDateTime createdAt;
 	@CreatedBy String createdBy;
 	@LastModifiedDate LocalDateTime modifiedAt;
@@ -50,7 +51,7 @@ public class ImmutableAuditableThing implements AuditableThing {
 
 	String name;
 
-	public ImmutableAuditableThing(String name) {
+	public ImmutableAuditableThingWithGeneratedId(String name) {
 		this(null, null, null, null, null, name);
 	}
 }
