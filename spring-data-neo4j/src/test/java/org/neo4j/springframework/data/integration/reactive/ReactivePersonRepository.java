@@ -48,6 +48,8 @@ public interface ReactivePersonRepository extends ReactiveNeo4jRepository<Person
 
 	Mono<PersonWithAllConstructor> findOneByNameAndFirstNameAllIgnoreCase(String name, String firstName);
 
+	Mono<Long> countAllByNameOrName(String aName, String anotherName);
+
 	Flux<PersonWithAllConstructor> findAllByNameOrName(String aName, String anotherName);
 
 	Flux<PersonWithAllConstructor> findAllBySameValue(String sameValue);

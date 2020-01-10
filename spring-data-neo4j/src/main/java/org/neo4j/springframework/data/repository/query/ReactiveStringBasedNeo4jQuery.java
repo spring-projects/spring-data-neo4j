@@ -19,9 +19,13 @@
 package org.neo4j.springframework.data.repository.query;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
+import org.neo4j.driver.Record;
+import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.ReactiveNeo4jOperations;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
@@ -30,10 +34,10 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
-import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.SpelEvaluator;
 import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.data.repository.query.SpelQueryContext.SpelExtractor;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -61,21 +65,6 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	 */
 	static final SpelQueryContext SPEL_QUERY_CONTEXT = SpelQueryContext
 		.of(ReactiveStringBasedNeo4jQuery::parameterNameSource, ReactiveStringBasedNeo4jQuery::replacementSource);
-
-	/**
-	 * Is this a count projection?
-	 */
-	private final boolean countQuery;
-
-	/**
-	 * Is this an exists projection?
-	 */
-	private final boolean existsQuery;
-
-	/**
-	 * Is this a modifying delete query?
-	 */
-	private final boolean deleteQuery;
 
 	/**
 	 * Used to evaluate the expression found while parsing the cypher template of this query against the actual parameters
@@ -111,7 +100,7 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 			.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not."));
 
 		return new ReactiveStringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
-			cypherTemplate, queryAnnotation.count(), queryAnnotation.exists(), queryAnnotation.delete());
+			cypherTemplate, Neo4jQueryType.fromDefinition(queryAnnotation));
 	}
 
 	/**
@@ -131,19 +120,14 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 		Assert.hasText(cypherTemplate, "Cannot create String based Neo4j query without a cypher template.");
 
 		return new ReactiveStringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
-			cypherTemplate, false, false, false);
+			cypherTemplate, Neo4jQueryType.DEFAULT);
 	}
 
 	private ReactiveStringBasedNeo4jQuery(ReactiveNeo4jOperations neo4jOperations,
 		Neo4jMappingContext mappingContext, QueryMethodEvaluationContextProvider evaluationContextProvider,
-		Neo4jQueryMethod queryMethod, String cypherTemplate, boolean countQuery,
-		boolean existsQuery, boolean deleteQuery) {
+		Neo4jQueryMethod queryMethod, String cypherTemplate, Neo4jQueryType queryType) {
 
-		super(neo4jOperations, mappingContext, queryMethod);
-
-		this.countQuery = countQuery;
-		this.existsQuery = existsQuery;
-		this.deleteQuery = deleteQuery;
+		super(neo4jOperations, mappingContext, queryMethod, queryType);
 
 		SpelExtractor spelExtractor = SPEL_QUERY_CONTEXT.parse(cypherTemplate);
 		this.spelEvaluator = new SpelEvaluator(evaluationContextProvider, queryMethod.getParameters(), spelExtractor);
@@ -158,33 +142,16 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	}
 
 	@Override
-	protected PreparedQuery prepareQuery(ResultProcessor resultProcessor,  Neo4jParameterAccessor parameterAccessor) {
+	protected <T extends Object> PreparedQuery<T> prepareQuery(
+		Class<T> returnedType, List<String> includedProperties, Neo4jParameterAccessor parameterAccessor,
+		@Nullable Neo4jQueryType queryType,
+		@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction) {
 
-		return PreparedQuery.queryFor(resultProcessor.getReturnedType().getReturnedType())
+		return PreparedQuery.queryFor(returnedType)
 			.withCypherQuery(cypherQuery)
 			.withParameters(bindParameters(parameterAccessor))
-			.usingMappingFunction(getMappingFunction(resultProcessor))
+			.usingMappingFunction(mappingFunction)
 			.build();
-	}
-
-	@Override
-	public boolean isCountQuery() {
-		return countQuery;
-	}
-
-	@Override
-	public boolean isExistsQuery() {
-		return existsQuery;
-	}
-
-	@Override
-	public boolean isDeleteQuery() {
-		return deleteQuery;
-	}
-
-	@Override
-	protected boolean isLimiting() {
-		return false;
 	}
 
 	Map<String, Object> bindParameters(Neo4jParameterAccessor parameterAccessor) {

@@ -299,7 +299,7 @@ class DefaultStatementBuilder
 		}
 
 		@Override
-		public final OngoingReadingAndReturn orderBy(SortItem... sortItem) {
+		public final OngoingMatchAndReturnWithOrder orderBy(SortItem... sortItem) {
 			orderBuilder.orderBy(sortItem);
 			return this;
 		}

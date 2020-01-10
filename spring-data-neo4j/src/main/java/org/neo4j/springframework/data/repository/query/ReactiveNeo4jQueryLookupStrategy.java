@@ -70,7 +70,7 @@ public final class ReactiveNeo4jQueryLookupStrategy implements QueryLookupStrate
 			return ReactiveStringBasedNeo4jQuery
 				.create(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod);
 		} else {
-			return new ReactivePartTreeNeo4jQuery(neo4jOperations, mappingContext, queryMethod);
+			return ReactivePartTreeNeo4jQuery.create(neo4jOperations, mappingContext, queryMethod);
 		}
 	}
 }

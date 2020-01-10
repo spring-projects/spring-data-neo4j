@@ -34,6 +34,8 @@ import org.neo4j.springframework.data.integration.shared.PersonWithNoConstructor
 import org.neo4j.springframework.data.integration.shared.PersonWithWither;
 import org.neo4j.springframework.data.repository.Neo4jRepository;
 import org.neo4j.springframework.data.repository.query.Query;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -101,6 +103,12 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	// Derived finders, should be extracted into another repo.
 	Optional<PersonWithAllConstructor> findOneByNameAndFirstName(String name, String firstName);
+
+	Page<PersonWithAllConstructor> findAllByNameOrName(Pageable pageable, String aName, String anotherName);
+
+	Page<PersonWithAllConstructor> findAllByNameOrName(String aName, String anotherName, Pageable pageable);
+
+	Long countAllByNameOrName(String aName, String anotherName);
 
 	Optional<PersonWithAllConstructor> findOneByNameAndFirstNameAllIgnoreCase(String name, String firstName);
 

@@ -1326,6 +1326,32 @@ class RepositoryIT {
 		assertThat(optionalPerson).isPresent().contains(person1);
 	}
 
+	@Test // GH-112
+	void findByPropertyWithPageable() {
+
+		Page<PersonWithAllConstructor> people;
+
+		Sort sort = Sort.by("name").descending();
+		people  = repository.findAllByNameOrName(PageRequest.of(0, 1, sort), TEST_PERSON1_NAME, TEST_PERSON2_NAME);
+		assertThat(people.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON2_NAME);
+		assertThat(people.getTotalPages()).isEqualTo(2);
+
+		people  = repository.findAllByNameOrName(PageRequest.of(1, 1, sort), TEST_PERSON1_NAME, TEST_PERSON2_NAME);
+		assertThat(people.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON1_NAME);
+		assertThat(people.getTotalPages()).isEqualTo(2);
+
+		people  = repository.findAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME, PageRequest.of(1, 1, sort));
+		assertThat(people.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON1_NAME);
+		assertThat(people.getTotalPages()).isEqualTo(2);
+	}
+
+	@Test // GH-112
+	void countBySimplePropertiesOred() {
+
+		long count = repository.countAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME);
+		assertThat(count).isEqualTo(2L);
+	}
+
 	@Test
 	void findBySimplePropertiesOred() {
 
