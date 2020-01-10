@@ -56,17 +56,23 @@ abstract class Neo4jQuerySupport {
 	protected final Neo4jMappingContext mappingContext;
 	protected final Neo4jQueryMethod queryMethod;
 	protected final Class<?> domainType;
+	/**
+	 * The query type.
+	 */
+	protected final Neo4jQueryType queryType;
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jQuerySupport.class));
 
-	Neo4jQuerySupport(Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod) {
+	Neo4jQuerySupport(Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod, Neo4jQueryType queryType) {
 
 		Assert.notNull(mappingContext, "The mapping context is required.");
 		Assert.notNull(queryMethod, "Query method must not be null!");
+		Assert.notNull(queryType, "Query type must not be null!");
 
 		this.mappingContext = mappingContext;
 		this.queryMethod = queryMethod;
 		this.domainType = queryMethod.getDomainClass();
+		this.queryType = queryType;
 	}
 
 	protected final Neo4jParameterAccessor getParameterAccessor(Object[] actualParameters) {

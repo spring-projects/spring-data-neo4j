@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.repository.query;
 
+import static java.util.stream.Collectors.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.cypher.Functions.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
@@ -28,8 +29,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.neo4j.driver.types.Point;
@@ -40,13 +45,15 @@ import org.neo4j.springframework.data.core.cypher.Expression;
 import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.SortItem;
 import org.neo4j.springframework.data.core.cypher.Statement;
+import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingMatchAndReturnWithOrder;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
-import org.neo4j.springframework.data.core.schema.CypherGenerator;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
+import org.neo4j.springframework.data.core.schema.CypherGenerator;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.repository.query.Neo4jQueryMethod.Neo4jParameter;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Circle;
@@ -60,21 +67,30 @@ import org.springframework.data.repository.query.parser.PartTree;
 /**
  * A Cypher-DSL based implementation of the {@link AbstractQueryCreator} that eventually creates Cypher queries as strings
  * to be used by a Neo4j client or driver as statement template.
- * <p />
+ * <p/>
  * This class is not thread safe and not reusable.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
-final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
+final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, Condition> {
 
 	private final Neo4jMappingContext mappingContext;
 
 	private final Class<?> domainType;
 	private final NodeDescription<?> nodeDescription;
 
+	private final Neo4jQueryType queryType;
+
 	private final Iterator<?> formalParameters;
 	private final Queue<Parameter> lastParameter = new LinkedList<>();
+
+	private final Supplier<String> indexSupplier = new IndexSupplier();
+
+	private final Function<Object, Object> parameterConversion;
+	private final List<Parameter> boundedParameters = new ArrayList<>();
+
+	private final Pageable pagingParameter;
 
 	/**
 	 * Stores the number of max results, if the {@link PartTree tree} is limiting.
@@ -88,9 +104,11 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 
 	private final List<String> includedProperties;
 
-	CypherQueryCreator(Neo4jMappingContext mappingContext, Class<?> domainType, PartTree tree,
+	CypherQueryCreator(Neo4jMappingContext mappingContext, Class<?> domainType, Neo4jQueryType queryType,
+		PartTree tree,
 		ParametersParameterAccessor actualParameters,
-		List<String> includedProperties
+		List<String> includedProperties,
+		Function<Object, Object> parameterConversion
 	) {
 		super(tree, actualParameters);
 		this.mappingContext = mappingContext;
@@ -98,10 +116,15 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 		this.domainType = domainType;
 		this.nodeDescription = this.mappingContext.getRequiredNodeDescription(this.domainType);
 
+		this.queryType = queryType;
+
 		this.formalParameters = actualParameters.getParameters().iterator();
 		this.maxResults = tree.isLimiting() ? tree.getMaxResults() : null;
 
 		this.includedProperties = includedProperties;
+		this.parameterConversion = parameterConversion;
+
+		this.pagingParameter = actualParameters.getPageable();
 	}
 
 	@Override
@@ -125,22 +148,38 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 	}
 
 	@Override
-	protected String complete(Condition condition, Sort sort) {
+	protected QueryAndParameters complete(Condition condition, Sort sort) {
 
 		CypherGenerator cypherGenerator = CypherGenerator.INSTANCE;
-		Statement statement = cypherGenerator
-			.prepareMatchOf(nodeDescription, condition)
-			.returning(cypherGenerator.createReturnStatementForMatch(nodeDescription, includedProperties))
-			.orderBy(
-				Stream.concat(
-					sortItems.stream(),
-					sort.stream().map(sortAdapterFor(nodeDescription))
-				).toArray(SortItem[]::new)
-			)
-			.limit(maxResults)
-			.build();
+		Statement statement;
+		if (queryType == Neo4jQueryType.COUNT) {
+			statement = cypherGenerator
+				.prepareMatchOf(nodeDescription, condition)
+				.returning(Functions.count(asterisk()))
+				.build();
+		} else {
+			OngoingMatchAndReturnWithOrder ongoingMatchAndReturnWithOrder = cypherGenerator
+				.prepareMatchOf(nodeDescription, condition)
+				.returning(cypherGenerator.createReturnStatementForMatch(nodeDescription, includedProperties))
+				.orderBy(
+					Stream.concat(
+						sortItems.stream(),
+						pagingParameter.getSort().and(sort).stream().map(sortAdapterFor(nodeDescription))
+					).toArray(SortItem[]::new)
+				);
+			if (pagingParameter.isUnpaged()) {
+				statement = ongoingMatchAndReturnWithOrder.limit(maxResults).build();
+			} else {
+				long skip = pagingParameter.getOffset();
+				int pageSize = pagingParameter.getPageSize();
+				statement = ongoingMatchAndReturnWithOrder.skip(skip).limit(pageSize).build();
+			}
+		}
 
-		return Renderer.getDefaultRenderer().render(statement);
+		Map<String, Object> convertedParameters = this.boundedParameters
+			.stream().collect(toMap(p -> p.nameOrIndex, p -> parameterConversion.apply(p.value)));
+
+		return new QueryAndParameters(Renderer.getDefaultRenderer().render(statement), convertedParameters);
 	}
 
 	private Condition createImpl(Part part, Iterator<Object> actualParameters) {
@@ -378,7 +417,10 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 			return Optional.of(nextRequiredParameter);
 		} else if (formalParameters.hasNext()) {
 			final Neo4jParameter parameter = (Neo4jParameter) formalParameters.next();
-			return Optional.of(new Parameter(parameter.getNameOrIndex(), actualParameters.next()));
+			Parameter boundedParameter = new Parameter(parameter.getName().orElseGet(indexSupplier),
+				actualParameters.next());
+			boundedParameters.add(boundedParameter);
+			return Optional.of(boundedParameter);
 		} else {
 			return Optional.empty();
 		}
@@ -394,7 +436,10 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 				throw new IllegalStateException("Not enough formal, bindable parameters for parts");
 			}
 			final Neo4jParameter parameter = (Neo4jParameter) formalParameters.next();
-			return new Parameter(parameter.getNameOrIndex(), actualParameters.next());
+			Parameter boundedParameter = new Parameter(parameter.getName().orElseGet(indexSupplier),
+				actualParameters.next());
+			boundedParameters.add(boundedParameter);
+			return boundedParameter;
 		}
 	}
 
@@ -419,6 +464,20 @@ final class CypherQueryCreator extends AbstractQueryCreator<String, Condition> {
 				"nameOrIndex='" + nameOrIndex + '\'' +
 				", value=" + value +
 				'}';
+		}
+	}
+
+	/**
+	 * Provides unique, incrementing indexes for parameter. Parameter indexes in derived query methods
+	 * are not necessary dense.
+	 */
+	static final class IndexSupplier implements Supplier<String> {
+
+		private AtomicInteger current = new AtomicInteger(0);
+
+		@Override
+		public String get() {
+			return Integer.toString(current.getAndIncrement());
 		}
 	}
 }

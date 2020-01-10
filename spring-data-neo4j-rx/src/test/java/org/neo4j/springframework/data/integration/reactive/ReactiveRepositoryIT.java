@@ -688,6 +688,13 @@ class ReactiveRepositoryIT {
 			.verifyComplete();
 	}
 
+	@Test // GH-112
+	void countBySimplePropertiesOred() {
+
+		repository.countAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME)
+			.as(StepVerifier::create).expectNext(2L).verifyComplete();
+	}
+
 	@Test
 	void findBySimpleProperty() {
 		List<PersonWithAllConstructor> personList = Arrays.asList(person1, person2);

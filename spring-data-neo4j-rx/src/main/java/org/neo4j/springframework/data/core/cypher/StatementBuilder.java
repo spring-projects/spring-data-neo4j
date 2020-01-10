@@ -352,10 +352,9 @@ public interface StatementBuilder {
 		 * all expression with {@link Cypher#sort(Expression)} or directly from properties.
 		 *
 		 * @param sortItem One or more sort items
-		 * @param <T>      The type of the step being returned
 		 * @return A build step that still offers methods for defining skip and limit
 		 */
-		<T extends TerminalExposesSkip & TerminalExposesLimit & BuildableStatement> T orderBy(SortItem... sortItem);
+		OngoingMatchAndReturnWithOrder orderBy(SortItem... sortItem);
 
 		/**
 		 * Order the result set by an expression.
