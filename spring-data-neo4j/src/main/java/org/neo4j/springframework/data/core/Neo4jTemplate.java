@@ -251,7 +251,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		String nameOfParameter = "id";
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter));
 
-		log.debug(() -> String.format("Deleting entity with id %d ", id));
+		log.debug(() -> String.format("Deleting entity with id %s ", id));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 		ResultSummary summary = this.neo4jClient.query(renderer.render(statement))
