@@ -1,6 +1,18 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.2.4.RELEASE (2020-01-15)
+---------------------------------------------
+* DATAGRAPH-1280 - Upgrade to Neo4j OGM 3.2.5.
+* DATAGRAPH-1278 - Update license header to extend to 2020.
+* DATAGRAPH-1276 - Explicitly Pass READ_ONLY mode to Session.query.
+* DATAGRAPH-1275 - Verify update of relationship entities.
+* DATAGRAPH-1274 - Don't rely on Neo4j-OGM failing with NPE in tests.
+* DATAGRAPH-1273 - Release 5.2.4 (Moore SR4).
+* DATAGRAPH-1271 - Fix invalid class lookup for @QueryResults.
+* DATAGRAPH-1143 - Fix ClassCastException during instantiation from results containing arrays.
+
+
 Changes in version 5.1.15.RELEASE (2020-01-15)
 ----------------------------------------------
 * DATAGRAPH-1278 - Update license header to extend to 2020.
@@ -1614,6 +1626,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
