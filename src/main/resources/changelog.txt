@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.15.RELEASE (2020-01-15)
+----------------------------------------------
+* DATAGRAPH-1278 - Update license header to extend to 2020.
+* DATAGRAPH-1276 - Explicitly Pass READ_ONLY mode to Session.query.
+* DATAGRAPH-1272 - Release 5.1.15 (Lovelace SR15).
+
+
 Changes in version 5.2.3.RELEASE (2019-12-04)
 ---------------------------------------------
 * DATAGRAPH-1269 - Upgrade to Neo4j OGM 3.2.3.
@@ -1607,5 +1614,6 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
