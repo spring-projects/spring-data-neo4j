@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.repository;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
@@ -91,6 +92,18 @@ public class Neo4jRepositoryTests extends MultiDriverTestClass {
 		assertThat(nodeWithUUIDAsIdRepository.count(), is(0L));
 	}
 
+	@Test // DATAGRAPH-1286
+	public void findByIdEqualsInDerivedQueryMethodShouldWork() {
+
+		NodeWithUUIDAsId entity = new NodeWithUUIDAsId("someProperty");
+		nodeWithUUIDAsIdRepository.save(entity);
+
+		Optional<NodeWithUUIDAsId> retrievedEntity = nodeWithUUIDAsIdRepository
+				.findOneByMyNiceIdAndSomeProperty(entity.getMyNiceId(), entity.getSomeProperty());
+		assertThat(retrievedEntity.isPresent()).isTrue();
+		assertThat(retrievedEntity.get()).isEqualTo(entity);
+	}
+
 	@Configuration
 	@EnableNeo4jRepositories
 	@EnableTransactionManagement
@@ -111,4 +124,7 @@ public class Neo4jRepositoryTests extends MultiDriverTestClass {
 
 interface SampleEntityRepository extends Neo4jRepository<SampleEntity, Long> {}
 
-interface NodeWithUUIDAsIdRepository extends Neo4jRepository<NodeWithUUIDAsId, UUID> {}
+interface NodeWithUUIDAsIdRepository extends Neo4jRepository<NodeWithUUIDAsId, UUID> {
+
+	Optional<NodeWithUUIDAsId> findOneByMyNiceIdAndSomeProperty(UUID id, String someProperty);
+}

@@ -28,18 +28,12 @@ import org.neo4j.ogm.typeconversion.UuidStringConverter;
  */
 public class NodeWithUUIDAsId {
 
-	private Long id;
-
 	@Id @GeneratedValue(strategy = UuidStrategy.class) @Convert(UuidStringConverter.class) private UUID myNiceId;
 
 	private String someProperty;
 
 	public NodeWithUUIDAsId(String someProperty) {
 		this.someProperty = someProperty;
-	}
-
-	public Long getId() {
-		return id;
 	}
 
 	public UUID getMyNiceId() {

@@ -143,6 +143,13 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 		return propertyType.idProperty;
 	}
 
+	/**
+	 * @return True if this property describes the internal ID property.
+	 */
+	public boolean isInternalIdProperty() {
+		return propertyType == PropertyType.INTERNAL_ID_PROPERTY;
+	}
+
 	PropertyType getPropertyType() {
 		return propertyType;
 	}

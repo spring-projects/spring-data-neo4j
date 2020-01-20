@@ -112,19 +112,6 @@ public class GraphQueryMethod extends QueryMethod {
 				}
 			}
 		}
-		/*
-		//Java 8 only
-		Parameter[] parameters = method.getParameters();
-		 for (int i = 0; i < method.getParameterCount(); i++) {
-		     if (parameters[i].isAnnotationPresent(Depth.class)) {
-		         if (parameters[i].getType() == Integer.class || parameters[i].getType() == int.class) {
-		             return i;
-		         }
-		         else {
-		             throw new IllegalArgumentException("Depth parameter in " + method.getName() + " must be an integer");
-		         }
-		     }
-		 }*/
 		return null;
 	}
 

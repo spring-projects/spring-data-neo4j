@@ -22,6 +22,7 @@ import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -49,11 +50,11 @@ public class PartTreeNeo4jQuery extends AbstractGraphRepositoryQuery {
 		super(graphQueryMethod, metaData, session);
 
 		Class<?> domainType = graphQueryMethod.getEntityInformation().getJavaType();
-
 		this.graphQueryMethod = graphQueryMethod;
 		this.tree = new PartTree(graphQueryMethod.getName(), domainType);
 
-		this.queryTemplate = new TemplatedQueryCreator(this.tree, domainType).createQuery();
+		this.queryTemplate = new TemplatedQueryCreator(this.tree,
+				(Neo4jMappingContext) this.graphQueryMethod.getMappingContext(), domainType).createQuery();
 	}
 
 	@Override

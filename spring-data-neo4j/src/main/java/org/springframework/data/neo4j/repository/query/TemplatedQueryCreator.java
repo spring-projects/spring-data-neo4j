@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.Iterator;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -31,17 +32,19 @@ import org.springframework.data.repository.query.parser.PartTree;
  */
 class TemplatedQueryCreator extends AbstractQueryCreator<TemplatedQuery, FilterBuildersDefinition> {
 
+	private final Neo4jMappingContext mappingContext;
 	private final Class<?> entityType;
 
-	public TemplatedQueryCreator(PartTree tree, Class<?> entityType) {
+	public TemplatedQueryCreator(PartTree tree, Neo4jMappingContext mappingContext, Class<?> entityType) {
 		super(tree);
 
+		this.mappingContext = mappingContext;
 		this.entityType = entityType;
 	}
 
 	@Override
 	protected FilterBuildersDefinition create(Part part, Iterator<Object> iterator) {
-		return FilterBuildersDefinition.forType(entityType) //
+		return FilterBuildersDefinition.forType(mappingContext, entityType) //
 				.startWith(part);
 	}
 

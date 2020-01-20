@@ -145,6 +145,12 @@ public interface UserRepository extends PersonRepository<User, Long> {
 
 	Slice<User> findByNameAndRatingsStars(String name, int stars, Pageable pageable);
 
+	Page<User> findAllByIdIn(Iterable<Long> id, Pageable pageable);
+
+	List<User> findAllByIdInAndNameLike(Iterable<Long> id, String name);
+
+	List<User> findAllByIdAndName(Long id, String name);
+
 	@Query("invalid")
 	void invalidQuery();
 
