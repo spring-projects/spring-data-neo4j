@@ -18,9 +18,13 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.Filters;
+import org.springframework.data.mapping.PersistentPropertyPath;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.filter.FilterBuilder;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -39,17 +43,24 @@ class FilterBuildersDefinition {
 	private final Part basePart;
 
 	private final List<FilterBuilder> filterBuilders;
+	private final Predicate<Part> isInternalIdProperty;
 
-	static UnstartedBuild forType(Class<?> entityType) {
-		return new UnstartedBuild(entityType);
+	static UnstartedBuild forType(Neo4jMappingContext mappingContext, Class<?> entityType) {
+		return new UnstartedBuild(mappingContext, entityType);
 	}
 
-	private FilterBuildersDefinition(Class<?> entityType, Part basePart) {
+	private FilterBuildersDefinition(Neo4jMappingContext mappingContext, Class<?> entityType, Part basePart) {
 		this.entityType = entityType;
 		this.basePart = basePart;
 		this.filterBuilders = new LinkedList<>();
-
-		this.filterBuilders.add(FilterBuilder.forPartAndEntity(basePart, entityType, BooleanOperator.NONE));
+		this.isInternalIdProperty = part -> {
+			PersistentPropertyPath<Neo4jPersistentProperty> path = mappingContext
+					.getPersistentPropertyPath(part.getProperty());
+			Neo4jPersistentProperty possibleIdProperty = path.getRequiredLeafProperty();
+			return possibleIdProperty.isInternalIdProperty();
+		};
+		this.filterBuilders.add(FilterBuilder.forPartAndEntity(basePart, entityType, BooleanOperator.NONE,
+				isInternalIdProperty));
 	}
 
 	TemplatedQuery buildTemplatedQuery() {
@@ -66,24 +77,28 @@ class FilterBuildersDefinition {
 	}
 
 	FilterBuildersDefinition and(Part part) {
-		this.filterBuilders.add(FilterBuilder.forPartAndEntity(part, entityType, BooleanOperator.AND));
+		this.filterBuilders.add(FilterBuilder.forPartAndEntity(part, entityType, BooleanOperator.AND, isInternalIdProperty));
 		return this;
 	}
 
 	FilterBuildersDefinition or(Part part) {
-		this.filterBuilders.add(FilterBuilder.forPartAndEntity(part, entityType, BooleanOperator.OR));
+		this.filterBuilders.add(FilterBuilder.forPartAndEntity(part, entityType, BooleanOperator.OR, isInternalIdProperty));
 		return this;
 	}
 
 	static class UnstartedBuild {
+
+		private final Neo4jMappingContext mappingContext;
+
 		private final Class<?> entityType;
 
-		UnstartedBuild(Class<?> entityType) {
+		UnstartedBuild(Neo4jMappingContext mappingContext, Class<?> entityType) {
+			this.mappingContext = mappingContext;
 			this.entityType = entityType;
 		}
 
 		FilterBuildersDefinition startWith(Part firstPart) {
-			return new FilterBuildersDefinition(entityType, firstPart);
+			return new FilterBuildersDefinition(mappingContext, entityType, firstPart);
 		}
 	}
 }

@@ -80,6 +80,18 @@ public class Neo4jRepositoryTests {
 		assertThat(nodeWithUUIDAsIdRepository.count()).isEqualTo(0L);
 	}
 
+	@Test // DATAGRAPH-1286
+	public void findByIdEqualsInDerivedQueryMethodShouldWork() {
+
+		NodeWithUUIDAsId entity = new NodeWithUUIDAsId("someProperty");
+		nodeWithUUIDAsIdRepository.save(entity);
+
+		Optional<NodeWithUUIDAsId> retrievedEntity = nodeWithUUIDAsIdRepository
+				.findOneByMyNiceIdAndSomeProperty(entity.getMyNiceId(), entity.getSomeProperty());
+		assertThat(retrievedEntity.isPresent()).isTrue();
+		assertThat(retrievedEntity.get()).isEqualTo(entity);
+	}
+
 	@Configuration
 	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.domain.sample")
 	static class Config {}
@@ -87,4 +99,7 @@ public class Neo4jRepositoryTests {
 
 interface SampleEntityRepository extends Neo4jRepository<SampleEntity, Long> {}
 
-interface NodeWithUUIDAsIdRepository extends Neo4jRepository<NodeWithUUIDAsId, UUID> {}
+interface NodeWithUUIDAsIdRepository extends Neo4jRepository<NodeWithUUIDAsId, UUID> {
+
+	Optional<NodeWithUUIDAsId> findOneByMyNiceIdAndSomeProperty(UUID id, String someProperty);
+}
