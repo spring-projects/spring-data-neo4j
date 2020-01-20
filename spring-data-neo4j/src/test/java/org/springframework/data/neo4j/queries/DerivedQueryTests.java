@@ -19,9 +19,11 @@ import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -609,6 +611,59 @@ public class DerivedQueryTests {
 		page = userRepository.findByNameAndRatingsStars("A", 5, PageRequest.of(0, 10));
 		assertEquals(10, page.getNumberOfElements());
 		assertFalse(page.hasNext());
+	}
+
+	@Test // DATAGRAPH-1286
+	public void findAllByIdShouldSupportPageableParameter() {
+
+		List<Long> ids = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			User u = new User("U" + i);
+			userRepository.save(u);
+			ids.add(u.getId());
+		}
+
+		// Just make sure stuff exists and OGM correctly uses id(n) instead of n.id :(
+		Optional<User> randomUser = userRepository.findById(ids.get(ids.size() - 2));
+		assertThat(randomUser).isPresent().map(User::getName).hasValue("U8");
+
+		// Assert findAllById works _at all_
+		Iterable<User> allUsers = userRepository.findAllById(ids);
+		assertThat(allUsers).hasSize(ids.size());
+
+		Pageable pageable = PageRequest.of(0, 2);
+		Page<User> page = userRepository.findAllByIdIn(ids.subList(0, 4), pageable);
+		assertThat(page.getSize()).isEqualTo(2);
+		assertThat(page.getContent()).hasSize(2);
+		assertThat(page.hasNext()).isTrue();
+	}
+
+	@Test // DATAGRAPH-1286
+	public void findByIdInInDerivedQueryMethodShouldWork() {
+
+		List<Long> ids = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			User u = new User("U" + i);
+			userRepository.save(u);
+			ids.add(u.getId());
+		}
+
+		List<User> users = userRepository.findAllByIdInAndNameLike(ids.subList(0, 4), "U*");
+		assertThat(users).hasSize(4);
+	}
+
+	@Test // DATAGRAPH-1286
+	public void findByIdEqualsInDerivedQueryMethodShouldWork() {
+
+		List<Long> ids = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			User u = new User("U" + i);
+			userRepository.save(u);
+			ids.add(u.getId());
+		}
+
+		List<User> users = userRepository.findAllByIdAndName(ids.get(2), "U2");
+		assertThat(users).hasSize(1);
 	}
 
 	@Test // DATAGRAPH-1093
