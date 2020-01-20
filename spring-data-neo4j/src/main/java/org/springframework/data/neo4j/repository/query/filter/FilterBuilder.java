@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Stack;
+import java.util.function.Predicate;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.Filter;
@@ -41,27 +42,40 @@ public abstract class FilterBuilder {
 	protected Part part;
 	protected BooleanOperator booleanOperator;
 	protected Class<?> entityType;
+	protected Predicate<Part> isInternalIdProperty = part -> false;
 
-	public static FilterBuilder forPartAndEntity(Part part, Class<?> entityType, BooleanOperator booleanOperator) {
+	public static FilterBuilder forPartAndEntity(Part part, Class<?> entityType, BooleanOperator booleanOperator,
+			Predicate<Part> isInternalIdProperty) {
+		FilterBuilder filterBuilder;
 		switch (part.getType()) {
 			case NEAR:
-				return new DistanceComparisonBuilder(part, booleanOperator, entityType);
+				filterBuilder = new DistanceComparisonBuilder(part, booleanOperator, entityType);
+				break;
 			case BETWEEN:
-				return new BetweenComparisonBuilder(part, booleanOperator, entityType);
+				filterBuilder = new BetweenComparisonBuilder(part, booleanOperator, entityType);
+				break;
 			case NOT_CONTAINING:
 			case CONTAINING:
-				return resolveMatchingContainsFilterBuilder(part, entityType, booleanOperator);
+				filterBuilder = resolveMatchingContainsFilterBuilder(part, entityType, booleanOperator);
+				break;
 			case IS_NULL:
 			case IS_NOT_NULL:
-				return new IsNullFilterBuilder(part, booleanOperator, entityType);
+				filterBuilder = new IsNullFilterBuilder(part, booleanOperator, entityType);
+				break;
 			case EXISTS:
-				return new ExistsFilterBuilder(part, booleanOperator, entityType);
+				filterBuilder = new ExistsFilterBuilder(part, booleanOperator, entityType);
+				break;
 			case TRUE:
 			case FALSE:
-				return new BooleanComparisonBuilder(part, booleanOperator, entityType);
+				filterBuilder = new BooleanComparisonBuilder(part, booleanOperator, entityType);
+				break;
 			default:
-				return new PropertyComparisonBuilder(part, booleanOperator, entityType);
+				filterBuilder = new PropertyComparisonBuilder(part, booleanOperator, entityType);
+				break;
 		}
+
+		filterBuilder.isInternalIdProperty = isInternalIdProperty;
+		return filterBuilder;
 	}
 
 	FilterBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
