@@ -23,7 +23,7 @@ import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.cypher.Functions.*;
 import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
-import static org.neo4j.springframework.data.repository.query.PartTreeNeo4jQuery.*;
+import static org.neo4j.springframework.data.repository.query.PartValidator.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
