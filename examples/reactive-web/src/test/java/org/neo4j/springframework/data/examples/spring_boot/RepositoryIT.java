@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.springframework.boot.test.autoconfigure.Neo4jTestHarnessAutoConfiguration;
 import org.neo4j.springframework.boot.test.autoconfigure.data.DataNeo4jTest;
 import org.neo4j.springframework.data.examples.spring_boot.domain.MovieRepository;
 import org.neo4j.springframework.data.examples.spring_boot.domain.PersonRepository;
@@ -51,7 +52,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  */
 @Testcontainers
 @EnabledIfEnvironmentVariable(named = RepositoryIT.SYS_PROPERTY_NEO4J_VERSION, matches = "4\\.0.*")
-@DataNeo4jTest
+@DataNeo4jTest(excludeAutoConfiguration = Neo4jTestHarnessAutoConfiguration.class)
 @ContextConfiguration(initializers = RepositoryIT.Initializer.class)
 class RepositoryIT {
 

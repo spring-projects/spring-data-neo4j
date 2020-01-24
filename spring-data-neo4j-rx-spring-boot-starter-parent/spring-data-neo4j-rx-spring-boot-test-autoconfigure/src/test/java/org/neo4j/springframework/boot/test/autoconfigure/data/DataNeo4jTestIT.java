@@ -20,6 +20,8 @@ package org.neo4j.springframework.boot.test.autoconfigure.data;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.net.URI;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,13 +29,20 @@ import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.springframework.boot.test.autoconfigure.Neo4jTestHarnessAutoConfiguration;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.harness.ServerControls;
+import org.neo4j.harness.TestServerBuilders;
+import org.neo4j.springframework.data.core.Neo4jClient;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.env.Environment;
@@ -50,9 +59,28 @@ import org.testcontainers.containers.Neo4jContainer;
 class DataNeo4jTestIT {
 
 	@Nested
-	@DisplayName("Default usage with test harness")
+	@DisplayName("Usage with explicit test harness")
 	@DataNeo4jTest
+	@ContextConfiguration(classes = ExplicitTestHarness3xConfiguration.class)
 	class DriverBasedOnTestHarness extends TestBase {
+
+		@Test
+		void driverShouldBeConnectedToNeo4jTestHarness(@Autowired ServerControls serverControls,
+			@Autowired Neo4jClient client) {
+
+			ResultSummary summary = client.query("RETURN 1 AS result").run();
+			URI uri = serverControls.boltURI();
+			assertThat(summary.server().address()).endsWith(String.format("%s:%d", uri.getHost(), uri.getPort()));
+		}
+	}
+
+	@TestConfiguration
+	static class ExplicitTestHarness3xConfiguration {
+
+		@Bean
+		ServerControls serverControls() {
+			return TestServerBuilders.newInProcessBuilder().newServer();
+		}
 	}
 
 	@Nested
@@ -85,8 +113,6 @@ class DataNeo4jTestIT {
 
 	@Nested
 	@DisplayName("Usage with driver auto configuration")
-	// TODO We don't use @Containers, but the new attribute is helpful to prevent unnecessary failing tests.
-	// @Testcontainers(disabledWithoutDocker = true)
 	@ContextConfiguration(initializers = TestContainerInitializer.class)
 	@DataNeo4jTest(excludeAutoConfiguration = Neo4jTestHarnessAutoConfiguration.class)
 	class DriverBasedOnAutoConfiguration extends TestBase {
