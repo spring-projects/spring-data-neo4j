@@ -41,7 +41,7 @@ import org.springframework.lang.Nullable;
  * @author Michael J. Simons
  * @since 1.0
  */
-final class Neo4jQueryMethod extends QueryMethod {
+class Neo4jQueryMethod extends QueryMethod {
 
 	/**
 	 * Optional query annotation of the method.

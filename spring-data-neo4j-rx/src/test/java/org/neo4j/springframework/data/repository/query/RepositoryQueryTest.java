@@ -22,6 +22,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 import static org.mockito.Mockito.*;
 
+import reactor.core.publisher.Mono;
+
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +41,11 @@ import org.neo4j.springframework.data.core.Neo4jOperations;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.repository.query.Neo4jQueryMethod.Neo4jParameters;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
@@ -104,6 +110,24 @@ final class RepositoryQueryTest {
 
 			assumeThat(neo4jQueryMethod.isCollectionQuery()).isTrue();
 			assertThat(neo4jQueryMethod.isCollectionLikeQuery()).isTrue();
+		}
+
+		@Test
+		void shouldFailOnMonoOfPageAsReturnType() {
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> reactiveNeo4jQueryMethod("findAllByName", String.class, Pageable.class));
+		}
+
+		@Test
+		void shouldFailForPageableParameterOnMonoOfPageAsReturnType() {
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> reactiveNeo4jQueryMethod("findAllByName", String.class, Pageable.class));
+		}
+
+		@Test
+		void shouldFailForPageableParameterOnMonoOfSliceAsReturnType() {
+			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> reactiveNeo4jQueryMethod("findAllByNameStartingWith", String.class, Pageable.class));
 		}
 	}
 
@@ -263,9 +287,17 @@ final class RepositoryQueryTest {
 			TEST_REPOSITORY_METADATA, PROJECTION_FACTORY);
 	}
 
+	static ReactiveNeo4jQueryMethod reactiveNeo4jQueryMethod(String name, Class<?>... parameters) {
+
+		return new ReactiveNeo4jQueryMethod(ReflectionUtils.findMethod(TestRepository.class, name, parameters),
+			TEST_REPOSITORY_METADATA, PROJECTION_FACTORY);
+	}
+
 	static class TestEntity {
 		@Id @GeneratedValue
 		private Long id;
+
+		private String name;
 	}
 
 	interface TestRepository extends CrudRepository<TestEntity, Long> {
@@ -287,6 +319,10 @@ final class RepositoryQueryTest {
 		List<TestEntity> findAllByANamedQuery();
 
 		Stream<TestEntity> findAllByIdGreaterThan(long id);
+
+		Mono<Page<TestEntity>> findAllByName(String name, Pageable pageable);
+
+		Mono<Slice<TestEntity>> findAllByNameStartingWith(String name, Pageable pageable);
 	}
 
 	private RepositoryQueryTest() {

@@ -59,7 +59,7 @@ public final class ReactiveNeo4jQueryLookupStrategy implements QueryLookupStrate
 	public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 		NamedQueries namedQueries) {
 
-		Neo4jQueryMethod queryMethod = new Neo4jQueryMethod(method, metadata, factory);
+		Neo4jQueryMethod queryMethod = new ReactiveNeo4jQueryMethod(method, metadata, factory);
 		String namedQueryName = queryMethod.getNamedQueryName();
 
 		if (namedQueries.hasQuery(namedQueryName)) {

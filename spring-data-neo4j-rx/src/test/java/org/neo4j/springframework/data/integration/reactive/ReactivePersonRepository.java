@@ -26,6 +26,7 @@ import org.neo4j.springframework.data.integration.shared.PersonProjection;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
 import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 import org.neo4j.springframework.data.repository.query.Query;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +60,8 @@ public interface ReactivePersonRepository extends ReactiveNeo4jRepository<Person
 	Flux<PersonProjection> findBySameValue(String sameValue);
 
 	Flux<DtoPersonProjection> findByFirstName(String firstName);
+
+	Flux<PersonWithAllConstructor> findByNameStartingWith(String name, Pageable pageable);
 
 	@Query("MATCH (n:PersonWithAllConstructor) where n.name = $name return n{.name}")
 	Mono<PersonProjection> findByNameWithCustomQueryAndMapProjection(@Param("name") String name);

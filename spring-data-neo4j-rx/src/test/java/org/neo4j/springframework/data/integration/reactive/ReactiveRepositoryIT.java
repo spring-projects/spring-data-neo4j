@@ -72,6 +72,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -269,6 +270,25 @@ class ReactiveRepositoryIT {
 
 				assertThat(petHobby).isSameAs(hobby);
 			})
+			.verifyComplete();
+	}
+
+	@Test
+	void findWithPageable() {
+		Sort sort = Sort.by("name");
+		int page = 0;
+		int limit = 1;
+
+		StepVerifier.create(repository.findByNameStartingWith("Test", PageRequest.of(page, limit, sort)))
+			.assertNext(person -> assertThat(person).isEqualTo(person1))
+			.verifyComplete();
+
+		sort = Sort.by("name");
+		page = 1;
+		limit = 1;
+
+		StepVerifier.create(repository.findByNameStartingWith("Test", PageRequest.of(page, limit, sort)))
+			.assertNext(person -> assertThat(person).isEqualTo(person2))
 			.verifyComplete();
 	}
 
