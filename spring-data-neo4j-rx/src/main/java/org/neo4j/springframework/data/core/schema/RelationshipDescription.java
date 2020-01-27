@@ -112,4 +112,24 @@ public interface RelationshipDescription {
 
 		return this.getSource().getPrimaryLabel() + "_" + this.getType() + "_" + this.getTarget().getPrimaryLabel();
 	}
+
+	/**
+	 * Set the relationship definition that describes the opposite side of the relationship.
+	 *
+	 * @param relationshipObverse logically same relationship definition in the target entity
+	 */
+	void setRelationshipObverse(RelationshipDescription relationshipObverse);
+
+	/**
+	 *
+	 * @return logically same relationship definition in the target entity
+	 */
+	RelationshipDescription getRelationshipObverse();
+
+	/**
+	 * Checks if there is a relationship description describing the obverse of this relationship.
+	 *
+	 * @return true if a logically same relationship in the target entity exists, otherwise false.
+	 */
+	boolean hasRelationshipObverse();
 }

@@ -18,8 +18,11 @@
  */
 package org.neo4j.springframework.data.core.mapping;
 
+import java.util.Optional;
+
 import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Relationship;
+import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 import org.neo4j.springframework.data.core.schema.RelationshipProperties;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
@@ -92,15 +95,27 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 			direction = outgoingRelationship.direction();
 		}
 
-		Neo4jPersistentProperty obverse = null;
 		boolean dynamicAssociation = this.isDynamicAssociation();
 
 		// Because a dynamic association is also represented as a Map, this ensures that the
 		// relationship properties class will only have a value if it's not a dynamic association.
 		Class<?> relationshipPropertiesClass = dynamicAssociation ? null : getMapValueType();
 
-		return new DefaultRelationshipDescription(this, obverse, type, dynamicAssociation, (NodeDescription<?>) getOwner(),
-				this.getName(), obverseOwner, direction, relationshipPropertiesClass);
+		// Try to determine if there is a relationship definition that expresses logically the same relationship
+		// on the other end.
+		Optional<RelationshipDescription> obverseRelationshipDescription = obverseOwner.getRelationships().stream()
+			.filter(rel -> rel.getType().equals(type) && rel.getTarget().equals(this.getOwner()))
+			.findFirst();
+
+		DefaultRelationshipDescription relationshipDescription = new DefaultRelationshipDescription(this,
+			obverseRelationshipDescription.orElse(null), type, dynamicAssociation, (NodeDescription<?>) getOwner(),
+			this.getName(), obverseOwner, direction, relationshipPropertiesClass);
+
+		// Update the previous found, if any, relationship with the newly created one as its counterpart.
+		obverseRelationshipDescription
+			.ifPresent(relationship -> relationship.setRelationshipObverse(relationshipDescription));
+
+		return relationshipDescription;
 	}
 
 	@Override
