@@ -103,6 +103,8 @@ class RepositoryIT {
 	private final RelationshipRepository relationshipRepository;
 	private final PersonWithRelationshipWithPropertiesRepository relationshipWithPropertiesRepository;
 	private final PetRepository petRepository;
+	private final BidirectionalStartRepository bidirectionalStartRepository;
+	private final BidirectionalEndRepository bidirectionalEndRepository;
 	private final Driver driver;
 	private Long id1;
 	private Long id2;
@@ -112,7 +114,9 @@ class RepositoryIT {
 	@Autowired
 	RepositoryIT(PersonRepository repository, ThingRepository thingRepository,
 		RelationshipRepository relationshipRepository, PetRepository petRepository, Driver driver,
-		PersonWithRelationshipWithPropertiesRepository relationshipWithPropertiesRepository) {
+		PersonWithRelationshipWithPropertiesRepository relationshipWithPropertiesRepository,
+		BidirectionalStartRepository bidirectionalStartRepository,
+		BidirectionalEndRepository bidirectionalEndRepository) {
 
 		this.repository = repository;
 		this.relationshipRepository = relationshipRepository;
@@ -120,6 +124,8 @@ class RepositoryIT {
 		this.petRepository = petRepository;
 		this.relationshipWithPropertiesRepository = relationshipWithPropertiesRepository;
 		this.driver = driver;
+		this.bidirectionalStartRepository = bidirectionalStartRepository;
+		this.bidirectionalEndRepository = bidirectionalEndRepository;
 	}
 
 	@BeforeEach
@@ -269,6 +275,36 @@ class RepositoryIT {
 	}
 
 	@Test
+	void loadDeepSameLabelsAndTypeRelationships() {
+
+		long petNode1Id;
+		long petNode2Id;
+		long petNode3Id;
+
+		try (Session session = driver.session()) {
+			Record record = session
+				.run("CREATE "
+					+ "(p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'}), "
+					+ "(p2)-[:Has]->(p3:Pet{name: 'Pet3'}) "
+					+ "RETURN p1, p2, p3").single();
+
+			petNode1Id = record.get("p1").asNode().id();
+			petNode2Id = record.get("p2").asNode().id();
+			petNode3Id = record.get("p3").asNode().id();
+		}
+
+		Pet loadedPet = petRepository.findById(petNode1Id).get();
+
+		Pet comparisonPet2 = new Pet(petNode2Id, "Pet2");
+		Pet comparisonPet3 = new Pet(petNode3Id, "Pet3");
+		assertThat(loadedPet.getFriends()).containsExactlyInAnyOrder(comparisonPet2);
+
+		Pet pet2 = loadedPet.getFriends().get(loadedPet.getFriends().indexOf(comparisonPet2));
+		assertThat(pet2.getFriends()).containsExactly(comparisonPet3);
+
+	}
+
+	@Test
 	void loadEntityWithRelationshipToTheSameNode() {
 
 		long personId;
@@ -307,6 +343,53 @@ class RepositoryIT {
 		assertThat(petHobby.getName()).isEqualTo("Music");
 
 		assertThat(petHobby).isSameAs(hobby);
+
+	}
+
+	@Test
+	void loadEntityWithBidirectionalRelationship() {
+
+		long startId;
+
+		try (Session session = driver.session()) {
+			Record record = session
+				.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}), "
+					+ "(e)<-[:ANOTHER_CONNECTION]-(anotherStart:BidirectionalStart{name:'Elmo'})"
+					+ "RETURN n").single();
+
+			Node startNode = record.get("n").asNode();
+			startId = startNode.id();
+		}
+
+		Optional<BidirectionalStart> entityOptional = bidirectionalStartRepository.findById(startId);
+		assertThat(entityOptional).isPresent();
+		BidirectionalStart entity = entityOptional.get();
+		assertThat(entity.getEnds()).hasSize(1);
+
+		BidirectionalEnd end = entity.getEnds().iterator().next();
+		assertThat(end.getAnotherStart()).isNotNull();
+		assertThat(end.getAnotherStart().getName()).isEqualTo("Elmo");
+
+	}
+
+	@Test
+	void loadEntityWithBidirectionalRelationshipFromIncomingSide() {
+
+		long endId;
+
+		try (Session session = driver.session()) {
+			Record record = session
+				.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) "
+					+ "RETURN e").single();
+
+			Node endNode = record.get("e").asNode();
+			endId = endNode.id();
+		}
+
+		Optional<BidirectionalEnd> entityOptional = bidirectionalEndRepository.findById(endId);
+		assertThat(entityOptional).isPresent();
+		BidirectionalEnd entity = entityOptional.get();
+		assertThat(entity.getStart()).isNotNull();
 
 	}
 

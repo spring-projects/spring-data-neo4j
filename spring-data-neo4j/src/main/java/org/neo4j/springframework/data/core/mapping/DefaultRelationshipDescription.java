@@ -47,13 +47,18 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 
 	private Class<?> relationshipPropertiesClass;
 
+	private RelationshipDescription relationshipObverse;
+
 	DefaultRelationshipDescription(Neo4jPersistentProperty inverse,
-		Neo4jPersistentProperty obverse,
+		@Nullable RelationshipDescription relationshipObverse,
 		String type, boolean dynamic, NodeDescription<?> source, String fieldName, NodeDescription<?> target,
 		Relationship.Direction direction, @Nullable Class<?> relationshipPropertiesClass) {
 
-		super(inverse, obverse);
+		// the immutable obverse association-wise is always null because we cannot determine them on both sides
+		// if we consider to support bidirectional relationships.
+		super(inverse, null);
 
+		this.relationshipObverse = relationshipObverse;
 		this.type = type;
 		this.dynamic = dynamic;
 		this.source = source;
@@ -104,6 +109,21 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 	}
 
 	@Override
+	public void setRelationshipObverse(RelationshipDescription relationshipObverse) {
+		this.relationshipObverse = relationshipObverse;
+	}
+
+	@Override
+	public RelationshipDescription getRelationshipObverse() {
+		return relationshipObverse;
+	}
+
+	@Override
+	public boolean hasRelationshipObverse() {
+		return this.relationshipObverse != null;
+	}
+
+	@Override
 	public String toString() {
 		return "DefaultRelationshipDescription{" +
 			"type='" + type + '\'' +
@@ -122,12 +142,13 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 			return false;
 		}
 		DefaultRelationshipDescription that = (DefaultRelationshipDescription) o;
-		return type.equals(that.type) && target.equals(that.target) && source.equals(that.source)
-			&& direction.equals(that.direction);
+		return getType().equals(that.getType()) && getTarget().equals(that.getTarget())
+			&& getSource().equals(that.getSource()) && getDirection().equals(that.getDirection());
 	}
 
 	@Override
 	public int hashCode() {
 		return Objects.hash(type, target, source, direction);
 	}
+
 }
