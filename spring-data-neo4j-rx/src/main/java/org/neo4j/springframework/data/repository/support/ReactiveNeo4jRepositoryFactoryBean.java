@@ -23,7 +23,6 @@ import java.io.Serializable;
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.ReactiveNeo4jOperations;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
-import org.neo4j.springframework.data.repository.config.ReactiveNeo4jRepositoryConfigurationExtension;
 import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
@@ -58,7 +57,6 @@ public final class ReactiveNeo4jRepositoryFactoryBean<T extends Repository<S, ID
 	 */
 	protected ReactiveNeo4jRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
 		super(repositoryInterface);
-		super.setTransactionManager(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME);
 	}
 
 	public void setNeo4jOperations(ReactiveNeo4jOperations neo4jOperations) {

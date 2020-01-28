@@ -88,6 +88,11 @@ public @interface EnableReactiveNeo4jRepositories {
 	String neo4jTemplateRef() default DEFAULT_NEO4J_TEMPLATE_BEAN_NAME;
 
 	/**
+	 * Configures the name of the {@link org.neo4j.springframework.data.core.transaction.ReactiveNeo4jTransactionManager} bean to be used with the repositories detected.
+	 */
+	String transactionManagerRef() default DEFAULT_TRANSACTION_MANAGER_BEAN_NAME;
+
+	/**
 	 * Specifies which types are eligible for component scanning. Further narrows the set of candidate components from
 	 * everything in {@link #basePackages()} to everything in the base packages that matches the given filter or filters.
 	 */

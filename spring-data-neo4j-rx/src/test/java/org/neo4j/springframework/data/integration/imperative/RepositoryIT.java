@@ -44,6 +44,7 @@ import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
@@ -96,7 +97,7 @@ class RepositoryIT {
 		return new PersonWithAllConstructor(null, null, null, sameValue, null, null, null, null, null, null, null);
 	}
 
-	private static Neo4jConnectionSupport neo4jConnectionSupport;
+	protected static Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private final PersonRepository repository;
 	private final ThingRepository thingRepository;
@@ -128,10 +129,20 @@ class RepositoryIT {
 		this.bidirectionalEndRepository = bidirectionalEndRepository;
 	}
 
+	/**
+	 * Shall be configured by test making use of database selection, so that the verification queries run in the correct database.
+	 *
+	 * @return The session config used for verification methods.
+	 */
+	SessionConfig getSessionConfig() {
+
+		return SessionConfig.defaultConfig();
+	}
+
 	@BeforeEach
 	void setupData() {
 
-		Transaction transaction = driver.session().beginTransaction();
+		Transaction transaction = driver.session(getSessionConfig()).beginTransaction();
 		transaction.run("MATCH (n) detach delete n");
 
 		ZonedDateTime createdAt = LocalDateTime.of(2019, 1, 1, 23, 23, 42, 0).atZone(ZoneOffset.UTC.normalized());
@@ -177,7 +188,7 @@ class RepositoryIT {
 	@Test
 	void findAllWithoutResultDoesNotThrowAnException() {
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			session.run("MATCH (n:PersonWithAllConstructor) DETACH DELETE n;");
 		}
 
@@ -223,7 +234,7 @@ class RepositoryIT {
 		long petNode1Id;
 		long petNode2Id;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
 					+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
@@ -281,7 +292,7 @@ class RepositoryIT {
 		long petNode2Id;
 		long petNode3Id;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE "
 					+ "(p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'}), "
@@ -311,7 +322,7 @@ class RepositoryIT {
 		long hobbyNode1Id;
 		long petNode1Id;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
 					+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), "
@@ -351,7 +362,7 @@ class RepositoryIT {
 
 		long startId;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}), "
 					+ "(e)<-[:ANOTHER_CONNECTION]-(anotherStart:BidirectionalStart{name:'Elmo'})"
@@ -377,7 +388,7 @@ class RepositoryIT {
 
 		long endId;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) "
 					+ "RETURN e").single();
@@ -401,7 +412,7 @@ class RepositoryIT {
 		long petNode1Id;
 		long petNode2Id;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h:Hobby{name:'Music'}), "
 					+ "(n)-[:Has]->(p:Pet{name: 'Jerry'}) "
@@ -446,7 +457,7 @@ class RepositoryIT {
 		long petNode1Id;
 		long petNode2Id;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
 					+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) "
@@ -483,7 +494,7 @@ class RepositoryIT {
 
 		long petNodeId;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (p:Pet{name:'Jerry'})-[:Has]->(t:Thing{theId:'t1', name:'Thing1'}) "
 					+ "RETURN p, t").single();
@@ -505,7 +516,7 @@ class RepositoryIT {
 		long hobbyNode1Id;
 		long hobbyNode2Id;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
 					+ " (n)-[l1:LIKES"
@@ -600,7 +611,7 @@ class RepositoryIT {
 
 		assertThat(shouldBeDifferentPerson.getName()).isEqualToIgnoringCase("Freddie clone");
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session.run(
 				"MATCH (n:PersonWithRelationshipWithProperties {name:'Freddie clone'}) "
 					+ "RETURN n, "
@@ -646,7 +657,7 @@ class RepositoryIT {
 		long hobbyNode1Id;
 		long hobbyNode2Id;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
 					+ " (n)-[l1:LIKES"
@@ -702,9 +713,9 @@ class RepositoryIT {
 		PersonWithAllConstructor person = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
 			LocalDate.of(1946, 9, 15), null, Arrays.asList("b", "a"), null, null);
 		PersonWithAllConstructor savedPerson = repository.save(person);
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session.run("MATCH (n:PersonWithAllConstructor) WHERE n.first_name = $first_name RETURN n",
-					Values.parameters("first_name", "Freddie")).single();
+				Values.parameters("first_name", "Freddie")).single();
 
 			assertThat(record.containsKey("n")).isTrue();
 			Node node = record.get("n").asNode();
@@ -732,14 +743,14 @@ class RepositoryIT {
 		person.setPets(Arrays.asList(pet1, pet2));
 
 		PersonWithRelationship savedPerson = relationshipRepository.save(person);
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 
 			Record record = session.run("MATCH (n:PersonWithRelationship)"
 					+ " RETURN n,"
 					+ " [(n)-[:Has]->(p:Pet) | [ p , [ (p)-[:Has]-(h:Hobby) | h ] ] ] as petsWithHobbies,"
 					+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies, "
 					+ " [(n)<-[:Has]-(c:Club) | c] as clubs",
-					Values.parameters("name", "Freddie")).single();
+				Values.parameters("name", "Freddie")).single();
 
 			assertThat(record.containsKey("n")).isTrue();
 			Node rootNode = record.get("n").asNode();
@@ -785,13 +796,13 @@ class RepositoryIT {
 
 		PersonWithRelationship savedPerson = relationshipRepository.save(person);
 		savedPerson = relationshipRepository.save(savedPerson);
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 
 			List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
 					+ " RETURN n,"
 					+ " [(n)-[:Has]->(p:Pet) | [ p , [ (p)-[:Has]-(h:Hobby) | h ] ] ] as petsWithHobbies,"
 					+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
-					Values.parameters("name", "Freddie")).list();
+				Values.parameters("name", "Freddie")).list();
 
 			// assert that there is only one record in the returned list
 			assertThat(recordList).hasSize(1);
@@ -834,7 +845,7 @@ class RepositoryIT {
 	void saveEntityWithAlreadyExistingTargetNode() {
 
 		Long hobbyId;
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			hobbyId = session.run("CREATE (h:Hobby{name: 'Music'}) return id(h) as hId").single().get("hId").asLong();
 		}
 
@@ -846,12 +857,12 @@ class RepositoryIT {
 		person.setHobbies(hobby);
 
 		PersonWithRelationship savedPerson = relationshipRepository.save(person);
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 
 			List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
 					+ " RETURN n,"
 					+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
-					Values.parameters("name", "Freddie")).list();
+				Values.parameters("name", "Freddie")).list();
 
 			assertThat(recordList).hasSize(1);
 
@@ -877,7 +888,7 @@ class RepositoryIT {
 		Long hobbyId;
 		Long personId;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session.run(
 				"CREATE (p:PersonWithRelationship{name: 'Freddie'}), (h:Hobby{name: 'Music'}) return id(h) as hId, id(p) as pId")
 				.single();
@@ -895,7 +906,7 @@ class RepositoryIT {
 		person.setHobbies(hobby);
 
 		PersonWithRelationship savedPerson = relationshipRepository.save(person);
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 
 			List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
 					+ " RETURN n,"
@@ -932,16 +943,19 @@ class RepositoryIT {
 
 		assertThat(repository.count()).isEqualTo(2);
 
-		List<Long> ids = StreamSupport.stream(repository.saveAll(Arrays.asList(existingPerson, newPerson)).spliterator(), false)
+		List<Long> ids = StreamSupport
+			.stream(repository.saveAll(Arrays.asList(existingPerson, newPerson)).spliterator(), false)
 			.map(PersonWithAllConstructor::getId)
 			.collect(toList());
 
 		assertThat(repository.count()).isEqualTo(3);
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 
 			Record record = session
-				.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) IN ($ids) WITH n ORDER BY n.name ASC RETURN COLLECT(n.name) as names", Values.parameters("ids", ids))
+				.run(
+					"MATCH (n:PersonWithAllConstructor) WHERE id(n) IN ($ids) WITH n ORDER BY n.name ASC RETURN COLLECT(n.name) as names",
+					Values.parameters("ids", ids))
 				.single();
 
 			assertThat(record.containsKey("names")).isTrue();
@@ -960,7 +974,7 @@ class RepositoryIT {
 		originalPerson.setThings(emptyList());
 
 		PersonWithAllConstructor savedPerson = repository.save(originalPerson);
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			session.readTransaction(tx -> {
 				Record record = tx.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n",
 					Values.parameters("id", id1)).single();
@@ -1014,7 +1028,7 @@ class RepositoryIT {
 
 	@Test
 	void deleteSimpleRelationship() {
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'})");
 		}
 
@@ -1028,7 +1042,7 @@ class RepositoryIT {
 
 	@Test
 	void deleteCollectionRelationship() {
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			session.run("CREATE (n:PersonWithRelationship{name:'Freddie'}), "
 				+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'})");
 		}
@@ -1080,7 +1094,7 @@ class RepositoryIT {
 		thing.setName("That's the thing.");
 		thing = thingRepository.save(thing);
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", Values.parameters("id", thing.getTheId()))
 				.single();
@@ -1106,7 +1120,7 @@ class RepositoryIT {
 		thing.setThings(singletonList(anotherThing));
 		thing = thingRepository.save(thing);
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("MATCH (n:Thing)-[:Has]->(t:Thing2) WHERE n.theId = $id RETURN n, t", Values.parameters("id", thing.getTheId()))
 				.single();
@@ -1137,9 +1151,11 @@ class RepositoryIT {
 
 		thingRepository.saveAll(Arrays.asList(newThing, existingThing));
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
-				.run("MATCH (n:Thing) WHERE n.theId IN ($ids) WITH n ORDER BY n.name ASC RETURN COLLECT(n.name) as names", Values.parameters("ids", Arrays.asList(newThing.getTheId(), existingThing.getTheId())))
+				.run(
+					"MATCH (n:Thing) WHERE n.theId IN ($ids) WITH n ORDER BY n.name ASC RETURN COLLECT(n.name) as names",
+					Values.parameters("ids", Arrays.asList(newThing.getTheId(), existingThing.getTheId())))
 				.single();
 
 			assertThat(record.containsKey("names")).isTrue();
@@ -1162,9 +1178,10 @@ class RepositoryIT {
 		thing.setThings(singletonList(anotherThing));
 		thingRepository.saveAll(singletonList(thing));
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
-				.run("MATCH (n:Thing)-[:Has]->(t:Thing2) WHERE n.theId = $id RETURN n, t", Values.parameters("id", thing.getTheId()))
+				.run("MATCH (n:Thing)-[:Has]->(t:Thing2) WHERE n.theId = $id RETURN n, t",
+					Values.parameters("id", thing.getTheId()))
 				.single();
 
 			assertThat(record.containsKey("n")).isTrue();
@@ -1193,9 +1210,10 @@ class RepositoryIT {
 		thing.setName("Another updated thing");
 		thingRepository.save(thing);
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
-				.run("MATCH (n:Thing) WHERE n.theId IN ($ids) WITH n ORDER BY n.name ASC RETURN COLLECT(n.name) as names",
+				.run(
+					"MATCH (n:Thing) WHERE n.theId IN ($ids) WITH n ORDER BY n.name ASC RETURN COLLECT(n.name) as names",
 					Values.parameters("ids", Arrays.asList("id07", "id15")))
 				.single();
 

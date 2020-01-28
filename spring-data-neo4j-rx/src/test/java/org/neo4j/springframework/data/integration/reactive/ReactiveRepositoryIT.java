@@ -45,6 +45,7 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
@@ -63,8 +64,8 @@ import org.neo4j.springframework.data.integration.shared.PersonWithRelationshipW
 import org.neo4j.springframework.data.integration.shared.Pet;
 import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
-import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
 import org.neo4j.springframework.data.test.Neo4jExtension.*;
+import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
 import org.neo4j.springframework.data.types.CartesianPoint2d;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,7 +100,7 @@ class ReactiveRepositoryIT {
 	private static final Point CLARION = Values.point(4326, 12.994243, 55.607726).asPoint();
 	private static final Point MINC = Values.point(4326, 12.994039, 55.611496).asPoint();
 	private static final long NOT_EXISTING_NODE_ID = 3123131231L;
-	private static Neo4jConnectionSupport neo4jConnectionSupport;
+	protected static Neo4jConnectionSupport neo4jConnectionSupport;
 	@Autowired private ReactivePersonRepository repository;
 	@Autowired private ReactiveThingRepository thingRepository;
 	@Autowired private ReactiveRelationshipRepository relationshipRepository;
@@ -121,16 +122,16 @@ class ReactiveRepositoryIT {
 	@BeforeEach
 	void setupData() {
 
-		Transaction transaction = driver.session().beginTransaction();
+		Transaction transaction = driver.session(getSessionConfig()).beginTransaction();
 		transaction.run("MATCH (n) detach delete n");
 
 		id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
 				+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
 				+ "RETURN id(n)",
 			parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-						TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
-						NEO4J_HQ))
-				.next().get(0).asLong();
+				TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
+				NEO4J_HQ))
+			.next().get(0).asLong();
 
 		id2 = transaction.run(
 				"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
@@ -146,11 +147,22 @@ class ReactiveRepositoryIT {
 		transaction.commit();
 		transaction.close();
 
-		person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE, true,
-				1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, null);
+		person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+			true,
+			1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, null);
 
 		person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
-				false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
+			false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
+	}
+
+	/**
+	 * Shall be configured by test making use of database selection, so that the verification queries run in the correct database.
+	 *
+	 * @return The session config used for verification methods.
+	 */
+	SessionConfig getSessionConfig() {
+
+		return SessionConfig.defaultConfig();
 	}
 
 	@Test
@@ -158,7 +170,7 @@ class ReactiveRepositoryIT {
 		List<PersonWithAllConstructor> personList = Arrays.asList(person1, person2);
 
 		StepVerifier.create(repository.findAll()).expectNextMatches(personList::contains)
-				.expectNextMatches(personList::contains).verifyComplete();
+			.expectNextMatches(personList::contains).verifyComplete();
 	}
 
 	@Test
@@ -176,7 +188,7 @@ class ReactiveRepositoryIT {
 		long petNode1Id;
 		long petNode2Id;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
 					+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
@@ -237,7 +249,7 @@ class ReactiveRepositoryIT {
 		long hobbyNode1Id;
 		long petNode1Id;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
 					+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), "
@@ -299,7 +311,7 @@ class ReactiveRepositoryIT {
 
 		long startId;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) "
 					+ "RETURN n").single();
@@ -320,7 +332,7 @@ class ReactiveRepositoryIT {
 
 		long endId;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) "
 					+ "RETURN e").single();
@@ -344,7 +356,7 @@ class ReactiveRepositoryIT {
 		long petNode1Id;
 		long petNode2Id;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h:Hobby{name:'Music'}), "
 					+ "(n)-[:Has]->(p:Pet{name: 'Jerry'}) "
@@ -393,7 +405,7 @@ class ReactiveRepositoryIT {
 		long petNode1Id;
 		long petNode2Id;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
 					+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) "
@@ -432,7 +444,7 @@ class ReactiveRepositoryIT {
 
 		long petNodeId;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (p:Pet{name:'Jerry'})-[:Has]->(t:Thing{theId:'t1', name:'Thing1'}) "
 					+ "RETURN p, t").single();
@@ -457,7 +469,7 @@ class ReactiveRepositoryIT {
 		long hobbyNode1Id;
 		long hobbyNode2Id;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
 					+ " (n)-[l1:LIKES"
@@ -571,7 +583,7 @@ class ReactiveRepositoryIT {
 				+ "[(n) -[:LIKES]->(h:Hobby) |h] as Hobbies, "
 				+ "[(n) -[r:LIKES]->(:Hobby) |r] as rels";
 		Flux.usingWhen(
-			Mono.fromSupplier(() -> driver.rxSession()),
+			Mono.fromSupplier(() -> driver.rxSession(getSessionConfig())),
 			s -> s.run(matchQuery).records(),
 			RxSession::close
 		).as(StepVerifier::create)
@@ -616,7 +628,7 @@ class ReactiveRepositoryIT {
 		long hobbyNode1Id;
 		long hobbyNode2Id;
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
 				.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
 					+ " (n)-[l1:LIKES"
@@ -960,7 +972,7 @@ class ReactiveRepositoryIT {
 			.verifyComplete();
 
 		Flux.usingWhen(
-			Mono.fromSupplier(() -> driver.rxSession()),
+			Mono.fromSupplier(() -> driver.rxSession(getSessionConfig())),
 			s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n", parameters("ids", ids))
 				.records(),
 			RxSession::close
@@ -1003,7 +1015,7 @@ class ReactiveRepositoryIT {
 
 		Flux
 			.usingWhen(
-				Mono.fromSupplier(() -> driver.rxSession()),
+				Mono.fromSupplier(() -> driver.rxSession(getSessionConfig())),
 				s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
 					parameters("ids", ids))
 					.records(),
@@ -1037,7 +1049,7 @@ class ReactiveRepositoryIT {
 
 		Flux
 			.usingWhen(
-				Mono.fromSupplier(() -> driver.rxSession()),
+				Mono.fromSupplier(() -> driver.rxSession(getSessionConfig())),
 				s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
 					parameters("ids", ids))
 					.records(),
@@ -1075,7 +1087,7 @@ class ReactiveRepositoryIT {
 			.expectNextCount(1L)
 			.verifyComplete();
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 
 			Record record = session.run("MATCH (n:PersonWithRelationship)"
 					+ " RETURN n,"
@@ -1143,7 +1155,7 @@ class ReactiveRepositoryIT {
 			.expectNextCount(1L)
 			.verifyComplete();
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 
 			List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
 					+ " RETURN n,"
@@ -1192,7 +1204,7 @@ class ReactiveRepositoryIT {
 	void saveEntityWithAlreadyExistingTargetNode() {
 
 		Long hobbyId;
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			hobbyId = session.run("CREATE (h:Hobby{name: 'Music'}) return id(h) as hId").single().get("hId").asLong();
 		}
 
@@ -1214,7 +1226,7 @@ class ReactiveRepositoryIT {
 			.expectNextCount(1L)
 			.verifyComplete();
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 
 			List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
 					+ " RETURN n,"
@@ -1257,7 +1269,7 @@ class ReactiveRepositoryIT {
 
 		Flux
 			.usingWhen(
-				Mono.fromSupplier(() -> driver.rxSession()),
+				Mono.fromSupplier(() -> driver.rxSession(getSessionConfig())),
 				s -> {
 					Value parameters = parameters("id", id1);
 					return s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n", parameters).records();
@@ -1273,7 +1285,7 @@ class ReactiveRepositoryIT {
 
 	@Test
 	void deleteSimpleRelationship() {
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'})");
 		}
 
@@ -1294,7 +1306,7 @@ class ReactiveRepositoryIT {
 
 	@Test
 	void deleteCollectionRelationship() {
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(getSessionConfig())) {
 			session.run("CREATE (n:PersonWithRelationship{name:'Freddie'}), "
 				+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'})");
 		}
@@ -1362,7 +1374,7 @@ class ReactiveRepositoryIT {
 
 		Flux
 			.usingWhen(
-				Mono.fromSupplier(() -> driver.rxSession()),
+				Mono.fromSupplier(() -> driver.rxSession(getSessionConfig())),
 				s -> s.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", parameters("id", "aaBB")).records(),
 				RxSession::close
 			)
@@ -1403,7 +1415,7 @@ class ReactiveRepositoryIT {
 
 		Flux
 			.usingWhen(
-				Mono.fromSupplier(() -> driver.rxSession()),
+				Mono.fromSupplier(() -> driver.rxSession(getSessionConfig())),
 				s -> {
 					Value parameters = parameters("ids", Arrays.asList("anId", "aaBB"));
 					return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC",
@@ -1443,7 +1455,7 @@ class ReactiveRepositoryIT {
 
 		Flux
 			.usingWhen(
-				Mono.fromSupplier(() -> driver.rxSession()),
+				Mono.fromSupplier(() -> driver.rxSession(getSessionConfig())),
 				s -> {
 					Value parameters = parameters("ids", Arrays.asList("anId", "aaBB"));
 					return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC",
@@ -1490,7 +1502,7 @@ class ReactiveRepositoryIT {
 
 		Flux
 			.usingWhen(
-				Mono.fromSupplier(() -> driver.rxSession()),
+				Mono.fromSupplier(() -> driver.rxSession(getSessionConfig())),
 				s -> {
 					Value parameters = parameters("ids", Arrays.asList("id07", "id15"));
 					return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC",

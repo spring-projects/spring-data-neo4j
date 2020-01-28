@@ -23,7 +23,7 @@ jobs:
         run: >
           ./mvnw --no-transfer-progress clean deploy -Dchangelist= -Dsha1=-$GITHUB_SHA
           -DaltDeploymentRepository=releases::default::file://$GITHUB_WORKSPACE/target/repository 
-          -pl !org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-imperative-web,!org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-mapping,!org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-reactive-web
+          -pl !org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-imperative-web,!org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-mapping,!org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-reactive-web,!org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-multi-database
       - name: Archive artifacts
         uses: actions/upload-artifact@v1
         with:
@@ -55,4 +55,4 @@ jobs:
       - name: Run Maven build
         run: >
           ./mvnw --no-transfer-progress clean verify -Dchangelist= -Dsha1=-$GITHUB_SHA
-          -pl org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-imperative-web,org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-mapping,org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-reactive-web
+          -pl org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-imperative-web,org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-mapping,org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-reactive-web,org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-multi-database

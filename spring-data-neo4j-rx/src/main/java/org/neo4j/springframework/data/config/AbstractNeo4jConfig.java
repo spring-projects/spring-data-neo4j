@@ -24,6 +24,7 @@ import org.neo4j.springframework.data.core.Neo4jClient;
 import org.neo4j.springframework.data.core.Neo4jTemplate;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
+import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
 import org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -60,19 +61,23 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	}
 
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
-	public Neo4jTemplate neo4jTemplate(final Neo4jClient neo4jClient, final Neo4jMappingContext mappingContext) {
-		return new Neo4jTemplate(neo4jClient, mappingContext);
+	public Neo4jTemplate neo4jTemplate(final Neo4jClient neo4jClient, final Neo4jMappingContext mappingContext,
+		Neo4jDatabaseNameProvider databaseNameProvider) {
+
+		return new Neo4jTemplate(neo4jClient, mappingContext, databaseNameProvider);
 	}
 
 	/**
 	 * Provides a {@link PlatformTransactionManager} for Neo4j based on the driver resulting from {@link #driver()}.
 	 *
-	 * @param driver The driver to synchronize against
+	 * @param driver               The driver to synchronize against
+	 * @param databaseNameProvider The configured database name provider
 	 * @return A platform transaction manager
 	 */
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
-	public PlatformTransactionManager transactionManager(Driver driver) {
+	public PlatformTransactionManager transactionManager(Driver driver,
+		Neo4jDatabaseNameProvider databaseNameProvider) {
 
-		return new Neo4jTransactionManager(driver);
+		return new Neo4jTransactionManager(driver, databaseNameProvider);
 	}
 }

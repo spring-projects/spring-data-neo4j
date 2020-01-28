@@ -16,12 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.springframework.data.examples.spring_boot.support;
+package org.neo4j.springframework.data.examples.spring_boot.domain;
+
+import java.util.Optional;
+
+import org.neo4j.springframework.data.repository.Neo4jRepository;
 
 /**
- * Something that is part of a d3.js viz.
- *
  * @author Michael J. Simons
  */
-public interface D3JSGraphElement {
+public interface MovieRepository extends Neo4jRepository<MovieEntity, String> {
+
+	Optional<MovieEntity> findOneByTitle(String title);
 }

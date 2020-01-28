@@ -24,6 +24,7 @@ import reactor.core.publisher.Flux;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
+import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.ReactiveNeo4jOperations;
 import org.neo4j.springframework.data.core.ReactiveNeo4jTemplate;
@@ -60,14 +61,17 @@ class Neo4jReactiveDataConfiguration {
 
 	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
 	@ConditionalOnMissingBean(ReactiveNeo4jOperations.class)
-	public ReactiveNeo4jTemplate neo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext) {
-		return new ReactiveNeo4jTemplate(neo4jClient, neo4jMappingContext);
+	public ReactiveNeo4jTemplate neo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
+		Neo4jDatabaseNameProvider databaseNameProvider) {
+
+		return new ReactiveNeo4jTemplate(neo4jClient, neo4jMappingContext, databaseNameProvider);
 	}
 
 	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
 	@ConditionalOnMissingBean(ReactiveTransactionManager.class)
-	public ReactiveTransactionManager transactionManager(Driver driver) {
+	public ReactiveTransactionManager transactionManager(Driver driver,
+		Neo4jDatabaseNameProvider databaseNameProvider) {
 
-		return new ReactiveNeo4jTransactionManager(driver);
+		return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider);
 	}
 }

@@ -42,6 +42,7 @@ import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -152,7 +153,7 @@ class Neo4jTransactionManagerTest {
 			@Test
 			void shouldUseTxFromNeo4jTxManager() {
 
-				Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver, databaseName);
+				Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver, Neo4jDatabaseNameProvider.createStaticDatabaseNameProvider(databaseName));
 				TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
 				txTemplate.execute(new TransactionCallbackWithoutResult() {
@@ -185,7 +186,7 @@ class Neo4jTransactionManagerTest {
 			@Test
 			void shouldParticipateInOngoingTransaction() {
 
-				Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver, databaseName);
+				Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver, Neo4jDatabaseNameProvider.createStaticDatabaseNameProvider(databaseName));
 				TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
 				txTemplate.execute(new TransactionCallbackWithoutResult() {

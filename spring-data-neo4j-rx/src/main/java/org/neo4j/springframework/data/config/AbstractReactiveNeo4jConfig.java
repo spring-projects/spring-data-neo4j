@@ -24,6 +24,7 @@ import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.ReactiveNeo4jTemplate;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.transaction.ReactiveNeo4jTransactionManager;
+import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
 import org.neo4j.springframework.data.repository.config.ReactiveNeo4jRepositoryConfigurationExtension;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,8 +63,9 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 
 	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
 	public ReactiveNeo4jTemplate neo4jTemplate(final ReactiveNeo4jClient neo4jClient,
-		final Neo4jMappingContext mappingContext) {
-		return new ReactiveNeo4jTemplate(neo4jClient, mappingContext);
+		final Neo4jMappingContext mappingContext, final Neo4jDatabaseNameProvider databaseNameProvider) {
+
+		return new ReactiveNeo4jTemplate(neo4jClient, mappingContext, databaseNameProvider);
 	}
 
 	/**
@@ -73,8 +75,8 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 	 * @return A platform transaction manager
 	 */
 	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
-	public ReactiveTransactionManager reactiveTransactionManager(Driver driver) {
+	public ReactiveTransactionManager reactiveTransactionManager(Driver driver, Neo4jDatabaseNameProvider databaseNameProvider) {
 
-		return new ReactiveNeo4jTransactionManager(driver);
+		return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider);
 	}
 }

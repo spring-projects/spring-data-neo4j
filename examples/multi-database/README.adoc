@@ -1,0 +1,7 @@
+== Spring Boot / Database selection.
+
+NOTE: To run the application, you need Neo4j 4.0 Enterprise edition, with a database named `movies`.
+      The tests run independently and show you how to configure a database in a multi database scenario.
+
+See `org.neo4j.springframework.data.examples.spring_boot.ExampleUsingStaticDatabaseNameTest` how a statically configured name
+is used and `org.neo4j.springframework.data.examples.spring_boot.ExampleUsingDynamicDatabaseNameTest` how a dynamic name is used.

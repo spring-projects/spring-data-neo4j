@@ -16,29 +16,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.springframework.data.examples.spring_boot.support;
+package org.neo4j.springframework.data.examples.spring_boot.domain;
+
+import org.neo4j.springframework.data.core.schema.Id;
+import org.neo4j.springframework.data.core.schema.Node;
 
 /**
- * A d3.js link only has meaning between {@link D3JSNode} inside arrays.
- *
- * @author Michael J. Simons
+ * @author Gerrit Meier
  */
-public class D3JSLink implements D3JSGraphElement {
+@Node("Person")
+public class PersonEntity {
 
-	private final int source;
+	@Id
+	private final String name;
 
-	private final int target;
+	private final Long born;
 
-	public D3JSLink(int source, int target) {
-		this.source = source;
-		this.target = target;
+	public PersonEntity(Long born, String name) {
+		this.born = born;
+		this.name = name;
 	}
 
-	public int getSource() {
-		return source;
+	public Long getBorn() {
+		return born;
 	}
 
-	public int getTarget() {
-		return target;
+	public String getName() {
+		return name;
 	}
+
 }

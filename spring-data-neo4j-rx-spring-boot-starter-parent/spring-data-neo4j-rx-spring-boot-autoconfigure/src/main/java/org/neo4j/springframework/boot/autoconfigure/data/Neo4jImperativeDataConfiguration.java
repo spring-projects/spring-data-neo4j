@@ -23,6 +23,7 @@ import static org.springframework.boot.autoconfigure.data.RepositoryType.*;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
 import org.neo4j.springframework.data.core.Neo4jClient;
+import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
 import org.neo4j.springframework.data.core.Neo4jOperations;
 import org.neo4j.springframework.data.core.Neo4jTemplate;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
@@ -60,16 +61,19 @@ class Neo4jImperativeDataConfiguration {
 
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
 	@ConditionalOnMissingBean(Neo4jOperations.class)
-	public Neo4jTemplate neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext) {
-		return new Neo4jTemplate(neo4jClient, neo4jMappingContext);
+	public Neo4jTemplate neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
+		Neo4jDatabaseNameProvider databaseNameProvider) {
+
+		return new Neo4jTemplate(neo4jClient, neo4jMappingContext,
+			databaseNameProvider);
 	}
 
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
 	@ConditionalOnMissingBean(PlatformTransactionManager.class)
-	public Neo4jTransactionManager transactionManager(Driver driver,
-			ObjectProvider<TransactionManagerCustomizers> optionalCustomizers) {
+	public Neo4jTransactionManager transactionManager(Driver driver, Neo4jDatabaseNameProvider databaseNameProvider,
+		ObjectProvider<TransactionManagerCustomizers> optionalCustomizers) {
 
-		final Neo4jTransactionManager transactionManager = new Neo4jTransactionManager(driver);
+		final Neo4jTransactionManager transactionManager = new Neo4jTransactionManager(driver, databaseNameProvider);
 		optionalCustomizers.ifAvailable(customizer -> customizer.customize(transactionManager));
 
 		return transactionManager;
