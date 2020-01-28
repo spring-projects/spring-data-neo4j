@@ -64,7 +64,6 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		this.driver = driver;
 		this.typeSystem = driver.defaultTypeSystem();
-
 		this.conversionService = new DefaultConversionService();
 		new Neo4jConversions().registerConvertersIn((ConverterRegistry) conversionService);
 	}

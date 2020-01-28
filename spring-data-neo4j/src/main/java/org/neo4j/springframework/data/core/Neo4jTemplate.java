@@ -83,19 +83,23 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	private Neo4jEvents eventSupport;
 
+	private final Neo4jDatabaseNameProvider databaseNameProvider;
+
 	public Neo4jTemplate(Neo4jClient neo4jClient) {
-		this(neo4jClient, new Neo4jMappingContext());
+		this(neo4jClient, new Neo4jMappingContext(), Neo4jDatabaseNameProvider.getDefaultDatabaseNameProvider());
 	}
 
-	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext) {
+	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext, Neo4jDatabaseNameProvider databaseNameProvider) {
 
 		Assert.notNull(neo4jClient, "The Neo4jClient is required");
 		Assert.notNull(neo4jMappingContext, "The Neo4jMappingContext is required");
+		Assert.notNull(databaseNameProvider, "The database name provider is required");
 
 		this.neo4jClient = neo4jClient;
 		this.neo4jMappingContext = neo4jMappingContext;
 		this.cypherGenerator = CypherGenerator.INSTANCE;
 		this.eventSupport = new Neo4jEvents(null);
+		this.databaseNameProvider = databaseNameProvider;
 	}
 
 	@Override
@@ -172,10 +176,16 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	@Override
 	public <T> T save(T instance) {
 
+		return saveImpl(instance, getDatabaseName());
+	}
+
+	private <T> T saveImpl(T instance, @Nullable String inDatabase) {
+
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(instance.getClass());
 		T entityToBeSaved = eventSupport.maybeCallBeforeBind(instance);
 		Long internalId = neo4jClient
 			.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData)))
+			.in(inDatabase)
 			.bind((T) entityToBeSaved)
 			.with(neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass()))
 			.fetchAs(Long.class).one().get();
@@ -183,11 +193,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 
 		if (!entityMetaData.isUsingInternalIds()) {
-			processNestedAssociations(entityMetaData, entityToBeSaved);
+			processNestedAssociations(entityMetaData, entityToBeSaved, inDatabase);
 			return entityToBeSaved;
 		} else {
 			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
-			processNestedAssociations(entityMetaData, entityToBeSaved);
+			processNestedAssociations(entityMetaData, entityToBeSaved, inDatabase);
 
 			return propertyAccessor.getBean();
 		}
@@ -195,6 +205,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	@Override
 	public <T> List<T> saveAll(Iterable<T> instances) {
+
+		String databaseName = getDatabaseName();
 
 		Collection<T> entities;
 		if (instances instanceof Collection) {
@@ -214,7 +226,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			log.debug("Saving entities using single statements.");
 
 			return entities.stream()
-				.map(this::save)
+				.map(e -> saveImpl(e, databaseName))
 				.collect(toList());
 		}
 
@@ -228,12 +240,13 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			.map(binderFunction).collect(toList());
 		ResultSummary resultSummary = neo4jClient
 			.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
+			.in(databaseName)
 			.bind(entityList).to(NAME_OF_ENTITY_LIST_PARAM)
 			.run();
 
 		// Save related
 		entitiesToBeSaved.forEach(entityToBeSaved -> {
-			processNestedAssociations(entityMetaData, entityToBeSaved);
+			processNestedAssociations(entityMetaData, entityToBeSaved, databaseName);
 		});
 
 		SummaryCounters counters = resultSummary.counters();
@@ -256,6 +269,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 		ResultSummary summary = this.neo4jClient.query(renderer.render(statement))
+			.in(getDatabaseName())
 			.bind(id).to(nameOfParameter)
 			.run();
 
@@ -274,6 +288,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 		ResultSummary summary = this.neo4jClient.query(renderer.render(statement))
+			.in(getDatabaseName())
 			.bind(ids).to(nameOfParameter)
 			.run();
 
@@ -288,7 +303,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		log.debug(() -> String.format("Deleting all nodes with primary label %s", entityMetaData.getPrimaryLabel()));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData);
-		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).run();
+		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).in(getDatabaseName()).run();
 
 		log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
 			summary.counters().relationshipsDeleted()));
@@ -309,7 +324,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		return toExecutableQuery(preparedQuery);
 	}
 
-	private void processNestedAssociations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject) {
+	private void processNestedAssociations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject, @Nullable String inDatabase) {
 
 		PersistentPropertyAccessor<?> propertyAccessor = neo4jPersistentEntity.getPropertyAccessor(parentObject);
 
@@ -330,6 +345,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					relationshipContext.getRelationship(), targetNodeDescription.getPrimaryLabel());
 
 				neo4jClient.query(renderer.render(relationshipRemoveQuery))
+					.in(inDatabase)
 					.bind(fromId).to(FROM_ID_PARAMETER_NAME).run();
 			}
 
@@ -347,7 +363,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				valueToBeSaved = eventSupport.maybeCallBeforeBind(valueToBeSaved);
 
 				Long relatedInternalId = saveRelatedNode(valueToBeSaved, relationshipContext.getAssociationTargetType(),
-					targetNodeDescription);
+					targetNodeDescription, inDatabase);
 
 				// handle creation of relationship depending on properties on relationship or not
 				RelationshipStatementHolder statementHolder = relationshipContext.hasRelationshipWithProperties()
@@ -362,6 +378,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 						relatedValue);
 
 				neo4jClient.query(renderer.render(statementHolder.getRelationshipCreationQuery()))
+					.in(inDatabase)
 					.bind(fromId).to(FROM_ID_PARAMETER_NAME)
 					.bindAll(statementHolder.getProperties())
 					.run();
@@ -373,15 +390,21 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					targetPropertyAccessor
 						.setProperty(targetNodeDescription.getRequiredIdProperty(), relatedInternalId);
 				}
-				processNestedAssociations(targetNodeDescription, valueToBeSaved);
+				processNestedAssociations(targetNodeDescription, valueToBeSaved, inDatabase);
 			}
 		});
 	}
 
-	private <Y> Long saveRelatedNode(Object entity, Class<Y> entityType, NodeDescription targetNodeDescription) {
+	private <Y> Long saveRelatedNode(Object entity, Class<Y> entityType, NodeDescription targetNodeDescription, @Nullable String inDatabase) {
 		return neo4jClient.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription)))
+			.in(inDatabase)
 			.bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
 			.fetchAs(Long.class).one().get();
+	}
+
+	private String getDatabaseName() {
+
+		return this.databaseNameProvider.getCurrentDatabaseName().orElse(null);
 	}
 
 	@Override
@@ -395,6 +418,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		Neo4jClient.MappingSpec<T> mappingSpec = this
 			.neo4jClient.query(preparedQuery.getCypherQuery())
+			.in(getDatabaseName())
 			.bindAll(preparedQuery.getParameters())
 			.fetchAs(preparedQuery.getResultType());
 		Neo4jClient.RecordFetchSpec<T> fetchSpec = preparedQuery

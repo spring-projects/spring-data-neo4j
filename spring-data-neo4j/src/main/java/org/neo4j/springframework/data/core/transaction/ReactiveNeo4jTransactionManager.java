@@ -31,6 +31,7 @@ import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
+import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.TransactionDefinition;
@@ -54,18 +55,19 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 	 * The underlying driver, which is also the synchronisation object.
 	 */
 	private final Driver driver;
+
 	/**
-	 * The name of the target database.
+	 * Database name provider.
 	 */
-	private final String databaseName;
+	private final Neo4jDatabaseNameProvider databaseNameProvider;
 
 	public ReactiveNeo4jTransactionManager(Driver driver) {
-		this(driver, null);
+		this(driver, Neo4jDatabaseNameProvider.getDefaultDatabaseNameProvider());
 	}
 
-	public ReactiveNeo4jTransactionManager(Driver driver, String databaseName) {
+	public ReactiveNeo4jTransactionManager(Driver driver, Neo4jDatabaseNameProvider databaseNameProvider) {
 		this.driver = driver;
-		this.databaseName = databaseName;
+		this.databaseNameProvider = databaseNameProvider;
 	}
 
 	public static Mono<RxTransaction> retrieveReactiveTransaction(final Driver driver, final String targetDatabase) {
@@ -150,6 +152,7 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 			TransactionDefinition transactionDefinition) throws TransactionException {
 
 		return Mono.defer(() -> {
+			String databaseName = databaseNameProvider.getCurrentDatabaseName().orElse(null);
 
 			ReactiveNeo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
 

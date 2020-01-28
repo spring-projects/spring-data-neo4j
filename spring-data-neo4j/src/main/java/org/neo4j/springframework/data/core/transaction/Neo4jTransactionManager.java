@@ -24,11 +24,12 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apiguardian.api.API;
+import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.Bookmark;
+import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
@@ -54,18 +55,21 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 	 * The underlying driver, which is also the synchronisation object.
 	 */
 	private final Driver driver;
+
 	/**
-	 * The name of the target database.
+	 * Database name provider.
 	 */
-	private final String databaseName;
+	private final Neo4jDatabaseNameProvider databaseNameProvider;
 
 	public Neo4jTransactionManager(Driver driver) {
-		this(driver, null);
+
+		this(driver, Neo4jDatabaseNameProvider.getDefaultDatabaseNameProvider());
 	}
 
-	public Neo4jTransactionManager(Driver driver, String databaseName) {
+	public Neo4jTransactionManager(Driver driver, Neo4jDatabaseNameProvider databaseNameProvider) {
+
 		this.driver = driver;
-		this.databaseName = databaseName;
+		this.databaseNameProvider = databaseNameProvider;
 	}
 
 	/**
@@ -154,6 +158,8 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		TransactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
 
 		try {
+			String databaseName = databaseNameProvider.getCurrentDatabaseName().orElse(null);
+
 			List<Bookmark> bookmarks = Collections.emptyList(); // TODO Bookmarksupport;
 			Session session = this.driver.session(sessionConfig(readOnly, bookmarks, databaseName));
 			Transaction nativeTransaction = session.beginTransaction(transactionConfig);

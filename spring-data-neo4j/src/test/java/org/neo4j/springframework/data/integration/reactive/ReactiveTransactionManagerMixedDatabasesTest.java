@@ -44,6 +44,7 @@ import org.neo4j.springframework.data.core.Neo4jClient;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.transaction.ReactiveNeo4jTransactionManager;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
+import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -112,7 +113,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 	@Test
 	void usingSameDatabaseExplicitTx() {
 		ReactiveNeo4jTransactionManager otherTransactionManger = new ReactiveNeo4jTransactionManager(driver,
-			DATABASE_NAME);
+			Neo4jDatabaseNameProvider.createStaticDatabaseNameProvider(DATABASE_NAME));
 		TransactionalOperator otherTransactionTemplate = TransactionalOperator.create(otherTransactionManger);
 
 		Mono<Long> numberOfNodes = neo4jClient.query(TEST_QUERY).in(DATABASE_NAME).fetchAs(Long.class).one()
@@ -156,7 +157,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 	void usingAnotherDatabaseDeclarativeFromRepo() {
 
 		ReactiveNeo4jTransactionManager otherTransactionManger = new ReactiveNeo4jTransactionManager(driver,
-			DATABASE_NAME);
+			Neo4jDatabaseNameProvider.createStaticDatabaseNameProvider(DATABASE_NAME));
 		TransactionalOperator otherTransactionTemplate = TransactionalOperator.create(otherTransactionManger);
 
 		Mono<PersonWithAllConstructor> p =
@@ -189,7 +190,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 		@Transactional
 		public Mono<Long> usingTheSameDatabaseDeclarative() {
 
-			return neo4jClient.query(TEST_QUERY).in(null).fetchAs(Long.class).one();
+			return neo4jClient.query(TEST_QUERY).fetchAs(Long.class).one();
 		}
 
 		@Transactional

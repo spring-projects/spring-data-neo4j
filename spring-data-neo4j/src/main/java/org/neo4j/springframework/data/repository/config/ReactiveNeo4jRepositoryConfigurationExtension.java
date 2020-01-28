@@ -26,7 +26,7 @@ import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.repository.Neo4jRepository;
 import org.neo4j.springframework.data.repository.event.ReactiveIdGeneratingBeforeBindCallback;
-import org.neo4j.springframework.data.repository.support.Neo4jRepositoryFactoryBean;
+import org.neo4j.springframework.data.repository.support.ReactiveNeo4jRepositoryFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -72,7 +72,7 @@ public final class ReactiveNeo4jRepositoryConfigurationExtension extends Reposit
 	 */
 	@Override
 	public String getRepositoryFactoryBeanClassName() {
-		return Neo4jRepositoryFactoryBean.class.getName();
+		return ReactiveNeo4jRepositoryFactoryBean.class.getName();
 	}
 
 	/*
@@ -106,6 +106,8 @@ public final class ReactiveNeo4jRepositoryConfigurationExtension extends Reposit
 	@Override
 	public void postProcess(BeanDefinitionBuilder builder, RepositoryConfigurationSource source) {
 
+		builder.addPropertyValue("transactionManager",
+			source.getAttribute("transactionManagerRef").orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
 		builder.addPropertyReference("neo4jOperations",
 			source.getAttribute("neo4jTemplateRef").orElse(DEFAULT_NEO4J_TEMPLATE_BEAN_NAME));
 		builder.addPropertyReference("neo4jMappingContext",

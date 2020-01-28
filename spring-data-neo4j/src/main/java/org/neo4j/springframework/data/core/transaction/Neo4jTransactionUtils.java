@@ -77,8 +77,9 @@ public final class Neo4jTransactionUtils {
 				"Neo4jTransactionManager is not allowed to support custom isolation levels.");
 		}
 
-		if (definition.getPropagationBehavior() != TransactionDefinition.PROPAGATION_REQUIRED) {
-			throw new IllegalTransactionStateException("Neo4jTransactionManager only supports 'required' propagation.");
+		int propagationBehavior = definition.getPropagationBehavior();
+		if (!(propagationBehavior == TransactionDefinition.PROPAGATION_REQUIRED || propagationBehavior == TransactionDefinition.PROPAGATION_REQUIRES_NEW)) {
+			throw new IllegalTransactionStateException("Neo4jTransactionManager only supports 'required' or 'requires new' propagation.");
 		}
 
 		TransactionConfig.Builder builder = TransactionConfig.builder();
