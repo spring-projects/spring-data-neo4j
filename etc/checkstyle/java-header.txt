@@ -1,5 +1,5 @@
 ^\Q/*\E$
-^\Q * Copyright (c) 2019 "Neo4j,"\E$
+^\Q * Copyright (c) 2019-2020 "Neo4j,"\E$
 ^\Q * Neo4j Sweden AB [https://neo4j.com]\E$
 ^\Q *\E$
 ^\Q * This file is part of Neo4j.\E$
