@@ -20,15 +20,14 @@ package org.neo4j.springframework.data.integration.imperative;
 
 import static org.neo4j.springframework.data.test.Neo4jExtension.*;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
-import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
+import org.neo4j.springframework.data.core.DatabaseSelection;
+import org.neo4j.springframework.data.core.DatabaseSelectionProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -82,8 +81,8 @@ class RepositoryWithADifferentDatabaseIT extends RepositoryIT {
 	static class ConfigWithDatabaseNameProviderBean extends RepositoryIT.Config {
 
 		@Bean
-		Neo4jDatabaseNameProvider databaseNameProvider() {
-			return () -> Optional.of("aTestDatabase");
+		DatabaseSelectionProvider databaseNameProvider() {
+			return () -> DatabaseSelection.byName("aTestDatabase");
 		}
 	}
 

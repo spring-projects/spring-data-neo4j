@@ -132,7 +132,7 @@ public interface ReactiveNeo4jOperations {
 	 * @param <T>           The type of the objects returned by this query.
 	 * @return An executable query
 	 */
-	<T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery);
+	<T> Mono<ExecutableQuery<T>> toExecutableQuery(PreparedQuery<T> preparedQuery);
 
 	/**
 	 * An interface for controlling query execution in a reactive fashion.

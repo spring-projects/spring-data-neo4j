@@ -29,7 +29,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
+import org.neo4j.springframework.data.core.DatabaseSelectionProvider;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
@@ -59,17 +59,17 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 	/**
 	 * Database name provider.
 	 */
-	private final Neo4jDatabaseNameProvider databaseNameProvider;
+	private final DatabaseSelectionProvider databaseSelectionProvider;
 
 	public Neo4jTransactionManager(Driver driver) {
 
-		this(driver, Neo4jDatabaseNameProvider.getDefaultDatabaseNameProvider());
+		this(driver, DatabaseSelectionProvider.getDefaultSelectionProvider());
 	}
 
-	public Neo4jTransactionManager(Driver driver, Neo4jDatabaseNameProvider databaseNameProvider) {
+	public Neo4jTransactionManager(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
 
 		this.driver = driver;
-		this.databaseNameProvider = databaseNameProvider;
+		this.databaseSelectionProvider = databaseSelectionProvider;
 	}
 
 	/**
@@ -158,7 +158,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		TransactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
 
 		try {
-			String databaseName = databaseNameProvider.getCurrentDatabaseName().orElse(null);
+			String databaseName = databaseSelectionProvider.getDatabaseSelection().getValue();
 
 			List<Bookmark> bookmarks = Collections.emptyList(); // TODO Bookmarksupport;
 			Session session = this.driver.session(sessionConfig(readOnly, bookmarks, databaseName));

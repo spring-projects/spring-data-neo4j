@@ -23,7 +23,7 @@ import static org.springframework.boot.autoconfigure.data.RepositoryType.*;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
 import org.neo4j.springframework.data.core.Neo4jClient;
-import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
+import org.neo4j.springframework.data.core.DatabaseSelectionProvider;
 import org.neo4j.springframework.data.core.Neo4jOperations;
 import org.neo4j.springframework.data.core.Neo4jTemplate;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
@@ -34,10 +34,12 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.ConditionalOnRepositoryType;
 import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -53,6 +55,23 @@ import org.springframework.transaction.PlatformTransactionManager;
 @AutoConfigureBefore(Neo4jImperativeRepositoriesConfiguration.class)
 class Neo4jImperativeDataConfiguration {
 
+	@Bean("databaseSelectionProvider")
+	@ConditionalOnProperty(prefix = "org.neo4j.data", name = "database")
+	@ConditionalOnMissingBean
+	@Order(-30)
+	public DatabaseSelectionProvider staticDatabaseSelectionProvider(Neo4jDataProperties dataProperties) {
+
+		return DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(dataProperties.getDatabase());
+	}
+
+	@Bean("databaseSelectionProvider")
+	@ConditionalOnMissingBean
+	@Order(-20)
+	public DatabaseSelectionProvider defaultSelectionProvider() {
+
+		return DatabaseSelectionProvider.getDefaultSelectionProvider();
+	}
+
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
 	@ConditionalOnMissingBean
 	public Neo4jClient neo4jClient(Driver driver) {
@@ -62,7 +81,7 @@ class Neo4jImperativeDataConfiguration {
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
 	@ConditionalOnMissingBean(Neo4jOperations.class)
 	public Neo4jTemplate neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
-		Neo4jDatabaseNameProvider databaseNameProvider) {
+		DatabaseSelectionProvider databaseNameProvider) {
 
 		return new Neo4jTemplate(neo4jClient, neo4jMappingContext,
 			databaseNameProvider);
@@ -70,7 +89,7 @@ class Neo4jImperativeDataConfiguration {
 
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
 	@ConditionalOnMissingBean(PlatformTransactionManager.class)
-	public Neo4jTransactionManager transactionManager(Driver driver, Neo4jDatabaseNameProvider databaseNameProvider,
+	public Neo4jTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider,
 		ObjectProvider<TransactionManagerCustomizers> optionalCustomizers) {
 
 		final Neo4jTransactionManager transactionManager = new Neo4jTransactionManager(driver, databaseNameProvider);

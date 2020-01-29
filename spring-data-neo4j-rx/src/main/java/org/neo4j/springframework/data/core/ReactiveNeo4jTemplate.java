@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.core;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
+import static org.neo4j.springframework.data.core.DatabaseSelection.*;
 import static org.neo4j.springframework.data.core.RelationshipStatementHolder.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.CypherGenerator.*;
@@ -84,19 +85,20 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 	private ReactiveNeo4jEvents eventSupport;
 
-	private final Neo4jDatabaseNameProvider databaseNameProvider;
+	private final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
 
-	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext, Neo4jDatabaseNameProvider databaseNameProvider) {
+	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
+		ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 		Assert.notNull(neo4jClient, "The Neo4jClient is required");
 		Assert.notNull(neo4jMappingContext, "The Neo4jMappingContext is required");
-		Assert.notNull(databaseNameProvider, "The database name provider is required");
+		Assert.notNull(databaseSelectionProvider, "The database selection provider is required");
 
 		this.neo4jClient = neo4jClient;
 		this.neo4jMappingContext = neo4jMappingContext;
 		this.statementBuilder = CypherGenerator.INSTANCE;
 		this.eventSupport = new ReactiveNeo4jEvents(null);
-		this.databaseNameProvider = databaseNameProvider;
+		this.databaseSelectionProvider = databaseSelectionProvider;
 	}
 
 	@Override
@@ -109,7 +111,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class)
 			.withCypherQuery(renderer.render(statement))
 			.build();
-		return this.toExecutableQuery(preparedQuery).getSingleResult();
+		return this.toExecutableQuery(preparedQuery).flatMap(ExecutableQuery::getSingleResult);
 	}
 
 	@Override
@@ -119,7 +121,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			.withCypherQuery(renderer.render(statement))
 			.withParameters(parameters)
 			.build();
-		return this.toExecutableQuery(preparedQuery).getSingleResult();
+		return this.toExecutableQuery(preparedQuery).flatMap(ExecutableQuery::getSingleResult);
 	}
 
 	@Override
@@ -128,24 +130,24 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
 			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData)).build();
-		return createExecutableQuery(domainType, statement).getResults();
+		return createExecutableQuery(domainType, statement).flatMapMany(ExecutableQuery::getResults);
 	}
 
 	@Override
 	public <T> Flux<T> findAll(Statement statement, Class<T> domainType) {
 
-		return createExecutableQuery(domainType, statement).getResults();
+		return createExecutableQuery(domainType, statement).flatMapMany(ExecutableQuery::getResults);
 	}
 
 	@Override public <T> Flux<T> findAll(Statement statement, Map<String, Object> parameters, Class<T> domainType) {
 
-		return createExecutableQuery(domainType, statement, parameters).getResults();
+		return createExecutableQuery(domainType, statement, parameters).flatMapMany(ExecutableQuery::getResults);
 	}
 
 	@Override
 	public <T> Mono<T> findOne(Statement statement, Map<String, Object> parameters, Class<T> domainType) {
 
-		return createExecutableQuery(domainType, statement, parameters).getSingleResult();
+		return createExecutableQuery(domainType, statement, parameters).flatMap(ExecutableQuery::getSingleResult);
 	}
 
 	@Override
@@ -156,7 +158,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().isEqualTo(literalOf(id)))
 			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData))
 			.build();
-		return createExecutableQuery(domainType, statement).getSingleResult();
+		return createExecutableQuery(domainType, statement).flatMap(ExecutableQuery::getSingleResult);
 	}
 
 	@Override
@@ -167,13 +169,14 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().in((parameter("ids"))))
 			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData))
 			.build();
-		return createExecutableQuery(domainType, statement, singletonMap("ids", ids)).getResults();
+		return createExecutableQuery(domainType, statement, singletonMap("ids", ids))
+			.flatMapMany(ExecutableQuery::getResults);
 	}
 
 	@Override
 	public <T> Mono<T> save(T instance) {
 
-		return saveImpl(instance, getDatabaseName());
+		return getDatabaseName().flatMap(databaseName -> saveImpl(instance, databaseName.getValue()));
 	}
 
 	private <T> Mono<T> saveImpl(T instance, @Nullable String inDatabase) {
@@ -209,8 +212,6 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	@Override
 	public <T> Flux<T> saveAll(Iterable<T> instances) {
 
-		String databaseName = getDatabaseName();
-
 		Collection<T> entities;
 		if (instances instanceof Collection) {
 			entities = (Collection<T>) instances;
@@ -229,35 +230,37 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		if (entityMetaData.isUsingInternalIds()) {
 			log.debug("Saving entities using single statements.");
 
-			return Flux.fromIterable(entities).flatMap(e -> this.saveImpl(e, databaseName));
+			return getDatabaseName().flatMapMany(databaseName ->
+				Flux.fromIterable(entities).flatMap(e -> this.saveImpl(e, databaseName.getValue())));
 		}
 
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(domainClass);
-		return Flux.fromIterable(entities)
-			.flatMap(eventSupport::maybeCallBeforeBind)
-			.collectList()
-			.flatMapMany(
-				entitiesToBeSaved -> Mono
-					.defer(() -> { // Defer the actual save statement until the previous flux completes
-						List<Map<String, Object>> boundedEntityList = entitiesToBeSaved.stream()
-							.map(binderFunction)
-							.collect(toList());
+		return getDatabaseName().flatMapMany(databaseName ->
+			Flux.fromIterable(entities)
+				.flatMap(eventSupport::maybeCallBeforeBind)
+				.collectList()
+				.flatMapMany(
+					entitiesToBeSaved -> Mono
+						.defer(() -> { // Defer the actual save statement until the previous flux completes
+							List<Map<String, Object>> boundedEntityList = entitiesToBeSaved.stream()
+								.map(binderFunction)
+								.collect(toList());
 
-						return neo4jClient
-							.query(() -> renderer
-								.render(statementBuilder.prepareSaveOfMultipleInstancesOf(entityMetaData)))
-							.in(databaseName)
-							.bind(boundedEntityList).to(NAME_OF_ENTITY_LIST_PARAM).run();
-					})
-					.doOnNext(resultSummary -> {
-						SummaryCounters counters = resultSummary.counters();
-						log.debug(() -> String.format(
-							"Created %d and deleted %d nodes, created %d and deleted %d relationships and set %d properties.",
-							counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
-							counters.relationshipsDeleted(), counters.propertiesSet()));
-					})
-					.thenMany(Flux.fromIterable(entitiesToBeSaved))
-			);
+							return neo4jClient
+								.query(() -> renderer
+									.render(statementBuilder.prepareSaveOfMultipleInstancesOf(entityMetaData)))
+								.in(databaseName.getValue())
+								.bind(boundedEntityList).to(NAME_OF_ENTITY_LIST_PARAM).run();
+						})
+						.doOnNext(resultSummary -> {
+							SummaryCounters counters = resultSummary.counters();
+							log.debug(() -> String.format(
+								"Created %d and deleted %d nodes, created %d and deleted %d relationships and set %d properties.",
+								counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
+								counters.relationshipsDeleted(), counters.propertiesSet()));
+						})
+						.thenMany(Flux.fromIterable(entitiesToBeSaved))
+				));
 	}
 
 	@Override
@@ -268,7 +271,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Condition condition = entityMetaData.getIdExpression().in(parameter(nameOfParameter));
 
 		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, condition);
-		return this.neo4jClient.query(() -> renderer.render(statement)).in(getDatabaseName()).bind(ids).to(nameOfParameter).run().then();
+		return getDatabaseName().flatMap(databaseName ->
+			this.neo4jClient.query(() -> renderer.render(statement))
+				.in(databaseName.getValue())
+				.bind(ids).to(nameOfParameter).run().then());
 	}
 
 	@Override
@@ -281,9 +287,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter));
 
 		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, condition);
-		return this.neo4jClient.query(() -> renderer.render(statement))
-			.in(getDatabaseName())
-			.bind(id).to(nameOfParameter).run().then();
+		return getDatabaseName().flatMap(databaseName ->
+			this.neo4jClient.query(() -> renderer.render(statement))
+				.in(databaseName.getValue())
+				.bind(id).to(nameOfParameter).run().then());
 	}
 
 	@Override
@@ -291,14 +298,16 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData);
-		return this.neo4jClient.query(() -> renderer.render(statement)).in(getDatabaseName()).run().then();
+		return getDatabaseName().flatMap(databaseName ->
+			this.neo4jClient.query(() -> renderer.render(statement))
+				.in(databaseName.getValue()).run().then());
 	}
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Statement statement) {
+	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Statement statement) {
 		return createExecutableQuery(domainType, statement, Collections.emptyMap());
 	}
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Statement statement,
+	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Statement statement,
 		Map<String, Object> parameters) {
 
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType)
@@ -395,34 +404,37 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		});
 	}
 
-	private <Y> Mono<Long> saveRelatedNode(Object entity, Class<Y> entityType, NodeDescription targetNodeDescription, @Nullable String inDatabase) {
+	private <Y> Mono<Long> saveRelatedNode(Object entity, Class<Y> entityType, NodeDescription targetNodeDescription,
+		@Nullable String inDatabase) {
 		return neo4jClient.query(() -> renderer.render(statementBuilder.prepareSaveOf(targetNodeDescription)))
 			.in(inDatabase)
 			.bind((Y) entity)
 			.with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType)).fetchAs(Long.class).one();
 	}
 
-	private String getDatabaseName() {
+	private Mono<DatabaseSelection> getDatabaseName() {
 
-		return this.databaseNameProvider.getCurrentDatabaseName().orElse(null);
+		return this.databaseSelectionProvider.getDatabaseSelection().switchIfEmpty(Mono.just(undecided()));
 	}
 
 	@Override
-	public <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery) {
+	public <T> Mono<ExecutableQuery<T>> toExecutableQuery(PreparedQuery<T> preparedQuery) {
 
-		Class<T> resultType = preparedQuery.getResultType();
-		ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this
-			.neo4jClient.query(preparedQuery.getCypherQuery())
-			.in(getDatabaseName())
-			.bindAll(preparedQuery.getParameters())
-			.fetchAs(resultType);
+		return getDatabaseName().map(databaseName -> {
+			Class<T> resultType = preparedQuery.getResultType();
+			ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this
+				.neo4jClient.query(preparedQuery.getCypherQuery())
+				.in(databaseName.getValue())
+				.bindAll(preparedQuery.getParameters())
+				.fetchAs(resultType);
 
-		ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec = preparedQuery
-			.getOptionalMappingFunction()
-			.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction))
-			.orElse(mappingSpec);
+			ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec = preparedQuery
+				.getOptionalMappingFunction()
+				.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction))
+				.orElse(mappingSpec);
 
-		return new DefaultReactiveExecutableQuery<>(fetchSpec);
+			return new DefaultReactiveExecutableQuery<>(fetchSpec);
+		});
 	}
 
 	@Override

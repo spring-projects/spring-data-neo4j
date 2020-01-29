@@ -21,17 +21,19 @@ package org.neo4j.springframework.data.core.transaction;
 import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUtils.*;
 
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuples;
 
 import java.util.Collections;
 import java.util.List;
 
 import org.apiguardian.api.API;
+import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
-import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
+import org.neo4j.springframework.data.core.DatabaseSelection;
+import org.neo4j.springframework.data.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.TransactionDefinition;
@@ -59,15 +61,15 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 	/**
 	 * Database name provider.
 	 */
-	private final Neo4jDatabaseNameProvider databaseNameProvider;
+	private final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
 
 	public ReactiveNeo4jTransactionManager(Driver driver) {
-		this(driver, Neo4jDatabaseNameProvider.getDefaultDatabaseNameProvider());
+		this(driver, ReactiveDatabaseSelectionProvider.getDefaultSelectionProvider());
 	}
 
-	public ReactiveNeo4jTransactionManager(Driver driver, Neo4jDatabaseNameProvider databaseNameProvider) {
+	public ReactiveNeo4jTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 		this.driver = driver;
-		this.databaseNameProvider = databaseNameProvider;
+		this.databaseSelectionProvider = databaseSelectionProvider;
 	}
 
 	public static Mono<RxTransaction> retrieveReactiveTransaction(final Driver driver, final String targetDatabase) {
@@ -152,8 +154,6 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 			TransactionDefinition transactionDefinition) throws TransactionException {
 
 		return Mono.defer(() -> {
-			String databaseName = databaseNameProvider.getCurrentDatabaseName().orElse(null);
-
 			ReactiveNeo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
 
 			TransactionConfig transactionConfig = createTransactionConfigFrom(transactionDefinition);
@@ -162,16 +162,25 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 			transactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
 
 			List<Bookmark> bookmarks = Collections.emptyList(); // TODO Bookmarksupport;
-			RxSession session = this.driver.rxSession(sessionConfig(readOnly, bookmarks, databaseName));
+			return databaseSelectionProvider.getDatabaseSelection()
+				.switchIfEmpty(Mono.just(DatabaseSelection.undecided()))
+				.map(databaseName -> Tuples.of(databaseName, this.driver.rxSession(sessionConfig(readOnly, bookmarks, databaseName.getValue()))))
+				.flatMap(databaseNameAndSession -> Mono
+						.from(databaseNameAndSession.getT2().beginTransaction(transactionConfig))
+						.map(nativeTransaction -> Tuples.of(databaseNameAndSession.getT1(), databaseNameAndSession.getT2(), nativeTransaction))
+				)
+				.doOnNext(databaseNameSessionAndTransaction -> {
 
-			return Mono.from(session.beginTransaction(transactionConfig)).doOnNext(nativeTransaction -> {
+					String databaseName = databaseNameSessionAndTransaction.getT1().getValue();
+					RxSession session = databaseNameSessionAndTransaction.getT2();
+					RxTransaction nativeTransaction = databaseNameSessionAndTransaction.getT3();
 
-				ReactiveNeo4jTransactionHolder transactionHolder =
-					new ReactiveNeo4jTransactionHolder(databaseName, session, nativeTransaction);
-				transactionHolder.setSynchronizedWithTransaction(true);
-				transactionObject.setResourceHolder(transactionHolder);
-				transactionSynchronizationManager.bindResource(this.driver, transactionHolder);
-			});
+					ReactiveNeo4jTransactionHolder transactionHolder =
+						new ReactiveNeo4jTransactionHolder(databaseName, session, nativeTransaction);
+					transactionHolder.setSynchronizedWithTransaction(true);
+					transactionObject.setResourceHolder(transactionHolder);
+					transactionSynchronizationManager.bindResource(this.driver, transactionHolder);
+				});
 
 		}).then();
 	}

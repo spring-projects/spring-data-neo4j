@@ -27,12 +27,13 @@ import org.junit.jupiter.api.Test;
  * @author Michael J. Simons
  * @soundtrack Dr. Dre - The Chronic
  */
-class Neo4jDatabaseNameProviderTest {
+class DatabaseSelectionProviderTest {
 
 	@Test
 	void defaultProviderShallDefaultToNullDatabase() {
 
-		assertThat(Neo4jDatabaseNameProvider.getDefaultDatabaseNameProvider().getCurrentDatabaseName()).isEmpty();
+		assertThat(DatabaseSelectionProvider.getDefaultSelectionProvider().getDatabaseSelection())
+			.isEqualTo(DatabaseSelection.undecided());
 	}
 
 	@Nested
@@ -42,7 +43,7 @@ class Neo4jDatabaseNameProviderTest {
 		void databaseNameMustNotBeNull() {
 
 			assertThatIllegalArgumentException()
-				.isThrownBy(() -> Neo4jDatabaseNameProvider.createStaticDatabaseNameProvider(null))
+				.isThrownBy(() -> DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(null))
 				.withMessage("The database name must not be null.");
 		}
 
@@ -50,15 +51,16 @@ class Neo4jDatabaseNameProviderTest {
 		void databaseNameMustNotBeEmpty() {
 
 			assertThatIllegalArgumentException()
-				.isThrownBy(() -> Neo4jDatabaseNameProvider.createStaticDatabaseNameProvider(" \t"))
+				.isThrownBy(() -> DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(" \t"))
 				.withMessage("The database name must not be empty.");
 		}
 
 		@Test
 		void shouldReturnConfiguredName() {
 
-			Neo4jDatabaseNameProvider provider = Neo4jDatabaseNameProvider.createStaticDatabaseNameProvider("foobar");
-			assertThat(provider.getCurrentDatabaseName()).hasValue("foobar");
+			DatabaseSelectionProvider provider = DatabaseSelectionProvider
+				.createStaticDatabaseSelectionProvider("foobar");
+			assertThat(provider.getDatabaseSelection()).isEqualTo(DatabaseSelection.byName("foobar"));
 		}
 	}
 }

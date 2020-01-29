@@ -21,20 +21,17 @@ package org.neo4j.springframework.boot.autoconfigure.data;
 import java.util.Set;
 
 import org.neo4j.driver.Driver;
-import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.domain.EntityScanner;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.annotation.Order;
 
 /**
  * Automatic configuration of base infrastructure that imports configuration for both imperative and reactive Neo4j
@@ -53,23 +50,6 @@ public final class Neo4jDataAutoConfiguration {
 	@ConditionalOnMissingBean
 	public Neo4jConversions neo4jConversions() {
 		return new Neo4jConversions();
-	}
-
-	@Bean
-	@ConditionalOnProperty(prefix = "org.neo4j.data", name = "database")
-	@ConditionalOnMissingBean
-	@Order(-30)
-	public Neo4jDatabaseNameProvider staticDatabaseNameProvider(Neo4jDataProperties dataProperties) {
-
-		return Neo4jDatabaseNameProvider.createStaticDatabaseNameProvider(dataProperties.getDatabase());
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	@Order(-20)
-	public Neo4jDatabaseNameProvider defaultNeo4jDatabaseNameProvider() {
-
-		return Neo4jDatabaseNameProvider.getDefaultDatabaseNameProvider();
 	}
 
 	@Bean

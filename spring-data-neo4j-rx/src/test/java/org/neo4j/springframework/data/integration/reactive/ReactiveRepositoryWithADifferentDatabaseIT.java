@@ -20,14 +20,16 @@ package org.neo4j.springframework.data.integration.reactive;
 
 import static org.neo4j.springframework.data.test.Neo4jExtension.*;
 
-import java.util.Optional;
+import reactor.core.publisher.Mono;
+
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
-import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
+import org.neo4j.springframework.data.core.DatabaseSelection;
+import org.neo4j.springframework.data.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -68,8 +70,8 @@ class ReactiveRepositoryWithADifferentDatabaseIT extends ReactiveRepositoryIT {
 	static class ConfigWithDatabaseNameProviderBean extends ReactiveRepositoryIT.Config {
 
 		@Bean
-		Neo4jDatabaseNameProvider databaseNameProvider() {
-			return () -> Optional.of("aTestDatabase");
+		ReactiveDatabaseSelectionProvider databaseNameProvider() {
+			return () -> Mono.just(DatabaseSelection.byName("aTestDatabase"));
 		}
 	}
 }

@@ -469,7 +469,8 @@ That bean could use for example Spring's security context to retrieve a tenant:
 ----
 import java.util.Optional;
 
-import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
+import org.neo4j.springframework.data.core.DatabaseSelection;
+import org.neo4j.springframework.data.core.DatabaseSelectionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -489,7 +490,9 @@ public class Neo4jConfig {
 			.filter(Authentication::isAuthenticated)
 			.map(Authentication::getPrincipal)
 			.map(User.class::cast)
-			.map(User::getUsername);
+			.map(User::getUsername)
+			.map(DatabaseName::of)
+			.orElseGet(DatabaseName::defaultName);
 	}
 }
 ----

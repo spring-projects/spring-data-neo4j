@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.boot.autoconfigure.data;
 
+import org.neo4j.springframework.data.core.DatabaseSelectionProvider;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -35,7 +36,7 @@ public class Neo4jDataProperties {
 	 * or server and will lead to errors if used with a prior version of Neo4j. Leave this null (the default) to indicate
 	 * that you like the server to decide the default database to use. The database name set here will be statically used
 	 * throughout the lifetime of the application. If you need more flexibility you can declare a bean of type
-	 * {@link org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider} which can for example use Spring's Security
+	 * {@link DatabaseSelectionProvider} which can for example use Spring's Security
 	 * Context or similar to determine the current principal on which you could decide which database to use.
 	 */
 	private String database;

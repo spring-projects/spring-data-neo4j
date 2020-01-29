@@ -18,8 +18,6 @@
  */
 package org.neo4j.springframework.data.core;
 
-import java.util.Optional;
-
 import org.apiguardian.api.API;
 import org.springframework.util.Assert;
 
@@ -38,43 +36,43 @@ import org.springframework.util.Assert;
  */
 @API(status = API.Status.STABLE, since = "1.0")
 @FunctionalInterface
-public interface Neo4jDatabaseNameProvider {
+public interface DatabaseSelectionProvider {
 
 	/**
-	 * @return The optional name of the database name to interact with. Use the empty optional to indicate the default database.
+	 * @return The selected database me to interact with. Use {@link DatabaseSelection#undecided()} to indicate the default database.
 	 */
-	Optional<String> getCurrentDatabaseName();
+	DatabaseSelection getDatabaseSelection();
 
 	/**
-	 * Creates a statically configured database name provider always answering with the configured {@code databaseName}.
+	 * Creates a statically configured database selection provider always selecting the database with the given name {@code databaseName}.
 	 *
 	 * @param databaseName The database name to use, must not be null nor empty.
 	 * @return A statically configured database name provider.
 	 */
-	static Neo4jDatabaseNameProvider createStaticDatabaseNameProvider(String databaseName) {
+	static DatabaseSelectionProvider createStaticDatabaseSelectionProvider(String databaseName) {
 
 		Assert.notNull(databaseName, "The database name must not be null.");
 		Assert.hasText(databaseName, "The database name must not be empty.");
 
-		return () -> Optional.of(databaseName);
+		return () -> DatabaseSelection.byName(databaseName);
 	}
 
 	/**
-	 * A database name provider always returning the empty optional.
+	 * A database selection provider always returning the default selection.
 	 *
 	 * @return A provider for the default database name.
 	 */
-	static Neo4jDatabaseNameProvider getDefaultDatabaseNameProvider() {
+	static DatabaseSelectionProvider getDefaultSelectionProvider() {
 
-		return DefaultNeo4jDatabaseNameProvider.INSTANCE;
+		return DefaultDatabaseSelectionProvider.INSTANCE;
 	}
 }
 
-enum DefaultNeo4jDatabaseNameProvider implements Neo4jDatabaseNameProvider {
+enum DefaultDatabaseSelectionProvider implements DatabaseSelectionProvider {
 	INSTANCE;
 
 	@Override
-	public Optional<String> getCurrentDatabaseName() {
-		return Optional.empty();
+	public DatabaseSelection getDatabaseSelection() {
+		return DatabaseSelection.undecided();
 	}
 }

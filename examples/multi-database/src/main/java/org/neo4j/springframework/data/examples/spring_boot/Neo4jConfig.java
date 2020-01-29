@@ -21,7 +21,8 @@ package org.neo4j.springframework.data.examples.spring_boot;
 import java.util.Optional;
 
 import org.neo4j.driver.Driver;
-import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
+import org.neo4j.springframework.data.core.DatabaseSelection;
+import org.neo4j.springframework.data.core.DatabaseSelectionProvider;
 import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
 import org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension;
 import org.springframework.context.annotation.Bean;
@@ -39,7 +40,7 @@ import org.springframework.security.core.userdetails.User;
 public class Neo4jConfig {
 
 	/**
-	 * This bean is only active in profile {@literal "selection-by-user"}. The {@link Neo4jDatabaseNameProvider} created here
+	 * This bean is only active in profile {@literal "selection-by-user"}. The {@link DatabaseSelectionProvider} created here
 	 * uses Springs security context to retrieve the authenticated principal and extracts the username. Thus all requests
 	 * will use a different database, depending on the user being logged into the application.
 	 *
@@ -47,14 +48,16 @@ public class Neo4jConfig {
 	 */
 	@Profile("selection-by-user")
 	@Bean
-	Neo4jDatabaseNameProvider databaseNameProvider() {
+	DatabaseSelectionProvider databaseSelectionProvider() {
 
 		return () -> Optional.ofNullable(SecurityContextHolder.getContext())
 			.map(SecurityContext::getAuthentication)
 			.filter(Authentication::isAuthenticated)
 			.map(Authentication::getPrincipal)
 			.map(User.class::cast)
-			.map(User::getUsername);
+			.map(User::getUsername)
+			.map(DatabaseSelection::byName)
+			.orElseGet(DatabaseSelection::undecided);
 	}
 
 	@Profile("multiple-transaction-manager")
@@ -70,7 +73,7 @@ public class Neo4jConfig {
 		 */
 		@Bean
 		public Neo4jTransactionManager transactionManager(Driver driver,
-			Neo4jDatabaseNameProvider databaseNameProvider) {
+			DatabaseSelectionProvider databaseNameProvider) {
 
 			return new Neo4jTransactionManager(driver, databaseNameProvider);
 		}
@@ -84,7 +87,7 @@ public class Neo4jConfig {
 		@Bean
 		public Neo4jTransactionManager transactionManagerForOtherDb(Driver driver) {
 			return new Neo4jTransactionManager(driver,
-				Neo4jDatabaseNameProvider.createStaticDatabaseNameProvider("otherDb"));
+				DatabaseSelectionProvider.createStaticDatabaseSelectionProvider("otherDb"));
 		}
 	}
 }

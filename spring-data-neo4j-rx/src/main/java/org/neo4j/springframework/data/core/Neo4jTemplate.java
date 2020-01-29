@@ -83,23 +83,23 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	private Neo4jEvents eventSupport;
 
-	private final Neo4jDatabaseNameProvider databaseNameProvider;
+	private final DatabaseSelectionProvider databaseSelectionProvider;
 
 	public Neo4jTemplate(Neo4jClient neo4jClient) {
-		this(neo4jClient, new Neo4jMappingContext(), Neo4jDatabaseNameProvider.getDefaultDatabaseNameProvider());
+		this(neo4jClient, new Neo4jMappingContext(), DatabaseSelectionProvider.getDefaultSelectionProvider());
 	}
 
-	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext, Neo4jDatabaseNameProvider databaseNameProvider) {
+	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext, DatabaseSelectionProvider databaseSelectionProvider) {
 
 		Assert.notNull(neo4jClient, "The Neo4jClient is required");
 		Assert.notNull(neo4jMappingContext, "The Neo4jMappingContext is required");
-		Assert.notNull(databaseNameProvider, "The database name provider is required");
+		Assert.notNull(databaseSelectionProvider, "The database name provider is required");
 
 		this.neo4jClient = neo4jClient;
 		this.neo4jMappingContext = neo4jMappingContext;
 		this.cypherGenerator = CypherGenerator.INSTANCE;
 		this.eventSupport = new Neo4jEvents(null);
-		this.databaseNameProvider = databaseNameProvider;
+		this.databaseSelectionProvider = databaseSelectionProvider;
 	}
 
 	@Override
@@ -404,7 +404,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	private String getDatabaseName() {
 
-		return this.databaseNameProvider.getCurrentDatabaseName().orElse(null);
+		return this.databaseSelectionProvider.getDatabaseSelection().getValue();
 	}
 
 	@Override

@@ -43,7 +43,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 /**
  * This examples brings up the complete application and starts it in profile {@literal "selection-by-user"}, thus activating
- * {@link Neo4jConfig#databaseNameProvider()}.
+ * {@link Neo4jConfig#databaseSelectionProvider()}.
  * <p>The test mocks a user name {@literal "someMovieEnthusiast"}. We create a database with the same name and load our
  * movie data into it.
  *

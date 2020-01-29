@@ -43,7 +43,7 @@ import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
-import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
+import org.neo4j.springframework.data.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.r2dbc.connectionfactory.R2dbcTransactionManager;
 import org.springframework.transaction.reactive.TransactionSynchronizationManager;
 import org.springframework.transaction.reactive.TransactionalOperator;
@@ -92,8 +92,8 @@ class ReactiveNeo4jTransactionManagerTest {
 		@Test
 		void shouldUseTxFromNeo4jTxManager() {
 
-			ReactiveNeo4jTransactionManager txManager = new ReactiveNeo4jTransactionManager(driver, Neo4jDatabaseNameProvider
-				.createStaticDatabaseNameProvider(databaseName));
+			ReactiveNeo4jTransactionManager txManager = new ReactiveNeo4jTransactionManager(driver, ReactiveDatabaseSelectionProvider
+				.createStaticDatabaseSelectionProvider(databaseName));
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(txManager);
 
 			transactionalOperator
@@ -118,8 +118,8 @@ class ReactiveNeo4jTransactionManagerTest {
 		@Test
 		void shouldParticipateInOngoingTransaction() {
 
-			ReactiveNeo4jTransactionManager txManager = new ReactiveNeo4jTransactionManager(driver, Neo4jDatabaseNameProvider
-				.createStaticDatabaseNameProvider(databaseName));
+			ReactiveNeo4jTransactionManager txManager = new ReactiveNeo4jTransactionManager(driver, ReactiveDatabaseSelectionProvider
+				.createStaticDatabaseSelectionProvider(databaseName));
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(txManager);
 
 			transactionalOperator
