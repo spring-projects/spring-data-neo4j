@@ -27,7 +27,6 @@ import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.schema.Node;
-import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -127,16 +126,5 @@ abstract class Neo4jConfigurationSupport {
 		}
 
 		return initialEntitySet;
-	}
-
-	/**
-	 * Configures the database name provider.
-	 *
-	 * @return The default database name provider, defaulting to the default database on Neo4j 4.0 and on no default on Neo4j 3.5 and prior.
-	 */
-	@Bean
-	protected Neo4jDatabaseNameProvider neo4jDatabaseNameProvider() {
-
-		return Neo4jDatabaseNameProvider.getDefaultDatabaseNameProvider();
 	}
 }

@@ -41,7 +41,7 @@ import org.neo4j.springframework.data.config.AbstractNeo4jConfig;
 import org.neo4j.springframework.data.core.Neo4jClient;
 import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
-import org.neo4j.springframework.data.core.Neo4jDatabaseNameProvider;
+import org.neo4j.springframework.data.core.DatabaseSelectionProvider;
 import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -102,7 +102,8 @@ class TransactionManagerMixedDatabasesTest {
 
 	@Test
 	void usingSameDatabaseExplicitTx() {
-		Neo4jTransactionManager otherTransactionManger = new Neo4jTransactionManager(driver, Neo4jDatabaseNameProvider.createStaticDatabaseNameProvider(DATABASE_NAME));
+		Neo4jTransactionManager otherTransactionManger = new Neo4jTransactionManager(driver, DatabaseSelectionProvider
+			.createStaticDatabaseSelectionProvider(DATABASE_NAME));
 		TransactionTemplate otherTransactionTemplate = new TransactionTemplate(otherTransactionManger);
 
 		Optional<Long> numberOfNodes = otherTransactionTemplate.execute(
@@ -132,7 +133,8 @@ class TransactionManagerMixedDatabasesTest {
 	@Test
 	void usingAnotherDatabaseDeclarativeFromRepo() {
 
-		Neo4jTransactionManager otherTransactionManger = new Neo4jTransactionManager(driver, Neo4jDatabaseNameProvider.createStaticDatabaseNameProvider(DATABASE_NAME));
+		Neo4jTransactionManager otherTransactionManger = new Neo4jTransactionManager(driver, DatabaseSelectionProvider
+			.createStaticDatabaseSelectionProvider(DATABASE_NAME));
 		TransactionTemplate otherTransactionTemplate = new TransactionTemplate(otherTransactionManger);
 
 		assertThatIllegalStateException().isThrownBy(

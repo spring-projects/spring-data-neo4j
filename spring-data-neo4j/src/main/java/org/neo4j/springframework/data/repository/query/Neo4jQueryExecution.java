@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.repository.query;
 
+import reactor.core.publisher.Mono;
+
 import org.neo4j.springframework.data.core.Neo4jOperations;
 import org.neo4j.springframework.data.core.PreparedQuery;
 import org.neo4j.springframework.data.core.ReactiveNeo4jOperations;
@@ -67,11 +69,12 @@ interface Neo4jQueryExecution {
 		@Override
 		public Object execute(PreparedQuery preparedQuery, boolean asCollectionQuery) {
 
-			ReactiveNeo4jOperations.ExecutableQuery executableQuery = neo4jOperations.toExecutableQuery(preparedQuery);
+			Mono<ReactiveNeo4jOperations.ExecutableQuery> executableQuery = neo4jOperations
+				.toExecutableQuery(preparedQuery);
 			if (asCollectionQuery) {
-				return executableQuery.getResults();
+				return executableQuery.flatMapMany(q -> q.getResults());
 			} else {
-				return executableQuery.getSingleResult();
+				return executableQuery.flatMap(q -> q.getSingleResult());
 			}
 		}
 	}
