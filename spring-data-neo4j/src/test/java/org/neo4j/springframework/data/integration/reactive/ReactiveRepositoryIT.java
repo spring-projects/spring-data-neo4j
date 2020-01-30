@@ -54,15 +54,7 @@ import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Point;
 import org.neo4j.driver.types.Relationship;
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
-import org.neo4j.springframework.data.integration.shared.AnotherThingWithAssignedId;
-import org.neo4j.springframework.data.integration.shared.Club;
-import org.neo4j.springframework.data.integration.shared.Hobby;
-import org.neo4j.springframework.data.integration.shared.LikesHobbyRelationship;
-import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
-import org.neo4j.springframework.data.integration.shared.PersonWithRelationship;
-import org.neo4j.springframework.data.integration.shared.PersonWithRelationshipWithProperties;
-import org.neo4j.springframework.data.integration.shared.Pet;
-import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
+import org.neo4j.springframework.data.integration.shared.*;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
 import org.neo4j.springframework.data.test.Neo4jExtension.*;
 import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
@@ -108,6 +100,7 @@ class ReactiveRepositoryIT {
 	@Autowired private ReactivePersonWithRelationshipWithPropertiesRepository relationshipWithPropertiesRepository;
 	@Autowired private BidirectionalStartRepository bidirectionalStartRepository;
 	@Autowired private BidirectionalEndRepository bidirectionalEndRepository;
+	@Autowired private ReactiveSimilarThingRepository similarThingRepository;
 	@Autowired private Driver driver;
 	@Autowired private ReactiveTransactionManager transactionManager;
 	private long id1;
@@ -1246,6 +1239,56 @@ class ReactiveRepositoryIT {
 			// assert that only one hobby is stored
 			recordList = session.run("MATCH (h:Hobby) RETURN h").list();
 			assertThat(recordList).hasSize(1);
+		}
+	}
+
+	@Test
+	void saveEntityWithDeepSelfReferences() {
+		Pet rootPet = new Pet("Luna");
+		Pet petOfRootPet = new Pet("Daphne");
+		Pet petOfChildPet = new Pet("Mucki");
+		Pet petOfGrandChildPet = new Pet("Blacky");
+
+		rootPet.setFriends(singletonList(petOfRootPet));
+		petOfRootPet.setFriends(singletonList(petOfChildPet));
+		petOfChildPet.setFriends(singletonList(petOfGrandChildPet));
+
+		StepVerifier.create(petRepository.save(rootPet))
+			.expectNextCount(1)
+			.verifyComplete();
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Record record = session.run("MATCH (rootPet:Pet)-[:Has]->(petOfRootPet:Pet)-[:Has]->(petOfChildPet:Pet)"
+				+ "-[:Has]->(petOfGrandChildPet:Pet) "
+				+ "RETURN rootPet, petOfRootPet, petOfChildPet, petOfGrandChildPet", emptyMap()).single();
+
+			assertThat(record.get("rootPet").asNode().get("name").asString()).isEqualTo("Luna");
+			assertThat(record.get("petOfRootPet").asNode().get("name").asString()).isEqualTo("Daphne");
+			assertThat(record.get("petOfChildPet").asNode().get("name").asString()).isEqualTo("Mucki");
+			assertThat(record.get("petOfGrandChildPet").asNode().get("name").asString()).isEqualTo("Blacky");
+		}
+	}
+
+	@Test
+	void saveEntityGraphWithSelfInverseRelationshipDefined() {
+		SimilarThing originalThing = new SimilarThing().withName("Original");
+		SimilarThing similarThing = new SimilarThing().withName("Similar");
+
+
+		originalThing.setSimilar(similarThing);
+		similarThing.setSimilarOf(originalThing);
+		StepVerifier.create(similarThingRepository.save(originalThing))
+			.expectNextCount(1)
+			.verifyComplete();
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Record record = session.run(
+				"MATCH (ot:SimilarThing{name:'Original'})-[r:SimilarTo]->(st:SimilarThing {name:'Similar'})"
+					+ " RETURN r").single();
+
+			assertThat(record.keys()).isNotEmpty();
+			assertThat(record.containsKey("r")).isTrue();
+			assertThat(record.get("r").asRelationship().type()).isEqualToIgnoringCase("SimilarTo");
 		}
 	}
 
