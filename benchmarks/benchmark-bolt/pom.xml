@@ -18,7 +18,7 @@
 		<java.version>11</java.version>
 		<jmh.version>1.21</jmh.version>
 		<testcontainers.version>1.10.7</testcontainers.version>
-		<neo4j-java-driver-spring-boot-starter.version>4.0.0</neo4j-java-driver-spring-boot-starter.version>
+		<neo4j-java-driver-spring-boot-starter.version>4.0.0.1</neo4j-java-driver-spring-boot-starter.version>
 	</properties>
 
 	<dependencies>

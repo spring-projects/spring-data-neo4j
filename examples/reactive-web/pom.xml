@@ -185,7 +185,7 @@
 				</property>
 			</activation>
 			<properties>
-				<changelist>-SNAPSHOT</changelist>
+				<changelist>-beta03</changelist>
 			</properties>
 		</profile>
 	</profiles>
