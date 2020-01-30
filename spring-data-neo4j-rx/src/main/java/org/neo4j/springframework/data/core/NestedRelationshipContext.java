@@ -20,7 +20,6 @@ package org.neo4j.springframework.data.core;
 
 import java.util.Map;
 
-import org.jetbrains.annotations.NotNull;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
@@ -57,7 +56,6 @@ final class NestedRelationshipContext {
 		return inverse;
 	}
 
-	@NotNull
 	Object getValue() {
 		return value;
 	}

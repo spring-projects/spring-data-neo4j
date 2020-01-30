@@ -28,9 +28,11 @@ import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.apache.commons.logging.LogFactory;
@@ -47,6 +49,7 @@ import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
 import org.neo4j.springframework.data.core.schema.CypherGenerator;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
+import org.neo4j.springframework.data.core.schema.RelationshipDescription;
 import org.neo4j.springframework.data.core.support.Relationships;
 import org.neo4j.springframework.data.repository.NoResultException;
 import org.neo4j.springframework.data.repository.event.BeforeBindCallback;
@@ -193,11 +196,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 
 		if (!entityMetaData.isUsingInternalIds()) {
-			processNestedAssociations(entityMetaData, entityToBeSaved, inDatabase);
+			processAssociations(entityMetaData, entityToBeSaved, inDatabase);
 			return entityToBeSaved;
 		} else {
 			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
-			processNestedAssociations(entityMetaData, entityToBeSaved, inDatabase);
+			processAssociations(entityMetaData, entityToBeSaved, inDatabase);
 
 			return propertyAccessor.getBean();
 		}
@@ -246,7 +249,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		// Save related
 		entitiesToBeSaved.forEach(entityToBeSaved -> {
-			processNestedAssociations(entityMetaData, entityToBeSaved, databaseName);
+			processAssociations(entityMetaData, entityToBeSaved, databaseName);
 		});
 
 		SummaryCounters counters = resultSummary.counters();
@@ -324,7 +327,13 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		return toExecutableQuery(preparedQuery);
 	}
 
-	private void processNestedAssociations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject, @Nullable String inDatabase) {
+	private void processAssociations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject,
+		@Nullable String inDatabase) {
+		processNestedAssociations(neo4jPersistentEntity, parentObject, inDatabase, new HashSet<>());
+	}
+
+	private void processNestedAssociations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject,
+		@Nullable String inDatabase, Set<RelationshipDescription> processedRelationshipDescriptions) {
 
 		PersistentPropertyAccessor<?> propertyAccessor = neo4jPersistentEntity.getPropertyAccessor(parentObject);
 
@@ -333,6 +342,12 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			// create context to bundle parameters
 			NestedRelationshipContext relationshipContext = NestedRelationshipContext
 				.of(handler, propertyAccessor, neo4jPersistentEntity);
+
+			// break recursive procession and deletion of previously created relationships
+			RelationshipDescription relationshipObverse = relationshipContext.getRelationship().getRelationshipObverse();
+			if (hasProcessed(processedRelationshipDescriptions, relationshipObverse)) {
+				return;
+			}
 
 			Neo4jPersistentEntity<?> targetNodeDescription = neo4jMappingContext
 				.getPersistentEntity(relationshipContext.getAssociationTargetType());
@@ -349,10 +364,12 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					.bind(fromId).to(FROM_ID_PARAMETER_NAME).run();
 			}
 
-			// break recursive
+			// nothing to do because there is nothing to map
 			if (relationshipContext.inverseValueIsEmpty()) {
 				return;
 			}
+
+			processedRelationshipDescriptions.add(relationshipContext.getRelationship());
 
 			for (Object relatedValue : Relationships
 				.unifyRelationshipValue(relationshipContext.getInverse(), relationshipContext.getValue())) {
@@ -390,9 +407,18 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					targetPropertyAccessor
 						.setProperty(targetNodeDescription.getRequiredIdProperty(), relatedInternalId);
 				}
-				processNestedAssociations(targetNodeDescription, valueToBeSaved, inDatabase);
+				processNestedAssociations(targetNodeDescription, valueToBeSaved, inDatabase, processedRelationshipDescriptions);
 			}
 		});
+	}
+
+	private boolean hasProcessed(Set<RelationshipDescription> processedRelationshipDescriptions,
+		RelationshipDescription relationshipDescription) {
+
+		if (relationshipDescription != null) {
+			return processedRelationshipDescriptions.contains(relationshipDescription);
+		}
+		return false;
 	}
 
 	private <Y> Long saveRelatedNode(Object entity, Class<Y> entityType, NodeDescription targetNodeDescription, @Nullable String inDatabase) {
