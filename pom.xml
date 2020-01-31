@@ -41,7 +41,7 @@
 
 		<project.type>multi</project.type>
 
-		<checkstyle.version>8.18</checkstyle.version>
+		<checkstyle.version>8.29</checkstyle.version>
 		<nohttp.version>0.0.3.RELEASE</nohttp.version>
 		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
 		<neo4j.ogm.version>3.2.5</neo4j.ogm.version>
