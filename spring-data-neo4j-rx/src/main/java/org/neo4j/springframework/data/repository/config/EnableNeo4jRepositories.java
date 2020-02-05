@@ -27,11 +27,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.neo4j.springframework.data.repository.support.Neo4jRepositoryFactoryBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.AliasFor;
-import org.neo4j.springframework.data.repository.support.Neo4jRepositoryFactoryBean;
+import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
 
 /**
  * Annotation to activate Neo4j repositories. If no base package is configured through either {@link #value()},
@@ -75,6 +76,13 @@ public @interface EnableNeo4jRepositories {
 	 * {@link Neo4jRepositoryFactoryBean}.
 	 */
 	Class<?> repositoryFactoryBeanClass() default Neo4jRepositoryFactoryBean.class;
+
+	/**
+	 * Configure the repository base class to be used to create repository proxies for this particular configuration.
+	 *
+	 * @return The base class to be used when creating repository proxies.
+	 */
+	Class<?> repositoryBaseClass() default DefaultRepositoryBaseClass.class;
 
 	/**
 	 * Configures the name of the {@link org.neo4j.springframework.data.core.mapping.Neo4jMappingContext} bean to be used with the repositories detected.

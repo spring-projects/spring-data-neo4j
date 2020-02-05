@@ -32,6 +32,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.AliasFor;
 import org.neo4j.springframework.data.repository.support.ReactiveNeo4jRepositoryFactoryBean;
+import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
 
 /**
  * Annotation to activate reactive Neo4j repositories. If no base package is configured through either {@link #value()},
@@ -76,6 +77,13 @@ public @interface EnableReactiveNeo4jRepositories {
 	 * {@link ReactiveNeo4jRepositoryFactoryBean}.
 	 */
 	Class<?> repositoryFactoryBeanClass() default ReactiveNeo4jRepositoryFactoryBean.class;
+
+	/**
+	 * Configure the repository base class to be used to create repository proxies for this particular configuration.
+	 *
+	 * @return The base class to be used when creating repository proxies.
+	 */
+	Class<?> repositoryBaseClass() default DefaultRepositoryBaseClass.class;
 
 	/**
 	 * Configures the name of the {@link org.neo4j.springframework.data.core.mapping.Neo4jMappingContext} bean to be used with the repositories detected.
