@@ -78,6 +78,7 @@
 		<module>examples/imperative-web</module>
 		<module>examples/mapping</module>
 		<module>examples/multi-database</module>
+		<module>examples/rest</module>
 	</modules>
 
 	<properties>

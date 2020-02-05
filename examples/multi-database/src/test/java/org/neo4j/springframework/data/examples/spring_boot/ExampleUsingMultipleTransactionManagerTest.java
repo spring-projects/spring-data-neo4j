@@ -78,7 +78,7 @@ class ExampleUsingMultipleTransactionManagerTest {
 		@Autowired Neo4jClient client,
 		@Autowired @Qualifier("transactionManagerForOtherDb") PlatformTransactionManager transactionManagerForOtherDb
 	) {
-		PersonEntity personEntity = new PersonEntity(1929L, "Carlo Pedersoli");
+		PersonEntity personEntity = new PersonEntity(1929, "Carlo Pedersoli");
 		repositoryUnderTest.save(personEntity).getName();
 
 		// Verify with the client, for reasoning have a look at ExampleUsingStaticDatabaseNameTest

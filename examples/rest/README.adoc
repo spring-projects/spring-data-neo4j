@@ -1,4 +1,4 @@
-== Spring Boot / Imperative Web Example
+== Spring Data REST Example
 
 === Building SDN/RX and Examples.
 
@@ -15,25 +15,25 @@ cd sdn-rx
 ----
 
 If you want to only try out the examples with the currently released version,
-pick out the example you like (for example the `imperative-web` example) and build it like this:
+pick out the example you like (for example the `rest` example) and build it like this:
 
 [source,bash]
 ----
 git clone git@github.com:neo4j/sdn-rx
-cd sdn-rx/examples/imperative-web
+cd sdn-rx/examples/rest
 mvn -DskipTests clean package
 cd ../..
 ----
 
 === Running the examples.
 
-You'll need a Neo4j 4 instance that has a user name `neo4j` with a password of `secret`.
+You'll need a Neo4j instance and has a user name `neo4j` with a password of `secret`.
 Please use `:play movies` in Neo4j browser to get some data in your graph.
 With from SDN/RX root folder run
 
 [source,bash]
 ----
-java -jar examples/imperative-web/target/movie-api.jar
+java -jar target/movie-rest.jar
 ----
 
 If your database has different credentials or is on a different host, run
@@ -49,33 +49,37 @@ java -jar examples/reactive-web/target/movie-api.jar \
 with parameters fitting to your needs.
 
 Here are some _curl_ commands, you can try out.
-The same examples are also available in the file `movie-api-examples.http` that you can call from IDEA.
+The same examples are also available in the file `movie-rest-examples.http` that you can call from IDEA.
 
 [source,bash]
-.Create a new movie
+.Get a overview of all exposed REST endpoints
 ----
-curl -X "PUT" "http://localhost:8080/movies" \
-     -H 'Content-Type: application/json; charset=utf-8' \
-     -d $'{
-  "title": "Aeon Flux",
-  "description": "Reactive is the new cool"
-}'
+curl http://localhost:8080/
 ----
 
 [source,bash]
-.List all movies.
+.Get all movies
 ----
 curl http://localhost:8080/movies
 ----
 
 [source,bash]
-.Query a movie by title.
+.Get all movies with a simple projection
 ----
-curl http://localhost:8080/movies/by-title\?title\=Aeon%20Flux
+curl http://localhost:8080/movies?projection=movie-overview
 ----
 
 [source,bash]
-.Delete a movie by id (use the one returned above for example)
+.Get all movies with a nested projection
 ----
-curl -X DELETE http://localhost:8080/movies/847
+curl http://localhost:8080/movies?projection=movie-details
 ----
+
+[source,bash]
+.Find a movie by title / derived query method
+----
+curl http://localhost:8080/movies/search/findOneByTitle?title=The Matrix
+----
+
+If you want to learn more about Spring Data REST,
+make sure to read https://docs.spring.io/spring-data/rest/docs/current/reference/html/#reference[its reference documentation].

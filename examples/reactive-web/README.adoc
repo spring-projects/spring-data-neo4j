@@ -2,7 +2,7 @@
 
 === Building SDN/RX and Examples.
 
-NOTE: *You need to have JDK 12 installed.
+NOTE: You need to have JDK 11 installed.
 
 You can either built the complete project, including the examples.
 Thus, the examples will use your copy of SDN/RX, and any potential changes you made:

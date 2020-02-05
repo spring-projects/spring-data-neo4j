@@ -30,14 +30,14 @@ public class PersonEntity {
 	@Id
 	private final String name;
 
-	private final Long born;
+	private final Integer born;
 
-	public PersonEntity(Long born, String name) {
+	public PersonEntity(Integer born, String name) {
 		this.born = born;
 		this.name = name;
 	}
 
-	public Long getBorn() {
+	public Integer getBorn() {
 		return born;
 	}
 

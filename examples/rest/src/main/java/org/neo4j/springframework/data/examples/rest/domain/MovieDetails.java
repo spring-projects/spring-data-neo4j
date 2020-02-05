@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 "Neo4j,"
+ * Copyright (c) 2019 "Neo4j,"
  * Neo4j Sweden AB [https://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -16,33 +16,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.springframework.data.examples.spring_boot.domain;
+package org.neo4j.springframework.data.examples.rest.domain;
 
-import org.neo4j.springframework.data.core.schema.Id;
-import org.neo4j.springframework.data.core.schema.Node;
+import java.util.Set;
+
+import org.springframework.data.rest.core.config.Projection;
 
 /**
  * @author Gerrit Meier
  */
-@Node("Person")
-public class PersonEntity {
+@Projection(name = "movie-details", types = MovieEntity.class)
+public interface MovieDetails {
 
-	@Id
-	private final String name;
+	String getTitle();
+	String getDescription();
 
-	private final Integer born;
+	// Use embedded projection
+	Set<PersonDetails> getActors();
+	Set<PersonDetails> getDirectors();
 
-	public PersonEntity(Integer born, String name) {
-		this.born = born;
-		this.name = name;
-	}
-
-	public Integer getBorn() {
-		return born;
-	}
-
-	public String getName() {
-		return name;
+	interface PersonDetails {
+		String getName();
 	}
 
 }

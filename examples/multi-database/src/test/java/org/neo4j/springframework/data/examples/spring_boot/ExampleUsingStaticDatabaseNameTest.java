@@ -60,7 +60,7 @@ class ExampleUsingStaticDatabaseNameTest {
 	@Test
 	void storeNewPersonShouldUseTheCorrectDatabase(@Autowired Neo4jClient client) {
 
-		PersonEntity personEntity = new PersonEntity(1929L, "Carlo Pedersoli");
+		PersonEntity personEntity = new PersonEntity(1929, "Carlo Pedersoli");
 		repositoryUnderTest.save(personEntity).getName();
 
 		// It is easier to test using the Neo4j client, as that one participates in the Spring managed transaction

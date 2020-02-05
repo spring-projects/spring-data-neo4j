@@ -16,33 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.springframework.data.examples.spring_boot.domain;
+package org.neo4j.springframework.data.examples.rest.domain;
 
-import org.neo4j.springframework.data.core.schema.Id;
-import org.neo4j.springframework.data.core.schema.Node;
+import java.util.Optional;
+
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 /**
- * @author Gerrit Meier
+ * @author Michael J. Simons
  */
-@Node("Person")
-public class PersonEntity {
+@RepositoryRestResource(path = "movies")
+public interface MovieRepository extends CrudRepository<MovieEntity, String> {
 
-	@Id
-	private final String name;
-
-	private final Integer born;
-
-	public PersonEntity(Integer born, String name) {
-		this.born = born;
-		this.name = name;
-	}
-
-	public Integer getBorn() {
-		return born;
-	}
-
-	public String getName() {
-		return name;
-	}
-
+	Optional<MovieEntity> findOneByTitle(String title);
 }

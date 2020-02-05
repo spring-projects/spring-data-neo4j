@@ -1,0 +1,31 @@
+### Get a overview of all exposed REST endpoints
+GET http://localhost:8080/
+Cache-Control: no-cache
+
+### Get all movies
+GET http://localhost:8080/movies
+Cache-Control: no-cache
+
+### Get all movies with a simple projection
+GET http://localhost:8080/movies?projection=movie-overview
+Cache-Control: no-cache
+
+### Get all movies with a nested projection
+GET http://localhost:8080/movies?projection=movie-details
+Cache-Control: no-cache
+
+### Find a movie by title / derived query method
+GET http://localhost:8080/movies/search/findOneByTitle?title=The Matrix
+Cache-Control: no-cache
+
+### Create a movie
+POST http://localhost:8080/movies
+Content-Type: application/json
+
+{
+	"title": "Some Movie",
+	"description": "For the REST of us"
+}
+
+### Delete a movie
+DELETE http://localhost:8080/movies/Some Movie
