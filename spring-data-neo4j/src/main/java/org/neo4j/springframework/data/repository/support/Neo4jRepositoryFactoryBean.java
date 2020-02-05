@@ -60,6 +60,7 @@ public final class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID
 	}
 
 	public void setNeo4jMappingContext(Neo4jMappingContext neo4jMappingContext) {
+		super.setMappingContext(neo4jMappingContext);
 		this.neo4jMappingContext = neo4jMappingContext;
 	}
 
