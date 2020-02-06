@@ -348,6 +348,7 @@ class ReactiveNeo4jClientTest {
 
 			when(transaction.run(anyString(), anyMap())).thenReturn(result);
 			when(transaction.commit()).thenReturn(Mono.empty());
+			when(result.records()).thenReturn(Flux.empty());
 			when(result.consume()).thenReturn(Mono.just(resultSummary));
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
@@ -420,6 +421,7 @@ class ReactiveNeo4jClientTest {
 
 		when(transaction.run(anyString(), anyMap())).thenReturn(result);
 		when(transaction.commit()).thenReturn(Mono.empty());
+		when(result.records()).thenReturn(Flux.empty());
 		when(result.consume()).thenReturn(Mono.just(resultSummary));
 
 		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);

@@ -33,8 +33,9 @@ import java.util.function.Supplier;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
-import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxQueryRunner;
+import org.neo4j.driver.reactive.RxResult;
+import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.Neo4jClient.*;
@@ -268,7 +269,11 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 			return doInQueryRunnerForMono(
 				targetDatabase,
-				runner -> prepareStatement().flatMap(t -> Mono.from(runner.run(t.getT1(), t.getT2()).consume())));
+				runner -> prepareStatement().flatMap(t -> {
+					RxResult rxResult = runner.run(t.getT1(), t.getT2());
+					return Flux.from(rxResult.records()).then(Mono.from(rxResult.consume()));
+				})
+			);
 		}
 	}
 
