@@ -60,6 +60,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
@@ -77,6 +78,8 @@ import org.springframework.util.CollectionUtils;
 public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, BeanFactoryAware {
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(ReactiveNeo4jTemplate.class));
+
+	private static final String OPTIMISTIC_LOCKING_ERROR_MESSAGE = "An entity with the required version does not exist.";
 
 	private static final Renderer renderer = Renderer.getDefaultRenderer();
 
@@ -195,7 +198,14 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 						.in(inDatabase)
 						.bind((T) entity)
 						.with(neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entity.getClass()))
-						.fetchAs(Long.class).one();
+						.fetchAs(Long.class).one()
+						.switchIfEmpty(Mono.defer(() -> {
+							if (entityMetaData.hasVersionProperty()) {
+								return Mono.error(() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE));
+							}
+							return Mono.empty();
+						}));
+
 
 				if (!entityMetaData.isUsingInternalIds()) {
 					return idMono.then(processAssociations(entityMetaData, entity, inDatabase))
@@ -230,7 +240,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Class<T> domainClass = (Class<T>) CollectionUtils.findCommonElementType(entities);
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainClass);
 
-		if (entityMetaData.isUsingInternalIds()) {
+		if (entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()) {
 			log.debug("Saving entities using single statements.");
 
 			return getDatabaseName().flatMapMany(databaseName ->
@@ -434,10 +444,17 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 	private <Y> Mono<Long> saveRelatedNode(Object entity, Class<Y> entityType, NodeDescription targetNodeDescription,
 		@Nullable String inDatabase) {
+
 		return neo4jClient.query(() -> renderer.render(statementBuilder.prepareSaveOf(targetNodeDescription)))
 			.in(inDatabase)
 			.bind((Y) entity)
-			.with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType)).fetchAs(Long.class).one();
+			.with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType)).fetchAs(Long.class).one()
+			.switchIfEmpty(Mono.defer(() -> {
+			if (((Neo4jPersistentEntity) targetNodeDescription).hasVersionProperty()) {
+				return Mono.error(() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE));
+			}
+			return Mono.empty();
+		}));
 	}
 
 	private Mono<DatabaseSelection> getDatabaseName() {

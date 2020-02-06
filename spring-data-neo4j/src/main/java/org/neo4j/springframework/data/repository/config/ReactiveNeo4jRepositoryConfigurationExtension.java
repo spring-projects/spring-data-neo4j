@@ -26,6 +26,7 @@ import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.repository.Neo4jRepository;
 import org.neo4j.springframework.data.repository.event.ReactiveIdGeneratingBeforeBindCallback;
+import org.neo4j.springframework.data.repository.event.ReactiveOptimisticLockingBeforeBindCallback;
 import org.neo4j.springframework.data.repository.support.ReactiveNeo4jRepositoryFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -123,10 +124,17 @@ public final class ReactiveNeo4jRepositoryConfigurationExtension extends Reposit
 	public void registerBeansForRoot(BeanDefinitionRegistry registry,
 		RepositoryConfigurationSource configurationSource) {
 
-		RootBeanDefinition rootBeanDefinition = new RootBeanDefinition(ReactiveIdGeneratingBeforeBindCallback.class);
-		rootBeanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		RootBeanDefinition idGenerationBeanDefinition = new RootBeanDefinition(ReactiveIdGeneratingBeforeBindCallback.class);
+		idGenerationBeanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
-		String beanName = BeanDefinitionReaderUtils.generateBeanName(rootBeanDefinition, registry);
-		registry.registerBeanDefinition(beanName, rootBeanDefinition);
+		String idGenerationBeanName = BeanDefinitionReaderUtils.generateBeanName(idGenerationBeanDefinition, registry);
+		registry.registerBeanDefinition(idGenerationBeanName, idGenerationBeanDefinition);
+
+		RootBeanDefinition optimisticLockingBeanDefinition = new RootBeanDefinition(
+			ReactiveOptimisticLockingBeforeBindCallback.class);
+		optimisticLockingBeanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+
+		String optimisticLockingBeanName = BeanDefinitionReaderUtils.generateBeanName(optimisticLockingBeanDefinition, registry);
+		registry.registerBeanDefinition(optimisticLockingBeanName, optimisticLockingBeanDefinition);
 	}
 }

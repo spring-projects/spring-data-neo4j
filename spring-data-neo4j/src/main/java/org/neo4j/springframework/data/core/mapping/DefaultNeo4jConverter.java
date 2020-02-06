@@ -190,6 +190,13 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		if (nodeDescription.hasIdProperty()) {
 			parameters.put(NAME_OF_ID_PARAM, propertyAccessor.getProperty(nodeDescription.getRequiredIdProperty()));
 		}
+		// in case of relationship properties ignore internal id property
+		if (nodeDescription.hasVersionProperty()) {
+			Long versionProperty = (Long) propertyAccessor.getProperty(nodeDescription.getRequiredVersionProperty());
+
+			// we incremented this upfront the persist operation so the matching version would be one "before"
+			parameters.put(NAME_OF_VERSION_PARAM, versionProperty - 1);
+		}
 	}
 
 	@Override

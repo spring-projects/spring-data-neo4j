@@ -40,6 +40,7 @@ public interface NodeDescription<T> {
 	String NAME_OF_INTERNAL_ID = "__internalNeo4jId__";
 	String NAME_OF_IDS_RESULT = "__ids__";
 	String NAME_OF_ID_PARAM = "__id__";
+	String NAME_OF_VERSION_PARAM = "__version__";
 	String NAME_OF_PROPERTIES_PARAM = "__properties__";
 	String NAME_OF_ENTITY_LIST_PARAM = "__entities__";
 

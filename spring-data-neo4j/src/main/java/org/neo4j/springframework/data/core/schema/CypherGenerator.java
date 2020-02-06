@@ -36,6 +36,7 @@ import org.neo4j.springframework.data.core.cypher.Node;
 import org.neo4j.springframework.data.core.cypher.Relationship;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.mapping.MappingException;
+import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -125,28 +126,79 @@ public enum CypherGenerator {
 			String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
 				.orElseThrow(() -> new MappingException("External id does not correspond to a graph property!"));
 
-			return Cypher.merge(rootNode.properties(nameOfIdProperty, idParameter))
-				.set(rootNode, parameter(NAME_OF_PROPERTIES_PARAM))
-				.returning(rootNode.internalId())
-				.build();
+			if (((Neo4jPersistentEntity) nodeDescription).hasVersionProperty()) {
+
+				PersistentProperty versionProperty = ((Neo4jPersistentEntity) nodeDescription)
+					.getRequiredVersionProperty();
+				String nameOfPossibleExistingNode = "hlp";
+				Node possibleExistingNode = node(primaryLabel).named(nameOfPossibleExistingNode);
+
+				Statement createIfNew = optionalMatch(possibleExistingNode)
+					.where(possibleExistingNode.property(nameOfIdProperty).isEqualTo(idParameter))
+					.with(possibleExistingNode).where(possibleExistingNode.isNull())
+					.create(rootNode)
+					.set(rootNode, parameter(NAME_OF_PROPERTIES_PARAM))
+					.returning(rootNode.internalId())
+					.build();
+
+				Statement updateIfExists = Cypher
+					.match(rootNode)
+					.where(rootNode.property(nameOfIdProperty).isEqualTo(idParameter))
+					.and(rootNode.property(versionProperty.getName()).isEqualTo(parameter(NAME_OF_VERSION_PARAM)))
+					.set(rootNode, parameter(NAME_OF_PROPERTIES_PARAM))
+					.returning(rootNode.internalId())
+					.build();
+				return Cypher.union(createIfNew, updateIfExists);
+
+			} else {
+				return Cypher.merge(rootNode.properties(nameOfIdProperty, idParameter))
+					.set(rootNode, parameter(NAME_OF_PROPERTIES_PARAM))
+					.returning(rootNode.internalId())
+					.build();
+			}
 		} else {
 			String nameOfPossibleExistingNode = "hlp";
 			Node possibleExistingNode = node(primaryLabel).named(nameOfPossibleExistingNode);
 
-			Statement createIfNew = optionalMatch(possibleExistingNode)
-				.where(possibleExistingNode.internalId().isEqualTo(idParameter))
-				.with(possibleExistingNode).where(possibleExistingNode.isNull())
-				.create(rootNode)
-				.set(rootNode, parameter(NAME_OF_PROPERTIES_PARAM))
-				.returning(rootNode.internalId())
-				.build();
+			Statement createIfNew = null;
+			Statement updateIfExists = null;
 
-			Statement updateIfExists = Cypher
-				.match(rootNode)
-				.where(rootNode.internalId().isEqualTo(idParameter))
-				.set(rootNode, parameter(NAME_OF_PROPERTIES_PARAM))
-				.returning(rootNode.internalId())
-				.build();
+			if (((Neo4jPersistentEntity) nodeDescription).hasVersionProperty()) {
+
+				PersistentProperty versionProperty = ((Neo4jPersistentEntity) nodeDescription)
+					.getRequiredVersionProperty();
+
+				createIfNew = optionalMatch(possibleExistingNode)
+					.where(possibleExistingNode.internalId().isEqualTo(idParameter))
+					.with(possibleExistingNode).where(possibleExistingNode.isNull())
+					.create(rootNode)
+					.set(rootNode, parameter(NAME_OF_PROPERTIES_PARAM))
+					.returning(rootNode.internalId())
+					.build();
+
+				updateIfExists = Cypher
+					.match(rootNode)
+					.where(rootNode.internalId().isEqualTo(idParameter))
+					.and(rootNode.property(versionProperty.getName()).isEqualTo(parameter(NAME_OF_VERSION_PARAM)))
+					.set(rootNode, parameter(NAME_OF_PROPERTIES_PARAM))
+					.returning(rootNode.internalId())
+					.build();
+			} else {
+				createIfNew = optionalMatch(possibleExistingNode)
+					.where(possibleExistingNode.internalId().isEqualTo(idParameter))
+					.with(possibleExistingNode).where(possibleExistingNode.isNull())
+					.create(rootNode)
+					.set(rootNode, parameter(NAME_OF_PROPERTIES_PARAM))
+					.returning(rootNode.internalId())
+					.build();
+
+				updateIfExists = Cypher
+					.match(rootNode)
+					.where(rootNode.internalId().isEqualTo(idParameter))
+					.set(rootNode, parameter(NAME_OF_PROPERTIES_PARAM))
+					.returning(rootNode.internalId())
+					.build();
+			}
 
 			return Cypher.union(createIfNew, updateIfExists);
 		}
