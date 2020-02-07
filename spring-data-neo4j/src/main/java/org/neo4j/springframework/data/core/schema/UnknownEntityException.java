@@ -19,6 +19,7 @@
 package org.neo4j.springframework.data.core.schema;
 
 import org.apiguardian.api.API;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
  * Thrown when required information about a class or primary label is requested from the {@link Schema} and those information
@@ -28,7 +29,7 @@ import org.apiguardian.api.API;
  * @since 1.0
  */
 @API(status = API.Status.STABLE, since = "1.0")
-public final class UnknownEntityException extends IllegalStateException {
+public final class UnknownEntityException extends InvalidDataAccessApiUsageException {
 
 	private final Class<?> targetClass;
 
