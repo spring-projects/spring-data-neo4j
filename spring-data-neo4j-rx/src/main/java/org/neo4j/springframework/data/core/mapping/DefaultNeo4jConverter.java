@@ -143,14 +143,12 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 	@Nullable
 	public Object readValueForProperty(@Nullable Value value, TypeInformation<?> type) {
 
-		if (value == null || value == Values.NULL) {
-			return null;
-		}
+		boolean valueIsLiteralNullOrNullValue = value == null || value == Values.NULL;
 
 		try {
 			Class<?> rawType = type.getType();
 
-			if (isCollection(type)) {
+			if (!valueIsLiteralNullOrNullValue && isCollection(type)) {
 				Collection<Object> target = CollectionFactory.createCollection(rawType,
 					type.getComponentType().getType(), value.size());
 				value.values().forEach(
@@ -158,7 +156,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 				return target;
 			}
 
-			return conversionService.convert(value, rawType);
+			return conversionService.convert(valueIsLiteralNullOrNullValue ? null : value, rawType);
 		} catch (Exception e) {
 			String msg = String.format("Could not convert %s into %s", value, type.toString());
 			throw new TypeMismatchDataAccessException(msg, e);
