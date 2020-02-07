@@ -44,9 +44,12 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
+import org.neo4j.springframework.data.repository.support.Neo4jPersistenceExceptionTranslator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -63,6 +66,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 	private final Driver driver;
 	private final TypeSystem typeSystem;
 	private final ConversionService conversionService;
+	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
 	DefaultNeo4jClient(Driver driver) {
 
@@ -175,6 +179,20 @@ class DefaultNeo4jClient implements Neo4jClient {
 		}
 	}
 
+	/**
+	 * Tries to convert the given {@link RuntimeException} into a {@link DataAccessException} but returns the original
+	 * exception if the conversation failed. Thus allows safe re-throwing of the return value.
+	 *
+	 * @param ex the exception to translate
+	 * @param exceptionTranslator the {@link PersistenceExceptionTranslator} to be used for translation
+	 * @return
+	 */
+	private static RuntimeException potentiallyConvertRuntimeException(RuntimeException ex,
+		PersistenceExceptionTranslator exceptionTranslator) {
+		RuntimeException resolved = exceptionTranslator.translateExceptionIfPossible(ex);
+		return resolved == null ? ex : resolved;
+	}
+
 	class DefaultRunnableSpec implements RunnableSpec {
 
 		private RunnableStatement runnableStatement;
@@ -249,6 +267,8 @@ class DefaultNeo4jClient implements Neo4jClient {
 			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
 				Result result = runnableStatement.runWith(statementRunner);
 				return result.consume();
+			} catch (RuntimeException e) {
+				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
 			}
 		}
 	}
@@ -284,6 +304,8 @@ class DefaultNeo4jClient implements Neo4jClient {
 				return result.hasNext() ?
 					Optional.of(mappingFunction.apply(typeSystem, result.single())) :
 					Optional.empty();
+			} catch (RuntimeException e) {
+				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
 			}
 		}
 
@@ -293,6 +315,8 @@ class DefaultNeo4jClient implements Neo4jClient {
 			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
 				Result result = runnableStatement.runWith(statementRunner);
 				return result.stream().map(partialMappingFunction(typeSystem)).findFirst();
+			} catch (RuntimeException e) {
+				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
 			}
 		}
 
@@ -302,6 +326,8 @@ class DefaultNeo4jClient implements Neo4jClient {
 			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
 				Result result = runnableStatement.runWith(statementRunner);
 				return result.stream().map(partialMappingFunction(typeSystem)).collect(toList());
+			} catch (RuntimeException e) {
+				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
 			}
 		}
 

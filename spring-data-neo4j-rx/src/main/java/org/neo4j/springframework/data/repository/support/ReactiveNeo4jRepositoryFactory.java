@@ -27,6 +27,9 @@ import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 import org.neo4j.springframework.data.repository.query.ReactiveNeo4jQueryLookupStrategy;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryComposition.RepositoryFragments;
@@ -94,8 +97,23 @@ final class ReactiveNeo4jRepositoryFactory extends RepositoryFactorySupport {
 	 */
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
-			QueryMethodEvaluationContextProvider evaluationContextProvider) {
+		QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
-		return Optional.of(new ReactiveNeo4jQueryLookupStrategy(neo4jOperations, mappingContext, evaluationContextProvider));
+		return Optional
+			.of(new ReactiveNeo4jQueryLookupStrategy(neo4jOperations, mappingContext, evaluationContextProvider));
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+
+		super.setBeanFactory(beanFactory);
+
+		if (beanFactory instanceof ListableBeanFactory) {
+			addRepositoryProxyPostProcessor((factory, repositoryInformation) -> {
+				ReactivePersistenceExceptionTranslationInterceptor advice
+					= new ReactivePersistenceExceptionTranslationInterceptor((ListableBeanFactory) beanFactory);
+				factory.addAdvice(advice);
+			});
+		}
 	}
 }

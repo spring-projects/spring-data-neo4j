@@ -40,10 +40,12 @@ import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.Neo4jClient.*;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
+import org.neo4j.springframework.data.repository.support.Neo4jPersistenceExceptionTranslator;
 import org.reactivestreams.Publisher;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.dao.DataAccessException;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -60,6 +62,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 	private final Driver driver;
 	private final TypeSystem typeSystem;
 	private final ConversionService conversionService;
+	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
 	DefaultReactiveNeo4jClient(Driver driver) {
 
@@ -245,7 +248,8 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 			return doInQueryRunnerForMono(
 				targetDatabase,
-				(runner) -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).singleOrEmpty());
+				(runner) -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).singleOrEmpty()
+			).onErrorMap(RuntimeException.class, DefaultReactiveNeo4jClient.this::potentiallyConvertRuntimeException);
 		}
 
 		@Override
@@ -253,7 +257,8 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 			return doInQueryRunnerForMono(
 				targetDatabase,
-				runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).next());
+				runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).next()
+			).onErrorMap(RuntimeException.class, DefaultReactiveNeo4jClient.this::potentiallyConvertRuntimeException);
 		}
 
 		@Override
@@ -262,7 +267,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 			return doInStatementRunnerForFlux(
 				targetDatabase,
 				runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner))
-			);
+			).onErrorMap(RuntimeException.class, DefaultReactiveNeo4jClient.this::potentiallyConvertRuntimeException);
 		}
 
 		Mono<ResultSummary> run() {
@@ -273,8 +278,20 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 					RxResult rxResult = runner.run(t.getT1(), t.getT2());
 					return Flux.from(rxResult.records()).then(Mono.from(rxResult.consume()));
 				})
-			);
+			).onErrorMap(RuntimeException.class, DefaultReactiveNeo4jClient.this::potentiallyConvertRuntimeException);
 		}
+	}
+
+	/**
+	 * Tries to convert the given {@link RuntimeException} into a {@link DataAccessException} but returns the original
+	 * exception if the conversation failed. Thus allows safe re-throwing of the return value.
+	 *
+	 * @param ex the exception to translate
+	 * @return
+	 */
+	private RuntimeException potentiallyConvertRuntimeException(RuntimeException ex) {
+		RuntimeException resolved = persistenceExceptionTranslator.translateExceptionIfPossible(ex);
+		return resolved == null ? ex : resolved;
 	}
 
 	class DefaultRunnableDelegation<T> implements RunnableDelegation<T>, OngoingDelegation<T> {
