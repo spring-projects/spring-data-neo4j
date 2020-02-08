@@ -33,6 +33,12 @@ public class NamedGraphRepositoryQuery extends GraphRepositoryQuery {
 	private final String countQuery;
 
 	NamedGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, MetaData metaData, Session session, String cypherQuery,
+							  QueryMethodEvaluationContextProvider evaluationContextProvider) {
+
+		this(graphQueryMethod, metaData, session, cypherQuery, null, evaluationContextProvider);
+	}
+
+	NamedGraphRepositoryQuery(GraphQueryMethod graphQueryMethod, MetaData metaData, Session session, String cypherQuery,
 			String countQuery, QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 		super(graphQueryMethod, metaData, session, evaluationContextProvider);
@@ -42,7 +48,10 @@ public class NamedGraphRepositoryQuery extends GraphRepositoryQuery {
 
 	@Override
 	protected Query getQuery(Object[] parameters) {
-		return new Query(cypherQuery, countQuery, resolveParams(queryMethod.getParameters(), parameters));
+
+		return countQuery != null ?
+				new Query(cypherQuery, countQuery, resolveParams(queryMethod.getParameters(), parameters)) :
+				new Query(cypherQuery, resolveParams(queryMethod.getParameters(), parameters));
 	}
 
 }

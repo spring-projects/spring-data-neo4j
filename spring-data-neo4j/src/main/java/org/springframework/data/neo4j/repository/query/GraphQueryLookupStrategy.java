@@ -84,11 +84,11 @@ public class GraphQueryLookupStrategy implements QueryLookupStrategy {
 
 		if (namedQueries.hasQuery(namedQueryName)) {
 			String cypherQuery = namedQueries.getQuery(namedQueryName);
-			String countQuery = "";
 			if (namedQueries.hasQuery(namedCountQueryName)){
-				countQuery = namedQueries.getQuery(namedCountQueryName);
+				String countQuery = namedQueries.getQuery(namedCountQueryName);
+				return new NamedGraphRepositoryQuery(queryMethod, metaData, session, cypherQuery, countQuery, evaluationContextProvider);
 			}
-			return new NamedGraphRepositoryQuery(queryMethod, metaData, session, cypherQuery, countQuery, evaluationContextProvider);
+			return new NamedGraphRepositoryQuery(queryMethod, metaData, session, cypherQuery, evaluationContextProvider);
 		} else if (queryMethod.hasAnnotatedQuery()) {
 			return new GraphRepositoryQuery(queryMethod, metaData, session, evaluationContextProvider);
 		} else {

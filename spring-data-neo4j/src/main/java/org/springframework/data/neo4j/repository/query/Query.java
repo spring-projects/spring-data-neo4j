@@ -51,8 +51,16 @@ public class Query {
 		this.filters = filters;
 	}
 
+	public Query(String cypherQuery, Map<String, Object> parameters) {
+		Assert.notNull(cypherQuery, "Query must not be null.");
+		Assert.notNull(parameters, "Parameters must not be null.");
+		this.cypherQuery = sanitize(cypherQuery);
+		this.parameters = parameters;
+	}
+
 	public Query(String cypherQuery, String countQuery, Map<String, Object> parameters) {
 		Assert.notNull(cypherQuery, "Query must not be null.");
+		Assert.notNull(countQuery, "Count query must not be null.");
 		Assert.notNull(parameters, "Parameters must not be null.");
 		this.cypherQuery = sanitize(cypherQuery);
 		this.countQuery = sanitize(countQuery);

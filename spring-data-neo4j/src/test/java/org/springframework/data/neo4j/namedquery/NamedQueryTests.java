@@ -15,9 +15,7 @@
  */
 package org.springframework.data.neo4j.namedquery;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
@@ -30,7 +28,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * @author Gerrit Meier
@@ -45,9 +43,6 @@ public class NamedQueryTests {
 	private static final String SAMPLE_ENTITY_NAME = "test";
 
 	@Autowired private SampleEntityForNamedQueryRepository repository;
-
-	@Rule
-	public ExpectedException exceptionRule = ExpectedException.none();
 
 	@Test
 	public void findElementByQueryAnnotation() {
@@ -96,9 +91,9 @@ public class NamedQueryTests {
 		createAndSaveSampleEntity();
 		createAndSaveSampleEntity();
 
-		exceptionRule.expect(IllegalArgumentException.class);
-		exceptionRule.expectMessage("Must specify a count query to get pagination info.");
-		Page<SampleEntityForNamedQuery> page = repository.findByPagedQueryWithoutCountQuery(SAMPLE_ENTITY_NAME, PageRequest.of(0,1));
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> repository.findByPagedQueryWithoutCountQuery(SAMPLE_ENTITY_NAME, PageRequest.of(0,1)))
+				.withMessage("Must specify a count query to get pagination info.");
 	}
 
 	private void createAndSaveSampleEntity() {
