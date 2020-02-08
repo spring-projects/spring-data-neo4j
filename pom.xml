@@ -41,9 +41,6 @@
 
 		<project.type>multi</project.type>
 
-		<checkstyle.version>8.18</checkstyle.version>
-		<nohttp.version>0.0.3.RELEASE</nohttp.version>
-		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
 		<neo4j.ogm.version>3.2.5</neo4j.ogm.version>
 		<springdata.commons>2.3.0.BUILD-SNAPSHOT</springdata.commons>
 	</properties>
@@ -213,28 +210,9 @@
 	</pluginRepositories>
 
 	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<artifactId>maven-checkstyle-plugin</artifactId>
-					<version>${maven-checkstyle-plugin.version}</version>
-					<dependencies>
-						<dependency>
-							<groupId>com.puppycrawl.tools</groupId>
-							<artifactId>checkstyle</artifactId>
-							<version>${checkstyle.version}</version>
-						</dependency>
-						<dependency>
-							<groupId>io.spring.nohttp</groupId>
-							<artifactId>nohttp-checkstyle</artifactId>
-							<version>${nohttp.version}</version>
-						</dependency>
-					</dependencies>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
 				<configuration combine.self="override">
 					<configLocation>checkstyle/config.xml</configLocation>
