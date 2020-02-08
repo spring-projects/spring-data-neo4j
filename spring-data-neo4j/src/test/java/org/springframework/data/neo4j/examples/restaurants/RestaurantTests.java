@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 package org.springframework.data.neo4j.examples.restaurants;
 
 import static org.apache.webbeans.util.Asserts.assertNotNull;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.Offset.offset;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -74,11 +75,11 @@ public class RestaurantTests {
 				"San Francisco International Airport (SFO)", new Distance(150, Metrics.KILOMETERS), new Point(37.6, -122.3));
 
 		assertNotNull(results);
-		assertEquals(1, results.size());
+		assertThat(results.size()).isEqualTo(1);
 		Restaurant found = results.get(0);
 		assertNotNull(found.getLocation());
-		assertEquals(37.61649, found.getLocation().getX(), 0);
-		assertEquals(-122.38681, found.getLocation().getY(), 0);
+		assertThat(found.getLocation().getX()).isCloseTo(37.61649, offset(0d));
+		assertThat(found.getLocation().getY()).isCloseTo(-122.38681, offset(0d));
 	}
 
 	/**
@@ -95,11 +96,11 @@ public class RestaurantTests {
 				new Point(37.6, -122.3), "San Francisco International Airport (SFO)");
 
 		assertNotNull(results);
-		assertEquals(1, results.size());
+		assertThat(results.size()).isEqualTo(1);
 		Restaurant found = results.get(0);
 		assertNotNull(found.getLocation());
-		assertEquals(37.61649, found.getLocation().getX(), 0);
-		assertEquals(-122.38681, found.getLocation().getY(), 0);
+		assertThat(found.getLocation().getX()).isCloseTo(37.61649, offset(0d));
+		assertThat(found.getLocation().getY()).isCloseTo(-122.38681, offset(0d));
 	}
 
 	@Test // DATAGRAPH-904
@@ -115,11 +116,11 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByScoreBetween(70.0, 80.0);
 		assertNotNull(results);
-		assertEquals(1, results.size());
+		assertThat(results.size()).isEqualTo(1);
 
 		List<Restaurant> shouldBeEmpty = restaurantRepository.findByScoreBetween(30.0, 40.0);
 		assertNotNull(shouldBeEmpty);
-		assertEquals(0, shouldBeEmpty.size());
+		assertThat(shouldBeEmpty.size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-1027
@@ -135,7 +136,7 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByScoreBetween(20.0, 80.6);
 		assertNotNull(results);
-		assertEquals(3, results.size());
+		assertThat(results.size()).isEqualTo(3);
 	}
 
 	@Test // DATAGRAPH-1202
@@ -155,7 +156,7 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByScoreBetween(inclusiveBound);
 		assertNotNull(results);
-		assertEquals(3, results.size());
+		assertThat(results.size()).isEqualTo(3);
 	}
 
 	@Test // DATAGRAPH-1202
@@ -175,7 +176,7 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByScoreBetween(inclusiveBound);
 		assertNotNull(results);
-		assertEquals(1, results.size());
+		assertThat(results.size()).isEqualTo(1);
 	}
 
 	@Test // DATAGRAPH-1202
@@ -195,7 +196,7 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByScoreBetween(inclusiveBound);
 		assertNotNull(results);
-		assertEquals(2, results.size());
+		assertThat(results.size()).isEqualTo(2);
 	}
 
 	@Test // DATAGRAPH-1202
@@ -215,7 +216,7 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByScoreBetween(inclusiveBound);
 		assertNotNull(results);
-		assertEquals(2, results.size());
+		assertThat(results.size()).isEqualTo(2);
 	}
 
 	@Test // DATAGRAPH-904
@@ -229,8 +230,9 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByDescriptionIsNull();
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName())
+				.isEqualTo("San Francisco International Airport (SFO)");
 
 	}
 
@@ -245,8 +247,8 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByDescriptionIsNotNull();
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("Kuroda", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName()).isEqualTo("Kuroda");
 	}
 
 	@Test // DATAGRAPH-904
@@ -261,8 +263,9 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByRegularDinersLastNameIsNull();
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName())
+				.isEqualTo("San Francisco International Airport (SFO)");
 	}
 
 	@Test // DATAGRAPH-904
@@ -280,8 +283,9 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findBySimilarRestaurantsDescriptionIsNull();
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName())
+				.isEqualTo("San Francisco International Airport (SFO)");
 	}
 
 	@Test // DATAGRAPH-904
@@ -294,17 +298,17 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByScoreLessThan(75);
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("Kuroda", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName()).isEqualTo("Kuroda");
 
 		results = restaurantRepository.findByScoreLessThan(72.4);
 		assertNotNull(results);
-		assertEquals(0, results.size());
+		assertThat(results.size()).isEqualTo(0);
 
 		results = restaurantRepository.findByScoreLessThanEqual(72.4);
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("Kuroda", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName()).isEqualTo("Kuroda");
 	}
 
 	@Test // DATAGRAPH-904
@@ -317,17 +321,17 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByScoreGreaterThan(75);
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("Cyma", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName()).isEqualTo("Cyma");
 
 		results = restaurantRepository.findByScoreGreaterThan(90.0);
 		assertNotNull(results);
-		assertEquals(0, results.size());
+		assertThat(results.size()).isEqualTo(0);
 
 		results = restaurantRepository.findByScoreGreaterThanEqual(81.3);
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("Cyma", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName()).isEqualTo("Cyma");
 	}
 
 	@Test // DATAGRAPH-904
@@ -342,12 +346,12 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByLaunchDateBefore(new Date(1001));
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("Kuroda", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName()).isEqualTo("Kuroda");
 
 		results = restaurantRepository.findByLaunchDateBefore(new Date(999));
 		assertNotNull(results);
-		assertEquals(0, results.size());
+		assertThat(results.size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-904
@@ -362,12 +366,12 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByLaunchDateAfter(new Date(1500));
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("Cyma", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName()).isEqualTo("Cyma");
 
 		results = restaurantRepository.findByLaunchDateAfter(new Date(3000));
 		assertNotNull(results);
-		assertEquals(0, results.size());
+		assertThat(results.size()).isEqualTo(0);
 	}
 
 	/**
@@ -384,8 +388,9 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByNameNotLike("kuroda");
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName())
+				.isEqualTo("San Francisco International Airport (SFO)");
 
 	}
 
@@ -403,8 +408,9 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByNameLike("*san francisco international*");
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName())
+				.isEqualTo("San Francisco International Airport (SFO)");
 
 	}
 
@@ -419,8 +425,9 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByNameStartingWith("San Francisco");
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName())
+				.isEqualTo("San Francisco International Airport (SFO)");
 
 	}
 
@@ -435,8 +442,9 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByNameEndingWith("Airport (SFO)");
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName())
+				.isEqualTo("San Francisco International Airport (SFO)");
 
 	}
 
@@ -451,13 +459,14 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByNameContaining("International Airport");
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName())
+				.isEqualTo("San Francisco International Airport (SFO)");
 
 		results = restaurantRepository.findByNameNotContaining("International Airport");
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("Kuroda", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName()).isEqualTo("Kuroda");
 
 	}
 
@@ -474,15 +483,17 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByNameContaining("International Airport");
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName())
+				.isEqualTo("San Francisco International Airport (SFO)");
 
 		results = restaurantRepository.findByNameNotContainingOrDescriptionIsNull("International Airport");
 		Collections.sort(results);
 		assertNotNull(results);
-		assertEquals(2, results.size());
-		assertEquals("Kuroda", results.get(0).getName());
-		assertEquals("San Francisco International Airport (SFO)", results.get(1).getName());
+		assertThat(results.size()).isEqualTo(2);
+		assertThat(results.get(0).getName()).isEqualTo("Kuroda");
+		assertThat(results.get(1).getName())
+				.isEqualTo("San Francisco International Airport (SFO)");
 
 	}
 
@@ -497,13 +508,14 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByNameIn(Arrays.asList("Kuroda", "Foo", "Bar"));
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("Kuroda", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName()).isEqualTo("Kuroda");
 
 		results = restaurantRepository.findByNameNotIn(Arrays.asList("Kuroda", "Foo", "Bar"));
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName())
+				.isEqualTo("San Francisco International Airport (SFO)");
 
 	}
 
@@ -518,8 +530,9 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByNameMatchesRegex("(?i)san francisco.*");
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName())
+				.isEqualTo("San Francisco International Airport (SFO)");
 
 	}
 
@@ -534,7 +547,7 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByNameExists();
 		assertNotNull(results);
-		assertEquals(2, results.size());
+		assertThat(results.size()).isEqualTo(2);
 
 	}
 
@@ -550,8 +563,8 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByHalalIsTrue();
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("Kazan", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName()).isEqualTo("Kazan");
 	}
 
 	@Test // DATAGRAPH-904
@@ -566,8 +579,8 @@ public class RestaurantTests {
 
 		List<Restaurant> results = restaurantRepository.findByHalalIsFalse();
 		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("Kuroda", results.get(0).getName());
+		assertThat(results.size()).isEqualTo(1);
+		assertThat(results.get(0).getName()).isEqualTo("Kuroda");
 	}
 
 	@Test // DATAGRAPH-1197
@@ -575,7 +588,7 @@ public class RestaurantTests {
 		Restaurant restaurant = new Restaurant("R1", "good");
 		restaurantRepository.save(restaurant);
 
-		assertTrue(restaurantRepository.existsByDescription("good"));
+		assertThat(restaurantRepository.existsByDescription("good")).isTrue();
 	}
 
 	@Test // DATAGRAPH-1197
@@ -583,7 +596,7 @@ public class RestaurantTests {
 		Restaurant restaurant = new Restaurant("R1", "good");
 		restaurantRepository.save(restaurant);
 
-		assertFalse(restaurantRepository.existsByDescription("bad"));
+		assertThat(restaurantRepository.existsByDescription("bad")).isFalse();
 	}
 
 	@Test // DATAGRAPH-1197
@@ -591,7 +604,7 @@ public class RestaurantTests {
 		Restaurant restaurant = new Restaurant("R1", "good");
 		restaurantRepository.save(restaurant);
 
-		assertTrue(restaurantRepository.existenceOfAGoodRestaurant());
+		assertThat(restaurantRepository.existenceOfAGoodRestaurant()).isTrue();
 	}
 
 	@Test // DATAGRAPH-1197
@@ -599,7 +612,7 @@ public class RestaurantTests {
 		Restaurant restaurant = new Restaurant("R1", "bad");
 		restaurantRepository.save(restaurant);
 
-		assertFalse(restaurantRepository.existenceOfAGoodRestaurant());
+		assertThat(restaurantRepository.existenceOfAGoodRestaurant()).isFalse();
 	}
 
 	@Test // DATAGRAPH-1199
@@ -607,7 +620,8 @@ public class RestaurantTests {
 		Restaurant restaurant = new Restaurant("R1", "good");
 		restaurantRepository.save(restaurant);
 
-		assertTrue(restaurantRepository.existenceOfAGoodRestaurantWithExistsQuery());
+		assertThat(restaurantRepository.existenceOfAGoodRestaurantWithExistsQuery())
+				.isTrue();
 	}
 
 	@Test // DATAGRAPH-1199
@@ -615,7 +629,8 @@ public class RestaurantTests {
 		Restaurant restaurant = new Restaurant("R1", "bad");
 		restaurantRepository.save(restaurant);
 
-		assertFalse(restaurantRepository.existenceOfAGoodRestaurantWithExistsQuery());
+		assertThat(restaurantRepository.existenceOfAGoodRestaurantWithExistsQuery())
+				.isFalse();
 	}
 
 	@Configuration

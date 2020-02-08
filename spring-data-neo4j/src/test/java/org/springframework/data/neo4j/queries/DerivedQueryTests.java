@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 package org.springframework.data.neo4j.queries;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -88,12 +88,12 @@ public class DerivedQueryTests {
 
 		Collection<User> users = userRepository.findByName("Michal");
 		Iterator<User> iterator = users.iterator();
-		assertTrue(iterator.hasNext());
+		assertThat(iterator.hasNext()).isTrue();
 		User user = iterator.next();
-		assertEquals("Michal", user.getName());
-		assertEquals(1, user.getFriends().size());
-		assertEquals("Adam", user.getFriends().iterator().next().getName());
-		assertFalse(iterator.hasNext());
+		assertThat(user.getName()).isEqualTo("Michal");
+		assertThat(user.getFriends().size()).isEqualTo(1);
+		assertThat(user.getFriends().iterator().next().getName()).isEqualTo("Adam");
+		assertThat(iterator.hasNext()).isFalse();
 	}
 
 	@Test
@@ -102,14 +102,14 @@ public class DerivedQueryTests {
 
 		Collection<User> users = userRepository.findByMiddleName("Joseph");
 		Iterator<User> iterator = users.iterator();
-		assertTrue(iterator.hasNext());
+		assertThat(iterator.hasNext()).isTrue();
 		User user = iterator.next();
-		assertEquals("Joseph", user.getMiddleName());
-		assertEquals(1, user.getFriends().size());
+		assertThat(user.getMiddleName()).isEqualTo("Joseph");
+		assertThat(user.getFriends().size()).isEqualTo(1);
 		User friend = user.getFriends().iterator().next();
-		assertEquals("Mary", friend.getMiddleName());
-		assertEquals("Joseph", friend.getName());
-		assertFalse(iterator.hasNext());
+		assertThat(friend.getMiddleName()).isEqualTo("Mary");
+		assertThat(friend.getName()).isEqualTo("Joseph");
+		assertThat(iterator.hasNext()).isFalse();
 	}
 
 	@Test // DATAGRAPH-628
@@ -122,17 +122,18 @@ public class DerivedQueryTests {
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				Collection<Cinema> cinemas = cinemaRepository.findByName("Picturehouse");
 				Iterator<Cinema> iterator = cinemas.iterator();
-				assertTrue(iterator.hasNext());
+				assertThat(iterator.hasNext()).isTrue();
 				Cinema cinema = iterator.next();
-				assertEquals("Picturehouse", cinema.getName());
-				assertEquals(1, cinema.getVisited().size());
-				assertEquals("Michal", cinema.getVisited().iterator().next().getName());
-				assertFalse(iterator.hasNext());
+				assertThat(cinema.getName()).isEqualTo("Picturehouse");
+				assertThat(cinema.getVisited().size()).isEqualTo(1);
+				assertThat(cinema.getVisited().iterator().next().getName())
+						.isEqualTo("Michal");
+				assertThat(iterator.hasNext()).isFalse();
 
 				List<Cinema> theatres = cinemaRepository.findByLocation("London");
-				assertEquals(2, theatres.size());
-				assertTrue(theatres.contains(new Cinema("Picturehouse")));
-				assertTrue(theatres.contains(new Cinema("Ritzy")));
+				assertThat(theatres.size()).isEqualTo(2);
+				assertThat(theatres.contains(new Cinema("Picturehouse"))).isTrue();
+				assertThat(theatres.contains(new Cinema("Ritzy"))).isTrue();
 			}
 		});
 	}
@@ -147,11 +148,11 @@ public class DerivedQueryTests {
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 
 				List<Cinema> theatres = cinemaRepository.findByLocation("London", 0);
-				assertEquals(2, theatres.size());
-				assertTrue(theatres.contains(new Cinema("Picturehouse")));
-				assertTrue(theatres.contains(new Cinema("Ritzy")));
-				assertNull(theatres.get(0).getBlockbusterOfTheWeek());
-				assertTrue(theatres.get(0).getVisited().isEmpty());
+				assertThat(theatres.size()).isEqualTo(2);
+				assertThat(theatres.contains(new Cinema("Picturehouse"))).isTrue();
+				assertThat(theatres.contains(new Cinema("Ritzy"))).isTrue();
+				assertThat(theatres.get(0).getBlockbusterOfTheWeek()).isNull();
+				assertThat(theatres.get(0).getVisited().isEmpty()).isTrue();
 			}
 		});
 	}
@@ -163,8 +164,9 @@ public class DerivedQueryTests {
 						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
 
 		List<Cinema> theatres = cinemaRepository.findByNameAndLocation("Ritzy", "London");
-		assertEquals(1, theatres.size());
-		assertEquals("Michal", theatres.get(0).getVisited().iterator().next().getName());
+		assertThat(theatres.size()).isEqualTo(1);
+		assertThat(theatres.get(0).getVisited().iterator().next().getName())
+				.isEqualTo("Michal");
 	}
 
 	@Test // DATAGRAPH-629
@@ -174,7 +176,7 @@ public class DerivedQueryTests {
 						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
 
 		List<Cinema> theatres = cinemaRepository.findByNameOrLocation("Ritzy", "London");
-		assertEquals(2, theatres.size());
+		assertThat(theatres.size()).isEqualTo(2);
 	}
 
 	@Test // DATAGRAPH-629
@@ -184,7 +186,7 @@ public class DerivedQueryTests {
 						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
 
 		Collection<Cinema> theatres = cinemaRepository.findByName("Does not exist");
-		assertEquals(0, theatres.size());
+		assertThat(theatres.size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-629
@@ -197,22 +199,22 @@ public class DerivedQueryTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				List<Cinema> theatres = cinemaRepository.findByCapacityGreaterThan(3000);
-				assertEquals(2, theatres.size());
-				assertTrue(theatres.contains(new Cinema("Picturehouse")));
-				assertTrue(theatres.contains(new Cinema("Ritzy")));
+				assertThat(theatres.size()).isEqualTo(2);
+				assertThat(theatres.contains(new Cinema("Picturehouse"))).isTrue();
+				assertThat(theatres.contains(new Cinema("Ritzy"))).isTrue();
 
 				theatres = cinemaRepository.findByCapacityGreaterThan(6000);
-				assertEquals(1, theatres.size());
-				assertEquals("Ritzy", theatres.get(0).getName());
+				assertThat(theatres.size()).isEqualTo(1);
+				assertThat(theatres.get(0).getName()).isEqualTo("Ritzy");
 
 				theatres = cinemaRepository.findByCapacityLessThan(8000);
-				assertEquals(2, theatres.size());
-				assertTrue(theatres.contains(new Cinema("Picturehouse")));
-				assertTrue(theatres.contains(new Cinema("Ritzy")));
+				assertThat(theatres.size()).isEqualTo(2);
+				assertThat(theatres.contains(new Cinema("Picturehouse"))).isTrue();
+				assertThat(theatres.contains(new Cinema("Ritzy"))).isTrue();
 
 				theatres = cinemaRepository.findByCapacityLessThan(7000);
-				assertEquals(1, theatres.size());
-				assertEquals("Picturehouse", theatres.get(0).getName());
+				assertThat(theatres.size()).isEqualTo(1);
+				assertThat(theatres.get(0).getName()).isEqualTo("Picturehouse");
 			}
 		});
 	}
@@ -227,13 +229,13 @@ public class DerivedQueryTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				List<Cinema> theatres = cinemaRepository.findByLocationAndCapacityGreaterThan("London", 3000);
-				assertEquals(2, theatres.size());
-				assertTrue(theatres.contains(new Cinema("Picturehouse")));
-				assertTrue(theatres.contains(new Cinema("Ritzy")));
+				assertThat(theatres.size()).isEqualTo(2);
+				assertThat(theatres.contains(new Cinema("Picturehouse"))).isTrue();
+				assertThat(theatres.contains(new Cinema("Ritzy"))).isTrue();
 
 				theatres = cinemaRepository.findByCapacityLessThanAndLocation(6000, "Bombay");
-				assertEquals(1, theatres.size());
-				assertEquals("Regal", theatres.get(0).getName());
+				assertThat(theatres.size()).isEqualTo(1);
+				assertThat(theatres.get(0).getName()).isEqualTo("Regal");
 			}
 		});
 	}
@@ -248,13 +250,13 @@ public class DerivedQueryTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				List<Cinema> theatres = cinemaRepository.findByLocationOrCapacityLessThan("London", 100);
-				assertEquals(2, theatres.size());
-				assertTrue(theatres.contains(new Cinema("Picturehouse")));
-				assertTrue(theatres.contains(new Cinema("Ritzy")));
+				assertThat(theatres.size()).isEqualTo(2);
+				assertThat(theatres.contains(new Cinema("Picturehouse"))).isTrue();
+				assertThat(theatres.contains(new Cinema("Ritzy"))).isTrue();
 
 				theatres = cinemaRepository.findByCapacityGreaterThanOrLocation(8000, "Paris");
-				assertEquals(1, theatres.size());
-				assertEquals("Regal", theatres.get(0).getName());
+				assertThat(theatres.size()).isEqualTo(1);
+				assertThat(theatres.get(0).getName()).isEqualTo("Regal");
 			}
 		});
 	}
@@ -266,8 +268,8 @@ public class DerivedQueryTests {
 						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)");
 
 		List<Cinema> theatres = cinemaRepository.findByVisitedName("Michal");
-		assertEquals(1, theatres.size());
-		assertTrue(theatres.contains(new Cinema("Ritzy")));
+		assertThat(theatres.size()).isEqualTo(1);
+		assertThat(theatres.contains(new Cinema("Ritzy"))).isTrue();
 	}
 
 	@Test
@@ -277,8 +279,8 @@ public class DerivedQueryTests {
 				+ " CREATE (g:Genre {name:'Thriller'}) CREATE (u)-[:INTERESTED]->(g)");
 
 		List<Cinema> theatres = cinemaRepository.findByVisitedInterestedName("Thriller");
-		assertEquals(1, theatres.size());
-		assertTrue(theatres.contains(new Cinema("Ritzy")));
+		assertThat(theatres.size()).isEqualTo(1);
+		assertThat(theatres.contains(new Cinema("Ritzy"))).isTrue();
 	}
 
 	@Test // DATAGRAPH-629
@@ -288,8 +290,8 @@ public class DerivedQueryTests {
 						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(m)");
 
 		List<Cinema> theatres = cinemaRepository.findByLocationAndVisitedName("London", "Michal");
-		assertEquals(1, theatres.size());
-		assertTrue(theatres.contains(new Cinema("Ritzy")));
+		assertThat(theatres.size()).isEqualTo(1);
+		assertThat(theatres.contains(new Cinema("Ritzy"))).isTrue();
 	}
 
 	@Test(expected = UnsupportedOperationException.class) // DATAGRAPH-662
@@ -299,10 +301,10 @@ public class DerivedQueryTests {
 						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r)  CREATE (u)-[:VISITED]->(m)");
 
 		List<Cinema> theatres = cinemaRepository.findByLocationOrVisitedName("P", "Michal");
-		assertEquals(2, theatres.size());
-		assertTrue(theatres.contains(new Cinema("Ritzy")));
+		assertThat(theatres.size()).isEqualTo(2);
+		assertThat(theatres.contains(new Cinema("Ritzy"))).isTrue();
 		// assertTrue(theatres.contains(new Cinema("Picturehouse")));
-		assertTrue(theatres.contains(new Cinema("The Old Vic")));
+		assertThat(theatres.contains(new Cinema("The Old Vic"))).isTrue();
 	}
 
 	@Test // DATAGRAPH-632
@@ -313,9 +315,9 @@ public class DerivedQueryTests {
 						+ " CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->(m)");
 
 		List<User> users = userRepository.findByRatingsStars(3);
-		assertEquals(2, users.size());
-		assertTrue(users.contains(new User("Michal")));
-		assertTrue(users.contains(new User("Vince")));
+		assertThat(users.size()).isEqualTo(2);
+		assertThat(users.contains(new User("Michal"))).isTrue();
+		assertThat(users.contains(new User("Vince"))).isTrue();
 	}
 
 	@Test // DATAGRAPH-629, DATAGRAPH-705
@@ -330,11 +332,11 @@ public class DerivedQueryTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				List<Cinema> theatres = cinemaRepository.findByVisitedNameAndBlockbusterOfTheWeekName("Michal", "San Andreas");
-				assertEquals(1, theatres.size());
-				assertTrue(theatres.contains(new Cinema("Picturehouse")));
+				assertThat(theatres.size()).isEqualTo(1);
+				assertThat(theatres.contains(new Cinema("Picturehouse"))).isTrue();
 
 				theatres = cinemaRepository.findByVisitedNameAndBlockbusterOfTheWeekName("Michal", "Tomorrowland");
-				assertEquals(0, theatres.size());
+				assertThat(theatres.size()).isEqualTo(0);
 			}
 		});
 	}
@@ -351,12 +353,12 @@ public class DerivedQueryTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				List<Cinema> theatres = cinemaRepository.findByVisitedNameOrBlockbusterOfTheWeekName("Michal", "San Andreas");
-				assertEquals(2, theatres.size());
-				assertTrue(theatres.contains(new Cinema("Picturehouse")));
-				assertTrue(theatres.contains(new Cinema("Ritzy")));
+				assertThat(theatres.size()).isEqualTo(2);
+				assertThat(theatres.contains(new Cinema("Picturehouse"))).isTrue();
+				assertThat(theatres.contains(new Cinema("Ritzy"))).isTrue();
 
 				theatres = cinemaRepository.findByVisitedNameOrBlockbusterOfTheWeekName("Vince", "Tomorrowland");
-				assertEquals(0, theatres.size());
+				assertThat(theatres.size()).isEqualTo(0);
 			}
 		});
 	}
@@ -372,11 +374,11 @@ public class DerivedQueryTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				List<Cinema> theatres = cinemaRepository.findByVisitedNameAndVisitedMiddleName("Michal", "M");
-				assertEquals(1, theatres.size());
-				assertTrue(theatres.contains(new Cinema("Picturehouse")));
+				assertThat(theatres.size()).isEqualTo(1);
+				assertThat(theatres.contains(new Cinema("Picturehouse"))).isTrue();
 
 				theatres = cinemaRepository.findByVisitedNameAndVisitedMiddleName("Vince", "V");
-				assertEquals(0, theatres.size());
+				assertThat(theatres.size()).isEqualTo(0);
 			}
 		});
 	}
@@ -389,8 +391,8 @@ public class DerivedQueryTests {
 						+ " CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->(m)");
 
 		List<User> users = userRepository.findByRatingsStarsAndInterestedName(3, "Thriller");
-		assertEquals(1, users.size());
-		assertTrue(users.contains(new User("Michal")));
+		assertThat(users.size()).isEqualTo(1);
+		assertThat(users.contains(new User("Michal"))).isTrue();
 	}
 
 	@Test // Relates to DATAGRAPH-601 and, to an extent, DATAGRAPH-761
@@ -400,8 +402,10 @@ public class DerivedQueryTests {
 
 		// ideally, I'd name this to be "findWhereNameMatches" or "findByNameMatching"
 		List<Cinema> cinemas = cinemaRepository.findByNameMatches("^[Vv].+$");
-		assertEquals("The wrong number of cinemas was returned", 1, cinemas.size());
-		assertEquals("An unexpected cinema was retrieved", "Dumfries", cinemas.get(0).getLocation());
+		assertThat(cinemas.size()).as("The wrong number of cinemas was returned")
+				.isEqualTo(1);
+		assertThat(cinemas.get(0).getLocation()).as("An unexpected cinema was retrieved")
+				.isEqualTo("Dumfries");
 	}
 
 	@Test // DATAGRAPH-761
@@ -410,7 +414,8 @@ public class DerivedQueryTests {
 				+ "(:Theatre {name:'Odeon', city:'Manchester'}), " + "(:Theatre {name:'IMAX', city:'Edinburgh'}) ");
 
 		List<Cinema> cinemas = cinemaRepository.findByLocationLike("*chest*");
-		assertEquals("The wrong number of cinemas was returned", 2, cinemas.size());
+		assertThat(cinemas.size()).as("The wrong number of cinemas was returned")
+				.isEqualTo(2);
 	}
 
 	@Test // DATAGRAPH-761
@@ -420,7 +425,8 @@ public class DerivedQueryTests {
 				+ "(:Theatre {name:'Metro Big Cinema', city:'Mumbai (Bombay)'}) ");
 
 		List<Cinema> indianCinemas = cinemaRepository.findByLocationLike("*(B*");
-		assertEquals("The wrong number of cinemas was returned", 2, indianCinemas.size());
+		assertThat(indianCinemas.size()).as("The wrong number of cinemas was returned")
+				.isEqualTo(2);
 	}
 
 	@Test // DATAGRAPH-761
@@ -428,8 +434,10 @@ public class DerivedQueryTests {
 		executeUpdate("CREATE (:User {name:'Jeff'}), " + "(:User {name:'Jeremy'}), " + "(:User {name:'Alan'})");
 
 		List<User> nonMatchingUsers = userRepository.findByNameIsNotLike("Je*");
-		assertEquals("The wrong number of users was returned", 1, nonMatchingUsers.size());
-		assertEquals("The wrong user was returned", "Alan", nonMatchingUsers.get(0).getName());
+		assertThat(nonMatchingUsers.size()).as("The wrong number of users was returned")
+				.isEqualTo(1);
+		assertThat(nonMatchingUsers.get(0).getName()).as("The wrong user was returned")
+				.isEqualTo("Alan");
 	}
 
 	@Test // DATAGRAPH-787
@@ -442,14 +450,14 @@ public class DerivedQueryTests {
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				Collection<Director> directors = directorRepository.findByName("Vince");
 				Iterator<Director> iterator = directors.iterator();
-				assertTrue(iterator.hasNext());
+				assertThat(iterator.hasNext()).isTrue();
 				Director director = iterator.next();
-				assertEquals("Vince", director.getName());
-				assertFalse(iterator.hasNext());
+				assertThat(director.getName()).isEqualTo("Vince");
+				assertThat(iterator.hasNext()).isFalse();
 
 				directors = directorRepository.findByName("Michal");
 				iterator = directors.iterator();
-				assertFalse(iterator.hasNext());
+				assertThat(iterator.hasNext()).isFalse();
 			}
 		});
 	}
@@ -466,24 +474,28 @@ public class DerivedQueryTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				Cinema cinema = cinemaRepository.findByName("Picturehouse", 0);
-				assertNotNull(cinema);
-				assertEquals("Picturehouse", cinema.getName());
-				assertEquals(0, cinema.getVisited().size());
-				assertEquals(null, cinema.getBlockbusterOfTheWeek());
+				assertThat(cinema).isNotNull();
+				assertThat(cinema.getName()).isEqualTo("Picturehouse");
+				assertThat(cinema.getVisited().size()).isEqualTo(0);
+				assertThat(cinema.getBlockbusterOfTheWeek()).isEqualTo(null);
 
 				cinema = cinemaRepository.findByName("Picturehouse", 1);
-				assertNotNull(cinema);
-				assertEquals("Picturehouse", cinema.getName());
-				assertEquals(1, cinema.getVisited().size());
-				assertEquals(0, cinema.getVisited().iterator().next().getRatings().size());
-				assertEquals("San Andreas", cinema.getBlockbusterOfTheWeek().getName());
+				assertThat(cinema).isNotNull();
+				assertThat(cinema.getName()).isEqualTo("Picturehouse");
+				assertThat(cinema.getVisited().size()).isEqualTo(1);
+				assertThat(cinema.getVisited().iterator().next().getRatings().size())
+						.isEqualTo(0);
+				assertThat(cinema.getBlockbusterOfTheWeek().getName())
+						.isEqualTo("San Andreas");
 
 				cinema = cinemaRepository.findByName("Picturehouse", 2);
-				assertNotNull(cinema);
-				assertEquals("Picturehouse", cinema.getName());
-				assertEquals(1, cinema.getVisited().size());
-				assertEquals(1, cinema.getVisited().iterator().next().getRatings().size());
-				assertEquals("San Andreas", cinema.getBlockbusterOfTheWeek().getName());
+				assertThat(cinema).isNotNull();
+				assertThat(cinema.getName()).isEqualTo("Picturehouse");
+				assertThat(cinema.getVisited().size()).isEqualTo(1);
+				assertThat(cinema.getVisited().iterator().next().getRatings().size())
+						.isEqualTo(1);
+				assertThat(cinema.getBlockbusterOfTheWeek().getName())
+						.isEqualTo("San Andreas");
 			}
 		});
 	}
@@ -494,10 +506,10 @@ public class DerivedQueryTests {
 				"CREATE (m:User {name:'Michal', surname:'Bachman'})<-[:FRIEND_OF]-(a:User {name:'Adam', surname:'George'})");
 
 		User user = userRepository.findBySurname("Bachman");
-		assertNotNull(user);
-		assertEquals("Michal", user.getName());
-		assertEquals("Bachman", user.getSurname());
-		assertEquals(0, user.getFriends().size());
+		assertThat(user).isNotNull();
+		assertThat(user.getName()).isEqualTo("Michal");
+		assertThat(user.getSurname()).isEqualTo("Bachman");
+		assertThat(user.getFriends().size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-864
@@ -508,15 +520,16 @@ public class DerivedQueryTests {
 						+ " CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->(m)");
 
 		List<EntityWrappingQueryResult> result = userRepository.findRatingsWithLiteralMap();
-		assertNotNull(result);
-		assertEquals(2, result.size());
+		assertThat(result).isNotNull();
+		assertThat(result.size()).isEqualTo(2);
 		EntityWrappingQueryResult row = result.get(0);
 		if (row.getUser().getName().equals("Vince")) {
-			assertEquals(1, row.getLiteralMap().size());
-			assertEquals("Chocolat", row.getLiteralMap().iterator().next().get("movietitle"));
-			assertEquals(3L, row.getLiteralMap().iterator().next().get("stars"));
+			assertThat(row.getLiteralMap().size()).isEqualTo(1);
+			assertThat(row.getLiteralMap().iterator().next().get("movietitle"))
+					.isEqualTo("Chocolat");
+			assertThat(row.getLiteralMap().iterator().next().get("stars")).isEqualTo(3L);
 		} else {
-			assertEquals(2, row.getLiteralMap().size());
+			assertThat(row.getLiteralMap().size()).isEqualTo(2);
 		}
 	}
 
@@ -551,36 +564,36 @@ public class DerivedQueryTests {
 
 		Pageable pageable = PageRequest.of(0, 4);
 		Page<User> page = userRepository.findByNameAndSurname("A", "B", pageable);
-		assertEquals(4, page.getNumberOfElements());
-		assertEquals(10, page.getTotalElements());
-		assertEquals(0, page.getNumber());
-		assertTrue(page.isFirst());
-		assertFalse(page.isLast());
-		assertTrue(page.hasNext());
+		assertThat(page.getNumberOfElements()).isEqualTo(4);
+		assertThat(page.getTotalElements()).isEqualTo(10);
+		assertThat(page.getNumber()).isEqualTo(0);
+		assertThat(page.isFirst()).isTrue();
+		assertThat(page.isLast()).isFalse();
+		assertThat(page.hasNext()).isTrue();
 
 		page = userRepository.findByNameAndSurname("A", "B", page.nextPageable());
-		assertEquals(4, page.getNumberOfElements());
-		assertEquals(10, page.getTotalElements());
-		assertEquals(1, page.getNumber());
-		assertFalse(page.isFirst());
-		assertFalse(page.isLast());
-		assertTrue(page.hasNext());
+		assertThat(page.getNumberOfElements()).isEqualTo(4);
+		assertThat(page.getTotalElements()).isEqualTo(10);
+		assertThat(page.getNumber()).isEqualTo(1);
+		assertThat(page.isFirst()).isFalse();
+		assertThat(page.isLast()).isFalse();
+		assertThat(page.hasNext()).isTrue();
 
 		page = userRepository.findByNameAndSurname("A", "B", page.nextPageable());
-		assertEquals(2, page.getNumberOfElements());
-		assertEquals(10, page.getTotalElements());
-		assertEquals(2, page.getNumber());
-		assertFalse(page.isFirst());
-		assertTrue(page.isLast());
-		assertFalse(page.hasNext());
+		assertThat(page.getNumberOfElements()).isEqualTo(2);
+		assertThat(page.getTotalElements()).isEqualTo(10);
+		assertThat(page.getNumber()).isEqualTo(2);
+		assertThat(page.isFirst()).isFalse();
+		assertThat(page.isLast()).isTrue();
+		assertThat(page.hasNext()).isFalse();
 
 		page = userRepository.findByNameAndSurname("A", "B", PageRequest.of(0, 10));
-		assertEquals(10, page.getNumberOfElements());
-		assertEquals(10, page.getTotalElements());
-		assertEquals(0, page.getNumber());
-		assertTrue(page.isFirst());
-		assertTrue(page.isLast());
-		assertFalse(page.hasNext());
+		assertThat(page.getNumberOfElements()).isEqualTo(10);
+		assertThat(page.getTotalElements()).isEqualTo(10);
+		assertThat(page.getNumber()).isEqualTo(0);
+		assertThat(page.isFirst()).isTrue();
+		assertThat(page.isLast()).isTrue();
+		assertThat(page.hasNext()).isFalse();
 	}
 
 	@Test // DATAGRAPH-680
@@ -595,20 +608,73 @@ public class DerivedQueryTests {
 
 		Pageable pageable = PageRequest.of(0, 4);
 		Slice<User> page = userRepository.findByNameAndRatingsStars("A", 5, pageable);
-		assertEquals(4, page.getNumberOfElements());
-		assertTrue(page.hasNext());
+		assertThat(page.getNumberOfElements()).isEqualTo(4);
+		assertThat(page.hasNext()).isTrue();
 
 		page = userRepository.findByNameAndRatingsStars("A", 5, page.nextPageable());
-		assertEquals(4, page.getNumberOfElements());
-		assertTrue(page.hasNext());
+		assertThat(page.getNumberOfElements()).isEqualTo(4);
+		assertThat(page.hasNext()).isTrue();
 
 		page = userRepository.findByNameAndRatingsStars("A", 5, page.nextPageable());
-		assertEquals(2, page.getNumberOfElements());
-		assertFalse(page.hasNext());
+		assertThat(page.getNumberOfElements()).isEqualTo(2);
+		assertThat(page.hasNext()).isFalse();
 
 		page = userRepository.findByNameAndRatingsStars("A", 5, PageRequest.of(0, 10));
-		assertEquals(10, page.getNumberOfElements());
-		assertFalse(page.hasNext());
+		assertThat(page.getNumberOfElements()).isEqualTo(10);
+		assertThat(page.hasNext()).isFalse();
+	}
+
+	@Test // DATAGRAPH-1286
+	public void findAllByIdShouldSupportPageableParameter() {
+
+		List<Long> ids = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			User u = new User("U" + i);
+			userRepository.save(u);
+			ids.add(u.getId());
+		}
+
+		// Just make sure stuff exists and OGM correctly uses id(n) instead of n.id :(
+		Optional<User> randomUser = userRepository.findById(ids.get(ids.size() - 2));
+		assertThat(randomUser).isPresent().map(User::getName).hasValue("U8");
+
+		// Assert findAllById works _at all_
+		Iterable<User> allUsers = userRepository.findAllById(ids);
+		assertThat(allUsers).hasSize(ids.size());
+
+		Pageable pageable = PageRequest.of(0, 2);
+		Page<User> page = userRepository.findAllByIdIn(ids.subList(0, 4), pageable);
+		assertThat(page.getSize()).isEqualTo(2);
+		assertThat(page.getContent()).hasSize(2);
+		assertThat(page.hasNext()).isTrue();
+	}
+
+	@Test // DATAGRAPH-1286
+	public void findByIdInInDerivedQueryMethodShouldWork() {
+
+		List<Long> ids = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			User u = new User("U" + i);
+			userRepository.save(u);
+			ids.add(u.getId());
+		}
+
+		List<User> users = userRepository.findAllByIdInAndNameLike(ids.subList(0, 4), "U*");
+		assertThat(users).hasSize(4);
+	}
+
+	@Test // DATAGRAPH-1286
+	public void findByIdEqualsInDerivedQueryMethodShouldWork() {
+
+		List<Long> ids = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			User u = new User("U" + i);
+			userRepository.save(u);
+			ids.add(u.getId());
+		}
+
+		List<User> users = userRepository.findAllByIdAndName(ids.get(2), "U2");
+		assertThat(users).hasSize(1);
 	}
 
 	@Test // DATAGRAPH-1093
@@ -677,9 +743,9 @@ public class DerivedQueryTests {
 		public void run() {
 			try {
 				User user = userRepository.findBySurname(lastName);
-				assertNotNull(user);
-				assertEquals(firstName, user.getName());
-				assertEquals(lastName, user.getSurname());
+				assertThat(user).isNotNull();
+				assertThat(user.getName()).isEqualTo(firstName);
+				assertThat(user.getSurname()).isEqualTo(lastName);
 			} finally {
 				latch.countDown();
 			}

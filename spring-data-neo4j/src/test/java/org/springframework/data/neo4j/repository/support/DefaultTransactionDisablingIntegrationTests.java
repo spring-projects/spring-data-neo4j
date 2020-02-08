@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
-import org.hamcrest.Matchers;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -35,6 +29,8 @@ import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.assertj.core.api.Assertions.*;
+
 /**
  * Integration tests for disabling default transactions using JavaConfig.
  *
@@ -46,8 +42,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ContextConfiguration(classes = DefaultTransactionDisablingIntegrationTests.Config.class)
 public class DefaultTransactionDisablingIntegrationTests {
 
-	public @Rule ExpectedException exception = ExpectedException.none();
-
 	@Autowired UserRepository repository;
 	@Autowired TransactionalRepositoryTests.DelegatingTransactionManager txManager;
 
@@ -56,7 +50,7 @@ public class DefaultTransactionDisablingIntegrationTests {
 
 		repository.findById(1L);
 
-		assertThat(txManager.getDefinition().isReadOnly(), is(false));
+		assertThat(txManager.getDefinition().isReadOnly()).isFalse();
 	}
 
 	@Test
@@ -64,16 +58,15 @@ public class DefaultTransactionDisablingIntegrationTests {
 
 		repository.findAll(PageRequest.of(0, 10));
 
-		assertThat(txManager.getDefinition(), is(nullValue()));
+		assertThat(txManager.getDefinition()).isNull();
 	}
 
 	@Test
 	public void persistingAnEntityShouldThrowExceptionDueToMissingTransaction() {
 
-		exception.expect(InvalidDataAccessApiUsageException.class);
-		exception.expectCause(is(Matchers.<Throwable> instanceOf(IllegalStateException.class)));
-
-		repository.save(new User());
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> repository.save(new User()))
+				.withCauseInstanceOf(IllegalStateException.class);
 	}
 
 	@Configuration

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,13 @@
  */
 package org.springframework.data.neo4j.repositories;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.neo4j.test.GraphDatabaseServiceAssert.*;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.StreamSupport;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,13 +66,15 @@ public class RepositoryDefinitionTests {
 				Movie movie = new Movie("PF");
 				movieRepository.save(movie);
 
-				assertEquals(1, StreamSupport.stream(movieRepository.findAll().spliterator(), false).count());
+				assertThat(StreamSupport
+						.stream(movieRepository.findAll().spliterator(), false).count())
+						.isEqualTo(1);
 			}
 		});
 
 		Map<String, Object> params = new HashMap<>();
 		params.put("title", "PF");
-		assertThat(graphDatabaseService)
+		GraphDatabaseServiceAssert.assertThat(graphDatabaseService)
 				.containsNode("MATCH (n:Movie) WHERE n.title = $title RETURN n", params);
 
 	}

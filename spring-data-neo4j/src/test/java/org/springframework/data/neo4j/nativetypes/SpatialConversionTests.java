@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ package org.springframework.data.neo4j.nativetypes;
 import static org.apache.webbeans.util.Asserts.*;
 import static org.apache.webbeans.util.Asserts.assertNotNull;
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.Offset.offset;
 
 import lombok.Builder;
 
@@ -139,10 +140,10 @@ public class SpatialConversionTests {
 				"San Francisco International Airport (SFO)", new Distance(150, Metrics.KILOMETERS), new Point(37.6, -122.3));
 
 		assertNotNull(results);
-		assertEquals(1, results.size());
+		assertThat(results.size()).isEqualTo(1);
 		Restaurant found = results.get(0);
 		assertNotNull(found.getLocation());
-		assertEquals(37.61649, found.getLocation().getX(), 0);
-		assertEquals(-122.38681, found.getLocation().getY(), 0);
+		assertThat(found.getLocation().getX()).isCloseTo(37.61649, offset(0d));
+		assertThat(found.getLocation().getY()).isCloseTo(-122.38681, offset(0d));
 	}
 }

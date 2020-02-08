@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
- | Copyright 2011-2019 the original author or authors.
+ | Copyright 2011-2020 the original author or authors.
  |
  | Licensed under the Apache License, Version 2.0 (the "License");
  | you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@
 		<checkstyle.version>8.18</checkstyle.version>
 		<nohttp.version>0.0.3.RELEASE</nohttp.version>
 		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
-		<neo4j.ogm.version>3.2.1</neo4j.ogm.version>
+		<neo4j.ogm.version>3.2.5</neo4j.ogm.version>
 		<springdata.commons>2.3.0.BUILD-SNAPSHOT</springdata.commons>
 	</properties>
 

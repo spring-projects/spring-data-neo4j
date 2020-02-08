@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.examples.movies;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.neo4j.test.GraphDatabaseServiceAssert.assertThat;
 
 import java.util.Arrays;
@@ -171,7 +171,7 @@ public class MoviesIntegrationTests {
 				set.add(new User("Vince"));
 
 				userRepository.saveAll(set);
-				assertEquals(3, userRepository.count());
+				assertThat(userRepository.count()).isEqualTo(3);
 			}
 		});
 
@@ -192,7 +192,7 @@ public class MoviesIntegrationTests {
 				list.add(new User("Vince"));
 
 				userRepository.saveAll(list);
-				assertEquals(3, userRepository.count());
+				assertThat(userRepository.count()).isEqualTo(3);
 			}
 		});
 
@@ -240,12 +240,12 @@ public class MoviesIntegrationTests {
 
 				Optional<User> loaded = userRepository.findById(user.getId());
 
-				assertTrue(loaded.isPresent());
+				assertThat(loaded.isPresent()).isTrue();
 
 				loaded.ifPresent(loadedUser -> {
-					assertEquals("Michal", loadedUser.getName());
-					assertTrue(loadedUser.equals(user));
-					assertTrue(loadedUser == user);
+					assertThat(loadedUser.getName()).isEqualTo("Michal");
+					assertThat(loadedUser.equals(user)).isTrue();
+					assertThat(loadedUser == user).isTrue();
 				});
 			}
 		});
@@ -256,7 +256,7 @@ public class MoviesIntegrationTests {
 		Actor actor = new Actor("1", "Tom Hanks");
 		actorRepository.save(actor);
 
-		assertNotNull(findByProperty(Actor.class, "id", "1").iterator().next());
+		assertThat(findByProperty(Actor.class, "id", "1").iterator().next()).isNotNull();
 	}
 
 	@Test
@@ -267,12 +267,12 @@ public class MoviesIntegrationTests {
 
 		Optional<User> loaded = userRepository.findById(user.getId());
 
-		assertTrue(loaded.isPresent());
+		assertThat(loaded.isPresent()).isTrue();
 
 		loaded.ifPresent(loadedUser -> {
-			assertNull(loadedUser.getName());
-			assertTrue(loadedUser.equals(user));
-			assertTrue(loadedUser == user);
+			assertThat(loadedUser.getName()).isNull();
+			assertThat(loadedUser.equals(user)).isTrue();
+			assertThat(loadedUser == user).isTrue();
 		});
 	}
 
@@ -286,17 +286,18 @@ public class MoviesIntegrationTests {
 				userRepository.save(user);
 				userRepository.delete(user);
 
-				assertFalse(userRepository.findAll().iterator().hasNext());
-				assertFalse(userRepository.findAll(1).iterator().hasNext());
-				assertFalse(userRepository.existsById(user.getId()));
-				assertEquals(0, userRepository.count());
-				assertFalse(userRepository.findById(user.getId()).isPresent());
-				assertFalse(userRepository.findById(user.getId(), 5).isPresent());
+				assertThat(userRepository.findAll().iterator().hasNext()).isFalse();
+				assertThat(userRepository.findAll(1).iterator().hasNext()).isFalse();
+				assertThat(userRepository.existsById(user.getId())).isFalse();
+				assertThat(userRepository.count()).isEqualTo(0);
+				assertThat(userRepository.findById(user.getId()).isPresent()).isFalse();
+				assertThat(userRepository.findById(user.getId(), 5).isPresent())
+						.isFalse();
 			}
 		});
 
 		try (Result result = graphDatabaseService.execute("MATCH (n) RETURN n")) {
-			assertFalse(result.hasNext());
+			assertThat(result.hasNext()).isFalse();
 		}
 	}
 
@@ -317,7 +318,7 @@ public class MoviesIntegrationTests {
 
 		executor.shutdown();
 
-		assertEquals(100, userRepository.count());
+		assertThat(userRepository.count()).isEqualTo(100);
 	}
 
 	@Test(expected = DataAccessException.class)
@@ -517,14 +518,14 @@ public class MoviesIntegrationTests {
 		graphDatabaseService.execute("CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User {name:'Adam'})");
 
 		User michal = ((Iterable<User>) findByProperty(User.class, "name", "Michal")).iterator().next();
-		assertEquals(1, michal.getFriends().size());
+		assertThat(michal.getFriends().size()).isEqualTo(1);
 
 		User adam = michal.getFriends().iterator().next();
-		assertEquals("Adam", adam.getName());
-		assertEquals(1, adam.getFriends().size());
+		assertThat(adam.getName()).isEqualTo("Adam");
+		assertThat(adam.getFriends().size()).isEqualTo(1);
 
-		assertTrue(michal == adam.getFriends().iterator().next());
-		assertTrue(michal.equals(adam.getFriends().iterator().next()));
+		assertThat(michal == adam.getFriends().iterator().next()).isTrue();
+		assertThat(michal.equals(adam.getFriends().iterator().next())).isTrue();
 	}
 
 	@Test
@@ -533,14 +534,14 @@ public class MoviesIntegrationTests {
 		graphDatabaseService.execute("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
 		User michal = ((Iterable<User>) findByProperty(User.class, "name", "Michal")).iterator().next();
-		assertEquals(1, michal.getFriends().size());
+		assertThat(michal.getFriends().size()).isEqualTo(1);
 
 		User adam = michal.getFriends().iterator().next();
-		assertEquals("Adam", adam.getName());
-		assertEquals(1, adam.getFriends().size());
+		assertThat(adam.getName()).isEqualTo("Adam");
+		assertThat(adam.getFriends().size()).isEqualTo(1);
 
-		assertTrue(michal == adam.getFriends().iterator().next());
-		assertTrue(michal.equals(adam.getFriends().iterator().next()));
+		assertThat(michal == adam.getFriends().iterator().next()).isTrue();
+		assertThat(michal.equals(adam.getFriends().iterator().next())).isTrue();
 	}
 
 	@Test
@@ -575,7 +576,7 @@ public class MoviesIntegrationTests {
 
 				TempMovie tempMovie = ((Iterable<TempMovie>) findByProperty(TempMovie.class, "name", "Pulp Fiction")).iterator()
 						.next();
-				assertEquals(1, tempMovie.getRatings().size());
+				assertThat(tempMovie.getRatings().size()).isEqualTo(1);
 			}
 		});
 	}
@@ -596,28 +597,30 @@ public class MoviesIntegrationTests {
 
 				Optional<TempMovie> tempMovieOptional = tempMovieRepository.findById(movie.getId());
 
-				assertTrue(tempMovieOptional.isPresent());
+				assertThat(tempMovieOptional.isPresent()).isTrue();
 				tempMovieOptional.ifPresent(actual -> {
-					assertEquals(movie.getName(), actual.getName());
+					assertThat(actual.getName()).isEqualTo(movie.getName());
 				});
 
 				Optional<User> userOptional = userRepository.findById(user.getId());
 
-				assertTrue(userOptional.isPresent());
+				assertThat(userOptional.isPresent()).isTrue();
 				userOptional.ifPresent(actual -> {
-					assertEquals(user.getName(), actual.getName());
+					assertThat(actual.getName()).isEqualTo(user.getName());
 				});
 
 				Optional<Rating> ratingOptional = ratingRepository.findById(user.getRatings().iterator().next().getId());
 
-				assertTrue(ratingOptional.isPresent());
+				assertThat(ratingOptional.isPresent()).isTrue();
 				ratingOptional.ifPresent(actual -> {
-					assertEquals(5, actual.getStars());
+					assertThat(actual.getStars()).isEqualTo(5);
 				});
 
-				assertFalse(tempMovieRepository.findById(user.getId()).isPresent());
-				assertFalse(userRepository.findById(movie.getId(), 0).isPresent());
-				assertFalse(ratingRepository.findById(user.getId()).isPresent());
+				assertThat(tempMovieRepository.findById(user.getId()).isPresent())
+						.isFalse();
+				assertThat(userRepository.findById(movie.getId(), 0).isPresent())
+						.isFalse();
+				assertThat(ratingRepository.findById(user.getId()).isPresent()).isFalse();
 			}
 		});
 	}
@@ -631,7 +634,7 @@ public class MoviesIntegrationTests {
 		List<User> users = Arrays.asList(michal, adam, daniela);
 		Iterable<User> savedUsers = userRepository.saveAll(users);
 		for (User user : savedUsers) {
-			assertNotNull(user.getId());
+			assertThat(user.getId()).isNotNull();
 		}
 	}
 
@@ -640,10 +643,10 @@ public class MoviesIntegrationTests {
 		createUserForContainsTest();
 
 		User foundUser = userRepository.findByEmailAddressesContains(Collections.singletonList(KNOWN_MAIL_ADDRESS_1));
-		assertNotNull(foundUser);
+		assertThat(foundUser).isNotNull();
 
 		foundUser = userRepository.findByEmailAddressesContains(Arrays.asList(KNOWN_MAIL_ADDRESS_2, UNKNOWN_MAIL_ADDRESS));
-		assertNotNull(foundUser);
+		assertThat(foundUser).isNotNull();
 	}
 
 	@Test // DATAGRAPH-992
@@ -651,7 +654,7 @@ public class MoviesIntegrationTests {
 		createUserForContainsTest();
 
 		User foundUser = userRepository.findByEmailAddressesContains(Collections.singletonList(UNKNOWN_MAIL_ADDRESS));
-		assertNull(foundUser);
+		assertThat(foundUser).isNull();
 	}
 
 	@Test // DATAGRAPH-992
@@ -659,7 +662,7 @@ public class MoviesIntegrationTests {
 		createUserForContainsTest();
 
 		List<User> foundUser = userRepository.findByEmailAddressesNotContaining(UNKNOWN_MAIL_ADDRESS);
-		assertNotNull(foundUser.get(0));
+		assertThat(foundUser.get(0)).isNotNull();
 	}
 
 	@Test // DATAGRAPH-992
@@ -667,7 +670,7 @@ public class MoviesIntegrationTests {
 		createUserForContainsTest();
 
 		List<User> foundUser = userRepository.findByEmailAddressesNotContaining(KNOWN_MAIL_ADDRESS_1);
-		assertTrue(foundUser.isEmpty());
+		assertThat(foundUser.isEmpty()).isTrue();
 	}
 
 	private void createUserForContainsTest() {

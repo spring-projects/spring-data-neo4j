@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.cdi;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
 import java.util.Optional;
 
 import javax.enterprise.inject.se.SeContainer;
@@ -29,6 +26,8 @@ import org.junit.Test;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilders;
 import org.springframework.data.neo4j.examples.friends.domain.Person;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Integration tests for {@link org.springframework.data.neo4j.repository.cdi.Neo4jCdiRepositoryExtension}.
@@ -67,7 +66,7 @@ public class CdiExtensionTests {
 		RepositoryClient client = container.select(RepositoryClient.class).get();
 		CdiPersonRepository repository = client.repository;
 
-		assertThat(repository, is(notNullValue()));
+		assertThat(repository).isNotNull();
 
 		Person person = null;
 		Person result = null;
@@ -80,11 +79,11 @@ public class CdiExtensionTests {
 
 		result = repository.save(person);
 
-		assertThat(result, is(notNullValue()));
+		assertThat(result).isNotNull();
 		Long resultId = result.getId();
 		Optional<Person> lookedUpPerson = repository.findByLastName(person.getLastName());
-		assertTrue(lookedUpPerson.isPresent());
-		lookedUpPerson.ifPresent(actual -> assertThat(actual.getId(), is(resultId)));
+		assertThat(lookedUpPerson.isPresent()).isTrue();
+		lookedUpPerson.ifPresent(actual -> assertThat(actual.getId()).isEqualTo(resultId));
 	}
 
 	@Test // DATAGRAPH-879, DATAGRAPH-1028
@@ -93,7 +92,7 @@ public class CdiExtensionTests {
 		RepositoryClient client = container.select(RepositoryClient.class).get();
 		client.qualifiedPersonRepository.deleteAll();
 
-		assertEquals(0, client.qualifiedPersonRepository.count());
+		assertThat(client.qualifiedPersonRepository.count()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-879, DATAGRAPH-1028
@@ -101,6 +100,6 @@ public class CdiExtensionTests {
 
 		RepositoryClient client = container.select(RepositoryClient.class).get();
 
-		assertEquals(1, client.samplePersonRepository.returnOne());
+		assertThat(client.samplePersonRepository.returnOne()).isEqualTo(1);
 	}
 }

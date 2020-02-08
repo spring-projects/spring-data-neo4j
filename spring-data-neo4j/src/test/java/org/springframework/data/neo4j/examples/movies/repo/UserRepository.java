@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,6 +137,12 @@ public interface UserRepository extends PersonRepository<User, Long> {
 	Page<User> findByNameAndSurname(String name, String surname, Pageable pageable);
 
 	Slice<User> findByNameAndRatingsStars(String name, int stars, Pageable pageable);
+
+	Page<User> findAllByIdIn(Iterable<Long> id, Pageable pageable);
+
+	List<User> findAllByIdInAndNameLike(Iterable<Long> id, String name);
+
+	List<User> findAllByIdAndName(Long id, String name);
 
 	@Query("invalid")
 	void invalidQuery();

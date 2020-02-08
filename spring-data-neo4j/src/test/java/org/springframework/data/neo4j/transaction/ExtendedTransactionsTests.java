@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package org.springframework.data.neo4j.transaction;
-
-import static org.junit.Assert.*;
 
 import java.util.Iterator;
 
@@ -34,6 +32,9 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * See <a href=
@@ -67,8 +68,9 @@ public class ExtendedTransactionsTests {
 			wrapperService.composeSuccessThenFail();
 			fail("should have thrown exception");
 		} catch (Exception e) {
-			assertEquals("Deliberately throwing exception", e.getLocalizedMessage());
-			assertEquals(0, countNodes());
+			assertThat(e.getLocalizedMessage())
+					.isEqualTo("Deliberately throwing exception");
+			assertThat(countNodes()).isEqualTo(0);
 		}
 	}
 
@@ -79,7 +81,7 @@ public class ExtendedTransactionsTests {
 
 		try {
 			wrapperService.composeSuccessThenSuccess();
-			assertEquals(2, countNodes());
+			assertThat(countNodes()).isEqualTo(2);
 		} catch (Exception e) {
 			fail("should not have thrown exception");
 		}
@@ -91,8 +93,9 @@ public class ExtendedTransactionsTests {
 			wrapperService.composeFailThenSuccess();
 			fail("should have thrown exception");
 		} catch (Exception e) {
-			assertEquals("Deliberately throwing exception", e.getLocalizedMessage());
-			assertEquals(0, countNodes());
+			assertThat(e.getLocalizedMessage())
+					.isEqualTo("Deliberately throwing exception");
+			assertThat(countNodes()).isEqualTo(0);
 		}
 	}
 
@@ -102,8 +105,9 @@ public class ExtendedTransactionsTests {
 			wrapperService.composeFailThenFail();
 			fail("should have thrown exception");
 		} catch (Exception e) {
-			assertEquals("Deliberately throwing exception", e.getLocalizedMessage());
-			assertEquals(0, countNodes());
+			assertThat(e.getLocalizedMessage())
+					.isEqualTo("Deliberately throwing exception");
+			assertThat(countNodes()).isEqualTo(0);
 		}
 	}
 
@@ -113,8 +117,9 @@ public class ExtendedTransactionsTests {
 			wrapperService.rollbackWithCheckedException();
 			fail("should have thrown exception");
 		} catch (Exception e) {
-			assertEquals("Deliberately throwing exception", e.getLocalizedMessage());
-			assertEquals(0, countNodes());
+			assertThat(e.getLocalizedMessage())
+					.isEqualTo("Deliberately throwing exception");
+			assertThat(countNodes()).isEqualTo(0);
 		}
 	}
 
@@ -123,7 +128,7 @@ public class ExtendedTransactionsTests {
 		try {
 			serviceA.run();
 		} catch (Exception e) {
-			assertNull(serviceB.getBilbo());
+			assertThat(serviceB.getBilbo()).isNull();
 		}
 	}
 

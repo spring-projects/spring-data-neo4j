@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package org.springframework.data.neo4j.queries;
-
-import static org.junit.Assert.*;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -33,6 +31,8 @@ import org.springframework.data.neo4j.examples.movies.repo.CinemaStreamingReposi
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Nicolas Mervaillie
@@ -64,17 +64,17 @@ public class Java8SupportTests {
 	@Test
 	public void shouldFindOptionalCinema() {
 		Optional<Cinema> cinema = cinemaRepository.findByName("Picturehouse", 1);
-		assertTrue(cinema.isPresent());
-		assertEquals("Picturehouse", cinema.get().getName());
+		assertThat(cinema.isPresent()).isTrue();
+		assertThat(cinema.get().getName()).isEqualTo("Picturehouse");
 
 		cinema = cinemaRepository.findByName("ZZZ", 1);
-		assertFalse(cinema.isPresent());
+		assertThat(cinema.isPresent()).isFalse();
 	}
 
 	@Test
 	public void shouldStreamCinemas() {
 		Stream<Cinema> allCinemas = cinemaRepository.getAllCinemas();
-		assertEquals(10, allCinemas.count());
+		assertThat(allCinemas.count()).isEqualTo(10);
 	}
 
 	@Test
@@ -82,15 +82,15 @@ public class Java8SupportTests {
 		Collection<Cinema> allCinemas = cinemaRepository.getCinemasSortedByName(Sort.by("n.name"))
 				.collect(Collectors.toList());
 
-		assertEquals(10, allCinemas.size());
-		assertEquals("Cineplex", allCinemas.iterator().next().getName());
+		assertThat(allCinemas.size()).isEqualTo(10);
+		assertThat(allCinemas.iterator().next().getName()).isEqualTo("Cineplex");
 	}
 
 	@Test
 	public void shouldGetCinemasAsync() {
 		cinemaRepository.getAllCinemasAsync().thenAccept(cinemas -> {
-			assertEquals(10, cinemas.size());
-			cinemas.forEach(cinema -> assertNotNull(cinema.getName()));
+			assertThat(cinemas.size()).isEqualTo(10);
+			cinemas.forEach(cinema -> assertThat(cinema.getName()).isNotNull());
 		});
 	}
 }

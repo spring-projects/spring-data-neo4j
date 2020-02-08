@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package org.springframework.data.neo4j.queries;
-
-import static org.junit.Assert.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +31,8 @@ import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Luanne Misquitta
@@ -65,11 +65,15 @@ public class DerivedRelationshipEntityQueryTests {
 		userRepository.save(critic);
 
 		Rating rating = ratingRepository.findRatingByUserAndTempMovie(critic.getId(), film.getId());
-		assertNotNull(rating);
-		assertNotNull("The loaded rating shouldn't be null", rating);
-		assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), rating.getStars());
-		assertEquals("The rated film wasn't saved correctly", film.getName(), rating.getMovie().getName());
-		assertEquals("The critic wasn't saved correctly", critic.getId(), rating.getUser().getId());
+		assertThat(rating).isNotNull();
+		assertThat(rating).as("The loaded rating shouldn't be null").isNotNull();
+		assertThat(rating.getStars())
+				.as("The relationship properties weren't saved correctly")
+				.isEqualTo(filmRating.getStars());
+		assertThat(rating.getMovie().getName())
+				.as("The rated film wasn't saved correctly").isEqualTo(film.getName());
+		assertThat(rating.getUser().getId()).as("The critic wasn't saved correctly")
+				.isEqualTo(critic.getId());
 	}
 
 	@Test // DATAGRAPH-629
@@ -81,12 +85,16 @@ public class DerivedRelationshipEntityQueryTests {
 		userRepository.save(critic);
 
 		List<Rating> ratings = ratingRepository.findByStars(2);
-		assertNotNull(ratings);
+		assertThat(ratings).isNotNull();
 		Rating loadedRating = ratings.get(0);
-		assertNotNull("The loaded rating shouldn't be null", loadedRating);
-		assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), loadedRating.getStars());
-		assertEquals("The rated film wasn't saved correctly", film.getName(), loadedRating.getMovie().getName());
-		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
+		assertThat(loadedRating).as("The loaded rating shouldn't be null").isNotNull();
+		assertThat(loadedRating.getStars())
+				.as("The relationship properties weren't saved correctly")
+				.isEqualTo(filmRating.getStars());
+		assertThat(loadedRating.getMovie().getName())
+				.as("The rated film wasn't saved correctly").isEqualTo(film.getName());
+		assertThat(loadedRating.getUser().getId()).as("The critic wasn't saved correctly")
+				.isEqualTo(critic.getId());
 	}
 
 	@Test // DATAGRAPH-629
@@ -99,15 +107,19 @@ public class DerivedRelationshipEntityQueryTests {
 		userRepository.save(critic);
 
 		List<Rating> ratings = ratingRepository.findByStarsAndRatingTimestamp(2, 1000);
-		assertNotNull(ratings);
+		assertThat(ratings).isNotNull();
 		Rating loadedRating = ratings.get(0);
-		assertNotNull("The loaded rating shouldn't be null", loadedRating);
-		assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), loadedRating.getStars());
-		assertEquals("The rated film wasn't saved correctly", film.getName(), loadedRating.getMovie().getName());
-		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
+		assertThat(loadedRating).as("The loaded rating shouldn't be null").isNotNull();
+		assertThat(loadedRating.getStars())
+				.as("The relationship properties weren't saved correctly")
+				.isEqualTo(filmRating.getStars());
+		assertThat(loadedRating.getMovie().getName())
+				.as("The rated film wasn't saved correctly").isEqualTo(film.getName());
+		assertThat(loadedRating.getUser().getId()).as("The critic wasn't saved correctly")
+				.isEqualTo(critic.getId());
 
 		ratings = ratingRepository.findByStarsAndRatingTimestamp(2, 2000);
-		assertEquals(0, ratings.size());
+		assertThat(ratings.size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-629
@@ -120,15 +132,19 @@ public class DerivedRelationshipEntityQueryTests {
 		userRepository.save(critic);
 
 		List<Rating> ratings = ratingRepository.findByStarsOrRatingTimestamp(5, 1000);
-		assertNotNull(ratings);
+		assertThat(ratings).isNotNull();
 		Rating loadedRating = ratings.get(0);
-		assertNotNull("The loaded rating shouldn't be null", loadedRating);
-		assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), loadedRating.getStars());
-		assertEquals("The rated film wasn't saved correctly", film.getName(), loadedRating.getMovie().getName());
-		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
+		assertThat(loadedRating).as("The loaded rating shouldn't be null").isNotNull();
+		assertThat(loadedRating.getStars())
+				.as("The relationship properties weren't saved correctly")
+				.isEqualTo(filmRating.getStars());
+		assertThat(loadedRating.getMovie().getName())
+				.as("The rated film wasn't saved correctly").isEqualTo(film.getName());
+		assertThat(loadedRating.getUser().getId()).as("The critic wasn't saved correctly")
+				.isEqualTo(critic.getId());
 
 		ratings = ratingRepository.findByStarsAndRatingTimestamp(5, 2000);
-		assertEquals(0, ratings.size());
+		assertThat(ratings.size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-629
@@ -141,15 +157,19 @@ public class DerivedRelationshipEntityQueryTests {
 		userRepository.save(critic);
 
 		List<Rating> ratings = ratingRepository.findByStarsAndRatingTimestampLessThan(2, 2000);
-		assertNotNull(ratings);
+		assertThat(ratings).isNotNull();
 		Rating loadedRating = ratings.get(0);
-		assertNotNull("The loaded rating shouldn't be null", loadedRating);
-		assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), loadedRating.getStars());
-		assertEquals("The rated film wasn't saved correctly", film.getName(), loadedRating.getMovie().getName());
-		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
+		assertThat(loadedRating).as("The loaded rating shouldn't be null").isNotNull();
+		assertThat(loadedRating.getStars())
+				.as("The relationship properties weren't saved correctly")
+				.isEqualTo(filmRating.getStars());
+		assertThat(loadedRating.getMovie().getName())
+				.as("The rated film wasn't saved correctly").isEqualTo(film.getName());
+		assertThat(loadedRating.getUser().getId()).as("The critic wasn't saved correctly")
+				.isEqualTo(critic.getId());
 
 		ratings = ratingRepository.findByStarsAndRatingTimestamp(2, 3000);
-		assertEquals(0, ratings.size());
+		assertThat(ratings.size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-629
@@ -162,15 +182,19 @@ public class DerivedRelationshipEntityQueryTests {
 		userRepository.save(critic);
 
 		List<Rating> ratings = ratingRepository.findByStarsOrRatingTimestampGreaterThan(5, 500);
-		assertNotNull(ratings);
+		assertThat(ratings).isNotNull();
 		Rating loadedRating = ratings.get(0);
-		assertNotNull("The loaded rating shouldn't be null", loadedRating);
-		assertEquals("The relationship properties weren't saved correctly", filmRating.getStars(), loadedRating.getStars());
-		assertEquals("The rated film wasn't saved correctly", film.getName(), loadedRating.getMovie().getName());
-		assertEquals("The critic wasn't saved correctly", critic.getId(), loadedRating.getUser().getId());
+		assertThat(loadedRating).as("The loaded rating shouldn't be null").isNotNull();
+		assertThat(loadedRating.getStars())
+				.as("The relationship properties weren't saved correctly")
+				.isEqualTo(filmRating.getStars());
+		assertThat(loadedRating.getMovie().getName())
+				.as("The rated film wasn't saved correctly").isEqualTo(film.getName());
+		assertThat(loadedRating.getUser().getId()).as("The critic wasn't saved correctly")
+				.isEqualTo(critic.getId());
 
 		ratings = ratingRepository.findByStarsAndRatingTimestamp(5, 2000);
-		assertEquals(0, ratings.size());
+		assertThat(ratings.size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-632
@@ -180,10 +204,10 @@ public class DerivedRelationshipEntityQueryTests {
 						+ " CREATE (u:User {name:'Michal'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
 		List<Rating> ratings = ratingRepository.findByUserName("Michal");
-		assertEquals(2, ratings.size());
+		assertThat(ratings.size()).isEqualTo(2);
 		Collections.sort(ratings);
-		assertEquals("Speed", ratings.get(0).getMovie().getName());
-		assertEquals("The Matrix", ratings.get(1).getMovie().getName());
+		assertThat(ratings.get(0).getMovie().getName()).isEqualTo("Speed");
+		assertThat(ratings.get(1).getMovie().getName()).isEqualTo("The Matrix");
 	}
 
 	@Test // DATAGRAPH-632
@@ -193,13 +217,13 @@ public class DerivedRelationshipEntityQueryTests {
 						+ " CREATE (u:User {name:'Vince'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
 		List<Rating> ratings = ratingRepository.findByMovieName("Captain America");
-		assertEquals(1, ratings.size());
-		assertEquals("Vince", ratings.get(0).getUser().getName());
-		assertEquals("Captain America", ratings.get(0).getMovie().getName());
-		assertEquals(4, ratings.get(0).getStars());
+		assertThat(ratings.size()).isEqualTo(1);
+		assertThat(ratings.get(0).getUser().getName()).isEqualTo("Vince");
+		assertThat(ratings.get(0).getMovie().getName()).isEqualTo("Captain America");
+		assertThat(ratings.get(0).getStars()).isEqualTo(4);
 
 		ratings = ratingRepository.findByMovieName("X-Men");
-		assertEquals(0, ratings.size());
+		assertThat(ratings.size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-632
@@ -209,13 +233,14 @@ public class DerivedRelationshipEntityQueryTests {
 						+ " CREATE (u:User {name:'Daniela'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
 		List<Rating> ratings = ratingRepository.findByUserNameAndMovieName("Daniela", "Independence Day: Resurgence");
-		assertEquals(1, ratings.size());
-		assertEquals("Daniela", ratings.get(0).getUser().getName());
-		assertEquals("Independence Day: Resurgence", ratings.get(0).getMovie().getName());
-		assertEquals(3, ratings.get(0).getStars());
+		assertThat(ratings.size()).isEqualTo(1);
+		assertThat(ratings.get(0).getUser().getName()).isEqualTo("Daniela");
+		assertThat(ratings.get(0).getMovie().getName())
+				.isEqualTo("Independence Day: Resurgence");
+		assertThat(ratings.get(0).getStars()).isEqualTo(3);
 
 		ratings = ratingRepository.findByUserNameAndMovieName("Daniela", "The BFG");
-		assertEquals(0, ratings.size());
+		assertThat(ratings.size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-632
@@ -225,13 +250,13 @@ public class DerivedRelationshipEntityQueryTests {
 						+ " CREATE (u:User {name:'Luanne'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
 		List<Rating> ratings = ratingRepository.findByUserNameAndStars("Luanne", 3);
-		assertEquals(1, ratings.size());
-		assertEquals("Luanne", ratings.get(0).getUser().getName());
-		assertEquals("The Shallows", ratings.get(0).getMovie().getName());
-		assertEquals(3, ratings.get(0).getStars());
+		assertThat(ratings.size()).isEqualTo(1);
+		assertThat(ratings.get(0).getUser().getName()).isEqualTo("Luanne");
+		assertThat(ratings.get(0).getMovie().getName()).isEqualTo("The Shallows");
+		assertThat(ratings.get(0).getStars()).isEqualTo(3);
 
 		ratings = ratingRepository.findByUserNameAndStars("Luanne", 1);
-		assertEquals(0, ratings.size());
+		assertThat(ratings.size()).isEqualTo(0);
 	}
 
 	@Test(expected = UnsupportedOperationException.class) // DATAGRAPH-662
@@ -243,14 +268,14 @@ public class DerivedRelationshipEntityQueryTests {
 						+ " CREATE (u2)-[:RATED {stars:3}]->(m)");
 
 		List<Rating> ratings = ratingRepository.findByStarsOrUserName(3, "Mark");
-		assertEquals(3, ratings.size());
+		assertThat(ratings.size()).isEqualTo(3);
 		Collections.sort(ratings);
-		assertEquals("Swiss Army Man", ratings.get(0).getMovie().getName());
-		assertEquals("X-Men Apocalypse", ratings.get(1).getMovie().getName());
-		assertEquals("Me Before You", ratings.get(2).getMovie().getName());
+		assertThat(ratings.get(0).getMovie().getName()).isEqualTo("Swiss Army Man");
+		assertThat(ratings.get(1).getMovie().getName()).isEqualTo("X-Men Apocalypse");
+		assertThat(ratings.get(2).getMovie().getName()).isEqualTo("Me Before You");
 
 		ratings = ratingRepository.findByStarsOrUserName(0, "Vince");
-		assertEquals(0, ratings.size());
+		assertThat(ratings.size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-632
@@ -262,13 +287,13 @@ public class DerivedRelationshipEntityQueryTests {
 						+ " CREATE (u2)-[:RATED {stars:4}]->(m2)");
 
 		List<Rating> ratings = ratingRepository.findByStarsAndMovieName(4, "Teenage Mutant Ninja Turtles");
-		assertEquals(2, ratings.size());
+		assertThat(ratings.size()).isEqualTo(2);
 		Collections.sort(ratings);
-		assertEquals("Chris", ratings.get(0).getUser().getName());
-		assertEquals("Katerina", ratings.get(1).getUser().getName());
+		assertThat(ratings.get(0).getUser().getName()).isEqualTo("Chris");
+		assertThat(ratings.get(1).getUser().getName()).isEqualTo("Katerina");
 
 		ratings = ratingRepository.findByStarsAndMovieName(5, "Teenage Mutant Ninja Turtles");
-		assertEquals(0, ratings.size());
+		assertThat(ratings.size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-632
@@ -278,13 +303,13 @@ public class DerivedRelationshipEntityQueryTests {
 						+ " CREATE (u:User {name:'Alessandro'}) CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2)");
 
 		List<Rating> ratings = ratingRepository.findByUserNameAndMovieNameAndStars("Alessandro", "The Jungle Book", 3);
-		assertEquals(1, ratings.size());
-		assertEquals("Alessandro", ratings.get(0).getUser().getName());
-		assertEquals("The Jungle Book", ratings.get(0).getMovie().getName());
-		assertEquals(3, ratings.get(0).getStars());
+		assertThat(ratings.size()).isEqualTo(1);
+		assertThat(ratings.get(0).getUser().getName()).isEqualTo("Alessandro");
+		assertThat(ratings.get(0).getMovie().getName()).isEqualTo("The Jungle Book");
+		assertThat(ratings.get(0).getStars()).isEqualTo(3);
 
 		ratings = ratingRepository.findByUserNameAndMovieNameAndStars("Colin", "Speed", 0);
-		assertEquals(0, ratings.size());
+		assertThat(ratings.size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-632
@@ -296,15 +321,15 @@ public class DerivedRelationshipEntityQueryTests {
 						+ " CREATE (u2)-[:RATED {stars:4}]->(m2)");
 
 		List<Rating> ratings = ratingRepository.findByUserNameAndUserMiddleName("David", "M");
-		assertEquals(2, ratings.size());
+		assertThat(ratings.size()).isEqualTo(2);
 		Collections.sort(ratings);
-		assertEquals("David", ratings.get(0).getUser().getName());
-		assertEquals("Batman v Superman", ratings.get(0).getMovie().getName());
-		assertEquals("David", ratings.get(1).getUser().getName());
-		assertEquals("Genius", ratings.get(1).getMovie().getName());
+		assertThat(ratings.get(0).getUser().getName()).isEqualTo("David");
+		assertThat(ratings.get(0).getMovie().getName()).isEqualTo("Batman v Superman");
+		assertThat(ratings.get(1).getUser().getName()).isEqualTo("David");
+		assertThat(ratings.get(1).getMovie().getName()).isEqualTo("Genius");
 
 		ratings = ratingRepository.findByUserNameAndUserMiddleName("David", "V");
-		assertEquals(0, ratings.size());
+		assertThat(ratings.size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-813
@@ -317,11 +342,11 @@ public class DerivedRelationshipEntityQueryTests {
 		userRepository.save(critic);
 
 		List<Long> ratingIds = ratingRepository.deleteByStarsOrRatingTimestampGreaterThan(2, 500);
-		assertEquals(filmRating.getId(), ratingIds.get(0));
-		assertEquals(1, ratingIds.size());
+		assertThat(ratingIds.get(0)).isEqualTo(filmRating.getId());
+		assertThat(ratingIds.size()).isEqualTo(1);
 
 		List<Rating> ratings = ratingRepository.findByStarsAndRatingTimestamp(2, 2000);
-		assertEquals(0, ratings.size());
+		assertThat(ratings.size()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-813
@@ -334,7 +359,7 @@ public class DerivedRelationshipEntityQueryTests {
 		userRepository.save(critic);
 
 		long starredRatings = ratingRepository.countByStars(2);
-		assertEquals(1L, starredRatings);
+		assertThat(starredRatings).isEqualTo(1L);
 
 	}
 
@@ -348,7 +373,7 @@ public class DerivedRelationshipEntityQueryTests {
 		userRepository.save(critic);
 
 		long countRemovedObjects = ratingRepository.removeByUserName("Gary");
-		assertEquals(1L, countRemovedObjects);
+		assertThat(countRemovedObjects).isEqualTo(1L);
 
 	}
 
@@ -362,7 +387,7 @@ public class DerivedRelationshipEntityQueryTests {
 		userRepository.save(critic);
 
 		long countRemovedObjects = ratingRepository.removeByUserName("Bill");
-		assertEquals(0L, countRemovedObjects);
+		assertThat(countRemovedObjects).isEqualTo(0L);
 	}
 
 	@Test // DATAGRAPH-813
@@ -375,6 +400,6 @@ public class DerivedRelationshipEntityQueryTests {
 		userRepository.save(critic);
 
 		List<Long> deletedIds = ratingRepository.deleteByStarsOrRatingTimestampGreaterThan(3, 2000);
-		assertEquals(0L, deletedIds.size());
+		assertThat(deletedIds.size()).isEqualTo(0L);
 	}
 }

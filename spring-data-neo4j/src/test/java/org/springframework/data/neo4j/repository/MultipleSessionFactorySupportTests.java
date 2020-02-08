@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,29 @@
 package org.springframework.data.neo4j.repository;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
+
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+import org.junit.runners.model.Statement;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilders;
+import org.neo4j.ogm.session.Neo4jSession;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,6 +56,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Michael J. Simons
@@ -55,7 +67,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @RunWith(SpringRunner.class)
 public class MultipleSessionFactorySupportTests {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(MultipleSessionFactorySupportTests.class);
+	@Rule
+	public final LoggerRule loggerRule = new LoggerRule();
 
 	private static final String BEAN_NAME_FRIENDS_SESSION_FACTORY = "sessionFactoryFriends";
 	private static final String BEAN_NAME_FRIENDS_TX_MANAGER = "txManagerFriends";
@@ -68,6 +81,8 @@ public class MultipleSessionFactorySupportTests {
 
 	private static final String QUERY_COUNT_PERSON_NODES = "MATCH (n:Person) RETURN count(n) as cnt";
 	private static final String QUERY_COUNT_DINER_NODES = "MATCH (n:Diner) RETURN count(n) as cnt";
+
+	private static final boolean neo4jOgm324Plus = ReflectionUtils.findMethod(Neo4jSession.class, "determineLabelsOrTypeForLoading", Class.class) != null;
 
 	private static ServerControls instance1;
 
@@ -91,8 +106,27 @@ public class MultipleSessionFactorySupportTests {
 	@Test // DATAGRAPH-1094
 	public void sessionsShouldUseCorrectMappingContext() {
 
+		assumeThat(neo4jOgm324Plus)
+				.withFailMessage("This tests is only valid for Neo4j-OGM prior to 3.2.4")
+				.isFalse();
+
 		assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> friendsSession.loadAll(Restaurant.class));
 		assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> restaurantsSession.loadAll(Person.class));
+	}
+
+	@Test // DATAGRAPH-1094 DATAGRAPH-1274
+	public void sessionsShouldUseCorrectMappingContext324() {
+
+		assumeThat(neo4jOgm324Plus)
+				.withFailMessage("This tests is only valid for Neo4j-OGM 3.2.4+")
+				.isTrue();
+
+		assertThat(friendsSession.loadAll(Restaurant.class)).isEmpty();
+		assertThat(restaurantsSession.loadAll(Person.class)).isEmpty();
+
+		assertThat(loggerRule.getFormattedMessages())
+				.anyMatch(s -> s.contains("Unable to find database label for entity org.springframework.data.neo4j.examples.restaurants.domain.Restaurant : no results will be returned."))
+				.anyMatch(s -> s.contains("Unable to find database label for entity org.springframework.data.neo4j.examples.friends.domain.Person : no results will be returned."));
 	}
 
 	@Test // DATAGRAPH-1094
@@ -186,5 +220,40 @@ public class MultipleSessionFactorySupportTests {
 					.uri(instance2.boltURI().toString()).build();
 			return new SessionFactory(ogmConfiguration, PACKAGE_FOR_DOMAIN_OF_INSTANCE2 + ".domain");
 		}
+	}
+
+	static class LoggerRule implements TestRule {
+
+		private final ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+		private final ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(
+				ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+
+		@Override
+		public Statement apply(Statement base, Description description) {
+			return new Statement() {
+				@Override
+				public void evaluate() throws Throwable {
+					setup();
+					base.evaluate();
+					teardown();
+				}
+			};
+		}
+
+		private void setup() {
+			logger.addAppender(listAppender);
+			listAppender.start();
+		}
+
+		private void teardown() {
+			listAppender.stop();
+			listAppender.list.clear();
+			logger.detachAppender(listAppender);
+		}
+
+		public List<String> getFormattedMessages() {
+			return listAppender.list.stream().map(e -> e.getFormattedMessage()).collect(Collectors.toList());
+		}
+
 	}
 }

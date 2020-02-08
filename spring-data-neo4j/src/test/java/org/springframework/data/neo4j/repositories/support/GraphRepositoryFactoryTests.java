@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.repositories.support;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
@@ -60,7 +60,7 @@ public class GraphRepositoryFactoryTests {
 	 */
 	@Test
 	public void setsUpBasicInstanceCorrectly() throws Exception {
-		assertNotNull(factory.getRepository(ObjectRepository.class));
+		assertThat(factory.getRepository(ObjectRepository.class)).isNotNull();
 	}
 
 	@Test
@@ -77,7 +77,8 @@ public class GraphRepositoryFactoryTests {
 	public void usesConfiguredRepositoryBaseClass() {
 		factory.setRepositoryBaseClass(CustomNeo4jRepository.class);
 		ObjectRepository repository = factory.getRepository(ObjectRepository.class);
-		assertEquals(CustomNeo4jRepository.class, ((Advised) repository).getTargetClass());
+		assertThat(((Advised) repository).getTargetClass())
+				.isEqualTo(CustomNeo4jRepository.class);
 	}
 
 	private interface ObjectRepository extends Neo4jRepository<Object, Long> {

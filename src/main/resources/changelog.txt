@@ -1,6 +1,84 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.3.0.M2 (2020-01-17)
+----------------------------------------
+* DATAGRAPH-1284 - Release 5.3 M2 (Neumann).
+
+
+Changes in version 5.3.0.M1 (2020-01-16)
+----------------------------------------
+* DATAGRAPH-1280 - Upgrade to Neo4j OGM 3.2.5.
+* DATAGRAPH-1278 - Update license header to extend to 2020.
+* DATAGRAPH-1276 - Explicitly Pass READ_ONLY mode to Session.query.
+* DATAGRAPH-1275 - Verify update of relationship entities.
+* DATAGRAPH-1274 - Don't rely on Neo4j-OGM failing with NPE in tests.
+* DATAGRAPH-1271 - Fix invalid class lookup for @QueryResults.
+* DATAGRAPH-1269 - Upgrade to Neo4j OGM 3.2.3.
+* DATAGRAPH-1268 - Remove usage of deprecated Filter#setPropertyName..
+* DATAGRAPH-1265 - Enable JDK 11+ builds.
+* DATAGRAPH-1259 - Migrate tests to AssertJ.
+* DATAGRAPH-1257 - Release 5.3 M1 (Neumann).
+* DATAGRAPH-1207 - Adjust log level in MetaDataDrivenConversionService.
+* DATAGRAPH-1143 - Fix ClassCastException during instantiation from results containing arrays.
+
+
+Changes in version 5.2.4.RELEASE (2020-01-15)
+---------------------------------------------
+* DATAGRAPH-1280 - Upgrade to Neo4j OGM 3.2.5.
+* DATAGRAPH-1278 - Update license header to extend to 2020.
+* DATAGRAPH-1276 - Explicitly Pass READ_ONLY mode to Session.query.
+* DATAGRAPH-1275 - Verify update of relationship entities.
+* DATAGRAPH-1274 - Don't rely on Neo4j-OGM failing with NPE in tests.
+* DATAGRAPH-1273 - Release 5.2.4 (Moore SR4).
+* DATAGRAPH-1271 - Fix invalid class lookup for @QueryResults.
+* DATAGRAPH-1143 - Fix ClassCastException during instantiation from results containing arrays.
+
+
+Changes in version 5.1.15.RELEASE (2020-01-15)
+----------------------------------------------
+* DATAGRAPH-1278 - Update license header to extend to 2020.
+* DATAGRAPH-1276 - Explicitly Pass READ_ONLY mode to Session.query.
+* DATAGRAPH-1272 - Release 5.1.15 (Lovelace SR15).
+
+
+Changes in version 5.2.3.RELEASE (2019-12-04)
+---------------------------------------------
+* DATAGRAPH-1269 - Upgrade to Neo4j OGM 3.2.3.
+* DATAGRAPH-1268 - Remove usage of deprecated Filter#setPropertyName..
+* DATAGRAPH-1267 - Release 5.2.3 (Moore SR3).
+* DATAGRAPH-1207 - Adjust log level in MetaDataDrivenConversionService.
+
+
+Changes in version 5.1.14.RELEASE (2019-12-04)
+----------------------------------------------
+* DATAGRAPH-1268 - Remove usage of deprecated Filter#setPropertyName..
+* DATAGRAPH-1266 - Release 5.1.14 (Lovelace SR14).
+* DATAGRAPH-1207 - Adjust log level in MetaDataDrivenConversionService.
+
+
+Changes in version 5.2.2.RELEASE (2019-11-18)
+---------------------------------------------
+* DATAGRAPH-1264 - Release 5.2.2 (Moore SR2).
+
+
+Changes in version 5.1.13.RELEASE (2019-11-18)
+----------------------------------------------
+* DATAGRAPH-1263 - Release 5.1.13 (Lovelace SR13).
+
+
+Changes in version 5.2.1.RELEASE (2019-11-04)
+---------------------------------------------
+* DATAGRAPH-1261 - Upgrade to Neo4j OGM 3.2.2.
+* DATAGRAPH-1256 - Release 5.2.1 (Moore SR1).
+
+
+Changes in version 5.1.12.RELEASE (2019-11-04)
+----------------------------------------------
+* DATAGRAPH-1262 - Upgrade to Neo4j OGM 3.1.15.
+* DATAGRAPH-1255 - Release 5.1.12 (Lovelace SR12).
+
+
 Changes in version 5.2.0.RELEASE (2019-09-30)
 ---------------------------------------------
 * DATAGRAPH-1253 - Upgrade to Neo4j OGM 3.2.1.
@@ -1570,3 +1648,9 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
+
+
+
+
+

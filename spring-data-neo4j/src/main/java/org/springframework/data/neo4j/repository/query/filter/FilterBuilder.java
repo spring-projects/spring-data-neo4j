@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,22 @@
 package org.springframework.data.neo4j.repository.query.filter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Stack;
+import java.util.function.Predicate;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
+import org.springframework.lang.Nullable;
 
 /**
+ * The name of this class is wrong: It builds a list of filters, not a single filter. Starting with Neo4j-OGM 4.0,
+ * there will be an actual filter builder in OGM and this class needs to be renamed.
+ *
  * @author Jasper Blues
  * @author Nicolas Mervaillie
  * @author Gerrit Meier
@@ -35,27 +42,40 @@ public abstract class FilterBuilder {
 	protected Part part;
 	protected BooleanOperator booleanOperator;
 	protected Class<?> entityType;
+	protected Predicate<Part> isInternalIdProperty = part -> false;
 
-	public static FilterBuilder forPartAndEntity(Part part, Class<?> entityType, BooleanOperator booleanOperator) {
+	public static FilterBuilder forPartAndEntity(Part part, Class<?> entityType, BooleanOperator booleanOperator,
+			Predicate<Part> isInternalIdProperty) {
+		FilterBuilder filterBuilder;
 		switch (part.getType()) {
 			case NEAR:
-				return new DistanceComparisonBuilder(part, booleanOperator, entityType);
+				filterBuilder = new DistanceComparisonBuilder(part, booleanOperator, entityType);
+				break;
 			case BETWEEN:
-				return new BetweenComparisonBuilder(part, booleanOperator, entityType);
+				filterBuilder = new BetweenComparisonBuilder(part, booleanOperator, entityType);
+				break;
 			case NOT_CONTAINING:
 			case CONTAINING:
-				return resolveMatchingContainsFilterBuilder(part, entityType, booleanOperator);
+				filterBuilder = resolveMatchingContainsFilterBuilder(part, entityType, booleanOperator);
+				break;
 			case IS_NULL:
 			case IS_NOT_NULL:
-				return new IsNullFilterBuilder(part, booleanOperator, entityType);
+				filterBuilder = new IsNullFilterBuilder(part, booleanOperator, entityType);
+				break;
 			case EXISTS:
-				return new ExistsFilterBuilder(part, booleanOperator, entityType);
+				filterBuilder = new ExistsFilterBuilder(part, booleanOperator, entityType);
+				break;
 			case TRUE:
 			case FALSE:
-				return new BooleanComparisonBuilder(part, booleanOperator, entityType);
+				filterBuilder = new BooleanComparisonBuilder(part, booleanOperator, entityType);
+				break;
 			default:
-				return new PropertyComparisonBuilder(part, booleanOperator, entityType);
+				filterBuilder = new PropertyComparisonBuilder(part, booleanOperator, entityType);
+				break;
 		}
+
+		filterBuilder.isInternalIdProperty = isInternalIdProperty;
+		return filterBuilder;
 	}
 
 	FilterBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
@@ -74,17 +94,63 @@ public abstract class FilterBuilder {
 		return part.getProperty().getSegment();
 	}
 
-	protected void setNestedAttributes(Part part, Filter filter) {
-		List<Filter.NestedPathSegment> segments = new ArrayList<>();
+	protected final NestedAttributes getNestedAttributes(Part part) {
+
 		PropertyPath property = part.getProperty();
-		if (property.hasNext()) {
-			filter.setOwnerEntityType(property.getOwningType().getType());
+		if (!property.hasNext()) {
+			return EMPTY_NESTED_ATTRIBUTES;
+		} else {
+			List<Filter.NestedPathSegment> segments = new ArrayList<>();
 			segments.add(new Filter.NestedPathSegment(property.getSegment(), property.getType()));
 			segments.addAll(deepNestedProperty(property));
-			filter.setPropertyName(property.getLeafProperty().getSegment());
-			filter.setNestedPath(segments.toArray(new Filter.NestedPathSegment[0]));
+			return new NestedAttributes(property.getOwningType().getType(), segments,
+					property.getLeafProperty().getSegment());
+		}
+	}
+
+	public static final NestedAttributes EMPTY_NESTED_ATTRIBUTES = new NestedAttributes(Void.class,
+			Collections.emptyList(), null);
+
+	protected static final class NestedAttributes {
+
+		private final Class<?> owningType;
+		private final List<Filter.NestedPathSegment> segments;
+		private final String leafPropertySegment;
+
+		NestedAttributes(Class<?> owningType, List<Filter.NestedPathSegment> segments,
+				@Nullable String leafPropertySegment) {
+			this.owningType = owningType;
+			this.segments = new ArrayList<>(segments);
+			this.leafPropertySegment = leafPropertySegment;
 		}
 
+		public Filter.NestedPathSegment[] getSegments() {
+			return segments.toArray(new Filter.NestedPathSegment[segments.size()]);
+		}
+
+		public String getLeafPropertySegment() {
+			return leafPropertySegment;
+		}
+
+		public boolean isEmpty() {
+			return this == EMPTY_NESTED_ATTRIBUTES;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+			NestedAttributes that = (NestedAttributes) o;
+			return owningType.equals(that.owningType) &&
+					segments.equals(that.segments) &&
+					Objects.equals(leafPropertySegment, that.leafPropertySegment);
+		}
+
+		@Override public int hashCode() {
+			return Objects.hash(owningType, segments, leafPropertySegment);
+		}
 	}
 
 	private List<Filter.NestedPathSegment> deepNestedProperty(PropertyPath path) {

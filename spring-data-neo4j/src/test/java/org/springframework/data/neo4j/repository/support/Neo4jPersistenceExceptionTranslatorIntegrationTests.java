@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,15 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.rules.ExpectedException.*;
 
 import java.time.Year;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.ogm.config.AutoIndexMode;
 import org.neo4j.ogm.exception.core.InvalidPropertyFieldException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,6 +36,8 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.assertj.core.api.Assertions.*;
+
 /**
  * @author Michael J. Simons
  * @soundtrack Opeth - Blackwater Park
@@ -47,19 +46,17 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 public class Neo4jPersistenceExceptionTranslatorIntegrationTests {
 
-	@Rule public final ExpectedException expectedException = none();
-
-	@Autowired private EntityWithInvalidPropertyRepository repository;
+	@Autowired
+	private EntityWithInvalidPropertyRepository repository;
 
 	@Test
 	public void invalidPropertyFieldExceptionShouldBeTranslated() {
 
-		expectedException.expect(TypeMismatchDataAccessException.class);
-		expectedException.expectCause(any(InvalidPropertyFieldException.class));
-		expectedException.expectMessage(
-				"'org.springframework.data.neo4j.domain.invalid.EntityWithInvalidProperty#year' is not persistable as property but has not been marked as transient.");
-
-		repository.save(new EntityWithInvalidProperty(Year.of(2018)));
+		assertThatExceptionOfType(TypeMismatchDataAccessException.class)
+				.isThrownBy(() -> repository
+						.save(new EntityWithInvalidProperty(Year.of(2018))))
+				.withCauseInstanceOf(InvalidPropertyFieldException.class)
+				.withMessageContaining("'org.springframework.data.neo4j.domain.invalid.EntityWithInvalidProperty#year' is not persistable as property but has not been marked as transient.");
 	}
 
 	@Configuration

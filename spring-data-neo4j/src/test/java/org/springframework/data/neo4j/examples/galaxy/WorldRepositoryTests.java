@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,13 @@
  */
 package org.springframework.data.neo4j.examples.galaxy;
 
-import static org.junit.Assert.*;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.examples.galaxy.domain.World;
@@ -30,6 +29,8 @@ import org.springframework.data.neo4j.examples.galaxy.repo.WorldRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * @author Nicolas Mervaillie
@@ -41,9 +42,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 @RunWith(SpringRunner.class)
 public class WorldRepositoryTests {
 
-	@Autowired WorldRepository worldRepository;
-
-	@Autowired TransactionTemplate transactionTemplate;
+	@Autowired
+	WorldRepository worldRepository;
 
 	boolean failed = false;
 
@@ -83,7 +83,7 @@ public class WorldRepositoryTests {
 			});
 		}
 		countDownLatch.await();
-		assertFalse(failed);
+		assertThat(failed).isFalse();
 	}
 
 	@Test(expected = IncorrectResultSizeDataAccessException.class) // DATAGRAPH-948

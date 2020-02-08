@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package org.springframework.data.neo4j.queries;
-
-import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -48,6 +46,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.Offset.offset;
 
 /**
  * @author Vince Bickers
@@ -85,13 +86,13 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				List<Map<String, Object>> graph = userRepository.getGraph();
-				assertNotNull(graph);
+				assertThat(graph).isNotNull();
 				int i = 0;
 				for (Map<String, Object> properties : graph) {
 					i++;
-					assertNotNull(properties);
+					assertThat(properties).isNotNull();
 				}
-				assertEquals(2, i);
+				assertThat(i).isEqualTo(2);
 			}
 		});
 	}
@@ -104,10 +105,10 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				List<Integer> ids = userRepository.getUserIds();
-				assertEquals(2, ids.size());
+				assertThat(ids.size()).isEqualTo(2);
 
 				List<Long> nodeIds = userRepository.getUserNodeIds();
-				assertEquals(2, nodeIds.size());
+				assertThat(nodeIds.size()).isEqualTo(2);
 			}
 		});
 	}
@@ -120,7 +121,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByName("Michal");
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -133,7 +134,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameUsingSpElWithObject(new User("Michal"));
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -146,7 +147,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameUsingSpElWithIndex("Michal");
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -159,7 +160,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameUsingSpElWithIndexColon("Michal");
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -172,7 +173,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameUsingSpElWithSpElExpression();
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -187,7 +188,7 @@ public class QueryIntegrationTests {
 				User userForSearch = new User("Michal");
 				userForSearch.setMiddleName("Hans");
 				User user = userRepository.findUserByNameAndMiddleNameUsingSpElWithObject(userForSearch);
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -200,7 +201,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameAndMiddleNameUsingSpElWithValue();
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -213,7 +214,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameAndSurnameUsingSpElIndexAndPlaceholderWithOneParameter("Michal");
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -226,7 +227,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameAndSurnameUsingSpElPropertyAndPlaceholderWithOneParameter("Michal");
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -239,7 +240,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameAndSurnameUsingSpElPropertyAndIndexWithOneParameter("Michal");
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -252,7 +253,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameAndSurnameUsingSpElPropertyTwice("Michal");
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -265,7 +266,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameAndSurnameUsingSpElPropertyAndSpElIndex("Michal");
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -278,7 +279,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameUsingNativeIndexAndNameAndSpElNameAndSpElIndex("Michal");
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -291,7 +292,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				int users = userRepository.findTotalUsers();
-				assertEquals(users, 2);
+				assertThat(2).isEqualTo(users);
 			}
 		});
 	}
@@ -304,7 +305,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				Collection<User> users = userRepository.getAllUsers();
-				assertEquals(users.size(), 2);
+				assertThat(2).isEqualTo(users.size());
 			}
 		});
 	}
@@ -317,7 +318,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameWithNamedParam("Michal");
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -330,7 +331,7 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameWithNamedParamWithoutParamAnnotation("Michal");
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -343,13 +344,13 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				Iterable<Map<String, Object>> users = userRepository.getUsersAsProperties();
-				assertNotNull(users);
+				assertThat(users).isNotNull();
 				int i = 0;
 				for (Map<String, Object> properties : users) {
 					i++;
-					assertNotNull(properties);
+					assertThat(properties).isNotNull();
 				}
-				assertEquals(2, i);
+				assertThat(i).isEqualTo(2);
 			}
 		});
 	}
@@ -362,17 +363,19 @@ public class QueryIntegrationTests {
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
-				assertEquals("There should be some users in the database", 3, userRepository.findTotalUsers());
+				assertThat(userRepository.findTotalUsers())
+						.as("There should be some users in the database").isEqualTo(3);
 
 				Iterable<UserQueryResult> expected = Arrays.asList(new UserQueryResult("Sheila", 29),
 						new UserQueryResult("Gary", 32), new UserQueryResult("Vince", 66));
 
 				Iterable<UserQueryResult> queryResult = userRepository.retrieveAllUsersAndTheirAges();
-				assertNotNull("The query result shouldn't be null", queryResult);
-				assertEquals(expected, queryResult);
+				assertThat(queryResult).as("The query result shouldn't be null")
+						.isNotNull();
+				assertThat(queryResult).isEqualTo(expected);
 				for (UserQueryResult userQueryResult : queryResult) {
-					assertNotNull(userQueryResult.getUserId());
-					assertNotNull(userQueryResult.getId());
+					assertThat(userQueryResult.getUserId()).isNotNull();
+					assertThat(userQueryResult.getId()).isNotNull();
 				}
 			}
 		});
@@ -390,8 +393,9 @@ public class QueryIntegrationTests {
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				// NB: UnmanagedUserPojo is not scanned with the other domain classes
 				UnmanagedUserPojo queryResult = userRepository.findIndividualUserAsDifferentObject("Jeff");
-				assertNotNull("The query result shouldn't be null", queryResult);
-				assertEquals("Jeff", queryResult.getName());
+				assertThat(queryResult).as("The query result shouldn't be null")
+						.isNotNull();
+				assertThat(queryResult.getName()).isEqualTo("Jeff");
 			}
 		});
 	}
@@ -405,9 +409,11 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				UserQueryResultObject result = userRepository.findIndividualUserAsProxiedObject("Abraham");
-				assertNotNull("The query result shouldn't be null", result);
-				assertEquals("The wrong user was returned", "Abraham", result.getName());
-				assertEquals("The wrong user was returned", 31, result.getAgeOfUser());
+				assertThat(result).as("The query result shouldn't be null").isNotNull();
+				assertThat(result.getName()).as("The wrong user was returned")
+						.isEqualTo("Abraham");
+				assertThat(result.getAgeOfUser()).as("The wrong user was returned")
+						.isEqualTo(31);
 			}
 		});
 	}
@@ -422,18 +428,20 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				Iterable<RichUserQueryResult> usersByGender = userRepository.findUsersByGender(Gender.FEMALE);
-				assertNotNull("The resultant users list shouldn't be null", usersByGender);
+				assertThat(usersByGender).as("The resultant users list shouldn't be null")
+						.isNotNull();
 
 				Iterator<RichUserQueryResult> userIterator = usersByGender.iterator();
-				assertTrue(userIterator.hasNext());
+				assertThat(userIterator.hasNext()).isTrue();
 				RichUserQueryResult userQueryResult = userIterator.next();
-				assertEquals(Gender.FEMALE, userQueryResult.getUserGender());
-				assertEquals("Sarah Taylor", userQueryResult.getUserName());
-				assertEquals(Year.of(1979), userQueryResult.getYearOfBirth());
-				assertEquals(BigInteger.valueOf(3456789), userQueryResult.getUserAccount());
-				assertArrayEquals(new BigDecimal[] { BigDecimal.valueOf(12345.6), BigDecimal.valueOf(45678.9) },
-						userQueryResult.getUserDeposits());
-				assertFalse(userIterator.hasNext());
+				assertThat(userQueryResult.getUserGender()).isEqualTo(Gender.FEMALE);
+				assertThat(userQueryResult.getUserName()).isEqualTo("Sarah Taylor");
+				assertThat(userQueryResult.getYearOfBirth()).isEqualTo(Year.of(1979));
+				assertThat(userQueryResult.getUserAccount())
+						.isEqualTo(BigInteger.valueOf(3456789));
+				assertThat(userQueryResult.getUserDeposits())
+						.isEqualTo(new BigDecimal[] {BigDecimal.valueOf(12345.6), BigDecimal.valueOf(45678.9)});
+				assertThat(userIterator.hasNext()).isFalse();
 			}
 		});
 	}
@@ -446,9 +454,9 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User michal = userRepository.findUserByName("Michal");
-				assertNotNull(michal);
+				assertThat(michal).isNotNull();
 				User user = userRepository.loadUserById(michal);
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -461,9 +469,9 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User michal = userRepository.findUserByName("Michal");
-				assertNotNull(michal);
+				assertThat(michal).isNotNull();
 				User user = userRepository.loadUserByNamedId(michal);
-				assertEquals("Michal", user.getName());
+				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
 	}
@@ -480,7 +488,7 @@ public class QueryIntegrationTests {
 				for (User user : users) {
 					count++;
 				}
-				assertEquals(2, count);
+				assertThat(count).isEqualTo(2);
 			}
 		});
 	}
@@ -495,7 +503,7 @@ public class QueryIntegrationTests {
 				userRepository.setNamesNull(null);
 				Iterable<User> users = userRepository.findAll();
 				for (User u : users) {
-					assertNull(u.getName());
+					assertThat(u.getName()).isNull();
 				}
 			}
 		});
@@ -508,15 +516,17 @@ public class QueryIntegrationTests {
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
-				assertEquals("There should be some users in the database", 2, userRepository.findTotalUsers());
+				assertThat(userRepository.findTotalUsers())
+						.as("There should be some users in the database").isEqualTo(2);
 
 				Iterable<UserQueryResult> expected = Arrays.asList(new UserQueryResult(null, 0), new UserQueryResult(null, 0));
 
 				Iterable<UserQueryResult> queryResult = userRepository.retrieveAllUsersAndTheirAges();
-				assertNotNull("The query result shouldn't be null", queryResult);
-				assertEquals(expected, queryResult);
+				assertThat(queryResult).as("The query result shouldn't be null")
+						.isNotNull();
+				assertThat(queryResult).isEqualTo(expected);
 				for (UserQueryResult userQueryResult : queryResult) {
-					assertNotNull(userQueryResult.getUserId());
+					assertThat(userQueryResult.getUserId()).isNotNull();
 				}
 			}
 		});
@@ -530,9 +540,11 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				EntityWrappingQueryResult wrappedUser = userRepository.findWrappedUserByName("Barry");
-				assertNotNull("The loaded wrapper object shouldn't be null", wrappedUser);
-				assertNotNull("The enclosed user shouldn't be null", wrappedUser.getUser());
-				assertEquals("Barry", wrappedUser.getUser().getName());
+				assertThat(wrappedUser).as("The loaded wrapper object shouldn't be null")
+						.isNotNull();
+				assertThat(wrappedUser.getUser())
+						.as("The enclosed user shouldn't be null").isNotNull();
+				assertThat(wrappedUser.getUser().getName()).isEqualTo("Barry");
 			}
 		});
 	}
@@ -546,18 +558,19 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				EntityWrappingQueryResult result = userRepository.findWrappedUserAndFriendsDepth1("Daniela");
-				assertNotNull("The result shouldn't be null", result);
-				assertNotNull("The enclosed user shouldn't be null", result.getUser());
-				assertEquals("Daniela", result.getUser().getName());
-				assertEquals(2, result.getFriends().size());
+				assertThat(result).as("The result shouldn't be null").isNotNull();
+				assertThat(result.getUser()).as("The enclosed user shouldn't be null")
+						.isNotNull();
+				assertThat(result.getUser().getName()).isEqualTo("Daniela");
+				assertThat(result.getFriends().size()).isEqualTo(2);
 				List<String> friends = new ArrayList<>();
 				for (User u : result.getFriends()) {
 					friends.add(u.getName());
 				}
-				assertTrue(friends.contains("Ethan"));
-				assertTrue(friends.contains("Finn"));
+				assertThat(friends.contains("Ethan")).isTrue();
+				assertThat(friends.contains("Finn")).isTrue();
 				// we expect friends to be mapped since the relationships were returned
-				assertEquals(2, result.getUser().getFriends().size());
+				assertThat(result.getUser().getFriends().size()).isEqualTo(2);
 			}
 		});
 	}
@@ -571,26 +584,30 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				EntityWrappingQueryResult result = userRepository.findWrappedUserAndRatingsByName("Gary");
-				assertNotNull("The loaded wrapper object shouldn't be null", result);
-				assertNotNull("The enclosed user shouldn't be null", result.getUser());
-				assertEquals("Gary", result.getUser().getName());
-				assertEquals(2, result.getRatings().size());
+				assertThat(result).as("The loaded wrapper object shouldn't be null")
+						.isNotNull();
+				assertThat(result.getUser()).as("The enclosed user shouldn't be null")
+						.isNotNull();
+				assertThat(result.getUser().getName()).isEqualTo("Gary");
+				assertThat(result.getRatings().size()).isEqualTo(2);
 				for (Rating rating : result.getRatings()) {
 					if (rating.getStars() == 4) {
-						assertEquals("The Hobbit: An Unexpected Journey", rating.getMovie().getName());
+						assertThat(rating.getMovie().getName())
+								.isEqualTo("The Hobbit: An Unexpected Journey");
 					} else {
-						assertEquals("Star Wars: The Force Awakens", rating.getMovie().getName());
+						assertThat(rating.getMovie().getName())
+								.isEqualTo("Star Wars: The Force Awakens");
 					}
 				}
 
-				assertEquals(4.5f, result.getAvgRating(), 0);
-				assertEquals(2, result.getMovies().length);
+				assertThat(result.getAvgRating()).isCloseTo(4.5f, offset(0f));
+				assertThat(result.getMovies().length).isEqualTo(2);
 				List<String> titles = new ArrayList<>();
 				for (TempMovie movie : result.getMovies()) {
 					titles.add(movie.getName());
 				}
-				assertTrue(titles.contains("The Hobbit: An Unexpected Journey"));
-				assertTrue(titles.contains("Star Wars: The Force Awakens"));
+				assertThat(titles.contains("The Hobbit: An Unexpected Journey")).isTrue();
+				assertThat(titles.contains("Star Wars: The Force Awakens")).isTrue();
 			}
 		});
 	}
@@ -604,18 +621,19 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				EntityWrappingQueryResult result = userRepository.findWrappedUserAndFriendsDepth0("Ingrid");
-				assertNotNull("The result shouldn't be null", result);
-				assertNotNull("The enclosed user shouldn't be null", result.getUser());
-				assertEquals("Ingrid", result.getUser().getName());
-				assertEquals(2, result.getFriends().size());
+				assertThat(result).as("The result shouldn't be null").isNotNull();
+				assertThat(result.getUser()).as("The enclosed user shouldn't be null")
+						.isNotNull();
+				assertThat(result.getUser().getName()).isEqualTo("Ingrid");
+				assertThat(result.getFriends().size()).isEqualTo(2);
 				List<String> friends = new ArrayList<>();
 				for (User u : result.getFriends()) {
 					friends.add(u.getName());
 				}
-				assertTrue(friends.contains("Kate"));
-				assertTrue(friends.contains("Jake"));
+				assertThat(friends.contains("Kate")).isTrue();
+				assertThat(friends.contains("Jake")).isTrue();
 				// we do not expect friends to be mapped since the relationships were not returned
-				assertEquals(0, result.getUser().getFriends().size());
+				assertThat(result.getUser().getFriends().size()).isEqualTo(0);
 			}
 		});
 	}
@@ -629,40 +647,48 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				List<EntityWrappingQueryResult> results = userRepository.findAllUserRatings();
-				assertEquals(2, results.size());
+				assertThat(results.size()).isEqualTo(2);
 				EntityWrappingQueryResult result = results.get(0);
 
-				assertNotNull("The loaded wrapper object shouldn't be null", result);
-				assertNotNull("The enclosed user shouldn't be null", result.getUser());
-				assertEquals("Harry", result.getUser().getName());
-				assertEquals(1, result.getRatings().size());
+				assertThat(result).as("The loaded wrapper object shouldn't be null")
+						.isNotNull();
+				assertThat(result.getUser()).as("The enclosed user shouldn't be null")
+						.isNotNull();
+				assertThat(result.getUser().getName()).isEqualTo("Harry");
+				assertThat(result.getRatings().size()).isEqualTo(1);
 				Rating rating = result.getRatings().get(0);
-				assertEquals("The Hobbit: An Unexpected Journey", rating.getMovie().getName());
-				assertEquals(3, rating.getStars());
-				assertEquals(3f, result.getAvgRating(), 0);
-				assertEquals(1, result.getMovies().length);
-				assertEquals("The Hobbit: An Unexpected Journey", result.getMovies()[0].getName());
+				assertThat(rating.getMovie().getName())
+						.isEqualTo("The Hobbit: An Unexpected Journey");
+				assertThat(rating.getStars()).isEqualTo(3);
+				assertThat(result.getAvgRating()).isCloseTo(3f, offset(0f));
+				assertThat(result.getMovies().length).isEqualTo(1);
+				assertThat(result.getMovies()[0].getName())
+						.isEqualTo("The Hobbit: An Unexpected Journey");
 
 				result = results.get(1);
-				assertNotNull("The loaded wrapper object shouldn't be null", result);
-				assertNotNull("The enclosed user shouldn't be null", result.getUser());
-				assertEquals("Gary", result.getUser().getName());
+				assertThat(result).as("The loaded wrapper object shouldn't be null")
+						.isNotNull();
+				assertThat(result.getUser()).as("The enclosed user shouldn't be null")
+						.isNotNull();
+				assertThat(result.getUser().getName()).isEqualTo("Gary");
 				for (Rating r : result.getRatings()) {
 					if (r.getStars() == 4) {
-						assertEquals("The Hobbit: An Unexpected Journey", r.getMovie().getName());
+						assertThat(r.getMovie().getName())
+								.isEqualTo("The Hobbit: An Unexpected Journey");
 					} else {
-						assertEquals("Star Wars: The Force Awakens", r.getMovie().getName());
+						assertThat(r.getMovie().getName())
+								.isEqualTo("Star Wars: The Force Awakens");
 					}
 				}
 
-				assertEquals(4.5f, result.getAvgRating(), 0);
-				assertEquals(2, result.getMovies().length);
+				assertThat(result.getAvgRating()).isCloseTo(4.5f, offset(0f));
+				assertThat(result.getMovies().length).isEqualTo(2);
 				List<String> titles = new ArrayList<>();
 				for (TempMovie movie : result.getMovies()) {
 					titles.add(movie.getName());
 				}
-				assertTrue(titles.contains("The Hobbit: An Unexpected Journey"));
-				assertTrue(titles.contains("Star Wars: The Force Awakens"));
+				assertThat(titles.contains("The Hobbit: An Unexpected Journey")).isTrue();
+				assertThat(titles.contains("Star Wars: The Force Awakens")).isTrue();
 			}
 		});
 	}
@@ -676,10 +702,13 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				UserQueryResultObject result = userRepository.findWrappedUserAsProxiedObject("Abraham");
-				assertNotNull("The query result shouldn't be null", result);
-				assertNotNull("The mapped user shouldn't be null", result.getUser());
-				assertEquals("The wrong user was returned", "Abraham", result.getUser().getName());
-				assertEquals("The wrong user was returned", 31, result.getAgeOfUser());
+				assertThat(result).as("The query result shouldn't be null").isNotNull();
+				assertThat(result.getUser()).as("The mapped user shouldn't be null")
+						.isNotNull();
+				assertThat(result.getUser().getName()).as("The wrong user was returned")
+						.isEqualTo("Abraham");
+				assertThat(result.getAgeOfUser()).as("The wrong user was returned")
+						.isEqualTo(31);
 			}
 		});
 	}
@@ -692,8 +721,8 @@ public class QueryIntegrationTests {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				EntityWrappingQueryResult result = userRepository.findAllRatingsNull();
-				assertNotNull(result);
-				assertEquals(0, result.getAllRatings().size());
+				assertThat(result).isNotNull();
+				assertThat(result.getAllRatings().size()).isEqualTo(0);
 			}
 		});
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,6 +141,13 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	@Override
 	public boolean isIdProperty() {
 		return propertyType.idProperty;
+	}
+
+	/**
+	 * @return True if this property describes the internal ID property.
+	 */
+	public boolean isInternalIdProperty() {
+		return propertyType == PropertyType.INTERNAL_ID_PROPERTY;
 	}
 
 	PropertyType getPropertyType() {

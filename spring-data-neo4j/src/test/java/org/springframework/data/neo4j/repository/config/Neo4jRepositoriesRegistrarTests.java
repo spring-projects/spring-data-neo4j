@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
 import java.util.Arrays;
 
 import org.junit.Before;
@@ -29,6 +26,8 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.StandardAnnotationMetadata;
 import org.springframework.data.neo4j.repository.sample.UserRepository;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit test for {@link Neo4jRepositoriesRegistrar}.
@@ -56,7 +55,7 @@ public class Neo4jRepositoriesRegistrarTests {
 		registrar.registerBeanDefinitions(metadata, registry);
 
 		Iterable<String> names = Arrays.asList(registry.getBeanDefinitionNames());
-		assertThat(names, hasItems("userRepository"));
+		assertThat(names).contains("userRepository");
 	}
 
 	@EnableNeo4jRepositories(basePackageClasses = UserRepository.class)

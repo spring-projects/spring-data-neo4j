@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 package org.springframework.data.neo4j.repository.support;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
 
 import org.junit.After;
 import org.junit.Before;
@@ -37,6 +34,8 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Angrish
@@ -70,28 +69,28 @@ public class TransactionalRepositoryTests {
 	public void simpleManipulatingOperation() {
 
 		repository.save(new User("foo", "bar", "foo@bar.de"));
-		assertThat(transactionManager.getTransactionRequests(), is(1));
+		assertThat(transactionManager.getTransactionRequests()).isEqualTo(1);
 	}
 
 	@Test
 	public void unannotatedFinder() {
 
 		repository.findByEmailAddress("foo@bar.de");
-		assertThat(transactionManager.getTransactionRequests(), is(0));
+		assertThat(transactionManager.getTransactionRequests()).isEqualTo(0);
 	}
 
 	@Test
 	public void invokeTransactionalFinder() {
 
 		repository.findByAnnotatedQuery("foo@bar.de");
-		assertThat(transactionManager.getTransactionRequests(), is(1));
+		assertThat(transactionManager.getTransactionRequests()).isEqualTo(1);
 	}
 
 	@Test
 	public void invokeRedeclaredMethod() {
 
 		repository.findById(1L);
-		assertFalse(transactionManager.getDefinition().isReadOnly());
+		assertThat(transactionManager.getDefinition().isReadOnly()).isFalse();
 	}
 
 	@Test
@@ -100,7 +99,7 @@ public class TransactionalRepositoryTests {
 		User user = repository.save(new User("foo", "bar", "foo@bar.de"));
 		repository.deleteById(user.getId());
 
-		assertFalse(transactionManager.getDefinition().isReadOnly());
+		assertThat(transactionManager.getDefinition().isReadOnly()).isFalse();
 	}
 
 	static class DelegatingTransactionManager implements PlatformTransactionManager {

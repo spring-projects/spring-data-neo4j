@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +26,8 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Integration test for the combination of JavaConfig and an {@link Repositories} wrapper.
@@ -54,6 +53,6 @@ public class RepositoriesJavaConfigTests {
 
 	@Test
 	public void neo4jRepositoriesShouldBeRegistered() {
-		assertThat(repositories.hasRepositoryFor(User.class), is(true));
+		assertThat(repositories.hasRepositoryFor(User.class)).isTrue();
 	}
 }

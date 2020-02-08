@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 package org.springframework.data.neo4j.integration.constructors;
 
 import static java.util.stream.Collectors.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,7 +29,6 @@ import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 import org.assertj.core.util.DateUtil;
-import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -98,8 +97,8 @@ public class PersistenceConstructorsTests {
 		session.clear();
 
 		List<Person> persons = iterableToList(personRepository.findAll());
-		assertEquals(1, persons.size());
-		assertEquals("foo", persons.get(0).getName());
+		assertThat(persons.size()).isEqualTo(1);
+		assertThat(persons.get(0).getName()).isEqualTo("foo");
 	}
 
 	@Test
@@ -112,16 +111,17 @@ public class PersistenceConstructorsTests {
 		session.clear();
 
 		List<Person> persons = iterableToList(personRepository.findAll());
-		assertEquals(2, persons.size());
+		assertThat(persons.size()).isEqualTo(2);
 		Person person1 = persons.stream().filter(p -> p.equals(person)).findFirst().get();
-		assertEquals("foo", person1.getName());
-		assertEquals(1, person1.getFriendships().size());
+		assertThat(person1.getName()).isEqualTo("foo");
+		assertThat(person1.getFriendships().size()).isEqualTo(1);
 
 		Friendship friendship = person.getFriendships().get(0);
-		assertEquals(person, friendship.getPersonStartNode());
-		assertEquals(friend, friendship.getPersonEndNode());
-		assertTrue(DateUtil.timeDifference(friendship.getTimestamp(), new Date()) < 1000);
-		assertEquals(new Point(1, 2), friendship.getLocation());
+		assertThat(friendship.getPersonStartNode()).isEqualTo(person);
+		assertThat(friendship.getPersonEndNode()).isEqualTo(friend);
+		assertThat(DateUtil.timeDifference(friendship.getTimestamp(), new Date()) < 1000)
+				.isTrue();
+		assertThat(friendship.getLocation()).isEqualTo(new Point(1, 2));
 	}
 
 	@Test
@@ -135,7 +135,7 @@ public class PersistenceConstructorsTests {
 			pmcRepository.findAll();
 			fail("Should have raised an exception");
 		} catch (InvalidDataAccessApiUsageException e) {
-			assertEquals(MappingException.class, e.getCause().getClass());
+			assertThat(e.getCause().getClass()).isEqualTo(MappingException.class);
 		}
 	}
 
@@ -147,10 +147,10 @@ public class PersistenceConstructorsTests {
 		session.clear();
 
 		List<PersonWithAnnotatedPersistenceConstructor> persons = iterableToList(papcRepository.findAll());
-		assertEquals(1, persons.size());
+		assertThat(persons.size()).isEqualTo(1);
 		PersonWithAnnotatedPersistenceConstructor person = persons.get(0);
-		assertEquals("foo", person.getFirstName());
-		assertEquals("bar", person.getLastName());
+		assertThat(person.getFirstName()).isEqualTo("foo");
+		assertThat(person.getLastName()).isEqualTo("bar");
 	}
 
 	// This test is not really representative because atm relations are not passed to constructor by OGM
@@ -162,9 +162,9 @@ public class PersistenceConstructorsTests {
 		session.clear();
 
 		List<PersonWithManyToOneRel> persons = iterableToList(manyToOneRepository.findAll());
-		assertEquals(1, persons.size());
-		assertEquals("foo", persons.get(0).getName());
-		assertEquals("ADMIN", persons.get(0).getGroup().getName());
+		assertThat(persons.size()).isEqualTo(1);
+		assertThat(persons.get(0).getName()).isEqualTo("foo");
+		assertThat(persons.get(0).getGroup().getName()).isEqualTo("ADMIN");
 	}
 
 	@Test
@@ -175,8 +175,8 @@ public class PersistenceConstructorsTests {
 		session.clear();
 
 		List<PersonWithFinalName> persons = iterableToList(pfnRepository.findAll());
-		assertEquals(1, persons.size());
-		assertEquals("foo", persons.get(0).getName());
+		assertThat(persons.size()).isEqualTo(1);
+		assertThat(persons.get(0).getName()).isEqualTo("foo");
 	}
 
 	@Test
@@ -187,9 +187,9 @@ public class PersistenceConstructorsTests {
 		session.clear();
 
 		List<PersonWithConverter> persons = iterableToList(pwcRepository.findAll());
-		assertEquals(1, persons.size());
-		assertEquals("foo", persons.get(0).getName());
-		assertEquals(date, persons.get(0).getBirthDate());
+		assertThat(persons.size()).isEqualTo(1);
+		assertThat(persons.get(0).getName()).isEqualTo("foo");
+		assertThat(persons.get(0).getBirthDate()).isEqualTo(date);
 	}
 
 	@Test
@@ -200,9 +200,9 @@ public class PersistenceConstructorsTests {
 		session.clear();
 
 		List<PersonWithCompositeAttribute> persons = iterableToList(pwcaRepository.findAll());
-		assertEquals(1, persons.size());
-		assertEquals("foo", persons.get(0).getName());
-		assertEquals(location, persons.get(0).getLocation());
+		assertThat(persons.size()).isEqualTo(1);
+		assertThat(persons.get(0).getName()).isEqualTo("foo");
+		assertThat(persons.get(0).getLocation()).isEqualTo(location);
 	}
 
 	@Test
@@ -213,8 +213,8 @@ public class PersistenceConstructorsTests {
 		session.clear();
 
 		Collection<KotlinPerson> persons = session.loadAll(KotlinPerson.class);
-		assertEquals(1, persons.size());
-		assertEquals("foo", persons.iterator().next().getName());
+		assertThat(persons.size()).isEqualTo(1);
+		assertThat(persons.iterator().next().getName()).isEqualTo("foo");
 	}
 
 	@Test // DATAGRAPH-1220
@@ -230,15 +230,15 @@ public class PersistenceConstructorsTests {
 				.execute(t -> kotlinDataPersonRepository.save(KotlinPersonKt.newDataPerson("Data Person 2")));
 
 		// Assert that the id is actually null without database interaction
-		assertThat(person0.getId(), is(nullValue()));
-		assertThat(person1.getId(), is(notNullValue()));
-		assertThat(person2.getId(), is(notNullValue()));
+		assertThat(person0.getId()).isNull();
+		assertThat(person1.getId()).isNotNull();
+		assertThat(person2.getId()).isNotNull();
 
 		// Load the rest
 		transactionTemplate.execute(t -> {
 			List<KotlinDataPerson> loadedPersons = kotlinDataPersonRepository.findAll();
-			assertThat(loadedPersons.size(), is(2));
-			assertThat(loadedPersons, CoreMatchers.hasItems(person1, person2));
+			assertThat(loadedPersons.size()).isEqualTo(2);
+			assertThat(loadedPersons).contains(person1, person2);
 			return null;
 		});
 
@@ -246,8 +246,8 @@ public class PersistenceConstructorsTests {
 			Optional<KotlinDataPerson> loadedPerson1 = kotlinDataPersonRepository.findById(person1.getId());
 			Optional<KotlinDataPerson> loadedPerson2 = kotlinDataPersonRepository.findById(person2.getId());
 
-			assertThat(loadedPerson1.isPresent(), is(true));
-			assertThat(loadedPerson2.isPresent(), is(true));
+			assertThat(loadedPerson1.isPresent()).isTrue();
+			assertThat(loadedPerson2.isPresent()).isTrue();
 			return null;
 		});
 
@@ -255,7 +255,7 @@ public class PersistenceConstructorsTests {
 		transactionTemplate.execute(t -> {
 
 			Optional<KotlinDataPerson> loadedPerson1 = kotlinDataPersonRepository.findByName(person1.getName());
-			assertThat(loadedPerson1.isPresent(), is(true));
+			assertThat(loadedPerson1.isPresent()).isTrue();
 			return null;
 		});
 	}
@@ -272,12 +272,13 @@ public class PersistenceConstructorsTests {
 				new HashMap<>());
 
 		List<PersonProjection> personsWithMutualFriends = personRepository.findPersonWithMutualFriendsByName("Buffy");
-		assertEquals(1, personsWithMutualFriends.size());
-		assertEquals(3L, personsWithMutualFriends.get(0).getNumberOfFriends());
+		assertThat(personsWithMutualFriends.size()).isEqualTo(1);
+		assertThat(personsWithMutualFriends.get(0).getNumberOfFriends()).isEqualTo(3L);
 
 		List<String> namesOfMutalFriends = personsWithMutualFriends.get(0).getMutualFriends().stream().map(Person::getName)
 				.collect(toList());
-		assertTrue(namesOfMutalFriends.containsAll(Arrays.asList("Willow", "Xander")));
+		assertThat(namesOfMutalFriends.containsAll(Arrays.asList("Willow", "Xander")))
+				.isTrue();
 	}
 
 	@Before

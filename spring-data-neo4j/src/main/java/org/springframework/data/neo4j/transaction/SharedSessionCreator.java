@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,12 @@ import static org.neo4j.ogm.transaction.Transaction.Status.*;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -81,8 +83,12 @@ public class SharedSessionCreator {
 
 		private final SessionFactory sessionFactory;
 
+		private final Method queryMethod;
+
 		public SharedSessionInvocationHandler(SessionFactory sessionFactory) {
 			this.sessionFactory = sessionFactory;
+			this.queryMethod = ReflectionUtils
+					.findMethod(Session.class, "query", String.class, Map.class, boolean.class);
 		}
 
 		@Override
@@ -102,12 +108,27 @@ public class SharedSessionCreator {
 					return this.sessionFactory.metaData();
 				case "beginTransaction":
 					throw new IllegalStateException(
-							"Not allowed to create transaction on shared Session - " + "use Spring transactions instead");
+							"Not allowed to create transaction on shared Session - "
+									+ "use Spring transactions instead");
 				default:
-					Function<Session, Object> methodCall = targetSession -> ReflectionUtils.invokeMethod(method, targetSession,
-							args);
+					Function<Session, Object> methodCall;
+					if (isGenericQueryMethod(method)) {
+						Object[] newArgs = new Object[args.length + 1];
+						System.arraycopy(args, 0, newArgs, 0, args.length);
+						newArgs[newArgs.length - 1] = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+						methodCall = targetSession -> ReflectionUtils.invokeMethod(queryMethod, targetSession, newArgs);
+					} else {
+						methodCall = targetSession -> ReflectionUtils.invokeMethod(method, targetSession, args);
+					}
 					return invokeInTransaction(methodName, methodCall);
 			}
+		}
+
+		private static boolean isGenericQueryMethod(Method method) {
+
+			Parameter[] parameters = method.getParameters();
+			return "query".equals(method.getName()) && method.getParameterCount() == 2 &&
+					parameters[0].getType() == String.class && parameters[1].getType() == Map.class;
 		}
 
 		private Object invokeInTransaction(String methodName, Function<Session, Object> methodCall) {
@@ -118,8 +139,10 @@ public class SharedSessionCreator {
 
 			if (TRANSACTION_REQUIRING_METHODS.contains(methodName)) {
 				if (targetSession == null
-						|| (!TransactionSynchronizationManager.isActualTransactionActive() && targetSession.getTransaction() != null
-								&& EnumSet.of(CLOSED, COMMITTED, ROLLEDBACK).contains(targetSession.getTransaction().status()))) {
+						|| (!TransactionSynchronizationManager.isActualTransactionActive()
+						&& targetSession.getTransaction() != null
+						&& EnumSet.of(CLOSED, COMMITTED, ROLLEDBACK)
+						.contains(targetSession.getTransaction().status()))) {
 					throw new IllegalStateException("No Session with actual transaction available "
 							+ "for current thread - cannot reliably process '" + methodName + "' call");
 				}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.repositories;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.neo4j.test.GraphDatabaseServiceAssert.assertThat;
 
 import java.util.HashMap;
@@ -25,7 +25,6 @@ import java.util.stream.StreamSupport;
 
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -114,7 +113,8 @@ public class ProgrammaticRepositoryTests {
 		params.put("title", "PF");
 		assertThat(serverControls.graph()).containsNode("MATCH (n:Movie) WHERE n.title = $title RETURN n", params);
 
-		assertEquals(1, StreamSupport.stream(movieRepository.findAll().spliterator(), false).count());
+		assertThat(StreamSupport.stream(movieRepository.findAll().spliterator(), false)
+				.count()).isEqualTo(1);
 	}
 
 	@Test // DATAGRAPH-847
@@ -129,10 +129,10 @@ public class ProgrammaticRepositoryTests {
 		userRepository.save(userA);
 		userRepository.save(userB);
 
-		assertEquals(2, userRepository.count());
+		assertThat(userRepository.count()).isEqualTo(2);
 
 		userRepository.deleteAll();
-		assertEquals(0, userRepository.count());
+		assertThat(userRepository.count()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-813
@@ -146,10 +146,10 @@ public class ProgrammaticRepositoryTests {
 		userA.setName("A");
 
 		userRepository.save(userA);
-		Assert.assertEquals(1, userRepository.count());
+		assertThat(userRepository.count()).isEqualTo(1);
 
-		Assert.assertEquals(new Long(1), userRepository.deleteByName("A"));
-		Assert.assertEquals(0, userRepository.count());
+		assertThat(userRepository.deleteByName("A")).isEqualTo(new Long(1));
+		assertThat(userRepository.count()).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-813
@@ -165,14 +165,14 @@ public class ProgrammaticRepositoryTests {
 		userRepository.save(userA);
 		userRepository.save(userAClone);
 
-		Assert.assertEquals(2, userRepository.count());
+		assertThat(userRepository.count()).isEqualTo(2);
 
 		List<Long> deletedUserIds = userRepository.removeByName("A");
-		Assert.assertEquals(2, deletedUserIds.size());
+		assertThat(deletedUserIds.size()).isEqualTo(2);
 
 		Assertions.assertThat(deletedUserIds).containsExactlyInAnyOrder(userA.getId(), userAClone.getId());
 
-		Assert.assertEquals(0, userRepository.count());
+		assertThat(userRepository.count()).isEqualTo(0);
 	}
 
 	@Test
@@ -190,11 +190,11 @@ public class ProgrammaticRepositoryTests {
 
 		userRepository.save(userA);
 
-		Assert.assertEquals(2, userRepository.count());
+		assertThat(userRepository.count()).isEqualTo(2);
 
 		userRepository.deleteByName("A");
 
-		Assert.assertEquals(1, userRepository.count());
+		assertThat(userRepository.count()).isEqualTo(1);
 	}
 
 	@Test // DATAGRAPH-813
@@ -209,6 +209,6 @@ public class ProgrammaticRepositoryTests {
 
 		userRepository.save(userA);
 
-		Assert.assertEquals(new Long(1), userRepository.countByName("A"));
+		assertThat(userRepository.countByName("A")).isEqualTo(new Long(1));
 	}
 }

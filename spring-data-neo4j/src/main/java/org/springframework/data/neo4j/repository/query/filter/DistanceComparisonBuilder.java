@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,13 +107,14 @@ class DistanceComparisonBuilder extends FilterBuilder {
 
 		NativeDistanceComparison distanceComparison = NativeDistanceComparison
 				.distanceComparisonFor(new DistanceFromNativePoint(spatialPoint, meters));
+		NestedAttributes nestedAttributes = getNestedAttributes(part);
 
 		String propertyName = super.part.getProperty().getLeafProperty().getSegment();
 		Filter filter = new Filter(propertyName, distanceComparison, ComparisonOperator.LESS_THAN);
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
-		setNestedAttributes(part, filter);
+		filter.setNestedPath(nestedAttributes.getSegments());
 		return filter;
 	}
 
@@ -135,11 +136,13 @@ class DistanceComparisonBuilder extends FilterBuilder {
 			}
 		};
 
-		Filter filter = new Filter(distanceComparison, ComparisonOperator.LESS_THAN);
+		NestedAttributes nestedAttributes = getNestedAttributes(part);
+
+		Filter filter = new Filter(nestedAttributes.getLeafPropertySegment(), distanceComparison, ComparisonOperator.LESS_THAN);
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
-		setNestedAttributes(part, filter);
+		filter.setNestedPath(nestedAttributes.getSegments());
 		return filter;
 	}
 

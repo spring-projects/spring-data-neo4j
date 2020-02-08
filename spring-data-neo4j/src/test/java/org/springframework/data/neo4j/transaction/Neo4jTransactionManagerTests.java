@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  */
 package org.springframework.data.neo4j.transaction;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.BDDMockito.*;
 
 import java.util.ArrayList;
@@ -70,10 +71,12 @@ public class Neo4jTransactionManagerTests {
 
 	@After
 	public void tearDown() throws Exception {
-		assertTrue(TransactionSynchronizationManager.getResourceMap().isEmpty());
-		assertFalse(TransactionSynchronizationManager.isSynchronizationActive());
-		assertFalse(TransactionSynchronizationManager.isCurrentTransactionReadOnly());
-		assertFalse(TransactionSynchronizationManager.isActualTransactionActive());
+		assertThat(TransactionSynchronizationManager.getResourceMap().isEmpty()).isTrue();
+		assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isFalse();
+		assertThat(TransactionSynchronizationManager.isCurrentTransactionReadOnly())
+				.isFalse();
+		assertThat(TransactionSynchronizationManager.isActualTransactionActive())
+				.isFalse();
 	}
 
 	@Test
@@ -105,23 +108,30 @@ public class Neo4jTransactionManagerTests {
 		given(session.query("some query string", Collections.<String, Object> emptyMap())).willReturn(res);
 		given(res.queryResults()).willReturn(list);
 
-		assertTrue("Transaction Synchronization already has a thread bound session",
-				!TransactionSynchronizationManager.hasResource(sf));
-		assertTrue("Synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
+		assertThat(!TransactionSynchronizationManager.hasResource(sf))
+				.as("Transaction Synchronization already has a thread bound session")
+				.isTrue();
+		assertThat(!TransactionSynchronizationManager.isSynchronizationActive())
+				.as("Synchronizations not active").isTrue();
 
 		Object result = tt.execute((TransactionCallback) status -> {
-			assertTrue("Transaction Synchronization doesn't have a thread bound session",
-					TransactionSynchronizationManager.hasResource(sf));
-			assertFalse(TransactionSynchronizationManager.isCurrentTransactionReadOnly());
-			assertTrue(TransactionSynchronizationManager.isActualTransactionActive());
+			assertThat(TransactionSynchronizationManager.hasResource(sf))
+					.as("Transaction Synchronization doesn't have a thread bound session")
+					.isTrue();
+			assertThat(TransactionSynchronizationManager.isCurrentTransactionReadOnly())
+					.isFalse();
+			assertThat(TransactionSynchronizationManager.isActualTransactionActive())
+					.isTrue();
 			Session session = ((SessionHolder) TransactionSynchronizationManager.getResource(sf)).getSession();
 			return session.query("some query string", Collections.<String, Object> emptyMap()).queryResults();
 		});
 
-		assertTrue("Incorrect result list", result == list);
-		assertTrue("Transaction Synchronization still has a thread bound session",
-				!TransactionSynchronizationManager.hasResource(sf));
-		assertTrue("Synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
+		assertThat(result == list).as("Incorrect result list").isTrue();
+		assertThat(!TransactionSynchronizationManager.hasResource(sf))
+				.as("Transaction Synchronization still has a thread bound session")
+				.isTrue();
+		assertThat(!TransactionSynchronizationManager.isSynchronizationActive())
+				.as("Synchronizations not active").isTrue();
 
 		verify(session).beginTransaction(any(Transaction.Type.class), anyCollection());
 		verify(tx).commit();
@@ -131,14 +141,17 @@ public class Neo4jTransactionManagerTests {
 	@Test
 	public void testTransactionRollback() throws Exception {
 
-		assertTrue("Transaction Synchronization already has a thread bound session",
-				!TransactionSynchronizationManager.hasResource(sf));
-		assertTrue("Synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
+		assertThat(!TransactionSynchronizationManager.hasResource(sf))
+				.as("Transaction Synchronization already has a thread bound session")
+				.isTrue();
+		assertThat(!TransactionSynchronizationManager.isSynchronizationActive())
+				.as("Synchronizations not active").isTrue();
 
 		try {
 			tt.execute(status -> {
-				assertTrue("Transaction Synchronization doesn't have a thread bound session",
-						TransactionSynchronizationManager.hasResource(sf));
+				assertThat(TransactionSynchronizationManager.hasResource(sf))
+						.as("Transaction Synchronization doesn't have a thread bound session")
+						.isTrue();
 				throw new RuntimeException("application exception");
 			});
 			fail("Should have thrown RuntimeException");
@@ -146,9 +159,11 @@ public class Neo4jTransactionManagerTests {
 			// expected
 		}
 
-		assertTrue("Transaction Synchronization still has a thread bound session",
-				!TransactionSynchronizationManager.hasResource(sf));
-		assertTrue("Synchronizations not active", !TransactionSynchronizationManager.isSynchronizationActive());
+		assertThat(!TransactionSynchronizationManager.hasResource(sf))
+				.as("Transaction Synchronization still has a thread bound session")
+				.isTrue();
+		assertThat(!TransactionSynchronizationManager.isSynchronizationActive())
+				.as("Synchronizations not active").isTrue();
 
 		verify(session).beginTransaction(any(Transaction.Type.class), anyCollection());
 		verify(tx).rollback();
@@ -158,18 +173,21 @@ public class Neo4jTransactionManagerTests {
 	@Test
 	public void testTransactionRollbackOnly() throws Exception {
 
-		assertTrue("Transaction Synchronization already has a thread bound session",
-				!TransactionSynchronizationManager.hasResource(sf));
+		assertThat(!TransactionSynchronizationManager.hasResource(sf))
+				.as("Transaction Synchronization already has a thread bound session")
+				.isTrue();
 
 		tt.execute(status -> {
-			assertTrue("Transaction Synchronization doesn't have a thread bound session",
-					TransactionSynchronizationManager.hasResource(sf));
+			assertThat(TransactionSynchronizationManager.hasResource(sf))
+					.as("Transaction Synchronization doesn't have a thread bound session")
+					.isTrue();
 			status.setRollbackOnly();
 			return null;
 		});
 
-		assertTrue("Transaction Synchronization still has a thread bound session",
-				!TransactionSynchronizationManager.hasResource(sf));
+		assertThat(!TransactionSynchronizationManager.hasResource(sf))
+				.as("Transaction Synchronization still has a thread bound session")
+				.isTrue();
 
 		verify(session).beginTransaction(any(Transaction.Type.class), anyCollection());
 		verify(tx).rollback();
@@ -182,7 +200,7 @@ public class Neo4jTransactionManagerTests {
 		l.add("test");
 
 		Object result = tt.execute(status -> tt.execute((TransactionCallback) status1 -> l));
-		assertTrue("Correct result list", result == l);
+		assertThat(result == l).as("Correct result list").isTrue();
 
 		verify(session).beginTransaction(any(Transaction.Type.class), anyCollection());
 		verify(tx).commit();

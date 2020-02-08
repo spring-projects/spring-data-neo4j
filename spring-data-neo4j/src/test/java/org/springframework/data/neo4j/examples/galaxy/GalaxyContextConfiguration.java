@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,9 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 /**
  * @author Michael J. Simons
  */
-@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.examples.galaxy.domain",
-		repositoryPackages = "org.springframework.data.neo4j.examples.galaxy.repo")
+@Neo4jIntegrationTest(domainPackages = { "org.springframework.data.neo4j.examples.galaxy.domain",
+		"org.springframework.data.neo4j.queries.ogmgh552" },
+		repositoryPackages = { "org.springframework.data.neo4j.examples.galaxy.repo",
+				"org.springframework.data.neo4j.queries.ogmgh552" })
 @ComponentScan("org.springframework.data.neo4j.examples.galaxy.service")
 public class GalaxyContextConfiguration {}

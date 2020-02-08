@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  */
 package org.springframework.data.neo4j.examples.galaxy;
 
-import static org.hamcrest.core.AnyOf.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.StringContains.*;
-import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.ogm.cypher.query.Pagination;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,6 +37,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.assertj.core.api.Assertions.*;
+
 /**
  * @author Vince Bickers
  * @author Mark Paluch
@@ -51,12 +49,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class GalaxyServiceTests {
 
-	@Autowired private GalaxyService galaxyService;
+	@Autowired
+	private GalaxyService galaxyService;
 
 	@Before
 	public void setUp() {
 		galaxyService.deleteAll();
-		assertEquals(0, galaxyService.getNumberOfWorlds());
+		assertThat(galaxyService.getNumberOfWorlds()).isEqualTo(0);
 	}
 
 	@Test
@@ -65,28 +64,28 @@ public class GalaxyServiceTests {
 		World myWorld = galaxyService.createWorld("mine", 0);
 		Collection<World> foundWorlds = (Collection<World>) galaxyService.getAllWorlds();
 
-		assertEquals(1, foundWorlds.size());
+		assertThat(foundWorlds.size()).isEqualTo(1);
 		World mine = foundWorlds.iterator().next();
 
-		assertEquals(myWorld.getName(), mine.getName());
+		assertThat(mine.getName()).isEqualTo(myWorld.getName());
 	}
 
 	@Test
 	public void shouldHaveCorrectNumberOfWorlds() {
 		galaxyService.makeSomeWorlds();
-		assertEquals(13, galaxyService.getNumberOfWorlds());
+		assertThat(galaxyService.getNumberOfWorlds()).isEqualTo(13);
 	}
 
 	@Test
 	public void createAllWorldsAtOnce() {
 		galaxyService.makeAllWorldsAtOnce();
-		assertEquals(13, galaxyService.getNumberOfWorlds());
+		assertThat(galaxyService.getNumberOfWorlds()).isEqualTo(13);
 
 		World earth = galaxyService.findWorldByName("Earth");
 		World mars = galaxyService.findWorldByName("Mars");
 
-		assertTrue(mars.canBeReachedFrom(earth));
-		assertTrue(earth.canBeReachedFrom(mars));
+		assertThat(mars.canBeReachedFrom(earth)).isTrue();
+		assertThat(earth.canBeReachedFrom(mars)).isTrue();
 	}
 
 	@Test
@@ -95,7 +94,7 @@ public class GalaxyServiceTests {
 
 		for (World world : galaxyService.getAllWorlds()) {
 			Optional<World> foundWorld = galaxyService.findWorldById(world.getId());
-			assertTrue(foundWorld.isPresent());
+			assertThat(foundWorld.isPresent()).isTrue();
 		}
 	}
 
@@ -104,7 +103,7 @@ public class GalaxyServiceTests {
 		galaxyService.makeSomeWorlds();
 		for (World world : galaxyService.getAllWorlds()) {
 			World foundWorld = galaxyService.findWorldByName(world.getName());
-			assertNotNull(foundWorld);
+			assertThat(foundWorld).isNotNull();
 		}
 	}
 
@@ -115,8 +114,8 @@ public class GalaxyServiceTests {
 		World earth = galaxyService.findWorldByName("Earth");
 		World mars = galaxyService.findWorldByName("Mars");
 
-		assertTrue(mars.canBeReachedFrom(earth));
-		assertTrue(earth.canBeReachedFrom(mars));
+		assertThat(mars.canBeReachedFrom(earth)).isTrue();
+		assertThat(earth.canBeReachedFrom(mars)).isTrue();
 	}
 
 	@Test
@@ -127,11 +126,11 @@ public class GalaxyServiceTests {
 
 		int countOfFoundWorlds = 0;
 		for (World foundWorld : foundWorlds) {
-			assertTrue(madeWorlds.contains(foundWorld));
+			assertThat(madeWorlds.contains(foundWorld)).isTrue();
 			countOfFoundWorlds++;
 		}
 
-		assertEquals(madeWorlds.size(), countOfFoundWorlds);
+		assertThat(countOfFoundWorlds).isEqualTo(madeWorlds.size());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -140,7 +139,11 @@ public class GalaxyServiceTests {
 		galaxyService.makeSomeWorlds();
 
 		for (World worldWithOneMoon : galaxyService.findAllByNumberOfMoons(1)) {
-			assertThat(worldWithOneMoon.getName(), is(anyOf(containsString("Earth"), containsString("Midgard"))));
+			assertThat(worldWithOneMoon.getName()).satisfiesAnyOf(s -> {
+				assertThat(s).contains("Earth");
+			}, s -> {
+				assertThat(s).contains("Midgard");
+			});
 		}
 	}
 
@@ -148,7 +151,7 @@ public class GalaxyServiceTests {
 	public void shouldNotFindKrypton() {
 		galaxyService.makeSomeWorlds();
 		World krypton = galaxyService.findWorldByName("Krypton");
-		assertNull(krypton);
+		assertThat(krypton).isNull();
 	}
 
 	@Test
@@ -165,13 +168,14 @@ public class GalaxyServiceTests {
 		}
 
 		for (int page = 0; page < pages; page++) {
-			Iterable<World> paged = galaxyService.findAllWorlds(new Pagination(page, PAGE_SIZE));
+			Iterable<World> paged = galaxyService
+					.findAllWorlds(new Pagination(page, PAGE_SIZE));
 			for (World world : paged) {
 				n -= world.getId();
 			}
 		}
 
-		assertEquals(0L, n);
+		assertThat(n).isEqualTo(0L);
 	}
 
 	@Test
@@ -179,12 +183,12 @@ public class GalaxyServiceTests {
 
 		int count = galaxyService.makeAllWorldsAtOnce().size();
 
-		assertEquals(count, 13);
+		assertThat(13).isEqualTo(count);
 
 		Pageable pageable = PageRequest.of(2, 3);
 		Page<World> worlds = galaxyService.findAllWorlds(pageable);
 
-		assertTrue(worlds.hasNext());
+		assertThat(worlds.hasNext()).isTrue();
 	}
 
 	@Test
@@ -192,12 +196,12 @@ public class GalaxyServiceTests {
 
 		int count = galaxyService.makeAllWorldsAtOnce().size();
 
-		assertEquals(count, 13);
+		assertThat(13).isEqualTo(count);
 
 		Pageable pageable = PageRequest.of(4, 3);
 		Page<World> worlds = galaxyService.findAllWorlds(pageable);
 
-		assertFalse(worlds.hasNext());
+		assertThat(worlds.hasNext()).isFalse();
 	}
 
 	@Test
@@ -213,7 +217,7 @@ public class GalaxyServiceTests {
 
 		Pageable pageable = PageRequest.of(0, 3);
 
-		for (;;) {
+		for (; ; ) {
 			Page<World> page = galaxyService.findAllWorlds(pageable);
 			for (World world : page) {
 				sum -= world.getId();
@@ -224,7 +228,7 @@ public class GalaxyServiceTests {
 			pageable = pageable.next();
 		}
 
-		assertEquals(0, sum);
+		assertThat(sum).isEqualTo(0);
 	}
 
 	@Test
@@ -232,17 +236,17 @@ public class GalaxyServiceTests {
 
 		List<World> worlds = (List<World>) galaxyService.makeAllWorldsAtOnce();
 		int count = worlds.size();
-		assertEquals(count, 13);
+		assertThat(13).isEqualTo(count);
 
 		String[] sortedNames = getNamesSorted(worlds);
 
 		Pageable pageable = PageRequest.of(0, 3, Sort.Direction.ASC, "name");
 
 		int i = 0;
-		for (;;) {
+		for (; ; ) {
 			Page<World> page = galaxyService.findAllWorlds(pageable);
 			for (World world : page) {
-				assertEquals(sortedNames[i], world.getName());
+				assertThat(world.getName()).isEqualTo(sortedNames[i]);
 				count--;
 				i++;
 			}
@@ -252,7 +256,7 @@ public class GalaxyServiceTests {
 			pageable = pageable.next();
 		}
 
-		assertEquals(0, count);
+		assertThat(count).isEqualTo(0);
 	}
 
 	@Test
@@ -260,19 +264,19 @@ public class GalaxyServiceTests {
 
 		List<World> worlds = (List<World>) galaxyService.makeAllWorldsAtOnce();
 		int count = worlds.size();
-		assertEquals(count, 13);
+		assertThat(13).isEqualTo(count);
 
 		String[] sortedNames = getNamesSorted(worlds);
 
 		Sort sort = Sort.by(Sort.Direction.ASC, "name");
 		int i = 0;
 		for (World world : galaxyService.findAllWorlds(sort)) {
-			assertEquals(sortedNames[i], world.getName());
+			assertThat(world.getName()).isEqualTo(sortedNames[i]);
 			count--;
 			i++;
 		}
 
-		assertEquals(0, count);
+		assertThat(count).isEqualTo(0);
 	}
 
 	@Test // DATAGRAPH-783
@@ -283,7 +287,7 @@ public class GalaxyServiceTests {
 		galaxyService.create(earth);
 
 		earth = galaxyService.findByName("Earth");
-		assertEquals(Float.valueOf(6371.0f), earth.getRadius());
+		assertThat(earth.getRadius()).isEqualTo(Float.valueOf(6371.0f));
 	}
 
 	private String[] getNamesSorted(List<World> worlds) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  */
 package org.springframework.data.neo4j.transaction;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.springframework.transaction.event.TransactionPhase.*;
 
 import java.lang.annotation.ElementType;
@@ -29,9 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -61,8 +60,10 @@ import org.springframework.util.MultiValueMap;
  * spring framework transactional event listener tests</a> and modified to work with a version of the
  * Neo4jTransactionManager.
  *
+ * See DATAGRAPH-883
+ *
  * @author Mark Angrish
- * @see DATAGRAPH-883
+ * @author Michael J. Simons
  */
 public class TransactionalEventListenerTests {
 
@@ -71,8 +72,6 @@ public class TransactionalEventListenerTests {
 	private EventCollector eventCollector;
 
 	private TransactionTemplate transactionTemplate = new TransactionTemplate(new CallCountingTransactionManager());
-
-	@Rule public final ExpectedException thrown = ExpectedException.none();
 
 	@Before
 	public void closeContext() {
@@ -104,8 +103,8 @@ public class TransactionalEventListenerTests {
 				return null;
 			});
 		} catch (IllegalStateException e) {
-			assertTrue(e.getMessage().contains("Test exception"));
-			assertTrue(e.getMessage().contains(EventCollector.IMMEDIATELY));
+			assertThat(e.getMessage().contains("Test exception")).isTrue();
+			assertThat(e.getMessage().contains(EventCollector.IMMEDIATELY)).isTrue();
 		}
 		getEventCollector().assertEvents(EventCollector.IMMEDIATELY, "FAIL");
 		getEventCollector().assertTotalEventsCount(1);
@@ -384,17 +383,13 @@ public class TransactionalEventListenerTests {
 			}
 			for (String phase : phases) {
 				List<Object> eventsForPhase = getEvents(phase);
-				assertEquals("Expected no events for phase '" + phase + "' " + "but got " + eventsForPhase + ":", 0,
-						eventsForPhase.size());
+				assertThat(eventsForPhase).describedAs("Expected no events for phase '" + phase + "' " + "but got " + eventsForPhase + ":").isEmpty();
 			}
 		}
 
 		public void assertEvents(String phase, Object... expected) {
 			List<Object> actual = getEvents(phase);
-			assertEquals("wrong number of events for phase '" + phase + "'", expected.length, actual.size());
-			for (int i = 0; i < expected.length; i++) {
-				assertEquals("Wrong event for phase '" + phase + "' at index " + i, expected[i], actual.get(i));
-			}
+			assertThat(actual).describedAs("wrong number of events for phase '" + phase + "'").hasSameSizeAs(expected).containsAnyOf(expected);
 		}
 
 		public void assertTotalEventsCount(int number) {
@@ -402,7 +397,7 @@ public class TransactionalEventListenerTests {
 			for (Map.Entry<String, List<Object>> entry : this.events.entrySet()) {
 				size += entry.getValue().size();
 			}
-			assertEquals("Wrong number of total events (" + this.events.size() + ") " + "registered phase(s)", number, size);
+			assertThat(size).describedAs("Wrong number of total events (" + this.events.size() + ") " + "registered phase(s)").isEqualTo(number);
 		}
 	}
 

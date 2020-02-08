@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,16 @@ class ExistsFilterBuilder extends FilterBuilder {
 
 	@Override
 	public List<Filter> build(Stack<Object> params) {
-		Filter filter = new Filter(propertyName(), ComparisonOperator.EXISTS);
+
+		NestedAttributes nestedAttributes = getNestedAttributes(part);
+
+		Filter filter = new Filter(
+				nestedAttributes.isEmpty() ? propertyName() : nestedAttributes.getLeafPropertySegment(),
+				ComparisonOperator.EXISTS);
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
-		setNestedAttributes(part, filter);
+		filter.setNestedPath(nestedAttributes.getSegments());
 
 		return Collections.singletonList(filter);
 	}

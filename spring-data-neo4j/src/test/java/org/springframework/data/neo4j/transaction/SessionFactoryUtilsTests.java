@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 package org.springframework.data.neo4j.transaction;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 import org.neo4j.ogm.exception.CypherException;
 import org.neo4j.ogm.exception.core.BaseClassNotFoundException;
@@ -26,6 +23,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.exception.UncategorizedNeo4jException;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Mark Angrish
@@ -62,7 +61,7 @@ public class SessionFactoryUtilsTests {
 	public void translateUnsupportedException() {
 
 		RuntimeException exception = new RuntimeException();
-		assertThat(SessionFactoryUtils.convertOgmAccessException(exception), is(nullValue()));
+		assertThat(SessionFactoryUtils.convertOgmAccessException(exception)).isNull();
 	}
 
 	private static void expectExceptionWithCauseMessage(NestedRuntimeException e,
@@ -73,11 +72,11 @@ public class SessionFactoryUtilsTests {
 	private static void expectExceptionWithCauseMessage(NestedRuntimeException e,
 			Class<? extends NestedRuntimeException> type, String message) {
 
-		assertThat(e, is(instanceOf(type)));
+		assertThat(e).isInstanceOf(type);
 
 		if (message != null) {
-			assertThat(e.getRootCause(), is(notNullValue()));
-			assertThat(e.getRootCause().getMessage(), containsString(message));
+			assertThat(e.getRootCause()).isNotNull();
+			assertThat(e.getRootCause().getMessage()).contains(message);
 		}
 	}
 }

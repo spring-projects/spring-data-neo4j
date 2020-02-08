@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package org.springframework.data.neo4j.integration.conversion;
-
-import static org.junit.Assert.*;
 
 import java.lang.annotation.ElementType;
 import java.math.BigInteger;
@@ -45,6 +43,8 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * See DATAGRAPH-624
@@ -88,11 +88,15 @@ public class ConversionServiceTests {
 		String base64Representation = "YmNkZWY=";
 		byte[] binaryData = new byte[] { 98, 99, 100, 101, 102 };
 
-		assertTrue(this.conversionService.canConvert(byte[].class, String.class));
-		assertEquals(base64Representation, this.conversionService.convert(binaryData, String.class));
+		assertThat(this.conversionService.canConvert(byte[].class, String.class))
+				.isTrue();
+		assertThat(this.conversionService.convert(binaryData, String.class))
+				.isEqualTo(base64Representation);
 
-		assertTrue(this.conversionService.canConvert(String.class, byte[].class));
-		assertTrue(Arrays.equals(binaryData, this.conversionService.convert(base64Representation, byte[].class)));
+		assertThat(this.conversionService.canConvert(String.class, byte[].class))
+				.isTrue();
+		assertThat(Arrays.equals(binaryData, this.conversionService
+				.convert(base64Representation, byte[].class))).isTrue();
 	}
 
 	@Test
@@ -104,7 +108,8 @@ public class ConversionServiceTests {
 		byte[] expectedData = "123456789".getBytes();
 
 		SiteMember siteMember = this.siteMemberRepository.findById(userId).get();
-		assertTrue("The data wasn't converted correctly", Arrays.equals(expectedData, siteMember.getProfilePictureData()));
+		assertThat(Arrays.equals(expectedData, siteMember.getProfilePictureData()))
+				.as("The data wasn't converted correctly").isTrue();
 	}
 
 	@Test
@@ -123,13 +128,16 @@ public class ConversionServiceTests {
 		});
 
 		Result result = neo4jTestServer.graph().execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
-		assertTrue("Nothing was saved", result.hasNext());
-		assertEquals("The amount wasn't converted and persisted correctly", "1647281",
-				String.valueOf(result.next().get("fv")));
+		assertThat(result.hasNext()).as("Nothing was saved").isTrue();
+		assertThat(String.valueOf(result.next().get("fv")))
+				.as("The amount wasn't converted and persisted correctly")
+				.isEqualTo("1647281");
 		result.close();
 
 		PensionPlan reloadedPension = this.pensionRepository.findById(pensionToSave.getPensionPlanId()).get();
-		assertEquals("The amount was converted incorrectly", pensionToSave.getFundValue(), reloadedPension.getFundValue());
+		assertThat(reloadedPension.getFundValue())
+				.as("The amount was converted incorrectly")
+				.isEqualTo(pensionToSave.getFundValue());
 	}
 
 	/**
@@ -144,9 +152,10 @@ public class ConversionServiceTests {
 		PensionPlan pension = new PensionPlan(new MonetaryAmount(20_000, 00), "Ashes Assets LLP");
 		this.pensionRepository.save(pension);
 		Result result = neo4jTestServer.graph().execute("MATCH (p:PensionPlan) RETURN p.fundValue AS fv");
-		assertTrue("Nothing was saved", result.hasNext());
-		assertEquals("The amount wasn't converted and persisted correctly", "2000000",
-				String.valueOf(result.next().get("fv")));
+		assertThat(result.hasNext()).as("Nothing was saved").isTrue();
+		assertThat(String.valueOf(result.next().get("fv")))
+				.as("The amount wasn't converted and persisted correctly")
+				.isEqualTo("2000000");
 		result.close();
 	}
 
@@ -164,13 +173,16 @@ public class ConversionServiceTests {
 		this.javaElementRepository.save(method);
 
 		Result result = neo4jTestServer.graph().execute("MATCH (e:JavaElement) RETURN e.elementType AS type");
-		assertTrue("Nothing was saved", result.hasNext());
-		assertEquals("The element type wasn't converted and persisted correctly", "METHOD", result.next().get("type"));
+		assertThat(result.hasNext()).as("Nothing was saved").isTrue();
+		assertThat(result.next().get("type"))
+				.as("The element type wasn't converted and persisted correctly")
+				.isEqualTo("METHOD");
 		result.close();
 
 		JavaElement loadedObject = this.javaElementRepository.findAll().iterator().next();
-		assertEquals("The element type wasn't loaded and converted correctly", ElementType.METHOD,
-				loadedObject.getElementType());
+		assertThat(loadedObject.getElementType())
+				.as("The element type wasn't loaded and converted correctly")
+				.isEqualTo(ElementType.METHOD);
 	}
 
 	@Test(expected = ConverterNotFoundException.class)
@@ -191,18 +203,22 @@ public class ConversionServiceTests {
 		String base64Representation = "YmNkZWY=";
 		byte[] binaryData = new byte[] { 98, 99, 100, 101, 102 };
 
-		assertTrue(this.conversionService.canConvert(byte[].class, String.class));
-		assertEquals(base64Representation, this.conversionService.convert(binaryData, String.class));
+		assertThat(this.conversionService.canConvert(byte[].class, String.class))
+				.isTrue();
+		assertThat(this.conversionService.convert(binaryData, String.class))
+				.isEqualTo(base64Representation);
 
-		assertTrue(this.conversionService.canConvert(String.class, byte[].class));
-		assertTrue(Arrays.equals(binaryData, this.conversionService.convert(base64Representation, byte[].class)));
+		assertThat(this.conversionService.canConvert(String.class, byte[].class))
+				.isTrue();
+		assertThat(Arrays.equals(binaryData, this.conversionService
+				.convert(base64Representation, byte[].class))).isTrue();
 
 		SiteMember siteMember = new SiteMember();
 		siteMember.setProfilePictureData(binaryData);
 		this.siteMemberRepository.save(siteMember);
 
 		siteMember = session.loadAll(SiteMember.class).iterator().next();
-		assertArrayEquals(binaryData, siteMember.getProfilePictureData());
+		assertThat(siteMember.getProfilePictureData()).isEqualTo(binaryData);
 	}
 
 	@Test
@@ -219,8 +235,8 @@ public class ConversionServiceTests {
 		this.siteMemberRepository.save(siteMember);
 
 		siteMember = session.loadAll(SiteMember.class).iterator().next();
-		assertArrayEquals(binaryData, siteMember.getProfilePictureData());
-		assertEquals(50, siteMember.getYears().intValue());
+		assertThat(siteMember.getProfilePictureData()).isEqualTo(binaryData);
+		assertThat(siteMember.getYears().intValue()).isEqualTo(50);
 	}
 
 	@Test // DATAGRAPH-659
@@ -230,9 +246,9 @@ public class ConversionServiceTests {
 		this.siteMemberRepository.save(siteMember);
 
 		siteMember = session.loadAll(SiteMember.class).iterator().next();
-		assertEquals(2, siteMember.getRoundingModes().size());
-		assertTrue(siteMember.getRoundingModes().contains(RoundingMode.DOWN));
-		assertTrue(siteMember.getRoundingModes().contains(RoundingMode.FLOOR));
+		assertThat(siteMember.getRoundingModes().size()).isEqualTo(2);
+		assertThat(siteMember.getRoundingModes().contains(RoundingMode.DOWN)).isTrue();
+		assertThat(siteMember.getRoundingModes().contains(RoundingMode.FLOOR)).isTrue();
 	}
 
 	@Configuration

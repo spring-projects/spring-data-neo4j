@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.Optional;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -33,17 +34,19 @@ import org.springframework.lang.Nullable;
  */
 class TemplatedQueryCreator extends AbstractQueryCreator<TemplatedQuery, FilterBuildersDefinition> {
 
+	private final Neo4jMappingContext mappingContext;
 	private final Class<?> entityType;
 
-	public TemplatedQueryCreator(PartTree tree, Class<?> entityType) {
+	public TemplatedQueryCreator(PartTree tree, Neo4jMappingContext mappingContext, Class<?> entityType) {
 		super(tree);
 
+		this.mappingContext = mappingContext;
 		this.entityType = entityType;
 	}
 
 	@Override
 	protected FilterBuildersDefinition create(Part part, Iterator<Object> iterator) {
-		return FilterBuildersDefinition.forType(entityType) //
+		return FilterBuildersDefinition.forType(mappingContext, entityType) //
 				.startWith(part);
 	}
 

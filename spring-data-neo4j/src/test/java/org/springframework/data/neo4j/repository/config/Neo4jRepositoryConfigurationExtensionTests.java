@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -26,9 +25,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.neo4j.ogm.metadata.ClassInfo;
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.session.SessionFactory;
@@ -58,8 +55,6 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 	private static final String CUSTOM_SESSION_BEAN_NAME = "mySession";
 	private static final String CUSTOM_MAPPING_CONTEXT_BEAN_NAME = "myMappingContext";
 
-	public @Rule ExpectedException exception = ExpectedException.none();
-
 	@Test
 	public void shouldRegisterSessionFactoryUnderDefaultName() {
 
@@ -67,7 +62,7 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 
 		Iterable<String> names = Arrays.asList(factory.getBeanDefinitionNames());
 
-		assertThat(names, hasItems(DEFAULT_SESSION_FACTORY_BEAN_NAME));
+		assertThat(names).contains(DEFAULT_SESSION_FACTORY_BEAN_NAME);
 	}
 
 	@Test // DATAGRAPH-1094
@@ -77,19 +72,19 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 
 		Iterable<String> names = Arrays.asList(factory.getBeanDefinitionNames());
 
-		assertThat(names, hasItems(GENERATED_SESSION_BEAN_NAME));
+		assertThat(names).contains(GENERATED_SESSION_BEAN_NAME);
 	}
 
 	@Test // DATAGRAPH-1094
 	public void shouldUseConfiguredSessionBeanName() {
-		assertTrue(getBeanRegistry(new StandardAnnotationMetadata(CustomSessionBeanConfig.class, true))
-				.containsBeanDefinition(CUSTOM_SESSION_BEAN_NAME));
+		assertThat(getBeanRegistry(new StandardAnnotationMetadata(CustomSessionBeanConfig.class, true))
+				.containsBeanDefinition(CUSTOM_SESSION_BEAN_NAME)).isTrue();
 	}
 
 	@Test // DATAGRAPH-1094
 	public void shouldUseConfiguredMappingContextBeanName() {
-		assertTrue(getBeanRegistry(new StandardAnnotationMetadata(CustomMappingContextBeanConfig.class, true))
-				.containsBeanDefinition(CUSTOM_MAPPING_CONTEXT_BEAN_NAME));
+		assertThat(getBeanRegistry(new StandardAnnotationMetadata(CustomMappingContextBeanConfig.class, true))
+				.containsBeanDefinition(CUSTOM_MAPPING_CONTEXT_BEAN_NAME)).isTrue();
 	}
 
 	@Test
@@ -103,7 +98,7 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 
 		String sessionFactoryBeanName = sessionFactoryBean.getBeanName();
 
-		assertThat(sessionFactoryBeanName, equalTo(DEFAULT_SESSION_FACTORY_BEAN_NAME));
+		assertThat(sessionFactoryBeanName).isEqualTo(DEFAULT_SESSION_FACTORY_BEAN_NAME);
 	}
 
 	@Test
@@ -117,7 +112,7 @@ public class Neo4jRepositoryConfigurationExtensionTests {
 
 		String sessionFactoryBeanName = sessionFactoryBean.getBeanName();
 
-		assertThat(sessionFactoryBeanName, equalTo(CUSTOM_SESSION_FACTORY_BEAN_NAME));
+		assertThat(sessionFactoryBeanName).isEqualTo(CUSTOM_SESSION_FACTORY_BEAN_NAME);
 	}
 
 	@Test

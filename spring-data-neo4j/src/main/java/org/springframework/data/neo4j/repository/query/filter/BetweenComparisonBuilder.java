@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2019 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.util.Stack;
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
-import org.neo4j.ogm.cypher.function.PropertyComparison;
 import org.springframework.data.domain.Range;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -65,29 +64,31 @@ class BetweenComparisonBuilder extends FilterBuilder {
 			upperBoundValue = params.pop();
 		}
 
-		Filter lowerBoundFilter = createLowerBoundFilter(lowerBoundValue, inclusiveLowerBound);
-		setNestedAttributes(part, lowerBoundFilter);
+		NestedAttributes nestedAttributes = getNestedAttributes(part);
 
-		Filter upperBoundFilter = createUpperBoundFilter(upperBoundValue, inclusiveUpperBound);
-		setNestedAttributes(part, upperBoundFilter);
+		Filter lowerBoundFilter = createLowerBoundFilter(lowerBoundValue, inclusiveLowerBound, nestedAttributes);
+		Filter upperBoundFilter = createUpperBoundFilter(upperBoundValue, inclusiveUpperBound, nestedAttributes);
 
 		return Arrays.asList(lowerBoundFilter, upperBoundFilter);
 	}
 
-	private Filter createLowerBoundFilter(Object value, boolean inclusive) {
-		return createBoundFilter(Bound.LOWER, value, inclusive, booleanOperator);
+	private Filter createLowerBoundFilter(Object value, boolean inclusive, NestedAttributes nestedAttributes) {
+		return createBoundFilter(Bound.LOWER, value, inclusive, booleanOperator, nestedAttributes);
 	}
 
-	private Filter createUpperBoundFilter(Object value, boolean inclusive) {
-		return createBoundFilter(Bound.UPPER, value, inclusive, BooleanOperator.AND);
+	private Filter createUpperBoundFilter(Object value, boolean inclusive, NestedAttributes nestedAttributes) {
+		return createBoundFilter(Bound.UPPER, value, inclusive, BooleanOperator.AND, nestedAttributes);
 	}
 
-	private Filter createBoundFilter(Bound bound, Object value, boolean inclusive, BooleanOperator operator) {
-		Filter filter = new Filter(propertyName(), deriveComparisonOperator(bound, inclusive), value);
+	private Filter createBoundFilter(Bound bound, Object value, boolean inclusive, BooleanOperator operator,
+			NestedAttributes nestedAttributes) {
+		Filter filter = new Filter(nestedAttributes.isEmpty() ?
+				propertyName() :
+				nestedAttributes.getLeafPropertySegment(), deriveComparisonOperator(bound, inclusive), value);
 		filter.setOwnerEntityType(entityType);
 		filter.setNegated(isNegated());
-		filter.setFunction(new PropertyComparison(value));
 		filter.setBooleanOperator(operator);
+		filter.setNestedPath(nestedAttributes.getSegments());
 		return filter;
 	}
 
