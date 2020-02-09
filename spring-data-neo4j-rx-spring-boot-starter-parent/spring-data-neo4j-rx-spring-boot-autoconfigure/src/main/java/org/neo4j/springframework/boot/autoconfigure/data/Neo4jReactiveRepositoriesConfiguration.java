@@ -20,12 +20,15 @@ package org.neo4j.springframework.boot.autoconfigure.data;
 
 import reactor.core.publisher.Flux;
 
+import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
+import org.neo4j.springframework.data.repository.config.ReactiveNeo4jRepositoryConfigurationExtension;
+import org.neo4j.springframework.data.repository.support.ReactiveNeo4jRepositoryFactoryBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.ConditionalOnRepositoryType;
 import org.springframework.boot.autoconfigure.data.RepositoryType;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 
 /**
  * @author Michael J. Simons
@@ -33,6 +36,8 @@ import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({ Flux.class, ReactiveNeo4jRepository.class })
+@ConditionalOnMissingBean({ ReactiveNeo4jRepositoryFactoryBean.class,
+	ReactiveNeo4jRepositoryConfigurationExtension.class })
 @ConditionalOnRepositoryType(store = "neo4j", type = RepositoryType.REACTIVE)
 @Import(Neo4jReactiveRepositoriesConfigureRegistrar.class)
 class Neo4jReactiveRepositoriesConfiguration {

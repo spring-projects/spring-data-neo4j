@@ -31,17 +31,20 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.springframework.boot.test.autoconfigure.Neo4jTestHarnessAutoConfiguration;
-import org.neo4j.springframework.boot.test.autoconfigure.data.DataNeo4jTest;
+import org.neo4j.springframework.boot.test.autoconfigure.data.AutoConfigureDataNeo4j;
 import org.neo4j.springframework.data.examples.spring_boot.domain.MovieRepository;
 import org.neo4j.springframework.data.examples.spring_boot.domain.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -52,7 +55,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  */
 @Testcontainers
 @EnabledIfEnvironmentVariable(named = RepositoryIT.SYS_PROPERTY_NEO4J_VERSION, matches = "4\\.0.*")
-@DataNeo4jTest(excludeAutoConfiguration = Neo4jTestHarnessAutoConfiguration.class)
+@ExtendWith(SpringExtension.class)
+@EnableAutoConfiguration(exclude = Neo4jTestHarnessAutoConfiguration.class)
+@AutoConfigureDataNeo4j
 @ContextConfiguration(initializers = RepositoryIT.Initializer.class)
 class RepositoryIT {
 
@@ -62,7 +67,7 @@ class RepositoryIT {
 
 	@Container
 	private static Neo4jContainer<?> neo4jContainer =
-		new Neo4jContainer<>(Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_REPOSITORY)).orElse("neo4j") + ":" + System.getenv(SYS_PROPERTY_NEO4J_VERSION))
+		new Neo4jContainer<>(Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_REPOSITORY)).orElse("neo4j") + ":" + Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_VERSION)).orElse("4.0.0"))
 		.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT",
 			Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION)).orElse("no"));
 

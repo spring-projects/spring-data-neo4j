@@ -23,19 +23,27 @@ import static org.assertj.core.api.Assertions.*;
 import reactor.core.publisher.Flux;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
 import org.neo4j.springframework.boot.autoconfigure.data.bikes.BikeNode;
 import org.neo4j.springframework.boot.autoconfigure.data.bikes.BikeRepository;
+import org.neo4j.springframework.boot.autoconfigure.data.bikes.ReactiveBikeRepository;
+import org.neo4j.springframework.boot.autoconfigure.data.more_bikes.OtherBikeRepository;
+import org.neo4j.springframework.boot.autoconfigure.data.more_bikes.OtherReactiveBikeRepository;
 import org.neo4j.springframework.data.core.Neo4jClient;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
 import org.neo4j.springframework.data.repository.Neo4jRepository;
 import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
+import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
+import org.neo4j.springframework.data.repository.support.Neo4jRepositoryFactoryBean;
+import org.neo4j.springframework.data.repository.support.ReactiveNeo4jRepositoryFactoryBean;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.data.neo4j_rx.empty.EmptyDataPackage;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -96,6 +104,59 @@ class Neo4jRepositoriesAutoConfigurationTest {
 			.run(ctx -> assertThat(ctx)
 				.hasSingleBean(Neo4jTransactionManager.class)
 				.doesNotHaveBean(Neo4jRepository.class));
+	}
+
+	@Test
+	void shouldRespectAtEnableNeo4jRepositories() {
+		this.contextRunner
+			.withUserConfiguration(SortOfInvalidCustomConfiguration.class, WithCustomRepositoryScan.class)
+			.withPropertyValues("spring.data.neo4j.repositories.type=imperative")
+			.run(ctx -> assertThat(ctx)
+				.doesNotHaveBean(BikeRepository.class)
+				.doesNotHaveBean(ReactiveBikeRepository.class)
+				.hasSingleBean(OtherBikeRepository.class)
+				.doesNotHaveBean(OtherReactiveBikeRepository.class));
+	}
+
+	@Test
+	void shouldRespectAtEnableReactiveNeo4jRepositories() {
+		this.contextRunner
+			.withUserConfiguration(SortOfInvalidCustomConfiguration.class, WithCustomReactiveRepositoryScan.class)
+			.withPropertyValues("spring.data.neo4j.repositories.type=reactive")
+			.run(ctx -> assertThat(ctx)
+				.doesNotHaveBean(BikeRepository.class)
+				.doesNotHaveBean(ReactiveBikeRepository.class)
+				.doesNotHaveBean(OtherBikeRepository.class)
+				.hasSingleBean(OtherReactiveBikeRepository.class));
+	}
+
+	@Configuration
+	@EnableNeo4jRepositories(basePackageClasses = OtherBikeRepository.class)
+	static class WithCustomRepositoryScan {
+
+		@Bean
+		Neo4jRepositoryFactoryBean neo4jRepositoryFactoryBean() {
+			return Mockito.mock(Neo4jRepositoryFactoryBean.class);
+		}
+	}
+
+	@Configuration
+	@EnableReactiveNeo4jRepositories(basePackageClasses = OtherReactiveBikeRepository.class)
+	static class WithCustomReactiveRepositoryScan {
+
+		@Bean
+		Neo4jRepositoryFactoryBean neo4jRepositoryFactoryBean() {
+			return Mockito.mock(Neo4jRepositoryFactoryBean.class);
+		}
+	}
+
+	@Configuration
+	static class WithFakeEnabledReactiveNeo4jRepositories {
+
+		@Bean
+		ReactiveNeo4jRepositoryFactoryBean reactiveNeo4jRepositoryFactoryBean() {
+			return Mockito.mock(ReactiveNeo4jRepositoryFactoryBean.class);
+		}
 	}
 
 	@Configuration
