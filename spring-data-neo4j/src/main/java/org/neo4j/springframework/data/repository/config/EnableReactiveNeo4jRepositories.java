@@ -52,8 +52,8 @@ public @interface EnableReactiveNeo4jRepositories {
 
 	/**
 	 * Alias for the {@link #basePackages()} attribute. Allows for more concise annotation declarations e.g.:
-	 * {@code @EnableNeo4jRepositories("org.my.pkg")} instead of
-	 * {@code @EnableNeo4jRepositories(basePackages="org.my.pkg")}.
+	 * {@code @EnableReactiveNeo4jRepositories("org.my.pkg")} instead of
+	 * {@code @EnableReactiveNeo4jRepositories(basePackages="org.my.pkg")}.
 	 */
 	@AliasFor("basePackages")
 	String[] value() default {};
