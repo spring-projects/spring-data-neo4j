@@ -24,6 +24,7 @@ import org.neo4j.ogm.cypher.query.SortOrder;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.util.PagingAndSortingUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -32,6 +33,7 @@ import org.springframework.util.Assert;
  *
  * @author Nicolas Mervaillie
  * @author Michael J. Simons
+ * @author Ihor Dziuba
  */
 public class Query {
 
@@ -43,25 +45,18 @@ public class Query {
 	private Filters filters;
 	private String cypherQuery;
 	private Map<String, Object> parameters;
-	private String countQuery;
+	private @Nullable String countQuery;
 
 	public Query(Filters filters) {
 		Assert.notNull(filters, "Filters must not be null.");
 		this.filters = filters;
 	}
 
-	public Query(String cypherQuery, Map<String, Object> parameters) {
+	public Query(String cypherQuery, @Nullable String countQuery, Map<String, Object> parameters) {
 		Assert.notNull(cypherQuery, "Query must not be null.");
 		Assert.notNull(parameters, "Parameters must not be null.");
 		this.cypherQuery = sanitize(cypherQuery);
-		this.parameters = parameters;
-	}
-
-	public Query(String cypherQuery, String countQuery, Map<String, Object> parameters) {
-		Assert.notNull(cypherQuery, "Query must not be null.");
-		Assert.notNull(parameters, "Parameters must not be null.");
-		this.cypherQuery = sanitize(cypherQuery);
-		this.countQuery = sanitize(countQuery);
+		this.countQuery = countQuery == null ? null : sanitize(countQuery);
 		this.parameters = parameters;
 	}
 
