@@ -29,6 +29,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -2002,8 +2003,25 @@ class RepositoryIT {
 		assertThat(p).isNotNull();
 	}
 
+	@Test
+	void createComplexSameClassRelationshipsBeforeRootObject(@Autowired
+		ImmutablePersonRepository immutablePersonRepository) {
+
+		ImmutablePerson p1 = new ImmutablePerson("Person1", Collections.emptyList());
+		ImmutablePerson p2 = new ImmutablePerson("Person2", Arrays.asList(p1));
+		ImmutablePerson p3 = new ImmutablePerson("Person3", Arrays.asList(p2));
+		ImmutablePerson p4 = new ImmutablePerson("Person4", Arrays.asList(p1, p3));
+
+		immutablePersonRepository.saveAll(Arrays.asList(p4));
+
+		List<ImmutablePerson> people = immutablePersonRepository.findAll();
+
+		assertThat(people).hasSize(4);
+
+	}
+
 	@Configuration
-	@EnableNeo4jRepositories
+	@EnableNeo4jRepositories(considerNestedRepositories = true)
 	@EnableTransactionManagement
 	static class Config extends AbstractNeo4jConfig {
 
