@@ -30,10 +30,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
 import org.apache.commons.logging.LogFactory;
@@ -66,6 +68,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Michael J. Simons
+ * @author Gerrit Meier
  * @author Philipp Tölle
  * @soundtrack The Kleptones - A Night At The Hip-Hopera
  * @since 1.0
@@ -131,8 +134,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 					rootNodeDescription));
 				return null; // todo should not be null because of the @nonnullapi annotation in the EntityReader. Fail?
 			} else {
-				Map<Object, Object> knownObjects = new ConcurrentHashMap<>();
-				return map(queryRoot, rootNodeDescription, knownObjects);
+				return map(queryRoot, rootNodeDescription, new KnownObjects());
 			}
 		} catch (Exception e) {
 			throw new MappingException("Error mapping " + record.toString(), e);
@@ -242,7 +244,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 	 */
 	private <ET> ET map(MapAccessor queryResult,
 		Neo4jPersistentEntity<ET> nodeDescription,
-		Map<Object, Object> knownObjects) {
+		KnownObjects knownObjects) {
 
 		Collection<RelationshipDescription> relationships = nodeDescription.getRelationships();
 
@@ -266,7 +268,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 
 	private <ET> ET instantiate(Neo4jPersistentEntity<ET> anotherNodeDescription,
 		MapAccessor values,
-		Map<Object, Object> knownObjects,
+		KnownObjects knownObjects,
 		Collection<RelationshipDescription> relationships) {
 
 		ParameterValueProvider<Neo4jPersistentProperty> parameterValueProvider = new ParameterValueProvider<Neo4jPersistentProperty>() {
@@ -310,7 +312,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		MapAccessor queryResult,
 		PersistentPropertyAccessor<?> propertyAccessor,
 		Collection<RelationshipDescription> relationships,
-		Map<Object, Object> knownObjects
+		KnownObjects knownObjects
 	) {
 		return association -> {
 
@@ -323,7 +325,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 
 	private Optional<Object> createInstanceOfRelationships(Neo4jPersistentProperty persistentProperty,
 		MapAccessor values,
-		Map<Object, Object> knownObjects,
+		KnownObjects knownObjects,
 		Collection<RelationshipDescription> relationshipDescriptions) {
 
 		RelationshipDescription relationshipDescription = relationshipDescriptions.stream()
@@ -407,7 +409,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 					? relatedEntity.get(NAME_OF_INTERNAL_ID)
 					: relatedEntity.get(idProperty.getName());
 				Object valueEntry = knownObjects.computeIfAbsent(idValue,
-					(id) -> map(relatedEntity, targetNodeDescription, knownObjects));
+					() -> map(relatedEntity, targetNodeDescription, knownObjects));
 
 				if (relationshipDescription.hasRelationshipProperties()) {
 					Relationship relatedEntityRelationship = relatedEntity.get(NAME_OF_RELATIONSHIP).asRelationship();
@@ -449,6 +451,40 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		} else {
 			String graphPropertyName = property.getPropertyName();
 			return propertyContainer.get(graphPropertyName);
+		}
+	}
+
+	static class KnownObjects {
+
+		private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+		private final Lock read = lock.readLock();
+		private final Lock write = lock.writeLock();
+
+		private Map<Object, Object> store = new HashMap<>();
+
+		Object computeIfAbsent(Object key, Supplier<Object> entitySupplier) {
+			try {
+
+				read.lock();
+
+				Object knownEntity = store.get(key);
+
+				if (knownEntity != null) {
+					return knownEntity;
+				}
+
+			} finally {
+				read.unlock();
+			}
+
+			try {
+				write.lock();
+				Object computedEntity = entitySupplier.get();
+				store.put(key, computedEntity);
+				return computedEntity;
+			} finally {
+				write.unlock();
+			}
 		}
 	}
 }

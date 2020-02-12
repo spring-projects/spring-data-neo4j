@@ -56,8 +56,8 @@ import org.neo4j.driver.types.Relationship;
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
 import org.neo4j.springframework.data.integration.shared.*;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
-import org.neo4j.springframework.data.test.Neo4jExtension.*;
 import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
+import org.neo4j.springframework.data.test.Neo4jExtension.*;
 import org.neo4j.springframework.data.types.CartesianPoint2d;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1607,6 +1607,22 @@ class ReactiveRepositoryIT {
 	void mapsInterfaceProjectionWithCustomQueryAndNodeReturnWithMultipleResults() {
 		StepVerifier.create(repository.loadAllProjectionsWithNodeReturn())
 			.expectNextCount(2)
+			.verifyComplete();
+	}
+
+	@Test
+	void createComplexSameClassRelationshipsBeforeRootObject(
+		@Autowired ImmutablePersonRepository immutablePeopleRepository) {
+
+		ImmutablePerson p1 = new ImmutablePerson("Person1", Collections.emptyList());
+		ImmutablePerson p2 = new ImmutablePerson("Person2", Arrays.asList(p1));
+		ImmutablePerson p3 = new ImmutablePerson("Person3", Arrays.asList(p2));
+		ImmutablePerson p4 = new ImmutablePerson("Person4", Arrays.asList(p1, p3));
+
+		ImmutablePerson savedImmutablePerson = immutablePeopleRepository.save(p4).block();
+
+		StepVerifier.create(immutablePeopleRepository.findAll())
+			.expectNextCount(4)
 			.verifyComplete();
 	}
 

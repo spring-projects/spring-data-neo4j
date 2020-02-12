@@ -47,6 +47,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
 @Neo4jIntegrationTest
 class ImmutableRelationshipsIT @Autowired constructor(
     private val repository: DeviceRepository,
+    private val personRepository: ImmutableKotlinPersonRepository,
     private val driver: Driver
 ) {
 
@@ -91,6 +92,25 @@ class ImmutableRelationshipsIT @Autowired constructor(
         assertThat(device.location!!.previousLocation!!.longitude).isEqualTo(40.0)
     }
 
+    @Test
+    fun createComplexSameClassRelationshipsBeforeRootObject() {
+
+        driver.session().use { session ->
+            session.run("MATCH (n) DETACH DELETE n")
+        }
+
+        val p1 = ImmutableKotlinPerson("Person1", emptyList())
+        val p2 = ImmutableKotlinPerson("Person2", listOf(p1))
+        val p3 = ImmutableKotlinPerson("Person3", listOf(p2))
+        val p4 = ImmutableKotlinPerson("Person4", listOf(p1, p3))
+
+        personRepository.save(p4)
+
+        val people = personRepository.findAll()
+
+        assertThat(people).hasSize(4)
+    }
+
     @Configuration
     @EnableTransactionManagement
     @EnableNeo4jRepositories
@@ -109,6 +129,7 @@ class ImmutableRelationshipsIT @Autowired constructor(
 }
 
 interface DeviceRepository: Neo4jRepository<DeviceEntity, String>
+interface ImmutableKotlinPersonRepository: Neo4jRepository<ImmutableKotlinPerson, String>
 
 @Node
 data class DeviceEntity(
@@ -130,3 +151,5 @@ data class LocationEntity(
     val previousLocation: LocationEntity?
 )
 
+@Node
+data class ImmutableKotlinPerson(@Id val name: String, val wasOnboardedBy: List<ImmutableKotlinPerson>)
