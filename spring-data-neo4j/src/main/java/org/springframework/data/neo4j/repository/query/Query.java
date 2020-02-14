@@ -130,11 +130,11 @@ public class Query {
 
 	private String getSortOrder(Sort sort) {
 		return sort.stream()
-				.map(this::getPropertySortOrder)
+				.map(Query::getPropertySortOrder)
 				.collect(Collectors.joining(", "));
 	}
 
-	private String getPropertySortOrder(Sort.Order order) {
+	private static String getPropertySortOrder(Sort.Order order) {
 		StringBuilder sb = new StringBuilder();
 		if(order.isIgnoreCase()){
 			sb.append("toLower(").append(order.getProperty()).append(")");
