@@ -129,10 +129,20 @@ public class Query {
 	}
 
 	private String getSortOrder(Sort sort) {
-
 		return sort.stream()
-				.map(order -> order.getProperty() + " " + order.getDirection())
+				.map(Query::getPropertySortOrder)
 				.collect(Collectors.joining(", "));
+	}
+
+	private static String getPropertySortOrder(Sort.Order order) {
+		StringBuilder sb = new StringBuilder();
+		if(order.isIgnoreCase()){
+			sb.append("toLower(").append(order.getProperty()).append(")");
+		} else {
+			sb.append(order.getProperty());
+		}
+		sb.append(" ").append(order.getDirection());
+		return sb.toString();
 	}
 
 	private String formatBaseQuery(String cypherQuery) {
