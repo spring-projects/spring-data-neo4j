@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.integration.reactive;
 
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.neo4j.springframework.data.test.Neo4jExtension.*;
 
 import reactor.test.StepVerifier;
 
@@ -29,6 +30,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
@@ -51,6 +53,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Gerrit Meier
  */
 @Neo4jIntegrationTest
+@Tag(NEEDS_REACTIVE_SUPPORT)
 class ReactiveOptimisticLockingIT {
 
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
