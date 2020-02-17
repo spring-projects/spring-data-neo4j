@@ -475,26 +475,26 @@ public class PagedQueryTests {
 		Pageable pageable = PageRequest.of(0, 4, sort);
 
 		Page<Cinema> page = cinemaRepository.getPagedCinemas(pageable);
-		assertThat(page.getNumberOfElements()).isEqualTo(4);
-		assertThat(page.hasNext()).isTrue();
-		assertThat(page.getContent().get(0).getName()).isEqualTo("Cineplex");
-		assertThat(page.getContent().get(1).getName()).isEqualTo("Inox");
-		assertThat(page.getContent().get(2).getName()).isEqualTo("Landmark");
-		assertThat(page.getContent().get(3).getName()).isEqualTo("Metro");
+		assertEquals(4, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+		assertEquals("Cineplex", page.getContent().get(0).getName());
+		assertEquals("Inox", page.getContent().get(1).getName());
+		assertEquals("Landmark", page.getContent().get(2).getName());
+		assertEquals("Metro", page.getContent().get(3).getName());
 
 		page = cinemaRepository.getPagedCinemas(page.nextPageable());
-		assertThat(page.getNumberOfElements()).isEqualTo(4);
-		assertThat(page.hasNext()).isTrue();
-		assertThat(page.getContent().get(0).getName()).isEqualTo("Movietime");
-		assertThat(page.getContent().get(1).getName()).isEqualTo("Picturehouse");
-		assertThat(page.getContent().get(2).getName()).isEqualTo("PVR");
-		assertThat(page.getContent().get(3).getName()).isEqualTo("Rainbow");
+		assertEquals(4, page.getNumberOfElements());
+		assertTrue(page.hasNext());
+		assertEquals("Movietime", page.getContent().get(0).getName());
+		assertEquals("Picturehouse", page.getContent().get(1).getName());
+		assertEquals("PVR", page.getContent().get(2).getName());
+		assertEquals("Rainbow", page.getContent().get(3).getName());
 
 		page = cinemaRepository.getPagedCinemas(page.nextPageable());
-		assertThat(page.getNumberOfElements()).isEqualTo(2);
-		assertThat(page.hasNext()).isFalse();
-		assertThat(page.getContent().get(0).getName()).isEqualTo("Regal");
-		assertThat(page.getContent().get(1).getName()).isEqualTo("Ritzy");
+		assertEquals(2, page.getNumberOfElements());
+		assertFalse(page.hasNext());
+		assertEquals("Regal", page.getContent().get(0).getName());
+		assertEquals("Ritzy", page.getContent().get(1).getName());
 	}
 
 	@Test // DATAGRAPH-1290
@@ -505,26 +505,26 @@ public class PagedQueryTests {
 		Pageable pageable = PageRequest.of(0, 4, sort);
 
 		Slice<Cinema> slice = cinemaRepository.getSlicedCinemasByName(pageable);
-		assertThat(slice.getNumberOfElements()).isEqualTo(4);
-		assertThat(slice.hasNext()).isTrue();
-		assertThat(slice.getContent().get(0).getName()).isEqualTo("Cineplex");
-		assertThat(slice.getContent().get(1).getName()).isEqualTo("Inox");
-		assertThat(slice.getContent().get(2).getName()).isEqualTo("Landmark");
-		assertThat(slice.getContent().get(3).getName()).isEqualTo("Metro");
+		assertEquals(4, slice.getNumberOfElements());
+		assertTrue(slice.hasNext());
+		assertEquals("Cineplex", slice.getContent().get(0).getName());
+		assertEquals("Inox", slice.getContent().get(1).getName());
+		assertEquals("Landmark", slice.getContent().get(2).getName());
+		assertEquals("Metro", slice.getContent().get(3).getName());
 
 		slice = cinemaRepository.getSlicedCinemasByName(slice.nextPageable());
-		assertThat(slice.getNumberOfElements()).isEqualTo(4);
-		assertThat(slice.hasNext()).isTrue();
-		assertThat(slice.getContent().get(0).getName()).isEqualTo("Movietime");
-		assertThat(slice.getContent().get(1).getName()).isEqualTo("Picturehouse");
-		assertThat(slice.getContent().get(2).getName()).isEqualTo("PVR");
-		assertThat(slice.getContent().get(3).getName()).isEqualTo("Rainbow");
+		assertEquals(4, slice.getNumberOfElements());
+		assertTrue(slice.hasNext());
+		assertEquals("Movietime", slice.getContent().get(0).getName());
+		assertEquals("Picturehouse", slice.getContent().get(1).getName());
+		assertEquals("PVR", slice.getContent().get(2).getName());
+		assertEquals("Rainbow", slice.getContent().get(3).getName());
 
 		slice = cinemaRepository.getSlicedCinemasByName(slice.nextPageable());
-		assertThat(slice.getNumberOfElements()).isEqualTo(2);
-		assertThat(slice.hasNext()).isFalse();
-		assertThat(slice.getContent().get(0).getName()).isEqualTo("Regal");
-		assertThat(slice.getContent().get(1).getName()).isEqualTo("Ritzy");
+		assertEquals(2, slice.getNumberOfElements());
+		assertFalse(slice.hasNext());
+		assertEquals("Regal", slice.getContent().get(0).getName());
+		assertEquals("Ritzy", slice.getContent().get(1).getName());
 	}
 
 	@Test // DATAGRAPH-1290
@@ -533,16 +533,16 @@ public class PagedQueryTests {
 		setup();
 		Sort sort = Sort.by(Sort.Order.asc("n.name").ignoreCase());
 		List<Cinema> cinemas = cinemaRepository.getCinemasSortedByName(sort);
-		assertThat(cinemas.size()).isEqualTo(10);
-		assertThat(cinemas.get(0).getName()).isEqualTo("Cineplex");
-		assertThat(cinemas.get(1).getName()).isEqualTo("Inox");
-		assertThat(cinemas.get(2).getName()).isEqualTo("Landmark");
-		assertThat(cinemas.get(3).getName()).isEqualTo("Metro");
-		assertThat(cinemas.get(4).getName()).isEqualTo("Movietime");
-		assertThat(cinemas.get(5).getName()).isEqualTo("Picturehouse");
-		assertThat(cinemas.get(6).getName()).isEqualTo("PVR");
-		assertThat(cinemas.get(7).getName()).isEqualTo("Rainbow");
-		assertThat(cinemas.get(8).getName()).isEqualTo("Regal");
-		assertThat(cinemas.get(9).getName()).isEqualTo("Ritzy");
+		assertEquals(10, cinemas.size());
+		assertEquals("Cineplex", cinemas.get(0).getName());
+		assertEquals("Inox", cinemas.get(1).getName());
+		assertEquals("Landmark", cinemas.get(2).getName());
+		assertEquals("Metro", cinemas.get(3).getName());
+		assertEquals("Movietime", cinemas.get(4).getName());
+		assertEquals("Picturehouse", cinemas.get(5).getName());
+		assertEquals("PVR", cinemas.get(6).getName());
+		assertEquals("Rainbow", cinemas.get(7).getName());
+		assertEquals("Regal", cinemas.get(8).getName());
+		assertEquals("Ritzy", cinemas.get(9).getName());
 	}
 }
