@@ -301,6 +301,77 @@ class RepositoryIT {
 	}
 
 	@Test
+	void loadDeepRelationships(@Autowired DeepRelationshipRepository deepRelationshipRepository) {
+
+		long type1Id;
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Record record = session
+				.run("CREATE "
+					+ "(t1:Type1)-[:NEXT_TYPE]->(t2:Type2)-[:NEXT_TYPE]->(:Type3)-[:NEXT_TYPE]->(t4:Type4)-"
+					+ "[:NEXT_TYPE]->(:Type5)-[:NEXT_TYPE]->(:Type6)-[:NEXT_TYPE]->(:Type7), "
+					+ "(t2)-[:SAME_TYPE]->"
+					+ "(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->"
+					+ "(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->"
+					+ "(:Type2) "
+					+ "RETURN t1").single();
+
+			type1Id = record.get("t1").asNode().id();
+		}
+
+		DeepRelationships.Type1 type1 = deepRelationshipRepository.findById(type1Id).get();
+
+		// ensures that the virtual limit for same relationships does not affect distinct relationships
+		assertThat(type1.nextType.nextType.nextType.nextType.nextType.nextType).isNotNull();
+
+		// check the magical virtual limit of 5 of same type relationships
+		DeepRelationships.Type2 type2 = type1.nextType;
+		assertThat(type2.sameType.sameType.sameType.sameType.sameType).isNotNull();
+		assertThat(type2.sameType.sameType.sameType.sameType.sameType.sameType).isNull();
+
+	}
+
+	@Test
+	void loadLoopingDeepRelationships(@Autowired LoopingRelationshipRepository loopingRelationshipRepository) {
+
+		long type1Id;
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Record record = session
+				.run("CREATE "
+					+ "(t1:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+					+ "(:LoopingType1)"
+					+ "RETURN t1").single();
+
+			type1Id = record.get("t1").asNode().id();
+		}
+
+		DeepRelationships.LoopingType1 type1 = loopingRelationshipRepository.findById(type1Id).get();
+
+		DeepRelationships.LoopingType1 iteration1 = type1.nextType.nextType.nextType;
+		assertThat(iteration1).isNotNull();
+		DeepRelationships.LoopingType1 iteration2 = iteration1.nextType.nextType.nextType;
+		assertThat(iteration2).isNotNull();
+		DeepRelationships.LoopingType1 iteration3 = iteration2.nextType.nextType.nextType;
+		assertThat(iteration3).isNotNull();
+		DeepRelationships.LoopingType1 iteration4 = iteration3.nextType.nextType.nextType;
+		assertThat(iteration4).isNotNull();
+		DeepRelationships.LoopingType1 iteration5 = iteration4.nextType.nextType.nextType;
+		assertThat(iteration5).isNotNull();
+		assertThat(iteration5.nextType).isNull();
+
+	}
+
+	@Test
 	void loadEntityWithRelationshipToTheSameNode() {
 
 		long personId;

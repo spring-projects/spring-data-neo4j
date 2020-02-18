@@ -26,7 +26,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
@@ -328,27 +330,30 @@ public enum CypherGenerator {
 
 		Set<RelationshipDescription> processedRelationships = new HashSet<>();
 
-		return projectPropertiesAndRelationships(nodeDescription, NAME_OF_ROOT_NODE, includeField, processedRelationships, 0);
+		return projectPropertiesAndRelationships(nodeDescription, NAME_OF_ROOT_NODE, includeField,
+			processedRelationships, new ConcurrentHashMap<>());
 	}
 
 	private MapProjection projectAllPropertiesAndRelationships(NodeDescription<?> nodeDescription, String nodeName,
-		Set<RelationshipDescription> processedRelationships, int currentDepth) {
+		Set<RelationshipDescription> processedRelationships, Map<RelationshipDescription, Integer> depthMap) {
 
 		Predicate<String> includeAllFields = (field) -> true;
-		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeAllFields, processedRelationships, currentDepth);
+		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeAllFields, processedRelationships,
+			depthMap);
 	}
 
 	private MapProjection projectPropertiesAndRelationships(NodeDescription<?> nodeDescription,
 		String nodeName,
 		Predicate<String> includeProperty,
-		Set<RelationshipDescription> processedRelationships, int currentDepth) {
+		Set<RelationshipDescription> processedRelationships,
+		Map<RelationshipDescription, Integer> depthMap) {
 
 		Collection<RelationshipDescription> relationships = nodeDescription.getRelationships();
 
 		List<Object> contentOfProjection = new ArrayList<>();
 		contentOfProjection.addAll(projectNodeProperties(nodeDescription, nodeName, includeProperty));
 		contentOfProjection.addAll(
-			generateListsOf(relationships, nodeName, includeProperty, processedRelationships, currentDepth)
+			generateListsOf(relationships, nodeName, includeProperty, processedRelationships, depthMap)
 		);
 
 		return Cypher.anyNode(nodeName).project(contentOfProjection);
@@ -377,18 +382,16 @@ public enum CypherGenerator {
 	private List<Object> generateListsOf(Collection<RelationshipDescription> relationships,
 		String nameOfStartNode, Predicate<String> includeField,
 		Set<RelationshipDescription> processedRelationships,
-		int currentRelationshipDepth) {
+		Map<RelationshipDescription, Integer> depthMap) {
 
 		List<Object> generatedLists = new ArrayList<>();
 
-		if (currentRelationshipDepth > RELATIONSHIP_DEPTH_LIMIT) {
-			return generatedLists;
-		}
-		currentRelationshipDepth++;
-
 		for (RelationshipDescription relationshipDescription : relationships) {
 
-			String targetLabel = relationshipDescription.getTarget().getPrimaryLabel();
+			if (currentRelationshipDepth(relationshipDescription, depthMap) > RELATIONSHIP_DEPTH_LIMIT) {
+				return generatedLists;
+			}
+			increaseRelationshipDepth(relationshipDescription, depthMap);
 
 			String fieldName = relationshipDescription.getFieldName();
 			if (!includeField.test(fieldName)) {
@@ -404,6 +407,7 @@ public enum CypherGenerator {
 
 			String relationshipType = relationshipDescription.getType();
 			String relationshipTargetName = relationshipDescription.generateRelatedNodesCollectionName();
+			String targetLabel = relationshipDescription.getTarget().getPrimaryLabel();
 
 			Node startNode = anyNode(nameOfStartNode);
 			String relationshipFieldName = concatFieldName(nameOfStartNode, fieldName);
@@ -423,7 +427,7 @@ public enum CypherGenerator {
 				generatedLists.add(listBasedOn(relationship)
 					.returning(
 						projectAllPropertiesAndRelationships(endNodeDescription,
-							relationshipFieldName, processedRelationships, currentRelationshipDepth)
+							relationshipFieldName, processedRelationships, depthMap)
 							.and(NAME_OF_RELATIONSHIP_TYPE, Functions.type(relationship))));
 			} else {
 				Relationship relationship = relationshipDescription.isOutgoing()
@@ -431,8 +435,7 @@ public enum CypherGenerator {
 					: startNode.relationshipFrom(endNode, relationshipType);
 
 				MapProjection mapProjection = projectAllPropertiesAndRelationships(endNodeDescription,
-					relationshipFieldName,
-					processedRelationships, currentRelationshipDepth);
+					relationshipFieldName, processedRelationships, depthMap);
 
 				if (relationshipDescription.hasRelationshipProperties()) {
 					relationship = relationship.named(RelationshipDescription.NAME_OF_RELATIONSHIP);
@@ -446,6 +449,17 @@ public enum CypherGenerator {
 		}
 
 		return generatedLists;
+	}
+
+	private int currentRelationshipDepth(RelationshipDescription relationshipDescription, Map<RelationshipDescription, Integer> depthMap) {
+		return depthMap
+			.getOrDefault(relationshipDescription, 1);
+	}
+
+	private void increaseRelationshipDepth(RelationshipDescription relationshipDescription, Map<RelationshipDescription, Integer> depthMap) {
+		int newDepth = currentRelationshipDepth(relationshipDescription, depthMap) + 1;
+
+		depthMap.put(relationshipDescription, newDepth);
 	}
 
 	@NotNull
