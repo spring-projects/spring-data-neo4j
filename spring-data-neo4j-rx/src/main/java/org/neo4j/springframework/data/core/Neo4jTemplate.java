@@ -115,18 +115,29 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData)
 			.returning(Functions.count(asterisk())).build();
 
-		PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class)
-			.withCypherQuery(renderer.render(statement))
-			.build();
-		return toExecutableQuery(preparedQuery)
-			.getRequiredSingleResult();
+		return count(statement);
+	}
+
+	@Override
+	public long count(Statement statement) {
+		return count(statement, emptyMap());
 	}
 
 	@Override
 	public long count(Statement statement, Map<String, Object> parameters) {
+		return count(renderer.render(statement), parameters);
+	}
+
+	@Override
+	public long count(String cypherQuery) {
+		return count(cypherQuery, emptyMap());
+	}
+
+	@Override
+	public long count(String cypherQuery, Map<String, Object> parameters) {
 
 		PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class)
-			.withCypherQuery(renderer.render(statement))
+			.withCypherQuery(cypherQuery)
 			.withParameters(parameters)
 			.build();
 		return toExecutableQuery(preparedQuery).getRequiredSingleResult();
