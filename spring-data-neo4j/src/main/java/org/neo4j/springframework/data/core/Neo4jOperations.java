@@ -45,7 +45,39 @@ public interface Neo4jOperations {
 	 */
 	long count(Class<?> domainType);
 
+	/**
+	 * Counts the number of entities of a given type.
+	 *
+	 * @param statement the Cypher {@link Statement} that returns the count.
+	 * @return the number of instances stored in the database. Guaranteed to be not {@code null}.
+	 */
+	long count(Statement statement);
+
+	/**
+	 * Counts the number of entities of a given type.
+	 *
+	 * @param statement  the Cypher {@link Statement} that returns the count.
+	 * @param parameters Map of parameters. Must not be {@code null}.
+	 * @return the number of instances stored in the database. Guaranteed to be not {@code null}.
+	 */
 	long count(Statement statement, Map<String, Object> parameters);
+
+	/**
+	 * Counts the number of entities of a given type.
+	 *
+	 * @param cypherQuery the Cypher query that returns the count.
+	 * @return the number of instances stored in the database. Guaranteed to be not {@code null}.
+	 */
+	long count(String cypherQuery);
+
+	/**
+	 * Counts the number of entities of a given type.
+	 *
+	 * @param cypherQuery the Cypher query that returns the count.
+	 * @param parameters Map of parameters. Must not be {@code null}.
+	 * @return the number of instances stored in the database. Guaranteed to be not {@code null}.
+	 */
+	long count(String cypherQuery, Map<String, Object> parameters);
 
 	/**
 	 * Load all entities of a given type.

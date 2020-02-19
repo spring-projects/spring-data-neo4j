@@ -23,7 +23,6 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,7 +107,31 @@ class Neo4jOperationsIT {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
 		Statement statement = Cypher.match(node).returning(Functions.count(node)).build();
 
-		assertThat(neo4jOperations.count(statement, emptyMap())).isEqualTo(2);
+		assertThat(neo4jOperations.count(statement)).isEqualTo(2);
+	}
+
+	@Test
+	void countWithStatementAndParameters() {
+		Node node = Cypher.node("PersonWithAllConstructor").named("n");
+		Statement statement = Cypher.match(node)
+			.where(node.property("name").isEqualTo(Cypher.parameter("name")))
+			.returning(Functions.count(node)).build();
+
+		assertThat(neo4jOperations.count(statement, singletonMap("name", TEST_PERSON1_NAME))).isEqualTo(1);
+	}
+
+	@Test
+	void countWithCypherQuery() {
+		String cypherQuery = "MATCH (p:PersonWithAllConstructor) return count(p)";
+
+		assertThat(neo4jOperations.count(cypherQuery)).isEqualTo(2);
+	}
+
+	@Test
+	void countWithCypherQueryAndParameters() {
+		String cypherQuery = "MATCH (p:PersonWithAllConstructor) WHERE p.name = $name return count(p)";
+
+		assertThat(neo4jOperations.count(cypherQuery, singletonMap("name", TEST_PERSON1_NAME))).isEqualTo(1);
 	}
 
 	@Test
@@ -134,7 +157,7 @@ class Neo4jOperationsIT {
 			.returning(node).build();
 
 		List<PersonWithAllConstructor> people = neo4jOperations.findAll(statement,
-			Collections.singletonMap("name", TEST_PERSON1_NAME),
+			singletonMap("name", TEST_PERSON1_NAME),
 			PersonWithAllConstructor.class);
 
 		assertThat(people).hasSize(1);
@@ -148,7 +171,7 @@ class Neo4jOperationsIT {
 			.returning(node).build();
 
 		Optional<PersonWithAllConstructor> person = neo4jOperations.findOne(statement,
-			Collections.singletonMap("name", TEST_PERSON1_NAME),
+			singletonMap("name", TEST_PERSON1_NAME),
 			PersonWithAllConstructor.class);
 
 		assertThat(person).isPresent();
@@ -167,7 +190,7 @@ class Neo4jOperationsIT {
 		String cypherQuery = "MATCH (p:PersonWithAllConstructor) WHERE p.name = $name return p";
 
 		List<PersonWithAllConstructor> people = neo4jOperations.findAll(cypherQuery,
-			Collections.singletonMap("name", TEST_PERSON1_NAME),
+			singletonMap("name", TEST_PERSON1_NAME),
 			PersonWithAllConstructor.class);
 
 		assertThat(people).hasSize(1);
@@ -178,7 +201,7 @@ class Neo4jOperationsIT {
 		String cypherQuery = "MATCH (p:PersonWithAllConstructor) WHERE p.name = $name return p";
 
 		Optional<PersonWithAllConstructor> person = neo4jOperations.findOne(cypherQuery,
-			Collections.singletonMap("name", TEST_PERSON1_NAME),
+			singletonMap("name", TEST_PERSON1_NAME),
 			PersonWithAllConstructor.class);
 
 		assertThat(person).isPresent();

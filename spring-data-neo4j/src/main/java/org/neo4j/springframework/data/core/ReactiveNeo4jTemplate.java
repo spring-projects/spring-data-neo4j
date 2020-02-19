@@ -114,17 +114,28 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
 			.returning(Functions.count(asterisk())).build();
 
-		PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class)
-			.withCypherQuery(renderer.render(statement))
-			.build();
-		return this.toExecutableQuery(preparedQuery).flatMap(ExecutableQuery::getSingleResult);
+		return count(statement);
+	}
+
+	@Override
+	public Mono<Long> count(Statement statement) {
+		return count(statement, emptyMap());
 	}
 
 	@Override
 	public Mono<Long> count(Statement statement, Map<String, Object> parameters) {
+		return count(renderer.render(statement), parameters);
+	}
 
+	@Override
+	public Mono<Long> count(String cypherQuery) {
+		return count(cypherQuery, emptyMap());
+	}
+
+	@Override
+	public Mono<Long> count(String cypherQuery, Map<String, Object> parameters) {
 		PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class)
-			.withCypherQuery(renderer.render(statement))
+			.withCypherQuery(cypherQuery)
 			.withParameters(parameters)
 			.build();
 		return this.toExecutableQuery(preparedQuery).flatMap(ExecutableQuery::getSingleResult);

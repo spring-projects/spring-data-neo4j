@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.integration.reactive;
 
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.test.Neo4jExtension.*;
 
 import reactor.test.StepVerifier;
@@ -114,8 +115,39 @@ class ReactiveNeo4jOperationsIT {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
 		Statement statement = Cypher.match(node).returning(Functions.count(node)).build();
 
-		StepVerifier.create(neo4jOperations.count(statement, emptyMap()))
+		StepVerifier.create(neo4jOperations.count(statement))
 			.assertNext(count -> assertThat(count).isEqualTo(2))
+			.verifyComplete();
+	}
+
+	@Test
+	void countWithStatementAndParameters() {
+		Node node = Cypher.node("PersonWithAllConstructor").named("n");
+		Statement statement = Cypher.match(node)
+			.where(node.property("name").isEqualTo(parameter("name")))
+			.returning(Functions.count(node)).build();
+
+		StepVerifier.create(neo4jOperations.count(statement, singletonMap("name", TEST_PERSON1_NAME)))
+			.assertNext(count -> assertThat(count).isEqualTo(1))
+			.verifyComplete();
+	}
+
+	@Test
+	void countWithCypherQuery() {
+
+		String cypherQuery = "MATCH (p:PersonWithAllConstructor) return count(p)";
+
+		StepVerifier.create(neo4jOperations.count(cypherQuery))
+			.assertNext(count -> assertThat(count).isEqualTo(2))
+			.verifyComplete();
+	}
+
+	@Test
+	void countWithCypherQueryAndParameters() {
+		String cypherQuery = "MATCH (p:PersonWithAllConstructor) WHERE p.name = $name return count(p)";
+
+		StepVerifier.create(neo4jOperations.count(cypherQuery, singletonMap("name", TEST_PERSON1_NAME)))
+			.assertNext(count -> assertThat(count).isEqualTo(1))
 			.verifyComplete();
 	}
 
@@ -140,7 +172,7 @@ class ReactiveNeo4jOperationsIT {
 	void findAllWithStatementAndParameters() {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
 		Statement statement = Cypher.match(node)
-			.where(node.property("name").isEqualTo(Cypher.parameter("name")))
+			.where(node.property("name").isEqualTo(parameter("name")))
 			.returning(node).build();
 
 		StepVerifier.create(neo4jOperations.findAll(statement,
@@ -154,7 +186,7 @@ class ReactiveNeo4jOperationsIT {
 	void findOneWithStatementAndParameters() {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
 		Statement statement = Cypher.match(node)
-			.where(node.property("name").isEqualTo(Cypher.parameter("name")))
+			.where(node.property("name").isEqualTo(parameter("name")))
 			.returning(node).build();
 
 		StepVerifier.create(neo4jOperations.findOne(statement,
