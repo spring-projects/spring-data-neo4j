@@ -157,6 +157,21 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	}
 
 	@Override
+	public <T> Flux<T> findAll(String cypherQuery, Class<T> domainType) {
+		return createExecutableQuery(domainType, cypherQuery).flatMapMany(ExecutableQuery::getResults);
+	}
+
+	@Override
+	public <T> Flux<T> findAll(String cypherQuery, Map<String, Object> parameters, Class<T> domainType) {
+		return createExecutableQuery(domainType, cypherQuery, parameters).flatMapMany(ExecutableQuery::getResults);
+	}
+
+	@Override
+	public <T> Mono<T> findOne(String cypherQuery, Map<String, Object> parameters, Class<T> domainType) {
+		return createExecutableQuery(domainType, cypherQuery, parameters).flatMap(ExecutableQuery::getSingleResult);
+	}
+
+	@Override
 	public <T> Mono<T> findById(Object id, Class<T> domainType) {
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
@@ -320,11 +335,21 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		return createExecutableQuery(domainType, statement, Collections.emptyMap());
 	}
 
+	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, String cypherQuery) {
+		return createExecutableQuery(domainType, cypherQuery, Collections.emptyMap());
+	}
+
 	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Statement statement,
 		Map<String, Object> parameters) {
 
+		return createExecutableQuery(domainType, renderer.render(statement), parameters);
+	}
+
+	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, String cypherQuery,
+		Map<String, Object> parameters) {
+
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType)
-			.withCypherQuery(renderer.render(statement))
+			.withCypherQuery(cypherQuery)
 			.withParameters(parameters)
 			.usingMappingFunction(this.neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
 			.build();

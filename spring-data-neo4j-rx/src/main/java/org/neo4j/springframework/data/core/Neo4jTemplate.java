@@ -157,6 +157,21 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	}
 
 	@Override
+	public <T> List<T> findAll(String cypherQuery, Class<T> domainType) {
+		return createExecutableQuery(domainType, cypherQuery).getResults();
+	}
+
+	@Override
+	public <T> List<T> findAll(String cypherQuery, Map<String, Object> parameters, Class<T> domainType) {
+		return createExecutableQuery(domainType, cypherQuery, parameters).getResults();
+	}
+
+	@Override
+	public <T> Optional<T> findOne(String cypherQuery, Map<String, Object> parameters, Class<T> domainType) {
+		return createExecutableQuery(domainType, cypherQuery, parameters).getSingleResult();
+	}
+
+	@Override
 	public <T> Optional<T> findById(Object id, Class<T> domainType) {
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
@@ -318,15 +333,25 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			summary.counters().relationshipsDeleted()));
 	}
 
-	private <T> ExecutableQuery createExecutableQuery(Class<T> domainType, Statement statement) {
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Statement statement) {
 		return createExecutableQuery(domainType, statement, Collections.emptyMap());
+	}
+
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, String cypherStatement) {
+		return createExecutableQuery(domainType, cypherStatement, Collections.emptyMap());
 	}
 
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Statement statement,
 		Map<String, Object> parameters) {
 
+		return createExecutableQuery(domainType, renderer.render(statement), parameters);
+	}
+
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, String cypherStatement,
+		Map<String, Object> parameters) {
+
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType)
-			.withCypherQuery(renderer.render(statement))
+			.withCypherQuery(cypherStatement)
 			.withParameters(parameters)
 			.usingMappingFunction(neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
 			.build();
