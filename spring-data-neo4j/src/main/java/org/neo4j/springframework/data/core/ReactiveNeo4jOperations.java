@@ -55,11 +55,69 @@ public interface ReactiveNeo4jOperations {
 	 */
 	<T> Flux<T> findAll(Class<T> domainType);
 
+	/**
+	 * Load all entities of a given type by executing given statement.
+	 *
+	 * @param statement  Cypher {@link Statement}. Must not be {@code null}.
+	 * @param domainType the type of the entities. Must not be {@code null}.
+	 * @param <T>        the type of the entities. Must not be {@code null}.
+	 * @return Guaranteed to be not {@code null}.
+	 */
 	<T> Flux<T> findAll(Statement statement, Class<T> domainType);
 
+	/**
+	 * Load all entities of a given type by executing given statement with parameters.
+	 *
+	 * @param statement  Cypher {@link Statement}. Must not be {@code null}.
+	 * @param parameters Map of parameters. Must not be {@code null}.
+	 * @param domainType the type of the entities. Must not be {@code null}.
+	 * @param <T>        the type of the entities. Must not be {@code null}.
+	 * @return Guaranteed to be not {@code null}.
+	 */
 	<T> Flux<T> findAll(Statement statement, Map<String, Object> parameters, Class<T> domainType);
 
+	/**
+	 * Load one entity of a given type by executing given statement with parameters.
+	 *
+	 * @param statement  Cypher {@link Statement}. Must not be {@code null}.
+	 * @param parameters Map of parameters. Must not be {@code null}.
+	 * @param domainType the type of the entities. Must not be {@code null}.
+	 * @param <T>        the type of the entities. Must not be {@code null}.
+	 * @return Guaranteed to be not {@code null}.
+	 */
 	<T> Mono<T> findOne(Statement statement, Map<String, Object> parameters, Class<T> domainType);
+
+	/**
+	 * Load all entities of a given type by executing given statement.
+	 *
+	 * @param cypherQuery  Cypher query string. Must not be {@code null}.
+	 * @param domainType       the type of the entities. Must not be {@code null}.
+	 * @param <T>              the type of the entities. Must not be {@code null}.
+	 * @return Guaranteed to be not {@code null}.
+	 */
+	<T> Flux<T> findAll(String cypherQuery, Class<T> domainType);
+
+	/**
+	 * Load all entities of a given type by executing given statement with parameters.
+	 *
+	 * @param cypherQuery  Cypher query string. Must not be {@code null}.
+	 * @param parameters       Map of parameters. Must not be {@code null}.
+	 * @param domainType       the type of the entities. Must not be {@code null}.
+	 * @param <T>              the type of the entities. Must not be {@code null}.
+	 * @return Guaranteed to be not {@code null}.
+	 */
+	<T> Flux<T> findAll(String cypherQuery, Map<String, Object> parameters, Class<T> domainType);
+
+	/**
+	 * Load one entity of a given type by executing given statement with parameters.
+	 *
+	 * @param cypherQuery  Cypher query string. Must not be {@code null}.
+	 * @param parameters       Map of parameters. Must not be {@code null}.
+	 * @param domainType       the type of the entities. Must not be {@code null}.
+	 * @param <T>              the type of the entities. Must not be {@code null}.
+	 * @return Guaranteed to be not {@code null}.
+	 */
+	<T> Mono<T> findOne(String cypherQuery, Map<String, Object> parameters, Class<T> domainType);
 
 	/**
 	 * Load an entity from the database.
