@@ -41,6 +41,7 @@ class SpatialPersistenceContextConfiguration {
 		return new org.neo4j.ogm.config.Configuration.Builder() //
 				.uri(serverControls.boltURI().toString()) //
 				.useNativeTypes() //
+				.verifyConnection(true)
 				.build();
 	}
 
