@@ -6,7 +6,7 @@
 What is the difference between Neo4j-OGM and Spring Data Neo4j (SDN)?::
 
 Spring Data Neo4j (SDN) uses Neo4j-OGM to perform the mapping to and from the database.
-OGM can be seen on the same as a JPA implementation like Hibernate in the context of Spring Data JPA.
+OGM can be seen on the same level as a JPA implementation like Hibernate in the context of Spring Data JPA.
 
 How do I set up my Spring Configuration with Spring WebMVC projects?::
 If you are using a Spring WebMVC application, the following configuration is all that's required:
@@ -18,19 +18,6 @@ If you are using a Spring WebMVC application, the following configuration is all
 @EnableNeo4jRepositories("org.neo4j.example.repository")
 @EnableTransactionManagement
 public class MyWebAppConfiguration extends WebMvcConfigurerAdapter {
-
-    @Bean
-    public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
-        OpenSessionInViewInterceptor openSessionInViewInterceptor =
-            new OpenSessionInViewInterceptor();
-        openSessionInViewInterceptor.setSessionFactory(sessionFactory());
-        return openSessionInViewInterceptor;
-    }
-
-    @Override
-        public void addInterceptors(InterceptorRegistry registry) {
-        registry.addWebRequestInterceptor(openSessionInViewInterceptor());
-    }
 
     @Bean
     public SessionFactory sessionFactory() {
@@ -46,8 +33,7 @@ public class MyWebAppConfiguration extends WebMvcConfigurerAdapter {
 ----
 
 How do I set up my Spring Configuration with a Java Servlet 3.x+ Container project?::
-If you are using a Java Servlet 3.x+ Container, you can configure a Servlet filter with Spring's `AbstractAnnotationConfigDispatcherServletInitializer`.  The configuration below will open a new
-session for every web request then automatically close it on completion. SDN provides the `org.springframework.data.neo4j.web.support.OpenSessionInViewFilter` to do this:
+If you are using a Java Servlet 3.x+ Container, you can configure a Servlet filter with Spring's `AbstractAnnotationConfigDispatcherServletInitializer` like this:
 [source,java]
 ----
 public class MyAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
@@ -71,10 +57,5 @@ public class MyAppInitializer extends AbstractAnnotationConfigDispatcherServletI
   protected String[] getServletMappings() {
     return new String[] {"/"};
   }
-
-  protected Filter[] getServletFilters() {
-    return return new Filter[] {new OpenSessionInViewFilter()};
-  }
-
 }
 ----
