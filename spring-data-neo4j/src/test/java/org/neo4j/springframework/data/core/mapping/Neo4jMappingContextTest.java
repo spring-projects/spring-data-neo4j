@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.core.mapping;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -36,6 +37,7 @@ import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Property;
 import org.neo4j.springframework.data.core.schema.Relationship;
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.Association;
 
 /**
@@ -152,6 +154,22 @@ public class Neo4jMappingContextTest {
 		assertThat(dummyIdGenerator1).isSameAs(dummyIdGenerator2);
 	}
 
+	@Test
+	void shouldHonourTransientAnnotation() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> userNodeEntity = schema.getPersistentEntity(UserNode.class);
+
+		assertThat(userNodeEntity.getPersistentProperty("anAnnotatedTransientProperty")).isNull();
+
+		List<String> associations = new ArrayList<>();
+		userNodeEntity.doWithAssociations((Association<Neo4jPersistentProperty> a) -> {
+			associations.add(a.getInverse().getFieldName());
+		});
+
+		assertThat(associations).containsOnly("bikes");
+	}
+
 	static class DummyIdGenerator implements IdGenerator<Void> {
 
 		@Override
@@ -171,8 +189,18 @@ public class Neo4jMappingContextTest {
 
 		String name;
 
+		@Transient
+		String anAnnotatedTransientProperty;
+
+		@Transient
+		List<SomeOtherClass> someOtherTransientThings;
+
 		@Property(name = "firstName")
 		String first_name;
+	}
+
+	static class SomeOtherClass {
+
 	}
 
 	static class BikeNode {

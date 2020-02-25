@@ -79,10 +79,13 @@
 		<module>examples/mapping</module>
 		<module>examples/multi-database</module>
 		<module>examples/rest</module>
+		<module>examples/docs</module>
 	</modules>
 
 	<properties>
 		<apiguardian.version>1.0.0</apiguardian.version>
+		<asciidoctorj-diagram.version>2.0.1</asciidoctorj-diagram.version>
+		<asciidoctor-maven-plugin.version>1.6.0</asciidoctor-maven-plugin.version>
 		<assertj.version>3.15.0</assertj.version>
 		<byte-buddy.version>1.9.10</byte-buddy.version>
 		<changelist>-SNAPSHOT</changelist>
@@ -458,6 +461,46 @@
 						<phase>clean</phase>
 						<goals>
 							<goal>clean</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+				<version>${asciidoctor-maven-plugin.version}</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.asciidoctor</groupId>
+						<artifactId>asciidoctorj-diagram</artifactId>
+						<version>${asciidoctorj-diagram.version}</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<backend>html</backend>
+					<doctype>book</doctype>
+					<imagesDir>img</imagesDir>
+					<sourceDirectory>${basedir}/docs</sourceDirectory>
+					<sourceDocumentName>index.adoc</sourceDocumentName>
+					<sourceHighlighter>coderay</sourceHighlighter>
+					<icons>font</icons>
+					<attributes>
+						<toc>left</toc>
+						<setanchors></setanchors>
+						<idprefix></idprefix>
+						<idseparator></idseparator>
+					</attributes>
+					<requires>
+						<require>asciidoctor-diagram</require>
+					</requires>
+					<outputDirectory>${project.build.directory}/docs</outputDirectory>
+				</configuration>
+				<executions>
+					<execution>
+						<id>generate-docs</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>process-asciidoc</goal>
 						</goals>
 					</execution>
 				</executions>
