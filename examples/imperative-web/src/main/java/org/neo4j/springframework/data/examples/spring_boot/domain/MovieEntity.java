@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.examples.spring_boot.domain;
 
 import static org.neo4j.springframework.data.core.schema.Relationship.Direction.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.neo4j.springframework.data.core.schema.Id;
@@ -40,10 +41,10 @@ public class MovieEntity {
 	private final String description;
 
 	@Relationship(type = "ACTED_IN", direction = INCOMING)
-	private Set<PersonEntity> actors;
+	private Set<PersonEntity> actors = new HashSet<>();
 
 	@Relationship(type = "DIRECTED", direction = INCOMING)
-	private Set<PersonEntity> directors;
+	private Set<PersonEntity> directors = new HashSet<>();
 
 	public MovieEntity(String title, String description) {
 		this.title = title;

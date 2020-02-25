@@ -1,19 +1,17 @@
-ifndef::manualIncludeDir[]
-:manualIncludeDir: ../
-endif::[]
-== Building SDN/RX
+[[building-sdn-rx]]
+= Building SDN/RX
 
-=== Requirements
+== Requirements
 
-* JDK 12+ (Can be https://openjdk.java.net[OpenJDK] or https://www.oracle.com/technetwork/java/index.html[Oracle JDK])
-* Maven 3.6.2 (We provide the Maven wrapper, see `mvnw` respectivly `mvnw.cmd` in the project root; the wrapper downloads the appropriate Maven version automatically)
+* JDK 13+ (Can be https://openjdk.java.net[OpenJDK] or https://www.oracle.com/technetwork/java/index.html[Oracle JDK])
+* Maven 3.6.2 (We provide the Maven wrapper, see `mvnw` respectively `mvnw.cmd` in the project root; the wrapper downloads the appropriate Maven version automatically)
 * A Neo4j 3.5.+ database, either
 ** running locally
 ** or indirectly via https://www.testcontainers.org[Testcontainers] and https://www.docker.com[Docker]
 
-==== About the JDK version
+=== About the JDK version
 
-SDN/RX itself targets JDK 8 release but builds currently on JDK12.
+SDN/RX itself targets JDK 8 release but builds currently on JDK13.
 We will track the current release cadence of Java.
 Choosing JDK 8 is a decision influenced by various aspects
 
@@ -26,7 +24,7 @@ Choosing JDK 8 is a decision influenced by various aspects
 
 All examples (`/examples`) and also benchmarking (`/benchmarks`) will be compiled and run with the latest Java release, though.
 
-=== Running the build
+== Running the build
 
 The following sections are alternatives and roughly sorted by increased effort.
 
@@ -52,9 +50,9 @@ Java(TM) SE Runtime Environment (build 12.0.1+12)
 Java HotSpot(TM) 64-Bit Server VM (build 12.0.1+12, mixed mode, sharing)
 ----
 
-==== With Docker installed
+=== With Docker installed
 
-===== Using the default image
+==== Using the default image
 
 If you don't have https://en.wikipedia.org/wiki/Docker_(software)[Docker] installed, head over to https://www.docker.com/products/docker-desktop[Docker Desktop].
 In short, Docker is a tool that helps you running lightweight software images using OS-level virtualization in so called containers.
@@ -71,22 +69,22 @@ $ ./mvnw clean verify
 [INFO] Reactor Build Order:
 [INFO]
 [INFO] Spring Data Neo4j RX                                               [pom]
-[INFO] SDN⚡️RX                                                            [jar]
-[INFO] SDN⚡️RX Spring Boot Starter Parent                                 [pom]
-[INFO] SDN⚡️RX Spring Boot Starter Autoconfiguration                      [jar]
-[INFO] SDN⚡️RX Spring Boot Starter                                        [jar]
-[INFO] SDN⚡️RX Examples for Spring Boot                                   [jar]
-[INFO] SDN⚡️RX Examples Mapping                                           [jar]
+[INFO] SDN⚡RX                                                            [jar]
+[INFO] SDN⚡RX Spring Boot Starter Parent                                 [pom]
+[INFO] SDN⚡RX Spring Boot Starter Autoconfiguration                      [jar]
+[INFO] SDN⚡RX Spring Boot Starter                                        [jar]
+[INFO] SDN⚡RX Examples for Spring Boot                                   [jar]
+[INFO] SDN⚡RX Examples Mapping                                           [jar]
 ...
 [INFO] Reactor Summary:
 [INFO]
 [INFO] Spring Data Neo4j RX 1.0.0-SNAPSHOT ................ SUCCESS [  5.937 s]
-[INFO] SDN⚡️RX 1.0.0-SNAPSHOT ............................. SUCCESS [09:37 min]
-[INFO] SDN⚡️RX Spring Boot Starter Parent 1.0.0-SNAPSHOT .. SUCCESS [  1.734 s]
-[INFO] SDN⚡️RX Spring Boot Starter Autoconfiguration 1.0.0-SNAPSHOT SUCCESS [ 57.069 s]
-[INFO] SDN⚡️RX Spring Boot Starter 1.0.0-SNAPSHOT ......... SUCCESS [  0.444 s]
-[INFO] SDN⚡️RX Examples for Spring Boot 999-SNAPSHOT ...... SUCCESS [  4.055 s]
-[INFO] SDN⚡️RX Examples Mapping 999-SNAPSHOT .............. SUCCESS [  0.683 s]
+[INFO] SDN⚡RX 1.0.0-SNAPSHOT ............................. SUCCESS [09:37 min]
+[INFO] SDN⚡RX Spring Boot Starter Parent 1.0.0-SNAPSHOT .. SUCCESS [  1.734 s]
+[INFO] SDN⚡RX Spring Boot Starter Autoconfiguration 1.0.0-SNAPSHOT SUCCESS [ 57.069 s]
+[INFO] SDN⚡RX Spring Boot Starter 1.0.0-SNAPSHOT ......... SUCCESS [  0.444 s]
+[INFO] SDN⚡RX Examples for Spring Boot 999-SNAPSHOT ...... SUCCESS [  4.055 s]
+[INFO] SDN⚡RX Examples Mapping 999-SNAPSHOT .............. SUCCESS [  0.683 s]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
@@ -109,7 +107,7 @@ The output should be similar.
 At the moment, this build tests agains Neo4j 3.5, as 4.0 is not yet available on Docker Hub.
 As a consequence, tests requiring a reactive capable database, are skipped, as this is a feature of Neo4j 4.0.
 
-===== Using another image
+==== Using another image
 
 The image version to use can be configured through an environmental variable like this:
 
@@ -124,7 +122,7 @@ Here we are using 3.5.11 enterprise and also accept the license agreement.
 
 Consult your operating system or shell manual on how to define environment variables if specifying them inline does not work for you.
 
-==== Against a locally running database
+=== Against a locally running database
 
 WARNING: Running against a locally running database *will* erase its complete content.
 
@@ -147,7 +145,7 @@ After that, you can run a complete build by specifying the local `bolt` URL:
 $ SDN_RX_NEO4J_URL=bolt://localhost:7687 SDN_RX_NEO4J_PASSWORD=secret ./mvnw clean verify
 ----
 
-=== Summary of environment variables controlling the build
+== Summary of environment variables controlling the build
 
 [cols="3,1,3", options="header"]
 |===
@@ -176,21 +174,21 @@ $ SDN_RX_NEO4J_URL=bolt://localhost:7687 SDN_RX_NEO4J_PASSWORD=secret ./mvnw cle
 
 NOTE: You need to set both `SDN_RX_NEO4J_URL` and `SDN_RX_NEO4J_PASSWORD` to use a local instance.
 
-=== Checkstyle and friends
+== Checkstyle and friends
 
 There is no quality gate in place at the moment to ensure that the code/test ratio stays as is, but please consider adding tests to your contributions.
 
 We have some rather mild checkstyle rules in place, enforcing more or less default Java formatting rules.
 Your build will break on formatting errors or something like unused imports.
 
-==== jQAssistant
+=== jQAssistant
 
 We also use https://jqassistant.org[jQAssistant], a Neo4j-based tool, to verify some aspects of our architecture.
 The rules are described with Cypher and your build will break when they are violated:
 
-include::../etc/jqassistant/index.adoc[leveloffset=4]
+include::../../etc/jqassistant/index.adoc[leveloffset=4]
 
-===== Accessing the jQAssistant database
+==== Accessing the jQAssistant database
 
 jQAssistant uses Neo4j to store information about a project.
 To access the database, please build the project as described above.
@@ -208,7 +206,7 @@ Access the standard Neo4j browser at http://localhost:7474 and a dedicated jQA-D
 The scanning and analyzing can be triggered individually, without going through the full verify again:
 
 [source,console,subs="verbatim,attributes"]
-[[start-jqassistant]]
+[[scan-with-jqassistant]]
 .Manually scan and analyze the main project
 ----
 $ ./mvnw -pl org.neo4j.springframework.data:spring-data-neo4j-rx jqassistant:scan@jqassistant-scan

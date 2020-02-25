@@ -1,19 +1,24 @@
 [[neo4j-client]]
-== Neo4jClient
+= Neo4jClient
 
-Spring Data Neo4j⚡️RX comes with a Neo4j Client, providing a human readable layer on top of Neo4js Java driver.
-It has the following main goals
+Spring Data Neo4j⚡RX comes with a Neo4j Client, providing a thin layer on top of Neo4j's Java driver.
+
+While the https://github.com/neo4j/neo4j-java-driver[plain Java driver] is a very versatile tool
+providing an asynchronous API in addition to the imperative and reactive versions, it doesn't 
+integrate with Spring application level transactions. 
+
+SDN/RX uses the driver through the concept of a idiomatic client as directly as possible.
+
+The client has the following main goals
 
 . Integrate into Springs transaction management, for both imperative and reactive scenarios
 . Participate in JTA-Transactions if necessary
 . Provide a consistent API for both imperative and reactive scenarios
 . Don't add any mapping overhead
 
-SDN/RX relies on all those features and uses them to fulfill it's entity mapping features.
+SDN/RX relies on all those features and uses them to fulfill its entity mapping features.
 
-The https://github.com/neo4j/neo4j-java-driver[plain java driver] is a very versatile tool
-and provides an asynchronous API in addition to the imperative and reactive versions.
-SDN/RX uses it as directly as possible while being as user friendly and idiomatic as possible, too.
+Have a look at the <<sdn-rx-building-blocks, SDN/RX building blocks>> for where both the imperative and reactive Neo4 clients are positioned in our stack.
 
 The Neo4j Client comes in two flavors:
 
@@ -23,9 +28,9 @@ The Neo4j Client comes in two flavors:
 While both versions provide an API using the same vocabulary and syntax, they are not API compatible.
 Both versions feature the same, fluent API to specify queries, bind parameters and extract results.
 
-=== Imperative or reactive?
+== Imperative or reactive?
 
-Interactions with a Neo4j client usually ends with a call to
+Interactions with a Neo4j Client usually ends with a call to
 
 * `fetch().one()`
 * `fetch().first()`
@@ -39,7 +44,7 @@ The reactive version will in contrast return a publisher of the requested type.
 Interaction with the database and retrieval of the results will not happen until the publisher is subscribed to.
 The publisher can only be subscribed once.
 
-=== Getting an instance of the client
+== Getting an instance of the client
 
 As with most things in SDN/RX, both clients depend on a configured driver instance.
 
@@ -93,13 +98,13 @@ NOTE: Make sure you use the same driver instance for the client as you used for 
 in case you have enabled transactions.
 The client won't be able to synchronize transactions if you use another instance of a driver.
 
-Our Spring Boot starter provides ready to use beans of the Neo4j client that fit the environment (imperative or reactive)
+Our Spring Boot starter provide a ready to use bean of the Neo4j Client that fit the environment (imperative or reactive)
 and you usually don't have to configure your own instance.
 
-=== Usage
+== Usage
 
 [[neo4j-client-selecting-the-target-database]]
-==== Selecting the target database
+=== Selecting the target database
 
 The Neo4j client is well prepared to be used with the multidatabase features of Neo4j 4.0.
 The client uses the default database unless you specify otherwise.
@@ -112,13 +117,13 @@ The fluent API of the client allows to specify the target database exactly once,
 ----
 Flux<Map<String, Object>> allActors = client
 	.query("MATCH (p:Person) RETURN p")
-	.in("neo4j") // <1>
+	.in("neo4j") // <.>
 	.fetch()
 	.all();
 ----
-<1> Select the target database in which the query is to be executed
+<.> Select the target database in which the query is to be executed.
 
-==== Specifying queries
+=== Specifying queries
 
 The interaction with the clients starts with a query.
 A query can be defined by a plain `String` or a `Supplier<String>`.
@@ -134,7 +139,7 @@ Mono<Map<String, Object>> firstActor = client
 	.first();
 ----
 
-==== Retrieving results
+=== Retrieving results
 
 As the previous listings shows, the interaction with the client always ends with a call to `fetch` and how many results shall be received.
 Both reactive and imperative client offer
@@ -144,7 +149,7 @@ Both reactive and imperative client offer
 `all()`:: Retrieve all records returned
 
 The imperative client returns `Optional<T>` and `Collection<T>` respectively,
-while the reactive client returns `Mono<T>` and `Flux<T>`, the later one being executed only when subscribed to.
+while the reactive client returns `Mono<T>` and `Flux<T>`, the later one being executed only if subscribed to.
 
 If you don't expect any results from your query, than use `run()` after specificity the query.
 
@@ -160,9 +165,9 @@ summary
     .map(ResultSummary::counters)
     .subscribe(counters ->
         System.out.println(counters.nodesDeleted() + " nodes have been deleted")
-    ); // <1>
+    ); // <.>
 ----
-<1> The actual query is triggered here by subscribing to the publisher
+<.> The actual query is triggered here by subscribing to the publisher.
 
 Please take a moment to compare both listings and understand the difference when the actual query is triggered.
 
@@ -172,14 +177,14 @@ Please take a moment to compare both listings and understand the difference when
 ----
 ResultSummary resultSummary = imperativeClient
 	.query("MATCH (m:Movie) where m.title = 'Aeon Flux' DETACH DELETE m")
-	.run(); // <1>
+	.run(); // <.>
 
 SummaryCounters counters = resultSummary.counters();
 System.out.println(counters.nodesDeleted() + " nodes have been deleted")
 ----
-<1> Here the query is triggered immediate
+<.> Here the query is triggered immediate.
 
-==== Mapping parameters
+=== Mapping parameters
 
 Queries can contain named parameters (`$someName`).
 The Neo4j client allows comfortable binding to those.
@@ -205,19 +210,19 @@ Flux<Map<String, Object>> directorAndMovies = client
 			"  AND p.born < $someDate.year " +
 			"RETURN p, om"
 	)
-	.bind("The Matrix").to("title") // <1>
+	.bind("The Matrix").to("title") // <.>
 	.bind(LocalDate.of(1979, 9, 21)).to("someDate")
-	.bindAll(parameters) // <2>
+	.bindAll(parameters) // <.>
 	.fetch()
 	.all();
 ----
-<1> There's a fluent API for binding simple types
-<2> Alternatively parameters can be bound via a map of named parameters
+<.> There's a fluent API for binding simple types.
+<.> Alternatively parameters can be bound via a map of named parameters.
 
 SDN/RX does a lot of complex mapping and it uses the same API that you can use from the client.
 
 You can provide a `Function<T, Map<String, Object>>` for any given domain object like an owner of bicycles in <<neo4j-client-domain-example>>
-to the Neo4j client to map those domain objects to parameters the driver can understand.
+to the Neo4j Client to map those domain objects to parameters the driver can understand.
 
 [[neo4j-client-domain-example]]
 [source,java]
@@ -273,7 +278,7 @@ Mono<ResultSummary> summary = client
         + "MERGE (m:Movie {title: movie}) "
         + "MERGE (p) - [o:DIRECTED] -> (m) "
     )
-    .bind(joseph).with(director -> { // <1>
+    .bind(joseph).with(director -> { // <.>
         Map<String, Object> mappedValues = new HashMap<>();
         List<String> movies = director.getMovies().stream()
             .map(Movie::getTitle).collect(Collectors.toList());
@@ -283,9 +288,9 @@ Mono<ResultSummary> summary = client
     })
     .run();
 ----
-<1> The with method allows for specifying the binder function
+<.> The with method allows for specifying the binder function.
 
-==== Working with result objects
+=== Working with result objects
 
 Both clients return collections or publishers of maps (`Map<String, Object>`).
 Those maps corresponds exactly with the records that a query might have produced.
@@ -311,7 +316,7 @@ Mono<Director> lily = client
 
 `TypeSystem` gives access to the types the underlying Java driver used to fill the record.
 
-==== Interacting directly with the driver while using managed transactions
+=== Interacting directly with the driver while using managed transactions
 
 In case you don't want or don't like the opinionated "client" approach of the `Neo4jClient` or the `ReactiveNeo4jClient`,
 you can have the client delegate all interactions with the database to your code.
@@ -331,10 +336,10 @@ Optional<Long> result = client
             .single().get("cnt").asLong();
         return Optional.of(numberOfNodes);
     })
-    // .in("aDatabase") // <1>
+    // .in("aDatabase") // <.>
     .run();
 ----
-<1> The database selection as described in <<neo4j-client-selecting-the-target-database>> is optional
+<.> The database selection as described in <<neo4j-client-selecting-the-target-database>> is optional.
 
 The reactive version receives a `RxStatementRunner`.
 
@@ -347,9 +352,9 @@ Mono<Integer> result = client
         Mono.from(runner.run("MATCH (n:Unused) DELETE n").summary())
             .map(ResultSummary::counters)
             .map(SummaryCounters::nodesDeleted))
-    // .in("aDatabase") // <1>
+    // .in("aDatabase") // <.>
     .run();
 ----
-<1> Optional selection of the target database
+<.> Optional selection of the target database.
 
 Note that in both <<neo4j-client-imperative-delegating>> and <<neo4j-client-reactive-delegating>> the types of the runner have only been stated to provide more clarity to reader of this manual.

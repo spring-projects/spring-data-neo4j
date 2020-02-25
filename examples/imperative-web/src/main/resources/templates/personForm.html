@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:th="http://www.thymeleaf.org"
+	  th:lang="${#locale.language}">
+<head>
+	<meta charset="UTF-8">
+	<title>Edit person</title>
+</head>
+<body>
+<form th:object="${person}" method="POST" th:action="@{/people}">
+	<div class="form-group">
+		<label for="name">Name</label>
+		<input type="text" class="form-control" th:field="*{name}" th:readonly="${name != null}"/>
+	</div>
+	<div class="form-group">
+		<label for="bornIn">Born in</label>
+		<input type="number"  class="form-control" th:field="*{born}"/>
+	</div>
+
+	<button type="submit" class="btn btn-primary">Submit</button>
+</form>
+</body>
+</html>

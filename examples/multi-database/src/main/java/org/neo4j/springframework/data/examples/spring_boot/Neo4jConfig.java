@@ -21,24 +21,32 @@ package org.neo4j.springframework.data.examples.spring_boot;
 import java.util.Optional;
 
 import org.neo4j.driver.Driver;
+// tag::faq.multidatabase[]
 import org.neo4j.springframework.data.core.DatabaseSelection;
 import org.neo4j.springframework.data.core.DatabaseSelectionProvider;
+// end::faq.multidatabase[]
 import org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager;
 import org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension;
+// tag::faq.multidatabase[]
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+// end::faq.multidatabase[]
 import org.springframework.context.annotation.Profile;
+// tag::faq.multidatabase[]
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
+// end::faq.multidatabase[]
 /**
  * @author Michael J. Simons
  */
+// tag::faq.multidatabase[]
 @Configuration
 public class Neo4jConfig {
 
+	// end::faq.multidatabase[]
 	/**
 	 * This bean is only active in profile {@literal "selection-by-user"}. The {@link DatabaseSelectionProvider} created here
 	 * uses Springs security context to retrieve the authenticated principal and extracts the username. Thus all requests
@@ -47,6 +55,7 @@ public class Neo4jConfig {
 	 * @return A database name provider.
 	 */
 	@Profile("selection-by-user")
+	// tag::faq.multidatabase[]
 	@Bean
 	DatabaseSelectionProvider databaseSelectionProvider() {
 
@@ -59,6 +68,7 @@ public class Neo4jConfig {
 			.map(DatabaseSelection::byName)
 			.orElseGet(DatabaseSelection::undecided);
 	}
+	// end::faq.multidatabase[]
 
 	@Profile("multiple-transaction-manager")
 	@Configuration
@@ -90,4 +100,7 @@ public class Neo4jConfig {
 				DatabaseSelectionProvider.createStaticDatabaseSelectionProvider("otherDb"));
 		}
 	}
+
+	// tag::faq.multidatabase[]
 }
+// end::faq.multidatabase[]

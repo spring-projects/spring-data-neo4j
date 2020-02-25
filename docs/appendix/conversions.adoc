@@ -1,13 +1,10 @@
 [[conversions]]
-== Conversions
-
-=== Build-in conversion
+= Conversions
 
 We support a broad range of conversions out of the box.
 Find the list of supported cypher types in the official drivers manual: https://neo4j.com/docs/driver-manual/current/cypher-values/[Working with Cypher values].
 
 Primitive types of wrapper types are equally supported.
-
 
 [cols="3,3,1", options="header"]
 |===
@@ -140,19 +137,19 @@ Primitive types of wrapper types are equally supported.
 |Point
 |✔
 
-|`org.neo4j.springframework.data.types.CartesianPoint2d`
+|`org.neo4j.springframework.data.types.GeographicPoint2d`
 |Point with CRS 4326
 |
 
-|`org.neo4j.springframework.data.types.CartesianPoint3d`
+|`org.neo4j.springframework.data.types.GeographicPoint3d`
 |Point with CRS 4979
 |
 
-|`org.neo4j.springframework.data.types.GeographicPoint2d`
+|`org.neo4j.springframework.data.types.CartesianPoint2d`
 |Point with CRS 7203
 |
 
-|`org.neo4j.springframework.data.types.GeographicPoint3d`
+|`org.neo4j.springframework.data.types.CartesianPoint3d`
 |Point with CRS 9157
 |
 

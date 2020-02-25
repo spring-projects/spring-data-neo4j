@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.examples.spring_boot.web;
 
+// tag::getting.started[]
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -38,9 +39,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+// end::getting.started[]
 /**
  * @author Michael J. Simons
  */
+// tag::getting.started[]
 @RestController
 @RequestMapping("/movies")
 public class MovieController {
@@ -75,9 +78,12 @@ public class MovieController {
 	Mono<Void> delete(@PathVariable String id) {
 		return movieRepository.deleteById(id);
 	}
+	// end::getting.started[]
 
 	@GetMapping("/graph")
 	public Mono<Map<String, List<D3JSGraphElement>>> graph() {
 		return movieService.createD3JSGraph();
 	}
+	// tag::getting.started[]
 }
+// end::getting.started[]

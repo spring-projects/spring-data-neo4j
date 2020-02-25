@@ -1,0 +1,6 @@
+== Docs
+
+This project contains a lot of fragments.
+Those fragments are not meant to be used together all at once.
+They are here to be included in our docs.
+By having them compiled as part of our build, we can make sure we don't have any invalid docs.

@@ -30,7 +30,7 @@ public class PersonEntity {
 	@Id
 	private final String name;
 
-	private final Integer born;
+	private Integer born;
 
 	public PersonEntity(Integer born, String name) {
 		this.born = born;
@@ -41,8 +41,11 @@ public class PersonEntity {
 		return born;
 	}
 
+	public void setBorn(Integer born) {
+		this.born = born;
+	}
+
 	public String getName() {
 		return name;
 	}
-
 }

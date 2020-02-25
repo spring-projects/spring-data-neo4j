@@ -1,0 +1,3 @@
+include::mapping.adoc[leveloffset=+1]
+
+include::sdc-object-mapping.adoc[leveloffset=+2]

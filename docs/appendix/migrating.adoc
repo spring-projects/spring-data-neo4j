@@ -1,17 +1,13 @@
-== Migrating from SDN+OGM to SDN/RX
+[[Migrating]]
+= Migrating from SDN+OGM to SDN/RX
 
-WARNING: As the relationship mapping of SDN/RX is not yet fully complete, those topics are not adressed here.
-         Also, SDN/RX is still in alpha, so things might change along the way.
-         Please See this migrating guide currently as an ongoing effort, that helps you considering your current state and
-         where you might want to go.
-
-=== Known issues with past SDN+OGM migrations
+== Known issues with past SDN+OGM migrations
 
 SDN+OGM has had quite a history over the years and we understand that migrating big application systems is neither fun nor something that provides immediate profit.
 The main issues we observed when migrating from older versions of Spring Data Neo4j to newer ones are roughly in order the following:
 
 Having skipped more than one major upgrade::
-While Neo4j-OGM can be used stand alone, Spring Data Neo4j cannot.
+While Neo4j-OGM can be used stand-alone, Spring Data Neo4j cannot.
 It depends to large extend on the Spring Data and therefore, on the Spring Framework itself, which eventually affects large parts of your application.
 Depending on how the application has been structured, that is, how much the any of the framework part leaked into your business code, the more you have to adapt your application.
 It get's worse when you have more than one Spring Data module in your application, if you accessed a relational database in the same service layer as your graph database.
@@ -29,39 +25,40 @@ It's not easy to get the terms right.
 We wrote the building blocks of an SDN+OGM setting https://michael-simons.github.io/neo4j-sdn-ogm-tips/what_are_the_building_blocks_of_sdn_and_ogm.html[here].
 It may be so that all of them have been added by coincidence and you're dealing with a lof of conflicting dependencies.
 
-TIP: Backed by those observations, we recommend to make sure you're using only the bolt or http transport in your current application before switching from SDN+OGM to SDN/RX.
+TIP: Backed by those observations, we recommend to make sure you're using only the Bolt or http transport in your current application before switching from SDN+OGM to SDN/RX.
 Thus, your application and the access layer of your application is to large extend independent from the databases version.
 From that state, consider moving from SDN+OGM to SDN/RX.
 
-=== Prepare the migration from SDN+OGM Lovelace or SDN+OGM Moore to SDN/RX
+== Prepare the migration from SDN+OGM Lovelace or SDN+OGM Moore to SDN/RX
 
 NOTE: The _Lovelace_ release train corresponds to SDN 5.1.x and OGM 3.1.x, while the _Moore_ is SDN 5.2.x and OGM 3.2.x.
 
 First, you must make sure that your application runs against Neo4j in server mode over the Bolt protocol, which means work in two of three cases:
 
-==== You're on embedded
+=== You're on embedded
 
 You have added `org.neo4j:neo4j-ogm-embedded-driver` and `org.neo4j:neo4j` to you project and starting the database via OGM facilities.
 This is no longer supported and you have to setup a standard Neo4j server (both standalone and cluster are supported).
 
 The above dependencies have to be removed.
 
-Migrating from the embedded solution is probably the thoughtest migration, as you need to setup a server, too.
+Migrating from the embedded solution is probably the toughest migration, as you need to setup a server, too.
 It is however the one that gives you much value in itself:
 In the future, you will be able to upgrade the database itself without having to consider your application framework,
 and your data access framework as well.
 
-==== You're using the HTTP transport
+=== You're using the HTTP transport
 
 You have added `org.neo4j:neo4j-ogm-http-driver` and configured an url like `http://user:password@localhost:7474`.
-The dependency has to be replaced with `org.neo4j:neo4j-ogm-bolt-driver` and you need to configure a Bolt url like `bolt://localhost:7687` or use the new `neo4j://` protocol, which takes care of routing, too.
+The dependency has to be replaced with `org.neo4j:neo4j-ogm-bolt-driver` and you need to configure a Bolt url
+like `bolt://localhost:7687` or use the new `neo4j://` scheme, which takes care of routing, too.
 
-==== You're already using Bolt indirectly
+=== You're already using Bolt indirectly
 
 A default SDN+OGM project uses `org.neo4j:neo4j-ogm-bolt-driver` and thus indirectly, the pure Java Driver.
 You can keep your existing URL.
 
-=== Migrating
+== Migrating
 
 Once you have made sure, that your SDN+OGM application works over Bolt as expected, you can start migrating to SDN/RX.
 
@@ -69,7 +66,7 @@ Once you have made sure, that your SDN+OGM application works over Bolt as expect
 * Remove `org.springframework.data:spring-data-neo4j`
 * Configuring SDN/RX through a `org.neo4j.ogm.config.Configuration` bean is not supported, instead of, all configuration of the driver goes through https://github.com/neo4j/neo4j-java-driver-spring-boot-starter[our new starter].
   Any of https://github.com/neo4j/neo4j-java-driver-spring-boot-starter/blob/master/docs/configuration-options.adoc[those properties] can be configured through standard Spring Boot means.
-  You'll especially have to adapt the properties for the url and authentication, see <<migrating-auth>>
+  You will especially have to adapt the properties for the url and authentication, see <<migrating-auth>>
 
 TIP: You cannot configure SDN/RX through XML.
      In case you did this with your SDN+OGM application, make sure you learn about annotation-driven or functional configuration of Spring Applications.
@@ -92,7 +89,7 @@ org.neo4j.driver.authentication.username=neo4j
 org.neo4j.driver.authentication.password=secret
 ----
 
-WARNING: Those new properties might be changed in the future again when SDN/RX and the driver will eventually replace the old setup fully.
+WARNING: Those new properties might change in the future again when SDN/RX and the driver will eventually replace the old setup fully.
 
 And finally, add the new dependency, see <<getting-started>> for both Gradle and Maven.
 
@@ -121,5 +118,5 @@ You're than ready to replace annotations:
 
 |===
 
-NOTE: Several Neo4j-OGM annotations have not yet a corresponding annotation in SDN-Rx, some will never have.
+NOTE: Several Neo4j-OGM annotations have not yet a corresponding annotation in SDN/RX, some will never have.
       We will add to the list above as we support additional features.

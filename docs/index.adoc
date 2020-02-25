@@ -1,0 +1,59 @@
+= Spring Data Neo4j⚡️RX
+Gerrit Meier <gerrit.meier@neo4j.com>; Michael Simons <michael.simons@neo4j.com>
+:toc:
+:doctype: book
+:lang: en
+:listing-caption: Listing
+:source-highlighter: coderay
+:icons: font
+:sectlink: true
+:sectanchors: true
+:numbered: true
+:xrefstyle: short
+
+ifndef::manualIncludeDir[]
+:manualIncludeDir: ../
+endif::[]
+
+include::{manualIncludeDir}/README.adoc[tags=properties]
+
+:copyright: 2020 Neo4j, Inc.,
+:gh-base: https://github.com/neo4j/sdn-rx
+:java-driver-starter-href: https://github.com/neo4j/neo4j-java-driver-spring-boot-starter
+:springVersion: 5.2.0.RELEASE
+:spring-framework-docs: https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference
+:spring-framework-javadoc: https://docs.spring.io/spring/docs/{springVersion}/javadoc-api
+
+
+(C) {copyright}
+
+License: link:license.html[Creative Commons 4.0]
+
+[abstract]
+--
+This is the SDN/RX manual version {spring-data-neo4j-rx-version}.
+
+It contains excerpts of the shared https://docs.spring.io/spring-data/commons/docs/current/reference/html[Spring Data Commons documentation],
+adapted to contain only supported features and annotation.
+--
+
+_Who should read this?_
+
+This manual is written for:
+
+* the enterprise architect investigating Spring integration for Neo4j.
+* the engineer developing Spring Data based applications with Neo4j.
+
+include::introduction-and-preface/index.adoc[]
+
+include::getting-started/index.adoc[]
+
+include::object-mapping/index.adoc[]
+
+include::repositories/index.adoc[]
+
+include::auditing/index.adoc[]
+
+include::faq/index.adoc[]
+
+include::appendix/index.adoc[]

@@ -1,0 +1,38 @@
+[[repository-query-keywords]]
+= Repository query keywords
+
+The following table lists the keywords supported by the Spring Data Neo4j⚡RX repository query derivation mechanism.
+
+.Query keywords
+[options="header", cols="1,3"]
+|===============
+|Logical keyword|Keyword expressions
+|`AND`|`And`
+|`OR`|`Or`
+|`AFTER`|`After`, `IsAfter`
+|`BEFORE`|`Before`, `IsBefore`
+|`CONTAINING`|`Containing`, `IsContaining`, `Contains`
+|`BETWEEN`|`Between`, `IsBetween`
+|`ENDING_WITH`|`EndingWith`, `IsEndingWith`, `EndsWith`
+|`EXISTS`|`Exists`
+|`FALSE`|`False`, `IsFalse`
+|`GREATER_THAN`|`GreaterThan`, `IsGreaterThan`
+|`GREATER_THAN_EQUALS`|`GreaterThanEqual`, `IsGreaterThanEqual`
+|`IN`|`In`, `IsIn`
+|`IS`|`Is`, `Equals`, (or no keyword)
+|`IS_EMPTY`|`IsEmpty`, `Empty`
+|`IS_NOT_EMPTY`|`IsNotEmpty`, `NotEmpty`
+|`IS_NOT_NULL`|`NotNull`, `IsNotNull`
+|`IS_NULL`|`Null`, `IsNull`
+|`LESS_THAN`|`LessThan`, `IsLessThan`
+|`LESS_THAN_EQUAL`|`LessThanEqual`, `IsLessThanEqual`
+|`LIKE`|`Like`, `IsLike`
+|`NEAR`|`Near`, `IsNear`
+|`NOT`|`Not`, `IsNot`
+|`NOT_IN`|`NotIn`, `IsNotIn`
+|`NOT_LIKE`|`NotLike`, `IsNotLike`
+|`REGEX`|`Regex`, `MatchesRegex`, `Matches`
+|`STARTING_WITH`|`StartingWith`, `IsStartingWith`, `StartsWith`
+|`TRUE`|`True`, `IsTrue`
+|`WITHIN`|`Within`, `IsWithin`
+|===============

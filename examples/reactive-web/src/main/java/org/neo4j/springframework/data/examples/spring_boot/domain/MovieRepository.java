@@ -18,14 +18,18 @@
  */
 package org.neo4j.springframework.data.examples.spring_boot.domain;
 
+// tag::getting.started[]
 import reactor.core.publisher.Mono;
 
 import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 
+// end::getting.started[]
 /**
  * @author Michael J. Simons
  */
+// tag::getting.started[]
 public interface MovieRepository extends ReactiveNeo4jRepository<MovieEntity, String> {
 
 	Mono<MovieEntity> findOneByTitle(String title);
 }
+// end::getting.started[]

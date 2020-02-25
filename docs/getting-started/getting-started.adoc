@@ -1,0 +1,259 @@
+[[getting-started]]
+= Getting started
+
+We provide a Spring Boot starter for SDN/RX.
+Please include the starter module via your dependency management and configure the bolt URL to use, for example `org.neo4j.driver.uri=bolt://localhost:7687`.
+The starter assumes that the server has disabled authentication.
+As the SDN/RX starter depends on the starter for the Java Driver, all things regarding configuration said there, apply here as well.
+For a reference of the available properties, use your IDEs autocompletion in the `org.neo4j.driver` namespace
+or look at the link:{java-driver-starter-href}/blob/master/docs/manual.adoc[dedicated manual].
+
+SDN/RX supports
+
+* The well known and understood imperative programming model (much like Spring Data JDBC or JPA)
+* Reactive programming based on http://www.reactive-streams.org[Reactive Streams], including full support for https://spring.io/blog/2019/05/16/reactive-transactions-with-spring[reactive transactions].
+
+Those are all included in the same binary.
+The reactive programming model requires a 4.0 Neo4j server on the database side and reactive Spring on the other hand.
+Have a look at the link:{gh-base}/tree/master/examples[examples directory] for all examples.
+
+== Prepare the database
+
+For this example, we stay within the https://neo4j.com/developer/movie-database/[movie graph],
+as it comes for free with every Neo4j instance.
+
+If you don't have a running database but Docker installed, please run:
+
+[source,console,subs="verbatim,attributes"]
+[[start-docker-neo4j]]
+.Start a local Neo4j instance inside Docker.
+----
+docker run --publish=7474:7474 --publish=7687:7687 -e 'NEO4J_AUTH=neo4j/secret' neo4j:{neo4j-version}
+----
+
+You know can access http://localhost:7474/browser/?cmd=play&arg=movies[http://localhost:7474].
+The above command sets the password of the server to `secret`.
+Note the command ready to run in the prompt (`:play movies`).
+Execute it to fill your database with some test data.
+
+== Create a new Spring Boot project
+
+The easiest way to setup a Spring Boot project is https://start.spring.io[start.spring.io]
+ (which is integrated in the major IDEs as well, in case you don't want to use the website).
+
+Select the "Spring Web Starter" to get all the dependencies needed for creating a Spring based web application.
+The Spring Initializr will take care of creating a valid project structure for you,
+with all the files and settings in place for the selected build tool.
+
+WARNING: Don't choose Spring Data Neo4j here, as it will get you the previous generation of Spring Data Neo4j including OGM and additional abstraction over the driver.
+
+You might want to follow https://start.spring.io/#!type=maven-project&language=java&platformVersion=2.2.4.RELEASE&packaging=jar&jvmVersion=1.8&groupId=com.example&artifactId=demo&name=Neo4j%20Spring%20Boot%20Example&description=Demo%20project%20for%20Spring%20Boot&packageName=com.example.demo&dependencies=webflux,actuator[this link for a preconfigured setup].
+
+=== Using Maven
+
+You can issue a _curl_ request against the Spring Initializer to create a basic Maven project:
+
+[source,bash,subs="verbatim,attributes"]
+[[generate-maven-project]]
+.Create a basic Maven project with the Spring Initializr
+----
+curl https://start.spring.io/starter.tgz \
+  -d dependencies=webflux,actuator \
+  -d bootVersion={spring-boot-version} \
+  -d baseDir=Neo4jSpringBootExample \
+  -d name=Neo4j%20SpringBoot%20Example | tar -xzvf -
+----
+
+This will create a new folder `Neo4jSpringBootExample`.
+As this starter is not yet on the initializer, you will have to add the following dependency manually to your `pom.xml`:
+
+[source,xml,subs="verbatim,attributes"]
+[[dependencies-maven]]
+.Inclusion of the spring-data-neo4j-rx-spring-boot-starter in a Maven project
+----
+<dependency>
+	<groupId>{groupId}</groupId>
+	<artifactId>{artifactIdStarter}</artifactId>
+	<version>{spring-data-neo4j-rx-version}</version>
+</dependency>
+----
+
+You would also add the dependency manually in case of an existing project.
+
+=== Using Gradle
+
+The idea is the same, just generate a Gradle project:
+
+[source,bash,subs="verbatim,attributes"]
+[[generate-gradle-project]]
+.Create a basic Gradle project with the Spring Initializr
+----
+curl https://start.spring.io/starter.tgz \
+  -d dependencies=webflux,actuator \
+  -d type=gradle-project \
+  -d bootVersion={spring-boot-version} \
+  -d baseDir=Neo4jSpringBootExampleGradle \
+  -d name=Neo4j%20SpringBoot%20Example | tar -xzvf -
+----
+
+The dependency for Gradle looks like this and must be added to `build.gradle`:
+
+[source,groovy,subs="verbatim,attributes"]
+.Inclusion of the spring-data-neo4j-rx-spring-boot-starter in a Gradle project
+----
+dependencies {
+    compile '{groupId}:{artifactIdStarter}:{spring-data-neo4j-rx-version}'
+}
+----
+
+You would also add the dependency manually in case of an existing project.
+
+== Configure the project
+
+Now open any of those projects in your favorite IDE.
+Find `application.properties` and configure your Neo4j credentials:
+
+[source,properties]
+----
+org.neo4j.driver.uri=bolt://localhost:7687
+org.neo4j.driver.authentication.username=neo4j
+org.neo4j.driver.authentication.password=secret
+----
+
+This is the bare minimum of what you need to connect to a Neo4j instance.
+
+NOTE: It is not necessary to add any programmatically configuration of the driver when you use this starter.
+      SDN/RX repositories will be automatically enabled by this starter.
+
+== Create your domain
+
+Our domain layer should accomplish two things:
+
+* Map your graph to objects
+* Provide access to those
+
+=== Example Node-Entity
+
+SDN/RX fully supports unmodifiable entities, for both Java and `data` classes in Kotlin.
+Therefor we will focus on immutable entities here, <<movie-entity>> shows a such an entity.
+
+NOTE: SDN/RX supports all data types the Neo4j Java Driver supports,
+      see https://neo4j.com/docs/driver-manual/current/cypher-values/#driver-neo4j-type-system[Map Neo4j types to native language types] inside the chapter "The Cypher type system".
+      Future versions will support additional converters.
+
+[source,java]
+[[movie-entity]]
+.MovieEntity.java
+----
+include::../../examples/reactive-web/src/main/java/org/neo4j/springframework/data/examples/spring_boot/domain/MovieEntity.java[tags=mapping.annotations]
+----
+<.> `@Node` is used to mark this class as a managed entity.
+    It also is used to configure the Neo4j label.
+    The label defaults to the name of the class, if you're just using plain `@Node`.
+<.> Each entity has to have an id.
+    The movie class shown here uses the attribute `title` as a unique business key.
+    If you don't have such a unique key, you can use the combination of `@Id` and `@GeneratedValue` 
+    to configure SDN/RX to use Neo4j's internal id.
+    We also provide generators for UUIDs.
+<.> This shows `@Property` as a way to use a different name for the field than for the graph property.
+<.> This defines a relationship to a class of type `PersonEntity` and the relationship type `ACTED_IN`
+<.> This is the constructor to be used by your application code.
+
+As a general remark: Immutable entities using internally generated ids are a bit contradictory,
+as SDN/RX needs a way to set the field with the value generated by the database.
+
+If you don't find a good business key or don't want to use a generator for IDs, here's the same entity using 
+the internally generated id together with a businesses constructor and a so called _wither_-Method, that is used by SDN/RX:
+
+[source,java]
+[[movie-entity-with-wither]]
+.MovieEntity.java
+----
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
+import org.neo4j.springframework.data.core.schema.Id;
+import org.neo4j.springframework.data.core.schema.Node;
+import org.neo4j.springframework.data.core.schema.Property;
+
+import org.springframework.data.annotation.PersistenceConstructor;
+
+@Node("Movie")
+public class MovieEntity {
+
+	@Id @GeneratedValue
+	private Long id;
+
+	private final String title;
+
+	@Property("tagline")
+	private final String description;
+
+	public MovieEntity(String title, String description) { // <.>
+		this.id = null;
+		this.title = title;
+		this.description = description;
+	}
+
+	public MovieEntity withId(Long id) { // <.>
+		if (this.id.equals(id)) {
+			return this;
+		} else {
+			MovieEntity newObject = new MovieEntity(this.title, this.description);
+			newObject.id = id;
+			return newObject;
+		}
+	}
+}
+----
+<.> This is the constructor to be used by your application code. 
+    It sets the id to null, as the field containing the internal id should never be manipulated.
+<.> This is a so-called _wither_ for the `id`-attribute.
+    It creates a new entity and sets the field accordingly,
+    without modifying the original entity, thus making it immutable.
+
+
+You can of course use SDN/RX with https://kotlinlang.org/[Kotlin] and model your domain with Kotlin's data classes.
+https://projectlombok.org/[Project Lombok] is an alternative if you want or need to stay purely within Java.
+
+
+=== Declaring Spring Data repositories
+
+You basically have two options here:
+You can work store agnostic with SDN/RX and make your domain specific extends one of
+
+* `org.springframework.data.repository.Repository`
+* `org.springframework.data.repository.CrudRepository`
+* `org.springframework.data.repository.reactive.ReactiveCrudRepository`
+* `org.springframework.data.repository.reactive.ReactiveSortingRepository`
+
+Choose imperative and reactive accordingly.
+
+WARNING: While technically not prohibited, it is not recommended to mix imperative and reactive database access
+         in the same application.
+         We won't support you with scenarios like this.
+
+The other option is to settle on a store specific implementation and gain all the methods we support out of the box.
+The advantage of this approach is also it's biggest disadvantage: Once out, all those methods will be part of your API.
+Most of the time it's harder to take something away, than to add stuff afterwards.
+Furthermore, using store specifics leaks your store into your domain.
+From a performance point of view, there is no penalty.
+
+A repository fitting to any of the movie entities above looks like this:
+
+[source,java]
+[[movie-repository]]
+.MovieRepository.java
+----
+include::../../examples/reactive-web/src/main/java/org/neo4j/springframework/data/examples/spring_boot/domain/MovieRepository.java[tags=getting.started]
+----
+
+This repository can be used in any Spring component like this:
+
+[source,java]
+[[movie-controller]]
+.MovieController.java
+----
+include::../../examples/reactive-web/src/main/java/org/neo4j/springframework/data/examples/spring_boot/web/MovieController.java[tags=getting.started]
+----
+
+TIP: Testing reactive code is done with a `reactor.test.StepVerifier`.
+     Have a look at the corresponding https://projectreactor.io/docs/core/release/reference/#testing[documentation of Project Reactor] or see our example code.

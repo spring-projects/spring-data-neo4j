@@ -18,8 +18,10 @@
  */
 package org.neo4j.springframework.data.examples.spring_boot.domain;
 
+// tag::mapping.annotations[]
 import static org.neo4j.springframework.data.core.schema.Relationship.Direction.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.neo4j.springframework.data.core.schema.Id;
@@ -27,28 +29,34 @@ import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.Property;
 import org.neo4j.springframework.data.core.schema.Relationship;
 
+// end::mapping.annotations[]
+
 /**
  * @author Michael J. Simons
  */
-@Node("Movie")
+// tag::mapping.annotations[]
+@Node("Movie") // <.>
 public class MovieEntity {
 
-	@Id
+	@Id  // <.>
 	private final String title;
 
-	@Property("tagline")
+	@Property("tagline")  // <.>
 	private final String description;
 
-	@Relationship(type = "ACTED_IN", direction = INCOMING)
-	private Set<PersonEntity> actors;
+	@Relationship(type = "ACTED_IN", direction = INCOMING) // <.>
+	private Set<PersonEntity> actors = new HashSet<>();
 
 	@Relationship(type = "DIRECTED", direction = INCOMING)
-	private Set<PersonEntity> directors;
+	private Set<PersonEntity> directors = new HashSet<>();
 
-	public MovieEntity(String title, String description) {
+	public MovieEntity(String title, String description) { // <.>
 		this.title = title;
 		this.description = description;
 	}
+
+	// Getters omitted for brevity
+	// end::mapping.annotations[]
 
 	public String getTitle() {
 		return title;
@@ -65,4 +73,6 @@ public class MovieEntity {
 	public Set<PersonEntity> getDirectors() {
 		return directors;
 	}
+	// tag::mapping.annotations[]
 }
+// end::mapping.annotations[]
