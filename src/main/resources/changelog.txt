@@ -1,6 +1,18 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.2.5.RELEASE (2020-02-26)
+---------------------------------------------
+* DATAGRAPH-1295 - Upgrade to Neo4j OGM 3.2.9.
+* DATAGRAPH-1294 - Improve Docs in regards of OpenSessionInViewFilter.
+* DATAGRAPH-1290 - Add case insensitive order support for custom queries.
+* DATAGRAPH-1289 - Upgrade to Neo4j OGM 3.2.8.
+* DATAGRAPH-1288 - Inherit Spring Data Build-managed Checkstyle version.
+* DATAGRAPH-1286 - Support generated ids in derived finder methods.
+* DATAGRAPH-1283 - Release 5.2.5 (Moore SR5).
+* DATAGRAPH-1241 - Lack of named count queries support.
+
+
 Changes in version 5.1.16.RELEASE (2020-02-26)
 ----------------------------------------------
 * DATAGRAPH-1296 - Fix checkstyle setup.
@@ -1665,6 +1677,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
