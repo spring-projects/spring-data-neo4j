@@ -220,7 +220,6 @@ final class RepositoryQueryTest {
 		void shouldDetectInvalidAnnotation() {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("annotatedQueryWithoutTemplate");
-
 			assertThatExceptionOfType(MappingException.class)
 				.isThrownBy(
 					() -> StringBasedNeo4jQuery.create(mock(Neo4jOperations.class), mock(Neo4jMappingContext.class),
@@ -234,9 +233,12 @@ final class RepositoryQueryTest {
 			Neo4jQueryMethod method = RepositoryQueryTest
 				.neo4jQueryMethod("annotatedQueryWithValidTemplate", String.class, String.class);
 
-			StringBasedNeo4jQuery repositoryQuery = StringBasedNeo4jQuery.create(mock(Neo4jOperations.class),
+			StringBasedNeo4jQuery repositoryQuery = spy(StringBasedNeo4jQuery.create(mock(Neo4jOperations.class),
 				mock(Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT,
-				method);
+				method));
+
+			// skip conversion
+			doAnswer(invocation -> invocation.getArgument(0)).when(repositoryQuery).convertParameter(any());
 
 			Map<String, Object> resolveParameters = repositoryQuery
 				.bindParameters(new Neo4jParameterAccessor(
@@ -254,9 +256,12 @@ final class RepositoryQueryTest {
 				.neo4jQueryMethod("findByDontDoThisInRealLiveNamed", org.neo4j.driver.types.Point.class, String.class,
 					String.class);
 
-			StringBasedNeo4jQuery repositoryQuery = StringBasedNeo4jQuery.create(mock(Neo4jOperations.class),
+			StringBasedNeo4jQuery repositoryQuery = spy(StringBasedNeo4jQuery.create(mock(Neo4jOperations.class),
 				mock(Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT,
-				method);
+				method));
+
+			// skip conversion
+			doAnswer(invocation -> invocation.getArgument(0)).when(repositoryQuery).convertParameter(any());
 
 			Point thePoint = Values.point(4223, 1, 2).asPoint();
 			Map<String, Object> resolveParameters = repositoryQuery.bindParameters(

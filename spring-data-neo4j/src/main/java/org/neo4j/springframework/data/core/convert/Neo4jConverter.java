@@ -58,7 +58,6 @@ public interface Neo4jConverter extends EntityReader<Object, Record>, EntityWrit
 	 * @param type  The type information describing the target type.
 	 * @return A driver compatible value object.
 	 */
-	@Nullable
 	Value writeValueFromProperty(@Nullable Object value, TypeInformation<?> type);
 
 }
