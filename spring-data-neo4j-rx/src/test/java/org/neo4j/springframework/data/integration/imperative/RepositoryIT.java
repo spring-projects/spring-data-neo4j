@@ -58,9 +58,11 @@ import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
 import org.neo4j.springframework.data.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
 import org.neo4j.springframework.data.types.CartesianPoint2d;
+import org.neo4j.springframework.data.types.GeographicPoint2d;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.StringMatcher;
@@ -1604,6 +1606,21 @@ class RepositoryIT {
 	void findBySimplePropertyByEqualsWithNullShouldWork() {
 		int emptyResultSize = 0;
 		assertThat(repository.findAllBySameValue(null)).hasSize(emptyResultSize);
+	}
+
+	@Test
+	void findByPropertyThatNeedsConversion() {
+		List<PersonWithAllConstructor> people = repository
+			.findAllByPlace(new GeographicPoint2d(NEO4J_HQ.y(), NEO4J_HQ.x()));
+
+		assertThat(people).hasSize(1);
+	}
+
+	@Test
+	void findByPropertyFailsIfNoConverterIsAvailable() {
+		assertThatExceptionOfType(ConverterNotFoundException.class)
+			.isThrownBy(() -> repository.findAllByPlace(new ThingWithGeneratedId("hello")))
+			.withMessageStartingWith("No converter found capable of converting from type");
 	}
 
 	@Test

@@ -41,6 +41,7 @@ import org.springframework.data.geo.Metrics;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
+import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.util.Assert;
 
 /**
@@ -144,8 +145,8 @@ abstract class Neo4jQuerySupport {
 		}
 
 		// Good hook to check the NodeManager whether the thing is an entity and we replace the value with a known id.
-
-		return parameter;
+		return mappingContext.getConverter()
+			.writeValueFromProperty(parameter, ClassTypeInformation.from(parameter.getClass()));
 	}
 
 	private Map<String, Object> convertRange(Range range) {

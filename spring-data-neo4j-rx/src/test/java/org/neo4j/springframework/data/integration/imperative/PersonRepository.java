@@ -32,8 +32,10 @@ import org.neo4j.springframework.data.integration.shared.PersonProjection;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
 import org.neo4j.springframework.data.integration.shared.PersonWithNoConstructor;
 import org.neo4j.springframework.data.integration.shared.PersonWithWither;
+import org.neo4j.springframework.data.integration.shared.ThingWithGeneratedId;
 import org.neo4j.springframework.data.repository.Neo4jRepository;
 import org.neo4j.springframework.data.repository.query.Query;
+import org.neo4j.springframework.data.types.GeographicPoint2d;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
@@ -191,6 +193,10 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	List<PersonWithAllConstructor> findAllByThingsIsNotEmpty();
 
 	List<PersonWithAllConstructor> findAllByNullableExists();
+
+	List<PersonWithAllConstructor> findAllByPlace(GeographicPoint2d p);
+
+	List<PersonWithAllConstructor> findAllByPlace(ThingWithGeneratedId p);
 
 	List<PersonWithAllConstructor> findAllByPlaceNear(Point p);
 
