@@ -134,6 +134,43 @@ And here is the reactive version, omitting the setup for brevity:
 include::../../examples/reactive-web/src/test/java/org/neo4j/springframework/data/examples/spring_boot/ReactiveTemplateTest.java[tags=faq.template-reactive]
 ----
 
+== How do I specify parameters in custom queries?
+
+You do this exactly the same way as in a standard Cypher query issued in the Neo4j Browser or the Cypher-Shell,
+with the `$` syntax (from Neo4j 4.0 on upwards, the old `{foo}` syntax for Cypher parameters has been removed from the database);
+
+[source,java,indent=0]
+[[custom-queries-with-parameters]]
+.ARepository.java
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/domain_events/ARepository.java[tags=standard-parameter]
+----
+<.> Here we are referring to the parameter by its name.
+    You can also use `$0` etc. instead.
+
+NOTE: You need to compile your Java 8+ project with `-parameters` to make named parameters
+      work without further annotations. The Spring Boot Maven and Gradle plugins do this
+      automatically for you. If this is not feasible for any reason, you can either add
+      `@Param`  and specify the name explicitly or use the parameters index.
+
+== How do I use Spring Expression Language in custom queries?
+
+https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions[Spring Expression Language (SpEL)] can be used in custom queries inside `:#{}`.
+This is the standard Spring Data way of defining a block of text inside a query that undergoes SpEL evaluation.
+
+The following example basically defines the same query as above, but uses a `WHERE` clause to avoid even more curly braces:
+
+[source,java,indent=0]
+[[custom-queries-with-spel]]
+.ARepository.java
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/domain_events/ARepository.java[tags=spel]
+----
+
+The SpEL blocked starts with `:#{` and than refers to the given `String` parameters by name (`#pt1`).
+Don't confuse this with the above Cypher syntax!
+The SpEL expression concatenates both parameters into one single value that is eventually passed on to the <<neo4j-client>>.
+The SpEL block ends with `}`.
 
 == How do I audit entities?
 
@@ -171,4 +208,3 @@ movieExample = Example.of(
 );
 movies = this.movieRepository.findAll(movieExample);
 ----
-

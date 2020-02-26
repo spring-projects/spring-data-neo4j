@@ -1,5 +1,9 @@
 package org.neo4j.doc.springframework.data.docs.repositories.domain_events;
 
+import static org.assertj.core.api.Assertions.*;
+
+import java.util.Optional;
+
 // tag::domain-events[]
 import org.junit.jupiter.api.Test;
 import org.neo4j.springframework.boot.test.autoconfigure.data.DataNeo4jTest;
@@ -25,5 +29,18 @@ public class DomainEventsTest {
 			this.aRepository.save(anAggregateRoot);
 		});
 	}
+	// end::domain-events[]
+
+	@Test
+	void customQueryShouldWork() {
+
+		Optional<AnAggregateRoot> optionalAggregate = aRepository.findByCustomQuery("The Root");
+		assertThat(optionalAggregate).isPresent();
+
+		optionalAggregate = aRepository.findByCustomQueryWithSpEL("The ", "Root");
+		assertThat(optionalAggregate).isPresent();
+	}
+
+	// tag::domain-events[]
 }
 // end::domain-events[]
