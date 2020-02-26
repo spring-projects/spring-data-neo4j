@@ -1,6 +1,14 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.16.RELEASE (2020-02-26)
+----------------------------------------------
+* DATAGRAPH-1296 - Fix checkstyle setup.
+* DATAGRAPH-1294 - Improve Docs in regards of OpenSessionInViewFilter.
+* DATAGRAPH-1293 - Upgrade to Neo4j OGM 3.1.17.
+* DATAGRAPH-1282 - Release 5.1.16 (Lovelace SR16).
+
+
 Changes in version 5.3.0.M3 (2020-02-12)
 ----------------------------------------
 * DATAGRAPH-1289 - Upgrade to Neo4j OGM 3.2.8.
@@ -1657,6 +1665,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
