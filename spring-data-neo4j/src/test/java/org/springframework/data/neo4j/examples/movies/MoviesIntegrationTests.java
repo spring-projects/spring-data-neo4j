@@ -515,7 +515,7 @@ public class MoviesIntegrationTests {
 	@Test
 	public void shouldLoadOutgoingFriendsWhenUndirected() {
 
-		graphDatabaseService.execute("CREATE (m:User {name:'Michal'})-[:FRIEND_OF]->(a:User {name:'Adam'})");
+		graphDatabaseService.execute("CREATE (m:User:Person {name:'Michal'})-[:FRIEND_OF]->(a:User {name:'Adam'})");
 
 		User michal = ((Iterable<User>) findByProperty(User.class, "name", "Michal")).iterator().next();
 		assertThat(michal.getFriends().size()).isEqualTo(1);
@@ -531,7 +531,7 @@ public class MoviesIntegrationTests {
 	@Test
 	public void shouldLoadIncomingFriendsWhenUndirected() {
 
-		graphDatabaseService.execute("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
+		graphDatabaseService.execute("CREATE (m:User:Person {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
 
 		User michal = ((Iterable<User>) findByProperty(User.class, "name", "Michal")).iterator().next();
 		assertThat(michal.getFriends().size()).isEqualTo(1);

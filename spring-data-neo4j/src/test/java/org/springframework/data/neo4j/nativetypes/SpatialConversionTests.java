@@ -15,9 +15,7 @@
  */
 package org.springframework.data.neo4j.nativetypes;
 
-import static org.apache.webbeans.util.Asserts.*;
 import static org.apache.webbeans.util.Asserts.assertNotNull;
-import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Offset.offset;
 
