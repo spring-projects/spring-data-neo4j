@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Stack;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
-import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.function.ContainsAnyComparison;
 import org.springframework.data.repository.query.parser.Part;
@@ -45,7 +44,7 @@ class ContainsComparisonBuilder extends FilterBuilder {
 		final Object containingValue = params.pop();
 		Filter containingFilter = new Filter(
 				nestedAttributes.isEmpty() ? propertyName() : nestedAttributes.getLeafPropertySegment(),
-				new ContainsAnyComparison(containingValue), ComparisonOperator.IN);
+				new ContainsAnyComparison(containingValue));
 		containingFilter.setOwnerEntityType(entityType);
 		containingFilter.setBooleanOperator(booleanOperator);
 		containingFilter.setNegated(isNegated());

@@ -15,9 +15,12 @@
  */
 package org.springframework.data.neo4j.repository.query.filter;
 
+import java.lang.reflect.Constructor;
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
+import java.util.function.BiFunction;
+import java.util.function.UnaryOperator;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
 import org.neo4j.ogm.cypher.ComparisonOperator;
@@ -25,8 +28,10 @@ import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.function.DistanceComparison;
 import org.neo4j.ogm.cypher.function.DistanceFromNativePoint;
 import org.neo4j.ogm.cypher.function.DistanceFromPoint;
+import org.neo4j.ogm.cypher.function.FilterFunction;
 import org.neo4j.ogm.cypher.function.NativeDistanceComparison;
 import org.neo4j.ogm.types.spatial.AbstractPoint;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
@@ -39,8 +44,24 @@ import org.springframework.data.repository.query.parser.Part;
  */
 class DistanceComparisonBuilder extends FilterBuilder {
 
+	private final BiFunction<String, FilterFunction, Filter> filterSupplier;
+
 	DistanceComparisonBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
 		super(part, booleanOperator, entityType);
+
+		this.filterSupplier = createFilterSupplier();
+	}
+
+	private static BiFunction<String, FilterFunction, Filter> createFilterSupplier() {
+		try {
+			// Neo4j-OGM 3.2
+			final Constructor<Filter> ctor = Filter.class
+					.getDeclaredConstructor(String.class, FilterFunction.class, ComparisonOperator.class);
+			return (propertyName, filterFunction) ->
+					BeanUtils.instantiateClass(ctor, propertyName, filterFunction, ComparisonOperator.LESS_THAN);
+		} catch (NoSuchMethodException e) {
+			return (propertyName, filterFunction) -> new Filter(propertyName, filterFunction);
+		}
 	}
 
 	@Override
@@ -110,7 +131,8 @@ class DistanceComparisonBuilder extends FilterBuilder {
 		NestedAttributes nestedAttributes = getNestedAttributes(part);
 
 		String propertyName = super.part.getProperty().getLeafProperty().getSegment();
-		Filter filter = new Filter(propertyName, distanceComparison, ComparisonOperator.LESS_THAN);
+
+		Filter filter = filterSupplier.apply(propertyName, distanceComparison);
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
@@ -123,8 +145,10 @@ class DistanceComparisonBuilder extends FilterBuilder {
 		DistanceFromPoint distanceFromPoint = new DistanceFromPoint(point.getX(), point.getY(), meters);
 
 		DistanceComparison distanceComparison = new DistanceComparison(distanceFromPoint) {
+
 			@Override
-			public String expression(String nodeIdentifier) {
+			public String expression(String nodeIdentifier, String filteredProperty,
+					UnaryOperator<String> createUniqueParameterName) {
 				String latitudeProperty = nodeIdentifier + ".latitude";
 				String longitudeProperty = nodeIdentifier + ".longitude";
 
@@ -132,13 +156,13 @@ class DistanceComparisonBuilder extends FilterBuilder {
 						"distance(coalesce(point({latitude: %s, longitude: %s}), %s), point({latitude:{lat}, longitude:{lon}})) "
 								+ "%s {distance} ",
 						latitudeProperty, longitudeProperty, nodeIdentifier + "." + propertyName(),
-						super.getFilter().getComparisonOperator().getValue());
+						ComparisonOperator.LESS_THAN.getValue());
 			}
 		};
 
 		NestedAttributes nestedAttributes = getNestedAttributes(part);
 
-		Filter filter = new Filter(nestedAttributes.getLeafPropertySegment(), distanceComparison, ComparisonOperator.LESS_THAN);
+		Filter filter = filterSupplier.apply(nestedAttributes.getLeafPropertySegment(), distanceComparison);
 		filter.setOwnerEntityType(entityType);
 		filter.setBooleanOperator(booleanOperator);
 		filter.setNegated(isNegated());
