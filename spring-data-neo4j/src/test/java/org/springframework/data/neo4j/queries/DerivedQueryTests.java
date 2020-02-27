@@ -86,7 +86,7 @@ public class DerivedQueryTests {
 
 	@Test
 	public void shouldFindUsersByName() {
-		executeUpdate("CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'})");
+		executeUpdate("CREATE (m:User:Person {name:'Michal'})<-[:FRIEND_OF]-(a:User:Person {name:'Adam'})");
 
 		Collection<User> users = userRepository.findByName("Michal");
 		Iterator<User> iterator = users.iterator();
@@ -100,7 +100,7 @@ public class DerivedQueryTests {
 
 	@Test
 	public void shouldFindUsersByMiddleName() {
-		executeUpdate("CREATE (m:User {middleName:'Joseph'})<-[:FRIEND_OF]-(a:User {middleName:'Mary', name: 'Joseph'})");
+		executeUpdate("CREATE (m:User:Person {middleName:'Joseph'})<-[:FRIEND_OF]-(a:User:Person {middleName:'Mary', name: 'Joseph'})");
 
 		Collection<User> users = userRepository.findByMiddleName("Joseph");
 		Iterator<User> iterator = users.iterator();
@@ -117,7 +117,7 @@ public class DerivedQueryTests {
 	@Test // DATAGRAPH-628
 	public void shouldFindNodeEntitiesWithLabels() {
 		executeUpdate(
-				"CREATE (u:User {name:'Michal'}) CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'}) CREATE (u)-[:VISITED]->(p)");
+				"CREATE (u:User:Person {name:'Michal'}) CREATE (p:Theatre {name:'Picturehouse', city:'London'}) CREATE (r:Theatre {name:'Ritzy', city:'London'}) CREATE (u)-[:VISITED]->(p)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -311,7 +311,7 @@ public class DerivedQueryTests {
 	public void shouldFindNodeEntitiesWithNestedRelationshipEntityProperty() {
 		executeUpdate(
 				"CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})"
-						+ " CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) "
+						+ " CREATE (u:User:Person {name:'Michal'}) CREATE (u1:User:Person {name:'Vince'}) "
 						+ " CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->(m)");
 
 		List<User> users = userRepository.findByRatingsStars(3);
@@ -387,7 +387,7 @@ public class DerivedQueryTests {
 	public void shouldFindNodeEntititiesWithRelationshipEntityAndNestedProperty() {
 		executeUpdate(
 				"CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})"
-						+ " CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) CREATE (g:Genre {name:'Thriller'}) CREATE (u)-[:INTERESTED]->(g) "
+						+ " CREATE (u:User:Person {name:'Michal'}) CREATE (u1:User:Person {name:'Vince'}) CREATE (g:Genre {name:'Thriller'}) CREATE (u)-[:INTERESTED]->(g) "
 						+ " CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->(m)");
 
 		List<User> users = userRepository.findByRatingsStarsAndInterestedName(3, "Thriller");
@@ -427,7 +427,7 @@ public class DerivedQueryTests {
 
 	@Test // DATAGRAPH-761
 	public void shouldMatchNodeEntitiesUsingNotLikeWithAsteriskWildcards() {
-		executeUpdate("CREATE (:User {name:'Jeff'}), " + "(:User {name:'Jeremy'}), " + "(:User {name:'Alan'})");
+		executeUpdate("CREATE (:User:Person {name:'Jeff'}), " + "(:User:Person {name:'Jeremy'}), " + "(:User:Person {name:'Alan'})");
 
 		List<User> nonMatchingUsers = userRepository.findByNameIsNotLike("Je*");
 		assertEquals("The wrong number of users was returned", 1, nonMatchingUsers.size());
@@ -437,7 +437,7 @@ public class DerivedQueryTests {
 	@Test // DATAGRAPH-787
 	public void shouldFindDirectorsByName() {
 		executeUpdate(
-				"CREATE (m:User {name:'Michal'})<-[:FRIEND_OF]-(a:User {name:'Adam'}) CREATE (d:Director {name:'Vince'})");
+				"CREATE (m:User:Person {name:'Michal'})<-[:FRIEND_OF]-(a:User:Person {name:'Adam'}) CREATE (d:Director:Person {name:'Vince'})");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
@@ -493,7 +493,7 @@ public class DerivedQueryTests {
 	@Test // DATAGRAPH-744
 	public void shouldFindUsersByNameWithStaticDepth() {
 		executeUpdate(
-				"CREATE (m:User {name:'Michal', surname:'Bachman'})<-[:FRIEND_OF]-(a:User {name:'Adam', surname:'George'})");
+				"CREATE (m:User:Person {name:'Michal', surname:'Bachman'})<-[:FRIEND_OF]-(a:User:Person {name:'Adam', surname:'George'})");
 
 		User user = userRepository.findBySurname("Bachman");
 		assertNotNull(user);
@@ -506,7 +506,7 @@ public class DerivedQueryTests {
 	public void shouldSupportLiteralMapsInQueryResults() {
 		executeUpdate(
 				"CREATE (m1:Movie {title:'Speed'}) CREATE (m2:Movie {title:'The Matrix'}) CREATE (m:Movie {title:'Chocolat'})"
-						+ " CREATE (u:User {name:'Michal'}) CREATE (u1:User {name:'Vince'}) "
+						+ " CREATE (u:User:Person {name:'Michal'}) CREATE (u1:User:Person {name:'Vince'}) "
 						+ " CREATE (u)-[:RATED {stars:3}]->(m1)  CREATE (u)-[:RATED {stars:4}]->(m2) CREATE (u1)-[:RATED {stars:3}]->(m)");
 
 		List<EntityWrappingQueryResult> result = userRepository.findRatingsWithLiteralMap();
@@ -668,13 +668,13 @@ public class DerivedQueryTests {
 
 	@Test // DATAGRAPH-1093
 	public void shouldFindNodeEntitiesByAttributeIgnoringCase() {
-		executeUpdate("CREATE (:Director {name:'Patty Jenkins'})\n" + //
-				"      ,(:Director {name:'Marry Harron'})\n" + //
+		executeUpdate("CREATE (:Director:Person {name:'Patty Jenkins'})\n" + //
+				"      ,(:Director:Person {name:'Marry Harron'})\n" + //
 				"      ,(m1:Movie {title:'Speed'})\n" + //
 				"      ,(m2:Movie {title:'The Matrix'})\n" + //
 				"      ,(m3:Movie {title:'Chocolat'})\n" + //
 				"      ,(g:Genre {name:'Thriller'})\n" + //
-				"      ,(u1:User {name:'Michal'})\n" + //
+				"      ,(u1:User:Person {name:'Michal'})\n" + //
 				"            ,(u1)-[:INTERESTED]->(g)\n" + "            ,(u1)-[:RATED {stars:3}]->(m1)\n" + //
 				"            ,(u1)-[:RATED {stars:4}]->(m2)\n" + //
 				"      ,(u2:User {name:'Vince'})\n" + //
