@@ -32,6 +32,7 @@ import org.neo4j.driver.types.TypeSystem
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient
 import org.neo4j.springframework.data.core.awaitOneOrNull
+import org.neo4j.springframework.data.core.cypher.asParam
 import org.neo4j.springframework.data.core.fetchAll
 import org.neo4j.springframework.data.core.fetchAs
 import org.neo4j.springframework.data.core.mappedBy
@@ -65,15 +66,15 @@ class ReactiveNeo4jClientKotlinInteropIT @Autowired constructor(
     fun prepareData() {
         driver.session().use {
             val bands = mapOf(
-                    Pair("Queen", listOf("Brian", "Roger", "John", "Freddie")),
-                    Pair("Die Ärzte", listOf("Farin", "Rod", "Bela"))
+                    "Queen" to listOf("Brian", "Roger", "John", "Freddie"),
+                    "Die Ärzte" to listOf("Farin", "Rod", "Bela")
             )
 
             bands.forEach { b, m ->
                 val summary = it.run("""
-                    CREATE (b:Band {name: ${'$'}band}) 
+                    CREATE (b:Band {name: ${"band".asParam()}}) 
                     WITH b
-                    UNWIND ${'$'}names AS name CREATE (n:Member {name: name}) <- [:HAS_MEMBER] - (b)
+                    UNWIND ${"names".asParam()} AS name CREATE (n:Member {name: name}) <- [:HAS_MEMBER] - (b)
                     """.trimIndent(), Values.parameters("band", b, "names", m)).consume()
                 assertThat(summary.counters().nodesCreated()).isGreaterThan(0)
             }
