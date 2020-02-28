@@ -401,7 +401,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				if (!neo4jPersistentEntity.isNew(parentObject)) {
 					Statement relationshipRemoveQuery = statementBuilder
 						.createRelationshipRemoveQuery(neo4jPersistentEntity, relationshipContext.getRelationship(),
-							targetNodeDescription.getPrimaryLabel());
+							targetNodeDescription);
 					relationshipCreationMonos.add(
 						neo4jClient.query(renderer.render(relationshipRemoveQuery))
 							.in(inDatabase)

@@ -399,7 +399,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			// this avoids the usage of cache but might have significant impact on overall performance
 			if (!neo4jPersistentEntity.isNew(parentObject)) {
 				Statement relationshipRemoveQuery = cypherGenerator.createRelationshipRemoveQuery(neo4jPersistentEntity,
-					relationshipContext.getRelationship(), targetNodeDescription.getPrimaryLabel());
+					relationshipContext.getRelationship(), targetNodeDescription);
 
 				neo4jClient.query(renderer.render(relationshipRemoveQuery))
 					.in(inDatabase)
