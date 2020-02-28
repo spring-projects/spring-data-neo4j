@@ -2108,4 +2108,26 @@ class CypherIT {
 					"MATCH (n:`Person`) RETURN n, [[(n)-[r_f1:`FOUNDED`]->(o1:`Organisation`)|[r_f1, o1]], [(n)-[r_e1:`EMPLOYED_BY`]->(o1)|[r_e1, o1]], [(n)-[r_l1:`LIVES_AT`]->(l1:`Location`)|[r_l1, l1, [[(l1)<-[r_l2:`LIVES_AT`]-(p2:`Person`)|[r_l2, p2]]]]]]");
 		}
 	}
+
+	@Nested
+	class MultipleLabels {
+
+		@Test
+		void matchWithMultipleLabels() {
+			Node node = node("a", "b", "c").named("n");
+			Statement statement = match(node).returning(node).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (n:`a`:`b`:`c`) RETURN n");
+		}
+
+		@Test
+		void createWithMultipleLabels() {
+			Node node = node("a", "b", "c").named("n");
+			Statement statement = create(node).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("CREATE (n:`a`:`b`:`c`)");
+		}
+	}
 }

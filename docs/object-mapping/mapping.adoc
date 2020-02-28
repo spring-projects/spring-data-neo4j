@@ -49,6 +49,13 @@ To map an Object to nodes in the graph and vice versa, we need a label to identi
 `@Node` has an attribute `labels` that allows you to configure one or more labels to be used when reading and writing instances of the annotated class.
 The `value` attribute is an alias for `labels`.
 If you don't specify a label, than the simple class name will be used as the primary label.
+In case you want to provide multiple labels, you could either:
+
+. Supply an array to the `labels` property.
+The first element in the array will considered as the primary label.
+. Supply a value for `primaryLabel` and put the additional labels in `labels`.
+
+The primary label should always be the most concrete label that reflects your domain class.
 
 For each instance of an annotated class that is written through a repository or through the Neo4j template,
 one node in the graph with at least the primary label will be written.

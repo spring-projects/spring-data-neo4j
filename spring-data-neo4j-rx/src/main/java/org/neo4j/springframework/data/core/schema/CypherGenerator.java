@@ -93,8 +93,9 @@ public enum CypherGenerator {
 		Condition condition) {
 
 		String primaryLabel = nodeDescription.getPrimaryLabel();
+		String[] additionalLabels = nodeDescription.getAdditionalLabels();
 
-		Node rootNode = node(primaryLabel).named(NAME_OF_ROOT_NODE);
+		Node rootNode = node(primaryLabel, additionalLabels).named(NAME_OF_ROOT_NODE);
 		IdDescription idDescription = nodeDescription.getIdDescription();
 
 		List<Expression> expressions = new ArrayList<>();
@@ -112,7 +113,7 @@ public enum CypherGenerator {
 
 	public Statement prepareDeleteOf(NodeDescription<?> nodeDescription, @Nullable Condition condition) {
 
-		Node rootNode = node(nodeDescription.getPrimaryLabel())
+		Node rootNode = node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())
 			.named(NAME_OF_ROOT_NODE);
 		return Cypher.match(rootNode).where(conditionOrNoCondition(condition)).detachDelete(rootNode).build();
 	}
@@ -120,7 +121,9 @@ public enum CypherGenerator {
 	public Statement prepareSaveOf(NodeDescription<?> nodeDescription) {
 
 		String primaryLabel = nodeDescription.getPrimaryLabel();
-		Node rootNode = node(primaryLabel).named(NAME_OF_ROOT_NODE);
+		String[] additionalLabels = nodeDescription.getAdditionalLabels();
+
+		Node rootNode = node(primaryLabel, additionalLabels).named(NAME_OF_ROOT_NODE);
 		IdDescription idDescription = nodeDescription.getIdDescription();
 		Parameter idParameter = parameter(NAME_OF_ID_PARAM);
 
@@ -160,7 +163,7 @@ public enum CypherGenerator {
 			}
 		} else {
 			String nameOfPossibleExistingNode = "hlp";
-			Node possibleExistingNode = node(primaryLabel).named(nameOfPossibleExistingNode);
+			Node possibleExistingNode = node(primaryLabel, additionalLabels).named(nameOfPossibleExistingNode);
 
 			Statement createIfNew = null;
 			Statement updateIfExists = null;
@@ -211,7 +214,7 @@ public enum CypherGenerator {
 		Assert.isTrue(!nodeDescription.isUsingInternalIds(),
 			"Only entities that use external IDs can be saved in a batch.");
 
-		Node rootNode = node(nodeDescription.getPrimaryLabel())
+		Node rootNode = node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())
 			.named(NAME_OF_ROOT_NODE);
 		IdDescription idDescription = nodeDescription.getIdDescription();
 
@@ -290,10 +293,10 @@ public enum CypherGenerator {
 
 	@NotNull
 	public Statement createRelationshipRemoveQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity,
-		RelationshipDescription relationshipDescription, String relatedNodeLabel) {
+		RelationshipDescription relationshipDescription, Neo4jPersistentEntity relatedNode) {
 
 		Node startNode = anyNode(START_NODE_NAME);
-		Node endNode = node(relatedNodeLabel);
+		Node endNode = node(relatedNode.getPrimaryLabel(), relatedNode.getAdditionalLabels());
 		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 		boolean outgoing = relationshipDescription.isOutgoing();
 
@@ -407,11 +410,12 @@ public enum CypherGenerator {
 
 			String relationshipType = relationshipDescription.getType();
 			String relationshipTargetName = relationshipDescription.generateRelatedNodesCollectionName();
-			String targetLabel = relationshipDescription.getTarget().getPrimaryLabel();
+			String targetPrimaryLabel = relationshipDescription.getTarget().getPrimaryLabel();
+			String[] targetAdditionalLabels = relationshipDescription.getTarget().getAdditionalLabels();
 
 			Node startNode = anyNode(nameOfStartNode);
 			String relationshipFieldName = concatFieldName(nameOfStartNode, fieldName);
-			Node endNode = node(targetLabel).named(relationshipFieldName);
+			Node endNode = node(targetPrimaryLabel, targetAdditionalLabels).named(relationshipFieldName);
 			NodeDescription<?> endNodeDescription = relationshipDescription.getTarget();
 
 			processedRelationships.add(relationshipDescription);

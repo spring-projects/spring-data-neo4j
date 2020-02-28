@@ -1716,6 +1716,173 @@ class ReactiveRepositoryIT {
 			.verifyComplete();
 	}
 
+
+	@Test
+	void createNodeWithMultipleLabels(@Autowired ReactiveMultipleLabelRepository multipleLabelRepository) {
+		multipleLabelRepository.save(new MultipleLabels.MultipleLabelsEntity()).block();
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Node node = session.run("MATCH (n:A) return n").single().get("n").asNode();
+			assertThat(node.labels()).containsExactlyInAnyOrder("A", "B", "C");
+		}
+	}
+
+	@Test
+	void createAllNodesWithMultipleLabels(@Autowired ReactiveMultipleLabelRepository multipleLabelRepository) {
+		multipleLabelRepository.saveAll(singletonList(new MultipleLabels.MultipleLabelsEntity())).collectList().block();
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Node node = session.run("MATCH (n:A) return n").single().get("n").asNode();
+			assertThat(node.labels()).containsExactlyInAnyOrder("A", "B", "C");
+		}
+	}
+
+	@Test
+	void createNodeAndRelationshipWithMultipleLabels(@Autowired ReactiveMultipleLabelRepository multipleLabelRepository) {
+		MultipleLabels.MultipleLabelsEntity entity = new MultipleLabels.MultipleLabelsEntity();
+		entity.otherMultipleLabelEntity = new MultipleLabels.MultipleLabelsEntity();
+
+		multipleLabelRepository.save(entity).block();
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Record record = session.run("MATCH (n:A)-[:HAS]->(c:A) return n, c").single();
+			Node parentNode = record.get("n").asNode();
+			Node childNode = record.get("c").asNode();
+			assertThat(parentNode.labels()).containsExactlyInAnyOrder("A", "B", "C");
+			assertThat(childNode.labels()).containsExactlyInAnyOrder("A", "B", "C");
+		}
+	}
+
+	@Test
+	void findNodeWithMultipleLabels(@Autowired ReactiveMultipleLabelRepository multipleLabelRepository) {
+		long n1Id;
+		long n2Id;
+		long n3Id;
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Record record = session.run("CREATE (n1:A:B:C), (n2:B:C), (n3:A) return n1, n2, n3").single();
+			n1Id = record.get("n1").asNode().id();
+			n2Id = record.get("n2").asNode().id();
+			n3Id = record.get("n3").asNode().id();
+		}
+
+		StepVerifier.create(multipleLabelRepository.findById(n1Id))
+			.expectNextCount(1)
+			.verifyComplete();
+		StepVerifier.create(multipleLabelRepository.findById(n2Id))
+			.verifyComplete();
+		StepVerifier.create(multipleLabelRepository.findById(n3Id))
+			.verifyComplete();
+	}
+
+	@Test
+	void deleteNodeWithMultipleLabels(@Autowired ReactiveMultipleLabelRepository multipleLabelRepository) {
+		long n1Id;
+		long n2Id;
+		long n3Id;
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Record record = session.run("CREATE (n1:A:B:C), (n2:B:C), (n3:A) return n1, n2, n3").single();
+			n1Id = record.get("n1").asNode().id();
+			n2Id = record.get("n2").asNode().id();
+			n3Id = record.get("n3").asNode().id();
+		}
+
+		multipleLabelRepository.deleteById(n1Id).block();
+		multipleLabelRepository.deleteById(n2Id).block();
+		multipleLabelRepository.deleteById(n3Id).block();
+
+		try (Session session = driver.session(getSessionConfig())) {
+			assertThat(session.run("MATCH (n:A:B:C) return n").list()).hasSize(0);
+			assertThat(session.run("MATCH (n:B:C) return n").list()).hasSize(1);
+			assertThat(session.run("MATCH (n:A) return n").list()).hasSize(1);
+		}
+	}
+
+	@Test
+	void createNodeWithMultipleLabelsAndAssignedId(@Autowired ReactiveMultipleLabelWithAssignedIdRepository multipleLabelRepository) {
+		multipleLabelRepository.save(new MultipleLabels.MultipleLabelsEntityWithAssignedId(4711L)).block();
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Node node = session.run("MATCH (n:X) return n").single().get("n").asNode();
+			assertThat(node.labels()).containsExactlyInAnyOrder("X", "Y", "Z");
+		}
+	}
+
+	@Test
+	void createAllNodesWithMultipleLabels(@Autowired ReactiveMultipleLabelWithAssignedIdRepository multipleLabelRepository) {
+		multipleLabelRepository.saveAll(singletonList(new MultipleLabels.MultipleLabelsEntityWithAssignedId(4711L)))
+			.collectList().block();
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Node node = session.run("MATCH (n:X) return n").single().get("n").asNode();
+			assertThat(node.labels()).containsExactlyInAnyOrder("X", "Y", "Z");
+		}
+	}
+
+	@Test
+	void createNodeAndRelationshipWithMultipleLabels(@Autowired
+		ReactiveMultipleLabelWithAssignedIdRepository multipleLabelRepository) {
+		MultipleLabels.MultipleLabelsEntityWithAssignedId entity = new MultipleLabels.MultipleLabelsEntityWithAssignedId(4711L);
+		entity.otherMultipleLabelEntity = new MultipleLabels.MultipleLabelsEntityWithAssignedId(42L);
+
+		multipleLabelRepository.save(entity).block();
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Record record = session.run("MATCH (n:X)-[:HAS]->(c:X) return n, c").single();
+			Node parentNode = record.get("n").asNode();
+			Node childNode = record.get("c").asNode();
+			assertThat(parentNode.labels()).containsExactlyInAnyOrder("X", "Y", "Z");
+			assertThat(childNode.labels()).containsExactlyInAnyOrder("X", "Y", "Z");
+		}
+	}
+
+	@Test
+	void findNodeWithMultipleLabels(@Autowired ReactiveMultipleLabelWithAssignedIdRepository multipleLabelRepository) {
+		long n1Id;
+		long n2Id;
+		long n3Id;
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Record record = session.run("CREATE (n1:X:Y:Z{id:4711}), (n2:Y:Z{id:42}), (n3:X{id:23}) return n1, n2, n3").single();
+			n1Id = record.get("n1").asNode().get("id").asLong();
+			n2Id = record.get("n2").asNode().get("id").asLong();
+			n3Id = record.get("n3").asNode().get("id").asLong();
+		}
+
+		StepVerifier.create(multipleLabelRepository.findById(n1Id))
+			.expectNextCount(1)
+			.verifyComplete();
+		StepVerifier.create(multipleLabelRepository.findById(n2Id))
+			.verifyComplete();
+		StepVerifier.create(multipleLabelRepository.findById(n3Id))
+			.verifyComplete();
+	}
+
+	@Test
+	void deleteNodeWithMultipleLabels(@Autowired ReactiveMultipleLabelWithAssignedIdRepository multipleLabelRepository) {
+		long n1Id;
+		long n2Id;
+		long n3Id;
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Record record = session.run("CREATE (n1:X:Y:Z{id:4711}), (n2:Y:Z{id:42}), (n3:X{id:23}) return n1, n2, n3").single();
+			n1Id = record.get("n1").asNode().get("id").asLong();
+			n2Id = record.get("n2").asNode().get("id").asLong();
+			n3Id = record.get("n3").asNode().get("id").asLong();
+		}
+
+		multipleLabelRepository.deleteById(n1Id).block();
+		multipleLabelRepository.deleteById(n2Id).block();
+		multipleLabelRepository.deleteById(n3Id).block();
+
+		try (Session session = driver.session(getSessionConfig())) {
+			assertThat(session.run("MATCH (n:X:Y:Z) return n").list()).hasSize(0);
+			assertThat(session.run("MATCH (n:Y:Z) return n").list()).hasSize(1);
+			assertThat(session.run("MATCH (n:X) return n").list()).hasSize(1);
+		}
+	}
+
 	@Configuration
 	@EnableReactiveNeo4jRepositories
 	@EnableTransactionManagement

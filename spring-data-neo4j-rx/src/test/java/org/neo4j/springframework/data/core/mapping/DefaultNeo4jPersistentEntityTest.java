@@ -74,6 +74,55 @@ class DefaultNeo4jPersistentEntityTest {
 		}
 	}
 
+	@Nested
+	class Labels {
+
+		@Test
+		void supportDerivedLabel() {
+			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
+				.getPersistentEntity(CorrectEntity1.class);
+
+			assertThat(persistentEntity.getPrimaryLabel()).isEqualTo("CorrectEntity1");
+			assertThat(persistentEntity.getAdditionalLabels()).isEmpty();
+		}
+
+		@Test
+		void supportSingleLabel() {
+			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
+				.getPersistentEntity(EntityWithSingleLabel.class);
+
+			assertThat(persistentEntity.getPrimaryLabel()).isEqualTo("a");
+			assertThat(persistentEntity.getAdditionalLabels()).isEmpty();
+		}
+
+		@Test
+		void supportMultipleLabels() {
+			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
+				.getPersistentEntity(EntityWithMultipleLabels.class);
+
+			assertThat(persistentEntity.getPrimaryLabel()).isEqualTo("a");
+			assertThat(persistentEntity.getAdditionalLabels()).containsExactlyInAnyOrder("b", "c");
+		}
+
+		@Test
+		void supportExplicitPrimaryLabel() {
+			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
+				.getPersistentEntity(EntityWithExplicitPrimaryLabel.class);
+
+			assertThat(persistentEntity.getPrimaryLabel()).isEqualTo("a");
+			assertThat(persistentEntity.getAdditionalLabels()).isEmpty();
+		}
+
+		@Test
+		void supportExplicitPrimaryLabelAndAdditionalLabels() {
+			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
+				.getPersistentEntity(EntityWithExplicitPrimaryLabelAndAdditionalLabels.class);
+
+			assertThat(persistentEntity.getPrimaryLabel()).isEqualTo("a");
+			assertThat(persistentEntity.getAdditionalLabels()).containsExactlyInAnyOrder("b", "c");
+		}
+	}
+
 	@Node
 	private static class CorrectEntity1 {
 
@@ -130,6 +179,26 @@ class DefaultNeo4jPersistentEntityTest {
 
 		@Property("foo")
 		private String thisToo;
+	}
+
+	@Node("a")
+	private static class EntityWithSingleLabel {
+		@Id private Long id;
+	}
+
+	@Node({"a", "b", "c"})
+	private static class EntityWithMultipleLabels {
+		@Id private Long id;
+	}
+
+	@Node(primaryLabel = "a")
+	private static class EntityWithExplicitPrimaryLabel {
+		@Id private Long id;
+	}
+
+	@Node(primaryLabel = "a", labels = {"b", "c"})
+	private static class EntityWithExplicitPrimaryLabelAndAdditionalLabels {
+		@Id private Long id;
 	}
 
 }
