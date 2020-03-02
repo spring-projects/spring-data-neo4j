@@ -112,6 +112,7 @@
 		<neo4j-java-driver.version>4.0.0</neo4j-java-driver.version>
 		<neo4j.version>4.0.0</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version> <!-- mockk requires objenesis >= 3 -->
+		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<r2dbc.releasetrain>Arabba-RELEASE</r2dbc.releasetrain>
 		<reactive-streams.version>1.2.1</reactive-streams.version>
@@ -493,7 +494,7 @@
 					<requires>
 						<require>asciidoctor-diagram</require>
 					</requires>
-					<outputDirectory>${project.build.directory}/docs</outputDirectory>
+					<outputDirectory>${project.build.docs}</outputDirectory>
 				</configuration>
 				<executions>
 					<execution>
