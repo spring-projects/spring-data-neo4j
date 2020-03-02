@@ -1,0 +1,52 @@
+name: publish_docs
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  create:
+    tags:
+      - '*'
+
+jobs:
+  publish_docs:
+    if: github.event_name != 'pull_request' || (github.event_name == 'create' && github.event.ref_type == 'tag')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare branch name
+        run: >
+          echo "::set-env name=refName::${GITHUB_REF##*/}"
+      - name: Checkout relevant branch
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.refName }}
+      - name: Checkout gh-pages
+        uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+          path: target/gh-pages
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - name: Run docs generation
+        run: >
+          ./mvnw asciidoctor:process-asciidoc@generate-docs -pl org.neo4j.springframework.data:spring-data-neo4j-rx-parent -Dproject.build.docs=target/gh-pages/${refName}
+      - name: Create symlink
+        if: (github.event_name == 'create' && github.event.ref_type == 'tag')
+        working-directory: ./target/gh-pages
+        run: ln -sfn ${refName} current
+      - name: Commit to gh-pages
+        working-directory: ./target/gh-pages      
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add . 
+          git commit -m "Update GH-Pages."
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.5.0
+        with:
+          directory: target/gh-pages
+          branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
