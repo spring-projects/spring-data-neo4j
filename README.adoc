@@ -26,7 +26,7 @@ The SDN/RX project aims to provide a familiar and consistent Spring-based progra
 == Manual
 
 For a gentle introduction and some getting started guides, please use our
-link:docs/index.adoc[Manual].
+https://neo4j.github.io/sdn-rx[Manual].
 
 == Getting Started
 
@@ -104,8 +104,8 @@ Add the Maven dependency:
 ----
 
 Nowadays, people prefer Spring Boot and we got you covered with a starter.
-Please consult our link:docs/manual.adoc[manual] for more information.
+Please consult our https://neo4j.github.io/sdn-rx[manual] for more information.
 
 === Building SDN/RX
 
-Please have a look at the documentation: link:docs/build.adoc[Building SDN/RX].
+Please have a look at the documentation: https://neo4j.github.io/sdn-rx/current/#building-sdn-rx[Building SDN/RX].
