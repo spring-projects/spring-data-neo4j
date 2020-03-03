@@ -31,6 +31,6 @@ public class Neo4jQueryPlaceholderSupplier implements PlaceholderSupplier {
 
 	@Override
 	public String decoratePlaceholder(String placeholder) {
-		return "{" + placeholder + "}";
+		return "$" + placeholder;
 	}
 }

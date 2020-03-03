@@ -69,40 +69,40 @@ public interface UserRepository extends PersonRepository<User, Long> {
 	@Query("MATCH (m:Movie)<-[:ACTED_IN]-(a:User) RETURN m.name as movie, collect(a.name) as cast")
 	List<Map<String, Object>> getGraph();
 
-	@Query("MATCH (user:User{name:{name}}) RETURN user")
+	@Query("MATCH (user:User{name:$name}) RETURN user")
 	User findUserByNameWithNamedParam(@Param("name") String name);
 
-	@Query("MATCH (user:User{name:{name}}) RETURN user")
+	@Query("MATCH (user:User{name:$name}) RETURN user")
 	User findUserByNameWithNamedParamWithoutParamAnnotation(String name);
 
-	@Query("MATCH (user:User{name:{0}}) RETURN user")
+	@Query("MATCH (user:User{name:$0}) RETURN user")
 	User findUserByName(String name);
 
 	@Query("MATCH (user:User) RETURN id(user) AS userId, id(user) as id, user.name AS userName, user.age ORDER BY user.age")
 	Iterable<UserQueryResult> retrieveAllUsersAndTheirAges();
 
-	@Query("MATCH (user:User{name:{0}}) RETURN user.name AS name")
+	@Query("MATCH (user:User{name:$0}) RETURN user.name AS name")
 	UnmanagedUserPojo findIndividualUserAsDifferentObject(String name);
 
-	@Query("MATCH (user:User) WHERE user.name={0} RETURN user.name AS name, user.age AS ageOfUser")
+	@Query("MATCH (user:User) WHERE user.name=$0 RETURN user.name AS name, user.age AS ageOfUser")
 	UserQueryResultObject findIndividualUserAsProxiedObject(String name);
 
-	@Query("MATCH (user:User) WHERE user.name={0} RETURN user as user, user.age AS ageOfUser")
+	@Query("MATCH (user:User) WHERE user.name=$0 RETURN user as user, user.age AS ageOfUser")
 	UserQueryResultObject findWrappedUserAsProxiedObject(String name);
 
-	@Query("MATCH (user:User) WHERE user.gender={0} RETURN user.name AS userName, user.gender AS userGender, user.account as userAccount, user.yearOfBirth as yearOfBirth, user.yearOfBirth as plainYearValue, user.deposits as userDeposits")
+	@Query("MATCH (user:User) WHERE user.gender=$0 RETURN user.name AS userName, user.gender AS userGender, user.account as userAccount, user.yearOfBirth as yearOfBirth, user.yearOfBirth as plainYearValue, user.deposits as userDeposits")
 	Iterable<RichUserQueryResult> findUsersByGender(Gender gender);
 
-	@Query("MATCH (user:User) WHERE user.name={0} RETURN user")
+	@Query("MATCH (user:User) WHERE user.name=$0 RETURN user")
 	EntityWrappingQueryResult findWrappedUserByName(String userName);
 
-	@Query("MATCH (user:User)-[:FRIEND_OF]->(f) WHERE user.name={0} RETURN user, collect(f) as friends")
+	@Query("MATCH (user:User)-[:FRIEND_OF]->(f) WHERE user.name=$0 RETURN user, collect(f) as friends")
 	EntityWrappingQueryResult findWrappedUserAndFriendsDepth0(String userName);
 
-	@Query("MATCH (user:User)-[r:FRIEND_OF]->(f) WHERE user.name={0} RETURN user, collect(r) as rels, collect(f) as friends")
+	@Query("MATCH (user:User)-[r:FRIEND_OF]->(f) WHERE user.name=$0 RETURN user, collect(r) as rels, collect(f) as friends")
 	EntityWrappingQueryResult findWrappedUserAndFriendsDepth1(String userName);
 
-	@Query("MATCH (user:User)-[r:RATED]->(m) WHERE user.name={0} RETURN user, collect(r) as ratings, collect(m) as movies, avg(r.stars) as avgRating")
+	@Query("MATCH (user:User)-[r:RATED]->(m) WHERE user.name=$0 RETURN user, collect(r) as ratings, collect(m) as movies, avg(r.stars) as avgRating")
 	EntityWrappingQueryResult findWrappedUserAndRatingsByName(String userName);
 
 	@Query("MATCH (user:User)-[r:RATED]->(m) RETURN user, collect(r) as ratings, collect(m) as movies, avg(r.stars) as avgRating order by user.name desc")
@@ -111,16 +111,16 @@ public interface UserRepository extends PersonRepository<User, Long> {
 	@Query("MATCH (user:User) RETURN ID(user)")
 	List<Long> getUserNodeIds();
 
-	@Query("MATCH (user:User) WHERE ID(user)={0} return user")
+	@Query("MATCH (user:User) WHERE ID(user)=$0 return user")
 	User loadUserById(User user);
 
-	@Query("MATCH (user:User) WHERE ID(user)={userId} RETURN user")
+	@Query("MATCH (user:User) WHERE ID(user)=$userId RETURN user")
 	User loadUserByNamedId(@Param("userId") User user);
 
 	@Query("MATCH (user:User) RETURN user")
 	Iterable<User> getAllUsersIterable();
 
-	@Query("MATCH (user:User) set user.name={0}")
+	@Query("MATCH (user:User) set user.name=$0")
 	void setNamesNull(String name);
 
 	List<User> findByNameIsNotLike(String name);
@@ -157,7 +157,7 @@ public interface UserRepository extends PersonRepository<User, Long> {
 	@Query("MATCH (user:User) WHERE user.name=?#{[0]} RETURN user")
 	User findUserByNameUsingSpElWithIndex(String name);
 
-	@Query("MATCH (user:User) WHERE user.name=:#{[0]} and user.name=:#{[0]}RETURN user")
+	@Query("MATCH (user:User) WHERE user.name=:#{[0]} and user.name=:#{[0]} RETURN user")
 	User findUserByNameUsingSpElWithIndexColon(String name);
 
 	@Query("MATCH (user:User) WHERE user.age=?#{5 + 5} RETURN user")
@@ -169,13 +169,13 @@ public interface UserRepository extends PersonRepository<User, Long> {
 	@Query("MATCH (user:User) WHERE user.name=:#{'Michal'} RETURN user")
 	User findUserByNameAndMiddleNameUsingSpElWithValue();
 
-	@Query("MATCH (user:User) WHERE user.name=?#{[0]} and user.surname={name} RETURN user")
+	@Query("MATCH (user:User) WHERE user.name=?#{[0]} and user.surname=$name RETURN user")
 	User findUserByNameAndSurnameUsingSpElIndexAndPlaceholderWithOneParameter(@Param("name") String queryName);
 
-	@Query("MATCH (user:User) WHERE user.name=:#{#name} and user.surname={name} RETURN user")
+	@Query("MATCH (user:User) WHERE user.name=:#{#name} and user.surname=$name RETURN user")
 	User findUserByNameAndSurnameUsingSpElPropertyAndPlaceholderWithOneParameter(@Param("name") String queryName);
 
-	@Query("MATCH (user:User) WHERE user.name=:#{#name} and user.surname={name} RETURN user")
+	@Query("MATCH (user:User) WHERE user.name=:#{#name} and user.surname=$name RETURN user")
 	User findUserByNameAndSurnameUsingSpElPropertyAndIndexWithOneParameter(@Param("name") String queryName);
 
 	@Query("MATCH (user:User) WHERE user.name=:#{#name} and user.surname=:#{#name} RETURN user")
@@ -184,6 +184,6 @@ public interface UserRepository extends PersonRepository<User, Long> {
 	@Query("MATCH (user:User) WHERE user.name=:#{#name} and user.surname=:#{[0]} RETURN user")
 	User findUserByNameAndSurnameUsingSpElPropertyAndSpElIndex(@Param("name") String queryName);
 
-	@Query("MATCH (user:User) WHERE user.name={name} and user.name={0} and user.name=:#{#name} and user.name=:#{[0]} RETURN user")
+	@Query("MATCH (user:User) WHERE user.name=$name and user.name=$0 and user.name=:#{#name} and user.name=:#{[0]} RETURN user")
 	User findUserByNameUsingNativeIndexAndNameAndSpElNameAndSpElIndex(@Param("name") String queryName);
 }

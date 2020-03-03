@@ -59,6 +59,6 @@ public interface RatingRepository extends Neo4jRepository<Rating, Long> {
 
 	List<Long> deleteByStarsOrRatingTimestampGreaterThan(int stars, long ratingTimestamp);
 
-	@Query("MATCH (a)-[r:RATED]-(b) WHERE ID(a)={0} and ID(b)={1} RETURN a,r,b")
+	@Query("MATCH (a)-[r:RATED]-(b) WHERE ID(a)=$0 and ID(b)=$1 RETURN a,r,b")
 	Rating findRatingByUserAndTempMovie(long userId, long tempMovieId);
 }

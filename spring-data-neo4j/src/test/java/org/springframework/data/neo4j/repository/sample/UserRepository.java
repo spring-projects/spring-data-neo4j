@@ -72,7 +72,7 @@ public interface UserRepository extends Neo4jRepository<User, Long> {
 	 * @param emailAddress
 	 * @return
 	 */
-	@Query("MATCH (n:User{emailAddress:{emailAddress}}) return n")
+	@Query("MATCH (n:User{emailAddress:$emailAddress}) return n")
 	@Transactional(readOnly = true)
 	User findByAnnotatedQuery(@Param("emailAddress") String emailAddress);
 }
