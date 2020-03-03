@@ -39,7 +39,7 @@ public class Query {
 
 	private static final String SKIP = "sdnSkip";
 	private static final String LIMIT = "sdnLimit";
-	private static final String SKIP_LIMIT = " SKIP {" + SKIP + "} LIMIT {" + LIMIT + "}";
+	private static final String SKIP_LIMIT = " SKIP $" + SKIP + " LIMIT $" + LIMIT;
 	private static final String ORDER_BY_CLAUSE = " ORDER BY %s";
 
 	private Filters filters;

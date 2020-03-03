@@ -230,10 +230,10 @@ Depending on the `Range` definition `n.score >= min AND n.score \<= max` or
 Queries using the Cypher graph query language can be supplied with the `@Query` annotation.
 
 That means a repository method annotated with +
-`@Query("MATCH (:Actor {name:{name}})-[:ACTED_IN]\->(m:Movie) return m")` +
+`@Query("MATCH (:Actor {name:$name})-[:ACTED_IN]\->(m:Movie) return m")` +
 will use the supplied query to retrieve data from Neo4j.
 
-The named or indexed parameter `{param}` will be substituted by the actual method parameter.
+The named or indexed parameter `$param` will be substituted by the actual method parameter.
 Node and relationship entities are handled directly and converted into their respective ids.
 All other parameters types are provided directly (i.e. `String`, `Long`, etc.).
 
@@ -254,7 +254,7 @@ Instead, return nodes and relationships to have them mapped to domain entities.
 
 Sometimes it makes sense to extract e.g. a long query.
 Spring Data Neo4j will look in the `META-INF/neo4j-named-queries.properties` file to find named queries.
-If you provide a query property like `User.findByQuery=MATCH (e) WHERE e.name={name} RETURN e` you can refer to this method by providing a finder method in your repository.
+If you provide a query property like `User.findByQuery=MATCH (e) WHERE e.name=$name RETURN e` you can refer to this method by providing a finder method in your repository.
 The repository has to support the given entity type (in this example `User`) and the method has to be named as the defined one (`findByQuery`).
 As you can see in the example it is possible to parameterize the query.
 Named count query can be specified by adding `.countQuery` suffix to the related query property key. For example, if the next query should return paged result `User.findAllByQuery=MATCH (e) RETURN e`, the count query can be specified by the following way: `User.findAllByQuery.countQuery=MATCH (e) RETURN count(e)`.
@@ -290,38 +290,38 @@ as described in the <<reference_programming_model_annotatedQueries>>) section.
 public interface MovieRepository extends Neo4jRepository<Movie, Long> {
 
     // returns the node with id equal to idOfMovie parameter
-    @Query("MATCH (n) WHERE id(n)={0} RETURN n")
+    @Query("MATCH (n) WHERE id(n)=$0 RETURN n")
     Movie getMovieFromId(Integer idOfMovie);
 
     // returns the nodes which have a title according to the movieTitle parameter
-    @Query("MATCH (movie:Movie {title={0}}) RETURN movie")
+    @Query("MATCH (movie:Movie {title=$0}) RETURN movie")
     Movie getMovieFromTitle(String movieTitle);
 
     // same with optional result
-    @Query("MATCH (movie:Movie {title={0}}) RETURN movie")
+    @Query("MATCH (movie:Movie {title=$0}) RETURN movie")
     Optional<Movie> getMovieFromTitle(String movieTitle);
 
     // returns a Page of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter.
-    @Query(value = "MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor", countQuery= "MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN count(actor)")
+    @Query(value = "MATCH (movie:Movie {title=$0})<-[:ACTS_IN]-(actor) RETURN actor", countQuery= "MATCH (movie:Movie {title=$0})<-[:ACTS_IN]-(actor) RETURN count(actor)")
     Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, PageRequest page);
 
     // returns a Page of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter with an accurate total count
-    @Query(value = "MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor", countQuery = "MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN count(*)")
+    @Query(value = "MATCH (movie:Movie {title=$0})<-[:ACTS_IN]-(actor) RETURN actor", countQuery = "MATCH (movie:Movie {title=$0})<-[:ACTS_IN]-(actor) RETURN count(*)")
     Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, Pageable page);
 
     // returns a Slice of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter.
-    @Query("MATCH (movie:Movie {title={0}})<-[:ACTS_IN]-(actor) RETURN actor")
+    @Query("MATCH (movie:Movie {title=$0})<-[:ACTS_IN]-(actor) RETURN actor")
     Slice<Actor> getActorsThatActInMovieFromTitle(String movieTitle, Pageable page);
 
     // returns users who rated a movie (movie parameter) higher than rating (rating parameter)
     @Query("MATCH (movie:Movie)<-[r:RATED]-(user) " +
-           "WHERE id(movie)={movieId} AND r.stars > {rating} " +
+           "WHERE id(movie)=$movieId AND r.stars > {rating} " +
            "RETURN user")
     Iterable<User> getUsersWhoRatedMovieFromTitle(@Param("movieId") Movie movie, @Param("rating") Integer rating);
 
     // returns users who rated a movie based on movie title (movieTitle parameter) higher than rating (rating parameter)
-    @Query("MATCH (movie:Movie {title:{0}})<-[r:RATED]-(user) " +
-           "WHERE r.stars > {1} " +
+    @Query("MATCH (movie:Movie {title:$0})<-[r:RATED]-(user) " +
+           "WHERE r.stars > $1 " +
            "RETURN user")
     Iterable<User> getUsersWhoRatedMovieFromTitle(String movieTitle, Integer rating);
 
@@ -342,21 +342,21 @@ The parameters will be used in the order they appear in the method signature so 
 ----
 public interface PersonRepository extends Neo4jRepository<Person, Long> {
 
-    // MATCH (person:Person {name={0}}) RETURN person
+    // MATCH (person:Person {name=$0}) RETURN person
     Person findByName(String name);
 
     // MATCH (person:Person)
-    // WHERE person.age = {0} AND person.married = {1}
+    // WHERE person.age = $0 AND person.married = $1
     // RETURN person
     Iterable<Person> findByAgeAndMarried(int age, boolean married);
 
     // MATCH (person:Person)
-    // WHERE person.age = {0}
-    // RETURN person ORDER BY person.name SKIP {skip} LIMIT {limit}
+    // WHERE person.age = $0
+    // RETURN person ORDER BY person.name SKIP $skip LIMIT $limit
     Page<Person> findByAge(int age, Pageable pageable);
 
     // MATCH (person:Person)
-    // WHERE person.age = {0}
+    // WHERE person.age = $0
     // RETURN person ORDER BY person.name
     List<Person> findByAge(int age, Sort sort);
 
@@ -388,7 +388,7 @@ Please keep in mind that Java and Cypher are case-sensitive.
 public interface MovieRepository extends Neo4jRepository<Movie, Long> {
 
     @Query("MATCH (movie:Movie)-[r:RATING]->(), (movie)<-[:ACTS_IN]-(actor:Actor) " +
-           "WHERE movie.id={0} " +
+           "WHERE movie.id=$0 " +
            "RETURN movie as movie, COLLECT(actor) AS cast, AVG(r.stars) AS averageRating")
     MovieData getMovieData(String movieId);
 }

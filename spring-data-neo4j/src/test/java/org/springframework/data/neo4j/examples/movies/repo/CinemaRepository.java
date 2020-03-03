@@ -101,8 +101,8 @@ public interface CinemaRepository extends Neo4jRepository<Cinema, Long> {
 	@Query(value = "MATCH (n:Theatre) RETURN n", countQuery = "MATCH (n:Theatre) return count(*)")
 	Page<CinemaQueryResultInterface> getPagedCinemaQueryResultInterfaces(Pageable pageable);
 
-	@Query(value = "MATCH (n:Theatre {city:{city}}) RETURN n ORDER BY n.name",
-			countQuery = "MATCH (n:Theatre {city:{city}}) return count(*)")
+	@Query(value = "MATCH (n:Theatre {city:$city}) RETURN n ORDER BY n.name",
+			countQuery = "MATCH (n:Theatre {city:$city}) return count(*)")
 	Page<Cinema> getPagedCinemasByCityWithPageCount(@Param("city") String city, Pageable pageable);
 
 	@Query("MATCH (n:Theatre) RETURN n")
