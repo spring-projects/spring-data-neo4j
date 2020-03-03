@@ -4,14 +4,13 @@ on:
   push:
     branches:
       - master
-  pull_request:
   create:
     tags:
       - '*'
 
 jobs:
   publish_docs:
-    if: github.event_name != 'pull_request' || (github.event_name == 'create' && github.event.ref_type == 'tag')
+    if: github.event_name == 'push' || (github.event_name == 'create' && github.event.ref_type == 'tag')
     runs-on: ubuntu-latest
     steps:
       - name: Prepare branch name
@@ -38,11 +37,11 @@ jobs:
         working-directory: ./target/gh-pages
         run: ln -sfn ${refName} current
       - name: Commit to gh-pages
-        working-directory: ./target/gh-pages      
+        working-directory: ./target/gh-pages
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add . 
+          git add .
           git commit -m "Update GH-Pages."
       - name: Push changes
         uses: ad-m/github-push-action@v0.5.0
