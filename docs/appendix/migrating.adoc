@@ -108,7 +108,7 @@ You're than ready to replace annotations:
 |`org.neo4j.springframework.data.core.schema.GeneratedValue`
 
 |`org.neo4j.ogm.annotation.Id`
-|`org.neo4j.springframework.data.core.schema.GeneratedValue`
+|`org.neo4j.springframework.data.core.schema.Id`
 
 |`org.neo4j.ogm.annotation.Property`
 |`org.neo4j.springframework.data.core.schema.Property`
