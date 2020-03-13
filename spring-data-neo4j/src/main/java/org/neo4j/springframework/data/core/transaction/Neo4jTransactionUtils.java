@@ -19,8 +19,8 @@
 package org.neo4j.springframework.data.core.transaction;
 
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 import org.neo4j.driver.AccessMode;
@@ -49,7 +49,7 @@ public final class Neo4jTransactionUtils {
 		return sessionConfig(false, Collections.emptyList(), databaseName);
 	}
 
-	public static SessionConfig sessionConfig(boolean readOnly, List<Bookmark> bookmarks,
+	public static SessionConfig sessionConfig(boolean readOnly, Collection<Bookmark> bookmarks,
 		@Nullable String databaseName) {
 		SessionConfig.Builder builder = SessionConfig.builder()
 			.withDefaultAccessMode(readOnly ? AccessMode.READ : AccessMode.WRITE)

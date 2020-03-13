@@ -20,9 +20,6 @@ package org.neo4j.springframework.data.core.transaction;
 
 import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUtils.*;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.apiguardian.api.API;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
@@ -61,6 +58,8 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 	 */
 	private final DatabaseSelectionProvider databaseSelectionProvider;
 
+	private final Neo4jBookmarkManager bookmarkManager;
+
 	public Neo4jTransactionManager(Driver driver) {
 
 		this(driver, DatabaseSelectionProvider.getDefaultSelectionProvider());
@@ -70,6 +69,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 
 		this.driver = driver;
 		this.databaseSelectionProvider = databaseSelectionProvider;
+		this.bookmarkManager = new Neo4jBookmarkManager();
 	}
 
 	/**
@@ -109,7 +109,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		Session session = driver.session(defaultSessionConfig(targetDatabase));
 		Transaction transaction = session.beginTransaction(TransactionConfig.empty());
 		// Manually create a new synchronization
-		connectionHolder = new Neo4jTransactionHolder(targetDatabase, session, transaction);
+		connectionHolder = new Neo4jTransactionHolder(new Neo4jTransactionContext(targetDatabase), session, transaction);
 		connectionHolder.setSynchronizedWithTransaction(true);
 
 		TransactionSynchronizationManager.registerSynchronization(
@@ -158,16 +158,22 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 		TransactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
 
 		try {
-			String databaseName = databaseSelectionProvider.getDatabaseSelection().getValue();
+			// Prepare configuration data
+			Neo4jTransactionContext context = new Neo4jTransactionContext(
+				databaseSelectionProvider.getDatabaseSelection().getValue(),
+				bookmarkManager.getBookmarks()
+			);
 
-			List<Bookmark> bookmarks = Collections.emptyList(); // TODO Bookmarksupport;
-			Session session = this.driver.session(sessionConfig(readOnly, bookmarks, databaseName));
+			// Configure and open session together with a native transaction
+			Session session = this.driver
+				.session(sessionConfig(readOnly, context.getBookmarks(), context.getDatabaseName()));
 			Transaction nativeTransaction = session.beginTransaction(transactionConfig);
 
-			Neo4jTransactionHolder transactionHolder =
-				new Neo4jTransactionHolder(databaseName, session, nativeTransaction);
+			// Synchronize on that
+			Neo4jTransactionHolder transactionHolder = new Neo4jTransactionHolder(context, session, nativeTransaction);
 			transactionHolder.setSynchronizedWithTransaction(true);
 			transactionObject.setResourceHolder(transactionHolder);
+
 			TransactionSynchronizationManager.bindResource(this.driver, transactionHolder);
 		} catch (Exception ex) {
 			throw new TransactionSystemException(String.format("Could not open a new Neo4j session: %s", ex.getMessage()));
@@ -196,7 +202,9 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 	protected void doCommit(DefaultTransactionStatus status) throws TransactionException {
 
 		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(status);
-		transactionObject.getRequiredResourceHolder().commit();
+		Neo4jTransactionHolder transactionHolder = transactionObject.getRequiredResourceHolder();
+		Bookmark lastBookmark = transactionHolder.commit();
+		this.bookmarkManager.updateBookmarks(transactionHolder.getBookmarks(), lastBookmark);
 	}
 
 	@Override

@@ -30,7 +30,7 @@ import org.springframework.transaction.reactive.TransactionSynchronizationManage
  * @author Michael J. Simons
  * @since 1.0
  */
-class ReactiveNeo4jSessionSynchronization extends ReactiveResourceSynchronization<ReactiveNeo4jTransactionHolder, Object> {
+final class ReactiveNeo4jSessionSynchronization extends ReactiveResourceSynchronization<ReactiveNeo4jTransactionHolder, Object> {
 
 	private final ReactiveNeo4jTransactionHolder transactionHolder;
 
@@ -57,7 +57,7 @@ class ReactiveNeo4jSessionSynchronization extends ReactiveResourceSynchronizatio
 	 */
 	@Override
 	protected Mono<Void> processResourceAfterCommit(ReactiveNeo4jTransactionHolder resourceHolder) {
-		return Mono.defer(() -> super.processResourceAfterCommit(resourceHolder).then(resourceHolder.commit()));
+		return Mono.defer(() -> super.processResourceAfterCommit(resourceHolder).then(resourceHolder.commit())).then();
 	}
 
 	/*

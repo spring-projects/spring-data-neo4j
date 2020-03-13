@@ -20,6 +20,9 @@ package org.neo4j.springframework.data.core.transaction;
 
 import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUtils.*;
 
+import java.util.Collection;
+
+import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.springframework.lang.Nullable;
@@ -35,15 +38,21 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-class Neo4jTransactionHolder extends ResourceHolderSupport {
+final class Neo4jTransactionHolder extends ResourceHolderSupport {
 
-	private final String databaseName;
+	private final Neo4jTransactionContext context;
+	/**
+	 * The ongoing session...
+	 */
 	private final Session session;
+	/**
+	 * The drivers transaction as the second building block of what synchronize our transaction against.
+	 */
 	private final Transaction transaction;
 
-	Neo4jTransactionHolder(String databaseName, Session session, Transaction transaction) {
+	Neo4jTransactionHolder(Neo4jTransactionContext context, Session session, Transaction transaction) {
 
-		this.databaseName = databaseName;
+		this.context = context;
 		this.session = session;
 		this.transaction = transaction;
 	}
@@ -55,16 +64,19 @@ class Neo4jTransactionHolder extends ResourceHolderSupport {
 	 * @return An optional, ongoing transaction.
 	 */
 	@Nullable Transaction getTransaction(String inDatabase) {
-		return namesMapToTheSameDatabase(this.databaseName, inDatabase) ? transaction : null;
+		return namesMapToTheSameDatabase(this.context.getDatabaseName(), inDatabase) ? transaction : null;
 	}
 
-	void commit() {
+	@Nullable
+	Bookmark commit() {
 
 		Assert.state(hasActiveTransaction(), "Transaction must be open, but has already been closed.");
 		Assert.state(!isRollbackOnly(), "Resource must not be marked as rollback only.");
 
 		transaction.commit();
 		transaction.close();
+
+		return session.lastBookmark();
 	}
 
 	void rollback() {
@@ -109,6 +121,10 @@ class Neo4jTransactionHolder extends ResourceHolderSupport {
 	}
 
 	String getDatabaseName() {
-		return databaseName;
+		return context.getDatabaseName();
+	}
+
+	Collection<Bookmark> getBookmarks() {
+		return context.getBookmarks();
 	}
 }
