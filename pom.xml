@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>2.2.4.RELEASE</version>
+		<version>2.2.5.RELEASE</version>
 	</parent>
 
 	<groupId>org.neo4j.springframework.data</groupId>
@@ -120,8 +120,8 @@
 		<rxjava.version>1.3.8</rxjava.version>
 		<rxjava2.version>2.2.5</rxjava2.version>
 		<sha1></sha1>
-		<springdata-commons.version>2.2.4.RELEASE</springdata-commons.version>
-		<testcontainers.version>1.12.5</testcontainers.version>
+		<springdata-commons.version>2.2.5.RELEASE</springdata-commons.version>
+		<testcontainers.version>1.13.0</testcontainers.version>
 
 		<skipUnitTests>${skipTests}</skipUnitTests>
 		<skipIntegrationTests>${skipTests}</skipIntegrationTests>
@@ -508,15 +508,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<repositories>
-		<repository>
-			<id>spring-libs-snapshot</id>
-			<url>https://repo.spring.io/libs-snapshot</url>
-		</repository>
-		<repository>
-			<id>spring-libs-milestone</id>
-			<url>https://repo.spring.io/milestone</url>
-		</repository>
-	</repositories>
 </project>

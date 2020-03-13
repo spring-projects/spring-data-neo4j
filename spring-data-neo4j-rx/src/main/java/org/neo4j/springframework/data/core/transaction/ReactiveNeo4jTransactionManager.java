@@ -23,11 +23,7 @@ import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUt
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuples;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.apiguardian.api.API;
-import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.reactive.RxSession;
@@ -63,13 +59,17 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 	 */
 	private final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
 
+	private final Neo4jBookmarkManager bookmarkManager;
+
 	public ReactiveNeo4jTransactionManager(Driver driver) {
 		this(driver, ReactiveDatabaseSelectionProvider.getDefaultSelectionProvider());
 	}
 
 	public ReactiveNeo4jTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+
 		this.driver = driver;
 		this.databaseSelectionProvider = databaseSelectionProvider;
+		this.bookmarkManager = new Neo4jBookmarkManager();
 	}
 
 	public static Mono<RxTransaction> retrieveReactiveTransaction(final Driver driver, final String targetDatabase) {
@@ -93,7 +93,7 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 					return Mono.from(session.beginTransaction(TransactionConfig.empty())).map(tx -> {
 
 						ReactiveNeo4jTransactionHolder newConnectionHolder = new ReactiveNeo4jTransactionHolder(
-							targetDatabase, session, tx);
+							new Neo4jTransactionContext(targetDatabase), session, tx);
 						newConnectionHolder.setSynchronizedWithTransaction(true);
 
 						tsm.registerSynchronization(
@@ -161,22 +161,15 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 
 			transactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
 
-			List<Bookmark> bookmarks = Collections.emptyList(); // TODO Bookmarksupport;
 			return databaseSelectionProvider.getDatabaseSelection()
 				.switchIfEmpty(Mono.just(DatabaseSelection.undecided()))
-				.map(databaseName -> Tuples.of(databaseName, this.driver.rxSession(sessionConfig(readOnly, bookmarks, databaseName.getValue()))))
-				.flatMap(databaseNameAndSession -> Mono
-						.from(databaseNameAndSession.getT2().beginTransaction(transactionConfig))
-						.map(nativeTransaction -> Tuples.of(databaseNameAndSession.getT1(), databaseNameAndSession.getT2(), nativeTransaction))
+				.map(databaseName -> new Neo4jTransactionContext(databaseName.getValue(), bookmarkManager.getBookmarks()))
+				.map(context -> Tuples.of(context, this.driver.rxSession(sessionConfig(readOnly, context.getBookmarks(), context.getDatabaseName()))))
+				.flatMap(contextAndSession -> Mono
+						.from(contextAndSession.getT2().beginTransaction(transactionConfig))
+						.map(nativeTransaction -> new ReactiveNeo4jTransactionHolder(contextAndSession.getT1(), contextAndSession.getT2(), nativeTransaction))
 				)
-				.doOnNext(databaseNameSessionAndTransaction -> {
-
-					String databaseName = databaseNameSessionAndTransaction.getT1().getValue();
-					RxSession session = databaseNameSessionAndTransaction.getT2();
-					RxTransaction nativeTransaction = databaseNameSessionAndTransaction.getT3();
-
-					ReactiveNeo4jTransactionHolder transactionHolder =
-						new ReactiveNeo4jTransactionHolder(databaseName, session, nativeTransaction);
+				.doOnNext(transactionHolder -> {
 					transactionHolder.setSynchronizedWithTransaction(true);
 					transactionObject.setResourceHolder(transactionHolder);
 					transactionSynchronizationManager.bindResource(this.driver, transactionHolder);
@@ -206,7 +199,9 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 
 		ReactiveNeo4jTransactionHolder holder = extractNeo4jTransaction(genericReactiveTransaction)
 			.getRequiredResourceHolder();
-		return holder.commit();
+		return holder.commit()
+			.doOnNext(bookmark -> bookmarkManager.updateBookmarks(holder.getBookmarks(), bookmark))
+			.then();
 	}
 
 	@Override

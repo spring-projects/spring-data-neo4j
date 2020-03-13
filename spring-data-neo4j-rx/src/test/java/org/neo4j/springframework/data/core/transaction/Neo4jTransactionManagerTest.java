@@ -22,6 +22,9 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionManager.*;
 
+import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.transaction.Status;
@@ -34,18 +37,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.Session;
 import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.types.TypeSystem;
-import org.neo4j.springframework.data.core.Neo4jClient;
 import org.neo4j.springframework.data.core.DatabaseSelectionProvider;
+import org.neo4j.springframework.data.core.Neo4jClient;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -78,7 +84,7 @@ class Neo4jTransactionManagerTest {
 
 		assertThat(optionalTransaction).isNull();
 
-		verifyZeroInteractions(driver, session, transaction);
+		verifyNoInteractions(driver, session, transaction);
 	}
 
 	@Test
@@ -109,6 +115,51 @@ class Neo4jTransactionManagerTest {
 		verify(transaction).close();
 
 		verify(session).close();
+	}
+
+	@Test
+	void usesBookmarksCorrectly() throws Exception {
+
+		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
+		when(driver.session(any(SessionConfig.class))).thenReturn(session);
+		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
+		Bookmark bookmark = new Bookmark() {
+			@Override public Set<String> values() {
+				return Collections.singleton("blubb");
+			}
+
+			@Override public boolean isEmpty() {
+				return false;
+			}
+		};
+		when(session.lastBookmark()).thenReturn(bookmark);
+		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
+		when(session.isOpen()).thenReturn(true);
+		when(transaction.isOpen()).thenReturn(true, false);
+
+		Neo4jTransactionManager txManager = spy(new Neo4jTransactionManager(driver));
+		Neo4jBookmarkManager bookmarkManager = mock(Neo4jBookmarkManager.class);
+		injectBookmarkManager(txManager, bookmarkManager);
+
+		TransactionStatus txStatus = txManager.getTransaction(new DefaultTransactionDefinition());
+
+		Neo4jClient client = Neo4jClient.create(driver);
+		client.query("RETURN 1").run();
+
+		txManager.commit(txStatus);
+
+		verify(txManager).doBegin(any(), any(TransactionDefinition.class));
+		verify(bookmarkManager).getBookmarks();
+		verify(txManager).doCommit(any(DefaultTransactionStatus.class));
+		verify(bookmarkManager).updateBookmarks(anyCollection(), eq(bookmark));
+
+	}
+
+	private void injectBookmarkManager(Neo4jTransactionManager txManager, Neo4jBookmarkManager value)
+		throws NoSuchFieldException, IllegalAccessException {
+		Field bookmarkManager = Neo4jTransactionManager.class.getDeclaredField("bookmarkManager");
+		bookmarkManager.setAccessible(true);
+		bookmarkManager.set(txManager, value);
 	}
 
 	@Nested

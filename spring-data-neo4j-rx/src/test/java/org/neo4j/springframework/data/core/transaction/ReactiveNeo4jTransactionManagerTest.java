@@ -28,7 +28,9 @@ import io.r2dbc.h2.H2ConnectionFactory;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import javax.transaction.UserTransaction;
+import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -38,9 +40,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.springframework.data.core.ReactiveDatabaseSelectionProvider;
@@ -65,8 +68,6 @@ class ReactiveNeo4jTransactionManagerTest {
 	private RxSession session;
 	@Mock
 	private RxTransaction transaction;
-	@Mock
-	UserTransaction userTransaction;
 
 	@BeforeEach
 	void setUp() {
@@ -141,6 +142,53 @@ class ReactiveNeo4jTransactionManagerTest {
 			verify(session).close();
 			verify(transaction).rollback();
 			verify(transaction, never()).commit();
+		}
+
+		@Test
+		void usesBookmarksCorrectly() throws Exception {
+
+			ReactiveNeo4jTransactionManager txManager = new ReactiveNeo4jTransactionManager(driver, ReactiveDatabaseSelectionProvider
+				.createStaticDatabaseSelectionProvider(databaseName));
+
+			Neo4jBookmarkManager bookmarkManager = spy(new Neo4jBookmarkManager());
+			injectBookmarkManager(txManager, bookmarkManager);
+
+			Bookmark bookmark = new Bookmark() {
+				@Override public Set<String> values() {
+					return Collections.singleton("blubb");
+				}
+
+				@Override public boolean isEmpty() {
+					return false;
+				}
+			};
+			when(session.lastBookmark()).thenReturn(bookmark);
+
+			TransactionalOperator transactionalOperator = TransactionalOperator.create(txManager);
+
+			transactionalOperator
+				.execute(transactionStatus -> TransactionSynchronizationManager
+					.forCurrentTransaction()
+					.doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isTrue())
+					.then(retrieveReactiveTransaction(driver, databaseName))
+				)
+				.as(StepVerifier::create)
+				.expectNextCount(1L)
+				.verifyComplete();
+
+			verify(driver).rxSession(any(SessionConfig.class));
+			verify(session).beginTransaction(any(TransactionConfig.class));
+			verify(bookmarkManager).getBookmarks();
+			verify(session).close();
+			verify(transaction).commit();
+			verify(bookmarkManager).updateBookmarks(anyCollection(), eq(bookmark));
+		}
+
+		private void injectBookmarkManager(ReactiveNeo4jTransactionManager txManager, Neo4jBookmarkManager value)
+			throws NoSuchFieldException, IllegalAccessException {
+			Field bookmarkManager = ReactiveNeo4jTransactionManager.class.getDeclaredField("bookmarkManager");
+			bookmarkManager.setAccessible(true);
+			bookmarkManager.set(txManager, value);
 		}
 	}
 

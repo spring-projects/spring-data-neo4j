@@ -67,7 +67,7 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-r2dbc</artifactId>
-			<version>1.0.0.BUILD-SNAPSHOT</version>
+			<version>1.0.0.RELEASE</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -158,6 +158,18 @@
 			<groupId>org.testcontainers</groupId>
 			<artifactId>neo4j</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>eu.michael-simons.neo4j</groupId>
+			<artifactId>junit-jupiter-causal-cluster-testcontainer-extension</artifactId>
+			<version>4.0.1.0</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.projectlombok</groupId>
+					<artifactId>lombok</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- Reduce scope of Lombok to test (it is defined by Spring Data Parent) -->
 		<dependency>

@@ -22,6 +22,9 @@ import static org.neo4j.springframework.data.core.transaction.Neo4jTransactionUt
 
 import reactor.core.publisher.Mono;
 
+import java.util.Collection;
+
+import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.springframework.lang.Nullable;
@@ -32,16 +35,16 @@ import org.springframework.transaction.support.ResourceHolderSupport;
  * @author Michael J. Simons
  * @since 1.0
  */
-class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
+final class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 
+	private final Neo4jTransactionContext context;
 	private final RxSession session;
-	private final String databaseName;
 	private final RxTransaction transaction;
 
-	ReactiveNeo4jTransactionHolder(String databaseName, RxSession session, RxTransaction transaction) {
+	ReactiveNeo4jTransactionHolder(Neo4jTransactionContext context, RxSession session, RxTransaction transaction) {
 
+		this.context = context;
 		this.session = session;
-		this.databaseName = databaseName;
 		this.transaction = transaction;
 	}
 
@@ -51,12 +54,12 @@ class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 
 	@Nullable RxTransaction getTransaction(String inDatabase) {
 
-		return namesMapToTheSameDatabase(this.databaseName, inDatabase) ? transaction : null;
+		return namesMapToTheSameDatabase(this.context.getDatabaseName(), inDatabase) ? transaction : null;
 	}
 
-	Mono<Void> commit() {
+	Mono<Bookmark> commit() {
 
-		return Mono.from(transaction.commit());
+		return Mono.from(transaction.commit()).then(Mono.fromSupplier(() -> session.lastBookmark()));
 	}
 
 	Mono<Void> rollback() {
@@ -82,6 +85,10 @@ class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 	}
 
 	String getDatabaseName() {
-		return databaseName;
+		return context.getDatabaseName();
+	}
+
+	Collection<Bookmark> getBookmarks() {
+		return context.getBookmarks();
 	}
 }
