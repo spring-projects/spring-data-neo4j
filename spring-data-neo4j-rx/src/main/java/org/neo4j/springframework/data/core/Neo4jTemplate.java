@@ -104,7 +104,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		this.neo4jClient = neo4jClient;
 		this.neo4jMappingContext = neo4jMappingContext;
 		this.cypherGenerator = CypherGenerator.INSTANCE;
-		this.eventSupport = new Neo4jEvents(null);
+		this.eventSupport = new Neo4jEvents(EntityCallbacks.create());
+
 		this.databaseSelectionProvider = databaseSelectionProvider;
 	}
 
@@ -540,18 +541,14 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	 */
 	final class Neo4jEvents {
 
-		private final @Nullable EntityCallbacks entityCallbacks;
+		private final EntityCallbacks entityCallbacks;
 
-		Neo4jEvents(@Nullable EntityCallbacks entityCallbacks) {
+		Neo4jEvents(EntityCallbacks entityCallbacks) {
 			this.entityCallbacks = entityCallbacks;
 		}
 
 		public <T> T maybeCallBeforeBind(T object) {
-			if (entityCallbacks != null) {
-				return entityCallbacks.callback(BeforeBindCallback.class, object);
-			}
-
-			return object;
+			return entityCallbacks.callback(BeforeBindCallback.class, object);
 		}
 	}
 }

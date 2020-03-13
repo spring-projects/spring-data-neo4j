@@ -25,15 +25,9 @@ import java.util.Collections;
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.repository.Neo4jRepository;
-import org.neo4j.springframework.data.repository.event.ReactiveIdGeneratingBeforeBindCallback;
-import org.neo4j.springframework.data.repository.event.ReactiveOptimisticLockingBeforeBindCallback;
 import org.neo4j.springframework.data.repository.support.ReactiveNeo4jRepositoryFactoryBean;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -113,28 +107,5 @@ public final class ReactiveNeo4jRepositoryConfigurationExtension extends Reposit
 			source.getAttribute("neo4jTemplateRef").orElse(DEFAULT_NEO4J_TEMPLATE_BEAN_NAME));
 		builder.addPropertyReference("neo4jMappingContext",
 			source.getAttribute("neo4jMappingContextRef").orElse(DEFAULT_MAPPING_CONTEXT_BEAN_NAME));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#registerBeansForRoot(org.springframework.beans.factory.support.BeanDefinitionRegistry, org.springframework.data.repository.config.RepositoryConfigurationSource)
-	 */
-	@Override
-	public void registerBeansForRoot(BeanDefinitionRegistry registry,
-		RepositoryConfigurationSource configurationSource) {
-
-		RootBeanDefinition idGenerationBeanDefinition = new RootBeanDefinition(ReactiveIdGeneratingBeforeBindCallback.class);
-		idGenerationBeanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-
-		String idGenerationBeanName = BeanDefinitionReaderUtils.generateBeanName(idGenerationBeanDefinition, registry);
-		registry.registerBeanDefinition(idGenerationBeanName, idGenerationBeanDefinition);
-
-		RootBeanDefinition optimisticLockingBeanDefinition = new RootBeanDefinition(
-			ReactiveOptimisticLockingBeforeBindCallback.class);
-		optimisticLockingBeanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-
-		String optimisticLockingBeanName = BeanDefinitionReaderUtils.generateBeanName(optimisticLockingBeanDefinition, registry);
-		registry.registerBeanDefinition(optimisticLockingBeanName, optimisticLockingBeanDefinition);
 	}
 }

@@ -28,6 +28,7 @@ import org.neo4j.springframework.data.core.DatabaseSelectionProvider;
 import org.neo4j.springframework.data.repository.config.Neo4jRepositoryConfigurationExtension;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -40,6 +41,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  */
 @Configuration
 @API(status = API.Status.STABLE, since = "1.0")
+@Import(Neo4jDefaultCallbacksRegistrar.class)
 public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 
 	/**

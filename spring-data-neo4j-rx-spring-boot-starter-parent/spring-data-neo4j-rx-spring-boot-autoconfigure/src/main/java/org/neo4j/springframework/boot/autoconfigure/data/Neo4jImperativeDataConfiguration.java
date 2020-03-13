@@ -22,6 +22,7 @@ import static org.springframework.boot.autoconfigure.data.RepositoryType.*;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
+import org.neo4j.springframework.data.config.Neo4jDefaultCallbacksRegistrar;
 import org.neo4j.springframework.data.core.Neo4jClient;
 import org.neo4j.springframework.data.core.DatabaseSelectionProvider;
 import org.neo4j.springframework.data.core.Neo4jOperations;
@@ -39,6 +40,7 @@ import org.springframework.boot.autoconfigure.data.ConditionalOnRepositoryType;
 import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -53,6 +55,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 @ConditionalOnRepositoryType(store = "neo4j", type = IMPERATIVE)
 @AutoConfigureAfter(Neo4jDriverAutoConfiguration.class)
 @AutoConfigureBefore(Neo4jImperativeRepositoriesConfiguration.class)
+@Import(Neo4jDefaultCallbacksRegistrar.class)
 class Neo4jImperativeDataConfiguration {
 
 	@Bean("databaseSelectionProvider")

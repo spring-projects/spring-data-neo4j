@@ -28,6 +28,7 @@ import org.neo4j.springframework.data.core.transaction.ReactiveNeo4jTransactionM
 import org.neo4j.springframework.data.repository.config.ReactiveNeo4jRepositoryConfigurationExtension;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.ReactiveTransactionManager;
 
@@ -41,6 +42,7 @@ import org.springframework.transaction.ReactiveTransactionManager;
  */
 @Configuration
 @API(status = API.Status.STABLE, since = "1.0")
+@Import(Neo4jDefaultReactiveCallbacksRegistrar.class)
 public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupport {
 
 	/**

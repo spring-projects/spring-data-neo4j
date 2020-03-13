@@ -103,7 +103,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		this.neo4jClient = neo4jClient;
 		this.neo4jMappingContext = neo4jMappingContext;
 		this.statementBuilder = CypherGenerator.INSTANCE;
-		this.eventSupport = new ReactiveNeo4jEvents(null);
+		this.eventSupport = new ReactiveNeo4jEvents(ReactiveEntityCallbacks.create());
 		this.databaseSelectionProvider = databaseSelectionProvider;
 	}
 
@@ -560,19 +560,14 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	 */
 	final class ReactiveNeo4jEvents {
 
-		private final @Nullable ReactiveEntityCallbacks entityCallbacks;
+		private final ReactiveEntityCallbacks entityCallbacks;
 
-		ReactiveNeo4jEvents(@Nullable ReactiveEntityCallbacks entityCallbacks) {
+		ReactiveNeo4jEvents(ReactiveEntityCallbacks entityCallbacks) {
 			this.entityCallbacks = entityCallbacks;
 		}
 
 		<T> Mono<T> maybeCallBeforeBind(T object) {
-
-			if (entityCallbacks != null) {
-				return entityCallbacks.callback(ReactiveBeforeBindCallback.class, object);
-			}
-
-			return Mono.just(object);
+			return entityCallbacks.callback(ReactiveBeforeBindCallback.class, object);
 		}
 	}
 }
