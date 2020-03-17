@@ -57,26 +57,20 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 
 	private final ReactiveTransactionManager transactionManager;
-	private final ThingsWithGeneratedIds thingsWithGeneratedIds;
-	private final ThingsWithBeanGeneratedIds thingsWithBeanGeneratedIds;
 
-	@Autowired ReactiveIdGeneratorsIT(ReactiveTransactionManager transactionManager,
-		ThingsWithGeneratedIds thingsWithGeneratedIds,
-		ThingsWithBeanGeneratedIds thingsWithBeanGeneratedIds,
-		Driver driver) {
+	@Autowired ReactiveIdGeneratorsIT(Driver driver, ReactiveTransactionManager transactionManager) {
+
 		super(driver);
 		this.transactionManager = transactionManager;
-		this.thingsWithGeneratedIds = thingsWithGeneratedIds;
-		this.thingsWithBeanGeneratedIds = thingsWithBeanGeneratedIds;
 	}
 
 	@Test
-	void idGenerationWithNewEntityShouldWork() {
+	void idGenerationWithNewEntityShouldWork(@Autowired ThingWithGeneratedIdRepository repository) {
 
 		List<ThingWithGeneratedId> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
 		transactionalOperator
-			.execute(t -> thingsWithGeneratedIds.save(new ThingWithGeneratedId("WrapperService")))
+			.execute(t -> repository.save(new ThingWithGeneratedId("WrapperService")))
 			.as(StepVerifier::create)
 			.recordWith(() -> savedThings)
 			.consumeNextWith(savedThing -> {
@@ -92,12 +86,12 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 	}
 
 	@Test
-	void idGenerationByBeansShouldWorkWork() {
+	void idGenerationByBeansShouldWorkWork(@Autowired ThingWithIdGeneratedByBeanRepository repository) {
 
 		List<ThingWithIdGeneratedByBean> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
 		transactionalOperator
-			.execute(t -> thingsWithBeanGeneratedIds.save(new ThingWithIdGeneratedByBean("WrapperService")))
+			.execute(t -> repository.save(new ThingWithIdGeneratedByBean("WrapperService")))
 			.as(StepVerifier::create)
 			.recordWith(() -> savedThings)
 			.consumeNextWith(savedThing -> {
@@ -111,7 +105,7 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 	}
 
 	@Test
-	void idGenerationWithNewEntitiesShouldWork() {
+	void idGenerationWithNewEntitiesShouldWork(@Autowired ThingWithGeneratedIdRepository repository) {
 
 		List<ThingWithGeneratedId> things = IntStream.rangeClosed(1, 10)
 			.mapToObj(i -> new ThingWithGeneratedId("name" + i))
@@ -120,7 +114,7 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 		Set<String> generatedIds = new HashSet<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
 		transactionalOperator
-			.execute(t -> thingsWithGeneratedIds.saveAll(things))
+			.execute(t -> repository.saveAll(things))
 			.map(ThingWithGeneratedId::getTheId)
 			.as(StepVerifier::create)
 			.recordWith(() -> generatedIds)
@@ -135,12 +129,12 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 	}
 
 	@Test
-	void shouldNotOverwriteExistingId() {
+	void shouldNotOverwriteExistingId(@Autowired ThingWithGeneratedIdRepository repository) {
 
-		Mono<ThingWithGeneratedId> findAndUpdateAThing = thingsWithGeneratedIds.findById(ID_OF_EXISTING_THING)
+		Mono<ThingWithGeneratedId> findAndUpdateAThing = repository.findById(ID_OF_EXISTING_THING)
 			.flatMap(thing -> {
 				thing.setName("changed");
-				return thingsWithGeneratedIds.save(thing);
+				return repository.save(thing);
 			});
 
 		List<ThingWithGeneratedId> savedThings = new ArrayList<>();
@@ -159,10 +153,10 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 		verifyDatabase(savedThings.get(0).getTheId(), savedThings.get(0).getName());
 	}
 
-	public interface ThingsWithGeneratedIds extends ReactiveCrudRepository<ThingWithGeneratedId, String> {
+	interface ThingWithGeneratedIdRepository extends ReactiveCrudRepository<ThingWithGeneratedId, String> {
 	}
 
-	public interface ThingsWithBeanGeneratedIds extends ReactiveCrudRepository<ThingWithIdGeneratedByBean, String> {
+	interface ThingWithIdGeneratedByBeanRepository extends ReactiveCrudRepository<ThingWithIdGeneratedByBean, String> {
 	}
 
 	@Configuration

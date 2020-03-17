@@ -16,14 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.springframework.data.integration.reactive;
+package org.neo4j.springframework.data.integration.reactive.repositories;
 
-import org.neo4j.springframework.data.integration.shared.SimilarThing;
+import reactor.core.publisher.Mono;
+
+import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
+import org.neo4j.springframework.data.repository.query.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
 /**
- * @author Gerrit Meier
+ * @author Michael J. Simons
  */
-public interface ReactiveSimilarThingRepository extends ReactiveCrudRepository<SimilarThing, Long> {
+public interface ReactiveThingRepository extends ReactiveCrudRepository<ThingWithAssignedId, String> {
 
+	@Query("MATCH (n:Thing{theId:'anId'})-[r:Has]->(b:Thing2) return n, collect(r), collect(b)")
+	Mono<ThingWithAssignedId> getViaQuery();
 }

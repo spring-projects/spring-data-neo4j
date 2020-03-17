@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.springframework.data.integration.imperative;
+package org.neo4j.springframework.data.integration.imperative.repositories;
 
 import java.time.Instant;
 import java.time.LocalDate;

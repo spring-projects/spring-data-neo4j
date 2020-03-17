@@ -52,7 +52,6 @@ import org.neo4j.springframework.data.core.cypher.Node;
 import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
 import org.neo4j.springframework.data.integration.shared.ThingWithGeneratedId;
-import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
 import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
 import org.neo4j.springframework.data.test.Neo4jExtension.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +61,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
 @Tag(NEEDS_REACTIVE_SUPPORT)
@@ -71,10 +71,16 @@ class ReactiveNeo4jOperationsIT {
 
 	protected static Neo4jConnectionSupport neo4jConnectionSupport;
 
-	@Autowired private ReactiveNeo4jOperations neo4jOperations;
-	@Autowired private Driver driver;
+	private final Driver driver;
+	private final ReactiveNeo4jOperations neo4jOperations;
+
 	private Long person1Id;
 	private Long person2Id;
+
+	@Autowired ReactiveNeo4jOperationsIT(Driver driver, ReactiveNeo4jOperations neo4jOperations) {
+		this.driver = driver;
+		this.neo4jOperations = neo4jOperations;
+	}
 
 	/**
 	 * Shall be configured by test making use of database selection, so that the verification queries run in the correct database.
@@ -306,7 +312,6 @@ class ReactiveNeo4jOperationsIT {
 	}
 
 	@Configuration
-	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
 	@EnableTransactionManagement
 	static class Config extends AbstractReactiveNeo4jConfig {
 

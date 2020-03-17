@@ -51,11 +51,11 @@ class KotlinIT {
 
 	private static Neo4jConnectionSupport neo4jConnectionSupport;
 
-	@Autowired
-	private KotlinRepository repository;
+	private final Driver driver;
 
-	@Autowired
-	private Driver driver;
+	@Autowired KotlinIT(Driver driver) {
+		this.driver = driver;
+	}
 
 	@BeforeEach
 	void setup() {
@@ -69,7 +69,8 @@ class KotlinIT {
 	}
 
 	@Test
-	void findAllKotlinPersons() {
+	void findAllKotlinPersons(@Autowired KotlinRepository repository) {
+
 		Iterable<KotlinPerson> person = repository.findAll();
 		assertThat(person.iterator().next().getName()).isEqualTo(PERSON_NAME);
 	}

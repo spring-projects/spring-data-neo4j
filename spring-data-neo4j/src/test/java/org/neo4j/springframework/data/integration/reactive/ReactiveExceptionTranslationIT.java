@@ -180,7 +180,6 @@ class ReactiveExceptionTranslationIT {
 	}
 
 	interface SimplePersonRepository extends ReactiveNeo4jRepository<SimplePerson, Long> {
-
 	}
 
 	@Repository

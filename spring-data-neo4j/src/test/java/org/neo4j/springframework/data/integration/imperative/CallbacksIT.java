@@ -27,6 +27,7 @@ import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.springframework.data.config.AbstractNeo4jConfig;
+import org.neo4j.springframework.data.integration.imperative.repositories.ThingRepository;
 import org.neo4j.springframework.data.integration.shared.CallbacksITBase;
 import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
 import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
@@ -41,19 +42,17 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 class CallbacksIT extends CallbacksITBase {
 
-	private final ThingRepository thingRepository;
 
-	@Autowired CallbacksIT(ThingRepository thingRepository, Driver driver) {
+	@Autowired CallbacksIT(Driver driver) {
 		super(driver);
-		this.thingRepository = thingRepository;
 	}
 
 	@Test
-	void onBeforeBindShouldBeCalledForSingleEntity() {
+	void onBeforeBindShouldBeCalledForSingleEntity(@Autowired ThingRepository repository) {
 
 		ThingWithAssignedId thing = new ThingWithAssignedId("aaBB");
 		thing.setName("A name");
-		thing = thingRepository.save(thing);
+		thing = repository.save(thing);
 
 		assertThat(thing.getName()).isEqualTo("A name (Edited)");
 
@@ -61,13 +60,13 @@ class CallbacksIT extends CallbacksITBase {
 	}
 
 	@Test
-	void onBeforeBindShouldBeCalledForAllEntities() {
+	void onBeforeBindShouldBeCalledForAllEntities(@Autowired ThingRepository repository) {
 
 		ThingWithAssignedId thing1 = new ThingWithAssignedId("id1");
 		thing1.setName("A name");
 		ThingWithAssignedId thing2 = new ThingWithAssignedId("id2");
 		thing2.setName("Another name");
-		Iterable<ThingWithAssignedId> savedThings = thingRepository.saveAll(Arrays.asList(thing1, thing2));
+		Iterable<ThingWithAssignedId> savedThings = repository.saveAll(Arrays.asList(thing1, thing2));
 
 		assertThat(savedThings).extracting(ThingWithAssignedId::getName)
 			.containsExactlyInAnyOrder("A name (Edited)", "Another name (Edited)");

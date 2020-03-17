@@ -54,8 +54,11 @@ class ProjectionIT {
 
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
-	@Autowired private ProjectionPersonRepository repository;
-	@Autowired private Driver driver;
+	private final Driver driver;
+
+	@Autowired ProjectionIT(Driver driver) {
+		this.driver = driver;
+	}
 
 	@BeforeEach
 	void setup() {
@@ -74,7 +77,7 @@ class ProjectionIT {
 	}
 
 	@Test
-	void loadNamesOnlyProjection() {
+	void loadNamesOnlyProjection(@Autowired ProjectionPersonRepository repository) {
 		Collection<NamesOnly> people = repository.findByLastName(LAST_NAME);
 		assertThat(people).hasSize(1);
 
@@ -88,7 +91,7 @@ class ProjectionIT {
 	}
 
 	@Test
-	void loadPersonSummaryProjection() {
+	void loadPersonSummaryProjection(@Autowired ProjectionPersonRepository repository) {
 		Collection<PersonSummary> people = repository.findByFirstName(FIRST_NAME);
 		assertThat(people).hasSize(1);
 
@@ -103,7 +106,7 @@ class ProjectionIT {
 	}
 
 	@Test
-	void loadNamesOnlyDtoProjection() {
+	void loadNamesOnlyDtoProjection(@Autowired ProjectionPersonRepository repository) {
 		Collection<NamesOnlyDto> people = repository.findByFirstNameAndLastName(FIRST_NAME, LAST_NAME);
 		assertThat(people).hasSize(1);
 
@@ -114,7 +117,7 @@ class ProjectionIT {
 	}
 
 	@Test
-	void findDynamicProjectionForNamesOnly() {
+	void findDynamicProjectionForNamesOnly(@Autowired ProjectionPersonRepository repository) {
 		Collection<NamesOnly> people = repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, NamesOnly.class);
 		assertThat(people).hasSize(1);
 
@@ -128,8 +131,9 @@ class ProjectionIT {
 	}
 
 	@Test
-	void findDynamicProjectionForPersonSummary() {
-		Collection<PersonSummary> people = repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, PersonSummary.class);
+	void findDynamicProjectionForPersonSummary(@Autowired ProjectionPersonRepository repository) {
+		Collection<PersonSummary> people = repository
+			.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, PersonSummary.class);
 		assertThat(people).hasSize(1);
 
 		PersonSummary person = people.iterator().next();
@@ -143,8 +147,9 @@ class ProjectionIT {
 	}
 
 	@Test
-	void findDynamicProjectionForNamesOnlyDto() {
-		Collection<NamesOnlyDto> people = repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, NamesOnlyDto.class);
+	void findDynamicProjectionForNamesOnlyDto(@Autowired ProjectionPersonRepository repository) {
+		Collection<NamesOnlyDto> people = repository
+			.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, NamesOnlyDto.class);
 		assertThat(people).hasSize(1);
 
 		NamesOnlyDto person = people.iterator().next();
@@ -153,7 +158,7 @@ class ProjectionIT {
 
 	}
 
-	public interface ProjectionPersonRepository extends Neo4jRepository<Person, Long> {
+	interface ProjectionPersonRepository extends Neo4jRepository<Person, Long> {
 
 		Collection<NamesOnly> findByLastName(String lastName);
 

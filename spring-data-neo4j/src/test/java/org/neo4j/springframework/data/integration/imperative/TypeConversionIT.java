@@ -64,7 +64,7 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 	private final Driver driver;
 
-	private final CypherTypesRepository cypherTypesRepository;
+	@Autowired CypherTypesRepository cypherTypesRepository;
 
 	private final AdditionalTypesRepository additionalTypesRepository;
 

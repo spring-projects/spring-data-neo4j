@@ -47,18 +47,15 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 class DynamicRelationshipsIT extends DynamicRelationshipsITBase {
 
-	private PersonWithRelativesRepository personsWithRelatives;
-
 	@Autowired
-	protected DynamicRelationshipsIT(PersonWithRelativesRepository personsWithRelatives, Driver driver) {
+	DynamicRelationshipsIT(Driver driver) {
 		super(driver);
-		this.personsWithRelatives = personsWithRelatives;
 	}
 
 	@Test
-	public void shouldReadDynamicRelationships() {
+	public void shouldReadDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		PersonWithRelatives personWithRelatives = personsWithRelatives.findById(idOfExistingPerson).get();
+		PersonWithRelatives personWithRelatives = repository.findById(idOfExistingPerson).get();
 		assertThat(personWithRelatives).isNotNull();
 		assertThat(personWithRelatives.getName()).isEqualTo("A");
 
@@ -69,9 +66,9 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase {
 	}
 
 	@Test
-	public void shouldUpdateDynamicRelationships() {
+	public void shouldUpdateDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		PersonWithRelatives personWithRelatives = personsWithRelatives.findById(idOfExistingPerson).get();
+		PersonWithRelatives personWithRelatives = repository.findById(idOfExistingPerson).get();
 		assumeThat(personWithRelatives).isNotNull();
 		assumeThat(personWithRelatives.getName()).isEqualTo("A");
 
@@ -84,7 +81,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase {
 		relatives.put("HAS_SON", d);
 		ReflectionTestUtils.setField(relatives.get("HAS_DAUGHTER"), "firstName", "C2");
 
-		personWithRelatives = personsWithRelatives.save(personWithRelatives);
+		personWithRelatives = repository.save(personWithRelatives);
 		relatives = personWithRelatives.getRelatives();
 		assertThat(relatives).containsOnlyKeys("HAS_DAUGHTER", "HAS_SON");
 		assertThat(relatives.get("HAS_DAUGHTER").getFirstName()).isEqualTo("C2");
@@ -92,7 +89,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase {
 	}
 
 	@Test
-	public void shouldWriteDynamicRelationships() {
+	public void shouldWriteDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
 		PersonWithRelatives personWithRelatives = new PersonWithRelatives("Test");
 		Map<String, Person> relatives;
@@ -105,7 +102,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase {
 		ReflectionTestUtils.setField(d, "firstName", "R2");
 		relatives.put("RELATIVE_2", d);
 
-		personWithRelatives = personsWithRelatives.save(personWithRelatives);
+		personWithRelatives = repository.save(personWithRelatives);
 		relatives = personWithRelatives.getRelatives();
 		assertThat(relatives).containsOnlyKeys("RELATIVE_1", "RELATIVE_2");
 
@@ -119,7 +116,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase {
 		}
 	}
 
-	public interface PersonWithRelativesRepository extends CrudRepository<PersonWithRelatives, Long> {
+	interface PersonWithRelativesRepository extends CrudRepository<PersonWithRelatives, Long> {
 	}
 
 	@Configuration

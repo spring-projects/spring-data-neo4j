@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
+import org.neo4j.springframework.data.integration.reactive.repositories.ReactiveThingRepository;
 import org.neo4j.springframework.data.integration.shared.CallbacksITBase;
 import org.neo4j.springframework.data.integration.shared.ThingWithAssignedId;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
@@ -55,24 +56,20 @@ class ReactiveCallbacksIT extends CallbacksITBase {
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private final ReactiveTransactionManager transactionManager;
-	private final ReactiveThingRepository thingRepository;
 
-	@Autowired
-	ReactiveCallbacksIT(ReactiveTransactionManager transactionManager,
-		ReactiveThingRepository thingRepository, Driver driver) {
+	@Autowired ReactiveCallbacksIT(Driver driver, ReactiveTransactionManager transactionManager) {
 
 		super(driver);
 		this.transactionManager = transactionManager;
-		this.thingRepository = thingRepository;
 	}
 
 	@Test
-	void onBeforeBindShouldBeCalledForSingleEntity() {
+	void onBeforeBindShouldBeCalledForSingleEntity(@Autowired ReactiveThingRepository repository) {
 
 		ThingWithAssignedId thing = new ThingWithAssignedId("aaBB");
 		thing.setName("A name");
 
-		Mono<ThingWithAssignedId> operationUnderTest = Mono.just(thing).flatMap(thingRepository::save);
+		Mono<ThingWithAssignedId> operationUnderTest = Mono.just(thing).flatMap(repository::save);
 
 		List<ThingWithAssignedId> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
@@ -87,15 +84,15 @@ class ReactiveCallbacksIT extends CallbacksITBase {
 	}
 
 	@Test
-	void onBeforeBindShouldBeCalledForAllEntitiesUsingIterable() {
+	void onBeforeBindShouldBeCalledForAllEntitiesUsingIterable(@Autowired ReactiveThingRepository repository) {
 
 		ThingWithAssignedId thing1 = new ThingWithAssignedId("id1");
 		thing1.setName("A name");
 		ThingWithAssignedId thing2 = new ThingWithAssignedId("id2");
 		thing2.setName("Another name");
-		thingRepository.saveAll(Arrays.asList(thing1, thing2));
+		repository.saveAll(Arrays.asList(thing1, thing2));
 
-		Flux<ThingWithAssignedId> operationUnderTest = thingRepository.saveAll(Arrays.asList(thing1, thing2));
+		Flux<ThingWithAssignedId> operationUnderTest = repository.saveAll(Arrays.asList(thing1, thing2));
 
 		List<ThingWithAssignedId> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
@@ -111,15 +108,15 @@ class ReactiveCallbacksIT extends CallbacksITBase {
 	}
 
 	@Test
-	void onBeforeBindShouldBeCalledForAllEntitiesUsingPublisher() {
+	void onBeforeBindShouldBeCalledForAllEntitiesUsingPublisher(@Autowired ReactiveThingRepository repository) {
 
 		ThingWithAssignedId thing1 = new ThingWithAssignedId("id1");
 		thing1.setName("A name");
 		ThingWithAssignedId thing2 = new ThingWithAssignedId("id2");
 		thing2.setName("Another name");
-		thingRepository.saveAll(Arrays.asList(thing1, thing2));
+		repository.saveAll(Arrays.asList(thing1, thing2));
 
-		Flux<ThingWithAssignedId> operationUnderTest = thingRepository.saveAll(Flux.just(thing1, thing2));
+		Flux<ThingWithAssignedId> operationUnderTest = repository.saveAll(Flux.just(thing1, thing2));
 
 		List<ThingWithAssignedId> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);

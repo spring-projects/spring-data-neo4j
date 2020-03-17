@@ -117,41 +117,6 @@ class ExceptionTranslationIT {
 				"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed'");
 	}
 
-	@Configuration
-	@EnableNeo4jRepositories(
-		considerNestedRepositories = true,
-		includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = ExceptionTranslationIT.SimplePersonRepository.class)
-	)
-	@EnableTransactionManagement
-	static class Config extends AbstractNeo4jConfig {
-
-		@Bean
-		public Driver driver() {
-			return neo4jConnectionSupport.getDriver();
-		}
-
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(SimplePerson.class.getPackage().getName());
-		}
-
-		@Bean
-		public CustomDAO customDAO(Neo4jClient neo4jClient) {
-			return new CustomDAO(neo4jClient);
-		}
-
-		// If someone wants to use the plain driver or the delegating mechanism of the client, than they must provide a couple of more beans.
-		@Bean
-		public Neo4jPersistenceExceptionTranslator neo4jPersistenceExceptionTranslator() {
-			return new Neo4jPersistenceExceptionTranslator();
-		}
-
-		@Bean
-		public PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor() {
-			return new PersistenceExceptionTranslationPostProcessor();
-		}
-	}
-
 	@Node
 	static class SimplePerson {
 
@@ -186,6 +151,41 @@ class ExceptionTranslationIT {
 			return neo4jClient.delegateTo(queryRunner ->
 				Optional.of(queryRunner.run("CREATE (:SimplePerson {name: 'Tom'})").consume()))
 				.run().get();
+		}
+	}
+
+	@Configuration
+	@EnableNeo4jRepositories(
+		considerNestedRepositories = true,
+		includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = ExceptionTranslationIT.SimplePersonRepository.class)
+	)
+	@EnableTransactionManagement
+	static class Config extends AbstractNeo4jConfig {
+
+		@Bean
+		public Driver driver() {
+			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Override
+		protected Collection<String> getMappingBasePackages() {
+			return Collections.singletonList(SimplePerson.class.getPackage().getName());
+		}
+
+		@Bean
+		public CustomDAO customDAO(Neo4jClient neo4jClient) {
+			return new CustomDAO(neo4jClient);
+		}
+
+		// If someone wants to use the plain driver or the delegating mechanism of the client, than they must provide a couple of more beans.
+		@Bean
+		public Neo4jPersistenceExceptionTranslator neo4jPersistenceExceptionTranslator() {
+			return new Neo4jPersistenceExceptionTranslator();
+		}
+
+		@Bean
+		public PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor() {
+			return new PersistenceExceptionTranslationPostProcessor();
 		}
 	}
 }
