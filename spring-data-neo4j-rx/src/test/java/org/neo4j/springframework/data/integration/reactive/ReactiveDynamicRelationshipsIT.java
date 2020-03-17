@@ -53,18 +53,14 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Tag(NEEDS_REACTIVE_SUPPORT)
 class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase {
 
-	private PersonWithRelativesRepository personsWithRelatives;
-
-	@Autowired
-	protected ReactiveDynamicRelationshipsIT(PersonWithRelativesRepository personsWithRelatives, Driver driver) {
+	@Autowired ReactiveDynamicRelationshipsIT(Driver driver) {
 		super(driver);
-		this.personsWithRelatives = personsWithRelatives;
 	}
 
 	@Test
-	public void shouldReadDynamicRelationships() {
+	void shouldReadDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		personsWithRelatives.findById(idOfExistingPerson)
+		repository.findById(idOfExistingPerson)
 			.as(StepVerifier::create)
 			.consumeNextWith(personWithRelatives -> {
 				assertThat(personWithRelatives).isNotNull();
@@ -79,9 +75,9 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase {
 	}
 
 	@Test
-	public void shouldUpdateDynamicRelationships() {
+	void shouldUpdateDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		personsWithRelatives.findById(idOfExistingPerson)
+		repository.findById(idOfExistingPerson)
 			.map(personWithRelatives -> {
 				assumeThat(personWithRelatives).isNotNull();
 				assumeThat(personWithRelatives.getName()).isEqualTo("A");
@@ -96,7 +92,7 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase {
 				ReflectionTestUtils.setField(relatives.get("HAS_DAUGHTER"), "firstName", "C2");
 				return personWithRelatives;
 			})
-			.flatMap(personsWithRelatives::save)
+			.flatMap(repository::save)
 			.as(StepVerifier::create)
 			.consumeNextWith(personWithRelatives -> {
 				Map<String, Person> relatives = personWithRelatives.getRelatives();
@@ -108,7 +104,7 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase {
 	}
 
 	@Test
-	public void shouldWriteDynamicRelationships() {
+	void shouldWriteDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
 		PersonWithRelatives newPerson = new PersonWithRelatives("Test");
 		Person d;
@@ -120,7 +116,7 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase {
 		newPerson.getRelatives().put("RELATIVE_2", d);
 
 		List<PersonWithRelatives> recorded = new ArrayList<>();
-		personsWithRelatives.save(newPerson)
+		repository.save(newPerson)
 			.as(StepVerifier::create)
 			.recordWith(() -> recorded)
 			.consumeNextWith(personWithRelatives -> {
@@ -131,16 +127,16 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase {
 
 		try (Transaction transaction = driver.session().beginTransaction()) {
 			long numberOfRelations = transaction.run(""
-				+ "MATCH (t:PersonWithRelatives) WHERE id(t) = $id "
-				+ "RETURN size((t)-->(:Person))"
-				+ " as numberOfRelations",
+					+ "MATCH (t:PersonWithRelatives) WHERE id(t) = $id "
+					+ "RETURN size((t)-->(:Person))"
+					+ " as numberOfRelations",
 				Values.parameters("id", recorded.iterator().next().getId()))
 				.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 		}
 	}
 
-	public interface PersonWithRelativesRepository extends ReactiveNeo4jRepository<PersonWithRelatives, Long> {
+	interface PersonWithRelativesRepository extends ReactiveNeo4jRepository<PersonWithRelatives, Long> {
 	}
 
 	@Configuration

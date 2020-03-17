@@ -47,24 +47,16 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 class IdGeneratorsIT extends IdGeneratorsITBase {
 
-	private final ThingsWithGeneratedIds thingsWithGeneratedIds;
-
-	private final ThingsWithBeanGeneratedIds thingsWithBeanGeneratedIds;
-
-	@Autowired IdGeneratorsIT(
-		ThingsWithGeneratedIds thingsWithGeneratedIds, ThingsWithBeanGeneratedIds thingsWithBeanGeneratedIds,
-		Driver driver) {
+	@Autowired IdGeneratorsIT(Driver driver) {
 		super(driver);
-		this.thingsWithGeneratedIds = thingsWithGeneratedIds;
-		this.thingsWithBeanGeneratedIds = thingsWithBeanGeneratedIds;
 	}
 
 	@Test
-	void idGenerationWithNewEntityShouldWork() {
+	void idGenerationWithNewEntityShouldWork(@Autowired ThingWithGeneratedIdRepository repository) {
 
 		ThingWithGeneratedId t = new ThingWithGeneratedId("Foobar");
 		t.setName("Foobar");
-		t = thingsWithGeneratedIds.save(t);
+		t = repository.save(t);
 		assertThat(t.getTheId())
 			.isNotBlank()
 			.matches("thingWithGeneratedId-\\d+");
@@ -73,24 +65,24 @@ class IdGeneratorsIT extends IdGeneratorsITBase {
 	}
 
 	@Test
-	void idGenerationByBeansShouldWorkWork() {
+	void idGenerationByBeansShouldWorkWork(@Autowired ThingWithIdGeneratedByBeanRepository repository) {
 
 		ThingWithIdGeneratedByBean t = new ThingWithIdGeneratedByBean("Foobar");
 		t.setName("Foobar");
-		t = thingsWithBeanGeneratedIds.save(t);
+		t = repository.save(t);
 		assertThat(t.getTheId()).isEqualTo("ImperativeID.");
 
 		verifyDatabase(t.getTheId(), t.getName());
 	}
 
 	@Test
-	void idGenerationWithNewEntitiesShouldWork() {
+	void idGenerationWithNewEntitiesShouldWork(@Autowired ThingWithGeneratedIdRepository repository) {
 
 		List<ThingWithGeneratedId> things = IntStream.rangeClosed(1, 10)
 			.mapToObj(i -> new ThingWithGeneratedId("name" + i))
 			.collect(toList());
 
-		Iterable<ThingWithGeneratedId> savedThings = thingsWithGeneratedIds.saveAll(things);
+		Iterable<ThingWithGeneratedId> savedThings = repository.saveAll(things);
 		assertThat(savedThings)
 			.hasSize(things.size())
 			.extracting(ThingWithGeneratedId::getTheId)
@@ -103,11 +95,11 @@ class IdGeneratorsIT extends IdGeneratorsITBase {
 	}
 
 	@Test
-	void shouldNotOverwriteExistingId() {
+	void shouldNotOverwriteExistingId(@Autowired ThingWithGeneratedIdRepository repository) {
 
-		ThingWithGeneratedId t = thingsWithGeneratedIds.findById(ID_OF_EXISTING_THING).get();
+		ThingWithGeneratedId t = repository.findById(ID_OF_EXISTING_THING).get();
 		t.setName("changed");
-		t = thingsWithGeneratedIds.save(t);
+		t = repository.save(t);
 
 		assertThat(t.getTheId())
 			.isNotBlank()
@@ -116,10 +108,10 @@ class IdGeneratorsIT extends IdGeneratorsITBase {
 		verifyDatabase(t.getTheId(), t.getName());
 	}
 
-	public interface ThingsWithGeneratedIds extends CrudRepository<ThingWithGeneratedId, String> {
+	interface ThingWithGeneratedIdRepository extends CrudRepository<ThingWithGeneratedId, String> {
 	}
 
-	public interface ThingsWithBeanGeneratedIds extends CrudRepository<ThingWithIdGeneratedByBean, String> {
+	interface ThingWithIdGeneratedByBeanRepository extends CrudRepository<ThingWithIdGeneratedByBean, String> {
 	}
 
 	@Configuration

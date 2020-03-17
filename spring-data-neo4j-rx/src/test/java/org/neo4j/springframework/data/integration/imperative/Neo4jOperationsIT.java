@@ -47,7 +47,6 @@ import org.neo4j.springframework.data.core.cypher.Node;
 import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
 import org.neo4j.springframework.data.integration.shared.ThingWithGeneratedId;
-import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
 import org.neo4j.springframework.data.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +56,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
 class Neo4jOperationsIT {
@@ -65,10 +65,16 @@ class Neo4jOperationsIT {
 
 	protected static Neo4jConnectionSupport neo4jConnectionSupport;
 
-	@Autowired private Neo4jOperations neo4jOperations;
-	@Autowired private Driver driver;
+	private final Driver driver;
+	private final Neo4jOperations neo4jOperations;
+
 	private Long person1Id;
 	private Long person2Id;
+
+	@Autowired Neo4jOperationsIT(Driver driver, Neo4jOperations neo4jOperations) {
+		this.driver = driver;
+		this.neo4jOperations = neo4jOperations;
+	}
 
 	/**
 	 * Shall be configured by test making use of database selection, so that the verification queries run in the correct database.
@@ -282,7 +288,6 @@ class Neo4jOperationsIT {
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories(considerNestedRepositories = true)
 	@EnableTransactionManagement
 	static class Config extends AbstractNeo4jConfig {
 

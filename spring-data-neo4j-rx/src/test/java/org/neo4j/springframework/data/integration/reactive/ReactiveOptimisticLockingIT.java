@@ -57,12 +57,16 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 class ReactiveOptimisticLockingIT {
 
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
-	@Autowired private VersionedThingRepository repository;
-	@Autowired private VersionedThingWithAssignedIdRepository assignedIdRepository;
-	@Autowired private Driver driver;
+
+	private final Driver driver;
+
+	@Autowired ReactiveOptimisticLockingIT(Driver driver) {
+		this.driver = driver;
+	}
 
 	@BeforeEach
 	void setup() {
+
 		Session session = driver.session(SessionConfig.defaultConfig());
 		Transaction transaction = session.beginTransaction();
 		transaction.run("MATCH (n) detach delete n");
@@ -71,7 +75,7 @@ class ReactiveOptimisticLockingIT {
 	}
 
 	@Test
-	void shouldIncrementVersions() {
+	void shouldIncrementVersions(@Autowired VersionedThingRepository repository) {
 
 		// would love to verify version change null -> 0 and 0 -> 1 within one test
 		VersionedThing thing1 = repository.save(new VersionedThing("Thing1")).block();
@@ -82,7 +86,8 @@ class ReactiveOptimisticLockingIT {
 	}
 
 	@Test
-	void shouldIncrementVersionsForMultipleSave() {
+	void shouldIncrementVersionsForMultipleSave(@Autowired VersionedThingRepository repository) {
+
 		VersionedThing thing1 = new VersionedThing("Thing1");
 		VersionedThing thing2 = new VersionedThing("Thing2");
 		List<VersionedThing> thingsToSave = Arrays.asList(thing1, thing2);
@@ -97,7 +102,8 @@ class ReactiveOptimisticLockingIT {
 	}
 
 	@Test
-	void shouldIncrementVersionsOnRelatedEntities() {
+	void shouldIncrementVersionsOnRelatedEntities(@Autowired VersionedThingRepository repository) {
+
 		VersionedThing parentThing = new VersionedThing("Thing1");
 		VersionedThing childThing = new VersionedThing("Thing2");
 
@@ -110,7 +116,8 @@ class ReactiveOptimisticLockingIT {
 	}
 
 	@Test
-	void shouldFailIncrementVersions() {
+	void shouldFailIncrementVersions(@Autowired VersionedThingRepository repository) {
+
 		VersionedThing thing = repository.save(new VersionedThing("Thing1")).block();
 		thing.setMyVersion(1L); // Version in DB is 0
 
@@ -121,7 +128,8 @@ class ReactiveOptimisticLockingIT {
 	}
 
 	@Test
-	void shouldFailIncrementVersionsForMultipleSave() {
+	void shouldFailIncrementVersionsForMultipleSave(@Autowired VersionedThingRepository repository) {
+
 		VersionedThing thing1 = new VersionedThing("Thing1");
 		VersionedThing thing2 = new VersionedThing("Thing2");
 
@@ -137,7 +145,8 @@ class ReactiveOptimisticLockingIT {
 	}
 
 	@Test
-	void shouldFailIncrementVersionsOnRelatedEntities() {
+	void shouldFailIncrementVersionsOnRelatedEntities(@Autowired VersionedThingRepository repository) {
+
 		VersionedThing thing = new VersionedThing("Thing1");
 		VersionedThing childThing = new VersionedThing("Thing2");
 		thing.setOtherVersionedThings(singletonList(childThing));
@@ -151,72 +160,71 @@ class ReactiveOptimisticLockingIT {
 	}
 
 	@Test
-	void shouldIncrementVersionsForAssignedId() {
+	void shouldIncrementVersionsForAssignedId(@Autowired VersionedThingWithAssignedIdRepository repository) {
+
 		VersionedThingWithAssignedId thing1 = new VersionedThingWithAssignedId(4711L, "Thing1");
-		VersionedThingWithAssignedId thing = assignedIdRepository.save(thing1).block();
+		VersionedThingWithAssignedId thing = repository.save(thing1).block();
 
 		assertThat(thing.getMyVersion()).isEqualTo(0L);
 
-		StepVerifier.create(assignedIdRepository.save(thing))
+		StepVerifier.create(repository.save(thing))
 			.assertNext(savedThing -> assertThat(savedThing.getMyVersion()).isEqualTo(1L))
 			.verifyComplete();
 
 	}
 
 	@Test
-	void shouldIncrementVersionsForMultipleSaveForAssignedId() {
+	void shouldIncrementVersionsForMultipleSaveForAssignedId(@Autowired VersionedThingWithAssignedIdRepository repository) {
+
 		VersionedThingWithAssignedId thing1 = new VersionedThingWithAssignedId(4711L, "Thing1");
 		VersionedThingWithAssignedId thing2 = new VersionedThingWithAssignedId(42L, "Thing2");
 		List<VersionedThingWithAssignedId> thingsToSave = Arrays.asList(thing1, thing2);
 
-		List<VersionedThingWithAssignedId> versionedThings = assignedIdRepository.saveAll(thingsToSave).collectList().block();
+		List<VersionedThingWithAssignedId> versionedThings = repository.saveAll(thingsToSave).collectList().block();
 
-		StepVerifier.create(assignedIdRepository.saveAll(versionedThings))
+		StepVerifier.create(repository.saveAll(versionedThings))
 			.recordWith(ArrayList::new)
 			.expectNextCount(2)
 			.consumeRecordedWith(savedThings ->
 				assertThat(savedThings).allMatch(versionedThing -> versionedThing.getMyVersion().equals(1L)))
 			.verifyComplete();
-
-
-
 	}
 
 	@Test
-	void shouldFailIncrementVersionsForAssignedIds() {
+	void shouldFailIncrementVersionsForAssignedIds(@Autowired VersionedThingWithAssignedIdRepository repository) {
+
 		VersionedThingWithAssignedId thing1 = new VersionedThingWithAssignedId(4711L, "Thing1");
-		VersionedThingWithAssignedId thing = assignedIdRepository.save(thing1).block();
+		VersionedThingWithAssignedId thing = repository.save(thing1).block();
 
 		thing.setMyVersion(1L); // Version in DB is 0
 
-		StepVerifier.create(assignedIdRepository.save(thing))
+		StepVerifier.create(repository.save(thing))
 			.expectError(OptimisticLockingFailureException.class)
 			.verify();
 
 	}
 
 	@Test
-	void shouldFailIncrementVersionsForMultipleSaveForAssignedId() {
+	void shouldFailIncrementVersionsForMultipleSaveForAssignedId(@Autowired VersionedThingWithAssignedIdRepository repository) {
+
 		VersionedThingWithAssignedId thing1 = new VersionedThingWithAssignedId(4711L, "Thing1");
 		VersionedThingWithAssignedId thing2 = new VersionedThingWithAssignedId(42L, "Thing2");
 		List<VersionedThingWithAssignedId> thingsToSave = Arrays.asList(thing1, thing2);
 
-		List<VersionedThingWithAssignedId> versionedThings = assignedIdRepository.saveAll(thingsToSave).collectList().block();
+		List<VersionedThingWithAssignedId> versionedThings = repository.saveAll(thingsToSave).collectList().block();
 
 		versionedThings.get(0).setMyVersion(1L); // Version in DB is 0
 
-		StepVerifier.create(assignedIdRepository.saveAll(versionedThings))
+		StepVerifier.create(repository.saveAll(versionedThings))
 			.expectError(OptimisticLockingFailureException.class)
 			.verify();
 
 	}
 
-	public interface VersionedThingRepository extends ReactiveNeo4jRepository<VersionedThing, Long> {
-
+	interface VersionedThingRepository extends ReactiveNeo4jRepository<VersionedThing, Long> {
 	}
 
-	public interface VersionedThingWithAssignedIdRepository extends ReactiveNeo4jRepository<VersionedThingWithAssignedId, Long> {
-
+	interface VersionedThingWithAssignedIdRepository extends ReactiveNeo4jRepository<VersionedThingWithAssignedId, Long> {
 	}
 
 	@Configuration

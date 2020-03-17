@@ -59,26 +59,6 @@ public class CustomBaseRepositoryIT {
 			.withMessage("This implementation does not support `findAll`.");
 	}
 
-	@Configuration
-	@EnableNeo4jRepositories(
-		repositoryBaseClass = MyRepositoryImpl.class,
-		considerNestedRepositories = true,
-		includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = MyPersonRepository.class)
-	)
-	@EnableTransactionManagement
-	static class Config extends AbstractNeo4jConfig {
-
-		@Bean
-		public Driver driver() {
-			return DriverMocks.withOpenSessionAndTransaction();
-		}
-
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return singletonList(PersonWithAllConstructor.class.getPackage().getName());
-		}
-	}
-
 	interface MyPersonRepository extends Neo4jRepository<PersonWithAllConstructor, Long> {
 	}
 
@@ -96,6 +76,26 @@ public class CustomBaseRepositoryIT {
 		@Override
 		public List<T> findAll() {
 			throw new UnsupportedOperationException("This implementation does not support `findAll`.");
+		}
+	}
+
+	@Configuration
+	@EnableNeo4jRepositories(
+		repositoryBaseClass = MyRepositoryImpl.class,
+		considerNestedRepositories = true,
+		includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = MyPersonRepository.class)
+	)
+	@EnableTransactionManagement
+	static class Config extends AbstractNeo4jConfig {
+
+		@Bean
+		public Driver driver() {
+			return DriverMocks.withOpenSessionAndTransaction();
+		}
+
+		@Override
+		protected Collection<String> getMappingBasePackages() {
+			return singletonList(PersonWithAllConstructor.class.getPackage().getName());
 		}
 	}
 }

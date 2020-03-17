@@ -53,8 +53,12 @@ import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Point;
 import org.neo4j.driver.types.Relationship;
 import org.neo4j.springframework.data.config.AbstractNeo4jConfig;
+import org.neo4j.springframework.data.integration.imperative.repositories.PersonRepository;
+import org.neo4j.springframework.data.integration.imperative.repositories.ThingRepository;
 import org.neo4j.springframework.data.integration.shared.*;
+import org.neo4j.springframework.data.repository.Neo4jRepository;
 import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
+import org.neo4j.springframework.data.repository.query.Query;
 import org.neo4j.springframework.data.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
 import org.neo4j.springframework.data.types.CartesianPoint2d;
@@ -74,6 +78,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -84,6 +89,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @Neo4jIntegrationTest
 class RepositoryIT {
+
 	private static final String TEST_PERSON1_NAME = "Test";
 	private static final String TEST_PERSON2_NAME = "Test2";
 	private static final String TEST_PERSON1_FIRST_NAME = "Ernie";
@@ -102,19 +108,16 @@ class RepositoryIT {
 
 	protected static Neo4jConnectionSupport neo4jConnectionSupport;
 
-	@Autowired private PersonRepository repository;
-	@Autowired private ThingRepository thingRepository;
-	@Autowired private RelationshipRepository relationshipRepository;
-	@Autowired private PersonWithRelationshipWithPropertiesRepository relationshipWithPropertiesRepository;
-	@Autowired private PetRepository petRepository;
-	@Autowired private BidirectionalStartRepository bidirectionalStartRepository;
-	@Autowired private BidirectionalEndRepository bidirectionalEndRepository;
-	@Autowired private SimilarThingRepository similarThingRepository;
-	@Autowired private Driver driver;
+	private final Driver driver;
+
 	private Long id1;
 	private Long id2;
 	private PersonWithAllConstructor person1;
 	private PersonWithAllConstructor person2;
+
+	@Autowired RepositoryIT(Driver driver) {
+		this.driver = driver;
+	}
 
 	/**
 	 * Shall be configured by test making use of database selection, so that the verification queries run in the correct database.
@@ -166,14 +169,15 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findAll() {
+	void findAll(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> people = repository.findAll();
 		assertThat(people).hasSize(2);
 		assertThat(people).extracting("name").containsExactlyInAnyOrder(TEST_PERSON1_NAME, TEST_PERSON2_NAME);
 	}
 
 	@Test
-	void findAllWithoutResultDoesNotThrowAnException() {
+	void findAllWithoutResultDoesNotThrowAnException(@Autowired PersonRepository repository) {
 
 		try (Session session = driver.session(getSessionConfig())) {
 			session.run("MATCH (n:PersonWithAllConstructor) DETACH DELETE n;");
@@ -184,26 +188,26 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findById() {
+	void findById(@Autowired PersonRepository repository) {
 		Optional<PersonWithAllConstructor> person = repository.findById(id1);
 		assertThat(person).isPresent();
 		assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
 
 	@Test
-	void dontFindById() {
+	void dontFindById(@Autowired PersonRepository repository) {
 		Optional<PersonWithAllConstructor> person = repository.findById(-4711L);
 		assertThat(person).isNotPresent();
 	}
 
 	@Test
-	void dontFindOneByDerivedFinderMethodReturningOptional() {
+	void dontFindOneByDerivedFinderMethodReturningOptional(@Autowired PersonRepository repository) {
 		Optional<PersonWithAllConstructor> person = repository.findOneByNameAndFirstName("A", "BB");
 		assertThat(person).isNotPresent();
 	}
 
 	@Test
-	void dontFindOneByDerivedFinderMethodReturning() {
+	void dontFindOneByDerivedFinderMethodReturning(@Autowired PersonRepository repository) {
 		PersonWithAllConstructor person = repository.findOneByName("A");
 		assertThat(person).isNull();
 
@@ -212,7 +216,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void loadEntityWithRelationship() {
+	void loadEntityWithRelationship(@Autowired RelationshipRepository repository) {
 
 		long personId;
 		long clubId;
@@ -245,7 +249,7 @@ class RepositoryIT {
 			petNode2Id = petNode2.id();
 		}
 
-		PersonWithRelationship loadedPerson = relationshipRepository.findById(personId).get();
+		PersonWithRelationship loadedPerson = repository.findById(personId).get();
 		assertThat(loadedPerson.getName()).isEqualTo("Freddie");
 		Hobby hobby = loadedPerson.getHobbies();
 		assertThat(hobby).isNotNull();
@@ -273,7 +277,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void loadDeepSameLabelsAndTypeRelationships() {
+	void loadDeepSameLabelsAndTypeRelationships(@Autowired PetRepository repository) {
 
 		long petNode1Id;
 		long petNode2Id;
@@ -291,7 +295,7 @@ class RepositoryIT {
 			petNode3Id = record.get("p3").asNode().id();
 		}
 
-		Pet loadedPet = petRepository.findById(petNode1Id).get();
+		Pet loadedPet = repository.findById(petNode1Id).get();
 
 		Pet comparisonPet2 = new Pet(petNode2Id, "Pet2");
 		Pet comparisonPet3 = new Pet(petNode3Id, "Pet3");
@@ -374,7 +378,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void loadEntityWithRelationshipToTheSameNode() {
+	void loadEntityWithRelationshipToTheSameNode(@Autowired RelationshipRepository repository) {
 
 		long personId;
 		long hobbyNode1Id;
@@ -396,7 +400,7 @@ class RepositoryIT {
 			petNode1Id = petNode1.id();
 		}
 
-		PersonWithRelationship loadedPerson = relationshipRepository.findById(personId).get();
+		PersonWithRelationship loadedPerson = repository.findById(personId).get();
 		assertThat(loadedPerson.getName()).isEqualTo("Freddie");
 		Hobby hobby = loadedPerson.getHobbies();
 		assertThat(hobby).isNotNull();
@@ -416,7 +420,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void loadEntityWithBidirectionalRelationship() {
+	void loadEntityWithBidirectionalRelationship(@Autowired BidirectionalStartRepository repository) {
 
 		long startId;
 
@@ -430,7 +434,7 @@ class RepositoryIT {
 			startId = startNode.id();
 		}
 
-		Optional<BidirectionalStart> entityOptional = bidirectionalStartRepository.findById(startId);
+		Optional<BidirectionalStart> entityOptional = repository.findById(startId);
 		assertThat(entityOptional).isPresent();
 		BidirectionalStart entity = entityOptional.get();
 		assertThat(entity.getEnds()).hasSize(1);
@@ -442,7 +446,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void loadEntityWithBidirectionalRelationshipFromIncomingSide() {
+	void loadEntityWithBidirectionalRelationshipFromIncomingSide(@Autowired BidirectionalEndRepository repository) {
 
 		long endId;
 
@@ -455,7 +459,7 @@ class RepositoryIT {
 			endId = endNode.id();
 		}
 
-		Optional<BidirectionalEnd> entityOptional = bidirectionalEndRepository.findById(endId);
+		Optional<BidirectionalEnd> entityOptional = repository.findById(endId);
 		assertThat(entityOptional).isPresent();
 		BidirectionalEnd entity = entityOptional.get();
 		assertThat(entity.getStart()).isNotNull();
@@ -463,7 +467,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void loadMultipleEntitiesWithRelationship() {
+	void loadMultipleEntitiesWithRelationship(@Autowired RelationshipRepository repository) {
 
 		long hobbyNode1Id;
 		long hobbyNode2Id;
@@ -488,7 +492,7 @@ class RepositoryIT {
 			petNode2Id = record.get("p").asNode().id();
 		}
 
-		List<PersonWithRelationship> loadedPersons = relationshipRepository.findAll();
+		List<PersonWithRelationship> loadedPersons = repository.findAll();
 
 		Hobby hobby1 = new Hobby();
 		hobby1.setId(hobbyNode1Id);
@@ -508,7 +512,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void loadEntityWithRelationshipViaQuery() {
+	void loadEntityWithRelationshipViaQuery(@Autowired RelationshipRepository repository) {
 
 		long personId;
 		long hobbyNodeId;
@@ -532,7 +536,7 @@ class RepositoryIT {
 			petNode2Id = petNode2.id();
 		}
 
-		PersonWithRelationship loadedPerson = relationshipRepository.getPersonWithRelationshipsViaQuery();
+		PersonWithRelationship loadedPerson = repository.getPersonWithRelationshipsViaQuery();
 		assertThat(loadedPerson.getName()).isEqualTo("Freddie");
 		assertThat(loadedPerson.getId()).isEqualTo(personId);
 		Hobby hobby = loadedPerson.getHobbies();
@@ -548,7 +552,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void loadEntityWithRelationshipWithAssignedId() {
+	void loadEntityWithRelationshipWithAssignedId(@Autowired PetRepository repository) {
 
 		long petNodeId;
 
@@ -561,14 +565,14 @@ class RepositoryIT {
 			petNodeId = petNode.id();
 		}
 
-		Pet pet = petRepository.findById(petNodeId).get();
+		Pet pet = repository.findById(petNodeId).get();
 		ThingWithAssignedId relatedThing = pet.getThings().get(0);
 		assertThat(relatedThing.getTheId()).isEqualTo("t1");
 		assertThat(relatedThing.getName()).isEqualTo("Thing1");
 	}
 
 	@Test
-	void loadEntityWithRelationshipWithProperties() {
+	void loadEntityWithRelationshipWithProperties(@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
 
 		long personId;
 		long hobbyNode1Id;
@@ -594,7 +598,7 @@ class RepositoryIT {
 			hobbyNode2Id = hobbyNode2.id();
 		}
 
-		Optional<PersonWithRelationshipWithProperties> optionalPerson = relationshipWithPropertiesRepository.findById(personId);
+		Optional<PersonWithRelationshipWithProperties> optionalPerson = repository.findById(personId);
 		assertThat(optionalPerson).isPresent();
 		PersonWithRelationshipWithProperties person = optionalPerson.get();
 		assertThat(person.getName()).isEqualTo("Freddie");
@@ -621,7 +625,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void saveEntityWithRelationshipWithProperties() {
+	void saveEntityWithRelationshipWithProperties(@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
 		// given
 		Hobby h1 = new Hobby();
 		h1.setName("Music");
@@ -659,7 +663,7 @@ class RepositoryIT {
 		clonePerson.setHobbies(hobbies);
 
 		// when
-		PersonWithRelationshipWithProperties shouldBeDifferentPerson = relationshipWithPropertiesRepository
+		PersonWithRelationshipWithProperties shouldBeDifferentPerson = repository
 			.save(clonePerson);
 
 		// then
@@ -709,7 +713,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void loadEntityWithRelationshipWithPropertiesFromCustomQuery() {
+	void loadEntityWithRelationshipWithPropertiesFromCustomQuery(@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
 
 		long personId;
 		long hobbyNode1Id;
@@ -735,7 +739,7 @@ class RepositoryIT {
 			hobbyNode2Id = hobbyNode2.id();
 		}
 
-		PersonWithRelationshipWithProperties person = relationshipWithPropertiesRepository.loadFromCustomQuery(personId);
+		PersonWithRelationshipWithProperties person = repository.loadFromCustomQuery(personId);
 		assertThat(person.getName()).isEqualTo("Freddie");
 
 		Hobby hobby1 = new Hobby();
@@ -760,13 +764,14 @@ class RepositoryIT {
 	}
 
 	@Test
-	void existsById() {
+	void existsById(@Autowired PersonRepository repository) {
+
 		boolean exists = repository.existsById(id1);
 		assertThat(exists).isTrue();
 	}
 
 	@Test
-	void saveSingleEntity() {
+	void saveSingleEntity(@Autowired PersonRepository repository) {
 
 		PersonWithAllConstructor person = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
 			LocalDate.of(1946, 9, 15), null, Arrays.asList("b", "a"), null, null);
@@ -783,7 +788,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void saveSingleEntityWithRelationships() {
+	void saveSingleEntityWithRelationships(@Autowired RelationshipRepository repository) {
 
 		PersonWithRelationship person = new PersonWithRelationship();
 		person.setName("Freddie");
@@ -800,7 +805,7 @@ class RepositoryIT {
 		pet1.setHobbies(singleton(petHobby));
 		person.setPets(Arrays.asList(pet1, pet2));
 
-		PersonWithRelationship savedPerson = relationshipRepository.save(person);
+		PersonWithRelationship savedPerson = repository.save(person);
 		try (Session session = driver.session(getSessionConfig())) {
 
 			Record record = session.run("MATCH (n:PersonWithRelationship)"
@@ -838,7 +843,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void saveSingleEntityWithRelationshipsTwiceDoesNotCreateMoreRelationships() {
+	void saveSingleEntityWithRelationshipsTwiceDoesNotCreateMoreRelationships(@Autowired RelationshipRepository repository) {
 
 		PersonWithRelationship person = new PersonWithRelationship();
 		person.setName("Freddie");
@@ -852,8 +857,8 @@ class RepositoryIT {
 		pet1.setHobbies(singleton(petHobby));
 		person.setPets(Arrays.asList(pet1, pet2));
 
-		PersonWithRelationship savedPerson = relationshipRepository.save(person);
-		savedPerson = relationshipRepository.save(savedPerson);
+		PersonWithRelationship savedPerson = repository.save(person);
+		savedPerson = repository.save(savedPerson);
 		try (Session session = driver.session(getSessionConfig())) {
 
 			List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
@@ -900,7 +905,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void saveEntityWithAlreadyExistingTargetNode() {
+	void saveEntityWithAlreadyExistingTargetNode(@Autowired RelationshipRepository repository) {
 
 		Long hobbyId;
 		try (Session session = driver.session(getSessionConfig())) {
@@ -914,7 +919,7 @@ class RepositoryIT {
 		hobby.setName("Music");
 		person.setHobbies(hobby);
 
-		PersonWithRelationship savedPerson = relationshipRepository.save(person);
+		PersonWithRelationship savedPerson = repository.save(person);
 		try (Session session = driver.session(getSessionConfig())) {
 
 			List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
@@ -941,7 +946,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void saveEntityWithAlreadyExistingSourceAndTargetNode() {
+	void saveEntityWithAlreadyExistingSourceAndTargetNode(@Autowired RelationshipRepository repository) {
 
 		Long hobbyId;
 		Long personId;
@@ -963,7 +968,7 @@ class RepositoryIT {
 		hobby.setName("Music");
 		person.setHobbies(hobby);
 
-		PersonWithRelationship savedPerson = relationshipRepository.save(person);
+		PersonWithRelationship savedPerson = repository.save(person);
 		try (Session session = driver.session(getSessionConfig())) {
 
 			List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
@@ -990,7 +995,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void saveEntityWithDeepSelfReferences() {
+	void saveEntityWithDeepSelfReferences(@Autowired PetRepository repository) {
 		Pet rootPet = new Pet("Luna");
 		Pet petOfRootPet = new Pet("Daphne");
 		Pet petOfChildPet = new Pet("Mucki");
@@ -1000,7 +1005,7 @@ class RepositoryIT {
 		petOfRootPet.setFriends(singletonList(petOfChildPet));
 		petOfChildPet.setFriends(singletonList(petOfGrandChildPet));
 
-		petRepository.save(rootPet);
+		repository.save(rootPet);
 
 		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session.run("MATCH (rootPet:Pet)-[:Has]->(petOfRootPet:Pet)-[:Has]->(petOfChildPet:Pet)"
@@ -1015,14 +1020,14 @@ class RepositoryIT {
 	}
 
 	@Test
-	void saveEntityGraphWithSelfInverseRelationshipDefined() {
+	void saveEntityGraphWithSelfInverseRelationshipDefined(@Autowired SimilarThingRepository repository) {
 		SimilarThing originalThing = new SimilarThing().withName("Original");
 		SimilarThing similarThing = new SimilarThing().withName("Similar");
 
 
 		originalThing.setSimilar(similarThing);
 		similarThing.setSimilarOf(originalThing);
-		similarThingRepository.save(originalThing);
+		repository.save(originalThing);
 
 		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session.run(
@@ -1036,7 +1041,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void saveAll() {
+	void saveAll(@Autowired PersonRepository repository) {
 
 		PersonWithAllConstructor newPerson = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
 			LocalDate.of(1946, 9, 15), null, emptyList(), null, null);
@@ -1069,7 +1074,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void updateSingleEntity() {
+	void updateSingleEntity(@Autowired PersonRepository repository) {
 
 		PersonWithAllConstructor originalPerson = repository.findById(id1).get();
 		originalPerson.setFirstName("Updated first name");
@@ -1097,7 +1102,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void delete() {
+	void delete(@Autowired PersonRepository repository) {
 
 		repository.delete(person1);
 
@@ -1106,7 +1111,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void deleteById() {
+	void deleteById(@Autowired PersonRepository repository) {
 
 		repository.deleteById(id1);
 
@@ -1115,7 +1120,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void deleteAllEntities() {
+	void deleteAllEntities(@Autowired PersonRepository repository) {
 
 		repository.deleteAll(Arrays.asList(person1, person2));
 
@@ -1124,50 +1129,52 @@ class RepositoryIT {
 	}
 
 	@Test
-	void deleteAll() {
+	void deleteAll(@Autowired PersonRepository repository) {
 
 		repository.deleteAll();
 		assertThat(repository.count()).isEqualTo(0L);
 	}
 
 	@Test
-	void deleteSimpleRelationship() {
+	void deleteSimpleRelationship(@Autowired RelationshipRepository repository) {
 		try (Session session = driver.session(getSessionConfig())) {
 			session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'})");
 		}
 
-		PersonWithRelationship person = relationshipRepository.getPersonWithRelationshipsViaQuery();
+		PersonWithRelationship person = repository.getPersonWithRelationshipsViaQuery();
 		person.setHobbies(null);
-		relationshipRepository.save(person);
-		person = relationshipRepository.getPersonWithRelationshipsViaQuery();
+		repository.save(person);
+		person = repository.getPersonWithRelationshipsViaQuery();
 
 		assertThat(person.getHobbies()).isNull();
 	}
 
 	@Test
-	void deleteCollectionRelationship() {
+	void deleteCollectionRelationship(@Autowired RelationshipRepository repository) {
 		try (Session session = driver.session(getSessionConfig())) {
 			session.run("CREATE (n:PersonWithRelationship{name:'Freddie'}), "
 				+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'})");
 		}
 
-		PersonWithRelationship person = relationshipRepository.getPersonWithRelationshipsViaQuery();
+		PersonWithRelationship person = repository.getPersonWithRelationshipsViaQuery();
 		person.getPets().remove(0);
-		relationshipRepository.save(person);
-		person = relationshipRepository.getPersonWithRelationshipsViaQuery();
+		repository.save(person);
+		person = repository.getPersonWithRelationshipsViaQuery();
 
 		assertThat(person.getPets()).hasSize(1);
 	}
 
 	@Test
-	void findAllById() {
+	void findAllById(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository.findAllById(Arrays.asList(id1, id2));
 		assertThat(persons).hasSize(2);
 	}
 
 	@Test
-	void findByAssignedId() {
-		Optional<ThingWithAssignedId> optionalThing = thingRepository.findById("anId");
+	void findByAssignedId(@Autowired ThingRepository repository) {
+
+		Optional<ThingWithAssignedId> optionalThing = repository.findById("anId");
 		assertThat(optionalThing).isPresent();
 		assertThat(optionalThing).map(ThingWithAssignedId::getTheId).contains("anId");
 		assertThat(optionalThing).map(ThingWithAssignedId::getName).contains("Homer");
@@ -1179,8 +1186,9 @@ class RepositoryIT {
 	}
 
 	@Test
-	void loadWithAssignedIdViaQuery() {
-		ThingWithAssignedId thing = thingRepository.getViaQuery();
+	void loadWithAssignedIdViaQuery(@Autowired ThingRepository repository) {
+
+		ThingWithAssignedId thing = repository.getViaQuery();
 		assertThat(thing.getTheId()).isEqualTo("anId");
 		assertThat(thing.getName()).isEqualTo("Homer");
 
@@ -1190,13 +1198,13 @@ class RepositoryIT {
 	}
 
 	@Test
-	void saveWithAssignedId() {
+	void saveWithAssignedId(@Autowired ThingRepository repository) {
 
-		assertThat(thingRepository.count()).isEqualTo(21);
+		assertThat(repository.count()).isEqualTo(21);
 
 		ThingWithAssignedId thing = new ThingWithAssignedId("aaBB");
 		thing.setName("That's the thing.");
-		thing = thingRepository.save(thing);
+		thing = repository.save(thing);
 
 		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
@@ -1208,21 +1216,21 @@ class RepositoryIT {
 			assertThat(node.get("theId").asString()).isEqualTo(thing.getTheId());
 			assertThat(node.get("name").asString()).isEqualTo(thing.getName());
 
-			assertThat(thingRepository.count()).isEqualTo(22);
+			assertThat(repository.count()).isEqualTo(22);
 		}
 	}
 
 	@Test
-	void saveWithAssignedIdAndRelationship() {
+	void saveWithAssignedIdAndRelationship(@Autowired ThingRepository repository) {
 
-		assertThat(thingRepository.count()).isEqualTo(21);
+		assertThat(repository.count()).isEqualTo(21);
 
 		ThingWithAssignedId thing = new ThingWithAssignedId("aaBB");
 		thing.setName("That's the thing.");
 		AnotherThingWithAssignedId anotherThing = new AnotherThingWithAssignedId(4711L);
 		anotherThing.setName("AnotherThing");
 		thing.setThings(singletonList(anotherThing));
-		thing = thingRepository.save(thing);
+		thing = repository.save(thing);
 
 		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
@@ -1238,22 +1246,22 @@ class RepositoryIT {
 			Node relatedNode = record.get("t").asNode();
 			assertThat(relatedNode.get("theId").asLong()).isEqualTo(anotherThing.getTheId());
 			assertThat(relatedNode.get("name").asString()).isEqualTo(anotherThing.getName());
-			assertThat(thingRepository.count()).isEqualTo(22);
+			assertThat(repository.count()).isEqualTo(22);
 		}
 	}
 
 	@Test
-	void saveAllWithAssignedId() {
+	void saveAllWithAssignedId(@Autowired ThingRepository repository) {
 
-		assertThat(thingRepository.count()).isEqualTo(21);
+		assertThat(repository.count()).isEqualTo(21);
 
 		ThingWithAssignedId newThing = new ThingWithAssignedId("aaBB");
 		newThing.setName("That's the thing.");
 
-		ThingWithAssignedId existingThing = thingRepository.findById("anId").get();
+		ThingWithAssignedId existingThing = repository.findById("anId").get();
 		existingThing.setName("Updated name.");
 
-		thingRepository.saveAll(Arrays.asList(newThing, existingThing));
+		repository.saveAll(Arrays.asList(newThing, existingThing));
 
 		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
@@ -1266,21 +1274,21 @@ class RepositoryIT {
 			List<String> names = record.get("names").asList(Value::asString);
 			assertThat(names).containsExactly(newThing.getName(), existingThing.getName());
 
-			assertThat(thingRepository.count()).isEqualTo(22);
+			assertThat(repository.count()).isEqualTo(22);
 		}
 	}
 
 	@Test
-	void saveAllWithAssignedIdAndRelationship() {
+	void saveAllWithAssignedIdAndRelationship(@Autowired ThingRepository repository) {
 
-		assertThat(thingRepository.count()).isEqualTo(21);
+		assertThat(repository.count()).isEqualTo(21);
 
 		ThingWithAssignedId thing = new ThingWithAssignedId("aaBB");
 		thing.setName("That's the thing.");
 		AnotherThingWithAssignedId anotherThing = new AnotherThingWithAssignedId(4711L);
 		anotherThing.setName("AnotherThing");
 		thing.setThings(singletonList(anotherThing));
-		thingRepository.saveAll(singletonList(thing));
+		repository.saveAll(singletonList(thing));
 
 		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
@@ -1297,22 +1305,22 @@ class RepositoryIT {
 			Node relatedNode = record.get("t").asNode();
 			assertThat(relatedNode.get("theId").asLong()).isEqualTo(anotherThing.getTheId());
 			assertThat(relatedNode.get("name").asString()).isEqualTo(anotherThing.getName());
-			assertThat(thingRepository.count()).isEqualTo(22);
+			assertThat(repository.count()).isEqualTo(22);
 		}
 	}
 
 	@Test
-	void updateWithAssignedId() {
+	void updateWithAssignedId(@Autowired ThingRepository repository) {
 
-		assertThat(thingRepository.count()).isEqualTo(21);
+		assertThat(repository.count()).isEqualTo(21);
 
 		ThingWithAssignedId thing = new ThingWithAssignedId("id07");
 		thing.setName("An updated thing");
-		thingRepository.save(thing);
+		repository.save(thing);
 
-		thing = thingRepository.findById("id15").get();
+		thing = repository.findById("id15").get();
 		thing.setName("Another updated thing");
-		thingRepository.save(thing);
+		repository.save(thing);
 
 		try (Session session = driver.session(getSessionConfig())) {
 			Record record = session
@@ -1325,38 +1333,43 @@ class RepositoryIT {
 			List<String> names = record.get("names").asList(Value::asString);
 			assertThat(names).containsExactly("An updated thing", "Another updated thing");
 
-			assertThat(thingRepository.count()).isEqualTo(21);
+			assertThat(repository.count()).isEqualTo(21);
 		}
 	}
 
 	@Test
-	void count() {
+	void count(@Autowired PersonRepository repository) {
+
 		assertThat(repository.count()).isEqualTo(2);
 	}
 
 	@Test
-	void findAllWithSortByOrderDefault() {
+	void findAllWithSortByOrderDefault(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository.findAll(Sort.by("name"));
 
 		assertThat(persons).containsExactly(person1, person2);
 	}
 
 	@Test
-	void findAllWithSortByOrderAsc() {
+	void findAllWithSortByOrderAsc(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository.findAll(Sort.by(Sort.Order.asc("name")));
 
 		assertThat(persons).containsExactly(person1, person2);
 	}
 
 	@Test
-	void findAllWithSortByOrderDesc() {
+	void findAllWithSortByOrderDesc(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository.findAll(Sort.by(Sort.Order.desc("name")));
 
 		assertThat(persons).containsExactly(person2, person1);
 	}
 
 	@Test
-	void findAllWithPageable() {
+	void findAllWithPageable(@Autowired PersonRepository repository) {
+
 		Sort sort = Sort.by("name");
 		int page = 0;
 		int limit = 1;
@@ -1370,7 +1383,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findOneByExample() {
+	void findOneByExample(@Autowired PersonRepository repository) {
+
 		Example<PersonWithAllConstructor> example = Example
 			.of(person1, ExampleMatcher.matchingAll().withIgnoreNullValues());
 		Optional<PersonWithAllConstructor> person = repository.findOne(example);
@@ -1380,7 +1394,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findAllByExample() {
+	void findAllByExample(@Autowired PersonRepository repository) {
+
 		Example<PersonWithAllConstructor> example = Example
 			.of(person1, ExampleMatcher.matchingAll().withIgnoreNullValues());
 		List<PersonWithAllConstructor> persons = repository.findAll(example);
@@ -1389,7 +1404,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findAllByExampleWithDifferentMatchers() {
+	void findAllByExampleWithDifferentMatchers(@Autowired PersonRepository repository) {
+
 		PersonWithAllConstructor person;
 		Example<PersonWithAllConstructor> example;
 		List<PersonWithAllConstructor> persons;
@@ -1436,7 +1452,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findAllByExampleWithSort() {
+	void findAllByExampleWithSort(@Autowired PersonRepository repository) {
+
 		Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
 		List<PersonWithAllConstructor> persons = repository.findAll(example, Sort.by(Sort.Direction.DESC, "name"));
 
@@ -1444,7 +1461,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findAllByExampleWithPagination() {
+	void findAllByExampleWithPagination(@Autowired PersonRepository repository) {
+
 		Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
 		Iterable<PersonWithAllConstructor> persons = repository.findAll(example, PageRequest.of(1, 1, Sort.by("name")));
 
@@ -1452,7 +1470,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void existsByExample() {
+	void existsByExample(@Autowired PersonRepository repository) {
+
 		Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
 		boolean exists = repository.exists(example);
 
@@ -1460,7 +1479,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void countByExample() {
+	void countByExample(@Autowired PersonRepository repository) {
+
 		Example<PersonWithAllConstructor> example = Example.of(person1);
 		long count = repository.count(example);
 
@@ -1468,54 +1488,62 @@ class RepositoryIT {
 	}
 
 	@Test
-	void loadAllPersonsWithAllConstructorViaCustomQuery() {
+	void loadAllPersonsWithAllConstructorViaCustomQuery(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository.getAllPersonsViaQuery();
 
 		assertThat(persons).anyMatch(person -> person.getName().equals(TEST_PERSON1_NAME));
 	}
 
 	@Test
-	void loadOnePersonWithAllConstructor() {
+	void loadOnePersonWithAllConstructor(@Autowired PersonRepository repository) {
+
 		PersonWithAllConstructor person = repository.getOnePersonViaQuery();
 		assertThat(person.getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
 
 	@Test
-	void loadOptionalPersonWithAllConstructor() {
+	void loadOptionalPersonWithAllConstructor(@Autowired PersonRepository repository) {
+
 		Optional<PersonWithAllConstructor> person = repository.getOptionalPersonViaQuery();
 		assertThat(person).isPresent();
 		assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
 
 	@Test
-	void loadOptionalPersonWithAllConstructorWithParameter() {
+	void loadOptionalPersonWithAllConstructorWithParameter(@Autowired PersonRepository repository) {
+
 		Optional<PersonWithAllConstructor> person = repository.getOptionalPersonViaQuery(TEST_PERSON1_NAME);
 		assertThat(person).isPresent();
 		assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
 
 	@Test
-	void loadNoPersonsWithAllConstructorViaCustomQueryWithoutException() {
+	void loadNoPersonsWithAllConstructorViaCustomQueryWithoutException(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository.getNobodyViaQuery();
 		assertThat(persons).hasSize(0);
 	}
 
 	@Test
-	void loadOptionalPersonWithAllConstructorWithSpelParameters() {
+	void loadOptionalPersonWithAllConstructorWithSpelParameters(@Autowired PersonRepository repository) {
+
 		Optional<PersonWithAllConstructor> person = repository.getOptionalPersonViaQuery(TEST_PERSON1_NAME.substring(0, 2), TEST_PERSON1_NAME.substring(2));
 		assertThat(person).isPresent();
 		assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
 
 	@Test
-	void loadOptionalPersonWithAllConstructorWithSpelParametersAndNamedQuery() {
+	void loadOptionalPersonWithAllConstructorWithSpelParametersAndNamedQuery(@Autowired PersonRepository repository) {
+
 		Optional<PersonWithAllConstructor> person = repository.getOptionalPersonViaNamedQuery(TEST_PERSON1_NAME.substring(0, 2), TEST_PERSON1_NAME.substring(2));
 		assertThat(person).isPresent();
 		assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
 
 	@Test
-	void loadAllPersonsWithNoConstructor() {
+	void loadAllPersonsWithNoConstructor(@Autowired PersonRepository repository) {
+
 		List<PersonWithNoConstructor> persons = repository.getAllPersonsWithNoConstructorViaQuery();
 
 		assertThat(persons)
@@ -1526,14 +1554,16 @@ class RepositoryIT {
 	}
 
 	@Test
-	void loadOnePersonWithNoConstructor() {
+	void loadOnePersonWithNoConstructor(@Autowired PersonRepository repository) {
+
 		PersonWithNoConstructor person = repository.getOnePersonWithNoConstructorViaQuery();
 		assertThat(person.getName()).isEqualTo(TEST_PERSON1_NAME);
 		assertThat(person.getFirstName()).isEqualTo(TEST_PERSON1_FIRST_NAME);
 	}
 
 	@Test
-	void loadOptionalPersonWithNoConstructor() {
+	void loadOptionalPersonWithNoConstructor(@Autowired PersonRepository repository) {
+
 		Optional<PersonWithNoConstructor> person = repository.getOptionalPersonWithNoConstructorViaQuery();
 		assertThat(person).isPresent();
 		assertThat(person).map(PersonWithNoConstructor::getName).contains(TEST_PERSON1_NAME);
@@ -1541,52 +1571,59 @@ class RepositoryIT {
 	}
 
 	@Test
-	void loadAllPersonsWithWither() {
+	void loadAllPersonsWithWither(@Autowired PersonRepository repository) {
+
 		List<PersonWithWither> persons = repository.getAllPersonsWithWitherViaQuery();
 
 		assertThat(persons).anyMatch(person -> person.getName().equals(TEST_PERSON1_NAME));
 	}
 
 	@Test
-	void loadOnePersonWithWither() {
+	void loadOnePersonWithWither(@Autowired PersonRepository repository) {
+
 		PersonWithWither person = repository.getOnePersonWithWitherViaQuery();
 		assertThat(person.getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
 
 	@Test
-	void loadOptionalPersonWithWither() {
+	void loadOptionalPersonWithWither(@Autowired PersonRepository repository) {
+
 		Optional<PersonWithWither> person = repository.getOptionalPersonWithWitherViaQuery();
 		assertThat(person).isPresent();
 		assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
 
 	@Test
-	void loadAllKotlinPersons() {
+	void loadAllKotlinPersons(@Autowired PersonRepository repository) {
+
 		List<KotlinPerson> persons = repository.getAllKotlinPersonsViaQuery();
 		assertThat(persons).anyMatch(person -> person.getName().equals(TEST_PERSON1_NAME));
 	}
 
 	@Test
-	void loadOneKotlinPerson() {
+	void loadOneKotlinPerson(@Autowired PersonRepository repository) {
+
 		KotlinPerson person = repository.getOneKotlinPersonViaQuery();
 		assertThat(person.getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
 
 	@Test
-	void loadOptionalKotlinPerson() {
+	void loadOptionalKotlinPerson(@Autowired PersonRepository repository) {
+
 		Optional<KotlinPerson> person = repository.getOptionalKotlinPersonViaQuery();
 		assertThat(person).isPresent();
 		assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
 
 	@Test
-	void callCustomCypher() {
+	void callCustomCypher(@Autowired PersonRepository repository) {
+
 		Long fixedLong = repository.customQuery();
 		assertThat(fixedLong).isEqualTo(1L);
 	}
 
 	@Test
-	void findBySimpleProperty() {
+	void findBySimpleProperty(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons;
 
@@ -1603,13 +1640,15 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findBySimplePropertyByEqualsWithNullShouldWork() {
+	void findBySimplePropertyByEqualsWithNullShouldWork(@Autowired PersonRepository repository) {
+
 		int emptyResultSize = 0;
 		assertThat(repository.findAllBySameValue(null)).hasSize(emptyResultSize);
 	}
 
 	@Test
-	void findByPropertyThatNeedsConversion() {
+	void findByPropertyThatNeedsConversion(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> people = repository
 			.findAllByPlace(new GeographicPoint2d(NEO4J_HQ.y(), NEO4J_HQ.x()));
 
@@ -1617,14 +1656,14 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByPropertyFailsIfNoConverterIsAvailable() {
+	void findByPropertyFailsIfNoConverterIsAvailable(@Autowired PersonRepository repository) {
 		assertThatExceptionOfType(ConverterNotFoundException.class)
 			.isThrownBy(() -> repository.findAllByPlace(new ThingWithGeneratedId("hello")))
 			.withMessageStartingWith("No converter found capable of converting from type");
 	}
 
 	@Test
-	void findBySimplePropertiesAnded() {
+	void findBySimplePropertiesAnded(@Autowired PersonRepository repository) {
 
 		Optional<PersonWithAllConstructor> optionalPerson;
 
@@ -1636,7 +1675,7 @@ class RepositoryIT {
 	}
 
 	@Test // GH-112
-	void findByPropertyWithPageable() {
+	void findByPropertyWithPageable(@Autowired PersonRepository repository) {
 
 		Page<PersonWithAllConstructor> people;
 
@@ -1655,21 +1694,21 @@ class RepositoryIT {
 	}
 
 	@Test // GH-112
-	void countBySimplePropertiesOred() {
+	void countBySimplePropertiesOred(@Autowired PersonRepository repository) {
 
 		long count = repository.countAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME);
 		assertThat(count).isEqualTo(2L);
 	}
 
 	@Test
-	void findBySimplePropertiesOred() {
+	void findBySimplePropertiesOred(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons = repository.findAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME);
 		assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 	}
 
 	@Test
-	void findByNegatedSimpleProperty() {
+	void findByNegatedSimpleProperty(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons;
 
@@ -1681,7 +1720,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByTrueAndFalse() {
+	void findByTrueAndFalse(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> coolPeople = repository.findAllByCoolTrue();
 		List<PersonWithAllConstructor> theRest = repository.findAllByCoolFalse();
@@ -1690,7 +1729,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByLike() {
+	void findByLike(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons;
 
@@ -1706,7 +1745,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByMatches() {
+	void findByMatches(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons = repository.findAllByFirstNameMatches("(?i)ern.*");
 		assertThat(persons)
@@ -1715,7 +1754,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByNotLike() {
+	void findByNotLike(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons;
 
@@ -1727,7 +1766,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByStartingWith() {
+	void findByStartingWith(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons;
 
@@ -1743,7 +1782,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByContaining() {
+	void findByContaining(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons;
 
@@ -1759,7 +1798,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByNotContaining() {
+	void findByNotContaining(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons;
 
@@ -1775,7 +1814,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByEndingWith() {
+	void findByEndingWith(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons;
 
@@ -1791,7 +1830,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByLessThan() {
+	void findByLessThan(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons = repository.findAllByPersonNumberIsLessThan(2L);
 		assertThat(persons)
@@ -1800,7 +1839,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByLessThanEqual() {
+	void findByLessThanEqual(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons = repository.findAllByPersonNumberIsLessThanEqual(2L);
 		assertThat(persons)
@@ -1808,7 +1847,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByGreaterThanEqual() {
+	void findByGreaterThanEqual(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons = repository.findAllByPersonNumberIsGreaterThanEqual(1L);
 		assertThat(persons)
@@ -1816,7 +1855,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByGreaterThan() {
+	void findByGreaterThan(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons = repository.findAllByPersonNumberIsGreaterThan(1L);
 		assertThat(persons)
@@ -1825,7 +1864,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByBetweenRange() {
+	void findByBetweenRange(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons;
 		persons = repository.findAllByPersonNumberIsBetween(Range.from(inclusive(1L)).to(inclusive(2L)));
@@ -1861,7 +1900,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByBetween() {
+	void findByBetween(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons;
 		persons = repository.findAllByPersonNumberIsBetween(1L, 2L);
@@ -1878,7 +1917,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByAfter() {
+	void findByAfter(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository.findAllByBornOnAfter(TEST_PERSON1_BORN_ON);
 		assertThat(persons)
 			.hasSize(1)
@@ -1886,7 +1926,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByBefore() {
+	void findByBefore(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository.findAllByBornOnBefore(TEST_PERSON2_BORN_ON);
 		assertThat(persons)
 			.hasSize(1)
@@ -1894,7 +1935,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByInstant() {
+	void findByInstant(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository.findAllByCreatedAtBefore(LocalDate.of(2019, 9, 25).atStartOfDay().toInstant(ZoneOffset.UTC));
 		assertThat(persons)
 			.hasSize(1)
@@ -1902,7 +1944,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByIsNotNull() {
+	void findByIsNotNull(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository.findAllByNullableIsNotNull();
 		assertThat(persons)
 			.hasSize(1)
@@ -1910,7 +1953,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByIsNull() {
+	void findByIsNull(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository.findAllByNullableIsNull();
 		assertThat(persons)
 			.hasSize(1)
@@ -1918,7 +1962,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByIn() {
+	void findByIn(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository
 			.findAllByFirstNameIn(Arrays.asList("a", "b", TEST_PERSON2_FIRST_NAME, "c"));
 		assertThat(persons)
@@ -1927,7 +1972,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByNotIn() {
+	void findByNotIn(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository
 			.findAllByFirstNameNotIn(Arrays.asList("a", "b", TEST_PERSON2_FIRST_NAME, "c"));
 		assertThat(persons)
@@ -1936,7 +1982,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByEmpty() {
+	void findByEmpty(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository.findAllByThingsIsEmpty();
 		assertThat(persons)
 			.hasSize(1)
@@ -1944,7 +1991,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByNotEmpty() {
+	void findByNotEmpty(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository.findAllByThingsIsNotEmpty();
 		assertThat(persons)
 			.hasSize(1)
@@ -1952,7 +2000,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByExists() {
+	void findByExists(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons = repository.findAllByNullableExists();
 		assertThat(persons)
 			.hasSize(1)
@@ -1960,7 +2009,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void shouldSupportSort() {
+	void shouldSupportSort(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons;
 
 		persons = repository.findAllByOrderByFirstNameAscBornOnDesc();
@@ -1969,7 +2019,8 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findByNear() {
+	void findByNear(@Autowired PersonRepository repository) {
+
 		List<PersonWithAllConstructor> persons;
 
 		persons = repository.findAllByPlaceNear(SFO);
@@ -2019,7 +2070,7 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findBySomeCaseInsensitiveProperties() {
+	void findBySomeCaseInsensitiveProperties(@Autowired PersonRepository repository) {
 
 		List<PersonWithAllConstructor> persons;
 		persons = repository.findAllByPlaceNearAndFirstNameAllIgnoreCase(SFO, TEST_PERSON1_FIRST_NAME.toUpperCase());
@@ -2029,64 +2080,65 @@ class RepositoryIT {
 
 	@DisabledIfEnvironmentVariable(named = "SDN_RX_NEO4J_VERSION", matches = "4\\.0\\.0-alpha(0.*|10.*)")
 	@Test
-	void limitClauseShouldWork() {
+	void limitClauseShouldWork(@Autowired ThingRepository repository) {
 
 		List<ThingWithAssignedId> things;
 
-		things = thingRepository.findTop5ByOrderByNameDesc();
+		things = repository.findTop5ByOrderByNameDesc();
 		assertThat(things)
 			.hasSize(5)
 			.extracting(ThingWithAssignedId::getName)
 			.containsExactlyInAnyOrder("name20", "name19", "name18", "name17", "name16");
 
-		things = thingRepository.findFirstByOrderByNameDesc();
+		things = repository.findFirstByOrderByNameDesc();
 		assertThat(things)
 			.extracting(ThingWithAssignedId::getName)
 			.containsExactlyInAnyOrder("name20");
 	}
 
 	@Test
-	void mapsInterfaceProjectionWithDerivedFinderMethod() {
+	void mapsInterfaceProjectionWithDerivedFinderMethod(@Autowired PersonRepository repository) {
+
 		assertThat(repository.findByName(TEST_PERSON1_NAME).getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
 
 	@Test
-	void mapsDtoProjectionWithDerivedFinderMethod() {
+	void mapsDtoProjectionWithDerivedFinderMethod(@Autowired PersonRepository repository) {
 		assertThat(repository.findByFirstName(TEST_PERSON1_FIRST_NAME)).hasSize(1);
 	}
 
 	@Test
-	void mapsInterfaceProjectionWithDerivedFinderMethodWithMultipleResults() {
+	void mapsInterfaceProjectionWithDerivedFinderMethodWithMultipleResults(@Autowired PersonRepository repository) {
 		assertThat(repository.findBySameValue(TEST_PERSON_SAMEVALUE)).hasSize(2);
 	}
 
 	@Test
-	void mapsInterfaceProjectionWithCustomQueryAndMapProjection() {
+	void mapsInterfaceProjectionWithCustomQueryAndMapProjection(@Autowired PersonRepository repository) {
 		assertThat(repository.findByNameWithCustomQueryAndMapProjection(TEST_PERSON1_NAME).getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
 
 	@Test
-	void mapsInterfaceProjectionWithCustomQueryAndMapProjectionWithMultipleResults() {
+	void mapsInterfaceProjectionWithCustomQueryAndMapProjectionWithMultipleResults(@Autowired PersonRepository repository) {
 		assertThat(repository.loadAllProjectionsWithMapProjection()).hasSize(2);
 	}
 
 	@Test
-	void mapsInterfaceProjectionWithCustomQueryAndNodeReturn() {
+	void mapsInterfaceProjectionWithCustomQueryAndNodeReturn(@Autowired PersonRepository repository) {
 		assertThat(repository.findByNameWithCustomQueryAndNodeReturn(TEST_PERSON1_NAME).getName()).isEqualTo(TEST_PERSON1_NAME);
 	}
 
 	@Test
-	void mapsInterfaceProjectionWithCustomQueryAndNodeReturnWithMultipleResults() {
+	void mapsInterfaceProjectionWithCustomQueryAndNodeReturnWithMultipleResults(@Autowired PersonRepository repository) {
 		assertThat(repository.loadAllProjectionsWithNodeReturn()).hasSize(2);
 	}
 
 	@Test
-	void streamMethodsShouldWork() {
+	void streamMethodsShouldWork(@Autowired PersonRepository repository) {
 		assertThat(repository.findAllByNameLike("Test")).hasSize(2);
 	}
 
 	@Test
-	void asyncMethodsShouldWork() {
+	void asyncMethodsShouldWork(@Autowired PersonRepository repository) {
 		PersonWithAllConstructor p = repository.findOneByFirstName(TEST_PERSON1_FIRST_NAME).join();
 		assertThat(p).isNotNull();
 	}
@@ -2262,6 +2314,48 @@ class RepositoryIT {
 			assertThat(session.run("MATCH (n:Y:Z) return n").list()).hasSize(1);
 			assertThat(session.run("MATCH (n:X) return n").list()).hasSize(1);
 		}
+	}
+
+	interface BidirectionalStartRepository extends Neo4jRepository<BidirectionalStart, Long> {
+	}
+
+	interface BidirectionalEndRepository extends Neo4jRepository<BidirectionalEnd, Long> {
+	}
+
+	interface DeepRelationshipRepository extends Neo4jRepository<DeepRelationships.Type1, Long> {
+	}
+
+	interface LoopingRelationshipRepository extends Neo4jRepository<DeepRelationships.LoopingType1, Long> {
+	}
+
+	interface ImmutablePersonRepository extends Neo4jRepository<ImmutablePerson, String> {
+	}
+
+	interface MultipleLabelRepository extends Neo4jRepository<MultipleLabels.MultipleLabelsEntity, Long> {
+	}
+
+	interface MultipleLabelWithAssignedIdRepository extends Neo4jRepository<MultipleLabels.MultipleLabelsEntityWithAssignedId, Long> {
+	}
+
+	interface PersonWithRelationshipWithPropertiesRepository extends Neo4jRepository<PersonWithRelationshipWithProperties, Long> {
+
+		@Query("MATCH (p:PersonWithRelationshipWithProperties)-[l:LIKES]->(h:Hobby) return p, collect(l), collect(h)")
+		PersonWithRelationshipWithProperties loadFromCustomQuery(@Param("id") Long id);
+	}
+
+	interface PetRepository extends Neo4jRepository<Pet, Long> {
+	}
+
+	interface RelationshipRepository extends Neo4jRepository<PersonWithRelationship, Long> {
+
+		@Query("MATCH (n:PersonWithRelationship{name:'Freddie'}) "
+			+ "OPTIONAL MATCH (n)-[r1:Has]->(p:Pet) WITH n, collect(r1) as petRels, collect(p) as pets "
+			+ "OPTIONAL MATCH (n)-[r2:Has]->(h:Hobby) "
+			+ "return n, petRels, pets, collect(r2) as hobbyRels, collect(h) as hobbies")
+		PersonWithRelationship getPersonWithRelationshipsViaQuery();
+	}
+
+	interface SimilarThingRepository extends Neo4jRepository<SimilarThing, Long> {
 	}
 
 	@Configuration

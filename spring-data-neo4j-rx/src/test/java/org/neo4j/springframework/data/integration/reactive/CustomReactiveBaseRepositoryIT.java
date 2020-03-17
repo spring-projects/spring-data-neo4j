@@ -62,25 +62,6 @@ public class CustomReactiveBaseRepositoryIT {
 		);
 	}
 
-	@Configuration
-	@EnableReactiveNeo4jRepositories(
-		repositoryBaseClass = MyRepositoryImpl.class,
-		considerNestedRepositories = true,
-		includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = MyPersonRepository.class)
-	)
-	@EnableTransactionManagement
-	static class Config extends AbstractReactiveNeo4jConfig {
-
-		@Bean
-		public Driver driver() {
-			return DriverMocks.withOpenReactiveSessionAndTransaction();
-		}
-
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return singletonList(PersonWithAllConstructor.class.getPackage().getName());
-		}
-	}
 
 	interface MyPersonRepository extends ReactiveNeo4jRepository<PersonWithAllConstructor, Long> {
 	}
@@ -100,6 +81,26 @@ public class CustomReactiveBaseRepositoryIT {
 		@Override
 		public Flux<T> findAll() {
 			throw new UnsupportedOperationException("This implementation does not support `findAll`.");
+		}
+	}
+
+	@Configuration
+	@EnableReactiveNeo4jRepositories(
+		repositoryBaseClass = MyRepositoryImpl.class,
+		considerNestedRepositories = true,
+		includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = MyPersonRepository.class)
+	)
+	@EnableTransactionManagement
+	static class Config extends AbstractReactiveNeo4jConfig {
+
+		@Bean
+		public Driver driver() {
+			return DriverMocks.withOpenReactiveSessionAndTransaction();
+		}
+
+		@Override
+		protected Collection<String> getMappingBasePackages() {
+			return singletonList(PersonWithAllConstructor.class.getPackage().getName());
 		}
 	}
 }

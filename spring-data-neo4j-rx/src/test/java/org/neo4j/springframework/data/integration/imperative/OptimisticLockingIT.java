@@ -51,9 +51,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 class OptimisticLockingIT {
 
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
-	@Autowired private VersionedThingRepository repository;
-	@Autowired private VersionedThingWithAssignedIdRepository assignedIdRepository;
-	@Autowired private Driver driver;
+
+	private final Driver driver;
+
+	@Autowired OptimisticLockingIT(Driver driver) {
+		this.driver = driver;
+	}
 
 	@BeforeEach
 	void setup() {
@@ -65,7 +68,7 @@ class OptimisticLockingIT {
 	}
 
 	@Test
-	void shouldIncrementVersions() {
+	void shouldIncrementVersions(@Autowired VersionedThingRepository repository) {
 		VersionedThing thing = repository.save(new VersionedThing("Thing1"));
 
 		assertThat(thing.getMyVersion()).isEqualTo(0L);
@@ -77,7 +80,7 @@ class OptimisticLockingIT {
 	}
 
 	@Test
-	void shouldIncrementVersionsForMultipleSave() {
+	void shouldIncrementVersionsForMultipleSave(@Autowired VersionedThingRepository repository) {
 		VersionedThing thing1 = new VersionedThing("Thing1");
 		VersionedThing thing2 = new VersionedThing("Thing2");
 		List<VersionedThing> thingsToSave = Arrays.asList(thing1, thing2);
@@ -93,7 +96,7 @@ class OptimisticLockingIT {
 	}
 
 	@Test
-	void shouldIncrementVersionsOnRelatedEntities() {
+	void shouldIncrementVersionsOnRelatedEntities(@Autowired VersionedThingRepository repository) {
 		VersionedThing parentThing = new VersionedThing("Thing1");
 		VersionedThing childThing = new VersionedThing("Thing2");
 
@@ -109,7 +112,7 @@ class OptimisticLockingIT {
 	}
 
 	@Test
-	void shouldFailIncrementVersions() {
+	void shouldFailIncrementVersions(@Autowired VersionedThingRepository repository) {
 		VersionedThing thing = repository.save(new VersionedThing("Thing1"));
 
 		thing.setMyVersion(1L); // Version in DB is 0
@@ -119,7 +122,7 @@ class OptimisticLockingIT {
 	}
 
 	@Test
-	void shouldFailIncrementVersionsForMultipleSave() {
+	void shouldFailIncrementVersionsForMultipleSave(@Autowired VersionedThingRepository repository) {
 		VersionedThing thing1 = new VersionedThing("Thing1");
 		VersionedThing thing2 = new VersionedThing("Thing2");
 		List<VersionedThing> thingsToSave = Arrays.asList(thing1, thing2);
@@ -129,12 +132,12 @@ class OptimisticLockingIT {
 		versionedThings.get(0).setMyVersion(1L); // Version in DB is 0
 
 		assertThatExceptionOfType(OptimisticLockingFailureException.class)
-				.isThrownBy(() -> repository.saveAll(versionedThings));
+			.isThrownBy(() -> repository.saveAll(versionedThings));
 
 	}
 
 	@Test
-	void shouldFailIncrementVersionsOnRelatedEntities() {
+	void shouldFailIncrementVersionsOnRelatedEntities(@Autowired VersionedThingRepository repository) {
 		VersionedThing parentThing = new VersionedThing("Thing1");
 		VersionedThing childThing = new VersionedThing("Thing2");
 		parentThing.setOtherVersionedThings(singletonList(childThing));
@@ -148,67 +151,67 @@ class OptimisticLockingIT {
 	}
 
 	@Test
-	void shouldIncrementVersionsForAssignedId() {
+	void shouldIncrementVersionsForAssignedId(@Autowired VersionedThingWithAssignedIdRepository repository) {
 		VersionedThingWithAssignedId thing1 = new VersionedThingWithAssignedId(4711L, "Thing1");
-		VersionedThingWithAssignedId thing = assignedIdRepository.save(thing1);
+		VersionedThingWithAssignedId thing = repository.save(thing1);
 
 		assertThat(thing.getMyVersion()).isEqualTo(0L);
 
-		thing = assignedIdRepository.save(thing);
+		thing = repository.save(thing);
 
 		assertThat(thing.getMyVersion()).isEqualTo(1L);
 
 	}
 
 	@Test
-	void shouldIncrementVersionsForMultipleSaveForAssignedId() {
+	void shouldIncrementVersionsForMultipleSaveForAssignedId(
+		@Autowired VersionedThingWithAssignedIdRepository repository) {
 		VersionedThingWithAssignedId thing1 = new VersionedThingWithAssignedId(4711L, "Thing1");
 		VersionedThingWithAssignedId thing2 = new VersionedThingWithAssignedId(42L, "Thing2");
 		List<VersionedThingWithAssignedId> thingsToSave = Arrays.asList(thing1, thing2);
 
-		List<VersionedThingWithAssignedId> versionedThings = assignedIdRepository.saveAll(thingsToSave);
+		List<VersionedThingWithAssignedId> versionedThings = repository.saveAll(thingsToSave);
 
 		assertThat(versionedThings).allMatch(versionedThing -> versionedThing.getMyVersion().equals(0L));
 
-		versionedThings = assignedIdRepository.saveAll(versionedThings);
+		versionedThings = repository.saveAll(versionedThings);
 
 		assertThat(versionedThings).allMatch(versionedThing -> versionedThing.getMyVersion().equals(1L));
 
 	}
 
 	@Test
-	void shouldFailIncrementVersionsForAssignedIds() {
+	void shouldFailIncrementVersionsForAssignedIds(@Autowired VersionedThingWithAssignedIdRepository repository) {
 		VersionedThingWithAssignedId thing1 = new VersionedThingWithAssignedId(4711L, "Thing1");
-		VersionedThingWithAssignedId thing = assignedIdRepository.save(thing1);
+		VersionedThingWithAssignedId thing = repository.save(thing1);
 
 		thing.setMyVersion(1L); // Version in DB is 0
 
 		assertThatExceptionOfType(OptimisticLockingFailureException.class)
-				.isThrownBy(() -> assignedIdRepository.save(thing));
+			.isThrownBy(() -> repository.save(thing));
 
 	}
 
 	@Test
-	void shouldFailIncrementVersionsForMultipleSaveForAssignedId() {
+	void shouldFailIncrementVersionsForMultipleSaveForAssignedId(
+		@Autowired VersionedThingWithAssignedIdRepository repository) {
 		VersionedThingWithAssignedId thing1 = new VersionedThingWithAssignedId(4711L, "Thing1");
 		VersionedThingWithAssignedId thing2 = new VersionedThingWithAssignedId(42L, "Thing2");
 		List<VersionedThingWithAssignedId> thingsToSave = Arrays.asList(thing1, thing2);
 
-		List<VersionedThingWithAssignedId> versionedThings = assignedIdRepository.saveAll(thingsToSave);
+		List<VersionedThingWithAssignedId> versionedThings = repository.saveAll(thingsToSave);
 
 		versionedThings.get(0).setMyVersion(1L); // Version in DB is 0
 
 		assertThatExceptionOfType(OptimisticLockingFailureException.class)
-				.isThrownBy(() -> assignedIdRepository.saveAll(versionedThings));
+			.isThrownBy(() -> repository.saveAll(versionedThings));
 
 	}
 
-	public interface VersionedThingRepository extends Neo4jRepository<VersionedThing, Long> {
-
+	interface VersionedThingRepository extends Neo4jRepository<VersionedThing, Long> {
 	}
 
-	public interface VersionedThingWithAssignedIdRepository extends Neo4jRepository<VersionedThingWithAssignedId, Long> {
-
+	interface VersionedThingWithAssignedIdRepository extends Neo4jRepository<VersionedThingWithAssignedId, Long> {
 	}
 
 	@Configuration

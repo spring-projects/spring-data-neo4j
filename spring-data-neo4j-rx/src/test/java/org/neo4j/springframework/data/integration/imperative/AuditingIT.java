@@ -45,24 +45,16 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 class AuditingIT extends AuditingITBase {
 
-	private final ImmutableEntityTestRepository thingRepository;
-	private final ImmutableEntityWithGeneratedIdRepository thingWithGeneratedIdRepository;
 
-	@Autowired
-	AuditingIT(ImmutableEntityTestRepository thingRepository,
-		ImmutableEntityWithGeneratedIdRepository thingWithGeneratedIdRepository,
-		Driver driver) {
-
+	@Autowired AuditingIT(Driver driver) {
 		super(driver);
-		this.thingRepository = thingRepository;
-		this.thingWithGeneratedIdRepository = thingWithGeneratedIdRepository;
 	}
 
 	@Test
-	void auditingOfCreationShouldWork() {
+	void auditingOfCreationShouldWork(@Autowired ImmutableEntityTestRepository repository) {
 
 		ImmutableAuditableThing thing = new ImmutableAuditableThing("A thing");
-		thing = thingRepository.save(thing);
+		thing = repository.save(thing);
 
 		assertThat(thing.getCreatedAt()).isEqualTo(DEFAULT_CREATION_AND_MODIFICATION_DATE);
 		assertThat(thing.getCreatedBy()).isEqualTo("A user");
@@ -74,11 +66,11 @@ class AuditingIT extends AuditingITBase {
 	}
 
 	@Test
-	void auditingOfModificationShouldWork() {
+	void auditingOfModificationShouldWork(@Autowired ImmutableEntityTestRepository repository) {
 
-		ImmutableAuditableThing thing = thingRepository.findById(idOfExistingThing).get();
+		ImmutableAuditableThing thing = repository.findById(idOfExistingThing).get();
 		thing = thing.withName("A new name");
-		thing = thingRepository.save(thing);
+		thing = repository.save(thing);
 
 		assertThat(thing.getCreatedAt()).isEqualTo(EXISTING_THING_CREATED_AT);
 		assertThat(thing.getCreatedBy()).isEqualTo(EXISTING_THING_CREATED_BY);
@@ -92,10 +84,11 @@ class AuditingIT extends AuditingITBase {
 	}
 
 	@Test
-	void auditingOfEntityWithGeneratedIdCreationShouldWork() {
+	void auditingOfEntityWithGeneratedIdCreationShouldWork(
+		@Autowired ImmutableEntityWithGeneratedIdRepository repository) {
 
 		ImmutableAuditableThingWithGeneratedId thing = new ImmutableAuditableThingWithGeneratedId("A thing");
-		thing = thingWithGeneratedIdRepository.save(thing);
+		thing = repository.save(thing);
 
 		assertThat(thing.getCreatedAt()).isEqualTo(DEFAULT_CREATION_AND_MODIFICATION_DATE);
 		assertThat(thing.getCreatedBy()).isEqualTo("A user");
@@ -107,13 +100,14 @@ class AuditingIT extends AuditingITBase {
 	}
 
 	@Test
-	void auditingOfEntityWithGeneratedIdModificationShouldWork() {
+	void auditingOfEntityWithGeneratedIdModificationShouldWork(
+		@Autowired ImmutableEntityWithGeneratedIdRepository repository) {
 
-		ImmutableAuditableThingWithGeneratedId thing = thingWithGeneratedIdRepository
+		ImmutableAuditableThingWithGeneratedId thing = repository
 			.findById(idOfExistingThingWithGeneratedId).get();
 
 		thing = thing.withName("A new name");
-		thing = thingWithGeneratedIdRepository.save(thing);
+		thing = repository.save(thing);
 
 		assertThat(thing.getCreatedAt()).isEqualTo(EXISTING_THING_CREATED_AT);
 		assertThat(thing.getCreatedBy()).isEqualTo(EXISTING_THING_CREATED_BY);
@@ -126,10 +120,10 @@ class AuditingIT extends AuditingITBase {
 		verifyDatabase(idOfExistingThingWithGeneratedId, thing);
 	}
 
-	public interface ImmutableEntityTestRepository extends CrudRepository<ImmutableAuditableThing, Long> {
+	interface ImmutableEntityTestRepository extends CrudRepository<ImmutableAuditableThing, Long> {
 	}
 
-	public interface ImmutableEntityWithGeneratedIdRepository
+	interface ImmutableEntityWithGeneratedIdRepository
 		extends CrudRepository<ImmutableAuditableThingWithGeneratedId, String> {
 	}
 

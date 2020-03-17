@@ -23,10 +23,12 @@ import static org.neo4j.springframework.data.test.Neo4jExtension.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
+import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.springframework.data.core.DatabaseSelection;
 import org.neo4j.springframework.data.core.DatabaseSelectionProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -38,6 +40,10 @@ import org.springframework.context.annotation.Configuration;
 class RepositoryWithADifferentDatabaseIT extends RepositoryIT {
 
 	private static final String TEST_DATABASE_NAME = "aTestDatabase";
+
+	@Autowired RepositoryWithADifferentDatabaseIT(Driver driver) {
+		super(driver);
+	}
 
 	@BeforeAll
 	static void createTestDatabase() {

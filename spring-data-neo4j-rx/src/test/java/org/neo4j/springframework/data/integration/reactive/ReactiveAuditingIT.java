@@ -56,27 +56,20 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 class ReactiveAuditingIT extends AuditingITBase {
 
 	private final ReactiveTransactionManager transactionManager;
-	private final ImmutableEntityTestRepository thingRepository;
-	private final ImmutableEntityWithGeneratedIdTestRepository thingWithGeneratedIdRepository;
 
-	@Autowired
-	ReactiveAuditingIT(ReactiveTransactionManager transactionManager, ImmutableEntityTestRepository thingRepository,
-		Driver driver,
-		ImmutableEntityWithGeneratedIdTestRepository thingWithGeneratedIdRepository) {
+	@Autowired ReactiveAuditingIT(Driver driver, ReactiveTransactionManager transactionManager) {
 
 		super(driver);
-		this.thingRepository = thingRepository;
 		this.transactionManager = transactionManager;
-		this.thingWithGeneratedIdRepository = thingWithGeneratedIdRepository;
 	}
 
 	@Test
-	void auditingOfCreationShouldWork() {
+	void auditingOfCreationShouldWork(@Autowired ImmutableEntityTestRepository repository) {
 
 		List<ImmutableAuditableThing> newThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
 		transactionalOperator
-			.execute(t -> thingRepository.save(new ImmutableAuditableThing("A thing")))
+			.execute(t -> repository.save(new ImmutableAuditableThing("A thing")))
 			.as(StepVerifier::create)
 			.recordWith(() -> newThings)
 			.expectNextCount(1L)
@@ -93,10 +86,10 @@ class ReactiveAuditingIT extends AuditingITBase {
 	}
 
 	@Test
-	void auditingOfModificationShouldWork() {
+	void auditingOfModificationShouldWork(@Autowired ImmutableEntityTestRepository repository) {
 
-		Mono<ImmutableAuditableThing> findAndUpdateAThing = thingRepository.findById(idOfExistingThing)
-			.flatMap(thing -> thingRepository.save(thing.withName("A new name")));
+		Mono<ImmutableAuditableThing> findAndUpdateAThing = repository.findById(idOfExistingThing)
+			.flatMap(thing -> repository.save(thing.withName("A new name")));
 
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
 		transactionalOperator
@@ -119,13 +112,15 @@ class ReactiveAuditingIT extends AuditingITBase {
 			new ImmutableAuditableThing(null, EXISTING_THING_CREATED_AT, EXISTING_THING_CREATED_BY,
 				DEFAULT_CREATION_AND_MODIFICATION_DATE, "A user", "A new name"));
 	}
+
 	@Test
-	void auditingOfEntityWithGeneratedIdCreationShouldWork() {
+	void auditingOfEntityWithGeneratedIdCreationShouldWork(
+		@Autowired ImmutableEntityWithGeneratedIdTestRepository repository) {
 
 		List<ImmutableAuditableThingWithGeneratedId> newThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
 		transactionalOperator
-			.execute(t -> thingWithGeneratedIdRepository.save(new ImmutableAuditableThingWithGeneratedId("A thing")))
+			.execute(t -> repository.save(new ImmutableAuditableThingWithGeneratedId("A thing")))
 			.as(StepVerifier::create)
 			.recordWith(() -> newThings)
 			.expectNextCount(1L)
@@ -142,11 +137,12 @@ class ReactiveAuditingIT extends AuditingITBase {
 	}
 
 	@Test
-	void auditingOfEntityWithGeneratedIdModificationShouldWork() {
+	void auditingOfEntityWithGeneratedIdModificationShouldWork(
+		@Autowired ImmutableEntityWithGeneratedIdTestRepository repository) {
 
-		Mono<ImmutableAuditableThingWithGeneratedId> findAndUpdateAThing = thingWithGeneratedIdRepository
+		Mono<ImmutableAuditableThingWithGeneratedId> findAndUpdateAThing = repository
 			.findById(idOfExistingThingWithGeneratedId)
-			.flatMap(thing -> thingWithGeneratedIdRepository.save(thing.withName("A new name")));
+			.flatMap(thing -> repository.save(thing.withName("A new name")));
 
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
 		transactionalOperator
@@ -170,10 +166,10 @@ class ReactiveAuditingIT extends AuditingITBase {
 				DEFAULT_CREATION_AND_MODIFICATION_DATE, "A user", "A new name"));
 	}
 
-	public interface ImmutableEntityTestRepository extends ReactiveCrudRepository<ImmutableAuditableThing, Long> {
+	interface ImmutableEntityTestRepository extends ReactiveCrudRepository<ImmutableAuditableThing, Long> {
 	}
 
-	public interface ImmutableEntityWithGeneratedIdTestRepository
+	interface ImmutableEntityWithGeneratedIdTestRepository
 		extends ReactiveCrudRepository<ImmutableAuditableThingWithGeneratedId, String> {
 	}
 

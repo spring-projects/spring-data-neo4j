@@ -60,8 +60,11 @@ class ReactiveProjectionIT {
 
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
-	@Autowired private ReactiveProjectionPersonRepository repository;
-	@Autowired private Driver driver;
+	private final Driver driver;
+
+	@Autowired ReactiveProjectionIT(Driver driver) {
+		this.driver = driver;
+	}
 
 	@BeforeEach
 	void setup() {
@@ -80,7 +83,8 @@ class ReactiveProjectionIT {
 	}
 
 	@Test
-	void loadNamesOnlyProjection() {
+	void loadNamesOnlyProjection(@Autowired ReactiveProjectionPersonRepository repository) {
+
 		StepVerifier.create(repository.findByLastName(LAST_NAME))
 			.assertNext(person -> {
 				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
@@ -93,7 +97,8 @@ class ReactiveProjectionIT {
 	}
 
 	@Test
-	void loadPersonSummaryProjection() {
+	void loadPersonSummaryProjection(@Autowired ReactiveProjectionPersonRepository repository) {
+
 		StepVerifier.create(repository.findByFirstName(FIRST_NAME))
 			.assertNext(person -> {
 				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
@@ -107,7 +112,8 @@ class ReactiveProjectionIT {
 	}
 
 	@Test
-	void loadNamesOnlyDtoProjection() {
+	void loadNamesOnlyDtoProjection(@Autowired ReactiveProjectionPersonRepository repository) {
+
 		StepVerifier.create(repository.findByFirstNameAndLastName(FIRST_NAME, LAST_NAME))
 			.assertNext(person -> {
 				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
@@ -117,7 +123,8 @@ class ReactiveProjectionIT {
 	}
 
 	@Test
-	void findDynamicProjectionForNamesOnly() {
+	void findDynamicProjectionForNamesOnly(@Autowired ReactiveProjectionPersonRepository repository) {
+
 		StepVerifier.create(repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, NamesOnly.class))
 			.assertNext(person -> {
 				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
@@ -130,7 +137,8 @@ class ReactiveProjectionIT {
 	}
 
 	@Test
-	void findDynamicProjectionForPersonSummary() {
+	void findDynamicProjectionForPersonSummary(@Autowired ReactiveProjectionPersonRepository repository) {
+
 		StepVerifier.create(repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, PersonSummary.class))
 			.assertNext(person -> {
 				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
@@ -144,7 +152,8 @@ class ReactiveProjectionIT {
 	}
 
 	@Test
-	void findDynamicProjectionForNamesOnlyDto() {
+	void findDynamicProjectionForNamesOnlyDto(@Autowired ReactiveProjectionPersonRepository repository) {
+
 		StepVerifier.create(repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, NamesOnlyDto.class))
 			.assertNext(person -> {
 				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
@@ -153,7 +162,7 @@ class ReactiveProjectionIT {
 			.verifyComplete();
 	}
 
-	public interface ReactiveProjectionPersonRepository extends ReactiveNeo4jRepository<Person, Long> {
+	interface ReactiveProjectionPersonRepository extends ReactiveNeo4jRepository<Person, Long> {
 
 		Flux<NamesOnly> findByLastName(String lastName);
 

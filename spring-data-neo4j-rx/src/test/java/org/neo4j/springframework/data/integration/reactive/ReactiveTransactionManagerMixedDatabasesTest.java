@@ -33,17 +33,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.Values;
-import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.reactive.RxResult;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
 import org.neo4j.springframework.data.core.Neo4jClient;
-import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.ReactiveDatabaseSelectionProvider;
+import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.transaction.ReactiveNeo4jTransactionManager;
+import org.neo4j.springframework.data.integration.reactive.repositories.ReactivePersonRepository;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,28 +70,19 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 
 	private final Driver driver;
 
-	private final ReactiveNeo4jClient neo4jClient;
-
 	private final ReactiveNeo4jTransactionManager neo4jTransactionManager;
 
-	private final ReactivePersonRepository repository;
+	@Autowired ReactiveTransactionManagerMixedDatabasesTest(
+		Driver driver,
+		ReactiveNeo4jTransactionManager neo4jTransactionManager
+	) {
 
-	private final WrapperService wrappingComponent;
-
-	@Autowired
-	ReactiveTransactionManagerMixedDatabasesTest(Driver driver, ReactiveNeo4jClient neo4jClient,
-		ReactiveNeo4jTransactionManager neo4jTransactionManager,
-		ReactivePersonRepository repository,
-		WrapperService wrappingComponent) {
 		this.driver = driver;
-		this.neo4jClient = neo4jClient;
 		this.neo4jTransactionManager = neo4jTransactionManager;
-		this.repository = repository;
-		this.wrappingComponent = wrappingComponent;
 	}
 
 	@Test
-	void withoutActiveTransactions() {
+	void withoutActiveTransactions(@Autowired ReactiveNeo4jClient neo4jClient) {
 
 		Mono<Long> numberOfNodes =
 			neo4jClient.query(TEST_QUERY).in(DATABASE_NAME).fetchAs(Long.class).one();
@@ -102,16 +94,16 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 	}
 
 	@Test
-	void usingTheSameDatabaseDeclarative() {
+	void usingTheSameDatabaseDeclarative(@Autowired WrapperService wrapperService) {
 
 		StepVerifier
-			.create(wrappingComponent.usingTheSameDatabaseDeclarative())
+			.create(wrapperService.usingTheSameDatabaseDeclarative())
 			.expectNext(0L)
 			.verifyComplete();
 	}
 
 	@Test
-	void usingSameDatabaseExplicitTx() {
+	void usingSameDatabaseExplicitTx(@Autowired ReactiveNeo4jClient neo4jClient) {
 		ReactiveNeo4jTransactionManager otherTransactionManger = new ReactiveNeo4jTransactionManager(driver,
 			ReactiveDatabaseSelectionProvider.createStaticDatabaseSelectionProvider(DATABASE_NAME));
 		TransactionalOperator otherTransactionTemplate = TransactionalOperator.create(otherTransactionManger);
@@ -126,10 +118,10 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 	}
 
 	@Test
-	void usingAnotherDatabaseDeclarative() {
+	void usingAnotherDatabaseDeclarative(@Autowired WrapperService wrapperService) {
 
 		StepVerifier
-			.create(wrappingComponent.usingAnotherDatabaseDeclarative())
+			.create(wrapperService.usingAnotherDatabaseDeclarative())
 			.expectErrorMatches(e ->
 				e instanceof IllegalStateException && e.getMessage().equals(
 					"There is already an ongoing Spring transaction for the default database, but you request 'boom'"))
@@ -137,7 +129,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 	}
 
 	@Test
-	void usingAnotherDatabaseExplicitTx() {
+	void usingAnotherDatabaseExplicitTx(@Autowired ReactiveNeo4jClient neo4jClient) {
 
 		TransactionalOperator transactionTemplate = TransactionalOperator.create(neo4jTransactionManager);
 
@@ -154,7 +146,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 	}
 
 	@Test
-	void usingAnotherDatabaseDeclarativeFromRepo() {
+	void usingAnotherDatabaseDeclarativeFromRepo(@Autowired ReactivePersonRepository repository) {
 
 		ReactiveNeo4jTransactionManager otherTransactionManger = new ReactiveNeo4jTransactionManager(driver,
 			ReactiveDatabaseSelectionProvider.createStaticDatabaseSelectionProvider(DATABASE_NAME));
