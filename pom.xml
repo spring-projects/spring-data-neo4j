@@ -41,7 +41,7 @@
 
 		<project.type>multi</project.type>
 
-		<neo4j.ogm.version>3.2.9</neo4j.ogm.version>
+		<neo4j.ogm.version>3.2.10</neo4j.ogm.version>
 		<springdata.commons>2.3.0.BUILD-SNAPSHOT</springdata.commons>
 	</properties>
 
