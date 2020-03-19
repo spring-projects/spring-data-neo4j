@@ -31,6 +31,10 @@
 	<name>SDN⚡️RX Spring Boot Test Autoconfiguration</name>
 	<description>Testslices for Neo4j SDN/RX.</description>
 
+	<properties>
+		<java-module-name>spring.data.neo4j.rx.spring.boot.test.autoconfigure</java-module-name>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.neo4j.springframework.data</groupId>

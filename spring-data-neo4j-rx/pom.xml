@@ -31,6 +31,10 @@
 	<name>SDN⚡️RX</name>
 	<description>Core module of SDN.rx.</description>
 
+	<properties>
+		<java-module-name>spring.data.neo4j.rx</java-module-name>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>io.projectreactor</groupId>

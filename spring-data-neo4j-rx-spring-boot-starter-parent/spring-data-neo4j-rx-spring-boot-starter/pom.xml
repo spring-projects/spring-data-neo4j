@@ -31,6 +31,10 @@
 	<name>SDN⚡️RX Spring Boot Starter</name>
 	<description>Integration with Spring Boot.</description>
 
+	<properties>
+		<java-module-name>spring.data.neo4j.rx.spring.boot.starter</java-module-name>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.neo4j.springframework.data</groupId>

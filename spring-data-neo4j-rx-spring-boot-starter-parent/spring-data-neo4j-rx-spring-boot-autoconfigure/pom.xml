@@ -31,6 +31,10 @@
 	<name>SDN⚡️RX Spring Boot Starter Autoconfiguration</name>
 	<description>Integration with Spring Boot.</description>
 
+	<properties>
+		<java-module-name>spring.data.neo4j.rx.spring.boot.autoconfigure</java-module-name>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.neo4j.driver</groupId>
