@@ -101,14 +101,13 @@ class ImmutableRelationshipsIT @Autowired constructor(
 
         val p1 = ImmutableKotlinPerson("Person1", emptyList())
         val p2 = ImmutableKotlinPerson("Person2", listOf(p1))
-        val p3 = ImmutableKotlinPerson("Person3", listOf(p2))
-        val p4 = ImmutableKotlinPerson("Person4", listOf(p1, p3))
+        val p3 = ImmutableKotlinPerson("Person3", listOf(p1, p2))
 
-        personRepository.save(p4)
+        personRepository.save(p3)
 
         val people = personRepository.findAll()
 
-        assertThat(people).hasSize(4)
+        assertThat(people).hasSize(3)
     }
 
     @Configuration

@@ -55,6 +55,9 @@ public class Pet {
 	@Relationship("Has")
 	private List<Pet> friends;
 
+	@Relationship(value = "Hated_by", direction = Relationship.Direction.INCOMING)
+	private List<Pet> otherPets;
+
 	@Relationship("Has")
 	private List<ThingWithAssignedId> things;
 
