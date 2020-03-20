@@ -312,10 +312,10 @@ class ReactiveRepositoryIT {
 				// ensures that the virtual limit for same relationships does not affect distinct relationships
 				assertThat(type1.nextType.nextType.nextType.nextType.nextType.nextType).isNotNull();
 
-				// check the magical virtual limit of 5 of same type relationships
+				// assert that same type relationships not cause stack overflow
 				DeepRelationships.Type2 type2 = type1.nextType;
-				assertThat(type2.sameType.sameType.sameType.sameType.sameType).isNotNull();
-				assertThat(type2.sameType.sameType.sameType.sameType.sameType.sameType).isNull();
+				assertThat(type2.sameType.sameType.sameType).isNotNull();
+				assertThat(type2.sameType.sameType.sameType.sameType).isNull();
 			})
 			.verifyComplete();
 	}
@@ -351,12 +351,7 @@ class ReactiveRepositoryIT {
 				DeepRelationships.LoopingType1 iteration2 = iteration1.nextType.nextType.nextType;
 				assertThat(iteration2).isNotNull();
 				DeepRelationships.LoopingType1 iteration3 = iteration2.nextType.nextType.nextType;
-				assertThat(iteration3).isNotNull();
-				DeepRelationships.LoopingType1 iteration4 = iteration3.nextType.nextType.nextType;
-				assertThat(iteration4).isNotNull();
-				DeepRelationships.LoopingType1 iteration5 = iteration4.nextType.nextType.nextType;
-				assertThat(iteration5).isNotNull();
-				assertThat(iteration5.nextType).isNull();
+				assertThat(iteration3.nextType).isNull();
 			})
 			.verifyComplete();
 	}
@@ -371,6 +366,7 @@ class ReactiveRepositoryIT {
 		StepVerifier.create(repository.findByNameStartingWith("Test", PageRequest.of(page, limit, sort)))
 			.assertNext(person -> assertThat(person).isEqualTo(person1))
 			.verifyComplete();
+
 
 		sort = Sort.by("name");
 		page = 1;

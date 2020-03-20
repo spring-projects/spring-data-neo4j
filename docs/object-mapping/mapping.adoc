@@ -113,6 +113,16 @@ We support dynamic relationships.
 Dynamic relationships are represented as a `Map<String, AnnotatedDomainClass>`.
 In such a case, the type of the relationship to the other domain class is given by the maps key and must not be configured through the `@Relationship`.
 
+=== Relationship query limit
+
+In general there is no limitation of relationships / hops for creating the queries.
+SDN/RX parses the whole reachable graph from your modelled nodes.
+It is possible to have self-referencing entities and self-referencing concrete instances.
+
+If these entities or instances for a cycle we have a strict limit of *2* repetitions of walking the same path through the graph.
+E.g. You model a social network of `(:Person)-[:HAS_FRIEND]->(:Person)-[:HAS_FRIEND]...` you will only get the friends of the second degree.
+If you need a more specific mapping for your domain we advise you to use custom queries.
+
 === A complete example
 
 Putting all those together, we can create a simple domain.
