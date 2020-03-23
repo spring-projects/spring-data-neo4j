@@ -97,7 +97,7 @@
 		<jqassistant-dashboard-plugin.version>1.7.1</jqassistant-dashboard-plugin.version>
 		<jqassistant.plugin.version>1.7.0</jqassistant.plugin.version>
 		<jqassistant.version>1.7.0</jqassistant.version>
-		<junit-jupiter.version>5.6.0</junit-jupiter.version>
+		<junit-jupiter.version>5.6.1</junit-jupiter.version>
 		<maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
 		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
 		<maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
