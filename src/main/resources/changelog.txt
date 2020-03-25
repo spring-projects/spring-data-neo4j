@@ -1,6 +1,14 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.2.6.RELEASE (2020-03-25)
+---------------------------------------------
+* DATAGRAPH-1304 - Upgrade to Neo4j OGM 3.2.10.
+* DATAGRAPH-1300 - Support for Neo4j 4.0.
+* DATAGRAPH-1299 - Remove usage of deprecated Neo4j-OGM API.
+* DATAGRAPH-1298 - Release 5.2.6 (Moore SR6).
+
+
 Changes in version 5.3.0.M4 (2020-03-11)
 ----------------------------------------
 * DATAGRAPH-1299 - Remove usage of deprecated Neo4j-OGM API.
@@ -1686,6 +1694,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
