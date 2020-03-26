@@ -89,7 +89,7 @@ public enum CypherGenerator {
 		Condition condition) {
 
 		String primaryLabel = nodeDescription.getPrimaryLabel();
-		String[] additionalLabels = nodeDescription.getAdditionalLabels();
+		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
 
 		Node rootNode = node(primaryLabel, additionalLabels).named(NAME_OF_ROOT_NODE);
 		IdDescription idDescription = nodeDescription.getIdDescription();
@@ -117,7 +117,7 @@ public enum CypherGenerator {
 	public Statement prepareSaveOf(NodeDescription<?> nodeDescription) {
 
 		String primaryLabel = nodeDescription.getPrimaryLabel();
-		String[] additionalLabels = nodeDescription.getAdditionalLabels();
+		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
 
 		Node rootNode = node(primaryLabel, additionalLabels).named(NAME_OF_ROOT_NODE);
 		IdDescription idDescription = nodeDescription.getIdDescription();
@@ -132,7 +132,7 @@ public enum CypherGenerator {
 				PersistentProperty versionProperty = ((Neo4jPersistentEntity) nodeDescription)
 					.getRequiredVersionProperty();
 				String nameOfPossibleExistingNode = "hlp";
-				Node possibleExistingNode = node(primaryLabel).named(nameOfPossibleExistingNode);
+				Node possibleExistingNode = node(primaryLabel, additionalLabels).named(nameOfPossibleExistingNode);
 
 				Statement createIfNew = optionalMatch(possibleExistingNode)
 					.where(possibleExistingNode.property(nameOfIdProperty).isEqualTo(idParameter))
@@ -363,7 +363,7 @@ public enum CypherGenerator {
 			Predicate<String> includeField) {
 
 		List<Object> nodePropertiesProjection = new ArrayList<>();
-		for (GraphPropertyDescription property : nodeDescription.getGraphProperties()) {
+		for (GraphPropertyDescription property : nodeDescription.getGraphPropertiesInHierarchy()) {
 			if (!includeField.test(property.getFieldName())) {
 				continue;
 			}
@@ -375,6 +375,9 @@ public enum CypherGenerator {
 				nodePropertiesProjection.add(property.getPropertyName());
 			}
 		}
+
+		nodePropertiesProjection.add(NAME_OF_LABELS);
+		nodePropertiesProjection.add(Functions.labels(Cypher.name(nodeName)));
 
 		return nodePropertiesProjection;
 	}
@@ -418,7 +421,7 @@ public enum CypherGenerator {
 		String relationshipType = relationshipDescription.getType();
 		String relationshipTargetName = relationshipDescription.generateRelatedNodesCollectionName();
 		String targetPrimaryLabel = relationshipDescription.getTarget().getPrimaryLabel();
-		String[] targetAdditionalLabels = relationshipDescription.getTarget().getAdditionalLabels();
+		List<String> targetAdditionalLabels = relationshipDescription.getTarget().getAdditionalLabels();
 
 		Node startNode = anyNode(nodeName);
 		String relationshipFieldName = concatFieldName(nodeName, fieldName);

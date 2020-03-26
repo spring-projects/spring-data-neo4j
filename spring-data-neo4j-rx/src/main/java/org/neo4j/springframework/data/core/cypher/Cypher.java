@@ -56,6 +56,11 @@ public final class Cypher {
 		return Node.create(primaryLabel, additionalLabels);
 	}
 
+	public static Node node(String primaryLabel, List<String> additionalLabels) {
+
+		return Node.create(primaryLabel, additionalLabels.toArray(new String[] {}));
+	}
+
 	public static Node node(String primaryLabel, MapExpression properties, String... additionalLabels) {
 
 		return Node.create(primaryLabel, properties, additionalLabels);

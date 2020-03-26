@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core.mapping;
 
+import java.lang.reflect.Modifier;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -127,7 +128,34 @@ public final class Neo4jMappingContext
 
 		this.nodeDescriptionStore.put(primaryLabel, newEntity);
 
+		// child class after parent class
+		Class<? super T> superclass = typeInformation.getType().getSuperclass();
+		Neo4jPersistentEntity<?> parentNodeDescription =
+			(Neo4jPersistentEntity<?>) nodeDescriptionStore.getNodeDescription(superclass);
+
+		if (isValidParentNode(parentNodeDescription)) {
+			parentNodeDescription.addChildNodeDescription(newEntity);
+			newEntity.setParentNodeDescription(parentNodeDescription);
+		}
+
+		// parent class after child class
+		if (isValidParentNode(newEntity)) {
+			Class<?> thisParentClass = typeInformation.getType();
+
+			for (NodeDescription<?> possibleChild : nodeDescriptionStore.values()) {
+				Class<?> possibleChildClass = possibleChild.getUnderlyingClass();
+				if (possibleChildClass.getSuperclass().equals(thisParentClass)) {
+					newEntity.addChildNodeDescription(possibleChild);
+					possibleChild.setParentNodeDescription(newEntity);
+				}
+			}
+		}
+
 		return newEntity;
+	}
+
+	private boolean isValidParentNode(@Nullable Neo4jPersistentEntity<?> entity) {
+		return entity != null && Modifier.isAbstract(entity.getType().getModifiers());
 	}
 
 	/*

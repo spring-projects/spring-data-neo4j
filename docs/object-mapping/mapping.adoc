@@ -61,8 +61,11 @@ For each instance of an annotated class that is written through a repository or 
 one node in the graph with at least the primary label will be written.
 Vice versa, all nodes with the primary label will be mapped to the instances of the annotated class.
 
-The `@Node` annotation is inherited from super-types and interfaces.
-It is not supported to annotate your domain objects at every inheritance level.
+The `@Node` annotation is not inherited from super-types and interfaces.
+You can however annotate your domain classes individually at every inheritance level.
+This allows polymorphic queries: You can pass in base or intermediate classes and retrieve the correct, concrete instance for your nodes.
+This is only supported for abstract bases annotated with `@Node`.
+The labels defined on such a class will be used as additional labels together with the labels of the concrete implementations.
 
 === Identifying instances: `@Id`
 

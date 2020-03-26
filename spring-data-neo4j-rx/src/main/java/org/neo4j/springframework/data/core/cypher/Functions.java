@@ -68,6 +68,13 @@ public final class Functions {
 		return new FunctionInvocation(F_ID, symbolicName);
 	}
 
+	public static FunctionInvocation labels(SymbolicName symbolicName) {
+
+		Assert.notNull(symbolicName, "The symbolic name is required.");
+
+		return new FunctionInvocation("labels", symbolicName);
+	}
+
 	/**
 	 * Creates a function invocation for {@code type{}}.
 	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/scalar/#functions-type">type</a>.

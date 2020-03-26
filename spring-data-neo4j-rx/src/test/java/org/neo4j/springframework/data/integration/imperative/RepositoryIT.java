@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -2312,6 +2313,125 @@ class RepositoryIT {
 		}
 	}
 
+	@Test
+	void findByIdWithInheritance(@Autowired BaseClassRepository baseClassRepository) {
+		String someValue = "test";
+		String concreteClassName = "cc1";
+		Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA(concreteClassName, someValue);
+		baseClassRepository.save(ccA);
+
+		Inheritance.BaseClass loadedCcA = baseClassRepository.findById(ccA.getId()).get();
+		assertThat(loadedCcA).isInstanceOfSatisfying(Inheritance.ConcreteClassA.class,
+			o -> {
+				assertThat(o.getName()).isEqualTo(concreteClassName);
+				assertThat(o.getConcreteSomething()).isEqualTo(someValue);
+			});
+	}
+
+	@Test
+	void findAllWithInheritance(@Autowired BaseClassRepository baseClassRepository) {
+		Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
+		Inheritance.ConcreteClassB ccB = new Inheritance.ConcreteClassB("cc2", 42);
+		baseClassRepository.save(ccA);
+		baseClassRepository.save(ccB);
+
+		List<Inheritance.BaseClass> all = baseClassRepository.findAll();
+
+		assertThat(all).containsExactlyInAnyOrder(ccA, ccB);
+	}
+
+	@Test
+	void findAllWithInheritanceAndExplicitLabeling(@Autowired BaseClassWithLabelsRepository repository) {
+		String classAName = "test1";
+		String classBName = "test2";
+		Inheritance.ExtendingClassWithLabelsA classWithLabelsA = new Inheritance.ExtendingClassWithLabelsA(classAName);
+		Inheritance.ExtendingClassWithLabelsB classWithLabelsB = new Inheritance.ExtendingClassWithLabelsB(classBName);
+
+		repository.save(classWithLabelsA);
+		repository.save(classWithLabelsB);
+
+		List<Inheritance.BaseClassWithLabels> all = repository.findAll();
+
+		assertThat(all).containsExactlyInAnyOrder(classWithLabelsA, classWithLabelsB);
+	}
+
+	@Test
+	void findByIdWithTwoLevelInheritance(@Autowired SuperBaseClassRepository superBaseClassRepository) {
+		String someValue = "test";
+		String concreteClassName = "cc1";
+		Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA(concreteClassName, someValue);
+		superBaseClassRepository.save(ccA);
+
+		Inheritance.SuperBaseClass loadedCcA = superBaseClassRepository.findById(ccA.getId()).get();
+		assertThat(loadedCcA).isInstanceOfSatisfying(Inheritance.ConcreteClassA.class,
+			o -> {
+				assertThat(o.getName()).isEqualTo(concreteClassName);
+				assertThat(o.getConcreteSomething()).isEqualTo(someValue);
+			});
+	}
+
+	@Test
+	void findAllWithTwoLevelInheritance(@Autowired SuperBaseClassRepository superBaseClassRepository) {
+		Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
+		Inheritance.ConcreteClassB ccB = new Inheritance.ConcreteClassB("cc2", 42);
+		superBaseClassRepository.save(ccA);
+		superBaseClassRepository.save(ccB);
+
+		List<Inheritance.SuperBaseClass> all = superBaseClassRepository.findAll();
+
+		assertThat(all).containsExactlyInAnyOrder(ccA, ccB);
+	}
+
+	@Test
+	void findAllWithTwoLevelInheritanceByCustomQuery(@Autowired SuperBaseClassRepository superBaseClassRepository) {
+		Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
+		Inheritance.ConcreteClassB ccB = new Inheritance.ConcreteClassB("cc2", 42);
+		superBaseClassRepository.save(ccA);
+		superBaseClassRepository.save(ccB);
+
+		List<Inheritance.SuperBaseClass> all = superBaseClassRepository.getAllConcreteTypes();
+
+		assertThat(all).containsExactlyInAnyOrder(ccA, ccB);
+	}
+
+	@Test
+	void findAndInstantiateGenericRelationships(@Autowired RelationshipToAbstractClassRepository repository) {
+
+		Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
+		Inheritance.ConcreteClassB ccB = new Inheritance.ConcreteClassB("cc2", 42);
+
+		List<Inheritance.SuperBaseClass> things = new ArrayList<>();
+		things.add(ccA);
+		things.add(ccB);
+		Inheritance.RelationshipToAbstractClass thing = new Inheritance.RelationshipToAbstractClass();
+		thing.setThings(things);
+
+		repository.save(thing);
+
+		List<Inheritance.RelationshipToAbstractClass> all = repository.findAll();
+
+		assertThat(all.get(0).getThings()).containsExactlyInAnyOrder(ccA, ccB);
+	}
+
+	@Test
+	void findAndInstantiateGenericRelationshipsWithCustomQuery(@Autowired RelationshipToAbstractClassRepository repository) {
+
+		Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
+		Inheritance.ConcreteClassB ccB = new Inheritance.ConcreteClassB("cc2", 42);
+
+		List<Inheritance.SuperBaseClass> things = new ArrayList<>();
+		things.add(ccA);
+		things.add(ccB);
+		Inheritance.RelationshipToAbstractClass thing = new Inheritance.RelationshipToAbstractClass();
+		thing.setThings(things);
+
+		repository.save(thing);
+
+		Inheritance.RelationshipToAbstractClass result = repository.getAllConcreteRelationships();
+
+		assertThat(result.getThings()).containsExactlyInAnyOrder(ccA, ccB);
+	}
+
 	interface BidirectionalStartRepository extends Neo4jRepository<BidirectionalStart, Long> {
 	}
 
@@ -2352,6 +2472,24 @@ class RepositoryIT {
 	}
 
 	interface SimilarThingRepository extends Neo4jRepository<SimilarThing, Long> {
+	}
+
+	interface BaseClassRepository extends Neo4jRepository<Inheritance.BaseClass, Long> {
+	}
+
+	interface SuperBaseClassRepository extends Neo4jRepository<Inheritance.SuperBaseClass, Long> {
+
+		@Query("MATCH (n:SuperBaseClass) return n")
+		List<Inheritance.SuperBaseClass> getAllConcreteTypes();
+	}
+
+	interface RelationshipToAbstractClassRepository extends Neo4jRepository<Inheritance.RelationshipToAbstractClass, Long> {
+
+		@Query("MATCH (n:RelationshipToAbstractClass)-[h:HAS]->(m:SuperBaseClass) return n, collect(h), collect(m)")
+		Inheritance.RelationshipToAbstractClass getAllConcreteRelationships();
+	}
+
+	interface BaseClassWithLabelsRepository extends Neo4jRepository<Inheritance.BaseClassWithLabels, Long> {
 	}
 
 	@Configuration
