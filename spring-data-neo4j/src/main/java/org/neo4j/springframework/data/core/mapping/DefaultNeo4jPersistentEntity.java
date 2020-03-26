@@ -18,25 +18,21 @@
  */
 package org.neo4j.springframework.data.core.mapping;
 
+import static java.util.Collections.*;
 import static org.springframework.util.StringUtils.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.jetbrains.annotations.NotNull;
 import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.IdDescription;
 import org.neo4j.springframework.data.core.schema.Node;
+import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Property;
 import org.neo4j.springframework.data.core.schema.Relationship;
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
@@ -67,8 +63,11 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 
 	private final Lazy<Collection<GraphPropertyDescription>> graphProperties;
 
-	private final Lazy<String[]> additionalLabels;
+	private final Lazy<List<String>> additionalLabels;
 
+	private final Set<NodeDescription<?>> childNodeDescriptions = new HashSet<>();
+
+	private NodeDescription<?> parentNodeDescription;
 	/**
 	 * A view on all simple properties stored on a node.
 	 */
@@ -120,7 +119,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	}
 
 	@Override
-	public String[] getAdditionalLabels() {
+	public List<String> getAdditionalLabels() {
 		return this.additionalLabels.get();
 	}
 	/*
@@ -199,27 +198,50 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	}
 
 	/**
+	 * Additional labels are the ones defined directly on the entity and all labels of the parent classes if existing.
+	 *
+	 * @return all additional labels.
+	 */
+	private List<String> computeAdditionalLabels() {
+
+		return Stream.concat(computeOwnAdditionalLabels().stream(), computeParentLabels().stream())
+			.collect(Collectors.toList());
+	}
+
+	/**
 	 * The additional labels will get computed and returned by following rules:<br>
 	 * 1. If there is no {@link Node} annotation, empty {@code String} array.<br>
 	 * 2. If there is an annotation but it has no properties set, empty {@code String} array.<br>
 	 * 3. If only {@link Node#labels()} property is set, use the all but the first one as the additional labels.<br>
 	 * 3. If the {@link Node#primaryLabel()} property is set, use the all but the first one as the additional labels.<br>
 	 *
-	 * @return computed additional labels
+	 * @return computed additional labels of the concrete class
 	 */
-	private String[] computeAdditionalLabels() {
-
+	@NotNull
+	private List<String> computeOwnAdditionalLabels() {
 		Node nodeAnnotation = this.findAnnotation(Node.class);
 		if (nodeAnnotation == null || hasEmptyLabelInformation(nodeAnnotation)) {
-			return new String[] {};
+			return emptyList();
 		} else if (hasText(nodeAnnotation.primaryLabel())) {
-			return nodeAnnotation.labels();
+			return Arrays.asList(nodeAnnotation.labels());
 		} else {
-			return Arrays.copyOfRange(nodeAnnotation.labels(), 1, nodeAnnotation.labels().length);
+			return Arrays.asList(Arrays.copyOfRange(nodeAnnotation.labels(), 1, nodeAnnotation.labels().length));
 		}
 	}
 
-	private boolean hasEmptyLabelInformation(Node nodeAnnotation) {
+	@NotNull
+	private List<String> computeParentLabels() {
+
+		List<String> parentLabels = new ArrayList<>();
+		while (parentNodeDescription != null) {
+			parentLabels.add(parentNodeDescription.getPrimaryLabel());
+			parentLabels.addAll(parentNodeDescription.getAdditionalLabels());
+			parentNodeDescription = ((DefaultNeo4jPersistentEntity<?>) parentNodeDescription).getParentNodeDescription();
+		}
+		return parentLabels;
+	}
+
+	private static boolean hasEmptyLabelInformation(Node nodeAnnotation) {
 		return nodeAnnotation.labels().length < 1 && !hasText(nodeAnnotation.primaryLabel());
 	}
 
@@ -276,4 +298,42 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		return Collections.unmodifiableCollection(computedGraphProperties);
 	}
 
+	@Override
+	public Collection<GraphPropertyDescription> getGraphPropertiesInHierarchy() {
+
+		TreeSet<GraphPropertyDescription> allPropertiesInHierarchy =
+			new TreeSet<>(Comparator.comparing(GraphPropertyDescription::getPropertyName));
+
+		allPropertiesInHierarchy.addAll(getGraphProperties());
+		for (NodeDescription<?> childNodeDescription : getChildNodeDescriptionsInHierarchy()) {
+			Collection<GraphPropertyDescription> childGraphProperties = childNodeDescription.getGraphProperties();
+			allPropertiesInHierarchy.addAll(childGraphProperties);
+		}
+
+		return allPropertiesInHierarchy;
+	}
+
+	@Override
+	public void addChildNodeDescription(NodeDescription<?> child) {
+		this.childNodeDescriptions.add(child);
+	}
+
+	@Override
+	public Set<NodeDescription<?>> getChildNodeDescriptionsInHierarchy() {
+		Set<NodeDescription<?>> childNodes = new HashSet<>(childNodeDescriptions);
+
+		for (NodeDescription<?> childNodeDescription : childNodeDescriptions) {
+			childNodes.addAll(childNodeDescription.getChildNodeDescriptionsInHierarchy());
+		}
+		return childNodes;
+	}
+
+	@Override
+	public void setParentNodeDescription(NodeDescription<?> parent) {
+		this.parentNodeDescription = parent;
+	}
+
+	private NodeDescription<?> getParentNodeDescription() {
+		return parentNodeDescription;
+	}
 }

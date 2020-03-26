@@ -121,6 +121,18 @@ class DefaultNeo4jPersistentEntityTest {
 			assertThat(persistentEntity.getPrimaryLabel()).isEqualTo("a");
 			assertThat(persistentEntity.getAdditionalLabels()).containsExactlyInAnyOrder("b", "c");
 		}
+
+		@Test
+		void supportInheritedPrimaryLabelAndAdditionalLabels() {
+			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+			Neo4jPersistentEntity<?> parentEntity = neo4jMappingContext
+				.getPersistentEntity(BaseClass.class);
+			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext
+				.getPersistentEntity(Child.class);
+
+			assertThat(persistentEntity.getPrimaryLabel()).isEqualTo("Child");
+			assertThat(persistentEntity.getAdditionalLabels()).containsExactlyInAnyOrder("Base", "Bases", "Person");
+		}
 	}
 
 	@Node
@@ -199,6 +211,16 @@ class DefaultNeo4jPersistentEntityTest {
 	@Node(primaryLabel = "a", labels = {"b", "c"})
 	private static class EntityWithExplicitPrimaryLabelAndAdditionalLabels {
 		@Id private Long id;
+	}
+
+	@Node(primaryLabel = "Base", labels = {"Bases"})
+	private static abstract class BaseClass {
+		@Id private Long id;
+	}
+
+	@Node(primaryLabel = "Child", labels = {"Person"})
+	private static class Child extends BaseClass {
+		private String name;
 	}
 
 }

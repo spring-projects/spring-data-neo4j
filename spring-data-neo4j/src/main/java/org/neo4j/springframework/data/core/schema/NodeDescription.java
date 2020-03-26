@@ -19,6 +19,7 @@
 package org.neo4j.springframework.data.core.schema;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
@@ -38,6 +39,7 @@ public interface NodeDescription<T> {
 
 	String NAME_OF_ROOT_NODE = "n";
 	String NAME_OF_INTERNAL_ID = "__internalNeo4jId__";
+	String NAME_OF_LABELS = "__nodeLabels__";
 	String NAME_OF_IDS_RESULT = "__ids__";
 	String NAME_OF_ID_PARAM = "__id__";
 	String NAME_OF_VERSION_PARAM = "__version__";
@@ -66,9 +68,14 @@ public interface NodeDescription<T> {
 	Collection<GraphPropertyDescription> getGraphProperties();
 
 	/**
+	 * @return All graph properties including all properties from the extending classes if this entity is a parent entity.
+	 */
+	Collection<GraphPropertyDescription> getGraphPropertiesInHierarchy();
+
+	/**
 	 * @return the list of all additional labels (All labels except the {@link NodeDescription#getPrimaryLabel()}.
 	 */
-	String[] getAdditionalLabels();
+	List<String> getAdditionalLabels();
 
 	/**
 	 * Retrieves a {@link GraphPropertyDescription} by its field name.
@@ -91,6 +98,27 @@ public interface NodeDescription<T> {
 	 * @return The relationships defined by instances of this node.
 	 */
 	Collection<RelationshipDescription> getRelationships();
+
+	/**
+	 * Register a direct child node description for this entity.
+	 *
+	 * @param child - {@link NodeDescription} that defines an extending class.
+	 */
+	void addChildNodeDescription(NodeDescription<?> child);
+
+	/**
+	 * Retrieve all direct child node descriptions which extend this entity.
+	 *
+	 * @return all direct child node description.
+	 */
+	Collection<NodeDescription<?>> getChildNodeDescriptionsInHierarchy();
+
+	/**
+	 * Register the direct parent node description.
+	 *
+	 * @param parent - {@link NodeDescription} that describes the parent entity.
+	 */
+	void setParentNodeDescription(NodeDescription<?> parent);
 
 	/**
 	 * @return An expression that represents the right identifier type.
