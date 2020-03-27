@@ -48,7 +48,6 @@ import org.springframework.lang.Nullable;
  */
 class RenderingVisitor extends ReflectiveVisitor {
 
-	private static final String TYPE_SEPARATOR = ":";
 	private static final Pattern LABEL_AND_TYPE_QUOTATION = Pattern.compile("`");
 
 	/**
@@ -327,11 +326,11 @@ class RenderingVisitor extends ReflectiveVisitor {
 
 		Relationship.Direction direction = details.getDirection();
 		builder
-			.append(details.isTyped() ? TYPE_SEPARATOR : "")
+			.append(details.isTyped() ? ":" : "")
 			.append(details.getTypes().stream().map(RenderingVisitor::escapeName)
 				.filter(Optional::isPresent)
 				.map(Optional::get)
-				.collect(joining(TYPE_SEPARATOR)))
+				.collect(joining("|")))
 			.append("]");
 		builder.append(direction.getSymbolRight());
 	}
