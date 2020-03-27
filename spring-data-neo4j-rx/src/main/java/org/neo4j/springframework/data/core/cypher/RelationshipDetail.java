@@ -18,9 +18,6 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
@@ -47,38 +44,36 @@ public final class RelationshipDetail implements Visitable {
 
 	private @Nullable final SymbolicName symbolicName;
 
-	private final List<String> types;
+	private @Nullable final RelationshipTypes types;
 
 	private @Nullable final Properties properties;
 
-	RelationshipDetail(Direction direction,
-		@Nullable SymbolicName symbolicName, List<String> types) {
-		this(direction, symbolicName, types, null);
-	}
+	static RelationshipDetail create(Direction direction, @Nullable SymbolicName symbolicName,
+		@Nullable RelationshipTypes types) {
 
-	RelationshipDetail(Direction direction,
-		@Nullable SymbolicName symbolicName, List<String> types, @Nullable Properties properties) {
-
-		this(direction, symbolicName, properties);
-
-		boolean nullTypePresent = types.stream().filter(type -> type == null || type.isEmpty()).findAny().isPresent();
-		Assert.isTrue(!nullTypePresent, "The list of types may not contain literal null or an empty type.");
-		this.types.addAll(types);
+		return new RelationshipDetail(direction, symbolicName, types, null);
 	}
 
 	private RelationshipDetail(Direction direction,
-		@Nullable SymbolicName symbolicName, @Nullable Properties properties) {
+		@Nullable SymbolicName symbolicName,
+		RelationshipTypes types, @Nullable Properties properties) {
 
 		this.direction = direction;
 		this.symbolicName = symbolicName;
-		this.types = new ArrayList<>();
+		this.types = types;
 		this.properties = properties;
 	}
 
 	RelationshipDetail named(String newSymbolicName) {
 
 		Assert.hasText(newSymbolicName, "Symbolic name is required.");
-		return new RelationshipDetail(this.direction, SymbolicName.create(newSymbolicName), this.types, properties);
+		return new RelationshipDetail(this.direction, SymbolicName.create(newSymbolicName), this.types,
+			this.properties);
+	}
+
+	RelationshipDetail with(@Nullable Properties newProperties) {
+
+		return new RelationshipDetail(this.direction, this.symbolicName, this.types, newProperties);
 	}
 
 	public Direction getDirection() {
@@ -89,12 +84,12 @@ public final class RelationshipDetail implements Visitable {
 		return Optional.ofNullable(symbolicName);
 	}
 
-	public List<String> getTypes() {
-		return Collections.unmodifiableList(types);
+	public RelationshipTypes getTypes() {
+		return types;
 	}
 
-	public boolean isTyped() {
-		return !this.types.isEmpty();
+	@Nullable public Properties getProperties() {
+		return properties;
 	}
 
 	@Override
@@ -102,6 +97,7 @@ public final class RelationshipDetail implements Visitable {
 
 		visitor.enter(this);
 		Visitable.visitIfNotNull(this.symbolicName, visitor);
+		Visitable.visitIfNotNull(this.types, visitor);
 		Visitable.visitIfNotNull(this.properties, visitor);
 		visitor.leave(this);
 	}

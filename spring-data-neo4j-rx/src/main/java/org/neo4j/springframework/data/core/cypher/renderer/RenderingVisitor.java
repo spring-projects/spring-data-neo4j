@@ -322,17 +322,20 @@ class RenderingVisitor extends ReflectiveVisitor {
 			.append("[");
 	}
 
+	void enter(RelationshipTypes types) {
+
+		builder
+			.append(types.getValues().stream()
+				.map(RenderingVisitor::escapeName)
+				.map(Optional::get).collect(joining("|", ":", "")));
+	}
+
 	void leave(RelationshipDetail details) {
 
 		Relationship.Direction direction = details.getDirection();
 		builder
-			.append(details.isTyped() ? ":" : "")
-			.append(details.getTypes().stream().map(RenderingVisitor::escapeName)
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.collect(joining("|")))
-			.append("]");
-		builder.append(direction.getSymbolRight());
+			.append("]")
+			.append(direction.getSymbolRight());
 	}
 
 	void enter(Parameter parameter) {

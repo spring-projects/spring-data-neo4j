@@ -80,14 +80,6 @@ public final class Relationship implements
 
 	static Relationship create(Node left,
 		@Nullable Direction direction, Node right, String... types) {
-		return create(left, direction, right, null, types);
-	}
-
-	static Relationship create(Node left,
-		@Nullable Direction direction,
-		Node right,
-		@Nullable Properties properties,
-		String... types) {
 
 		Assert.notNull(left, "Left node is required.");
 		Assert.notNull(right, "Right node is required.");
@@ -96,11 +88,10 @@ public final class Relationship implements
 			.filter(type -> !(type == null || type.isEmpty()))
 			.collect(toList());
 
-		RelationshipDetail details = new RelationshipDetail(
+		RelationshipDetail details = RelationshipDetail.create(
 			Optional.ofNullable(direction).orElse(Direction.UNI),
 			null,
-			listOfTypes,
-			properties);
+			listOfTypes.isEmpty() ? null : new RelationshipTypes(listOfTypes));
 		return new Relationship(left, details, right);
 	}
 
@@ -138,6 +129,38 @@ public final class Relationship implements
 
 		// Sanity check of newSymbolicName delegated to the details.
 		return new Relationship(this.left, this.details.named(newSymbolicName), this.right);
+	}
+
+
+	/**
+	 * Creates a a copy of this relationship with additional properties. Creates a relationship without properties when no properties
+	 * * are passed to this method.
+	 *
+	 * @param newProperties the new properties (can be {@literal null} to remove exiting properties).
+	 * @return The new relationship.
+	 */
+	public Relationship properties(@Nullable MapExpression<?> newProperties) {
+
+		if (newProperties == null && this.details.getProperties() == null) {
+			return this;
+		}
+		return new Relationship(this.left, this.details.with(newProperties == null ? null : new Properties(newProperties)), this.right);
+	}
+
+	/**
+	 * Creates a a copy of this relationship with additional properties. Creates a relationship without properties when no properties
+	 * are passed to this method.
+	 *
+	 * @param keysAndValues A list of key and values. Must be an even number, with alternating {@link String} and {@link Expression}.
+	 * @return The new relationship.
+	 */
+	public Relationship properties(Object... keysAndValues) {
+
+		MapExpression<?> newProperties = null;
+		if (keysAndValues != null && keysAndValues.length != 0) {
+			newProperties = MapExpression.create(keysAndValues);
+		}
+		return properties(newProperties);
 	}
 
 	@Override
