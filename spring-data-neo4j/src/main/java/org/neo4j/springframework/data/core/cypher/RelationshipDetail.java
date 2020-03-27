@@ -46,34 +46,66 @@ public final class RelationshipDetail implements Visitable {
 
 	private @Nullable final RelationshipTypes types;
 
+	private @Nullable final RelationshipLength length;
+
 	private @Nullable final Properties properties;
 
 	static RelationshipDetail create(Direction direction, @Nullable SymbolicName symbolicName,
 		@Nullable RelationshipTypes types) {
 
-		return new RelationshipDetail(direction, symbolicName, types, null);
+		return new RelationshipDetail(direction, symbolicName, types, null, null);
 	}
 
 	private RelationshipDetail(Direction direction,
 		@Nullable SymbolicName symbolicName,
-		RelationshipTypes types, @Nullable Properties properties) {
+		@Nullable RelationshipTypes types,
+		@Nullable RelationshipLength length,
+		@Nullable Properties properties
+	) {
 
 		this.direction = direction;
 		this.symbolicName = symbolicName;
 		this.types = types;
+		this.length = length;
 		this.properties = properties;
 	}
 
 	RelationshipDetail named(String newSymbolicName) {
 
 		Assert.hasText(newSymbolicName, "Symbolic name is required.");
-		return new RelationshipDetail(this.direction, SymbolicName.create(newSymbolicName), this.types,
+		return new RelationshipDetail(this.direction, SymbolicName.create(newSymbolicName), this.types, this.length,
 			this.properties);
 	}
 
 	RelationshipDetail with(@Nullable Properties newProperties) {
 
-		return new RelationshipDetail(this.direction, this.symbolicName, this.types, newProperties);
+		return new RelationshipDetail(this.direction, this.symbolicName, this.types, this.length, newProperties);
+	}
+
+	RelationshipDetail min(Integer minimum) {
+
+		if (minimum == null && (this.length == null || this.length.getMinimum() == null)) {
+			return this;
+		}
+
+		RelationshipLength newLength = Optional.ofNullable(this.length)
+			.map(l -> new RelationshipLength(minimum, l.getMaximum()))
+			.orElseGet(() -> new RelationshipLength(minimum, null));
+
+		return new RelationshipDetail(this.direction, this.symbolicName, this.types, newLength, properties);
+	}
+
+	RelationshipDetail max(Integer maximum) {
+
+		if (maximum == null && (this.length == null || this.length.getMaximum() == null)) {
+			return this;
+		}
+
+		RelationshipLength newLength = Optional.ofNullable(this.length)
+			.map(l -> new RelationshipLength(l.getMinimum(), maximum))
+			.orElseGet(() -> new RelationshipLength(null, maximum));
+
+		return new RelationshipDetail(this.direction, this.symbolicName, this.types, newLength, properties);
 	}
 
 	public Direction getDirection() {
@@ -98,6 +130,7 @@ public final class RelationshipDetail implements Visitable {
 		visitor.enter(this);
 		Visitable.visitIfNotNull(this.symbolicName, visitor);
 		Visitable.visitIfNotNull(this.types, visitor);
+		Visitable.visitIfNotNull(this.length, visitor);
 		Visitable.visitIfNotNull(this.properties, visitor);
 		visitor.leave(this);
 	}

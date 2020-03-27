@@ -131,6 +131,39 @@ public final class Relationship implements
 		return new Relationship(this.left, this.details.named(newSymbolicName), this.right);
 	}
 
+	/**
+	 * Creates a new relationship with a new minimum length
+	 *
+	 * @param minimum the new minimum
+	 * @return the new relationship
+	 */
+	public Relationship min(Integer minimum) {
+
+		return new Relationship(this.left, this.details.min(minimum), this.right);
+	}
+
+	/**
+	 * Creates a new relationship with a new maximum length
+	 *
+	 * @param maximum the new maximum
+	 * @return the new relationship
+	 */
+	public Relationship max(Integer maximum) {
+
+		return new Relationship(this.left, this.details.max(maximum), this.right);
+	}
+
+	/**
+	 * Creates a new relationship with a new length
+	 *
+	 * @param minimum the new minimum
+	 * @param maximum the new maximum
+	 * @return the new relationship
+	 */
+	public Relationship length(Integer minimum, Integer maximum) {
+
+		return new Relationship(this.left, this.details.min(minimum).max(maximum), this.right);
+	}
 
 	/**
 	 * Creates a a copy of this relationship with additional properties. Creates a relationship without properties when no properties

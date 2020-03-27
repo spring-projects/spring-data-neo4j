@@ -330,6 +330,25 @@ class RenderingVisitor extends ReflectiveVisitor {
 				.map(Optional::get).collect(joining("|", ":", "")));
 	}
 
+	void enter(RelationshipLength length) {
+
+		Integer minimum = length.getMinimum();
+		Integer maximum = length.getMaximum();
+
+		if (minimum == null && maximum == null) {
+			return;
+		}
+
+		builder.append("*");
+		if (minimum != null) {
+			builder.append(minimum);
+		}
+		builder.append("..");
+		if (maximum != null) {
+			builder.append(maximum);
+		}
+	}
+
 	void leave(RelationshipDetail details) {
 
 		Relationship.Direction direction = details.getDirection();

@@ -67,7 +67,7 @@ public final class RelationshipChain implements PatternElement, ExposesRelations
 	}
 
 	/**
-	 * Replaces the last element of this chains with a copy of the relationship with the new symbolic name..
+	 * Replaces the last element of this chains with a copy of the relationship with the new symbolic name.
 	 *
 	 * @param newSymbolicName The new symbolic name to use
 	 * @return This chain
@@ -76,6 +76,43 @@ public final class RelationshipChain implements PatternElement, ExposesRelations
 
 		Relationship lastElement = this.relationships.removeLast();
 		return this.add(lastElement.named(newSymbolicName));
+	}
+
+	/**
+	 * Changes the length of the last element of this chain to a new minimum length
+	 *
+	 * @param minimum the new minimum
+	 * @return This chain
+	 */
+	public RelationshipChain min(Integer minimum) {
+
+		Relationship lastElement = this.relationships.removeLast();
+		return this.add(lastElement.min(minimum));
+	}
+
+	/**
+	 * Changes the length of the last element of this chain to a new maximum length
+	 *
+	 * @param maximum the new maximum
+	 * @return This chain
+	 */
+	public RelationshipChain max(Integer maximum) {
+
+		Relationship lastElement = this.relationships.removeLast();
+		return this.add(lastElement.min(maximum));
+	}
+
+	/**
+	 * Changes the length of the last element of this chain
+	 *
+	 * @param minimum the new minimum
+	 * @param maximum the new maximum
+	 * @return This chain
+	 */
+	public RelationshipChain length(Integer minimum, Integer maximum) {
+
+		Relationship lastElement = this.relationships.removeLast();
+		return this.add(lastElement.length(minimum, maximum));
 	}
 
 	@Override
