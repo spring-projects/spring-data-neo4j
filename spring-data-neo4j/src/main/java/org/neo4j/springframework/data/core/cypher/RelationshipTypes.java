@@ -22,26 +22,23 @@ import java.util.List;
 
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.support.Visitable;
-import org.neo4j.springframework.data.core.cypher.support.Visitor;
 
 /**
- * Makes a list of {@link NodeLabel node labels} visitable.
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/RelationshipDetail.html#RelationshipTypes">RelationshipTypes</a>
  *
  * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-final class NodeLabels implements Visitable {
+public final class RelationshipTypes implements Visitable {
 
-	private final List<NodeLabel> values;
+	private final List<String> values;
 
-	NodeLabels(List<NodeLabel> values) {
+	public RelationshipTypes(List<String> values) {
 		this.values = values;
 	}
 
-	public void accept(Visitor visitor) {
-		visitor.enter(this);
-		values.forEach(value -> value.accept(visitor));
-		visitor.leave(this);
+	public List<String> getValues() {
+		return values;
 	}
 }
