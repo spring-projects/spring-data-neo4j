@@ -108,6 +108,50 @@ class CypherIT {
 					.isEqualTo("MATCH (u:`User`)-[:`OWNS` {boughtOn: '2019-04-16'}]->(b:`Bike`) RETURN b, u");
 			}
 
+			@Test // GH-168
+			void relationshipWithMinimumLength() {
+				Statement statement = Cypher
+					.match(userNode.relationshipTo(bikeNode, "OWNS").min(3))
+					.returning(bikeNode, userNode)
+					.build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo("MATCH (u:`User`)-[:`OWNS`*3..]->(b:`Bike`) RETURN b, u");
+			}
+
+			@Test // GH-168
+			void relationshipWithMaximumLength() {
+				Statement statement = Cypher
+					.match(userNode.relationshipTo(bikeNode, "OWNS").max(5))
+					.returning(bikeNode, userNode)
+					.build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo("MATCH (u:`User`)-[:`OWNS`*..5]->(b:`Bike`) RETURN b, u");
+			}
+
+			@Test // GH-168
+			void relationshipWithLength() {
+				Statement statement = Cypher
+					.match(userNode.relationshipTo(bikeNode, "OWNS").length(3, 5))
+					.returning(bikeNode, userNode)
+					.build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo("MATCH (u:`User`)-[:`OWNS`*3..5]->(b:`Bike`) RETURN b, u");
+			}
+
+			@Test // GH-168
+			void relationshipWithLengthAndProperties() {
+				Statement statement = Cypher
+					.match(userNode.relationshipTo(bikeNode, "OWNS").length(3, 5).properties(mapOf("boughtOn", literalOf("2019-04-16"))))
+					.returning(bikeNode, userNode)
+					.build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo("MATCH (u:`User`)-[:`OWNS`*3..5 {boughtOn: '2019-04-16'}]->(b:`Bike`) RETURN b, u");
+			}
+
 			@Test
 			void simpleRelationshipWithReturn() {
 				Relationship owns = userNode
