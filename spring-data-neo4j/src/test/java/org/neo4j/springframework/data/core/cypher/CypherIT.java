@@ -86,6 +86,17 @@ class CypherIT {
 					.isEqualTo("MATCH (u:`User`)-[:`OWNS`]->(b:`Bike`) RETURN b, u");
 			}
 
+			@Test // GH-169
+			void multipleRelationshipTypes() {
+				Statement statement = Cypher
+					.match(userNode.relationshipTo(bikeNode, "OWNS", "RIDES"))
+					.returning(bikeNode, userNode)
+					.build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo("MATCH (u:`User`)-[:`OWNS`|`RIDES`]->(b:`Bike`) RETURN b, u");
+			}
+
 			@Test
 			void simpleRelationshipWithReturn() {
 				Relationship owns = userNode
