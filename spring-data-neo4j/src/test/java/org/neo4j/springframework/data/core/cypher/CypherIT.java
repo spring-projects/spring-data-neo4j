@@ -2196,4 +2196,35 @@ class CypherIT {
 				.isEqualTo("CREATE (n:`a`:`b`:`c`)");
 		}
 	}
+
+	@Nested
+	class Issues {
+
+		@Test
+		void gh167() {
+			final Node app = node("Location").named("app").properties("uuid", parameter("app_uuid"));
+			final Node locStart = node("Location").named("loc_start");
+			final Node resume = node("Resume").named("r");
+			final Node offer = node("Offer").named("o");
+			final Node startN = node("ResumeNode").named("start_n");
+
+			final Relationship aFl = app.relationshipFrom(locStart, "PART_OF").length(0, 3);
+			final Relationship lFr = locStart.relationshipFrom(resume, "IN", "IN_ANALYTICS");
+
+			Statement statement = match(aFl, lFr)
+				.withDistinct(resume, locStart, app)
+				.match(resume
+					.relationshipTo(offer.properties("is_valid", literalTrue()), "IN_COHORT_OF")
+					.relationshipTo(anyNode("app"), "IN")
+				)
+				.withDistinct(resume, locStart, app, offer)
+				.match(offer.relationshipTo(startN, "FOR"))
+				.where(Functions.id(name("start_n")).in(parameter("start_ids")))
+				.returningDistinct(resume, locStart, app, offer, startN).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (app:`Location` {uuid: $app_uuid})<-[:`PART_OF`*0..3]-(loc_start:`Location`), (loc_start)<-[:`IN`|`IN_ANALYTICS`]-(r:`Resume`) WITH DISTINCT r, loc_start, app MATCH (r)-[:`IN_COHORT_OF`]->(o:`Offer` {is_valid: true})-[:`IN`]->(app) WITH DISTINCT r, loc_start, app, o MATCH (o:`Offer`)-[:`FOR`]->(start_n:`ResumeNode`) WHERE id(start_n) IN $start_ids RETURN DISTINCT r, loc_start, app, o, start_n");
+		}
+	}
 }
