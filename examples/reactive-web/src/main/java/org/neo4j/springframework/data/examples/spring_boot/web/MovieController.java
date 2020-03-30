@@ -19,16 +19,12 @@
 package org.neo4j.springframework.data.examples.spring_boot.web;
 
 // tag::getting.started[]
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Map;
-
 import org.neo4j.springframework.data.examples.spring_boot.domain.MovieEntity;
 import org.neo4j.springframework.data.examples.spring_boot.domain.MovieRepository;
-import org.neo4j.springframework.data.examples.spring_boot.domain.MovieService;
-import org.neo4j.springframework.data.examples.spring_boot.support.D3JSGraphElement;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,12 +46,8 @@ public class MovieController {
 
 	private final MovieRepository movieRepository;
 
-	private final MovieService movieService;
-
-	public MovieController(MovieRepository movieRepository,
-		MovieService movieService) {
+	public MovieController(MovieRepository movieRepository) {
 		this.movieRepository = movieRepository;
-		this.movieService = movieService;
 	}
 
 	@PutMapping
@@ -78,12 +70,5 @@ public class MovieController {
 	Mono<Void> delete(@PathVariable String id) {
 		return movieRepository.deleteById(id);
 	}
-	// end::getting.started[]
-
-	@GetMapping("/graph")
-	public Mono<Map<String, List<D3JSGraphElement>>> graph() {
-		return movieService.createD3JSGraph();
-	}
-	// tag::getting.started[]
 }
 // end::getting.started[]

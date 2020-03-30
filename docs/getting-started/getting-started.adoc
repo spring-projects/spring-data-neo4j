@@ -102,7 +102,7 @@ The dependency for Gradle looks like this and must be added to `build.gradle`:
 .Inclusion of the spring-data-neo4j-rx-spring-boot-starter in a Gradle project
 ----
 dependencies {
-    compile '{groupId}:{artifactIdStarter}:{spring-data-neo4j-rx-version}'
+    implementation '{groupId}:{artifactIdStarter}:{spring-data-neo4j-rx-version}'
 }
 ----
 

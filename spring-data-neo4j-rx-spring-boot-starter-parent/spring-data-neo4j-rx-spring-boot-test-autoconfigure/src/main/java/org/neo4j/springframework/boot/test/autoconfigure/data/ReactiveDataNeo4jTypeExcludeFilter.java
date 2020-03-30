@@ -23,25 +23,22 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.neo4j.driver.Driver;
-import org.neo4j.springframework.data.core.Neo4jClient;
-import org.neo4j.springframework.data.core.Neo4jTemplate;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
 import org.neo4j.springframework.data.core.ReactiveNeo4jTemplate;
-import org.neo4j.springframework.data.repository.Neo4jRepository;
 import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 import org.springframework.boot.context.TypeExcludeFilter;
 import org.springframework.boot.test.autoconfigure.filter.StandardAnnotationCustomizableTypeExcludeFilter;
 
 /**
- * {@link TypeExcludeFilter} for {@link DataNeo4jTest @DataNeo4jTest}.
+ * {@link TypeExcludeFilter} for {@link ReactiveDataNeo4jTest @ReactiveDataNeo4jTest}.
  *
  * @author Michael J. Simons
- * @soundtrack Iron Maiden - Rock In Rio
+ * @soundtrack Rage - Reflections Of A Shadow
  * @since 1.0
  */
-class DataNeo4jTypeExcludeFilter extends StandardAnnotationCustomizableTypeExcludeFilter<DataNeo4jTest> {
+class ReactiveDataNeo4jTypeExcludeFilter extends StandardAnnotationCustomizableTypeExcludeFilter<ReactiveDataNeo4jTest> {
 
-	DataNeo4jTypeExcludeFilter(Class<?> testClass) {
+	ReactiveDataNeo4jTypeExcludeFilter(Class<?> testClass) {
 		super(testClass);
 	}
 
@@ -50,9 +47,6 @@ class DataNeo4jTypeExcludeFilter extends StandardAnnotationCustomizableTypeExclu
 	static {
 		Set<Class<?>> includes = new LinkedHashSet<>();
 		includes.add(Driver.class);
-		includes.add(Neo4jClient.class);
-		includes.add(Neo4jTemplate.class);
-		includes.add(Neo4jRepository.class);
 		includes.add(ReactiveNeo4jClient.class);
 		includes.add(ReactiveNeo4jTemplate.class);
 		includes.add(ReactiveNeo4jRepository.class);

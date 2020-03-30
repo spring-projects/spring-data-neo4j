@@ -37,18 +37,12 @@ import org.neo4j.springframework.data.core.Neo4jClient;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.containers.Neo4jContainer;
 
 /**
  * Integration tests for the SDN/RX Neo4j test slice.
@@ -116,23 +110,6 @@ class DataNeo4jTestIT {
 	@ContextConfiguration(initializers = TestContainerInitializer.class)
 	@DataNeo4jTest(excludeAutoConfiguration = Neo4jTestHarnessAutoConfiguration.class)
 	class DriverBasedOnAutoConfiguration extends TestBase {
-	}
-
-	/**
-	 * An initializer that starts a Neo4j test container and sets {@code org.neo4j.driver.uri} to the containers
-	 * bolt uri. It also registers an application listener that stops the container when the context closes.
-	 */
-	static class TestContainerInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-
-		@Override
-		public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-			final Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>().withoutAuthentication();
-			neo4jContainer.start();
-			configurableApplicationContext
-				.addApplicationListener((ApplicationListener<ContextClosedEvent>) event -> neo4jContainer.stop());
-			TestPropertyValues.of("org.neo4j.driver.uri=" + neo4jContainer.getBoltUrl())
-				.applyTo(configurableApplicationContext.getEnvironment());
-		}
 	}
 
 	/**

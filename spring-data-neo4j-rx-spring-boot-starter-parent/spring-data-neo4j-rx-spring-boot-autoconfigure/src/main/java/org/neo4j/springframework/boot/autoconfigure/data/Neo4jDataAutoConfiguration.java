@@ -24,9 +24,11 @@ import org.neo4j.driver.Driver;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.schema.Node;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.domain.EntityScanner;
+import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -43,6 +45,7 @@ import org.springframework.context.annotation.Import;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnBean(Driver.class)
 @EnableConfigurationProperties(Neo4jDataProperties.class)
+@AutoConfigureBefore(TransactionAutoConfiguration.class)
 @Import({ Neo4jImperativeDataConfiguration.class, Neo4jReactiveDataConfiguration.class })
 public final class Neo4jDataAutoConfiguration {
 

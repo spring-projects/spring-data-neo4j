@@ -18,28 +18,35 @@
  */
 package org.neo4j.springframework.boot.test.autoconfigure.data;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-
 /**
- * {@link ImportAutoConfiguration Auto-configuration imports} for typical Data Neo4j
- * tests. Most tests should consider using {@link DataNeo4jTest @DataNeo4jTest} or
- * {@link ReactiveDataNeo4jTest @ReactiveDataNeo4jTest} rather than using this annotation directly.
+ * An exception that is thrown when a version of Neo4j is present that does not match the requirements of a test setup.
  *
  * @author Michael J. Simons
- * @soundtrack Iron Maiden - Rock In Rio
  * @since 1.0
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Inherited
-@ImportAutoConfiguration
-public @interface AutoConfigureDataNeo4j {
+public final class Neo4jVersionMismatchException extends RuntimeException {
+
+	/**
+	 * The required version.
+	 */
+	private final String requiredVersion;
+
+	/**
+	 * The actual version of Neo4j persent.
+	 */
+	private final String actualVersion;
+
+	public Neo4jVersionMismatchException(String message, String requiredVersion, String actualVersion) {
+		super(message);
+		this.requiredVersion = requiredVersion;
+		this.actualVersion = actualVersion;
+	}
+
+	public String getRequiredVersion() {
+		return requiredVersion;
+	}
+
+	public String getActualVersion() {
+		return actualVersion;
+	}
 }

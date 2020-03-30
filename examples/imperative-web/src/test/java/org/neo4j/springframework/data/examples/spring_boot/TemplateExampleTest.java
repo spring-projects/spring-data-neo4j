@@ -35,9 +35,10 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Michael J. Simons
  */
 // tag::faq.template-imperative[]
+// tag::testing.dataneo4jtest[]
 @DataNeo4jTest
 public class TemplateExampleTest {
-
+	// end::testing.dataneo4jtest[]
 	@Test
 	void shouldSaveAndReadEntities(@Autowired Neo4jTemplate neo4jTemplate) {
 
@@ -58,5 +59,7 @@ public class TemplateExampleTest {
 
 		assertThat(neo4jTemplate.count(PersonEntity.class)).isEqualTo(2L);
 	}
+	// tag::testing.dataneo4jtest[]
 }
 // end::faq.template-imperative[]
+// end::testing.dataneo4jtest[]

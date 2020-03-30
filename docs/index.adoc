@@ -52,6 +52,8 @@ include::object-mapping/index.adoc[]
 
 include::repositories/index.adoc[]
 
+include::testing/index.adoc[]
+
 include::auditing/index.adoc[]
 
 include::faq/index.adoc[]

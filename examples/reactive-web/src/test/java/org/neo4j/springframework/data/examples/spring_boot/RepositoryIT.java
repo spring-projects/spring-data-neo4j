@@ -18,70 +18,59 @@
  */
 package org.neo4j.springframework.data.examples.spring_boot;
 
+// tag::testing.reactivedataneo4jtest[]
+
 import static org.assertj.core.api.Assertions.*;
 
 import reactor.test.StepVerifier;
 
+// end::testing.reactivedataneo4jtest[]
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
+// tag::testing.reactivedataneo4jtest[]
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.junit.jupiter.api.extension.ExtendWith;
+// end::testing.reactivedataneo4jtest[]
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.springframework.boot.test.autoconfigure.Neo4jTestHarnessAutoConfiguration;
-import org.neo4j.springframework.boot.test.autoconfigure.data.AutoConfigureDataNeo4j;
+// tag::testing.reactivedataneo4jtest[]
+import org.neo4j.springframework.boot.test.autoconfigure.data.ReactiveDataNeo4jTest;
 import org.neo4j.springframework.data.examples.spring_boot.domain.MovieRepository;
 import org.neo4j.springframework.data.examples.spring_boot.domain.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+// end::testing.reactivedataneo4jtest[]
 
 /**
  * @author Michael J. Simons
  * @author Gerrit Meier
  */
+// tag::testing.reactivedataneo4jtest[]
 @Testcontainers
-@EnabledIfEnvironmentVariable(named = RepositoryIT.SYS_PROPERTY_NEO4J_VERSION, matches = "4\\.0.*")
-@ExtendWith(SpringExtension.class)
-@EnableAutoConfiguration(exclude = Neo4jTestHarnessAutoConfiguration.class)
-@AutoConfigureDataNeo4j
-@ContextConfiguration(initializers = RepositoryIT.Initializer.class)
+@ReactiveDataNeo4jTest
 class RepositoryIT {
 
-	private static final String SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION = "SDN_RX_NEO4J_ACCEPT_COMMERCIAL_EDITION";
-	private static final String SYS_PROPERTY_NEO4J_REPOSITORY = "SDN_RX_NEO4J_REPOSITORY";
-	protected static final String SYS_PROPERTY_NEO4J_VERSION = "SDN_RX_NEO4J_VERSION";
-
 	@Container
-	private static Neo4jContainer<?> neo4jContainer =
-		new Neo4jContainer<>(Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_REPOSITORY)).orElse("neo4j") + ":" + Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_VERSION)).orElse("4.0.0"))
-		.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT",
-			Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION)).orElse("no"));
+	private static Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>("neo4j:4.0");
 
-	@Autowired
-	private PersonRepository repository;
+	@DynamicPropertySource
+	static void neo4jProperties(DynamicPropertyRegistry registry) {
+		registry.add("org.neo4j.driver.uri", neo4jContainer::getBoltUrl);
+		registry.add("org.neo4j.driver.authentication.username", () -> "neo4j");
+		registry.add("org.neo4j.driver.authentication.password", neo4jContainer::getAdminPassword);
+	}
 
-	@Autowired
-	private MovieRepository movieRepository;
-
-	@Autowired
-	private Driver driver;
-
+	// end::testing.reactivedataneo4jtest[]
 	@BeforeEach
-	void setup() throws IOException {
+	void setup(@Autowired Driver driver) throws IOException {
 		try (BufferedReader moviesReader = new BufferedReader(
 			new InputStreamReader(this.getClass().getResourceAsStream("/movies.cypher")));
 			Session session = driver.session()) {
@@ -91,17 +80,20 @@ class RepositoryIT {
 		}
 	}
 
+	// tag::testing.reactivedataneo4jtest[]
 	@Test
-	void loadAllPersonsFromGraph() {
+	void loadAllPersonsFromGraph(@Autowired PersonRepository personRepository) {
 		int expectedPersonCount = 133;
-		StepVerifier.create(repository.findAll())
+		StepVerifier.create(personRepository.findAll())
 			.expectNextCount(expectedPersonCount)
 			.verifyComplete();
 	}
 
+	// end::testing.reactivedataneo4jtest[]
+
 	@Test
-	void findPersonByName() {
-		StepVerifier.create(repository.findByName("Tom Hanks"))
+	void findPersonByName(@Autowired PersonRepository personRepository) {
+		StepVerifier.create(personRepository.findByName("Tom Hanks"))
 			.assertNext(personEntity -> {
 				assertThat(personEntity.getBorn()).isEqualTo(1956);
 			})
@@ -109,15 +101,15 @@ class RepositoryIT {
 	}
 
 	@Test
-	void findsPersonsWhoActAndDirect() {
+	void findsPersonsWhoActAndDirect(@Autowired PersonRepository personRepository) {
 		int expectedActorAndDirectorCount = 5;
-		StepVerifier.create(repository.getPersonsWhoActAndDirect())
+		StepVerifier.create(personRepository.getPersonsWhoActAndDirect())
 			.expectNextCount(expectedActorAndDirectorCount)
 			.verifyComplete();
 	}
 
 	@Test
-	void findOneMovie() {
+	void findOneMovie(@Autowired MovieRepository movieRepository) {
 		StepVerifier.create(movieRepository.findOneByTitle("The Matrix"))
 			.assertNext(movie -> {
 				assertThat(movie.getTitle()).isEqualTo("The Matrix");
@@ -128,13 +120,6 @@ class RepositoryIT {
 			.verifyComplete();
 	}
 
-	static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-		public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-			TestPropertyValues.of(
-				"org.neo4j.driver.uri=" + neo4jContainer.getBoltUrl(),
-				"org.neo4j.driver.authentication.username=neo4j",
-				"org.neo4j.driver.authentication.password=" + neo4jContainer.getAdminPassword()
-			).applyTo(configurableApplicationContext.getEnvironment());
-		}
-	}
+	// tag::testing.reactivedataneo4jtest[]
 }
+// end::testing.reactivedataneo4jtest[]

@@ -135,9 +135,9 @@ And here is the reactive version, omitting the setup for brevity:
 
 [source,java]
 [[reactive-template-example]]
-.TemplateExampleTest.java
+.ReactiveTemplateExampleTest.java
 ----
-include::../../examples/reactive-web/src/test/java/org/neo4j/springframework/data/examples/spring_boot/ReactiveTemplateTest.java[tags=faq.template-reactive]
+include::../../examples/reactive-web/src/test/java/org/neo4j/springframework/data/examples/spring_boot/ReactiveTemplateExampleTest.java[tags=faq.template-reactive]
 ----
 
 == How do I specify parameters in custom queries?
