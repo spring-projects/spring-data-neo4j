@@ -19,6 +19,7 @@
 package org.neo4j.springframework.data.core.cypher.renderer;
 
 import static java.util.stream.Collectors.*;
+import static org.neo4j.springframework.data.core.cypher.renderer.Symbols.*;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -302,7 +303,7 @@ class RenderingVisitor extends ReflectiveVisitor {
 
 	void enter(NodeLabel nodeLabel) {
 
-		escapeName(nodeLabel.getValue()).ifPresent(label -> builder.append(":").append(label));
+		escapeName(nodeLabel.getValue()).ifPresent(label -> builder.append(NODE_LABEL_START).append(label));
 	}
 
 	void enter(Properties properties) {
@@ -327,7 +328,7 @@ class RenderingVisitor extends ReflectiveVisitor {
 		builder
 			.append(types.getValues().stream()
 				.map(RenderingVisitor::escapeName)
-				.map(Optional::get).collect(joining("|", ":", "")));
+				.map(Optional::get).collect(joining(REL_TYP_SEPARATOR, REL_TYPE_START, "")));
 	}
 
 	void enter(RelationshipLength length) {
