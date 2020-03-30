@@ -38,7 +38,7 @@ jobs:
       SDN_RX_NEO4J_VERSION: 4.0.2
     strategy:
       matrix:
-        java: [ '11', '13' ]
+        java: [ '11', '14' ]
     needs: build
     steps:
       - uses: actions/checkout@v1

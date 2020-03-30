@@ -45,21 +45,21 @@
 		<changelist>-SNAPSHOT</changelist>
 		<checkstyle.version>8.29</checkstyle.version>
 		<flatten-maven-plugin.version>1.1.0</flatten-maven-plugin.version>
-		<jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
+		<jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
 		<java.version>1.8</java.version>
 		<java-module-name />
-		<junit-jupiter.version>5.4.2</junit-jupiter.version>
+		<junit-jupiter.version>5.6.1</junit-jupiter.version>
 		<maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
 		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
-		<maven-enforcer-plugin.version>3.0.0-M2</maven-enforcer-plugin.version>
+		<maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
 		<maven-failsafe-plugin.version>3.0.0-M3</maven-failsafe-plugin.version>
 		<maven-install-plugin.version>3.0.0-M1</maven-install-plugin.version>
 		<maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
 		<maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
 		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
 		<maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
-		<neo4j-java-driver-spring-boot-starter.version>4.0.0.1</neo4j-java-driver-spring-boot-starter.version>
-		<neo4j.version>3.5.12</neo4j.version>
+		<neo4j-java-driver-spring-boot-starter.version>4.0.1.0</neo4j-java-driver-spring-boot-starter.version>
+		<neo4j.version>3.5.16</neo4j.version>
 		<revision>1.0.0</revision>
 		<sha1></sha1>
 		<spring-data-neo4j-rx.version>${revision}${sha1}${changelist}</spring-data-neo4j-rx.version>
