@@ -23,6 +23,8 @@ import static org.neo4j.springframework.data.core.cypher.Conditions.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.cypher.Functions.*;
 
+import java.util.function.Function;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
@@ -575,14 +577,30 @@ class CypherIT {
 
 		@Test
 		void usingSameWithStepWithReassign() {
-			StatementBuilder.ExposesMatch firstStep = match(bikeNode).with(bikeNode);
+			ExposesMatch firstStep = match(bikeNode).with(bikeNode);
 
 			firstStep = firstStep.optionalMatch(userNode);
 			firstStep = firstStep.optionalMatch(Cypher.node("Trip"));
 
-			Statement statement = ((StatementBuilder.ExposesReturning) firstStep).returning(Cypher.asterisk()).build();
+			Statement statement = ((ExposesReturning) firstStep).returning(Cypher.asterisk()).build();
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo("MATCH (b:`Bike`) WITH b OPTIONAL MATCH (u:`User`) OPTIONAL MATCH (:`Trip`) RETURN *");
+		}
+
+		@Test
+		void queryPartsShouldBeExtractableInQueries() {
+
+			// THose can be a couple of queries ending in a WITH statement so the
+			// pipeline they present in the full query is also present in Java.
+			Function<ExposesMatch, ExposesMatch> step1Supplier =
+				previous -> previous.match(node("S1").named("n")).where(property("n", "a").isEqualTo(literalOf("A"))).with("n");
+			Function<ExposesMatch, ExposesReturning> step2Supplier =
+				previous -> previous.match(Cypher.anyNode("n").relationshipTo(node("S2").named("m"), "SOMEHOW_RELATED")).with("n", "m");
+
+			Statement statement = step1Supplier.andThen(step2Supplier).apply(Statement.builder()).returning("n", "m").build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (n:`S1`) WHERE n.a = 'A' WITH n MATCH (n)-[:`SOMEHOW_RELATED`]->(m:`S2`) WITH n, m RETURN n, m");
 		}
 
 		@Test
