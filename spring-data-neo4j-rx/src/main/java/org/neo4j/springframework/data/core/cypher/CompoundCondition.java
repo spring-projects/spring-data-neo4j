@@ -55,7 +55,6 @@ public final class CompoundCondition implements Condition {
 		Assert.notNull(left, "Left hand side condition is required.");
 		Assert.notNull(operator, "Operator is required.");
 		Assert.notNull(right, "Right hand side condition is required.");
-
 		return new CompoundCondition(operator)
 			.add(operator, left)
 			.add(operator, right);
@@ -107,7 +106,9 @@ public final class CompoundCondition implements Condition {
 			if (compoundCondition.operator == chainingOperator) {
 				this.conditions.addAll(compoundCondition.conditions);
 			} else {
-				this.conditions.add(condition);
+				CompoundCondition inner = new CompoundCondition(chainingOperator);
+				inner.conditions.add(compoundCondition);
+				this.conditions.add(inner);
 			}
 
 			return this;
@@ -124,22 +125,38 @@ public final class CompoundCondition implements Condition {
 	@Override
 	public void accept(Visitor visitor) {
 
-		// Fold single or empty condition
-		boolean hasManyConditions = this.conditions.size() > 1;
+		// There is nothing to visit here
+		if (this.conditions.isEmpty()) {
+			return;
+		}
 
+		// Fold single condition
+		boolean hasManyConditions = this.conditions.size() > 1;
 		if (hasManyConditions) {
 			visitor.enter(this);
 		}
 
-		Operator currentOperator = null;
-		for (Condition condition : conditions) {
-			Visitable.visitIfNotNull(currentOperator, visitor);
-			condition.accept(visitor);
-			currentOperator = operator;
-		}
+		// The first nested condition does not need an operator
+		acceptVisitorWithOperatorForChildCondition(visitor, null, conditions.get(0));
 
+		// All others do
 		if (hasManyConditions) {
+			for (Condition condition : conditions.subList(1, conditions.size())) {
+				// This takes care of a potential inner compound condition that got added with a different operator
+				// and thus forms a tree.
+				Operator actualOperator = condition instanceof CompoundCondition ?
+					((CompoundCondition) condition).operator :
+					operator;
+				acceptVisitorWithOperatorForChildCondition(visitor, actualOperator, condition);
+			}
 			visitor.leave(this);
 		}
+	}
+
+	private static void acceptVisitorWithOperatorForChildCondition(
+		Visitor visitor, Operator operator, Condition condition
+	) {
+		Visitable.visitIfNotNull(operator, visitor);
+		condition.accept(visitor);
 	}
 }

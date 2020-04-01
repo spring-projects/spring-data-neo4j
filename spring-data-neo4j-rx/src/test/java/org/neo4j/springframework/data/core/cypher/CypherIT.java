@@ -2226,5 +2226,23 @@ class CypherIT {
 				.isEqualTo(
 					"MATCH (app:`Location` {uuid: $app_uuid})<-[:`PART_OF`*0..3]-(loc_start:`Location`), (loc_start)<-[:`IN`|`IN_ANALYTICS`]-(r:`Resume`) WITH DISTINCT r, loc_start, app MATCH (r)-[:`IN_COHORT_OF`]->(o:`Offer` {is_valid: true})-[:`IN`]->(app) WITH DISTINCT r, loc_start, app, o MATCH (o:`Offer`)-[:`FOR`]->(start_n:`ResumeNode`) WHERE id(start_n) IN $start_ids RETURN DISTINCT r, loc_start, app, o, start_n");
 		}
+
+		@Test
+		void gh174() {
+			final Node r = node("Resume").named("r");
+			final Node o = node("Offer").named("o");
+
+			Statement s = match(r.relationshipTo(o, "FOR"))
+				.where(r.hasLabels("LastResume").not())
+				.and(coalesce(o.property("valid_only"), literalFalse()).isEqualTo(literalFalse())
+					.and(r.hasLabels("InvalidStatus").not())
+					.or(o.property("valid_only").isTrue()
+						.and(r.hasLabels("InvalidStatus"))))
+				.returningDistinct(r, o)
+				.build();
+
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("MATCH (r:`Resume`)-[:`FOR`]->(o:`Offer`) WHERE (NOT (r:`LastResume`) AND coalesce(o.valid_only, false) = false AND NOT (r:`InvalidStatus`) OR (o.valid_only = true AND r:`InvalidStatus`)) RETURN DISTINCT r, o");
+		}
 	}
 }
