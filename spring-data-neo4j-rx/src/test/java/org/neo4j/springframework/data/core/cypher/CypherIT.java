@@ -211,6 +211,25 @@ class CypherIT {
 						"MATCH (u:`User`)-[:`OWNS`]->(b:`Bike`)-[r2:`USED_ON`]->(t:`Trip`)<-[x:`WAS_ON`]-(u)-[y]-(:`SOMETHING`) WHERE u.name =~ '.*aName' RETURN b, u");
 			}
 
+			@Test // GH-177
+			void chainedRelationshipsWithPropertiesAndLength() {
+				Node tripNode = Cypher.node("Trip").named("t");
+				Statement statement = Cypher
+					.match(userNode
+						.relationshipTo(bikeNode, "OWNS")
+						.relationshipTo(tripNode, "USED_ON").named("r2").min(1).properties(mapOf("when", literalOf("2019-04-16")))
+						.relationshipFrom(userNode, "WAS_ON").named("x").max(2).properties("whatever", literalOf("2020-04-16"))
+						.relationshipBetween(Cypher.node("SOMETHING")).named("y").length(2, 3).properties(mapOf("idk", literalOf("2021-04-16")))
+					)
+					.where(userNode.property("name").matches(".*aName"))
+					.returning(bikeNode, userNode)
+					.build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo(
+						"MATCH (u:`User`)-[:`OWNS`]->(b:`Bike`)-[r2:`USED_ON`*1.. {when: '2019-04-16'}]->(t:`Trip`)<-[x:`WAS_ON`*2.. {whatever: '2020-04-16'}]-(u)-[y*2..3 {idk: '2021-04-16'}]-(:`SOMETHING`) WHERE u.name =~ '.*aName' RETURN b, u");
+			}
+
 			@Test
 			void sortOrderDefault() {
 				Statement statement = Cypher.match(userNode).returning(userNode)

@@ -116,6 +116,30 @@ public final class RelationshipChain implements PatternElement, ExposesRelations
 		return this.add(lastElement.length(minimum, maximum));
 	}
 
+	/**
+	 * Adds properties to the last element of this chain.
+	 *
+	 * @param newProperties the new properties (can be {@literal null} to remove exiting properties).
+	 * @return This chain
+	 */
+	public RelationshipChain properties(MapExpression<?> newProperties) {
+
+		Relationship lastElement = this.relationships.removeLast();
+		return this.add(lastElement.properties(newProperties));
+	}
+
+	/**
+	 * Adds properties to the last element of this chain.
+	 *
+	 * @param keysAndValues A list of key and values. Must be an even number, with alternating {@link String} and {@link Expression}.
+	 * @return This chain
+	 */
+	public RelationshipChain properties(Object... keysAndValues) {
+
+		Relationship lastElement = this.relationships.removeLast();
+		return this.add(lastElement.properties(keysAndValues));
+	}
+
 	@Override
 	public void accept(Visitor visitor) {
 
