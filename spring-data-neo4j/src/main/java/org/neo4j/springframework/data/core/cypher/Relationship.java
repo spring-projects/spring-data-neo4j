@@ -180,7 +180,7 @@ public final class Relationship implements
 
 	/**
 	 * Creates a a copy of this relationship with additional properties. Creates a relationship without properties when no properties
-	 * * are passed to this method.
+	 * are passed to this method.
 	 *
 	 * @param newProperties the new properties (can be {@literal null} to remove exiting properties).
 	 * @return The new relationship.
