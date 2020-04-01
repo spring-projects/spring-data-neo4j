@@ -30,45 +30,23 @@ import org.springframework.lang.Nullable;
  * @since 1.0
  */
 @API(status = EXPERIMENTAL, since = "1.0")
-public interface StatementBuilder {
+public interface StatementBuilder extends ExposesMatch, ExposesCreate, ExposesMerge, ExposesUnwind {
 
 	/**
-	 * @param pattern patterns to match
-	 * @return An ongoing match
-	 * @see Cypher#optionalMatch(PatternElement...)
+	 * Allows for queries starting with {@code with range(1,10) as x return x} or similar.
+	 *
+	 * @param expressions The expressions to start the query with
+	 * @return An ongoing read, exposing return and further matches.
 	 */
-	OngoingReadingWithoutWhere optionalMatch(PatternElement... pattern);
-
-	/**
-	 * @param pattern patterns to match
-	 * @return An ongoing match
-	 * @see Cypher#match(PatternElement...)
-	 */
-	OngoingReadingWithoutWhere match(PatternElement... pattern);
-
-	/**
-	 * @param pattern patterns to create
-	 * @return An ongoing merge
-	 * @see Cypher#create(PatternElement...)
-	 */
-	<T extends OngoingUpdate & ExposesSet> T create(PatternElement... pattern);
-
-	/**
-	 * @param pattern patterns to merge
-	 * @return An ongoing merge
-	 * @see Cypher#merge(PatternElement...)
-	 */
-	<T extends OngoingUpdate & ExposesSet> T merge(PatternElement... pattern);
-
-	OngoingUnwind unwind(Expression expression);
-
 	OrderableOngoingReadingAndWith with(AliasedExpression... expressions);
 
 	/**
 	 * An ongoing update statement that can be used to chain more update statements or add a with or return clause.
+	 *
 	 * @since 1.0
 	 */
-	interface OngoingUpdate extends BuildableStatement, ExposesCreate, ExposesMerge, ExposesDelete, ExposesReturning, ExposesWith {
+	interface OngoingUpdate
+		extends BuildableStatement, ExposesCreate, ExposesMerge, ExposesDelete, ExposesReturning, ExposesWith {
 	}
 
 	/**
@@ -181,12 +159,11 @@ public interface StatementBuilder {
 	}
 
 	/**
-	 * @see OngoingReading
+	 * @see OngoingReadingAndWith
 	 * @since 1.0
 	 */
 	interface OrderableOngoingReadingAndWith
-		extends OngoingReading, ExposesMatch, ExposesOrderBy, ExposesSkip, ExposesLimit, ExposesReturning,
-		ExposesCreate, ExposesMerge {
+		extends ExposesOrderBy, ExposesSkip, ExposesLimit, OngoingReadingAndWith {
 	}
 
 	/**
@@ -274,45 +251,6 @@ public interface StatementBuilder {
 		 * @return The statement ready to be used, i.e. in a renderer.
 		 */
 		Statement build();
-	}
-
-	/**
-	 * Return part of a statement.
-	 * @since 1.0
-	 */
-	interface ExposesReturning {
-
-		default OngoingReadingAndReturn returning(String... variables) {
-			return returning(createSymbolicNames(variables));
-		}
-
-		default OngoingReadingAndReturn returning(Named... variables) {
-			return returning(createSymbolicNames(variables));
-		}
-
-		/**
-		 * Create a match that returns one or more expressions.
-		 *
-		 * @param expressions The expressions to be returned. Must not be null and be at least one expression.
-		 * @return A match that can be build now
-		 */
-		OngoingReadingAndReturn returning(Expression... expressions);
-
-		default OngoingReadingAndReturn returningDistinct(String... variables) {
-			return returningDistinct(createSymbolicNames(variables));
-		}
-
-		default OngoingReadingAndReturn returningDistinct(Named... variables) {
-			return returningDistinct(createSymbolicNames(variables));
-		}
-
-		/**
-		 * Create a match that returns the distinct set of one or more expressions.
-		 *
-		 * @param expressions The expressions to be returned. Must not be null and be at least one expression.
-		 * @return A match that can be build now
-		 */
-		OngoingReadingAndReturn returningDistinct(Expression... expressions);
 	}
 
 	/**
@@ -566,64 +504,6 @@ public interface StatementBuilder {
 		<T extends OngoingMatchAndUpdate & BuildableStatement> T remove(Node node, String... label);
 
 		<T extends OngoingMatchAndUpdate & BuildableStatement> T remove(Property... properties);
-	}
-
-	/**
-	 * A step exposing a {@link #match(PatternElement...)} method.
-	 * @since 1.0
-	 */
-	interface ExposesMatch {
-
-		/**
-		 * Adds another match clause.
-		 *
-		 * @param pattern The patterns to match
-		 * @return An ongoing match that is used to specify an optional where and a required return clause
-		 */
-		OngoingReadingWithoutWhere match(PatternElement... pattern);
-
-		/**
-		 * Adds another optional match clause.
-		 *
-		 * @param pattern The patterns to match
-		 * @return An ongoing match that is used to specify an optional where and a required return clause
-		 */
-		OngoingReadingWithoutWhere optionalMatch(PatternElement... pattern);
-	}
-
-	/**
-	 * A step exposing a {@link #create(PatternElement...)} method.
-	 * @since 1.0
-	 */
-	interface ExposesCreate {
-
-		<T extends OngoingUpdate & ExposesSet> T create(PatternElement... pattern);
-	}
-
-	/**
-	 * A step exposing a {@link #merge(PatternElement...)} method.
-	 * @since 1.0
-	 */
-	interface ExposesMerge {
-
-		<T extends OngoingUpdate & ExposesSet> T merge(PatternElement... pattern);
-	}
-
-	/**
-	 * A step exposing a {@link #unwind(Expression...)},{@link #unwind(Expression)}, {@link #unwind(String)} and method.
-	 * @since 1.0
-	 */
-	interface ExposesUnwind {
-
-		default OngoingUnwind unwind(Expression... expressions) {
-			return unwind(Cypher.listOf(expressions));
-		}
-
-		default OngoingUnwind unwind(String variable) {
-			return unwind(Cypher.name(variable));
-		}
-
-		OngoingUnwind unwind(Expression expression);
 	}
 
 	/**
