@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import org.apiguardian.api.API;
 
 /**
@@ -26,8 +28,8 @@ import org.apiguardian.api.API;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
-public final class PropertyLookup implements MapEntry, Expression {
+@API(status = EXPERIMENTAL, since = "1.0")
+public final class PropertyLookup implements Expression {
 
 	private final String propertyKeyName;
 

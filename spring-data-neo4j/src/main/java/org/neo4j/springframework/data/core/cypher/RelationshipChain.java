@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
 import static org.neo4j.springframework.data.core.cypher.support.Visitable.*;
 
 import java.util.LinkedList;
@@ -33,7 +34,7 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class RelationshipChain implements PatternElement, ExposesRelationships<RelationshipChain> {
 
 	private final LinkedList<Relationship> relationships = new LinkedList<>();

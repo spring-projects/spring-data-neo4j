@@ -19,6 +19,7 @@
 package org.neo4j.springframework.data.core.cypher;
 
 import static java.util.regex.Pattern.*;
+import static org.apiguardian.api.API.Status.*;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -35,7 +36,7 @@ import org.springframework.lang.Nullable;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class StringLiteral extends Literal<CharSequence> {
 
 	private static final Pattern RESERVED_CHARS = Pattern.compile("([" + quote("\\'\"") + "])");

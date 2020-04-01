@@ -24,7 +24,7 @@ import static org.neo4j.springframework.data.core.DatabaseSelection.*;
 import static org.neo4j.springframework.data.core.RelationshipStatementHolder.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.CypherGenerator.*;
-import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
+import static org.neo4j.springframework.data.core.schema.Constants.*;
 import static org.neo4j.springframework.data.core.support.Relationships.*;
 
 import reactor.core.publisher.Flux;

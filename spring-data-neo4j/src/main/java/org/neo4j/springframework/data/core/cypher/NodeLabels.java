@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import java.util.List;
 
 import org.apiguardian.api.API;
@@ -30,7 +32,7 @@ import org.neo4j.springframework.data.core.cypher.support.Visitor;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 final class NodeLabels implements Visitable {
 
 	private final List<NodeLabel> values;

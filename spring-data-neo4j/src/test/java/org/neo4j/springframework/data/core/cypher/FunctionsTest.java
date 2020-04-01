@@ -48,7 +48,7 @@ class FunctionsTest {
 		@Test
 		void shouldCreateCorrectInvocation() {
 
-			FunctionInvocation invocation = Functions.id(node("Test"));
+			FunctionInvocation invocation = Functions.id(node("Test").named("n"));
 			assertThat(invocation).hasFieldOrPropertyWithValue(FUNCTION_NAME_FIELD, "id");
 		}
 	}
@@ -59,7 +59,7 @@ class FunctionsTest {
 		@Test
 		void preconditionsShouldBeAsserted() {
 
-			assertThatIllegalArgumentException().isThrownBy(() -> Functions.count(null))
+			assertThatIllegalArgumentException().isThrownBy(() -> Functions.count((Expression) null))
 				.withMessage("The expression to count is required.");
 		}
 
@@ -101,7 +101,7 @@ class FunctionsTest {
 		@Test
 		void preconditionsShouldBeAsserted() {
 
-			assertThatIllegalArgumentException().isThrownBy(() -> Functions.collect(null))
+			assertThatIllegalArgumentException().isThrownBy(() -> Functions.collect((Expression) null))
 				.withMessage("The expression to collect is required.");
 		}
 

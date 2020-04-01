@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import java.util.List;
 
 import org.apiguardian.api.API;
@@ -33,7 +35,7 @@ import org.neo4j.springframework.data.core.cypher.support.TypedSubtree;
  * @param <S> The pattern's entry type
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class Pattern<S extends Pattern<S>> extends TypedSubtree<PatternElement, S> {
 
 	Pattern(List<PatternElement> patternElements) {

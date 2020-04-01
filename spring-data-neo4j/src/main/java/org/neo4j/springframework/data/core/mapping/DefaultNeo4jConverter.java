@@ -19,7 +19,7 @@
 package org.neo4j.springframework.data.core.mapping;
 
 import static java.util.stream.Collectors.*;
-import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
+import static org.neo4j.springframework.data.core.schema.Constants.*;
 import static org.neo4j.springframework.data.core.schema.RelationshipDescription.*;
 
 import java.util.ArrayList;

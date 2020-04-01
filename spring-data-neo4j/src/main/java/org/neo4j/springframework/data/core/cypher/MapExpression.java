@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
 import static org.neo4j.springframework.data.core.cypher.Expressions.*;
 
 import java.util.ArrayList;
@@ -41,13 +42,13 @@ import org.springframework.util.Assert;
  * @soundtrack Rammstein - RAMMSTEIN
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
-public final class MapExpression<S extends MapExpression<S>> extends TypedSubtree<MapEntry, S> implements Expression {
+@API(status = INTERNAL, since = "1.0")
+public final class MapExpression<S extends MapExpression<S>> extends TypedSubtree<Expression, S> implements Expression {
 
 	static MapExpression<?> create(Object... input) {
 
 		Assert.isTrue(input.length % 2 == 0, "Need an even number of input parameters");
-		List<MapEntry> newContent = new ArrayList<>(input.length / 2);
+		List<Expression> newContent = new ArrayList<>(input.length / 2);
 		Set<String> knownKeys = new HashSet<>();
 
 		for (int i = 0; i < input.length; i += 2) {
@@ -63,23 +64,23 @@ public final class MapExpression<S extends MapExpression<S>> extends TypedSubtre
 		return new MapExpression<>(newContent);
 	}
 
-	static MapExpression<?> withEntries(List<MapEntry> entries) {
+	static MapExpression<?> withEntries(List<Expression> entries) {
 		return new MapExpression<>(entries);
 	}
 
-	private MapExpression(List<MapEntry> children) {
+	private MapExpression(List<Expression> children) {
 		super(children);
 	}
 
-	MapExpression<?> addEntries(List<MapEntry> entries) {
-		List<MapEntry> newContent = new ArrayList<>(super.children.size() + entries.size());
+	MapExpression<?> addEntries(List<Expression> entries) {
+		List<Expression> newContent = new ArrayList<>(super.children.size() + entries.size());
 		newContent.addAll(super.children);
 		newContent.addAll(entries);
 		return new MapExpression<>(newContent);
 	}
 
 	@Override
-	protected Visitable prepareVisit(MapEntry child) {
-		return child instanceof Expression ? nameOrExpression((Expression) child) : child;
+	protected Visitable prepareVisit(Expression child) {
+		return nameOrExpression(child);
 	}
 }

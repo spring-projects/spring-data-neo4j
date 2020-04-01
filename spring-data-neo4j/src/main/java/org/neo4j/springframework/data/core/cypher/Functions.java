@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import org.apiguardian.api.API;
 import org.springframework.util.Assert;
 
@@ -27,7 +29,7 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class Functions {
 
 	private static final String F_ID = "id";
@@ -43,7 +45,7 @@ public final class Functions {
 
 		Assert.notNull(node, "The node parameter is required.");
 
-		return new FunctionInvocation(F_ID, node);
+		return new FunctionInvocation(F_ID, node.getRequiredSymbolicName());
 	}
 
 	/**
@@ -56,23 +58,22 @@ public final class Functions {
 	public static FunctionInvocation id(Relationship relationship) {
 
 		Assert.notNull(relationship, "The relationship parameter is required.");
-		Assert.isTrue(relationship.getSymbolicName().isPresent(), "The relationship needs to be named.");
 
-		return new FunctionInvocation(F_ID, relationship);
+		return new FunctionInvocation(F_ID, relationship.getRequiredSymbolicName());
 	}
 
-	public static FunctionInvocation id(SymbolicName symbolicName) {
+	/**
+	 * Creates a function invocation for {@code id{}}.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/list/#functions-labels">labels</a>.
+	 *
+	 * @param node The node for which the labels should be retrieved
+	 * @return A function call for {@code labels()} on a node.
+	 */
+	public static FunctionInvocation labels(Node node) {
 
-		Assert.notNull(symbolicName, "The symbolic name is required.");
+		Assert.notNull(node, "The node parameter is required.");
 
-		return new FunctionInvocation(F_ID, symbolicName);
-	}
-
-	public static FunctionInvocation labels(SymbolicName symbolicName) {
-
-		Assert.notNull(symbolicName, "The symbolic name is required.");
-
-		return new FunctionInvocation("labels", symbolicName);
+		return new FunctionInvocation("labels", node.getRequiredSymbolicName());
 	}
 
 	/**
@@ -85,18 +86,28 @@ public final class Functions {
 	public static FunctionInvocation type(Relationship relationship) {
 
 		Assert.notNull(relationship, "The relationship parameter is required.");
-		Assert.isTrue(relationship.getSymbolicName().isPresent(), "The relationship needs to be named.");
 
-		return new FunctionInvocation("type", relationship);
+		return new FunctionInvocation("type", relationship.getRequiredSymbolicName());
+	}
+
+	/**
+	 * @param node The named node to be counted
+	 * @return A function call for {@code count()} for one named node
+	 * @see #count(Expression)
+	 */
+	public static FunctionInvocation count(Node node) {
+
+		Assert.notNull(node, "The node parameter is required.");
+
+		return count(node.getRequiredSymbolicName());
 	}
 
 	/**
 	 * Creates a function invocation for the {@code count()} function.
 	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/aggregating/#functions-count">count</a>.
 	 *
-	 * @param expression An expression describing the things to count. Can be a node, relationship, alias or
-	 *                   a symbolic name
-	 * @return A function call for {@code count()} for one  expression
+	 * @param expression An expression describing the things to count.
+	 * @return A function call for {@code count()} for an expression like {@link Cypher#asterisk()} etc.
 	 */
 	public static FunctionInvocation count(Expression expression) {
 
@@ -195,6 +206,18 @@ public final class Functions {
 		Assert.notNull(parameterMap, "The parameter map is required.");
 
 		return new FunctionInvocation("point", parameterMap);
+	}
+
+	/**
+	 * @param variable The named thing to collect
+	 * @return A function call for {@code collect()}
+	 * @see #collect(Expression)
+	 */
+	public static FunctionInvocation collect(Named variable) {
+
+		Assert.notNull(variable, "The variable parameter is required.");
+
+		return Functions.collect(variable.getRequiredSymbolicName());
 	}
 
 	/**

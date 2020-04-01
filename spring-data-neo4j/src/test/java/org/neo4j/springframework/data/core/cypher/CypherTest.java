@@ -58,7 +58,7 @@ class CypherTest {
 			} else if (segment instanceof PropertyLookup) {
 				assertThat(segment).extracting(s -> ((PropertyLookup) s).getPropertyKeyName()).isEqualTo("b");
 			} else if (segment instanceof SymbolicName) {
-				assertThat(segment).extracting("name").isEqualTo("a");
+				assertThat(segment).extracting("value").isEqualTo("a");
 			} else {
 				fail("Unexpected segment: " + segment.getClass());
 			}

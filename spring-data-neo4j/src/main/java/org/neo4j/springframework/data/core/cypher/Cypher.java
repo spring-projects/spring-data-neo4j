@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +42,7 @@ import org.springframework.util.Assert;
  * @author Gerrit Meier
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class Cypher {
 
 	/**
@@ -84,6 +86,13 @@ public final class Cypher {
 	 * @return A node matching any node with the symbolic the given {@code symbolicName}.
 	 */
 	public static Node anyNode(String symbolicName) {
+		return Node.create().named(symbolicName);
+	}
+
+	/**
+	 * @return A node matching any node with the symbolic the given {@code symbolicName}.
+	 */
+	public static Node anyNode(SymbolicName symbolicName) {
 		return Node.create().named(symbolicName);
 	}
 

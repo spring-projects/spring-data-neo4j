@@ -18,15 +18,32 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import org.apiguardian.api.API;
-import org.neo4j.springframework.data.core.cypher.support.Visitable;
+import org.neo4j.springframework.data.core.cypher.support.Visitor;
 
 /**
- * A shared, internally used interface for {@link MapExpression map expressions}.
+ * Used to create patterns excluded in a where clause via {@literal not}.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
-public interface MapEntry extends Visitable {
+@API(status = INTERNAL, since = "1.0")
+final class ExcludedPattern implements Condition {
+
+	private final PatternElement patternElement;
+
+	ExcludedPattern(PatternElement patternElement) {
+		this.patternElement = patternElement;
+	}
+
+	@Override
+	public void accept(Visitor visitor) {
+
+		visitor.enter(this);
+		Operator.NOT.accept(visitor);
+		patternElement.accept(visitor);
+		visitor.leave(this);
+	}
 }

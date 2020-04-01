@@ -18,11 +18,16 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
+import java.util.Objects;
+
 import org.apiguardian.api.API;
+import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
 /**
- * A symbolic name to identify nodes and relationships.
+ * A symbolic name to identify nodes, relationships and aliased items.
  * <p>
  * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/SchemaName.html">SchemaName</a>
  * <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/SymbolicName.html">SymbolicName</a>
@@ -33,29 +38,57 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class SymbolicName implements Expression {
 
-	private final String name;
+	private final String value;
 
 	static SymbolicName create(String name) {
 
+		Assert.hasText(name, "Name must not be empty.");
 		Assert.isTrue(Cypher.isIdentifier(name), "Name must be a valid identifier.");
 		return new SymbolicName(name);
 	}
 
-	private SymbolicName(String name) {
-		this.name = name;
+	private SymbolicName(String value) {
+		this.value = value;
 	}
 
-	public String getName() {
-		return name;
+	public String getValue() {
+		return value;
+	}
+
+	@NonNull
+	public SymbolicName concat(String otherValue) {
+
+		Assert.notNull(otherValue, "Value to concat must not be null.");
+		if (otherValue.isEmpty()) {
+			return this;
+		}
+		return SymbolicName.create(this.value + otherValue);
 	}
 
 	@Override
 	public String toString() {
 		return "SymbolicName{" +
-			"name='" + name + '\'' +
+			"name='" + value + '\'' +
 			'}';
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		SymbolicName that = (SymbolicName) o;
+		return value.equals(that.value);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(value);
 	}
 }

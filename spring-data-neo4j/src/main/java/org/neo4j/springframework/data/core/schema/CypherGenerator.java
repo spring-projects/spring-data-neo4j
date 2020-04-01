@@ -19,7 +19,7 @@
 package org.neo4j.springframework.data.core.schema;
 
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
-import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
+import static org.neo4j.springframework.data.core.schema.Constants.*;
 import static org.neo4j.springframework.data.core.schema.RelationshipDescription.*;
 
 import java.util.ArrayList;
@@ -29,13 +29,13 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
-import org.jetbrains.annotations.NotNull;
-import org.neo4j.springframework.data.core.cypher.*;
 import org.neo4j.springframework.data.core.cypher.Node;
 import org.neo4j.springframework.data.core.cypher.Relationship;
+import org.neo4j.springframework.data.core.cypher.*;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -54,12 +54,10 @@ public enum CypherGenerator {
 
 	INSTANCE;
 
-	public static final String FROM_ID_PARAMETER_NAME = "fromId";
+	private static final SymbolicName START_NODE_NAME = Cypher.name("startNode");
+	private static final SymbolicName END_NODE_NAME = Cypher.name("endNode");
 
-	private static final String START_NODE_NAME = "startNode";
-	private static final String END_NODE_NAME = "endNode";
-
-	private static final String RELATIONSHIP_NAME = "relProps";
+	private static final SymbolicName RELATIONSHIP_NAME = Cypher.name("relProps");
 
 	private static final int RELATIONSHIP_DEPTH_LIMIT = 2;
 
@@ -95,7 +93,7 @@ public enum CypherGenerator {
 		IdDescription idDescription = nodeDescription.getIdDescription();
 
 		List<Expression> expressions = new ArrayList<>();
-		expressions.add(rootNode);
+		expressions.add(NAME_OF_ROOT_NODE);
 		if (idDescription.isInternallyGeneratedId()) {
 			expressions.add(Functions.id(rootNode).as(NAME_OF_INTERNAL_ID));
 		}
@@ -226,7 +224,7 @@ public enum CypherGenerator {
 			.build();
 	}
 
-	@NotNull
+	@NonNull
 	public Statement createRelationshipCreationQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 		RelationshipDescription relationship, @Nullable String dynamicRelationshipType, Long relatedInternalId) {
 
@@ -249,7 +247,7 @@ public enum CypherGenerator {
 			.build();
 	}
 
-	@NotNull
+	@NonNull
 	public Statement createRelationshipWithPropertiesCreationQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 		RelationshipDescription relationship, Long relatedInternalId) {
 
@@ -279,15 +277,11 @@ public enum CypherGenerator {
 				? relOutgoing
 				: relIncoming
 			)
-			.set(relationship.isOutgoing()
-					? relOutgoing
-					: relIncoming,
-				relationshipProperties
-			)
+			.set(RELATIONSHIP_NAME, relationshipProperties)
 			.build();
 	}
 
-	@NotNull
+	@NonNull
 	public Statement createRelationshipRemoveQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 		RelationshipDescription relationshipDescription, Neo4jPersistentEntity relatedNode) {
 
@@ -333,7 +327,8 @@ public enum CypherGenerator {
 			processedRelationships);
 	}
 
-	private MapProjection projectAllPropertiesAndRelationships(NodeDescription<?> nodeDescription, String nodeName,
+	private MapProjection projectAllPropertiesAndRelationships(NodeDescription<?> nodeDescription,
+		SymbolicName nodeName,
 		List<RelationshipDescription> processedRelationships) {
 
 		Predicate<String> includeAllFields = (field) -> true;
@@ -341,7 +336,7 @@ public enum CypherGenerator {
 	}
 
 	private MapProjection projectPropertiesAndRelationships(NodeDescription<?> nodeDescription,
-		String nodeName,
+		SymbolicName nodeName,
 		Predicate<String> includeProperty,
 		List<RelationshipDescription> processedRelationships) {
 
@@ -359,10 +354,11 @@ public enum CypherGenerator {
 	 * this list can also contain two "keys" in a row. The {@link MapProjection} will take care to handle them as
 	 * self-reflecting fields. Example with self-reflection and explicit value: {@code n {.id, name: n.name}}.
 	 */
-	private List<Object> projectNodeProperties(NodeDescription<?> nodeDescription, String nodeName,
-			Predicate<String> includeField) {
+	private List<Object> projectNodeProperties(NodeDescription<?> nodeDescription, SymbolicName nodeName,
+		Predicate<String> includeField) {
 
 		List<Object> nodePropertiesProjection = new ArrayList<>();
+		Node node = anyNode(nodeName);
 		for (GraphPropertyDescription property : nodeDescription.getGraphPropertiesInHierarchy()) {
 			if (!includeField.test(property.getFieldName())) {
 				continue;
@@ -370,14 +366,14 @@ public enum CypherGenerator {
 
 			if (property.isInternalIdProperty()) {
 				nodePropertiesProjection.add(NAME_OF_INTERNAL_ID);
-				nodePropertiesProjection.add(Functions.id(Cypher.name(nodeName)));
+				nodePropertiesProjection.add(Functions.id(node));
 			} else {
 				nodePropertiesProjection.add(property.getPropertyName());
 			}
 		}
 
 		nodePropertiesProjection.add(NAME_OF_LABELS);
-		nodePropertiesProjection.add(Functions.labels(Cypher.name(nodeName)));
+		nodePropertiesProjection.add(Functions.labels(node));
 
 		return nodePropertiesProjection;
 	}
@@ -386,7 +382,7 @@ public enum CypherGenerator {
 	 * @see org.neo4j.springframework.data.core.schema.CypherGenerator#projectNodeProperties
 	 */
 	private List<Object> generateListsFor(Collection<RelationshipDescription> relationships,
-		String nodeName, Predicate<String> includeField,
+		SymbolicName nodeName, Predicate<String> includeField,
 		List<RelationshipDescription> processedRelationships) {
 
 		List<Object> mapProjectionLists = new ArrayList<>();
@@ -415,7 +411,7 @@ public enum CypherGenerator {
 		return mapProjectionLists;
 	}
 
-	private void generateListFor(RelationshipDescription relationshipDescription, String nodeName,
+	private void generateListFor(RelationshipDescription relationshipDescription, SymbolicName nodeName,
 		List<RelationshipDescription> processedRelationships, String fieldName, List<Object> mapProjectionLists) {
 
 		String relationshipType = relationshipDescription.getType();
@@ -424,7 +420,7 @@ public enum CypherGenerator {
 		List<String> targetAdditionalLabels = relationshipDescription.getTarget().getAdditionalLabels();
 
 		Node startNode = anyNode(nodeName);
-		String relationshipFieldName = concatFieldName(nodeName, fieldName);
+		SymbolicName relationshipFieldName = nodeName.concat("_" + fieldName);
 		Node endNode = node(targetPrimaryLabel, targetAdditionalLabels).named(relationshipFieldName);
 		NodeDescription<?> endNodeDescription = relationshipDescription.getTarget();
 
@@ -467,11 +463,6 @@ public enum CypherGenerator {
 	private void addMapProjection(String name, Object projection, List<Object> projectionList) {
 		projectionList.add(name);
 		projectionList.add(projection);
-	}
-
-	@NotNull
-	private String concatFieldName(String nameOfStartNode, String fieldName) {
-		return nameOfStartNode + "_" + fieldName;
 	}
 
 	private static Condition conditionOrNoCondition(@Nullable Condition condition) {

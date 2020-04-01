@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
 import static org.neo4j.springframework.data.core.cypher.Operator.*;
 
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = INTERNAL, since = "1.0")
 public final class CompoundCondition implements Condition {
 
 	/**

@@ -19,6 +19,7 @@
 package org.neo4j.springframework.data.core.cypher;
 
 import static java.util.stream.Collectors.*;
+import static org.apiguardian.api.API.Status.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,8 +39,8 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
-public final class Node implements PatternElement, Named, Expression, ExposesRelationships<Relationship> {
+@API(status = EXPERIMENTAL, since = "1.0")
+public final class Node implements PatternElement, Named, ExposesRelationships<Relationship> {
 
 	static Node create(String primaryLabel, String... additionalLabels) {
 
@@ -103,6 +104,18 @@ public final class Node implements PatternElement, Named, Expression, ExposesRel
 	}
 
 	/**
+	 * Creates a copy of this node with a new symbolic name.
+	 *
+	 * @param newSymbolicName the new symbolic name.
+	 * @return The new node.
+	 */
+	public Node named(SymbolicName newSymbolicName) {
+
+		Assert.notNull(newSymbolicName, "Symbolic name is required.");
+		return new Node(newSymbolicName, properties, labels);
+	}
+
+	/**
 	 * Creates a a copy of this node with additional properties. Creates a node without properties when no properties
 	 * * are passed to this method.
 	 *
@@ -137,7 +150,7 @@ public final class Node implements PatternElement, Named, Expression, ExposesRel
 	 * @param entries A list of entries for the projection
 	 * @return A map projection.
 	 */
-	public MapProjection project(List<?> entries) {
+	public MapProjection project(List<Object> entries) {
 		return project(entries.toArray());
 	}
 
@@ -151,7 +164,7 @@ public final class Node implements PatternElement, Named, Expression, ExposesRel
 	 * @return A map projection.
 	 */
 	public MapProjection project(Object... entries) {
-		return MapProjection.create(this.getSymbolicName().orElseThrow(() -> new IllegalStateException("Cannot project a node without a symbolic name.")), entries);
+		return MapProjection.create(this.getRequiredSymbolicName(), entries);
 	}
 
 	/**
@@ -222,5 +235,40 @@ public final class Node implements PatternElement, Named, Expression, ExposesRel
 			"symbolicName=" + symbolicName +
 			", labels=" + labels +
 			'}';
+	}
+
+	public Condition isEqualTo(Node otherNode) {
+
+		return this.getRequiredSymbolicName().isEqualTo(otherNode.getRequiredSymbolicName());
+	}
+
+	public Condition isNotEqualTo(Node otherNode) {
+
+		return this.getRequiredSymbolicName().isNotEqualTo(otherNode.getRequiredSymbolicName());
+	}
+
+	public Condition isNull() {
+
+		return this.getRequiredSymbolicName().isNull();
+	}
+
+	public Condition isNotNull() {
+
+		return this.getRequiredSymbolicName().isNotNull();
+	}
+
+	public SortItem descending() {
+
+		return this.getRequiredSymbolicName().descending();
+	}
+
+	public SortItem ascending() {
+
+		return this.getRequiredSymbolicName().ascending();
+	}
+
+	public AliasedExpression as(String alias) {
+
+		return this.getRequiredSymbolicName().as(alias);
 	}
 }

@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import java.util.Optional;
 
 import org.apiguardian.api.API;
@@ -34,7 +36,7 @@ import org.springframework.util.Assert;
  * @author Philipp Tölle
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class RelationshipDetail implements Visitable {
 
 	/**
@@ -73,8 +75,13 @@ public final class RelationshipDetail implements Visitable {
 	RelationshipDetail named(String newSymbolicName) {
 
 		Assert.hasText(newSymbolicName, "Symbolic name is required.");
-		return new RelationshipDetail(this.direction, SymbolicName.create(newSymbolicName), this.types, this.length,
-			this.properties);
+		return named(SymbolicName.create(newSymbolicName));
+	}
+
+	RelationshipDetail named(SymbolicName newSymbolicName) {
+
+		Assert.notNull(newSymbolicName, "Symbolic name is required.");
+		return new RelationshipDetail(this.direction, newSymbolicName, this.types, this.length, this.properties);
 	}
 
 	RelationshipDetail with(@Nullable Properties newProperties) {

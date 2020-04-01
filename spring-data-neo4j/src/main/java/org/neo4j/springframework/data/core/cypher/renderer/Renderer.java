@@ -18,6 +18,9 @@
  */
 package org.neo4j.springframework.data.core.cypher.renderer;
 
+import static org.apiguardian.api.API.Status.*;
+
+import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.Statement;
 
 /**
@@ -25,6 +28,7 @@ import org.neo4j.springframework.data.core.cypher.Statement;
  * @author Michael J. Simons
  * @since 1.0
  */
+@API(status = INTERNAL, since = "1.0")
 public interface Renderer {
 
 	/**

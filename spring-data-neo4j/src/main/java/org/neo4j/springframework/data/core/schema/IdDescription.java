@@ -19,15 +19,14 @@
 package org.neo4j.springframework.data.core.schema;
 
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
-import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
+import static org.neo4j.springframework.data.core.schema.Constants.*;
 
 import java.util.Optional;
 
 import org.apiguardian.api.API;
-import org.neo4j.springframework.data.core.cypher.Cypher;
 import org.neo4j.springframework.data.core.cypher.Expression;
 import org.neo4j.springframework.data.core.cypher.Functions;
-import org.neo4j.springframework.data.core.cypher.SymbolicName;
+import org.neo4j.springframework.data.core.cypher.Node;
 import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -96,12 +95,12 @@ public final class IdDescription {
 		this.idGeneratorRef = idGeneratorRef != null && idGeneratorRef.isEmpty() ? null : idGeneratorRef;
 		this.graphPropertyName = graphPropertyName;
 		this.idExpression = Lazy.of(() -> {
-			final SymbolicName rootNode = Cypher.name(NAME_OF_ROOT_NODE);
+			final Node rootNode = anyNode(NAME_OF_ROOT_NODE);
 			if (this.isInternallyGeneratedId()) {
 				return Functions.id(rootNode);
 			} else {
 				return this.getOptionalGraphPropertyName()
-					.map(propertyName -> property(rootNode.getName(), propertyName)).get();
+					.map(propertyName -> property(NAME_OF_ROOT_NODE, propertyName)).get();
 			}
 		});
 	}

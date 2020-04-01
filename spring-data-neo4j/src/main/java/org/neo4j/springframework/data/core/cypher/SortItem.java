@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
 import static org.neo4j.springframework.data.core.cypher.Expressions.*;
 
 import java.util.Optional;
@@ -32,7 +33,7 @@ import org.springframework.lang.Nullable;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class SortItem implements Visitable {
 
 	private final Expression expression;

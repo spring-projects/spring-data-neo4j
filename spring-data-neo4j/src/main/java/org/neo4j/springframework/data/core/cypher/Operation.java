@@ -19,6 +19,7 @@
 package org.neo4j.springframework.data.core.cypher;
 
 import static java.util.stream.Collectors.*;
+import static org.apiguardian.api.API.Status.*;
 
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -35,7 +36,7 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class Operation implements Expression {
 
 	/**
@@ -64,7 +65,7 @@ public final class Operation implements Expression {
 		Assert.notEmpty(nodeLabels, "The labels cannot be empty.");
 
 		List<NodeLabel> listOfNodeLabels = Arrays.stream(nodeLabels).map(NodeLabel::new).collect(toList());
-		return new Operation(op1, operator, new NodeLabels(listOfNodeLabels));
+		return new Operation(op1.getRequiredSymbolicName(), operator, new NodeLabels(listOfNodeLabels));
 	}
 
 	private final Expression left;

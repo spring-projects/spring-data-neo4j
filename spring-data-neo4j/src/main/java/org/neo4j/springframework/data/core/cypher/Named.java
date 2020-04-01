@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import java.util.Optional;
 
 import org.apiguardian.api.API;
@@ -28,8 +30,12 @@ import org.apiguardian.api.API;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public interface Named {
 
 	Optional<SymbolicName> getSymbolicName();
+
+	default SymbolicName getRequiredSymbolicName() {
+		return getSymbolicName().orElseThrow(() -> new IllegalStateException("No name present."));
+	}
 }

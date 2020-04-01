@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import org.apiguardian.api.API;
 import org.springframework.util.Assert;
 
@@ -29,7 +31,7 @@ import org.springframework.util.Assert;
  * @author Gerrit Meier
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class Conditions {
 
 	/**
@@ -116,10 +118,16 @@ public final class Conditions {
 	 * @param condition The condition to negate. Must not be null.
 	 * @return The negated condition.
 	 */
-	static Condition not(Condition condition) {
+	public static Condition not(Condition condition) {
 
 		Assert.notNull(condition, "Condition to negate must not be null.");
 		return condition.not();
+	}
+
+	 public static Condition not(PatternElement patternElement) {
+
+		Assert.notNull(patternElement, "Pattern to negate must not be null.");
+		return new ExcludedPattern(patternElement);
 	}
 
 	/**
