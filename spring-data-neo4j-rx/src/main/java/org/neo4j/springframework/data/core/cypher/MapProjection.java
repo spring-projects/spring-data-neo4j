@@ -18,6 +18,9 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+import static org.neo4j.springframework.data.core.cypher.Expressions.*;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -32,7 +35,7 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class MapProjection implements Expression {
 
 	private SymbolicName name;
@@ -67,8 +70,8 @@ public final class MapProjection implements Expression {
 		visitor.leave(this);
 	}
 
-	private static List<MapEntry> createNewContent(Object... content) {
-		final List<MapEntry> newContent = new ArrayList<>(content.length);
+	private static List<Expression> createNewContent(Object... content) {
+		final List<Expression> newContent = new ArrayList<>(content.length);
 		final Set<String> knownKeys = new HashSet<>();
 
 		String lastKey = null;
@@ -80,9 +83,9 @@ public final class MapProjection implements Expression {
 			if (i + 1 >= content.length) {
 				next = null;
 			} else {
-				next = content[i + 1];
+				next = nameOrExpression(content[i + 1]);
 			}
-			Object current = content[i];
+			Object current = nameOrExpression(content[i]);
 
 			if (current instanceof String) {
 				if (next instanceof Expression) {
@@ -106,13 +109,13 @@ public final class MapProjection implements Expression {
 				lastExpression = new PropertyLookup("*");
 			}
 
-			final MapEntry entry;
+			final Expression entry;
 			if (lastKey != null) {
 				Assert.isTrue(!knownKeys.contains(lastKey), "Duplicate key '" + lastKey + "'");
 				entry = new KeyValueMapEntry(lastKey, lastExpression);
 				knownKeys.add(lastKey);
-			} else if (lastExpression instanceof MapEntry) {
-				entry = (MapEntry) lastExpression;
+			} else if (lastExpression instanceof SymbolicName || lastExpression instanceof PropertyLookup) {
+				entry = lastExpression;
 			} else {
 				throw new IllegalArgumentException(lastExpression + " of type " + lastExpression.getClass()
 					+ " cannot be used with an implicit name as map entry.");

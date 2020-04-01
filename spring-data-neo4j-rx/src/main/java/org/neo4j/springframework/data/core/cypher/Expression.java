@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 
 import org.apiguardian.api.API;
@@ -30,7 +31,7 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public interface Expression extends Visitable {
 
 	/**

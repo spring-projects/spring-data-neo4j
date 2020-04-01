@@ -68,11 +68,11 @@ class CypherIT {
 				Node unnamedNode = Cypher.node("ANode");
 				Node namedNode = Cypher.node("AnotherNode").named("o");
 				Statement statement = Cypher.match(unnamedNode, namedNode)
-					.returning(unnamedNode.as("theNode"), namedNode.as("theOtherNode"))
+					.returning(namedNode.as("theOtherNode"))
 					.build();
 
 				assertThat(cypherRenderer.render(statement))
-					.isEqualTo("MATCH (:`ANode`), (o:`AnotherNode`) RETURN (:`ANode`) AS theNode, o AS theOtherNode");
+					.isEqualTo("MATCH (:`ANode`), (o:`AnotherNode`) RETURN o AS theOtherNode");
 			}
 
 			@Test
@@ -1981,7 +1981,7 @@ class CypherIT {
 				assertThatIllegalStateException().isThrownBy(() -> {
 					Node n = Cypher.node("Person");
 					n.project("something");
-				}).withMessage("Cannot project a node without a symbolic name.");
+				}).withMessage("No name present.");
 			}
 		}
 
@@ -2034,7 +2034,7 @@ class CypherIT {
 					Node m = Cypher.node("Movie").named("m");
 					Relationship rel = n.relationshipTo(m, "ACTED_IN");
 					rel.project("something");
-				}).withMessage("Cannot project a relationship without a symbolic name.");
+				}).withMessage("No name present.");
 			}
 		}
 
@@ -2154,12 +2154,12 @@ class CypherIT {
 			Relationship r_l2 = l1.relationshipFrom(p2, "LIVES_AT").named("r_l2");
 
 			statement = Cypher.match(n)
-				.returning(n,
+				.returning(n.getRequiredSymbolicName(),
 					listOf(
 						listBasedOn(r_f1).returning(r_f1, o1),
 						listBasedOn(r_e1).returning(r_e1, o1),
 						listBasedOn(r_l1).returning(
-							r_l1, l1,
+							r_l1.getRequiredSymbolicName(), l1.getRequiredSymbolicName(),
 							// The building of the statement works with and without the outer list,
 							// I'm not sure if it would be necessary for the result, but as I took the query from
 							// Neo4j-OGM, I'd like to keep it
@@ -2219,7 +2219,7 @@ class CypherIT {
 				)
 				.withDistinct(resume, locStart, app, offer)
 				.match(offer.relationshipTo(startN, "FOR"))
-				.where(Functions.id(name("start_n")).in(parameter("start_ids")))
+				.where(Functions.id(startN).in(parameter("start_ids")))
 				.returningDistinct(resume, locStart, app, offer, startN).build();
 
 			assertThat(cypherRenderer.render(statement))

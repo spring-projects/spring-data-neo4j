@@ -165,7 +165,7 @@
 				</property>
 			</activation>
 			<properties>
-				<changelist>-beta04</changelist>
+				<changelist>-SNAPSHOT</changelist>
 			</properties>
 		</profile>
 	</profiles>

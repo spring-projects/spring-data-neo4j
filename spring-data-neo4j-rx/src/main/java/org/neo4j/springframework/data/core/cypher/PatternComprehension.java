@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.neo4j.springframework.data.core.cypher.Expressions.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +57,15 @@ public final class PatternComprehension implements Expression {
 	 * Provides the final step of defining a pattern comprehension.
 	 */
 	public interface OngoingDefinitionWithPattern {
+
+		/**
+		 * @param variables the elements to be returned from the pattern
+		 * @return The final definition of the pattern comprehension
+		 * @see #returning(Expression...)
+		 */
+		default PatternComprehension returning(Named... variables) {
+			return returning(createSymbolicNames(variables));
+		}
 
 		/**
 		 * @param listDefinition Defines the elements to be returned from the pattern

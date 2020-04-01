@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import org.apiguardian.api.API;
 
 /**
@@ -29,11 +31,20 @@ import org.apiguardian.api.API;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public interface Aliased {
 
 	/**
 	 * @return the alias.
 	 */
 	String getAlias();
+
+	/**
+	 * Turns this alias into a symbolic name that can be used as an {@link Expression}.
+	 *
+	 * @return A new symbolic name
+	 */
+	default SymbolicName asName() {
+		return SymbolicName.create(this.getAlias());
+	}
 }

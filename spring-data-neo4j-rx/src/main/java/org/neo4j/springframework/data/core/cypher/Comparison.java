@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
 import static org.neo4j.springframework.data.core.cypher.Expressions.*;
 
 import org.apiguardian.api.API;
@@ -32,7 +33,7 @@ import org.springframework.util.Assert;
  * @author Gerrit Meier
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class Comparison implements Condition {
 
 	static Comparison create(Operator operator, Expression expression) {
@@ -63,7 +64,7 @@ public final class Comparison implements Condition {
 		return expression instanceof Condition ? new NestedExpression(expression) : expression;
 	}
 
-	private final Expression left;
+	private @Nullable final Expression left;
 	private final Operator comparator;
 	private @Nullable final Expression right;
 

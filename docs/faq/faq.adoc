@@ -42,7 +42,7 @@ NOTE: Be careful that you don't mix up entities retrieved from one database with
       entities than expected when changing the database name in between calls.
       Or worse, you could inevitable store the wrong entities in the wrong database.
 
-== Do I need specific configuration so that transactions work seemles with a Neo4j Causal Cluster?
+== Do I need specific configuration so that transactions work seamless with a Neo4j Causal Cluster?
 
 No, you don't.
 SDN/RX uses Neo4j Causal Cluster bookmarks internally without any configuration on your side required.

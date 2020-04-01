@@ -21,7 +21,7 @@ package org.neo4j.springframework.data.repository.query;
 import static java.util.stream.Collectors.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.cypher.Functions.*;
-import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
+import static org.neo4j.springframework.data.core.schema.Constants.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 import static org.neo4j.springframework.data.repository.query.PartValidator.*;
 

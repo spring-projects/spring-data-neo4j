@@ -1,0 +1,150 @@
+[[cypher-dsl]]
+= The Cypher-DSL
+
+WARNING: The Cypher-DSL is considered _EXPERIMENTAL_ at the time of writing.
+         This means you can and should use it and that we are looking actively for feedback, issues and problems.
+         We will try to keep breaking changes to a minimum, but we reserve the right to modify public methods, parameters
+         and behaviour in case we need those changes for SDN/RX itself.
+         All public classes inside `org.neo4j.springframework.data.core.cypher` are annotated with `@API(status = EXPERIMENTAL, since = "1.0")`,
+         We will switching to stable some time after a 1.0 release.
+
+== Purpose
+
+The Cypher-DSL has been developed with the needs of SDN/RX in mind:
+We wanted to avoid string concatenations in our query generation and decided do go with a builder approach, much like we
+find with https://www.jooq.org[jOOQ] or in the relational module of https://github.com/spring-projects/spring-data-jdbc/tree/1.1.6.RELEASE/spring-data-relational/src/main/java/org/springframework/data/relational/core/sql[Spring Data JDBC], but for Cypher.
+
+What we don't have - and don't need for our mapping purpose - at the moment is a code generator that reads the database schema
+and generates static classes representing labels and relationship types.
+That is still up to the mapping framework (in our case SDN/RX).
+We however have a type safe API for Cypher that allows only generating valid Cypher constructs.
+
+We worked closely with the https://www.opencypher.org[OpenCypher spec] here and you find a lot of these concepts in the API.
+
+The Cypher-DSL can also be seen in the same area as the https://docs.spring.io/spring-data/mongodb/docs/current/api/org/springframework/data/mongodb/core/query/Criteria.html[Criteria API] of Spring Data Mongo.
+
+== Where to use it
+
+The Cypher-DSL is publicly visible in the `Neo4jOperations` respectively `ReactiveNeo4jOperations`.
+Those are the basic interfaces implemented by the Neo4j templates of the same names (Read more about the templates <<template-support,here>>).
+
+Both the imperative and the reactive framework allow the retrieval and counting of entities with a `org.neo4j.springframework.data.core.cypher.Statement`,
+for example through `Neo4jTemplate#findAll(Statement, Class<T>)` and similar.
+
+An instance of a `org.neo4j.springframework.data.core.cypher.Statement` is provided at the end of query building step.
+
+A `Statement` represents an in-memory https://en.wikipedia.org/wiki/Abstract_syntax_tree[Abstract syntax tree] and can be
+transformed and rendered as such.
+
+We are still on a JDK 8 baseline and cannot hide our renderer in an internal module, marked as `@API(status = INTERNAL, since = "1.0")`.
+You can get an instance of the default renderer via `org.neo4j.springframework.data.core.cypher.renderer.Renderer#getDefaultRenderer()`
+and than use the `render` method to get a string representation of the statement.
+
+This string representation can be used with the <<neo4j-client>>.
+
+We do however give no guarantees to the render API until it is marked as `EXPERIMENTAL` or `STABLE`.
+
+== How to use it
+
+You use the Cypher-DSL as you would write Cypher:
+It allows to write down even complex Cypher queries from top to bottom in a type safe, compile time checked way.
+
+The examples to follow are using JDK 11.
+We find the `var` keyword especially appealing in such a DSL as the types returned by the DSL much less important than
+the further building methods they offer.
+
+IMPORTANT: The AST parts and intermediate build steps are immutable. That is, the methods create new intermediate steps.
+           For example, you cannot reuse an `ExposesLimit` step, but have to use the returned object from its `skip` method.
+
+=== Examples
+
+The following examples are 1:1 copies of the queries you will find in the Neo4j browser after running `:play movies`.
+
+They use the following imports:
+
+.Imports needed for the examples to compile
+[source, java]
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/cypherdsl/CypherDSLExamplesTest.java[tag=cypher-dsl-imports]
+----
+
+To match and return all the movie, build your statement like this:
+
+.Simple match
+[source, java,indent=0]
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/cypherdsl/CypherDSLExamplesTest.java[tag=cypher-dsl-e1]
+----
+<.> Declare a variable storing your node labeled `Movie` and named `m`, so that you can
+<.> reuse it in both the match and the return part.
+<.> The `build` method becomes only available when a compilable Cypher statement can be rendered.
+
+==== Find
+
+Match all nodes with a given set of properties:
+
+.Find the actor named "Tom Hanks"...
+[source, java,indent=0]
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/cypherdsl/CypherDSLExamplesTest.java[tag=cypher-dsl-e2]
+----
+
+Limit the number of returned things and return only one attribute
+
+.Find 10 people...
+[source, java,indent=0]
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/cypherdsl/CypherDSLExamplesTest.java[tag=cypher-dsl-e4]
+----
+
+Create complex conditions
+
+.Find movies released in the 1990s...
+[source, java,indent=0]
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/cypherdsl/CypherDSLExamplesTest.java[tag=cypher-dsl-e5]
+----
+
+==== Query
+
+Build relationships
+
+.List all Tom Hanks movies...
+[source, java,indent=0]
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/cypherdsl/CypherDSLExamplesTest.java[tag=cypher-dsl-e6]
+----
+
+.Who directed "Cloud Atlas"?
+[source, java,indent=0]
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/cypherdsl/CypherDSLExamplesTest.java[tag=cypher-dsl-e7]
+----
+
+.Tom Hanks' co-actors...
+[source, java,indent=0]
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/cypherdsl/CypherDSLExamplesTest.java[tag=cypher-dsl-e8]
+----
+
+.How people are related to "Cloud Atlas"...
+[source, java,indent=0]
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/cypherdsl/CypherDSLExamplesTest.java[tag=cypher-dsl-e9]
+----
+
+==== Solve
+
+.Movies and actors up to 4 "hops" away from Kevin Bacon
+[source, java,indent=0]
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/cypherdsl/CypherDSLExamplesTest.java[tag=cypher-dsl-bacon]
+----
+
+==== Recommend
+
+.Extend Tom Hanks co-actors, to find co-co-actors who haven't worked with Tom Hanks...
+[source, java,indent=0]
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/cypherdsl/CypherDSLExamplesTest.java[tag=cypher-dsl-r]
+----

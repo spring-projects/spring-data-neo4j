@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
 import static org.neo4j.springframework.data.core.cypher.Expressions.*;
 
 import org.apiguardian.api.API;
@@ -28,7 +29,7 @@ import org.springframework.lang.Nullable;
  * @author Gerrit Meier
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public interface StatementBuilder {
 
 	/**
@@ -285,6 +286,10 @@ public interface StatementBuilder {
 			return returning(createSymbolicNames(variables));
 		}
 
+		default OngoingReadingAndReturn returning(Named... variables) {
+			return returning(createSymbolicNames(variables));
+		}
+
 		/**
 		 * Create a match that returns one or more expressions.
 		 *
@@ -297,6 +302,9 @@ public interface StatementBuilder {
 			return returningDistinct(createSymbolicNames(variables));
 		}
 
+		default OngoingReadingAndReturn returningDistinct(Named... variables) {
+			return returningDistinct(createSymbolicNames(variables));
+		}
 
 		/**
 		 * Create a match that returns the distinct set of one or more expressions.
@@ -314,7 +322,21 @@ public interface StatementBuilder {
 	 */
 	interface ExposesWith {
 
+		/**
+		 * @param variables The variables to pass on to the next part
+		 * @return A match that can be build now
+		 * @see #with(Expression...)
+		 */
 		default OrderableOngoingReadingAndWithWithoutWhere with(String... variables) {
+			return with(createSymbolicNames(variables));
+		}
+
+		/**
+		 * @param variables The variables to pass on to the next part
+		 * @return A match that can be build now
+		 * @see #with(Expression...)
+		 */
+		default OrderableOngoingReadingAndWithWithoutWhere with(Named... variables) {
 			return with(createSymbolicNames(variables));
 		}
 
@@ -326,7 +348,21 @@ public interface StatementBuilder {
 		 */
 		OrderableOngoingReadingAndWithWithoutWhere with(Expression... expressions);
 
+		/**
+		 * @param variables The variables to pass on to the next part
+		 * @return A match that can be build now
+		 * @see #withDistinct(Expression...)
+		 */
 		default OrderableOngoingReadingAndWithWithoutWhere withDistinct(String... variables) {
+			return withDistinct(createSymbolicNames(variables));
+		}
+
+		/**
+		 * @param variables The variables to pass on to the next part
+		 * @return A match that can be build now
+		 * @see #withDistinct(Expression...)
+		 */
+		default OrderableOngoingReadingAndWithWithoutWhere withDistinct(Named... variables) {
 			return withDistinct(createSymbolicNames(variables));
 		}
 
@@ -470,6 +506,10 @@ public interface StatementBuilder {
 			return delete(createSymbolicNames(variables));
 		}
 
+		default <T extends OngoingUpdate & BuildableStatement> T delete(Named... variables) {
+			return delete(createSymbolicNames(variables));
+		}
+
 		/**
 		 * Creates a delete step with one or more expressions to be deleted.
 		 *
@@ -478,7 +518,11 @@ public interface StatementBuilder {
 		 */
 		<T extends OngoingUpdate & BuildableStatement> T delete(Expression... expressions);
 
-		default OrderableOngoingReadingAndWithWithoutWhere detachDelete(String... variables) {
+		default <T extends OngoingUpdate & BuildableStatement> T detachDelete(String... variables) {
+			return detachDelete(createSymbolicNames(variables));
+		}
+
+		default <T extends OngoingUpdate & BuildableStatement> T detachDelete(Named... variables) {
 			return detachDelete(createSymbolicNames(variables));
 		}
 
@@ -505,6 +549,10 @@ public interface StatementBuilder {
 		 * @return An ongoing match and update
 		 */
 		<T extends OngoingMatchAndUpdate & BuildableStatement> T set(Expression... expressions);
+
+		default <T extends OngoingMatchAndUpdate & BuildableStatement> T set(Named variable, Expression expression) {
+			return set(variable.getSymbolicName().orElseThrow(() -> new IllegalArgumentException("No name present on the named item.")), expression);
+		}
 	}
 
 	/**

@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.support.Visitor;
 
@@ -28,7 +30,7 @@ import org.neo4j.springframework.data.core.cypher.support.Visitor;
  * @soundtrack Queen - Jazz
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class Unwind implements ReadingClause {
 
 	private final Expression expressionToUnwind;
@@ -38,7 +40,7 @@ public final class Unwind implements ReadingClause {
 	Unwind(Expression expressionToUnwind, String variable) {
 
 		if (expressionToUnwind instanceof Aliased) {
-			this.expressionToUnwind = SymbolicName.create(((Aliased) expressionToUnwind).getAlias());
+			this.expressionToUnwind = ((Aliased) expressionToUnwind).asName();
 		} else {
 			this.expressionToUnwind = expressionToUnwind;
 		}

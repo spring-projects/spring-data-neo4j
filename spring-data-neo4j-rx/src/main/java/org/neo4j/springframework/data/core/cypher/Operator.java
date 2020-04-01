@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.support.Visitable;
 
@@ -27,7 +29,7 @@ import org.neo4j.springframework.data.core.cypher.support.Visitable;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public enum Operator implements Visitable {
 
 	// Mathematical operators

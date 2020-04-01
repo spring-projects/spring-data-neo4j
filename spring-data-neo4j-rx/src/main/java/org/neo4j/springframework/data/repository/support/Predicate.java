@@ -19,7 +19,7 @@
 package org.neo4j.springframework.data.repository.support;
 
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
-import static org.neo4j.springframework.data.core.schema.NodeDescription.*;
+import static org.neo4j.springframework.data.core.schema.Constants.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -32,11 +32,9 @@ import org.apache.commons.logging.LogFactory;
 import org.neo4j.springframework.data.core.convert.Neo4jConverter;
 import org.neo4j.springframework.data.core.cypher.Condition;
 import org.neo4j.springframework.data.core.cypher.Conditions;
-import org.neo4j.springframework.data.core.cypher.Cypher;
 import org.neo4j.springframework.data.core.cypher.Expression;
 import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder;
-import org.neo4j.springframework.data.core.cypher.SymbolicName;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
@@ -65,7 +63,6 @@ final class Predicate {
 
 		Neo4jPersistentEntity probeNodeDescription = mappingContext.getRequiredPersistentEntity(example.getProbeType());
 
-		SymbolicName rootNode = Cypher.name(NAME_OF_ROOT_NODE);
 		Collection<GraphPropertyDescription> graphProperties = probeNodeDescription.getGraphProperties();
 		DirectFieldAccessFallbackBeanWrapper beanWrapper = new DirectFieldAccessFallbackBeanWrapper(example.getProbe());
 		ExampleMatcher matcher = example.getMatcher();
@@ -92,7 +89,7 @@ final class Predicate {
 
 			if (!optionalValue.isPresent()) {
 				if (!internalId && matcherAccessor.getNullHandler().equals(ExampleMatcher.NullHandler.INCLUDE)) {
-					predicate.add(mode, property(rootNode, propertyName).isNull());
+					predicate.add(mode, property(NAME_OF_ROOT_NODE, propertyName).isNull());
 				}
 				continue;
 			}
@@ -105,7 +102,7 @@ final class Predicate {
 				predicate
 					.add(mode, predicate.neo4jPersistentEntity.getIdExpression().isEqualTo(literalOf(optionalValue.get())));
 			} else {
-				Expression property = property(rootNode, propertyName);
+				Expression property = property(NAME_OF_ROOT_NODE, propertyName);
 				Expression parameter = parameter(propertyName);
 				Condition condition = property.isEqualTo(parameter);
 

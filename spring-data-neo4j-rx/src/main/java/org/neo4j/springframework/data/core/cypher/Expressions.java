@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import java.util.Arrays;
 
 import org.apiguardian.api.API;
@@ -28,17 +30,18 @@ import org.apiguardian.api.API;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
-public final class Expressions {
+@API(status = INTERNAL, since = "1.0")
+final class Expressions {
 
 	/**
 	 * @param expression Possibly named with a non-empty symbolic name.
+	 * @param <T> The type being returned
 	 * @return The name of the expression if the expression is named or the expression itself.
 	 */
-	static Expression nameOrExpression(Expression expression) {
+	static <T> T nameOrExpression(T expression) {
 
 		if (expression instanceof Named) {
-			return ((Named) expression).getSymbolicName().map(Expression.class::cast).orElse(expression);
+			return ((Named) expression).getSymbolicName().map(v -> (T) v).orElse(expression);
 		} else {
 			return expression;
 		}
@@ -46,6 +49,11 @@ public final class Expressions {
 
 	static Expression[] createSymbolicNames(String[] variables) {
 		return Arrays.stream(variables).map(SymbolicName::create).toArray(Expression[]::new);
+	}
+
+	static Expression[] createSymbolicNames(Named[] variables) {
+		return Arrays.stream(variables).map(Named::getRequiredSymbolicName)
+			.toArray(Expression[]::new);
 	}
 
 	private Expressions() {

@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.support.Visitable;
 
@@ -28,7 +30,7 @@ import org.neo4j.springframework.data.core.cypher.support.Visitable;
  * @soundtrack Richard Gibbs - Battlestar Galactica OST
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class NodeLabel implements Visitable {
 
 	private final String value;

@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
 import static org.neo4j.springframework.data.core.cypher.Expressions.*;
 
 import org.apiguardian.api.API;
@@ -27,7 +28,7 @@ import org.neo4j.springframework.data.core.cypher.support.Visitor;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class NestedExpression implements Expression {
 
 	private final Expression delegate;

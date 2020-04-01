@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import org.apiguardian.api.API;
 
 /**
@@ -27,7 +29,7 @@ import org.apiguardian.api.API;
  * @param <T> Typically a {@link Relationship} or {@link RelationshipChain}
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = EXPERIMENTAL, since = "1.0")
 public interface ExposesRelationships<T> {
 	/**
 	 * Starts building an outgoing relationship to the {@code other} {@link Node node}.

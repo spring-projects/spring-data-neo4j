@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
+
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.support.Visitor;
 import org.springframework.lang.Nullable;
@@ -29,8 +31,8 @@ import org.springframework.lang.Nullable;
  * @soundtrack Rammstein - RAMMSTEIN
  * @since 1.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
-public final class KeyValueMapEntry implements MapEntry {
+@API(status = EXPERIMENTAL, since = "1.0")
+public final class KeyValueMapEntry implements Expression {
 
 	private @Nullable final String key;
 
