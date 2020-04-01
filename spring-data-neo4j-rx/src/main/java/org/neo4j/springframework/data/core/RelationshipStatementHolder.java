@@ -22,11 +22,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jetbrains.annotations.NotNull;
 import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.neo4j.springframework.data.core.schema.CypherGenerator;
+import org.springframework.lang.NonNull;
 
 /**
  * The {@link RelationshipStatementHolder} holds the Cypher Statement to create a relationship as well as the optional
@@ -41,14 +41,14 @@ final class RelationshipStatementHolder {
 	private final Statement relationshipCreationQuery;
 	private final Map<String, Object> properties;
 
-	private RelationshipStatementHolder(@NotNull Statement relationshipCreationQuery) {
+	private RelationshipStatementHolder(@NonNull Statement relationshipCreationQuery) {
 		this.relationshipCreationQuery = relationshipCreationQuery;
 		this.properties = Collections.emptyMap();
 	}
 
 	private RelationshipStatementHolder(
-		@NotNull Statement relationshipCreationQuery,
-		@NotNull Map<String, Object> properties) {
+		@NonNull Statement relationshipCreationQuery,
+		@NonNull Map<String, Object> properties) {
 		this.relationshipCreationQuery = relationshipCreationQuery;
 		this.properties = properties;
 	}

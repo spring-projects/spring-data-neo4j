@@ -19,8 +19,8 @@
 package org.neo4j.springframework.data.core.schema;
 
 import org.apiguardian.api.API;
-import org.jetbrains.annotations.NotNull;
 import org.neo4j.springframework.data.core.schema.Relationship.Direction;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 /**
@@ -107,7 +107,7 @@ public interface RelationshipDescription {
 		return Direction.INCOMING.equals(this.getDirection());
 	}
 
-	@NotNull
+	@NonNull
 	default String generateRelatedNodesCollectionName() {
 
 		return this.getSource().getPrimaryLabel() + "_" + this.getType() + "_" + this.getTarget().getPrimaryLabel();
