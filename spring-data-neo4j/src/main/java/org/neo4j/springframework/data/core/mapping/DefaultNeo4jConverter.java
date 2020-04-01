@@ -39,7 +39,6 @@ import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
 import org.apache.commons.logging.LogFactory;
-import org.jetbrains.annotations.NotNull;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
@@ -64,6 +63,7 @@ import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -276,7 +276,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		return instance;
 	}
 
-	@NotNull
+	@NonNull
 	private <ET> Neo4jPersistentEntity<ET> getConcreteNodeDescription(MapAccessor queryResult,
 		Neo4jPersistentEntity<ET> nodeDescription) {
 

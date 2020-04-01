@@ -36,7 +36,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
-import org.jetbrains.annotations.NotNull;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.value.LossyCoercion;
@@ -45,6 +44,7 @@ import org.springframework.core.convert.converter.ConditionalConverter;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
+import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -220,7 +220,7 @@ final class AdditionalTypes {
 			}
 		}
 
-		@NotNull
+		@NonNull
 		private static Object read(Value source, TypeDescriptor targetType) {
 			if (targetType.isArray()) {
 				Class<?> componentType = targetType.getElementTypeDescriptor().getType();

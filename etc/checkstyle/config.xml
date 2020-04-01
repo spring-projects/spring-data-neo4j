@@ -59,7 +59,7 @@
         <module  name="com.puppycrawl.tools.checkstyle.checks.imports.IllegalImportCheck">
             <property name="regexp" value="true" />
             <property name="illegalPkgs"
-                      value="^sun.*, ^org\.apache\.commons\.(?!compress|dbcp2|lang|lang3|logging|pool2).*, ^com\.google\.common.*, ^org\.flywaydb\.core\.internal.*, ^org\.testcontainers\.shaded.*, ^org\.neo4j\.driver\.internal\.shaded.*, ^org\.slf4j.*" />
+                      value="^sun.*, ^org\.apache\.commons\.(?!compress|dbcp2|lang|lang3|logging|pool2).*, ^com\.google\.common.*, ^org\.flywaydb\.core\.internal.*, ^org\.testcontainers\.shaded.*, ^org\.neo4j\.driver\.internal\.shaded.*, ^org\.slf4j.*, ^org\.jetbrains.*" />
             <property name="illegalClasses"
                       value="^reactor\.core\.support\.Assert, ^org\.junit\.rules\.ExpectedException, ^org\.junit\.Test" />
         </module>

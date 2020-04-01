@@ -27,7 +27,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.jetbrains.annotations.NotNull;
 import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.IdDescription;
@@ -42,6 +41,7 @@ import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -217,7 +217,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	 *
 	 * @return computed additional labels of the concrete class
 	 */
-	@NotNull
+	@NonNull
 	private List<String> computeOwnAdditionalLabels() {
 		Node nodeAnnotation = this.findAnnotation(Node.class);
 		if (nodeAnnotation == null || hasEmptyLabelInformation(nodeAnnotation)) {
@@ -229,7 +229,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		}
 	}
 
-	@NotNull
+	@NonNull
 	private List<String> computeParentLabels() {
 
 		List<String> parentLabels = new ArrayList<>();
