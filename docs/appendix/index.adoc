@@ -8,6 +8,7 @@ include::conversions.adoc[]
 include::sdc-repository-query-keywords-reference.adoc[]
 include::sdc-repository-query-return-types-reference.adoc[]
 include::neo4j-client.adoc[]
+include::cypherdsl.adoc[]
 include::migrating.adoc[]
 include::build.adoc[]
 :leveloffset: -1
