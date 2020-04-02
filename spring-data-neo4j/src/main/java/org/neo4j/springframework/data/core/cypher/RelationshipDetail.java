@@ -72,6 +72,15 @@ public final class RelationshipDetail implements Visitable {
 		this.properties = properties;
 	}
 
+	/**
+	 * Internal helper method indicating whether the details have content or not.
+	 *
+	 * @return true if any of the details are filled
+	 */
+	public boolean hasContent() {
+		return this.symbolicName != null || this.types != null || this.length != null || this.properties != null;
+	}
+
 	RelationshipDetail named(String newSymbolicName) {
 
 		Assert.hasText(newSymbolicName, "Symbolic name is required.");

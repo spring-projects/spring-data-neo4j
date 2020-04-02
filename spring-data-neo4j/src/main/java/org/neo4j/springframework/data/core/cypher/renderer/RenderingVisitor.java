@@ -318,9 +318,10 @@ class RenderingVisitor extends ReflectiveVisitor {
 	void enter(RelationshipDetail details) {
 
 		Relationship.Direction direction = details.getDirection();
-		builder
-			.append(direction.getSymbolLeft())
-			.append("[");
+		builder.append(direction.getSymbolLeft());
+		if (details.hasContent()) {
+			builder.append("[");
+		}
 	}
 
 	void enter(RelationshipTypes types) {
@@ -353,9 +354,10 @@ class RenderingVisitor extends ReflectiveVisitor {
 	void leave(RelationshipDetail details) {
 
 		Relationship.Direction direction = details.getDirection();
-		builder
-			.append("]")
-			.append(direction.getSymbolRight());
+		if (details.hasContent()) {
+			builder.append("]");
+		}
+		builder.append(direction.getSymbolRight());
 	}
 
 	void enter(Parameter parameter) {
