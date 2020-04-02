@@ -232,6 +232,32 @@ class CypherIT {
 						"MATCH (u:`User`)-[:`OWNS`]->(b:`Bike`)-[r2:`USED_ON`*1.. {when: '2019-04-16'}]->(t:`Trip`)<-[x:`WAS_ON`*2.. {whatever: '2020-04-16'}]-(u)-[y*2..3 {idk: '2021-04-16'}]-(:`SOMETHING`) WHERE u.name =~ '.*aName' RETURN b, u");
 			}
 
+			@Test // GH-182
+			void sizeOfRelationship() {
+
+				Statement statement = Cypher
+					.match(anyNode("a"))
+					.where(property("a", "name").isEqualTo(literalOf("Alice")))
+					.returning(Functions.size(anyNode("a").relationshipTo(anyNode())).as("fof"))
+					.build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo("MATCH (a) WHERE a.name = 'Alice' RETURN size((a)-->()) AS fof");
+			}
+
+			@Test // GH-182
+			void sizeOfRelationshipChain() {
+
+				Statement statement = Cypher
+					.match(anyNode("a"))
+					.where(property("a", "name").isEqualTo(literalOf("Alice")))
+					.returning(Functions.size(anyNode("a").relationshipTo(anyNode()).relationshipTo(anyNode())).as("fof"))
+					.build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo("MATCH (a) WHERE a.name = 'Alice' RETURN size((a)-->()-->()) AS fof");
+			}
+
 			@Test
 			void sortOrderDefault() {
 				Statement statement = Cypher.match(userNode).returning(userNode)
@@ -2155,7 +2181,7 @@ class CypherIT {
 				.build();
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo(
-					"MATCH (a:`Person` {name: 'Keanu Reeves'}) RETURN [(a)-[]-(b)|b.released] AS years");
+					"MATCH (a:`Person` {name: 'Keanu Reeves'}) RETURN [(a)--(b)|b.released] AS years");
 		}
 
 		@Test
@@ -2172,7 +2198,7 @@ class CypherIT {
 				.build();
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo(
-					"MATCH (a:`Person` {name: 'Keanu Reeves'}) RETURN [(a)-[]-(b) WHERE b:`Movie`|b.released] AS years");
+					"MATCH (a:`Person` {name: 'Keanu Reeves'}) RETURN [(a)--(b) WHERE b:`Movie`|b.released] AS years");
 		}
 
 		@Test

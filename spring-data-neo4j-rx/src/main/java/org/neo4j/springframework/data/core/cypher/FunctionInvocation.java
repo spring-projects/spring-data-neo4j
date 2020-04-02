@@ -21,6 +21,7 @@ package org.neo4j.springframework.data.core.cypher;
 import static org.apiguardian.api.API.Status.*;
 
 import org.apiguardian.api.API;
+import org.neo4j.springframework.data.core.cypher.support.TypedSubtree;
 import org.neo4j.springframework.data.core.cypher.support.Visitor;
 
 /**
@@ -36,12 +37,18 @@ public final class FunctionInvocation implements Expression {
 
 	private final String functionName;
 
-	private final ExpressionList arguments;
+	private final TypedSubtree<?, ?> arguments;
 
 	FunctionInvocation(String functionName, Expression... arguments) {
 
 		this.functionName = functionName;
 		this.arguments = new ExpressionList(arguments);
+	}
+
+	FunctionInvocation(String functionName, Pattern pattern) {
+
+		this.functionName = functionName;
+		this.arguments = pattern;
 	}
 
 	public String getFunctionName() {
