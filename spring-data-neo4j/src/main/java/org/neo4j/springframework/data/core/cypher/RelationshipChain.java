@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * @since 1.0
  */
 @API(status = EXPERIMENTAL, since = "1.0")
-public final class RelationshipChain implements PatternElement, ExposesRelationships<RelationshipChain> {
+public final class RelationshipChain implements RelationshipPattern, ExposesRelationships<RelationshipChain> {
 
 	private final LinkedList<Relationship> relationships = new LinkedList<>();
 

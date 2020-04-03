@@ -224,18 +224,7 @@ public final class Conditions {
 	 * @param pattern The pattern to check whether it exists or not
 	 * @return A new condition.
 	 */
-	public static Condition exists(Relationship pattern) {
-
-		return new BooleanFunctionCondition(Predicates.exists(pattern));
-	}
-
-	/**
-	 * A condition that evaluates to true if the property {@code property} exists.
-	 *
-	 * @param pattern The property to check whether it exists or not
-	 * @return A new condition.
-	 */
-	public static Condition exists(RelationshipChain pattern) {
+	public static Condition exists(RelationshipPattern pattern) {
 
 		return new BooleanFunctionCondition(Predicates.exists(pattern));
 	}

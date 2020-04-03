@@ -38,9 +38,7 @@ import org.springframework.util.Assert;
  * @since 1.0
  */
 @API(status = EXPERIMENTAL, since = "1.0")
-public final class Relationship implements
-	PatternElement, Named,
-	ExposesRelationships<RelationshipChain> {
+public final class Relationship implements RelationshipPattern, Named, ExposesRelationships<RelationshipChain> {
 
 	/**
 	 * While the direction in the schema package is centered around the node, the direction here is the direction between two nodes.

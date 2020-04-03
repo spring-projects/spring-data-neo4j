@@ -29,7 +29,7 @@ import org.neo4j.springframework.data.core.cypher.support.Visitable;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = EXPERIMENTAL, since = "1.0")
+@API(status = INTERNAL, since = "1.0")
 public final class RelationshipLength implements Visitable {
 
 	private final Integer minimum;

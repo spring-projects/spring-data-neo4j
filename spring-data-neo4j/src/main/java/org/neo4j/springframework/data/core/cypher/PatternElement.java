@@ -24,6 +24,8 @@ import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.support.Visitable;
 
 /**
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/PatternElement.html">PatternElement</a>.
+ *
  * @author Michael J. Simons
  * @since 1.0
  */
