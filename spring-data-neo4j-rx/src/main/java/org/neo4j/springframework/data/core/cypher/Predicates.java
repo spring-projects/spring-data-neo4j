@@ -56,21 +56,7 @@ public final class Predicates {
 	 * @param pattern The pattern to be passed to {@code exists()}
 	 * @return A function call for {@code exists()} for one pattern
 	 */
-	public static FunctionInvocation exists(Relationship pattern) {
-
-		Assert.notNull(pattern, "The pattern for exists() is required.");
-
-		return new FunctionInvocation("exists", new Pattern(Collections.singletonList(pattern)));
-	}
-
-	/**
-	 * Creates a function invocation for the {@code exists()} function.
-	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-exists">exists</a>.
-	 *
-	 * @param pattern The property to be passed to {@code exists()}
-	 * @return A function call for {@code exists()} for one pattern
-	 */
-	public static FunctionInvocation exists(RelationshipChain pattern) {
+	public static FunctionInvocation exists(RelationshipPattern pattern) {
 
 		Assert.notNull(pattern, "The pattern for exists() is required.");
 

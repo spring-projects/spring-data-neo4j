@@ -171,25 +171,9 @@ public final class Functions {
 	 * </ul>
 	 *
 	 * @param pattern The pattern for which {@code size()} should be invoked.
-	 * @return A function call for {@code size()} for one pattern
-	 */
-	public static FunctionInvocation size(Relationship pattern) {
-
-		Assert.notNull(pattern, "The relationship for size() is required.");
-
-		return new FunctionInvocation("size", new Pattern(Collections.singletonList(pattern)));
-	}
-
-	/**
-	 * Creates a function invocation for the {@code size()} function. {@code size} can be applied to
-	 * <ul>
-	 * <li><a href="https://neo4j.com/docs/cypher-manual/current/functions/scalar/#functions-size-of-pattern-expression">to a pattern expression</a></li>
-	 * </ul>
-	 *
-	 * @param pattern The pattern for which {@code size()} should be invoked.
 	 * @return A function call for {@code size()} for a pattern
 	 */
-	public static FunctionInvocation size(RelationshipChain pattern) {
+	public static FunctionInvocation size(RelationshipPattern pattern) {
 
 		Assert.notNull(pattern, "The pattern for size() is required.");
 

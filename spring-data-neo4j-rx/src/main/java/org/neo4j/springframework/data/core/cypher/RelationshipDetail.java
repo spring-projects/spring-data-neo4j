@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
  * @author Philipp Tölle
  * @since 1.0
  */
-@API(status = EXPERIMENTAL, since = "1.0")
+@API(status = INTERNAL, since = "1.0")
 public final class RelationshipDetail implements Visitable {
 
 	/**

@@ -35,7 +35,7 @@ import org.neo4j.springframework.data.core.cypher.support.TypedSubtree;
  * @param <S> The pattern's entry type
  * @since 1.0
  */
-@API(status = EXPERIMENTAL, since = "1.0")
+@API(status = INTERNAL, since = "1.0")
 public final class Pattern<S extends Pattern<S>> extends TypedSubtree<PatternElement, S> {
 
 	Pattern(List<PatternElement> patternElements) {

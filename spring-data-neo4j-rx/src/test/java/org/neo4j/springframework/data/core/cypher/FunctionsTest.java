@@ -69,7 +69,10 @@ class FunctionsTest {
 			Arguments.of("count", Expression.class),
 			Arguments.of("collect", Expression.class),
 			Arguments.of("head", Expression.class),
-			Arguments.of("last", Expression.class)
+			Arguments.of("last", Expression.class),
+			Arguments.of("size", RelationshipPattern.class),
+			Arguments.of("size", Expression.class)
+
 		);
 	}
 

@@ -20,27 +20,16 @@ package org.neo4j.springframework.data.core.cypher;
 
 import static org.apiguardian.api.API.Status.*;
 
-import java.util.List;
-
 import org.apiguardian.api.API;
-import org.neo4j.springframework.data.core.cypher.support.Visitable;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/RelationshipDetail.html#RelationshipTypes">RelationshipTypes</a>
+ * A shared, public interface for  {@link Relationship relationships} and {@link RelationshipChain chains of relationships}.
+ * This interface reassembles the <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/RelationshipPattern.html">RelationshipPattern</a>.
  *
  * @author Michael J. Simons
+ * @soundtrack Mine & Fatoni - Alle Liebe nachträglich
  * @since 1.0
  */
-@API(status = INTERNAL, since = "1.0")
-public final class RelationshipTypes implements Visitable {
-
-	private final List<String> values;
-
-	public RelationshipTypes(List<String> values) {
-		this.values = values;
-	}
-
-	public List<String> getValues() {
-		return values;
-	}
+@API(status = EXPERIMENTAL, since = "1.0")
+public interface RelationshipPattern extends PatternElement {
 }

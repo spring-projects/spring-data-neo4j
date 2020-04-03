@@ -39,8 +39,7 @@ class PredicatesTest {
 	private static Stream<Arguments> predicatesToTest() {
 		return Stream.of(
 			Arguments.of("exists", Property.class),
-			Arguments.of("exists", Relationship.class),
-			Arguments.of("exists", RelationshipChain.class)
+			Arguments.of("exists", RelationshipPattern.class)
 		);
 	}
 
