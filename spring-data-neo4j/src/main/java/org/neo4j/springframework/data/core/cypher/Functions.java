@@ -267,6 +267,34 @@ public final class Functions {
 		return new FunctionInvocation("collect", expression);
 	}
 
+	/**
+	 * Creates a function invocation for the {@code head()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/scalar/#functions-head">head</a>.
+	 *
+	 * @param expression A list from which the head element is returned
+	 * @return A function call for {@code head()}
+	 */
+	public static FunctionInvocation head(Expression expression) {
+
+		Assert.notNull(expression, "The expression for head is required.");
+
+		return new FunctionInvocation("head", expression);
+	}
+
+	/**
+	 * Creates a function invocation for the {@code last()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/scalar/#functions-last">last</a>.
+	 *
+	 * @param expression A list from which the last element is returned
+	 * @return A function call for {@code last()}
+	 */
+	public static FunctionInvocation last(Expression expression) {
+
+		Assert.notNull(expression, "The expression for last is required.");
+
+		return new FunctionInvocation("last", expression);
+	}
+
 	private Functions() {
 	}
 }

@@ -20,10 +20,16 @@ package org.neo4j.springframework.data.core.cypher;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.neo4j.springframework.data.core.cypher.Cypher.*;
+
+import java.lang.reflect.Method;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Michael J. Simons
@@ -31,45 +37,6 @@ import org.junit.jupiter.api.Test;
 class FunctionsTest {
 
 	private static final String FUNCTION_NAME_FIELD = "functionName";
-
-	@Nested
-	class id {
-
-		@Test
-		void preconditionsShouldBeAsserted() {
-
-			assertThatIllegalArgumentException().isThrownBy(() -> Functions.id((Node) null))
-				.withMessage("The node parameter is required.");
-
-			assertThatIllegalArgumentException().isThrownBy(() -> Functions.id((Relationship) null))
-				.withMessage("The relationship parameter is required.");
-		}
-
-		@Test
-		void shouldCreateCorrectInvocation() {
-
-			FunctionInvocation invocation = Functions.id(node("Test").named("n"));
-			assertThat(invocation).hasFieldOrPropertyWithValue(FUNCTION_NAME_FIELD, "id");
-		}
-	}
-
-	@Nested
-	class count {
-
-		@Test
-		void preconditionsShouldBeAsserted() {
-
-			assertThatIllegalArgumentException().isThrownBy(() -> Functions.count((Expression) null))
-				.withMessage("The expression to count is required.");
-		}
-
-		@Test
-		void shouldCreateCorrectInvocation() {
-
-			FunctionInvocation invocation = Functions.count(mock(Expression.class));
-			assertThat(invocation).hasFieldOrPropertyWithValue(FUNCTION_NAME_FIELD, "count");
-		}
-	}
 
 	@Nested
 	class coalesce {
@@ -95,21 +62,34 @@ class FunctionsTest {
 		}
 	}
 
-	@Nested
-	class collect {
+	private static Stream<Arguments> functionsToTest() {
+		return Stream.of(
+			Arguments.of("id", Node.class),
+			Arguments.of("id", Relationship.class),
+			Arguments.of("count", Expression.class),
+			Arguments.of("collect", Expression.class),
+			Arguments.of("head", Expression.class),
+			Arguments.of("last", Expression.class)
+		);
+	}
 
-		@Test
-		void preconditionsShouldBeAsserted() {
+	@ParameterizedTest
+	@MethodSource("functionsToTest")
+	void preconditionsShouldBeAsserted(String functionName, Class<?> argumentType) {
 
-			assertThatIllegalArgumentException().isThrownBy(() -> Functions.collect((Expression) null))
-				.withMessage("The expression to collect is required.");
-		}
+		Method method = ReflectionUtils.findMethod(Functions.class, functionName, argumentType);
+		assertThatIllegalArgumentException()
+			.isThrownBy(() -> ReflectionUtils.invokeMethod(method, null, (Expression) null))
+			.withMessageEndingWith("is required.");
+	}
 
-		@Test
-		void shouldCreateCorrectInvocation() {
+	@ParameterizedTest
+	@MethodSource("functionsToTest")
+	void functionInvocationsShouldBeCreated(String functionName, Class<?> argumentType) {
 
-			FunctionInvocation invocation = Functions.collect(mock(Expression.class));
-			assertThat(invocation).hasFieldOrPropertyWithValue(FUNCTION_NAME_FIELD, "collect");
-		}
+		Method method = ReflectionUtils.findMethod(Functions.class, functionName, argumentType);
+		FunctionInvocation invocation = (FunctionInvocation) ReflectionUtils
+			.invokeMethod(method, null, mock(argumentType));
+		assertThat(invocation).hasFieldOrPropertyWithValue(FUNCTION_NAME_FIELD, functionName);
 	}
 }

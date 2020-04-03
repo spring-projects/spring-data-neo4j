@@ -2553,5 +2553,19 @@ class CypherIT {
 					+   ")"
 					+ ") RETURN DISTINCT r, o");
 		}
+
+		@Test
+		void gh187() {
+			final Node r = node("Resume").named("r");
+			final Node u = node("User").named("u");
+
+			Statement s = match(r.relationshipFrom(u, "HAS"))
+				.with(Functions.head(Functions.collect(r.getRequiredSymbolicName())).as("r"))
+					.returning(r)
+					.build();
+
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("MATCH (r:`Resume`)<-[:`HAS`]-(u:`User`) WITH head(collect(r)) AS r RETURN r");
+		}
 	}
 }
