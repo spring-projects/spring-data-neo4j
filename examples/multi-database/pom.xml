@@ -41,7 +41,7 @@
 		<maven-failsafe-plugin.version>3.0.0-M3</maven-failsafe-plugin.version>
 		<maven-install-plugin.version>3.0.0-M1</maven-install-plugin.version>
 		<maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
-		<neo4j.version>4.0.0</neo4j.version>
+		<neo4j.version>4.0.3</neo4j.version>
 		<spring-data-neo4j-rx.version>${revision}${sha1}${changelist}</spring-data-neo4j-rx.version>
 		<testcontainers.version>1.13.0</testcontainers.version>
 	</properties>
@@ -187,7 +187,7 @@
 				</property>
 			</activation>
 			<properties>
-				<changelist>-beta04</changelist>
+				<changelist>-rc01</changelist>
 			</properties>
 		</profile>
 	</profiles>

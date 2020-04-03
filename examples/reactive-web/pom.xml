@@ -190,7 +190,7 @@
 				</property>
 			</activation>
 			<properties>
-				<changelist>-SNAPSHOT</changelist>
+				<changelist>-rc01</changelist>
 			</properties>
 		</profile>
 	</profiles>

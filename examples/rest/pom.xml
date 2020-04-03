@@ -144,7 +144,7 @@
 				</property>
 			</activation>
 			<properties>
-				<changelist>-beta04</changelist>
+				<changelist>-rc01</changelist>
 			</properties>
 		</profile>
 	</profiles>
