@@ -435,6 +435,30 @@ class RenderingVisitor extends ReflectiveVisitor {
 		builder.append("]");
 	}
 
+	void enter(Case genericCase) {
+		builder.append("CASE");
+	}
+
+	void enter(Case.SimpleCase simpleCase) {
+		builder.append("CASE ");
+	}
+
+	void enter(Case.CaseWhenThen caseWhenExpression) {
+		builder.append(" WHEN ");
+	}
+
+	void leave(Case.CaseWhenThen caseWhenExpression) {
+		builder.append(" THEN ");
+	}
+
+	void enter(Case.CaseElse caseElseExpression) {
+		builder.append(" ELSE ");
+	}
+
+	void leave(Case caseExpression) {
+		builder.append(" END");
+	}
+
 	public String getRenderedContent() {
 		return this.builder.toString();
 	}

@@ -2330,6 +2330,145 @@ class CypherIT {
 	}
 
 	@Nested
+	class Case {
+
+		@Test
+		void simpleCase() {
+			Node node = node("a").named("n");
+			Statement statement = match(node).where(
+				Cypher.caseExpression(node.property("value"))
+					.when(literalOf("blubb"))
+					.then(literalTrue())
+			).returning(node).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (n:`a`) WHERE CASE n.value WHEN 'blubb' THEN true END RETURN n");
+		}
+
+		@Test
+		void simpleCaseWithElse() {
+			Node node = node("a").named("n");
+			Statement statement = match(node).where(
+				Cypher.caseExpression(node.property("value"))
+					.when(literalOf("blubb"))
+					.then(literalTrue())
+					.elseDefault(literalFalse())
+			).returning(node).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (n:`a`) WHERE CASE n.value WHEN 'blubb' THEN true ELSE false END RETURN n");
+		}
+
+		@Test
+		void simpleCaseWithMultipleWhenThen() {
+			Node node = node("a").named("n");
+			Statement statement = match(node).where(
+				Cypher.caseExpression(node.property("value"))
+					.when(literalOf("blubb"))
+					.then(literalTrue())
+					.when(literalOf("bla"))
+					.then(literalFalse())
+			).returning(node).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (n:`a`) WHERE CASE n.value WHEN 'blubb' THEN true WHEN 'bla' THEN false END RETURN n");
+		}
+
+		@Test
+		void simpleCaseWithMultipleWhenThenAndElse() {
+			Node node = node("a").named("n");
+			Statement statement = match(node).where(
+				Cypher.caseExpression(node.property("value"))
+					.when(literalOf("blubb"))
+					.then(literalTrue())
+					.when(literalOf("bla"))
+					.then(literalFalse())
+					.elseDefault(literalOf(1))
+			).returning(node).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (n:`a`) WHERE CASE n.value WHEN 'blubb' THEN true WHEN 'bla' THEN false ELSE 1 END RETURN n");
+		}
+
+		@Test
+		void genericCase() {
+			Node node = node("a").named("n");
+			Statement statement = match(node).where(
+				Cypher.caseExpression()
+					.when(node.property("value").isEqualTo(literalOf("blubb")))
+					.then(literalTrue())
+			).returning(node).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (n:`a`) WHERE CASE WHEN n.value = 'blubb' THEN true END RETURN n");
+		}
+
+		@Test
+		void genericCaseWithElse() {
+			Node node = node("a").named("n");
+			Statement statement = match(node).where(
+				Cypher.caseExpression()
+					.when(node.property("value").isEqualTo(literalOf("blubb")))
+					.then(literalTrue())
+					.elseDefault(literalFalse())
+			).returning(node).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (n:`a`) WHERE CASE WHEN n.value = 'blubb' THEN true ELSE false END RETURN n");
+		}
+
+		@Test
+		void genericCaseWithMultipleWhenThen() {
+			Node node = node("a").named("n");
+			Statement statement = match(node).where(
+				Cypher.caseExpression()
+					.when(node.property("value").isEqualTo(literalOf("blubb")))
+					.then(literalTrue())
+					.when(node.property("value").isEqualTo(literalOf("bla")))
+					.then(literalFalse())
+			).returning(node).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (n:`a`) WHERE CASE WHEN n.value = 'blubb' THEN true WHEN n.value = 'bla' THEN false END RETURN n");
+		}
+
+		@Test
+		void genericCaseWithMultipleWhenThenAndElse() {
+			Node node = node("a").named("n");
+			Statement statement = match(node).where(
+				Cypher.caseExpression()
+					.when(node.property("value").isEqualTo(literalOf("blubb")))
+					.then(literalTrue())
+					.when(node.property("value").isEqualTo(literalOf("bla")))
+					.then(literalFalse())
+					.elseDefault(literalOf(1))
+			).returning(node).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (n:`a`) WHERE CASE WHEN n.value = 'blubb' THEN true WHEN n.value = 'bla' THEN false ELSE 1 END RETURN n");
+		}
+
+		// from https://neo4j.com/docs/cypher-manual/current/syntax/expressions/#syntax-simple-case
+		@Test
+		void canGetAliasedInReturn() {
+			Node node = anyNode("n");
+			Statement statement = match(node)
+				.returning(
+					Cypher.caseExpression(node.property("eyes"))
+						.when(literalOf("blue"))
+						.then(literalOf(1))
+						.when(literalOf("brown"))
+						.then(literalOf(2))
+						.elseDefault(literalOf(3))
+						.as("result")
+				).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (n) RETURN CASE n.eyes WHEN 'blue' THEN 1 WHEN 'brown' THEN 2 ELSE 3 END AS result");
+		}
+	}
+
+	@Nested
 	class Issues {
 
 		@Test
