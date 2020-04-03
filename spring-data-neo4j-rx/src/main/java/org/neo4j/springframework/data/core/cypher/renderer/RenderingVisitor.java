@@ -159,18 +159,16 @@ class RenderingVisitor extends ReflectiveVisitor {
 		builder.append(" ");
 	}
 
+	void enter(Distinct distinct) {
+		builder.append("DISTINCT ");
+	}
+
 	void enter(Return returning) {
 		builder.append("RETURN ");
-		if (returning.isDistinct()) {
-			builder.append("DISTINCT ");
-		}
 	}
 
 	void enter(With with) {
 		builder.append("WITH ");
-		if (with.isDistinct()) {
-			builder.append("DISTINCT ");
-		}
 	}
 
 	void leave(With with) {

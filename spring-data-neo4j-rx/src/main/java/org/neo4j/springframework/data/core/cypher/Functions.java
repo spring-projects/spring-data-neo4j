@@ -119,6 +119,34 @@ public final class Functions {
 	}
 
 	/**
+	 * Creates a function invocation for a {@code count()} function with {@code DISTINCT} added.
+	 *
+	 * @param node The named node to be counted
+	 * @return A function call for {@code count()} for one named node
+	 * @see #countDistinct(Expression)
+	 */
+	public static FunctionInvocation countDistinct(Node node) {
+
+		Assert.notNull(node, "The node parameter is required.");
+
+		return countDistinct(node.getRequiredSymbolicName());
+	}
+
+	/**
+	 * Creates a function invocation for a {@code count()} function with {@code DISTINCT} added.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/aggregating/#functions-count">count</a>.
+	 *
+	 * @param expression An expression describing the things to count.
+	 * @return A function call for {@code count()} for an expression like {@link Cypher#asterisk()} etc.
+	 */
+	public static FunctionInvocation countDistinct(Expression expression) {
+
+		Assert.notNull(expression, "The expression to count is required.");
+
+		return new FunctionInvocation("count", new DistinctExpression(expression));
+	}
+
+	/**
 	 * Creates a function invocation for the {@code coalesce()} function.
 	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/scalar/#functions-coalesce">coalesce</a>.
 	 *

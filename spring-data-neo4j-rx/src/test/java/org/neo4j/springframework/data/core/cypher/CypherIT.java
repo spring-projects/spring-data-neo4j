@@ -2581,5 +2581,18 @@ class CypherIT {
 			assertThat(cypherRenderer.render(s))
 				.isEqualTo("MATCH (r:`Resume`)<-[:`HAS`]-(u:`User`) WITH head(collect(r)) AS r RETURN r");
 		}
+
+		@Test
+		void gh188() {
+			final Node r = node("Resume").named("r");
+			final Node u = node("User").named("u");
+
+			Statement s = match(r.relationshipFrom(u, "HAS"))
+				.returning(countDistinct(r.getRequiredSymbolicName()).as("r"))
+				.build();
+
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("MATCH (r:`Resume`)<-[:`HAS`]-(u:`User`) RETURN count(DISTINCT r) AS r");
+		}
 	}
 }

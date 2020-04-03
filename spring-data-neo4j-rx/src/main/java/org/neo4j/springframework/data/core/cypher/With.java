@@ -35,7 +35,7 @@ import org.springframework.lang.Nullable;
 @API(status = EXPERIMENTAL, since = "1.0")
 public final class With implements Visitable {
 
-	private final boolean distinct;
+	private final @Nullable Distinct distinct;
 
 	private final ReturnBody body;
 
@@ -43,19 +43,16 @@ public final class With implements Visitable {
 	private final Where where;
 
 	With(boolean distinct, ExpressionList returnItems, Order order, Skip skip, Limit limit, @Nullable Where where) {
-		this.distinct = distinct;
+		this.distinct = distinct ? Distinct.INSTANCE : null;
 		this.body = new ReturnBody(returnItems, order, skip, limit);
 		this.where = where;
-	}
-
-	public boolean isDistinct() {
-		return distinct;
 	}
 
 	@Override
 	public void accept(Visitor visitor) {
 
 		visitor.enter(this);
+		Visitable.visitIfNotNull(this.distinct, visitor);
 		this.body.accept(visitor);
 		Visitable.visitIfNotNull(where, visitor);
 		visitor.leave(this);
