@@ -317,6 +317,21 @@ public final class Cypher {
 		return literalOf(unquotedString).asString();
 	}
 
+	/**
+	 * @return generic case expression start
+	 */
+	public static Case caseExpression() {
+		return Case.create();
+	}
+
+	/**
+	 * @param expression initial expression for the simple case statement
+	 * @return simple case expression start
+	 */
+	public static Case caseExpression(Expression expression) {
+		return Case.create(expression);
+	}
+
 	private static Statement unionImpl(boolean unionAll, Statement... statements) {
 
 		Assert.isTrue(statements != null && statements.length >= 2, "At least two statements are required!");
