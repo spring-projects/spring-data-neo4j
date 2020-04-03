@@ -21,34 +21,29 @@ package org.neo4j.springframework.data.core.cypher;
 import static org.apiguardian.api.API.Status.*;
 
 import org.apiguardian.api.API;
-import org.neo4j.springframework.data.core.cypher.support.Visitable;
 import org.neo4j.springframework.data.core.cypher.support.Visitor;
-import org.springframework.lang.Nullable;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Return.html">Return</a>.
+ * AST representation of the {@literal DISTINCT} keyword.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = EXPERIMENTAL, since = "1.0")
-public final class Return implements Visitable {
+@API(status = INTERNAL, since = "1.0")
+public final class DistinctExpression implements Expression {
 
-	private final @Nullable Distinct distinct;
+	private final Expression delegate;
 
-	private final ReturnBody body;
-
-	Return(boolean distinct, ExpressionList returnItems, Order order, Skip skip, Limit limit) {
-		this.distinct = distinct ? Distinct.INSTANCE : null;
-		this.body = new ReturnBody(returnItems, order, skip, limit);
+	DistinctExpression(Expression delegate) {
+		this.delegate = delegate;
 	}
 
 	@Override
 	public void accept(Visitor visitor) {
 
 		visitor.enter(this);
-		Visitable.visitIfNotNull(this.distinct, visitor);
-		this.body.accept(visitor);
+		Distinct.INSTANCE.accept(visitor);
+		this.delegate.accept(visitor);
 		visitor.leave(this);
 	}
 }
