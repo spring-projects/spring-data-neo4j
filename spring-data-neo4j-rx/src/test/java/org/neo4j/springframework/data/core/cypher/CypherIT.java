@@ -2555,6 +2555,20 @@ class CypherIT {
 		}
 
 		@Test
+		void gh185() {
+			final Node r = node("Resume").named("r");
+			final Node u = node("UserSearchable").named("u");
+
+			Statement s = match(r.relationshipFrom(u, "HAS"))
+				.where(not(exists(r.relationshipTo(u, "EXCLUDES"))))
+				.returningDistinct(r)
+				.build();
+
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("MATCH (r:`Resume`)<-[:`HAS`]-(u:`UserSearchable`) WHERE NOT (exists((r)-[:`EXCLUDES`]->(u))) RETURN DISTINCT r");
+		}
+
+		@Test
 		void gh187() {
 			final Node r = node("Resume").named("r");
 			final Node u = node("User").named("u");
