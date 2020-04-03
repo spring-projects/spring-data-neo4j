@@ -208,14 +208,36 @@ public final class Conditions {
 	}
 
 	/**
-	 * A condition that evaluates to true if the expression {@code expression} exists.
+	 * A condition that evaluates to true if the property {@code property} exists.
 	 *
-	 * @param expression The expression to check whether it exists or not
+	 * @param property The property to check whether it exists or not
 	 * @return A new condition.
 	 */
-	public static Condition exists(Expression expression) {
+	public static Condition exists(Property property) {
 
-		return new BooleanFunctionCondition(Functions.exists(expression));
+		return new BooleanFunctionCondition(Predicates.exists(property));
+	}
+
+	/**
+	 * A condition that evaluates to true if the pattern {@code pattern} exists.
+	 *
+	 * @param pattern The pattern to check whether it exists or not
+	 * @return A new condition.
+	 */
+	public static Condition exists(Relationship pattern) {
+
+		return new BooleanFunctionCondition(Predicates.exists(pattern));
+	}
+
+	/**
+	 * A condition that evaluates to true if the property {@code property} exists.
+	 *
+	 * @param pattern The property to check whether it exists or not
+	 * @return A new condition.
+	 */
+	public static Condition exists(RelationshipChain pattern) {
+
+		return new BooleanFunctionCondition(Predicates.exists(pattern));
 	}
 
 	/**

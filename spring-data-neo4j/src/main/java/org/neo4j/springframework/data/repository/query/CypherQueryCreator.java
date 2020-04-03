@@ -43,6 +43,7 @@ import org.neo4j.springframework.data.core.cypher.Conditions;
 import org.neo4j.springframework.data.core.cypher.Cypher;
 import org.neo4j.springframework.data.core.cypher.Expression;
 import org.neo4j.springframework.data.core.cypher.Functions;
+import org.neo4j.springframework.data.core.cypher.Property;
 import org.neo4j.springframework.data.core.cypher.SortItem;
 import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingMatchAndReturnWithOrder;
@@ -207,7 +208,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 				return toCypherProperty(persistentProperty, ignoreCase)
 					.endsWith(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case EXISTS:
-				return Conditions.exists(toCypherProperty(persistentProperty, ignoreCase));
+				return Conditions.exists(toCypherProperty(persistentProperty));
 			case FALSE:
 				return toCypherProperty(persistentProperty, ignoreCase).isFalse();
 			case GREATER_THAN_EQUAL:
@@ -385,6 +386,11 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 				property.lt(parameterPlaceholder));
 		}
 		return betweenCondition;
+	}
+
+	private static Property toCypherProperty(GraphPropertyDescription persistentProperty) {
+
+		return Cypher.property(NAME_OF_ROOT_NODE, persistentProperty.getPropertyName());
 	}
 
 	private static Expression toCypherProperty(GraphPropertyDescription persistentProperty, boolean addToLower) {
