@@ -767,6 +767,75 @@ class CypherIT {
 		}
 
 		@Test
+		void nestedConditions() {
+			Statement statement;
+
+			statement = Cypher.match(userNode)
+				.where(isTrue().or(isFalse()).and(isTrue()))
+				.returning(userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (u:`User`) WHERE ((true OR false) AND true) RETURN u");
+
+			statement = Cypher.match(userNode)
+				.where(isTrue().or(isFalse()).and(isTrue()))
+				.or(isFalse())
+				.returning(userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (u:`User`) WHERE (((true OR false) AND true) OR false) RETURN u");
+
+			statement = Cypher.match(userNode)
+				.where(isTrue().or(isFalse()).and(isTrue()))
+				.or(isFalse())
+				.and(isFalse())
+				.returning(userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (u:`User`) WHERE ((((true OR false) AND true) OR false) AND false) RETURN u");
+
+			statement = Cypher.match(userNode)
+				.where(isTrue().or(isFalse()).and(isTrue()))
+				.or(isFalse().and(isTrue()))
+				.returning(userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (u:`User`) WHERE ((true OR false) AND true OR (false AND true)) RETURN u");
+
+			statement = Cypher.match(userNode)
+				.where(isTrue().or(isFalse()).and(isTrue()))
+				.or(isFalse().and(isTrue()))
+				.and(isTrue())
+				.returning(userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (u:`User`) WHERE ((true OR false) AND true OR (false AND true) AND true) RETURN u");
+
+			statement = Cypher.match(userNode)
+				.where(isTrue().or(isFalse()).and(isTrue()))
+				.or(isFalse().or(isTrue()))
+				.returning(userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (u:`User`) WHERE ((true OR false) AND true OR (false OR true)) RETURN u");
+
+			statement = Cypher.match(userNode)
+				.where(isTrue().or(isFalse()).and(isTrue()).or(isFalse().or(isTrue())))
+				.returning(userNode)
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (u:`User`) WHERE ((true OR false) AND true OR (false OR true)) RETURN u");
+		}
+
+		@Test
 		void conditionsChainingXor() {
 			Statement statement = Cypher.match(userNode)
 				.where(
@@ -2305,7 +2374,45 @@ class CypherIT {
 				.build();
 
 			assertThat(cypherRenderer.render(s))
-				.isEqualTo("MATCH (r:`Resume`)-[:`FOR`]->(o:`Offer`) WHERE (NOT (r:`LastResume`) AND coalesce(o.valid_only, false) = false AND NOT (r:`InvalidStatus`) OR (o.valid_only = true AND r:`InvalidStatus`)) RETURN DISTINCT r, o");
+				.isEqualTo("MATCH (r:`Resume`)-[:`FOR`]->(o:`Offer`) WHERE (NOT (r:`LastResume`) AND (coalesce(o.valid_only, false) = false AND NOT (r:`InvalidStatus`) OR (o.valid_only = true AND r:`InvalidStatus`))) RETURN DISTINCT r, o");
+		}
+
+		@Test
+		void gh184() {
+			final Node r = node("Resume").named("r");
+			final Node u = node("UserSearchable").named("u");
+			final Node o = node("Offer").named("o");
+
+			Statement s = match(r.relationshipFrom(u, "HAS"))
+				.where(r.hasLabels("LastResume").not())
+				.and(coalesce(o.property("valid_only"), literalFalse()).isEqualTo(literalFalse())
+					.and(r.hasLabels("InvalidStatus").not())
+					.or(o.property("valid_only").isTrue()
+						.and(r.hasLabels("ValidStatus")))
+				)
+				.and(r.property("is_internship").isTrue()
+					.and(size(r.relationshipTo(Cypher.anyNode(), "PART_OF")).isEmpty())
+					.not())
+				.and(r.property("is_sandwich_training").isTrue()
+					.and(size(r.relationshipTo(Cypher.anyNode(), "PART_OF")).isEmpty())
+					.not())
+				.returningDistinct(r, o)
+				.build();
+
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("MATCH (r:`Resume`)<-[:`HAS`]-(u:`UserSearchable`) "
+					+ "WHERE (NOT (r:`LastResume`) "
+					+   "AND (coalesce(o.valid_only, false) = false "
+					+   "AND NOT (r:`InvalidStatus`) "
+					+   "OR (o.valid_only = true "
+					+     "AND r:`ValidStatus`)) "
+					+   "AND NOT ("
+					+     "(r.is_internship = true AND size(size((r)-[:`PART_OF`]->())) = 0)"
+					+   ") "
+					+   "AND NOT ("
+					+     "(r.is_sandwich_training = true AND size(size((r)-[:`PART_OF`]->())) = 0)"
+					+   ")"
+					+ ") RETURN DISTINCT r, o");
 		}
 	}
 }

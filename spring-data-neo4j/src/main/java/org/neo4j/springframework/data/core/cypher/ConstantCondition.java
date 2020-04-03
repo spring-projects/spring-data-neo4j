@@ -21,26 +21,31 @@ package org.neo4j.springframework.data.core.cypher;
 import static org.apiguardian.api.API.Status.*;
 
 import org.apiguardian.api.API;
+import org.neo4j.springframework.data.core.cypher.support.Visitor;
 
 /**
- * The boolean literal.
+ * A constant condition that is either always {@literal true} or {@literal false}.
  *
  * @author Michael J. Simons
- * @soundtrack Bad Religion - Age Of Unreason
  * @since 1.0
  */
 @API(status = EXPERIMENTAL, since = "1.0")
-public final class BooleanLiteral extends Literal<Boolean> {
+public final class ConstantCondition implements Condition {
 
-	static final BooleanLiteral TRUE = new BooleanLiteral(true);
-	static final BooleanLiteral FALSE = new BooleanLiteral(false);
+	static final ConstantCondition TRUE = new ConstantCondition(BooleanLiteral.TRUE);
+	static final ConstantCondition FALSE = new ConstantCondition(BooleanLiteral.FALSE);
 
-	private BooleanLiteral(boolean content) {
-		super(content);
+	private final BooleanLiteral value;
+
+	private ConstantCondition(BooleanLiteral value) {
+		this.value = value;
 	}
 
 	@Override
-	public String asString() {
-		return getContent().toString();
+	public void accept(Visitor visitor) {
+
+		visitor.enter(this);
+		value.accept(visitor);
+		visitor.leave(this);
 	}
 }

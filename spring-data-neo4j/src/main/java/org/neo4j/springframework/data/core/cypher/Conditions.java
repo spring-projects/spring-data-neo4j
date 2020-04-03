@@ -219,6 +219,22 @@ public final class Conditions {
 	}
 
 	/**
+	 * @return a condition that is always true.
+	 */
+	public static Condition isTrue() {
+
+		return ConstantCondition.TRUE;
+	}
+
+	/**
+	 * @return a condition that is always false.
+	 */
+	public static Condition isFalse() {
+
+		return ConstantCondition.FALSE;
+	}
+
+	/**
 	 * Not to be instantiated.
 	 */
 	private Conditions() {
