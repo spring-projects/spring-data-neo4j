@@ -103,8 +103,12 @@ public final class CompoundCondition implements Condition {
 
 		if (condition instanceof CompoundCondition) {
 			CompoundCondition compoundCondition = (CompoundCondition) condition;
-			if (compoundCondition.operator == chainingOperator) {
-				this.conditions.addAll(compoundCondition.conditions);
+			if (this.operator == chainingOperator && chainingOperator == compoundCondition.operator) {
+				if (compoundCondition.canBeFlattenedWith(chainingOperator)) {
+					this.conditions.addAll(compoundCondition.conditions);
+				} else {
+					this.conditions.add(compoundCondition);
+				}
 			} else {
 				CompoundCondition inner = new CompoundCondition(chainingOperator);
 				inner.conditions.add(compoundCondition);
@@ -120,6 +124,20 @@ public final class CompoundCondition implements Condition {
 		}
 
 		return CompoundCondition.create(this, chainingOperator, condition);
+	}
+
+	/**
+	 * @param operatorBefore The operator that is to be used before this condition
+	 * @return True if all conditions in this condition are either simple or compound annotation with the same boolean operator as {@code operatorBefore}
+	 */
+	private boolean canBeFlattenedWith(Operator operatorBefore) {
+
+		for (Condition c : this.conditions) {
+			if (c instanceof CompoundCondition && ((CompoundCondition) c).operator != operatorBefore) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override
