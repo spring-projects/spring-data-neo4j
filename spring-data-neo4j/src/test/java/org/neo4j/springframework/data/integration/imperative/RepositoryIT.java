@@ -2472,6 +2472,60 @@ class RepositoryIT {
 		assertThat(result.getThings()).containsExactlyInAnyOrder(ccA, ccB);
 	}
 
+	@Test
+	void findByPropertyOnRelatedEntity(@Autowired RelationshipRepository repository) {
+		try (Session session = driver.session(getSessionConfig())) {
+			session.run("CREATE (:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Jerry'})");
+		}
+
+		assertThat(repository.findByPetsName("Jerry").getName()).isEqualTo("Freddie");
+	}
+
+	@Test
+	void findByPropertyOnRelatedEntitiesOr(@Autowired RelationshipRepository repository) {
+		try (Session session = driver.session(getSessionConfig())) {
+			session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Tom'}),"
+				+ "(n)-[:Has]->(:Hobby{name: 'Music'})");
+		}
+
+		assertThat(repository.findByHobbiesNameOrPetsName("Music", "Jerry").getName()).isEqualTo("Freddie");
+		assertThat(repository.findByHobbiesNameOrPetsName("Sports", "Tom").getName()).isEqualTo("Freddie");
+		assertThat(repository.findByHobbiesNameOrPetsName("Sports", "Jerry")).isNull();
+	}
+
+	@Test
+	void findByPropertyOnRelatedEntitiesAnd(@Autowired RelationshipRepository repository) {
+		try (Session session = driver.session(getSessionConfig())) {
+			session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Tom'}),"
+				+ "(n)-[:Has]->(:Hobby{name: 'Music'})");
+		}
+
+		assertThat(repository.findByHobbiesNameAndPetsName("Music", "Tom").getName()).isEqualTo("Freddie");
+		assertThat(repository.findByHobbiesNameAndPetsName("Sports", "Jerry")).isNull();
+	}
+
+	@Test
+	void findByPropertyOnRelatedEntityOfRelatedEntity(@Autowired RelationshipRepository repository) {
+		try (Session session = driver.session(getSessionConfig())) {
+			session.run("CREATE (:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Jerry'})"
+				+ "-[:Has]->(:Hobby{name: 'Sleeping'})");
+		}
+
+		assertThat(repository.findByPetsHobbiesName("Sleeping").getName()).isEqualTo("Freddie");
+		assertThat(repository.findByPetsHobbiesName("Sports")).isNull();
+	}
+
+	@Test
+	void findByPropertyOnRelatedEntityOfRelatedSameEntity(@Autowired RelationshipRepository repository) {
+		try (Session session = driver.session(getSessionConfig())) {
+			session.run("CREATE (:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Jerry'})"
+				+ "-[:Has]->(:Pet{name: 'Tom'})");
+		}
+
+		assertThat(repository.findByPetsFriendsName("Tom").getName()).isEqualTo("Freddie");
+		assertThat(repository.findByPetsFriendsName("Jerry")).isNull();
+	}
+
 	interface BidirectionalStartRepository extends Neo4jRepository<BidirectionalStart, Long> {
 	}
 
@@ -2509,6 +2563,16 @@ class RepositoryIT {
 			+ "OPTIONAL MATCH (n)-[r2:Has]->(h:Hobby) "
 			+ "return n, petRels, pets, collect(r2) as hobbyRels, collect(h) as hobbies")
 		PersonWithRelationship getPersonWithRelationshipsViaQuery();
+
+		PersonWithRelationship findByPetsName(String petName);
+
+		PersonWithRelationship findByHobbiesNameOrPetsName(String hobbyName, String petName);
+
+		PersonWithRelationship findByHobbiesNameAndPetsName(String hobbyName, String petName);
+
+		PersonWithRelationship findByPetsHobbiesName(String hobbyName);
+
+		PersonWithRelationship findByPetsFriendsName(String petName);
 	}
 
 	interface SimilarThingRepository extends Neo4jRepository<SimilarThing, Long> {
