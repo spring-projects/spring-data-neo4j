@@ -57,8 +57,10 @@ import org.neo4j.springframework.data.repository.query.Neo4jQueryMethod.Neo4jPar
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.Polygon;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
@@ -345,7 +347,6 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 	private Condition createWithinCondition(GraphPropertyDescription persistentProperty,
 		Iterator<Object> actualParameters) {
-
 		Parameter area = nextRequiredParameter(actualParameters);
 		if (area.hasValueOfType(Circle.class)) {
 			// We don't know the CRS of the point, so we assume the same as the reference toCypherProperty
@@ -357,9 +358,20 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 			Expression distanceFunction = Functions
 				.distance(toCypherProperty(persistentProperty, false), referencePoint);
 			return distanceFunction.lte(createCypherParameter(area.nameOrIndex + ".radius", false));
+		} else if (area.hasValueOfType(BoundingBox.class) || area.hasValueOfType(Box.class)) {
+			Expression llx = createCypherParameter(area.nameOrIndex + ".llx", false);
+			Expression lly = createCypherParameter(area.nameOrIndex + ".lly", false);
+			Expression urx = createCypherParameter(area.nameOrIndex + ".urx", false);
+			Expression ury = createCypherParameter(area.nameOrIndex + ".ury", false);
+
+			Expression x = Cypher.property(toCypherProperty(persistentProperty, false), "x");
+			Expression y = Cypher.property(toCypherProperty(persistentProperty, false), "y");
+
+			return llx.lte(x).and(x.lte(urx)).and(lly.lte(y)).and(y.lte(ury));
+		} else if (area.hasValueOfType(Polygon.class)) {
+			throw new IllegalArgumentException(String.format("The WITHIN operation does not support a %s. You might want to pass a bounding box instead: %s.of(polygon).", Polygon.class, BoundingBox.class));
 		} else {
-			throw new IllegalArgumentException(
-				String.format("The WITHIN operation requires an area of type %s or %s.", Circle.class));
+			throw new IllegalArgumentException(String.format("The WITHIN operation requires an area of type %s or %s.", Circle.class, Box.class));
 		}
 	}
 
