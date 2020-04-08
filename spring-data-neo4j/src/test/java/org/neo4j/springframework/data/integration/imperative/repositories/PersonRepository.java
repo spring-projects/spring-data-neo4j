@@ -34,13 +34,16 @@ import org.neo4j.springframework.data.integration.shared.PersonWithNoConstructor
 import org.neo4j.springframework.data.integration.shared.PersonWithWither;
 import org.neo4j.springframework.data.integration.shared.ThingWithGeneratedId;
 import org.neo4j.springframework.data.repository.Neo4jRepository;
+import org.neo4j.springframework.data.repository.query.BoundingBox;
 import org.neo4j.springframework.data.repository.query.Query;
 import org.neo4j.springframework.data.types.GeographicPoint2d;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
+import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.Polygon;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -211,6 +214,12 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	List<PersonWithAllConstructor> findAllByPlaceNearAndFirstNameAllIgnoreCase(Point p, String firstName);
 
 	List<PersonWithAllConstructor> findAllByPlaceWithin(Circle circle);
+
+	List<PersonWithAllConstructor> findAllByPlaceWithin(Box box);
+
+	List<PersonWithAllConstructor> findAllByPlaceWithin(BoundingBox box);
+
+	List<PersonWithAllConstructor> findAllByPlaceWithin(Polygon polygon);
 
 	List<PersonWithAllConstructor> findAllByOrderByFirstNameAscBornOnDesc();
 
