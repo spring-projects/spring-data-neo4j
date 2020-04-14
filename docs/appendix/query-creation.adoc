@@ -1,0 +1,87 @@
+[[query-creation]]
+:doubleUnderscore: __
+:neo4jId: {doubleUnderscore}id{doubleUnderscore}
+:neo4jIds: {doubleUnderscore}ids{doubleUnderscore}
+:neo4jInternalId: {doubleUnderscore}internalNeo4jId{doubleUnderscore}
+:neo4jProperties: {doubleUnderscore}properties{doubleUnderscore}
+:neo4jEntities: {doubleUnderscore}entities{doubleUnderscore}
+:neo4jLabels: {doubleUnderscore}nodeLabels{doubleUnderscore}
+
+= Query creation
+
+This chapter is about the technical creation of queries when using SDN/RX's abstraction layers.
+There will be some simplifications because we do not discuss every possible case but stick with the general idea behind it.
+
+== Save
+
+Beside the `find/load` operations the `save` operation is one of the most used when working with data.
+A save operation call in general issues multiple statements against the database to ensure that the resulting graph model matches the given Java model.
+
+. A union statement will get created that either creates a node, if the node's identifier cannot be found, or updates the node's property if the node itself exists.
++
+(`OPTIONAL MATCH (hlp:Person) WHERE id(hlp) = ${neo4jId} WITH hlp WHERE hlp IS NULL CREATE (n:Person) SET n = ${neo4jProperties} RETURN id(n) UNION MATCH (n) WHERE id(n) = ${neo4jId} SET n = ${neo4jProperties} RETURN id(n)`)
+
+. If the entity is *not* new all relationships of the first found type at the domain model will get removed from the database.
++
+(`MATCH (startNode)-[rel:Has]->(:Hobby) WHERE id(startNode) = $fromId DELETE rel`)
+
+. The related entity will get created in the same way as the root entity.
++
+(`OPTIONAL MATCH (hlp:Hobby) WHERE id(hlp) = ${neo4jId} WITH hlp WHERE hlp IS NULL CREATE (n:Hobby) SET n = ${neo4jProperties} RETURN id(n) UNION MATCH (n) WHERE id(n) = ${neo4jId} SET n = ${neo4jProperties} RETURN id(n)`)
+
+. The relationship itself will get created
++
+(`MATCH (startNode) WHERE id(startNode) = $fromId MATCH (endNode) WHERE id(endNode) = 631 MERGE (startNode)-[:Has]->(endNode)`)
+
+. If the related entity also has relationships to other entities, the same procedure as in 2. will get started.
+
+. For the next defined relationship on the root entity start with 2. but replace _first_ with _next_.
+
+
+NOTE: As you can see SDN/RX does its best to keep your graph model in sync with the Java world.
+      This is one of the reasons why we really advise you to not load, manipulate and save sub-graphs
+      as this might cause relationships to get removed from the database.
+
+=== Multiple entities
+
+The `save` operation is overloaded with the functionality for accepting multiple entities of the same type.
+If you are working with generated id values or make use of optimistic locking, every entity will result in a separate `CREATE` call.
+
+In other cases SDN/RX will create a parameter list with the entity information and provide it with a `MERGE` call.
+
+`UNWIND ${neo4jEntities} AS entity MERGE (n:Person {customId: entity.${neo4jId}}) SET n = entity.{neo4jProperties} RETURN collect(n.customId) AS ${neo4jIds}`
+
+and the parameters look like
+
+`:params {{neo4jEntities}: [{{neo4jId}: 'aa', {neo4jProperties}: {name: "PersonName", theId: "aa"}}, {{neo4jId} 'bb', {neo4jProperties}: {name: "AnotherPersonName", theId: "bb"}}]}`
+
+== Load
+
+The `load` documentation will not only show you how the _MATCH_ part of the query looks like but also how the data gets returned.
+
+The simplest kind of load operation is a `findById` call.
+It will match all nodes with the label of the type you queried for and does a filter on the id value.
+
+`MATCH (n:Person) WHERE id(n) = 1364`
+
+If there is a custom id provided SDN/RX will use the property you have defined as the id.
+
+`MATCH (n:Person) WHERE n.customId = 'anId'`
+
+The data to return is defined as a https://neo4j.com/docs/cypher-manual/current/syntax/maps/#cypher-map-projection[map projection].
+
+`RETURN n{.first_name, .personNumber, {neo4jInternalId}: id(n), {neo4jLabels}: labels(n)}`
+
+As you can see there are two special fields in there: The `{neo4jInternalId}` and the `{neo4jLabels}`.
+Both are critical when it comes to mapping the data to Java objects.
+The value of the `{neo4jInternalId}` is either `id(n)` or the provided custom id but in the mapping process one known field to refer to has to exist.
+The `{neo4jLabels}` ensures that all defined labels on this node can be found and mapped.
+This is needed for situations when inheritance is used and you query not for the concrete classes or have relationships defined that only define a super-type.
+
+Talking about relationships: If you have defined relationships in your entity, they will get added to the returned map as https://neo4j.com/docs/cypher-manual/4.0/syntax/lists/#cypher-pattern-comprehension[pattern comprehensions].
+The above return part will then look like:
+
+`RETURN n{.first_name, ..., Person_Has_Hobby: [(n)-[:Has]->(n_hobbies:Hobby)|n_hobbies{{neo4jInternalId}: id(n_hobbies), .name, __nodeLabels__: labels(n_hobbies)}]}`
+
+The map projection and pattern comprehension used by SDN/RX ensures that only the properties and relationships you have defined are getting queried.
+
