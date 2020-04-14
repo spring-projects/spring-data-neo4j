@@ -178,7 +178,7 @@
 				</property>
 			</activation>
 			<properties>
-				<changelist>-rc01</changelist>
+				<changelist></changelist>
 			</properties>
 		</profile>
 	</profiles>
