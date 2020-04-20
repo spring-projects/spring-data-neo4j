@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
 /**
  * @author Michael J. Simons
  * @author Gerrit Meier
+ * @author Romain Rossi
  * @since 1.0
  */
 class DefaultStatementBuilder

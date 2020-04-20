@@ -29,6 +29,8 @@ import org.springframework.util.Assert;
  * Factory methods for creating instances of {@link FunctionInvocation functions}.
  *
  * @author Michael J. Simons
+ * @author Gerrit Meier
+ * @author Romain Rossi
  * @since 1.0
  */
 @API(status = EXPERIMENTAL, since = "1.0")
