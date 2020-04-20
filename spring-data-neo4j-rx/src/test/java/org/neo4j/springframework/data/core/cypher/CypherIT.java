@@ -2664,5 +2664,18 @@ class CypherIT {
 			assertThat(cypherRenderer.render(s))
 				.isEqualTo("MATCH (n:`Person`) WITH [{type: n, nb: sum(n)}] AS counts RETURN sum(n.age)");
 		}
+
+		@Test
+		void gh200() {
+			final Node r = node("Resume").named("r");
+
+			Statement s = match(r)
+				.with(r.getRequiredSymbolicName())
+				.returningDistinct(r.getRequiredSymbolicName())
+				.build();
+
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("MATCH (r:`Resume`) WITH r RETURN DISTINCT r");
+		}
 	}
 }
