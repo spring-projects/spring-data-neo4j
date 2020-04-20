@@ -254,6 +254,20 @@ public final class Functions {
 	}
 
 	/**
+	 * Creates a function invocation for the {@code avg()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/aggregating/#functions-avg">avg</a>.
+	 *
+	 * @param expression The things to average
+	 * @return A function call for {@code avg()}
+	 */
+	public static FunctionInvocation avg(Expression expression) {
+
+		Assert.notNull(expression, "The expression to average is required.");
+
+		return new FunctionInvocation("avg", expression);
+	}
+
+	/**
 	 * @param variable The named thing to collect
 	 * @return A function call for {@code collect()}
 	 * @see #collect(Expression)
@@ -277,6 +291,112 @@ public final class Functions {
 		Assert.notNull(expression, "The expression to collect is required.");
 
 		return new FunctionInvocation("collect", expression);
+	}
+
+	/**
+	 * Creates a function invocation for the {@code max()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/aggregating/#functions-max">max</a>.
+	 *
+	 * @param expression A list from which the maximum element value is returned
+	 * @return A function call for {@code max()}
+	 */
+	public static FunctionInvocation max(Expression expression) {
+
+		Assert.notNull(expression, "The expression for max is required.");
+
+		return new FunctionInvocation("max", expression);
+	}
+
+	/**
+	 * Creates a function invocation for the {@code min()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/aggregating/#functions-min">min</a>.
+	 *
+	 * @param expression A list from which the minimum element value is returned
+	 * @return A function call for {@code min()}
+	 */
+	public static FunctionInvocation min(Expression expression) {
+
+		Assert.notNull(expression, "The expression for min is required.");
+
+		return new FunctionInvocation("min", expression);
+	}
+
+	/**
+	 * Creates a function invocation for the {@code percentileCont()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/aggregating/#functions-percentilecont">percentileCont</a>.
+	 *
+	 * @param expression A numeric expression
+	 * @param percentile A numeric value between 0.0 and 1.0
+	 * @return A function call for {@code percentileCont()}
+	 */
+	public static FunctionInvocation percentileCont(Expression expression, Number percentile) {
+
+		Assert.notNull(expression, "The numeric expression for percentileCont is required.");
+		Assert.notNull(percentile, "The percentile for percentileCont is required.");
+		final double p = percentile.doubleValue();
+		Assert.isTrue(p >= 0D && p <= 1D, "The percentile for percentileCont must be between 0.0 and 1.0.");
+
+		return new FunctionInvocation("percentileCont", expression, new NumberLiteral(percentile));
+	}
+
+	/**
+	 * Creates a function invocation for the {@code percentileDisc()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/aggregating/#functions-percentiledisc">percentileDisc</a>.
+	 *
+	 * @param expression A numeric expression
+	 * @param percentile A numeric value between 0.0 and 1.0
+	 * @return A function call for {@code percentileDisc()}
+	 */
+	public static FunctionInvocation percentileDisc(Expression expression, Number percentile) {
+
+		Assert.notNull(expression, "The numeric expression for percentileDisc is required.");
+		Assert.notNull(percentile, "The percentile for percentileDisc is required.");
+		final double p = percentile.doubleValue();
+		Assert.isTrue(p >= 0D && p <= 1D, "The percentile for percentileDisc must be between 0.0 and 1.0.");
+
+		return new FunctionInvocation("percentileDisc", expression, new NumberLiteral(percentile));
+	}
+
+	/**
+	 * Creates a function invocation for the {@code stDev()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/aggregating/#functions-stdev">stDev</a>.
+	 *
+	 * @param expression A numeric expression
+	 * @return A function call for {@code stDev()}
+	 */
+	public static FunctionInvocation stDev(Expression expression) {
+
+		Assert.notNull(expression, "The numeric expression for stDev is required.");
+
+		return new FunctionInvocation("stDev", expression);
+	}
+
+	/**
+	 * Creates a function invocation for the {@code stDevP()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/aggregating/#functions-stdevp">stDevP</a>.
+	 *
+	 * @param expression A numeric expression
+	 * @return A function call for {@code stDevP()}
+	 */
+	public static FunctionInvocation stDevP(Expression expression) {
+
+		Assert.notNull(expression, "The numeric expression for stDevP is required.");
+
+		return new FunctionInvocation("stDevP", expression);
+	}
+
+	/**
+	 * Creates a function invocation for the {@code sum()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/aggregating/#functions-sum">sum</a>.
+	 *
+	 * @param expression An expression returning a set of numeric values
+	 * @return A function call for {@code sum()}
+	 */
+	public static FunctionInvocation sum(Expression expression) {
+
+		Assert.notNull(expression, "The set of numeric expression for sum is required.");
+
+		return new FunctionInvocation("sum", expression);
 	}
 
 	/**

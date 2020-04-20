@@ -2150,9 +2150,9 @@ class CypherIT {
 				statement = Cypher.match(rel)
 					.returning(
 						m.project("title", "roles",
-						rel.project(
-							"__internalNeo4jId__", Functions.id(rel), "roles"
-						)))
+							rel.project(
+								"__internalNeo4jId__", Functions.id(rel), "roles"
+							)))
 					.build();
 				assertThat(cypherRenderer.render(statement))
 					.isEqualTo(
@@ -2593,6 +2593,73 @@ class CypherIT {
 
 			assertThat(cypherRenderer.render(s))
 				.isEqualTo("MATCH (r:`Resume`)<-[:`HAS`]-(u:`User`) RETURN count(DISTINCT r) AS r");
+		}
+
+		@Test
+		void gh197() {
+			final Node n = node("Person").named("n");
+
+			// avg
+			Statement s = match(n)
+				.returning(avg(n.property("age")))
+				.build();
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("MATCH (n:`Person`) RETURN avg(n.age)");
+
+			// max/min
+			final ListExpression list = listOf(
+				literalOf(1),
+				literalOf("a"),
+				literalOf(null),
+				literalOf(0.2),
+				literalOf("b"),
+				literalOf("1"),
+				literalOf("99"));
+			s = unwind(list).as("val")
+				.returning(max(name("val"))).build();
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("UNWIND [1, 'a', NULL, 0.2, 'b', '1', '99'] AS val RETURN max(val)");
+			s = unwind(list).as("val")
+				.returning(min(name("val"))).build();
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("UNWIND [1, 'a', NULL, 0.2, 'b', '1', '99'] AS val RETURN min(val)");
+
+			// percentileCont/percentileDisc
+			s = match(n)
+				.returning(percentileCont(n.property("age"), 0.4))
+				.build();
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("MATCH (n:`Person`) RETURN percentileCont(n.age, 0.4)");
+			s = match(n)
+				.returning(percentileDisc(n.property("age"), 0.5))
+				.build();
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("MATCH (n:`Person`) RETURN percentileDisc(n.age, 0.5)");
+
+			// stDev/stDevP
+			s = match(n)
+				.where(n.property("name").in(listOf(literalOf("A"), literalOf("B"), literalOf("C"))))
+				.returning(stDev(n.property("age")))
+				.build();
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("MATCH (n:`Person`) WHERE n.name IN ['A', 'B', 'C'] RETURN stDev(n.age)");
+			s = match(n)
+				.where(n.property("name").in(listOf(literalOf("A"), literalOf("B"), literalOf("C"))))
+				.returning(stDevP(n.property("age")))
+				.build();
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("MATCH (n:`Person`) WHERE n.name IN ['A', 'B', 'C'] RETURN stDevP(n.age)");
+
+			// sum
+			s = match(n)
+				.with(listOf(mapOf(
+					"type", n.getRequiredSymbolicName(),
+					"nb", sum(n.getRequiredSymbolicName())))
+					.as("counts"))
+				.returning(sum(n.property("age")))
+				.build();
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("MATCH (n:`Person`) WITH [{type: n, nb: sum(n)}] AS counts RETURN sum(n.age)");
 		}
 	}
 }
