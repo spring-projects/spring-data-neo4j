@@ -426,7 +426,7 @@ class DefaultStatementBuilder
 
 			return DefaultStatementBuilder.this
 				.addWith(buildWith())
-				.returning(expressions);
+				.returningDistinct(expressions);
 		}
 
 		@Override
