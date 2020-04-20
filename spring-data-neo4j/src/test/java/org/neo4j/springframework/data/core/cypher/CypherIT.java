@@ -2149,10 +2149,13 @@ class CypherIT {
 
 				statement = Cypher.match(rel)
 					.returning(
-						m.project("title", "roles",
+						m.project(
+							"title", "roles",
 							rel.project(
 								"__internalNeo4jId__", Functions.id(rel), "roles"
-							)))
+							)
+						)
+					)
 					.build();
 				assertThat(cypherRenderer.render(statement))
 					.isEqualTo(
