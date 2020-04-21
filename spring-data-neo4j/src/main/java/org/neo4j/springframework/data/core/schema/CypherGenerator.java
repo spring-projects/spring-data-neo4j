@@ -119,7 +119,7 @@ public enum CypherGenerator {
 
 		Node rootNode = node(primaryLabel, additionalLabels).named(NAME_OF_ROOT_NODE);
 		IdDescription idDescription = nodeDescription.getIdDescription();
-		Parameter idParameter = parameter(NAME_OF_ID_PARAM);
+		Parameter idParameter = parameter(NAME_OF_ID);
 
 		if (!idDescription.isInternallyGeneratedId()) {
 			String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
@@ -218,9 +218,9 @@ public enum CypherGenerator {
 		String row = "entity";
 		return Cypher
 			.unwind(parameter(NAME_OF_ENTITY_LIST_PARAM)).as(row)
-			.merge(rootNode.properties(nameOfIdProperty, property(row, NAME_OF_ID_PARAM)))
+			.merge(rootNode.properties(nameOfIdProperty, property(row, NAME_OF_ID)))
 			.set(rootNode, property(row, NAME_OF_PROPERTIES_PARAM))
-			.returning(Functions.collect(rootNode.property(nameOfIdProperty)).as(NAME_OF_IDS_RESULT))
+			.returning(Functions.collect(rootNode.property(nameOfIdProperty)).as(NAME_OF_IDS))
 			.build();
 	}
 

@@ -1661,6 +1661,57 @@ class ReactiveRepositoryIT {
 	}
 
 	@Test
+	void findByConvertedId(@Autowired EntityWithConvertedIdRepository repository) {
+		try (Session session = driver.session(getSessionConfig())) {
+			session.run("CREATE (:EntityWithConvertedId{identifyingEnum:'A'})");
+		}
+
+		StepVerifier.create(repository.findById(EntityWithConvertedId.IdentifyingEnum.A))
+			.assertNext(entity -> {
+				assertThat(entity).isNotNull();
+				assertThat(entity.getIdentifyingEnum()).isEqualTo(EntityWithConvertedId.IdentifyingEnum.A);
+			})
+			.verifyComplete();
+	}
+
+	@Test
+	void findAllByConvertedId(@Autowired EntityWithConvertedIdRepository repository) {
+		try (Session session = driver.session(getSessionConfig())) {
+			session.run("CREATE (:EntityWithConvertedId{identifyingEnum:'A'})");
+		}
+
+		StepVerifier.create(repository.findAllById(singleton(EntityWithConvertedId.IdentifyingEnum.A)))
+			.assertNext(
+				entity -> assertThat(entity.getIdentifyingEnum()).isEqualTo(EntityWithConvertedId.IdentifyingEnum.A)
+			)
+			.verifyComplete();
+	}
+
+	@Test
+	void saveWithConvertedId(@Autowired EntityWithConvertedIdRepository repository) {
+		EntityWithConvertedId entity = new EntityWithConvertedId();
+		entity.setIdentifyingEnum(EntityWithConvertedId.IdentifyingEnum.A);
+		repository.save(entity).block();
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Record node = session.run("MATCH (e:EntityWithConvertedId) return e").next();
+			assertThat(node.get("e").get("identifyingEnum").asString()).isEqualTo("A");
+		}
+	}
+
+	@Test
+	void saveAllWithConvertedId(@Autowired EntityWithConvertedIdRepository repository) {
+		EntityWithConvertedId entity = new EntityWithConvertedId();
+		entity.setIdentifyingEnum(EntityWithConvertedId.IdentifyingEnum.A);
+		repository.saveAll(Collections.singleton(entity)).collectList().block();
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Record node = session.run("MATCH (e:EntityWithConvertedId) return e").next();
+			assertThat(node.get("e").get("identifyingEnum").asString()).isEqualTo("A");
+		}
+	}
+
+	@Test
 	void mapsInterfaceProjectionWithDerivedFinderMethod(@Autowired ReactivePersonRepository repository) {
 
 		StepVerifier.create(repository.findByName(TEST_PERSON1_NAME))
@@ -1948,6 +1999,9 @@ class ReactiveRepositoryIT {
 	}
 
 	interface ReactiveSimilarThingRepository extends ReactiveCrudRepository<SimilarThing, Long> {
+	}
+
+	interface EntityWithConvertedIdRepository extends ReactiveNeo4jRepository<EntityWithConvertedId, EntityWithConvertedId.IdentifyingEnum> {
 	}
 
 	@Configuration

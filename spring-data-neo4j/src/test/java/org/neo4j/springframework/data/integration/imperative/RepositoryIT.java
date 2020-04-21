@@ -1186,6 +1186,30 @@ class RepositoryIT {
 	}
 
 	@Test
+	void findByConvertedId(@Autowired EntityWithConvertedIdRepository repository) {
+		try (Session session = driver.session(getSessionConfig())) {
+			session.run("CREATE (:EntityWithConvertedId{identifyingEnum:'A'})");
+		}
+
+		Optional<EntityWithConvertedId> entity = repository.findById(EntityWithConvertedId.IdentifyingEnum.A);
+		assertThat(entity).isPresent();
+		assertThat(entity.get().getIdentifyingEnum()).isEqualTo(EntityWithConvertedId.IdentifyingEnum.A);
+	}
+
+	@Test
+	void findAllByConvertedId(@Autowired EntityWithConvertedIdRepository repository) {
+		try (Session session = driver.session(getSessionConfig())) {
+			session.run("CREATE (:EntityWithConvertedId{identifyingEnum:'A'})");
+		}
+
+		List<EntityWithConvertedId> entities = repository
+			.findAllById(singleton(EntityWithConvertedId.IdentifyingEnum.A));
+
+		assertThat(entities).hasSize(1);
+		assertThat(entities.get(0).getIdentifyingEnum()).isEqualTo(EntityWithConvertedId.IdentifyingEnum.A);
+	}
+
+	@Test
 	void loadWithAssignedIdViaQuery(@Autowired ThingRepository repository) {
 
 		ThingWithAssignedId thing = repository.getViaQuery();
@@ -1334,6 +1358,30 @@ class RepositoryIT {
 			assertThat(names).containsExactly("An updated thing", "Another updated thing");
 
 			assertThat(repository.count()).isEqualTo(21);
+		}
+	}
+
+	@Test
+	void saveWithConvertedId(@Autowired EntityWithConvertedIdRepository repository) {
+		EntityWithConvertedId entity = new EntityWithConvertedId();
+		entity.setIdentifyingEnum(EntityWithConvertedId.IdentifyingEnum.A);
+		repository.save(entity);
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Record node = session.run("MATCH (e:EntityWithConvertedId) return e").next();
+			assertThat(node.get("e").get("identifyingEnum").asString()).isEqualTo("A");
+		}
+	}
+
+	@Test
+	void saveAllWithConvertedId(@Autowired EntityWithConvertedIdRepository repository) {
+		EntityWithConvertedId entity = new EntityWithConvertedId();
+		entity.setIdentifyingEnum(EntityWithConvertedId.IdentifyingEnum.A);
+		repository.saveAll(Collections.singleton(entity));
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Record node = session.run("MATCH (e:EntityWithConvertedId) return e").next();
+			assertThat(node.get("e").get("identifyingEnum").asString()).isEqualTo("A");
 		}
 	}
 
@@ -2594,6 +2642,9 @@ class RepositoryIT {
 	}
 
 	interface BaseClassWithLabelsRepository extends Neo4jRepository<Inheritance.BaseClassWithLabels, Long> {
+	}
+
+	interface EntityWithConvertedIdRepository extends Neo4jRepository<EntityWithConvertedId, EntityWithConvertedId.IdentifyingEnum> {
 	}
 
 	@Configuration

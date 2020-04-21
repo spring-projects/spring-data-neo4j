@@ -23,7 +23,6 @@ import static java.util.stream.Collectors.*;
 import static org.neo4j.springframework.data.core.DatabaseSelection.*;
 import static org.neo4j.springframework.data.core.RelationshipStatementHolder.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
-import static org.neo4j.springframework.data.core.schema.CypherGenerator.*;
 import static org.neo4j.springframework.data.core.schema.Constants.*;
 import static org.neo4j.springframework.data.core.support.Relationships.*;
 
@@ -64,6 +63,7 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
+import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -187,10 +187,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Statement statement = statementBuilder
-			.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().isEqualTo(literalOf(id)))
+			.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().isEqualTo(parameter(NAME_OF_ID)))
 			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData))
 			.build();
-		return createExecutableQuery(domainType, statement).flatMap(ExecutableQuery::getSingleResult);
+
+		return createExecutableQuery(domainType, statement, singletonMap(NAME_OF_ID, convertIdValues(id)))
+			.flatMap(ExecutableQuery::getSingleResult);
 	}
 
 	@Override
@@ -198,11 +200,18 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Statement statement = statementBuilder
-			.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().in((parameter("ids"))))
+			.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().in((parameter(NAME_OF_IDS))))
 			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData))
 			.build();
-		return createExecutableQuery(domainType, statement, singletonMap("ids", ids))
+
+		return createExecutableQuery(domainType, statement, singletonMap(NAME_OF_IDS, convertIdValues(ids)))
 			.flatMapMany(ExecutableQuery::getResults);
+	}
+
+	private Object convertIdValues(Object idValues) {
+
+		return neo4jMappingContext.getConverter()
+			.writeValueFromProperty(idValues, ClassTypeInformation.from(idValues.getClass()));
 	}
 
 	@Override
