@@ -38,8 +38,8 @@ public final class Constants {
 
 	public static final String NAME_OF_INTERNAL_ID = "__internalNeo4jId__";
 	public static final String NAME_OF_LABELS = "__nodeLabels__";
-	public static final String NAME_OF_IDS_RESULT = "__ids__";
-	public static final String NAME_OF_ID_PARAM = "__id__";
+	public static final String NAME_OF_IDS = "__ids__";
+	public static final String NAME_OF_ID = "__id__";
 	public static final String NAME_OF_VERSION_PARAM = "__version__";
 	public static final String NAME_OF_PROPERTIES_PARAM = "__properties__";
 	public static final String NAME_OF_ENTITY_LIST_PARAM = "__entities__";
