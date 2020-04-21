@@ -39,7 +39,7 @@ public class MovieRepository {
 	public Mono<Movie> findByTitle(String title) {
 		return Mono.using(driver::rxSession,
 			session -> Mono.from(
-				driver.rxSession().run("MATCH (m:Movie {title: $title}) RETURN m", Values.parameters("title", title))
+				session.run("MATCH (m:Movie {title: $title}) RETURN m", Values.parameters("title", title))
 					.records()).map(MovieRepository::mapToMovie),
 			RxSession::close);
 	}
@@ -47,7 +47,7 @@ public class MovieRepository {
 	public Mono<Movie> save(Movie movie) {
 		return Mono.using(driver::rxSession,
 			session -> Mono.from(
-				driver.rxSession().run("CREATE (m:Movie {title: $title, tagline: $tagline}) RETURN m",
+				session.run("CREATE (m:Movie {title: $title, tagline: $tagline}) RETURN m",
 					Values.parameters("title", movie.getTitle(), "tagline", movie.getTagline()))
 					.records()).map(MovieRepository::mapToMovie),
 			RxSession::close);
