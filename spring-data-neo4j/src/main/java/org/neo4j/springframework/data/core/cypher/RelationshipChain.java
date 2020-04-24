@@ -100,7 +100,7 @@ public final class RelationshipChain implements RelationshipPattern, ExposesRela
 	public RelationshipChain max(Integer maximum) {
 
 		Relationship lastElement = this.relationships.removeLast();
-		return this.add(lastElement.min(maximum));
+		return this.add(lastElement.max(maximum));
 	}
 
 	/**

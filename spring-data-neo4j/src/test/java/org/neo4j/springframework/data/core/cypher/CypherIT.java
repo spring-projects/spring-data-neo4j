@@ -19,6 +19,8 @@
 package org.neo4j.springframework.data.core.cypher;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.neo4j.springframework.data.core.cypher.Conditions.exists;
+import static org.neo4j.springframework.data.core.cypher.Conditions.not;
 import static org.neo4j.springframework.data.core.cypher.Conditions.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.cypher.Functions.*;
@@ -229,7 +231,7 @@ class CypherIT {
 
 				assertThat(cypherRenderer.render(statement))
 					.isEqualTo(
-						"MATCH (u:`User`)-[:`OWNS`]->(b:`Bike`)-[r2:`USED_ON`*1.. {when: '2019-04-16'}]->(t:`Trip`)<-[x:`WAS_ON`*2.. {whatever: '2020-04-16'}]-(u)-[y*2..3 {idk: '2021-04-16'}]-(:`SOMETHING`) WHERE u.name =~ '.*aName' RETURN b, u");
+						"MATCH (u:`User`)-[:`OWNS`]->(b:`Bike`)-[r2:`USED_ON`*1.. {when: '2019-04-16'}]->(t:`Trip`)<-[x:`WAS_ON`*..2 {whatever: '2020-04-16'}]-(u)-[y*2..3 {idk: '2021-04-16'}]-(:`SOMETHING`) WHERE u.name =~ '.*aName' RETURN b, u");
 			}
 
 			@Test // GH-182
@@ -2676,6 +2678,21 @@ class CypherIT {
 
 			assertThat(cypherRenderer.render(s))
 				.isEqualTo("MATCH (r:`Resume`) WITH r RETURN DISTINCT r");
+		}
+
+
+		@Test
+		void gh204() {
+			final Node a = node("A").named("a");
+			final Node b = node("B").named("b");
+			final Node c = node("C").named("c");
+
+			Statement s = match(a.relationshipTo(b).relationshipTo(c).max(2))
+				.returning(a)
+				.build();
+
+			assertThat(cypherRenderer.render(s))
+				.isEqualTo("MATCH (a:`A`)-->(b:`B`)-[*..2]->(c:`C`) RETURN a");
 		}
 	}
 }
