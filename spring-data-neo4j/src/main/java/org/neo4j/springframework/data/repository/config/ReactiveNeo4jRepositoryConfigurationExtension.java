@@ -24,7 +24,7 @@ import java.util.Collections;
 
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.schema.Node;
-import org.neo4j.springframework.data.repository.Neo4jRepository;
+import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 import org.neo4j.springframework.data.repository.support.ReactiveNeo4jRepositoryFactoryBean;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -86,7 +86,7 @@ public final class ReactiveNeo4jRepositoryConfigurationExtension extends Reposit
 
 	@Override
 	protected Collection<Class<?>> getIdentifyingTypes() {
-		return Collections.singleton(Neo4jRepository.class);
+		return Collections.singleton(ReactiveNeo4jRepository.class);
 	}
 
 	@Override
