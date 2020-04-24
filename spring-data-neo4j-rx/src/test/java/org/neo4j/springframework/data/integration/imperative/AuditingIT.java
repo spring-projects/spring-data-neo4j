@@ -31,13 +31,13 @@ import org.neo4j.springframework.data.config.EnableNeo4jAuditing;
 import org.neo4j.springframework.data.integration.shared.AuditingITBase;
 import org.neo4j.springframework.data.integration.shared.ImmutableAuditableThing;
 import org.neo4j.springframework.data.integration.shared.ImmutableAuditableThingWithGeneratedId;
+import org.neo4j.springframework.data.repository.Neo4jRepository;
 import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -120,11 +120,11 @@ class AuditingIT extends AuditingITBase {
 		verifyDatabase(idOfExistingThingWithGeneratedId, thing);
 	}
 
-	interface ImmutableEntityTestRepository extends CrudRepository<ImmutableAuditableThing, Long> {
+	interface ImmutableEntityTestRepository extends Neo4jRepository<ImmutableAuditableThing, Long> {
 	}
 
 	interface ImmutableEntityWithGeneratedIdRepository
-		extends CrudRepository<ImmutableAuditableThingWithGeneratedId, String> {
+		extends Neo4jRepository<ImmutableAuditableThingWithGeneratedId, String> {
 	}
 
 	@Configuration

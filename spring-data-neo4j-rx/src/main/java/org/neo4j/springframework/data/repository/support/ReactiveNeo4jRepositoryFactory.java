@@ -32,8 +32,8 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.core.support.ReactiveRepositoryFactorySupport;
 import org.springframework.data.repository.core.support.RepositoryComposition.RepositoryFragments;
-import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.RepositoryFragment;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
@@ -46,7 +46,7 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
  * @author Michael J. Simons
  * @since 1.0
  */
-final class ReactiveNeo4jRepositoryFactory extends RepositoryFactorySupport {
+final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupport {
 
 	private final ReactiveNeo4jOperations neo4jOperations;
 

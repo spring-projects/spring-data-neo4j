@@ -38,13 +38,13 @@ import org.neo4j.springframework.data.config.EnableNeo4jAuditing;
 import org.neo4j.springframework.data.integration.shared.AuditingITBase;
 import org.neo4j.springframework.data.integration.shared.ImmutableAuditableThing;
 import org.neo4j.springframework.data.integration.shared.ImmutableAuditableThingWithGeneratedId;
+import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
@@ -166,11 +166,11 @@ class ReactiveAuditingIT extends AuditingITBase {
 				DEFAULT_CREATION_AND_MODIFICATION_DATE, "A user", "A new name"));
 	}
 
-	interface ImmutableEntityTestRepository extends ReactiveCrudRepository<ImmutableAuditableThing, Long> {
+	interface ImmutableEntityTestRepository extends ReactiveNeo4jRepository<ImmutableAuditableThing, Long> {
 	}
 
 	interface ImmutableEntityWithGeneratedIdTestRepository
-		extends ReactiveCrudRepository<ImmutableAuditableThingWithGeneratedId, String> {
+		extends ReactiveNeo4jRepository<ImmutableAuditableThingWithGeneratedId, String> {
 	}
 
 	@Configuration
