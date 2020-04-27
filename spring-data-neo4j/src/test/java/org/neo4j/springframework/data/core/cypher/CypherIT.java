@@ -23,6 +23,7 @@ import static org.neo4j.springframework.data.core.cypher.Conditions.exists;
 import static org.neo4j.springframework.data.core.cypher.Conditions.not;
 import static org.neo4j.springframework.data.core.cypher.Conditions.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
+import static org.neo4j.springframework.data.core.cypher.Functions.type;
 import static org.neo4j.springframework.data.core.cypher.Functions.*;
 
 import java.util.function.Function;
@@ -1094,6 +1095,153 @@ class CypherIT {
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo(
 					"MATCH (u:`User`) WHERE u.name = 'test' RETURN u");
+		}
+
+		@Nested // GH-206, 3.6.5. Using path patterns in WHERE
+		class PathPatternConditions {
+
+			@Test
+			void doc3651And() {
+				Node timothy = Cypher.node("Person").named("timothy").properties("name", literalOf("Timothy"));
+				Node other = Cypher.node("Person").named("other");
+
+				Statement statement;
+
+				String expected = "MATCH (timothy:`Person` {name: 'Timothy'}), (other:`Person`) WHERE (other.name IN ['Andy', 'Peter'] AND (timothy)<--(other)) RETURN other.name, other.age";
+				statement = Cypher.match(timothy, other)
+					.where(other.property("name").in(listOf(literalOf("Andy"), literalOf("Peter"))))
+					.and(timothy.relationshipFrom(other))
+					.returning(other.property("name"), other.property("age"))
+					.build();
+				assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
+
+				statement = Cypher.match(timothy, other)
+					.where(other.property("name").in(listOf(literalOf("Andy"), literalOf("Peter")))
+						.and(timothy.relationshipFrom(other)))
+					.returning(other.property("name"), other.property("age"))
+					.build();
+
+				assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
+			}
+
+			@Test
+			void doc3651Or() {
+				Node timothy = Cypher.node("Person").named("timothy").properties("name", literalOf("Timothy"));
+				Node other = Cypher.node("Person").named("other");
+
+				Statement statement;
+
+				String expected = "MATCH (timothy:`Person` {name: 'Timothy'}), (other:`Person`) WHERE (other.name IN ['Andy', 'Peter'] OR (timothy)<--(other)) RETURN other.name, other.age";
+				statement = Cypher.match(timothy, other)
+					.where(other.property("name").in(listOf(literalOf("Andy"), literalOf("Peter"))))
+					.or(timothy.relationshipFrom(other))
+					.returning(other.property("name"), other.property("age"))
+					.build();
+				assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
+
+				statement = Cypher.match(timothy, other)
+					.where(other.property("name").in(listOf(literalOf("Andy"), literalOf("Peter")))
+						.or(timothy.relationshipFrom(other)))
+					.returning(other.property("name"), other.property("age"))
+					.build();
+
+				assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
+			}
+
+			@Test
+			void doc3651XOr() {
+				Node timothy = Cypher.node("Person").named("timothy").properties("name", literalOf("Timothy"));
+				Node other = Cypher.node("Person").named("other");
+
+				Statement statement;
+
+				String expected = "MATCH (timothy:`Person` {name: 'Timothy'}), (other:`Person`) WHERE (other.name IN ['Andy', 'Peter'] XOR (timothy)<--(other)) RETURN other.name, other.age";
+				statement = Cypher.match(timothy, other)
+					.where(other.property("name").in(listOf(literalOf("Andy"), literalOf("Peter")))
+						.xor(timothy.relationshipFrom(other)))
+					.returning(other.property("name"), other.property("age"))
+					.build();
+
+				assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
+			}
+
+			@Test
+			void doc3652() {
+
+				Node person = Cypher.node("Person").named("person");
+				Node peter = Cypher.node("Person").named("peter").properties("name", literalOf("Peter"));
+
+				Statement statement;
+
+				statement = Cypher.match(person, peter)
+					.where(not(person.relationshipTo(peter)))
+					.returning(person.property("name"), person.property("age"))
+					.build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo(
+						"MATCH (person:`Person`), (peter:`Person` {name: 'Peter'}) WHERE NOT (person)-->(peter) RETURN person.name, person.age");
+			}
+
+			@Test
+			void doc3653() {
+
+				Node person = Cypher.node("Person").named("n");
+				Statement statement;
+
+				statement = Cypher.match(person)
+					.where(person.relationshipBetween(anyNode().properties("name", literalOf("Timothy")), "KNOWS"))
+					.returning(person.property("name"), person.property("age"))
+					.build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo("MATCH (n:`Person`) WHERE (n)-[:`KNOWS`]-( {name: 'Timothy'}) RETURN n.name, n.age");
+			}
+
+			@Test
+			void doc3654() {
+
+				Node person = Cypher.node("Person").named("n");
+				Statement statement;
+
+				Relationship pathPattern = person.relationshipTo(anyNode()).named("r");
+				statement = Cypher.match(pathPattern)
+					.where(person.property("name").isEqualTo(literalOf("Andy")))
+					.and(type(pathPattern).matches("K.*"))
+					.returning(type(pathPattern), pathPattern.property("since"))
+					.build();
+
+				assertThat(cypherRenderer.render(statement))
+					.isEqualTo(
+						"MATCH (n:`Person`)-[r]->() WHERE (n.name = 'Andy' AND type(r) =~ 'K.*') RETURN type(r), r.since");
+			}
+
+			@Test
+			void afterWith() {
+
+				Node timothy = Cypher.node("Person").named("timothy").properties("name", literalOf("Timothy"));
+				Node other = Cypher.node("Person").named("other");
+
+				Statement statement;
+
+				String expected = "MATCH (timothy:`Person` {name: 'Timothy'}), (other:`Person`) WITH timothy, other WHERE (other.name IN ['Andy', 'Peter'] AND (timothy)<--(other)) RETURN other.name, other.age";
+				statement = Cypher.match(timothy, other)
+					.with(timothy, other)
+					.where(other.property("name").in(listOf(literalOf("Andy"), literalOf("Peter"))))
+					.and(timothy.relationshipFrom(other))
+					.returning(other.property("name"), other.property("age"))
+					.build();
+				assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
+
+				statement = Cypher.match(timothy, other)
+					.with(timothy, other)
+					.where(other.property("name").in(listOf(literalOf("Andy"), literalOf("Peter")))
+						.and(timothy.relationshipFrom(other)))
+					.returning(other.property("name"), other.property("age"))
+					.build();
+
+				assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
+			}
 		}
 	}
 
@@ -2679,7 +2827,6 @@ class CypherIT {
 			assertThat(cypherRenderer.render(s))
 				.isEqualTo("MATCH (r:`Resume`) WITH r RETURN DISTINCT r");
 		}
-
 
 		@Test
 		void gh204() {

@@ -830,6 +830,7 @@ class DefaultStatementBuilder
 
 		void where(Condition newCondition) {
 
+			Assert.notNull(newCondition, "The new condition must not be null.");
 			this.condition = newCondition;
 		}
 

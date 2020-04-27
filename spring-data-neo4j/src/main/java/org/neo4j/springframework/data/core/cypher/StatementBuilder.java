@@ -23,6 +23,7 @@ import static org.neo4j.springframework.data.core.cypher.Expressions.*;
 
 import org.apiguardian.api.API;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * @author Michael J. Simons
@@ -60,10 +61,26 @@ public interface StatementBuilder extends ExposesMatch, ExposesCreate, ExposesMe
 		/**
 		 * Adds a where clause to this match.
 		 *
-		 * @param condition The new condition
+		 * @param condition The new condition, must not be {@literal null}
 		 * @return A match restricted by a where clause with no return items yet.
 		 */
 		OngoingReadingWithWhere where(Condition condition);
+
+		/**
+		 * Adds a where clause based on a path pattern to this match.
+		 * See <a href="https://neo4j.com/docs/cypher-manual/4.0/clauses/where/#query-where-patterns">Using path patterns in WHERE</a>.
+		 *
+		 * @param pathPattern The path pattern to add to the where clause.
+		 *                    This path pattern must not be {@literal null} and must
+		 *                    not introduce new variables not available in the match.
+		 * @return A match restricted by a where clause with no return items yet.
+		 * @since 1.0.1
+		 */
+		default OngoingReadingWithWhere where(RelationshipPattern pathPattern) {
+
+			Assert.notNull(pathPattern, "The path pattern must not be null.");
+			return this.where(new RelationshipPatternCondition(pathPattern));
+		}
 	}
 
 	/**
@@ -78,6 +95,7 @@ public interface StatementBuilder extends ExposesMatch, ExposesCreate, ExposesMe
 	 * @since 1.0
 	 */
 	interface ExposesConditions<T> {
+
 		/**
 		 * Adds an additional condition to the existing conditions, connected by an {@literal and}.
 		 * Existing conditions will be logically grouped by using {@code ()} in the statement if previous
@@ -89,6 +107,18 @@ public interface StatementBuilder extends ExposesMatch, ExposesCreate, ExposesMe
 		T and(Condition condition);
 
 		/**
+		 * Adds an additional condition based on a path pattern to the existing conditions, connected by an {@literal and}.
+		 * Existing conditions will be logically grouped by using {@code ()} in the statement if previous
+		 * conditions used another logical operator.
+		 *
+		 * @param pathPattern An additional pattern to include in the conditions
+		 * @return The ongoing definition of a match
+		 */
+		default T and(RelationshipPattern pathPattern) {
+			return this.and(new RelationshipPatternCondition(pathPattern));
+		}
+
+		/**
 		 * Adds an additional condition to the existing conditions, connected by an {@literal or}.
 		 * Existing conditions will be logically grouped by using {@code ()} in the statement if previous
 		 * conditions used another logical operator.
@@ -97,6 +127,18 @@ public interface StatementBuilder extends ExposesMatch, ExposesCreate, ExposesMe
 		 * @return The ongoing definition of a match
 		 */
 		T or(Condition condition);
+
+		/**
+		 * Adds an additional condition based on a path pattern to the existing conditions, connected by an {@literal or}.
+		 * Existing conditions will be logically grouped by using {@code ()} in the statement if previous
+		 * conditions used another logical operator.
+		 *
+		 * @param pathPattern An additional pattern to include in the conditions
+		 * @return The ongoing definition of a match
+		 */
+		default T or(RelationshipPattern pathPattern) {
+			return this.or(new RelationshipPatternCondition(pathPattern));
+		}
 	}
 
 	/**
@@ -126,6 +168,7 @@ public interface StatementBuilder extends ExposesMatch, ExposesCreate, ExposesMe
 
 	/**
 	 * A match that knows what to pipe to the next part of a multi part query.
+	 *
 	 * @since 1.0
 	 */
 	interface OrderableOngoingReadingAndWithWithoutWhere extends OrderableOngoingReadingAndWith {
@@ -133,10 +176,26 @@ public interface StatementBuilder extends ExposesMatch, ExposesCreate, ExposesMe
 		/**
 		 * Adds a where clause to this match.
 		 *
-		 * @param condition The new condition
+		 * @param condition The new condition, must not be {@literal null}
 		 * @return A match restricted by a where clause with no return items yet.
 		 */
 		OrderableOngoingReadingAndWithWithWhere where(Condition condition);
+
+		/**
+		 * Adds a where clause based on a path pattern to this match.
+		 * See <a href="https://neo4j.com/docs/cypher-manual/4.0/clauses/where/#query-where-patterns">Using path patterns in WHERE</a>.
+		 *
+		 * @param pathPattern The path pattern to add to the where clause.
+		 *                    This path pattern must not be {@literal null} and must
+		 *                    not introduce new variables not available in the match.
+		 * @return A match restricted by a where clause with no return items yet.
+		 * @since 1.0.1
+		 */
+		default OrderableOngoingReadingAndWithWithWhere where(RelationshipPattern pathPattern) {
+
+			Assert.notNull(pathPattern, "The path pattern must not be null.");
+			return this.where(new RelationshipPatternCondition(pathPattern));
+		}
 	}
 
 	/**
