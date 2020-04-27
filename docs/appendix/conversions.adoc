@@ -166,3 +166,30 @@ Primitive types of wrapper types are equally supported.
 |
 
 |===
+
+== Custom conversions
+
+If you prefer to work with your own types in the entities or as parameters for `@Query` annotated methods,
+you can define and provide a custom converter implementation.
+First you have to implement a `GenericConverter` and register the types your converter should handle.
+For entity property type converters you need to take care of converting your type to *and* from a Neo4j Java Driver `Value`.
+If your converter is supposed to work only with custom query methods in the repositories, it is sufficient
+to provide the one-way conversion to the `Value` type.
+
+.Example of a custom converter implementation
+[source,java,indent=0]
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/conversion/MyCustomTypeConverter.java[tag=custom-converter.implementation]
+----
+
+To make SDN/RX aware of your converter, it has to be registered in the `Neo4jConversions`.
+To do this, you have to create a `@Bean` with the type `org.neo4j.springframework.data.core.convert.Neo4jConversions`.
+Otherwise, the `Neo4jConversions` will get created in the background with the internal default converters only.
+
+.Example of a custom converter implementation
+[source,java,indent=0]
+----
+include::../../examples/docs/src/test/java/org/neo4j/doc/springframework/data/docs/repositories/conversion/MyCustomTypeConverter.java[tag=custom-converter.neo4jConversions]
+----
+
+If you need multiple converters in your application, you can add as many as you need in the `Neo4jConversions` constructor.
