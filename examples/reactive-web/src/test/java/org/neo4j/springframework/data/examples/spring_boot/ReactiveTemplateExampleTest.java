@@ -20,6 +20,8 @@ package org.neo4j.springframework.data.examples.spring_boot;
 
 // tag::faq.template-reactive[]
 
+import static java.util.Collections.*;
+
 import reactor.test.StepVerifier;
 
 import org.junit.jupiter.api.Test;
@@ -27,6 +29,7 @@ import org.neo4j.springframework.boot.test.autoconfigure.data.ReactiveDataNeo4jT
 import org.neo4j.springframework.data.core.ReactiveNeo4jTemplate;
 import org.neo4j.springframework.data.examples.spring_boot.domain.MovieEntity;
 import org.neo4j.springframework.data.examples.spring_boot.domain.PersonEntity;
+import org.neo4j.springframework.data.examples.spring_boot.domain.Roles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -63,8 +66,8 @@ class ReactiveTemplateExampleTest {
 				+ "Jim Douglas (Dean Jones), and Jim's love interest, "
 				+ "Carole Bennett (Michele Lee)");
 
-		movie.getActors().add(new PersonEntity(1931, "Dean Jones"));
-		movie.getActors().add(new PersonEntity(1942, "Michele Lee"));
+		movie.getActorsAndRoles().put(new PersonEntity(1931, "Dean Jones"), new Roles(singletonList("Didi")));
+		movie.getActorsAndRoles().put(new PersonEntity(1942, "Michele Lee"), new Roles(singletonList("Michi")));
 
 		StepVerifier.create(neo4jTemplate.save(movie))
 			.expectNextCount(1L)

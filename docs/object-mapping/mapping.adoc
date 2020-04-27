@@ -116,7 +116,28 @@ We support dynamic relationships.
 Dynamic relationships are represented as a `Map<String, AnnotatedDomainClass>`.
 In such a case, the type of the relationship to the other domain class is given by the maps key and must not be configured through the `@Relationship`.
 
-=== Relationship query limit
+==== Map relationship properties
+
+Neo4j supports defining properties not only on nodes but also on relationships.
+To express those properties in the model SDN/RX provides `@RelationshipProperties` to be applied on a simple Java class.
+
+In the entity class the relationship can be modelled as before but its type has to be a `Map` with the related node as the key and the relation property class as value.
+
+A relationship property class and its usage may look like this:
+
+.Relationship properties `Roles`
+[source,java]
+----
+include::../../examples/reactive-web/src/main/java/org/neo4j/springframework/data/examples/spring_boot/domain/Roles.java[tags=mapping.relationship.properties]
+----
+
+.Defining relationship properties for an entity
+[source,java,indent=0]
+----
+include::../../examples/reactive-web/src/main/java/org/neo4j/springframework/data/examples/spring_boot/domain/MovieEntity.java[tags=mapping.relationship.properties]
+----
+
+==== Relationship query limit
 
 In general there is no limitation of relationships / hops for creating the queries.
 SDN/RX parses the whole reachable graph from your modelled nodes.

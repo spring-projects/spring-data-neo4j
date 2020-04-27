@@ -19,6 +19,8 @@
 package org.neo4j.springframework.data.examples.spring_boot;
 
 // tag::faq.template-imperative[]
+
+import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Optional;
@@ -28,6 +30,7 @@ import org.neo4j.springframework.boot.test.autoconfigure.data.DataNeo4jTest;
 import org.neo4j.springframework.data.core.Neo4jTemplate;
 import org.neo4j.springframework.data.examples.spring_boot.domain.MovieEntity;
 import org.neo4j.springframework.data.examples.spring_boot.domain.PersonEntity;
+import org.neo4j.springframework.data.examples.spring_boot.domain.Roles;
 import org.springframework.beans.factory.annotation.Autowired;
 
 // end::faq.template-imperative[]
@@ -48,8 +51,8 @@ public class TemplateExampleTest {
 				+ "Jim Douglas (Dean Jones), and Jim's love interest, "
 				+ "Carole Bennett (Michele Lee)");
 
-		movie.getActors().add(new PersonEntity(1931, "Dean Jones"));
-		movie.getActors().add(new PersonEntity(1942, "Michele Lee"));
+		movie.getActorsAndRoles().put(new PersonEntity(1931, "Dean Jones"), new Roles(singletonList("Didi")));
+		movie.getActorsAndRoles().put(new PersonEntity(1942, "Michele Lee"), new Roles(singletonList("Michi")));
 
 		neo4jTemplate.save(movie);
 

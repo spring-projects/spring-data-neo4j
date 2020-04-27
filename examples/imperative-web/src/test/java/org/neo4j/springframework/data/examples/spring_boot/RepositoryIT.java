@@ -87,7 +87,7 @@ class RepositoryIT {
 				assertThat(movie.getTitle()).isEqualTo("The Matrix");
 				assertThat(movie.getDescription()).isEqualTo("Welcome to the Real World");
 				assertThat(movie.getDirectors()).hasSize(2);
-				assertThat(movie.getActors()).hasSize(5);
+				assertThat(movie.getActorsAndRoles()).hasSize(5);
 			});
 	}
 }

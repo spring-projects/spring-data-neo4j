@@ -20,8 +20,10 @@ package org.neo4j.springframework.data.examples.spring_boot.domain;
 
 import static org.neo4j.springframework.data.core.schema.Relationship.Direction.*;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
@@ -41,10 +43,10 @@ public class MovieEntity {
 	private final String description;
 
 	@Relationship(type = "ACTED_IN", direction = INCOMING)
-	private Set<PersonEntity> actors = new HashSet<>();
+	private Map<PersonEntity, Roles> actorsAndRoles = new HashMap<>();
 
 	@Relationship(type = "DIRECTED", direction = INCOMING)
-	private Set<PersonEntity> directors = new HashSet<>();
+	private List<PersonEntity> directors = new ArrayList<>();
 
 	public MovieEntity(String title, String description) {
 		this.title = title;
@@ -59,11 +61,11 @@ public class MovieEntity {
 		return description;
 	}
 
-	public Set<PersonEntity> getActors() {
-		return actors;
+	public Map<PersonEntity, Roles> getActorsAndRoles() {
+		return actorsAndRoles;
 	}
 
-	public Set<PersonEntity> getDirectors() {
+	public List<PersonEntity> getDirectors() {
 		return directors;
 	}
 }
