@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
  * @since 1.0
  */
 @API(status = EXPERIMENTAL, since = "1.0")
-public final class Relationship implements RelationshipPattern, Named, ExposesRelationships<RelationshipChain> {
+public final class Relationship implements RelationshipPattern, Named {
 
 	/**
 	 * While the direction in the schema package is centered around the node, the direction here is the direction between two nodes.
@@ -256,5 +256,20 @@ public final class Relationship implements RelationshipPattern, Named, ExposesRe
 	 */
 	public MapProjection project(Object... entries) {
 		return MapProjection.create(this.getRequiredSymbolicName(), entries);
+	}
+
+	/**
+	 * Creates a new {@link Property} associated with this property container.
+	 * <p>
+	 * Note: The property container does not track property creation and there is no possibility to enumerate all
+	 * properties that have been created for this relationship.
+	 *
+	 * @param name property name, must not be {@literal null} or empty.
+	 * @return a new {@link Property} associated with this {@link Relationship}.
+	 * @since 1.0.1
+	 */
+	public Property property(String name) {
+
+		return Property.create(this, name);
 	}
 }

@@ -61,6 +61,7 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 /**
  * A Cypher-DSL based implementation of the {@link AbstractQueryCreator} that eventually creates Cypher queries as strings
@@ -230,7 +231,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 	}
 
 	@Override
-	protected QueryAndParameters complete(Condition condition, Sort sort) {
+	protected QueryAndParameters complete(@Nullable Condition condition, Sort sort) {
 
 		Statement statement = createStatement(condition, sort);
 
@@ -241,14 +242,14 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 	}
 
 	@NonNull
-	private Statement createStatement(Condition condition, Sort sort) {
+	private Statement createStatement(@Nullable Condition condition, Sort sort) {
 		CypherGenerator cypherGenerator = CypherGenerator.INSTANCE;
 
 		// all the ways we could query for
 		Node startNode = Cypher.node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())
 			.named(NAME_OF_ROOT_NODE);
 
-		ExposesReturning matchAndCondition = Cypher.match(startNode).where(condition);
+		ExposesReturning matchAndCondition = Cypher.match(startNode).where(Optional.ofNullable(condition).orElseGet(Conditions::noCondition));
 		StatementBuilder.OngoingReadingWithoutWhere matches = null;
 
 		Iterator<PropertyPathWrapper> wrapperIterator = propertyPathWrappers.iterator();

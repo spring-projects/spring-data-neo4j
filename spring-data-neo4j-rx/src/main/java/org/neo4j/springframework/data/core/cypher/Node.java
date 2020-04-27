@@ -175,7 +175,7 @@ public final class Node implements PatternElement, Named, ExposesRelationships<R
 	}
 
 	/**
-	 * Creates a new {@link Property} associated with this property container..
+	 * Creates a new {@link Property} associated with this property container.
 	 * <p>
 	 * Note: The property container does not track property creation and there is no possibility to enumerate all
 	 * properties that have been created for this node.

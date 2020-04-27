@@ -33,10 +33,10 @@ import org.springframework.util.Assert;
 @API(status = EXPERIMENTAL, since = "1.0")
 public final class Property implements Expression {
 
-	static Property create(Node parentContainer, String name) {
+	static Property create(Named parentContainer, String name) {
 
 		Assert.isTrue(parentContainer.getSymbolicName().isPresent(),
-			"A property derived from a node needs a parent with a symbolic name.");
+			"A property derived from a node or a relationship needs a parent with a symbolic name.");
 		Assert.hasText(name, "The properties name is required.");
 
 		return new Property(parentContainer.getSymbolicName().get(), new PropertyLookup((name)));

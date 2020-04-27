@@ -18,26 +18,32 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.apiguardian.api.API.Status.*;
 
-import org.junit.jupiter.api.Test;
+import org.apiguardian.api.API;
+import org.neo4j.springframework.data.core.cypher.support.Visitor;
 
 /**
+ * Internal wrapper for marking a path pattern as a condition.
+ *
  * @author Michael J. Simons
+ * @soundtrack Red Hot Chili Peppers - Red Hot Chili Peppers: Greatest Hits
+ * @since 1.0.1
  */
-class PropertyTest {
+@API(status = INTERNAL, since = "1.0")
+final class RelationshipPatternCondition implements Condition {
 
-	@Test
-	void preconditionsShouldBeAsserted() {
+	private final RelationshipPattern pathPattern;
 
-		assertThatIllegalArgumentException().isThrownBy(() -> Property.create(Node.create("a"), ""))
-			.withMessage("A property derived from a node or a relationship needs a parent with a symbolic name.");
-		String expectedMessage = "The properties name is required.";
-		assertThatIllegalArgumentException().isThrownBy(() -> Property.create(Node.create("a").named("s"), null))
-			.withMessage(
-				expectedMessage);
-		assertThatIllegalArgumentException().isThrownBy(() -> Property.create(Node.create("a").named("s"), "\t"))
-			.withMessage(
-				expectedMessage);
+	RelationshipPatternCondition(RelationshipPattern pathPattern) {
+		this.pathPattern = pathPattern;
+	}
+
+	@Override
+	public void accept(Visitor visitor) {
+
+		visitor.enter(this);
+		pathPattern.accept(visitor);
+		visitor.leave(this);
 	}
 }
