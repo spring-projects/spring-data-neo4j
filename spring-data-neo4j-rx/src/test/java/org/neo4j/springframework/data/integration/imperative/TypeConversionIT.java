@@ -42,6 +42,7 @@ import org.neo4j.springframework.data.integration.shared.Neo4jConversionsITBase;
 import org.neo4j.springframework.data.integration.shared.ThingWithAllAdditionalTypes;
 import org.neo4j.springframework.data.integration.shared.ThingWithAllCypherTypes;
 import org.neo4j.springframework.data.integration.shared.ThingWithAllSpatialTypes;
+import org.neo4j.springframework.data.integration.shared.ThingWithCustomTypes;
 import org.neo4j.springframework.data.integration.shared.ThingWithNonExistingPrimitives;
 import org.neo4j.springframework.data.repository.Neo4jRepository;
 import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
@@ -70,6 +71,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 	private final SpatialTypesRepository spatialTypesRepository;
 
+	private final CustomTypesRepository customTypesRepository;
+
 	private final DefaultConversionService defaultConversionService;
 
 	@Autowired TypeConversionIT(
@@ -77,12 +80,14 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		CypherTypesRepository cypherTypesRepository,
 		AdditionalTypesRepository additionalTypesRepository,
 		SpatialTypesRepository spatialTypesRepository,
+		CustomTypesRepository customTypesRepository,
 		Neo4jConversions neo4jConversions
 	) {
 		this.driver = driver;
 		this.cypherTypesRepository = cypherTypesRepository;
 		this.additionalTypesRepository = additionalTypesRepository;
 		this.spatialTypesRepository = spatialTypesRepository;
+		this.customTypesRepository = customTypesRepository;
 		this.defaultConversionService = new DefaultConversionService();
 		neo4jConversions.registerConvertersIn(defaultConversionService);
 	}
@@ -105,6 +110,7 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		supportedTypes.put("CypherTypes", CYPHER_TYPES);
 		supportedTypes.put("AdditionalTypes", ADDITIONAL_TYPES);
 		supportedTypes.put("SpatialTypes", SPATIAL_TYPES);
+		supportedTypes.put("CustomTypes", CUSTOM_TYPES);
 
 		return supportedTypes.entrySet().stream()
 			.map(entry -> {
@@ -128,6 +134,12 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 							.get();
 						copyOfThing = spatialTypesRepository.save(hlp3.withId(null));
 						thing = hlp3;
+						break;
+					case "CustomTypes":
+						ThingWithCustomTypes hlp4 = customTypesRepository.findById(ID_OF_CUSTOM_TYPE_NODE)
+							.get();
+						copyOfThing = customTypesRepository.save(hlp4.withId(null));
+						thing = hlp4;
 						break;
 					default:
 						throw new UnsupportedOperationException("Unsupported types: " + entry.getKey());
@@ -191,6 +203,10 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		extends Neo4jRepository<ThingWithNonExistingPrimitives, Long> {
 	}
 
+	public interface CustomTypesRepository
+		extends Neo4jRepository<ThingWithCustomTypes, Long> {
+	}
+
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
 	@EnableTransactionManagement
@@ -204,6 +220,11 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		@Override
 		protected Collection<String> getMappingBasePackages() {
 			return Collections.singletonList(ThingWithAllCypherTypes.class.getPackage().getName());
+		}
+
+		@Override
+		public Neo4jConversions neo4jConversions() {
+			return new Neo4jConversions(Collections.singleton(new ThingWithCustomTypes.CustomTypeConverter()));
 		}
 	}
 }

@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core.mapping;
 
+import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.ArrayList;
@@ -26,8 +27,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.neo4j.driver.internal.value.StringValue;
+import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.Id;
@@ -37,6 +41,8 @@ import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Property;
 import org.neo4j.springframework.data.core.schema.Relationship;
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.Association;
 
@@ -155,6 +161,38 @@ public class Neo4jMappingContextTest {
 	}
 
 	@Test
+	void complexPropertyWithConverterShouldNotBeConsideredAsAssociation() {
+
+		class ConvertibleTypeConverter implements GenericConverter {
+			@Override
+			public Set<ConvertiblePair> getConvertibleTypes() {
+				// in the real world this should also define the opposite way
+				return singleton(new ConvertiblePair(ConvertibleType.class, StringValue.class));
+			}
+
+			@Override
+			public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+				// no implementation needed for this test
+				return null;
+			}
+		}
+
+		Neo4jMappingContext schema = new Neo4jMappingContext(new Neo4jConversions(singleton(new ConvertibleTypeConverter())));
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(EntityWithConvertibleProperty.class);
+
+		assertThat(entity.getPersistentProperty("convertibleType").isRelationship()).isFalse();
+	}
+
+	@Test
+	void complexPropertyWithoutConverterShouldBeConsideredAsAssociation() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext(new Neo4jConversions());
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(EntityWithConvertibleProperty.class);
+
+		assertThat(entity.getPersistentProperty("convertibleType").isRelationship()).isTrue();
+	}
+
+	@Test
 	void shouldHonourTransientAnnotation() {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
@@ -240,5 +278,18 @@ public class Neo4jMappingContextTest {
 
 		@Id @GeneratedValue
 		private String id;
+	}
+
+	@Node
+	static class EntityWithConvertibleProperty {
+
+		@Id @GeneratedValue
+		private Long id;
+
+		private ConvertibleType convertibleType;
+	}
+
+	static class ConvertibleType {
+
 	}
 }

@@ -64,7 +64,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 		this.isAssociation = Lazy.of(() -> {
 
 			Class<?> targetType = getActualType();
-			return !simpleTypeHolder.isSimpleType(targetType);
+			return !(simpleTypeHolder.isSimpleType(targetType) || mappingContext.hasCustomWriteTarget(targetType));
 		});
 		this.mappingContext = mappingContext;
 	}

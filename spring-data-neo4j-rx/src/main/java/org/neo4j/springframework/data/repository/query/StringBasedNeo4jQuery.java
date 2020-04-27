@@ -157,7 +157,13 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	Map<String, Object> bindParameters(Neo4jParameterAccessor parameterAccessor) {
 
 		final Parameters<?, ?> formalParameters = parameterAccessor.getParameters();
-		Map<String, Object> resolvedParameters = new HashMap<>(spelEvaluator.evaluate(parameterAccessor.getValues()));
+		Map<String, Object> resolvedParameters = new HashMap<>();
+
+		// Values from the parameter accessor can only get converted after evaluation
+		for (Map.Entry<String, Object> evaluatedParam : spelEvaluator.evaluate(parameterAccessor.getValues()).entrySet()) {
+			resolvedParameters.put(evaluatedParam.getKey(), super.convertParameter(evaluatedParam.getValue()));
+		}
+
 		formalParameters.stream()
 			.filter(Parameter::isBindable)
 			.forEach(parameter -> {
