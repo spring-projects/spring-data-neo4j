@@ -141,10 +141,18 @@ public abstract class Neo4jConversionsITBase {
 		SPATIAL_TYPES = Collections.unmodifiableMap(hlp);
 	}
 
+	protected static final Map<String, Object> CUSTOM_TYPES;
+	static {
+		Map<String, Object> hlp = new HashMap<>();
+		hlp.put("customType", ThingWithCustomTypes.CustomType.of("ABCD"));
+		CUSTOM_TYPES = Collections.unmodifiableMap(hlp);
+	}
+
 	protected static long ID_OF_CYPHER_TYPES_NODE;
 	protected static long ID_OF_ADDITIONAL_TYPES_NODE;
 	protected static long ID_OF_SPATIAL_TYPES_NODE;
 	protected static long ID_OF_NON_EXISTING_PRIMITIVES_NODE;
+	protected static long ID_OF_CUSTOM_TYPE_NODE;
 
 	@BeforeAll
 	static void prepareData() {
@@ -218,6 +226,12 @@ public abstract class Neo4jConversionsITBase {
 					+ " n.geo3d = point({latitude: $clarion.latitude, longitude: $clarion.longitude, height: 27}),"
 					+ " n.car2d = point({x: 10, y: 20}),"
 					+ " n.car3d = point({x: 30, y: 40, z: 50})"
+					+ " RETURN id(n) AS id", parameters).single().get("id").asLong();
+
+				parameters = new HashMap<>();
+				parameters.put("customType", "ABCD");
+				ID_OF_CUSTOM_TYPE_NODE = w.run("CREATE (n:CustomTypes) SET "
+					+ " n.customType = $customType"
 					+ " RETURN id(n) AS id", parameters).single().get("id").asLong();
 				w.commit();
 				return null;

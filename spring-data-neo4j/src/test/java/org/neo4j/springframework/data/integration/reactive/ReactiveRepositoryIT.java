@@ -54,6 +54,7 @@ import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Point;
 import org.neo4j.driver.types.Relationship;
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
+import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.neo4j.springframework.data.integration.reactive.repositories.ReactivePersonRepository;
 import org.neo4j.springframework.data.integration.reactive.repositories.ReactiveThingRepository;
 import org.neo4j.springframework.data.integration.shared.*;
@@ -1955,6 +1956,50 @@ class ReactiveRepositoryIT {
 		}
 	}
 
+	@Test
+	void findByConvertedCustomType(@Autowired EntityWithCustomTypePropertyRepository repository) {
+		try (Session session = driver.session(getSessionConfig())) {
+			session.run("CREATE (:CustomTypes{customType:'XYZ'})");
+		}
+
+		StepVerifier.create(repository.findByCustomType(ThingWithCustomTypes.CustomType.of("XYZ")))
+			.expectNextCount(1)
+			.verifyComplete();
+	}
+
+	@Test
+	void findByConvertedCustomTypeWithCustomQuery(@Autowired EntityWithCustomTypePropertyRepository repository) {
+		try (Session session = driver.session(getSessionConfig())) {
+			session.run("CREATE (:CustomTypes{customType:'XYZ'})");
+		}
+
+		StepVerifier.create(repository.findByCustomTypeCustomQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
+			.expectNextCount(1)
+			.verifyComplete();
+	}
+
+	@Test
+	void findByConvertedCustomTypeWithSpELPropertyAccessQuery(@Autowired EntityWithCustomTypePropertyRepository repository) {
+		try (Session session = driver.session(getSessionConfig())) {
+			session.run("CREATE (:CustomTypes{customType:'XYZ'})");
+		}
+
+		StepVerifier.create(repository.findByCustomTypeCustomSpELPropertyAccessQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
+			.expectNextCount(1)
+			.verifyComplete();
+	}
+
+	@Test
+	void findByConvertedCustomTypeWithSpELObjectQuery(@Autowired EntityWithCustomTypePropertyRepository repository) {
+		try (Session session = driver.session(getSessionConfig())) {
+			session.run("CREATE (:CustomTypes{customType:'XYZ'})");
+		}
+
+		StepVerifier.create(repository.findByCustomTypeSpELObjectQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
+			.expectNextCount(1)
+			.verifyComplete();
+	}
+
 	interface BidirectionalStartRepository extends ReactiveNeo4jRepository<BidirectionalStart, Long> {
 	}
 
@@ -2004,6 +2049,20 @@ class ReactiveRepositoryIT {
 	interface EntityWithConvertedIdRepository extends ReactiveNeo4jRepository<EntityWithConvertedId, EntityWithConvertedId.IdentifyingEnum> {
 	}
 
+	interface EntityWithCustomTypePropertyRepository extends ReactiveNeo4jRepository<ThingWithCustomTypes, Long> {
+
+		Mono<ThingWithCustomTypes> findByCustomType(ThingWithCustomTypes.CustomType customType);
+
+		@Query("MATCH (c:CustomTypes) WHERE c.customType = $customType return c")
+		Mono<ThingWithCustomTypes> findByCustomTypeCustomQuery(@Param("customType") ThingWithCustomTypes.CustomType customType);
+
+		@Query("MATCH (c:CustomTypes) WHERE c.customType = :#{#customType.value} return c")
+		Mono<ThingWithCustomTypes> findByCustomTypeCustomSpELPropertyAccessQuery(@Param("customType") ThingWithCustomTypes.CustomType customType);
+
+		@Query("MATCH (c:CustomTypes) WHERE c.customType = :#{#customType} return c")
+		Mono<ThingWithCustomTypes> findByCustomTypeSpELObjectQuery(@Param("customType") ThingWithCustomTypes.CustomType customType);
+	}
+
 	@Configuration
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
 	@EnableTransactionManagement
@@ -2017,6 +2076,11 @@ class ReactiveRepositoryIT {
 		@Override
 		protected Collection<String> getMappingBasePackages() {
 			return Collections.singletonList(PersonWithAllConstructor.class.getPackage().getName());
+		}
+
+		@Override
+		public Neo4jConversions neo4jConversions() {
+			return new Neo4jConversions(singleton(new ThingWithCustomTypes.CustomTypeConverter()));
 		}
 	}
 }

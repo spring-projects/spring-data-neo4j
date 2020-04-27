@@ -73,6 +73,8 @@ public final class Neo4jMappingContext
 	 */
 	private final Neo4jConverter converter;
 
+	private final Neo4jConversions neo4jConversions;
+
 	private @Nullable AutowireCapableBeanFactory beanFactory;
 
 	public Neo4jMappingContext() {
@@ -83,11 +85,16 @@ public final class Neo4jMappingContext
 	public Neo4jMappingContext(Neo4jConversions neo4jConversions) {
 
 		super.setSimpleTypeHolder(Neo4jSimpleTypes.HOLDER);
+		this.neo4jConversions = neo4jConversions;
 		this.converter = new DefaultNeo4jConverter(neo4jConversions, nodeDescriptionStore);
 	}
 
 	public Neo4jConverter getConverter() {
 		return converter;
+	}
+
+	boolean hasCustomWriteTarget(Class<?> targetType) {
+		return neo4jConversions.hasCustomWriteTarget(targetType);
 	}
 
 	/*
