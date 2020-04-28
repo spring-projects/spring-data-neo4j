@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.17.RELEASE (2020-04-28)
+----------------------------------------------
+* DATAGRAPH-1312 - Upgrade to Neo4j OGM 3.1.19.
+* DATAGRAPH-1305 - Upgrade to Neo4j OGM 3.1.18.
+* DATAGRAPH-1297 - Release 5.1.17 (Lovelace SR17).
+
+
 Changes in version 5.3.0.RC1 (2020-03-31)
 -----------------------------------------
 * DATAGRAPH-1304 - Upgrade to Neo4j OGM 3.2.10.
@@ -1701,6 +1708,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
