@@ -21,6 +21,7 @@ package org.neo4j.springframework.data.core.mapping;
 import static java.util.stream.Collectors.*;
 import static org.neo4j.springframework.data.core.schema.Constants.*;
 import static org.neo4j.springframework.data.core.schema.RelationshipDescription.*;
+import static org.springframework.core.CollectionFactory.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,7 +50,6 @@ import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.neo4j.springframework.data.core.convert.Neo4jConverter;
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
-import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -152,8 +152,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			Class<?> rawType = type.getType();
 
 			if (!valueIsLiteralNullOrNullValue && isCollection(type)) {
-				Collection<Object> target = CollectionFactory.createCollection(rawType,
-					type.getComponentType().getType(), value.size());
+				Collection<Object> target = createCollection(rawType, type.getComponentType().getType(), value.size());
 				value.values().forEach(
 					element -> target.add(conversionService.convert(element, type.getComponentType().getType())));
 				return target;
@@ -372,8 +371,21 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		List<Object> value = new ArrayList<>();
 		Map<String, Object> dynamicValue = new HashMap<>();
 
-		BiConsumer<String, Object> mappedObjectHandler = relationshipDescription.isDynamic() ?
-			dynamicValue::put : (type, mappedObject) -> value.add(mappedObject);
+		BiConsumer<String, Object> mappedObjectHandler;
+		if (persistentProperty.isDynamicOneToManyAssociation()) {
+
+			TypeInformation<?> actualType = persistentProperty.getTypeInformation().getRequiredActualType();
+			mappedObjectHandler = (type, mappedObject) -> {
+				List<Object> bucket = (List<Object>) dynamicValue.computeIfAbsent(type,
+					s -> createCollection(actualType.getType(), persistentProperty.getAssociationTargetType(),
+						values.size()));
+				bucket.add(mappedObject);
+			};
+		} else if (persistentProperty.isDynamicAssociation()) {
+			mappedObjectHandler = dynamicValue::put;
+		} else {
+			mappedObjectHandler = (type, mappedObject) -> value.add(mappedObject);
+		}
 
 		Value list = values.get(relationshipDescription.generateRelatedNodesCollectionName());
 

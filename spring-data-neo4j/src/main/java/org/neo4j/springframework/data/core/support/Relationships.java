@@ -18,6 +18,9 @@
  */
 package org.neo4j.springframework.data.core.support;
 
+import static java.util.stream.Collectors.*;
+
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -42,7 +45,15 @@ public final class Relationships {
 	public static Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, Object rawValue) {
 		Collection<?> unifiedValue;
 		if (property.isDynamicAssociation()) {
-			unifiedValue = ((Map<String, Object>) rawValue).entrySet();
+			if (property.isDynamicOneToManyAssociation()) {
+				unifiedValue = ((Map<String, Collection<?>>) rawValue)
+					.entrySet()
+					.stream()
+					.flatMap(e -> e.getValue().stream().map(v -> new SimpleEntry(e.getKey(), v)))
+					.collect(toList());
+			} else {
+				unifiedValue = ((Map<String, Object>) rawValue).entrySet();
+			}
 		} else if (property.isRelationshipWithProperties()) {
 			unifiedValue = ((Map<Object, Object>) rawValue).entrySet();
 		} else if (property.isCollectionLike()) {

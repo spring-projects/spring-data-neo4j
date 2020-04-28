@@ -20,10 +20,15 @@ package org.neo4j.springframework.data.core.mapping;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.Property;
@@ -65,12 +70,29 @@ class DefaultNeo4jPersistentEntityTest {
 	@Nested
 	class Relationships {
 
-		@Test
-		void failsOnDynamicRelationshipsWithExplicitType() {
+		@ParameterizedTest
+		@ValueSource(classes = { MixedDynamicAndExplicitRelationship1.class,
+			MixedDynamicAndExplicitRelationship2.class })
+		void failsOnDynamicRelationshipsWithExplicitType(Class<?> entityToTest) {
+
+			String expectedMessage = "Dynamic relationships cannot be used with a fixed type\\. Omit @Relationship or use @Relationship\\(direction = (OUTGOING|INCOMING)\\) without a type in class .*MixedDynamicAndExplicitRelationship\\d on field dynamicRelationships\\.";
 			assertThatIllegalStateException()
 				.isThrownBy(
-					() -> new Neo4jMappingContext().getPersistentEntity(MixedDynamicAndExplicitRelationship.class))
-				.withMessage("Dynamic relationships cannot be used with a fixed type. Omit @Relationship or use @Relationship(direction = INCOMING).");
+					() -> new Neo4jMappingContext().getPersistentEntity(entityToTest))
+				.withMessageMatching(expectedMessage);
+		}
+
+		@ParameterizedTest // GH-216
+		@ValueSource(classes = { TypeWithInvalidDynamicRelationshipMappings1.class,
+			TypeWithInvalidDynamicRelationshipMappings2.class, TypeWithInvalidDynamicRelationshipMappings3.class })
+		void multipleDynamicAssociationsToTheSameEntityAreNotAllowed(Class<?> entityToTest) {
+
+			String expectedMessage = ".*TypeWithInvalidDynamicRelationshipMappings\\d already contains a dynamic relationship to class org\\.neo4j\\.springframework\\.data\\.core\\.mapping\\.Neo4jMappingContextTest\\$BikeNode. Only one dynamic relationship between to entities is permitted\\.";
+			Neo4jMappingContext schema = new Neo4jMappingContext();
+			schema.setInitialEntitySet(new HashSet<>(Arrays.asList(entityToTest)));
+			assertThatIllegalStateException()
+				.isThrownBy(() -> schema.initialize())
+				.withMessageMatching(expectedMessage);
 		}
 	}
 
@@ -157,14 +179,25 @@ class DefaultNeo4jPersistentEntityTest {
 	}
 
 	@Node
-	private static class MixedDynamicAndExplicitRelationship {
+	private static class MixedDynamicAndExplicitRelationship1 {
+
+		@Id private Long id;
+
+		private String name;
+
+		@Relationship(type = "BAMM")
+		private Map<String, MixedDynamicAndExplicitRelationship1> dynamicRelationships;
+	}
+
+	@Node
+	private static class MixedDynamicAndExplicitRelationship2 {
 
 		@Id private Long id;
 
 		private String name;
 
 		@Relationship(type = "BAMM", direction = Relationship.Direction.INCOMING)
-		private Map<String, MixedDynamicAndExplicitRelationship> dynamicRelationships;
+		private Map<String, List<MixedDynamicAndExplicitRelationship2>> dynamicRelationships;
 	}
 
 	@Node
@@ -208,19 +241,48 @@ class DefaultNeo4jPersistentEntityTest {
 		@Id private Long id;
 	}
 
-	@Node(primaryLabel = "a", labels = {"b", "c"})
+	@Node(primaryLabel = "a", labels = { "b", "c" })
 	private static class EntityWithExplicitPrimaryLabelAndAdditionalLabels {
 		@Id private Long id;
 	}
 
-	@Node(primaryLabel = "Base", labels = {"Bases"})
+	@Node(primaryLabel = "Base", labels = { "Bases" })
 	private static abstract class BaseClass {
 		@Id private Long id;
 	}
 
-	@Node(primaryLabel = "Child", labels = {"Person"})
+	@Node(primaryLabel = "Child", labels = { "Person" })
 	private static class Child extends BaseClass {
 		private String name;
 	}
 
+	static class TypeWithInvalidDynamicRelationshipMappings1 {
+
+		@Id
+		private String id;
+
+		private Map<String, Neo4jMappingContextTest.BikeNode> bikes1;
+
+		private Map<String, Neo4jMappingContextTest.BikeNode> bikes2;
+	}
+
+	static class TypeWithInvalidDynamicRelationshipMappings2 {
+
+		@Id
+		private String id;
+
+		private Map<String, Neo4jMappingContextTest.BikeNode> bikes1;
+
+		private Map<String, List<Neo4jMappingContextTest.BikeNode>> bikes2;
+	}
+
+	static class TypeWithInvalidDynamicRelationshipMappings3 {
+
+		@Id
+		private String id;
+
+		private Map<String, List<Neo4jMappingContextTest.BikeNode>> bikes1;
+
+		private Map<String, List<Neo4jMappingContextTest.BikeNode>> bikes2;
+	}
 }

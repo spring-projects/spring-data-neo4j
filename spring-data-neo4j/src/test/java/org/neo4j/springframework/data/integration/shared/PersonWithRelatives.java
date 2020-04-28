@@ -19,6 +19,7 @@
 package org.neo4j.springframework.data.integration.shared;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.neo4j.springframework.data.core.schema.GeneratedValue;
@@ -38,6 +39,8 @@ public class PersonWithRelatives {
 
 	private Map<String, Person> relatives = new HashMap<>();
 
+	private Map<String, List<Pet>> pets = new HashMap<>();
+
 	public PersonWithRelatives(String name) {
 		this.name = name;
 	}
@@ -52,5 +55,9 @@ public class PersonWithRelatives {
 
 	public Map<String, Person> getRelatives() {
 		return relatives;
+	}
+
+	public Map<String, List<Pet>> getPets() {
+		return pets;
 	}
 }
