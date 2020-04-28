@@ -26,10 +26,11 @@ import java.util.List;
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.Statement.SingleQuery;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.ExposesSet;
-import org.neo4j.springframework.data.core.cypher.StatementBuilder.OrderableOngoingReadingAndWith;
+import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingAndReturn;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingWithoutWhere;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingUnwind;
 import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingUpdate;
+import org.neo4j.springframework.data.core.cypher.StatementBuilder.OrderableOngoingReadingAndWith;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -299,12 +300,34 @@ public final class Cypher {
 		return unionImpl(true, statement);
 	}
 
-	public static PatternComprehension.OngoingDefinition listBasedOn(Relationship pattern) {
+	/**
+	 * A {@literal RETURN} statement without a previous match.
+	 *
+	 * @param expressions The expressions to return
+	 * @return A buildable statement
+	 * @since 1.0.1
+	 */
+	public static OngoingReadingAndReturn returning(Expression... expressions) {
+		return new DefaultStatementBuilder().returning(expressions);
+	}
+
+	public static PatternComprehension.OngoingDefinitionWithPattern listBasedOn(Relationship pattern) {
 		return PatternComprehension.basedOn(pattern);
 	}
 
-	public static PatternComprehension.OngoingDefinition listBasedOn(RelationshipChain pattern) {
+	public static PatternComprehension.OngoingDefinitionWithPattern listBasedOn(RelationshipChain pattern) {
 		return PatternComprehension.basedOn(pattern);
+	}
+
+	/**
+	 * Starts defining a {@link ListComprehension list comprehension}.
+	 *
+	 * @param variable The variable to which each element of the list is assigned.
+	 * @return An ongoing definition of a list comprehension
+	 * @since 1.0.1
+	 */
+	public static ListComprehension.OngoingDefinitionWithVariable listWith(SymbolicName variable) {
+		return ListComprehension.with(variable);
 	}
 
 	/**

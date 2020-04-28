@@ -2389,6 +2389,90 @@ class CypherIT {
 	}
 
 	@Nested
+	class ListComprehensions {
+
+		@Test
+		void simple() {
+
+			SymbolicName name = name("a");
+			Statement statement = Cypher.returning(
+				Cypher.listWith(name)
+					.in(Cypher.listOf(literalOf(1), literalOf(2), literalOf(3), literalOf(4)))
+					.returning()).build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("RETURN [a IN [1, 2, 3, 4]]");
+		}
+
+		@Test
+		void withReturning() {
+
+			SymbolicName name = name("a");
+			Statement statement = Cypher.returning(
+				Cypher.listWith(name)
+					.in(Cypher.listOf(literalOf(1), literalOf(2), literalOf(3), literalOf(4)))
+					.returning(name.remainder(literalOf(2)))).build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("RETURN [a IN [1, 2, 3, 4] | (a % 2)]");
+		}
+
+		@Test
+		void withWhere() {
+
+			SymbolicName name = name("a");
+			Statement statement = Cypher.returning(
+				Cypher.listWith(name)
+					.in(Cypher.listOf(literalOf(1), literalOf(2), literalOf(3), literalOf(4)))
+					.where(name.gt(literalOf(2)))
+					.returning()).build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("RETURN [a IN [1, 2, 3, 4] WHERE a > 2]");
+		}
+
+		@Test
+		void withWhereAndReturning() {
+
+			SymbolicName name = name("a");
+			Statement statement = Cypher.returning(
+				Cypher.listWith(name)
+					.in(Cypher.listOf(literalOf(1), literalOf(2), literalOf(3), literalOf(4)))
+					.where(name.gt(literalOf(2)))
+					.returning(name.remainder(literalOf(2)))).build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("RETURN [a IN [1, 2, 3, 4] WHERE a > 2 | (a % 2)]");
+		}
+
+		@Test
+		void docsExample() {
+
+			SymbolicName name = name("x");
+			Statement statement;
+
+			statement = Cypher.returning(
+				Cypher.listWith(name)
+					.in(Functions.range(literalOf(0), literalOf(10)))
+					.where(name.remainder(literalOf(2)).isEqualTo(literalOf(0)))
+					.returning(name.pow(literalOf(3))).as("result")).build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("RETURN [x IN range(0, 10) WHERE (x % 2) = 0 | x^3] AS result");
+
+			statement = Cypher.returning(
+				Cypher.listWith(name)
+					.in(Functions.range(literalOf(0), literalOf(10)))
+					.where(name.remainder(literalOf(2)).isEqualTo(literalOf(0)))
+					.returning().as("result")).build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("RETURN [x IN range(0, 10) WHERE (x % 2) = 0] AS result");
+
+			statement = Cypher.returning(
+				Cypher.listWith(name)
+					.in(Functions.range(literalOf(0), literalOf(10)))
+					.returning(name.pow(literalOf(3))).as("result")).build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("RETURN [x IN range(0, 10) | x^3] AS result");
+		}
+	}
+
+	@Nested
 	class PatternComprehensions {
 
 		@Test
@@ -2403,7 +2487,7 @@ class CypherIT {
 				.build();
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo(
-					"MATCH (a:`Person` {name: 'Keanu Reeves'}) RETURN [(a)--(b)|b.released] AS years");
+					"MATCH (a:`Person` {name: 'Keanu Reeves'}) RETURN [(a)--(b) | b.released] AS years");
 		}
 
 		@Test
@@ -2420,7 +2504,7 @@ class CypherIT {
 				.build();
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo(
-					"MATCH (a:`Person` {name: 'Keanu Reeves'}) RETURN [(a)--(b) WHERE b:`Movie`|b.released] AS years");
+					"MATCH (a:`Person` {name: 'Keanu Reeves'}) RETURN [(a)--(b) WHERE b:`Movie` | b.released] AS years");
 		}
 
 		@Test
@@ -2456,7 +2540,7 @@ class CypherIT {
 
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo(
-					"MATCH (n:`Person`) RETURN n, [[(n)-[r_f1:`FOUNDED`]->(o1:`Organisation`)|[r_f1, o1]], [(n)-[r_e1:`EMPLOYED_BY`]->(o1)|[r_e1, o1]], [(n)-[r_l1:`LIVES_AT`]->(l1:`Location`)|[r_l1, l1, [[(l1)<-[r_l2:`LIVES_AT`]-(p2:`Person`)|[r_l2, p2]]]]]]");
+					"MATCH (n:`Person`) RETURN n, [[(n)-[r_f1:`FOUNDED`]->(o1:`Organisation`) | [r_f1, o1]], [(n)-[r_e1:`EMPLOYED_BY`]->(o1) | [r_e1, o1]], [(n)-[r_l1:`LIVES_AT`]->(l1:`Location`) | [r_l1, l1, [[(l1)<-[r_l2:`LIVES_AT`]-(p2:`Person`) | [r_l2, p2]]]]]]");
 		}
 	}
 

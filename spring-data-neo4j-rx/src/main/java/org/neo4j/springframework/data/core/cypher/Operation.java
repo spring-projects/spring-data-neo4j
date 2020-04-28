@@ -43,8 +43,10 @@ public final class Operation implements Expression {
 	 * A set of operators triggering operations on labels.
 	 */
 	private static final EnumSet<Operator> LABEL_OPERATORS = EnumSet.of(Operator.SET_LABEL);
-	private static final EnumSet<Operator.Type> NEEDS_GROUPING = EnumSet
+	private static final EnumSet<Operator.Type> NEEDS_GROUPING_BY_TYPE = EnumSet
 		.complementOf(EnumSet.of(Operator.Type.PROPERTY, Operator.Type.LABEL));
+	private static final EnumSet<Operator> DONT_GROUP = EnumSet
+		.complementOf(EnumSet.of(Operator.EXPONENTIATION, Operator.PIPE));
 
 	static Operation create(Expression op1, Operator operator, Expression op2) {
 
@@ -102,6 +104,6 @@ public final class Operation implements Expression {
 	 * @return True, if this operation needs grouping.
 	 */
 	public boolean needsGrouping() {
-		return NEEDS_GROUPING.contains(this.operator.getType());
+		return NEEDS_GROUPING_BY_TYPE.contains(this.operator.getType()) && this.operator != Operator.EXPONENTIATION;
 	}
 }

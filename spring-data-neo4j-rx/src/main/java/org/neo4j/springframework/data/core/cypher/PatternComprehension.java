@@ -18,45 +18,54 @@
  */
 package org.neo4j.springframework.data.core.cypher;
 
+import static org.apiguardian.api.API.Status.*;
 import static org.neo4j.springframework.data.core.cypher.Expressions.*;
+import static org.neo4j.springframework.data.core.cypher.ListExpression.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.support.Visitable;
 import org.neo4j.springframework.data.core.cypher.support.Visitor;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M14/railroad/PatternComprehension.html">PatternComprehension</a>
+ * See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/PatternComprehension.html">PatternComprehension</a>
  * and <a href="https://neo4j.com/docs/cypher-manual/current/syntax/lists/#cypher-pattern-comprehension">the corresponding cypher manual entry</a>.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
+@API(status = EXPERIMENTAL, since = "1.0")
 public final class PatternComprehension implements Expression {
 
-	private final RelationshipChain pattern;
+	private final RelationshipPattern pattern;
 	private @Nullable final Where where;
 	private final Expression listDefinition;
 
-	static OngoingDefinition basedOn(Relationship pattern) {
+	static OngoingDefinitionWithPattern basedOn(Relationship pattern) {
 
 		Assert.notNull(pattern, "A pattern is required");
-		return new OngoingDefinition(RelationshipChain.create(pattern));
+		return new Builder(pattern);
 	}
 
-	static OngoingDefinition basedOn(RelationshipChain pattern) {
+	static OngoingDefinitionWithPattern basedOn(RelationshipChain pattern) {
 
 		Assert.notNull(pattern, "A pattern is required");
-		return new OngoingDefinition(pattern);
+		return new Builder(pattern);
+	}
+
+	/**
+	 * Allows to add a where clause into the definition of the pattern.
+	 */
+	public interface OngoingDefinitionWithPattern extends OngoingDefinitionWithoutReturn {
+
+		OngoingDefinitionWithoutReturn where(Condition condition);
 	}
 
 	/**
 	 * Provides the final step of defining a pattern comprehension.
 	 */
-	public interface OngoingDefinitionWithPattern {
+	public interface OngoingDefinitionWithoutReturn {
 
 		/**
 		 * @param variables the elements to be returned from the pattern
@@ -77,15 +86,15 @@ public final class PatternComprehension implements Expression {
 	/**
 	 * Ongoing definition of a pattern comprehension. Can be defined without a where-clause now.
 	 */
-	public static class OngoingDefinition implements OngoingDefinitionWithPattern {
-		private final RelationshipChain pattern;
+	private static class Builder implements OngoingDefinitionWithPattern {
+		private final RelationshipPattern pattern;
 		private Where where;
 
-		public OngoingDefinition(RelationshipChain pattern) {
+		private Builder(RelationshipPattern pattern) {
 			this.pattern = pattern;
 		}
 
-		public OngoingDefinitionWithPattern where(Condition condition) {
+		public OngoingDefinitionWithoutReturn where(Condition condition) {
 			this.where = new Where(condition);
 			return this;
 		}
@@ -93,32 +102,11 @@ public final class PatternComprehension implements Expression {
 		@Override
 		public PatternComprehension returning(Expression... expressions) {
 
-			Assert.notNull(expressions, "Expressions are required.");
-			Assert.notEmpty(expressions, "At least one expression is required.");
-
-			List<Expression> expressionList = new ArrayList<>();
-			for (Expression expression : expressions) {
-				Expression newExpression = expression;
-				if (expression instanceof Named) {
-					newExpression = ((Named) expression)
-						.getSymbolicName()
-						.orElseThrow(() -> new IllegalArgumentException(
-							"A named expression must have a symbolic name inside a list definition."));
-				}
-				expressionList.add(newExpression);
-			}
-
-			Expression listDefinition;
-			if (expressions.length == 1) {
-				listDefinition = expressions[0];
-			} else {
-				listDefinition = ListExpression.create(expressions);
-			}
-			return new PatternComprehension(pattern, where, listDefinition);
+			return new PatternComprehension(pattern, where, listOrSingleExpression(expressions));
 		}
 	}
 
-	private PatternComprehension(RelationshipChain pattern, @Nullable Where where, Expression listDefinition) {
+	private PatternComprehension(RelationshipPattern pattern, @Nullable Where where, Expression listDefinition) {
 		this.pattern = pattern;
 		this.where = where;
 		this.listDefinition = listDefinition;
@@ -129,7 +117,7 @@ public final class PatternComprehension implements Expression {
 		visitor.enter(this);
 		this.pattern.accept(visitor);
 		Visitable.visitIfNotNull(this.where, visitor);
-		Pipe.INSTANCE.accept(visitor);
+		Operator.PIPE.accept(visitor);
 		this.listDefinition.accept(visitor);
 		visitor.leave(this);
 	}
