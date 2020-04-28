@@ -402,6 +402,37 @@ public final class Functions {
 	}
 
 	/**
+	 * @param start the range's start
+	 * @param end   the range's end
+	 * @return A function call for {@code range()}
+	 * @see #range(Expression, Expression, Expression)
+	 */
+	public static FunctionInvocation range(Expression start, Expression end) {
+		return range(start, end, null);
+	}
+
+	/**
+	 * Creates a function invocation for the {@code range()} function.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/list/#functions-range">range</a>.
+	 *
+	 * @param start the range's start
+	 * @param end   the range's end
+	 * @param step  the range's step
+	 * @return A function call for {@code range()}
+	 */
+	public static FunctionInvocation range(Expression start, Expression end, Expression step) {
+
+		Assert.notNull(start, "The expression for range is required.");
+		Assert.notNull(end, "The expression for range is required.");
+
+		if (step == null) {
+			return new FunctionInvocation("range", start, end);
+		} else {
+			return new FunctionInvocation("range", start, end, step);
+		}
+	}
+
+	/**
 	 * Creates a function invocation for the {@code head()} function.
 	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/scalar/#functions-head">head</a>.
 	 *
