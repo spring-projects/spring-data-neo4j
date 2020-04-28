@@ -139,6 +139,11 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 		return this.isAssociation.orElse(false);
 	}
 
+	@Override
+	public boolean isEntity() {
+		return super.isEntity() && isAssociation();
+	}
+
 	/**
 	 * Computes the target name of this property.
 	 *
