@@ -1916,7 +1916,7 @@ class CypherIT {
 		void shouldRenderOperations() {
 			Statement statement;
 			statement = Cypher.match(Cypher.anyNode("n"))
-				.returning(literalOf(1).plus(literalOf(2)))
+				.returning(literalOf(1).add(literalOf(2)))
 				.build();
 
 			assertThat(cypherRenderer.render(statement))

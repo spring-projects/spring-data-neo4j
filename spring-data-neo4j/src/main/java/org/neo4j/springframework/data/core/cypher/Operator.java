@@ -35,6 +35,10 @@ public enum Operator implements Visitable {
 	// Mathematical operators
 	ADDITION("+"),
 	SUBTRACTION("-"),
+	MULTIPLICATION("*"),
+	DIVISION("/"),
+	MODULO_DIVISION("%"),
+	EXPONENTIATION("^"),
 
 	// Comparison operators
 	EQUALITY("="),
@@ -57,6 +61,7 @@ public enum Operator implements Visitable {
 	NOT("NOT", Type.PREFIX),
 
 	// String operators
+	CONCAT("+"),
 	MATCHES("=~"),
 
 	// List operators
