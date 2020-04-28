@@ -404,8 +404,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 		String regexOptions = ignoreCase ? "(?i)" : "";
 		return toCypherProperty(persistentProperty, false)
 			.matches(Cypher.literalOf(regexOptions + ".*")
-				.plus(Cypher.parameter(parameterName))
-				.plus(Cypher.literalOf(".*")));
+				.concat(Cypher.parameter(parameterName))
+				.concat(Cypher.literalOf(".*")));
 	}
 
 	private Condition betweenCondition(Neo4jPersistentProperty persistentProperty, Iterator<Object> actualParameters,

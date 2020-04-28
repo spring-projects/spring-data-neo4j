@@ -31,16 +31,39 @@ import org.apiguardian.api.API;
 @API(status = EXPERIMENTAL, since = "1.0")
 final class Operations {
 
-	/**
-	 * Creates a {@code +} operation. Both operands must evaluate to a compatible type.
-	 *
-	 * @param op1 first operand
-	 * @param op2 second operation
-	 * @return A new operation.
-	 */
-	static Operation plus(Expression op1, Expression op2) {
+	static Operation concat(Expression op1, Expression op2) {
+
+		return Operation.create(op1, Operator.CONCAT, op2);
+	}
+
+	static Operation add(Expression op1, Expression op2) {
 
 		return Operation.create(op1, Operator.ADDITION, op2);
+	}
+
+	static Operation subtract(Expression op1, Expression op2) {
+
+		return Operation.create(op1, Operator.SUBTRACTION, op2);
+	}
+
+	static Operation multiply(Expression op1, Expression op2) {
+
+		return Operation.create(op1, Operator.MULTIPLICATION, op2);
+	}
+
+	static Operation divide(Expression op1, Expression op2) {
+
+		return Operation.create(op1, Operator.DIVISION, op2);
+	}
+
+	static Operation remainder(Expression op1, Expression op2) {
+
+		return Operation.create(op1, Operator.MODULO_DIVISION, op2);
+	}
+
+	static Operation pow(Expression op1, Expression op2) {
+
+		return Operation.create(op1, Operator.EXPONENTIATION, op2);
 	}
 
 	/**

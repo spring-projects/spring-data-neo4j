@@ -248,11 +248,11 @@ class RenderingVisitor extends ReflectiveVisitor {
 		if (type == Operator.Type.LABEL) {
 			return;
 		}
-		if (type != Operator.Type.PREFIX) {
+		if (type != Operator.Type.PREFIX && operator != Operator.EXPONENTIATION) {
 			builder.append(" ");
 		}
 		builder.append(operator.getRepresentation());
-		if (type != Operator.Type.POSTFIX) {
+		if (type != Operator.Type.POSTFIX && operator != Operator.EXPONENTIATION) {
 			builder.append(" ");
 		}
 	}

@@ -139,13 +139,78 @@ public interface Expression extends Visitable {
 	}
 
 	/**
-	 * Creates a {@code +} operation of this and that {@code expression}.
+	 * Creates an expression concatenating two string or list expressions.
 	 *
-	 * @param expression The expression to add
+	 * @param expression The expression to concat to this expression.
+	 * @return A new expression.
+	 */
+	default Operation concat(Expression expression) {
+		return Operations.concat(this, expression);
+	}
+
+	/**
+	 * Creates a {@code +} operation of this (the augend) and the {@code addend}.
+	 *
+	 * @param addend The addend
+	 * @return A new operation.
+	 * @since 1.0.1
+	 */
+	default Operation add(Expression addend) {
+		return Operations.add(this, addend);
+	}
+
+	/**
+	 * Creates a {@code -} operation of this (the minuend) and the {@code subtrahend}.
+	 *
+	 * @param subtrahend The subtrahend
+	 * @return A new operation.
+	 * @since 1.0.1
+	 */
+	default Operation subtract(Expression subtrahend) {
+		return Operations.subtract(this, subtrahend);
+	}
+
+	/**
+	 * Creates a {@code *} operation of this (the multiplier) and the {@code multiplicand}.
+	 *
+	 * @param multiplicand The multiplicand
+	 * @return A new operation.
+	 * @since 1.0.1
+	 */
+	default Operation multiply(Expression multiplicand) {
+		return Operations.multiply(this, multiplicand);
+	}
+
+	/**
+	 * Creates a {@code /} operation of this (the divisor) and the {@code dividend}.
+	 *
+	 * @param dividend The dividend
+	 * @return A new operation.
+	 * @since 1.0.1
+	 */
+	default Operation divide(Expression dividend) {
+		return Operations.divide(this, dividend);
+	}
+
+	/**
+	 * Returns the remainder of this value and the {@code dividend}.
+	 *
+	 * @param dividend The dividend
 	 * @return A new operation.
 	 */
-	default Operation plus(Expression expression) {
-		return Operations.plus(this, expression);
+	default Operation remainder(Expression dividend) {
+		return Operations.remainder(this, dividend);
+	}
+
+	/**
+	 * Returns the power of n of this value.
+	 *
+	 * @param n power to raise this {@code Expression} to.
+	 * @return A new operation.
+	 */
+	default Operation pow(Expression n) {
+
+		return Operations.pow(this, n);
 	}
 
 	/**
