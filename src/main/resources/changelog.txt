@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.3.0.RC2 (2020-04-28)
+-----------------------------------------
+* DATAGRAPH-1313 - Upgrade to Neo4j OGM 3.2.11.
+* DATAGRAPH-1311 - Use JDK 14 for Java.NEXT CI testing.
+* DATAGRAPH-1308 - Release 5.3 RC2 (Neumann).
+
+
 Changes in version 5.2.7.RELEASE (2020-04-28)
 ---------------------------------------------
 * DATAGRAPH-1313 - Upgrade to Neo4j OGM 3.2.11.
@@ -1714,6 +1721,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
