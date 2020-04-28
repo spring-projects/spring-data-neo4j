@@ -128,6 +128,15 @@ class Neo4jMappingContextTest {
 	}
 
 	@Test
+	void missingIdDefinitionShouldRaiseError() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		assertThatIllegalStateException()
+			.isThrownBy(() -> schema.getPersistentEntity(MissingId.class))
+			.withMessage("Missing id property on " + MissingId.class + ".");
+	}
+
+	@Test
 	void targetTypeOfAssociationsShouldBeKnownToTheMappingContext() {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
@@ -281,6 +290,10 @@ class Neo4jMappingContextTest {
 	}
 
 	@Node
+	static class MissingId {
+	}
+
+	@Node
 	static class EntityWithConvertibleProperty {
 
 		@Id @GeneratedValue
@@ -290,6 +303,5 @@ class Neo4jMappingContextTest {
 	}
 
 	static class ConvertibleType {
-
 	}
 }

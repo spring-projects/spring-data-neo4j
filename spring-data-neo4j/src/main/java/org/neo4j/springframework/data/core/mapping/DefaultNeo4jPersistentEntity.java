@@ -55,26 +55,35 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	private static final Set<Class<?>> VALID_GENERATED_ID_TYPES = Collections.unmodifiableSet(new HashSet<>(
 		Arrays.asList(Long.class, long.class)));
 
+	/**
+	 * If an entity is annotated with {@link Node}, we consider this as an explicit entity
+	 * that should get validated more strictly.
+	 */
+	private final Boolean isExplicitEntity;
+
+	/**
+	 * The label that describes the label most concrete.
+	 */
 	private final String primaryLabel;
 
+	private final Lazy<List<String>> additionalLabels;
+
+	/**
+	 * Projections need to be also be eligible entities but don't define id fields.
+	 */
 	@Nullable
 	private IdDescription idDescription;
 
 	private final Lazy<Collection<GraphPropertyDescription>> graphProperties;
 
-	private final Lazy<List<String>> additionalLabels;
-
 	private final Set<NodeDescription<?>> childNodeDescriptions = new HashSet<>();
 
 	private NodeDescription<?> parentNodeDescription;
-	/**
-	 * A view on all simple properties stored on a node.
-	 */
-	private Lazy<Collection<GraphPropertyDescription>> properties;
 
 	DefaultNeo4jPersistentEntity(TypeInformation<T> information) {
 		super(information);
 
+		this.isExplicitEntity = this.isAnnotationPresent(Node.class);
 		this.primaryLabel = computePrimaryLabel();
 		this.additionalLabels = Lazy.of(this::computeAdditionalLabels);
 		this.graphProperties = Lazy.of(this::computeGraphProperties);
@@ -253,12 +262,16 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		return nodeAnnotation.labels().length < 1 && !hasText(nodeAnnotation.primaryLabel());
 	}
 
+	@Nullable
 	private IdDescription computeIdDescription() {
 
 		Neo4jPersistentProperty idProperty = this.getIdProperty();
-		if (idProperty == null) {
+		if (idProperty == null && isExplicitEntity) {
+			throw new IllegalStateException("Missing id property on " + this.getUnderlyingClass() + ".");
+		} else if (idProperty == null) {
 			return null;
 		}
+
 		GeneratedValue generatedValueAnnotation = idProperty.findAnnotation(GeneratedValue.class);
 
 		// Assigned ids
