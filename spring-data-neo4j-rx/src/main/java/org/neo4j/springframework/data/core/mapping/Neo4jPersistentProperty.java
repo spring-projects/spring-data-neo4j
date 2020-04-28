@@ -44,6 +44,18 @@ public interface Neo4jPersistentProperty
 	}
 
 	/**
+	 * Dynamic one-to-many associations are associations to non-simple types stored in a map
+	 * with a key type of {@literal java.lang.String} and values of {@literal java.util.Collection}.
+	 *
+	 * @return True, if this association is a dynamic association with multple values per type.
+	 * @since 1.0.1
+	 */
+	default boolean isDynamicOneToManyAssociation() {
+
+		return this.isDynamicAssociation() && getTypeInformation().getRequiredActualType().isCollectionLike();
+	}
+
+	/**
 	 * see if the association has a property class
 	 *
 	 * @return True, if this association has properties

@@ -23,7 +23,6 @@ import static org.springframework.util.StringUtils.*;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -164,14 +163,23 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 
 	private void verifyDynamicAssociations() {
 
+		Set<Class> targetEntities = new HashSet<>();
 		this.doWithAssociations((Association<Neo4jPersistentProperty> association) -> {
 			Neo4jPersistentProperty inverse = association.getInverse();
 			if (inverse.isDynamicAssociation()) {
 				Relationship relationship = inverse.findAnnotation(Relationship.class);
-				Supplier<String> message = () ->
-					"Dynamic relationships cannot be used with a fixed type. Omit @Relationship or use @Relationship(direction = "
-						+ relationship.direction().name() + ").";
-				Assert.state(relationship == null || relationship.type().isEmpty(), message);
+				Assert.state(relationship == null || relationship.type().isEmpty(),
+					() ->
+						"Dynamic relationships cannot be used with a fixed type. Omit @Relationship or use @Relationship(direction = "
+							+ relationship.direction().name() + ") without a type in " + this.getUnderlyingClass()
+							+ " on field " + inverse.getFieldName() + ".");
+
+				Assert.state(!targetEntities.contains(inverse.getAssociationTargetType()),
+					() -> this.getUnderlyingClass() + " already contains a dynamic relationship to " + inverse
+						.getAssociationTargetType()
+						+ ". Only one dynamic relationship between to entities is permitted."
+				);
+				targetEntities.add(inverse.getAssociationTargetType());
 			}
 		});
 	}

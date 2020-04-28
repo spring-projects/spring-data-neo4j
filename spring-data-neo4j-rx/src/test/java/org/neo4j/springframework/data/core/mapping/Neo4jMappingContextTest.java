@@ -49,7 +49,7 @@ import org.springframework.data.mapping.Association;
 /**
  * @author Michael J. Simons
  */
-public class Neo4jMappingContextTest {
+class Neo4jMappingContextTest {
 
 	@Test
 	void initializationOfSchemaShouldWork() {

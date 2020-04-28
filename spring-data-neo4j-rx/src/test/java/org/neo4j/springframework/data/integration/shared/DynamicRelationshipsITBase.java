@@ -51,7 +51,13 @@ public abstract class DynamicRelationshipsITBase {
 				+ "CREATE (t:PersonWithRelatives {name: 'A'}) WITH t "
 				+ "CREATE (t) - [:HAS_WIFE] -> (w:Person {firstName: 'B'}) "
 				+ "CREATE (t) - [:HAS_DAUGHTER] -> (d:Person {firstName: 'C'}) "
-				+ " RETURN id(t) as id").single().get("id").asLong();
+				+ "WITH t "
+				+ "UNWIND ['Tom', 'Garfield'] AS cat "
+				+ "CREATE (t) - [:CATS] -> (w:Pet {name: cat}) "
+				+ "WITH DISTINCT t "
+				+ "UNWIND ['Benji', 'Lassie'] AS dog "
+				+ "CREATE (t) - [:DOGS] -> (w:Pet {name: dog}) "
+				+ "RETURN DISTINCT id(t) as id").single().get("id").asLong();
 			transaction.commit();
 		}
 	}

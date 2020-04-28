@@ -31,6 +31,7 @@ import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.Lazy;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -116,6 +117,20 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 			.ifPresent(relationship -> relationship.setRelationshipObverse(relationshipDescription));
 
 		return relationshipDescription;
+	}
+
+	@Override
+	public Class<?> getAssociationTargetType() {
+
+		Class<?> associationTargetType = super.getAssociationTargetType();
+		if (associationTargetType != null) {
+			return associationTargetType;
+		} else if (isDynamicOneToManyAssociation()) {
+			TypeInformation<?> actualType = getTypeInformation().getRequiredActualType();
+			return actualType.getRequiredComponentType().getType();
+		} else {
+			return null;
+		}
 	}
 
 	@Override
