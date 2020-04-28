@@ -74,7 +74,10 @@ public enum Operator implements Visitable {
 
 	// Node operators
 	SET_LABEL("", Type.LABEL),
-	REMOVE_LABEL("", Type.LABEL);
+	REMOVE_LABEL("", Type.LABEL),
+
+	// Misc
+	PIPE("|");
 
 	private final String representation;
 

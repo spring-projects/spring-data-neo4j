@@ -22,6 +22,7 @@ import static org.apiguardian.api.API.Status.*;
 
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.cypher.support.Visitor;
+import org.springframework.util.Assert;
 
 /**
  * Represents a list expression in contrast to an {@link ExpressionList} which is a list of expressions. The list expression
@@ -33,6 +34,18 @@ import org.neo4j.springframework.data.core.cypher.support.Visitor;
  */
 @API(status = EXPERIMENTAL, since = "1.0")
 public final class ListExpression implements Expression {
+
+	static Expression listOrSingleExpression(Expression... expressions) {
+
+		Assert.notNull(expressions, "Expressions are required.");
+		Assert.notEmpty(expressions, "At least one expression is required.");
+
+		if (expressions.length == 1) {
+			return expressions[0];
+		} else {
+			return ListExpression.create(expressions);
+		}
+	}
 
 	static ListExpression create(Expression... expressions) {
 

@@ -433,6 +433,15 @@ class RenderingVisitor extends ReflectiveVisitor {
 		builder.append("]");
 	}
 
+	void enter(ListComprehension listComprehension) {
+		builder.append("[");
+	}
+
+	void leave(ListComprehension listComprehension) {
+		builder.append("]");
+	}
+
+
 	void enter(Case genericCase) {
 		builder.append("CASE");
 	}
