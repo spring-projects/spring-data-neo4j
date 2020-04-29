@@ -107,6 +107,12 @@ class DefaultStatementBuilder
 
 	@Override
 	public OngoingUnwind unwind(Expression expression) {
+
+		if (this.currentOngoingMatch != null) {
+			this.currentSinglePartElements.add(this.currentOngoingMatch.buildMatch());
+			this.currentOngoingMatch = null;
+		}
+
 		return new DefaultOngoingUnwind(expression);
 	}
 
@@ -212,7 +218,7 @@ class DefaultStatementBuilder
 	@Override
 	public OngoingMatchAndUpdate remove(Node named, String... label) {
 
-		return new DefaultStatementWithUpdateBuilder(REMOVE, Operations.set(named, label));
+		return new DefaultStatementWithUpdateBuilder(REMOVE, Operations.remove(named, label));
 	}
 
 	@Override

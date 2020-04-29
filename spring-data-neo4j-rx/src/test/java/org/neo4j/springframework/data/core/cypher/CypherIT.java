@@ -25,6 +25,7 @@ import static org.neo4j.springframework.data.core.cypher.Conditions.*;
 import static org.neo4j.springframework.data.core.cypher.Cypher.*;
 import static org.neo4j.springframework.data.core.cypher.Functions.type;
 import static org.neo4j.springframework.data.core.cypher.Functions.*;
+import static org.neo4j.springframework.data.core.schema.Constants.*;
 
 import java.util.function.Function;
 
@@ -2039,6 +2040,20 @@ class CypherIT {
 
 	@Nested
 	class UnwindRendering {
+
+		@Test
+		void unwindWithoutWith() {
+
+			final Node rootNode = anyNode(NAME_OF_ROOT_NODE);
+			final SymbolicName label = name("label");
+			final Statement statement =  Cypher.match(rootNode).where(rootNode.internalId().isEqualTo(literalOf(1)))
+				.unwind(rootNode.labels()).as("label")
+				.with(label).where(label.in(parameter("fixedLabels")).not())
+				.returning(Functions.collect(label).as("labels")).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (n) WHERE id(n) = 1 UNWIND labels(n) AS label WITH label WHERE NOT (label IN $fixedLabels) RETURN collect(label) AS labels");
+		}
 
 		@Test
 		void shouldRenderLeadingUnwind() {
