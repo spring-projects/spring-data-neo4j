@@ -84,6 +84,12 @@ final class Operations {
 		return Operation.create(target, Operator.SET_LABEL, label);
 	}
 
+	static Operation remove(Node target, String... label) {
+
+		return Operation.create(target, Operator.REMOVE_LABEL, label);
+	}
+
+
 	/**
 	 * Not to be instantiated.
 	 */

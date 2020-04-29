@@ -192,6 +192,10 @@ public final class Node implements PatternElement, Named, ExposesRelationships<R
 		return Functions.id(this);
 	}
 
+	public FunctionInvocation labels() {
+		return Functions.labels(this);
+	}
+
 	@Override
 	public Relationship relationshipTo(Node other, String... types) {
 		return Relationship.create(this, Direction.LTR, other, types);
