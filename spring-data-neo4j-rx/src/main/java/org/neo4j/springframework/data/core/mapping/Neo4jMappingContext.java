@@ -31,6 +31,7 @@ import org.neo4j.springframework.data.core.convert.Neo4jConversions;
 import org.neo4j.springframework.data.core.convert.Neo4jConverter;
 import org.neo4j.springframework.data.core.convert.Neo4jSimpleTypes;
 import org.neo4j.springframework.data.core.schema.IdGenerator;
+import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Schema;
 import org.springframework.beans.BeanUtils;
@@ -135,34 +136,29 @@ public final class Neo4jMappingContext
 
 		this.nodeDescriptionStore.put(primaryLabel, newEntity);
 
-		// child class after parent class
+		// determine super class to create the node hierarchy
 		Class<? super T> superclass = typeInformation.getType().getSuperclass();
-		Neo4jPersistentEntity<?> parentNodeDescription =
-			(Neo4jPersistentEntity<?>) nodeDescriptionStore.getNodeDescription(superclass);
 
-		if (isValidParentNode(parentNodeDescription)) {
-			parentNodeDescription.addChildNodeDescription(newEntity);
-			newEntity.setParentNodeDescription(parentNodeDescription);
-		}
-
-		// parent class after child class
-		if (isValidParentNode(newEntity)) {
-			Class<?> thisParentClass = typeInformation.getType();
-
-			for (NodeDescription<?> possibleChild : nodeDescriptionStore.values()) {
-				Class<?> possibleChildClass = possibleChild.getUnderlyingClass();
-				if (possibleChildClass.getSuperclass().equals(thisParentClass)) {
-					newEntity.addChildNodeDescription(possibleChild);
-					possibleChild.setParentNodeDescription(newEntity);
-				}
+		if (isValidParentNode(superclass)) {
+			Neo4jPersistentEntity<?> parentNodeDescription = getPersistentEntity(superclass);
+			if (parentNodeDescription != null) {
+				parentNodeDescription.addChildNodeDescription(newEntity);
+				newEntity.setParentNodeDescription(parentNodeDescription);
 			}
 		}
 
 		return newEntity;
 	}
 
-	private boolean isValidParentNode(@Nullable Neo4jPersistentEntity<?> entity) {
-		return entity != null && Modifier.isAbstract(entity.getType().getModifiers());
+	private boolean isValidParentNode(@Nullable Class<?> parentClass) {
+		if (parentClass == null) {
+			return false;
+		}
+
+		boolean isExplicitNode = parentClass.isAnnotationPresent(Node.class);
+		boolean isAbstractClass = Modifier.isAbstract(parentClass.getModifiers());
+
+		return isExplicitNode && isAbstractClass;
 	}
 
 	/*
