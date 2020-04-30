@@ -1,1 +1,2 @@
 include::sdc-repositories.adoc[leveloffset=+1]
+include::sdc-projections.adoc[leveloffset=+1]
