@@ -272,7 +272,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 
 			// Fill associations
 			concreteNodeDescription.doWithAssociations(
-				populateFrom(queryResult, propertyAccessor, relationships, knownObjects));
+				populateFrom(queryResult, propertyAccessor, isConstructorParameter, relationships, knownObjects));
 		}
 		return instance;
 	}
@@ -338,12 +338,16 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 	private AssociationHandler<Neo4jPersistentProperty> populateFrom(
 		MapAccessor queryResult,
 		PersistentPropertyAccessor<?> propertyAccessor,
+		Predicate<Neo4jPersistentProperty> isConstructorParameter,
 		Collection<RelationshipDescription> relationships,
 		KnownObjects knownObjects
 	) {
 		return association -> {
 
 			Neo4jPersistentProperty persistentProperty = association.getInverse();
+			if (isConstructorParameter.test(persistentProperty)) {
+				return;
+			}
 
 			createInstanceOfRelationships(persistentProperty, queryResult, knownObjects, relationships)
 				.ifPresent(value -> propertyAccessor.setProperty(persistentProperty, value));
