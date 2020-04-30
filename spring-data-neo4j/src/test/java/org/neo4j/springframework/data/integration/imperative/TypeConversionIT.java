@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DynamicContainer;
@@ -44,6 +45,7 @@ import org.neo4j.springframework.data.integration.shared.ThingWithAllCypherTypes
 import org.neo4j.springframework.data.integration.shared.ThingWithAllSpatialTypes;
 import org.neo4j.springframework.data.integration.shared.ThingWithCustomTypes;
 import org.neo4j.springframework.data.integration.shared.ThingWithNonExistingPrimitives;
+import org.neo4j.springframework.data.integration.shared.ThingWithUUIDID;
 import org.neo4j.springframework.data.repository.Neo4jRepository;
 import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
 import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
@@ -185,6 +187,19 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 				.single().get("cnt").asLong();
 			assertThat(cnt).isEqualTo(1L);
 		}
+	}
+
+	@Test
+	void idsShouldBeConverted(@Autowired ConvertedIDsRepository repository) {
+
+		ThingWithUUIDID thing = repository.save(new ThingWithUUIDID("a thing"));
+		assertThat(thing.getId()).isNotNull();
+
+		assertThat(repository.findById(thing.getId())).isPresent();
+	}
+
+	public interface ConvertedIDsRepository
+		extends Neo4jRepository<ThingWithUUIDID, UUID> {
 	}
 
 	public interface CypherTypesRepository

@@ -86,7 +86,7 @@ public final class IdDescription {
 		}
 	}
 
-	public IdDescription(
+	private IdDescription(
 		@Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
 		@Nullable String idGeneratorRef,
 		@Nullable String graphPropertyName

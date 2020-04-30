@@ -27,8 +27,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.neo4j.springframework.data.core.schema.GeneratedValue;
+import org.neo4j.springframework.data.core.schema.GeneratedValue.InternalIdGenerator;
+import org.neo4j.springframework.data.core.schema.GeneratedValue.UUIDGenerator;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.IdDescription;
+import org.neo4j.springframework.data.core.schema.IdGenerator;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.Property;
@@ -43,6 +46,7 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Michael J. Simons
@@ -274,30 +278,39 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 
 		GeneratedValue generatedValueAnnotation = idProperty.findAnnotation(GeneratedValue.class);
 
+		String propertyName = idProperty.getPropertyName();
+
 		// Assigned ids
 		if (generatedValueAnnotation == null) {
-			return IdDescription.forAssignedIds(idProperty.getPropertyName());
+			return IdDescription.forAssignedIds(propertyName);
+		}
+
+		Class<? extends IdGenerator<?>> idGeneratorClass = generatedValueAnnotation.generatorClass();
+		String idGeneratorRef = generatedValueAnnotation.generatorRef();
+
+		if (idProperty.getActualType() == UUID.class && idGeneratorClass == InternalIdGenerator.class
+			&& !StringUtils.hasText(idGeneratorRef)) {
+			idGeneratorClass = UUIDGenerator.class;
 		}
 
 		// Internally generated ids.
-		if (generatedValueAnnotation.generatorClass() == GeneratedValue.InternalIdGenerator.class && generatedValueAnnotation.generatorRef().isEmpty()) {
+		if (idGeneratorClass == InternalIdGenerator.class && idGeneratorRef.isEmpty()) {
 			if (idProperty.findAnnotation(Property.class) != null) {
 				throw new IllegalArgumentException(
-					"Cannot use internal id strategy with custom property " + idProperty.getPropertyName()
+					"Cannot use internal id strategy with custom property " + propertyName
 						+ " on entity class " + this.getUnderlyingClass().getName());
 			}
 
 			if (!VALID_GENERATED_ID_TYPES.contains(idProperty.getActualType())) {
-				throw new IllegalArgumentException("Internally generated ids can only be assigned to one of " + VALID_GENERATED_ID_TYPES);
+				throw new IllegalArgumentException(
+					"Internally generated ids can only be assigned to one of " + VALID_GENERATED_ID_TYPES);
 			}
 
 			return IdDescription.forInternallyGeneratedIds();
 		}
 
 		// Externally generated ids.
-		return IdDescription
-			.forExternallyGeneratedIds(generatedValueAnnotation.generatorClass(),
-				generatedValueAnnotation.generatorRef(), idProperty.getPropertyName());
+		return IdDescription.forExternallyGeneratedIds(idGeneratorClass, idGeneratorRef, propertyName);
 	}
 
 	@Override
