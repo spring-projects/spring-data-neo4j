@@ -118,7 +118,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<r2dbc.releasetrain>Arabba-RELEASE</r2dbc.releasetrain>
 		<reactive-streams.version>1.2.1</reactive-streams.version>
-		<revision>1.0.1</revision>
+		<revision>1.0.2</revision>
 		<rxjava.version>1.3.8</rxjava.version>
 		<rxjava2.version>2.2.5</rxjava2.version>
 		<sha1></sha1>
