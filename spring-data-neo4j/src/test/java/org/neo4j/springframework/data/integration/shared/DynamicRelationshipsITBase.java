@@ -20,6 +20,7 @@ package org.neo4j.springframework.data.integration.shared;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.springframework.data.test.Neo4jExtension;
 import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
@@ -45,7 +46,10 @@ public abstract class DynamicRelationshipsITBase {
 
 	@BeforeEach
 	protected void setupData() {
-		try (Transaction transaction = driver.session().beginTransaction()) {
+		try (
+			Session session = driver.session();
+			Transaction transaction = session.beginTransaction()
+		) {
 			transaction.run("MATCH (n) detach delete n");
 			idOfExistingPerson = transaction.run(""
 				+ "CREATE (t:PersonWithRelatives {name: 'A'}) WITH t "

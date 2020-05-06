@@ -28,6 +28,8 @@ import static org.neo4j.springframework.data.core.support.Relationships.*;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -87,7 +89,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 	private final Neo4jMappingContext neo4jMappingContext;
 
-	private final CypherGenerator statementBuilder;
+	private final CypherGenerator cypherGenerator;
 
 	private ReactiveNeo4jEvents eventSupport;
 
@@ -102,7 +104,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		this.neo4jClient = neo4jClient;
 		this.neo4jMappingContext = neo4jMappingContext;
-		this.statementBuilder = CypherGenerator.INSTANCE;
+		this.cypherGenerator = CypherGenerator.INSTANCE;
 		this.eventSupport = new ReactiveNeo4jEvents(ReactiveEntityCallbacks.create());
 		this.databaseSelectionProvider = databaseSelectionProvider;
 	}
@@ -111,7 +113,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	public Mono<Long> count(Class<?> domainType) {
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
+		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData)
 			.returning(Functions.count(asterisk())).build();
 
 		return count(statement);
@@ -145,8 +147,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	public <T> Flux<T> findAll(Class<T> domainType) {
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		Statement statement = statementBuilder.prepareMatchOf(entityMetaData)
-			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData)).build();
+		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData)
+			.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 		return createExecutableQuery(domainType, statement).flatMapMany(ExecutableQuery::getResults);
 	}
 
@@ -186,9 +188,9 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	public <T> Mono<T> findById(Object id, Class<T> domainType) {
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		Statement statement = statementBuilder
+		Statement statement = cypherGenerator
 			.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().isEqualTo(parameter(NAME_OF_ID)))
-			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData))
+			.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData))
 			.build();
 
 		return createExecutableQuery(domainType, statement, singletonMap(NAME_OF_ID, convertIdValues(id)))
@@ -199,9 +201,9 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	public <T> Flux<T> findAllById(Iterable<?> ids, Class<T> domainType) {
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		Statement statement = statementBuilder
+		Statement statement = cypherGenerator
 			.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().in((parameter(NAME_OF_IDS))))
-			.returning(statementBuilder.createReturnStatementForMatch(entityMetaData))
+			.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData))
 			.build();
 
 		return createExecutableQuery(domainType, statement, singletonMap(NAME_OF_IDS, convertIdValues(ids)))
@@ -225,8 +227,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(instance.getClass());
 		return Mono.just(instance)
 			.flatMap(eventSupport::maybeCallBeforeBind)
-			.flatMap(entity -> {
-				Statement saveStatement = statementBuilder.prepareSaveOf(entityMetaData);
+			.flatMap(entity -> determineDynamicLabels(entity, entityMetaData, inDatabase))
+			.flatMap(t -> {
+				T entity = t.getT1();
+				DynamicLabels dynamicLabels = t.getT2();
+
+				Statement saveStatement = cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels);
 
 				Mono<Long> idMono =
 					this.neo4jClient.query(() -> renderer.render(saveStatement))
@@ -236,7 +242,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 						.fetchAs(Long.class).one()
 						.switchIfEmpty(Mono.defer(() -> {
 							if (entityMetaData.hasVersionProperty()) {
-								return Mono.error(() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE));
+								return Mono.error(
+									() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE));
 							}
 							return Mono.empty();
 						}));
@@ -255,6 +262,32 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 						.thenReturn(savedEntity));
 				}
 			});
+	}
+
+	private <T> Mono<Tuple2<T, DynamicLabels>> determineDynamicLabels(
+		T entityToBeSaved, Neo4jPersistentEntity<?> entityMetaData, @Nullable String inDatabase
+	) {
+		return entityMetaData.getDynamicLabelsProperty().map(p -> {
+
+			PersistentPropertyAccessor propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
+			ReactiveNeo4jClient.RunnableSpecTightToDatabase runnableQuery = neo4jClient
+				.query(() -> renderer.render(cypherGenerator.createStatementReturningDynamicLabels(entityMetaData)))
+				.in(inDatabase)
+				.bind(propertyAccessor.getProperty(entityMetaData.getRequiredIdProperty())).to(NAME_OF_ID)
+				.bind(entityMetaData.getStaticLabels()).to(NAME_OF_STATIC_LABELS_PARAM);
+
+			if (entityMetaData.hasVersionProperty()) {
+				runnableQuery = runnableQuery
+					.bind((Long) propertyAccessor.getProperty(entityMetaData.getRequiredVersionProperty()) - 1)
+					.to(NAME_OF_VERSION_PARAM);
+			}
+
+			return runnableQuery.fetch().one()
+				.map(m -> (Collection<String>) m.get(NAME_OF_LABELS))
+				.switchIfEmpty(Mono.just(Collections.emptyList()))
+				.zipWith(Mono.just((Collection<String>) propertyAccessor.getProperty(p)))
+				.map(t -> Tuples.of(entityToBeSaved, new DynamicLabels(t.getT1(), t.getT2())));
+		}).orElse(Mono.just(Tuples.of(entityToBeSaved, DynamicLabels.EMPTY)));
 	}
 
 	@Override
@@ -296,7 +329,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 							return neo4jClient
 								.query(() -> renderer
-									.render(statementBuilder.prepareSaveOfMultipleInstancesOf(entityMetaData)))
+									.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
 								.in(databaseName.getValue())
 								.bind(boundedEntityList).to(NAME_OF_ENTITY_LIST_PARAM).run();
 						})
@@ -318,7 +351,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		String nameOfParameter = "ids";
 		Condition condition = entityMetaData.getIdExpression().in(parameter(nameOfParameter));
 
-		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, condition);
+		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 		return getDatabaseName().flatMap(databaseName ->
 			this.neo4jClient.query(() -> renderer.render(statement))
 				.in(databaseName.getValue())
@@ -334,7 +367,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter));
 
-		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData, condition);
+		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 		return getDatabaseName().flatMap(databaseName ->
 			this.neo4jClient.query(() -> renderer.render(statement))
 				.in(databaseName.getValue())
@@ -345,7 +378,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	public Mono<Void> deleteAll(Class<?> domainType) {
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		Statement statement = statementBuilder.prepareDeleteOf(entityMetaData);
+		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData);
 		return getDatabaseName().flatMap(databaseName ->
 			this.neo4jClient.query(() -> renderer.render(statement))
 				.in(databaseName.getValue()).run().then());
@@ -408,7 +441,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				// remove all relationships before creating all new if the entity is not new
 				// this avoids the usage of cache but might have significant impact on overall performance
 				if (!neo4jPersistentEntity.isNew(parentObject)) {
-					Statement relationshipRemoveQuery = statementBuilder
+					Statement relationshipRemoveQuery = cypherGenerator
 						.createRelationshipRemoveQuery(neo4jPersistentEntity, relationshipContext.getRelationship(),
 							targetNodeDescription);
 					relationshipCreationMonos.add(
@@ -487,19 +520,27 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		return false;
 	}
 
-	private <Y> Mono<Long> saveRelatedNode(Object entity, Class<Y> entityType, NodeDescription targetNodeDescription,
+	private <Y> Mono<Long> saveRelatedNode(Object relatedNode, Class<Y> entityType, NodeDescription targetNodeDescription,
 		@Nullable String inDatabase) {
 
-		return neo4jClient.query(() -> renderer.render(statementBuilder.prepareSaveOf(targetNodeDescription)))
-			.in(inDatabase)
-			.bind((Y) entity)
-			.with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType)).fetchAs(Long.class).one()
+		return determineDynamicLabels((Y) relatedNode, (Neo4jPersistentEntity<?>) targetNodeDescription, inDatabase)
+			.flatMap(t -> {
+				Y entity = t.getT1();
+				DynamicLabels dynamicLabels = t.getT2();
+
+				return neo4jClient.query(() -> renderer.render(
+					cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
+					.in(inDatabase)
+					.bind((Y) entity)
+					.with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
+					.fetchAs(Long.class).one();
+			})
 			.switchIfEmpty(Mono.defer(() -> {
-			if (((Neo4jPersistentEntity) targetNodeDescription).hasVersionProperty()) {
-				return Mono.error(() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE));
-			}
-			return Mono.empty();
-		}));
+				if (((Neo4jPersistentEntity) targetNodeDescription).hasVersionProperty()) {
+					return Mono.error(() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE));
+				}
+				return Mono.empty();
+			}));
 	}
 
 	private Mono<DatabaseSelection> getDatabaseName() {

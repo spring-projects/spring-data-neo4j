@@ -42,6 +42,7 @@ public final class Constants {
 	public static final String NAME_OF_ID = "__id__";
 	public static final String NAME_OF_VERSION_PARAM = "__version__";
 	public static final String NAME_OF_PROPERTIES_PARAM = "__properties__";
+	public static final String NAME_OF_STATIC_LABELS_PARAM = "__staticLabels__";
 	public static final String NAME_OF_ENTITY_LIST_PARAM = "__entities__";
 
 	public static final String FROM_ID_PARAMETER_NAME = "fromId";

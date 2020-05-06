@@ -196,6 +196,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 		return isAssociation();
 	}
 
+
 	static String deriveRelationshipType(String name) {
 
 		Assert.hasText(name, "The name to derive the type from is required.");

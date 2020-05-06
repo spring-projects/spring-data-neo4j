@@ -18,6 +18,8 @@
  */
 package org.neo4j.springframework.data.core.mapping;
 
+import java.util.Optional;
+
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.springframework.data.mapping.AssociationHandler;
@@ -38,4 +40,9 @@ import org.springframework.data.mapping.model.MutablePersistentEntity;
 @API(status = API.Status.INTERNAL, since = "1.0")
 public interface Neo4jPersistentEntity<T>
 	extends MutablePersistentEntity<T, Neo4jPersistentProperty>, NodeDescription<T> {
+
+	/**
+	 * @return An optional property pointing to a {@link java.util.Collection Collection&lt;String&gt;} containing dynamic "runtime managed" labels.
+	 */
+	Optional<Neo4jPersistentProperty> getDynamicLabelsProperty();
 }

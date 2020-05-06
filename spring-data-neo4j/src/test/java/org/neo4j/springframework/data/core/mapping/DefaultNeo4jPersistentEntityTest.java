@@ -29,10 +29,12 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.neo4j.springframework.data.core.schema.GeneratedValue;
 import org.neo4j.springframework.data.core.schema.Id;
 import org.neo4j.springframework.data.core.schema.Node;
 import org.neo4j.springframework.data.core.schema.Property;
 import org.neo4j.springframework.data.core.schema.Relationship;
+import org.neo4j.springframework.data.core.schema.DynamicLabels;
 
 /**
  * @author Gerrit Meier
@@ -101,6 +103,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 		@Test
 		void supportDerivedLabel() {
+
 			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
 				.getPersistentEntity(CorrectEntity1.class);
 
@@ -110,6 +113,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 		@Test
 		void supportSingleLabel() {
+
 			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
 				.getPersistentEntity(EntityWithSingleLabel.class);
 
@@ -119,6 +123,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 		@Test
 		void supportMultipleLabels() {
+
 			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
 				.getPersistentEntity(EntityWithMultipleLabels.class);
 
@@ -128,6 +133,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 		@Test
 		void supportExplicitPrimaryLabel() {
+
 			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
 				.getPersistentEntity(EntityWithExplicitPrimaryLabel.class);
 
@@ -137,6 +143,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 		@Test
 		void supportExplicitPrimaryLabelAndAdditionalLabels() {
+
 			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
 				.getPersistentEntity(EntityWithExplicitPrimaryLabelAndAdditionalLabels.class);
 
@@ -146,6 +153,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 		@Test
 		void supportInheritedPrimaryLabelAndAdditionalLabels() {
+
 			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
 			Neo4jPersistentEntity<?> parentEntity = neo4jMappingContext
 				.getPersistentEntity(BaseClass.class);
@@ -155,6 +163,133 @@ class DefaultNeo4jPersistentEntityTest {
 			assertThat(persistentEntity.getPrimaryLabel()).isEqualTo("Child");
 			assertThat(persistentEntity.getAdditionalLabels()).containsExactlyInAnyOrder("Base", "Bases", "Person");
 		}
+
+		@Test
+		void validDynamicLabels() {
+
+			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
+				.getPersistentEntity(NodeWithDynamicLabels.class);
+
+			assertThat(persistentEntity.getGraphProperties()).hasSize(2);
+			assertThat(persistentEntity.getPersistentProperty("id").isIdProperty()).isTrue();
+
+			assertThat(persistentEntity.getPersistentProperty("relatedTo").isDynamicLabels()).isFalse();
+			assertThat(persistentEntity.getPersistentProperty("relatedTo").isAssociation()).isTrue();
+			assertThat(persistentEntity.getPersistentProperty("relatedTo").isIdProperty()).isFalse();
+			assertThat(persistentEntity.getPersistentProperty("relatedTo").isRelationship()).isTrue();
+
+			assertThat(persistentEntity.getPersistentProperty("dynamicLabels").isDynamicLabels()).isTrue();
+			assertThat(persistentEntity.getPersistentProperty("dynamicLabels").isAssociation()).isFalse();
+			assertThat(persistentEntity.getPersistentProperty("dynamicLabels").isIdProperty()).isFalse();
+			assertThat(persistentEntity.getPersistentProperty("dynamicLabels").isRelationship()).isFalse();
+
+			assertThat(persistentEntity.getDynamicLabelsProperty())
+				.hasValueSatisfying(p -> p.getFieldName().equals("dynamicLabels"));
+		}
+
+		@Test
+		void shouldDetectValidInheritedDynamicLabels() {
+
+			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
+				.getPersistentEntity(ValidInheritedDynamicLabels.class);
+
+			assertThat(persistentEntity.getGraphProperties()).hasSize(2);
+			assertThat(persistentEntity.getPersistentProperty("id").isIdProperty()).isTrue();
+
+			assertThat(persistentEntity.getPersistentProperty("relatedTo").isDynamicLabels()).isFalse();
+			assertThat(persistentEntity.getPersistentProperty("relatedTo").isAssociation()).isTrue();
+			assertThat(persistentEntity.getPersistentProperty("relatedTo").isIdProperty()).isFalse();
+			assertThat(persistentEntity.getPersistentProperty("relatedTo").isRelationship()).isTrue();
+
+			assertThat(persistentEntity.getPersistentProperty("dynamicLabels").isDynamicLabels()).isTrue();
+			assertThat(persistentEntity.getPersistentProperty("dynamicLabels").isAssociation()).isFalse();
+			assertThat(persistentEntity.getPersistentProperty("dynamicLabels").isIdProperty()).isFalse();
+			assertThat(persistentEntity.getPersistentProperty("dynamicLabels").isRelationship()).isFalse();
+
+			assertThat(persistentEntity.getDynamicLabelsProperty())
+				.hasValueSatisfying(p -> p.getFieldName().equals("dynamicLabels"));
+		}
+
+		@Test
+		void shouldDetectInvalidInheritedDynamicLabels() {
+
+			assertThatIllegalStateException().isThrownBy(() ->
+				new Neo4jMappingContext()
+					.getPersistentEntity(InvalidInheritedDynamicLabels.class))
+				.withMessageMatching(
+					"Multiple properties in entity class .*DefaultNeo4jPersistentEntityTest\\$InvalidInheritedDynamicLabels are annotated with @DynamicLabels: \\[dynamicLabels, localDynamicLabels\\]."
+				);
+		}
+
+		@Test
+		void shouldDetectInvalidDynamicLabels() {
+
+			assertThatIllegalStateException().isThrownBy(() ->
+				new Neo4jMappingContext()
+					.getPersistentEntity(NodeWithInvalidDynamicLabels.class))
+				.withMessageMatching(
+					"Multiple properties in entity class .*DefaultNeo4jPersistentEntityTest\\$NodeWithInvalidDynamicLabels are annotated with @DynamicLabels: \\[dynamicLabels, moarDynamicLabels\\]."
+				);
+		}
+
+		@Test
+		void shouldDetectInvalidDynamicLabelsTarget() {
+
+			assertThatIllegalStateException().isThrownBy(() ->
+				new Neo4jMappingContext()
+					.getPersistentEntity(InvalidDynamicLabels.class))
+				.withMessageMatching(
+					"Property dynamicLabels on class .*DefaultNeo4jPersistentEntityTest\\$InvalidDynamicLabels must extends java\\.util\\.Collection."
+				);
+		}
+	}
+
+	@Node
+	private static class SomeOtherNode {
+		@Id Long id;
+	}
+
+	@Node
+	private static class NodeWithDynamicLabels {
+
+		@Id @GeneratedValue Long id;
+
+		List<SomeOtherNode> relatedTo;
+
+		@DynamicLabels
+		List<String> dynamicLabels;
+	}
+
+	@Node
+	private static class NodeWithInvalidDynamicLabels {
+
+		@Id @GeneratedValue Long id;
+
+		@DynamicLabels
+		List<String> dynamicLabels;
+
+		@DynamicLabels
+		List<String> moarDynamicLabels;
+	}
+
+	@Node
+	private static class ValidInheritedDynamicLabels extends NodeWithDynamicLabels {
+	}
+
+	@Node
+	private static class InvalidInheritedDynamicLabels extends NodeWithDynamicLabels {
+
+		@DynamicLabels
+		List<String> localDynamicLabels;
+	}
+
+	@Node
+	private static class InvalidDynamicLabels {
+
+		@Id @GeneratedValue Long id;
+
+		@DynamicLabels
+		String dynamicLabels;
 	}
 
 	@Node

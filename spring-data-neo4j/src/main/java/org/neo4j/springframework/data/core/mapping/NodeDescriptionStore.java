@@ -20,7 +20,9 @@ package org.neo4j.springframework.data.core.mapping;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -78,21 +80,28 @@ class NodeDescriptionStore {
 		return null;
 	}
 
-	public NodeDescription<?> deriveConcreteNodeDescription(Neo4jPersistentEntity<?> entityDescription, List<String> labels) {
+	public NodeDescriptionAndLabels deriveConcreteNodeDescription(
+		Neo4jPersistentEntity<?> entityDescription,
+		List<String> labels
+	) {
 		if (labels == null || labels.isEmpty()) {
-			return entityDescription;
+			return new NodeDescriptionAndLabels(entityDescription, Collections.emptyList());
 		}
 		for (NodeDescription<?> childNodeDescription : entityDescription.getChildNodeDescriptionsInHierarchy()) {
-
 			String primaryLabel = childNodeDescription.getPrimaryLabel();
 			List<String> additionalLabels = new ArrayList<>(childNodeDescription.getAdditionalLabels());
 			additionalLabels.add(primaryLabel);
-
 			if (additionalLabels.containsAll(labels)) {
-				return childNodeDescription;
+				Set<String> surplusLabels = new HashSet<>(labels);
+				surplusLabels.remove(primaryLabel);
+				surplusLabels.removeAll(additionalLabels);
+				return new NodeDescriptionAndLabels(childNodeDescription, surplusLabels);
 			}
-
 		}
-		return entityDescription;
+
+		Set<String> surplusLabels = new HashSet<>(labels);
+		surplusLabels.remove(entityDescription.getPrimaryLabel());
+		surplusLabels.removeAll(entityDescription.getAdditionalLabels());
+		return new NodeDescriptionAndLabels(entityDescription, surplusLabels);
 	}
 }
