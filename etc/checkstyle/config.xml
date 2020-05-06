@@ -56,7 +56,7 @@
         <module name="com.puppycrawl.tools.checkstyle.checks.coding.OneStatementPerLineCheck" />
 
         <!-- Imports -->
-        <module  name="com.puppycrawl.tools.checkstyle.checks.imports.IllegalImportCheck">
+        <module name="com.puppycrawl.tools.checkstyle.checks.imports.IllegalImportCheck">
             <property name="regexp" value="true" />
             <property name="illegalPkgs"
                       value="^sun.*, ^org\.apache\.commons\.(?!compress|dbcp2|lang|lang3|logging|pool2).*, ^com\.google\.common.*, ^org\.flywaydb\.core\.internal.*, ^org\.testcontainers\.shaded.*, ^org\.neo4j\.driver\.internal\.shaded.*, ^org\.slf4j.*, ^org\.jetbrains.*" />
@@ -119,5 +119,11 @@
 
         <module name="MissingJavadocType" />
         <module name="NonEmptyAtclauseDescription" />
+
+		<!-- System.outs -->
+		<module name="Regexp">
+			<property name="format" value="System\.out\.println"/>
+			<property name="illegalPattern" value="true"/>
+		</module>
     </module>
 </module>
