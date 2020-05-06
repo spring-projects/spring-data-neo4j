@@ -18,6 +18,7 @@
  */
 package org.neo4j.springframework.data.core.schema;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +44,23 @@ public interface NodeDescription<T> {
 	String getPrimaryLabel();
 
 	/**
+	 * @return the list of all additional labels (All labels except the {@link NodeDescription#getPrimaryLabel()}.
+	 */
+	List<String> getAdditionalLabels();
+
+	/**
+	 * @return The list of all static labels, that is the union of {@link #getPrimaryLabel()} + {@link #getAdditionalLabels()}.
+	 * Order is guaranteed to be the primary first, than the others.
+	 * @since 1.1
+	 */
+	default List<String> getStaticLabels() {
+		List<String> staticLabels = new ArrayList<>();
+		staticLabels.add(this.getPrimaryLabel());
+		staticLabels.addAll(this.getAdditionalLabels());
+		return staticLabels;
+	}
+
+	/**
 	 * @return The concrete class to which a node with the given {@link #getPrimaryLabel()} is mapped to
 	 */
 	Class<T> getUnderlyingClass();
@@ -63,10 +81,6 @@ public interface NodeDescription<T> {
 	 */
 	Collection<GraphPropertyDescription> getGraphPropertiesInHierarchy();
 
-	/**
-	 * @return the list of all additional labels (All labels except the {@link NodeDescription#getPrimaryLabel()}.
-	 */
-	List<String> getAdditionalLabels();
 
 	/**
 	 * Retrieves a {@link GraphPropertyDescription} by its field name.

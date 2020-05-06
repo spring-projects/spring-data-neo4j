@@ -39,6 +39,7 @@ import org.apiguardian.api.API;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
+import org.neo4j.springframework.data.core.Neo4jClient.RunnableSpecTightToDatabase;
 import org.neo4j.springframework.data.core.cypher.Condition;
 import org.neo4j.springframework.data.core.cypher.Functions;
 import org.neo4j.springframework.data.core.cypher.Statement;
@@ -220,8 +221,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(instance.getClass());
 		T entityToBeSaved = eventSupport.maybeCallBeforeBind(instance);
+
+		DynamicLabels dynamicLabels = determineDynamicLabels(entityToBeSaved, entityMetaData, inDatabase);
+
 		Optional<Long> optionalInternalId = neo4jClient
-			.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData)))
+			.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels)))
 			.in(inDatabase)
 			.bind((T) entityToBeSaved)
 			.with(neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass()))
@@ -241,6 +245,32 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 			return propertyAccessor.getBean();
 		}
+	}
+
+	private <T> DynamicLabels determineDynamicLabels(
+		T entityToBeSaved, Neo4jPersistentEntity<?> entityMetaData, @Nullable String inDatabase
+	) {
+		return entityMetaData.getDynamicLabelsProperty().map(p -> {
+
+			PersistentPropertyAccessor propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
+			RunnableSpecTightToDatabase runnableQuery = neo4jClient
+				.query(() -> renderer.render(cypherGenerator.createStatementReturningDynamicLabels(entityMetaData)))
+				.in(inDatabase)
+				.bind(propertyAccessor.getProperty(entityMetaData.getRequiredIdProperty())).to(NAME_OF_ID)
+				.bind(entityMetaData.getStaticLabels()).to(NAME_OF_STATIC_LABELS_PARAM);
+
+			if (entityMetaData.hasVersionProperty()) {
+				runnableQuery = runnableQuery
+					.bind((Long) propertyAccessor.getProperty(entityMetaData.getRequiredVersionProperty()) - 1)
+					.to(NAME_OF_VERSION_PARAM);
+			}
+
+			Optional<Map<String, Object>> optionalResult = runnableQuery.fetch().one();
+			return new DynamicLabels(
+				optionalResult.map(r -> (Collection<String>) r.get(NAME_OF_LABELS)).orElseGet(Collections::emptyList),
+				(Collection<String>) propertyAccessor.getProperty(p)
+			);
+		}).orElse(DynamicLabels.EMPTY);
 	}
 
 	@Override
@@ -434,14 +464,14 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				// handle creation of relationship depending on properties on relationship or not
 				RelationshipStatementHolder statementHolder = relationshipContext.hasRelationshipWithProperties()
 					? createStatementForRelationShipWithProperties(neo4jMappingContext,
-						neo4jPersistentEntity,
-						relationshipContext,
-						relatedInternalId,
-						(Map.Entry) relatedValue)
+					neo4jPersistentEntity,
+					relationshipContext,
+					relatedInternalId,
+					(Map.Entry) relatedValue)
 					: createStatementForRelationshipWithoutProperties(neo4jPersistentEntity,
-						relationshipContext,
-						relatedInternalId,
-						relatedValue);
+					relationshipContext,
+					relatedInternalId,
+					relatedValue);
 
 				neo4jClient.query(renderer.render(statementHolder.getRelationshipCreationQuery()))
 					.in(inDatabase)
@@ -471,8 +501,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	}
 
 	private <Y> Long saveRelatedNode(Object entity, Class<Y> entityType, NodeDescription targetNodeDescription, @Nullable String inDatabase) {
+
+		DynamicLabels dynamicLabels = determineDynamicLabels(entity, (Neo4jPersistentEntity) targetNodeDescription, inDatabase);
 		Optional<Long> optionalSavedNodeId = neo4jClient
-			.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription)))
+			.query(() -> renderer
+				.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
 			.in(inDatabase)
 			.bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
 			.fetchAs(Long.class).one();

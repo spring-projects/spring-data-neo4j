@@ -2,7 +2,7 @@
 = Object Mapping
 
 The following sections will explain the process of mapping between your graph and your domain.
-It is split into two parts. 
+It is split into two parts.
 The first part explains the actual mapping and the available tools for you to describe how to map nodes, relationships and properties to objects.
 The second part will have a look at Spring Data's object mapping fundamentals.
 It gives valuable tips on general mapping, why you should prefer immutable domain objects and how you can model them with Java or Kotlin.
@@ -21,10 +21,11 @@ because the mapping framework needs to build up its internal metadata model so t
 ==== From SDN/RX:
 
 * `@Node`: Applied at the class level to indicate this class is a candidate for mapping to the database.
-* `@Id`: Applied at the field level to mark the field used for identity purpose. 
+* `@Id`: Applied at the field level to mark the field used for identity purpose.
 * `@GeneratedValue`: Applied at the field level together with `@Id` to specify how unique identifiers should be generated.
 * `@Property`: Applied at the field level to modify the mapping from attributes to properties.
 * `@Relationship`: Applied at the field level to specify the details of a relationship.
+* `@DynamicLabels`: Applied at the field level to specify the source of dynamic labels.
 
 ==== From Spring Data commons
 
@@ -67,6 +68,19 @@ This allows polymorphic queries: You can pass in base or intermediate classes an
 This is only supported for abstract bases annotated with `@Node`.
 The labels defined on such a class will be used as additional labels together with the labels of the concrete implementations.
 
+==== Dynamic or "runtime" managed labels
+
+All labels implicitly defined through the simple class name or explicitly via the `@Node` annotation are static.
+They cannot be changed during runtime.
+If you need additional labels that can be manipulated during runtime, you can use `@DynamicLabels`.
+`@DynamicLabels` is an annotation on field level and marks an attribute of type `java.util.Collection<String>` (a `List` or `Set`) for example) as source of dynamic labels.
+
+If this annotation is present, all labels present on a node and not statically mapped via `@Node` and the class names, will be collected into that collection during load.
+During writes, all labels of the node will be replaced with the statically defined labels plus the contents of the collection.
+
+WARNING: If you have other applications add additional labels to nodes, don't use `@DynamicLabels`.
+         If `@DynamicLabels` is present on a managed entity, the resulting set of labels will be "the truth" written to the database.
+
 === Identifying instances: `@Id`
 
 While `@Node` creates a mapping between a class and nodes having a specific label,
@@ -87,12 +101,12 @@ This maps the Neo4j internal id, which is *not* a property on a node or relation
 to the attribute and allows SDN/RX to retrieve individual instances of the class.
 
 `@GeneratedValue` provides the attribute `generatorClass`.
-`generatorClass` can be used to specify a class implementing `IdGenerator`. 
+`generatorClass` can be used to specify a class implementing `IdGenerator`.
 An `IdGenerator` is a functional interface and its `generateId` takes the primary label and the instance to generate an Id for.
 We support `UUIDStringGenerator` as one implementation out of the box.
 
 You can also specify a Spring Bean from the application context on `@GeneratedValue` via `generatorRef`.
-That bean also needs to implement `IdGenerator`, but can make use of everything in the context, including the Neo4j client or template to interact with the database. 
+That bean also needs to implement `IdGenerator`, but can make use of everything in the context, including the Neo4j client or template to interact with the database.
 
 NOTE: Don't skip the important notes about ID handling in <<mapping.id-handling>>
 
@@ -112,7 +126,7 @@ It is applicable on attributes of other types annotated with `@Node` or collecti
 The `type` or the `value` attribute allow configuration of the relationship's type, `direction` allows specifying the direction.
 The default direction in SDN/RX is `Relationship.Direction#OUTGOING`.
 
-We support dynamic relationships. 
+We support dynamic relationships.
 Dynamic relationships are represented as a `Map<String, AnnotatedDomainClass>`.
 In such a case, the type of the relationship to the other domain class is given by the maps key and must not be configured through the `@Relationship`.
 
@@ -168,7 +182,7 @@ include::../../examples/reactive-web/src/main/java/org/neo4j/springframework/dat
 <.> This is the constructor to be used by your application code as well as by SDN/RX.
 ====
 
-People are mapped in two roles here, `actors` and `directors`. 
+People are mapped in two roles here, `actors` and `directors`.
 The domain class is the same:
 
 [[mapping.complete-example.person]]
@@ -257,7 +271,7 @@ public class MovieEntity {
 
 You either have to provide a setter for the id attribute or something like a _wither_, if you want to have
 
-* Advantages: It is pretty clear that the id attribute is the surrogate business key, it takes no further effort or configuration to use it. 
+* Advantages: It is pretty clear that the id attribute is the surrogate business key, it takes no further effort or configuration to use it.
 * Disadvantage: It is tied to Neo4js internal database id, which is not unique to our application entity only over a database lifetime.
 * Disadvantage: It takes more effort to create an immutable entity
 
@@ -283,8 +297,8 @@ public class MovieEntity {
 ----
 ====
 
-We have to discuss two separate things regarding advantages and disadvantages. 
-The assignment itself and the UUID-Strategy. 
+We have to discuss two separate things regarding advantages and disadvantages.
+The assignment itself and the UUID-Strategy.
 A https://en.wikipedia.org/wiki/Universally_unique_identifier[universally unique identifier] is meant to be unique for practical purposes.
 To quote Wikipedia:
 “Thus, anyone can create a UUID and use it to identify something with near certainty that the identifier does not duplicate one that has already been,
@@ -319,7 +333,7 @@ public class TestSequenceGenerator implements IdGenerator<String> {
 
 	@Override
 	public String generateId(String primaryLabel, Object entity) {
-		return StringUtils.uncapitalize(primaryLabel) + 
+		return StringUtils.uncapitalize(primaryLabel) +
 			"-" + sequence.incrementAndGet();
 	}
 }
@@ -341,7 +355,7 @@ class MyIdGenerator implements IdGenerator<String> {
 		this.neo4jClient = neo4jClient;
 	}
 
-	@Override 
+	@Override
 	public String generateId(String primaryLabel, Object entity) {
 		return neo4jClient.query("YOUR CYPHER QUERY FOR THE NEXT ID") // <.>
 			.fetchAs(String.class).one().get();
@@ -351,7 +365,7 @@ class MyIdGenerator implements IdGenerator<String> {
 <.> Use exactly the query or logic your need.
 ====
 
-The generator above would be configured as a bean reference like this: 
+The generator above would be configured as a bean reference like this:
 
 .Mutable MovieEntity using a Spring Bean as Id generator
 ====

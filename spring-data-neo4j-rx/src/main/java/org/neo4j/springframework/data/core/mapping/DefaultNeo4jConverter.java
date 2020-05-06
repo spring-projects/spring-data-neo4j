@@ -165,6 +165,13 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		}
 	}
 
+	private Collection<String> createDynamicLabelsProperty(TypeInformation<?> type, Collection<String> dynamicLabels) {
+
+		Collection<String> target = createCollection(type.getType(), String.class, dynamicLabels.size());
+		target.addAll(dynamicLabels);
+		return target;
+	}
+
 	@Override
 	public void write(Object source, Map<String, Object> parameters) {
 		Map<String, Object> properties = new HashMap<>();
@@ -176,7 +183,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		nodeDescription.doWithProperties((Neo4jPersistentProperty p) -> {
 
 			// Skip the internal properties, we don't want them to end up stored as properties
-			if (p.isInternalIdProperty()) {
+			if (p.isInternalIdProperty() || p.isDynamicLabels()) {
 				return;
 			}
 
@@ -255,11 +262,13 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		Neo4jPersistentEntity<ET> nodeDescription,
 		KnownObjects knownObjects) {
 
-		Neo4jPersistentEntity<ET> concreteNodeDescription = getConcreteNodeDescription(queryResult, nodeDescription);
+		List<String> allLabels = getLabels(queryResult);
+		NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore.deriveConcreteNodeDescription(nodeDescription, allLabels);
+		Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels.getNodeDescription();
 
 		Collection<RelationshipDescription> relationships = concreteNodeDescription.getRelationships();
 
-		ET instance = instantiate(concreteNodeDescription, queryResult, knownObjects, relationships);
+		ET instance = instantiate(concreteNodeDescription, queryResult, knownObjects, relationships, nodeDescriptionAndLabels.getDynamicLabels());
 
 		PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(instance);
 
@@ -268,7 +277,9 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			// Fill simple properties
 			Predicate<Neo4jPersistentProperty> isConstructorParameter = concreteNodeDescription
 				.getPersistenceConstructor()::isConstructorParameter;
-			concreteNodeDescription.doWithProperties(populateFrom(queryResult, propertyAccessor, isConstructorParameter));
+			PropertyHandler<Neo4jPersistentProperty> handler = populateFrom(
+				queryResult, propertyAccessor, isConstructorParameter, nodeDescriptionAndLabels.getDynamicLabels());
+			concreteNodeDescription.doWithProperties(handler);
 
 			// Fill associations
 			concreteNodeDescription.doWithAssociations(
@@ -277,10 +288,14 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		return instance;
 	}
 
+	/**
+	 * Returns the list of labels for the entity to be created from the "main" node returned.
+	 *
+	 * @param queryResult The complete query result
+	 * @return The list of labels defined by the query variable {@link org.neo4j.springframework.data.core.schema.Constants#NAME_OF_LABELS}.
+	 */
 	@NonNull
-	private <ET> Neo4jPersistentEntity<ET> getConcreteNodeDescription(MapAccessor queryResult,
-		Neo4jPersistentEntity<ET> nodeDescription) {
-
+	private List<String> getLabels(MapAccessor queryResult) {
 		Value labelsValue = queryResult.get(NAME_OF_LABELS);
 		List<String> labels = new ArrayList<>();
 		if (!labelsValue.isNull()) {
@@ -289,14 +304,14 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			Node nodeRepresentation = (Node) queryResult;
 			nodeRepresentation.labels().forEach(labels::add);
 		}
-
-		return (Neo4jPersistentEntity<ET>) nodeDescriptionStore.deriveConcreteNodeDescription(nodeDescription, labels);
+		return labels;
 	}
 
 	private <ET> ET instantiate(Neo4jPersistentEntity<ET> nodeDescription,
 		MapAccessor values,
 		KnownObjects knownObjects,
-		Collection<RelationshipDescription> relationships) {
+		Collection<RelationshipDescription> relationships,
+		Collection<String> surplusLabels) {
 
 		ParameterValueProvider<Neo4jPersistentProperty> parameterValueProvider = new ParameterValueProvider<Neo4jPersistentProperty>() {
 			@Override
@@ -306,32 +321,34 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 					.getRequiredPersistentProperty(parameter.getName());
 
 				if (matchingProperty.isRelationship()) {
-
-					return createInstanceOfRelationships(matchingProperty, values, knownObjects, relationships)
-						.orElse(null);
+					return createInstanceOfRelationships(matchingProperty, values, knownObjects, relationships).orElse(null);
+				} else if (matchingProperty.isDynamicLabels()) {
+					return createDynamicLabelsProperty(matchingProperty.getTypeInformation(), surplusLabels);
 				}
 				return readValueForProperty(extractValueOf(matchingProperty, values), parameter.getType());
 			}
 		};
 
-
-		return INSTANTIATORS.getInstantiatorFor(nodeDescription)
-			.createInstance(nodeDescription, parameterValueProvider);
+		return INSTANTIATORS.getInstantiatorFor(nodeDescription).createInstance(nodeDescription, parameterValueProvider);
 	}
 
 	private PropertyHandler<Neo4jPersistentProperty> populateFrom(
 		MapAccessor queryResult,
 		PersistentPropertyAccessor<?> propertyAccessor,
-		Predicate<Neo4jPersistentProperty> isConstructorParameter
+		Predicate<Neo4jPersistentProperty> isConstructorParameter,
+		Collection<String> surplusLabels
 	) {
 		return property -> {
 			if (isConstructorParameter.test(property)) {
 				return;
 			}
 
-			propertyAccessor.setProperty(property,
-				readValueForProperty(extractValueOf(property, queryResult), property.getTypeInformation()));
-
+			if (property.isDynamicLabels()) {
+				propertyAccessor.setProperty(property, createDynamicLabelsProperty(property.getTypeInformation(), surplusLabels));
+			} else {
+				propertyAccessor.setProperty(property,
+					readValueForProperty(extractValueOf(property, queryResult), property.getTypeInformation()));
+			}
 		};
 	}
 
@@ -369,8 +386,9 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		Neo4jPersistentEntity<?> genericTargetNodeDescription =
 			(Neo4jPersistentEntity<?>) relationshipDescription.getTarget();
 
-		Neo4jPersistentEntity<?> concreteTargetNodeDescription =
-			getConcreteNodeDescription(values, genericTargetNodeDescription);
+		List<String> allLabels = getLabels(values);
+		NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore.deriveConcreteNodeDescription(genericTargetNodeDescription, allLabels);
+		Neo4jPersistentEntity<?> concreteTargetNodeDescription = (Neo4jPersistentEntity<?>) nodeDescriptionAndLabels.getNodeDescription();
 
 		List<Object> value = new ArrayList<>();
 		Map<String, Object> dynamicValue = new HashMap<>();
