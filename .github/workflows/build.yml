@@ -54,5 +54,5 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: Run Maven build
         run: >
-          ./mvnw --no-transfer-progress clean verify -Drevision=1.0.2 -Dchangelist= -Dsha1=-$GITHUB_SHA
+          ./mvnw --no-transfer-progress clean verify -Drevision=1.0 -Dchangelist= -Dsha1=-$GITHUB_SHA
           -pl org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-imperative-web,org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-mapping,org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-reactive-web,org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-multi-database,org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-spring-data-rest,org.neo4j.doc.springframework.data:spring-data-neo4j-rx-examples-docs
