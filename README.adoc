@@ -30,7 +30,7 @@ https://neo4j.github.io/sdn-rx[Manual].
 
 == Getting Started
 
-Here is a quick teaser of a reactive application using Spring Data Repositories in Java, without using Spring Boot.
+Here is a quick teaser of a reactive application using Spring Data Repositories in Java:
 
 [source,java]
 ----
@@ -69,22 +69,6 @@ class MyService {
         return repository.saveAll(Flux.just(emil, gerrit, michael));
     }
 }
-
-@Configuration
-@EnableReactiveNeo4jRepositories
-@EnableTransactionManagement
-class MyConfiguration extends AbstractReactiveNeo4jConfig {
-
-    @Bean
-    public Driver driver() {
-        return GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "passphrase"));
-    }
-
-    @Override
-    protected Collection<String> getMappingBasePackages() {
-        return Collections.singletonList(Person.class.getPackage().getName());
-    }
-}
 ----
 
 TIP: SDN/RX is not only about reactive support, all features are available in both ways: Imperative and reactive, we
@@ -92,7 +76,34 @@ TIP: SDN/RX is not only about reactive support, all features are available in bo
 
 === Maven configuration
 
-Add the Maven dependency:
+==== With Spring Boot
+
+If you are on https://spring.io/projects/spring-boot[Spring Boot], all you have to do is to add our starter:
+
+[source,xml,subs="verbatim,attributes"]
+----
+<dependency>
+	<groupId>{groupId}</groupId>
+	<artifactId>{artifactIdStarter}</artifactId>
+	<version>{spring-data-neo4j-rx-version}</version>
+</dependency>
+----
+
+and configure your database connection:
+
+[source,properties]
+----
+org.neo4j.driver.uri=bolt://localhost:7687
+org.neo4j.driver.authentication.username=neo4j
+org.neo4j.driver.authentication.password=secret
+----
+
+Please have a look at our https://neo4j.github.io/sdn-rx[manual] for an overview about the architecture, how to define
+mappings and more.
+
+==== Without Spring Boot
+
+If you are using a plain Spring Framework project without Spring Boot, please add this Maven dependency:
 
 [source,xml,subs="verbatim,attributes"]
 ----
@@ -103,8 +114,33 @@ Add the Maven dependency:
 </dependency>
 ----
 
-Nowadays, people prefer Spring Boot and we got you covered with a starter.
-Please consult our https://neo4j.github.io/sdn-rx[manual] for more information.
+and configure SDN/RX for reactive database access like this:
+
+[source,java]
+----
+@Configuration
+@EnableReactiveNeo4jRepositories
+@EnableTransactionManagement
+class MyConfiguration extends AbstractReactiveNeo4jConfig {
+
+    @Bean
+    public Driver driver() {
+        return GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"));
+    }
+
+    @Override
+    protected Collection<String> getMappingBasePackages() {
+        return Collections.singletonList(Person.class.getPackage().getName());
+    }
+}
+----
+
+The imperative version looks pretty much the same but uses `EnableNeo4jRepositories`  and `AbstractNeo4jConfig`.
+
+IMPORTANT: We recommend Spring Boot, the automatic configuration and especially the dependency management
+           through the Starters in contrast to the manual work of managing dependencies and configuration.
+           +
+           Please consult our https://neo4j.github.io/sdn-rx[manual] for more information.
 
 === Building SDN/RX
 
