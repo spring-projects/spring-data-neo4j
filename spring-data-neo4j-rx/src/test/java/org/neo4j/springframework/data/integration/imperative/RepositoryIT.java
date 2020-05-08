@@ -31,16 +31,12 @@ import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
-import javax.naming.AuthenticationNotSupportedException;
-
 import org.assertj.core.data.MapEntry;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
-import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
@@ -2715,8 +2711,7 @@ class RepositoryIT {
 
 		@Bean
 		public Driver driver() {
-
-			return GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"));
+			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Override
