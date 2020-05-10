@@ -279,7 +279,7 @@ returns the names of the actors that have a ACTS_IN relationship to the movie no
 `MATCH (movie:Movie {title:'Matrix'})<-[r:RATED]-(user) WHERE r.stars > 3 RETURN user.name, r.stars, r.comment`::
 returns users names and their ratings (>3) of the movie titled 'Matrix'
 
-`MATCH (user:User {name='Michael'})-[:FRIEND]-(friend)-[r:RATED]\->(movie) RETURN movie.title, AVG(r.stars), COUNT(\*) ORDER BY AVG(r.stars) DESC, COUNT(*) DESC`::
+`MATCH (user:User {name:'Michael'})-[:FRIEND]-(friend)-[r:RATED]\->(movie) RETURN movie.title, AVG(r.stars), COUNT(\*) ORDER BY AVG(r.stars) DESC, COUNT(*) DESC`::
 returns the movies rated by the friends of the user 'Michael', aggregated by `movie.title`, with averaged ratings and rating-counts sorted by both
 
 Examples of Cypher queries placed on repository methods with @Query where values are replaced with method parameters,
@@ -294,23 +294,23 @@ public interface MovieRepository extends Neo4jRepository<Movie, Long> {
     Movie getMovieFromId(Integer idOfMovie);
 
     // returns the nodes which have a title according to the movieTitle parameter
-    @Query("MATCH (movie:Movie {title=$0}) RETURN movie")
+    @Query("MATCH (movie:Movie {title:$0}) RETURN movie")
     Movie getMovieFromTitle(String movieTitle);
 
     // same with optional result
-    @Query("MATCH (movie:Movie {title=$0}) RETURN movie")
+    @Query("MATCH (movie:Movie {title:$0}) RETURN movie")
     Optional<Movie> getMovieFromTitle(String movieTitle);
 
     // returns a Page of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter.
-    @Query(value = "MATCH (movie:Movie {title=$0})<-[:ACTS_IN]-(actor) RETURN actor", countQuery= "MATCH (movie:Movie {title=$0})<-[:ACTS_IN]-(actor) RETURN count(actor)")
+    @Query(value = "MATCH (movie:Movie {title:$0})<-[:ACTS_IN]-(actor) RETURN actor", countQuery= "MATCH (movie:Movie {title:$0})<-[:ACTS_IN]-(actor) RETURN count(actor)")
     Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, PageRequest page);
 
     // returns a Page of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter with an accurate total count
-    @Query(value = "MATCH (movie:Movie {title=$0})<-[:ACTS_IN]-(actor) RETURN actor", countQuery = "MATCH (movie:Movie {title=$0})<-[:ACTS_IN]-(actor) RETURN count(*)")
+    @Query(value = "MATCH (movie:Movie {title:$0})<-[:ACTS_IN]-(actor) RETURN actor", countQuery = "MATCH (movie:Movie {title:$0})<-[:ACTS_IN]-(actor) RETURN count(*)")
     Page<Actor> getActorsThatActInMovieFromTitle(String movieTitle, Pageable page);
 
     // returns a Slice of Actors that have a ACTS_IN relationship to the movie node with the title equal to movieTitle parameter.
-    @Query("MATCH (movie:Movie {title=$0})<-[:ACTS_IN]-(actor) RETURN actor")
+    @Query("MATCH (movie:Movie {title:$0})<-[:ACTS_IN]-(actor) RETURN actor")
     Slice<Actor> getActorsThatActInMovieFromTitle(String movieTitle, Pageable page);
 
     // returns users who rated a movie (movie parameter) higher than rating (rating parameter)
@@ -325,7 +325,7 @@ public interface MovieRepository extends Neo4jRepository<Movie, Long> {
            "RETURN user")
     Iterable<User> getUsersWhoRatedMovieFromTitle(String movieTitle, Integer rating);
 
-    @Query(value = "MATCH (movie:Movie) RETURN movie;")
+    @Query(value = "MATCH (movie:Movie) RETURN movie")
     Stream<Movie> getAllMovies();
 }
 ----
@@ -342,7 +342,7 @@ The parameters will be used in the order they appear in the method signature so 
 ----
 public interface PersonRepository extends Neo4jRepository<Person, Long> {
 
-    // MATCH (person:Person {name=$0}) RETURN person
+    // MATCH (person:Person {name:$0}) RETURN person
     Person findByName(String name);
 
     // MATCH (person:Person)
@@ -352,12 +352,12 @@ public interface PersonRepository extends Neo4jRepository<Person, Long> {
 
     // MATCH (person:Person)
     // WHERE person.age = $0
-    // RETURN person ORDER BY person.name SKIP $skip LIMIT $limit
+    // RETURN person ORDER BY person.age SKIP $skip LIMIT $limit
     Page<Person> findByAge(int age, Pageable pageable);
 
     // MATCH (person:Person)
     // WHERE person.age = $0
-    // RETURN person ORDER BY person.name
+    // RETURN person ORDER BY person.age
     List<Person> findByAge(int age, Sort sort);
 
     // Allow a custom depth as a parameter
