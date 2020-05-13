@@ -2,16 +2,16 @@ package org.neo4j.doc.springframework.data.docs.repositories.cypherdsl;
 
 // tag::cypher-dsl-imports[]
 import static org.assertj.core.api.Assertions.*;
-import static org.neo4j.springframework.data.core.cypher.Conditions.*;
-import static org.neo4j.springframework.data.core.cypher.Cypher.*;
-import static org.neo4j.springframework.data.core.cypher.Functions.*;
+import static org.neo4j.opencypherdsl.Conditions.*;
+import static org.neo4j.opencypherdsl.Cypher.*;
+import static org.neo4j.opencypherdsl.Functions.*;
 
 // end::cypher-dsl-imports[]
 
 import org.junit.jupiter.api.Test;
 // tag::cypher-dsl-imports[]
-import org.neo4j.springframework.data.core.cypher.Cypher;
-import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
+import org.neo4j.opencypherdsl.Cypher;
+import org.neo4j.opencypherdsl.renderer.Renderer;
 // end::cypher-dsl-imports[]
 
 /**

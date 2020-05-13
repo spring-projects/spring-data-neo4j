@@ -143,7 +143,7 @@
 				</property>
 			</activation>
 			<properties>
-				<revision>1.0.1</revision>
+				<revision>1.0.2</revision>
 			</properties>
 		</profile>
 		<profile>
@@ -165,7 +165,7 @@
 				</property>
 			</activation>
 			<properties>
-				<changelist></changelist>
+				<changelist>-SNAPSHOT</changelist>
 			</properties>
 		</profile>
 	</profiles>

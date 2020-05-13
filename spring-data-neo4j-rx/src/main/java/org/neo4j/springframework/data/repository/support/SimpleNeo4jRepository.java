@@ -28,9 +28,9 @@ import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
 import org.neo4j.springframework.data.core.Neo4jOperations;
-import org.neo4j.springframework.data.core.cypher.Statement;
-import org.neo4j.springframework.data.core.cypher.StatementBuilder;
-import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingReadingAndReturn;
+import org.neo4j.opencypherdsl.Statement;
+import org.neo4j.opencypherdsl.StatementBuilder;
+import org.neo4j.opencypherdsl.StatementBuilder.OngoingReadingAndReturn;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.neo4j.springframework.data.core.schema.CypherGenerator;
 import org.springframework.data.domain.Page;

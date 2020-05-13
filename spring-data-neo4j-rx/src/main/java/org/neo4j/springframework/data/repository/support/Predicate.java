@@ -18,7 +18,7 @@
  */
 package org.neo4j.springframework.data.repository.support;
 
-import static org.neo4j.springframework.data.core.cypher.Cypher.*;
+import static org.neo4j.opencypherdsl.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.Constants.*;
 
 import java.util.Collection;
@@ -30,11 +30,11 @@ import java.util.function.BiFunction;
 
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.springframework.data.core.convert.Neo4jConverter;
-import org.neo4j.springframework.data.core.cypher.Condition;
-import org.neo4j.springframework.data.core.cypher.Conditions;
-import org.neo4j.springframework.data.core.cypher.Expression;
-import org.neo4j.springframework.data.core.cypher.Functions;
-import org.neo4j.springframework.data.core.cypher.StatementBuilder;
+import org.neo4j.opencypherdsl.Condition;
+import org.neo4j.opencypherdsl.Conditions;
+import org.neo4j.opencypherdsl.Expression;
+import org.neo4j.opencypherdsl.Functions;
+import org.neo4j.opencypherdsl.StatementBuilder;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;

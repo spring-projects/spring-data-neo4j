@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
-import org.neo4j.springframework.data.core.cypher.Statement;
+import org.neo4j.opencypherdsl.Statement;
 import org.neo4j.springframework.data.repository.NoResultException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 

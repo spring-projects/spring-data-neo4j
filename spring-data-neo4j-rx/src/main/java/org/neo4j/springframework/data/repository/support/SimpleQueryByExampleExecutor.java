@@ -18,7 +18,7 @@
  */
 package org.neo4j.springframework.data.repository.support;
 
-import static org.neo4j.springframework.data.core.cypher.Cypher.*;
+import static org.neo4j.opencypherdsl.Cypher.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 
 import java.util.List;
@@ -26,10 +26,10 @@ import java.util.Optional;
 import java.util.function.LongSupplier;
 
 import org.neo4j.springframework.data.core.Neo4jOperations;
-import org.neo4j.springframework.data.core.cypher.Functions;
-import org.neo4j.springframework.data.core.cypher.Statement;
-import org.neo4j.springframework.data.core.cypher.StatementBuilder;
-import org.neo4j.springframework.data.core.cypher.StatementBuilder.BuildableStatement;
+import org.neo4j.opencypherdsl.Functions;
+import org.neo4j.opencypherdsl.Statement;
+import org.neo4j.opencypherdsl.StatementBuilder;
+import org.neo4j.opencypherdsl.StatementBuilder.BuildableStatement;
 import org.neo4j.springframework.data.core.schema.CypherGenerator;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.springframework.data.domain.Example;
