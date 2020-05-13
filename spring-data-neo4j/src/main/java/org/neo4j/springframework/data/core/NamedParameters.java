@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apiguardian.api.API;
-import org.neo4j.springframework.data.core.cypher.Cypher;
+import org.neo4j.opencypherdsl.Cypher;
 
 /**
  * @author Michael J. Simons

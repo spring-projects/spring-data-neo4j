@@ -18,15 +18,15 @@
  */
 package org.neo4j.springframework.data.repository.support;
 
-import static org.neo4j.springframework.data.core.cypher.Cypher.*;
+import static org.neo4j.opencypherdsl.Cypher.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.neo4j.opencypherdsl.Functions;
+import org.neo4j.opencypherdsl.Statement;
 import org.neo4j.springframework.data.core.ReactiveNeo4jOperations;
-import org.neo4j.springframework.data.core.cypher.Functions;
-import org.neo4j.springframework.data.core.cypher.Statement;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.schema.CypherGenerator;
 import org.springframework.data.domain.Example;

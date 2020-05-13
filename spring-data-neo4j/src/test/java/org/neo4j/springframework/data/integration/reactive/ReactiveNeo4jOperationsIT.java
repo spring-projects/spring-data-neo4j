@@ -20,7 +20,7 @@ package org.neo4j.springframework.data.integration.reactive;
 
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
-import static org.neo4j.springframework.data.core.cypher.Cypher.*;
+import static org.neo4j.opencypherdsl.Cypher.*;
 import static org.neo4j.springframework.data.test.Neo4jExtension.*;
 
 import reactor.test.StepVerifier;
@@ -46,10 +46,10 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
 import org.neo4j.springframework.data.core.ReactiveNeo4jOperations;
-import org.neo4j.springframework.data.core.cypher.Cypher;
-import org.neo4j.springframework.data.core.cypher.Functions;
-import org.neo4j.springframework.data.core.cypher.Node;
-import org.neo4j.springframework.data.core.cypher.Statement;
+import org.neo4j.opencypherdsl.Cypher;
+import org.neo4j.opencypherdsl.Functions;
+import org.neo4j.opencypherdsl.Node;
+import org.neo4j.opencypherdsl.Statement;
 import org.neo4j.springframework.data.integration.shared.PersonWithAllConstructor;
 import org.neo4j.springframework.data.integration.shared.ThingWithGeneratedId;
 import org.neo4j.springframework.data.test.Neo4jIntegrationTest;

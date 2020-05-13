@@ -19,7 +19,7 @@
 package org.neo4j.springframework.data.repository.query;
 
 import static java.util.stream.Collectors.*;
-import static org.neo4j.springframework.data.core.cypher.Functions.*;
+import static org.neo4j.opencypherdsl.Functions.*;
 import static org.neo4j.springframework.data.core.schema.Constants.*;
 import static org.neo4j.springframework.data.repository.query.CypherAdapterUtils.*;
 import static org.neo4j.springframework.data.repository.query.PartValidator.*;
@@ -37,9 +37,9 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.neo4j.driver.types.Point;
-import org.neo4j.springframework.data.core.cypher.*;
-import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingMatchAndReturnWithOrder;
-import org.neo4j.springframework.data.core.cypher.renderer.Renderer;
+import org.neo4j.opencypherdsl.*;
+import org.neo4j.opencypherdsl.StatementBuilder.OngoingMatchAndReturnWithOrder;
+import org.neo4j.opencypherdsl.renderer.Renderer;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
 import org.neo4j.springframework.data.core.schema.CypherGenerator;

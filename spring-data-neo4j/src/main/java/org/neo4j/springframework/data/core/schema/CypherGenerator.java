@@ -18,7 +18,7 @@
  */
 package org.neo4j.springframework.data.core.schema;
 
-import static org.neo4j.springframework.data.core.cypher.Cypher.*;
+import static org.neo4j.opencypherdsl.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.Constants.*;
 import static org.neo4j.springframework.data.core.schema.RelationshipDescription.*;
 
@@ -30,10 +30,10 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 import org.apiguardian.api.API;
-import org.neo4j.springframework.data.core.cypher.Node;
-import org.neo4j.springframework.data.core.cypher.Relationship;
-import org.neo4j.springframework.data.core.cypher.*;
-import org.neo4j.springframework.data.core.cypher.StatementBuilder.OngoingMatchAndUpdate;
+import org.neo4j.opencypherdsl.Node;
+import org.neo4j.opencypherdsl.Relationship;
+import org.neo4j.opencypherdsl.*;
+import org.neo4j.opencypherdsl.StatementBuilder.OngoingMatchAndUpdate;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.mapping.MappingException;
