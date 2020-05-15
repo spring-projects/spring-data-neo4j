@@ -3,7 +3,7 @@ Content-Type: application/json
 
 {
 	"title": "Aeon Flux",
-	"description": "Reactive is the new cool"
+	"description": "Reactive is the new cool",
 	"actorsAndRoles": {
 		"Charlize Theron": [
 			"Æon Flux"
@@ -33,14 +33,5 @@ Cache-Control: no-cache
 DELETE http://localhost:8080/movies/The Matrix
 Accept: */*
 Cache-Control: no-cache
-
-###
-
-PUT http://localhost:8080/movies/foo
-Content-Type: application/json
-
-{
-	"title": "Aeon Flux"
-}
 
 ###
