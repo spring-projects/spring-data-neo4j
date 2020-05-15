@@ -21,8 +21,6 @@ package org.neo4j.springframework.data.integration.imperative;
 import static java.util.stream.Collectors.*;
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
@@ -122,11 +120,6 @@ class IdGeneratorsIT extends IdGeneratorsITBase {
 		@Bean
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
-		}
-
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(ThingWithGeneratedId.class.getPackage().getName());
 		}
 
 		@Bean

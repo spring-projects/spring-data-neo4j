@@ -24,8 +24,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.AfterAll;
@@ -138,11 +136,6 @@ class ReactiveExceptionTranslationIT {
 		@Bean
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
-		}
-
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(SimplePerson.class.getPackage().getName());
 		}
 
 		@Bean

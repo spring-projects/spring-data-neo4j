@@ -20,35 +20,26 @@ package org.neo4j.springframework.data.integration.reactive;
 
 import static org.neo4j.springframework.data.test.Neo4jExtension.*;
 
-import reactor.core.publisher.Mono;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
-import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.springframework.data.core.DatabaseSelection;
-import org.neo4j.springframework.data.core.ReactiveDatabaseSelectionProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.transaction.ReactiveTransactionManager;
+import org.springframework.test.annotation.DirtiesContext;
 
 /**
  * @author Michael J. Simons
  */
 @Tag(COMMERCIAL_EDITION_ONLY)
 @Tag(REQUIRES + "4.0.0")
+@DirtiesContext
 class ReactiveRepositoryWithADifferentDatabaseIT extends ReactiveRepositoryIT {
 
 	private static final String TEST_DATABASE_NAME = "aTestDatabase";
 
-	@Autowired ReactiveRepositoryWithADifferentDatabaseIT(
-		Driver driver,
-		ReactiveTransactionManager transactionManager
-	) {
-		super(driver, transactionManager);
+	ReactiveRepositoryWithADifferentDatabaseIT() {
+		databaseSelection = DatabaseSelection.byName(TEST_DATABASE_NAME);
 	}
 
 	@BeforeAll
@@ -69,18 +60,4 @@ class ReactiveRepositoryWithADifferentDatabaseIT extends ReactiveRepositoryIT {
 		}
 	}
 
-	@Override
-	SessionConfig getSessionConfig() {
-
-		return SessionConfig.forDatabase(TEST_DATABASE_NAME);
-	}
-
-	@Configuration
-	static class ConfigWithDatabaseNameProviderBean extends ReactiveRepositoryIT.Config {
-
-		@Bean
-		ReactiveDatabaseSelectionProvider databaseNameProvider() {
-			return () -> Mono.just(DatabaseSelection.byName("aTestDatabase"));
-		}
-	}
 }

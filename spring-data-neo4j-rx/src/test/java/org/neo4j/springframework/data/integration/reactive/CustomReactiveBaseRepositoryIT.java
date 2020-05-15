@@ -18,13 +18,10 @@
  */
 package org.neo4j.springframework.data.integration.reactive;
 
-import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
 
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
-
-import java.util.Collection;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -98,9 +95,5 @@ public class CustomReactiveBaseRepositoryIT {
 			return DriverMocks.withOpenReactiveSessionAndTransaction();
 		}
 
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return singletonList(PersonWithAllConstructor.class.getPackage().getName());
-		}
 	}
 }

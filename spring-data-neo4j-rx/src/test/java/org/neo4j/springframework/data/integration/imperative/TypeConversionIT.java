@@ -233,11 +233,6 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		}
 
 		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(ThingWithAllCypherTypes.class.getPackage().getName());
-		}
-
-		@Override
 		public Neo4jConversions neo4jConversions() {
 			return new Neo4jConversions(Collections.singleton(new ThingWithCustomTypes.CustomTypeConverter()));
 		}

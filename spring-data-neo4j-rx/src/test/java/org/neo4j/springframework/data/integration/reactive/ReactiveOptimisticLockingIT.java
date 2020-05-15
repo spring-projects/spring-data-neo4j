@@ -26,7 +26,6 @@ import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -237,9 +236,5 @@ class ReactiveOptimisticLockingIT {
 			return neo4jConnectionSupport.getDriver();
 		}
 
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return singletonList(VersionedThing.class.getPackage().getName());
-		}
 	}
 }

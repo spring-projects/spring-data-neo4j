@@ -25,8 +25,6 @@ import reactor.test.StepVerifier;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -46,7 +44,6 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.junit.jupiter.causal_cluster.Neo4jUri;
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
 import org.neo4j.springframework.data.core.ReactiveNeo4jClient;
-import org.neo4j.springframework.data.integration.shared.ThingWithGeneratedId;
 import org.neo4j.springframework.data.integration.shared.ThingWithSequence;
 import org.neo4j.springframework.data.repository.ReactiveNeo4jRepository;
 import org.neo4j.springframework.data.repository.config.EnableReactiveNeo4jRepositories;
@@ -152,11 +149,6 @@ class ReactiveCausalClusterLoadTestIT {
 				Config.builder().withConnectionTimeout(2, TimeUnit.MINUTES).build());
 			driver.verifyConnectivity();
 			return driver;
-		}
-
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(ThingWithGeneratedId.class.getPackage().getName());
 		}
 
 		@Bean

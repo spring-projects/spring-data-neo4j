@@ -21,7 +21,6 @@ package org.neo4j.springframework.data.integration.imperative;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
@@ -93,9 +92,5 @@ class CallbacksIT extends CallbacksITBase {
 			return neo4jConnectionSupport.getDriver();
 		}
 
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(ThingWithAssignedId.class.getPackage().getName());
-		}
 	}
 }

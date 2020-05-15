@@ -18,10 +18,8 @@
  */
 package org.neo4j.springframework.data.integration.imperative;
 
-import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -93,9 +91,5 @@ public class CustomBaseRepositoryIT {
 			return DriverMocks.withOpenSessionAndTransaction();
 		}
 
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return singletonList(PersonWithAllConstructor.class.getPackage().getName());
-		}
 	}
 }

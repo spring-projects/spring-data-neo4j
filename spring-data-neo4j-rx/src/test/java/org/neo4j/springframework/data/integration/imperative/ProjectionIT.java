@@ -18,7 +18,6 @@
  */
 package org.neo4j.springframework.data.integration.imperative;
 
-import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collection;
@@ -179,10 +178,6 @@ class ProjectionIT {
 			return neo4jConnectionSupport.getDriver();
 		}
 
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return singletonList(Person.class.getPackage().getName());
-		}
 	}
 
 }

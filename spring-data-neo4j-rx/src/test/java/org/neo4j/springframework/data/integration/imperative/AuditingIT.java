@@ -20,8 +20,6 @@ package org.neo4j.springframework.data.integration.imperative;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -136,11 +134,6 @@ class AuditingIT extends AuditingITBase {
 		@Bean
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
-		}
-
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(ImmutableAuditableThing.class.getPackage().getName());
 		}
 
 		@Bean

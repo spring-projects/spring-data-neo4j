@@ -20,9 +20,6 @@ package org.neo4j.springframework.data.integration.kotlin;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
@@ -85,8 +82,5 @@ class KotlinIT {
 			return neo4jConnectionSupport.getDriver();
 		}
 
-		public Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(KotlinPerson.class.getPackage().getName());
-		}
 	}
 }
