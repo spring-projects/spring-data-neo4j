@@ -296,7 +296,7 @@ class Neo4jOperationsIT {
 			return neo4jConnectionSupport.getDriver();
 		}
 
-		@Override
+		@Override // needed here because there is no implicit registration of entities upfront some methods under test
 		protected Collection<String> getMappingBasePackages() {
 			return singletonList(PersonWithAllConstructor.class.getPackage().getName());
 		}

@@ -119,10 +119,6 @@ class ImmutableRelationshipsIT @Autowired constructor(
             return neo4jConnectionSupport.driver
         }
 
-        override fun getMappingBasePackages(): Collection<String> {
-            return listOf(ImmutableRelationshipsIT::class.java.getPackage().name)
-        }
-
     }
 
 }

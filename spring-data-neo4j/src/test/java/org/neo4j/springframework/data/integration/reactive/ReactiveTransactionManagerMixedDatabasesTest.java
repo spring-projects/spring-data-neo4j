@@ -25,7 +25,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
@@ -245,11 +244,6 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 			});
 
 			return driver;
-		}
-
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(PersonWithAllConstructor.class.getPackage().getName());
 		}
 
 		@Bean

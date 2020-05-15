@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -194,9 +193,5 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase {
 			return neo4jConnectionSupport.getDriver();
 		}
 
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(PersonWithRelatives.class.getPackage().getName());
-		}
 	}
 }

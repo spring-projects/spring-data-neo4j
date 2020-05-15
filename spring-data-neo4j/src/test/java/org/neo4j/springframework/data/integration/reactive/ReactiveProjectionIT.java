@@ -18,14 +18,11 @@
  */
 package org.neo4j.springframework.data.integration.reactive;
 
-import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.neo4j.springframework.data.test.Neo4jExtension.*;
 
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
-
-import java.util.Collection;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -183,10 +180,6 @@ class ReactiveProjectionIT {
 			return neo4jConnectionSupport.getDriver();
 		}
 
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return singletonList(Person.class.getPackage().getName());
-		}
 	}
 
 }

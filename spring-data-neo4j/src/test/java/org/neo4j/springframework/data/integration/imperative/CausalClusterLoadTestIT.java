@@ -21,8 +21,6 @@ package org.neo4j.springframework.data.integration.imperative;
 import static java.util.stream.Collectors.*;
 
 import java.net.URI;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -43,7 +41,6 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.junit.jupiter.causal_cluster.Neo4jUri;
 import org.neo4j.springframework.data.config.AbstractNeo4jConfig;
 import org.neo4j.springframework.data.core.Neo4jClient;
-import org.neo4j.springframework.data.integration.shared.ThingWithGeneratedId;
 import org.neo4j.springframework.data.integration.shared.ThingWithSequence;
 import org.neo4j.springframework.data.repository.Neo4jRepository;
 import org.neo4j.springframework.data.repository.config.EnableNeo4jRepositories;
@@ -142,11 +139,6 @@ class CausalClusterLoadTestIT {
 				Config.builder().withConnectionTimeout(2, TimeUnit.MINUTES).build());
 			driver.verifyConnectivity();
 			return driver;
-		}
-
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(ThingWithGeneratedId.class.getPackage().getName());
 		}
 
 		@Bean

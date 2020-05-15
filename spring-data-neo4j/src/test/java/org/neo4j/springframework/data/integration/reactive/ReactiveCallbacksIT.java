@@ -26,8 +26,6 @@ import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Tag;
@@ -150,9 +148,5 @@ class ReactiveCallbacksIT extends CallbacksITBase {
 			return neo4jConnectionSupport.getDriver();
 		}
 
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(ThingWithAssignedId.class.getPackage().getName());
-		}
 	}
 }

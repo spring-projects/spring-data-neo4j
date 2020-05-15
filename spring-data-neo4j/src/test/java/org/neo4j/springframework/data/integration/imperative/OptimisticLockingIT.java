@@ -22,7 +22,6 @@ import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -224,9 +223,5 @@ class OptimisticLockingIT {
 			return neo4jConnectionSupport.getDriver();
 		}
 
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return singletonList(VersionedThing.class.getPackage().getName());
-		}
 	}
 }

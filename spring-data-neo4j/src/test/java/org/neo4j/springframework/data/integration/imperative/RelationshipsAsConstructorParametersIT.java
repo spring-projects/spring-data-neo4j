@@ -20,8 +20,6 @@ package org.neo4j.springframework.data.integration.imperative;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -89,9 +87,5 @@ class RelationshipsAsConstructorParametersIT {
 			return neo4jConnectionSupport.getDriver();
 		}
 
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(RelationshipsAsConstructorParametersEntities.class.getPackage().getName());
-		}
 	}
 }
