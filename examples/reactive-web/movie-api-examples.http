@@ -2,8 +2,18 @@ PUT http://localhost:8080/movies
 Content-Type: application/json
 
 {
-  "title": "Aeon Flux",
-  "description": "Reactive is the new cool"
+	"title": "Aeon Flux",
+	"description": "Reactive is the new cool"
+	"actorsAndRoles": {
+		"Charlize Theron": [
+			"Æon Flux"
+		]
+	},
+	"directors": [
+		{
+			"name": "Karyn Kusama"
+		}
+	]
 }
 
 ###
@@ -23,5 +33,14 @@ Cache-Control: no-cache
 DELETE http://localhost:8080/movies/The Matrix
 Accept: */*
 Cache-Control: no-cache
+
+###
+
+PUT http://localhost:8080/movies/foo
+Content-Type: application/json
+
+{
+	"title": "Aeon Flux"
+}
 
 ###

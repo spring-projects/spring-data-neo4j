@@ -2,8 +2,7 @@ PUT http://localhost:8080/movies
 Content-Type: application/json
 
 {
-  "title": "Aeon Flux",
-  "description": "Reactive is the new cool"
+	"title": "Aeon Flux"
 }
 
 ###
