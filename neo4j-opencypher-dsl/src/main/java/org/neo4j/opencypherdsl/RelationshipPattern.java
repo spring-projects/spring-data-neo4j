@@ -34,4 +34,6 @@ import org.apiguardian.api.API;
  */
 @API(status = EXPERIMENTAL, since = "1.0")
 public interface RelationshipPattern extends PatternElement, ExposesRelationships<RelationshipChain> {
+
+	ExposesRelationships<RelationshipChain> named(String name);
 }

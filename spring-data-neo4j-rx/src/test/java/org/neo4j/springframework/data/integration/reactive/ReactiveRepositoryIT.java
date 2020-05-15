@@ -1017,8 +1017,8 @@ class ReactiveRepositoryIT {
 				.verifyComplete();
 		}
 
-		@Test
-		void loadEntityWithRelationshipWithPropertiesFromCustomQuery(@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
+	@Test
+	void loadEntityWithRelationshipWithPropertiesFromCustomQuery(@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
 
 			long personId;
 			long hobbyNode1Id;
@@ -1070,6 +1070,130 @@ class ReactiveRepositoryIT {
 				})
 				.verifyComplete();
 
+		}
+	}
+
+	@Nested
+	class RelatedEntityQuery extends ReactiveIntegrationTestBase {
+
+		@Test
+		void findByPropertyOnRelatedEntity(@Autowired ReactiveRelationshipRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Jerry'})");
+			}
+
+			StepVerifier.create(repository.findByPetsName("Jerry"))
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
+				.verifyComplete();
+		}
+
+		@Test
+		void findByPropertyOnRelatedEntitiesOr(@Autowired ReactiveRelationshipRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Tom'}),"
+					+ "(n)-[:Has]->(:Hobby{name: 'Music'})");
+			}
+
+			StepVerifier.create(repository.findByHobbiesNameOrPetsName("Music", "Jerry"))
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
+				.verifyComplete();
+			StepVerifier.create(repository.findByHobbiesNameOrPetsName("Sports", "Tom"))
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
+				.verifyComplete();
+
+			StepVerifier.create(repository.findByHobbiesNameOrPetsName("Sports", "Jerry"))
+				.verifyComplete();
+		}
+
+		@Test
+		void findByPropertyOnRelatedEntitiesAnd(@Autowired ReactiveRelationshipRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Tom'}),"
+					+ "(n)-[:Has]->(:Hobby{name: 'Music'})");
+			}
+
+			StepVerifier.create(repository.findByHobbiesNameAndPetsName("Music", "Tom"))
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
+				.verifyComplete();
+
+			StepVerifier.create(repository.findByHobbiesNameAndPetsName("Sports", "Jerry"))
+				.verifyComplete();
+		}
+
+		@Test
+		void findByPropertyOnRelatedEntityOfRelatedEntity(@Autowired ReactiveRelationshipRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Jerry'})"
+					+ "-[:Has]->(:Hobby{name: 'Sleeping'})");
+			}
+
+			StepVerifier.create(repository.findByPetsHobbiesName("Sleeping"))
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
+				.verifyComplete();
+
+			StepVerifier.create(repository.findByPetsHobbiesName("Sports"))
+				.verifyComplete();
+		}
+
+		@Test
+		void findByPropertyOnRelatedEntityOfRelatedSameEntity(@Autowired ReactiveRelationshipRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Jerry'})"
+					+ "-[:Has]->(:Pet{name: 'Tom'})");
+			}
+
+			StepVerifier.create(repository.findByPetsFriendsName("Tom"))
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
+				.verifyComplete();
+
+			StepVerifier.create(repository.findByPetsFriendsName("Jerry"))
+				.verifyComplete();
+		}
+
+		@Test
+		void findByPropertyOnRelationshipWithProperties(@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020}]->(:Hobby{name: 'Bowling'})");
+			}
+
+			StepVerifier.create(repository.findByHobbiesSince(2020))
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
+				.verifyComplete();
+		}
+
+		@Test
+		void findByPropertyOnRelationshipWithPropertiesOr(@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})");
+			}
+
+			StepVerifier.create(repository.findByHobbiesSinceOrHobbiesActive(2020, false))
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
+				.verifyComplete();
+
+			StepVerifier.create(repository.findByHobbiesSinceOrHobbiesActive(2019, true))
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
+				.verifyComplete();
+
+			StepVerifier.create(repository.findByHobbiesSinceOrHobbiesActive(2019, false))
+				.verifyComplete();
+		}
+
+		@Test
+		void findByPropertyOnRelationshipWithPropertiesAnd(@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})");
+			}
+
+			StepVerifier.create(repository.findByHobbiesSinceAndHobbiesActive(2020, true))
+				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
+				.verifyComplete();
+
+			StepVerifier.create(repository.findByHobbiesSinceAndHobbiesActive(2019, true))
+				.verifyComplete();
+
+			StepVerifier.create(repository.findByHobbiesSinceAndHobbiesActive(2020, false))
+				.verifyComplete();
 		}
 	}
 
@@ -2179,6 +2303,12 @@ class ReactiveRepositoryIT {
 
 		@Query("MATCH (p:PersonWithRelationshipWithProperties)-[l:LIKES]->(h:Hobby) return p, collect(l), collect(h)")
 		Mono<PersonWithRelationshipWithProperties> loadFromCustomQuery(@Param("id") Long id);
+
+		Mono<PersonWithRelationshipWithProperties> findByHobbiesSince(int since);
+
+		Mono<PersonWithRelationshipWithProperties> findByHobbiesSinceOrHobbiesActive(int since1, boolean active);
+
+		Mono<PersonWithRelationshipWithProperties> findByHobbiesSinceAndHobbiesActive(int since1, boolean active);
 	}
 
 	interface ReactivePetRepository extends ReactiveNeo4jRepository<Pet, Long> {
@@ -2191,6 +2321,16 @@ class ReactiveRepositoryIT {
 			+ "OPTIONAL MATCH (n)-[r2:Has]->(h:Hobby) "
 			+ "return n, petRels, pets, collect(r2) as hobbyRels, collect(h) as hobbies")
 		Mono<PersonWithRelationship> getPersonWithRelationshipsViaQuery();
+
+		Mono<PersonWithRelationship> findByPetsName(String petName);
+
+		Mono<PersonWithRelationship> findByHobbiesNameOrPetsName(String hobbyName, String petName);
+
+		Mono<PersonWithRelationship> findByHobbiesNameAndPetsName(String hobbyName, String petName);
+
+		Mono<PersonWithRelationship> findByPetsHobbiesName(String hobbyName);
+
+		Mono<PersonWithRelationship> findByPetsFriendsName(String petName);
 	}
 
 	interface ReactiveSimilarThingRepository extends ReactiveCrudRepository<SimilarThing, Long> {

@@ -45,6 +45,7 @@ import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
 import org.neo4j.springframework.data.core.schema.CypherGenerator;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.neo4j.springframework.data.core.schema.RelationshipDescription;
+import org.neo4j.springframework.data.core.schema.RelationshipProperties;
 import org.neo4j.springframework.data.repository.query.Neo4jQueryMethod.Neo4jParameter;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
@@ -139,6 +140,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 	private class PropertyPathWrapper {
 		private static final String NAME_OF_RELATED_FILTER_ENTITY = "m";
+		private static final String NAME_OF_RELATED_FILTER_RELATIONSHIP = "r";
 
 		private final int index;
 		private final Neo4jPersistentProperty leafProperty;
@@ -154,8 +156,12 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 			return this.leafProperty;
 		}
 
-		private String getName() {
+		private String getNodeName() {
 			return NAME_OF_RELATED_FILTER_ENTITY + "_" + index;
+		}
+
+		private String getRelationshipName() {
+			return NAME_OF_RELATED_FILTER_RELATIONSHIP + "_" + index;
 		}
 
 		private boolean isLastNode(PersistentProperty<?> persistentProperty) {
@@ -181,22 +187,27 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 				NodeDescription<?> targetEntity = relationshipDescription.getTarget();
 				Node relatedNode = Cypher.node(targetEntity.getPrimaryLabel(), targetEntity.getAdditionalLabels());
 
-				if (isLastNode(persistentProperty)) {
-					relatedNode = relatedNode.named(getName());
+				boolean lastNode = isLastNode(persistentProperty);
+				if (lastNode) {
+					relatedNode = relatedNode.named(getNodeName());
 				}
 
 				switch (relationshipDescription.getDirection()) {
 					case OUTGOING:
-						cypherRelationship = (ExposesRelationships<RelationshipChain>) cypherRelationship
+						cypherRelationship = (RelationshipPattern) cypherRelationship
 							.relationshipTo(relatedNode, relationshipDescription.getType());
 						break;
 					case INCOMING:
-						cypherRelationship = (ExposesRelationships<RelationshipChain>) cypherRelationship
+						cypherRelationship = (RelationshipPattern) cypherRelationship
 							.relationshipFrom(relatedNode, relationshipDescription.getType());
 						break;
 					default:
-						cypherRelationship = (ExposesRelationships<RelationshipChain>) cypherRelationship
+						cypherRelationship = (RelationshipPattern) cypherRelationship
 							.relationshipBetween(relatedNode, relationshipDescription.getType());
+				}
+
+				if (lastNode) {
+					cypherRelationship = ((RelationshipPattern) cypherRelationship).named(getRelationshipName());
 				}
 			}
 
@@ -531,7 +542,14 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 				.filter(rp -> rp.getLeafProperty().equals(persistentProperty))
 				.findFirst().get();
 
-			expression = Cypher.property(propertyPathWrapper.getName(), persistentProperty.getPropertyName());
+			String cypherElementName;
+			// this "entity" is a representation of a relationship with properties
+			if (owner.isAnnotationPresent(RelationshipProperties.class)) {
+				cypherElementName = propertyPathWrapper.getRelationshipName();
+			} else {
+				cypherElementName = propertyPathWrapper.getNodeName();
+			}
+			expression = Cypher.property(cypherElementName, persistentProperty.getPropertyName());
 		}
 
 		if (addToLower) {

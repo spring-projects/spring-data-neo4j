@@ -2759,6 +2759,37 @@ class RepositoryIT {
 			assertThat(repository.findByPetsFriendsName("Tom").getName()).isEqualTo("Freddie");
 			assertThat(repository.findByPetsFriendsName("Jerry")).isNull();
 		}
+
+		@Test
+		void findByPropertyOnRelationshipWithProperties(@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020}]->(:Hobby{name: 'Bowling'})");
+			}
+
+			assertThat(repository.findByHobbiesSince(2020).getName()).isEqualTo("Freddie");
+		}
+
+		@Test
+		void findByPropertyOnRelationshipWithPropertiesOr(@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})");
+			}
+
+			assertThat(repository.findByHobbiesSinceOrHobbiesActive(2020, false).getName()).isEqualTo("Freddie");
+			assertThat(repository.findByHobbiesSinceOrHobbiesActive(2019, true).getName()).isEqualTo("Freddie");
+			assertThat(repository.findByHobbiesSinceOrHobbiesActive(2019, false)).isNull();
+		}
+
+		@Test
+		void findByPropertyOnRelationshipWithPropertiesAnd(@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})");
+			}
+
+			assertThat(repository.findByHobbiesSinceAndHobbiesActive(2020, true).getName()).isEqualTo("Freddie");
+			assertThat(repository.findByHobbiesSinceAndHobbiesActive(2019, true)).isNull();
+			assertThat(repository.findByHobbiesSinceAndHobbiesActive(2020, false)).isNull();
+		}
 	}
 
 	@Nested
@@ -2828,6 +2859,12 @@ class RepositoryIT {
 
 		@Query("MATCH (p:PersonWithRelationshipWithProperties)-[l:LIKES]->(h:Hobby) return p, collect(l), collect(h)")
 		PersonWithRelationshipWithProperties loadFromCustomQuery(@Param("id") Long id);
+
+		PersonWithRelationshipWithProperties findByHobbiesSince(int since);
+
+		PersonWithRelationshipWithProperties findByHobbiesSinceOrHobbiesActive(int since1, boolean active);
+
+		PersonWithRelationshipWithProperties findByHobbiesSinceAndHobbiesActive(int since1, boolean active);
 	}
 
 	interface PetRepository extends Neo4jRepository<Pet, Long> {
