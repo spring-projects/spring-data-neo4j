@@ -102,9 +102,7 @@ public final class MapProjection implements Expression {
 				i += 1;
 			}
 
-			if (lastExpression instanceof Property) {
-				lastExpression = ((Property) lastExpression).getName();
-			} else if (lastExpression instanceof Asterisk) {
+			if (lastExpression instanceof Asterisk) {
 				lastExpression = new PropertyLookup("*");
 			}
 
@@ -115,6 +113,11 @@ public final class MapProjection implements Expression {
 				knownKeys.add(lastKey);
 			} else if (lastExpression instanceof SymbolicName || lastExpression instanceof PropertyLookup) {
 				entry = lastExpression;
+			} else if (lastExpression instanceof Property) {
+				entry = ((Property) lastExpression).getName();
+			} else if (lastExpression instanceof AliasedExpression) {
+				AliasedExpression aliasedExpression = (AliasedExpression) lastExpression;
+				entry = new KeyValueMapEntry(aliasedExpression.getAlias(), aliasedExpression.getDelegate());
 			} else {
 				throw new IllegalArgumentException(lastExpression + " of type " + lastExpression.getClass()
 					+ " cannot be used with an implicit name as map entry.");

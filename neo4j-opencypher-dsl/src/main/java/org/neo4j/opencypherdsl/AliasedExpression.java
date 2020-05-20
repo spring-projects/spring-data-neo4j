@@ -47,6 +47,10 @@ public final class AliasedExpression implements Aliased, Expression {
 		return alias;
 	}
 
+	Expression getDelegate() {
+		return delegate;
+	}
+
 	/**
 	 * This takes the originally aliased expression and re-aliases it. Aliases are not nested.
 	 *

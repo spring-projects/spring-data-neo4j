@@ -2251,6 +2251,31 @@ class CypherIT {
 			}
 
 			@Test
+			void doc21221() {
+
+				String expected = "MATCH (actor:`Person` {name: 'Tom Hanks'})-[:`ACTED_IN`]->(movie:`Movie`) RETURN actor{.name, .realName, movies: collect(movie{.title, .released})}";
+
+				Statement statement;
+				Node actor = node("Person").named("actor");
+				Node movie = node("Movie").named("movie");
+
+				statement = Cypher.match(actor.properties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
+					.returning(actor.project("name", "realName", "movies", Functions.collect(movie.project("title", "released"))))
+					.build();
+				assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
+
+				statement = Cypher.match(actor.properties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
+					.returning(actor.project("name", "realName", "movies", Functions.collect(movie.project(movie.property("title"), movie.property("released")))))
+					.build();
+				assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
+
+				statement = Cypher.match(actor.properties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
+					.returning(actor.project("name", "realName", "movies", Functions.collect(movie.project("title", "year", movie.property("released")))))
+					.build();
+				assertThat(cypherRenderer.render(statement)).isEqualTo("MATCH (actor:`Person` {name: 'Tom Hanks'})-[:`ACTED_IN`]->(movie:`Movie`) RETURN actor{.name, .realName, movies: collect(movie{.title, year: movie.released})}");
+			}
+
+			@Test
 			void nested() {
 
 				Statement statement;
@@ -2935,6 +2960,23 @@ class CypherIT {
 
 			assertThat(cypherRenderer.render(s))
 				.isEqualTo("MATCH (a:`A`)-->(b:`B`)-[*..2]->(c:`C`) RETURN a");
+		}
+
+		@Test
+		void gh245() {
+			String expected = "MATCH (p:`Person`) RETURN p{alias: p.name}";
+
+			Node n = Cypher.node("Person").named("p");
+			Statement statement;
+			statement = Cypher.match(n)
+				.returning(n.project("alias", n.property("name")))
+				.build();
+			assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
+
+			statement = Cypher.match(n)
+				.returning(n.project(n.property("name").as("alias")))
+				.build();
+			assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
 		}
 	}
 }
