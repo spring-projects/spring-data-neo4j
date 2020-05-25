@@ -736,7 +736,7 @@ Stream<User> findAllByCustomQueryAndStream();
 
 Stream<User> readAllByFirstnameNotNull();
 
-@Query("MATCH (u:User) RETURN u)
+@Query("MATCH (u:User) RETURN u")
 Stream<User> streamAllPaged(Pageable pageable);
 ----
 ====
