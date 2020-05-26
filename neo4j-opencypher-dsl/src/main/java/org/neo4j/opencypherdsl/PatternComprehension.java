@@ -53,14 +53,6 @@ public final class PatternComprehension implements Expression {
 	}
 
 	/**
-	 * Allows to add a where clause into the definition of the pattern.
-	 */
-	public interface OngoingDefinitionWithPattern extends OngoingDefinitionWithoutReturn {
-
-		OngoingDefinitionWithoutReturn where(Condition condition);
-	}
-
-	/**
 	 * Provides the final step of defining a pattern comprehension.
 	 */
 	public interface OngoingDefinitionWithoutReturn {
@@ -82,24 +74,51 @@ public final class PatternComprehension implements Expression {
 	}
 
 	/**
+	 * Allows to add a where clause into the definition of the pattern.
+	 */
+	public interface OngoingDefinitionWithPattern extends OngoingDefinitionWithoutReturn {
+
+		OngoingDefinitionWithPatternAndWhere where(Condition condition);
+	}
+
+	/**
+	 * Intermediate step that allows expressing additional, logical operators.
+	 */
+	public interface OngoingDefinitionWithPatternAndWhere extends OngoingDefinitionWithoutReturn, ExposesLogicalOperators<OngoingDefinitionWithPatternAndWhere>  {
+	}
+
+	/**
 	 * Ongoing definition of a pattern comprehension. Can be defined without a where-clause now.
 	 */
-	private static class Builder implements OngoingDefinitionWithPattern {
+	private static class Builder implements OngoingDefinitionWithPattern, OngoingDefinitionWithPatternAndWhere  {
 		private final RelationshipPattern pattern;
-		private Where where;
+		private final DefaultStatementBuilder.ConditionBuilder conditionBuilder = new DefaultStatementBuilder.ConditionBuilder();
 
 		private Builder(RelationshipPattern pattern) {
 			this.pattern = pattern;
 		}
 
-		public OngoingDefinitionWithoutReturn where(Condition condition) {
-			this.where = new Where(condition);
+		@Override
+		public OngoingDefinitionWithPatternAndWhere where(Condition condition) {
+			conditionBuilder.where(condition);
+			return this;
+		}
+
+		@Override
+		public OngoingDefinitionWithPatternAndWhere and(Condition condition) {
+			conditionBuilder.and(condition);
+			return this;
+		}
+
+		@Override
+		public OngoingDefinitionWithPatternAndWhere or(Condition condition) {
+			conditionBuilder.or(condition);
 			return this;
 		}
 
 		@Override
 		public PatternComprehension returning(Expression... expressions) {
-
+			Where where = conditionBuilder.buildCondition().map(Where::new).orElse(null);
 			return new PatternComprehension(pattern, where, listOrSingleExpression(expressions));
 		}
 	}

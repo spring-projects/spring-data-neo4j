@@ -85,58 +85,8 @@ public interface StatementBuilder extends ExposesMatch, ExposesCreate, ExposesMe
 	 * A match that has a non-empty {@code where}-part. THe returning clause is still open.
 	 * @since 1.0
 	 */
-	interface OngoingReadingWithWhere extends OngoingReading, ExposesMatch, ExposesConditions<OngoingReadingWithWhere> {
-	}
-
-	/**
-	 * @param <T> Type of ongoing query.
-	 * @since 1.0
-	 */
-	interface ExposesConditions<T> {
-
-		/**
-		 * Adds an additional condition to the existing conditions, connected by an {@literal and}.
-		 * Existing conditions will be logically grouped by using {@code ()} in the statement if previous
-		 * conditions used another logical operator.
-		 *
-		 * @param condition An additional condition
-		 * @return The ongoing definition of a match
-		 */
-		T and(Condition condition);
-
-		/**
-		 * Adds an additional condition based on a path pattern to the existing conditions, connected by an {@literal and}.
-		 * Existing conditions will be logically grouped by using {@code ()} in the statement if previous
-		 * conditions used another logical operator.
-		 *
-		 * @param pathPattern An additional pattern to include in the conditions
-		 * @return The ongoing definition of a match
-		 */
-		default T and(RelationshipPattern pathPattern) {
-			return this.and(new RelationshipPatternCondition(pathPattern));
-		}
-
-		/**
-		 * Adds an additional condition to the existing conditions, connected by an {@literal or}.
-		 * Existing conditions will be logically grouped by using {@code ()} in the statement if previous
-		 * conditions used another logical operator.
-		 *
-		 * @param condition An additional condition
-		 * @return The ongoing definition of a match
-		 */
-		T or(Condition condition);
-
-		/**
-		 * Adds an additional condition based on a path pattern to the existing conditions, connected by an {@literal or}.
-		 * Existing conditions will be logically grouped by using {@code ()} in the statement if previous
-		 * conditions used another logical operator.
-		 *
-		 * @param pathPattern An additional pattern to include in the conditions
-		 * @return The ongoing definition of a match
-		 */
-		default T or(RelationshipPattern pathPattern) {
-			return this.or(new RelationshipPatternCondition(pathPattern));
-		}
+	interface OngoingReadingWithWhere extends OngoingReading, ExposesMatch,
+		ExposesLogicalOperators<OngoingReadingWithWhere> {
 	}
 
 	/**
@@ -198,11 +148,11 @@ public interface StatementBuilder extends ExposesMatch, ExposesCreate, ExposesMe
 
 	/**
 	 * @see OrderableOngoingReadingAndWith
-	 * @see ExposesConditions
+	 * @see ExposesLogicalOperators
 	 * @since 1.0
 	 */
 	interface OrderableOngoingReadingAndWithWithWhere
-		extends OrderableOngoingReadingAndWith, ExposesConditions<OrderableOngoingReadingAndWithWithWhere> {
+		extends OrderableOngoingReadingAndWith, ExposesLogicalOperators<OrderableOngoingReadingAndWithWithWhere> {
 	}
 
 	/**

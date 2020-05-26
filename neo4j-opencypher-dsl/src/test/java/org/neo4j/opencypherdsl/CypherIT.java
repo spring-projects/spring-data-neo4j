@@ -19,8 +19,11 @@
 package org.neo4j.opencypherdsl;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.neo4j.opencypherdsl.Conditions.exists;
+import static org.neo4j.opencypherdsl.Conditions.not;
 import static org.neo4j.opencypherdsl.Conditions.*;
 import static org.neo4j.opencypherdsl.Cypher.*;
+import static org.neo4j.opencypherdsl.Functions.type;
 import static org.neo4j.opencypherdsl.Functions.*;
 
 import java.util.function.Function;
@@ -102,7 +105,8 @@ class CypherIT {
 			@Test // GH-170
 			void relationshipWithProperties() {
 				Statement statement = Cypher
-					.match(userNode.relationshipTo(bikeNode, "OWNS").properties(mapOf("boughtOn", literalOf("2019-04-16"))))
+					.match(userNode.relationshipTo(bikeNode, "OWNS")
+						.properties(mapOf("boughtOn", literalOf("2019-04-16"))))
 					.returning(bikeNode, userNode)
 					.build();
 
@@ -146,7 +150,8 @@ class CypherIT {
 			@Test // GH-168
 			void relationshipWithLengthAndProperties() {
 				Statement statement = Cypher
-					.match(userNode.relationshipTo(bikeNode, "OWNS").length(3, 5).properties(mapOf("boughtOn", literalOf("2019-04-16"))))
+					.match(userNode.relationshipTo(bikeNode, "OWNS").length(3, 5)
+						.properties(mapOf("boughtOn", literalOf("2019-04-16"))))
 					.returning(bikeNode, userNode)
 					.build();
 
@@ -219,9 +224,12 @@ class CypherIT {
 				Statement statement = Cypher
 					.match(userNode
 						.relationshipTo(bikeNode, "OWNS")
-						.relationshipTo(tripNode, "USED_ON").named("r2").min(1).properties(mapOf("when", literalOf("2019-04-16")))
-						.relationshipFrom(userNode, "WAS_ON").named("x").max(2).properties("whatever", literalOf("2020-04-16"))
-						.relationshipBetween(Cypher.node("SOMETHING")).named("y").length(2, 3).properties(mapOf("idk", literalOf("2021-04-16")))
+						.relationshipTo(tripNode, "USED_ON").named("r2").min(1)
+						.properties(mapOf("when", literalOf("2019-04-16")))
+						.relationshipFrom(userNode, "WAS_ON").named("x").max(2)
+						.properties("whatever", literalOf("2020-04-16"))
+						.relationshipBetween(Cypher.node("SOMETHING")).named("y").length(2, 3)
+						.properties(mapOf("idk", literalOf("2021-04-16")))
 					)
 					.where(userNode.property("name").matches(".*aName"))
 					.returning(bikeNode, userNode)
@@ -251,7 +259,8 @@ class CypherIT {
 				Statement statement = Cypher
 					.match(anyNode("a"))
 					.where(property("a", "name").isEqualTo(literalOf("Alice")))
-					.returning(Functions.size(anyNode("a").relationshipTo(anyNode()).relationshipTo(anyNode())).as("fof"))
+					.returning(
+						Functions.size(anyNode("a").relationshipTo(anyNode()).relationshipTo(anyNode())).as("fof"))
 					.build();
 
 				assertThat(cypherRenderer.render(statement))
@@ -619,11 +628,14 @@ class CypherIT {
 			// THose can be a couple of queries ending in a WITH statement so the
 			// pipeline they present in the full query is also present in Java.
 			Function<ExposesMatch, ExposesMatch> step1Supplier =
-				previous -> previous.match(node("S1").named("n")).where(property("n", "a").isEqualTo(literalOf("A"))).with("n");
+				previous -> previous.match(node("S1").named("n")).where(property("n", "a").isEqualTo(literalOf("A")))
+					.with("n");
 			Function<ExposesMatch, ExposesReturning> step2Supplier =
-				previous -> previous.match(Cypher.anyNode("n").relationshipTo(node("S2").named("m"), "SOMEHOW_RELATED")).with("n", "m");
+				previous -> previous.match(Cypher.anyNode("n").relationshipTo(node("S2").named("m"), "SOMEHOW_RELATED"))
+					.with("n", "m");
 
-			Statement statement = step1Supplier.andThen(step2Supplier).apply(Statement.builder()).returning("n", "m").build();
+			Statement statement = step1Supplier.andThen(step2Supplier).apply(Statement.builder()).returning("n", "m")
+				.build();
 			assertThat(cypherRenderer.render(statement))
 				.isEqualTo(
 					"MATCH (n:`S1`) WHERE n.a = 'A' WITH n MATCH (n)-[:`SOMEHOW_RELATED`]->(m:`S2`) WITH n, m RETURN n, m");
@@ -1239,6 +1251,66 @@ class CypherIT {
 
 				assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
 			}
+		}
+
+		@Test // GH-244
+		void inPatternComprehensions() {
+
+			Statement statement;
+			Node a = Cypher.node("Person").properties("name", literalOf("Keanu Reeves")).named("a");
+			Node b = Cypher.anyNode("b");
+
+			statement = Cypher.match(a)
+				.returning(
+					listBasedOn(a.relationshipBetween(b))
+						.where(b.hasLabels("Movie").and(b.property("released").isNotNull()))
+						.returning(b.property("released"))
+						.as("years"))
+				.build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (a:`Person` {name: 'Keanu Reeves'}) RETURN [(a)--(b) WHERE (b:`Movie` AND b.released IS NOT NULL) | b.released] AS years");
+
+			statement = Cypher.match(a)
+				.returning(
+					listBasedOn(a.relationshipBetween(b))
+						.where(
+							b.hasLabels("Movie")
+								.and(b.property("released").isNotNull())
+								.or(b.property("title").isEqualTo(literalOf("The Matrix")))
+								.or(b.property("title").isEqualTo(literalOf("The Matrix 2"))))
+						.returning(b.property("released"))
+						.as("years"))
+				.build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (a:`Person` {name: 'Keanu Reeves'}) RETURN [(a)--(b) WHERE ((b:`Movie` AND b.released IS NOT NULL) OR b.title = 'The Matrix' OR b.title = 'The Matrix 2') | b.released] AS years");
+
+			statement = Cypher.match(a)
+				.returning(
+					listBasedOn(a.relationshipBetween(b))
+						.where(b.hasLabels("Movie"))
+						.and(b.property("released").isNotNull())
+						  .or(b.property("title").isEqualTo(literalOf("The Matrix")))
+						  .or(b.property("title").isEqualTo(literalOf("The Matrix 2")))
+						.returning(b.property("released"))
+						.as("years"))
+				.build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (a:`Person` {name: 'Keanu Reeves'}) RETURN [(a)--(b) WHERE ((b:`Movie` AND b.released IS NOT NULL) OR b.title = 'The Matrix' OR b.title = 'The Matrix 2') | b.released] AS years");
+
+			statement = Cypher.match(a)
+				.returning(
+					listBasedOn(a.relationshipBetween(b))
+						.where(b.hasLabels("Movie"))
+						.returning(b.property("released"))
+						.as("years"))
+				.build();
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH (a:`Person` {name: 'Keanu Reeves'}) RETURN [(a)--(b) WHERE b:`Movie` | b.released] AS years");
 		}
 	}
 
@@ -2042,13 +2114,14 @@ class CypherIT {
 
 			final Node rootNode = anyNode("n");
 			final SymbolicName label = name("label");
-			final Statement statement =  Cypher.match(rootNode).where(rootNode.internalId().isEqualTo(literalOf(1)))
+			final Statement statement = Cypher.match(rootNode).where(rootNode.internalId().isEqualTo(literalOf(1)))
 				.unwind(rootNode.labels()).as("label")
 				.with(label).where(label.in(parameter("fixedLabels")).not())
 				.returning(Functions.collect(label).as("labels")).build();
 
 			assertThat(cypherRenderer.render(statement))
-				.isEqualTo("MATCH (n) WHERE id(n) = 1 UNWIND labels(n) AS label WITH label WHERE NOT (label IN $fixedLabels) RETURN collect(label) AS labels");
+				.isEqualTo(
+					"MATCH (n) WHERE id(n) = 1 UNWIND labels(n) AS label WITH label WHERE NOT (label IN $fixedLabels) RETURN collect(label) AS labels");
 		}
 
 		@Test
@@ -2259,20 +2332,27 @@ class CypherIT {
 				Node actor = node("Person").named("actor");
 				Node movie = node("Movie").named("movie");
 
-				statement = Cypher.match(actor.properties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
-					.returning(actor.project("name", "realName", "movies", Functions.collect(movie.project("title", "released"))))
+				statement = Cypher
+					.match(actor.properties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
+					.returning(actor
+						.project("name", "realName", "movies", Functions.collect(movie.project("title", "released"))))
 					.build();
 				assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
 
-				statement = Cypher.match(actor.properties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
-					.returning(actor.project("name", "realName", "movies", Functions.collect(movie.project(movie.property("title"), movie.property("released")))))
+				statement = Cypher
+					.match(actor.properties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
+					.returning(actor.project("name", "realName", "movies",
+						Functions.collect(movie.project(movie.property("title"), movie.property("released")))))
 					.build();
 				assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
 
-				statement = Cypher.match(actor.properties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
-					.returning(actor.project("name", "realName", "movies", Functions.collect(movie.project("title", "year", movie.property("released")))))
+				statement = Cypher
+					.match(actor.properties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
+					.returning(actor.project("name", "realName", "movies",
+						Functions.collect(movie.project("title", "year", movie.property("released")))))
 					.build();
-				assertThat(cypherRenderer.render(statement)).isEqualTo("MATCH (actor:`Person` {name: 'Tom Hanks'})-[:`ACTED_IN`]->(movie:`Movie`) RETURN actor{.name, .realName, movies: collect(movie{.title, year: movie.released})}");
+				assertThat(cypherRenderer.render(statement)).isEqualTo(
+					"MATCH (actor:`Person` {name: 'Tom Hanks'})-[:`ACTED_IN`]->(movie:`Movie`) RETURN actor{.name, .realName, movies: collect(movie{.title, year: movie.released})}");
 			}
 
 			@Test
@@ -2644,7 +2724,8 @@ class CypherIT {
 			).returning(node).build();
 
 			assertThat(cypherRenderer.render(statement))
-				.isEqualTo("MATCH (n:`a`) WHERE CASE n.value WHEN 'blubb' THEN true WHEN 'bla' THEN false END RETURN n");
+				.isEqualTo(
+					"MATCH (n:`a`) WHERE CASE n.value WHEN 'blubb' THEN true WHEN 'bla' THEN false END RETURN n");
 		}
 
 		@Test
@@ -2660,7 +2741,8 @@ class CypherIT {
 			).returning(node).build();
 
 			assertThat(cypherRenderer.render(statement))
-				.isEqualTo("MATCH (n:`a`) WHERE CASE n.value WHEN 'blubb' THEN true WHEN 'bla' THEN false ELSE 1 END RETURN n");
+				.isEqualTo(
+					"MATCH (n:`a`) WHERE CASE n.value WHEN 'blubb' THEN true WHEN 'bla' THEN false ELSE 1 END RETURN n");
 		}
 
 		@Test
@@ -2702,7 +2784,8 @@ class CypherIT {
 			).returning(node).build();
 
 			assertThat(cypherRenderer.render(statement))
-				.isEqualTo("MATCH (n:`a`) WHERE CASE WHEN n.value = 'blubb' THEN true WHEN n.value = 'bla' THEN false END RETURN n");
+				.isEqualTo(
+					"MATCH (n:`a`) WHERE CASE WHEN n.value = 'blubb' THEN true WHEN n.value = 'bla' THEN false END RETURN n");
 		}
 
 		@Test
@@ -2718,7 +2801,8 @@ class CypherIT {
 			).returning(node).build();
 
 			assertThat(cypherRenderer.render(statement))
-				.isEqualTo("MATCH (n:`a`) WHERE CASE WHEN n.value = 'blubb' THEN true WHEN n.value = 'bla' THEN false ELSE 1 END RETURN n");
+				.isEqualTo(
+					"MATCH (n:`a`) WHERE CASE WHEN n.value = 'blubb' THEN true WHEN n.value = 'bla' THEN false ELSE 1 END RETURN n");
 		}
 
 		// from https://neo4j.com/docs/cypher-manual/current/syntax/expressions/#syntax-simple-case
@@ -2786,7 +2870,8 @@ class CypherIT {
 				.build();
 
 			assertThat(cypherRenderer.render(s))
-				.isEqualTo("MATCH (r:`Resume`)-[:`FOR`]->(o:`Offer`) WHERE (NOT (r:`LastResume`) AND (coalesce(o.valid_only, false) = false AND NOT (r:`InvalidStatus`) OR (o.valid_only = true AND r:`InvalidStatus`))) RETURN DISTINCT r, o");
+				.isEqualTo(
+					"MATCH (r:`Resume`)-[:`FOR`]->(o:`Offer`) WHERE (NOT (r:`LastResume`) AND (coalesce(o.valid_only, false) = false AND NOT (r:`InvalidStatus`) OR (o.valid_only = true AND r:`InvalidStatus`))) RETURN DISTINCT r, o");
 		}
 
 		@Test
@@ -2814,16 +2899,16 @@ class CypherIT {
 			assertThat(cypherRenderer.render(s))
 				.isEqualTo("MATCH (r:`Resume`)<-[:`HAS`]-(u:`UserSearchable`) "
 					+ "WHERE (NOT (r:`LastResume`) "
-					+   "AND (coalesce(o.valid_only, false) = false "
-					+   "AND NOT (r:`InvalidStatus`) "
-					+   "OR (o.valid_only = true "
-					+     "AND r:`ValidStatus`)) "
-					+   "AND NOT ("
-					+     "(r.is_internship = true AND size(size((r)-[:`PART_OF`]->())) = 0)"
-					+   ") "
-					+   "AND NOT ("
-					+     "(r.is_sandwich_training = true AND size(size((r)-[:`PART_OF`]->())) = 0)"
-					+   ")"
+					+ "AND (coalesce(o.valid_only, false) = false "
+					+ "AND NOT (r:`InvalidStatus`) "
+					+ "OR (o.valid_only = true "
+					+ "AND r:`ValidStatus`)) "
+					+ "AND NOT ("
+					+ "(r.is_internship = true AND size(size((r)-[:`PART_OF`]->())) = 0)"
+					+ ") "
+					+ "AND NOT ("
+					+ "(r.is_sandwich_training = true AND size(size((r)-[:`PART_OF`]->())) = 0)"
+					+ ")"
 					+ ") RETURN DISTINCT r, o");
 		}
 
@@ -2838,7 +2923,8 @@ class CypherIT {
 				.build();
 
 			assertThat(cypherRenderer.render(s))
-				.isEqualTo("MATCH (r:`Resume`)<-[:`HAS`]-(u:`UserSearchable`) WHERE NOT (exists((r)-[:`EXCLUDES`]->(u))) RETURN DISTINCT r");
+				.isEqualTo(
+					"MATCH (r:`Resume`)<-[:`HAS`]-(u:`UserSearchable`) WHERE NOT (exists((r)-[:`EXCLUDES`]->(u))) RETURN DISTINCT r");
 		}
 
 		@Test
@@ -2848,8 +2934,8 @@ class CypherIT {
 
 			Statement s = match(r.relationshipFrom(u, "HAS"))
 				.with(Functions.head(Functions.collect(r.getRequiredSymbolicName())).as("r"))
-					.returning(r)
-					.build();
+				.returning(r)
+				.build();
 
 			assertThat(cypherRenderer.render(s))
 				.isEqualTo("MATCH (r:`Resume`)<-[:`HAS`]-(u:`User`) WITH head(collect(r)) AS r RETURN r");
