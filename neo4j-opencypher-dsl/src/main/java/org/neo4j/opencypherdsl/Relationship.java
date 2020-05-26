@@ -51,7 +51,7 @@ public final class Relationship implements RelationshipPattern, Named {
 		/**
 		 * Right to left
 		 */
-		RTR("<-", "-"),
+		RTL("<-", "-"),
 		/**
 		 * None
 		 */

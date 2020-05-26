@@ -201,7 +201,7 @@ public final class Node implements PatternElement, Named, ExposesRelationships<R
 
 	@Override
 	public Relationship relationshipFrom(Node other, String... types) {
-		return Relationship.create(this, Direction.RTR, other, types);
+		return Relationship.create(this, Direction.RTL, other, types);
 	}
 
 	@Override
