@@ -182,7 +182,7 @@ public enum CypherGenerator {
 
 			} else {
 				return updateDecorator.apply(
-					Cypher.merge(rootNode.properties(nameOfIdProperty, idParameter))
+					Cypher.merge(rootNode.withProperties(nameOfIdProperty, idParameter))
 						.set(rootNode, parameter(NAME_OF_PROPERTIES_PARAM))
 				).returning(rootNode.internalId()).build();
 			}
@@ -245,7 +245,7 @@ public enum CypherGenerator {
 		String row = "entity";
 		return Cypher
 			.unwind(parameter(NAME_OF_ENTITY_LIST_PARAM)).as(row)
-			.merge(rootNode.properties(nameOfIdProperty, property(row, NAME_OF_ID)))
+			.merge(rootNode.withProperties(nameOfIdProperty, property(row, NAME_OF_ID)))
 			.set(rootNode, property(row, NAME_OF_PROPERTIES_PARAM))
 			.returning(Functions.collect(rootNode.property(nameOfIdProperty)).as(NAME_OF_IDS))
 			.build();
