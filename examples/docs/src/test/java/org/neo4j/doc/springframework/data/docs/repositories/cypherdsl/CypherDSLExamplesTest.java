@@ -43,7 +43,7 @@ class CypherDSLExamplesTest {
 	void playMovieGraphFind() {
 
 		// tag::cypher-dsl-e2[]
-		var tom = anyNode().named("tom").properties("name", literalOf("Tom Hanks"));
+		var tom = anyNode().named("tom").withProperties("name", literalOf("Tom Hanks"));
 		var statement = Cypher
 			.match(tom).returning(tom)
 			.build();
@@ -53,7 +53,7 @@ class CypherDSLExamplesTest {
 		// end::cypher-dsl-e2[]
 
 		// tag::cypher-dsl-e3[]
-		var cloudAtlas = anyNode().named("cloudAtlas").properties("title", literalOf("Cloud Atlas"));
+		var cloudAtlas = anyNode().named("cloudAtlas").withProperties("title", literalOf("Cloud Atlas"));
 		statement = Cypher
 			.match(cloudAtlas).returning(cloudAtlas)
 			.build();
@@ -93,7 +93,7 @@ class CypherDSLExamplesTest {
 	void playMovieGraphQuery() {
 
 		// tag::cypher-dsl-e6[]
-		var tom = node("Person").named("tom").properties("name", literalOf("Tom Hanks"));
+		var tom = node("Person").named("tom").withProperties("name", literalOf("Tom Hanks"));
 		var tomHanksMovies = anyNode("tomHanksMovies");
 		var statement = Cypher
 			.match(tom.relationshipTo(tomHanksMovies, "ACTED_IN"))
@@ -106,7 +106,7 @@ class CypherDSLExamplesTest {
 		// end::cypher-dsl-e6[]
 
 		// tag::cypher-dsl-e7[]
-		var cloudAtlas = anyNode("cloudAtlas").properties("title", literalOf("Cloud Atlas"));
+		var cloudAtlas = anyNode("cloudAtlas").withProperties("title", literalOf("Cloud Atlas"));
 		var directors = anyNode("directors");
 		statement = Cypher
 			.match(cloudAtlas.relationshipFrom(directors, "DIRECTED"))
@@ -118,7 +118,7 @@ class CypherDSLExamplesTest {
 		// end::cypher-dsl-e7[]
 
 		// tag::cypher-dsl-e8[]
-		tom = node("Person").named("tom").properties("name", literalOf("Tom Hanks"));
+		tom = node("Person").named("tom").withProperties("name", literalOf("Tom Hanks"));
 		var movie = anyNode("m");
 		var coActors = anyNode("coActors");
 		var people = node("Person").named("people");
@@ -133,7 +133,7 @@ class CypherDSLExamplesTest {
 		// end::cypher-dsl-e8[]
 
 		// tag::cypher-dsl-e9[]
-		cloudAtlas = node("Movie").properties("title", literalOf("Cloud Atlas"));
+		cloudAtlas = node("Movie").withProperties("title", literalOf("Cloud Atlas"));
 		people = node("Person").named("people");
 		var relatedTo = people.relationshipBetween(cloudAtlas).named("relatedTo");
 		statement = Cypher
@@ -151,7 +151,7 @@ class CypherDSLExamplesTest {
 	void playMovieGraphSolve() {
 
 		// tag::cypher-dsl-bacon[]
-		var bacon = node("Person").named("bacon").properties("name", literalOf("Kevin Bacon"));
+		var bacon = node("Person").named("bacon").withProperties("name", literalOf("Kevin Bacon"));
 		var hollywood = anyNode("hollywood");
 		var statement = Cypher
 			.match(bacon.relationshipBetween(hollywood).length(1, 4))
@@ -167,7 +167,7 @@ class CypherDSLExamplesTest {
 	void playMovieGraphRecommend() {
 
 		// tag::cypher-dsl-r[]
-		var tom = node("Person").named("tom").properties("name", literalOf("Tom Hanks"));
+		var tom = node("Person").named("tom").withProperties("name", literalOf("Tom Hanks"));
 		var coActors = anyNode("coActors");
 		var cocoActors = anyNode("cocoActors");
 		var strength = count(asterisk()).as("Strength");

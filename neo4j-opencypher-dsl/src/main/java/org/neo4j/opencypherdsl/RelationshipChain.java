@@ -124,7 +124,7 @@ public final class RelationshipChain implements RelationshipPattern, ExposesRela
 	public RelationshipChain properties(MapExpression<?> newProperties) {
 
 		Relationship lastElement = this.relationships.removeLast();
-		return this.add(lastElement.properties(newProperties));
+		return this.add(lastElement.withProperties(newProperties));
 	}
 
 	/**
@@ -136,7 +136,7 @@ public final class RelationshipChain implements RelationshipPattern, ExposesRela
 	public RelationshipChain properties(Object... keysAndValues) {
 
 		Relationship lastElement = this.relationships.removeLast();
-		return this.add(lastElement.properties(keysAndValues));
+		return this.add(lastElement.withProperties(keysAndValues));
 	}
 
 	@Override

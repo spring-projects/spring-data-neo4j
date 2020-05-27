@@ -26,11 +26,12 @@ import org.apiguardian.api.API;
  * A marker interface for things that expose methods to create new relationships to other elements.
  *
  * @author Michael J. Simons
- * @param <T> Typically a {@link Relationship} or {@link RelationshipChain}
+ * @param <T> The type of the resulting {@link RelationshipPattern}.
  * @since 1.0
  */
 @API(status = EXPERIMENTAL, since = "1.0")
-public interface ExposesRelationships<T> {
+public interface ExposesRelationships<T extends RelationshipPattern> {
+
 	/**
 	 * Starts building an outgoing relationship to the {@code other} {@link Node node}.
 	 *

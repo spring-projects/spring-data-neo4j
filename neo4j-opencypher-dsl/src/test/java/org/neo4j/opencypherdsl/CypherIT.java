@@ -106,7 +106,7 @@ class CypherIT {
 			void relationshipWithProperties() {
 				Statement statement = Cypher
 					.match(userNode.relationshipTo(bikeNode, "OWNS")
-						.properties(mapOf("boughtOn", literalOf("2019-04-16"))))
+						.withProperties(mapOf("boughtOn", literalOf("2019-04-16"))))
 					.returning(bikeNode, userNode)
 					.build();
 
@@ -151,7 +151,7 @@ class CypherIT {
 			void relationshipWithLengthAndProperties() {
 				Statement statement = Cypher
 					.match(userNode.relationshipTo(bikeNode, "OWNS").length(3, 5)
-						.properties(mapOf("boughtOn", literalOf("2019-04-16"))))
+						.withProperties(mapOf("boughtOn", literalOf("2019-04-16"))))
 					.returning(bikeNode, userNode)
 					.build();
 
@@ -1111,7 +1111,7 @@ class CypherIT {
 
 			@Test
 			void doc3651And() {
-				Node timothy = Cypher.node("Person").named("timothy").properties("name", literalOf("Timothy"));
+				Node timothy = Cypher.node("Person").named("timothy").withProperties("name", literalOf("Timothy"));
 				Node other = Cypher.node("Person").named("other");
 
 				Statement statement;
@@ -1135,7 +1135,7 @@ class CypherIT {
 
 			@Test
 			void doc3651Or() {
-				Node timothy = Cypher.node("Person").named("timothy").properties("name", literalOf("Timothy"));
+				Node timothy = Cypher.node("Person").named("timothy").withProperties("name", literalOf("Timothy"));
 				Node other = Cypher.node("Person").named("other");
 
 				Statement statement;
@@ -1159,7 +1159,7 @@ class CypherIT {
 
 			@Test
 			void doc3651XOr() {
-				Node timothy = Cypher.node("Person").named("timothy").properties("name", literalOf("Timothy"));
+				Node timothy = Cypher.node("Person").named("timothy").withProperties("name", literalOf("Timothy"));
 				Node other = Cypher.node("Person").named("other");
 
 				Statement statement;
@@ -1178,7 +1178,7 @@ class CypherIT {
 			void doc3652() {
 
 				Node person = Cypher.node("Person").named("person");
-				Node peter = Cypher.node("Person").named("peter").properties("name", literalOf("Peter"));
+				Node peter = Cypher.node("Person").named("peter").withProperties("name", literalOf("Peter"));
 
 				Statement statement;
 
@@ -1199,7 +1199,7 @@ class CypherIT {
 				Statement statement;
 
 				statement = Cypher.match(person)
-					.where(person.relationshipBetween(anyNode().properties("name", literalOf("Timothy")), "KNOWS"))
+					.where(person.relationshipBetween(anyNode().withProperties("name", literalOf("Timothy")), "KNOWS"))
 					.returning(person.property("name"), person.property("age"))
 					.build();
 
@@ -1228,7 +1228,7 @@ class CypherIT {
 			@Test
 			void afterWith() {
 
-				Node timothy = Cypher.node("Person").named("timothy").properties("name", literalOf("Timothy"));
+				Node timothy = Cypher.node("Person").named("timothy").withProperties("name", literalOf("Timothy"));
 				Node other = Cypher.node("Person").named("other");
 
 				Statement statement;
@@ -1257,7 +1257,7 @@ class CypherIT {
 		void inPatternComprehensions() {
 
 			Statement statement;
-			Node a = Cypher.node("Person").properties("name", literalOf("Keanu Reeves")).named("a");
+			Node a = Cypher.node("Person").withProperties("name", literalOf("Keanu Reeves")).named("a");
 			Node b = Cypher.anyNode("b");
 
 			statement = Cypher.match(a)
@@ -2052,8 +2052,8 @@ class CypherIT {
 
 			for (Node nodeWithProperties : new Node[] {
 				Cypher.node("Test", mapOf("a", literalOf("b"))),
-				Cypher.node("Test").properties(mapOf("a", literalOf("b"))),
-				Cypher.node("Test").properties("a", literalOf("b"))
+				Cypher.node("Test").withProperties(mapOf("a", literalOf("b"))),
+				Cypher.node("Test").withProperties("a", literalOf("b"))
 			}) {
 
 				Statement statement;
@@ -2078,7 +2078,7 @@ class CypherIT {
 		@Test
 		void nestedProperties() {
 
-			Node nodeWithProperties = Cypher.node("Test").properties("outer", mapOf("a", literalOf("b")));
+			Node nodeWithProperties = Cypher.node("Test").withProperties("outer", mapOf("a", literalOf("b")));
 
 			Statement statement;
 			statement = Cypher.match(nodeWithProperties)
@@ -2093,7 +2093,7 @@ class CypherIT {
 		@Test
 		void shouldNotRenderPropertiesInReturn() {
 
-			Node nodeWithProperties = bikeNode.properties("a", literalOf("b"));
+			Node nodeWithProperties = bikeNode.withProperties("a", literalOf("b"));
 
 			Statement statement;
 			statement = Cypher.match(nodeWithProperties, nodeWithProperties.relationshipFrom(userNode, "OWNS"))
@@ -2143,7 +2143,7 @@ class CypherIT {
 			Statement statement;
 			statement = Cypher.unwind(Cypher.literalOf(1), Cypher.literalTrue(), Cypher.literalFalse())
 				.as("n")
-				.merge(bikeNode.properties("b", name("n")))
+				.merge(bikeNode.withProperties("b", name("n")))
 				.returning(bikeNode)
 				.build();
 
@@ -2158,7 +2158,7 @@ class CypherIT {
 			Statement statement;
 			statement = Cypher.unwind(Cypher.literalOf(1), Cypher.literalTrue(), Cypher.literalFalse())
 				.as("n")
-				.create(bikeNode.properties("b", name("n")))
+				.create(bikeNode.withProperties("b", name("n")))
 				.returning(bikeNode)
 				.build();
 
@@ -2333,21 +2333,21 @@ class CypherIT {
 				Node movie = node("Movie").named("movie");
 
 				statement = Cypher
-					.match(actor.properties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
+					.match(actor.withProperties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
 					.returning(actor
 						.project("name", "realName", "movies", Functions.collect(movie.project("title", "released"))))
 					.build();
 				assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
 
 				statement = Cypher
-					.match(actor.properties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
+					.match(actor.withProperties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
 					.returning(actor.project("name", "realName", "movies",
 						Functions.collect(movie.project(movie.property("title"), movie.property("released")))))
 					.build();
 				assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
 
 				statement = Cypher
-					.match(actor.properties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
+					.match(actor.withProperties("name", literalOf("Tom Hanks")).relationshipTo(movie, "ACTED_IN"))
 					.returning(actor.project("name", "realName", "movies",
 						Functions.collect(movie.project("title", "year", movie.property("released")))))
 					.build();
@@ -2595,7 +2595,7 @@ class CypherIT {
 		void simple() {
 
 			Statement statement;
-			Node a = Cypher.node("Person").properties("name", literalOf("Keanu Reeves")).named("a");
+			Node a = Cypher.node("Person").withProperties("name", literalOf("Keanu Reeves")).named("a");
 			Node b = Cypher.anyNode("b");
 
 			statement = Cypher.match(a)
@@ -2610,7 +2610,7 @@ class CypherIT {
 		void simpleWithWhere() {
 
 			Statement statement;
-			Node a = Cypher.node("Person").properties("name", literalOf("Keanu Reeves")).named("a");
+			Node a = Cypher.node("Person").withProperties("name", literalOf("Keanu Reeves")).named("a");
 			Node b = Cypher.anyNode("b");
 
 			statement = Cypher.match(a)
@@ -2830,7 +2830,7 @@ class CypherIT {
 
 		@Test
 		void gh167() {
-			final Node app = node("Location").named("app").properties("uuid", parameter("app_uuid"));
+			final Node app = node("Location").named("app").withProperties("uuid", parameter("app_uuid"));
 			final Node locStart = node("Location").named("loc_start");
 			final Node resume = node("Resume").named("r");
 			final Node offer = node("Offer").named("o");
@@ -2842,7 +2842,7 @@ class CypherIT {
 			Statement statement = match(aFl, lFr)
 				.withDistinct(resume, locStart, app)
 				.match(resume
-					.relationshipTo(offer.properties("is_valid", literalTrue()), "IN_COHORT_OF")
+					.relationshipTo(offer.withProperties("is_valid", literalTrue()), "IN_COHORT_OF")
 					.relationshipTo(anyNode("app"), "IN")
 				)
 				.withDistinct(resume, locStart, app, offer)

@@ -38,7 +38,7 @@ public final class Property implements Expression {
 			"A property derived from a node or a relationship needs a parent with a symbolic name.");
 		Assert.hasText(name, "The properties name is required.");
 
-		return new Property(parentContainer.getSymbolicName().get(), new PropertyLookup((name)));
+		return new Property(parentContainer.getRequiredSymbolicName(), new PropertyLookup((name)));
 	}
 
 	static Property create(Expression container, String name) {

@@ -19,11 +19,21 @@
 package org.neo4j.opencypherdsl;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.*;
+import static org.neo4j.opencypherdsl.Cypher.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.neo4j.opencypherdsl.support.Visitable;
 import org.neo4j.opencypherdsl.support.Visitor;
 
@@ -63,5 +73,59 @@ class NodeTest {
 			}
 		});
 		assertThat(labels).contains("primary", "secondary");
+	}
+
+	@Nested
+	@TestInstance(PER_CLASS)
+	class PropertiesShouldBeHandled {
+
+		private Stream<Arguments> createNodesWithProperties() {
+			return Stream.of(
+				Arguments.of(Node.create("N").named("n").withProperties("p", literalTrue())),
+				Arguments.of(Node.create("N").named("n").withProperties(MapExpression.create("p", literalTrue())))
+			);
+		}
+
+		@ParameterizedTest
+		@MethodSource("createNodesWithProperties")
+		void shouldAddProperties(Node node) {
+
+			AtomicBoolean failTest = new AtomicBoolean(true);
+			node.accept(new Visitor() {
+				Class<?> expectedTypeOfNextSegment = null;
+
+				@Override
+				public void enter(Visitable segment) {
+					if (segment instanceof SymbolicName) {
+						assertThat(((SymbolicName) segment).getValue()).isEqualTo("n");
+					} else if (segment instanceof NodeLabel) {
+						assertThat(((NodeLabel) segment).getValue()).isEqualTo("N");
+					} else if (segment instanceof KeyValueMapEntry) {
+						assertThat(((KeyValueMapEntry) segment).getKey()).isEqualTo("p");
+						expectedTypeOfNextSegment = BooleanLiteral.class;
+					} else if (expectedTypeOfNextSegment != null) {
+						assertThat(segment).isInstanceOf(expectedTypeOfNextSegment);
+						failTest.getAndSet(false);
+					}
+				}
+			});
+			assertThat(failTest).isFalse();
+		}
+
+		@Test
+		void shouldCreateProperty() {
+
+			Node node = Node.create("N").named("n");
+			Property property = node.property("p");
+
+			java.util.Set<Object> expected = new HashSet<>();
+			expected.add(property.getName());
+			expected.add(node.getRequiredSymbolicName());
+			expected.add(property);
+
+			property.accept(expected::remove);
+
+			assertThat(expected).isEmpty();
+		}
 	}
 }

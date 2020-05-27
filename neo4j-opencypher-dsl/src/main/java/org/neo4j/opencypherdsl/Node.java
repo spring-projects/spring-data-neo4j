@@ -38,7 +38,7 @@ import org.neo4j.opencypherdsl.support.Visitor;
  * @since 1.0
  */
 @API(status = EXPERIMENTAL, since = "1.0")
-public final class Node implements PatternElement, Named, ExposesRelationships<Relationship> {
+public final class Node implements PatternElement, PropertyContainer, ExposesRelationships<Relationship>, ExposesProperties<Node> {
 
 	static Node create(String primaryLabel, String... additionalLabels) {
 
@@ -113,32 +113,26 @@ public final class Node implements PatternElement, Named, ExposesRelationships<R
 		return new Node(newSymbolicName, properties, labels);
 	}
 
-	/**
-	 * Creates a a copy of this node with additional properties. Creates a node without properties when no properties
-	 * * are passed to this method.
-	 *
-	 * @param newProperties the new properties
-	 * @return The new node.
-	 */
-	public Node properties(MapExpression<?> newProperties) {
+	@Override
+	public Node withProperties(MapExpression<?> newProperties) {
 
 		return new Node(this.symbolicName, newProperties == null ? null : new Properties(newProperties), labels);
 	}
 
-	/**
-	 * Creates a a copy of this node with additional properties. Creates a node without properties when no properties
-	 * are passed to this method.
-	 *
-	 * @param keysAndValues A list of key and values. Must be an even number, with alternating {@link String} and {@link Expression}.
-	 * @return The new node.
-	 */
-	public Node properties(Object... keysAndValues) {
+	@Override
+	public Node withProperties(Object... keysAndValues) {
 
 		MapExpression<?> newProperties = null;
 		if (keysAndValues != null && keysAndValues.length != 0) {
 			newProperties = MapExpression.create(keysAndValues);
 		}
-		return properties(newProperties);
+		return withProperties(newProperties);
+	}
+
+	@Override
+	public Property property(String name) {
+
+		return Property.create(this, name);
 	}
 
 	/**
@@ -170,20 +164,6 @@ public final class Node implements PatternElement, Named, ExposesRelationships<R
 	 */
 	public Optional<SymbolicName> getSymbolicName() {
 		return Optional.ofNullable(symbolicName);
-	}
-
-	/**
-	 * Creates a new {@link Property} associated with this property container.
-	 * <p>
-	 * Note: The property container does not track property creation and there is no possibility to enumerate all
-	 * properties that have been created for this node.
-	 *
-	 * @param name property name, must not be {@literal null} or empty.
-	 * @return a new {@link Property} associated with this {@link Node}.
-	 */
-	public Property property(String name) {
-
-		return Property.create(this, name);
 	}
 
 	public FunctionInvocation internalId() {

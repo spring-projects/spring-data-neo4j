@@ -36,7 +36,7 @@ import org.neo4j.opencypherdsl.support.Visitor;
  * @since 1.0
  */
 @API(status = EXPERIMENTAL, since = "1.0")
-public final class Relationship implements RelationshipPattern, Named {
+public final class Relationship implements RelationshipPattern, PropertyContainer, ExposesProperties<Relationship> {
 
 	/**
 	 * While the direction in the schema package is centered around the node, the direction here is the direction between two nodes.
@@ -173,35 +173,30 @@ public final class Relationship implements RelationshipPattern, Named {
 		return new Relationship(this.left, this.details.min(minimum).max(maximum), this.right);
 	}
 
-	/**
-	 * Creates a a copy of this relationship with additional properties. Creates a relationship without properties when no properties
-	 * are passed to this method.
-	 *
-	 * @param newProperties the new properties (can be {@literal null} to remove exiting properties).
-	 * @return The new relationship.
-	 */
-	public Relationship properties(MapExpression<?> newProperties) {
+	@Override
+	public Relationship withProperties(MapExpression<?> newProperties) {
 
 		if (newProperties == null && this.details.getProperties() == null) {
 			return this;
 		}
-		return new Relationship(this.left, this.details.with(newProperties == null ? null : new Properties(newProperties)), this.right);
+		return new Relationship(this.left,
+			this.details.with(newProperties == null ? null : new Properties(newProperties)), this.right);
 	}
 
-	/**
-	 * Creates a a copy of this relationship with additional properties. Creates a relationship without properties when no properties
-	 * are passed to this method.
-	 *
-	 * @param keysAndValues A list of key and values. Must be an even number, with alternating {@link String} and {@link Expression}.
-	 * @return The new relationship.
-	 */
-	public Relationship properties(Object... keysAndValues) {
+	@Override
+	public Relationship withProperties(Object... keysAndValues) {
 
 		MapExpression<?> newProperties = null;
 		if (keysAndValues != null && keysAndValues.length != 0) {
 			newProperties = MapExpression.create(keysAndValues);
 		}
-		return properties(newProperties);
+		return withProperties(newProperties);
+	}
+
+	@Override
+	public Property property(String name) {
+
+		return Property.create(this, name);
 	}
 
 	@Override
@@ -253,20 +248,5 @@ public final class Relationship implements RelationshipPattern, Named {
 	 */
 	public MapProjection project(Object... entries) {
 		return MapProjection.create(this.getRequiredSymbolicName(), entries);
-	}
-
-	/**
-	 * Creates a new {@link Property} associated with this property container.
-	 * <p>
-	 * Note: The property container does not track property creation and there is no possibility to enumerate all
-	 * properties that have been created for this relationship.
-	 *
-	 * @param name property name, must not be {@literal null} or empty.
-	 * @return a new {@link Property} associated with this {@link Relationship}.
-	 * @since 1.0.1
-	 */
-	public Property property(String name) {
-
-		return Property.create(this, name);
 	}
 }
