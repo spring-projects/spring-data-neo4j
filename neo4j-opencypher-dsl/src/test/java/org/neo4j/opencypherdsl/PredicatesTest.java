@@ -58,8 +58,9 @@ class PredicatesTest {
 	void functionInvocationsShouldBeCreated(String functionName, Class<?> argumentType) {
 
 		Method method = ReflectionUtils.findMethod(Predicates.class, functionName, argumentType);
-		FunctionInvocation invocation = (FunctionInvocation) ReflectionUtils
+		BooleanFunctionCondition invocation = (BooleanFunctionCondition) ReflectionUtils
 			.invokeMethod(method, null, mock(argumentType));
-		assertThat(invocation).hasFieldOrPropertyWithValue(FUNCTION_NAME_FIELD, functionName);
+		assertThat(invocation).extracting("delegate")
+			.hasFieldOrPropertyWithValue(FUNCTION_NAME_FIELD, functionName);
 	}
 }

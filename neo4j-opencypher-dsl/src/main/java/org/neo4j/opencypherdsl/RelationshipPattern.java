@@ -26,7 +26,7 @@ import org.apiguardian.api.API;
  * A shared, public interface for  {@link Relationship relationships} and {@link RelationshipChain chains of relationships}.
  * This interface reassembles the <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/RelationshipPattern.html">RelationshipPattern</a>.
  * <p>
- * This interface can be used synonmous with the concept of a <a href="https://neo4j.com/docs/cypher-manual/4.0/clauses/where/#query-where-patterns">Path Pattern</a>.
+ * This interface can be used synonymous with the concept of a <a href="https://neo4j.com/docs/cypher-manual/4.0/clauses/where/#query-where-patterns">Path Pattern</a>.
  *
  * @author Michael J. Simons
  * @soundtrack Mine & Fatoni - Alle Liebe nachträglich

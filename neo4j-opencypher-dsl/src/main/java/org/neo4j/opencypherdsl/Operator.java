@@ -77,6 +77,7 @@ public enum Operator implements Visitable {
 	REMOVE_LABEL("", Type.LABEL),
 
 	// Misc
+	EQUALS("="), // Read as in `p := (a)-->(b)`
 	PIPE("|");
 
 	private final String representation;

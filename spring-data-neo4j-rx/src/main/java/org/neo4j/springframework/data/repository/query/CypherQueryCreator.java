@@ -333,7 +333,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 				return toCypherProperty(persistentProperty, ignoreCase)
 					.endsWith(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case EXISTS:
-				return Conditions.exists(toCypherProperty(persistentProperty));
+				return Predicates.exists(toCypherProperty(persistentProperty));
 			case FALSE:
 				return toCypherProperty(persistentProperty, ignoreCase).isFalse();
 			case GREATER_THAN_EQUAL:

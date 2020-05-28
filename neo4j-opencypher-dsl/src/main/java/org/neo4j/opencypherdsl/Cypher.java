@@ -34,7 +34,6 @@ import org.neo4j.opencypherdsl.StatementBuilder.OrderableOngoingReadingAndWith;
 
 /**
  * The main entry point into the Cypher DSL.
- *
  * The Cypher Builder API is intended for framework usage to produce Cypher statements required for database operations.
  *
  * @author Michael J. Simons
@@ -115,6 +114,28 @@ public final class Cypher {
 	 */
 	public static Property property(Expression expression, String name) {
 		return Property.create(expression, name);
+	}
+
+	/**
+	 * Starts defining a named path by indicating a name.
+	 *
+	 * @param name The name of the new path
+	 * @return An ongoing definition of a named path
+	 * @since 1.1
+	 */
+	public static NamedPath.OngoingDefinitionWithName path(String name) {
+		return NamedPath.named(name);
+	}
+
+	/**
+	 * Starts defining a named path by indicating a name.
+	 *
+	 * @param name The name of the new path
+	 * @return An ongoing definition of a named path
+	 * @since 1.1
+	 */
+	public static NamedPath.OngoingDefinitionWithName path(SymbolicName name) {
+		return NamedPath.named(name);
 	}
 
 	/**
@@ -211,6 +232,7 @@ public final class Cypher {
 	/**
 	 * Starts building a statement starting with an {@code UNWIND} clause. The expressions passed will be turned into a
 	 * list expression
+	 *
 	 * @param expressions expressions to unwind
 	 * @return a new instance of {@link OngoingUnwind}
 	 */

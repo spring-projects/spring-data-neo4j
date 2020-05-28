@@ -26,6 +26,8 @@ import java.util.stream.StreamSupport;
 import org.apiguardian.api.API;
 
 /**
+ * A list of literals.
+ *
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @since 1.0

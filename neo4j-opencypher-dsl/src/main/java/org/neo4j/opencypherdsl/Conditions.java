@@ -23,8 +23,7 @@ import static org.apiguardian.api.API.Status.*;
 import org.apiguardian.api.API;
 
 /**
- * Builder for various conditions. Used internally from properties and other expressions that should take part in
- * conditions.
+ * Builder for various conditions.
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
@@ -123,7 +122,7 @@ public final class Conditions {
 		return condition.not();
 	}
 
-	 public static Condition not(PatternElement patternElement) {
+	public static Condition not(PatternElement patternElement) {
 
 		Assert.notNull(patternElement, "Pattern to negate must not be null.");
 		return new ExcludedPattern(patternElement);
@@ -204,28 +203,6 @@ public final class Conditions {
 	static Condition isEmpty(Expression expression) {
 
 		return Functions.size(expression).isEqualTo(Cypher.literalOf(0L));
-	}
-
-	/**
-	 * A condition that evaluates to true if the property {@code property} exists.
-	 *
-	 * @param property The property to check whether it exists or not
-	 * @return A new condition.
-	 */
-	public static Condition exists(Property property) {
-
-		return new BooleanFunctionCondition(Predicates.exists(property));
-	}
-
-	/**
-	 * A condition that evaluates to true if the pattern {@code pattern} exists.
-	 *
-	 * @param pattern The pattern to check whether it exists or not
-	 * @return A new condition.
-	 */
-	public static Condition exists(RelationshipPattern pattern) {
-
-		return new BooleanFunctionCondition(Predicates.exists(pattern));
 	}
 
 	/**

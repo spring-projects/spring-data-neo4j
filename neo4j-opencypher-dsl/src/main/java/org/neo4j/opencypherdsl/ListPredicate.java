@@ -24,43 +24,45 @@ import org.apiguardian.api.API;
 import org.neo4j.opencypherdsl.support.Visitor;
 
 /**
- * Represents a list expression as in {@code [expression1, expression2, ..., expressionN]}
+ * A list predicate.
  *
  * @author Michael J. Simons
- * @soundtrack Queen - Jazz
- * @since 1.0
+ * @soundtrack Freddie Mercury - Never Boring
+ * @since 1.1
+ * /
  */
-@API(status = EXPERIMENTAL, since = "1.0")
-public final class ListExpression implements Expression {
+@API(status = INTERNAL, since = "1.1")
+final class ListPredicate implements Expression {
 
-	static Expression listOrSingleExpression(Expression... expressions) {
+	/**
+	 * The variable for the where part.
+	 */
+	private final SymbolicName variable;
 
-		Assert.notNull(expressions, "Expressions are required.");
-		Assert.notEmpty(expressions, "At least one expression is required.");
+	/**
+	 * The list expression. No further assertions are taken to check beforehand if it is actually a Cypher List atm.
+	 */
+	private final Expression listExpression;
 
-		if (expressions.length == 1) {
-			return expressions[0];
-		} else {
-			return ListExpression.create(expressions);
-		}
-	}
+	/**
+	 * Filtering on the list.
+	 */
+	private final Where where;
 
-	static ListExpression create(Expression... expressions) {
+	ListPredicate(SymbolicName variable, Expression listExpression, Where where) {
 
-		return new ListExpression(new ExpressionList<>(expressions));
-	}
-
-	private final ExpressionList<?> content;
-
-	private ListExpression(ExpressionList<?> content) {
-		this.content = content;
+		this.variable = variable;
+		this.listExpression = listExpression;
+		this.where = where;
 	}
 
 	@Override
 	public void accept(Visitor visitor) {
-
 		visitor.enter(this);
-		this.content.accept(visitor);
+		this.variable.accept(visitor);
+		Operator.IN.accept(visitor);
+		this.listExpression.accept(visitor);
+		this.where.accept(visitor);
 		visitor.leave(this);
 	}
 }

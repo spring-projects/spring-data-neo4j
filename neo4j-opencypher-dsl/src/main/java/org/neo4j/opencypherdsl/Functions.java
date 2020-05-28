@@ -66,7 +66,7 @@ public final class Functions {
 	}
 
 	/**
-	 * Creates a function invocation for {@code id{}}.
+	 * Creates a function invocation for {@code labels{}}.
 	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/list/#functions-labels">labels</a>.
 	 *
 	 * @param node The node for which the labels should be retrieved
@@ -457,6 +457,21 @@ public final class Functions {
 		Assert.notNull(expression, "The expression for last is required.");
 
 		return new FunctionInvocation("last", expression);
+	}
+
+	/**
+	 * Creates a function invocation for {@code nodes{}}.
+	 * See <a href="https://neo4j.com/docs/cypher-manual/current/functions/list/#functions-nodes">labels</a>.
+	 *
+	 * @param path The path for which the number of nodes should be retrieved
+	 * @return A function call for {@code nodes()} on a node.
+	 * @since 1.1
+	 */
+	public static FunctionInvocation nodes(NamedPath path) {
+
+		Assert.notNull(path, "The path for nodes is required.");
+		return path.getSymbolicName().map(n -> new FunctionInvocation("nodes", n))
+			.orElseThrow(() -> new IllegalArgumentException("The path needs to be named!"));
 	}
 
 	private Functions() {

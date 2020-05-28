@@ -30,8 +30,8 @@ import org.neo4j.opencypherdsl.support.Visitor;
  * @author Michael J. Simons
  * @since 1.0
  */
-@API(status = EXPERIMENTAL, since = "1.0")
-public final class BooleanFunctionCondition implements Condition {
+@API(status = INTERNAL, since = "1.0")
+final class BooleanFunctionCondition implements Condition {
 
 	private final FunctionInvocation delegate;
 

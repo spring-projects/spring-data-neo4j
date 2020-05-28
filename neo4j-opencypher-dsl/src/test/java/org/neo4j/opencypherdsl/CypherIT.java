@@ -19,12 +19,10 @@
 package org.neo4j.opencypherdsl;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.neo4j.opencypherdsl.Conditions.exists;
-import static org.neo4j.opencypherdsl.Conditions.not;
 import static org.neo4j.opencypherdsl.Conditions.*;
 import static org.neo4j.opencypherdsl.Cypher.*;
-import static org.neo4j.opencypherdsl.Functions.type;
 import static org.neo4j.opencypherdsl.Functions.*;
+import static org.neo4j.opencypherdsl.Predicates.*;
 
 import java.util.function.Function;
 
@@ -1291,8 +1289,8 @@ class CypherIT {
 					listBasedOn(a.relationshipBetween(b))
 						.where(b.hasLabels("Movie"))
 						.and(b.property("released").isNotNull())
-						  .or(b.property("title").isEqualTo(literalOf("The Matrix")))
-						  .or(b.property("title").isEqualTo(literalOf("The Matrix 2")))
+						.or(b.property("title").isEqualTo(literalOf("The Matrix")))
+						.or(b.property("title").isEqualTo(literalOf("The Matrix 2")))
 						.returning(b.property("released"))
 						.as("years"))
 				.build();
@@ -3063,6 +3061,80 @@ class CypherIT {
 				.returning(n.project(n.property("name").as("alias")))
 				.build();
 			assertThat(cypherRenderer.render(statement)).isEqualTo(expected);
+		}
+	}
+
+	@Nested
+	class NamedPaths {
+
+		@Test
+		void doc3148() {
+
+			// See docs
+			NamedPath p = path("p").definedBy(
+					anyNode("michael").withProperties("name", literalOf("Michael Douglas"))
+						.relationshipTo(anyNode()));
+			Statement statement = Cypher.match(p).returning(p.getRequiredSymbolicName()).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH p = (michael {name: 'Michael Douglas'})-->() RETURN p");
+		}
+	}
+
+	@Nested
+	class Predicatez {
+
+		@Test
+		void allShouldWork() {
+
+			NamedPath p = path("p").definedBy(anyNode("a").relationshipTo(anyNode("b")).min(1).max(3));
+			Statement statement = Cypher.match(p)
+				.where(property("a", "name").isEqualTo(literalOf("Alice")))
+				.and(property("b", "name").isEqualTo(literalOf("Daniel")))
+				.and(all("x").in(Functions.nodes(p)).where(property("x", "age").gt(literalOf(30))))
+				.returning(p).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH p = (a)-[*1..3]->(b) WHERE (a.name = 'Alice' AND b.name = 'Daniel' AND all(x IN nodes(p) WHERE x.age > 30)) RETURN p");
+		}
+
+		@Test
+		void anyShouldWork() {
+
+			Node a = anyNode("a");
+			Statement statement = Cypher.match(a)
+				.where(property("a", "name").isEqualTo(literalOf("Eskil")))
+				.and(any("x").in(a.property("array")).where(name("x").isEqualTo(literalOf("one"))))
+				.returning(a.property("name"), a.property("array")).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH (a) WHERE (a.name = 'Eskil' AND any(x IN a.array WHERE x = 'one')) RETURN a.name, a.array");
+		}
+
+		@Test
+		void noneShouldWork() {
+
+			NamedPath p = path("p").definedBy(anyNode("a").relationshipTo(anyNode("b")).min(1).max(3));
+			Statement statement = Cypher.match(p)
+				.where(property("a", "name").isEqualTo(literalOf("Alice")))
+				.and(none("x").in(Functions.nodes(p)).where(property("x", "age").isEqualTo(literalOf(25))))
+				.returning(p).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH p = (a)-[*1..3]->(b) WHERE (a.name = 'Alice' AND none(x IN nodes(p) WHERE x.age = 25)) RETURN p");
+		}
+
+		@Test
+		void singleShouldWork() {
+
+			NamedPath p = path("p").definedBy(anyNode("n").relationshipTo(anyNode("b")));
+			Statement statement = Cypher.match(p)
+				.where(property("n", "name").isEqualTo(literalOf("Alice")))
+				.and(single("var").in(Functions.nodes(p)).where(property("var", "eyes").isEqualTo(literalOf("blue"))))
+				.returning(p).build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo("MATCH p = (n)-->(b) WHERE (n.name = 'Alice' AND single(var IN nodes(p) WHERE var.eyes = 'blue')) RETURN p");
 		}
 	}
 }

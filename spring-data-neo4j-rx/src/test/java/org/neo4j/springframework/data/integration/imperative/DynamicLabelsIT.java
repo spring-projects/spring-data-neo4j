@@ -19,9 +19,9 @@
 package org.neo4j.springframework.data.integration.imperative;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.neo4j.opencypherdsl.Conditions.*;
 import static org.neo4j.opencypherdsl.Conditions.not;
 import static org.neo4j.opencypherdsl.Cypher.*;
+import static org.neo4j.opencypherdsl.Predicates.*;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -38,12 +38,12 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
-import org.neo4j.springframework.data.config.AbstractNeo4jConfig;
-import org.neo4j.springframework.data.core.Neo4jTemplate;
 import org.neo4j.opencypherdsl.Condition;
 import org.neo4j.opencypherdsl.Cypher;
 import org.neo4j.opencypherdsl.Node;
 import org.neo4j.opencypherdsl.renderer.Renderer;
+import org.neo4j.springframework.data.config.AbstractNeo4jConfig;
+import org.neo4j.springframework.data.core.Neo4jTemplate;
 import org.neo4j.springframework.data.integration.shared.EntitiesWithDynamicLabels.*;
 import org.neo4j.springframework.data.test.Neo4jExtension;
 import org.springframework.beans.factory.annotation.Autowired;
