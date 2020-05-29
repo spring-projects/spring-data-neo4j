@@ -67,14 +67,13 @@ Supporting the embedded use case will be solved on the drivers level.
 We provide `@Relationship` for mapping relationships without properties.
 This annotation shall be used for 1:1 and 1:n mappings.
 It provides an attribute to specifiy the name of the relationship.
-When a relationship is mapped on both sides (that is a circular mapping in the domain model from start to endnode and back) the annotation provides the `inverse` attribute to cater the following use case:
 
 [source,java]
 ----
 @Node("User")
 static class UserNode {
 
-	@Relationship(type = "OWNS", inverse = "owner")
+	@Relationship(type = "OWNS")
 	List<BikeNode> bikes;
 }
 
@@ -85,15 +84,6 @@ static class BikeNode {
 	UserNode renter;
 }
 ----
-
-Without the inverse that mapping would lead to three relationships:
-
-1. `(user) - [:OWNS] -> (bike)`
-2. `(user) <- [:OWNER] - (bike)`
-3. `(user) <- [:RENTER] - (bike)`
-
-Which is probably not the intended graph.
-Specifying `inverse` removes ambiguity here.
 
 === "Rich" relationships
 
