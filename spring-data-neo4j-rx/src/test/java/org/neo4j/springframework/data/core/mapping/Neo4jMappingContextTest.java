@@ -231,7 +231,7 @@ class Neo4jMappingContextTest {
 		@org.springframework.data.annotation.Id @GeneratedValue
 		private long id;
 
-		@Relationship(type = "OWNS", inverse = "owner")
+		@Relationship(type = "OWNS")
 		List<BikeNode> bikes;
 
 		String name;

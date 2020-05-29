@@ -35,7 +35,7 @@ public class SimilarThing {
 
 	private String name;
 
-	@Relationship(type = "SimilarTo", inverse = "similarOf")
+	@Relationship(type = "SimilarTo")
 	private SimilarThing similar;
 
 	@Relationship(type = "SimilarTo", direction = Relationship.Direction.INCOMING)

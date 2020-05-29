@@ -71,11 +71,6 @@ public @interface Relationship {
 	String type() default "";
 
 	/**
-	 * @return The name of the attribute containing the other end of the relationship.
-	 */
-	String inverse() default "";
-
-	/**
 	 * If {@code direction} is {@link Direction#OUTGOING}, than the attribute annotated with {@link Relationship} will be
 	 * the target node of the relationship and the class containing the annotated attribute will be the start node.
 	 * <p>
