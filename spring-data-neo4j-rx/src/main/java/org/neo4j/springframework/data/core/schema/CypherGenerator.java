@@ -254,9 +254,12 @@ public enum CypherGenerator {
 	@NonNull
 	public Statement createRelationshipCreationQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 		RelationshipDescription relationship, @Nullable String dynamicRelationshipType, Long relatedInternalId) {
+		final Node startNode = neo4jPersistentEntity.isUsingInternalIds()
+			? anyNode(START_NODE_NAME)
+			: node(neo4jPersistentEntity.getPrimaryLabel(), neo4jPersistentEntity.getAdditionalLabels())
+				.named(START_NODE_NAME);
 
-		Node startNode = anyNode(START_NODE_NAME);
-		Node endNode = anyNode(END_NODE_NAME);
+		final Node endNode = anyNode(END_NODE_NAME);
 		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 
 		Parameter idParameter = parameter(FROM_ID_PARAMETER_NAME);
@@ -311,9 +314,12 @@ public enum CypherGenerator {
 	@NonNull
 	public Statement createRelationshipRemoveQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 		RelationshipDescription relationshipDescription, Neo4jPersistentEntity relatedNode) {
+		final Node startNode = neo4jPersistentEntity.isUsingInternalIds()
+			? anyNode(START_NODE_NAME)
+			: node(neo4jPersistentEntity.getPrimaryLabel(), neo4jPersistentEntity.getAdditionalLabels())
+				.named(START_NODE_NAME);
 
-		Node startNode = anyNode(START_NODE_NAME);
-		Node endNode = node(relatedNode.getPrimaryLabel(), relatedNode.getAdditionalLabels());
+		final Node endNode = node(relatedNode.getPrimaryLabel(), relatedNode.getAdditionalLabels());
 		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 		boolean outgoing = relationshipDescription.isOutgoing();
 
