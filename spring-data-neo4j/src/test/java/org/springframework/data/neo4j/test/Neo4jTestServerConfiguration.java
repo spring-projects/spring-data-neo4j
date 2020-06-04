@@ -45,7 +45,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 @EnableTransactionManagement
 class Neo4jTestServerConfiguration {
 
-	@Bean
+	static final String NEO4J_TEST_SERVER_BEAN_NAME = "neo4jTestServer";
+
+	@Bean(name = NEO4J_TEST_SERVER_BEAN_NAME)
 	ServerControls neo4jTestServer() {
 		return TestServerBuilders.newInProcessBuilder().newServer();
 	}
