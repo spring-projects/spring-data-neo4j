@@ -21,7 +21,6 @@ package org.neo4j.springframework.data.core;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.neo4j.springframework.data.core.DatabaseSelection.*;
-import static org.neo4j.springframework.data.core.RelationshipStatementHolder.*;
 import static org.neo4j.opencypherdsl.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.Constants.*;
 import static org.neo4j.springframework.data.core.support.Relationships.*;
@@ -480,18 +479,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 													relatedInternalId);
 										}
 
-										// handle creation of relationship depending on properties on relationship or not
-										RelationshipStatementHolder statementHolder = relationshipContext
-											.hasRelationshipWithProperties()
-											? createStatementForRelationShipWithProperties(neo4jMappingContext,
-												neo4jPersistentEntity,
-												relationshipContext,
-												relatedInternalId,
-												(Map.Entry) relatedValue)
-											: createStatementForRelationshipWithoutProperties(neo4jPersistentEntity,
-												relationshipContext,
-												relatedInternalId,
-												relatedValue);
+										RelationshipStatementHolder statementHolder = RelationshipStatementHolder.createStatement(
+											neo4jMappingContext, neo4jPersistentEntity, relationshipContext, relatedInternalId, relatedValue);
 
 										// in case of no properties the bind will just return an empty map
 										Mono<ResultSummary> relationshipCreationMonoNested = neo4jClient

@@ -263,12 +263,15 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		KnownObjects knownObjects) {
 
 		List<String> allLabels = getLabels(queryResult);
-		NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore.deriveConcreteNodeDescription(nodeDescription, allLabels);
-		Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels.getNodeDescription();
+		NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore
+			.deriveConcreteNodeDescription(nodeDescription, allLabels);
+		Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels
+			.getNodeDescription();
 
 		Collection<RelationshipDescription> relationships = concreteNodeDescription.getRelationships();
 
-		ET instance = instantiate(concreteNodeDescription, queryResult, knownObjects, relationships, nodeDescriptionAndLabels.getDynamicLabels());
+		ET instance = instantiate(concreteNodeDescription, queryResult, knownObjects, relationships,
+			nodeDescriptionAndLabels.getDynamicLabels());
 
 		PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(instance);
 
@@ -321,7 +324,8 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 					.getRequiredPersistentProperty(parameter.getName());
 
 				if (matchingProperty.isRelationship()) {
-					return createInstanceOfRelationships(matchingProperty, values, knownObjects, relationships).orElse(null);
+					return createInstanceOfRelationships(matchingProperty, values, knownObjects, relationships)
+						.orElse(null);
 				} else if (matchingProperty.isDynamicLabels()) {
 					return createDynamicLabelsProperty(matchingProperty.getTypeInformation(), surplusLabels);
 				}
@@ -329,7 +333,8 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			}
 		};
 
-		return INSTANTIATORS.getInstantiatorFor(nodeDescription).createInstance(nodeDescription, parameterValueProvider);
+		return INSTANTIATORS.getInstantiatorFor(nodeDescription)
+			.createInstance(nodeDescription, parameterValueProvider);
 	}
 
 	private PropertyHandler<Neo4jPersistentProperty> populateFrom(
@@ -344,7 +349,8 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			}
 
 			if (property.isDynamicLabels()) {
-				propertyAccessor.setProperty(property, createDynamicLabelsProperty(property.getTypeInformation(), surplusLabels));
+				propertyAccessor
+					.setProperty(property, createDynamicLabelsProperty(property.getTypeInformation(), surplusLabels));
 			} else {
 				propertyAccessor.setProperty(property,
 					readValueForProperty(extractValueOf(property, queryResult), property.getTypeInformation()));
@@ -387,24 +393,32 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			(Neo4jPersistentEntity<?>) relationshipDescription.getTarget();
 
 		List<String> allLabels = getLabels(values);
-		NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore.deriveConcreteNodeDescription(genericTargetNodeDescription, allLabels);
-		Neo4jPersistentEntity<?> concreteTargetNodeDescription = (Neo4jPersistentEntity<?>) nodeDescriptionAndLabels.getNodeDescription();
+		NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore
+			.deriveConcreteNodeDescription(genericTargetNodeDescription, allLabels);
+		Neo4jPersistentEntity<?> concreteTargetNodeDescription = (Neo4jPersistentEntity<?>) nodeDescriptionAndLabels
+			.getNodeDescription();
 
 		List<Object> value = new ArrayList<>();
-		Map<String, Object> dynamicValue = new HashMap<>();
+		Map<Object, Object> dynamicValue = new HashMap<>();
 
 		BiConsumer<String, Object> mappedObjectHandler;
+		Function<String, ?> keyTransformer;
+		if (persistentProperty.isDynamicAssociation() && persistentProperty.getComponentType().isEnum()) {
+			keyTransformer = f -> conversionService.convert(f, persistentProperty.getComponentType());
+		} else {
+			keyTransformer = Function.identity();
+		}
 		if (persistentProperty.isDynamicOneToManyAssociation()) {
 
 			TypeInformation<?> actualType = persistentProperty.getTypeInformation().getRequiredActualType();
 			mappedObjectHandler = (type, mappedObject) -> {
-				List<Object> bucket = (List<Object>) dynamicValue.computeIfAbsent(type,
+				List<Object> bucket = (List<Object>) dynamicValue.computeIfAbsent(keyTransformer.apply(type),
 					s -> createCollection(actualType.getType(), persistentProperty.getAssociationTargetType(),
 						values.size()));
 				bucket.add(mappedObject);
 			};
 		} else if (persistentProperty.isDynamicAssociation()) {
-			mappedObjectHandler = dynamicValue::put;
+			mappedObjectHandler = (type, mappedObject) -> dynamicValue.put(keyTransformer.apply(type), mappedObject);
 		} else {
 			mappedObjectHandler = (type, mappedObject) -> value.add(mappedObject);
 		}

@@ -19,9 +19,9 @@
 package org.neo4j.springframework.data.core.mapping;
 
 import org.apiguardian.api.API;
+import org.neo4j.springframework.data.core.schema.DynamicLabels;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.RelationshipProperties;
-import org.neo4j.springframework.data.core.schema.DynamicLabels;
 import org.springframework.data.mapping.PersistentProperty;
 
 /**
@@ -36,12 +36,13 @@ public interface Neo4jPersistentProperty
 	extends PersistentProperty<Neo4jPersistentProperty>, GraphPropertyDescription {
 
 	/**
-	 * Dynamic associations are associations to non-simple types stored in a map with a key type of {@literal java.lang.String}.
+	 * Dynamic associations are associations to non-simple types stored in a map
+	 * with a key type of {@literal java.lang.String} or enum.
 	 *
 	 * @return True, if this association is a dynamic association.
 	 */
 	default boolean isDynamicAssociation() {
-		return isAssociation() && isMap() && getComponentType() == String.class;
+		return isAssociation() && isMap() && (getComponentType() == String.class || getComponentType().isEnum());
 	}
 
 	/**
