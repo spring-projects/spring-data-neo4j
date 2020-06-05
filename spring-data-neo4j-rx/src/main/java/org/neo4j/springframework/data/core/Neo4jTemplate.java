@@ -20,7 +20,6 @@ package org.neo4j.springframework.data.core;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
-import static org.neo4j.springframework.data.core.RelationshipStatementHolder.*;
 import static org.neo4j.opencypherdsl.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.Constants.*;
 
@@ -461,17 +460,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				Long relatedInternalId = saveRelatedNode(valueToBeSaved, relationshipContext.getAssociationTargetType(),
 					targetNodeDescription, inDatabase);
 
-				// handle creation of relationship depending on properties on relationship or not
-				RelationshipStatementHolder statementHolder = relationshipContext.hasRelationshipWithProperties()
-					? createStatementForRelationShipWithProperties(neo4jMappingContext,
-					neo4jPersistentEntity,
-					relationshipContext,
-					relatedInternalId,
-					(Map.Entry) relatedValue)
-					: createStatementForRelationshipWithoutProperties(neo4jPersistentEntity,
-					relationshipContext,
-					relatedInternalId,
-					relatedValue);
+				RelationshipStatementHolder statementHolder = RelationshipStatementHolder.createStatement(
+					neo4jMappingContext, neo4jPersistentEntity, relationshipContext, relatedInternalId, relatedValue);
 
 				neo4jClient.query(renderer.render(statementHolder.getRelationshipCreationQuery()))
 					.in(inDatabase)

@@ -26,6 +26,7 @@ import org.neo4j.opencypherdsl.Statement;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentEntity;
 import org.neo4j.springframework.data.core.schema.CypherGenerator;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
 
 /**
@@ -35,6 +36,7 @@ import org.springframework.lang.NonNull;
  * {@link Neo4jTemplate} as well as in the {@link ReactiveNeo4jTemplate}.
  *
  * @author Philipp Tölle
+ * @author Michael J. Simons
  * @since 1.0
  */
 final class RelationshipStatementHolder {
@@ -42,13 +44,13 @@ final class RelationshipStatementHolder {
 	private final Map<String, Object> properties;
 
 	private RelationshipStatementHolder(@NonNull Statement relationshipCreationQuery) {
-		this.relationshipCreationQuery = relationshipCreationQuery;
-		this.properties = Collections.emptyMap();
+		this(relationshipCreationQuery, Collections.emptyMap());
 	}
 
 	private RelationshipStatementHolder(
 		@NonNull Statement relationshipCreationQuery,
-		@NonNull Map<String, Object> properties) {
+		@NonNull Map<String, Object> properties
+	) {
 		this.relationshipCreationQuery = relationshipCreationQuery;
 		this.properties = properties;
 	}
@@ -61,7 +63,22 @@ final class RelationshipStatementHolder {
 		return properties;
 	}
 
-	static RelationshipStatementHolder createStatementForRelationShipWithProperties(
+	static RelationshipStatementHolder createStatement(Neo4jMappingContext neo4jMappingContext,
+		Neo4jPersistentEntity<?> neo4jPersistentEntity,
+		NestedRelationshipContext relationshipContext,
+		Long relatedInternalId,
+		Object relatedValue) {
+
+		if (relationshipContext.hasRelationshipWithProperties()) {
+			return createStatementForRelationShipWithProperties(neo4jMappingContext, neo4jPersistentEntity,
+				relationshipContext, relatedInternalId, (Map.Entry) relatedValue);
+		} else {
+			return createStatementForRelationshipWithoutProperties(neo4jMappingContext, neo4jPersistentEntity,
+				relationshipContext, relatedInternalId, relatedValue);
+		}
+	}
+
+	private static RelationshipStatementHolder createStatementForRelationShipWithProperties(
 		Neo4jMappingContext neo4jMappingContext,
 		Neo4jPersistentEntity<?> neo4jPersistentEntity,
 		NestedRelationshipContext relationshipContext,
@@ -80,16 +97,28 @@ final class RelationshipStatementHolder {
 		return new RelationshipStatementHolder(relationshipCreationQuery, propMap);
 	}
 
-	static RelationshipStatementHolder createStatementForRelationshipWithoutProperties(
+	private static RelationshipStatementHolder createStatementForRelationshipWithoutProperties(
+		Neo4jMappingContext neo4jMappingContext,
 		Neo4jPersistentEntity<?> neo4jPersistentEntity,
 		NestedRelationshipContext relationshipContext,
 		Long relatedInternalId,
-		Object relatedValue) {
+		Object relatedValue
+	) {
+
+		String relationshipType;
+		if (!relationshipContext.getRelationship().isDynamic()) {
+			relationshipType = null;
+		} else {
+			TypeInformation<?> keyType = relationshipContext.getInverse().getTypeInformation()
+				.getRequiredComponentType();
+			Object key = ((Map.Entry<?, ?>) relatedValue).getKey();
+			relationshipType = neo4jMappingContext.getConverter().writeValueFromProperty(key, keyType).asString();
+		}
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE
 			.createRelationshipCreationQuery(neo4jPersistentEntity,
 				relationshipContext.getRelationship(),
-				relatedValue instanceof Map.Entry ? ((Map.Entry<String, ?>) relatedValue).getKey() : null,
+				relationshipType,
 				relatedInternalId);
 		return new RelationshipStatementHolder(relationshipCreationQuery);
 	}

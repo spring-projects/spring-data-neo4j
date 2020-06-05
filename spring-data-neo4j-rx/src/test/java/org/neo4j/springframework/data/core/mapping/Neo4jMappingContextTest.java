@@ -114,7 +114,8 @@ class Neo4jMappingContextTest {
 		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(InvalidId.class)));
 		assertThatIllegalArgumentException()
 			.isThrownBy(() -> schema.initialize())
-			.withMessageMatching("Cannot use internal id strategy with custom property getMappingFunctionFor on entity .*");
+			.withMessageMatching(
+				"Cannot use internal id strategy with custom property getMappingFunctionFor on entity .*");
 	}
 
 	@Test
@@ -142,7 +143,8 @@ class Neo4jMappingContextTest {
 		Neo4jMappingContext schema = new Neo4jMappingContext();
 		Neo4jPersistentEntity<?> bikeNodeEntity = schema.getPersistentEntity(BikeNode.class);
 		bikeNodeEntity.doWithAssociations((Association<Neo4jPersistentProperty> association) ->
-			assertThat(schema.getRequiredMappingFunctionFor(association.getInverse().getAssociationTargetType())).isNotNull());
+			assertThat(schema.getRequiredMappingFunctionFor(association.getInverse().getAssociationTargetType()))
+				.isNotNull());
 	}
 
 	@Test
@@ -186,7 +188,8 @@ class Neo4jMappingContextTest {
 			}
 		}
 
-		Neo4jMappingContext schema = new Neo4jMappingContext(new Neo4jConversions(singleton(new ConvertibleTypeConverter())));
+		Neo4jMappingContext schema = new Neo4jMappingContext(
+			new Neo4jConversions(singleton(new ConvertibleTypeConverter())));
 		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(EntityWithConvertibleProperty.class);
 
 		assertThat(entity.getPersistentProperty("convertibleType").isRelationship()).isFalse();
@@ -215,6 +218,19 @@ class Neo4jMappingContextTest {
 		});
 
 		assertThat(associations).containsOnly("bikes");
+	}
+
+	@Test
+	void enumMapKeys() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> enumRelNodeEntity = schema.getPersistentEntity(EnumRelNode.class);
+
+		List<Neo4jPersistentProperty> associations = new ArrayList<>();
+		enumRelNodeEntity
+			.doWithAssociations((Association<Neo4jPersistentProperty> a) -> associations.add(a.getInverse()));
+
+		assertThat(associations).hasSize(2);
 	}
 
 	static class DummyIdGenerator implements IdGenerator<Void> {
@@ -250,6 +266,23 @@ class Neo4jMappingContextTest {
 
 	}
 
+	enum A {
+		A1, A2
+	}
+
+	enum ExtendedA {
+
+		EA1, EA2 {
+			@Override
+			public void doNothing() {
+			}
+		};
+
+		public void doNothing() {
+
+		}
+	}
+
 	static class BikeNode {
 
 		@Id
@@ -265,6 +298,16 @@ class Neo4jMappingContextTest {
 		String[] someMoreValues;
 		byte[] evenMoreValues;
 		Map<String, Object> funnyDynamicProperties;
+	}
+
+	static class EnumRelNode {
+
+		@Id
+		private String id;
+
+		Map<A, UserNode> relA;
+
+		Map<ExtendedA, BikeNode> relEA;
 	}
 
 	static class TripNode {

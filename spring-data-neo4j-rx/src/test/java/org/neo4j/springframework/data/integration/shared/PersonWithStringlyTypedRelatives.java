@@ -30,32 +30,18 @@ import org.neo4j.springframework.data.core.schema.Node;
  * @author Michael J. Simons
  */
 @Node
-public class PersonWithRelatives {
-
-	/**
-	 * Some enum representing relatives.
-	 */
-	public enum TypeOfRelative {
-		HAS_WIFE, HAS_DAUGHTER, HAS_SON, RELATIVE_1, RELATIVE_2
-	}
-
-	/**
-	 * Some enum representing pets.
-	 */
-	public enum TypeOfPet {
-		CATS, DOGS, FISH, MONSTERS
-	}
+public class PersonWithStringlyTypedRelatives {
 
 	@Id @GeneratedValue
 	private Long id;
 
 	private final String name;
 
-	private Map<TypeOfRelative, Person> relatives = new HashMap<>();
+	private Map<String, Person> relatives = new HashMap<>();
 
-	private Map<TypeOfPet, List<Pet>> pets = new HashMap<>();
+	private Map<String, List<Pet>> pets = new HashMap<>();
 
-	public PersonWithRelatives(String name) {
+	public PersonWithStringlyTypedRelatives(String name) {
 		this.name = name;
 	}
 
@@ -67,11 +53,11 @@ public class PersonWithRelatives {
 		return name;
 	}
 
-	public Map<TypeOfRelative, Person> getRelatives() {
+	public Map<String, Person> getRelatives() {
 		return relatives;
 	}
 
-	public Map<TypeOfPet, List<Pet>> getPets() {
+	public Map<String, List<Pet>> getPets() {
 		return pets;
 	}
 }

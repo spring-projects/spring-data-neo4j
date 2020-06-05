@@ -18,6 +18,9 @@
  */
 package org.neo4j.springframework.data.integration.shared;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
@@ -28,11 +31,12 @@ import org.neo4j.springframework.data.test.Neo4jIntegrationTest;
 /**
  * Make sure that dynamic relationships can be loaded and stored.
  *
+ * @param <T> Type of the person with relatives
  * @author Michael J. Simons
  * @soundtrack Helge Schneider - Live At The Grugahalle
  */
 @Neo4jIntegrationTest
-public abstract class DynamicRelationshipsITBase {
+public abstract class DynamicRelationshipsITBase<T> {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
@@ -40,8 +44,13 @@ public abstract class DynamicRelationshipsITBase {
 
 	protected long idOfExistingPerson;
 
+	protected final String labelOfTestSubject;
+
 	protected DynamicRelationshipsITBase(Driver driver) {
 		this.driver = driver;
+		Type type = getClass().getGenericSuperclass();
+		String typeName = ((ParameterizedType) type).getActualTypeArguments()[0].getTypeName();
+		this.labelOfTestSubject = typeName.substring(typeName.lastIndexOf(".") + 1);
 	}
 
 	@BeforeEach
@@ -52,7 +61,7 @@ public abstract class DynamicRelationshipsITBase {
 		) {
 			transaction.run("MATCH (n) detach delete n");
 			idOfExistingPerson = transaction.run(""
-				+ "CREATE (t:PersonWithRelatives {name: 'A'}) WITH t "
+				+ "CREATE (t:" + labelOfTestSubject + " {name: 'A'}) WITH t "
 				+ "CREATE (t) - [:HAS_WIFE] -> (w:Person {firstName: 'B'}) "
 				+ "CREATE (t) - [:HAS_DAUGHTER] -> (d:Person {firstName: 'C'}) "
 				+ "WITH t "
