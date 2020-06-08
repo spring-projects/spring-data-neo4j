@@ -474,6 +474,12 @@ public final class Functions {
 			.orElseThrow(() -> new IllegalArgumentException("The path needs to be named!"));
 	}
 
+	public static FunctionInvocation shortestPath(Relationship relationship) {
+
+		Assert.notNull(relationship, "The relationship for shortestPath is required.");
+		return new FunctionInvocation("shortestPath", new Pattern(Collections.singletonList(relationship)));
+	}
+
 	private Functions() {
 	}
 }

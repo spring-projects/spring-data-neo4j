@@ -79,6 +79,18 @@ public final class RelationshipChain implements RelationshipPattern, ExposesRela
 	}
 
 	/**
+	 * Changes the length of the last element of this chain to an unbounded pattern.
+	 *
+	 * @return This chain
+	 * @since 1.1.1
+	 */
+	public RelationshipChain unbounded() {
+
+		Relationship lastElement = this.relationships.removeLast();
+		return this.add(lastElement.unbounded());
+	}
+
+	/**
 	 * Changes the length of the last element of this chain to a new minimum length
 	 *
 	 * @param minimum the new minimum

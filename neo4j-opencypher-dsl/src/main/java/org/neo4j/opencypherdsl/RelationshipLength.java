@@ -36,9 +36,18 @@ public final class RelationshipLength implements Visitable {
 
 	private final Integer maximum;
 
+	private final boolean unbounded;
+
+	RelationshipLength() {
+		this.minimum = null;
+		this.maximum = null;
+		this.unbounded = true;
+	}
+
 	RelationshipLength(Integer minimum, Integer maximum) {
 		this.minimum = minimum;
 		this.maximum = maximum;
+		this.unbounded = false;
 	}
 
 	public Integer getMinimum() {
@@ -47,5 +56,9 @@ public final class RelationshipLength implements Visitable {
 
 	public Integer getMaximum() {
 		return maximum;
+	}
+
+	public boolean isUnbounded() {
+		return unbounded;
 	}
 }

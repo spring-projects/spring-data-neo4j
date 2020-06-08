@@ -139,6 +139,28 @@ public final class Cypher {
 	}
 
 	/**
+	 * Starts defining a named path defined by the {@code shortestPath} between a relationship by indicating a name.
+	 *
+	 * @param name The name of the new shortestPath path
+	 * @return An ongoing definition of a named path
+	 * @since 1.1.1
+	 */
+	public static NamedPath.OngoingShortestPathDefinitionWithName shortestPath(String name) {
+		return NamedPath.named(name, "shortestPath");
+	}
+
+	/**
+	 * Starts defining a named path defined by the {@code shortestPath} between a relationship by indicating a name.
+	 *
+	 * @param name The name of the new shortestPath path
+	 * @return An ongoing definition of a named path
+	 * @since 1.1.1
+	 */
+	public static NamedPath.OngoingShortestPathDefinitionWithName shortestPath(SymbolicName name) {
+		return NamedPath.named(name, "shortestPath");
+	}
+
+	/**
 	 * Creates a new symbolic name.
 	 *
 	 * @param value The value of the symbolic name

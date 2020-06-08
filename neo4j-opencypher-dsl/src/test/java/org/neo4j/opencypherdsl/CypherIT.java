@@ -716,6 +716,17 @@ class CypherIT {
 				.isEqualTo(
 					"MATCH (u:`User`) RETURN coalesce(NULL, u.field) AS p");
 		}
+
+		@Test // GH-257
+		void functionsBasedOnRelationships() {
+			Relationship relationship = node("Person").named("bacon").withProperties("name", literalOf("Kevin Bacon"))
+				.relationshipBetween(node("Person").named("meg").withProperties("name", literalOf("Meg Ryan"))).unbounded();
+			Statement statement = Cypher.match(Cypher.shortestPath("p").definedBy(relationship)).returning("p").build();
+
+			assertThat(cypherRenderer.render(statement))
+				.isEqualTo(
+					"MATCH p = shortestPath((bacon:`Person` {name: 'Kevin Bacon'})-[*]-(meg:`Person` {name: 'Meg Ryan'})) RETURN p");
+		}
 	}
 
 	@Nested

@@ -140,6 +140,17 @@ public final class Relationship implements RelationshipPattern, PropertyContaine
 	}
 
 	/**
+	 * Creates a new relationship with an unbound length minimum length
+	 *
+	 * @return the new relationship
+	 * @since 1.1.1
+	 */
+	public Relationship unbounded() {
+
+		return new Relationship(this.left, this.details.unbounded(), this.right);
+	}
+
+	/**
 	 * Creates a new relationship with a new minimum length
 	 *
 	 * @param minimum the new minimum

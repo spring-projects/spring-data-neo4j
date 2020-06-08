@@ -96,6 +96,11 @@ public final class RelationshipDetail implements Visitable {
 		return new RelationshipDetail(this.direction, this.symbolicName, this.types, this.length, newProperties);
 	}
 
+	RelationshipDetail unbounded() {
+
+		return new RelationshipDetail(this.direction, this.symbolicName, this.types, new RelationshipLength(), properties);
+	}
+
 	RelationshipDetail min(Integer minimum) {
 
 		if (minimum == null && (this.length == null || this.length.getMinimum() == null)) {

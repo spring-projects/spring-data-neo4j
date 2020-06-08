@@ -20,9 +20,11 @@ package org.neo4j.opencypherdsl;
 
 import static org.apiguardian.api.API.Status.*;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
+import org.neo4j.opencypherdsl.support.Visitable;
 import org.neo4j.opencypherdsl.support.Visitor;
 
 /**
@@ -43,7 +45,7 @@ public final class NamedPath implements PatternElement, Named {
 	/**
 	 * The pattern defining this path.
 	 */
-	private final RelationshipPattern pattern;
+	private final Visitable pattern;
 
 	static OngoingDefinitionWithName named(String name) {
 
@@ -56,12 +58,31 @@ public final class NamedPath implements PatternElement, Named {
 		return new Builder(name);
 	}
 
+	static OngoingShortestPathDefinitionWithName named(String name, String algorithm) {
+
+		return new ShortestPathBuilder(SymbolicName.create(name), algorithm);
+	}
+
+	static OngoingShortestPathDefinitionWithName named(SymbolicName name, String algorithm) {
+
+		Assert.notNull(name, "A name is required");
+		return new ShortestPathBuilder(name, algorithm);
+	}
+
 	/**
 	 * Partial path that has a name ({@code p = }).
 	 */
 	public interface OngoingDefinitionWithName {
 
 		NamedPath definedBy(RelationshipPattern pattern);
+	}
+
+	/**
+	 * Partial path that has a name ({@code p = }) and is based on a graph algorithm function.
+	 */
+	public interface OngoingShortestPathDefinitionWithName {
+
+		NamedPath definedBy(Relationship relationship);
 	}
 
 	private static class Builder implements OngoingDefinitionWithName {
@@ -78,9 +99,30 @@ public final class NamedPath implements PatternElement, Named {
 		}
 	}
 
+	private static class ShortestPathBuilder implements OngoingShortestPathDefinitionWithName {
+
+		private final SymbolicName name;
+		private final String algorithm;
+
+		private ShortestPathBuilder(SymbolicName name, String algorithm) {
+			this.name = name;
+			this.algorithm = algorithm;
+		}
+
+		@Override
+		public NamedPath definedBy(Relationship relationship) {
+			return new NamedPath(name, new FunctionInvocation(algorithm, new Pattern(Collections.singletonList(relationship))));
+		}
+	}
+
 	private NamedPath(SymbolicName name, RelationshipPattern pattern) {
 		this.name = name;
 		this.pattern = pattern;
+	}
+
+	private NamedPath(SymbolicName name, FunctionInvocation algorithm) {
+		this.name = name;
+		this.pattern = algorithm;
 	}
 
 	@Override

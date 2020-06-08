@@ -334,6 +334,11 @@ class RenderingVisitor extends ReflectiveVisitor {
 		Integer minimum = length.getMinimum();
 		Integer maximum = length.getMaximum();
 
+		if (length.isUnbounded()) {
+			builder.append("*");
+			return;
+		}
+
 		if (minimum == null && maximum == null) {
 			return;
 		}
@@ -406,6 +411,7 @@ class RenderingVisitor extends ReflectiveVisitor {
 			builder.append("ALL ");
 		}
 	}
+
 	void enter(Set set) {
 
 		builder.append("SET ");
