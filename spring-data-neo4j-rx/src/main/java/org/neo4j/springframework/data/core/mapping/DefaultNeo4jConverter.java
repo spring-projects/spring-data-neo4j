@@ -485,9 +485,13 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 				Neo4jPersistentProperty idProperty = concreteTargetNodeDescription.getRequiredIdProperty();
 
 				// internal (generated) id or external set
-				Object idValue = idProperty.isInternalIdProperty()
-					? relatedEntity.get(NAME_OF_INTERNAL_ID)
-					: relatedEntity.get(idProperty.getName());
+				String relatedEntityIdKey = idProperty.isInternalIdProperty()
+					? NAME_OF_INTERNAL_ID
+					: concreteTargetNodeDescription.getIdDescription()
+						.getOptionalGraphPropertyName()
+						.orElse(idProperty.getName());
+				Object idValue = relatedEntity.get(relatedEntityIdKey);
+
 				Object valueEntry = knownObjects.computeIfAbsent(idValue,
 					() -> map(relatedEntity, concreteTargetNodeDescription, knownObjects));
 
