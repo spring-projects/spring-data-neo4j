@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.2.8.RELEASE (2020-06-10)
+---------------------------------------------
+* DATAGRAPH-1322 - Tests don't stop the embedded server reliable.
+* DATAGRAPH-1318 - Remove Travis CI.
+* DATAGRAPH-1315 - Release 5.2.8 (Moore SR8).
+
+
 Changes in version 5.1.18.RELEASE (2020-06-10)
 ----------------------------------------------
 * DATAGRAPH-1318 - Remove Travis CI.
@@ -1733,6 +1740,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
