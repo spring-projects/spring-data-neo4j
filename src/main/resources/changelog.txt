@@ -1,6 +1,12 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.18.RELEASE (2020-06-10)
+----------------------------------------------
+* DATAGRAPH-1318 - Remove Travis CI.
+* DATAGRAPH-1314 - Release 5.1.18 (Lovelace SR18).
+
+
 Changes in version 5.3.0.RC2 (2020-04-28)
 -----------------------------------------
 * DATAGRAPH-1313 - Upgrade to Neo4j OGM 3.2.11.
@@ -1721,6 +1727,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
