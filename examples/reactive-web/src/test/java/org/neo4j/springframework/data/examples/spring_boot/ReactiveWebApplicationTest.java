@@ -20,17 +20,11 @@ package org.neo4j.springframework.data.examples.spring_boot;
 
 import static org.assertj.core.api.Assertions.*;
 
-import net.bytebuddy.build.ToStringPlugin;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;

@@ -81,6 +81,7 @@
 		<module>examples/multi-database</module>
 		<module>examples/rest</module>
 		<module>examples/docs</module>
+		<module>examples/kotlin</module>
 	</modules>
 
 	<properties>
