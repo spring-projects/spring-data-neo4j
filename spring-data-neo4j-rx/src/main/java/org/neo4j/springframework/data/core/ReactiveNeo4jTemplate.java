@@ -445,7 +445,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 					relationshipCreationMonos.add(
 						neo4jClient.query(renderer.render(relationshipRemoveQuery))
 							.in(inDatabase)
-							.bind(fromId).to(FROM_ID_PARAMETER_NAME)
+							.bind(convertIdValues(fromId)).to(FROM_ID_PARAMETER_NAME)
 							.run().checkpoint("delete relationships").then());
 				}
 
@@ -484,7 +484,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 										Mono<ResultSummary> relationshipCreationMonoNested = neo4jClient
 											.query(renderer.render(statementHolder.getRelationshipCreationQuery()))
 											.in(inDatabase)
-											.bind(fromId).to(FROM_ID_PARAMETER_NAME)
+											.bind(convertIdValues(fromId)).to(FROM_ID_PARAMETER_NAME)
 											.bindAll(statementHolder.getProperties())
 											.run();
 

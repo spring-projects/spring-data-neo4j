@@ -36,6 +36,8 @@ public class ThingWithUUIDID {
 
 	private String name;
 
+	private ThingWithUUIDID anotherThing;
+
 	public ThingWithUUIDID(String name) {
 		this.name = name;
 	}
@@ -46,5 +48,13 @@ public class ThingWithUUIDID {
 
 	public String getName() {
 		return name;
+	}
+
+	public ThingWithUUIDID getAnotherThing() {
+		return anotherThing;
+	}
+
+	public void setAnotherThing(ThingWithUUIDID anotherThing) {
+		this.anotherThing = anotherThing;
 	}
 }
