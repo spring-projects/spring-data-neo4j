@@ -198,6 +198,20 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		assertThat(repository.findById(thing.getId())).isPresent();
 	}
 
+	@Test
+	void relatedIdsShouldBeConverted(@Autowired ConvertedIDsRepository repository) {
+
+		ThingWithUUIDID aThing = new ThingWithUUIDID("a thing");
+		aThing.setAnotherThing(new ThingWithUUIDID("Another thing"));
+
+		ThingWithUUIDID savedThing = repository.save(aThing);
+
+		assertThat(savedThing.getId()).isNotNull();
+		assertThat(repository.findById(savedThing.getId())).isPresent();
+		assertThat(savedThing.getAnotherThing().getId()).isNotNull();
+		assertThat(repository.findById(savedThing.getAnotherThing().getId())).isPresent();
+	}
+
 	public interface ConvertedIDsRepository
 		extends Neo4jRepository<ThingWithUUIDID, UUID> {
 	}
