@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.neo4j.springframework.data.core.mapping.Neo4jPersistentProperty;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
@@ -42,6 +43,7 @@ public final class Relationships {
 	 * @return A unified collection (Either a collection of Map.Entry for dynamic and relationships with properties
 	 * or a list of related values)
 	 */
+	@Nullable
 	public static Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, Object rawValue) {
 		Collection<?> unifiedValue;
 		if (property.isDynamicAssociation()) {

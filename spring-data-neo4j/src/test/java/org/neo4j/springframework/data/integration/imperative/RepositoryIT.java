@@ -755,6 +755,21 @@ class RepositoryIT {
 		}
 
 		@Test
+		void findEntityWithSelfReferencesInBothDirections(@Autowired PetRepository repository) {
+			long petId;
+			try (Session session = createSession()) {
+				petId = session.run("CREATE (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})"
+					+ "-[:Has]->(luna2:Pet{name:'Luna'})"
+					+ "RETURN id(luna) as id").single().get("id").asLong();
+			}
+			Pet loadedPet = repository.findById(petId).get();
+
+			assertThat(loadedPet.getFriends().get(0).getName()).isEqualTo("Daphne");
+			assertThat(loadedPet.getFriends().get(0).getFriends().get(0).getName()).isEqualTo("Luna");
+
+		}
+
+		@Test
 		void findEntityWithBidirectionalRelationshipFromIncomingSide(@Autowired BidirectionalEndRepository repository) {
 
 			long endId;
@@ -1528,6 +1543,27 @@ class RepositoryIT {
 				assertThat(record.get("petOfRootPet").asNode().get("name").asString()).isEqualTo("Daphne");
 				assertThat(record.get("petOfChildPet").asNode().get("name").asString()).isEqualTo("Mucki");
 				assertThat(record.get("petOfGrandChildPet").asNode().get("name").asString()).isEqualTo("Blacky");
+			}
+		}
+
+		@Test
+		void saveEntityWithSelfReferencesInBothDirections(@Autowired PetRepository repository) {
+			Pet luna = new Pet("Luna");
+			Pet daphne = new Pet("Daphne");
+
+			luna.setFriends(singletonList(daphne));
+			daphne.setFriends(singletonList(luna));
+
+			repository.save(luna);
+
+			try (Session session = createSession()) {
+				Record record = session.run("MATCH (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})"
+					+ "-[:Has]->(luna2:Pet{name:'Luna'})"
+					+ "RETURN luna, daphne, luna2").single();
+
+				assertThat(record.get("luna").asNode().get("name").asString()).isEqualTo("Luna");
+				assertThat(record.get("daphne").asNode().get("name").asString()).isEqualTo("Daphne");
+				assertThat(record.get("luna2").asNode().get("name").asString()).isEqualTo("Luna");
 			}
 		}
 

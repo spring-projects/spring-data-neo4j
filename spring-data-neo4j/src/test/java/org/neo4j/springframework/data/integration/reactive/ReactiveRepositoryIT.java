@@ -852,6 +852,24 @@ class ReactiveRepositoryIT {
 				.verifyComplete();
 		}
 
+		@Test
+		void findEntityWithSelfReferencesInBothDirections(@Autowired ReactivePetRepository repository) {
+
+			long petId;
+
+			try (Session session = createSession()) {
+				petId = session.run("CREATE (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})"
+					+ "-[:Has]->(luna2:Pet{name:'Luna'})"
+					+ "RETURN id(luna) as id").single().get("id").asLong();
+			}
+
+			StepVerifier.create(repository.findById(petId))
+				.assertNext(loadedPet -> {
+					assertThat(loadedPet.getFriends().get(0).getName()).isEqualTo("Daphne");
+					assertThat(loadedPet.getFriends().get(0).getFriends().get(0).getName()).isEqualTo("Luna");
+				})
+				.verifyComplete();
+		}
 	}
 
 	@Nested
@@ -1823,6 +1841,30 @@ class ReactiveRepositoryIT {
 			StepVerifier.create(repository.findAll())
 				.expectNextCount(4)
 				.verifyComplete();
+		}
+
+		@Test
+		void saveEntityWithSelfReferencesInBothDirections(@Autowired ReactivePetRepository repository) {
+
+			Pet luna = new Pet("Luna");
+			Pet daphne = new Pet("Daphne");
+
+			luna.setFriends(singletonList(daphne));
+			daphne.setFriends(singletonList(luna));
+
+			StepVerifier.create(repository.save(luna))
+				.expectNextCount(1)
+				.verifyComplete();
+
+			try (Session session = createSession()) {
+				Record record = session.run("MATCH (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})"
+					+ "-[:Has]->(luna2:Pet{name:'Luna'})"
+					+ "RETURN luna, daphne, luna2").single();
+
+				assertThat(record.get("luna").asNode().get("name").asString()).isEqualTo("Luna");
+				assertThat(record.get("daphne").asNode().get("name").asString()).isEqualTo("Daphne");
+				assertThat(record.get("luna2").asNode().get("name").asString()).isEqualTo("Luna");
+			}
 		}
 	}
 
