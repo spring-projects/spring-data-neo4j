@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apiguardian.api.API;
+import org.neo4j.springframework.data.core.convert.AdditionalTypes.EnumArrayConverter;
+import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.data.convert.CustomConversions;
 
 /**
@@ -63,5 +65,11 @@ public final class Neo4jConversions extends CustomConversions {
 	 */
 	public Neo4jConversions(Collection<?> converters) {
 		super(STORE_CONVERSIONS, converters);
+	}
+
+	@Override
+	public void registerConvertersIn(ConverterRegistry conversionService) {
+		super.registerConvertersIn(conversionService);
+		conversionService.addConverter(new EnumArrayConverter());
 	}
 }

@@ -2439,11 +2439,12 @@ class RepositoryIT {
 			assertThat(repository.findAllByNameLike(TEST_PERSON1_NAME)).hasSize(2);
 		}
 
-		@Test
-		void asyncMethodsShouldWork(@Autowired PersonRepository repository) {
-			PersonWithAllConstructor p = repository.findOneByFirstName(TEST_PERSON1_FIRST_NAME).join();
-			assertThat(p).isNotNull();
-		}
+//		commented see PersonRepository line 126
+//		@Test
+//		void asyncMethodsShouldWork(@Autowired PersonRepository repository) {
+//			PersonWithAllConstructor p = repository.findOneByFirstName(TEST_PERSON1_FIRST_NAME).join();
+//			assertThat(p).isNotNull();
+//		}
 	}
 
 	@Nested
