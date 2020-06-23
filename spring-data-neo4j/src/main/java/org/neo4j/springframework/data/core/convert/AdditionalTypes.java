@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -41,10 +42,10 @@ import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.value.LossyCoercion;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.ConditionalConverter;
+import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
-import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -89,7 +90,8 @@ final class AdditionalTypes {
 		hlp.add(
 			reading(Value.class, BigInteger.class, AdditionalTypes::asBigInteger).andWriting(AdditionalTypes::value));
 		hlp.add(
-			reading(Value.class, TemporalAmount.class, AdditionalTypes::asTemporalAmount).andWriting(AdditionalTypes::value));
+			reading(Value.class, TemporalAmount.class, AdditionalTypes::asTemporalAmount)
+				.andWriting(AdditionalTypes::value));
 		hlp.add(reading(Value.class, Instant.class, AdditionalTypes::asInstant).andWriting(AdditionalTypes::value));
 		hlp.add(reading(Value.class, UUID.class, AdditionalTypes::asUUID).andWriting(AdditionalTypes::value));
 
@@ -185,7 +187,52 @@ final class AdditionalTypes {
 
 	@ReadingConverter
 	@WritingConverter
-	static class EnumConverter implements GenericConverter, ConditionalConverter {
+	static final class EnumConverter implements GenericConverter {
+
+		private final Set<ConvertiblePair> convertibleTypes;
+
+		EnumConverter() {
+			Set<ConvertiblePair> tmp = new HashSet<>();
+			tmp.add(new ConvertiblePair(Value.class, Enum.class));
+			tmp.add(new ConvertiblePair(Enum.class, Value.class));
+			this.convertibleTypes = Collections.unmodifiableSet(tmp);
+		}
+
+		@Override
+		public Set<ConvertiblePair> getConvertibleTypes() {
+			return convertibleTypes;
+		}
+
+		@Override
+		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+
+			if (source == null) {
+				return Value.class.isAssignableFrom(targetType.getType()) ? Values.NULL : null;
+			}
+
+			if (Value.class.isAssignableFrom(sourceType.getType())) {
+				return Enum.valueOf((Class<Enum>) targetType.getType(), ((Value) source).asString());
+			} else {
+				return Values.value(((Enum) source).name());
+			}
+		}
+	}
+
+	/**
+	 * This is a workaround for the fact that Spring Data Commons requires {@link GenericConverter generic converters}
+	 * to have a non-null convertible pair since 2.3. Without it, they get filtered out and thus not registered in a
+	 * conversion service. We do this as an after thought in {@link Neo4jConversions#registerConvertersIn(ConverterRegistry)}.
+	 * <p>
+	 * This class uses is a {@link GenericConverter} without a concrete pair of convertible types. By making it implement {@link ConditionalConverter} it
+	 * works with Springs conversion service out of the box.
+	 */
+	static final class EnumArrayConverter implements GenericConverter, ConditionalConverter {
+
+		private final EnumConverter delegate;
+
+		EnumArrayConverter() {
+			this.delegate = new EnumConverter();
+		}
 
 		@Override
 		public Set<ConvertiblePair> getConvertibleTypes() {
@@ -203,40 +250,33 @@ final class AdditionalTypes {
 			}
 		}
 
-		@Override
-		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		private static boolean describesSupportedEnumVariant(TypeDescriptor typeDescriptor) {
+			return typeDescriptor.isArray() && Enum.class
+				.isAssignableFrom(typeDescriptor.getElementTypeDescriptor().getType());
+		}
 
-			if (source == null) {
+		@Override
+		public Object convert(Object object, TypeDescriptor sourceType, TypeDescriptor targetType) {
+
+			if (object == null) {
 				return Value.class.isAssignableFrom(targetType.getType()) ? Values.NULL : null;
 			}
 
 			if (Value.class.isAssignableFrom(sourceType.getType())) {
-				return read((Value) source, targetType);
-			} else {
-				if (sourceType.isArray()) {
-					return Values.value(Arrays.stream(((Enum[]) source)).map(Enum::name).toArray());
-				}
-				return Values.value(((Enum) source).name());
-			}
-		}
+				Value source = (Value) object;
 
-		@NonNull
-		private static Object read(Value source, TypeDescriptor targetType) {
-			if (targetType.isArray()) {
-				Class<?> componentType = targetType.getElementTypeDescriptor().getType();
-				Object[] targetArray = (Object[]) Array.newInstance(componentType, source.size());
-				Arrays.setAll(targetArray, i -> Enum.valueOf((Class<Enum>) componentType, source.get(i).asString()));
+				TypeDescriptor elementTypeDescriptor = targetType.getElementTypeDescriptor();
+				Object[] targetArray = (Object[]) Array.newInstance(elementTypeDescriptor.getType(), source.size());
+
+				Arrays.setAll(targetArray,
+					i -> delegate.convert(source.get(i), TypeDescriptor.valueOf(Value.class), elementTypeDescriptor));
 				return targetArray;
 			} else {
-				return Enum.valueOf((Class<Enum>) targetType.getType(), source.asString());
-			}
-		}
+				Enum[] source = (Enum[]) object;
 
-		private static boolean describesSupportedEnumVariant(TypeDescriptor typeDescriptor) {
-			TypeDescriptor elementType = typeDescriptor.isArray() ?
-				typeDescriptor.getElementTypeDescriptor() :
-				typeDescriptor;
-			return Enum.class.isAssignableFrom(elementType.getType());
+				return Values.value(Arrays.stream(source).map(e -> delegate
+					.convert(e, sourceType.getElementTypeDescriptor(), TypeDescriptor.valueOf(Value.class))).toArray());
+			}
 		}
 	}
 

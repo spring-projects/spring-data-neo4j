@@ -22,7 +22,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import org.neo4j.driver.types.Point;
@@ -123,7 +122,10 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	Stream<PersonWithAllConstructor> findAllByNameLike(String aName);
 
-	CompletableFuture<PersonWithAllConstructor> findOneByFirstName(String aName);
+	// TODO
+	// due to a needed bug fix in Spring Data commons commented because this will turn
+	// the repository in a reactive one
+	//	CompletableFuture<PersonWithAllConstructor> findOneByFirstName(String aName);
 
 	List<PersonWithAllConstructor> findAllBySameValue(String sameValue);
 
