@@ -56,13 +56,16 @@ class KotlinIT {
 
 	@BeforeEach
 	void setup() {
-		Session session = driver.session();
-		Transaction transaction = session.beginTransaction();
-		transaction.run("MATCH (n) detach delete n");
-		transaction.run("CREATE (n:KotlinPerson) SET n.name = $personName", Values.parameters("personName", PERSON_NAME));
-		transaction.commit();
-		transaction.close();
-		session.close();
+		try (
+			Session session = driver.session();
+			Transaction transaction = session.beginTransaction()
+		) {
+			transaction.run("MATCH (n) detach delete n").consume();
+			transaction
+				.run("CREATE (n:KotlinPerson) SET n.name = $personName", Values.parameters("personName", PERSON_NAME))
+				.consume();
+			transaction.commit();
+		}
 	}
 
 	@Test

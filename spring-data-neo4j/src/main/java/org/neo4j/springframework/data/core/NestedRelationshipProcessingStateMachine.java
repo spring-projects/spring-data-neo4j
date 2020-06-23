@@ -34,7 +34,14 @@ import org.springframework.lang.Nullable;
  * @author Michael J. Simons
  * @soundtrack Helge Schneider - Heart Attack No. 1
  */
-final class NestedRelationshipProcessState {
+final class NestedRelationshipProcessingStateMachine {
+
+	enum ProcessState {
+		PROCESSED_NONE,
+		PROCESSED_BOTH,
+		PROCESSED_ONLY_RELATIONSHIP,
+		PROCESSED_ALL_VALUES
+	}
 
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 	private final Lock read = lock.readLock();
@@ -53,13 +60,24 @@ final class NestedRelationshipProcessState {
 	/**
 	 * @param relationshipDescription Check whether this relationship description has been processed
 	 * @param valuesToStore           Check whether all the values in the collection have been processed
-	 * @return True, if either the relationship has been already process or all of the values to store.
+	 * @return The state of things processed
 	 */
-	boolean hasProcessedEither(RelationshipDescription relationshipDescription, @Nullable Collection<?> valuesToStore) {
+	ProcessState getStateOf(RelationshipDescription relationshipDescription, @Nullable Collection<?> valuesToStore) {
 
 		try {
 			read.lock();
-			return hasProcessed(relationshipDescription) || hasProcessedAllOf(valuesToStore);
+			boolean hasProcessedRelationship = hasProcessed(relationshipDescription);
+			boolean hasProcessedAllValues = hasProcessedAllOf(valuesToStore);
+			if (hasProcessedRelationship && hasProcessedAllValues) {
+				return ProcessState.PROCESSED_BOTH;
+			}
+			if (hasProcessedRelationship) {
+				return ProcessState.PROCESSED_ONLY_RELATIONSHIP;
+			}
+			if (hasProcessedAllValues) {
+				return ProcessState.PROCESSED_ALL_VALUES;
+			}
+			return ProcessState.PROCESSED_NONE;
 		} finally {
 			read.unlock();
 		}
