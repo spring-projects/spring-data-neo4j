@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.4.0-M1 (2020-06-25)
+----------------------------------------
+* DATAGRAPH-1324 - Use standard Spring code of conduct.
+* DATAGRAPH-1322 - Tests don't stop the embedded server reliable.
+* DATAGRAPH-1320 - Release 5.4 M1 (2020.0.0).
+
+
 Changes in version 5.3.1.RELEASE (2020-06-10)
 ---------------------------------------------
 * DATAGRAPH-1322 - Tests don't stop the embedded server reliable.
@@ -1746,6 +1753,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
