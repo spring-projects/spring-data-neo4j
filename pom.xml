@@ -514,8 +514,8 @@
 					<sourceDirectory>${basedir}/docs</sourceDirectory>
 					<sourceDocumentName>index.adoc</sourceDocumentName>
 					<sourceHighlighter>coderay</sourceHighlighter>
-					<icons>font</icons>
 					<attributes>
+						<icons>font</icons>
 						<toc>left</toc>
 						<setanchors></setanchors>
 						<idprefix></idprefix>
