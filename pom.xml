@@ -72,7 +72,6 @@
 	</developers>
 
 	<modules>
-		<module>neo4j-opencypher-dsl</module>
 		<module>spring-data-neo4j-rx</module>
 		<module>spring-data-neo4j-rx-spring-boot-starter-parent</module>
 		<module>examples/reactive-web</module>
@@ -92,6 +91,7 @@
 		<byte-buddy.version>1.10.9</byte-buddy.version>
 		<changelist>-SNAPSHOT</changelist>
 		<checkstyle.version>8.29</checkstyle.version>
+		<cypher-dsl.version>2020.0.0</cypher-dsl.version>
 		<flatten-maven-plugin.version>1.2.1</flatten-maven-plugin.version>
 		<jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
 		<java.version>1.8</java.version>
@@ -167,6 +167,11 @@
 				<groupId>io.reactivex.rxjava2</groupId>
 				<artifactId>rxjava</artifactId>
 				<version>${rxjava2.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j</groupId>
+				<artifactId>neo4j-cypher-dsl</artifactId>
+				<version>${cypher-dsl.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apiguardian</groupId>

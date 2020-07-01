@@ -24,7 +24,7 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 
 import org.apiguardian.api.API;
-import org.neo4j.opencypherdsl.Statement;
+import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 
 /**

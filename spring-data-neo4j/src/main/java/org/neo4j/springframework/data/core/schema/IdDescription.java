@@ -18,15 +18,15 @@
  */
 package org.neo4j.springframework.data.core.schema;
 
-import static org.neo4j.opencypherdsl.Cypher.*;
+import static org.neo4j.cypherdsl.core.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.Constants.*;
 
 import java.util.Optional;
 
 import org.apiguardian.api.API;
-import org.neo4j.opencypherdsl.Expression;
-import org.neo4j.opencypherdsl.Functions;
-import org.neo4j.opencypherdsl.Node;
+import org.neo4j.cypherdsl.core.Expression;
+import org.neo4j.cypherdsl.core.Functions;
+import org.neo4j.cypherdsl.core.Node;
 import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;

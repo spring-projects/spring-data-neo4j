@@ -21,8 +21,8 @@ package org.neo4j.springframework.data.core.schema;
 import static org.apiguardian.api.API.Status.*;
 
 import org.apiguardian.api.API;
-import org.neo4j.opencypherdsl.Cypher;
-import org.neo4j.opencypherdsl.SymbolicName;
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.SymbolicName;
 
 /**
  * A pool of constants used in our Cypher generation. These constants may change without further notice.

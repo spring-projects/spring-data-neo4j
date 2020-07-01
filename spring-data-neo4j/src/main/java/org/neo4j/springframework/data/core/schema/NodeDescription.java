@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
-import org.neo4j.opencypherdsl.Expression;
+import org.neo4j.cypherdsl.core.Expression;
 import org.springframework.lang.Nullable;
 
 /**

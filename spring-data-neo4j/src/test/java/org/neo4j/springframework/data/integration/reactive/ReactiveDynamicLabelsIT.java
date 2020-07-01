@@ -19,8 +19,8 @@
 package org.neo4j.springframework.data.integration.reactive;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.neo4j.opencypherdsl.Conditions.not;
-import static org.neo4j.opencypherdsl.Predicates.*;
+import static org.neo4j.cypherdsl.core.Conditions.not;
+import static org.neo4j.cypherdsl.core.Predicates.*;
 import static org.neo4j.springframework.data.test.Neo4jExtension.*;
 
 import reactor.core.publisher.Flux;
@@ -41,10 +41,10 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.reactive.RxSession;
-import org.neo4j.opencypherdsl.Condition;
-import org.neo4j.opencypherdsl.Cypher;
-import org.neo4j.opencypherdsl.Node;
-import org.neo4j.opencypherdsl.renderer.Renderer;
+import org.neo4j.cypherdsl.core.Condition;
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig;
 import org.neo4j.springframework.data.core.ReactiveNeo4jTemplate;
 import org.neo4j.springframework.data.integration.shared.EntitiesWithDynamicLabels.*;

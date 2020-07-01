@@ -20,7 +20,7 @@ package org.neo4j.springframework.data.core;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
-import static org.neo4j.opencypherdsl.Cypher.*;
+import static org.neo4j.cypherdsl.core.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.Constants.*;
 
 import java.util.ArrayList;
@@ -36,10 +36,10 @@ import org.apiguardian.api.API;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
-import org.neo4j.opencypherdsl.Condition;
-import org.neo4j.opencypherdsl.Functions;
-import org.neo4j.opencypherdsl.Statement;
-import org.neo4j.opencypherdsl.renderer.Renderer;
+import org.neo4j.cypherdsl.core.Condition;
+import org.neo4j.cypherdsl.core.Functions;
+import org.neo4j.cypherdsl.core.Statement;
+import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.springframework.data.core.Neo4jClient.RunnableSpecTightToDatabase;
 import org.neo4j.springframework.data.core.NestedRelationshipProcessingStateMachine.ProcessState;
 import org.neo4j.springframework.data.core.mapping.Neo4jMappingContext;

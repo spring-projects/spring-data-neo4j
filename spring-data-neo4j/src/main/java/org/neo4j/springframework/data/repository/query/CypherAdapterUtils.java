@@ -18,15 +18,15 @@
  */
 package org.neo4j.springframework.data.repository.query;
 
-import static org.neo4j.opencypherdsl.Cypher.*;
+import static org.neo4j.cypherdsl.core.Cypher.*;
 import static org.neo4j.springframework.data.core.schema.Constants.*;
 
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
-import org.neo4j.opencypherdsl.Cypher;
-import org.neo4j.opencypherdsl.SortItem;
-import org.neo4j.opencypherdsl.StatementBuilder;
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.SortItem;
+import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.neo4j.springframework.data.core.schema.GraphPropertyDescription;
 import org.neo4j.springframework.data.core.schema.NodeDescription;
 import org.springframework.data.domain.Pageable;

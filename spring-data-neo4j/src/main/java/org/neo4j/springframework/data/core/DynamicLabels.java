@@ -26,9 +26,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-import org.neo4j.opencypherdsl.Cypher;
-import org.neo4j.opencypherdsl.Node;
-import org.neo4j.opencypherdsl.StatementBuilder.OngoingMatchAndUpdate;
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate;
 
 /**
  * Decorator for an ongoing update statement that removes obsolete dynamic labels and adds new ones.
