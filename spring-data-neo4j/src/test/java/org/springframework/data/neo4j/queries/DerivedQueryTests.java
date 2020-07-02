@@ -363,6 +363,23 @@ public class DerivedQueryTests {
 		});
 	}
 
+	@Test
+	public void shouldFindNodeEntititiesWithMultipleNestedPropertiesOred() {
+		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
+				+ " CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) "
+				+ " CREATE (u:User {name:'Michal', middleName:'M'}) CREATE (u1:User {name:'Vince', middleName:'M'}) "
+				+ " CREATE (u)-[:VISITED]->(p)  CREATE (u1)-[:VISITED]->(r)");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				List<Cinema> theatres = cinemaRepository.findByVisitedNameOrVisitedMiddleName("Vince", "M");
+				assertThat(theatres.size()).isEqualTo(2);
+				assertThat(theatres).extracting(Cinema::getName).containsExactlyInAnyOrder("Picturehouse", "Ritzy");
+			}
+		});
+	}
+
 	@Test // DATAGRAPH-629
 	public void shouldFindNodeEntititiesWithMultipleNestedPropertiesAnded() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
