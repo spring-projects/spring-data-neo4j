@@ -80,6 +80,8 @@ public interface CinemaRepository extends Neo4jRepository<Cinema, Long> {
 
 	List<Cinema> findByVisitedNameOrBlockbusterOfTheWeekName(String location, String name);
 
+	List<Cinema> findByVisitedNameOrVisitedMiddleName(String name, String middleName);
+
 	List<Cinema> findByVisitedNameAndVisitedMiddleName(String name, String middleName);
 
 	List<Cinema> findByNameMatches(String name);
