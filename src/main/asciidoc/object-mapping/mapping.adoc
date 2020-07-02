@@ -1,0 +1,396 @@
+[[mapping]]
+= Object Mapping
+
+The following sections will explain the process of mapping between your graph and your domain.
+It is split into two parts.
+The first part explains the actual mapping and the available tools for you to describe how to map nodes, relationships and properties to objects.
+The second part will have a look at Spring Data's object mapping fundamentals.
+It gives valuable tips on general mapping, why you should prefer immutable domain objects and how you can model them with Java or Kotlin.
+
+[[mapping.annotations]]
+== Metadata-based Mapping
+
+To take full advantage of the object mapping functionality inside SDN/RX, you should annotate your mapped objects with the `@Node` annotation.
+Although it is not necessary for the mapping framework to have this annotation (your POJOs are mapped correctly, even without any annotations),
+it lets the classpath scanner find and pre-process your domain objects to extract the necessary metadata.
+If you do not use this annotation, your application takes a slight performance hit the first time you store a domain object,
+because the mapping framework needs to build up its internal metadata model so that it knows about the properties of your domain object and how to persist them.
+
+=== Mapping Annotation Overview
+
+==== From SDN/RX:
+
+* `@Node`: Applied at the class level to indicate this class is a candidate for mapping to the database.
+* `@Id`: Applied at the field level to mark the field used for identity purpose.
+* `@GeneratedValue`: Applied at the field level together with `@Id` to specify how unique identifiers should be generated.
+* `@Property`: Applied at the field level to modify the mapping from attributes to properties.
+* `@Relationship`: Applied at the field level to specify the details of a relationship.
+* `@DynamicLabels`: Applied at the field level to specify the source of dynamic labels.
+
+==== From Spring Data commons
+
+* `@org.springframework.data.annotation.Id` same as `@Id` from SDN/RX, in fact, `@Id` is annotated with Spring Data Common's Id-annotation.
+* `@CreatedBy`: Applied at the field level to indicate the creator of a node.
+* `@CreatedDate`: Applied at the field level to indicate the creation date of a node.
+* `@LastModifiedBy`:  Applied at the field level to indicate the author of the last change to a node.
+* `@LastModifiedDate`:  Applied at the field level to indicate the last modification date of a node.
+* `@PersistenceConstructor`: Applied at one constructor to mark it as a the preferred constructor when reading entities.
+* `@Persistent`: Applied at the class level to indicate this class is a candidate for mapping to the database.
+* `@Version`: Applied at field level is used for optimistic locking and checked for modification on save operations.
+              The initial value is zero which is bumped automatically on every update.
+
+Have a look at <<auditing>> for all annotations regarding auditing support.
+
+=== The basic building block: `@Node`
+
+The `@Node` annotation is used to mark a class as a managed domain class, subject to the classpath scanning by the mapping context.
+
+To map an Object to nodes in the graph and vice versa, we need a label to identify the class to map to and from.
+
+`@Node` has an attribute `labels` that allows you to configure one or more labels to be used when reading and writing instances of the annotated class.
+The `value` attribute is an alias for `labels`.
+If you don't specify a label, than the simple class name will be used as the primary label.
+In case you want to provide multiple labels, you could either:
+
+. Supply an array to the `labels` property.
+The first element in the array will considered as the primary label.
+. Supply a value for `primaryLabel` and put the additional labels in `labels`.
+
+The primary label should always be the most concrete label that reflects your domain class.
+
+For each instance of an annotated class that is written through a repository or through the Neo4j template,
+one node in the graph with at least the primary label will be written.
+Vice versa, all nodes with the primary label will be mapped to the instances of the annotated class.
+
+The `@Node` annotation is not inherited from super-types and interfaces.
+You can however annotate your domain classes individually at every inheritance level.
+This allows polymorphic queries: You can pass in base or intermediate classes and retrieve the correct, concrete instance for your nodes.
+This is only supported for abstract bases annotated with `@Node`.
+The labels defined on such a class will be used as additional labels together with the labels of the concrete implementations.
+
+==== Dynamic or "runtime" managed labels
+
+All labels implicitly defined through the simple class name or explicitly via the `@Node` annotation are static.
+They cannot be changed during runtime.
+If you need additional labels that can be manipulated during runtime, you can use `@DynamicLabels`.
+`@DynamicLabels` is an annotation on field level and marks an attribute of type `java.util.Collection<String>` (a `List` or `Set`) for example) as source of dynamic labels.
+
+If this annotation is present, all labels present on a node and not statically mapped via `@Node` and the class names, will be collected into that collection during load.
+During writes, all labels of the node will be replaced with the statically defined labels plus the contents of the collection.
+
+WARNING: If you have other applications add additional labels to nodes, don't use `@DynamicLabels`.
+         If `@DynamicLabels` is present on a managed entity, the resulting set of labels will be "the truth" written to the database.
+
+=== Identifying instances: `@Id`
+
+While `@Node` creates a mapping between a class and nodes having a specific label,
+we also need to make the connection between individual instances of that class (objects) and instances of the node.
+
+This is where `@Id` comes into play.
+`@Id` marks an attribute of the class to be the unique identifier of the object.
+That unique identifier is in an optimal world a unique business key or in other words, a natural key.
+`@Id` can be used on all attributes with a supported simple type.
+
+Natural keys are however pretty hard to find.
+Peoples names for example are seldom unique, change over time or worse, not everyone has a first and last name.
+
+We therefore support two different kind of _surrogate keys_.
+
+On an attribute of type `long` or `Long`, `@Id` can be used with `@GeneratedValue`.
+This maps the Neo4j internal id, which is *not* a property on a node or relationship and usually not visible,
+to the attribute and allows SDN/RX to retrieve individual instances of the class.
+
+`@GeneratedValue` provides the attribute `generatorClass`.
+`generatorClass` can be used to specify a class implementing `IdGenerator`.
+An `IdGenerator` is a functional interface and its `generateId` takes the primary label and the instance to generate an Id for.
+We support `UUIDStringGenerator` as one implementation out of the box.
+
+You can also specify a Spring Bean from the application context on `@GeneratedValue` via `generatorRef`.
+That bean also needs to implement `IdGenerator`, but can make use of everything in the context, including the Neo4j client or template to interact with the database.
+
+NOTE: Don't skip the important notes about ID handling in <<mapping.id-handling>>
+
+=== Mapping properties: `@Property`
+
+All attributes of a `@Node`-annotated class will be persisted as properties of Neo4j nodes and relationships.
+Without further configuration, the name of the attribute in the Java or Kotlin class will be used as Neo4j property.
+
+If you are working with an existing Neo4j schema or just like to adapt the mapping to your needs, you will need to use `@Property`.
+The `name` is used to specify the name of the property inside the database.
+
+=== Connecting nodes: `@Relationship`
+
+The `@Relationship` annotation can be used on all attributes that are not a simple type.
+It is applicable on attributes of other types annotated with `@Node` or collections and maps thereof.
+
+The `type` or the `value` attribute allow configuration of the relationship's type, `direction` allows specifying the direction.
+The default direction in SDN/RX is `Relationship.Direction#OUTGOING`.
+
+We support dynamic relationships.
+Dynamic relationships are represented as a `Map<String, AnnotatedDomainClass>`.
+In such a case, the type of the relationship to the other domain class is given by the maps key and must not be configured through the `@Relationship`.
+
+==== Map relationship properties
+
+Neo4j supports defining properties not only on nodes but also on relationships.
+To express those properties in the model SDN/RX provides `@RelationshipProperties` to be applied on a simple Java class.
+
+In the entity class the relationship can be modelled as before but its type has to be a `Map` with the related node as the key and the relation property class as value.
+
+A relationship property class and its usage may look like this:
+
+.Relationship properties `Roles`
+[source,java]
+----
+include::../../examples/reactive-web/src/main/java/org/neo4j/springframework/data/examples/spring_boot/domain/Roles.java[tags=mapping.relationship.properties]
+----
+
+.Defining relationship properties for an entity
+[source,java,indent=0]
+----
+include::../../examples/reactive-web/src/main/java/org/neo4j/springframework/data/examples/spring_boot/domain/MovieEntity.java[tags=mapping.relationship.properties]
+----
+
+==== Relationship query limit
+
+In general there is no limitation of relationships / hops for creating the queries.
+SDN/RX parses the whole reachable graph from your modelled nodes.
+It is possible to have self-referencing entities and self-referencing concrete instances.
+
+If these entities or instances for a cycle we have a strict limit of *2* repetitions of walking the same path through the graph.
+E.g. You model a social network of `(:Person)-[:HAS_FRIEND]->(:Person)-[:HAS_FRIEND]...` you will only get the friends of the second degree.
+If you need a more specific mapping for your domain we advise you to use custom queries.
+
+=== A complete example
+
+Putting all those together, we can create a simple domain.
+We use movies and people with different roles:
+
+.The `MovieEntity`
+====
+[source,java]
+----
+include::../../examples/reactive-web/src/main/java/org/neo4j/springframework/data/examples/spring_boot/domain/MovieEntity.java[tags=mapping.annotations]
+----
+<.> `@Node` is used to mark this class as a managed entity.
+    It also is used to configure the Neo4j label.
+    The label defaults to the name of the class, if you're just using plain `@Node`.
+<.> Each entity has to have an id.
+    We use the movie's name as unique identifier.
+<.> This shows `@Property` as a way to use a different name for the field than for the graph property.
+<.> This configures an incoming relationship to a person.
+<.> This is the constructor to be used by your application code as well as by SDN/RX.
+====
+
+People are mapped in two roles here, `actors` and `directors`.
+The domain class is the same:
+
+[[mapping.complete-example.person]]
+.The `PersonEntity`
+====
+[source,java]
+----
+include::../../examples/reactive-web/src/main/java/org/neo4j/springframework/data/examples/spring_boot/domain/PersonEntity.java[tags=mapping.annotations]
+----
+====
+
+NOTE: We haven't modelled the relationship between movies and people in both direction.
+      Why is that?
+      We see the `MovieEntity` as the aggregate root, owning the relationships.
+      On the other hand, we want to be able to pull all people from the database without selecting all the movies associated with them.
+      Please consider your applications use case before you try to map every relationship in your database in every direction.
+      While you can do this, you may end up rebuilding a graph database inside your object graph and this is not the intention of a mapping framework.
+
+
+[[mapping.id-handling]]
+== Handling and provisioning of unique IDs
+
+=== Using the internal Neo4j id
+
+The easiest way to give your domain classes an unique identifier is the combination of `@Id` and `@GeneratedValue`
+on a field of type `Long` (preferable the object, not the scalar `long`, as literal `null` is the better indicator whether an instance is new or not):
+
+.Mutable MovieEntity with internal Neo4j id
+====
+[source,java]
+----
+@Node("Movie")
+public class MovieEntity {
+
+	@Id @GeneratedValue
+	private Long id;
+
+	private String name;
+
+	public MovieEntity(String name) {
+		this.name = name;
+	}
+}
+----
+====
+
+You don't need to provide a setter for the field, SDN/RX will use reflection to assign the field, but use a setter if there is one.
+If you want to create an immutable entity with an internally generated id, you have to provide a _wither_.
+
+.Immutable MovieEntity with internal Neo4j id
+====
+[source,java]
+----
+@Node("Movie")
+public class MovieEntity {
+
+	@Id @GeneratedValue
+	private final Long id; // <.>
+
+	private String name;
+
+	public MovieEntity(String name) { // <.>
+		this(null, name);
+	}
+
+	private MovieEntity(Long id, String name) { // <.>
+		this.id = id;
+		this.name = name;
+	}
+
+	public MovieEntity withId(Long id) { // <.>
+		if (this.id.equals(id)) {
+			return this;
+		} else {
+			return new MovieEntity(id, this.title);
+		}
+	}
+}
+----
+<.> Immutable final id field indicating a generated value
+<.> Public constructor, used by the application and Spring Data
+<.> Internally used constructor
+<.> This is a so-called _wither_ for the `id`-attribute.
+    It creates a new entity and set's the field accordingly, without modifying the original entity, thus making it immutable.
+====
+
+You either have to provide a setter for the id attribute or something like a _wither_, if you want to have
+
+* Advantages: It is pretty clear that the id attribute is the surrogate business key, it takes no further effort or configuration to use it.
+* Disadvantage: It is tied to Neo4js internal database id, which is not unique to our application entity only over a database lifetime.
+* Disadvantage: It takes more effort to create an immutable entity
+
+=== Use externally provided surrogate keys
+
+The `@GeneratedValue` annotation can take a class implementing `org.neo4j.springframework.data.core.schema.IdGenerator` as parameter.
+SDN/RX provides `InternalIdGenerator` (the default) and `UUIDStringGenerator` out of the box.
+The later generates new UUIDs for each entity and returns them as `java.lang.String`.
+An application entity using that would look like this:
+
+.Mutable MovieEntity with externally generated surrogate key
+====
+[source,java]
+----
+@Node("Movie")
+public class MovieEntity {
+
+	@Id @GeneratedValue(UUIDStringGenerator.class)
+	private String id;
+
+	private String name;
+}
+----
+====
+
+We have to discuss two separate things regarding advantages and disadvantages.
+The assignment itself and the UUID-Strategy.
+A https://en.wikipedia.org/wiki/Universally_unique_identifier[universally unique identifier] is meant to be unique for practical purposes.
+To quote Wikipedia:
+“Thus, anyone can create a UUID and use it to identify something with near certainty that the identifier does not duplicate one that has already been,
+or will be, created to identify something else.”
+Our strategy uses Java internal UUID mechanism, employing a cryptographically strong pseudo random number generator.
+In most cases that should work fine, but your mileage might vary.
+
+That leaves the assignment itself:
+
+* Advantage: The application is in full control and can generate a unique key that is just unique enough for the purpose of the application.
+             The generated value will be stable and there won’t be a need to change it later on.
+* Disadvantage: The generated strategy is applied on the application side of things.
+                In those days most applications will be deployed in more than one instance to scale nicely.
+                If your strategy is prone to generate duplicates than inserts will fail as uniques of the primary key will be violated.
+                So while you don’t have to think about a unique business key in this scenario, you have to think more what to generate.
+
+You have several options to role your own ID generator.
+One is a POJO implementing a generator:
+
+.Naive sequence generator
+====
+[source,java]
+----
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.neo4j.springframework.data.core.schema.IdGenerator;
+import org.springframework.util.StringUtils;
+
+public class TestSequenceGenerator implements IdGenerator<String> {
+
+	private final AtomicInteger sequence = new AtomicInteger(0);
+
+	@Override
+	public String generateId(String primaryLabel, Object entity) {
+		return StringUtils.uncapitalize(primaryLabel) +
+			"-" + sequence.incrementAndGet();
+	}
+}
+----
+====
+
+Another option is to provide an additional Spring Bean like this:
+
+.Neo4jClient based ID generator
+====
+[source,java]
+----
+@Component
+class MyIdGenerator implements IdGenerator<String> {
+
+	private final Neo4jClient neo4jClient;
+
+	public MyIdGenerator(Neo4jClient neo4jClient) {
+		this.neo4jClient = neo4jClient;
+	}
+
+	@Override
+	public String generateId(String primaryLabel, Object entity) {
+		return neo4jClient.query("YOUR CYPHER QUERY FOR THE NEXT ID") // <.>
+			.fetchAs(String.class).one().get();
+	}
+}
+----
+<.> Use exactly the query or logic your need.
+====
+
+The generator above would be configured as a bean reference like this:
+
+.Mutable MovieEntity using a Spring Bean as Id generator
+====
+[source,java]
+----
+@Node("Movie")
+public class MovieEntity {
+
+	@Id @GeneratedValue(generatorRef = "myIdGenerator")
+	private String id;
+
+	private String name;
+}
+----
+====
+
+=== Using a business key
+
+We have been using a business key in the complete example's `MovieEntity` and <<mapping.complete-example.person,`PersonEntity`>>.
+The name of the person is assigned at construction time, both by your application and while being loaded through Spring Data.
+
+This is only possible, if you find a stable, unique business key, but makes great immutable domain objects.
+
+* Advantages: Using a business or natural key as primary key is natural.
+              The entity in question is clearly identified and it feels most of the time just right in the further modelling of your domain.
+* Disadvantages: Business keys as primary keys will be hard to update once you realise that the key you found is not as stable as you thought.
+                 Often it turns out that it can change, even when promised otherwise.
+                 Apart from that, finding identifier that are truly unique for a thing is hard.

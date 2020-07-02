@@ -1,27 +1,35 @@
-= Spring Data Neo4j⚡️RX
+image:https://spring.io/badges/spring-data-neo4j/ga.svg[Spring Data Neo4j,link=https://projects.spring.io/spring-data-neo4j#quick-start] image:https://spring.io/badges/spring-data-neo4j/snapshot.svg[Spring Data Neo4j,link=https://projects.spring.io/spring-data-neo4j#quick-start]
+
+= Spring Data Neo4j image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-neo4j%2Fmaster&subject=Build[link=https://jenkins.spring.io/view/SpringData/job/spring-data-neo4j/] https://gitter.im/spring-projects/spring-data[image:https://badges.gitter.im/spring-projects/spring-data.svg[Gitter]]
 :sectanchors:
 
 // tag::properties[]
-:groupId: org.neo4j.springframework.data
-:artifactId: spring-data-neo4j-rx
+:neo4jGroupId: org.neo4j.springframework.data
+:springGroupId: org.springframework.data.neo4j
+:artifactId: spring-data-neo4j
 :artifactIdStarter: spring-data-neo4j-rx-spring-boot-starter
 
 :neo4j-version: 4.0.4
 :spring-boot-version: 2.3.0.RELEASE
 :spring-data-neo4j-rx-version: 1.1.1
+:spring-data-neo4j-version: 6.0.0
 // end::properties[]
-
-image:https://img.shields.io/maven-central/v/org.neo4j.springframework.data/spring-data-neo4j-rx.svg[Maven Central,link=http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.neo4j.springframework.data%22%20AND%20a%3A%22spring-data-neo4j-rx%22]
 
 [abstract]
 --
-Spring Data Neo4j⚡️RX - or in short _SDN/RX_ - is an ongoing effort to create the next generation of Spring Data Neo4j, with full reactive support and lightweight mapping.
-SDN/RX will work with immutable entities, regardless whether written in Java or Kotlin.
+Spring Data Neo4j - or in short _SDN_ - is an ongoing effort to create the next generation of Spring Data Neo4j, with full reactive support and lightweight mapping.
+SDN will work with immutable entities, regardless whether written in Java or Kotlin.
 --
 
 The primary goal of the https://projects.spring.io/spring-data[Spring Data] project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
 
-The SDN/RX project aims to provide a familiar and consistent Spring-based programming model for integrating with the https://neo4j.com/[Neo4j] Graph Database.
+The SDN project aims to provide a familiar and consistent Spring-based programming model for integrating with the https://neo4j.com/[Neo4j] Graph Database.
+
+== Code of Conduct
+
+This project is governed by the link:https://github.com/spring-projects/.github/blob/master/CODE_OF_CONDUCT.md[Spring Code of Conduct].
+By participating, you are expected to uphold this code of conduct.
+Please report unacceptable behavior to spring-code-of-conduct@pivotal.io.
 
 == Manual
 
@@ -29,6 +37,75 @@ For a gentle introduction and some getting started guides, please use our
 https://neo4j.github.io/sdn-rx[Manual].
 
 == Getting Started
+
+=== Maven configuration
+
+==== With Spring Boot
+
+If you are on https://spring.io/projects/spring-boot[Spring Boot], all you have to do is to add our starter:
+
+[source,xml,subs="verbatim,attributes"]
+----
+<dependency>
+	<groupId>{neo4jgroupId}</groupId>
+	<artifactId>{artifactIdStarter}</artifactId>
+	<version>{spring-data-neo4j-rx-version}</version>
+</dependency>
+----
+
+and configure your database connection:
+
+[source,properties]
+----
+org.neo4j.driver.uri=bolt://localhost:7687
+org.neo4j.driver.authentication.username=neo4j
+org.neo4j.driver.authentication.password=secret
+----
+
+Please have a look at our https://neo4j.github.io/sdn-rx[manual] for an overview about the architecture, how to define
+mappings and more.
+
+==== Without Spring Boot
+
+If you are using a plain Spring Framework project without Spring Boot, please add this Maven dependency:
+
+[source,xml,subs="verbatim,attributes"]
+----
+<dependency>
+	<groupId>{springGroupId}</groupId>
+	<artifactId>{artifactId}</artifactId>
+	<version>{spring-data-neo4j-version}</version>
+</dependency>
+----
+
+and configure SDN for reactive database access like this:
+
+[source,java]
+----
+@Configuration
+@EnableReactiveNeo4jRepositories
+@EnableTransactionManagement
+class MyConfiguration extends AbstractReactiveNeo4jConfig {
+
+    @Bean
+    public Driver driver() {
+        return GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"));
+    }
+
+    @Override
+    protected Collection<String> getMappingBasePackages() {
+        return Collections.singletonList(Person.class.getPackage().getName());
+    }
+}
+----
+
+The imperative version looks pretty much the same but uses `EnableNeo4jRepositories`  and `AbstractNeo4jConfig`.
+
+IMPORTANT: We recommend Spring Boot, the automatic configuration and especially the dependency management
+through the Starters in contrast to the manual work of managing dependencies and configuration.
++
+Please consult our https://neo4j.github.io/sdn-rx[manual] for more information.
+
 
 Here is a quick teaser of a reactive application using Spring Data Repositories in Java:
 
@@ -71,77 +148,33 @@ class MyService {
 }
 ----
 
-TIP: SDN/RX is not only about reactive support, all features are available in both ways: Imperative and reactive, we
-     only prefer to showcase the new reactive database access support here.
+=== Building SDN
 
-=== Maven configuration
+Please have a look at the documentation: https://neo4j.github.io/sdn-rx/current/#building-sdn-rx[Building SDN].
 
-==== With Spring Boot
+== Getting Help
 
-If you are on https://spring.io/projects/spring-boot[Spring Boot], all you have to do is to add our starter:
+Having trouble with Spring Data? We’d love to help!
 
-[source,xml,subs="verbatim,attributes"]
-----
-<dependency>
-	<groupId>{groupId}</groupId>
-	<artifactId>{artifactIdStarter}</artifactId>
-	<version>{spring-data-neo4j-rx-version}</version>
-</dependency>
-----
+* Check the
+https://docs.spring.io/spring-data/neo4j/docs/current/reference/html/[reference documentation], and https://docs.spring.io/spring-data/neo4j/docs/current/api/[Javadocs].
+* Learn the Spring basics – Spring Data builds on Spring Framework, check the https://spring.io[spring.io] web-site for a wealth of reference documentation.
+If you are just starting out with Spring, try one of the https://spring.io/guides[guides].
+* If you are upgrading, check out the https://docs.spring.io/spring-data/neo4j/docs/current/changelog.txt[changelog] for "`new and noteworthy`" features.
+* Ask a question - we monitor https://stackoverflow.com[stackoverflow.com] for questions tagged with https://stackoverflow.com/questions/tagged/spring-data-neo4j[spring-data-neo4j].
+* Report bugs with Spring Data Neo4j at https://jira.spring.io/browse/DATAGRAPH[jira.spring.io/browse/DATAGRAPH].
 
-and configure your database connection:
+== Reporting Issues
 
-[source,properties]
-----
-org.neo4j.driver.uri=bolt://localhost:7687
-org.neo4j.driver.authentication.username=neo4j
-org.neo4j.driver.authentication.password=secret
-----
+Spring Data uses JIRA as issue tracking system to record bugs and feature requests. If you want to raise an issue, please follow the recommendations below:
 
-Please have a look at our https://neo4j.github.io/sdn-rx[manual] for an overview about the architecture, how to define
-mappings and more.
+* Before you log a bug, please search the
+https://jira.spring.io/browse/DATAGRAPH[issue tracker] to see if someone has already reported the problem.
+* If the issue doesn’t already exist, https://jira.spring.io/browse/DATAGRAPH[create a new issue].
+* Please provide as much information as possible with the issue report, we like to know the version of Spring Data that you are using and JVM version.
+* If you need to paste code, or include a stack trace use JIRA `{code}…{code}` escapes before and after your text.
+* If possible try to create a test-case or project that replicates the issue. Attach a link to your code or a compressed file containing your code.
 
-==== Without Spring Boot
+== License
 
-If you are using a plain Spring Framework project without Spring Boot, please add this Maven dependency:
-
-[source,xml,subs="verbatim,attributes"]
-----
-<dependency>
-	<groupId>{groupId}</groupId>
-	<artifactId>{artifactId}</artifactId>
-	<version>{spring-data-neo4j-rx-version}</version>
-</dependency>
-----
-
-and configure SDN/RX for reactive database access like this:
-
-[source,java]
-----
-@Configuration
-@EnableReactiveNeo4jRepositories
-@EnableTransactionManagement
-class MyConfiguration extends AbstractReactiveNeo4jConfig {
-
-    @Bean
-    public Driver driver() {
-        return GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"));
-    }
-
-    @Override
-    protected Collection<String> getMappingBasePackages() {
-        return Collections.singletonList(Person.class.getPackage().getName());
-    }
-}
-----
-
-The imperative version looks pretty much the same but uses `EnableNeo4jRepositories`  and `AbstractNeo4jConfig`.
-
-IMPORTANT: We recommend Spring Boot, the automatic configuration and especially the dependency management
-           through the Starters in contrast to the manual work of managing dependencies and configuration.
-           +
-           Please consult our https://neo4j.github.io/sdn-rx[manual] for more information.
-
-=== Building SDN/RX
-
-Please have a look at the documentation: https://neo4j.github.io/sdn-rx/current/#building-sdn-rx[Building SDN/RX].
+Spring Data Neo4j is Open Source software released under the https://www.apache.org/licenses/LICENSE-2.0.html[Apache 2.0 license].

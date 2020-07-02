@@ -1,0 +1,21 @@
+[[introduction]]
+= Introduction
+
+== Your way through this document
+
+If you already familiar with the core concepts of Spring Data, head straight to <<getting-started>>.
+This chapter will walk you through different options of configuring an application to connect to a Neo4j instance and how to model your domain.
+
+In most cases, you will need a domain.
+Go to <<mapping>> to learn about how to map nodes and relationships to your domain model.
+
+After that, you will need some means to query the domain.
+Choices are  <<neo4j-repositories, Neo4j repositories>>, <<neo4j-template, the Neo4j Template>> or on a lower level, <<neo4j-client, the Neo4j Client>>.
+All of them are available in a <<reactive-programming,reactive fashion>> as well.
+Apart from the paging mechanism, all the features of standard repositories are available in the reactive variant.
+
+You will find the building blocks in the next <<building-blocks,chapter>>.
+
+To learn more about the general concepts of repositories, head over to <<repositories>>.
+
+You can of course read on, continuing with the preface and a gentle getting started guide.

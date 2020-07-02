@@ -1,1 +1,0 @@
-org.springframework.data.repository.core.support.RepositoryFactorySupport=org.neo4j.springframework.data.repository.support.Neo4jRepositoryFactory

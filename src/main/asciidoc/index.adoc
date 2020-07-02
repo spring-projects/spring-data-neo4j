@@ -1,74 +1,61 @@
-= Spring Data Neo4j - Reference Documentation
-Michael Hunger; Oliver Gierke; Vince Bickers; Adam George; Luanne Misquitta; Michal Bachman; Mark Angrish; Nicolas Mervaillie; Gerrit Meier; Michael Simons
-:revnumber: {version}
-:revdate: {localdate}
-:spring-data-commons-docs: ../../../../../spring-data-commons/src/main/asciidoc
+= Spring Data Neo4j⚡️RX
+Gerrit Meier <gerrit.meier@neo4j.com>; Michael Simons <michael.simons@neo4j.com>
+:toc:
+:doctype: book
+:lang: en
+:listing-caption: Listing
+:source-highlighter: coderay
+:icons: font
+:sectlink: true
+:sectanchors: true
+:numbered: true
+:xrefstyle: short
 
-(C) 2010-2019 Graph Aware Ltd - Neo Technology, Inc. - Pivotal Software, Inc.
+ifndef::manualIncludeDir[]
+:manualIncludeDir: ../
+endif::[]
 
-image::springdatagraph.png[Spring + Neo4j,align="left"]
+include::{manualIncludeDir}/README.adoc[tags=properties]
 
-NOTE: _Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically._
-
-toc::[]
-
-include::preface.adoc[]
-
-:leveloffset: +1
-include::new-features.adoc[]
-include::{spring-data-commons-docs}/dependencies.adoc[]
-include::{spring-data-commons-docs}/repositories.adoc[]
-include::{spring-data-commons-docs}/auditing.adoc[]
-:leveloffset: -1
+:copyright: 2020 Neo4j, Inc.,
+:gh-base: https://github.com/neo4j/sdn-rx
+:java-driver-starter-href: https://github.com/neo4j/neo4j-java-driver-spring-boot-starter
+:springVersion: 5.2.0.RELEASE
+:spring-framework-docs: https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference
+:spring-framework-javadoc: https://docs.spring.io/spring/docs/{springVersion}/javadoc-api
 
 
-[[reference]]
-= Spring Data Neo4j Reference Documentation
+(C) {copyright}
 
-:leveloffset: +1
-include::reference/introduction.adoc[]
-include::reference/getting-started.adoc[]
-include::reference/ogm-support.adoc[]
-include::reference/neo4j-repositories.adoc[]
-include::reference/auditing.adoc[]
-
-:leveloffset: -1
-
-[[ogm-reference-documentation]]
-= Neo4j-OGM Reference Documentation
+License: link:license.html[Creative Commons 4.0]
 
 [abstract]
 --
-This chapter is taken from the https://neo4j.com/docs/ogm-manual/current[Official Neo4j-OGM Reference Documentation].
+This is the SDN/RX manual version {spring-data-neo4j-rx-version}.
+
+It contains excerpts of the shared https://docs.spring.io/spring-data/commons/docs/current/reference/html[Spring Data Commons documentation],
+adapted to contain only supported features and annotation.
 --
 
-:leveloffset: +1
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/introduction.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/getting-started.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/configuration.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/annotations.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/indexing.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/connecting.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/session.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/conversion.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/filters.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/events.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/testing.adoc[]
-include::https://raw.githubusercontent.com/neo4j/neo4j-ogm/v3.1.2/neo4j-ogm-docs/src/main/asciidoc/reference/ha.adoc[]
-:leveloffset: -1
+_Who should read this?_
 
+This manual is written for:
 
+* the enterprise architect investigating Spring integration for Neo4j.
+* the engineer developing Spring Data based applications with Neo4j.
 
-[[appendix]]
-= Appendix
+include::introduction-and-preface/index.adoc[]
 
-:numbered!:
-:leveloffset: +1
-include::{spring-data-commons-docs}/repository-namespace-reference.adoc[]
-include::{spring-data-commons-docs}/repository-populator-namespace-reference.adoc[]
-include::{spring-data-commons-docs}/repository-query-keywords-reference.adoc[]
-include::{spring-data-commons-docs}/repository-query-return-types-reference.adoc[]
-include::migration.adoc[]
-include::faq.adoc[]
+include::getting-started/index.adoc[]
 
-:leveloffset: -1
+include::object-mapping/index.adoc[]
+
+include::repositories/index.adoc[]
+
+include::testing/index.adoc[]
+
+include::auditing/index.adoc[]
+
+include::faq/index.adoc[]
+
+include::appendix/index.adoc[]

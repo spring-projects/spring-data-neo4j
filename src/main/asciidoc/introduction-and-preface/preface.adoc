@@ -1,0 +1,137 @@
+[[preface]]
+= Preface
+
+[[preface.nosql]]
+== NoSQL and Graph databases
+
+A graph database is a storage engine that is specialized in storing and retrieving vast networks of information.
+It efficiently stores data as nodes with relationships to other or even the same nodes,
+thus allowing high-performance retrieval and querying of those structures.
+Properties can be added to both nodes and relationships.
+Nodes can be labelled by zero or more labels, relationships are always directed and named.
+
+Graph databases are well suited for storing most kinds of domain models.
+In almost all domains, there are certain things connected to other things.
+In most other modeling approaches, the relationships between things are reduced to a single link without identity and attributes.
+Graph databases allow to keep the rich relationships that originate from the domain equally well-represented in the database without resorting to also modeling the relationships as "things".
+There is very little "impedance mismatch" when putting real-life domains into a graph database.
+
+
+[[preface.nosql.neo4j]]
+=== Introducing Neo4j
+
+https://neo4j.com/[Neo4j] is an open source NoSQL graph database.
+It is a fully transactional database (ACID) that stores data structured as graphs consisting of nodes, connected by relationships.
+Inspired by the structure of the real world, it allows for high query performance on complex data, while remaining intuitive and simple for the developer.
+
+The starting point for learning about Neo4j is https://neo4j.com/[neo4j.com].
+Here is a list of useful resources:
+
+* The https://neo4j.com/docs/[Neo4j documentation] introduces Neo4j and contains links to getting started guides, reference documentation and tutorials.
+* The https://neo4j.com/sandbox/[online sandbox] provides a convenient way to interact with a Neo4j instance in combination with the online https://neo4j.com/developer/get-started/[tutorial].
+* Neo4j https://neo4j.com/developer/java/[Java Bolt Driver]
+* https://neo4j.com/docs/ogm-manual/current/[Neo4j Object Graph Mapper (OGM) Library]
+* Several https://neo4j.com/books/[books] available for purchase and https://www.youtube.com/neo4j[videos] to watch.
+
+
+[[preface.spring-data]]
+== Spring and Spring Data
+
+Spring Data uses Spring Framework's https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html[core] functionality,
+such as the https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#beans[IoC] container,
+https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#core-convert[type conversion system],
+https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#expressions[expression language],
+https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/integration.html#jmx[JMX integration],
+and portable https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#dao-exceptions[DAO exception hierarchy].
+While it is not necessary to know all the Spring APIs, understanding the concepts behind them is.
+At a minimum, the idea behind IoC should be familiar.
+
+The Spring Data Neo4j project applies Spring Data concepts to the development of solutions using the Neo4j graph data store.
+We provide _repositories_ as a high-level abstraction for storing and querying documents as well as templates and clients for generic domain access or generic query execution.
+All of them are integrated with Spring's application transactions.
+
+The core functionality of the Neo4j support can be used directly, through either the `Neo4jClient` or the `Neo4jTemplate` or the reactive variants thereof.
+All of them provide integration with Spring's application level transactions.
+On a lower level, you can grab the Bolt driver instance, but than you have to manage your own transactions.
+
+To learn more about Spring, you can refer to the comprehensive documentation that explains in detail the Spring Framework.
+There are a lot of articles, blog entries and books on the matter - take a look at the Spring Framework https://spring.io/docs[home page ] for more information.
+
+[[what-is-sdn-rx]]
+== What is Spring Data Neo4j⚡️RX
+
+Spring Data Neo4j⚡RX is the successor to Spring Data Neo4j + Neo4j-OGM.
+The separate layer of Neo4j-OGM (Neo4j Object Graph Mapper) has been replaced by Spring infrastructure, but the basic concepts of an Object Graph Mapper (OGM) still apply:
+
+An OGM maps nodes and relationships in the graph to objects and references in a domain model.
+Object instances are mapped to nodes while object references are mapped using relationships, or serialized to properties (e.g. references to a Date).
+JVM primitives are mapped to node or relationship properties.
+An OGM abstracts the database and provides a convenient way to persist your domain model in the graph and query it without having to use low level drivers directly.
+It also provides the flexibility to the developer to supply custom queries where the queries generated by SDN/RX are insufficient.
+
+=== What's in the box?
+
+Spring Data Neo4j⚡RX or in short SDN/RX is a next-generation https://spring.io/projects/spring-data[Spring Data] module,
+created and maintained by https://neo4j.com[Neo4j, Inc.] in close collaboration with https://pivotal.io[Pivotal's] Spring Data Team.
+
+SDN/RX relies completely on the https://github.com/neo4j/neo4j-java-driver[Neo4j Java Driver],
+without introducing another "driver" or "transport" layer between the mapping framework and the driver.
+The Neo4j Java Driver - sometimes dubbed Bolt or the Bolt driver - is used as a protocol much like JDBC is with relational databases.
+
+Noteworthy features that differentiate SDN/RX from Spring Data Neo4j + OGM are
+
+* Full support for immutable entities and thus full support for Kotlin's data classes
+* Full support for the reactive programming model in the Spring Framework itself and Spring Data
+* Brand new Neo4j client and reactive client feature, resurrecting the idea of a template over the plain driver, easing database access
+
+SDN/RX is currently developed with https://github.com/spring-projects/spring-data-neo4j[Spring Data Neo4j] in parallel and will replace it eventually when they are on feature parity in regards of repository support and mapping.
+
+
+=== Why should I use SDN/RX in favor of SDN+OGM
+
+SDN/RX has several features not present in SDN+OGM, notably
+
+* Full support for Springs reactive story, including reactive transaction
+* Full support for https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#query-by-example[Query By Example]
+* Full support for fully immutable entities
+* Support for all modifiers and variations of derived finder methods, including spatial queries
+
+=== Do I need both SDN/RX and Spring Data Neo4j?
+
+No.
+
+They are mutually exclusive and you cannot mix them in one project.
+
+=== How does SDN/RX relate to Neo4j-OGM?
+
+https://neo4j.com/docs/ogm-manual/current/[Neo4j-OGM] is an Object Graph Mapping library, which is mainly used by Spring Data Neo4j as its backend for the heavy lifting of mapping nodes and relationships into domain object.
+SDN/RX *does not need* and *does not support* Neo4j-OGM.
+SDN/RX uses Spring Data's mapping context exclusively for scanning classes and building the meta model.
+
+While this pins SDN/RX to the Spring eco systems, it has several advantages, among them the smaller footprint in regards of CPU and memory usage and especially, all the features of Springs mapping context.
+
+=== Does SDN/RX support connections over HTTP to Neo4j?
+
+No.
+
+=== Does SDN/RX support embedded Neo4j?
+
+Embedded Neo4j has multiple facets to it:
+
+==== Does SDN/RX provide an embedded instance for your application?
+
+No.
+
+==== Does SDN/RX interact directly with an embedded instance?
+
+No.
+An embedded database is usually represented by an instance of `org.neo4j.graphdb.GraphDatabaseService` and has no Bolt connector out of the box.
+
+SDN/RX can however work very much with Neo4j's test harness, the test harness is specially meant to be a drop-in replacement for the real database.
+Support for both Neo4j 3.5 and 4.0 test harness is implemented via link:{java-driver-starter-href}[the Spring Boot starter for the driver].
+Have a look at the corresponding module `org.neo4j.driver:neo4j-java-driver-test-harness-spring-boot-autoconfigure`.
+
+==== Can I use SDN/RX without Spring Boot?
+
+Yes, see our `README`.
+We provide `org.neo4j.springframework.data.config.AbstractNeo4jConfig` and `org.neo4j.springframework.data.config.AbstractReactiveNeo4jConfig` for that purpose.

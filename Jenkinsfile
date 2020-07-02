@@ -24,12 +24,15 @@ pipeline {
 					image 'adoptopenjdk/openjdk8:latest'
 					label 'data'
 					args '-v $HOME:/tmp/jenkins-home'
+					args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
 				}
 			}
 			options { timeout(time: 30, unit: 'MINUTES') }
 			steps {
-				sh 'rm -rf ?'
+				sh 'mkdir -p /tmp/jenkins-home'
+				sh 'chown -R 1001:1001 .'
 				sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw clean dependency:list verify -Dsort -U -B'
+				sh 'chown -R 1001:1001 .'
 			}
 		}
 
@@ -47,12 +50,15 @@ pipeline {
 							image 'adoptopenjdk/openjdk11:latest'
 							label 'data'
 							args '-v $HOME:/tmp/jenkins-home'
+							args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
 						}
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }
 					steps {
-						sh 'rm -rf ?'
+						sh 'mkdir -p /tmp/jenkins-home'
+						sh 'chown -R 1001:1001 .'
 						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pjava11 clean dependency:list verify -Dsort -U -B'
+						sh 'chown -R 1001:1001 .'
 					}
 				}
 
@@ -62,12 +68,15 @@ pipeline {
 							image 'adoptopenjdk/openjdk14:latest'
 							label 'data'
 							args '-v $HOME:/tmp/jenkins-home'
+							args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
 						}
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }
 					steps {
-						sh 'rm -rf ?'
+						sh 'mkdir -p /tmp/jenkins-home'
+						sh 'chown -R 1001:1001 .'
 						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pjava11 clean dependency:list verify -Dsort -U -B'
+						sh 'chown -R 1001:1001 .'
 					}
 				}
 			}
@@ -84,7 +93,7 @@ pipeline {
 				docker {
 					image 'adoptopenjdk/openjdk8:latest'
 					label 'data'
-					args '-v $HOME:/tmp/jenkins-home'
+					args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
 				}
 			}
 			options { timeout(time: 20, unit: 'MINUTES') }
@@ -94,8 +103,9 @@ pipeline {
 			}
 
 			steps {
-				sh 'rm -rf ?'
+				sh 'mkdir -p /tmp/jenkins-home'
 				sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,artifactory ' +
+						'-Drunning-on-ci ' +
 						'-Dartifactory.server=https://repo.spring.io ' +
 						"-Dartifactory.username=${ARTIFACTORY_USR} " +
 						"-Dartifactory.password=${ARTIFACTORY_PSW} " +
