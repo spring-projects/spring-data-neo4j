@@ -1,17 +1,33 @@
-.idea/
-*/target/
-*.iml
-spring-data-neo4j-examples/sdn-boot/bower_components/
-.buildpath
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
 .project
 .settings
-*/neo4j-home/
-target/
-.idea/
-*.class
-*.iml
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
 *.iws
+*.iml
 *.ipr
-*.db
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+/build/
+
+### Visual Studio Code ###
+.vscode
+
+### Misc ###
 .DS_Store
-.classpath
+.flattened-pom.xml
+dependency-reduced-pom.xml

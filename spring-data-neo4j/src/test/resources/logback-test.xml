@@ -1,35 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- | Copyright 2011-2020 the original author or authors.
- |
- | Licensed under the Apache License, Version 2.0 (the "License");
- | you may not use this file except in compliance with the License.
- | You may obtain a copy of the License at
- |
- |      https://www.apache.org/licenses/LICENSE-2.0
- |
- | Unless required by applicable law or agreed to in writing, software
- | distributed under the License is distributed on an "AS IS" BASIS,
- | WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- | See the License for the specific language governing permissions and
- | limitations under the License.
--->
+  ~ Copyright (c) 2019-2020 "Neo4j,"
+  ~ Neo4j Sweden AB [https://neo4j.com]
+  ~
+  ~ This file is part of Neo4j.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
 <configuration>
 
-    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d %5p %40.40c:%4L - %m%n</pattern>
-        </encoder>
-    </appender>
+	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>[%t] %d %5p %40.40c:%4L - %m%n</pattern>
+		</encoder>
+	</appender>
 
-    <logger name="ch.qos.logback" level="warn" />
-    <logger name="org.apache.http" level="warn" />
-    <logger name="org.eclipse.jetty" level="warn" />
-    <logger name="org.neo4j.ogm" level="warn" />
-    <logger name="org.springframework" level="warn" />
-    <logger name="org.springframework.data.neo4j" level="warn" />
-    <root level="warn">
-        <appender-ref ref="console" />
-    </root>
+	<logger name="org.neo4j.driver" level="info"/>
+	<logger name="GraphDatabase" level="info" />
+	<logger name="Driver" level="info" />
+	<logger name="OutboundMessageHandler" level="info" />
+	<logger name="InboundMessageDispatcher" level="info" />
+
+	<logger name="org.neo4j.springframework.data.cypher" level="info"/>
+	<logger name="org.neo4j.springframework.data" level="info"/>
+	<logger name="org.neo4j.springframework.data.test" level="info"/>
+
+	<root level="warn">
+		<appender-ref ref="console" />
+	</root>
 
 </configuration>

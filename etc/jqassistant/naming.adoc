@@ -1,0 +1,16 @@
+[[naming:Default]]
+[role=group,includesConstraints="naming:TypeNameMustBeginWithGroupId"]
+
+The following naming conventions are used throughout the project:
+
+[[naming:TypeNameMustBeginWithGroupId]]
+[source,cypher,role=constraint]
+.All Java types must be located in packages that start with `org.neo4j.springframework.data`.
+----
+MATCH
+  (project:Maven:Project)-[:CREATES]->(:Artifact)-[:CONTAINS]->(type:Type)
+WHERE
+  NOT type.fqn starts with 'org.neo4j.springframework.data'
+RETURN
+  project as Project, collect(type) as TypeWithWrongName
+----

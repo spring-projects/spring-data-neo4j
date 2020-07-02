@@ -1,169 +1,60 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
- | Copyright 2011-2020 the original author or authors.
+ | Copyright (c) 2019-2020 "Neo4j,"
+ | Neo4j Sweden AB [https://neo4j.com]
+ |
+ | This file is part of Neo4j.
  |
  | Licensed under the Apache License, Version 2.0 (the "License");
  | you may not use this file except in compliance with the License.
  | You may obtain a copy of the License at
  |
- |      https://www.apache.org/licenses/LICENSE-2.0
+ |     https://www.apache.org/licenses/LICENSE-2.0
  |
  | Unless required by applicable law or agreed to in writing, software
  | distributed under the License is distributed on an "AS IS" BASIS,
  | WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  | See the License for the specific language governing permissions and
  | limitations under the License.
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
-	<groupId>org.springframework.data</groupId>
-	<artifactId>spring-data-neo4j-parent</artifactId>
-	<version>5.4.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
-
-	<name>Spring Data Neo4j</name>
-	<description>Neo4j support for Spring Data</description>
-	<url>https://projects.spring.io/spring-data-neo4j</url>
 
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>2.4.0-SNAPSHOT</version>
+		<version>2.3.1.RELEASE</version>
 	</parent>
 
-	<modules>
-		<module>spring-data-neo4j</module>
-		<module>spring-data-neo4j-distribution</module>
-	</modules>
+	<groupId>org.neo4j.springframework.data</groupId>
+	<artifactId>spring-data-neo4j-rx-parent</artifactId>
+	<version>${revision}${sha1}${changelist}</version>
+	<packaging>pom</packaging>
 
-	<properties>
-		<dist.id>spring-data-neo4j</dist.id>
-
-		<project.type>multi</project.type>
-
-		<neo4j.ogm.version>3.2.11</neo4j.ogm.version>
-		<springdata.commons>2.4.0-SNAPSHOT</springdata.commons>
-	</properties>
+	<name>Spring Data Neo4j RX</name>
+	<description>Next generation Object-Graph-Mapping for Spring Data.</description>
+	<inceptionYear>2019</inceptionYear>
+	<organization>
+		<name>Neo4j, Neo4j Sweden AB</name>
+		<url>https://neo4j.com</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
 	<developers>
-		<developer>
-			<id>vbickers</id>
-			<name>Vince Bickers</name>
-			<email>vince at graphaware.com</email>
-			<organization>GraphAware</organization>
-			<organizationUrl>https://www.graphaware.com</organizationUrl>
-			<roles>
-				<role>Developer</role>
-			</roles>
-			<timezone>GMT</timezone>
-		</developer>
-		<developer>
-			<id>atg</id>
-			<name>Adam George</name>
-			<email>adam at graphaware.com</email>
-			<organization>GraphAware</organization>
-			<organizationUrl>https://www.graphaware.com</organizationUrl>
-			<roles>
-				<role>Developer</role>
-			</roles>
-			<timezone>GMT</timezone>
-		</developer>
-		<developer>
-			<id>bachmanm</id>
-			<name>Michal Bachman</name>
-			<email>michal at graphaware.com</email>
-			<organization>GraphAware</organization>
-			<organizationUrl>https://www.graphaware.com</organizationUrl>
-			<roles>
-				<role>Developer</role>
-			</roles>
-			<timezone>GMT</timezone>
-		</developer>
-		<developer>
-			<id>lmisquitta</id>
-			<name>Luanne Misquitta</name>
-			<email>luanne at graphaware.com</email>
-			<organization>GraphAware</organization>
-			<organizationUrl>https://www.graphaware.com</organizationUrl>
-			<roles>
-				<role>Developer</role>
-			</roles>
-			<timezone>+5:30</timezone>
-		</developer>
-		<developer>
-			<id>mangrish</id>
-			<name>Mark Angrish</name>
-			<email>mark at graphaware.com</email>
-			<organization>GraphAware</organization>
-			<organizationUrl>https://www.graphaware.com</organizationUrl>
-			<roles>
-				<role>Developer</role>
-			</roles>
-			<timezone>+11</timezone>
-		</developer>
-		<developer>
-			<id>jasperblues</id>
-			<name>Jasper Blues</name>
-			<email>jasper at graphaware.com</email>
-			<organization>GraphAware</organization>
-			<organizationUrl>https://www.graphaware.com</organizationUrl>
-			<roles>
-				<role>Developer</role>
-			</roles>
-			<timezone>+8</timezone>
-		</developer>
-		<developer>
-			<id>mhunger</id>
-			<name>Michael Hunger</name>
-			<email>michael.hunger at neotechnology.com</email>
-			<organization>Neo Technology</organization>
-			<organizationUrl>https://www.neotechnology.com</organizationUrl>
-			<roles>
-				<role>Project Lead</role>
-			</roles>
-			<timezone>+1</timezone>
-		</developer>
-		<developer>
-			<id>ogierke</id>
-			<name>Oliver Gierke</name>
-			<email>ogierke at gopivotal.com</email>
-			<organization>Pivotal</organization>
-			<organizationUrl>https://www.spring.io</organizationUrl>
-			<roles>
-				<role>Developer</role>
-			</roles>
-			<timezone>+1</timezone>
-		</developer>
-		<developer>
-			<id>trisberg</id>
-			<name>Thomas Risberg</name>
-			<email>trisberg at gopivotal.com</email>
-			<organization>Pivotal</organization>
-			<organizationUrl>https://www.spring.io</organizationUrl>
-			<roles>
-				<role>Developer</role>
-			</roles>
-			<timezone>-5</timezone>
-		</developer>
-		<developer>
-			<id>mpollack</id>
-			<name>Mark Pollack</name>
-			<email>mpollack at gopivotal.com</email>
-			<organization>Pivotal</organization>
-			<organizationUrl>https://www.spring.io</organizationUrl>
-			<roles>
-				<role>Developer</role>
-			</roles>
-			<timezone>-5</timezone>
-		</developer>
 		<developer>
 			<id>gmeier</id>
 			<name>Gerrit Meier</name>
 			<email>gerrit.meier at neo4j.com</email>
 			<organization>Neo Technology</organization>
-			<organizationUrl>https://www.neotechnology.com</organizationUrl>
+			<organizationUrl>http://www.neotechnology.com</organizationUrl>
 			<roles>
-				<role>Developer</role>
+				<role>Project Lead</role>
 			</roles>
 			<timezone>+1</timezone>
 		</developer>
@@ -172,57 +63,321 @@
 			<name>Michael Simons</name>
 			<email>michael.simons at neo4j.com</email>
 			<organization>Neo Technology</organization>
-			<organizationUrl>https://www.neotechnology.com</organizationUrl>
+			<organizationUrl>http://www.neotechnology.com</organizationUrl>
 			<roles>
-				<role>Developer</role>
+				<role>Project Lead</role>
 			</roles>
 			<timezone>+1</timezone>
 		</developer>
 	</developers>
 
-	<profiles>
-		<profile>
-			<id>release</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.jfrog.buildinfo</groupId>
-						<artifactId>artifactory-maven-plugin</artifactId>
-						<inherited>false</inherited>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+	<modules>
+		<module>spring-data-neo4j-rx</module>
+		<module>spring-data-neo4j-rx-spring-boot-starter-parent</module>
+		<module>examples/reactive-web</module>
+		<module>examples/imperative-web</module>
+		<module>examples/mapping</module>
+		<module>examples/multi-database</module>
+		<module>examples/rest</module>
+		<module>examples/docs</module>
+		<module>examples/kotlin</module>
+	</modules>
 
-	<repositories>
-		<repository>
-			<id>spring-libs-snapshot</id>
-			<url>https://repo.spring.io/libs-snapshot</url>
-		</repository>
-	</repositories>
+	<properties>
+		<apiguardian.version>1.1.0</apiguardian.version>
+		<asciidoctorj-diagram.version>2.0.1</asciidoctorj-diagram.version>
+		<asciidoctor-maven-plugin.version>1.6.0</asciidoctor-maven-plugin.version>
+		<assertj.version>3.15.0</assertj.version>
+		<byte-buddy.version>1.10.9</byte-buddy.version>
+		<changelist>-SNAPSHOT</changelist>
+		<checkstyle.version>8.29</checkstyle.version>
+		<cypher-dsl.version>2020.0.0</cypher-dsl.version>
+		<flatten-maven-plugin.version>1.2.1</flatten-maven-plugin.version>
+		<jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
+		<java.version>1.8</java.version>
+		<java-module-name />
+		<jqassistant-dashboard-plugin.version>1.8.0</jqassistant-dashboard-plugin.version>
+		<jqassistant.plugin.version>1.8.0</jqassistant.plugin.version>
+		<jqassistant.version>1.8.0</jqassistant.version>
+		<junit-jupiter.version>5.6.1</junit-jupiter.version>
+		<maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
+		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
+		<maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
+		<maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+		<maven-failsafe-plugin.version>3.0.0-M4</maven-failsafe-plugin.version>
+		<maven-install-plugin.version>3.0.0-M1</maven-install-plugin.version>
+		<maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
+		<maven-site-plugin.version>3.7.1</maven-site-plugin.version>
+		<maven-source-plugin.version>3.2.0</maven-source-plugin.version>
+		<maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<mockito.version>3.2.4</mockito.version>
+		<neo4j-java-driver.version>4.0.1</neo4j-java-driver.version>
+		<neo4j.version>4.0.3</neo4j.version>
+		<objenesis.version>3.0.1</objenesis.version> <!-- mockk requires objenesis >= 3 -->
+		<project.build.docs>${project.build.directory}/docs</project.build.docs>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<r2dbc.releasetrain>Arabba-RELEASE</r2dbc.releasetrain>
+		<reactive-streams.version>1.2.1</reactive-streams.version>
+		<revision>1.1</revision>
+		<rxjava.version>1.3.8</rxjava.version>
+		<rxjava2.version>2.2.5</rxjava2.version>
+		<sha1></sha1>
+		<springdata-commons.version>2.3.1.RELEASE</springdata-commons.version>
+		<testcontainers.version>1.13.0</testcontainers.version>
 
-	<pluginRepositories>
-		<pluginRepository>
-			<id>spring-plugins-release</id>
-			<url>https://repo.spring.io/plugins-release</url>
-		</pluginRepository>
-	</pluginRepositories>
+		<skipUnitTests>${skipTests}</skipUnitTests>
+		<skipIntegrationTests>${skipTests}</skipIntegrationTests>
+		<skipArchitectureTests>${skipTests}</skipArchitectureTests>
+
+		<!-- For whatever reason, redeclaring those dependencies in our managed dependencies doesn't have any affect... -->
+		<assertj>${assertj.version}</assertj>
+		<mockito>${mockito.version}</mockito>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy</artifactId>
+				<version>${byte-buddy.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy-agent</artifactId>
+				<version>${byte-buddy.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.objenesis</groupId>
+				<artifactId>objenesis</artifactId>
+				<version>${objenesis.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.reactivex</groupId>
+				<artifactId>rxjava</artifactId>
+				<version>${rxjava.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.reactivex</groupId>
+				<artifactId>rxjava-reactive-streams</artifactId>
+				<version>${reactive-streams.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.reactivex.rxjava2</groupId>
+				<artifactId>rxjava</artifactId>
+				<version>${rxjava2.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j</groupId>
+				<artifactId>neo4j-cypher-dsl</artifactId>
+				<version>${cypher-dsl.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apiguardian</groupId>
+				<artifactId>apiguardian-api</artifactId>
+				<version>${apiguardian.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.assertj</groupId>
+				<artifactId>assertj-core</artifactId>
+				<version>${assertj.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>${junit-jupiter.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.r2dbc</groupId>
+				<artifactId>r2dbc-bom</artifactId>
+				<version>${r2dbc.releasetrain}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>${mockito.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-junit-jupiter</artifactId>
+				<version>${mockito.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j</groupId>
+				<artifactId>neo4j</artifactId>
+				<version>${neo4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j.driver</groupId>
+				<artifactId>neo4j-java-driver</artifactId>
+				<version>${neo4j-java-driver.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j.test</groupId>
+				<artifactId>neo4j-harness</artifactId>
+				<version>${neo4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.data</groupId>
+				<artifactId>spring-data-commons</artifactId>
+				<version>${springdata-commons.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>junit-jupiter</artifactId>
+				<version>${testcontainers.version}</version>
+				<scope>test</scope>
+				<exclusions>
+					<exclusion>
+						<groupId>org.jetbrains</groupId>
+						<artifactId>annotations</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>neo4j</artifactId>
+				<version>${testcontainers.version}</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>com.github.ekryd.sortpom</groupId>
+					<artifactId>sortpom-maven-plugin</artifactId>
+					<version>2.8.0</version>
+					<executions>
+						<execution>
+							<phase>verify</phase>
+							<goals>
+								<goal>sort</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<encoding>${project.build.sourceEncoding}</encoding>
+						<keepBlankLines>true</keepBlankLines>
+						<nrOfIndentSpace>-1</nrOfIndentSpace>
+						<sortProperties>true</sortProperties>
+						<sortDependencies>groupId,artifactId</sortDependencies>
+						<createBackupFile>false</createBackupFile>
+					</configuration>
+				</plugin>
+				<plugin>
+					<artifactId>maven-checkstyle-plugin</artifactId>
+					<version>${maven-checkstyle-plugin.version}</version>
+					<dependencies>
+						<dependency>
+							<groupId>com.puppycrawl.tools</groupId>
+							<artifactId>checkstyle</artifactId>
+							<version>${checkstyle.version}</version>
+						</dependency>
+					</dependencies>
+					<configuration>
+						<configLocation>etc/checkstyle/config.xml</configLocation>
+						<suppressionsLocation>etc/checkstyle/suppressions.xml</suppressionsLocation>
+						<headerLocation>etc/checkstyle/java-header.txt</headerLocation>
+						<encoding>${project.build.sourceEncoding}</encoding>
+						<consoleOutput>true</consoleOutput>
+						<failsOnError>true</failsOnError>
+						<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>com.buschmais.jqassistant</groupId>
+					<artifactId>jqassistant-maven-plugin</artifactId>
+					<version>${jqassistant.version}</version>
+					<configuration>
+						<rulesDirectory>etc/jqassistant</rulesDirectory>
+						<skip>${skipArchitectureTests}</skip>
+					</configuration>
+					<dependencies>
+						<dependency>
+							<groupId>org.jqassistant.contrib.plugin</groupId>
+							<artifactId>jqassistant-dashboard-plugin</artifactId>
+							<version>${jqassistant-dashboard-plugin.version}</version>
+						</dependency>
+						<dependency>
+							<groupId>de.kontext-e.jqassistant.plugin</groupId>
+							<artifactId>jqassistant.plugin.git</artifactId>
+							<version>${jqassistant.version}</version>
+						</dependency>
+					</dependencies>
+				</plugin>
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>${jacoco-maven-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>${maven-deploy-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-enforcer-plugin</artifactId>
+					<version>${maven-enforcer-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-install-plugin</artifactId>
+					<version>${maven-install-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>${maven-surefire-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-failsafe-plugin</artifactId>
+					<version>${maven-failsafe-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>${maven-jar-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.projectlombok</groupId>
+					<artifactId>lombok-maven-plugin</artifactId>
+					<dependencies>
+						<dependency>
+							<!-- See https://github.com/awhitford/lombok.maven/issues/34 -->
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok}</version>
+						</dependency>
+					</dependencies>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>flatten-maven-plugin</artifactId>
+					<version>${flatten-maven-plugin.version}</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<configuration combine.self="override">
-					<configLocation>checkstyle/config.xml</configLocation>
-					<suppressionsLocation>checkstyle/suppressions.xml</suppressionsLocation>
-					<headerLocation>checkstyle/java-header.txt</headerLocation>
-					<encoding>${project.build.sourceEncoding}</encoding>
-					<consoleOutput>true</consoleOutput>
-					<failsOnError>true</failsOnError>
-					<includeTestSourceDirectory>true</includeTestSourceDirectory>
-				</configuration>
 				<executions>
 					<execution>
 						<id>validate</id>
@@ -233,7 +388,159 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+						<configuration>
+							<append>true</append>
+						</configuration>
+					</execution>
+					<execution>
+						<id>prepare-agent-integration</id>
+						<goals>
+							<goal>prepare-agent-integration</goal>
+						</goals>
+						<configuration>
+							<append>true</append>
+							<destFile>${project.build.directory}/jacoco.exec</destFile>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>enforce</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<DependencyConvergence></DependencyConvergence>
+								<requireMavenVersion>
+									<version>3.6.0</version>
+								</requireMavenVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<useSystemClassLoader>false</useSystemClassLoader>
+					<useFile>false</useFile>
+					<includes>
+						<include>**/*Test.java</include>
+						<include>**/*Tests.java</include>
+					</includes>
+					<skipTests>${skipUnitTests}</skipTests>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<skipTests>${skipIntegrationTests}</skipTests>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>flatten-maven-plugin</artifactId>
+				<configuration>
+					<updatePomFile>true</updatePomFile>
+					<flattenMode>resolveCiFriendliesOnly</flattenMode>
+				</configuration>
+				<executions>
+					<execution>
+						<id>flatten</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>flatten</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>flatten.clean</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>${maven-jar-plugin.version}</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
+						</manifest>
+						<manifestEntries>
+							<Automatic-Module-Name>${java-module-name}</Automatic-Module-Name>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+				<version>${asciidoctor-maven-plugin.version}</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.asciidoctor</groupId>
+						<artifactId>asciidoctorj-diagram</artifactId>
+						<version>${asciidoctorj-diagram.version}</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<backend>html</backend>
+					<doctype>book</doctype>
+					<imagesDir>img</imagesDir>
+					<sourceDirectory>${basedir}/docs</sourceDirectory>
+					<sourceDocumentName>index.adoc</sourceDocumentName>
+					<sourceHighlighter>coderay</sourceHighlighter>
+					<attributes>
+						<icons>font</icons>
+						<toc>left</toc>
+						<setanchors></setanchors>
+						<idprefix></idprefix>
+						<idseparator></idseparator>
+					</attributes>
+					<requires>
+						<require>asciidoctor-diagram</require>
+					</requires>
+					<outputDirectory>${project.build.docs}</outputDirectory>
+				</configuration>
+				<executions>
+					<execution>
+						<id>generate-docs</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>process-asciidoc</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
-
 </project>

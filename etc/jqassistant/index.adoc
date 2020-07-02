@@ -1,0 +1,23 @@
+= Coding Rules
+
+The following rules are checked during a build:
+
+[[default]]
+[role=group,includesGroups="api:Default,naming:Default,structure:Default"]
+- <<api:Default>>
+- <<naming:Default>>
+- <<structure:Default>>
+
+== API
+
+Ensure that we publish our API in a sane and consistent way.
+
+include::api.adoc[]
+
+== Naming things
+
+include::naming.adoc[]
+
+== Structuring things
+
+include::structure.adoc[]

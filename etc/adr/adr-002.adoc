@@ -1,0 +1,21 @@
+== ADR 2: Build on and compile for JDK11
+
+=== Status
+
+proposed
+
+=== Context
+
+JDK 8 is deprecated and has left support.
+Neo4j 4.0 is already build on JDK 11 and probably compiled to it as well.
+
+=== Decision
+
+Not yet made.
+
+=== Consequences
+
+* + We would target a modern platform
+* + We would benefit from SDK enhancements
+* 0 We could benefit from JPMS
+* - Adoption rate could be lower.
