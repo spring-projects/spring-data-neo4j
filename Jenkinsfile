@@ -135,6 +135,7 @@ pipeline {
 
 			steps {
 				sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,distribute ' +
+						'-Drunning-on-ci ' +
 						'-Dartifactory.server=https://repo.spring.io ' +
 						"-Dartifactory.username=${ARTIFACTORY_USR} " +
 						"-Dartifactory.password=${ARTIFACTORY_PSW} " +
