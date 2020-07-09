@@ -52,8 +52,8 @@ import org.springframework.transaction.support.TransactionTemplate;
  * The goal of this tests is to ensure a sensible coexistence of declarative {@link Transactional @Transactional}
  * transaction when the user uses the {@link Neo4jClient} in the same or another database.
  * <p>
- * While it does not integrate against a real database (multi-database is an enterprise feature), it is still an integration
- * test due to the high integration with Spring framework code.
+ * While it does not integrate against a real database (multi-database is an enterprise feature), it is still an
+ * integration test due to the high integration with Spring framework code.
  *
  * @author Michael J. Simons
  */
@@ -77,8 +77,7 @@ class TransactionManagerMixedDatabasesTest {
 	@Test
 	void withoutActiveTransactions(@Autowired Neo4jClient neo4jClient) {
 
-		Optional<Long> numberOfNodes =
-			neo4jClient.query(TEST_QUERY).in(DATABASE_NAME).fetchAs(Long.class).one();
+		Optional<Long> numberOfNodes = neo4jClient.query(TEST_QUERY).in(DATABASE_NAME).fetchAs(Long.class).one();
 
 		assertThat(numberOfNodes).isPresent().hasValue(1L);
 	}
@@ -95,12 +94,12 @@ class TransactionManagerMixedDatabasesTest {
 	@Test
 	void usingSameDatabaseExplicitTx(@Autowired Neo4jClient neo4jClient) {
 
-		Neo4jTransactionManager otherTransactionManger = new Neo4jTransactionManager(driver, DatabaseSelectionProvider
-			.createStaticDatabaseSelectionProvider(DATABASE_NAME));
+		Neo4jTransactionManager otherTransactionManger = new Neo4jTransactionManager(driver,
+				DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(DATABASE_NAME));
 		TransactionTemplate otherTransactionTemplate = new TransactionTemplate(otherTransactionManger);
 
-		Optional<Long> numberOfNodes = otherTransactionTemplate.execute(
-			tx -> neo4jClient.query(TEST_QUERY).in(DATABASE_NAME).fetchAs(Long.class).one());
+		Optional<Long> numberOfNodes = otherTransactionTemplate
+				.execute(tx -> neo4jClient.query(TEST_QUERY).in(DATABASE_NAME).fetchAs(Long.class).one());
 		assertThat(numberOfNodes).isPresent().hasValue(1L);
 	}
 
@@ -108,33 +107,33 @@ class TransactionManagerMixedDatabasesTest {
 	@Transactional
 	void usingAnotherDatabaseDeclarative(@Autowired Neo4jClient neo4jClient) {
 
-		assertThatIllegalStateException().isThrownBy(
-			() -> neo4jClient.query("MATCH (n) RETURN COUNT(n)").in(DATABASE_NAME).fetchAs(Long.class).one())
-			.withMessage("There is already an ongoing Spring transaction for the default database, but you request 'boom'");
+		assertThatIllegalStateException()
+				.isThrownBy(() -> neo4jClient.query("MATCH (n) RETURN COUNT(n)").in(DATABASE_NAME).fetchAs(Long.class).one())
+				.withMessage("There is already an ongoing Spring transaction for the default database, but you request 'boom'");
 
 	}
 
 	@Test
 	void usingAnotherDatabaseExplicitTx(@Autowired Neo4jClient neo4jClient) {
 
-		assertThatIllegalStateException().isThrownBy(
-			() -> transactionTemplate.execute(
-				tx -> neo4jClient.query("MATCH (n) RETURN COUNT(n)").in(DATABASE_NAME).fetchAs(Long.class).one()))
-			.withMessage("There is already an ongoing Spring transaction for the default database, but you request 'boom'");
+		assertThatIllegalStateException()
+				.isThrownBy(() -> transactionTemplate
+						.execute(tx -> neo4jClient.query("MATCH (n) RETURN COUNT(n)").in(DATABASE_NAME).fetchAs(Long.class).one()))
+				.withMessage("There is already an ongoing Spring transaction for the default database, but you request 'boom'");
 	}
 
 	@Test
 	void usingAnotherDatabaseDeclarativeFromRepo(@Autowired PersonRepository repository) {
 
-		Neo4jTransactionManager otherTransactionManger = new Neo4jTransactionManager(driver, DatabaseSelectionProvider
-			.createStaticDatabaseSelectionProvider(DATABASE_NAME));
+		Neo4jTransactionManager otherTransactionManger = new Neo4jTransactionManager(driver,
+				DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(DATABASE_NAME));
 		TransactionTemplate otherTransactionTemplate = new TransactionTemplate(otherTransactionManger);
 
-		assertThatIllegalStateException().isThrownBy(
-			() -> otherTransactionTemplate.execute(
-				tx -> repository.save(new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
-					LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null))))
-			.withMessage("There is already an ongoing Spring transaction for 'boom', but you request the default database");
+		assertThatIllegalStateException()
+				.isThrownBy(() -> otherTransactionTemplate
+						.execute(tx -> repository.save(new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true,
+								1509L, LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null))))
+				.withMessage("There is already an ongoing Spring transaction for 'boom', but you request the default database");
 	}
 
 	@Configuration
@@ -184,7 +183,7 @@ class TransactionManagerMixedDatabasesTest {
 			when(driver.session(any(SessionConfig.class))).then(invocation -> {
 				SessionConfig sessionConfig = invocation.getArgument(0);
 				return sessionConfig.database().map(n -> n.equals(DATABASE_NAME) ? boomSession : defaultSession)
-					.orElse(defaultSession);
+						.orElse(defaultSession);
 			});
 
 			return driver;

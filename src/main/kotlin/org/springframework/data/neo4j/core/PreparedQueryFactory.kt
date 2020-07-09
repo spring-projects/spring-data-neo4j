@@ -25,6 +25,6 @@ import kotlin.reflect.KClass
  */
 class PreparedQueryFactory<T : Any>(val c: KClass<T>) {
     fun withCypherQuery(cypherQuery: String): PreparedQuery.OptionalBuildSteps<T> =
-        c.javaObjectType.let { PreparedQuery.queryFor(it) }
-            .withCypherQuery(cypherQuery)
+            c.javaObjectType.let { PreparedQuery.queryFor(it) }
+                    .withCypherQuery(cypherQuery)
 }

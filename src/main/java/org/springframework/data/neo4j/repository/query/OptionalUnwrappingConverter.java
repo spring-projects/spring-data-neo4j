@@ -21,7 +21,8 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.Nullable;
 
 /**
- * Used to unwrap optionals before further processing by a {@link org.springframework.data.repository.query.ResultProcessor}.
+ * Used to unwrap optionals before further processing by a
+ * {@link org.springframework.data.repository.query.ResultProcessor}.
  *
  * @author Michael J. Simons
  */
@@ -29,7 +30,7 @@ enum OptionalUnwrappingConverter implements Converter<Object, Object> {
 	INSTANCE;
 
 	@Override
-	public  @Nullable Object convert(Object source) {
+	public @Nullable Object convert(Object source) {
 		if (source instanceof Optional) {
 			return ((Optional) source).orElse(null);
 		}

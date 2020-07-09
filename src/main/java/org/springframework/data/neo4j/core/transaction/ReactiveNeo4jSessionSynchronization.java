@@ -27,12 +27,13 @@ import org.springframework.transaction.reactive.TransactionSynchronizationManage
  * @author Michael J. Simons
  * @since 1.0
  */
-final class ReactiveNeo4jSessionSynchronization extends ReactiveResourceSynchronization<ReactiveNeo4jTransactionHolder, Object> {
+final class ReactiveNeo4jSessionSynchronization
+		extends ReactiveResourceSynchronization<ReactiveNeo4jTransactionHolder, Object> {
 
 	private final ReactiveNeo4jTransactionHolder transactionHolder;
 
 	ReactiveNeo4jSessionSynchronization(TransactionSynchronizationManager transactionSynchronizationManager,
-		ReactiveNeo4jTransactionHolder transactionHolder, Driver driver) {
+			ReactiveNeo4jTransactionHolder transactionHolder, Driver driver) {
 
 		super(transactionHolder, driver, transactionSynchronizationManager);
 

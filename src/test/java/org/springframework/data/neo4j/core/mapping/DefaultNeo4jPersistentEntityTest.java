@@ -52,18 +52,17 @@ class DefaultNeo4jPersistentEntityTest {
 		@Test
 		void failsOnDuplicatedProperties() {
 			assertThatIllegalStateException()
-				.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(EntityWithDuplicatedProperties.class))
-				.withMessage("Duplicate definition of property [name] in entity class "
-					+ "org.springframework.data.neo4j.core.mapping.DefaultNeo4jPersistentEntityTest$EntityWithDuplicatedProperties.");
+					.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(EntityWithDuplicatedProperties.class))
+					.withMessage("Duplicate definition of property [name] in entity class "
+							+ "org.springframework.data.neo4j.core.mapping.DefaultNeo4jPersistentEntityTest$EntityWithDuplicatedProperties.");
 		}
 
 		@Test
 		void failsOnMultipleDuplicatedProperties() {
 			assertThatIllegalStateException()
-				.isThrownBy(
-					() -> new Neo4jMappingContext().getPersistentEntity(EntityWithMultipleDuplicatedProperties.class))
-				.withMessage("Duplicate definition of properties [foo, name] in entity class "
-					+ "org.springframework.data.neo4j.core.mapping.DefaultNeo4jPersistentEntityTest$EntityWithMultipleDuplicatedProperties.");
+					.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(EntityWithMultipleDuplicatedProperties.class))
+					.withMessage("Duplicate definition of properties [foo, name] in entity class "
+							+ "org.springframework.data.neo4j.core.mapping.DefaultNeo4jPersistentEntityTest$EntityWithMultipleDuplicatedProperties.");
 		}
 	}
 
@@ -71,28 +70,23 @@ class DefaultNeo4jPersistentEntityTest {
 	class Relationships {
 
 		@ParameterizedTest
-		@ValueSource(classes = { MixedDynamicAndExplicitRelationship1.class,
-			MixedDynamicAndExplicitRelationship2.class })
+		@ValueSource(classes = { MixedDynamicAndExplicitRelationship1.class, MixedDynamicAndExplicitRelationship2.class })
 		void failsOnDynamicRelationshipsWithExplicitType(Class<?> entityToTest) {
 
 			String expectedMessage = "Dynamic relationships cannot be used with a fixed type\\. Omit @Relationship or use @Relationship\\(direction = (OUTGOING|INCOMING)\\) without a type in class .*MixedDynamicAndExplicitRelationship\\d on field dynamicRelationships\\.";
-			assertThatIllegalStateException()
-				.isThrownBy(
-					() -> new Neo4jMappingContext().getPersistentEntity(entityToTest))
-				.withMessageMatching(expectedMessage);
+			assertThatIllegalStateException().isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(entityToTest))
+					.withMessageMatching(expectedMessage);
 		}
 
 		@ParameterizedTest // GH-216
 		@ValueSource(classes = { TypeWithInvalidDynamicRelationshipMappings1.class,
-			TypeWithInvalidDynamicRelationshipMappings2.class, TypeWithInvalidDynamicRelationshipMappings3.class })
+				TypeWithInvalidDynamicRelationshipMappings2.class, TypeWithInvalidDynamicRelationshipMappings3.class })
 		void multipleDynamicAssociationsToTheSameEntityAreNotAllowed(Class<?> entityToTest) {
 
 			String expectedMessage = ".*TypeWithInvalidDynamicRelationshipMappings\\d already contains a dynamic relationship to class org\\.springframework\\.data\\.neo4j\\.core\\.mapping\\.Neo4jMappingContextTest\\$BikeNode. Only one dynamic relationship between to entities is permitted\\.";
 			Neo4jMappingContext schema = new Neo4jMappingContext();
 			schema.setInitialEntitySet(new HashSet<>(Arrays.asList(entityToTest)));
-			assertThatIllegalStateException()
-				.isThrownBy(() -> schema.initialize())
-				.withMessageMatching(expectedMessage);
+			assertThatIllegalStateException().isThrownBy(() -> schema.initialize()).withMessageMatching(expectedMessage);
 		}
 	}
 
@@ -102,8 +96,7 @@ class DefaultNeo4jPersistentEntityTest {
 		@Test
 		void supportDerivedLabel() {
 
-			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
-				.getPersistentEntity(CorrectEntity1.class);
+			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext().getPersistentEntity(CorrectEntity1.class);
 
 			assertThat(persistentEntity.getPrimaryLabel()).isEqualTo("CorrectEntity1");
 			assertThat(persistentEntity.getAdditionalLabels()).isEmpty();
@@ -113,7 +106,7 @@ class DefaultNeo4jPersistentEntityTest {
 		void supportSingleLabel() {
 
 			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
-				.getPersistentEntity(EntityWithSingleLabel.class);
+					.getPersistentEntity(EntityWithSingleLabel.class);
 
 			assertThat(persistentEntity.getPrimaryLabel()).isEqualTo("a");
 			assertThat(persistentEntity.getAdditionalLabels()).isEmpty();
@@ -123,7 +116,7 @@ class DefaultNeo4jPersistentEntityTest {
 		void supportMultipleLabels() {
 
 			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
-				.getPersistentEntity(EntityWithMultipleLabels.class);
+					.getPersistentEntity(EntityWithMultipleLabels.class);
 
 			assertThat(persistentEntity.getPrimaryLabel()).isEqualTo("a");
 			assertThat(persistentEntity.getAdditionalLabels()).containsExactlyInAnyOrder("b", "c");
@@ -133,7 +126,7 @@ class DefaultNeo4jPersistentEntityTest {
 		void supportExplicitPrimaryLabel() {
 
 			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
-				.getPersistentEntity(EntityWithExplicitPrimaryLabel.class);
+					.getPersistentEntity(EntityWithExplicitPrimaryLabel.class);
 
 			assertThat(persistentEntity.getPrimaryLabel()).isEqualTo("a");
 			assertThat(persistentEntity.getAdditionalLabels()).isEmpty();
@@ -143,7 +136,7 @@ class DefaultNeo4jPersistentEntityTest {
 		void supportExplicitPrimaryLabelAndAdditionalLabels() {
 
 			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
-				.getPersistentEntity(EntityWithExplicitPrimaryLabelAndAdditionalLabels.class);
+					.getPersistentEntity(EntityWithExplicitPrimaryLabelAndAdditionalLabels.class);
 
 			assertThat(persistentEntity.getPrimaryLabel()).isEqualTo("a");
 			assertThat(persistentEntity.getAdditionalLabels()).containsExactlyInAnyOrder("b", "c");
@@ -153,10 +146,8 @@ class DefaultNeo4jPersistentEntityTest {
 		void supportInheritedPrimaryLabelAndAdditionalLabels() {
 
 			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
-			Neo4jPersistentEntity<?> parentEntity = neo4jMappingContext
-				.getPersistentEntity(BaseClass.class);
-			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext
-				.getPersistentEntity(Child.class);
+			Neo4jPersistentEntity<?> parentEntity = neo4jMappingContext.getPersistentEntity(BaseClass.class);
+			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(Child.class);
 
 			assertThat(persistentEntity.getPrimaryLabel()).isEqualTo("Child");
 			assertThat(persistentEntity.getAdditionalLabels()).containsExactlyInAnyOrder("Base", "Bases", "Person");
@@ -166,7 +157,7 @@ class DefaultNeo4jPersistentEntityTest {
 		void validDynamicLabels() {
 
 			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
-				.getPersistentEntity(NodeWithDynamicLabels.class);
+					.getPersistentEntity(NodeWithDynamicLabels.class);
 
 			assertThat(persistentEntity.getGraphProperties()).hasSize(2);
 			assertThat(persistentEntity.getPersistentProperty("id").isIdProperty()).isTrue();
@@ -182,14 +173,14 @@ class DefaultNeo4jPersistentEntityTest {
 			Assertions.assertThat(persistentEntity.getPersistentProperty("dynamicLabels").isRelationship()).isFalse();
 
 			assertThat(persistentEntity.getDynamicLabelsProperty())
-				.hasValueSatisfying(p -> p.getFieldName().equals("dynamicLabels"));
+					.hasValueSatisfying(p -> p.getFieldName().equals("dynamicLabels"));
 		}
 
 		@Test
 		void shouldDetectValidInheritedDynamicLabels() {
 
 			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
-				.getPersistentEntity(ValidInheritedDynamicLabels.class);
+					.getPersistentEntity(ValidInheritedDynamicLabels.class);
 
 			assertThat(persistentEntity.getGraphProperties()).hasSize(2);
 			assertThat(persistentEntity.getPersistentProperty("id").isIdProperty()).isTrue();
@@ -205,40 +196,34 @@ class DefaultNeo4jPersistentEntityTest {
 			Assertions.assertThat(persistentEntity.getPersistentProperty("dynamicLabels").isRelationship()).isFalse();
 
 			assertThat(persistentEntity.getDynamicLabelsProperty())
-				.hasValueSatisfying(p -> p.getFieldName().equals("dynamicLabels"));
+					.hasValueSatisfying(p -> p.getFieldName().equals("dynamicLabels"));
 		}
 
 		@Test
 		void shouldDetectInvalidInheritedDynamicLabels() {
 
-			assertThatIllegalStateException().isThrownBy(() ->
-				new Neo4jMappingContext()
-					.getPersistentEntity(InvalidInheritedDynamicLabels.class))
-				.withMessageMatching(
-					"Multiple properties in entity class .*DefaultNeo4jPersistentEntityTest\\$InvalidInheritedDynamicLabels are annotated with @DynamicLabels: \\[dynamicLabels, localDynamicLabels\\]."
-				);
+			assertThatIllegalStateException()
+					.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(InvalidInheritedDynamicLabels.class))
+					.withMessageMatching(
+							"Multiple properties in entity class .*DefaultNeo4jPersistentEntityTest\\$InvalidInheritedDynamicLabels are annotated with @DynamicLabels: \\[dynamicLabels, localDynamicLabels\\].");
 		}
 
 		@Test
 		void shouldDetectInvalidDynamicLabels() {
 
-			assertThatIllegalStateException().isThrownBy(() ->
-				new Neo4jMappingContext()
-					.getPersistentEntity(NodeWithInvalidDynamicLabels.class))
-				.withMessageMatching(
-					"Multiple properties in entity class .*DefaultNeo4jPersistentEntityTest\\$NodeWithInvalidDynamicLabels are annotated with @DynamicLabels: \\[dynamicLabels, moarDynamicLabels\\]."
-				);
+			assertThatIllegalStateException()
+					.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(NodeWithInvalidDynamicLabels.class))
+					.withMessageMatching(
+							"Multiple properties in entity class .*DefaultNeo4jPersistentEntityTest\\$NodeWithInvalidDynamicLabels are annotated with @DynamicLabels: \\[dynamicLabels, moarDynamicLabels\\].");
 		}
 
 		@Test
 		void shouldDetectInvalidDynamicLabelsTarget() {
 
-			assertThatIllegalStateException().isThrownBy(() ->
-				new Neo4jMappingContext()
-					.getPersistentEntity(InvalidDynamicLabels.class))
-				.withMessageMatching(
-					"Property dynamicLabels on class .*DefaultNeo4jPersistentEntityTest\\$InvalidDynamicLabels must extends java\\.util\\.Collection."
-				);
+			assertThatIllegalStateException()
+					.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(InvalidDynamicLabels.class))
+					.withMessageMatching(
+							"Property dynamicLabels on class .*DefaultNeo4jPersistentEntityTest\\$InvalidDynamicLabels must extends java\\.util\\.Collection.");
 		}
 	}
 
@@ -254,8 +239,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 		List<SomeOtherNode> relatedTo;
 
-		@DynamicLabels
-		List<String> dynamicLabels;
+		@DynamicLabels List<String> dynamicLabels;
 	}
 
 	@Node
@@ -263,22 +247,18 @@ class DefaultNeo4jPersistentEntityTest {
 
 		@Id @GeneratedValue Long id;
 
-		@DynamicLabels
-		List<String> dynamicLabels;
+		@DynamicLabels List<String> dynamicLabels;
 
-		@DynamicLabels
-		List<String> moarDynamicLabels;
+		@DynamicLabels List<String> moarDynamicLabels;
 	}
 
 	@Node
-	private static class ValidInheritedDynamicLabels extends NodeWithDynamicLabels {
-	}
+	private static class ValidInheritedDynamicLabels extends NodeWithDynamicLabels {}
 
 	@Node
 	private static class InvalidInheritedDynamicLabels extends NodeWithDynamicLabels {
 
-		@DynamicLabels
-		List<String> localDynamicLabels;
+		@DynamicLabels List<String> localDynamicLabels;
 	}
 
 	@Node
@@ -286,8 +266,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 		@Id @GeneratedValue Long id;
 
-		@DynamicLabels
-		String dynamicLabels;
+		@DynamicLabels String dynamicLabels;
 	}
 
 	@Node
@@ -307,8 +286,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 		private String name;
 
-		@Relationship(direction = Relationship.Direction.INCOMING)
-		private Map<String, CorrectEntity2> dynamicRelationships;
+		@Relationship(direction = Relationship.Direction.INCOMING) private Map<String, CorrectEntity2> dynamicRelationships;
 	}
 
 	@Node
@@ -318,8 +296,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 		private String name;
 
-		@Relationship(type = "BAMM")
-		private Map<String, MixedDynamicAndExplicitRelationship1> dynamicRelationships;
+		@Relationship(type = "BAMM") private Map<String, MixedDynamicAndExplicitRelationship1> dynamicRelationships;
 	}
 
 	@Node
@@ -329,8 +306,8 @@ class DefaultNeo4jPersistentEntityTest {
 
 		private String name;
 
-		@Relationship(type = "BAMM", direction = Relationship.Direction.INCOMING)
-		private Map<String, List<MixedDynamicAndExplicitRelationship2>> dynamicRelationships;
+		@Relationship(type = "BAMM",
+				direction = Relationship.Direction.INCOMING) private Map<String, List<MixedDynamicAndExplicitRelationship2>> dynamicRelationships;
 	}
 
 	@Node
@@ -352,11 +329,9 @@ class DefaultNeo4jPersistentEntityTest {
 
 		@Property("name") private String alsoName;
 
-		@Property("foo")
-		private String somethingElse;
+		@Property("foo") private String somethingElse;
 
-		@Property("foo")
-		private String thisToo;
+		@Property("foo") private String thisToo;
 	}
 
 	@Node("a")
@@ -364,7 +339,7 @@ class DefaultNeo4jPersistentEntityTest {
 		@Id private Long id;
 	}
 
-	@Node({"a", "b", "c"})
+	@Node({ "a", "b", "c" })
 	private static class EntityWithMultipleLabels {
 		@Id private Long id;
 	}
@@ -391,8 +366,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 	static class TypeWithInvalidDynamicRelationshipMappings1 {
 
-		@Id
-		private String id;
+		@Id private String id;
 
 		private Map<String, Neo4jMappingContextTest.BikeNode> bikes1;
 
@@ -401,8 +375,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 	static class TypeWithInvalidDynamicRelationshipMappings2 {
 
-		@Id
-		private String id;
+		@Id private String id;
 
 		private Map<String, Neo4jMappingContextTest.BikeNode> bikes1;
 
@@ -411,8 +384,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 	static class TypeWithInvalidDynamicRelationshipMappings3 {
 
-		@Id
-		private String id;
+		@Id private String id;
 
 		private Map<String, List<Neo4jMappingContextTest.BikeNode>> bikes1;
 

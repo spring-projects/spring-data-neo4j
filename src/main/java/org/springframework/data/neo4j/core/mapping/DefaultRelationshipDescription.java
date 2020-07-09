@@ -46,10 +46,9 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 
 	private RelationshipDescription relationshipObverse;
 
-	DefaultRelationshipDescription(Neo4jPersistentProperty inverse,
-		@Nullable RelationshipDescription relationshipObverse,
-		String type, boolean dynamic, NodeDescription<?> source, String fieldName, NodeDescription<?> target,
-		Relationship.Direction direction, @Nullable Class<?> relationshipPropertiesClass) {
+	DefaultRelationshipDescription(Neo4jPersistentProperty inverse, @Nullable RelationshipDescription relationshipObverse,
+			String type, boolean dynamic, NodeDescription<?> source, String fieldName, NodeDescription<?> target,
+			Relationship.Direction direction, @Nullable Class<?> relationshipPropertiesClass) {
 
 		// the immutable obverse association-wise is always null because we cannot determine them on both sides
 		// if we consider to support bidirectional relationships.
@@ -76,12 +75,12 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 	}
 
 	@Override
-	public NodeDescription<?>  getTarget() {
+	public NodeDescription<?> getTarget() {
 		return target;
 	}
 
 	@Override
-	public NodeDescription<?>  getSource() {
+	public NodeDescription<?> getSource() {
 		return source;
 	}
 
@@ -122,12 +121,8 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 
 	@Override
 	public String toString() {
-		return "DefaultRelationshipDescription{" +
-			"type='" + type + '\'' +
-			", source='" + source + '\'' +
-			", direction='" + direction + '\'' +
-			", target='" + target +
-			'}';
+		return "DefaultRelationshipDescription{" + "type='" + type + '\'' + ", source='" + source + '\'' + ", direction='"
+				+ direction + '\'' + ", target='" + target + '}';
 	}
 
 	@Override
@@ -140,7 +135,7 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 		}
 		DefaultRelationshipDescription that = (DefaultRelationshipDescription) o;
 		return getType().equals(that.getType()) && getTarget().equals(that.getTarget())
-			&& getSource().equals(that.getSource()) && getDirection().equals(that.getDirection());
+				&& getSource().equals(that.getSource()) && getDirection().equals(that.getDirection());
 	}
 
 	@Override

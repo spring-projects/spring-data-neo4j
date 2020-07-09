@@ -57,18 +57,16 @@ public abstract class AuditingITBase {
 		try (Transaction transaction = driver.session().beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 
-			idOfExistingThing = transaction
-				.run(
+			idOfExistingThing = transaction.run(
 					"CREATE (t:ImmutableAuditableThing {name: $name, createdBy: $createdBy, createdAt: $createdAt}) RETURN id(t) as id",
 					Values.parameters("name", EXISTING_THING_NAME, "createdBy", EXISTING_THING_CREATED_BY, "createdAt",
-						EXISTING_THING_CREATED_AT))
-				.single().get("id").asLong();
+							EXISTING_THING_CREATED_AT))
+					.single().get("id").asLong();
 
-			transaction
-				.run(
+			transaction.run(
 					"CREATE (t:ImmutableAuditableThingWithGeneratedId {name: $name, createdBy: $createdBy, createdAt: $createdAt, id: $id}) RETURN t.id as id",
 					Values.parameters("name", EXISTING_THING_NAME, "createdBy", EXISTING_THING_CREATED_BY, "createdAt",
-						EXISTING_THING_CREATED_AT, "id", idOfExistingThingWithGeneratedId));
+							EXISTING_THING_CREATED_AT, "id", idOfExistingThingWithGeneratedId));
 
 			transaction.commit();
 		}
@@ -78,8 +76,8 @@ public abstract class AuditingITBase {
 
 		try (Session session = driver.session()) {
 			Node node = session
-				.run("MATCH (t:ImmutableAuditableThing) WHERE id(t) = $id RETURN t", Values.parameters("id", id))
-				.single().get("t").asNode();
+					.run("MATCH (t:ImmutableAuditableThing) WHERE id(t) = $id RETURN t", Values.parameters("id", id)).single()
+					.get("t").asNode();
 
 			assertDataMatch(expectedValues, node);
 		}
@@ -88,10 +86,8 @@ public abstract class AuditingITBase {
 	protected void verifyDatabase(String id, ImmutableAuditableThingWithGeneratedId expectedValues) {
 
 		try (Session session = driver.session()) {
-			Node node = session
-				.run("MATCH (t:ImmutableAuditableThingWithGeneratedId) WHERE t.id = $id RETURN t",
-					Values.parameters("id", id))
-				.single().get("t").asNode();
+			Node node = session.run("MATCH (t:ImmutableAuditableThingWithGeneratedId) WHERE t.id = $id RETURN t",
+					Values.parameters("id", id)).single().get("t").asNode();
 
 			assertDataMatch(expectedValues, node);
 		}

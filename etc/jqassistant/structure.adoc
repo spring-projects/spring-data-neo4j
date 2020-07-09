@@ -1,11 +1,11 @@
 [[structure:Default]]
 [role=group,includesConstraints="structure:mapping"]
 
-Most of the time, the package structure under `org.neo4j.springframework.data` should reflect the main building parts.
+Most of the time, the package structure under `org.springframework.data.neo4j` should reflect the main building parts.
 
 [[structure:mapping]]
 [source,cypher,role=constraint,requiresConcepts="dependency:Package"]
-.The mapping package must not depend on any other SDN/RX packages than `schema` and `convert`
+.The mapping package must not depend on any other SDN packages than `schema` and `convert`
 ----
 MATCH (a:Main:Artifact)
 OPTIONAL MATCH (a) -[:CONTAINS]-> (s:Package) WHERE s.fqn in ['org.springframework.data.neo4j.core.schema', 'org.springframework.data.neo4j.core.convert']

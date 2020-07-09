@@ -140,11 +140,10 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 		assertThat(relatives).containsOnlyKeys("RELATIVE_1", "RELATIVE_2");
 
 		try (Transaction transaction = driver.session().beginTransaction()) {
-			long numberOfRelations = transaction.run(""
-				+ "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id "
-				+ "RETURN size((t)-->(:Person))"
-				+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
-				.single().get("numberOfRelations").asLong();
+			long numberOfRelations = transaction
+					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Person))"
+							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
+					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 		}
 	}
@@ -167,17 +166,15 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 		assertThat(pets).containsOnlyKeys("MONSTERS", "FISH");
 
 		try (Transaction transaction = driver.session().beginTransaction()) {
-			long numberOfRelations = transaction.run(""
-				+ "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id "
-				+ "RETURN size((t)-->(:Pet))"
-				+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
-				.single().get("numberOfRelations").asLong();
+			long numberOfRelations = transaction
+					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Pet))"
+							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
+					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(3L);
 		}
 	}
 
-	interface PersonWithRelativesRepository extends CrudRepository<PersonWithStringlyTypedRelatives, Long> {
-	}
+	interface PersonWithRelativesRepository extends CrudRepository<PersonWithStringlyTypedRelatives, Long> {}
 
 	@Configuration
 	@EnableTransactionManagement

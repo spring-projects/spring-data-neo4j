@@ -60,19 +60,12 @@ class Neo4jTransactionManagerTest {
 
 	private String databaseName = "aDatabase";
 
-	@Mock
-	private Driver driver;
-	@Mock
-	private Session session;
-	@Mock
-	private TypeSystem typeSystem;
-	@Mock
-	private Transaction transaction;
-	@Mock
-	private Result statementResult;
-	@Mock
-	private UserTransaction userTransaction;
-
+	@Mock private Driver driver;
+	@Mock private Session session;
+	@Mock private TypeSystem typeSystem;
+	@Mock private Transaction transaction;
+	@Mock private Result statementResult;
+	@Mock private UserTransaction userTransaction;
 
 	@Test
 	void shouldWorkWithoutSynchronizations() {
@@ -120,11 +113,13 @@ class Neo4jTransactionManagerTest {
 		when(driver.session(any(SessionConfig.class))).thenReturn(session);
 		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
 		Bookmark bookmark = new Bookmark() {
-			@Override public Set<String> values() {
+			@Override
+			public Set<String> values() {
 				return Collections.singleton("blubb");
 			}
 
-			@Override public boolean isEmpty() {
+			@Override
+			public boolean isEmpty() {
 				return false;
 			}
 		};
@@ -152,7 +147,7 @@ class Neo4jTransactionManagerTest {
 	}
 
 	private void injectBookmarkManager(Neo4jTransactionManager txManager, Neo4jBookmarkManager value)
-		throws NoSuchFieldException, IllegalAccessException {
+			throws NoSuchFieldException, IllegalAccessException {
 		Field bookmarkManager = Neo4jTransactionManager.class.getDeclaredField("bookmarkManager");
 		bookmarkManager.setAccessible(true);
 		bookmarkManager.set(txManager, value);
@@ -200,7 +195,8 @@ class Neo4jTransactionManagerTest {
 			@Test
 			void shouldUseTxFromNeo4jTxManager() {
 
-				Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver, DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(databaseName));
+				Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver,
+						DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(databaseName));
 				TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
 				txTemplate.execute(new TransactionCallbackWithoutResult() {
@@ -212,8 +208,7 @@ class Neo4jTransactionManagerTest {
 						assertThat(transactionStatus.isNewTransaction()).isTrue();
 						assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
 
-						Transaction optionalTransaction = Neo4jTransactionManager
-							.retrieveTransaction(driver, databaseName);
+						Transaction optionalTransaction = Neo4jTransactionManager.retrieveTransaction(driver, databaseName);
 						assertThat(optionalTransaction).isNotNull();
 
 						transactionStatus.setRollbackOnly();
@@ -234,7 +229,8 @@ class Neo4jTransactionManagerTest {
 			@Test
 			void shouldParticipateInOngoingTransaction() {
 
-				Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver, DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(databaseName));
+				Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver,
+						DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(databaseName));
 				TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
 				txTemplate.execute(new TransactionCallbackWithoutResult() {
@@ -242,8 +238,7 @@ class Neo4jTransactionManagerTest {
 					@Override
 					protected void doInTransactionWithoutResult(TransactionStatus outerStatus) {
 
-						Transaction outerNativeTransaction = Neo4jTransactionManager
-							.retrieveTransaction(driver, databaseName);
+						Transaction outerNativeTransaction = Neo4jTransactionManager.retrieveTransaction(driver, databaseName);
 						assertThat(outerNativeTransaction).isNotNull();
 						assertThat(outerStatus.isNewTransaction()).isTrue();
 
@@ -254,8 +249,7 @@ class Neo4jTransactionManagerTest {
 
 								assertThat(innerStatus.isNewTransaction()).isFalse();
 
-								Transaction innerNativeTransaction = Neo4jTransactionManager
-									.retrieveTransaction(driver, databaseName);
+								Transaction innerNativeTransaction = Neo4jTransactionManager.retrieveTransaction(driver, databaseName);
 								assertThat(innerNativeTransaction).isNotNull();
 							}
 						});

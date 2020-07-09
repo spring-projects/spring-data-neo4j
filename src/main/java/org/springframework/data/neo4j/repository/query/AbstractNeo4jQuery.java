@@ -42,8 +42,8 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 
 	protected final Neo4jOperations neo4jOperations;
 
-	AbstractNeo4jQuery(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-		Neo4jQueryMethod queryMethod, Neo4jQueryType queryType) {
+	AbstractNeo4jQuery(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod,
+			Neo4jQueryType queryType) {
 
 		super(mappingContext, queryMethod, queryType);
 
@@ -63,10 +63,10 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		ResultProcessor resultProcessor = queryMethod.getResultProcessor().withDynamicProjection(parameterAccessor);
 
 		PreparedQuery<?> preparedQuery = prepareQuery(resultProcessor.getReturnedType().getReturnedType(),
-			getInputProperties(resultProcessor), parameterAccessor, null, getMappingFunction(resultProcessor));
+				getInputProperties(resultProcessor), parameterAccessor, null, getMappingFunction(resultProcessor));
 
-		Object rawResult = new Neo4jQueryExecution.DefaultQueryExecution(neo4jOperations).execute(
-			preparedQuery, queryMethod.isCollectionLikeQuery() || queryMethod.isPageQuery());
+		Object rawResult = new Neo4jQueryExecution.DefaultQueryExecution(neo4jOperations).execute(preparedQuery,
+				queryMethod.isCollectionLikeQuery() || queryMethod.isPageQuery());
 
 		Object processedResult = resultProcessor.processResult(rawResult, OptionalUnwrappingConverter.INSTANCE);
 
@@ -76,14 +76,13 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 			return PageableExecutionUtils.getPage((List<?>) processedResult, parameterAccessor.getPageable(), () -> {
 
 				PreparedQuery<Long> countQuery = prepareQuery(Long.class, Collections.emptyList(), parameterAccessor,
-					Neo4jQueryType.COUNT, null);
+						Neo4jQueryType.COUNT, null);
 				return neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
 			});
 		}
 	}
 
-	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(
-		Class<T> returnedType, List<String> includedProperties, Neo4jParameterAccessor parameterAccessor,
-		@Nullable Neo4jQueryType queryType,
-		@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction);
+	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
+			List<String> includedProperties, Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
+			@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction);
 }

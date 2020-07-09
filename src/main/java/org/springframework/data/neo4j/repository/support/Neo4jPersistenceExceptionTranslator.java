@@ -46,8 +46,7 @@ import org.springframework.dao.support.PersistenceExceptionTranslator;
 @API(status = API.Status.STABLE, since = "1.0")
 public final class Neo4jPersistenceExceptionTranslator implements PersistenceExceptionTranslator {
 
-	private static final LogAccessor log = new LogAccessor(
-		LogFactory.getLog(Neo4jPersistenceExceptionTranslator.class));
+	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jPersistenceExceptionTranslator.class));
 
 	private static final Map<String, Optional<BiFunction<String, Throwable, DataAccessException>>> ERROR_CODE_MAPPINGS;
 
@@ -87,13 +86,13 @@ public final class Neo4jPersistenceExceptionTranslator implements PersistenceExc
 	}
 
 	private static DataAccessException translateImpl(Neo4jException e,
-		BiFunction<String, Throwable, DataAccessException> defaultTranslationProvider) {
+			BiFunction<String, Throwable, DataAccessException> defaultTranslationProvider) {
 
 		Optional<String> optionalErrorCode = Optional.ofNullable(e.code());
 		String msg = String.format("%s; Error code '%s'", e.getMessage(), optionalErrorCode.orElse("n/a"));
 
 		return optionalErrorCode.flatMap(code -> ERROR_CODE_MAPPINGS.getOrDefault(code, Optional.empty()))
-			.orElse(defaultTranslationProvider).apply(msg, e.getCause());
+				.orElse(defaultTranslationProvider).apply(msg, e.getCause());
 	}
 
 	static {

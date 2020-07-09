@@ -29,8 +29,8 @@ import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.lang.Nullable;
 
 /**
- * This class is more or less just a wrapper around the node description lookup map.
- * It ensures that there is no cyclic dependency between {@link Neo4jMappingContext} and {@link DefaultNeo4jConverter}.
+ * This class is more or less just a wrapper around the node description lookup map. It ensures that there is no cyclic
+ * dependency between {@link Neo4jMappingContext} and {@link DefaultNeo4jConverter}.
  *
  * @author Gerrit Meier
  */
@@ -77,10 +77,8 @@ class NodeDescriptionStore {
 		return null;
 	}
 
-	public NodeDescriptionAndLabels deriveConcreteNodeDescription(
-		Neo4jPersistentEntity<?> entityDescription,
-		List<String> labels
-	) {
+	public NodeDescriptionAndLabels deriveConcreteNodeDescription(Neo4jPersistentEntity<?> entityDescription,
+			List<String> labels) {
 		if (labels == null || labels.isEmpty()) {
 			return new NodeDescriptionAndLabels(entityDescription, Collections.emptyList());
 		}

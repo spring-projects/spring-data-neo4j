@@ -50,7 +50,8 @@ class OptimisticLockingIT {
 
 	private final Driver driver;
 
-	@Autowired OptimisticLockingIT(Driver driver) {
+	@Autowired
+	OptimisticLockingIT(Driver driver) {
 		this.driver = driver;
 	}
 
@@ -128,7 +129,7 @@ class OptimisticLockingIT {
 		versionedThings.get(0).setMyVersion(1L); // Version in DB is 0
 
 		assertThatExceptionOfType(OptimisticLockingFailureException.class)
-			.isThrownBy(() -> repository.saveAll(versionedThings));
+				.isThrownBy(() -> repository.saveAll(versionedThings));
 
 	}
 
@@ -161,7 +162,7 @@ class OptimisticLockingIT {
 
 	@Test
 	void shouldIncrementVersionsForMultipleSaveForAssignedId(
-		@Autowired VersionedThingWithAssignedIdRepository repository) {
+			@Autowired VersionedThingWithAssignedIdRepository repository) {
 		VersionedThingWithAssignedId thing1 = new VersionedThingWithAssignedId(4711L, "Thing1");
 		VersionedThingWithAssignedId thing2 = new VersionedThingWithAssignedId(42L, "Thing2");
 		List<VersionedThingWithAssignedId> thingsToSave = Arrays.asList(thing1, thing2);
@@ -183,14 +184,13 @@ class OptimisticLockingIT {
 
 		thing.setMyVersion(1L); // Version in DB is 0
 
-		assertThatExceptionOfType(OptimisticLockingFailureException.class)
-			.isThrownBy(() -> repository.save(thing));
+		assertThatExceptionOfType(OptimisticLockingFailureException.class).isThrownBy(() -> repository.save(thing));
 
 	}
 
 	@Test
 	void shouldFailIncrementVersionsForMultipleSaveForAssignedId(
-		@Autowired VersionedThingWithAssignedIdRepository repository) {
+			@Autowired VersionedThingWithAssignedIdRepository repository) {
 		VersionedThingWithAssignedId thing1 = new VersionedThingWithAssignedId(4711L, "Thing1");
 		VersionedThingWithAssignedId thing2 = new VersionedThingWithAssignedId(42L, "Thing2");
 		List<VersionedThingWithAssignedId> thingsToSave = Arrays.asList(thing1, thing2);
@@ -200,15 +200,13 @@ class OptimisticLockingIT {
 		versionedThings.get(0).setMyVersion(1L); // Version in DB is 0
 
 		assertThatExceptionOfType(OptimisticLockingFailureException.class)
-			.isThrownBy(() -> repository.saveAll(versionedThings));
+				.isThrownBy(() -> repository.saveAll(versionedThings));
 
 	}
 
-	interface VersionedThingRepository extends Neo4jRepository<VersionedThing, Long> {
-	}
+	interface VersionedThingRepository extends Neo4jRepository<VersionedThing, Long> {}
 
-	interface VersionedThingWithAssignedIdRepository extends Neo4jRepository<VersionedThingWithAssignedId, Long> {
-	}
+	interface VersionedThingWithAssignedIdRepository extends Neo4jRepository<VersionedThingWithAssignedId, Long> {}
 
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)

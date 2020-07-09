@@ -91,9 +91,8 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 	public List<T> findAll(Sort sort) {
 
 		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData)
-			.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData))
-			.orderBy(CypherAdapterUtils.toSortItems(entityMetaData, sort))
-			.build();
+				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData))
+				.orderBy(CypherAdapterUtils.toSortItems(entityMetaData, sort)).build();
 
 		return this.neo4jOperations.findAll(statement, entityInformation.getJavaType());
 	}
@@ -102,10 +101,10 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 	public Page<T> findAll(Pageable pageable) {
 
 		OngoingReadingAndReturn returning = cypherGenerator.prepareMatchOf(entityMetaData)
-			.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData));
+				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData));
 
-		StatementBuilder.BuildableStatement returningWithPaging =
-			CypherAdapterUtils.addPagingParameter(entityMetaData, pageable, returning);
+		StatementBuilder.BuildableStatement returningWithPaging = CypherAdapterUtils.addPagingParameter(entityMetaData,
+				pageable, returning);
 
 		Statement statement = returningWithPaging.build();
 
@@ -165,8 +164,8 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 	@Transactional
 	public void deleteAll(Iterable<? extends T> entities) {
 
-		List<Object> ids = StreamSupport.stream(entities.spliterator(), false)
-			.map(this.entityInformation::getId).collect(toList());
+		List<Object> ids = StreamSupport.stream(entities.spliterator(), false).map(this.entityInformation::getId)
+				.collect(toList());
 
 		this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
 	}

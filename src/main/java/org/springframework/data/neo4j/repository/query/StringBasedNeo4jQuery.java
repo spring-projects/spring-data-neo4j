@@ -39,17 +39,15 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Implementation of {@link RepositoryQuery} for query methods annotated with {@link Query @Query}.
- *
- *
- * The flow to handle queries with SpEL parameters is as follows
+ * Implementation of {@link RepositoryQuery} for query methods annotated with {@link Query @Query}. The flow to handle
+ * queries with SpEL parameters is as follows
  * <ol>
  * <li>Parse template as something that has SpEL-expressions in it</li>
  * <li>Replace the SpEL-expressions with Neo4j Statement template parameters</li>
  * <li>The parameters passed here _and_ the values that might have been computed during SpEL-parsing</li>
  * </ol>
- * The main ingredient is a SpelEvaluator, that parses a template and replaces SpEL expressions
- * with real Neo4j parameters.
+ * The main ingredient is a SpelEvaluator, that parses a template and replaces SpEL expressions with real Neo4j
+ * parameters.
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
@@ -60,8 +58,8 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	/**
 	 * Used for extracting SpEL expressions inside Cypher query templates.
 	 */
-	static final SpelQueryContext SPEL_QUERY_CONTEXT = SpelQueryContext
-		.of(StringBasedNeo4jQuery::parameterNameSource, StringBasedNeo4jQuery::replacementSource);
+	static final SpelQueryContext SPEL_QUERY_CONTEXT = SpelQueryContext.of(StringBasedNeo4jQuery::parameterNameSource,
+			StringBasedNeo4jQuery::replacementSource);
 
 	/**
 	 * Used to evaluate the expression found while parsing the cypher template of this query against the actual parameters
@@ -70,14 +68,15 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	private final SpelEvaluator spelEvaluator;
 
 	/**
-	 * The Cypher string used for this query. The cypher query will not be changed after parsed via {@link #SPEL_QUERY_CONTEXT}.
-	 * All SpEL expressions will be substituted via "native" parameter placeholders. This will be done via the {@link #spelEvaluator}.
+	 * The Cypher string used for this query. The cypher query will not be changed after parsed via
+	 * {@link #SPEL_QUERY_CONTEXT}. All SpEL expressions will be substituted via "native" parameter placeholders. This
+	 * will be done via the {@link #spelEvaluator}.
 	 */
 	private final String cypherQuery;
 
 	/**
-	 * Create a {@link StringBasedNeo4jQuery} for a query method that is annotated with {@link Query @Query}. The annotation
-	 * is expected to have a value.
+	 * Create a {@link StringBasedNeo4jQuery} for a query method that is annotated with {@link Query @Query}. The
+	 * annotation is expected to have a value.
 	 *
 	 * @param neo4jOperations the Neo4j operations
 	 * @param mappingContext a Neo4jMappingContext instance
@@ -86,18 +85,16 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	 * @return A new instance of a String based Neo4j query.
 	 */
 	static StringBasedNeo4jQuery create(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-		QueryMethodEvaluationContextProvider evaluationContextProvider,
-		Neo4jQueryMethod queryMethod) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider, Neo4jQueryMethod queryMethod) {
 
 		Query queryAnnotation = queryMethod.getQueryAnnotation()
-			.orElseThrow(() -> new MappingException("Expected @Query annotation on the query method!"));
+				.orElseThrow(() -> new MappingException("Expected @Query annotation on the query method!"));
 
-		String cypherTemplate = Optional.ofNullable(queryAnnotation.value())
-			.filter(StringUtils::hasText)
-			.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not."));
+		String cypherTemplate = Optional.ofNullable(queryAnnotation.value()).filter(StringUtils::hasText)
+				.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not."));
 
 		return new StringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
-			cypherTemplate, Neo4jQueryType.fromDefinition(queryAnnotation));
+				cypherTemplate, Neo4jQueryType.fromDefinition(queryAnnotation));
 	}
 
 	/**
@@ -107,22 +104,22 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	 * @param mappingContext a Neo4jMappingContext instance
 	 * @param evaluationContextProvider a QueryMethodEvaluationContextProvider instance
 	 * @param queryMethod the query method
-	 * @param cypherTemplate            The template to use.
+	 * @param cypherTemplate The template to use.
 	 * @return A new instance of a String based Neo4j query.
 	 */
 	static StringBasedNeo4jQuery create(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-		QueryMethodEvaluationContextProvider evaluationContextProvider,
-		Neo4jQueryMethod queryMethod, String cypherTemplate) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider, Neo4jQueryMethod queryMethod,
+			String cypherTemplate) {
 
 		Assert.hasText(cypherTemplate, "Cannot create String based Neo4j query without a cypher template.");
 
 		return new StringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
-			cypherTemplate, Neo4jQueryType.DEFAULT);
+				cypherTemplate, Neo4jQueryType.DEFAULT);
 	}
 
-	private StringBasedNeo4jQuery(Neo4jOperations neo4jOperations,
-		Neo4jMappingContext mappingContext, QueryMethodEvaluationContextProvider evaluationContextProvider,
-		Neo4jQueryMethod queryMethod, String cypherTemplate, Neo4jQueryType queryType) {
+	private StringBasedNeo4jQuery(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
+			QueryMethodEvaluationContextProvider evaluationContextProvider, Neo4jQueryMethod queryMethod,
+			String cypherTemplate, Neo4jQueryType queryType) {
 
 		super(neo4jOperations, mappingContext, queryMethod, queryType);
 
@@ -133,22 +130,17 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
 	static String getQueryTemplate(Query queryAnnotation) {
 
-		return Optional.ofNullable(queryAnnotation.value())
-			.filter(StringUtils::hasText)
-			.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not."));
+		return Optional.ofNullable(queryAnnotation.value()).filter(StringUtils::hasText)
+				.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not."));
 	}
 
 	@Override
-	protected <T extends Object> PreparedQuery<T> prepareQuery(
-		Class<T> returnedType, List<String> includedProperties, Neo4jParameterAccessor parameterAccessor,
-		@Nullable Neo4jQueryType queryType,
-		@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction) {
+	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, List<String> includedProperties,
+			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
+			@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction) {
 
-		return PreparedQuery.queryFor(returnedType)
-			.withCypherQuery(cypherQuery)
-			.withParameters(bindParameters(parameterAccessor))
-			.usingMappingFunction(mappingFunction)
-			.build();
+		return PreparedQuery.queryFor(returnedType).withCypherQuery(cypherQuery)
+				.withParameters(bindParameters(parameterAccessor)).usingMappingFunction(mappingFunction).build();
 	}
 
 	Map<String, Object> bindParameters(Neo4jParameterAccessor parameterAccessor) {
@@ -161,19 +153,16 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 			resolvedParameters.put(evaluatedParam.getKey(), super.convertParameter(evaluatedParam.getValue()));
 		}
 
-		formalParameters.stream()
-			.filter(Parameter::isBindable)
-			.forEach(parameter -> {
+		formalParameters.stream().filter(Parameter::isBindable).forEach(parameter -> {
 
-				int parameterIndex = parameter.getIndex();
-				Object parameterValue = super.convertParameter(parameterAccessor.getBindableValue(parameterIndex));
+			int parameterIndex = parameter.getIndex();
+			Object parameterValue = super.convertParameter(parameterAccessor.getBindableValue(parameterIndex));
 
-				// Add the parameter under its name when possible
-				parameter.getName()
-					.ifPresent(parameterName -> resolvedParameters.put(parameterName, parameterValue));
-				// Always add under its index.
-				resolvedParameters.put(Integer.toString(parameterIndex), parameterValue);
-			});
+			// Add the parameter under its name when possible
+			parameter.getName().ifPresent(parameterName -> resolvedParameters.put(parameterName, parameterValue));
+			// Always add under its index.
+			resolvedParameters.put(Integer.toString(parameterIndex), parameterValue);
+		});
 
 		return resolvedParameters;
 	}
@@ -189,8 +178,8 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
 	/**
 	 * @param originalPrefix The prefix passed to the replacement source is either ':' or '?', so that isn't usable for
-	 *                       Cypher templates and therefore ignored.
-	 * @param parameterName  name of the parameter
+	 *          Cypher templates and therefore ignored.
+	 * @param parameterName name of the parameter
 	 * @return The name of the parameter in its native Cypher form.
 	 */
 	private static String replacementSource(@SuppressWarnings("unused") String originalPrefix, String parameterName) {

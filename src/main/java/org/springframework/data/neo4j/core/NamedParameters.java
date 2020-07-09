@@ -39,7 +39,8 @@ final class NamedParameters {
 	 * Adds all of the values contained in {@code newParameters} to this list of named parameters.
 	 *
 	 * @param newParameters Additional parameters to add
-	 * @throws IllegalStateException when any value in {@code newParameters} exists under the same name in the current parameters.
+	 * @throws IllegalStateException when any value in {@code newParameters} exists under the same name in the current
+	 *           parameters.
 	 */
 	void addAll(Map<String, Object> newParameters) {
 		newParameters.forEach(this::add);
@@ -48,7 +49,7 @@ final class NamedParameters {
 	/**
 	 * Adds a new parameter under the key {@code name} with the value {@code value}.
 	 *
-	 * @param name  The name of the new parameter
+	 * @param name The name of the new parameter
 	 * @param value The value of the new parameter
 	 * @throws IllegalStateException when a parameter with the given name already exists
 	 */
@@ -57,11 +58,8 @@ final class NamedParameters {
 		if (this.parameters.containsKey(name)) {
 			Object previousValue = this.parameters.get(name);
 			throw new IllegalArgumentException(String.format(
-				"Duplicate parameter name: '%s' already in the list of named parameters with value '%s'. New value would be '%s'",
-				name,
-				previousValue == null ? "null" : previousValue.toString(),
-				value == null ? "null" : value.toString()
-			));
+					"Duplicate parameter name: '%s' already in the list of named parameters with value '%s'. New value would be '%s'",
+					name, previousValue == null ? "null" : previousValue.toString(), value == null ? "null" : value.toString()));
 		}
 		this.parameters.put(name, value);
 	}
@@ -79,11 +77,8 @@ final class NamedParameters {
 
 	@Override
 	public String toString() {
-		return parameters
-			.entrySet()
-			.stream()
-			.map(e -> String.format("%s: %s", e.getKey(), formatValue(e.getValue())))
-			.collect(joining(", ", ":params {", "}"));
+		return parameters.entrySet().stream().map(e -> String.format("%s: %s", e.getKey(), formatValue(e.getValue())))
+				.collect(joining(", ", ":params {", "}"));
 	}
 
 	private static Object formatValue(Object value) {
@@ -93,8 +88,7 @@ final class NamedParameters {
 			return Cypher.quote((String) value);
 		} else if (value instanceof Map) {
 			return ((Map<?, ?>) value).entrySet().stream()
-				.map(e -> String.format("%s: %s", e.getKey(), formatValue(e.getValue())))
-				.collect(joining(", ", "{", "}"));
+					.map(e -> String.format("%s: %s", e.getKey(), formatValue(e.getValue()))).collect(joining(", ", "{", "}"));
 		} else if (value instanceof Collection) {
 			return ((Collection) value).stream().map(NamedParameters::formatValue).collect(joining(", ", "[", "]"));
 		}

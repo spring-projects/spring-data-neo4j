@@ -47,20 +47,17 @@ class KotlinIT {
 
 	private final Driver driver;
 
-	@Autowired KotlinIT(Driver driver) {
+	@Autowired
+	KotlinIT(Driver driver) {
 		this.driver = driver;
 	}
 
 	@BeforeEach
 	void setup() {
-		try (
-			Session session = driver.session();
-			Transaction transaction = session.beginTransaction()
-		) {
+		try (Session session = driver.session(); Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n").consume();
-			transaction
-				.run("CREATE (n:KotlinPerson) SET n.name = $personName", Values.parameters("personName", PERSON_NAME))
-				.consume();
+			transaction.run("CREATE (n:KotlinPerson) SET n.name = $personName", Values.parameters("personName", PERSON_NAME))
+					.consume();
 			transaction.commit();
 		}
 	}

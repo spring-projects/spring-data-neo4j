@@ -33,8 +33,7 @@ final class NodeDescriptionAndLabels {
 
 	private final Collection<String> dynamicLabels;
 
-	NodeDescriptionAndLabels(NodeDescription<?> nodeDescription,
-		Collection<String> dynamicLabels) {
+	NodeDescriptionAndLabels(NodeDescription<?> nodeDescription, Collection<String> dynamicLabels) {
 		this.nodeDescription = nodeDescription;
 		this.dynamicLabels = dynamicLabels;
 	}

@@ -59,74 +59,59 @@ class ReactiveExceptionTranslationIT {
 	protected static Neo4jConnectionSupport neo4jConnectionSupport;
 
 	// @formatter:off
-	private final Predicate<Throwable> aTranslatedException =
-		ex -> ex instanceof DataIntegrityViolationException && //
-			ex.getMessage().matches("Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed'");
+	private final Predicate<Throwable> aTranslatedException = ex -> ex instanceof DataIntegrityViolationException && //
+			ex.getMessage().matches(
+					"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed'");
 	// @formatter:on
 
 	@BeforeAll
 	static void createConstraints(@Autowired Driver driver) {
 
 		Flux.using(driver::rxSession,
-			session -> session.run("CREATE CONSTRAINT ON (person:SimplePerson) ASSERT person.name IS UNIQUE").consume(),
-			RxSession::close
-		).then().as(StepVerifier::create).verifyComplete();
+				session -> session.run("CREATE CONSTRAINT ON (person:SimplePerson) ASSERT person.name IS UNIQUE").consume(),
+				RxSession::close).then().as(StepVerifier::create).verifyComplete();
 	}
 
 	@AfterAll
 	static void dropConstraints(@Autowired Driver driver) {
 
 		Flux.using(driver::rxSession,
-			session -> session.run("DROP CONSTRAINT ON (person:SimplePerson) ASSERT person.name IS UNIQUE").consume(),
-			RxSession::close
-		).then().as(StepVerifier::create).verifyComplete();
+				session -> session.run("DROP CONSTRAINT ON (person:SimplePerson) ASSERT person.name IS UNIQUE").consume(),
+				RxSession::close).then().as(StepVerifier::create).verifyComplete();
 	}
 
 	@BeforeEach
 	void clearDatabase(@Autowired Driver driver) {
 
-		Flux.using(driver::rxSession,
-			session -> session.run("MATCH (n) DETACH DELETE n").consume(),
-			RxSession::close
-		).then().as(StepVerifier::create).verifyComplete();
+		Flux.using(driver::rxSession, session -> session.run("MATCH (n) DETACH DELETE n").consume(), RxSession::close)
+				.then().as(StepVerifier::create).verifyComplete();
 	}
 
 	@Test
 	void exceptionsFromClientShouldBeTranslated(@Autowired ReactiveNeo4jClient neo4jClient) {
 
-		neo4jClient.query("CREATE (:SimplePerson {name: 'Tom'})").run()
-			.then()
-			.as(StepVerifier::create)
-			.verifyComplete();
+		neo4jClient.query("CREATE (:SimplePerson {name: 'Tom'})").run().then().as(StepVerifier::create).verifyComplete();
 
-		neo4jClient.query("CREATE (:SimplePerson {name: 'Tom'})").run()
-			.as(StepVerifier::create)
-			.verifyErrorMatches(aTranslatedException);
+		neo4jClient.query("CREATE (:SimplePerson {name: 'Tom'})").run().as(StepVerifier::create)
+				.verifyErrorMatches(aTranslatedException);
 	}
 
 	@Test
 	void exceptionsFromRepositoriesShouldBeTranslated(@Autowired SimplePersonRepository repository) {
 		repository.save(new SimplePerson("Tom")).then().as(StepVerifier::create).verifyComplete();
 
-		repository.save(new SimplePerson("Tom"))
-			.as(StepVerifier::create)
-			.verifyErrorMatches(aTranslatedException);
+		repository.save(new SimplePerson("Tom")).as(StepVerifier::create).verifyErrorMatches(aTranslatedException);
 	}
 
 	@Test
 	void exceptionsOnRepositoryBeansShouldBeTranslated(@Autowired CustomDAO customDAO) {
 		customDAO.createPerson().then().as(StepVerifier::create).verifyComplete();
 
-		customDAO
-			.createPerson()
-			.as(StepVerifier::create)
-			.verifyErrorMatches(aTranslatedException);
+		customDAO.createPerson().as(StepVerifier::create).verifyErrorMatches(aTranslatedException);
 	}
 
 	@Configuration
-	@EnableReactiveNeo4jRepositories(
-		considerNestedRepositories = true
-	)
+	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
 	@EnableTransactionManagement
 	static class Config extends AbstractReactiveNeo4jConfig {
 
@@ -140,7 +125,8 @@ class ReactiveExceptionTranslationIT {
 			return new CustomDAO(neo4jClient);
 		}
 
-		// If someone wants to use the plain driver or the delegating mechanism of the client, than they must provide a couple of more beans.
+		// If someone wants to use the plain driver or the delegating mechanism of the client, than they must provide a
+		// couple of more beans.
 		@Bean
 		public Neo4jPersistenceExceptionTranslator neo4jPersistenceExceptionTranslator() {
 			return new Neo4jPersistenceExceptionTranslator();
@@ -155,8 +141,7 @@ class ReactiveExceptionTranslationIT {
 	@Node
 	static class SimplePerson {
 
-		@Id @GeneratedValue
-		private Long id;
+		@Id @GeneratedValue private Long id;
 
 		private String name;
 
@@ -169,8 +154,7 @@ class ReactiveExceptionTranslationIT {
 		}
 	}
 
-	interface SimplePersonRepository extends ReactiveNeo4jRepository<SimplePerson, Long> {
-	}
+	interface SimplePersonRepository extends ReactiveNeo4jRepository<SimplePerson, Long> {}
 
 	@Repository
 	static class CustomDAO {

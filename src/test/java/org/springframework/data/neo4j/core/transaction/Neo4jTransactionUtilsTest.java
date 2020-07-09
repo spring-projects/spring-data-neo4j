@@ -35,21 +35,14 @@ class Neo4jTransactionUtilsTest {
 	class DatabaseNameComparision {
 
 		@ParameterizedTest
-		@CsvSource({
-			",",
-			"a,a"
-		})
+		@CsvSource({ ",", "a,a" })
 		void nameComparisionShouldWorkForNamesTargetingTheSame(String name1, String name2) {
 
 			Assertions.assertThat(Neo4jTransactionUtils.namesMapToTheSameDatabase(name1, name2)).isTrue();
 		}
 
 		@ParameterizedTest
-		@CsvSource({
-			"a,",
-			",b",
-			"a,b"
-		})
+		@CsvSource({ "a,", ",b", "a,b" })
 		void nameComparisionShouldWorkForNamesTargetingOther(String name1, String name2) {
 
 			Assertions.assertThat(Neo4jTransactionUtils.namesMapToTheSameDatabase(name1, name2)).isFalse();

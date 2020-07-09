@@ -1,0 +1,44 @@
+[
+  {
+    "_class": "org.neo4j.doc.springframework.data.docs.repositories.populators.MovieEntity",
+    "title": "All The Way, Boys",
+    "description": "A funny movie.",
+    "actors": [
+      {
+        "name": "Terence Hill",
+        "born": 1939
+      },
+      {
+        "name": "Bud Spencer",
+        "born": 1929
+      }
+    ],
+    "directors": [
+      {
+        "name": "Giuseppe Colizzi",
+        "born": 1925
+      }
+    ]
+  },
+  {
+    "_class": "org.neo4j.doc.springframework.data.docs.repositories.populators.MovieEntity",
+    "title": "Double Trouble",
+    "description": "Another funny movie.",
+    "actors": [
+      {
+        "name": "Terence Hill",
+        "born": 1939
+      },
+      {
+        "name": "Bud Spencer",
+        "born": 1929
+      }
+    ],
+    "directors": [
+      {
+        "name": "Enzo Barboni",
+        "born": 1922
+      }
+    ]
+  }
+]

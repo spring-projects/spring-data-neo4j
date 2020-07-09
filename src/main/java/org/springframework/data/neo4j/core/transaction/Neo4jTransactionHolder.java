@@ -60,7 +60,8 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 	 * @param inDatabase selected database to use
 	 * @return An optional, ongoing transaction.
 	 */
-	@Nullable Transaction getTransaction(String inDatabase) {
+	@Nullable
+	Transaction getTransaction(String inDatabase) {
 		return namesMapToTheSameDatabase(this.context.getDatabaseName(), inDatabase) ? transaction : null;
 	}
 

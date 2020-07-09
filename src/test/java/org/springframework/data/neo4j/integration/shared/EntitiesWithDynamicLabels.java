@@ -52,8 +52,7 @@ public final class EntitiesWithDynamicLabels {
 
 		@Id @GeneratedValue public Long id;
 
-		@DynamicLabels
-		public Set<String> moreLabels;
+		@DynamicLabels public Set<String> moreLabels;
 
 		public Long getId() {
 			return id;
@@ -64,8 +63,7 @@ public final class EntitiesWithDynamicLabels {
 	 * Used for testing whether the inherited dynamic labels is populated.
 	 */
 	@Node
-	public static class InheritedSimpleDynamicLabels extends SimpleDynamicLabels {
-	}
+	public static class InheritedSimpleDynamicLabels extends SimpleDynamicLabels {}
 
 	/**
 	 * Same as {@link SimpleDynamicLabels} but with an added version field.
@@ -75,11 +73,9 @@ public final class EntitiesWithDynamicLabels {
 
 		@Id @GeneratedValue public Long id;
 
-		@Version
-		public Long myVersion;
+		@Version public Long myVersion;
 
-		@DynamicLabels
-		public Set<String> moreLabels;
+		@DynamicLabels public Set<String> moreLabels;
 
 		public Long getId() {
 			return id;
@@ -94,8 +90,7 @@ public final class EntitiesWithDynamicLabels {
 
 		@Id public String id;
 
-		@DynamicLabels
-		public Set<String> moreLabels;
+		@DynamicLabels public Set<String> moreLabels;
 
 		public String getId() {
 			return id;
@@ -110,11 +105,9 @@ public final class EntitiesWithDynamicLabels {
 
 		@Id public String id;
 
-		@Version
-		public Long myVersion;
+		@Version public Long myVersion;
 
-		@DynamicLabels
-		public Set<String> moreLabels;
+		@DynamicLabels public Set<String> moreLabels;
 
 		public String getId() {
 			return id;
@@ -129,8 +122,7 @@ public final class EntitiesWithDynamicLabels {
 
 		@Id @GeneratedValue private final Long id;
 
-		@DynamicLabels
-		public final Set<String> moreLabels;
+		@DynamicLabels public final Set<String> moreLabels;
 
 		public SimpleDynamicLabelsCtor(Long id, Set<String> moreLabels) {
 			this.id = id;
@@ -146,8 +138,7 @@ public final class EntitiesWithDynamicLabels {
 
 		@Id @GeneratedValue private Long id;
 
-		@DynamicLabels
-		public Set<String> moreLabels;
+		@DynamicLabels public Set<String> moreLabels;
 	}
 
 	/**
@@ -158,8 +149,7 @@ public final class EntitiesWithDynamicLabels {
 
 		@Id @GeneratedValue private Long id;
 
-		@DynamicLabels
-		public Set<String> moreLabels;
+		@DynamicLabels public Set<String> moreLabels;
 	}
 
 	@Node
@@ -174,10 +164,8 @@ public final class EntitiesWithDynamicLabels {
 	@Node
 	public static class ExtendedBaseClass1 extends DynamicLabelsBaseClass {
 
-		@DynamicLabels
-		public Set<String> moreLabels;
+		@DynamicLabels public Set<String> moreLabels;
 	}
 
-	private EntitiesWithDynamicLabels() {
-	}
+	private EntitiesWithDynamicLabels() {}
 }

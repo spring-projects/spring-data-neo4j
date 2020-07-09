@@ -32,8 +32,8 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Internal support class for basic configuration. The support infrastructure here is basically all around finding out about
- * which classes are to be mapped and which not. The driver needs to be configured from a class either extending
+ * Internal support class for basic configuration. The support infrastructure here is basically all around finding out
+ * about which classes are to be mapped and which not. The driver needs to be configured from a class either extending
  * {@link AbstractNeo4jConfig} for imperative or {@link AbstractReactiveNeo4jConfig} for reactive programming model.
  *
  * @author Michael J. Simons
@@ -49,8 +49,7 @@ abstract class Neo4jConfigurationSupport {
 	}
 
 	/**
-	 * Creates a {@link Neo4jMappingContext} equipped with entity classes
-	 * scanned from the mapping base package.
+	 * Creates a {@link Neo4jMappingContext} equipped with entity classes scanned from the mapping base package.
 	 *
 	 * @return A new {@link Neo4jMappingContext} with initial classes to scan for entities set.
 	 * @see #getMappingBasePackages()
@@ -70,8 +69,8 @@ abstract class Neo4jConfigurationSupport {
 	 * {@code com.acme.AppConfig} extending {@link Neo4jConfigurationSupport} the base package will be considered
 	 * {@code com.acme} unless the method is overridden to implement alternate behavior.
 	 *
-	 * @return the base packages to scan for mapped {@link Node} classes
-	 * or an empty collection to not enable scanning for entities.
+	 * @return the base packages to scan for mapped {@link Node} classes or an empty collection to not enable scanning for
+	 *         entities.
 	 */
 	protected Collection<String> getMappingBasePackages() {
 
@@ -80,8 +79,8 @@ abstract class Neo4jConfigurationSupport {
 	}
 
 	/**
-	 * Scans the mapping base package for classes annotated with {@link Node}.
-	 * By default, it scans for entities in all packages returned by {@link #getMappingBasePackages()}.
+	 * Scans the mapping base package for classes annotated with {@link Node}. By default, it scans for entities in all
+	 * packages returned by {@link #getMappingBasePackages()}.
 	 *
 	 * @return initial set of domain classes
 	 * @throws ClassNotFoundException if the given class cannot be found in the class path.
@@ -113,8 +112,8 @@ abstract class Neo4jConfigurationSupport {
 
 		Set<Class<?>> initialEntitySet = new HashSet<Class<?>>();
 
-		ClassPathScanningCandidateComponentProvider componentProvider =
-			new ClassPathScanningCandidateComponentProvider(false);
+		ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(
+				false);
 		componentProvider.addIncludeFilter(new AnnotationTypeFilter(Node.class));
 
 		ClassLoader classLoader = Neo4jConfigurationSupport.class.getClassLoader();

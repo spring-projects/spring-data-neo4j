@@ -44,14 +44,11 @@ import org.springframework.data.neo4j.core.schema.Property;
 @EqualsAndHashCode
 public class PersonWithAllConstructor {
 
-	@Id @GeneratedValue
-	@With
-	private final Long id;
+	@Id @GeneratedValue @With private final Long id;
 
 	private final String name;
 
-	@Property("first_name")
-	private String firstName;
+	@Property("first_name") private String firstName;
 
 	private final String sameValue;
 

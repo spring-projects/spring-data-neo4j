@@ -26,8 +26,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node("Thing2")
 public class AnotherThingWithAssignedId {
 
-	@Id
-	private final Long theId;
+	@Id private final Long theId;
 
 	private String name;
 
@@ -56,8 +55,7 @@ public class AnotherThingWithAssignedId {
 			return false;
 		}
 		AnotherThingWithAssignedId that = (AnotherThingWithAssignedId) o;
-		return theId.equals(that.theId) &&
-			Objects.equals(name, that.name);
+		return theId.equals(that.theId) && Objects.equals(name, that.name);
 	}
 
 	@Override

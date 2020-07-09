@@ -51,14 +51,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 @ExtendWith(MockitoExtension.class)
 class TransactionHandlingTest {
 
-	@Mock
-	private Driver driver;
+	@Mock private Driver driver;
 
-	@Mock
-	private Session session;
+	@Mock private Session session;
 
-	@Mock
-	private TypeSystem typeSystem;
+	@Mock private TypeSystem typeSystem;
 
 	@BeforeEach
 	void prepareMocks() {
@@ -75,8 +72,7 @@ class TransactionHandlingTest {
 	@Nested
 	class Neo4jClientTest {
 
-		@Mock
-		private Transaction transaction;
+		@Mock private Transaction transaction;
 
 		@Nested
 		class AutoCloseableQueryRunnerHandlerTest {
@@ -146,11 +142,9 @@ class TransactionHandlingTest {
 	@Nested
 	class ReactiveNeo4jClientTest {
 
-		@Mock
-		private RxSession session;
+		@Mock private RxSession session;
 
-		@Mock
-		private RxTransaction transaction;
+		@Mock private RxTransaction transaction;
 
 		@Test
 		void shouldNotOpenTransactionsWithoutSubscription() {
@@ -173,9 +167,7 @@ class TransactionHandlingTest {
 
 			Mono<String> sequence = neo4jClient.doInQueryRunnerForMono("aDatabase", tx -> Mono.just("1"));
 
-			StepVerifier.create(sequence)
-				.expectNext("1")
-				.verifyComplete();
+			StepVerifier.create(sequence).expectNext("1").verifyComplete();
 
 			verify(driver).rxSession(any(SessionConfig.class));
 			verify(session).beginTransaction();
@@ -195,12 +187,9 @@ class TransactionHandlingTest {
 
 			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
 
-			Mono<String> sequence = neo4jClient
-				.doInQueryRunnerForMono("aDatabase", tx -> Mono.error(new SomeException()));
+			Mono<String> sequence = neo4jClient.doInQueryRunnerForMono("aDatabase", tx -> Mono.error(new SomeException()));
 
-			StepVerifier.create(sequence)
-				.expectError(SomeException.class)
-				.verify();
+			StepVerifier.create(sequence).expectError(SomeException.class).verify();
 
 			verify(driver).rxSession(any(SessionConfig.class));
 			verify(session).beginTransaction();
@@ -211,6 +200,5 @@ class TransactionHandlingTest {
 		}
 	}
 
-	private static class SomeException extends RuntimeException {
-	}
+	private static class SomeException extends RuntimeException {}
 }

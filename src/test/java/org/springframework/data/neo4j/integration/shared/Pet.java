@@ -33,7 +33,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
  */
 @RequiredArgsConstructor(onConstructor = @__(@PersistenceConstructor))
 @Getter
-@EqualsAndHashCode(of = {"id", "name"})
+@EqualsAndHashCode(of = { "id", "name" })
 @Node
 public class Pet {
 
@@ -46,17 +46,13 @@ public class Pet {
 		this.id = id;
 	}
 
-	@Relationship("Has")
-	private Set<Hobby> hobbies;
+	@Relationship("Has") private Set<Hobby> hobbies;
 
-	@Relationship("Has")
-	private List<Pet> friends;
+	@Relationship("Has") private List<Pet> friends;
 
-	@Relationship(value = "Hated_by", direction = Relationship.Direction.INCOMING)
-	private List<Pet> otherPets;
+	@Relationship(value = "Hated_by", direction = Relationship.Direction.INCOMING) private List<Pet> otherPets;
 
-	@Relationship("Has")
-	private List<ThingWithAssignedId> things;
+	@Relationship("Has") private List<ThingWithAssignedId> things;
 
 	public Set<Hobby> getHobbies() {
 		return hobbies;
@@ -78,5 +74,3 @@ public class Pet {
 		return id;
 	}
 }
-
-

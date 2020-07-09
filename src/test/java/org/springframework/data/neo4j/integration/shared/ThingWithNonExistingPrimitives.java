@@ -25,8 +25,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node("NonExistingPrimitives")
 public class ThingWithNonExistingPrimitives {
 
-	@Id @GeneratedValue
-	private Long id;
+	@Id @GeneratedValue private Long id;
 
 	private boolean someBoolean;
 

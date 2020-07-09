@@ -48,7 +48,7 @@ class ReactiveAuditingBeforeBindCallbackTest {
 		mappingContext.initialize();
 
 		IsNewAwareAuditingHandler originalHandler = new IsNewAwareAuditingHandler(
-			new PersistentEntities(Arrays.asList(mappingContext)));
+				new PersistentEntities(Arrays.asList(mappingContext)));
 		spyOnHandler = spy(originalHandler);
 		callback = new ReactiveAuditingBeforeBindCallback(() -> spyOnHandler);
 	}
@@ -63,13 +63,10 @@ class ReactiveAuditingBeforeBindCallbackTest {
 	void triggersCreationMarkForObjectWithEmptyId() {
 
 		Sample sample = new Sample();
-		StepVerifier
-			.create(callback.onBeforeBind(sample))
-			.expectNextMatches(s -> {
-				Sample auditedObject = (Sample) s;
-				return auditedObject.created != null && auditedObject.modified != null;
-			})
-			.verifyComplete();
+		StepVerifier.create(callback.onBeforeBind(sample)).expectNextMatches(s -> {
+			Sample auditedObject = (Sample) s;
+			return auditedObject.created != null && auditedObject.modified != null;
+		}).verifyComplete();
 
 		verify(spyOnHandler, times(1)).markCreated(sample);
 		verify(spyOnHandler, times(0)).markModified(any());
@@ -82,13 +79,10 @@ class ReactiveAuditingBeforeBindCallbackTest {
 		sample.id = "id";
 		sample.version = 1L;
 
-		StepVerifier
-			.create(callback.onBeforeBind(sample))
-			.expectNextMatches(s -> {
-				Sample auditedObject = (Sample) s;
-				return auditedObject.created == null && auditedObject.modified != null;
-			})
-			.verifyComplete();
+		StepVerifier.create(callback.onBeforeBind(sample)).expectNextMatches(s -> {
+			Sample auditedObject = (Sample) s;
+			return auditedObject.created == null && auditedObject.modified != null;
+		}).verifyComplete();
 
 		verify(spyOnHandler, times(0)).markCreated(any());
 		verify(spyOnHandler, times(1)).markModified(sample);

@@ -48,10 +48,9 @@ class DefaultNeo4jConverterTest {
 			Value value = Values.value("Das funktioniert nicht.");
 
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class)
-				.isThrownBy(() -> defaultNeo4jConverter.readValueForProperty(value, ClassTypeInformation.from(Date.class)))
-				.withMessageStartingWith("Could not convert \"Das funktioniert nicht.\" into java.util.Date;")
-				.withCauseInstanceOf(ConversionFailedException.class)
-				.withRootCauseInstanceOf(DateTimeParseException.class);
+					.isThrownBy(() -> defaultNeo4jConverter.readValueForProperty(value, ClassTypeInformation.from(Date.class)))
+					.withMessageStartingWith("Could not convert \"Das funktioniert nicht.\" into java.util.Date;")
+					.withCauseInstanceOf(ConversionFailedException.class).withRootCauseInstanceOf(DateTimeParseException.class);
 		}
 
 		@Test
@@ -59,23 +58,21 @@ class DefaultNeo4jConverterTest {
 			Value value = Values.value("Das funktioniert nicht.");
 
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class)
-				.isThrownBy(() -> defaultNeo4jConverter.readValueForProperty(value, ClassTypeInformation.from(LocalDate.class)))
-				.withMessageStartingWith("Could not convert \"Das funktioniert nicht.\" into java.time.LocalDate;")
-				.withCauseInstanceOf(ConversionFailedException.class)
-				.withRootCauseInstanceOf(Uncoercible.class);
+					.isThrownBy(
+							() -> defaultNeo4jConverter.readValueForProperty(value, ClassTypeInformation.from(LocalDate.class)))
+					.withMessageStartingWith("Could not convert \"Das funktioniert nicht.\" into java.time.LocalDate;")
+					.withCauseInstanceOf(ConversionFailedException.class).withRootCauseInstanceOf(Uncoercible.class);
 		}
 
 		@Test
 		void shouldCatchUncoerfcibleErrors() {
 			Value value = Values.value("Das funktioniert nicht.");
 
-			assertThatExceptionOfType(TypeMismatchDataAccessException.class)
-				.isThrownBy(
-					() -> defaultNeo4jConverter.readValueForProperty(value, ClassTypeInformation.from(
-						ReactiveNeo4jClient.class)))
-				.withMessageStartingWith(
-					"Could not convert \"Das funktioniert nicht.\" into org.springframework.data.neo4j.core.ReactiveNeo4jClient;")
-				.withRootCauseInstanceOf(ConverterNotFoundException.class);
+			assertThatExceptionOfType(TypeMismatchDataAccessException.class).isThrownBy(
+					() -> defaultNeo4jConverter.readValueForProperty(value, ClassTypeInformation.from(ReactiveNeo4jClient.class)))
+					.withMessageStartingWith(
+							"Could not convert \"Das funktioniert nicht.\" into org.springframework.data.neo4j.core.ReactiveNeo4jClient;")
+					.withRootCauseInstanceOf(ConverterNotFoundException.class);
 		}
 	}
 }

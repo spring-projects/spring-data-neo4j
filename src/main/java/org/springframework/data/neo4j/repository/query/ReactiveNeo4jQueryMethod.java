@@ -31,11 +31,10 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.util.ClassUtils;
 
 /**
- * This is unfortunately a little bit of a hack to provide the information that the returned types by this query
- * are always considered as stream.
- * We try to either separate imperative and reactive concerns but due to type compatibility we extend the
- * {@link Neo4jQueryMethod} here instead of creating a complete new reactive focused logical branch.
- * It would only contain duplications of several classes.
+ * This is unfortunately a little bit of a hack to provide the information that the returned types by this query are
+ * always considered as stream. We try to either separate imperative and reactive concerns but due to type compatibility
+ * we extend the {@link Neo4jQueryMethod} here instead of creating a complete new reactive focused logical branch. It
+ * would only contain duplications of several classes.
  *
  * @author Gerrit Meier
  * @since 1.0
@@ -48,9 +47,9 @@ final class ReactiveNeo4jQueryMethod extends Neo4jQueryMethod {
 	/**
 	 * Creates a new {@link ReactiveNeo4jQueryMethod} from the given parameters.
 	 *
-	 * @param method   must not be {@literal null}.
+	 * @param method must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
-	 * @param factory  must not be {@literal null}.
+	 * @param factory must not be {@literal null}.
 	 */
 	ReactiveNeo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
 		super(method, metadata, factory);
@@ -61,19 +60,18 @@ final class ReactiveNeo4jQueryMethod extends Neo4jQueryMethod {
 
 			boolean multiWrapper = ReactiveWrappers.isMultiValueType(returnType.getType());
 			boolean singleWrapperWithWrappedPageableResult = ReactiveWrappers.isSingleValueType(returnType.getType())
-				&& (PAGE_TYPE.isAssignableFrom(returnType.getRequiredComponentType())
-				|| SLICE_TYPE.isAssignableFrom(returnType.getRequiredComponentType()));
+					&& (PAGE_TYPE.isAssignableFrom(returnType.getRequiredComponentType())
+							|| SLICE_TYPE.isAssignableFrom(returnType.getRequiredComponentType()));
 
 			if (singleWrapperWithWrappedPageableResult) {
 				throw new InvalidDataAccessApiUsageException(
-					String.format("'%s.%s' must not use sliced or paged execution. Please use Flux.buffer(size, skip).",
-						ClassUtils.getShortName(method.getDeclaringClass()), method.getName()));
+						String.format("'%s.%s' must not use sliced or paged execution. Please use Flux.buffer(size, skip).",
+								ClassUtils.getShortName(method.getDeclaringClass()), method.getName()));
 			}
 
 			if (!multiWrapper) {
 				throw new IllegalStateException(String.format(
-					"Method has to use a multi-item reactive wrapper return type. Offending method: %s",
-					method.toString()));
+						"Method has to use a multi-item reactive wrapper return type. Offending method: %s", method.toString()));
 			}
 		}
 	}

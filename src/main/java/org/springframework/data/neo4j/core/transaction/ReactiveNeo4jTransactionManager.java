@@ -70,46 +70,41 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 	public static Mono<RxTransaction> retrieveReactiveTransaction(final Driver driver, final String targetDatabase) {
 
 		return TransactionSynchronizationManager.forCurrentTransaction() // Do we have a Transaction context?
-			// Bail out early if synchronization between transaction managers is not active
-			.filter(TransactionSynchronizationManager::isSynchronizationActive)
-			.flatMap(tsm -> {
-				// Get an existing holder
-				ReactiveNeo4jTransactionHolder existingTxHolder = (ReactiveNeo4jTransactionHolder) tsm
-					.getResource(driver);
+				// Bail out early if synchronization between transaction managers is not active
+				.filter(TransactionSynchronizationManager::isSynchronizationActive).flatMap(tsm -> {
+					// Get an existing holder
+					ReactiveNeo4jTransactionHolder existingTxHolder = (ReactiveNeo4jTransactionHolder) tsm.getResource(driver);
 
-				// And use it if there is any
-				if (existingTxHolder != null) {
-					return Mono.just(existingTxHolder);
-				}
+					// And use it if there is any
+					if (existingTxHolder != null) {
+						return Mono.just(existingTxHolder);
+					}
 
-				// Otherwise open up a new native transaction
-				return Mono.defer(() -> {
-					RxSession session = driver.rxSession(Neo4jTransactionUtils.defaultSessionConfig(targetDatabase));
-					return Mono.from(session.beginTransaction(TransactionConfig.empty())).map(tx -> {
+					// Otherwise open up a new native transaction
+					return Mono.defer(() -> {
+						RxSession session = driver.rxSession(Neo4jTransactionUtils.defaultSessionConfig(targetDatabase));
+						return Mono.from(session.beginTransaction(TransactionConfig.empty())).map(tx -> {
 
-						ReactiveNeo4jTransactionHolder newConnectionHolder = new ReactiveNeo4jTransactionHolder(
-							new Neo4jTransactionContext(targetDatabase), session, tx);
-						newConnectionHolder.setSynchronizedWithTransaction(true);
+							ReactiveNeo4jTransactionHolder newConnectionHolder = new ReactiveNeo4jTransactionHolder(
+									new Neo4jTransactionContext(targetDatabase), session, tx);
+							newConnectionHolder.setSynchronizedWithTransaction(true);
 
-						tsm.registerSynchronization(
-							new ReactiveNeo4jSessionSynchronization(tsm, newConnectionHolder, driver));
+							tsm.registerSynchronization(new ReactiveNeo4jSessionSynchronization(tsm, newConnectionHolder, driver));
 
-						tsm.bindResource(driver, newConnectionHolder);
-						return newConnectionHolder;
+							tsm.bindResource(driver, newConnectionHolder);
+							return newConnectionHolder;
+						});
 					});
-				});
-			})
-			.map(connectionHolder -> {
+				}).map(connectionHolder -> {
 					RxTransaction transaction = connectionHolder.getTransaction(targetDatabase);
 					if (transaction == null) {
-						throw new IllegalStateException(
-							Neo4jTransactionUtils.formatOngoingTxInAnotherDbErrorMessage(connectionHolder.getDatabaseName(), targetDatabase));
+						throw new IllegalStateException(Neo4jTransactionUtils
+								.formatOngoingTxInAnotherDbErrorMessage(connectionHolder.getDatabaseName(), targetDatabase));
 					}
 					return transaction;
-				}
-			)
-			// If not, than just don't open a transaction
-			.onErrorResume(NoTransactionException.class, nte -> Mono.empty());
+				})
+				// If not, than just don't open a transaction
+				.onErrorResume(NoTransactionException.class, nte -> Mono.empty());
 	}
 
 	private static ReactiveNeo4jTransactionObject extractNeo4jTransaction(Object transaction) {
@@ -156,37 +151,36 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 
 			transactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
 
-			return databaseSelectionProvider.getDatabaseSelection()
-				.switchIfEmpty(Mono.just(DatabaseSelection.undecided()))
-				.map(databaseName -> new Neo4jTransactionContext(databaseName.getValue(), bookmarkManager.getBookmarks()))
-				.map(context -> Tuples.of(context, this.driver.rxSession(
-					Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(), context.getDatabaseName()))))
-				.flatMap(contextAndSession -> Mono
-						.from(contextAndSession.getT2().beginTransaction(transactionConfig))
-						.map(nativeTransaction -> new ReactiveNeo4jTransactionHolder(contextAndSession.getT1(), contextAndSession.getT2(), nativeTransaction))
-				)
-				.doOnNext(transactionHolder -> {
-					transactionHolder.setSynchronizedWithTransaction(true);
-					transactionObject.setResourceHolder(transactionHolder);
-					transactionSynchronizationManager.bindResource(this.driver, transactionHolder);
-				});
+			return databaseSelectionProvider.getDatabaseSelection().switchIfEmpty(Mono.just(DatabaseSelection.undecided()))
+					.map(
+							databaseName -> new Neo4jTransactionContext(databaseName.getValue(), bookmarkManager.getBookmarks()))
+					.map(
+							context -> Tuples
+									.of(context,
+											this.driver.rxSession(Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(),
+													context.getDatabaseName()))))
+					.flatMap(contextAndSession -> Mono.from(contextAndSession.getT2().beginTransaction(transactionConfig))
+							.map(nativeTransaction -> new ReactiveNeo4jTransactionHolder(contextAndSession.getT1(),
+									contextAndSession.getT2(), nativeTransaction)))
+					.doOnNext(transactionHolder -> {
+						transactionHolder.setSynchronizedWithTransaction(true);
+						transactionObject.setResourceHolder(transactionHolder);
+						transactionSynchronizationManager.bindResource(this.driver, transactionHolder);
+					});
 
 		}).then();
 	}
 
 	@Override
 	protected Mono<Void> doCleanupAfterCompletion(TransactionSynchronizationManager transactionSynchronizationManager,
-		Object transaction) {
+			Object transaction) {
 
-		return Mono
-			.just(extractNeo4jTransaction(transaction))
-			.map(r -> {
-				ReactiveNeo4jTransactionHolder holder = r.getRequiredResourceHolder();
-				r.setResourceHolder(null);
-				return holder;
-			})
-			.flatMap(ReactiveNeo4jTransactionHolder::close)
-			.then(Mono.fromRunnable(() -> transactionSynchronizationManager.unbindResource(driver)));
+		return Mono.just(extractNeo4jTransaction(transaction)).map(r -> {
+			ReactiveNeo4jTransactionHolder holder = r.getRequiredResourceHolder();
+			r.setResourceHolder(null);
+			return holder;
+		}).flatMap(ReactiveNeo4jTransactionHolder::close)
+				.then(Mono.fromRunnable(() -> transactionSynchronizationManager.unbindResource(driver)));
 	}
 
 	@Override
@@ -194,10 +188,9 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 			GenericReactiveTransaction genericReactiveTransaction) throws TransactionException {
 
 		ReactiveNeo4jTransactionHolder holder = extractNeo4jTransaction(genericReactiveTransaction)
-			.getRequiredResourceHolder();
-		return holder.commit()
-			.doOnNext(bookmark -> bookmarkManager.updateBookmarks(holder.getBookmarks(), bookmark))
-			.then();
+				.getRequiredResourceHolder();
+		return holder.commit().doOnNext(bookmark -> bookmarkManager.updateBookmarks(holder.getBookmarks(), bookmark))
+				.then();
 	}
 
 	@Override
@@ -205,26 +198,25 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 			GenericReactiveTransaction genericReactiveTransaction) throws TransactionException {
 
 		ReactiveNeo4jTransactionHolder holder = extractNeo4jTransaction(genericReactiveTransaction)
-			.getRequiredResourceHolder();
+				.getRequiredResourceHolder();
 		return holder.rollback();
 	}
 
 	@Override
-	protected Mono<Object> doSuspend(TransactionSynchronizationManager synchronizationManager, Object transaction) throws TransactionException {
+	protected Mono<Object> doSuspend(TransactionSynchronizationManager synchronizationManager, Object transaction)
+			throws TransactionException {
 
-		return Mono
-			.just(extractNeo4jTransaction(transaction))
-			.doOnNext(r -> r.setResourceHolder(null))
-			.then(Mono.fromSupplier(() -> synchronizationManager.unbindResource(driver)));
+		return Mono.just(extractNeo4jTransaction(transaction)).doOnNext(r -> r.setResourceHolder(null))
+				.then(Mono.fromSupplier(() -> synchronizationManager.unbindResource(driver)));
 	}
 
 	@Override
-	protected Mono<Void> doResume(TransactionSynchronizationManager synchronizationManager, Object transaction, Object suspendedResources) throws TransactionException {
+	protected Mono<Void> doResume(TransactionSynchronizationManager synchronizationManager, Object transaction,
+			Object suspendedResources) throws TransactionException {
 
-		return Mono
-			.just(extractNeo4jTransaction(transaction))
-			.doOnNext(r -> r.setResourceHolder((ReactiveNeo4jTransactionHolder) suspendedResources))
-			.then(Mono.fromRunnable(() -> synchronizationManager.bindResource(driver, suspendedResources)));
+		return Mono.just(extractNeo4jTransaction(transaction))
+				.doOnNext(r -> r.setResourceHolder((ReactiveNeo4jTransactionHolder) suspendedResources))
+				.then(Mono.fromRunnable(() -> synchronizationManager.bindResource(driver, suspendedResources)));
 	}
 
 	/*
@@ -233,7 +225,7 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 	 */
 	@Override
 	protected Mono<Void> doSetRollbackOnly(TransactionSynchronizationManager synchronizationManager,
-		GenericReactiveTransaction genericReactiveTransaction) throws TransactionException {
+			GenericReactiveTransaction genericReactiveTransaction) throws TransactionException {
 
 		return Mono.fromRunnable(() -> {
 			ReactiveNeo4jTransactionObject transactionObject = extractNeo4jTransaction(genericReactiveTransaction);

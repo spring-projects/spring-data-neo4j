@@ -62,10 +62,8 @@ public final class IdDescription {
 		return new IdDescription(GeneratedValue.InternalIdGenerator.class, null, null);
 	}
 
-	public static IdDescription forExternallyGeneratedIds(
-		@Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
-		@Nullable String idGeneratorRef,
-		String graphPropertyName) {
+	public static IdDescription forExternallyGeneratedIds(@Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
+			@Nullable String idGeneratorRef, String graphPropertyName) {
 
 		Assert.notNull(graphPropertyName, "Graph property name is required.");
 		try {
@@ -75,17 +73,14 @@ public final class IdDescription {
 		} catch (IllegalArgumentException e) {
 			Assert.notNull(idGeneratorClass, "Class of id generator is required.");
 			Assert.isTrue(idGeneratorClass != GeneratedValue.InternalIdGenerator.class,
-				"Cannot use InternalIdGenerator for externally generated ids.");
+					"Cannot use InternalIdGenerator for externally generated ids.");
 
 			return new IdDescription(idGeneratorClass, null, graphPropertyName);
 		}
 	}
 
-	private IdDescription(
-		@Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
-		@Nullable String idGeneratorRef,
-		@Nullable String graphPropertyName
-	) {
+	private IdDescription(@Nullable Class<? extends IdGenerator<?>> idGeneratorClass, @Nullable String idGeneratorRef,
+			@Nullable String graphPropertyName) {
 		this.idGeneratorClass = idGeneratorClass;
 		this.idGeneratorRef = idGeneratorRef != null && idGeneratorRef.isEmpty() ? null : idGeneratorRef;
 		this.graphPropertyName = graphPropertyName;
@@ -95,7 +90,7 @@ public final class IdDescription {
 				return Functions.id(rootNode);
 			} else {
 				return this.getOptionalGraphPropertyName()
-					.map(propertyName -> Cypher.property(Constants.NAME_OF_ROOT_NODE, propertyName)).get();
+						.map(propertyName -> Cypher.property(Constants.NAME_OF_ROOT_NODE, propertyName)).get();
 			}
 		});
 	}
@@ -113,7 +108,8 @@ public final class IdDescription {
 	}
 
 	/**
-	 * @return True, if the ID is assigned to the entity before the entity hits the database, either manually or through a generator.
+	 * @return True, if the ID is assigned to the entity before the entity hits the database, either manually or through a
+	 *         generator.
 	 */
 	public boolean isAssignedId() {
 		return this.idGeneratorClass == null && this.idGeneratorRef == null;
@@ -131,13 +127,13 @@ public final class IdDescription {
 	 */
 	public boolean isExternallyGeneratedId() {
 		return (this.idGeneratorClass != null && this.idGeneratorClass != GeneratedValue.InternalIdGenerator.class)
-			|| this.idGeneratorRef != null;
+				|| this.idGeneratorRef != null;
 	}
 
 	/**
-	 * An ID description has only a corresponding graph property name when it's bas on an external assigment.
-	 * An internal id has no corresponding graph property and therefor this method
-	 * will return an empty {@link Optional} in such cases.
+	 * An ID description has only a corresponding graph property name when it's bas on an external assigment. An internal
+	 * id has no corresponding graph property and therefor this method will return an empty {@link Optional} in such
+	 * cases.
 	 *
 	 * @return The name of an optional graph property.
 	 */

@@ -39,10 +39,14 @@ import org.springframework.util.Assert;
 /**
  * Bean post-processor that automatically applies persistence exception translation to all methods returning either
  * {@link reactor.core.publisher.Mono} or {@link reactor.core.publisher.Flux} of any bean marked with
- * Spring's @{@link Repository Repository} annotation, adding a corresponding {@link ReactivePersistenceExceptionTranslationAdvisor} to
- * the exposed proxy (either an existing AOP proxy or a newly generated proxy that implements all of the target's interfaces).
- * <p>That proxy will modify the reactive types by the matched method and inject an exception translation into the reactive flow.
- * <p>This class can be declared as a standard bean if you run a lot of custom repositories in which you use either the
+ * Spring's @{@link Repository Repository} annotation, adding a corresponding
+ * {@link ReactivePersistenceExceptionTranslationAdvisor} to the exposed proxy (either an existing AOP proxy or a newly
+ * generated proxy that implements all of the target's interfaces).
+ * <p>
+ * That proxy will modify the reactive types by the matched method and inject an exception translation into the reactive
+ * flow.
+ * <p>
+ * This class can be declared as a standard bean if you run a lot of custom repositories in which you use either the
  * {@link ReactiveNeo4jTemplate} or the {@link ReactiveNeo4jClient}.
  *
  * @author Michael J. Simons
@@ -51,7 +55,7 @@ import org.springframework.util.Assert;
  */
 @API(status = API.Status.STABLE, since = "1.0")
 public final class ReactivePersistenceExceptionTranslationPostProcessor
-	extends AbstractBeanFactoryAwareAdvisingPostProcessor {
+		extends AbstractBeanFactoryAwareAdvisingPostProcessor {
 
 	private final Class<? extends Annotation> repositoryAnnotationType;
 
@@ -72,16 +76,15 @@ public final class ReactivePersistenceExceptionTranslationPostProcessor
 
 		if (!(beanFactory instanceof ListableBeanFactory)) {
 			throw new IllegalArgumentException(
-				"Cannot use PersistenceExceptionTranslator autodetection without ListableBeanFactory");
+					"Cannot use PersistenceExceptionTranslator autodetection without ListableBeanFactory");
 		}
-		this.advisor = new ReactivePersistenceExceptionTranslationAdvisor(
-			(ListableBeanFactory) beanFactory, this.repositoryAnnotationType);
+		this.advisor = new ReactivePersistenceExceptionTranslationAdvisor((ListableBeanFactory) beanFactory,
+				this.repositoryAnnotationType);
 	}
 
 	/**
-	 * Spring AOP exception translation aspect for use at Repository or DAO layer level.
-	 * Translates native persistence exceptions into Spring's DataAccessException hierarchy,
-	 * based on a given PersistenceExceptionTranslator.
+	 * Spring AOP exception translation aspect for use at Repository or DAO layer level. Translates native persistence
+	 * exceptions into Spring's DataAccessException hierarchy, based on a given PersistenceExceptionTranslator.
 	 */
 	final class ReactivePersistenceExceptionTranslationAdvisor extends AbstractPointcutAdvisor {
 
@@ -92,12 +95,11 @@ public final class ReactivePersistenceExceptionTranslationPostProcessor
 		/**
 		 * Create a new PersistenceExceptionTranslationAdvisor.
 		 *
-		 * @param beanFactory              the ListableBeanFactory to obtaining all
-		 *                                 PersistenceExceptionTranslators from
+		 * @param beanFactory the ListableBeanFactory to obtaining all PersistenceExceptionTranslators from
 		 * @param repositoryAnnotationType the annotation type to check for
 		 */
 		ReactivePersistenceExceptionTranslationAdvisor(ListableBeanFactory beanFactory,
-			Class<? extends Annotation> repositoryAnnotationType) {
+				Class<? extends Annotation> repositoryAnnotationType) {
 
 			this.advice = new ReactivePersistenceExceptionTranslationInterceptor(beanFactory);
 			this.pointcut = new AnnotationMatchingPointcut(repositoryAnnotationType, true) {
@@ -105,7 +107,8 @@ public final class ReactivePersistenceExceptionTranslationPostProcessor
 				public MethodMatcher getMethodMatcher() {
 					return new StaticMethodMatcher() {
 
-						@Override public boolean matches(Method method, Class<?> targetClass) {
+						@Override
+						public boolean matches(Method method, Class<?> targetClass) {
 							Class<?> returnType = method.getReturnType();
 							return returnType == Mono.class || returnType == Flux.class;
 						}

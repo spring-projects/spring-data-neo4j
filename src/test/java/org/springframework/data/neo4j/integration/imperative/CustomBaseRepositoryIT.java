@@ -50,13 +50,11 @@ public class CustomBaseRepositoryIT {
 	@Test
 	public void customBaseRepositoryShouldBeInUse(@Autowired MyPersonRepository repository) {
 
-		assertThatExceptionOfType(UnsupportedOperationException.class)
-			.isThrownBy(() -> repository.findAll())
-			.withMessage("This implementation does not support `findAll`.");
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findAll())
+				.withMessage("This implementation does not support `findAll`.");
 	}
 
-	interface MyPersonRepository extends Neo4jRepository<PersonWithAllConstructor, Long> {
-	}
+	interface MyPersonRepository extends Neo4jRepository<PersonWithAllConstructor, Long> {}
 
 	static class MyRepositoryImpl<T, ID> extends SimpleNeo4jRepository<T, ID> {
 
@@ -66,7 +64,7 @@ public class CustomBaseRepositoryIT {
 			assertThat(neo4jOperations).isNotNull();
 			assertThat(entityInformation).isNotNull();
 			Assertions.assertThat(entityInformation.getEntityMetaData().getUnderlyingClass())
-				.isEqualTo(PersonWithAllConstructor.class);
+					.isEqualTo(PersonWithAllConstructor.class);
 		}
 
 		@Override
@@ -76,11 +74,8 @@ public class CustomBaseRepositoryIT {
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories(
-		repositoryBaseClass = MyRepositoryImpl.class,
-		considerNestedRepositories = true,
-		includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = MyPersonRepository.class)
-	)
+	@EnableNeo4jRepositories(repositoryBaseClass = MyRepositoryImpl.class, considerNestedRepositories = true,
+			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = MyPersonRepository.class))
 	@EnableTransactionManagement
 	static class Config extends AbstractNeo4jConfig {
 

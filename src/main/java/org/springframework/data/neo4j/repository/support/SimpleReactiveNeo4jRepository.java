@@ -59,7 +59,7 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	private final CypherGenerator cypherGenerator;
 
 	protected SimpleReactiveNeo4jRepository(ReactiveNeo4jOperations neo4jOperations,
-		Neo4jEntityInformation<T, ID> entityInformation) {
+			Neo4jEntityInformation<T, ID> entityInformation) {
 
 		this.neo4jOperations = neo4jOperations;
 		this.entityInformation = entityInformation;
@@ -98,9 +98,8 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	@Override
 	public Flux<T> findAll(Sort sort) {
 		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData)
-			.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData))
-			.orderBy(CypherAdapterUtils.toSortItems(entityMetaData, sort))
-			.build();
+				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData))
+				.orderBy(CypherAdapterUtils.toSortItems(entityMetaData, sort)).build();
 
 		return neo4jOperations.findAll(statement, this.entityInformation.getJavaType());
 	}
@@ -197,9 +196,8 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	public Mono<Void> deleteAll(Iterable<? extends T> entities) {
 
 		Assert.notNull(entities, "The given Iterable of entities must not be null!");
-		List<ID> ids = StreamSupport.stream(entities.spliterator(), false)
-			.map(this.entityInformation::getId)
-			.collect(toList());
+		List<ID> ids = StreamSupport.stream(entities.spliterator(), false).map(this.entityInformation::getId)
+				.collect(toList());
 		return this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
 	}
 

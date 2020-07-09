@@ -57,13 +57,10 @@ class ReactiveNeo4jTransactionManagerTest {
 
 	private String databaseName = "aDatabase";
 
-	@Mock
-	private Driver driver;
+	@Mock private Driver driver;
 
-	@Mock
-	private RxSession session;
-	@Mock
-	private RxTransaction transaction;
+	@Mock private RxSession session;
+	@Mock private RxTransaction transaction;
 
 	@BeforeEach
 	void setUp() {
@@ -78,11 +75,10 @@ class ReactiveNeo4jTransactionManagerTest {
 	@Test
 	void shouldWorkWithoutSynchronizations() {
 
-		Mono<RxTransaction> transactionMono = ReactiveNeo4jTransactionManager
-			.retrieveReactiveTransaction(driver, databaseName);
+		Mono<RxTransaction> transactionMono = ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver,
+				databaseName);
 
-		StepVerifier.create(transactionMono)
-			.verifyComplete();
+		StepVerifier.create(transactionMono).verifyComplete();
 	}
 
 	@Nested
@@ -90,20 +86,16 @@ class ReactiveNeo4jTransactionManagerTest {
 		@Test
 		void shouldUseTxFromNeo4jTxManager() {
 
-			ReactiveNeo4jTransactionManager txManager = new ReactiveNeo4jTransactionManager(driver, ReactiveDatabaseSelectionProvider
-				.createStaticDatabaseSelectionProvider(databaseName));
+			ReactiveNeo4jTransactionManager txManager = new ReactiveNeo4jTransactionManager(driver,
+					ReactiveDatabaseSelectionProvider.createStaticDatabaseSelectionProvider(databaseName));
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(txManager);
 
 			transactionalOperator
-				.execute(transactionStatus -> TransactionSynchronizationManager
-					.forCurrentTransaction().doOnNext(tsm -> {
+					.execute(transactionStatus -> TransactionSynchronizationManager.forCurrentTransaction().doOnNext(tsm -> {
 						assertThat(tsm.hasResource(driver)).isTrue();
 						transactionStatus.setRollbackOnly();
-					}).then(ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseName))
-				)
-				.as(StepVerifier::create)
-				.expectNextCount(1L)
-				.verifyComplete();
+					}).then(ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseName)))
+					.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
 			verify(driver).rxSession(any(SessionConfig.class));
 
@@ -116,22 +108,18 @@ class ReactiveNeo4jTransactionManagerTest {
 		@Test
 		void shouldParticipateInOngoingTransaction() {
 
-			ReactiveNeo4jTransactionManager txManager = new ReactiveNeo4jTransactionManager(driver, ReactiveDatabaseSelectionProvider
-				.createStaticDatabaseSelectionProvider(databaseName));
+			ReactiveNeo4jTransactionManager txManager = new ReactiveNeo4jTransactionManager(driver,
+					ReactiveDatabaseSelectionProvider.createStaticDatabaseSelectionProvider(databaseName));
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(txManager);
 
-			transactionalOperator
-				.execute(outerStatus -> {
-					assertThat(outerStatus.isNewTransaction()).isTrue();
-					outerStatus.setRollbackOnly();
-					return transactionalOperator.execute(innerStatus -> {
-						assertThat(innerStatus.isNewTransaction()).isFalse();
-						return ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseName);
-					}).then(ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseName));
-				})
-				.as(StepVerifier::create)
-				.expectNextCount(1L)
-				.verifyComplete();
+			transactionalOperator.execute(outerStatus -> {
+				assertThat(outerStatus.isNewTransaction()).isTrue();
+				outerStatus.setRollbackOnly();
+				return transactionalOperator.execute(innerStatus -> {
+					assertThat(innerStatus.isNewTransaction()).isFalse();
+					return ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseName);
+				}).then(ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseName));
+			}).as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
 			verify(driver).rxSession(any(SessionConfig.class));
 
@@ -144,18 +132,20 @@ class ReactiveNeo4jTransactionManagerTest {
 		@Test
 		void usesBookmarksCorrectly() throws Exception {
 
-			ReactiveNeo4jTransactionManager txManager = new ReactiveNeo4jTransactionManager(driver, ReactiveDatabaseSelectionProvider
-				.createStaticDatabaseSelectionProvider(databaseName));
+			ReactiveNeo4jTransactionManager txManager = new ReactiveNeo4jTransactionManager(driver,
+					ReactiveDatabaseSelectionProvider.createStaticDatabaseSelectionProvider(databaseName));
 
 			Neo4jBookmarkManager bookmarkManager = spy(new Neo4jBookmarkManager());
 			injectBookmarkManager(txManager, bookmarkManager);
 
 			Bookmark bookmark = new Bookmark() {
-				@Override public Set<String> values() {
+				@Override
+				public Set<String> values() {
 					return Collections.singleton("blubb");
 				}
 
-				@Override public boolean isEmpty() {
+				@Override
+				public boolean isEmpty() {
 					return false;
 				}
 			};
@@ -164,14 +154,10 @@ class ReactiveNeo4jTransactionManagerTest {
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(txManager);
 
 			transactionalOperator
-				.execute(transactionStatus -> TransactionSynchronizationManager
-					.forCurrentTransaction()
-					.doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isTrue())
-					.then(ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseName))
-				)
-				.as(StepVerifier::create)
-				.expectNextCount(1L)
-				.verifyComplete();
+					.execute(transactionStatus -> TransactionSynchronizationManager.forCurrentTransaction()
+							.doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isTrue())
+							.then(ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseName)))
+					.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
 			verify(driver).rxSession(any(SessionConfig.class));
 			verify(session).beginTransaction(any(TransactionConfig.class));
@@ -182,7 +168,7 @@ class ReactiveNeo4jTransactionManagerTest {
 		}
 
 		private void injectBookmarkManager(ReactiveNeo4jTransactionManager txManager, Neo4jBookmarkManager value)
-			throws NoSuchFieldException, IllegalAccessException {
+				throws NoSuchFieldException, IllegalAccessException {
 			Field bookmarkManager = ReactiveNeo4jTransactionManager.class.getDeclaredField("bookmarkManager");
 			bookmarkManager.setAccessible(true);
 			bookmarkManager.set(txManager, value);
@@ -195,21 +181,18 @@ class ReactiveNeo4jTransactionManagerTest {
 		@Test
 		void shouldSynchronizeWithExternalWithCommit() {
 
-			R2dbcTransactionManager t = new R2dbcTransactionManager(new H2ConnectionFactory(
-				H2ConnectionConfiguration.builder().inMemory("test").build()));
+			R2dbcTransactionManager t = new R2dbcTransactionManager(
+					new H2ConnectionFactory(H2ConnectionConfiguration.builder().inMemory("test").build()));
 
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(t);
 
 			transactionalOperator
-				.execute(transactionStatus -> TransactionSynchronizationManager
-					.forCurrentTransaction().doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isFalse())
-					.then(ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseName))
-					.flatMap(ignoredNativeTx -> TransactionSynchronizationManager.forCurrentTransaction()
-						.doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isTrue()))
-				)
-				.as(StepVerifier::create)
-				.expectNextCount(1L)
-				.verifyComplete();
+					.execute(transactionStatus -> TransactionSynchronizationManager.forCurrentTransaction()
+							.doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isFalse())
+							.then(ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseName))
+							.flatMap(ignoredNativeTx -> TransactionSynchronizationManager.forCurrentTransaction()
+									.doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isTrue())))
+					.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
 			verify(driver).rxSession(any(SessionConfig.class));
 
@@ -222,25 +205,19 @@ class ReactiveNeo4jTransactionManagerTest {
 		@Test
 		void shouldSynchronizeWithExternalWithRollback() {
 
-			R2dbcTransactionManager t = new R2dbcTransactionManager(new H2ConnectionFactory(
-				H2ConnectionConfiguration.builder().inMemory("test").build()));
+			R2dbcTransactionManager t = new R2dbcTransactionManager(
+					new H2ConnectionFactory(H2ConnectionConfiguration.builder().inMemory("test").build()));
 
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(t);
 
 			transactionalOperator
-				.execute(transactionStatus -> TransactionSynchronizationManager
-					.forCurrentTransaction()
-					.doOnNext(tsm -> {
+					.execute(transactionStatus -> TransactionSynchronizationManager.forCurrentTransaction().doOnNext(tsm -> {
 						assertThat(tsm.hasResource(driver)).isFalse();
 						transactionStatus.setRollbackOnly();
-					})
-					.then(ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseName))
-					.flatMap(ignoredNativeTx -> TransactionSynchronizationManager.forCurrentTransaction()
-						.doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isTrue()))
-				)
-				.as(StepVerifier::create)
-				.expectNextCount(1L)
-				.verifyComplete();
+					}).then(ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseName))
+							.flatMap(ignoredNativeTx -> TransactionSynchronizationManager.forCurrentTransaction()
+									.doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isTrue())))
+					.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
 			verify(driver).rxSession(any(SessionConfig.class));
 

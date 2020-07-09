@@ -30,8 +30,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.ReactiveTransactionManager;
 
 /**
- * Base class for reactive SDN-RX configuration using JavaConfig.
- * This can be included in all scenarios in which Spring Boot is not an option.
+ * Base class for reactive SDN configuration using JavaConfig. This can be included in all scenarios in which Spring
+ * Boot is not an option.
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
@@ -62,7 +62,7 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 
 	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
 	public ReactiveNeo4jTemplate neo4jTemplate(final ReactiveNeo4jClient neo4jClient,
-		final Neo4jMappingContext mappingContext, final ReactiveDatabaseSelectionProvider databaseNameProvider) {
+			final Neo4jMappingContext mappingContext, final ReactiveDatabaseSelectionProvider databaseNameProvider) {
 
 		return new ReactiveNeo4jTemplate(neo4jClient, mappingContext, databaseNameProvider);
 	}
@@ -74,7 +74,8 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 	 * @return A platform transaction manager
 	 */
 	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
-	public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
+	public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
+			ReactiveDatabaseSelectionProvider databaseNameProvider) {
 
 		return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider);
 	}
@@ -82,7 +83,8 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 	/**
 	 * Configures the database name provider.
 	 *
-	 * @return The default database name provider, defaulting to the default database on Neo4j 4.0 and on no default on Neo4j 3.5 and prior.
+	 * @return The default database name provider, defaulting to the default database on Neo4j 4.0 and on no default on
+	 *         Neo4j 3.5 and prior.
 	 */
 	@Bean
 	protected ReactiveDatabaseSelectionProvider reactiveNeo4jDatabaseNameProvider() {

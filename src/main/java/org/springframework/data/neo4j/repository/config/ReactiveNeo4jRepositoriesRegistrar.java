@@ -21,8 +21,8 @@ import org.springframework.data.repository.config.RepositoryBeanDefinitionRegist
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 
 /**
- * {@link RepositoryBeanDefinitionRegistrarSupport} to enable {@link EnableReactiveNeo4jRepositories} annotation.
- * The {@link RepositoryBeanDefinitionRegistrarSupport} is a dedicated implementation of Spring's
+ * {@link RepositoryBeanDefinitionRegistrarSupport} to enable {@link EnableReactiveNeo4jRepositories} annotation. The
+ * {@link RepositoryBeanDefinitionRegistrarSupport} is a dedicated implementation of Spring's
  * {@code org.springframework.context.annotation.ImportBeanDefinitionRegistrar}, a dedicated SPI to register beans
  * during processing of configuration classes.
  *

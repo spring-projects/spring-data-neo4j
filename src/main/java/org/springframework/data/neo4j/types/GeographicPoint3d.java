@@ -24,33 +24,29 @@ import org.apiguardian.api.API;
 @API(status = API.Status.STABLE, since = "1.0")
 public final class GeographicPoint3d extends AbstractPoint {
 
-    GeographicPoint3d(Coordinate coordinate, Integer srid) {
-        super(coordinate, srid);
-    }
+	GeographicPoint3d(Coordinate coordinate, Integer srid) {
+		super(coordinate, srid);
+	}
 
-    public GeographicPoint3d(double latitude, double longitude, double height) {
-        super(new Coordinate(longitude, latitude, height), 4979);
-    }
+	public GeographicPoint3d(double latitude, double longitude, double height) {
+		super(new Coordinate(longitude, latitude, height), 4979);
+	}
 
-    public double getLongitude() {
-        return coordinate.getX();
-    }
+	public double getLongitude() {
+		return coordinate.getX();
+	}
 
-    public double getLatitude() {
-        return coordinate.getY();
-    }
+	public double getLatitude() {
+		return coordinate.getY();
+	}
 
-    public double getHeight() {
-        return coordinate.getZ();
-    }
+	public double getHeight() {
+		return coordinate.getZ();
+	}
 
-    @Override
-    public String toString() {
-        return "GeographicPoint3d{" +
-            "longitude=" + getLongitude() +
-            ", latitude=" + getLatitude() +
-            ", height=" + getHeight() +
-            ", srid=" + getSrid() +
-            '}';
-    }
+	@Override
+	public String toString() {
+		return "GeographicPoint3d{" + "longitude=" + getLongitude() + ", latitude=" + getLatitude() + ", height="
+				+ getHeight() + ", srid=" + getSrid() + '}';
+	}
 }

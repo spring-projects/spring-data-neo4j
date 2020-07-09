@@ -38,10 +38,7 @@ public abstract class RelationshipsITBase {
 
 	@BeforeEach
 	void setup() {
-		try (
-			Session session = driver.session();
-			Transaction transaction = session.beginTransaction()
-		) {
+		try (Session session = driver.session(); Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n").consume();
 			transaction.commit();
 		}

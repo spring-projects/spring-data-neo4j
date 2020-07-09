@@ -51,35 +51,17 @@ class BoundingBoxTest {
 
 	private static Stream<Arguments> polygonsToTest() {
 		return Stream.of(
-			Arguments.of(
-				new Polygon(new Point(1, 1), new Point(5, 1), new Point(5, 5), new Point(5, 1)),
-				new Point(1, 1), new Point(5, 5)
-			),
-			Arguments.of(
-				new Polygon(new Point(3, 6), new Point(6, 2), new Point(8, 3), new Point(8, 6), new Point(2, 9)),
-				new Point(2, 2), new Point(8, 9)
-			),
-			Arguments.of(
-				new Polygon(new Point(3, 4), new Point(7, 1), new Point(9, 4), new Point(10, 8), new Point(8, 10)),
-				new Point(3, 1), new Point(10, 10)
-			)
-		);
+				Arguments.of(new Polygon(new Point(1, 1), new Point(5, 1), new Point(5, 5), new Point(5, 1)), new Point(1, 1),
+						new Point(5, 5)),
+				Arguments.of(new Polygon(new Point(3, 6), new Point(6, 2), new Point(8, 3), new Point(8, 6), new Point(2, 9)),
+						new Point(2, 2), new Point(8, 9)),
+				Arguments.of(new Polygon(new Point(3, 4), new Point(7, 1), new Point(9, 4), new Point(10, 8), new Point(8, 10)),
+						new Point(3, 1), new Point(10, 10)));
 	}
 
 	private static Stream<Arguments> boxesToTest() {
-		return Stream.of(
-			Arguments.of(
-				new Box(new Point(1, 1), new Point(5, 5)),
-				new Point(1, 1), new Point(5, 5)
-			),
-			Arguments.of(
-				new Box(new Point(8, 3), new Point(2, 9)),
-				new Point(2, 3), new Point(8, 9)
-			),
-			Arguments.of(
-				new Box(new Point(3, 4), new Point(10, 8)),
-				new Point(3, 4), new Point(10, 8)
-			)
-		);
+		return Stream.of(Arguments.of(new Box(new Point(1, 1), new Point(5, 5)), new Point(1, 1), new Point(5, 5)),
+				Arguments.of(new Box(new Point(8, 3), new Point(2, 9)), new Point(2, 3), new Point(8, 9)),
+				Arguments.of(new Box(new Point(3, 4), new Point(10, 8)), new Point(3, 4), new Point(10, 8)));
 	}
 }

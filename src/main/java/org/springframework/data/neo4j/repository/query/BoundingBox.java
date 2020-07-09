@@ -86,8 +86,7 @@ public final class BoundingBox {
 			return false;
 		}
 		BoundingBox that = (BoundingBox) o;
-		return lowerLeft.equals(that.lowerLeft) &&
-			upperRight.equals(that.upperRight);
+		return lowerLeft.equals(that.lowerLeft) && upperRight.equals(that.upperRight);
 	}
 
 	@Override
@@ -97,9 +96,6 @@ public final class BoundingBox {
 
 	@Override
 	public String toString() {
-		return "BoundingBox{" +
-			"ll=" + lowerLeft +
-			", ur=" + upperRight +
-			'}';
+		return "BoundingBox{" + "ll=" + lowerLeft + ", ur=" + upperRight + '}';
 	}
 }

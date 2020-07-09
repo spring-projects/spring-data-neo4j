@@ -25,8 +25,8 @@ import java.lang.annotation.Target;
 import org.apiguardian.api.API;
 
 /**
- * This marker interface is used on classes to mark that they represent additional relationship properties.
- * A class that implements this interface must not be used as a or annotated with {@link Node}.
+ * This marker interface is used on classes to mark that they represent additional relationship properties. A class that
+ * implements this interface must not be used as a or annotated with {@link Node}.
  *
  * @author Gerrit Meier
  */

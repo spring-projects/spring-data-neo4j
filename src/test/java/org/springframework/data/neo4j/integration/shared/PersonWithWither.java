@@ -24,8 +24,8 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
 /**
- * Example domain object that works with wither.
- * Read more about this <a href="https://docs.spring.io/spring-data/commons/docs/current/reference/html/#mapping.property-population">here</a>.
+ * Example domain object that works with wither. Read more about this <a href=
+ * "https://docs.spring.io/spring-data/commons/docs/current/reference/html/#mapping.property-population">here</a>.
  */
 @Getter
 @Setter
@@ -33,8 +33,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 @ToString
 public class PersonWithWither {
 
-	@Id @GeneratedValue
-	private final Long id;
+	@Id @GeneratedValue private final Long id;
 
 	private final String name;
 

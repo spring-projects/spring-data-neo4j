@@ -57,42 +57,34 @@ class Neo4jMappingContextTest {
 		schema.initialize();
 
 		NodeDescription<?> optionalUserNodeDescription = schema.getNodeDescription("User");
-		assertThat(optionalUserNodeDescription)
-			.isNotNull()
-			.satisfies(description -> {
-				assertThat(description.getUnderlyingClass()).isEqualTo(UserNode.class);
+		assertThat(optionalUserNodeDescription).isNotNull().satisfies(description -> {
+			assertThat(description.getUnderlyingClass()).isEqualTo(UserNode.class);
 
-				assertThat(description.getIdDescription().isInternallyGeneratedId()).isTrue();
+			assertThat(description.getIdDescription().isInternallyGeneratedId()).isTrue();
 
-				assertThat(description.getGraphProperties())
-					.extracting(GraphPropertyDescription::getFieldName)
+			assertThat(description.getGraphProperties()).extracting(GraphPropertyDescription::getFieldName)
 					.containsExactlyInAnyOrder("id", "name", "first_name");
 
-				assertThat(description.getGraphProperties())
-					.extracting(GraphPropertyDescription::getPropertyName)
+			assertThat(description.getGraphProperties()).extracting(GraphPropertyDescription::getPropertyName)
 					.containsExactlyInAnyOrder("id", "name", "firstName");
 
-				Collection<String> expectedRelationships = Arrays.asList("[:OWNS] -> (:BikeNode)");
-				Collection<RelationshipDescription> relationships = description.getRelationships();
-				assertThat(relationships.stream().filter(r -> !r.isDynamic()))
-					.allMatch(d -> expectedRelationships
-						.contains(String.format("[:%s] -> (:%s)", d.getType(), d.getTarget().getPrimaryLabel())));
-			});
+			Collection<String> expectedRelationships = Arrays.asList("[:OWNS] -> (:BikeNode)");
+			Collection<RelationshipDescription> relationships = description.getRelationships();
+			assertThat(relationships.stream().filter(r -> !r.isDynamic())).allMatch(d -> expectedRelationships
+					.contains(String.format("[:%s] -> (:%s)", d.getType(), d.getTarget().getPrimaryLabel())));
+		});
 
 		NodeDescription<?> optionalBikeNodeDescription = schema.getNodeDescription("BikeNode");
-		assertThat(optionalBikeNodeDescription)
-			.isNotNull()
-			.satisfies(description -> {
-				assertThat(description.getUnderlyingClass()).isEqualTo(BikeNode.class);
+		assertThat(optionalBikeNodeDescription).isNotNull().satisfies(description -> {
+			assertThat(description.getUnderlyingClass()).isEqualTo(BikeNode.class);
 
-				assertThat(description.getIdDescription().isAssignedId()).isTrue();
+			assertThat(description.getIdDescription().isAssignedId()).isTrue();
 
-				Collection<String> expectedRelationships = Arrays.asList("[:OWNER] -> (:User)", "[:RENTER] -> (:User)");
-				Collection<RelationshipDescription> relationships = description.getRelationships();
-				assertThat(relationships.stream().filter(r -> !r.isDynamic()))
-					.allMatch(d -> expectedRelationships
-						.contains(String.format("[:%s] -> (:%s)", d.getType(), d.getTarget().getPrimaryLabel())));
-			});
+			Collection<String> expectedRelationships = Arrays.asList("[:OWNER] -> (:User)", "[:RENTER] -> (:User)");
+			Collection<RelationshipDescription> relationships = description.getRelationships();
+			assertThat(relationships.stream().filter(r -> !r.isDynamic())).allMatch(d -> expectedRelationships
+					.contains(String.format("[:%s] -> (:%s)", d.getType(), d.getTarget().getPrimaryLabel())));
+		});
 
 		Neo4jPersistentEntity<?> bikeNodeEntity = schema.getPersistentEntity(BikeNode.class);
 
@@ -110,10 +102,8 @@ class Neo4jMappingContextTest {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
 		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(InvalidId.class)));
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> schema.initialize())
-			.withMessageMatching(
-				"Cannot use internal id strategy with custom property getMappingFunctionFor on entity .*");
+		assertThatIllegalArgumentException().isThrownBy(() -> schema.initialize())
+				.withMessageMatching("Cannot use internal id strategy with custom property getMappingFunctionFor on entity .*");
 	}
 
 	@Test
@@ -121,18 +111,16 @@ class Neo4jMappingContextTest {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
 		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(InvalidIdType.class)));
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> schema.initialize())
-			.withMessageMatching("Internally generated ids can only be assigned to one of .*");
+		assertThatIllegalArgumentException().isThrownBy(() -> schema.initialize())
+				.withMessageMatching("Internally generated ids can only be assigned to one of .*");
 	}
 
 	@Test
 	void missingIdDefinitionShouldRaiseError() {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
-		assertThatIllegalStateException()
-			.isThrownBy(() -> schema.getPersistentEntity(MissingId.class))
-			.withMessage("Missing id property on " + MissingId.class + ".");
+		assertThatIllegalStateException().isThrownBy(() -> schema.getPersistentEntity(MissingId.class))
+				.withMessage("Missing id property on " + MissingId.class + ".");
 	}
 
 	@Test
@@ -140,8 +128,8 @@ class Neo4jMappingContextTest {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
 		Neo4jPersistentEntity<?> bikeNodeEntity = schema.getPersistentEntity(BikeNode.class);
-		bikeNodeEntity.doWithAssociations((Association<Neo4jPersistentProperty> association) ->
-			Assertions.assertThat(schema.getRequiredMappingFunctionFor(association.getInverse().getAssociationTargetType()))
+		bikeNodeEntity.doWithAssociations((Association<Neo4jPersistentProperty> association) -> Assertions
+				.assertThat(schema.getRequiredMappingFunctionFor(association.getInverse().getAssociationTargetType()))
 				.isNotNull());
 	}
 
@@ -150,13 +138,12 @@ class Neo4jMappingContextTest {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
 		Neo4jPersistentEntity<?> bikeNodeEntity = schema.getPersistentEntity(BikeNode.class);
-		assertThat(bikeNodeEntity.getRequiredPersistentProperty("renter").getAssociation())
-			.isNotNull()
-			.satisfies(association -> {
-				assertThat(association).isInstanceOf(RelationshipDescription.class);
-				RelationshipDescription relationshipDescription = (RelationshipDescription) association;
-				assertThat(relationshipDescription.getType()).isEqualTo("RENTER");
-			});
+		assertThat(bikeNodeEntity.getRequiredPersistentProperty("renter").getAssociation()).isNotNull()
+				.satisfies(association -> {
+					assertThat(association).isInstanceOf(RelationshipDescription.class);
+					RelationshipDescription relationshipDescription = (RelationshipDescription) association;
+					assertThat(relationshipDescription.getType()).isEqualTo("RENTER");
+				});
 	}
 
 	@Test
@@ -187,7 +174,7 @@ class Neo4jMappingContextTest {
 		}
 
 		Neo4jMappingContext schema = new Neo4jMappingContext(
-			new Neo4jConversions(singleton(new ConvertibleTypeConverter())));
+				new Neo4jConversions(singleton(new ConvertibleTypeConverter())));
 		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(EntityWithConvertibleProperty.class);
 
 		Assertions.assertThat(entity.getPersistentProperty("convertibleType").isRelationship()).isFalse();
@@ -225,8 +212,7 @@ class Neo4jMappingContextTest {
 		Neo4jPersistentEntity<?> enumRelNodeEntity = schema.getPersistentEntity(EnumRelNode.class);
 
 		List<Neo4jPersistentProperty> associations = new ArrayList<>();
-		enumRelNodeEntity
-			.doWithAssociations((Association<Neo4jPersistentProperty> a) -> associations.add(a.getInverse()));
+		enumRelNodeEntity.doWithAssociations((Association<Neo4jPersistentProperty> a) -> associations.add(a.getInverse()));
 
 		assertThat(associations).hasSize(2);
 	}
@@ -242,22 +228,17 @@ class Neo4jMappingContextTest {
 	@Node("User")
 	static class UserNode {
 
-		@org.springframework.data.annotation.Id @GeneratedValue
-		private long id;
+		@org.springframework.data.annotation.Id @GeneratedValue private long id;
 
-		@Relationship(type = "OWNS")
-		List<BikeNode> bikes;
+		@Relationship(type = "OWNS") List<BikeNode> bikes;
 
 		String name;
 
-		@Transient
-		String anAnnotatedTransientProperty;
+		@Transient String anAnnotatedTransientProperty;
 
-		@Transient
-		List<SomeOtherClass> someOtherTransientThings;
+		@Transient List<SomeOtherClass> someOtherTransientThings;
 
-		@Property(name = "firstName")
-		String first_name;
+		@Property(name = "firstName") String first_name;
 	}
 
 	static class SomeOtherClass {
@@ -272,8 +253,7 @@ class Neo4jMappingContextTest {
 
 		EA1, EA2 {
 			@Override
-			public void doNothing() {
-			}
+			public void doNothing() {}
 		};
 
 		public void doNothing() {
@@ -283,8 +263,7 @@ class Neo4jMappingContextTest {
 
 	static class BikeNode {
 
-		@Id
-		private String id;
+		@Id private String id;
 
 		UserNode owner;
 
@@ -300,8 +279,7 @@ class Neo4jMappingContextTest {
 
 	static class EnumRelNode {
 
-		@Id
-		private String id;
+		@Id private String id;
 
 		Map<A, UserNode> relA;
 
@@ -310,39 +288,31 @@ class Neo4jMappingContextTest {
 
 	static class TripNode {
 
-		@Id
-		private String id;
+		@Id private String id;
 
 		String name;
 	}
 
 	static class InvalidId {
 
-		@Id
-		@GeneratedValue
-		@Property("getMappingFunctionFor")
-		private String id;
+		@Id @GeneratedValue @Property("getMappingFunctionFor") private String id;
 	}
 
 	static class InvalidIdType {
 
-		@Id @GeneratedValue
-		private String id;
+		@Id @GeneratedValue private String id;
 	}
 
 	@Node
-	static class MissingId {
-	}
+	static class MissingId {}
 
 	@Node
 	static class EntityWithConvertibleProperty {
 
-		@Id @GeneratedValue
-		private Long id;
+		@Id @GeneratedValue private Long id;
 
 		private ConvertibleType convertibleType;
 	}
 
-	static class ConvertibleType {
-	}
+	static class ConvertibleType {}
 }

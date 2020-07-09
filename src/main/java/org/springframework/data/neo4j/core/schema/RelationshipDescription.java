@@ -20,8 +20,8 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 /**
- * Description of a relationship. Those descriptions always describe outgoing relationships. The inverse direction
- * is maybe defined on the {@link NodeDescription} reachable in the {@link Schema} via it's primary label defined by
+ * Description of a relationship. Those descriptions always describe outgoing relationships. The inverse direction is
+ * maybe defined on the {@link NodeDescription} reachable in the {@link Schema} via it's primary label defined by
  * {@link #getTarget}.
  *
  * @author Michael J. Simons
@@ -63,24 +63,24 @@ public interface RelationshipDescription {
 	NodeDescription<?> getTarget();
 
 	/**
-	 * The name of the property where the relationship was defined. This is used by the Cypher creation to name the
-	 * return values.
+	 * The name of the property where the relationship was defined. This is used by the Cypher creation to name the return
+	 * values.
 	 *
 	 * @return The name of the field storing the relationship property
 	 */
 	String getFieldName();
 
 	/**
-	 * The direction of the defined relationship. This is used by the Cypher creation to query for relationships
-	 * and create them with the right directions.
+	 * The direction of the defined relationship. This is used by the Cypher creation to query for relationships and
+	 * create them with the right directions.
 	 *
 	 * @return The direction of the relationship
 	 */
 	Relationship.Direction getDirection();
 
 	/**
-	 * If this is a relationship with properties, the properties-defining class will get returned,
-	 * otherwise {@literal null}.
+	 * If this is a relationship with properties, the properties-defining class will get returned, otherwise
+	 * {@literal null}.
 	 *
 	 * @return The type of the relationship property class for relationship with properties, otherwise {@literal null}
 	 */
@@ -88,8 +88,8 @@ public interface RelationshipDescription {
 	Class<?> getRelationshipPropertiesClass();
 
 	/**
-	 * Tells if this relationship is a relationship with additional properties.
-	 * In such cases {@code getRelationshipPropertiesClass} will return the type of the properties holding class.
+	 * Tells if this relationship is a relationship with additional properties. In such cases
+	 * {@code getRelationshipPropertiesClass} will return the type of the properties holding class.
 	 *
 	 * @return {@literal true} if an additional properties are available, otherwise {@literal false}
 	 */
@@ -117,7 +117,6 @@ public interface RelationshipDescription {
 	void setRelationshipObverse(RelationshipDescription relationshipObverse);
 
 	/**
-	 *
 	 * @return logically same relationship definition in the target entity
 	 */
 	RelationshipDescription getRelationshipObverse();

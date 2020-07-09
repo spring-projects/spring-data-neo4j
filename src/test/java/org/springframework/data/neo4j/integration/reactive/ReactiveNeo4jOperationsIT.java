@@ -52,8 +52,8 @@ import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
-import org.springframework.data.neo4j.test.Neo4jExtension.*;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.neo4j.test.Neo4jExtension.*;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -74,13 +74,15 @@ class ReactiveNeo4jOperationsIT {
 	private Long person1Id;
 	private Long person2Id;
 
-	@Autowired ReactiveNeo4jOperationsIT(Driver driver, ReactiveNeo4jOperations neo4jOperations) {
+	@Autowired
+	ReactiveNeo4jOperationsIT(Driver driver, ReactiveNeo4jOperations neo4jOperations) {
 		this.driver = driver;
 		this.neo4jOperations = neo4jOperations;
 	}
 
 	/**
-	 * Shall be configured by test making use of database selection, so that the verification queries run in the correct database.
+	 * Shall be configured by test making use of database selection, so that the verification queries run in the correct
+	 * database.
 	 *
 	 * @return The session config used for verification methods.
 	 */
@@ -96,11 +98,9 @@ class ReactiveNeo4jOperationsIT {
 		transaction.run("MATCH (n) detach delete n");
 
 		person1Id = transaction.run("CREATE (n:PersonWithAllConstructor) SET n.name = $name RETURN id(n)",
-			Values.parameters("name", TEST_PERSON1_NAME)
-		).next().get(0).asLong();
+				Values.parameters("name", TEST_PERSON1_NAME)).next().get(0).asLong();
 		person2Id = transaction.run("CREATE (n:PersonWithAllConstructor) SET n.name = $name RETURN id(n)",
-			Values.parameters("name", TEST_PERSON2_NAME)
-		).next().get(0).asLong();
+				Values.parameters("name", TEST_PERSON2_NAME)).next().get(0).asLong();
 
 		transaction.commit();
 		transaction.close();
@@ -109,8 +109,7 @@ class ReactiveNeo4jOperationsIT {
 	@Test
 	void count() {
 		StepVerifier.create(neo4jOperations.count(PersonWithAllConstructor.class))
-			.assertNext(count -> assertThat(count).isEqualTo(2))
-			.verifyComplete();
+				.assertNext(count -> assertThat(count).isEqualTo(2)).verifyComplete();
 	}
 
 	@Test
@@ -118,21 +117,18 @@ class ReactiveNeo4jOperationsIT {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
 		Statement statement = Cypher.match(node).returning(Functions.count(node)).build();
 
-		StepVerifier.create(neo4jOperations.count(statement))
-			.assertNext(count -> assertThat(count).isEqualTo(2))
-			.verifyComplete();
+		StepVerifier.create(neo4jOperations.count(statement)).assertNext(count -> assertThat(count).isEqualTo(2))
+				.verifyComplete();
 	}
 
 	@Test
 	void countWithStatementAndParameters() {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
-		Statement statement = Cypher.match(node)
-			.where(node.property("name").isEqualTo(parameter("name")))
-			.returning(Functions.count(node)).build();
+		Statement statement = Cypher.match(node).where(node.property("name").isEqualTo(parameter("name")))
+				.returning(Functions.count(node)).build();
 
 		StepVerifier.create(neo4jOperations.count(statement, singletonMap("name", TEST_PERSON1_NAME)))
-			.assertNext(count -> assertThat(count).isEqualTo(1))
-			.verifyComplete();
+				.assertNext(count -> assertThat(count).isEqualTo(1)).verifyComplete();
 	}
 
 	@Test
@@ -140,9 +136,8 @@ class ReactiveNeo4jOperationsIT {
 
 		String cypherQuery = "MATCH (p:PersonWithAllConstructor) return count(p)";
 
-		StepVerifier.create(neo4jOperations.count(cypherQuery))
-			.assertNext(count -> assertThat(count).isEqualTo(2))
-			.verifyComplete();
+		StepVerifier.create(neo4jOperations.count(cypherQuery)).assertNext(count -> assertThat(count).isEqualTo(2))
+				.verifyComplete();
 	}
 
 	@Test
@@ -150,15 +145,12 @@ class ReactiveNeo4jOperationsIT {
 		String cypherQuery = "MATCH (p:PersonWithAllConstructor) WHERE p.name = $name return count(p)";
 
 		StepVerifier.create(neo4jOperations.count(cypherQuery, singletonMap("name", TEST_PERSON1_NAME)))
-			.assertNext(count -> assertThat(count).isEqualTo(1))
-			.verifyComplete();
+				.assertNext(count -> assertThat(count).isEqualTo(1)).verifyComplete();
 	}
 
 	@Test
 	void findAll() {
-		StepVerifier.create(neo4jOperations.findAll(PersonWithAllConstructor.class))
-			.expectNextCount(2)
-			.verifyComplete();
+		StepVerifier.create(neo4jOperations.findAll(PersonWithAllConstructor.class)).expectNextCount(2).verifyComplete();
 	}
 
 	@Test
@@ -166,90 +158,71 @@ class ReactiveNeo4jOperationsIT {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
 		Statement statement = Cypher.match(node).returning(node).build();
 
-		StepVerifier.create(neo4jOperations.findAll(statement, PersonWithAllConstructor.class))
-			.expectNextCount(2)
-			.verifyComplete();
+		StepVerifier.create(neo4jOperations.findAll(statement, PersonWithAllConstructor.class)).expectNextCount(2)
+				.verifyComplete();
 	}
 
 	@Test
 	void findAllWithStatementAndParameters() {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
-		Statement statement = Cypher.match(node)
-			.where(node.property("name").isEqualTo(parameter("name")))
-			.returning(node).build();
+		Statement statement = Cypher.match(node).where(node.property("name").isEqualTo(parameter("name"))).returning(node)
+				.build();
 
-		StepVerifier.create(neo4jOperations.findAll(statement,
-			Collections.singletonMap("name", TEST_PERSON1_NAME),
-			PersonWithAllConstructor.class))
-			.expectNextCount(1)
-			.verifyComplete();
+		StepVerifier.create(neo4jOperations.findAll(statement, Collections.singletonMap("name", TEST_PERSON1_NAME),
+				PersonWithAllConstructor.class)).expectNextCount(1).verifyComplete();
 	}
 
 	@Test
 	void findOneWithStatementAndParameters() {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
-		Statement statement = Cypher.match(node)
-			.where(node.property("name").isEqualTo(parameter("name")))
-			.returning(node).build();
+		Statement statement = Cypher.match(node).where(node.property("name").isEqualTo(parameter("name"))).returning(node)
+				.build();
 
-		StepVerifier.create(neo4jOperations.findOne(statement,
-			Collections.singletonMap("name", TEST_PERSON1_NAME),
-			PersonWithAllConstructor.class))
-			.expectNextCount(1)
-			.verifyComplete();
+		StepVerifier.create(neo4jOperations.findOne(statement, Collections.singletonMap("name", TEST_PERSON1_NAME),
+				PersonWithAllConstructor.class)).expectNextCount(1).verifyComplete();
 	}
 
 	@Test
 	void findAllWithCypherQuery() {
 		String cypherQuery = "MATCH (p:PersonWithAllConstructor) return p";
 
-		StepVerifier.create(neo4jOperations.findAll(cypherQuery, PersonWithAllConstructor.class))
-			.expectNextCount(2)
-			.verifyComplete();
+		StepVerifier.create(neo4jOperations.findAll(cypherQuery, PersonWithAllConstructor.class)).expectNextCount(2)
+				.verifyComplete();
 	}
 
 	@Test
 	void findAllWithCypherQueryAndParameters() {
 		String cypherQuery = "MATCH (p:PersonWithAllConstructor) WHERE p.name = $name return p";
 
-		StepVerifier.create(neo4jOperations.findAll(cypherQuery,
-			Collections.singletonMap("name", TEST_PERSON1_NAME),
-			PersonWithAllConstructor.class))
-			.expectNextCount(1)
-			.verifyComplete();
+		StepVerifier.create(neo4jOperations.findAll(cypherQuery, Collections.singletonMap("name", TEST_PERSON1_NAME),
+				PersonWithAllConstructor.class)).expectNextCount(1).verifyComplete();
 	}
 
 	@Test
 	void findOneWithCypherQueryAndParameters() {
 		String cypherQuery = "MATCH (p:PersonWithAllConstructor) WHERE p.name = $name return p";
 
-		StepVerifier.create(neo4jOperations.findOne(cypherQuery,
-			Collections.singletonMap("name", TEST_PERSON1_NAME),
-			PersonWithAllConstructor.class))
-			.expectNextCount(1)
-			.verifyComplete();
+		StepVerifier.create(neo4jOperations.findOne(cypherQuery, Collections.singletonMap("name", TEST_PERSON1_NAME),
+				PersonWithAllConstructor.class)).expectNextCount(1).verifyComplete();
 	}
 
 	@Test
 	void findById() {
-		StepVerifier.create(neo4jOperations.findById(person1Id, PersonWithAllConstructor.class))
-			.expectNextCount(1)
-			.verifyComplete();
+		StepVerifier.create(neo4jOperations.findById(person1Id, PersonWithAllConstructor.class)).expectNextCount(1)
+				.verifyComplete();
 	}
 
 	@Test
 	void findAllById() {
-		StepVerifier.create(neo4jOperations.findAllById(Arrays.asList(person1Id, person2Id),
-			PersonWithAllConstructor.class))
-			.expectNextCount(2)
-			.verifyComplete();
+		StepVerifier
+				.create(neo4jOperations.findAllById(Arrays.asList(person1Id, person2Id), PersonWithAllConstructor.class))
+				.expectNextCount(2).verifyComplete();
 	}
 
 	@Test
 	void save() {
-		StepVerifier.create(neo4jOperations.save(new ThingWithGeneratedId("testThing")))
-			.expectNextCount(1)
-			.verifyComplete();
+		StepVerifier.create(neo4jOperations.save(new ThingWithGeneratedId("testThing"))).expectNextCount(1)
+				.verifyComplete();
 
 		try (Session session = driver.session(getSessionConfig())) {
 			Result result = session.run("MATCH (t:ThingWithGeneratedId{name: 'testThing'}) return t");
@@ -266,29 +239,25 @@ class ReactiveNeo4jOperationsIT {
 		ThingWithGeneratedId thing1 = new ThingWithGeneratedId(thing1Name);
 		ThingWithGeneratedId thing2 = new ThingWithGeneratedId(thing2Name);
 
-		StepVerifier.create(neo4jOperations.saveAll(Arrays.asList(thing1, thing2)))
-			.expectNextCount(2)
-			.verifyComplete();
+		StepVerifier.create(neo4jOperations.saveAll(Arrays.asList(thing1, thing2))).expectNextCount(2).verifyComplete();
 
 		try (Session session = driver.session(getSessionConfig())) {
 			Map<String, Object> paramMap = new HashMap<>();
 			paramMap.put("name1", thing1Name);
 			paramMap.put("name2", thing2Name);
 
-			Result result = session.run(
-				"MATCH (t:ThingWithGeneratedId) WHERE t.name = $name1 or t.name = $name2 return t",
-				paramMap);
+			Result result = session.run("MATCH (t:ThingWithGeneratedId) WHERE t.name = $name1 or t.name = $name2 return t",
+					paramMap);
 			List<Record> resultValues = result.list();
 			assertThat(resultValues).hasSize(2);
-			assertThat(resultValues).allMatch(record ->
-				record.asMap(Function.identity()).get("t").get("name").asString().startsWith("testThing"));
+			assertThat(resultValues).allMatch(
+					record -> record.asMap(Function.identity()).get("t").get("name").asString().startsWith("testThing"));
 		}
 	}
 
 	@Test
 	void deleteById() {
-		StepVerifier.create(neo4jOperations.deleteById(person1Id, PersonWithAllConstructor.class))
-			.verifyComplete();
+		StepVerifier.create(neo4jOperations.deleteById(person1Id, PersonWithAllConstructor.class)).verifyComplete();
 
 		try (Session session = driver.session(getSessionConfig())) {
 			Result result = session.run("MATCH (p:PersonWithAllConstructor) return count(p) as count");
@@ -299,8 +268,8 @@ class ReactiveNeo4jOperationsIT {
 	@Test
 	void deleteAllById() {
 		StepVerifier
-			.create(neo4jOperations.deleteAllById(Arrays.asList(person1Id, person2Id), PersonWithAllConstructor.class))
-			.verifyComplete();
+				.create(neo4jOperations.deleteAllById(Arrays.asList(person1Id, person2Id), PersonWithAllConstructor.class))
+				.verifyComplete();
 
 		try (Session session = driver.session(getSessionConfig())) {
 			Result result = session.run("MATCH (p:PersonWithAllConstructor) return count(p) as count");

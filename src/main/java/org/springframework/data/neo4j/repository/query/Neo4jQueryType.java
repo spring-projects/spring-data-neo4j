@@ -66,7 +66,7 @@ enum Neo4jQueryType {
 
 		Neo4jQueryType queryType = DEFAULT;
 		Function<Neo4jQueryType, IllegalArgumentException> exceptionSupplier = qt -> new IllegalArgumentException(
-			"Query type already defined as " + qt);
+				"Query type already defined as " + qt);
 
 		if (countQuery) {
 			queryType = COUNT;

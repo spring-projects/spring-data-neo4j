@@ -32,15 +32,12 @@ public class SimilarThing {
 
 	private String name;
 
-	@Relationship(type = "SimilarTo")
-	private SimilarThing similar;
+	@Relationship(type = "SimilarTo") private SimilarThing similar;
 
-	@Relationship(type = "SimilarTo", direction = Relationship.Direction.INCOMING)
-	private SimilarThing similarOf;
+	@Relationship(type = "SimilarTo", direction = Relationship.Direction.INCOMING) private SimilarThing similarOf;
 
 	// included to ensure empty relationships do not cause deletion
-	@Relationship("EmptyRelationship")
-	private List<SimilarThing> noSimilarThings;
+	@Relationship("EmptyRelationship") private List<SimilarThing> noSimilarThings;
 
 	public Long getId() {
 		return id;
@@ -73,11 +70,9 @@ public class SimilarThing {
 		this.similarOf = similarOf;
 	}
 
-	@Override public String toString() {
-		return "Similar{" +
-			"id=" + id +
-			", name='" + name + '\'' +
-			'}';
+	@Override
+	public String toString() {
+		return "Similar{" + "id=" + id + ", name='" + name + '\'' + '}';
 	}
 
 	@Override
@@ -89,8 +84,7 @@ public class SimilarThing {
 			return false;
 		}
 		SimilarThing similarThing = (SimilarThing) o;
-		return id.equals(similarThing.id) &&
-			name.equals(similarThing.name);
+		return id.equals(similarThing.id) && name.equals(similarThing.name);
 	}
 
 	@Override

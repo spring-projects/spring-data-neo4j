@@ -27,10 +27,11 @@ import org.apiguardian.api.API;
 import org.springframework.core.annotation.AliasFor;
 
 /**
- * Indicates a generated id. Ids can be generated internally. by the database itself or by an external generator. This annotation
- * defaults to the internally generated ids.
+ * Indicates a generated id. Ids can be generated internally. by the database itself or by an external generator. This
+ * annotation defaults to the internally generated ids.
  * <p>
- * An internal id has no corresponding property on a node. It can only retrieved via the built-in Cypher function {@code id()}.
+ * An internal id has no corresponding property on a node. It can only retrieved via the built-in Cypher function
+ * {@code id()}.
  * <p>
  * To use an external id generator, specify on the
  *

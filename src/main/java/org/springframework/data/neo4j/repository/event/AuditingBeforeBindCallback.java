@@ -38,8 +38,8 @@ public final class AuditingBeforeBindCallback implements BeforeBindCallback<Obje
 	private final ObjectFactory<IsNewAwareAuditingHandler> auditingHandlerFactory;
 
 	/**
-	 * Creates a new {@link AuditingBeforeBindCallback} using the given {@link AuditingHandler}
-	 * provided by the given {@link ObjectFactory}.
+	 * Creates a new {@link AuditingBeforeBindCallback} using the given {@link AuditingHandler} provided by the given
+	 * {@link ObjectFactory}.
 	 *
 	 * @param auditingHandlerFactory must not be {@literal null}.
 	 */
@@ -51,7 +51,7 @@ public final class AuditingBeforeBindCallback implements BeforeBindCallback<Obje
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.neo4j.springframework.data.repository.event.BeforeBindCallback#onBeforeBind(java.lang.Object)
+	 * @see org.springframework.data.neo4j.repository.event.BeforeBindCallback#onBeforeBind(java.lang.Object)
 	 */
 	@Override
 	public Object onBeforeBind(Object entity) {

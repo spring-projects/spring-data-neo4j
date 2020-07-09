@@ -25,19 +25,22 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Implementation of a {@link IsNewStrategy} that follows our supported identifiers and generators.
- * Entities will be treated as new:
+ * Implementation of a {@link IsNewStrategy} that follows our supported identifiers and generators. Entities will be
+ * treated as new:
  * <ul>
- * <li>when using internally generated (database) ids and the id property is {@literal null} or of a numeric primitive less than or equal {@literal 0},</li>
+ * <li>when using internally generated (database) ids and the id property is {@literal null} or of a numeric primitive
+ * less than or equal {@literal 0},</li>
  * <li>when using externally generated values and the id is {@literal null},</li>
  * <li>when using assigned values without a version property or with a version property that is {@literal null}.</li>
  * </ul>
  * <p>
  * An entity will not be treated as new
  * <ul>
- * <li>when using internally generated (database) ids and the id property has a non-null value greater than {@literal 0},</li>
+ * <li>when using internally generated (database) ids and the id property has a non-null value greater than
+ * {@literal 0},</li>
  * <li>when using externally generated values and the id property is not {@literal null},</li>
- * <li>when using assigned values together with {@link org.springframework.data.annotation.Version @Version} which has already a value not equal to {@literal null} or {@literal 0}.</li>
+ * <li>when using assigned values together with {@link org.springframework.data.annotation.Version @Version} which has
+ * already a value not equal to {@literal null} or {@literal 0}.</li>
  * </ul>
  *
  * @author Michael J. Simons
@@ -56,7 +59,7 @@ class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 
 		if (idDescription.isExternallyGeneratedId() && valueType.isPrimitive()) {
 			throw new IllegalArgumentException(String.format("Cannot use %s with externally generated, primitive ids.",
-				DefaultNeo4jIsNewStrategy.class.getName()));
+					DefaultNeo4jIsNewStrategy.class.getName()));
 		}
 
 		Function<Object, Object> valueLookup;
@@ -64,7 +67,7 @@ class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 		if (idDescription.isAssignedId()) {
 			if (versionProperty == null) {
 				log.warn(() -> "Instances of " + entityMetaData.getType()
-					+ " with an assigned id will always be treated as new without version property!");
+						+ " with an assigned id will always be treated as new without version property!");
 				valueType = Void.class;
 				valueLookup = source -> null;
 			} else {
@@ -85,7 +88,7 @@ class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 	private @Nullable final Function<Object, Object> valueLookup;
 
 	private DefaultNeo4jIsNewStrategy(IdDescription idDescription, Class<?> valueType,
-		Function<Object, Object> valueLookup) {
+			Function<Object, Object> valueLookup) {
 		this.idDescription = idDescription;
 		this.valueType = valueType;
 		this.valueLookup = valueLookup;
@@ -122,8 +125,7 @@ class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 		}
 
 		throw new IllegalArgumentException(
-			String
-				.format("Could not determine whether %s is new! Unsupported identifier or version property!", entity));
+				String.format("Could not determine whether %s is new! Unsupported identifier or version property!", entity));
 
 	}
 }

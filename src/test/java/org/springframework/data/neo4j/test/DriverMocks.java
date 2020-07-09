@@ -29,8 +29,8 @@ import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 
 /**
- * Some preconfigured driver mocks, mainly used to for Spring Integration tests where the behaviour of configuration
- * and integration with Spring is tested and not with the database.
+ * Some preconfigured driver mocks, mainly used to for Spring Integration tests where the behaviour of configuration and
+ * integration with Spring is tested and not with the database.
  *
  * @author Michael J. Simons
  * @soundtrack Elton John - Greatest Hits 1970-2002
@@ -67,6 +67,5 @@ public final class DriverMocks {
 		return driver;
 	}
 
-	private DriverMocks() {
-	}
+	private DriverMocks() {}
 }

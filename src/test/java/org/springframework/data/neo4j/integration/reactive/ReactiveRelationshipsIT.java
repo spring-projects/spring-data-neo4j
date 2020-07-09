@@ -47,7 +47,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Tag(NEEDS_REACTIVE_SUPPORT)
 class ReactiveRelationshipsIT extends RelationshipsITBase {
 
-	@Autowired ReactiveRelationshipsIT(Driver driver) {
+	@Autowired
+	ReactiveRelationshipsIT(Driver driver) {
 		super(driver);
 	}
 
@@ -57,19 +58,14 @@ class ReactiveRelationshipsIT extends RelationshipsITBase {
 		MultipleRelationshipsThing p = new MultipleRelationshipsThing("p");
 		p.setTypeA(new MultipleRelationshipsThing("c"));
 
-		repository.save(p)
-			.map(MultipleRelationshipsThing::getId)
-			.flatMap(repository::findById)
-			.as(StepVerifier::create)
-			.assertNext(loadedThing -> assertThat(loadedThing)
-				.extracting(MultipleRelationshipsThing::getTypeA)
-				.extracting(MultipleRelationshipsThing::getName)
-				.isEqualTo("c"))
-			.verifyComplete();
+		repository.save(p).map(MultipleRelationshipsThing::getId).flatMap(repository::findById).as(StepVerifier::create)
+				.assertNext(loadedThing -> assertThat(loadedThing).extracting(MultipleRelationshipsThing::getTypeA)
+						.extracting(MultipleRelationshipsThing::getName).isEqualTo("c"))
+				.verifyComplete();
 
 		try (Session session = driver.session()) {
 			List<String> names = session.run("MATCH (n:MultipleRelationshipsThing) RETURN n.name AS name")
-				.list(r -> r.get("name").asString());
+					.list(r -> r.get("name").asString());
 			assertThat(names).hasSize(2).containsExactlyInAnyOrder("p", "c");
 		}
 	}
@@ -80,18 +76,14 @@ class ReactiveRelationshipsIT extends RelationshipsITBase {
 		MultipleRelationshipsThing p = new MultipleRelationshipsThing("p");
 		p.setTypeB(Collections.singletonList(new MultipleRelationshipsThing("c")));
 
-		repository.save(p)
-			.map(MultipleRelationshipsThing::getId)
-			.flatMap(repository::findById)
-			.as(StepVerifier::create)
-			.assertNext(loadedThing -> assertThat(loadedThing.getTypeB())
-				.extracting(MultipleRelationshipsThing::getName)
-				.containsExactly("c"))
-			.verifyComplete();
+		repository.save(p).map(MultipleRelationshipsThing::getId).flatMap(repository::findById).as(StepVerifier::create)
+				.assertNext(loadedThing -> assertThat(loadedThing.getTypeB()).extracting(MultipleRelationshipsThing::getName)
+						.containsExactly("c"))
+				.verifyComplete();
 
 		try (Session session = driver.session()) {
 			List<String> names = session.run("MATCH (n:MultipleRelationshipsThing) RETURN n.name AS name")
-				.list(r -> r.get("name").asString());
+					.list(r -> r.get("name").asString());
 			assertThat(names).hasSize(2).containsExactlyInAnyOrder("p", "c");
 		}
 	}
@@ -109,31 +101,27 @@ class ReactiveRelationshipsIT extends RelationshipsITBase {
 		p.setTypeB(Collections.singletonList(new MultipleRelationshipsThing("c2")));
 		p.setTypeC(Collections.singletonList(new MultipleRelationshipsThing("c3")));
 
-		repository.save(p)
-			.map(MultipleRelationshipsThing::getId)
-			.flatMap(repository::findById)
-			.as(StepVerifier::create)
-			.assertNext(loadedThing -> {
-				MultipleRelationshipsThing typeA = loadedThing.getTypeA();
-				List<MultipleRelationshipsThing> typeB = loadedThing.getTypeB();
-				List<MultipleRelationshipsThing> typeC = loadedThing.getTypeC();
+		repository.save(p).map(MultipleRelationshipsThing::getId).flatMap(repository::findById).as(StepVerifier::create)
+				.assertNext(loadedThing -> {
+					MultipleRelationshipsThing typeA = loadedThing.getTypeA();
+					List<MultipleRelationshipsThing> typeB = loadedThing.getTypeB();
+					List<MultipleRelationshipsThing> typeC = loadedThing.getTypeC();
 
-				assertThat(typeA).isNotNull();
-				assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
-				assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c2");
-				assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c3");
-			})
-			.verifyComplete();
+					assertThat(typeA).isNotNull();
+					assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
+					assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c2");
+					assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c3");
+				}).verifyComplete();
 
 		try (Session session = driver.session()) {
 
-			List<String> names = session.run(
-				"MATCH (n:MultipleRelationshipsThing {name: 'p'}) - [r:TYPE_A|TYPE_B|TYPE_C] -> (o) RETURN r, o")
-				.list(record -> {
-					String type = record.get("r").asRelationship().type();
-					String name = record.get("o").get("name").asString();
-					return type + "_" + name;
-				});
+			List<String> names = session
+					.run("MATCH (n:MultipleRelationshipsThing {name: 'p'}) - [r:TYPE_A|TYPE_B|TYPE_C] -> (o) RETURN r, o")
+					.list(record -> {
+						String type = record.get("r").asRelationship().type();
+						String name = record.get("o").get("name").asString();
+						return type + "_" + name;
+					});
 			assertThat(names).containsExactlyInAnyOrder("TYPE_A_c1", "TYPE_B_c2", "TYPE_C_c3");
 		}
 	}
@@ -152,32 +140,28 @@ class ReactiveRelationshipsIT extends RelationshipsITBase {
 		p.setTypeB(Collections.singletonList(c));
 		p.setTypeC(Collections.singletonList(c));
 
-		repository.save(p)
-			.map(MultipleRelationshipsThing::getId)
-			.flatMap(repository::findById)
-			.as(StepVerifier::create)
-			.assertNext(loadedThing -> {
+		repository.save(p).map(MultipleRelationshipsThing::getId).flatMap(repository::findById).as(StepVerifier::create)
+				.assertNext(loadedThing -> {
 
-				MultipleRelationshipsThing typeA = loadedThing.getTypeA();
-				List<MultipleRelationshipsThing> typeB = loadedThing.getTypeB();
-				List<MultipleRelationshipsThing> typeC = loadedThing.getTypeC();
+					MultipleRelationshipsThing typeA = loadedThing.getTypeA();
+					List<MultipleRelationshipsThing> typeB = loadedThing.getTypeB();
+					List<MultipleRelationshipsThing> typeC = loadedThing.getTypeC();
 
-				assertThat(typeA).isNotNull();
-				assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
-				assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
-				assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
-			})
-			.verifyComplete();
+					assertThat(typeA).isNotNull();
+					assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
+					assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
+					assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
+				}).verifyComplete();
 
 		try (Session session = driver.session()) {
 
-			List<String> names = session.run(
-				"MATCH (n:MultipleRelationshipsThing {name: 'p'}) - [r:TYPE_A|TYPE_B|TYPE_C] -> (o) RETURN r, o")
-				.list(record -> {
-					String type = record.get("r").asRelationship().type();
-					String name = record.get("o").get("name").asString();
-					return type + "_" + name;
-				});
+			List<String> names = session
+					.run("MATCH (n:MultipleRelationshipsThing {name: 'p'}) - [r:TYPE_A|TYPE_B|TYPE_C] -> (o) RETURN r, o")
+					.list(record -> {
+						String type = record.get("r").asRelationship().type();
+						String name = record.get("o").get("name").asString();
+						return type + "_" + name;
+					});
 			assertThat(names).containsExactlyInAnyOrder("TYPE_A_c1", "TYPE_B_c1", "TYPE_C_c1");
 		}
 	}
@@ -189,7 +173,7 @@ class ReactiveRelationshipsIT extends RelationshipsITBase {
 	 */
 	@Test
 	void shouldSaveMultipleRelationshipsOfSameInstanceWithBackReference(
-		@Autowired MultipleRelationshipsThingRepository repository) {
+			@Autowired MultipleRelationshipsThingRepository repository) {
 
 		MultipleRelationshipsThing p = new MultipleRelationshipsThing("p");
 		MultipleRelationshipsThing c = new MultipleRelationshipsThing("c1");
@@ -199,22 +183,18 @@ class ReactiveRelationshipsIT extends RelationshipsITBase {
 
 		c.setTypeA(p);
 
-		repository.save(p)
-			.map(MultipleRelationshipsThing::getId)
-			.flatMap(repository::findById)
-			.as(StepVerifier::create)
-			.assertNext(loadedThing -> {
+		repository.save(p).map(MultipleRelationshipsThing::getId).flatMap(repository::findById).as(StepVerifier::create)
+				.assertNext(loadedThing -> {
 
-				MultipleRelationshipsThing typeA = loadedThing.getTypeA();
-				List<MultipleRelationshipsThing> typeB = loadedThing.getTypeB();
-				List<MultipleRelationshipsThing> typeC = loadedThing.getTypeC();
+					MultipleRelationshipsThing typeA = loadedThing.getTypeA();
+					List<MultipleRelationshipsThing> typeB = loadedThing.getTypeB();
+					List<MultipleRelationshipsThing> typeC = loadedThing.getTypeC();
 
-				assertThat(typeA).isNotNull();
-				assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
-				assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
-				assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
-			})
-			.verifyComplete();
+					assertThat(typeA).isNotNull();
+					assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
+					assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
+					assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
+				}).verifyComplete();
 
 		try (Session session = driver.session()) {
 
@@ -233,8 +213,7 @@ class ReactiveRelationshipsIT extends RelationshipsITBase {
 		}
 	}
 
-	interface MultipleRelationshipsThingRepository extends ReactiveCrudRepository<MultipleRelationshipsThing, Long> {
-	}
+	interface MultipleRelationshipsThingRepository extends ReactiveCrudRepository<MultipleRelationshipsThing, Long> {}
 
 	@Configuration
 	@EnableTransactionManagement

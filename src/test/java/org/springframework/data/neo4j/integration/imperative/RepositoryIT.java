@@ -127,38 +127,32 @@ class RepositoryIT {
 		@Override
 		void setupData(Transaction transaction) {
 			ZonedDateTime createdAt = LocalDateTime.of(2019, 1, 1, 23, 23, 42, 0).atZone(ZoneOffset.UTC.normalized());
-			id1 = transaction.run("" +
-					"CREATE (n:PersonWithAllConstructor) " +
-					"  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt "
-					+
-					"RETURN id(n)",
-				Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
-					NEO4J_HQ, "createdAt", createdAt)
-			).next().get(0).asLong();
+			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
+					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt "
+					+ "RETURN id(n)",
+					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
+							NEO4J_HQ, "createdAt", createdAt))
+					.next().get(0).asLong();
 			id2 = transaction.run(
-				"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-				Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place",
-					SFO)
-			).next().get(0).asLong();
+					"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
+					Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
+					.next().get(0).asLong();
 			transaction.run("CREATE (n:PersonWithNoConstructor) SET n.name = $name, n.first_name = $firstName",
-				Values.parameters("name", TEST_PERSON1_NAME, "firstName", TEST_PERSON1_FIRST_NAME));
+					Values.parameters("name", TEST_PERSON1_NAME, "firstName", TEST_PERSON1_FIRST_NAME));
 			transaction.run("CREATE (n:PersonWithWither) SET n.name = '" + TEST_PERSON1_NAME + "'");
 			transaction.run("CREATE (n:KotlinPerson) SET n.name = '" + TEST_PERSON1_NAME + "'");
-			transaction
-				.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
+			transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
 
-			IntStream.rangeClosed(1, 20).forEach(i ->
-				transaction.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})",
-					Values.parameters("i", String.format("%02d", i))));
+			IntStream.rangeClosed(1, 20)
+					.forEach(i -> transaction.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})",
+							Values.parameters("i", String.format("%02d", i))));
 
-			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, createdAt.toInstant());
-			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				false, 2L, TEST_PERSON2_BORN_ON, null, emptyList(), SFO, null);
+			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, createdAt.toInstant());
+			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					false, 2L, TEST_PERSON2_BORN_ON, null, emptyList(), SFO, null);
 		}
 
 		@Test
@@ -225,8 +219,7 @@ class RepositoryIT {
 
 			AnotherThingWithAssignedId anotherThing = new AnotherThingWithAssignedId(4711L);
 			anotherThing.setName("Bart");
-			assertThat(optionalThing).map(ThingWithAssignedId::getThings)
-				.contains(singletonList(anotherThing));
+			assertThat(optionalThing).map(ThingWithAssignedId::getThings).contains(singletonList(anotherThing));
 		}
 
 		@Test
@@ -246,8 +239,7 @@ class RepositoryIT {
 				session.run("CREATE (:EntityWithConvertedId{identifyingEnum:'A'})");
 			}
 
-			List<EntityWithConvertedId> entities = repository
-				.findAllById(singleton(EntityWithConvertedId.IdentifyingEnum.A));
+			List<EntityWithConvertedId> entities = repository.findAllById(singleton(EntityWithConvertedId.IdentifyingEnum.A));
 
 			assertThat(entities).hasSize(1);
 			assertThat(entities.get(0).getIdentifyingEnum()).isEqualTo(EntityWithConvertedId.IdentifyingEnum.A);
@@ -346,17 +338,16 @@ class RepositoryIT {
 		void loadOptionalPersonWithAllConstructorWithSpelParameters(@Autowired PersonRepository repository) {
 
 			Optional<PersonWithAllConstructor> person = repository
-				.getOptionalPersonViaQuery(TEST_PERSON1_NAME.substring(0, 2), TEST_PERSON1_NAME.substring(2));
+					.getOptionalPersonViaQuery(TEST_PERSON1_NAME.substring(0, 2), TEST_PERSON1_NAME.substring(2));
 			assertThat(person).isPresent();
 			assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
 		}
 
 		@Test
-		void loadOptionalPersonWithAllConstructorWithSpelParametersAndNamedQuery(
-			@Autowired PersonRepository repository) {
+		void loadOptionalPersonWithAllConstructorWithSpelParametersAndNamedQuery(@Autowired PersonRepository repository) {
 
 			Optional<PersonWithAllConstructor> person = repository
-				.getOptionalPersonViaNamedQuery(TEST_PERSON1_NAME.substring(0, 2), TEST_PERSON1_NAME.substring(2));
+					.getOptionalPersonViaNamedQuery(TEST_PERSON1_NAME.substring(0, 2), TEST_PERSON1_NAME.substring(2));
 			assertThat(person).isPresent();
 			assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
 		}
@@ -366,11 +357,8 @@ class RepositoryIT {
 
 			List<PersonWithNoConstructor> persons = repository.getAllPersonsWithNoConstructorViaQuery();
 
-			assertThat(persons)
-				.extracting(PersonWithNoConstructor::getName, PersonWithNoConstructor::getFirstName)
-				.containsExactlyInAnyOrder(
-					Tuple.tuple(TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME)
-				);
+			assertThat(persons).extracting(PersonWithNoConstructor::getName, PersonWithNoConstructor::getFirstName)
+					.containsExactlyInAnyOrder(Tuple.tuple(TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME));
 		}
 
 		@Test
@@ -454,9 +442,7 @@ class RepositoryIT {
 			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 
 			persons = repository.findAllByBornOn(TEST_PERSON1_BORN_ON);
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 		}
 
 		@Test
@@ -470,7 +456,7 @@ class RepositoryIT {
 		void findByPropertyThatNeedsConversion(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> people = repository
-				.findAllByPlace(new GeographicPoint2d(NEO4J_HQ.y(), NEO4J_HQ.x()));
+					.findAllByPlace(new GeographicPoint2d(NEO4J_HQ.y(), NEO4J_HQ.x()));
 
 			assertThat(people).hasSize(1);
 		}
@@ -478,8 +464,8 @@ class RepositoryIT {
 		@Test
 		void findByPropertyFailsIfNoConverterIsAvailable(@Autowired PersonRepository repository) {
 			assertThatExceptionOfType(ConverterNotFoundException.class)
-				.isThrownBy(() -> repository.findAllByPlace(new ThingWithGeneratedId("hello")))
-				.withMessageStartingWith("No converter found capable of converting from type");
+					.isThrownBy(() -> repository.findAllByPlace(new ThingWithGeneratedId("hello")))
+					.withMessageStartingWith("No converter found capable of converting from type");
 		}
 
 		@Test
@@ -491,7 +477,7 @@ class RepositoryIT {
 			assertThat(optionalPerson).isPresent().contains(person1);
 
 			optionalPerson = repository.findOneByNameAndFirstNameAllIgnoreCase(TEST_PERSON1_NAME.toUpperCase(),
-				TEST_PERSON1_FIRST_NAME.toUpperCase());
+					TEST_PERSON1_FIRST_NAME.toUpperCase());
 			assertThat(optionalPerson).isPresent().contains(person1);
 		}
 
@@ -517,8 +503,7 @@ class RepositoryIT {
 		@Test
 		void findBySimplePropertiesOred(@Autowired PersonRepository repository) {
 
-			List<PersonWithAllConstructor> persons = repository
-				.findAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME);
+			List<PersonWithAllConstructor> persons = repository.findAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME);
 			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 		}
 	}
@@ -538,12 +523,11 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-						+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
-						+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), "
-						+ "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
-						+ "(p1)-[:Has]->(p2)"
-						+ "RETURN n, h1, h2, p1, p2, c").single();
+						.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
+								+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), " + "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
+								+ "(p1)-[:Has]->(p2)" + "RETURN n, h1, h2, p1, p2, c")
+						.single();
 
 				Node personNode = record.get("n").asNode();
 				Node clubNode = record.get("c").asNode();
@@ -595,11 +579,8 @@ class RepositoryIT {
 			long petNode3Id;
 
 			try (Session session = createSession()) {
-				Record record = session
-					.run("CREATE "
-						+ "(p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'}), "
-						+ "(p2)-[:Has]->(p3:Pet{name: 'Pet3'}) "
-						+ "RETURN p1, p2, p3").single();
+				Record record = session.run("CREATE " + "(p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'}), "
+						+ "(p2)-[:Has]->(p3:Pet{name: 'Pet3'}) " + "RETURN p1, p2, p3").single();
 
 				petNode1Id = record.get("p1").asNode().id();
 				petNode2Id = record.get("p2").asNode().id();
@@ -624,14 +605,11 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run("CREATE "
-						+ "(t1:Type1)-[:NEXT_TYPE]->(t2:Type2)-[:NEXT_TYPE]->(:Type3)-[:NEXT_TYPE]->(t4:Type4)-"
-						+ "[:NEXT_TYPE]->(:Type5)-[:NEXT_TYPE]->(:Type6)-[:NEXT_TYPE]->(:Type7), "
-						+ "(t2)-[:SAME_TYPE]->"
-						+ "(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->"
-						+ "(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->"
-						+ "(:Type2) "
-						+ "RETURN t1").single();
+						.run("CREATE " + "(t1:Type1)-[:NEXT_TYPE]->(t2:Type2)-[:NEXT_TYPE]->(:Type3)-[:NEXT_TYPE]->(t4:Type4)-"
+								+ "[:NEXT_TYPE]->(:Type5)-[:NEXT_TYPE]->(:Type6)-[:NEXT_TYPE]->(:Type7), " + "(t2)-[:SAME_TYPE]->"
+								+ "(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->"
+								+ "(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->" + "(:Type2) " + "RETURN t1")
+						.single();
 
 				type1Id = record.get("t1").asNode().id();
 			}
@@ -654,20 +632,19 @@ class RepositoryIT {
 			long type1Id;
 
 			try (Session session = createSession()) {
-				Record record = session
-					.run("CREATE "
-						+ "(t1:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)"
-						+ "RETURN t1").single();
+				Record record = session.run(
+						"CREATE " + "(t1:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)" + "RETURN t1")
+						.single();
 
 				type1Id = record.get("t1").asNode().id();
 			}
@@ -693,10 +670,9 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-						+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), "
-						+ "(p1)-[:Has]->(h1)"
-						+ "RETURN n, h1, p1").single();
+						.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), " + "(p1)-[:Has]->(h1)" + "RETURN n, h1, p1")
+						.single();
 
 				Node personNode = record.get("n").asNode();
 				Node hobbyNode1 = record.get("h1").asNode();
@@ -733,9 +709,9 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}), "
-						+ "(e)<-[:ANOTHER_CONNECTION]-(anotherStart:BidirectionalStart{name:'Elmo'})"
-						+ "RETURN n").single();
+						.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}), "
+								+ "(e)<-[:ANOTHER_CONNECTION]-(anotherStart:BidirectionalStart{name:'Elmo'})" + "RETURN n")
+						.single();
 
 				Node startNode = record.get("n").asNode();
 				startId = startNode.id();
@@ -757,8 +733,7 @@ class RepositoryIT {
 			long petId;
 			try (Session session = createSession()) {
 				petId = session.run("CREATE (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})"
-					+ "-[:Has]->(luna2:Pet{name:'Luna'})"
-					+ "RETURN id(luna) as id").single().get("id").asLong();
+						+ "-[:Has]->(luna2:Pet{name:'Luna'})" + "RETURN id(luna) as id").single().get("id").asLong();
 			}
 			Pet loadedPet = repository.findById(petId).get();
 
@@ -773,9 +748,9 @@ class RepositoryIT {
 			long endId;
 
 			try (Session session = createSession()) {
-				Record record = session
-					.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) "
-						+ "RETURN e").single();
+				Record record = session.run(
+						"CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) " + "RETURN e")
+						.single();
 
 				Node endNode = record.get("e").asNode();
 				endId = endNode.id();
@@ -798,17 +773,15 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h:Hobby{name:'Music'}), "
-						+ "(n)-[:Has]->(p:Pet{name: 'Jerry'}) "
-						+ "RETURN n, h, p").single();
+						.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p:Pet{name: 'Jerry'}) " + "RETURN n, h, p")
+						.single();
 
 				hobbyNode1Id = record.get("h").asNode().id();
 				petNode1Id = record.get("p").asNode().id();
 
-				record = session
-					.run("CREATE (n:PersonWithRelationship{name:'SomeoneElse'})-[:Has]->(h:Hobby{name:'Music2'}), "
-						+ "(n)-[:Has]->(p:Pet{name: 'Jerry2'}) "
-						+ "RETURN n, h, p").single();
+				record = session.run("CREATE (n:PersonWithRelationship{name:'SomeoneElse'})-[:Has]->(h:Hobby{name:'Music2'}), "
+						+ "(n)-[:Has]->(p:Pet{name: 'Jerry2'}) " + "RETURN n, h, p").single();
 
 				hobbyNode2Id = record.get("h").asNode().id();
 				petNode2Id = record.get("p").asNode().id();
@@ -842,9 +815,9 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-						+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) "
-						+ "RETURN n, h1, p1, p2").single();
+						.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) " + "RETURN n, h1, p1, p2")
+						.single();
 
 				Node personNode = record.get("n").asNode();
 				Node hobbyNode1 = record.get("h1").asNode();
@@ -879,8 +852,7 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run("CREATE (p:Pet{name:'Jerry'})-[:Has]->(t:Thing{theId:'t1', name:'Thing1'}) "
-						+ "RETURN p, t").single();
+						.run("CREATE (p:Pet{name:'Jerry'})-[:Has]->(t:Thing{theId:'t1', name:'Thing1'}) " + "RETURN p, t").single();
 
 				Node petNode = record.get("p").asNode();
 				petNodeId = petNode.id();
@@ -899,22 +871,19 @@ class RepositoryIT {
 
 		@Test
 		void findEntityWithRelationshipWithProperties(
-			@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
 
 			long personId;
 			long hobbyNode1Id;
 			long hobbyNode2Id;
 
 			try (Session session = createSession()) {
-				Record record = session
-					.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
+				Record record = session.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
 						+ " (n)-[l1:LIKES"
 						+ "{since: 1995, active: true, localDate: date('1995-02-26'), myEnum: 'SOMETHING', point: point({x: 0, y: 1})}"
-						+ "]->(h1:Hobby{name:'Music'}),"
-						+ " (n)-[l2:LIKES"
+						+ "]->(h1:Hobby{name:'Music'})," + " (n)-[l2:LIKES"
 						+ "{since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}"
-						+ "]->(h2:Hobby{name:'Something else'})"
-						+ "RETURN n, h1, h2").single();
+						+ "]->(h2:Hobby{name:'Something else'})" + "RETURN n, h1, h2").single();
 
 				Node personNode = record.get("n").asNode();
 				Node hobbyNode1 = record.get("h1").asNode();
@@ -953,7 +922,7 @@ class RepositoryIT {
 
 		@Test
 		void saveEntityWithRelationshipWithProperties(
-			@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
 			// given
 			Hobby h1 = new Hobby();
 			h1.setName("Music");
@@ -987,28 +956,21 @@ class RepositoryIT {
 			Map<Hobby, LikesHobbyRelationship> hobbies = new HashMap<>();
 			hobbies.put(h1, rel1);
 			hobbies.put(h2, rel2);
-			PersonWithRelationshipWithProperties clonePerson = new PersonWithRelationshipWithProperties(
-				"Freddie clone");
+			PersonWithRelationshipWithProperties clonePerson = new PersonWithRelationshipWithProperties("Freddie clone");
 			clonePerson.setHobbies(hobbies);
 
 			// when
-			PersonWithRelationshipWithProperties shouldBeDifferentPerson = repository
-				.save(clonePerson);
+			PersonWithRelationshipWithProperties shouldBeDifferentPerson = repository.save(clonePerson);
 
 			// then
-			assertThat(shouldBeDifferentPerson)
-				.isNotNull()
-				.isEqualToComparingOnlyGivenFields(clonePerson, "hobbies");
+			assertThat(shouldBeDifferentPerson).isNotNull().isEqualToComparingOnlyGivenFields(clonePerson, "hobbies");
 
 			assertThat(shouldBeDifferentPerson.getName()).isEqualToIgnoringCase("Freddie clone");
 
 			try (Session session = createSession()) {
-				Record record = session.run(
-					"MATCH (n:PersonWithRelationshipWithProperties {name:'Freddie clone'}) "
-						+ "RETURN n, "
-						+ "[(n) -[:LIKES]->(h:Hobby) |h] as Hobbies, "
-						+ "[(n) -[r:LIKES]->(:Hobby) |r] as rels"
-				).single();
+				Record record = session.run("MATCH (n:PersonWithRelationshipWithProperties {name:'Freddie clone'}) "
+						+ "RETURN n, " + "[(n) -[:LIKES]->(h:Hobby) |h] as Hobbies, " + "[(n) -[r:LIKES]->(:Hobby) |r] as rels")
+						.single();
 
 				assertThat(record.containsKey("n")).isTrue();
 				assertThat(record.containsKey("Hobbies")).isTrue();
@@ -1017,48 +979,34 @@ class RepositoryIT {
 				assertThat(record.get("Hobbies").values()).hasSize(2);
 				assertThat(record.get("rels").values()).hasSize(2);
 
-				assertThat(record.get("rels").values(Value::asRelationship)).
-					extracting(
-						Relationship::type,
-						rel -> rel.get("active"),
-						rel -> rel.get("localDate"),
-						rel -> rel.get("point"),
-						rel -> rel.get("myEnum"),
-						rel -> rel.get("since")
-					)
-					.containsExactlyInAnyOrder(
-						tuple(
-							"LIKES", Values.value(rel1Active), Values.value(rel1LocalDate),
-							Values.point(rel1Point.getSrid(), rel1Point.getX(), rel1Point.getY()),
-							Values.value(rel1MyEnum.name()), Values.value(rel1Since)
-						),
-						tuple(
-							"LIKES", Values.value(rel2Active), Values.value(rel2LocalDate),
-							Values.point(rel2Point.getSrid(), rel2Point.getX(), rel2Point.getY()),
-							Values.value(rel2MyEnum.name()), Values.value(rel2Since)
-						)
-					);
+				assertThat(record.get("rels").values(Value::asRelationship))
+						.extracting(Relationship::type, rel -> rel.get("active"), rel -> rel.get("localDate"),
+								rel -> rel.get("point"), rel -> rel.get("myEnum"), rel -> rel.get("since"))
+						.containsExactlyInAnyOrder(
+								tuple("LIKES", Values.value(rel1Active), Values.value(rel1LocalDate),
+										Values.point(rel1Point.getSrid(), rel1Point.getX(), rel1Point.getY()),
+										Values.value(rel1MyEnum.name()), Values.value(rel1Since)),
+								tuple("LIKES", Values.value(rel2Active), Values.value(rel2LocalDate),
+										Values.point(rel2Point.getSrid(), rel2Point.getX(), rel2Point.getY()),
+										Values.value(rel2MyEnum.name()), Values.value(rel2Since)));
 			}
 		}
 
 		@Test
 		void findEntityWithRelationshipWithPropertiesFromCustomQuery(
-			@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
 
 			long personId;
 			long hobbyNode1Id;
 			long hobbyNode2Id;
 
 			try (Session session = createSession()) {
-				Record record = session
-					.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
+				Record record = session.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
 						+ " (n)-[l1:LIKES"
 						+ "{since: 1995, active: true, localDate: date('1995-02-26'), myEnum: 'SOMETHING', point: point({x: 0, y: 1})}"
-						+ "]->(h1:Hobby{name:'Music'}),"
-						+ " (n)-[l2:LIKES"
+						+ "]->(h1:Hobby{name:'Music'})," + " (n)-[l2:LIKES"
 						+ "{since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}"
-						+ "]->(h2:Hobby{name:'Something else'})"
-						+ "RETURN n, h1, h2").single();
+						+ "]->(h2:Hobby{name:'Something else'})" + "RETURN n, h1, h2").single();
 
 				Node personNode = record.get("n").asNode();
 				Node hobbyNode1 = record.get("h1").asNode();
@@ -1100,36 +1048,30 @@ class RepositoryIT {
 		@Override
 		void setupData(Transaction transaction) {
 			ZonedDateTime createdAt = LocalDateTime.of(2019, 1, 1, 23, 23, 42, 0).atZone(ZoneOffset.UTC.normalized());
-			id1 = transaction.run("" +
-					"CREATE (n:PersonWithAllConstructor) " +
-					"  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt "
-					+
-					"RETURN id(n)",
-				Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
-					NEO4J_HQ, "createdAt", createdAt)
-			).next().get(0).asLong();
-			transaction
-				.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
-			IntStream.rangeClosed(1, 20).forEach(i ->
-				transaction.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})",
-					Values.parameters("i", String.format("%02d", i))));
+			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
+					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt "
+					+ "RETURN id(n)",
+					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
+							NEO4J_HQ, "createdAt", createdAt))
+					.next().get(0).asLong();
+			transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
+			IntStream.rangeClosed(1, 20)
+					.forEach(i -> transaction.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})",
+							Values.parameters("i", String.format("%02d", i))));
 
-			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, createdAt.toInstant());
+			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, createdAt.toInstant());
 		}
 
 		@Test
 		void saveSingleEntity(@Autowired PersonRepository repository) {
 
-			PersonWithAllConstructor person = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true,
-				1509L,
-				LocalDate.of(1946, 9, 15), null, Arrays.asList("b", "a"), null, null);
+			PersonWithAllConstructor person = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
+					LocalDate.of(1946, 9, 15), null, Arrays.asList("b", "a"), null, null);
 			PersonWithAllConstructor savedPerson = repository.save(person);
 			try (Session session = createSession()) {
-				Record record = session
-					.run("MATCH (n:PersonWithAllConstructor) WHERE n.first_name = $first_name RETURN n",
+				Record record = session.run("MATCH (n:PersonWithAllConstructor) WHERE n.first_name = $first_name RETURN n",
 						Values.parameters("first_name", "Freddie")).single();
 
 				assertThat(record.containsKey("n")).isTrue();
@@ -1143,8 +1085,7 @@ class RepositoryIT {
 		void saveAll(@Autowired PersonRepository repository) {
 
 			PersonWithAllConstructor newPerson = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true,
-				1509L,
-				LocalDate.of(1946, 9, 15), null, emptyList(), null, null);
+					1509L, LocalDate.of(1946, 9, 15), null, emptyList(), null, null);
 
 			PersonWithAllConstructor existingPerson = repository.findById(id1).get();
 			existingPerson.setFirstName("Updated first name");
@@ -1153,19 +1094,16 @@ class RepositoryIT {
 			assertThat(repository.count()).isEqualTo(1);
 
 			List<Long> ids = StreamSupport
-				.stream(repository.saveAll(Arrays.asList(existingPerson, newPerson)).spliterator(), false)
-				.map(PersonWithAllConstructor::getId)
-				.collect(toList());
+					.stream(repository.saveAll(Arrays.asList(existingPerson, newPerson)).spliterator(), false)
+					.map(PersonWithAllConstructor::getId).collect(toList());
 
 			assertThat(repository.count()).isEqualTo(2);
 
 			try (Session session = createSession()) {
 
-				Record record = session
-					.run(
+				Record record = session.run(
 						"MATCH (n:PersonWithAllConstructor) WHERE id(n) IN ($ids) WITH n ORDER BY n.name ASC RETURN COLLECT(n.name) as names",
-						Values.parameters("ids", ids))
-					.single();
+						Values.parameters("ids", ids)).single();
 
 				assertThat(record.containsKey("names")).isTrue();
 				List<String> names = record.get("names").asList(Value::asString);
@@ -1185,8 +1123,9 @@ class RepositoryIT {
 			PersonWithAllConstructor savedPerson = repository.save(originalPerson);
 			try (Session session = createSession()) {
 				session.readTransaction(tx -> {
-					Record record = tx.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n",
-						Values.parameters("id", id1)).single();
+					Record record = tx
+							.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n", Values.parameters("id", id1))
+							.single();
 
 					assertThat(record.containsKey("n")).isTrue();
 					Node node = record.get("n").asNode();
@@ -1212,8 +1151,7 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", Values.parameters("id", thing.getTheId()))
-					.single();
+						.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", Values.parameters("id", thing.getTheId())).single();
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node node = record.get("n").asNode();
@@ -1239,10 +1177,9 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run(
-						"MATCH (n:Thing) WHERE n.theId IN ($ids) WITH n ORDER BY n.name ASC RETURN COLLECT(n.name) as names",
-						Values.parameters("ids", Arrays.asList(newThing.getTheId(), existingThing.getTheId())))
-					.single();
+						.run("MATCH (n:Thing) WHERE n.theId IN ($ids) WITH n ORDER BY n.name ASC RETURN COLLECT(n.name) as names",
+								Values.parameters("ids", Arrays.asList(newThing.getTheId(), existingThing.getTheId())))
+						.single();
 
 				assertThat(record.containsKey("names")).isTrue();
 				List<String> names = record.get("names").asList(Value::asString);
@@ -1267,10 +1204,9 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run(
-						"MATCH (n:Thing) WHERE n.theId IN ($ids) WITH n ORDER BY n.name ASC RETURN COLLECT(n.name) as names",
-						Values.parameters("ids", Arrays.asList("id07", "id15")))
-					.single();
+						.run("MATCH (n:Thing) WHERE n.theId IN ($ids) WITH n ORDER BY n.name ASC RETURN COLLECT(n.name) as names",
+								Values.parameters("ids", Arrays.asList("id07", "id15")))
+						.single();
 
 				assertThat(record.containsKey("names")).isTrue();
 				List<String> names = record.get("names").asList(Value::asString);
@@ -1329,12 +1265,11 @@ class RepositoryIT {
 			PersonWithRelationship savedPerson = repository.save(person);
 			try (Session session = createSession()) {
 
-				Record record = session.run("MATCH (n:PersonWithRelationship)"
-						+ " RETURN n,"
-						+ " [(n)-[:Has]->(p:Pet) | [ p , [ (p)-[:Has]-(h:Hobby) | h ] ] ] as petsWithHobbies,"
-						+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies, "
-						+ " [(n)<-[:Has]-(c:Club) | c] as clubs",
-					Values.parameters("name", "Freddie")).single();
+				Record record = session.run(
+						"MATCH (n:PersonWithRelationship)" + " RETURN n,"
+								+ " [(n)-[:Has]->(p:Pet) | [ p , [ (p)-[:Has]-(h:Hobby) | h ] ] ] as petsWithHobbies,"
+								+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies, " + " [(n)<-[:Has]-(c:Club) | c] as clubs",
+						Values.parameters("name", "Freddie")).single();
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
@@ -1349,24 +1284,23 @@ class RepositoryIT {
 				}
 
 				assertThat(pets.keySet().stream().map(pet -> ((Node) pet).get("name").asString()).collect(toList()))
-					.containsExactlyInAnyOrder("Jerry", "Tom");
+						.containsExactlyInAnyOrder("Jerry", "Tom");
 
 				assertThat(pets.values().stream()
-					.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString()))
-					.collect(toList()))
-					.containsExactlyInAnyOrder("sleeping");
+						.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(toList()))
+								.containsExactlyInAnyOrder("sleeping");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
-					.containsExactlyInAnyOrder("Music");
+						.containsExactlyInAnyOrder("Music");
 
 				assertThat(record.get("clubs").asList(entry -> entry.asNode().get("name").asString()))
-					.containsExactlyInAnyOrder("ClownsClub");
+						.containsExactlyInAnyOrder("ClownsClub");
 			}
 		}
 
 		@Test
 		void saveSingleEntityWithRelationshipsTwiceDoesNotCreateMoreRelationships(
-			@Autowired RelationshipRepository repository) {
+				@Autowired RelationshipRepository repository) {
 
 			PersonWithRelationship person = new PersonWithRelationship();
 			person.setName("Freddie");
@@ -1384,11 +1318,9 @@ class RepositoryIT {
 			savedPerson = repository.save(savedPerson);
 			try (Session session = createSession()) {
 
-				List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
-						+ " RETURN n,"
+				List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)" + " RETURN n,"
 						+ " [(n)-[:Has]->(p:Pet) | [ p , [ (p)-[:Has]-(h:Hobby) | h ] ] ] as petsWithHobbies,"
-						+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
-					Values.parameters("name", "Freddie")).list();
+						+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies", Values.parameters("name", "Freddie")).list();
 
 				// assert that there is only one record in the returned list
 				assertThat(recordList).hasSize(1);
@@ -1408,15 +1340,14 @@ class RepositoryIT {
 				}
 
 				assertThat(pets.keySet().stream().map(pet -> ((Node) pet).get("name").asString()).collect(toList()))
-					.containsExactlyInAnyOrder("Jerry", "Tom");
+						.containsExactlyInAnyOrder("Jerry", "Tom");
 
 				assertThat(pets.values().stream()
-					.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString()))
-					.collect(toList()))
-					.containsExactlyInAnyOrder("sleeping");
+						.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(toList()))
+								.containsExactlyInAnyOrder("sleeping");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
-					.containsExactlyInAnyOrder("Music");
+						.containsExactlyInAnyOrder("Music");
 
 				// assert that only two hobbies is stored
 				recordList = session.run("MATCH (h:Hobby) RETURN h").list();
@@ -1433,8 +1364,7 @@ class RepositoryIT {
 
 			Long hobbyId;
 			try (Session session = createSession()) {
-				hobbyId = session.run("CREATE (h:Hobby{name: 'Music'}) return id(h) as hId").single().get("hId")
-					.asLong();
+				hobbyId = session.run("CREATE (h:Hobby{name: 'Music'}) return id(h) as hId").single().get("hId").asLong();
 			}
 
 			PersonWithRelationship person = new PersonWithRelationship();
@@ -1447,10 +1377,10 @@ class RepositoryIT {
 			PersonWithRelationship savedPerson = repository.save(person);
 			try (Session session = createSession()) {
 
-				List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
-						+ " RETURN n,"
-						+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
-					Values.parameters("name", "Freddie")).list();
+				List<Record> recordList = session
+						.run("MATCH (n:PersonWithRelationship)" + " RETURN n," + " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
+								Values.parameters("name", "Freddie"))
+						.list();
 
 				assertThat(recordList).hasSize(1);
 
@@ -1462,7 +1392,7 @@ class RepositoryIT {
 				assertThat(savedPerson.getName()).isEqualTo("Freddie");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
-					.containsExactlyInAnyOrder("Music");
+						.containsExactlyInAnyOrder("Music");
 
 				// assert that only one hobby is stored
 				recordList = session.run("MATCH (h:Hobby) RETURN h").list();
@@ -1478,8 +1408,8 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session.run(
-					"CREATE (p:PersonWithRelationship{name: 'Freddie'}), (h:Hobby{name: 'Music'}) return id(h) as hId, id(p) as pId")
-					.single();
+						"CREATE (p:PersonWithRelationship{name: 'Freddie'}), (h:Hobby{name: 'Music'}) return id(h) as hId, id(p) as pId")
+						.single();
 
 				personId = record.get("pId").asLong();
 				hobbyId = record.get("hId").asLong();
@@ -1496,10 +1426,10 @@ class RepositoryIT {
 			PersonWithRelationship savedPerson = repository.save(person);
 			try (Session session = createSession()) {
 
-				List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
-						+ " RETURN n,"
-						+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
-					Values.parameters("name", "Freddie")).list();
+				List<Record> recordList = session
+						.run("MATCH (n:PersonWithRelationship)" + " RETURN n," + " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
+								Values.parameters("name", "Freddie"))
+						.list();
 
 				assertThat(recordList).hasSize(1);
 
@@ -1511,7 +1441,7 @@ class RepositoryIT {
 				assertThat(savedPerson.getName()).isEqualTo("Freddie");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
-					.containsExactlyInAnyOrder("Music");
+						.containsExactlyInAnyOrder("Music");
 
 				// assert that only one hobby is stored
 				recordList = session.run("MATCH (h:Hobby) RETURN h").list();
@@ -1534,8 +1464,8 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session.run("MATCH (rootPet:Pet)-[:Has]->(petOfRootPet:Pet)-[:Has]->(petOfChildPet:Pet)"
-					+ "-[:Has]->(petOfGrandChildPet:Pet) "
-					+ "RETURN rootPet, petOfRootPet, petOfChildPet, petOfGrandChildPet", emptyMap()).single();
+						+ "-[:Has]->(petOfGrandChildPet:Pet) " + "RETURN rootPet, petOfRootPet, petOfChildPet, petOfGrandChildPet",
+						emptyMap()).single();
 
 				assertThat(record.get("rootPet").asNode().get("name").asString()).isEqualTo("Luna");
 				assertThat(record.get("petOfRootPet").asNode().get("name").asString()).isEqualTo("Daphne");
@@ -1556,8 +1486,7 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session.run("MATCH (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})"
-					+ "-[:Has]->(luna2:Pet{name:'Luna'})"
-					+ "RETURN luna, daphne, luna2").single();
+						+ "-[:Has]->(luna2:Pet{name:'Luna'})" + "RETURN luna, daphne, luna2").single();
 
 				assertThat(record.get("luna").asNode().get("name").asString()).isEqualTo("Luna");
 				assertThat(record.get("daphne").asNode().get("name").asString()).isEqualTo("Daphne");
@@ -1576,8 +1505,8 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session.run(
-					"MATCH (ot:SimilarThing{name:'Original'})-[r:SimilarTo]->(st:SimilarThing {name:'Similar'})"
-						+ " RETURN r").single();
+						"MATCH (ot:SimilarThing{name:'Original'})-[r:SimilarTo]->(st:SimilarThing {name:'Similar'})" + " RETURN r")
+						.single();
 
 				assertThat(record.keys()).isNotEmpty();
 				assertThat(record.containsKey("r")).isTrue();
@@ -1596,10 +1525,8 @@ class RepositoryIT {
 			thing = repository.save(thing);
 
 			try (Session session = createSession()) {
-				Record record = session
-					.run("MATCH (n:Thing)-[:Has]->(t:Thing2) WHERE n.theId = $id RETURN n, t",
-						Values.parameters("id", thing.getTheId()))
-					.single();
+				Record record = session.run("MATCH (n:Thing)-[:Has]->(t:Thing2) WHERE n.theId = $id RETURN n, t",
+						Values.parameters("id", thing.getTheId())).single();
 
 				assertThat(record.containsKey("n")).isTrue();
 				assertThat(record.containsKey("t")).isTrue();
@@ -1625,10 +1552,8 @@ class RepositoryIT {
 			repository.saveAll(singletonList(thing));
 
 			try (Session session = createSession()) {
-				Record record = session
-					.run("MATCH (n:Thing)-[:Has]->(t:Thing2) WHERE n.theId = $id RETURN n, t",
-						Values.parameters("id", thing.getTheId()))
-					.single();
+				Record record = session.run("MATCH (n:Thing)-[:Has]->(t:Thing2) WHERE n.theId = $id RETURN n, t",
+						Values.parameters("id", thing.getTheId())).single();
 
 				assertThat(record.containsKey("n")).isTrue();
 				assertThat(record.containsKey("t")).isTrue();
@@ -1644,8 +1569,8 @@ class RepositoryIT {
 		}
 
 		@Test
-		void createComplexSameClassRelationshipsBeforeRootObject(@Autowired
-			ImmutablePersonRepository immutablePersonRepository) {
+		void createComplexSameClassRelationshipsBeforeRootObject(
+				@Autowired ImmutablePersonRepository immutablePersonRepository) {
 
 			ImmutablePerson p1 = new ImmutablePerson("Person1", Collections.emptyList());
 			ImmutablePerson p2 = new ImmutablePerson("Person2", Arrays.asList(p1));
@@ -1725,7 +1650,7 @@ class RepositoryIT {
 		void deleteCollectionRelationship(@Autowired RelationshipRepository repository) {
 			try (Session session = createSession()) {
 				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'}), "
-					+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'})");
+						+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'})");
 			}
 
 			PersonWithRelationship person = repository.getPersonWithRelationshipsViaQuery();
@@ -1744,35 +1669,30 @@ class RepositoryIT {
 		@Override
 		void setupData(Transaction transaction) {
 			ZonedDateTime createdAt = LocalDateTime.of(2019, 1, 1, 23, 23, 42, 0).atZone(ZoneOffset.UTC.normalized());
-			id1 = transaction.run("" +
-					"CREATE (n:PersonWithAllConstructor) " +
-					"  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt "
-					+
-					"RETURN id(n)",
-				Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
-					NEO4J_HQ, "createdAt", createdAt)
-			).next().get(0).asLong();
+			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
+					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt "
+					+ "RETURN id(n)",
+					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
+							NEO4J_HQ, "createdAt", createdAt))
+					.next().get(0).asLong();
 			id2 = transaction.run(
-				"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-				Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place",
-					SFO)
-			).next().get(0).asLong();
+					"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
+					Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
+					.next().get(0).asLong();
 
-			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, createdAt.toInstant());
-			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				false, 2L, TEST_PERSON2_BORN_ON, null, emptyList(), SFO, null);
+			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, createdAt.toInstant());
+			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					false, 2L, TEST_PERSON2_BORN_ON, null, emptyList(), SFO, null);
 		}
 
 		@Test
 		void findOneByExample(@Autowired PersonRepository repository) {
 
-			Example<PersonWithAllConstructor> example = Example
-				.of(person1, ExampleMatcher.matchingAll().withIgnoreNullValues());
+			Example<PersonWithAllConstructor> example = Example.of(person1,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
 			Optional<PersonWithAllConstructor> person = repository.findOne(example);
 
 			assertThat(person).isPresent();
@@ -1782,8 +1702,8 @@ class RepositoryIT {
 		@Test
 		void findAllByExample(@Autowired PersonRepository repository) {
 
-			Example<PersonWithAllConstructor> example = Example
-				.of(person1, ExampleMatcher.matchingAll().withIgnoreNullValues());
+			Example<PersonWithAllConstructor> example = Example.of(person1,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
 			List<PersonWithAllConstructor> persons = repository.findAll(example);
 
 			assertThat(persons).containsExactly(person1);
@@ -1796,44 +1716,40 @@ class RepositoryIT {
 			Example<PersonWithAllConstructor> example;
 			List<PersonWithAllConstructor> persons;
 
-			person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON2_FIRST_NAME, null, null, null,
-				null,
-				null, null, null, null);
+			person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON2_FIRST_NAME, null, null, null, null,
+					null, null, null, null);
 			example = Example.of(person, ExampleMatcher.matchingAny());
 
 			persons = repository.findAll(example);
 			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 
-			person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME.toUpperCase(), TEST_PERSON2_FIRST_NAME, null,
-				null, null, null, null, null, null, null);
+			person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME.toUpperCase(), TEST_PERSON2_FIRST_NAME, null, null,
+					null, null, null, null, null, null);
 			example = Example.of(person, ExampleMatcher.matchingAny().withIgnoreCase("name"));
 
 			persons = repository.findAll(example);
 			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 
 			person = new PersonWithAllConstructor(null,
-				TEST_PERSON2_NAME.substring(TEST_PERSON2_NAME.length() - 2).toUpperCase(),
-				TEST_PERSON2_FIRST_NAME.substring(0, 2), TEST_PERSON_SAMEVALUE.substring(3, 5), null, null, null, null,
-				null, null, null);
-			example = Example.of(person, ExampleMatcher
-				.matchingAll()
-				.withMatcher("name", ExampleMatcher.GenericPropertyMatcher.of(StringMatcher.ENDING, true))
-				.withMatcher("firstName", ExampleMatcher.GenericPropertyMatcher.of(StringMatcher.STARTING))
-				.withMatcher("sameValue", ExampleMatcher.GenericPropertyMatcher.of(StringMatcher.CONTAINING))
-			);
+					TEST_PERSON2_NAME.substring(TEST_PERSON2_NAME.length() - 2).toUpperCase(),
+					TEST_PERSON2_FIRST_NAME.substring(0, 2), TEST_PERSON_SAMEVALUE.substring(3, 5), null, null, null, null, null,
+					null, null);
+			example = Example.of(person,
+					ExampleMatcher.matchingAll()
+							.withMatcher("name", ExampleMatcher.GenericPropertyMatcher.of(StringMatcher.ENDING, true))
+							.withMatcher("firstName", ExampleMatcher.GenericPropertyMatcher.of(StringMatcher.STARTING))
+							.withMatcher("sameValue", ExampleMatcher.GenericPropertyMatcher.of(StringMatcher.CONTAINING)));
 
 			persons = repository.findAll(example);
 			assertThat(persons).containsExactlyInAnyOrder(person2);
 
-			person = new PersonWithAllConstructor(null, null, "(?i)ern.*", null, null, null, null, null, null, null,
-				null);
+			person = new PersonWithAllConstructor(null, null, "(?i)ern.*", null, null, null, null, null, null, null, null);
 			example = Example.of(person, ExampleMatcher.matchingAll().withStringMatcher(StringMatcher.REGEX));
 
 			persons = repository.findAll(example);
 			assertThat(persons).containsExactlyInAnyOrder(person1);
 
-			example = Example
-				.of(person,
+			example = Example.of(person,
 					ExampleMatcher.matchingAll().withStringMatcher(StringMatcher.REGEX).withIncludeNullValues());
 
 			persons = repository.findAll(example);
@@ -1853,8 +1769,7 @@ class RepositoryIT {
 		void findAllByExampleWithPagination(@Autowired PersonRepository repository) {
 
 			Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
-			Iterable<PersonWithAllConstructor> persons = repository
-				.findAll(example, PageRequest.of(1, 1, Sort.by("name")));
+			Iterable<PersonWithAllConstructor> persons = repository.findAll(example, PageRequest.of(1, 1, Sort.by("name")));
 
 			assertThat(persons).containsExactly(person2);
 		}
@@ -1885,32 +1800,27 @@ class RepositoryIT {
 		@Override
 		void setupData(Transaction transaction) {
 			ZonedDateTime createdAt = LocalDateTime.of(2019, 1, 1, 23, 23, 42, 0).atZone(ZoneOffset.UTC.normalized());
-			id1 = transaction.run("" +
-					"CREATE (n:PersonWithAllConstructor) " +
-					"  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt "
-					+
-					"RETURN id(n)",
-				Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
-					NEO4J_HQ, "createdAt", createdAt)
-			).next().get(0).asLong();
+			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
+					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt "
+					+ "RETURN id(n)",
+					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
+							NEO4J_HQ, "createdAt", createdAt))
+					.next().get(0).asLong();
 			id2 = transaction.run(
-				"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-				Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place",
-					SFO)
-			).next().get(0).asLong();
+					"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
+					Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
+					.next().get(0).asLong();
 
-			IntStream.rangeClosed(1, 20).forEach(i ->
-				transaction.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})",
-					Values.parameters("i", String.format("%02d", i))));
+			IntStream.rangeClosed(1, 20)
+					.forEach(i -> transaction.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})",
+							Values.parameters("i", String.format("%02d", i))));
 
-			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, createdAt.toInstant());
-			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				false, 2L, TEST_PERSON2_BORN_ON, null, emptyList(), SFO, null);
+			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, createdAt.toInstant());
+			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					false, 2L, TEST_PERSON2_BORN_ON, null, emptyList(), SFO, null);
 		}
 
 		@Test
@@ -1940,23 +1850,17 @@ class RepositoryIT {
 			List<PersonWithAllConstructor> persons;
 
 			persons = repository.findAllByFirstNameLike("Ern");
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 
 			persons = repository.findAllByFirstNameLikeIgnoreCase("eRN");
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 		}
 
 		@Test
 		void findByMatches(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository.findAllByFirstNameMatches("(?i)ern.*");
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 		}
 
 		@Test
@@ -1977,14 +1881,10 @@ class RepositoryIT {
 			List<PersonWithAllConstructor> persons;
 
 			persons = repository.findAllByFirstNameStartingWith("Er");
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 
 			persons = repository.findAllByFirstNameStartingWithIgnoreCase("eRN");
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 		}
 
 		@Test
@@ -1993,14 +1893,10 @@ class RepositoryIT {
 			List<PersonWithAllConstructor> persons;
 
 			persons = repository.findAllByFirstNameContaining("ni");
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 
 			persons = repository.findAllByFirstNameContainingIgnoreCase("NI");
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 		}
 
 		@Test
@@ -2009,14 +1905,10 @@ class RepositoryIT {
 			List<PersonWithAllConstructor> persons;
 
 			persons = repository.findAllByFirstNameNotContaining("ni");
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person2);
+			assertThat(persons).hasSize(1).contains(person2);
 
 			persons = repository.findAllByFirstNameNotContainingIgnoreCase("NI");
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person2);
+			assertThat(persons).hasSize(1).contains(person2);
 		}
 
 		@Test
@@ -2025,48 +1917,38 @@ class RepositoryIT {
 			List<PersonWithAllConstructor> persons;
 
 			persons = repository.findAllByFirstNameEndingWith("nie");
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 
 			persons = repository.findAllByFirstNameEndingWithIgnoreCase("NIE");
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 		}
 
 		@Test
 		void findByLessThan(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository.findAllByPersonNumberIsLessThan(2L);
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 		}
 
 		@Test
 		void findByLessThanEqual(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository.findAllByPersonNumberIsLessThanEqual(2L);
-			assertThat(persons)
-				.containsExactlyInAnyOrder(person1, person2);
+			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 		}
 
 		@Test
 		void findByGreaterThanEqual(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository.findAllByPersonNumberIsGreaterThanEqual(1L);
-			assertThat(persons)
-				.containsExactlyInAnyOrder(person1, person2);
+			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 		}
 
 		@Test
 		void findByGreaterThan(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository.findAllByPersonNumberIsGreaterThan(1L);
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person2);
+			assertThat(persons).hasSize(1).contains(person2);
 		}
 
 		@Test
@@ -2074,35 +1956,25 @@ class RepositoryIT {
 
 			List<PersonWithAllConstructor> persons;
 			persons = repository.findAllByPersonNumberIsBetween(Range.from(inclusive(1L)).to(inclusive(2L)));
-			assertThat(persons)
-				.containsExactlyInAnyOrder(person1, person2);
+			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 
 			persons = repository.findAllByPersonNumberIsBetween(Range.from(inclusive(1L)).to(exclusive(2L)));
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 
 			persons = repository.findAllByPersonNumberIsBetween(Range.from(inclusive(1L)).to(unbounded()));
-			assertThat(persons)
-				.containsExactlyInAnyOrder(person1, person2);
+			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 
 			persons = repository.findAllByPersonNumberIsBetween(Range.from(exclusive(1L)).to(unbounded()));
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person2);
+			assertThat(persons).hasSize(1).contains(person2);
 
 			persons = repository.findAllByPersonNumberIsBetween(Range.from(Bound.<Long>unbounded()).to(inclusive(2L)));
-			assertThat(persons)
-				.containsExactlyInAnyOrder(person1, person2);
+			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 
 			persons = repository.findAllByPersonNumberIsBetween(Range.from(Bound.<Long>unbounded()).to(exclusive(2L)));
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 
 			persons = repository.findAllByPersonNumberIsBetween(Range.unbounded());
-			assertThat(persons)
-				.containsExactlyInAnyOrder(person1, person2);
+			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 		}
 
 		@Test
@@ -2110,109 +1982,86 @@ class RepositoryIT {
 
 			List<PersonWithAllConstructor> persons;
 			persons = repository.findAllByPersonNumberIsBetween(1L, 2L);
-			assertThat(persons)
-				.containsExactlyInAnyOrder(person1, person2);
+			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 
 			persons = repository.findAllByPersonNumberIsBetween(3L, 5L);
 			assertThat(persons).isEmpty();
 
 			persons = repository.findAllByPersonNumberIsBetween(2L, 3L);
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person2);
+			assertThat(persons).hasSize(1).contains(person2);
 		}
 
 		@Test
 		void findByAfter(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository.findAllByBornOnAfter(TEST_PERSON1_BORN_ON);
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person2);
+			assertThat(persons).hasSize(1).contains(person2);
 		}
 
 		@Test
 		void findByBefore(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository.findAllByBornOnBefore(TEST_PERSON2_BORN_ON);
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 		}
 
 		@Test
 		void findByInstant(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository
-				.findAllByCreatedAtBefore(LocalDate.of(2019, 9, 25).atStartOfDay().toInstant(ZoneOffset.UTC));
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+					.findAllByCreatedAtBefore(LocalDate.of(2019, 9, 25).atStartOfDay().toInstant(ZoneOffset.UTC));
+			assertThat(persons).hasSize(1).contains(person1);
 		}
 
 		@Test
 		void findByIsNotNull(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository.findAllByNullableIsNotNull();
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 		}
 
 		@Test
 		void findByIsNull(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository.findAllByNullableIsNull();
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person2);
+			assertThat(persons).hasSize(1).contains(person2);
 		}
 
 		@Test
 		void findByIn(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository
-				.findAllByFirstNameIn(Arrays.asList("a", "b", TEST_PERSON2_FIRST_NAME, "c"));
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person2);
+					.findAllByFirstNameIn(Arrays.asList("a", "b", TEST_PERSON2_FIRST_NAME, "c"));
+			assertThat(persons).hasSize(1).contains(person2);
 		}
 
 		@Test
 		void findByNotIn(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository
-				.findAllByFirstNameNotIn(Arrays.asList("a", "b", TEST_PERSON2_FIRST_NAME, "c"));
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+					.findAllByFirstNameNotIn(Arrays.asList("a", "b", TEST_PERSON2_FIRST_NAME, "c"));
+			assertThat(persons).hasSize(1).contains(person1);
 		}
 
 		@Test
 		void findByEmpty(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository.findAllByThingsIsEmpty();
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person2);
+			assertThat(persons).hasSize(1).contains(person2);
 		}
 
 		@Test
 		void findByNotEmpty(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository.findAllByThingsIsNotEmpty();
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 		}
 
 		@Test
 		void findByExists(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons = repository.findAllByNullableExists();
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 		}
 
 		@Test
@@ -2221,8 +2070,7 @@ class RepositoryIT {
 			List<PersonWithAllConstructor> persons;
 
 			persons = repository.findAllByOrderByFirstNameAscBornOnDesc();
-			assertThat(persons)
-				.containsExactly(person2, person1);
+			assertThat(persons).containsExactly(person2, person1);
 		}
 
 		@Test
@@ -2231,85 +2079,63 @@ class RepositoryIT {
 			List<PersonWithAllConstructor> persons;
 
 			persons = repository.findAllByPlaceNear(SFO);
-			assertThat(persons)
-				.containsExactly(person2, person1);
+			assertThat(persons).containsExactly(person2, person1);
 
 			persons = repository.findAllByPlaceNearAndFirstNameIn(SFO, singletonList(TEST_PERSON1_FIRST_NAME));
-			assertThat(persons)
-				.containsExactly(person1);
+			assertThat(persons).containsExactly(person1);
 
 			Distance distance = new Distance(200.0 / 1000.0, Metrics.KILOMETERS);
 			persons = repository.findAllByPlaceNear(MINC, distance);
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 
 			persons = repository.findAllByPlaceNear(CLARION, distance);
 			assertThat(persons).isEmpty();
 
 			persons = repository.findAllByPlaceNear(MINC,
-				Distance.between(60.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+					Distance.between(60.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
+			assertThat(persons).hasSize(1).contains(person1);
 
 			persons = repository.findAllByPlaceNear(MINC,
-				Distance.between(100.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
+					Distance.between(100.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
 			assertThat(persons).isEmpty();
 
-			final Range<Distance> distanceRange = Range
-				.of(inclusive(new Distance(100.0 / 1000.0, Metrics.KILOMETERS)), unbounded());
+			final Range<Distance> distanceRange = Range.of(inclusive(new Distance(100.0 / 1000.0, Metrics.KILOMETERS)),
+					unbounded());
 			persons = repository.findAllByPlaceNear(MINC, distanceRange);
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person2);
+			assertThat(persons).hasSize(1).contains(person2);
 
 			persons = repository.findAllByPlaceNear(distanceRange, MINC);
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person2);
+			assertThat(persons).hasSize(1).contains(person2);
 
 			persons = repository
-				.findAllByPlaceWithin(new Circle(new org.springframework.data.geo.Point(MINC.x(), MINC.y()), distance));
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+					.findAllByPlaceWithin(new Circle(new org.springframework.data.geo.Point(MINC.x(), MINC.y()), distance));
+			assertThat(persons).hasSize(1).contains(person1);
 
 			Box b = new Box(
-				new org.springframework.data.geo.Point(MINC.x() - distance.getValue(), MINC.y() - distance.getValue()),
-				new org.springframework.data.geo.Point(MINC.x() + distance.getValue(), MINC.y() + distance.getValue()));
+					new org.springframework.data.geo.Point(MINC.x() - distance.getValue(), MINC.y() - distance.getValue()),
+					new org.springframework.data.geo.Point(MINC.x() + distance.getValue(), MINC.y() + distance.getValue()));
 			persons = repository.findAllByPlaceWithin(b);
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 
-			b = new Box(
-				new org.springframework.data.geo.Point(NEO4J_HQ.x(), NEO4J_HQ.y()),
-				new org.springframework.data.geo.Point(SFO.x(), SFO.y())
-			);
+			b = new Box(new org.springframework.data.geo.Point(NEO4J_HQ.x(), NEO4J_HQ.y()),
+					new org.springframework.data.geo.Point(SFO.x(), SFO.y()));
 			persons = repository.findAllByPlaceWithin(b);
-			assertThat(persons)
-				.hasSize(2);
+			assertThat(persons).hasSize(2);
 
-			Polygon p = new Polygon(
-				new org.springframework.data.geo.Point(12.993747, 55.6122746),
-				new org.springframework.data.geo.Point(12.9927492, 55.6110566),
-				new org.springframework.data.geo.Point(12.9953456, 55.6106688),
-				new org.springframework.data.geo.Point(12.9946482, 55.6110505),
-				new org.springframework.data.geo.Point(12.9959786, 55.6112748),
-				new org.springframework.data.geo.Point(12.9951847, 55.6122261),
-				new org.springframework.data.geo.Point(12.9942727, 55.6122382),
-				new org.springframework.data.geo.Point(12.9937685, 55.6122685),
-				new org.springframework.data.geo.Point(12.993747, 55.6122746)
-			);
+			Polygon p = new Polygon(new org.springframework.data.geo.Point(12.993747, 55.6122746),
+					new org.springframework.data.geo.Point(12.9927492, 55.6110566),
+					new org.springframework.data.geo.Point(12.9953456, 55.6106688),
+					new org.springframework.data.geo.Point(12.9946482, 55.6110505),
+					new org.springframework.data.geo.Point(12.9959786, 55.6112748),
+					new org.springframework.data.geo.Point(12.9951847, 55.6122261),
+					new org.springframework.data.geo.Point(12.9942727, 55.6122382),
+					new org.springframework.data.geo.Point(12.9937685, 55.6122685),
+					new org.springframework.data.geo.Point(12.993747, 55.6122746));
 
 			persons = repository.findAllByPlaceWithin(BoundingBox.of(p));
-			assertThat(persons)
-				.hasSize(1)
-				.contains(person1);
+			assertThat(persons).hasSize(1).contains(person1);
 
-			assertThatIllegalArgumentException().isThrownBy(() -> repository.findAllByPlaceWithin(p))
-				.withMessage(
+			assertThatIllegalArgumentException().isThrownBy(() -> repository.findAllByPlaceWithin(p)).withMessage(
 					"The WITHIN operation does not support a class org.springframework.data.geo.Polygon. You might want to pass a bounding box instead: class org.springframework.data.neo4j.repository.query.BoundingBox.of(polygon).");
 
 			persons = repository.findAllByPlaceNear(CLARION, distance);
@@ -2327,10 +2153,8 @@ class RepositoryIT {
 		void findBySomeCaseInsensitiveProperties(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons;
-			persons = repository
-				.findAllByPlaceNearAndFirstNameAllIgnoreCase(SFO, TEST_PERSON1_FIRST_NAME.toUpperCase());
-			assertThat(persons)
-				.containsExactly(person1);
+			persons = repository.findAllByPlaceNearAndFirstNameAllIgnoreCase(SFO, TEST_PERSON1_FIRST_NAME.toUpperCase());
+			assertThat(persons).containsExactly(person1);
 		}
 
 		@Test
@@ -2339,15 +2163,11 @@ class RepositoryIT {
 			List<ThingWithAssignedId> things;
 
 			things = repository.findTop5ByOrderByNameDesc();
-			assertThat(things)
-				.hasSize(5)
-				.extracting(ThingWithAssignedId::getName)
-				.containsExactlyInAnyOrder("name20", "name19", "name18", "name17", "name16");
+			assertThat(things).hasSize(5).extracting(ThingWithAssignedId::getName).containsExactlyInAnyOrder("name20",
+					"name19", "name18", "name17", "name16");
 
 			things = repository.findFirstByOrderByNameDesc();
-			assertThat(things)
-				.extracting(ThingWithAssignedId::getName)
-				.containsExactlyInAnyOrder("name20");
+			assertThat(things).extracting(ThingWithAssignedId::getName).containsExactlyInAnyOrder("name20");
 		}
 
 		@Test
@@ -2368,18 +2188,18 @@ class RepositoryIT {
 
 		@Override
 		void setupData(Transaction transaction) {
-			id1 = transaction.run("CREATE (n:PersonWithAllConstructor) "
-					+ "SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName "
-					+ "RETURN id(n)",
-				Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON1_FIRST_NAME)
-			).next().get(0).asLong();
-			id2 = transaction.run("CREATE (n:PersonWithAllConstructor) "
-					+ "SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName "
-					+ "RETURN id(n)",
-				Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON2_FIRST_NAME)
-			).next().get(0).asLong();
+			id1 = transaction.run(
+					"CREATE (n:PersonWithAllConstructor) "
+							+ "SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName " + "RETURN id(n)",
+					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON1_FIRST_NAME))
+					.next().get(0).asLong();
+			id2 = transaction.run(
+					"CREATE (n:PersonWithAllConstructor) "
+							+ "SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName " + "RETURN id(n)",
+					Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON2_FIRST_NAME))
+					.next().get(0).asLong();
 		}
 
 		@Test
@@ -2401,23 +2221,24 @@ class RepositoryIT {
 		@Test
 		void mapsInterfaceProjectionWithCustomQueryAndMapProjection(@Autowired PersonRepository repository) {
 			assertThat(repository.findByNameWithCustomQueryAndMapProjection(TEST_PERSON1_NAME).getName())
-				.isEqualTo(TEST_PERSON1_NAME);
+					.isEqualTo(TEST_PERSON1_NAME);
 		}
 
 		@Test
 		void mapsInterfaceProjectionWithCustomQueryAndMapProjectionWithMultipleResults(
-			@Autowired PersonRepository repository) {
+				@Autowired PersonRepository repository) {
 			assertThat(repository.loadAllProjectionsWithMapProjection()).hasSize(2);
 		}
 
 		@Test
 		void mapsInterfaceProjectionWithCustomQueryAndNodeReturn(@Autowired PersonRepository repository) {
 			assertThat(repository.findByNameWithCustomQueryAndNodeReturn(TEST_PERSON1_NAME).getName())
-				.isEqualTo(TEST_PERSON1_NAME);
+					.isEqualTo(TEST_PERSON1_NAME);
 		}
 
 		@Test
-		void mapsInterfaceProjectionWithCustomQueryAndNodeReturnWithMultipleResults(@Autowired PersonRepository repository) {
+		void mapsInterfaceProjectionWithCustomQueryAndNodeReturnWithMultipleResults(
+				@Autowired PersonRepository repository) {
 			assertThat(repository.loadAllProjectionsWithNodeReturn()).hasSize(2);
 		}
 
@@ -2428,8 +2249,8 @@ class RepositoryIT {
 
 		@Override
 		void setupData(Transaction transaction) {
-			transaction.run("CREATE (:PersonWithAllConstructor{name: '" + TEST_PERSON1_NAME + "', first_name: '" + TEST_PERSON1_FIRST_NAME + "'}),"
-				+ " (:PersonWithAllConstructor{name: '" + TEST_PERSON2_NAME + "'})");
+			transaction.run("CREATE (:PersonWithAllConstructor{name: '" + TEST_PERSON1_NAME + "', first_name: '"
+					+ TEST_PERSON1_FIRST_NAME + "'})," + " (:PersonWithAllConstructor{name: '" + TEST_PERSON2_NAME + "'})");
 		}
 
 		@Test
@@ -2437,12 +2258,12 @@ class RepositoryIT {
 			assertThat(repository.findAllByNameLike(TEST_PERSON1_NAME)).hasSize(2);
 		}
 
-//		commented see PersonRepository line 126
-//		@Test
-//		void asyncMethodsShouldWork(@Autowired PersonRepository repository) {
-//			PersonWithAllConstructor p = repository.findOneByFirstName(TEST_PERSON1_FIRST_NAME).join();
-//			assertThat(p).isNotNull();
-//		}
+		// commented see PersonRepository line 126
+		// @Test
+		// void asyncMethodsShouldWork(@Autowired PersonRepository repository) {
+		// PersonWithAllConstructor p = repository.findOneByFirstName(TEST_PERSON1_FIRST_NAME).join();
+		// assertThat(p).isNotNull();
+		// }
 	}
 
 	@Nested
@@ -2528,7 +2349,7 @@ class RepositoryIT {
 
 		@Test
 		void createNodeWithMultipleLabelsAndAssignedId(
-			@Autowired MultipleLabelWithAssignedIdRepository multipleLabelRepository) {
+				@Autowired MultipleLabelWithAssignedIdRepository multipleLabelRepository) {
 			multipleLabelRepository.save(new MultipleLabels.MultipleLabelsEntityWithAssignedId(4711L));
 
 			try (Session session = createSession()) {
@@ -2538,10 +2359,8 @@ class RepositoryIT {
 		}
 
 		@Test
-		void createAllNodesWithMultipleLabels(
-			@Autowired MultipleLabelWithAssignedIdRepository multipleLabelRepository) {
-			multipleLabelRepository
-				.saveAll(singletonList(new MultipleLabels.MultipleLabelsEntityWithAssignedId(4711L)));
+		void createAllNodesWithMultipleLabels(@Autowired MultipleLabelWithAssignedIdRepository multipleLabelRepository) {
+			multipleLabelRepository.saveAll(singletonList(new MultipleLabels.MultipleLabelsEntityWithAssignedId(4711L)));
 
 			try (Session session = createSession()) {
 				Node node = session.run("MATCH (n:X) return n").single().get("n").asNode();
@@ -2551,9 +2370,9 @@ class RepositoryIT {
 
 		@Test
 		void createNodeAndRelationshipWithMultipleLabels(
-			@Autowired MultipleLabelWithAssignedIdRepository multipleLabelRepository) {
+				@Autowired MultipleLabelWithAssignedIdRepository multipleLabelRepository) {
 			MultipleLabels.MultipleLabelsEntityWithAssignedId entity = new MultipleLabels.MultipleLabelsEntityWithAssignedId(
-				4711L);
+					4711L);
 			entity.otherMultipleLabelEntity = new MultipleLabels.MultipleLabelsEntityWithAssignedId(42L);
 
 			multipleLabelRepository.save(entity);
@@ -2574,8 +2393,8 @@ class RepositoryIT {
 			long n3Id;
 
 			try (Session session = createSession()) {
-				Record record = session
-					.run("CREATE (n1:X:Y:Z{id:4711}), (n2:Y:Z{id:42}), (n3:X{id:23}) return n1, n2, n3").single();
+				Record record = session.run("CREATE (n1:X:Y:Z{id:4711}), (n2:Y:Z{id:42}), (n3:X{id:23}) return n1, n2, n3")
+						.single();
 				n1Id = record.get("n1").asNode().get("id").asLong();
 				n2Id = record.get("n2").asNode().get("id").asLong();
 				n3Id = record.get("n3").asNode().get("id").asLong();
@@ -2593,8 +2412,8 @@ class RepositoryIT {
 			long n3Id;
 
 			try (Session session = createSession()) {
-				Record record = session
-					.run("CREATE (n1:X:Y:Z{id:4711}), (n2:Y:Z{id:42}), (n3:X{id:23}) return n1, n2, n3").single();
+				Record record = session.run("CREATE (n1:X:Y:Z{id:4711}), (n2:Y:Z{id:42}), (n3:X{id:23}) return n1, n2, n3")
+						.single();
 				n1Id = record.get("n1").asNode().get("id").asLong();
 				n2Id = record.get("n2").asNode().get("id").asLong();
 				n3Id = record.get("n3").asNode().get("id").asLong();
@@ -2623,11 +2442,10 @@ class RepositoryIT {
 			baseClassRepository.save(ccA);
 
 			Inheritance.BaseClass loadedCcA = baseClassRepository.findById(ccA.getId()).get();
-			assertThat(loadedCcA).isInstanceOfSatisfying(Inheritance.ConcreteClassA.class,
-				o -> {
-					assertThat(o.getName()).isEqualTo(concreteClassName);
-					assertThat(o.getConcreteSomething()).isEqualTo(someValue);
-				});
+			assertThat(loadedCcA).isInstanceOfSatisfying(Inheritance.ConcreteClassA.class, o -> {
+				assertThat(o.getName()).isEqualTo(concreteClassName);
+				assertThat(o.getConcreteSomething()).isEqualTo(someValue);
+			});
 		}
 
 		@Test
@@ -2646,10 +2464,8 @@ class RepositoryIT {
 		void findAllWithInheritanceAndExplicitLabeling(@Autowired BaseClassWithLabelsRepository repository) {
 			String classAName = "test1";
 			String classBName = "test2";
-			Inheritance.ExtendingClassWithLabelsA classWithLabelsA = new Inheritance.ExtendingClassWithLabelsA(
-				classAName);
-			Inheritance.ExtendingClassWithLabelsB classWithLabelsB = new Inheritance.ExtendingClassWithLabelsB(
-				classBName);
+			Inheritance.ExtendingClassWithLabelsA classWithLabelsA = new Inheritance.ExtendingClassWithLabelsA(classAName);
+			Inheritance.ExtendingClassWithLabelsB classWithLabelsB = new Inheritance.ExtendingClassWithLabelsB(classBName);
 
 			repository.save(classWithLabelsA);
 			repository.save(classWithLabelsB);
@@ -2667,11 +2483,10 @@ class RepositoryIT {
 			superBaseClassRepository.save(ccA);
 
 			Inheritance.SuperBaseClass loadedCcA = superBaseClassRepository.findById(ccA.getId()).get();
-			assertThat(loadedCcA).isInstanceOfSatisfying(Inheritance.ConcreteClassA.class,
-				o -> {
-					assertThat(o.getName()).isEqualTo(concreteClassName);
-					assertThat(o.getConcreteSomething()).isEqualTo(someValue);
-				});
+			assertThat(loadedCcA).isInstanceOfSatisfying(Inheritance.ConcreteClassA.class, o -> {
+				assertThat(o.getName()).isEqualTo(concreteClassName);
+				assertThat(o.getConcreteSomething()).isEqualTo(someValue);
+			});
 		}
 
 		@Test
@@ -2719,7 +2534,7 @@ class RepositoryIT {
 
 		@Test
 		void findAndInstantiateGenericRelationshipsWithCustomQuery(
-			@Autowired RelationshipToAbstractClassRepository repository) {
+				@Autowired RelationshipToAbstractClassRepository repository) {
 
 			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
 			Inheritance.ConcreteClassB ccB = new Inheritance.ConcreteClassB("cc2", 42);
@@ -2754,7 +2569,7 @@ class RepositoryIT {
 		void findByPropertyOnRelatedEntitiesOr(@Autowired RelationshipRepository repository) {
 			try (Session session = createSession()) {
 				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Tom'}),"
-					+ "(n)-[:Has]->(:Hobby{name: 'Music'})");
+						+ "(n)-[:Has]->(:Hobby{name: 'Music'})");
 			}
 
 			assertThat(repository.findByHobbiesNameOrPetsName("Music", "Jerry").getName()).isEqualTo("Freddie");
@@ -2766,7 +2581,7 @@ class RepositoryIT {
 		void findByPropertyOnRelatedEntitiesAnd(@Autowired RelationshipRepository repository) {
 			try (Session session = createSession()) {
 				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Tom'}),"
-					+ "(n)-[:Has]->(:Hobby{name: 'Music'})");
+						+ "(n)-[:Has]->(:Hobby{name: 'Music'})");
 			}
 
 			assertThat(repository.findByHobbiesNameAndPetsName("Music", "Tom").getName()).isEqualTo("Freddie");
@@ -2777,7 +2592,7 @@ class RepositoryIT {
 		void findByPropertyOnRelatedEntityOfRelatedEntity(@Autowired RelationshipRepository repository) {
 			try (Session session = createSession()) {
 				session.run("CREATE (:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Jerry'})"
-					+ "-[:Has]->(:Hobby{name: 'Sleeping'})");
+						+ "-[:Has]->(:Hobby{name: 'Sleeping'})");
 			}
 
 			assertThat(repository.findByPetsHobbiesName("Sleeping").getName()).isEqualTo("Freddie");
@@ -2788,7 +2603,7 @@ class RepositoryIT {
 		void findByPropertyOnRelatedEntityOfRelatedSameEntity(@Autowired RelationshipRepository repository) {
 			try (Session session = createSession()) {
 				session.run("CREATE (:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Jerry'})"
-					+ "-[:Has]->(:Pet{name: 'Tom'})");
+						+ "-[:Has]->(:Pet{name: 'Tom'})");
 			}
 
 			assertThat(repository.findByPetsFriendsName("Tom").getName()).isEqualTo("Freddie");
@@ -2796,18 +2611,22 @@ class RepositoryIT {
 		}
 
 		@Test
-		void findByPropertyOnRelationshipWithProperties(@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+		void findByPropertyOnRelationshipWithProperties(
+				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
 			try (Session session = createSession()) {
-				session.run("CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020}]->(:Hobby{name: 'Bowling'})");
+				session.run(
+						"CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020}]->(:Hobby{name: 'Bowling'})");
 			}
 
 			assertThat(repository.findByHobbiesSince(2020).getName()).isEqualTo("Freddie");
 		}
 
 		@Test
-		void findByPropertyOnRelationshipWithPropertiesOr(@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+		void findByPropertyOnRelationshipWithPropertiesOr(
+				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
 			try (Session session = createSession()) {
-				session.run("CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})");
+				session.run(
+						"CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})");
 			}
 
 			assertThat(repository.findByHobbiesSinceOrHobbiesActive(2020, false).getName()).isEqualTo("Freddie");
@@ -2816,9 +2635,11 @@ class RepositoryIT {
 		}
 
 		@Test
-		void findByPropertyOnRelationshipWithPropertiesAnd(@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+		void findByPropertyOnRelationshipWithPropertiesAnd(
+				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
 			try (Session session = createSession()) {
-				session.run("CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})");
+				session.run(
+						"CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})");
 			}
 
 			assertThat(repository.findByHobbiesSinceAndHobbiesActive(2020, true).getName()).isEqualTo("Freddie");
@@ -2830,7 +2651,8 @@ class RepositoryIT {
 	@Nested
 	class Converter extends IntegrationTestBase {
 
-		@Override void setupData(Transaction transaction) {
+		@Override
+		void setupData(Transaction transaction) {
 			transaction.run("CREATE (:CustomTypes{customType:'XYZ'})");
 		}
 
@@ -2847,50 +2669,43 @@ class RepositoryIT {
 		}
 
 		@Test
-		void findByConvertedCustomTypeWithSpELPropertyAccessQuery(@Autowired EntityWithCustomTypePropertyRepository repository) {
+		void findByConvertedCustomTypeWithSpELPropertyAccessQuery(
+				@Autowired EntityWithCustomTypePropertyRepository repository) {
 
-			assertThat(
-				repository.findByCustomTypeCustomSpELPropertyAccessQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
-				.isNotNull();
+			assertThat(repository.findByCustomTypeCustomSpELPropertyAccessQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
+					.isNotNull();
 		}
 
 		@Test
 		void findByConvertedCustomTypeWithSpELObjectQuery(@Autowired EntityWithCustomTypePropertyRepository repository) {
 
-			assertThat(repository.findByCustomTypeSpELObjectQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
-				.isNotNull();
+			assertThat(repository.findByCustomTypeSpELObjectQuery(ThingWithCustomTypes.CustomType.of("XYZ"))).isNotNull();
 		}
 
 		@Test
 		void findByConvertedDifferentTypeWithSpELObjectQuery(@Autowired EntityWithCustomTypePropertyRepository repository) {
 
-			assertThat(repository.findByDifferentTypeCustomQuery(ThingWithCustomTypes.DifferentType.of("XYZ")))
-				.isNotNull();
+			assertThat(repository.findByDifferentTypeCustomQuery(ThingWithCustomTypes.DifferentType.of("XYZ"))).isNotNull();
 		}
 	}
 
-	interface BidirectionalStartRepository extends Neo4jRepository<BidirectionalStart, Long> {
-	}
+	interface BidirectionalStartRepository extends Neo4jRepository<BidirectionalStart, Long> {}
 
-	interface BidirectionalEndRepository extends Neo4jRepository<BidirectionalEnd, Long> {
-	}
+	interface BidirectionalEndRepository extends Neo4jRepository<BidirectionalEnd, Long> {}
 
-	interface DeepRelationshipRepository extends Neo4jRepository<DeepRelationships.Type1, Long> {
-	}
+	interface DeepRelationshipRepository extends Neo4jRepository<DeepRelationships.Type1, Long> {}
 
-	interface LoopingRelationshipRepository extends Neo4jRepository<DeepRelationships.LoopingType1, Long> {
-	}
+	interface LoopingRelationshipRepository extends Neo4jRepository<DeepRelationships.LoopingType1, Long> {}
 
-	interface ImmutablePersonRepository extends Neo4jRepository<ImmutablePerson, String> {
-	}
+	interface ImmutablePersonRepository extends Neo4jRepository<ImmutablePerson, String> {}
 
-	interface MultipleLabelRepository extends Neo4jRepository<MultipleLabels.MultipleLabelsEntity, Long> {
-	}
+	interface MultipleLabelRepository extends Neo4jRepository<MultipleLabels.MultipleLabelsEntity, Long> {}
 
-	interface MultipleLabelWithAssignedIdRepository extends Neo4jRepository<MultipleLabels.MultipleLabelsEntityWithAssignedId, Long> {
-	}
+	interface MultipleLabelWithAssignedIdRepository
+			extends Neo4jRepository<MultipleLabels.MultipleLabelsEntityWithAssignedId, Long> {}
 
-	interface PersonWithRelationshipWithPropertiesRepository extends Neo4jRepository<PersonWithRelationshipWithProperties, Long> {
+	interface PersonWithRelationshipWithPropertiesRepository
+			extends Neo4jRepository<PersonWithRelationshipWithProperties, Long> {
 
 		@Query("MATCH (p:PersonWithRelationshipWithProperties)-[l:LIKES]->(h:Hobby) return p, collect(l), collect(h)")
 		PersonWithRelationshipWithProperties loadFromCustomQuery(@Param("id") Long id);
@@ -2902,15 +2717,14 @@ class RepositoryIT {
 		PersonWithRelationshipWithProperties findByHobbiesSinceAndHobbiesActive(int since1, boolean active);
 	}
 
-	interface PetRepository extends Neo4jRepository<Pet, Long> {
-	}
+	interface PetRepository extends Neo4jRepository<Pet, Long> {}
 
 	interface RelationshipRepository extends Neo4jRepository<PersonWithRelationship, Long> {
 
 		@Query("MATCH (n:PersonWithRelationship{name:'Freddie'}) "
-			+ "OPTIONAL MATCH (n)-[r1:Has]->(p:Pet) WITH n, collect(r1) as petRels, collect(p) as pets "
-			+ "OPTIONAL MATCH (n)-[r2:Has]->(h:Hobby) "
-			+ "return n, petRels, pets, collect(r2) as hobbyRels, collect(h) as hobbies")
+				+ "OPTIONAL MATCH (n)-[r1:Has]->(p:Pet) WITH n, collect(r1) as petRels, collect(p) as pets "
+				+ "OPTIONAL MATCH (n)-[r2:Has]->(h:Hobby) "
+				+ "return n, petRels, pets, collect(r2) as hobbyRels, collect(h) as hobbies")
 		PersonWithRelationship getPersonWithRelationshipsViaQuery();
 
 		PersonWithRelationship findByPetsName(String petName);
@@ -2924,11 +2738,9 @@ class RepositoryIT {
 		PersonWithRelationship findByPetsFriendsName(String petName);
 	}
 
-	interface SimilarThingRepository extends Neo4jRepository<SimilarThing, Long> {
-	}
+	interface SimilarThingRepository extends Neo4jRepository<SimilarThing, Long> {}
 
-	interface BaseClassRepository extends Neo4jRepository<Inheritance.BaseClass, Long> {
-	}
+	interface BaseClassRepository extends Neo4jRepository<Inheritance.BaseClass, Long> {}
 
 	interface SuperBaseClassRepository extends Neo4jRepository<Inheritance.SuperBaseClass, Long> {
 
@@ -2936,17 +2748,17 @@ class RepositoryIT {
 		List<Inheritance.SuperBaseClass> getAllConcreteTypes();
 	}
 
-	interface RelationshipToAbstractClassRepository extends Neo4jRepository<Inheritance.RelationshipToAbstractClass, Long> {
+	interface RelationshipToAbstractClassRepository
+			extends Neo4jRepository<Inheritance.RelationshipToAbstractClass, Long> {
 
 		@Query("MATCH (n:RelationshipToAbstractClass)-[h:HAS]->(m:SuperBaseClass) return n, collect(h), collect(m)")
 		Inheritance.RelationshipToAbstractClass getAllConcreteRelationships();
 	}
 
-	interface BaseClassWithLabelsRepository extends Neo4jRepository<Inheritance.BaseClassWithLabels, Long> {
-	}
+	interface BaseClassWithLabelsRepository extends Neo4jRepository<Inheritance.BaseClassWithLabels, Long> {}
 
-	interface EntityWithConvertedIdRepository extends Neo4jRepository<EntityWithConvertedId, EntityWithConvertedId.IdentifyingEnum> {
-	}
+	interface EntityWithConvertedIdRepository
+			extends Neo4jRepository<EntityWithConvertedId, EntityWithConvertedId.IdentifyingEnum> {}
 
 	interface EntityWithCustomTypePropertyRepository extends Neo4jRepository<ThingWithCustomTypes, Long> {
 
@@ -2956,20 +2768,22 @@ class RepositoryIT {
 		ThingWithCustomTypes findByCustomTypeCustomQuery(@Param("customType") ThingWithCustomTypes.CustomType customType);
 
 		@Query("MATCH (c:CustomTypes) WHERE c.customType = $differentType return c")
-		ThingWithCustomTypes findByDifferentTypeCustomQuery(@Param("differentType") ThingWithCustomTypes.DifferentType differentType);
+		ThingWithCustomTypes findByDifferentTypeCustomQuery(
+				@Param("differentType") ThingWithCustomTypes.DifferentType differentType);
 
 		@Query("MATCH (c:CustomTypes) WHERE c.customType = :#{#customType.value} return c")
-		ThingWithCustomTypes findByCustomTypeCustomSpELPropertyAccessQuery(@Param("customType") ThingWithCustomTypes.CustomType customType);
+		ThingWithCustomTypes findByCustomTypeCustomSpELPropertyAccessQuery(
+				@Param("customType") ThingWithCustomTypes.CustomType customType);
 
 		@Query("MATCH (c:CustomTypes) WHERE c.customType = :#{#customType} return c")
-		ThingWithCustomTypes findByCustomTypeSpELObjectQuery(@Param("customType") ThingWithCustomTypes.CustomType customType);
+		ThingWithCustomTypes findByCustomTypeSpELObjectQuery(
+				@Param("customType") ThingWithCustomTypes.CustomType customType);
 	}
 
 	@SpringJUnitConfig(Config.class)
 	static abstract class IntegrationTestBase {
 
-		@Autowired
-		private Driver driver;
+		@Autowired private Driver driver;
 
 		void setupData(Transaction transaction) {
 
@@ -2987,8 +2801,8 @@ class RepositoryIT {
 		}
 
 		Session createSession() {
-			return driver.session(Optional.ofNullable(databaseSelection.getValue())
-				.map(SessionConfig::forDatabase).orElseGet(SessionConfig::defaultConfig));
+			return driver.session(Optional.ofNullable(databaseSelection.getValue()).map(SessionConfig::forDatabase)
+					.orElseGet(SessionConfig::defaultConfig));
 		}
 
 	}

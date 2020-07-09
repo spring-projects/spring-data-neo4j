@@ -41,17 +41,13 @@ final class ReactivePartTreeNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	private final PartTree tree;
 
 	public static RepositoryQuery create(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-		Neo4jQueryMethod queryMethod) {
+			Neo4jQueryMethod queryMethod) {
 		return new ReactivePartTreeNeo4jQuery(neo4jOperations, mappingContext, queryMethod,
-			new PartTree(queryMethod.getName(), queryMethod.getDomainClass()));
+				new PartTree(queryMethod.getName(), queryMethod.getDomainClass()));
 	}
 
-	private ReactivePartTreeNeo4jQuery(
-		ReactiveNeo4jOperations neo4jOperations,
-		Neo4jMappingContext mappingContext,
-		Neo4jQueryMethod queryMethod,
-		PartTree tree
-	) {
+	private ReactivePartTreeNeo4jQuery(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
+			Neo4jQueryMethod queryMethod, PartTree tree) {
 		super(neo4jOperations, mappingContext, queryMethod, Neo4jQueryType.fromPartTree(tree));
 
 		this.tree = tree;
@@ -61,23 +57,17 @@ final class ReactivePartTreeNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	}
 
 	@Override
-	protected <T extends Object> PreparedQuery<T> prepareQuery(
-		Class<T> returnedType, List<String> includedProperties, Neo4jParameterAccessor parameterAccessor,
-		@Nullable Neo4jQueryType queryType,
-		@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction) {
+	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, List<String> includedProperties,
+			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
+			@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction) {
 
-		CypherQueryCreator queryCreator = new CypherQueryCreator(
-			mappingContext, domainType, Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,
-			includedProperties,
-			this::convertParameter
-		);
+		CypherQueryCreator queryCreator = new CypherQueryCreator(mappingContext, domainType,
+				Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,
+				includedProperties, this::convertParameter);
 
 		QueryAndParameters queryAndParameters = queryCreator.createQuery();
 
-		return PreparedQuery.queryFor(returnedType)
-			.withCypherQuery(queryAndParameters.getQuery())
-			.withParameters(queryAndParameters.getParameters())
-			.usingMappingFunction(mappingFunction)
-			.build();
+		return PreparedQuery.queryFor(returnedType).withCypherQuery(queryAndParameters.getQuery())
+				.withParameters(queryAndParameters.getParameters()).usingMappingFunction(mappingFunction).build();
 	}
 }

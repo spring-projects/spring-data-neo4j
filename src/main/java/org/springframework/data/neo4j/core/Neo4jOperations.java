@@ -53,7 +53,7 @@ public interface Neo4jOperations {
 	/**
 	 * Counts the number of entities of a given type.
 	 *
-	 * @param statement  the Cypher {@link Statement} that returns the count.
+	 * @param statement the Cypher {@link Statement} that returns the count.
 	 * @param parameters Map of parameters. Must not be {@code null}.
 	 * @return the number of instances stored in the database. Guaranteed to be not {@code null}.
 	 */
@@ -80,7 +80,7 @@ public interface Neo4jOperations {
 	 * Load all entities of a given type.
 	 *
 	 * @param domainType the type of the entities. Must not be {@code null}.
-	 * @param <T>        the type of the entities. Must not be {@code null}.
+	 * @param <T> the type of the entities. Must not be {@code null}.
 	 * @return Guaranteed to be not {@code null}.
 	 */
 	<T> List<T> findAll(Class<T> domainType);
@@ -88,9 +88,9 @@ public interface Neo4jOperations {
 	/**
 	 * Load all entities of a given type by executing given statement.
 	 *
-	 * @param statement  Cypher {@link Statement}. Must not be {@code null}.
+	 * @param statement Cypher {@link Statement}. Must not be {@code null}.
 	 * @param domainType the type of the entities. Must not be {@code null}.
-	 * @param <T>        the type of the entities. Must not be {@code null}.
+	 * @param <T> the type of the entities. Must not be {@code null}.
 	 * @return Guaranteed to be not {@code null}.
 	 */
 	<T> List<T> findAll(Statement statement, Class<T> domainType);
@@ -98,10 +98,10 @@ public interface Neo4jOperations {
 	/**
 	 * Load all entities of a given type by executing given statement with parameters.
 	 *
-	 * @param statement  Cypher {@link Statement}. Must not be {@code null}.
+	 * @param statement Cypher {@link Statement}. Must not be {@code null}.
 	 * @param parameters Map of parameters. Must not be {@code null}.
 	 * @param domainType the type of the entities. Must not be {@code null}.
-	 * @param <T>        the type of the entities. Must not be {@code null}.
+	 * @param <T> the type of the entities. Must not be {@code null}.
 	 * @return Guaranteed to be not {@code null}.
 	 */
 	<T> List<T> findAll(Statement statement, Map<String, Object> parameters, Class<T> domainType);
@@ -109,10 +109,10 @@ public interface Neo4jOperations {
 	/**
 	 * Load one entity of a given type by executing given statement with parameters.
 	 *
-	 * @param statement  Cypher {@link Statement}. Must not be {@code null}.
+	 * @param statement Cypher {@link Statement}. Must not be {@code null}.
 	 * @param parameters Map of parameters. Must not be {@code null}.
 	 * @param domainType the type of the entities. Must not be {@code null}.
-	 * @param <T>        the type of the entities. Must not be {@code null}.
+	 * @param <T> the type of the entities. Must not be {@code null}.
 	 * @return Guaranteed to be not {@code null}.
 	 */
 	<T> Optional<T> findOne(Statement statement, Map<String, Object> parameters, Class<T> domainType);
@@ -120,9 +120,9 @@ public interface Neo4jOperations {
 	/**
 	 * Load all entities of a given type by executing given statement.
 	 *
-	 * @param cypherQuery  Cypher query string. Must not be {@code null}.
-	 * @param domainType       the type of the entities. Must not be {@code null}.
-	 * @param <T>              the type of the entities. Must not be {@code null}.
+	 * @param cypherQuery Cypher query string. Must not be {@code null}.
+	 * @param domainType the type of the entities. Must not be {@code null}.
+	 * @param <T> the type of the entities. Must not be {@code null}.
 	 * @return Guaranteed to be not {@code null}.
 	 */
 	<T> List<T> findAll(String cypherQuery, Class<T> domainType);
@@ -130,10 +130,10 @@ public interface Neo4jOperations {
 	/**
 	 * Load all entities of a given type by executing given statement with parameters.
 	 *
-	 * @param cypherQuery  Cypher query string. Must not be {@code null}.
-	 * @param parameters       Map of parameters. Must not be {@code null}.
-	 * @param domainType       the type of the entities. Must not be {@code null}.
-	 * @param <T>              the type of the entities. Must not be {@code null}.
+	 * @param cypherQuery Cypher query string. Must not be {@code null}.
+	 * @param parameters Map of parameters. Must not be {@code null}.
+	 * @param domainType the type of the entities. Must not be {@code null}.
+	 * @param <T> the type of the entities. Must not be {@code null}.
 	 * @return Guaranteed to be not {@code null}.
 	 */
 	<T> List<T> findAll(String cypherQuery, Map<String, Object> parameters, Class<T> domainType);
@@ -141,10 +141,10 @@ public interface Neo4jOperations {
 	/**
 	 * Load one entity of a given type by executing given statement with parameters.
 	 *
-	 * @param cypherQuery  Cypher query string. Must not be {@code null}.
-	 * @param parameters       Map of parameters. Must not be {@code null}.
-	 * @param domainType       the type of the entities. Must not be {@code null}.
-	 * @param <T>              the type of the entities. Must not be {@code null}.
+	 * @param cypherQuery Cypher query string. Must not be {@code null}.
+	 * @param parameters Map of parameters. Must not be {@code null}.
+	 * @param domainType the type of the entities. Must not be {@code null}.
+	 * @param <T> the type of the entities. Must not be {@code null}.
 	 * @return Guaranteed to be not {@code null}.
 	 */
 	<T> Optional<T> findOne(String cypherQuery, Map<String, Object> parameters, Class<T> domainType);
@@ -152,9 +152,9 @@ public interface Neo4jOperations {
 	/**
 	 * Load an entity from the database.
 	 *
-	 * @param id         the id of the entity to load. Must not be {@code null}.
+	 * @param id the id of the entity to load. Must not be {@code null}.
 	 * @param domainType the type of the entity. Must not be {@code null}.
-	 * @param <T>        the type of the entity.
+	 * @param <T> the type of the entity.
 	 * @return the loaded entity. Might return an empty optional.
 	 */
 	<T> Optional<T> findById(Object id, Class<T> domainType);
@@ -162,9 +162,9 @@ public interface Neo4jOperations {
 	/**
 	 * Load all entities of a given type that are identified by the given ids.
 	 *
-	 * @param ids        of the entities identifying the entities to load. Must not be {@code null}.
+	 * @param ids of the entities identifying the entities to load. Must not be {@code null}.
 	 * @param domainType the type of the entities. Must not be {@code null}.
-	 * @param <T>        the type of the entities. Must not be {@code null}.
+	 * @param <T> the type of the entities. Must not be {@code null}.
 	 * @return Guaranteed to be not {@code null}.
 	 */
 	<T> List<T> findAllById(Iterable<?> ids, Class<T> domainType);
@@ -173,7 +173,7 @@ public interface Neo4jOperations {
 	 * Saves an instance of an entity, including all the related entities of the entity.
 	 *
 	 * @param instance the entity to be saved. Must not be {@code null}.
-	 * @param <T>      the type of the entity.
+	 * @param <T> the type of the entity.
 	 * @return the saved instance.
 	 */
 	<T> T save(T instance);
@@ -182,7 +182,7 @@ public interface Neo4jOperations {
 	 * Saves several instances of an entity, including all the related entities of the entity.
 	 *
 	 * @param instances the instances to be saved. Must not be {@code null}.
-	 * @param <T>       the type of the entity.
+	 * @param <T> the type of the entity.
 	 * @return the saved instances.
 	 */
 	<T> List<T> saveAll(Iterable<T> instances);
@@ -190,18 +190,18 @@ public interface Neo4jOperations {
 	/**
 	 * Deletes a single entity including all entities related to that entity.
 	 *
-	 * @param id         the id of the entity to be deleted. Must not be {@code null}.
+	 * @param id the id of the entity to be deleted. Must not be {@code null}.
 	 * @param domainType the type of the entity
-	 * @param <T>        the type of the entity.
+	 * @param <T> the type of the entity.
 	 */
 	<T> void deleteById(Object id, Class<T> domainType);
 
 	/**
 	 * Deletes all entities with one of the given ids, including all entities related to that entity.
 	 *
-	 * @param ids        the ids of the entities to be deleted. Must not be {@code null}.
+	 * @param ids the ids of the entities to be deleted. Must not be {@code null}.
 	 * @param domainType the type of the entity
-	 * @param <T>        the type of the entity.
+	 * @param <T> the type of the entity.
 	 */
 	<T> void deleteAllById(Iterable<?> ids, Class<T> domainType);
 
@@ -217,8 +217,8 @@ public interface Neo4jOperations {
 	 * an optional mapping function, and turns it into an executable query.
 	 *
 	 * @param preparedQuery prepared query that should get converted to an executable query
-	 * @param <T>           The type of the objects returned by this query.
-	 * @return              An executable query
+	 * @param <T> The type of the objects returned by this query.
+	 * @return An executable query
 	 */
 	<T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery);
 
@@ -248,4 +248,3 @@ public interface Neo4jOperations {
 		T getRequiredSingleResult();
 	}
 }
-

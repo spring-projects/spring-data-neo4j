@@ -44,8 +44,9 @@ public @interface Node {
 	String[] value() default {};
 
 	/**
-	 * @return The labels to identify a node with that is supposed to be mapped to the class annotated with {@link Node @Node}.
-	 * The first label will be the primary label if not {@link #primaryLabel()} was set explicitly.
+	 * @return The labels to identify a node with that is supposed to be mapped to the class annotated with
+	 *         {@link Node @Node}. The first label will be the primary label if not {@link #primaryLabel()} was set
+	 *         explicitly.
 	 */
 	@AliasFor("value")
 	String[] labels() default {};

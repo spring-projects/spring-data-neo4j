@@ -28,13 +28,11 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class BidirectionalStart {
 
-	@Id @GeneratedValue
-	private Long id;
+	@Id @GeneratedValue private Long id;
 
 	private String name;
 
-	@Relationship("CONNECTED")
-	private Set<BidirectionalEnd> ends;
+	@Relationship("CONNECTED") private Set<BidirectionalEnd> ends;
 
 	public BidirectionalStart(String name, Set<BidirectionalEnd> ends) {
 		this.name = name;

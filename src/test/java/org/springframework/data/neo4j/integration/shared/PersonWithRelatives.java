@@ -43,8 +43,7 @@ public class PersonWithRelatives {
 		CATS, DOGS, FISH, MONSTERS
 	}
 
-	@Id @GeneratedValue
-	private Long id;
+	@Id @GeneratedValue private Long id;
 
 	private final String name;
 

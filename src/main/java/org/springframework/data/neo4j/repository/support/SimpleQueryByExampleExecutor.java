@@ -63,9 +63,8 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 	public <S extends T> Optional<S> findOne(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-			.returning(asterisk())
-			.build();
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf).returning(asterisk())
+				.build();
 
 		return this.neo4jOperations.findOne(statement, predicate.getParameters(), example.getProbeType());
 	}
@@ -74,9 +73,8 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 	public <S extends T> List<S> findAll(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-			.returning(asterisk())
-			.build();
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf).returning(asterisk())
+				.build();
 
 		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
 	}
@@ -85,9 +83,8 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-			.returning(asterisk())
-			.orderBy(CypherAdapterUtils.toSortItems(predicate.getNeo4jPersistentEntity(), sort)).build();
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf).returning(asterisk())
+				.orderBy(CypherAdapterUtils.toSortItems(predicate.getNeo4jPersistentEntity(), sort)).build();
 
 		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
 	}
@@ -97,8 +94,7 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
 		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-			.returning(Functions.count(asterisk()))
-			.build();
+				.returning(Functions.count(asterisk())).build();
 
 		return this.neo4jOperations.count(statement, predicate.getParameters());
 	}
@@ -113,12 +109,10 @@ class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
 		StatementBuilder.OngoingReadingAndReturn returning = predicate
-			.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-			.returning(asterisk());
+				.useWithReadingFragment(cypherGenerator::prepareMatchOf).returning(asterisk());
 
-		BuildableStatement returningWithPaging = CypherAdapterUtils
-			.addPagingParameter(predicate.getNeo4jPersistentEntity(), pageable,
-			returning);
+		BuildableStatement returningWithPaging = CypherAdapterUtils.addPagingParameter(predicate.getNeo4jPersistentEntity(),
+				pageable, returning);
 
 		Statement statement = returningWithPaging.build();
 

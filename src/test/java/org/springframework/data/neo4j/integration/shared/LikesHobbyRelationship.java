@@ -41,10 +41,9 @@ public class LikesHobbyRelationship {
 	// spatial type
 	private CartesianPoint2d point;
 
-
 	public LikesHobbyRelationship(Integer since) {
-	 	this.since = since;
-	 }
+		this.since = since;
+	}
 
 	public void setActive(Boolean active) {
 		this.active = active;
@@ -71,11 +70,8 @@ public class LikesHobbyRelationship {
 			return false;
 		}
 		LikesHobbyRelationship that = (LikesHobbyRelationship) o;
-		return since.equals(that.since) &&
-			Objects.equals(active, that.active) &&
-			Objects.equals(localDate, that.localDate) &&
-			myEnum == that.myEnum &&
-			Objects.equals(point, that.point);
+		return since.equals(that.since) && Objects.equals(active, that.active) && Objects.equals(localDate, that.localDate)
+				&& myEnum == that.myEnum && Objects.equals(point, that.point);
 	}
 
 	@Override

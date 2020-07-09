@@ -65,15 +65,14 @@ class DefaultNeo4jConverterIT {
 
 	@Node
 	private static class Entity1 {
-		@Id
-		@Property("my_internal_id")
-		private final String id;
+		@Id @Property("my_internal_id") private final String id;
 
 		Entity1(String id) {
 			this.id = id;
 		}
 
-		@Override public boolean equals(Object o) {
+		@Override
+		public boolean equals(Object o) {
 			if (this == o) {
 				return true;
 			}
@@ -89,27 +88,25 @@ class DefaultNeo4jConverterIT {
 			return Objects.hash(id);
 		}
 
-		@Override public String toString() {
-			return "Entity1{" +
-				"id='" + id + '\'' +
-				'}';
+		@Override
+		public String toString() {
+			return "Entity1{" + "id='" + id + '\'' + '}';
 		}
 	}
 
 	@Node
 	private static class Entity2 {
-		@Id
-		private final String id;
+		@Id private final String id;
 
-		@Relationship(value = "REL", direction = Relationship.Direction.INCOMING)
-		private final Set<Entity1> entity1List;
+		@Relationship(value = "REL", direction = Relationship.Direction.INCOMING) private final Set<Entity1> entity1List;
 
 		Entity2(String id, Set<Entity1> entity1List) {
 			this.id = id;
 			this.entity1List = entity1List;
 		}
 
-		@Override public boolean equals(Object o) {
+		@Override
+		public boolean equals(Object o) {
 			if (this == o) {
 				return true;
 			}
@@ -117,8 +114,7 @@ class DefaultNeo4jConverterIT {
 				return false;
 			}
 			Entity2 entity2 = (Entity2) o;
-			return Objects.equals(id, entity2.id) &&
-				Objects.equals(entity1List, entity2.entity1List);
+			return Objects.equals(id, entity2.id) && Objects.equals(entity1List, entity2.entity1List);
 		}
 
 		@Override
@@ -126,17 +122,14 @@ class DefaultNeo4jConverterIT {
 			return Objects.hash(id, entity1List);
 		}
 
-		@Override public String toString() {
-			return "Entity2{" +
-				"id='" + id + '\'' +
-				", entity1List=" + entity1List +
-				'}';
+		@Override
+		public String toString() {
+			return "Entity2{" + "id='" + id + '\'' + ", entity1List=" + entity1List + '}';
 		}
 	}
 
 	@Repository
-	interface Entity2Repository extends Neo4jRepository<Entity2, String> {
-	}
+	interface Entity2Repository extends Neo4jRepository<Entity2, String> {}
 
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)

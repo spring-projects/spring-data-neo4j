@@ -19,7 +19,7 @@ The strategy will either be `internal`, `assigned` or `generated`.
 
 The internal strategy will be the default.
 
-To configure the Id strategy, a meta-annotated `@Id` annotation will be provided through `org.neo4j.springframework.data.core.schema.Id`
+To configure the Id strategy, a meta-annotated `@Id` annotation will be provided through `org.springframework.data.neo4j.core.schema.Id`
 
 === Consequences
 

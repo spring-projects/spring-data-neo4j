@@ -51,8 +51,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Default implementation of {@link Neo4jClient}. Uses the Neo4j Java driver to connect to and interact with the database.
- * TODO Micrometer hooks for statement results...
+ * Default implementation of {@link Neo4jClient}. Uses the Neo4j Java driver to connect to and interact with the
+ * database. TODO Micrometer hooks for statement results...
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
@@ -82,8 +82,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		}
 
 		return (AutoCloseableQueryRunner) Proxy.newProxyInstance(this.getClass().getClassLoader(),
-			new Class<?>[] { AutoCloseableQueryRunner.class },
-			new AutoCloseableQueryRunnerHandler(queryRunner));
+				new Class<?>[] { AutoCloseableQueryRunner.class }, new AutoCloseableQueryRunnerHandler(queryRunner));
 	}
 
 	/**
@@ -91,7 +90,8 @@ class DefaultNeo4jClient implements Neo4jClient {
 	 */
 	interface AutoCloseableQueryRunner extends QueryRunner, AutoCloseable {
 
-		@Override void close();
+		@Override
+		void close();
 	}
 
 	static class AutoCloseableQueryRunnerHandler implements InvocationHandler {
@@ -143,8 +143,8 @@ class DefaultNeo4jClient implements Neo4jClient {
 	}
 
 	/**
-	 * Basically a holder of a cypher template supplier and a set of named parameters. It's main purpose is to
-	 * orchestrate the running of things with a bit of logging.
+	 * Basically a holder of a cypher template supplier and a set of named parameters. It's main purpose is to orchestrate
+	 * the running of things with a bit of logging.
 	 */
 	class RunnableStatement {
 
@@ -185,7 +185,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 	 * @return
 	 */
 	private static RuntimeException potentiallyConvertRuntimeException(RuntimeException ex,
-		PersistenceExceptionTranslator exceptionTranslator) {
+			PersistenceExceptionTranslator exceptionTranslator) {
 		RuntimeException resolved = exceptionTranslator.translateExceptionIfPossible(ex);
 		return resolved == null ? ex : resolved;
 	}
@@ -209,8 +209,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		class DefaultOngoingBindSpec<T> implements OngoingBindSpec<T, RunnableSpecTightToDatabase> {
 
-			@Nullable
-			private final T value;
+			@Nullable private final T value;
 
 			DefaultOngoingBindSpec(@Nullable T value) {
 				this.value = value;
@@ -247,15 +246,13 @@ class DefaultNeo4jClient implements Neo4jClient {
 		public <T> MappingSpec<T> fetchAs(Class<T> targetClass) {
 
 			return new DefaultRecordFetchSpec(this.targetDatabase, this.runnableStatement,
-				new SingleValueMappingFunction(conversionService, targetClass));
+					new SingleValueMappingFunction(conversionService, targetClass));
 		}
 
 		@Override
 		public RecordFetchSpec<Map<String, Object>> fetch() {
 
-			return new DefaultRecordFetchSpec<>(
-				this.targetDatabase,
-				this.runnableStatement, (t, r) -> r.asMap());
+			return new DefaultRecordFetchSpec<>(this.targetDatabase, this.runnableStatement, (t, r) -> r.asMap());
 		}
 
 		@Override
@@ -279,7 +276,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		private BiFunction<TypeSystem, Record, T> mappingFunction;
 
 		DefaultRecordFetchSpec(String targetDatabase, RunnableStatement runnableStatement,
-			BiFunction<TypeSystem, Record, T> mappingFunction) {
+				BiFunction<TypeSystem, Record, T> mappingFunction) {
 			this.targetDatabase = targetDatabase;
 			this.runnableStatement = runnableStatement;
 			this.mappingFunction = mappingFunction;
@@ -287,7 +284,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		@Override
 		public RecordFetchSpec<T> mappedBy(
-			@SuppressWarnings("HiddenField") BiFunction<TypeSystem, Record, T> mappingFunction) {
+				@SuppressWarnings("HiddenField") BiFunction<TypeSystem, Record, T> mappingFunction) {
 
 			this.mappingFunction = new DelegatingMappingFunctionWithNullCheck<>(mappingFunction);
 			return this;
@@ -298,9 +295,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
 				Result result = runnableStatement.runWith(statementRunner);
-				return result.hasNext() ?
-					Optional.of(mappingFunction.apply(typeSystem, result.single())) :
-					Optional.empty();
+				return result.hasNext() ? Optional.of(mappingFunction.apply(typeSystem, result.single())) : Optional.empty();
 			} catch (RuntimeException e) {
 				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
 			}

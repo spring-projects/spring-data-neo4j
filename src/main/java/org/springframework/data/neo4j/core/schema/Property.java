@@ -45,7 +45,6 @@ public @interface Property {
 	String value() default "";
 
 	/**
-	 *
 	 * @return The name of the property in the graph.
 	 */
 	@AliasFor("value")

@@ -23,14 +23,14 @@ import org.junit.jupiter.api.Test;
  * @author Michael J. Simons
  */
 class GeographicPoint2dTest {
-    @Test
-    public void constructorShouldSetCorrectFields() {
+	@Test
+	public void constructorShouldSetCorrectFields() {
 
-        double latitude = 48.793889;
-        double longitude = 9.226944;
-        GeographicPoint2d geographicPoint2d = new GeographicPoint2d(latitude, longitude);
+		double latitude = 48.793889;
+		double longitude = 9.226944;
+		GeographicPoint2d geographicPoint2d = new GeographicPoint2d(latitude, longitude);
 
-        assertThat(geographicPoint2d.getLatitude()).isEqualTo(latitude);
-        assertThat(geographicPoint2d.getLongitude()).isEqualTo(longitude);
-    }
+		assertThat(geographicPoint2d.getLatitude()).isEqualTo(latitude);
+		assertThat(geographicPoint2d.getLongitude()).isEqualTo(longitude);
+	}
 }

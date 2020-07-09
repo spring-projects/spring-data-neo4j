@@ -28,7 +28,6 @@ import org.springframework.data.neo4j.core.schema.Relationship;
  */
 public class Inheritance {
 
-
 	/**
 	 * super base class
 	 */
@@ -127,17 +126,16 @@ public class Inheritance {
 	/**
 	 * Base class with explicit primary and additional labels.
 	 */
-	@Node({"LabeledBaseClass", "And_another_one"})
+	@Node({ "LabeledBaseClass", "And_another_one" })
 	public static abstract class BaseClassWithLabels {
 
-		@Id @GeneratedValue
-		private Long id;
+		@Id @GeneratedValue private Long id;
 	}
 
 	/**
 	 * Class that also has explicit labels
 	 */
-	@Node({"ExtendingClassA", "And_yet_more_labels"})
+	@Node({ "ExtendingClassA", "And_yet_more_labels" })
 	public static class ExtendingClassWithLabelsA extends BaseClassWithLabels {
 
 		private final String name;
@@ -171,7 +169,7 @@ public class Inheritance {
 	/**
 	 * Another class that also has explicit labels
 	 */
-	@Node({"ExtendingClassB", "And_other_labels"})
+	@Node({ "ExtendingClassB", "And_other_labels" })
 	public static class ExtendingClassWithLabelsB extends BaseClassWithLabels {
 
 		private final String somethingElse;
@@ -208,11 +206,9 @@ public class Inheritance {
 	@Node
 	public static class RelationshipToAbstractClass {
 
-		@Id @GeneratedValue
-		private Long id;
+		@Id @GeneratedValue private Long id;
 
-		@Relationship("HAS")
-		private List<SuperBaseClass> things;
+		@Relationship("HAS") private List<SuperBaseClass> things;
 
 		public void setThings(List<SuperBaseClass> things) {
 			this.things = things;

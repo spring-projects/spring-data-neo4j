@@ -19,7 +19,8 @@ import org.apiguardian.api.API;
 import org.springframework.data.mapping.callback.EntityCallback;
 
 /**
- * Entity callback triggered before an Entity is bound to a record (represented by a {@link java.util.Map java.util.Map&lt;String, Object&gt;}).
+ * Entity callback triggered before an Entity is bound to a record (represented by a {@link java.util.Map
+ * java.util.Map&lt;String, Object&gt;}).
  *
  * @author Michael J. Simons
  * @param <T> The type of the entity.
@@ -32,8 +33,8 @@ public interface BeforeBindCallback<T> extends EntityCallback<T> {
 
 	/**
 	 * Entity callback method invoked before a domain object is saved. Can return either the same or a modified instance
-	 * of the domain object. This method is called before converting the {@code entity} to a {@link java.util.Map},
-	 * so the outcome of this callback is used to create the record for the domain object.
+	 * of the domain object. This method is called before converting the {@code entity} to a {@link java.util.Map}, so the
+	 * outcome of this callback is used to create the record for the domain object.
 	 *
 	 * @param entity the domain object to save.
 	 * @return the domain object to be persisted.

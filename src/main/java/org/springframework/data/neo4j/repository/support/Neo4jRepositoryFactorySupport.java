@@ -29,23 +29,23 @@ final class Neo4jRepositoryFactorySupport {
 		}
 
 		String errorMessage = String.format("The repository id type %s differs from the entity id type %s.",
-			repositoryIdType, entityIdType);
+				repositoryIdType, entityIdType);
 
 		throw new IllegalArgumentException(errorMessage);
 	}
 
 	private static boolean isCompatibleType(Class<?> repositoryIdType, Class<?> entityIdType) {
 		return isCompatibleLongType(repositoryIdType, entityIdType)
-			|| isCompatibleIntegerType(repositoryIdType, entityIdType);
+				|| isCompatibleIntegerType(repositoryIdType, entityIdType);
 	}
 
 	private static boolean isCompatibleLongType(Class<?> repositoryIdType, Class<?> entityIdType) {
 		return repositoryIdType.equals(Long.class) && entityIdType.equals(long.class)
-			|| repositoryIdType.equals(long.class) && entityIdType.equals(Long.class);
+				|| repositoryIdType.equals(long.class) && entityIdType.equals(Long.class);
 	}
 
 	private static boolean isCompatibleIntegerType(Class<?> repositoryIdType, Class<?> entityIdType) {
 		return repositoryIdType.equals(Integer.class) && entityIdType.equals(int.class)
-			|| repositoryIdType.equals(int.class) && entityIdType.equals(Integer.class);
+				|| repositoryIdType.equals(int.class) && entityIdType.equals(Integer.class);
 	}
 }

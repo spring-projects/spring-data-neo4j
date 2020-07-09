@@ -67,9 +67,8 @@ public class ReactiveDynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction
+					.run("" + "CREATE (e:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) " + "RETURN id(e) as existingEntityId").single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -78,30 +77,20 @@ public class ReactiveDynamicLabelsIT {
 		@Test
 		void shouldReadDynamicLabels(@Autowired ReactiveNeo4jTemplate template) {
 
-			template
-				.findById(existingEntityId, SimpleDynamicLabels.class)
-				.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels))
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("Bar", "Baz", "Foo", "Foobar")
-				.verifyComplete();
+			template.findById(existingEntityId, SimpleDynamicLabels.class)
+					.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels)).sort().as(StepVerifier::create)
+					.expectNext("Bar", "Baz", "Foo", "Foobar").verifyComplete();
 		}
 
 		@Test
 		void shouldUpdateDynamicLabels(@Autowired ReactiveNeo4jTemplate template) {
 
-			template
-				.findById(existingEntityId, SimpleDynamicLabels.class)
-				.flatMap(entity -> {
-					entity.moreLabels.remove("Foo");
-					entity.moreLabels.add("Fizz");
-					return template.save(entity);
-				})
-				.thenMany(getLabels(existingEntityId))
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("Bar", "Baz", "Fizz", "Foobar", "SimpleDynamicLabels")
-				.verifyComplete();
+			template.findById(existingEntityId, SimpleDynamicLabels.class).flatMap(entity -> {
+				entity.moreLabels.remove("Foo");
+				entity.moreLabels.add("Fizz");
+				return template.save(entity);
+			}).thenMany(getLabels(existingEntityId)).sort().as(StepVerifier::create)
+					.expectNext("Bar", "Baz", "Fizz", "Foobar", "SimpleDynamicLabels").verifyComplete();
 		}
 
 		@Test
@@ -113,14 +102,8 @@ public class ReactiveDynamicLabelsIT {
 			entity.moreLabels.add("B");
 			entity.moreLabels.add("C");
 
-			template
-				.save(entity)
-				.map(SimpleDynamicLabels::getId)
-				.flatMapMany(this::getLabels)
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("A", "B", "C", "SimpleDynamicLabels")
-				.verifyComplete();
+			template.save(entity).map(SimpleDynamicLabels::getId).flatMapMany(this::getLabels).sort().as(StepVerifier::create)
+					.expectNext("A", "B", "C", "SimpleDynamicLabels").verifyComplete();
 		}
 
 		@Test
@@ -134,15 +117,8 @@ public class ReactiveDynamicLabelsIT {
 			SuperNode superNode = new SuperNode();
 			superNode.relatedTo = entity;
 
-			template
-				.save(superNode)
-				.map(SuperNode::getRelatedTo)
-				.map(SimpleDynamicLabels::getId)
-				.flatMapMany(this::getLabels)
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("A", "B", "C", "SimpleDynamicLabels")
-				.verifyComplete();
+			template.save(superNode).map(SuperNode::getRelatedTo).map(SimpleDynamicLabels::getId).flatMapMany(this::getLabels)
+					.sort().as(StepVerifier::create).expectNext("A", "B", "C", "SimpleDynamicLabels").verifyComplete();
 		}
 	}
 
@@ -151,9 +127,9 @@ public class ReactiveDynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:InheritedSimpleDynamicLabels:Foo:Bar:Baz:Foobar) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction
+					.run("" + "CREATE (e:InheritedSimpleDynamicLabels:Foo:Bar:Baz:Foobar) " + "RETURN id(e) as existingEntityId")
+					.single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -162,30 +138,20 @@ public class ReactiveDynamicLabelsIT {
 		@Test
 		void shouldReadDynamicLabels(@Autowired ReactiveNeo4jTemplate template) {
 
-			template
-				.findById(existingEntityId, InheritedSimpleDynamicLabels.class)
-				.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels))
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("Bar", "Baz", "Foo", "Foobar")
-				.verifyComplete();
+			template.findById(existingEntityId, InheritedSimpleDynamicLabels.class)
+					.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels)).sort().as(StepVerifier::create)
+					.expectNext("Bar", "Baz", "Foo", "Foobar").verifyComplete();
 		}
 
 		@Test
 		void shouldUpdateDynamicLabels(@Autowired ReactiveNeo4jTemplate template) {
 
-			template
-				.findById(existingEntityId, InheritedSimpleDynamicLabels.class)
-				.flatMap(entity -> {
-					entity.moreLabels.remove("Foo");
-					entity.moreLabels.add("Fizz");
-					return template.save(entity);
-				})
-				.thenMany(getLabels(existingEntityId))
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("Bar", "Baz", "Fizz", "Foobar", "InheritedSimpleDynamicLabels")
-				.verifyComplete();
+			template.findById(existingEntityId, InheritedSimpleDynamicLabels.class).flatMap(entity -> {
+				entity.moreLabels.remove("Foo");
+				entity.moreLabels.add("Fizz");
+				return template.save(entity);
+			}).thenMany(getLabels(existingEntityId)).sort().as(StepVerifier::create)
+					.expectNext("Bar", "Baz", "Fizz", "Foobar", "InheritedSimpleDynamicLabels").verifyComplete();
 		}
 
 		@Test
@@ -197,14 +163,8 @@ public class ReactiveDynamicLabelsIT {
 			entity.moreLabels.add("B");
 			entity.moreLabels.add("C");
 
-			template
-				.save(entity)
-				.map(SimpleDynamicLabels::getId)
-				.flatMapMany(this::getLabels)
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("A", "B", "C", "InheritedSimpleDynamicLabels")
-				.verifyComplete();
+			template.save(entity).map(SimpleDynamicLabels::getId).flatMapMany(this::getLabels).sort().as(StepVerifier::create)
+					.expectNext("A", "B", "C", "InheritedSimpleDynamicLabels").verifyComplete();
 		}
 	}
 
@@ -213,9 +173,8 @@ public class ReactiveDynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:SimpleDynamicLabelsWithBusinessId:Foo:Bar:Baz:Foobar {id: 'E1'}) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction.run("" + "CREATE (e:SimpleDynamicLabelsWithBusinessId:Foo:Bar:Baz:Foobar {id: 'E1'}) "
+					+ "RETURN id(e) as existingEntityId").single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -224,18 +183,12 @@ public class ReactiveDynamicLabelsIT {
 		@Test
 		void shouldUpdateDynamicLabels(@Autowired ReactiveNeo4jTemplate template) {
 
-			template
-				.findById("E1", SimpleDynamicLabelsWithBusinessId.class)
-				.flatMap(entity -> {
-					entity.moreLabels.remove("Foo");
-					entity.moreLabels.add("Fizz");
-					return template.save(entity);
-				})
-				.thenMany(getLabels(existingEntityId))
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("Bar", "Baz", "Fizz", "Foobar", "SimpleDynamicLabelsWithBusinessId")
-				.verifyComplete();
+			template.findById("E1", SimpleDynamicLabelsWithBusinessId.class).flatMap(entity -> {
+				entity.moreLabels.remove("Foo");
+				entity.moreLabels.add("Fizz");
+				return template.save(entity);
+			}).thenMany(getLabels(existingEntityId)).sort().as(StepVerifier::create)
+					.expectNext("Bar", "Baz", "Fizz", "Foobar", "SimpleDynamicLabelsWithBusinessId").verifyComplete();
 		}
 
 		@Test
@@ -248,14 +201,9 @@ public class ReactiveDynamicLabelsIT {
 			entity.moreLabels.add("B");
 			entity.moreLabels.add("C");
 
-			template
-				.save(entity)
-				.map(SimpleDynamicLabelsWithBusinessId::getId)
-				.flatMapMany(id -> getLabels(Cypher.anyNode("n").property("id").isEqualTo(Cypher.parameter("id")), id))
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("A", "B", "C", "SimpleDynamicLabelsWithBusinessId")
-				.verifyComplete();
+			template.save(entity).map(SimpleDynamicLabelsWithBusinessId::getId)
+					.flatMapMany(id -> getLabels(Cypher.anyNode("n").property("id").isEqualTo(Cypher.parameter("id")), id)).sort()
+					.as(StepVerifier::create).expectNext("A", "B", "C", "SimpleDynamicLabelsWithBusinessId").verifyComplete();
 		}
 	}
 
@@ -264,9 +212,8 @@ public class ReactiveDynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:SimpleDynamicLabelsWithVersion:Foo:Bar:Baz:Foobar {myVersion: 0}) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction.run("" + "CREATE (e:SimpleDynamicLabelsWithVersion:Foo:Bar:Baz:Foobar {myVersion: 0}) "
+					+ "RETURN id(e) as existingEntityId").single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -275,19 +222,13 @@ public class ReactiveDynamicLabelsIT {
 		@Test
 		void shouldUpdateDynamicLabels(@Autowired ReactiveNeo4jTemplate template) {
 
-			template
-				.findById(existingEntityId, SimpleDynamicLabelsWithVersion.class)
-				.flatMap(entity -> {
-					entity.moreLabels.remove("Foo");
-					entity.moreLabels.add("Fizz");
-					return template.save(entity);
-				})
-				.doOnNext(e -> assertThat(e.myVersion).isNotNull().isEqualTo(1))
-				.thenMany(getLabels(existingEntityId))
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("Bar", "Baz", "Fizz", "Foobar", "SimpleDynamicLabelsWithVersion")
-				.verifyComplete();
+			template.findById(existingEntityId, SimpleDynamicLabelsWithVersion.class).flatMap(entity -> {
+				entity.moreLabels.remove("Foo");
+				entity.moreLabels.add("Fizz");
+				return template.save(entity);
+			}).doOnNext(e -> assertThat(e.myVersion).isNotNull().isEqualTo(1)).thenMany(getLabels(existingEntityId)).sort()
+					.as(StepVerifier::create).expectNext("Bar", "Baz", "Fizz", "Foobar", "SimpleDynamicLabelsWithVersion")
+					.verifyComplete();
 		}
 
 		@Test
@@ -299,15 +240,9 @@ public class ReactiveDynamicLabelsIT {
 			entity.moreLabels.add("B");
 			entity.moreLabels.add("C");
 
-			template
-				.save(entity)
-				.doOnNext(e -> assertThat(e.myVersion).isNotNull().isEqualTo(0))
-				.map(SimpleDynamicLabelsWithVersion::getId)
-				.flatMapMany(this::getLabels)
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("A", "B", "C", "SimpleDynamicLabelsWithVersion")
-				.verifyComplete();
+			template.save(entity).doOnNext(e -> assertThat(e.myVersion).isNotNull().isEqualTo(0))
+					.map(SimpleDynamicLabelsWithVersion::getId).flatMapMany(this::getLabels).sort().as(StepVerifier::create)
+					.expectNext("A", "B", "C", "SimpleDynamicLabelsWithVersion").verifyComplete();
 		}
 	}
 
@@ -316,9 +251,10 @@ public class ReactiveDynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:SimpleDynamicLabelsWithBusinessIdAndVersion:Foo:Bar:Baz:Foobar {id: 'E2', myVersion: 0}) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction.run(
+					"" + "CREATE (e:SimpleDynamicLabelsWithBusinessIdAndVersion:Foo:Bar:Baz:Foobar {id: 'E2', myVersion: 0}) "
+							+ "RETURN id(e) as existingEntityId")
+					.single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -327,20 +263,15 @@ public class ReactiveDynamicLabelsIT {
 		@Test
 		void shouldUpdateDynamicLabels(@Autowired ReactiveNeo4jTemplate template) {
 
-			template
-				.findById("E2", SimpleDynamicLabelsWithBusinessIdAndVersion.class)
-				.flatMap(entity -> {
-					entity.moreLabels.remove("Foo");
-					entity.moreLabels.add("Fizz");
-					return template.save(entity);
-				})
-				.doOnNext(e -> assertThat(e.myVersion).isNotNull().isEqualTo(1))
-				.map(SimpleDynamicLabelsWithBusinessIdAndVersion::getId)
-				.flatMapMany(id -> getLabels(Cypher.anyNode("n").property("id").isEqualTo(Cypher.parameter("id")), id))
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("Bar", "Baz", "Fizz", "Foobar", "SimpleDynamicLabelsWithBusinessIdAndVersion")
-				.verifyComplete();
+			template.findById("E2", SimpleDynamicLabelsWithBusinessIdAndVersion.class).flatMap(entity -> {
+				entity.moreLabels.remove("Foo");
+				entity.moreLabels.add("Fizz");
+				return template.save(entity);
+			}).doOnNext(e -> assertThat(e.myVersion).isNotNull().isEqualTo(1))
+					.map(SimpleDynamicLabelsWithBusinessIdAndVersion::getId)
+					.flatMapMany(id -> getLabels(Cypher.anyNode("n").property("id").isEqualTo(Cypher.parameter("id")), id)).sort()
+					.as(StepVerifier::create)
+					.expectNext("Bar", "Baz", "Fizz", "Foobar", "SimpleDynamicLabelsWithBusinessIdAndVersion").verifyComplete();
 		}
 
 		@Test
@@ -353,15 +284,11 @@ public class ReactiveDynamicLabelsIT {
 			entity.moreLabels.add("B");
 			entity.moreLabels.add("C");
 
-			template
-				.save(entity)
-				.doOnNext(e -> assertThat(e.myVersion).isNotNull().isEqualTo(0))
-				.map(SimpleDynamicLabelsWithBusinessIdAndVersion::getId)
-				.flatMapMany(id -> getLabels(Cypher.anyNode("n").property("id").isEqualTo(Cypher.parameter("id")), id))
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("A", "B", "C", "SimpleDynamicLabelsWithBusinessIdAndVersion")
-				.verifyComplete();
+			template.save(entity).doOnNext(e -> assertThat(e.myVersion).isNotNull().isEqualTo(0))
+					.map(SimpleDynamicLabelsWithBusinessIdAndVersion::getId)
+					.flatMapMany(id -> getLabels(Cypher.anyNode("n").property("id").isEqualTo(Cypher.parameter("id")), id)).sort()
+					.as(StepVerifier::create).expectNext("A", "B", "C", "SimpleDynamicLabelsWithBusinessIdAndVersion")
+					.verifyComplete();
 		}
 	}
 
@@ -370,9 +297,9 @@ public class ReactiveDynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:SimpleDynamicLabelsCtor:Foo:Bar:Baz:Foobar) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction
+					.run("" + "CREATE (e:SimpleDynamicLabelsCtor:Foo:Bar:Baz:Foobar) " + "RETURN id(e) as existingEntityId")
+					.single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -381,12 +308,9 @@ public class ReactiveDynamicLabelsIT {
 		@Test
 		void shouldReadDynamicLabels(@Autowired ReactiveNeo4jTemplate template) {
 
-			template
-				.findById(existingEntityId, SimpleDynamicLabelsCtor.class)
-				.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels))
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("Bar", "Baz", "Foo", "Foobar");
+			template.findById(existingEntityId, SimpleDynamicLabelsCtor.class)
+					.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels)).sort().as(StepVerifier::create)
+					.expectNext("Bar", "Baz", "Foo", "Foobar");
 		}
 	}
 
@@ -395,9 +319,8 @@ public class ReactiveDynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction
+					.run("" + "CREATE (e:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) " + "RETURN id(e) as existingEntityId").single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -406,23 +329,17 @@ public class ReactiveDynamicLabelsIT {
 		@Test
 		void shouldReadDynamicLabelsOnClassWithSingleNodeLabel(@Autowired ReactiveNeo4jTemplate template) {
 
-			template
-				.findById(existingEntityId, DynamicLabelsWithNodeLabel.class)
-				.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels))
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("Bar", "Foo", "Foobar", "SimpleDynamicLabels");
+			template.findById(existingEntityId, DynamicLabelsWithNodeLabel.class)
+					.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels)).sort().as(StepVerifier::create)
+					.expectNext("Bar", "Foo", "Foobar", "SimpleDynamicLabels");
 		}
 
 		@Test
 		void shouldReadDynamicLabelsOnClassWithMultipleNodeLabel(@Autowired ReactiveNeo4jTemplate template) {
 
-			template
-				.findById(existingEntityId, DynamicLabelsWithMultipleNodeLabels.class)
-				.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels))
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("Baz", "Foobar", "SimpleDynamicLabels");
+			template.findById(existingEntityId, DynamicLabelsWithMultipleNodeLabels.class)
+					.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels)).sort().as(StepVerifier::create)
+					.expectNext("Baz", "Foobar", "SimpleDynamicLabels");
 		}
 	}
 
@@ -431,9 +348,9 @@ public class ReactiveDynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:DynamicLabelsBaseClass:ExtendedBaseClass1:D1:D2:D3) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction.run(
+					"" + "CREATE (e:DynamicLabelsBaseClass:ExtendedBaseClass1:D1:D2:D3) " + "RETURN id(e) as existingEntityId")
+					.single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -442,12 +359,9 @@ public class ReactiveDynamicLabelsIT {
 		@Test
 		void shouldReadDynamicLabelsInInheritance(@Autowired ReactiveNeo4jTemplate template) {
 
-			template
-				.findById(existingEntityId, ExtendedBaseClass1.class)
-				.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels))
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("D1", "D2", "D3");
+			template.findById(existingEntityId, ExtendedBaseClass1.class)
+					.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels)).sort().as(StepVerifier::create)
+					.expectNext("D1", "D2", "D3");
 		}
 	}
 
@@ -455,8 +369,7 @@ public class ReactiveDynamicLabelsIT {
 	@ContextConfiguration(classes = SpringTestBase.Config.class)
 	abstract static class SpringTestBase {
 
-		@Autowired
-		protected Driver driver;
+		@Autowired protected Driver driver;
 
 		protected Long existingEntityId;
 
@@ -477,17 +390,13 @@ public class ReactiveDynamicLabelsIT {
 		protected final Flux<String> getLabels(Condition idCondition, Object id) {
 
 			Node n = Cypher.anyNode("n");
-			String cypher = Renderer.getDefaultRenderer().render(Cypher
-				.match(n)
-				.where(idCondition).and(not(exists(n.property("moreLabels")))).unwind(n.labels()).as("label")
-				.returning("label").build()
-			);
+			String cypher = Renderer.getDefaultRenderer().render(Cypher.match(n).where(idCondition)
+					.and(not(exists(n.property("moreLabels")))).unwind(n.labels()).as("label").returning("label").build());
 
-			return Flux.usingWhen(
-				Mono.fromSupplier(() -> driver.rxSession()),
-				s -> s.run(cypher, Collections.singletonMap("id", id)).records(),
-				RxSession::close
-			).map(r -> r.get("label").asString());
+			return Flux
+					.usingWhen(Mono.fromSupplier(() -> driver.rxSession()),
+							s -> s.run(cypher, Collections.singletonMap("id", id)).records(), RxSession::close)
+					.map(r -> r.get("label").asString());
 		}
 
 		@Configuration

@@ -52,7 +52,8 @@ class ReactiveAuditingIT extends AuditingITBase {
 
 	private final ReactiveTransactionManager transactionManager;
 
-	@Autowired ReactiveAuditingIT(Driver driver, ReactiveTransactionManager transactionManager) {
+	@Autowired
+	ReactiveAuditingIT(Driver driver, ReactiveTransactionManager transactionManager) {
 
 		super(driver);
 		this.transactionManager = transactionManager;
@@ -63,12 +64,8 @@ class ReactiveAuditingIT extends AuditingITBase {
 
 		List<ImmutableAuditableThing> newThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator
-			.execute(t -> repository.save(new ImmutableAuditableThing("A thing")))
-			.as(StepVerifier::create)
-			.recordWith(() -> newThings)
-			.expectNextCount(1L)
-			.verifyComplete();
+		transactionalOperator.execute(t -> repository.save(new ImmutableAuditableThing("A thing"))).as(StepVerifier::create)
+				.recordWith(() -> newThings).expectNextCount(1L).verifyComplete();
 
 		ImmutableAuditableThing savedThing = newThings.get(0);
 		assertThat(savedThing.getCreatedAt()).isEqualTo(DEFAULT_CREATION_AND_MODIFICATION_DATE);
@@ -84,42 +81,33 @@ class ReactiveAuditingIT extends AuditingITBase {
 	void auditingOfModificationShouldWork(@Autowired ImmutableEntityTestRepository repository) {
 
 		Mono<ImmutableAuditableThing> findAndUpdateAThing = repository.findById(idOfExistingThing)
-			.flatMap(thing -> repository.save(thing.withName("A new name")));
+				.flatMap(thing -> repository.save(thing.withName("A new name")));
 
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator
-			.execute(t -> findAndUpdateAThing)
-			.as(StepVerifier::create)
-			.consumeNextWith(savedThing -> {
+		transactionalOperator.execute(t -> findAndUpdateAThing).as(StepVerifier::create).consumeNextWith(savedThing -> {
 
-				assertThat(savedThing.getCreatedAt()).isEqualTo(EXISTING_THING_CREATED_AT);
-				assertThat(savedThing.getCreatedBy()).isEqualTo(EXISTING_THING_CREATED_BY);
+			assertThat(savedThing.getCreatedAt()).isEqualTo(EXISTING_THING_CREATED_AT);
+			assertThat(savedThing.getCreatedBy()).isEqualTo(EXISTING_THING_CREATED_BY);
 
-				assertThat(savedThing.getModifiedAt()).isEqualTo(DEFAULT_CREATION_AND_MODIFICATION_DATE);
-				assertThat(savedThing.getModifiedBy()).isEqualTo("A user");
+			assertThat(savedThing.getModifiedAt()).isEqualTo(DEFAULT_CREATION_AND_MODIFICATION_DATE);
+			assertThat(savedThing.getModifiedBy()).isEqualTo("A user");
 
-				assertThat(savedThing.getName()).isEqualTo("A new name");
-			})
-			.verifyComplete();
+			assertThat(savedThing.getName()).isEqualTo("A new name");
+		}).verifyComplete();
 
 		// Need to happen outside the reactive flow, as we use the blocking session to verify the database
-		verifyDatabase(idOfExistingThing,
-			new ImmutableAuditableThing(null, EXISTING_THING_CREATED_AT, EXISTING_THING_CREATED_BY,
-				DEFAULT_CREATION_AND_MODIFICATION_DATE, "A user", "A new name"));
+		verifyDatabase(idOfExistingThing, new ImmutableAuditableThing(null, EXISTING_THING_CREATED_AT,
+				EXISTING_THING_CREATED_BY, DEFAULT_CREATION_AND_MODIFICATION_DATE, "A user", "A new name"));
 	}
 
 	@Test
 	void auditingOfEntityWithGeneratedIdCreationShouldWork(
-		@Autowired ImmutableEntityWithGeneratedIdTestRepository repository) {
+			@Autowired ImmutableEntityWithGeneratedIdTestRepository repository) {
 
 		List<ImmutableAuditableThingWithGeneratedId> newThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator
-			.execute(t -> repository.save(new ImmutableAuditableThingWithGeneratedId("A thing")))
-			.as(StepVerifier::create)
-			.recordWith(() -> newThings)
-			.expectNextCount(1L)
-			.verifyComplete();
+		transactionalOperator.execute(t -> repository.save(new ImmutableAuditableThingWithGeneratedId("A thing")))
+				.as(StepVerifier::create).recordWith(() -> newThings).expectNextCount(1L).verifyComplete();
 
 		ImmutableAuditableThingWithGeneratedId savedThing = newThings.get(0);
 		assertThat(savedThing.getCreatedAt()).isEqualTo(DEFAULT_CREATION_AND_MODIFICATION_DATE);
@@ -133,45 +121,39 @@ class ReactiveAuditingIT extends AuditingITBase {
 
 	@Test
 	void auditingOfEntityWithGeneratedIdModificationShouldWork(
-		@Autowired ImmutableEntityWithGeneratedIdTestRepository repository) {
+			@Autowired ImmutableEntityWithGeneratedIdTestRepository repository) {
 
 		Mono<ImmutableAuditableThingWithGeneratedId> findAndUpdateAThing = repository
-			.findById(idOfExistingThingWithGeneratedId)
-			.flatMap(thing -> repository.save(thing.withName("A new name")));
+				.findById(idOfExistingThingWithGeneratedId).flatMap(thing -> repository.save(thing.withName("A new name")));
 
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator
-			.execute(t -> findAndUpdateAThing)
-			.as(StepVerifier::create)
-			.consumeNextWith(savedThing -> {
+		transactionalOperator.execute(t -> findAndUpdateAThing).as(StepVerifier::create).consumeNextWith(savedThing -> {
 
-				assertThat(savedThing.getCreatedAt()).isEqualTo(EXISTING_THING_CREATED_AT);
-				assertThat(savedThing.getCreatedBy()).isEqualTo(EXISTING_THING_CREATED_BY);
+			assertThat(savedThing.getCreatedAt()).isEqualTo(EXISTING_THING_CREATED_AT);
+			assertThat(savedThing.getCreatedBy()).isEqualTo(EXISTING_THING_CREATED_BY);
 
-				assertThat(savedThing.getModifiedAt()).isEqualTo(DEFAULT_CREATION_AND_MODIFICATION_DATE);
-				assertThat(savedThing.getModifiedBy()).isEqualTo("A user");
+			assertThat(savedThing.getModifiedAt()).isEqualTo(DEFAULT_CREATION_AND_MODIFICATION_DATE);
+			assertThat(savedThing.getModifiedBy()).isEqualTo("A user");
 
-				assertThat(savedThing.getName()).isEqualTo("A new name");
-			})
-			.verifyComplete();
+			assertThat(savedThing.getName()).isEqualTo("A new name");
+		}).verifyComplete();
 
 		// Need to happen outside the reactive flow, as we use the blocking session to verify the database
 		verifyDatabase(idOfExistingThingWithGeneratedId,
-			new ImmutableAuditableThingWithGeneratedId(null, EXISTING_THING_CREATED_AT, EXISTING_THING_CREATED_BY,
-				DEFAULT_CREATION_AND_MODIFICATION_DATE, "A user", "A new name"));
+				new ImmutableAuditableThingWithGeneratedId(null, EXISTING_THING_CREATED_AT, EXISTING_THING_CREATED_BY,
+						DEFAULT_CREATION_AND_MODIFICATION_DATE, "A user", "A new name"));
 	}
 
-	interface ImmutableEntityTestRepository extends ReactiveNeo4jRepository<ImmutableAuditableThing, Long> {
-	}
+	interface ImmutableEntityTestRepository extends ReactiveNeo4jRepository<ImmutableAuditableThing, Long> {}
 
 	interface ImmutableEntityWithGeneratedIdTestRepository
-		extends ReactiveNeo4jRepository<ImmutableAuditableThingWithGeneratedId, String> {
-	}
+			extends ReactiveNeo4jRepository<ImmutableAuditableThingWithGeneratedId, String> {}
 
 	@Configuration
 	@EnableTransactionManagement
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
-	@EnableNeo4jAuditing(modifyOnCreate = false, auditorAwareRef = "auditorProvider", dateTimeProviderRef = "fixedDateTimeProvider")
+	@EnableNeo4jAuditing(modifyOnCreate = false, auditorAwareRef = "auditorProvider",
+			dateTimeProviderRef = "fixedDateTimeProvider")
 	static class Config extends AbstractReactiveNeo4jConfig {
 
 		@Bean

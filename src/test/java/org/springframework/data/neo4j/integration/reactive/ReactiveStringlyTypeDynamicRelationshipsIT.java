@@ -50,100 +50,85 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Tag(NEEDS_REACTIVE_SUPPORT)
 class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithStringlyTypedRelatives> {
 
-	@Autowired ReactiveStringlyTypeDynamicRelationshipsIT(Driver driver) {
+	@Autowired
+	ReactiveStringlyTypeDynamicRelationshipsIT(Driver driver) {
 		super(driver);
 	}
 
 	@Test
 	void shouldReadDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		repository.findById(idOfExistingPerson)
-			.as(StepVerifier::create)
-			.consumeNextWith(person -> {
-				assertThat(person).isNotNull();
-				assertThat(person.getName()).isEqualTo("A");
+		repository.findById(idOfExistingPerson).as(StepVerifier::create).consumeNextWith(person -> {
+			assertThat(person).isNotNull();
+			assertThat(person.getName()).isEqualTo("A");
 
-				Map<String, Person> relatives = person.getRelatives();
-				assertThat(relatives).containsOnlyKeys("HAS_WIFE", "HAS_DAUGHTER");
-				assertThat(relatives.get("HAS_WIFE").getFirstName()).isEqualTo("B");
-				assertThat(relatives.get("HAS_DAUGHTER").getFirstName()).isEqualTo("C");
-			})
-			.verifyComplete();
+			Map<String, Person> relatives = person.getRelatives();
+			assertThat(relatives).containsOnlyKeys("HAS_WIFE", "HAS_DAUGHTER");
+			assertThat(relatives.get("HAS_WIFE").getFirstName()).isEqualTo("B");
+			assertThat(relatives.get("HAS_DAUGHTER").getFirstName()).isEqualTo("C");
+		}).verifyComplete();
 	}
 
 	@Test // GH-216
 	void shouldReadDynamicCollectionRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		repository.findById(idOfExistingPerson)
-			.as(StepVerifier::create)
-			.consumeNextWith(person -> {
-				assertThat(person).isNotNull();
-				assertThat(person.getName()).isEqualTo("A");
+		repository.findById(idOfExistingPerson).as(StepVerifier::create).consumeNextWith(person -> {
+			assertThat(person).isNotNull();
+			assertThat(person.getName()).isEqualTo("A");
 
-				Map<String, List<Pet>> pets = person.getPets();
-				assertThat(pets).containsOnlyKeys("CATS", "DOGS");
-				assertThat(pets.get("CATS")).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield");
-				assertThat(pets.get("DOGS")).extracting(Pet::getName).containsExactlyInAnyOrder("Benji", "Lassie");
-			})
-			.verifyComplete();
+			Map<String, List<Pet>> pets = person.getPets();
+			assertThat(pets).containsOnlyKeys("CATS", "DOGS");
+			assertThat(pets.get("CATS")).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield");
+			assertThat(pets.get("DOGS")).extracting(Pet::getName).containsExactlyInAnyOrder("Benji", "Lassie");
+		}).verifyComplete();
 	}
 
 	@Test
 	void shouldUpdateDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		repository.findById(idOfExistingPerson)
-			.map(person -> {
-				assumeThat(person).isNotNull();
-				assumeThat(person.getName()).isEqualTo("A");
+		repository.findById(idOfExistingPerson).map(person -> {
+			assumeThat(person).isNotNull();
+			assumeThat(person.getName()).isEqualTo("A");
 
-				Map<String, Person> relatives = person.getRelatives();
-				assumeThat(relatives).containsOnlyKeys("HAS_WIFE", "HAS_DAUGHTER");
+			Map<String, Person> relatives = person.getRelatives();
+			assumeThat(relatives).containsOnlyKeys("HAS_WIFE", "HAS_DAUGHTER");
 
-				relatives.remove("HAS_WIFE");
-				Person d = new Person();
-				ReflectionTestUtils.setField(d, "firstName", "D");
-				relatives.put("HAS_SON", d);
-				ReflectionTestUtils.setField(relatives.get("HAS_DAUGHTER"), "firstName", "C2");
-				return person;
-			})
-			.flatMap(repository::save)
-			.as(StepVerifier::create)
-			.consumeNextWith(person -> {
-				Map<String, Person> relatives = person.getRelatives();
-				assertThat(relatives).containsOnlyKeys("HAS_DAUGHTER", "HAS_SON");
-				assertThat(relatives.get("HAS_DAUGHTER").getFirstName()).isEqualTo("C2");
-				assertThat(relatives.get("HAS_SON").getFirstName()).isEqualTo("D");
-			})
-			.verifyComplete();
+			relatives.remove("HAS_WIFE");
+			Person d = new Person();
+			ReflectionTestUtils.setField(d, "firstName", "D");
+			relatives.put("HAS_SON", d);
+			ReflectionTestUtils.setField(relatives.get("HAS_DAUGHTER"), "firstName", "C2");
+			return person;
+		}).flatMap(repository::save).as(StepVerifier::create).consumeNextWith(person -> {
+			Map<String, Person> relatives = person.getRelatives();
+			assertThat(relatives).containsOnlyKeys("HAS_DAUGHTER", "HAS_SON");
+			assertThat(relatives.get("HAS_DAUGHTER").getFirstName()).isEqualTo("C2");
+			assertThat(relatives.get("HAS_SON").getFirstName()).isEqualTo("D");
+		}).verifyComplete();
 	}
 
 	@Test // GH-216
 	void shouldUpdateDynamicCollectionRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		repository.findById(idOfExistingPerson)
-			.map(person -> {
-				assumeThat(person).isNotNull();
-				assumeThat(person.getName()).isEqualTo("A");
+		repository.findById(idOfExistingPerson).map(person -> {
+			assumeThat(person).isNotNull();
+			assumeThat(person.getName()).isEqualTo("A");
 
-				Map<String, List<Pet>> pets = person.getPets();
-				assertThat(pets).containsOnlyKeys("CATS", "DOGS");
+			Map<String, List<Pet>> pets = person.getPets();
+			assertThat(pets).containsOnlyKeys("CATS", "DOGS");
 
-				pets.remove("DOGS");
-				pets.get("CATS").add(new Pet("Delilah"));
+			pets.remove("DOGS");
+			pets.get("CATS").add(new Pet("Delilah"));
 
-				pets.put("FISH", Collections.singletonList(new Pet("Nemo")));
+			pets.put("FISH", Collections.singletonList(new Pet("Nemo")));
 
-				return person;
-			})
-			.flatMap(repository::save)
-			.as(StepVerifier::create)
-			.consumeNextWith(person -> {
-				Map<String, List<Pet>> pets = person.getPets();
-				assertThat(pets).containsOnlyKeys("CATS", "FISH");
-				assertThat(pets.get("CATS")).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield", "Delilah");
-				assertThat(pets.get("FISH")).extracting(Pet::getName).containsExactlyInAnyOrder("Nemo");
-			})
-			.verifyComplete();
+			return person;
+		}).flatMap(repository::save).as(StepVerifier::create).consumeNextWith(person -> {
+			Map<String, List<Pet>> pets = person.getPets();
+			assertThat(pets).containsOnlyKeys("CATS", "FISH");
+			assertThat(pets.get("CATS")).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield", "Delilah");
+			assertThat(pets.get("FISH")).extracting(Pet::getName).containsExactlyInAnyOrder("Nemo");
+		}).verifyComplete();
 	}
 
 	@Test
@@ -158,22 +143,17 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 		newPerson.getRelatives().put("RELATIVE_2", d);
 
 		List<PersonWithStringlyTypedRelatives> recorded = new ArrayList<>();
-		repository.save(newPerson)
-			.as(StepVerifier::create)
-			.recordWith(() -> recorded)
-			.consumeNextWith(personWithRelatives -> {
-				Map<String, Person> relatives = personWithRelatives.getRelatives();
-				assertThat(relatives).containsOnlyKeys("RELATIVE_1", "RELATIVE_2");
-			})
-			.verifyComplete();
+		repository.save(newPerson).as(StepVerifier::create).recordWith(() -> recorded)
+				.consumeNextWith(personWithRelatives -> {
+					Map<String, Person> relatives = personWithRelatives.getRelatives();
+					assertThat(relatives).containsOnlyKeys("RELATIVE_1", "RELATIVE_2");
+				}).verifyComplete();
 
 		try (Transaction transaction = driver.session().beginTransaction()) {
-			long numberOfRelations = transaction.run(""
-					+ "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id "
-					+ "RETURN size((t)-->(:Person))"
-					+ " as numberOfRelations",
-				Values.parameters("id", recorded.get(0).getId()))
-				.single().get("numberOfRelations").asLong();
+			long numberOfRelations = transaction
+					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Person))"
+							+ " as numberOfRelations", Values.parameters("id", recorded.get(0).getId()))
+					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 		}
 	}
@@ -192,27 +172,21 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 		fish.add(new Pet("Nemo"));
 
 		List<PersonWithStringlyTypedRelatives> recorded = new ArrayList<>();
-		repository.save(newPerson)
-			.as(StepVerifier::create)
-			.recordWith(() -> recorded)
-			.consumeNextWith(person -> {
-				Map<String, List<Pet>> writtenPets = person.getPets();
-				assertThat(writtenPets).containsOnlyKeys("MONSTERS", "FISH");
-			})
-			.verifyComplete();
+		repository.save(newPerson).as(StepVerifier::create).recordWith(() -> recorded).consumeNextWith(person -> {
+			Map<String, List<Pet>> writtenPets = person.getPets();
+			assertThat(writtenPets).containsOnlyKeys("MONSTERS", "FISH");
+		}).verifyComplete();
 
 		try (Transaction transaction = driver.session().beginTransaction()) {
-			long numberOfRelations = transaction.run(""
-				+ "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id "
-				+ "RETURN size((t)-->(:Pet))"
-				+ " as numberOfRelations", Values.parameters("id", recorded.get(0).getId()))
-				.single().get("numberOfRelations").asLong();
+			long numberOfRelations = transaction
+					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Pet))"
+							+ " as numberOfRelations", Values.parameters("id", recorded.get(0).getId()))
+					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(3L);
 		}
 	}
 
-	interface PersonWithRelativesRepository extends ReactiveNeo4jRepository<PersonWithStringlyTypedRelatives, Long> {
-	}
+	interface PersonWithRelativesRepository extends ReactiveNeo4jRepository<PersonWithStringlyTypedRelatives, Long> {}
 
 	@Configuration
 	@EnableTransactionManagement

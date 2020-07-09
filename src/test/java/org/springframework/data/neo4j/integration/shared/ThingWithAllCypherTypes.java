@@ -44,9 +44,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Builder
 public class ThingWithAllCypherTypes {
 
-	@Id @GeneratedValue
-	@With
-	public final Long id;
+	@Id @GeneratedValue @With public final Long id;
 
 	private boolean aBoolean;
 

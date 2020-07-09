@@ -19,13 +19,17 @@ import org.apiguardian.api.API;
 import org.springframework.util.Assert;
 
 /**
- * A provider interface that knows in which database repositories or either the reactive or imperative template should work.
- * <p>An instance of a database name provider is only relevant when SDN-RX is used with a Neo4j 4.0+ cluster or server.
- * <p>To select the default database, return an empty optional. If you return a database name, it must not be empty.
- * The empty optional indicates an unset database name on the client, so that the server can decide on the default to use.
- * <p>The provider is asked before any interaction of a repository or template with the cluster or server. That means you can
- * in theory return different database names for each interaction. Be aware that you might end up with no data on queries
- * or data stored to wrong database if you don't pay meticulously attention to the database you interact with.
+ * A provider interface that knows in which database repositories or either the reactive or imperative template should
+ * work.
+ * <p>
+ * An instance of a database name provider is only relevant when SDN is used with a Neo4j 4.0+ cluster or server.
+ * <p>
+ * To select the default database, return an empty optional. If you return a database name, it must not be empty. The
+ * empty optional indicates an unset database name on the client, so that the server can decide on the default to use.
+ * <p>
+ * The provider is asked before any interaction of a repository or template with the cluster or server. That means you
+ * can in theory return different database names for each interaction. Be aware that you might end up with no data on
+ * queries or data stored to wrong database if you don't pay meticulously attention to the database you interact with.
  *
  * @author Michael J. Simons
  * @soundtrack N.W.A. - Straight Outta Compton
@@ -36,12 +40,14 @@ import org.springframework.util.Assert;
 public interface DatabaseSelectionProvider {
 
 	/**
-	 * @return The selected database me to interact with. Use {@link DatabaseSelection#undecided()} to indicate the default database.
+	 * @return The selected database me to interact with. Use {@link DatabaseSelection#undecided()} to indicate the
+	 *         default database.
 	 */
 	DatabaseSelection getDatabaseSelection();
 
 	/**
-	 * Creates a statically configured database selection provider always selecting the database with the given name {@code databaseName}.
+	 * Creates a statically configured database selection provider always selecting the database with the given name
+	 * {@code databaseName}.
 	 *
 	 * @param databaseName The database name to use, must not be null nor empty.
 	 * @return A statically configured database name provider.

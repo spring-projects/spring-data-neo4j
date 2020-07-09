@@ -24,35 +24,34 @@ import java.util.Objects;
  */
 abstract class AbstractPoint implements Neo4jPoint {
 
-    protected final Coordinate coordinate;
+	protected final Coordinate coordinate;
 
-    private final Integer srid;
+	private final Integer srid;
 
-    AbstractPoint(Coordinate coordinate, Integer srid) {
-        this.coordinate = coordinate;
-        this.srid = srid;
-    }
+	AbstractPoint(Coordinate coordinate, Integer srid) {
+		this.coordinate = coordinate;
+		this.srid = srid;
+	}
 
-    @Override
-    public final Integer getSrid() {
-        return srid;
-    }
+	@Override
+	public final Integer getSrid() {
+		return srid;
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof AbstractPoint)) {
-            return false;
-        }
-        AbstractPoint that = (AbstractPoint) o;
-        return Objects.equals(coordinate, that.coordinate) &&
-            Objects.equals(srid, that.srid);
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof AbstractPoint)) {
+			return false;
+		}
+		AbstractPoint that = (AbstractPoint) o;
+		return Objects.equals(coordinate, that.coordinate) && Objects.equals(srid, that.srid);
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(coordinate, srid);
-    }
+	@Override
+	public int hashCode() {
+		return Objects.hash(coordinate, srid);
+	}
 }

@@ -24,28 +24,25 @@ import org.apiguardian.api.API;
 @API(status = API.Status.STABLE, since = "1.0")
 public final class GeographicPoint2d extends AbstractPoint {
 
-    GeographicPoint2d(Coordinate coordinate, Integer srid) {
-        super(coordinate, srid);
-    }
+	GeographicPoint2d(Coordinate coordinate, Integer srid) {
+		super(coordinate, srid);
+	}
 
-    public GeographicPoint2d(double latitude, double longitude) {
-        super(new Coordinate(longitude, latitude), 4326);
-    }
+	public GeographicPoint2d(double latitude, double longitude) {
+		super(new Coordinate(longitude, latitude), 4326);
+	}
 
-    public double getLongitude() {
-        return coordinate.getX();
-    }
+	public double getLongitude() {
+		return coordinate.getX();
+	}
 
-    public double getLatitude() {
-        return coordinate.getY();
-    }
+	public double getLatitude() {
+		return coordinate.getY();
+	}
 
-    @Override
-    public String toString() {
-        return "GeographicPoint2d{" +
-            "longitude=" + getLongitude() +
-            ", latitude=" + getLatitude() +
-            ", srid=" + getSrid() +
-            '}';
-    }
+	@Override
+	public String toString() {
+		return "GeographicPoint2d{" + "longitude=" + getLongitude() + ", latitude=" + getLatitude() + ", srid=" + getSrid()
+				+ '}';
+	}
 }

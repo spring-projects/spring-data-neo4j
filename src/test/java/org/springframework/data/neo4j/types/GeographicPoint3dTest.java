@@ -23,16 +23,16 @@ import org.junit.jupiter.api.Test;
  * @author Michael J. Simons
  */
 class GeographicPoint3dTest {
-    @Test
-    public void constructorShouldSetCorrectFields() {
+	@Test
+	public void constructorShouldSetCorrectFields() {
 
-        double latitude = 48.793889;
-        double longitude = 9.226944;
-        double elevation = 300.0;
-        GeographicPoint3d geographicPoint = new GeographicPoint3d(latitude, longitude, elevation);
+		double latitude = 48.793889;
+		double longitude = 9.226944;
+		double elevation = 300.0;
+		GeographicPoint3d geographicPoint = new GeographicPoint3d(latitude, longitude, elevation);
 
-        assertThat(geographicPoint.getLatitude()).isEqualTo(latitude);
-        assertThat(geographicPoint.getLongitude()).isEqualTo(longitude);
-        assertThat(geographicPoint.getHeight()).isEqualTo(elevation);
-    }
+		assertThat(geographicPoint.getLatitude()).isEqualTo(latitude);
+		assertThat(geographicPoint.getLongitude()).isEqualTo(longitude);
+		assertThat(geographicPoint.getHeight()).isEqualTo(elevation);
+	}
 }

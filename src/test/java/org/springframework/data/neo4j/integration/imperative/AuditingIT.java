@@ -40,8 +40,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 class AuditingIT extends AuditingITBase {
 
-
-	@Autowired AuditingIT(Driver driver) {
+	@Autowired
+	AuditingIT(Driver driver) {
 		super(driver);
 	}
 
@@ -80,7 +80,7 @@ class AuditingIT extends AuditingITBase {
 
 	@Test
 	void auditingOfEntityWithGeneratedIdCreationShouldWork(
-		@Autowired ImmutableEntityWithGeneratedIdRepository repository) {
+			@Autowired ImmutableEntityWithGeneratedIdRepository repository) {
 
 		ImmutableAuditableThingWithGeneratedId thing = new ImmutableAuditableThingWithGeneratedId("A thing");
 		thing = repository.save(thing);
@@ -96,10 +96,9 @@ class AuditingIT extends AuditingITBase {
 
 	@Test
 	void auditingOfEntityWithGeneratedIdModificationShouldWork(
-		@Autowired ImmutableEntityWithGeneratedIdRepository repository) {
+			@Autowired ImmutableEntityWithGeneratedIdRepository repository) {
 
-		ImmutableAuditableThingWithGeneratedId thing = repository
-			.findById(idOfExistingThingWithGeneratedId).get();
+		ImmutableAuditableThingWithGeneratedId thing = repository.findById(idOfExistingThingWithGeneratedId).get();
 
 		thing = thing.withName("A new name");
 		thing = repository.save(thing);
@@ -115,17 +114,16 @@ class AuditingIT extends AuditingITBase {
 		verifyDatabase(idOfExistingThingWithGeneratedId, thing);
 	}
 
-	interface ImmutableEntityTestRepository extends Neo4jRepository<ImmutableAuditableThing, Long> {
-	}
+	interface ImmutableEntityTestRepository extends Neo4jRepository<ImmutableAuditableThing, Long> {}
 
 	interface ImmutableEntityWithGeneratedIdRepository
-		extends Neo4jRepository<ImmutableAuditableThingWithGeneratedId, String> {
-	}
+			extends Neo4jRepository<ImmutableAuditableThingWithGeneratedId, String> {}
 
 	@Configuration
 	@EnableTransactionManagement
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
-	@EnableNeo4jAuditing(modifyOnCreate = false, auditorAwareRef = "auditorProvider", dateTimeProviderRef = "fixedDateTimeProvider")
+	@EnableNeo4jAuditing(modifyOnCreate = false, auditorAwareRef = "auditorProvider",
+			dateTimeProviderRef = "fixedDateTimeProvider")
 	static class Config extends AbstractNeo4jConfig {
 
 		@Bean

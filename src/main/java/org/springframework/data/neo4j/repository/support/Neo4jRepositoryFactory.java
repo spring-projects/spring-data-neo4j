@@ -70,8 +70,8 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		RepositoryFragments fragments = RepositoryFragments.empty();
 
-		Object byExampleExecutor = getTargetRepositoryViaReflection(
-			SimpleQueryByExampleExecutor.class, neo4jOperations, mappingContext);
+		Object byExampleExecutor = getTargetRepositoryViaReflection(SimpleQueryByExampleExecutor.class, neo4jOperations,
+				mappingContext);
 
 		fragments = fragments.append(RepositoryFragment.implemented(byExampleExecutor));
 

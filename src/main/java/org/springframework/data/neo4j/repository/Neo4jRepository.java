@@ -28,7 +28,7 @@ import org.springframework.data.repository.query.QueryByExampleExecutor;
  *
  * @author Michael J. Simons
  * @author Ján Šúr
- * @param <T>  type of the domain class to map
+ * @param <T> type of the domain class to map
  * @param <ID> identifier type in the domain class
  * @since 1.0
  */
@@ -39,7 +39,8 @@ public interface Neo4jRepository<T, ID> extends PagingAndSortingRepository<T, ID
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.CrudRepository#saveAll(java.lang.Iterable)
 	 */
-	@Override <S extends T> List<S> saveAll(Iterable<S> entities);
+	@Override
+	<S extends T> List<S> saveAll(Iterable<S> entities);
 
 	/*
 	 * (non-Javadoc)
@@ -66,11 +67,13 @@ public interface Neo4jRepository<T, ID> extends PagingAndSortingRepository<T, ID
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example)
 	 */
-	@Override <S extends T> List<S> findAll(Example<S> example);
+	@Override
+	<S extends T> List<S> findAll(Example<S> example);
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.query.QueryByExampleExecutor#findAll(org.springframework.data.domain.Example, org.springframework.data.domain.Sort)
 	 */
-	@Override <S extends T> List<S> findAll(Example<S> example, Sort sort);
+	@Override
+	<S extends T> List<S> findAll(Example<S> example, Sort sort);
 }

@@ -50,11 +50,9 @@ class EnableNeo4jRepositoriesTests {
 	}
 
 	@EnableNeo4jRepositories(BASE_PACKAGES_VALUE)
-	private class EnableRepositoryConfigWithValue {
-	}
+	private class EnableRepositoryConfigWithValue {}
 
 	@EnableNeo4jRepositories(basePackages = BASE_PACKAGES_VALUE)
-	private class EnableRepositoryConfigWithBasePackages {
-	}
+	private class EnableRepositoryConfigWithBasePackages {}
 
 }

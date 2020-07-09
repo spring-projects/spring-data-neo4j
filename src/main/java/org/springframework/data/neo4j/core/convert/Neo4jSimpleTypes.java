@@ -45,7 +45,8 @@ import org.springframework.data.neo4j.types.GeographicPoint3d;
  * to simple properties as well as to relationships to other things.
  * <p>
  * The Java driver itself has a good overview of the supported types:
- * <a href="https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system">The Cypher type system</a>.
+ * <a href="https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system">The Cypher type
+ * system</a>.
  *
  * @author Michael J. Simons
  * @since 1.0
@@ -90,6 +91,5 @@ public final class Neo4jSimpleTypes {
 	 */
 	public static final SimpleTypeHolder HOLDER = new SimpleTypeHolder(NEO4J_NATIVE_TYPES, true);
 
-	private Neo4jSimpleTypes() {
-	}
+	private Neo4jSimpleTypes() {}
 }

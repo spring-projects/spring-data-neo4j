@@ -33,11 +33,9 @@ import org.springframework.data.neo4j.core.schema.Property;
 @ToString
 public class PersonWithNoConstructor {
 
-	@Id @GeneratedValue
-	private Long id;
+	@Id @GeneratedValue private Long id;
 
 	private String name;
 
-	@Property("first_name")
-	private String firstName;
+	@Property("first_name") private String firstName;
 }

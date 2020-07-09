@@ -57,9 +57,8 @@ class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleE
 	public <S extends T> Mono<S> findOne(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-			.returning(asterisk())
-			.build();
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf).returning(asterisk())
+				.build();
 
 		return this.neo4jOperations.findOne(statement, predicate.getParameters(), example.getProbeType());
 	}
@@ -68,9 +67,8 @@ class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleE
 	public <S extends T> Flux<S> findAll(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-			.returning(asterisk())
-			.build();
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf).returning(asterisk())
+				.build();
 
 		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
 	}
@@ -79,9 +77,8 @@ class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleE
 	public <S extends T> Flux<S> findAll(Example<S> example, Sort sort) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-			.returning(asterisk())
-			.orderBy(toSortItems(predicate.getNeo4jPersistentEntity(), sort)).build();
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf).returning(asterisk())
+				.orderBy(toSortItems(predicate.getNeo4jPersistentEntity(), sort)).build();
 
 		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
 	}
@@ -91,8 +88,7 @@ class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleE
 
 		Predicate predicate = Predicate.create(mappingContext, example);
 		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-			.returning(Functions.count(asterisk()))
-			.build();
+				.returning(Functions.count(asterisk())).build();
 
 		return this.neo4jOperations.count(statement, predicate.getParameters());
 	}

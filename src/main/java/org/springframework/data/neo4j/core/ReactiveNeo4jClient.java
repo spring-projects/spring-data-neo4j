@@ -73,8 +73,9 @@ public interface ReactiveNeo4jClient {
 	/**
 	 * Delegates interaction with the default database to the given callback.
 	 *
-	 * @param callback A function receiving a reactive statement runner for database interaction that can optionally return a publisher with none or exactly one element
-	 * @param <T>      The type of the result being produced
+	 * @param callback A function receiving a reactive statement runner for database interaction that can optionally
+	 *          return a publisher with none or exactly one element
+	 * @param <T> The type of the result being produced
 	 * @return A single publisher containing none or exactly one element that will be produced by the callback
 	 */
 	<T> OngoingDelegation<T> delegateTo(Function<RxQueryRunner, Mono<T>> callback);
@@ -86,8 +87,8 @@ public interface ReactiveNeo4jClient {
 	interface MappingSpec<T> extends RecordFetchSpec<T> {
 
 		/**
-		 * The mapping function is responsible to turn one record into one domain object. It will receive the record
-		 * itself and in addition, the type system that the Neo4j Java-Driver used while executing the query.
+		 * The mapping function is responsible to turn one record into one domain object. It will receive the record itself
+		 * and in addition, the type system that the Neo4j Java-Driver used while executing the query.
 		 *
 		 * @param mappingFunction The mapping function used to create new domain objects
 		 * @return A specification how to fetch one or more records.
@@ -124,7 +125,9 @@ public interface ReactiveNeo4jClient {
 	}
 
 	/**
-	 * Contract for a runnable query that can be either run returning it's result, run without results or be parameterized.
+	 * Contract for a runnable query that can be either run returning it's result, run without results or be
+	 * parameterized.
+	 *
 	 * @since 1.0
 	 */
 	interface RunnableSpec extends RunnableSpecTightToDatabase {
@@ -140,6 +143,7 @@ public interface ReactiveNeo4jClient {
 
 	/**
 	 * Contract for a runnable query inside a dedicated database.
+	 *
 	 * @since 1.0
 	 */
 	interface RunnableSpecTightToDatabase extends BindSpec<RunnableSpecTightToDatabase> {
@@ -148,7 +152,7 @@ public interface ReactiveNeo4jClient {
 		 * Create a mapping for each record return to a specific type.
 		 *
 		 * @param targetClass The class each record should be mapped to
-		 * @param <T>         The type of the class
+		 * @param <T> The type of the class
 		 * @return A mapping spec that allows specifying a mapping function
 		 */
 		<T> MappingSpec<T> fetchAs(Class<T> targetClass);
@@ -161,8 +165,8 @@ public interface ReactiveNeo4jClient {
 		RecordFetchSpec<Map<String, Object>> fetch();
 
 		/**
-		 * Execute the query and discard the results. It returns the drivers result summary, including various counters
-		 * and other statistics.
+		 * Execute the query and discard the results. It returns the drivers result summary, including various counters and
+		 * other statistics.
 		 *
 		 * @return A mono containing the native summary of the query.
 		 */

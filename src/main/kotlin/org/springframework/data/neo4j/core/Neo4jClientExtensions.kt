@@ -20,7 +20,7 @@ import org.neo4j.driver.types.TypeSystem
 import java.util.function.BiFunction
 
 /**
- * Extension for [Neo4jClient.RunnableSpec.in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
+ * Extension for [Neo4jClient.RunnableSpec. in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
  *
  * @author Michael J. Simons
  * @since 1.0
@@ -29,7 +29,7 @@ fun Neo4jClient.RunnableSpec.inDatabase(targetDatabase: String): Neo4jClient.Run
         `in`(targetDatabase)
 
 /**
- * Extension for [Neo4jClient.OngoingDelegation.in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
+ * Extension for [Neo4jClient.OngoingDelegation. in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
  *
  * @author Michael J. Simons
  * @since 1.0
@@ -41,7 +41,7 @@ fun <T : Any?> Neo4jClient.OngoingDelegation<T>.inDatabase(targetDatabase: Strin
  * A fetch spec that replaces Java's Optional with a nullable.
  * @author Michael J. Simons
  */
-class KRecordFetchSpec<T : Any> (private val delegate: Neo4jClient.RecordFetchSpec<T>) {
+class KRecordFetchSpec<T : Any>(private val delegate: Neo4jClient.RecordFetchSpec<T>) {
     fun one(): T? = delegate.one().orElse(null)
 
     fun first(): T = delegate.first().orElse(null)
@@ -55,7 +55,7 @@ class KRecordFetchSpec<T : Any> (private val delegate: Neo4jClient.RecordFetchSp
  */
 class KMappingSpec<T : Any>(private val delegate: Neo4jClient.MappingSpec<T>) {
     fun mappedBy(mappingFunction: BiFunction<TypeSystem, Record, T>): KRecordFetchSpec<T> =
-			KRecordFetchSpec(delegate.mappedBy(mappingFunction))
+            KRecordFetchSpec(delegate.mappedBy(mappingFunction))
 
     fun one(): T? = delegate.one().orElse(null)
 
@@ -70,7 +70,7 @@ class KMappingSpec<T : Any>(private val delegate: Neo4jClient.MappingSpec<T>) {
  * @since 1.0
  */
 inline fun <reified T : Any> Neo4jClient.RunnableSpecTightToDatabase.fetchAs(): KMappingSpec<T> =
-		KMappingSpec(fetchAs(T::class.java))
+        KMappingSpec(fetchAs(T::class.java))
 
 /**
  * Extension for [Neo4jClient.RunnableSpecTightToDatabase.mappedBy] leveraging reified type parameters and removing
@@ -79,6 +79,6 @@ inline fun <reified T : Any> Neo4jClient.RunnableSpecTightToDatabase.fetchAs(): 
  * @since 1.0
  */
 inline fun <reified T : Any> Neo4jClient.RunnableSpecTightToDatabase.mappedBy(
-    noinline mappingFunction: (TypeSystem, Record) -> T
+        noinline mappingFunction: (TypeSystem, Record) -> T
 ) =
-		KRecordFetchSpec(fetchAs(T::class.java).mappedBy(mappingFunction))
+        KRecordFetchSpec(fetchAs(T::class.java).mappedBy(mappingFunction))

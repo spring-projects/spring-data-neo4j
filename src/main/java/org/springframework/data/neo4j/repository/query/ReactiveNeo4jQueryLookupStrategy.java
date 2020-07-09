@@ -41,9 +41,8 @@ public final class ReactiveNeo4jQueryLookupStrategy implements QueryLookupStrate
 	private final Neo4jMappingContext mappingContext;
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 
-	public ReactiveNeo4jQueryLookupStrategy(ReactiveNeo4jOperations neo4jOperations,
-		Neo4jMappingContext mappingContext,
-		QueryMethodEvaluationContextProvider evaluationContextProvider) {
+	public ReactiveNeo4jQueryLookupStrategy(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
+			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
 		this.evaluationContextProvider = evaluationContextProvider;
@@ -54,18 +53,17 @@ public final class ReactiveNeo4jQueryLookupStrategy implements QueryLookupStrate
 	 */
 	@Override
 	public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
-		NamedQueries namedQueries) {
+			NamedQueries namedQueries) {
 
 		Neo4jQueryMethod queryMethod = new ReactiveNeo4jQueryMethod(method, metadata, factory);
 		String namedQueryName = queryMethod.getNamedQueryName();
 
 		if (namedQueries.hasQuery(namedQueryName)) {
-			return ReactiveStringBasedNeo4jQuery
-				.create(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
-				namedQueries.getQuery(namedQueryName));
+			return ReactiveStringBasedNeo4jQuery.create(neo4jOperations, mappingContext, evaluationContextProvider,
+					queryMethod, namedQueries.getQuery(namedQueryName));
 		} else if (queryMethod.hasQueryAnnotation()) {
-			return ReactiveStringBasedNeo4jQuery
-				.create(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod);
+			return ReactiveStringBasedNeo4jQuery.create(neo4jOperations, mappingContext, evaluationContextProvider,
+					queryMethod);
 		} else {
 			return ReactivePartTreeNeo4jQuery.create(neo4jOperations, mappingContext, queryMethod);
 		}

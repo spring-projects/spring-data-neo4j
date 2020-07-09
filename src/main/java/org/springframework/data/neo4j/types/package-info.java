@@ -1,5 +1,5 @@
 /**
- * Additional types provided by SDN/RX.
+ * Additional types provided by SDN.
  */
 @NonNullApi
 package org.springframework.data.neo4j.types;

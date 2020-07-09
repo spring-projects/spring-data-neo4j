@@ -24,13 +24,13 @@ import java.lang.annotation.Target;
 import org.apiguardian.api.API;
 
 /**
- * This annotation can be used on a field of type {@link java.util.Collection Collection&lt;String&gt;}. The content
- * of this field will be treated as dynamic or runtime managed labels. This means: All labels that are not statically
+ * This annotation can be used on a field of type {@link java.util.Collection Collection&lt;String&gt;}. The content of
+ * this field will be treated as dynamic or runtime managed labels. This means: All labels that are not statically
  * defined via the class hierarchy and the corresponding {@link Node @Node} annotation are added to this list while
  * loading the entity and all values contained in the collection will be added to the nodes labels.
  * <p>
- * Labels not defined through the class hierarchy or the list of dynamic labels will be removed from the database
- * when {@link DynamicLabels @DynamicLabels} is used.
+ * Labels not defined through the class hierarchy or the list of dynamic labels will be removed from the database when
+ * {@link DynamicLabels @DynamicLabels} is used.
  *
  * @author Michael J. Simons
  * @soundtrack Danger Dan - Nudeln und Klopapier

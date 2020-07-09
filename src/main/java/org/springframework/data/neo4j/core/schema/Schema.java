@@ -30,7 +30,7 @@ import org.springframework.data.neo4j.core.convert.Neo4jConverter;
 import org.springframework.lang.Nullable;
 
 /**
- * Contains the descriptions of all nodes, their properties and relationships known to SDN-RX.
+ * Contains the descriptions of all nodes, their properties and relationships known to SDN.
  *
  * @author Michael J. Simons
  * @since 1.0
@@ -39,7 +39,7 @@ import org.springframework.lang.Nullable;
 public interface Schema {
 
 	/**
-	 * Registers  the given set of classes to be available as Neo4j domain entities.
+	 * Registers the given set of classes to be available as Neo4j domain entities.
 	 *
 	 * @param initialEntitySet The set of classes to register with this schema
 	 */
@@ -56,7 +56,8 @@ public interface Schema {
 	 * @param primaryLabel The primary label under which the node is described
 	 * @return The description if any, null otherwise
 	 */
-	@Nullable NodeDescription<?> getNodeDescription(String primaryLabel);
+	@Nullable
+	NodeDescription<?> getNodeDescription(String primaryLabel);
 
 	/**
 	 * Retrieves a nodes description by its underlying class.
@@ -64,7 +65,8 @@ public interface Schema {
 	 * @param underlyingClass The underlying class of the node description to be retrieved
 	 * @return The description if any, null otherwise
 	 */
-	@Nullable NodeDescription<?> getNodeDescription(Class<?> underlyingClass);
+	@Nullable
+	NodeDescription<?> getNodeDescription(Class<?> underlyingClass);
 
 	default NodeDescription<?> getRequiredNodeDescription(Class<?> underlyingClass) {
 		NodeDescription<?> nodeDescription = getNodeDescription(underlyingClass);
@@ -78,24 +80,23 @@ public interface Schema {
 		NodeDescription<?> nodeDescription = getNodeDescription(primaryLabel);
 		if (nodeDescription == null) {
 			throw new MappingException(
-				String.format("Required node description not found with primary label '%s'", primaryLabel));
+					String.format("Required node description not found with primary label '%s'", primaryLabel));
 		}
 		return nodeDescription;
 	}
 
-
 	/**
-	 * Retrieves a schema based mapping function for the {@code targetClass}. The mapping function will expect a
-	 * record containing all the nodes and relationships necessary to fully populate an instance of the given class.
-	 * It will not try to fetch data from any other records or queries. The mapping function is free to throw a {@link RuntimeException},
-	 * most likely a {@code org.springframework.data.mapping.MappingException} or {@link IllegalStateException} when
-	 * mapping is not possible.
+	 * Retrieves a schema based mapping function for the {@code targetClass}. The mapping function will expect a record
+	 * containing all the nodes and relationships necessary to fully populate an instance of the given class. It will not
+	 * try to fetch data from any other records or queries. The mapping function is free to throw a
+	 * {@link RuntimeException}, most likely a {@code org.springframework.data.mapping.MappingException} or
+	 * {@link IllegalStateException} when mapping is not possible.
 	 * <p>
-	 * In case the mapping function returns a {@literal null}, the Neo4j client will throw an exception and prevent further
-	 * processing.
+	 * In case the mapping function returns a {@literal null}, the Neo4j client will throw an exception and prevent
+	 * further processing.
 	 *
 	 * @param targetClass The target class to which to map to.
-	 * @param <T>         Type of the target class
+	 * @param <T> Type of the target class
 	 * @return The default, stateless and reusable mapping function for the given target class
 	 * @throws UnknownEntityException When {@code targetClass} is not a managed class
 	 */
@@ -123,8 +124,8 @@ public interface Schema {
 	}
 
 	/**
-	 * Creates or retrieves an instance of the given id generator class. During the lifetime of the schema,
-	 * this method returns the same instance of reoccurring requests of the same type.
+	 * Creates or retrieves an instance of the given id generator class. During the lifetime of the schema, this method
+	 * returns the same instance of reoccurring requests of the same type.
 	 *
 	 * @param idGeneratorType The type of the ID generator to return
 	 * @return The id generator.

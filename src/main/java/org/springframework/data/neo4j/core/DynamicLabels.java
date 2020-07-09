@@ -31,8 +31,7 @@ import org.springframework.data.neo4j.core.schema.Constants;
  *
  * @author Michael J. Simons
  */
-final class DynamicLabels
-	implements UnaryOperator<OngoingMatchAndUpdate> {
+final class DynamicLabels implements UnaryOperator<OngoingMatchAndUpdate> {
 
 	public static final DynamicLabels EMPTY = new DynamicLabels(Collections.emptyList(), Collections.emptyList());
 

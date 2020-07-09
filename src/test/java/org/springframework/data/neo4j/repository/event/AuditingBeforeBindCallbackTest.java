@@ -46,7 +46,7 @@ class AuditingBeforeBindCallbackTest {
 		mappingContext.initialize();
 
 		IsNewAwareAuditingHandler originalHandler = new IsNewAwareAuditingHandler(
-			new PersistentEntities(Arrays.asList(mappingContext)));
+				new PersistentEntities(Arrays.asList(mappingContext)));
 		spyOnHandler = spy(originalHandler);
 		callback = new AuditingBeforeBindCallback(() -> spyOnHandler);
 	}

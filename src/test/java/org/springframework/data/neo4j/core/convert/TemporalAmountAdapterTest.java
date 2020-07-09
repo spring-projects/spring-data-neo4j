@@ -34,20 +34,18 @@ class TemporalAmountAdapterTest {
 		final TemporalAmountAdapter adapter = new TemporalAmountAdapter();
 
 		assertThat(adapter.apply(Values.isoDuration(1, 0, 0, 0).asIsoDuration())).isEqualTo(Period.ofMonths(1));
-		assertThat(adapter.apply(Values.isoDuration(1, 1, 0, 0).asIsoDuration()))
-			.isEqualTo(Period.ofMonths(1).plusDays(1));
+		assertThat(adapter.apply(Values.isoDuration(1, 1, 0, 0).asIsoDuration())).isEqualTo(Period.ofMonths(1).plusDays(1));
 		assertThat(adapter.apply(Values.isoDuration(1, 1, 1, 0).asIsoDuration()))
-			.isEqualTo(Values.isoDuration(1, 1, 1, 0).asIsoDuration());
+				.isEqualTo(Values.isoDuration(1, 1, 1, 0).asIsoDuration());
 		assertThat(adapter.apply(Values.isoDuration(0, 0, 120, 1).asIsoDuration()))
-			.isEqualTo(Duration.ofMinutes(2).plusNanos(1));
+				.isEqualTo(Duration.ofMinutes(2).plusNanos(1));
 	}
 
 	@Test
 	public void durationsShouldStayDurations() {
 		final TemporalAmountAdapter adapter = new TemporalAmountAdapter();
 
-		Duration duration =
-			MONTHS.getDuration().multipliedBy(13).plus(DAYS.getDuration().multipliedBy(32)).plusHours(25)
+		Duration duration = MONTHS.getDuration().multipliedBy(13).plus(DAYS.getDuration().multipliedBy(32)).plusHours(25)
 				.plusMinutes(120);
 
 		assertThat(adapter.apply(Values.value(duration).asIsoDuration())).isEqualTo(duration);

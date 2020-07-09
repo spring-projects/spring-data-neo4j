@@ -66,8 +66,7 @@ interface Neo4jQueryExecution {
 		@Override
 		public Object execute(PreparedQuery preparedQuery, boolean asCollectionQuery) {
 
-			Mono<ReactiveNeo4jOperations.ExecutableQuery> executableQuery = neo4jOperations
-				.toExecutableQuery(preparedQuery);
+			Mono<ReactiveNeo4jOperations.ExecutableQuery> executableQuery = neo4jOperations.toExecutableQuery(preparedQuery);
 			if (asCollectionQuery) {
 				return executableQuery.flatMapMany(q -> q.getResults());
 			} else {

@@ -51,32 +51,26 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 
 	/**
 	 * A set of the temporal types that are directly passable to the driver and support a meaningful comparision in a
-	 * temporal sense (after, before).
-	 * See <a href="See https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system" />
+	 * temporal sense (after, before). See
+	 * <a href="See https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system" />
 	 */
-	private static final Set<Class<?>> COMPARABLE_TEMPORAL_TYPES = Collections
-		.unmodifiableSet(new HashSet<>(Arrays.asList(LocalDate.class, OffsetTime.class, ZonedDateTime.class,
-			LocalDateTime.class, Instant.class)));
+	private static final Set<Class<?>> COMPARABLE_TEMPORAL_TYPES = Collections.unmodifiableSet(new HashSet<>(
+			Arrays.asList(LocalDate.class, OffsetTime.class, ZonedDateTime.class, LocalDateTime.class, Instant.class)));
 
-	private static final EnumSet<Part.Type> TYPES_SUPPORTING_CASE_INSENSITIVITY = EnumSet
-		.of(Part.Type.CONTAINING, Part.Type.ENDING_WITH, Part.Type.LIKE, Part.Type.NEGATING_SIMPLE_PROPERTY,
-			Part.Type.NOT_CONTAINING,
+	private static final EnumSet<Part.Type> TYPES_SUPPORTING_CASE_INSENSITIVITY = EnumSet.of(Part.Type.CONTAINING,
+			Part.Type.ENDING_WITH, Part.Type.LIKE, Part.Type.NEGATING_SIMPLE_PROPERTY, Part.Type.NOT_CONTAINING,
 			Part.Type.NOT_LIKE, Part.Type.SIMPLE_PROPERTY, Part.Type.STARTING_WITH);
 
 	private final PartTree tree;
 
 	public static RepositoryQuery create(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-		Neo4jQueryMethod queryMethod) {
+			Neo4jQueryMethod queryMethod) {
 		return new PartTreeNeo4jQuery(neo4jOperations, mappingContext, queryMethod,
-			new PartTree(queryMethod.getName(), queryMethod.getDomainClass()));
+				new PartTree(queryMethod.getName(), queryMethod.getDomainClass()));
 	}
 
-	private PartTreeNeo4jQuery(
-		Neo4jOperations neo4jOperations,
-		Neo4jMappingContext mappingContext,
-		Neo4jQueryMethod queryMethod,
-		PartTree tree
-	) {
+	private PartTreeNeo4jQuery(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
+			Neo4jQueryMethod queryMethod, PartTree tree) {
 		super(neo4jOperations, mappingContext, queryMethod, Neo4jQueryType.fromPartTree(tree));
 
 		this.tree = tree;
@@ -86,23 +80,17 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 	}
 
 	@Override
-	protected <T extends Object> PreparedQuery<T> prepareQuery(
-		Class<T> returnedType, List<String> includedProperties, Neo4jParameterAccessor parameterAccessor,
-		@Nullable Neo4jQueryType queryType,
-		@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction) {
+	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, List<String> includedProperties,
+			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
+			@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction) {
 
-		CypherQueryCreator queryCreator = new CypherQueryCreator(
-			mappingContext, domainType, Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,
-			includedProperties,
-			this::convertParameter
-		);
+		CypherQueryCreator queryCreator = new CypherQueryCreator(mappingContext, domainType,
+				Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,
+				includedProperties, this::convertParameter);
 
 		QueryAndParameters queryAndParameters = queryCreator.createQuery();
 
-		return PreparedQuery.queryFor(returnedType)
-			.withCypherQuery(queryAndParameters.getQuery())
-			.withParameters(queryAndParameters.getParameters())
-			.usingMappingFunction(mappingFunction)
-			.build();
+		return PreparedQuery.queryFor(returnedType).withCypherQuery(queryAndParameters.getQuery())
+				.withParameters(queryAndParameters.getParameters()).usingMappingFunction(mappingFunction).build();
 	}
 }

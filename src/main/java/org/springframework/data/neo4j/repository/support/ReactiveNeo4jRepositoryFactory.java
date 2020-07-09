@@ -76,7 +76,7 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 		RepositoryFragments fragments = RepositoryFragments.empty();
 
 		SimpleReactiveQueryByExampleExecutor byExampleExecutor = getTargetRepositoryViaReflection(
-			SimpleReactiveQueryByExampleExecutor.class, neo4jOperations, mappingContext);
+				SimpleReactiveQueryByExampleExecutor.class, neo4jOperations, mappingContext);
 
 		fragments = fragments.append(RepositoryFragment.implemented(byExampleExecutor));
 
@@ -94,10 +94,10 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 	 */
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
-		QueryMethodEvaluationContextProvider evaluationContextProvider) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 		return Optional
-			.of(new ReactiveNeo4jQueryLookupStrategy(neo4jOperations, mappingContext, evaluationContextProvider));
+				.of(new ReactiveNeo4jQueryLookupStrategy(neo4jOperations, mappingContext, evaluationContextProvider));
 	}
 
 	@Override
@@ -107,8 +107,8 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 
 		if (beanFactory instanceof ListableBeanFactory) {
 			addRepositoryProxyPostProcessor((factory, repositoryInformation) -> {
-				ReactivePersistenceExceptionTranslationInterceptor advice
-					= new ReactivePersistenceExceptionTranslationInterceptor((ListableBeanFactory) beanFactory);
+				ReactivePersistenceExceptionTranslationInterceptor advice = new ReactivePersistenceExceptionTranslationInterceptor(
+						(ListableBeanFactory) beanFactory);
 				factory.addAdvice(advice);
 			});
 		}

@@ -38,14 +38,12 @@ class Neo4jAuditingRegistrarTest {
 	@Test
 	public void rejectsNullAnnotationMetadata() {
 
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> registrar.registerBeanDefinitions(null, registry));
+		assertThatIllegalArgumentException().isThrownBy(() -> registrar.registerBeanDefinitions(null, registry));
 	}
 
 	@Test
 	public void rejectsNullBeanDefinitionRegistry() {
 
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> registrar.registerBeanDefinitions(metadata, null));
+		assertThatIllegalArgumentException().isThrownBy(() -> registrar.registerBeanDefinitions(metadata, null));
 	}
 }

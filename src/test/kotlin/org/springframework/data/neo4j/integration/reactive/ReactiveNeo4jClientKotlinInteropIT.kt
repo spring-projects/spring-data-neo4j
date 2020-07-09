@@ -46,8 +46,8 @@ import reactor.test.StepVerifier
 @Neo4jIntegrationTest
 @Tag(NEEDS_REACTIVE_SUPPORT)
 class ReactiveNeo4jClientKotlinInteropIT @Autowired constructor(
-    private val driver: Driver,
-    private val neo4jClient: ReactiveNeo4jClient
+        private val driver: Driver,
+        private val neo4jClient: ReactiveNeo4jClient
 ) {
 
     companion object {
@@ -89,11 +89,11 @@ class ReactiveNeo4jClientKotlinInteropIT @Autowired constructor(
 
         val queen = neo4jClient
                 .query("MATCH (b:Band {name: \$name}) - [:HAS_MEMBER] -> (m)" +
-                    " RETURN b as band, collect(m.name) as members")
+                        " RETURN b as band, collect(m.name) as members")
                 .bind("Queen").to("name")
                 .mappedBy { _, r ->
                     val members = r["members"].asList { v -> Artist(v.asString()) }
-					Band(r["band"]["name"].asString(), members)
+                    Band(r["band"]["name"].asString(), members)
                 }.one()
 
         StepVerifier.create(queen)
@@ -111,10 +111,10 @@ class ReactiveNeo4jClientKotlinInteropIT @Autowired constructor(
 
         runBlocking {
             val artists = neo4jClient
-                .query("MATCH (m:Member) RETURN m ORDER BY m.name ASC")
-                .mappedBy(recordToArtist)
-                .fetchAll()
-                .toList()
+                    .query("MATCH (m:Member) RETURN m ORDER BY m.name ASC")
+                    .mappedBy(recordToArtist)
+                    .fetchAll()
+                    .toList()
 
             assertThat(artists).hasSize(7)
             assertThat(artists.map { it.name }).contains("Bela", "Roger")
@@ -122,10 +122,10 @@ class ReactiveNeo4jClientKotlinInteropIT @Autowired constructor(
 
         runBlocking {
             val freddie = neo4jClient
-                .query("MATCH (m:Member) WHERE m.name =~ \$needle RETURN m ORDER BY m.name ASC")
-                .bind("Fre.*").to("needle")
-                .mappedBy(recordToArtist)
-                .awaitOneOrNull()
+                    .query("MATCH (m:Member) WHERE m.name =~ \$needle RETURN m ORDER BY m.name ASC")
+                    .bind("Fre.*").to("needle")
+                    .mappedBy(recordToArtist)
+                    .awaitOneOrNull()
 
             assertThat(freddie).isNotNull
         }

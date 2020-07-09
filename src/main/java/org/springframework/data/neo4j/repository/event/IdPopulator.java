@@ -68,9 +68,8 @@ final class IdPopulator {
 		Optional<String> optionalIdGeneratorRef = idDescription.getIdGeneratorRef();
 		if (optionalIdGeneratorRef.isPresent()) {
 
-			idGenerator = neo4jMappingContext
-				.getIdGenerator(optionalIdGeneratorRef.get()).orElseThrow(() -> new IllegalStateException(
-					"Id generator named " + optionalIdGeneratorRef.get() + " not found!"));
+			idGenerator = neo4jMappingContext.getIdGenerator(optionalIdGeneratorRef.get()).orElseThrow(
+					() -> new IllegalStateException("Id generator named " + optionalIdGeneratorRef.get() + " not found!"));
 		} else {
 
 			// At this point, the class must be present, so we don't check the optional not anymore

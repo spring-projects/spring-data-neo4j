@@ -38,7 +38,8 @@ public interface ReactiveDatabaseSelectionProvider {
 	Mono<DatabaseSelection> getDatabaseSelection();
 
 	/**
-	 * Creates a statically configured database selection provider always selecting the database with the given name {@code databaseName}.
+	 * Creates a statically configured database selection provider always selecting the database with the given name
+	 * {@code databaseName}.
 	 *
 	 * @param databaseName The database name to use, must not be null nor empty.
 	 * @return A statically configured database name provider.

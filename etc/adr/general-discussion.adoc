@@ -1,4 +1,4 @@
-= General architectural discussions about Spring Data Neo4j⚡️RX
+= General architectural discussions about Spring Data Neo4j
 
 [abstract]
 --
@@ -25,7 +25,7 @@ So far we have identified the following modules:
 * Lifecycle: Lifecycle must not depend directly on mapping, but should only care whether an Object and its Relations are managed or not
 * Querying: Generates cypher queries, depends on schema
 
-Those will be reassembled as packages inside Spring Data Neo4j RX.
+Those will be reassembled as packages inside Spring Data Neo4j.
 There are no short-term planes to create additional artifacts from those.
 
 [[schema]]
@@ -42,8 +42,8 @@ That way we we can avoid a compile time dependency to Spring Data and have an in
 Spring Data JDBC doesn't restrict the supported or scanned classes from Spring Data sides.
 Our schema should also support non-annotated classes and be smart about naming things, but we will require at least the `@Node` or `@Relationship` annotation to the outside world.
 
-The schema will life independent from Spring classes in `org.neo4j.springframework.data.core.schema`.
-Each property of a class that is not identified as a simple type by `org.neo4j.springframework.data.core.schema.Neo4jSimpleTypes` will be considered describing a relationship and thus required to be part of the schema as well.
+The schema will life independent from Spring classes in `org.springframework.data.neo4j.core.schema`.
+Each property of a class that is not identified as a simple type by `org.springframework.data.neo4j.core.schema.Neo4jSimpleTypes` will be considered describing a relationship and thus required to be part of the schema as well.
 
 ==== Context
 
@@ -87,7 +87,7 @@ static class BikeNode {
 
 === "Rich" relationships
 
-There should be no means of using a relationship as aggregate root in SDN/RX (like it is today the case with `@RelationshipEntity`).
+There should be no means of using a relationship as aggregate root in SDN (like it is today the case with `@RelationshipEntity`).
 Instead we suggest that properties of relationships are mapped to POJOs.
 This has the following requirements:
 On the node representing the start node, the relationship (either 1:1 or 1:n) has to be annotated with `@Relationship` specifying the type of the end node like this:
@@ -140,13 +140,13 @@ Integration tests will get executed withing the `verify` goal and their class na
 
 == Configuration
 
-Spring Data Neo4j RX takes a "ready to use" drivers instance and uses that.
+Spring Data Neo4j takes a "ready to use" drivers instance and uses that.
 We won't provide any additional configuration for aspects that are configurable through the driver.
 We will however provide support to configure the drivers instance in Spring Boot.
 The current SDN Spring Boot Starter only configures the Neo4j-OGM transport and not the "real" driver.
 Our plans for a future starter a have been <<starter,described separately>>.
 
-Closing the driver is not the the concern of Spring Data Neo4j RX.
+Closing the driver is not the the concern of Spring Data Neo4j.
 The lifecycle of that bean should be managed by the application.
 Therefore, the starter need to take care of register the drivers instance with the application.
 
@@ -162,7 +162,7 @@ It is only meant to be a basic for discussions.
 ----
 @startuml
 note "Implementation of Spring Data Commons SPI" as SDC_note
-package "org.neo4j.springframework.data" {
+package "org.springframework.data.neo4j" {
 package "core" {
     interface Neo4jClient
     interface ReactiveNeo4jClient
@@ -286,7 +286,7 @@ and executes it through the `neo4jOperations` (`Neo4jTemplate`) class.
 
 === Dirty tracking
 
-We considered several approaches of dirty tracking in SDN/RX:
+We considered several approaches of dirty tracking in SDN:
 
 . No dirty tracking at all.
     _Not an option when it comes to relationships._
@@ -299,12 +299,12 @@ We considered several approaches of dirty tracking in SDN/RX:
 We have settled with option 1 (See ADR-004), analogue to Spring Data JDBC.
 
 [[starter]]
-== Spring Data Neo4j⚡️RX Spring Boot Starter
+== Spring Data Neo4j Spring Boot Starter
 
-The Spring Data Neo4j RX Spring Boot Starter provides automatic configuration to
+The Spring Data Neo4j Spring Boot Starter provides automatic configuration to
 
 * Create an instance of the https://github.com/neo4j/neo4j-java-driver[neo4j-java-driver]
-* Configure Spring Data Neo4j RX itself inside a Spring Boot application and enabling Spring Data repositories
+* Configure Spring Data Neo4j itself inside a Spring Boot application and enabling Spring Data repositories
 
 === Architectural guidelines and principles
 
@@ -313,17 +313,17 @@ we don't use https://projectlombok.org[Lombok] currently in the starter as none 
 
 ==== Project hierarchy and dependency management
 
-While the starter is a module of SDN/RX itself, it's actual parent project is `org.springframework.boot:spring-boot-starter-parent`.
+While the starter is a module of SDN itself, it's actual parent project is `org.springframework.boot:spring-boot-starter-parent`.
 Thus we stay consistent with all other Spring Boot starters, that are actually part of Spring Boot.
 
 ==== Responsibilities
 
-The starter and it's automatic configuration is responsible for configuring Spring Data Neo4j RX repositories and infrastructure.
+The starter and it's automatic configuration is responsible for configuring Spring Data Neo4j repositories and infrastructure.
 It needs a configured Neo4j Java Driver and therefor is itself dependent on `org.neo4j.driver:neo4j-java-driver-spring-boot-starter`,
 the official starter for the Neo4j Java Driver.
 
-Having the starter provide automatic configuration is in accordance with the plans for Spring Data Neo4j RX.
-Spring Data Neo4j RX should only deal with configured, ready to use driver objects and not be responsible for configuring those.
+Having the starter provide automatic configuration is in accordance with the plans for Spring Data Neo4j.
+Spring Data Neo4j should only deal with configured, ready to use driver objects and not be responsible for configuring those.
 
 === Future plans
 

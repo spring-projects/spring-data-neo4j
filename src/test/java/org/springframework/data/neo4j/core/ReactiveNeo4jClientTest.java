@@ -54,31 +54,23 @@ import org.neo4j.driver.types.TypeSystem;
 @ExtendWith(MockitoExtension.class)
 class ReactiveNeo4jClientTest {
 
-	@Mock
-	private Driver driver;
+	@Mock private Driver driver;
 
-	@Mock
-	private TypeSystem typeSystem;
+	@Mock private TypeSystem typeSystem;
 
 	private ArgumentCaptor<SessionConfig> configArgumentCaptor = ArgumentCaptor.forClass(SessionConfig.class);
 
-	@Mock
-	private RxSession session;
+	@Mock private RxSession session;
 
-	@Mock
-	private RxResult result;
+	@Mock private RxResult result;
 
-	@Mock
-	private RxTransaction transaction;
+	@Mock private RxTransaction transaction;
 
-	@Mock
-	private ResultSummary resultSummary;
+	@Mock private ResultSummary resultSummary;
 
-	@Mock
-	private Record record1;
+	@Mock private Record record1;
 
-	@Mock
-	private Record record2;
+	@Mock private Record record2;
 
 	void prepareMocks() {
 
@@ -111,23 +103,13 @@ class ReactiveNeo4jClientTest {
 		parameters.put("bikeName", "M.*");
 		parameters.put("location", "Sweden");
 
-		String cypher = "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike) - [:USED_ON] -> (t:Trip) " +
-			"WHERE t.takenOn > $aDate " +
-			"  AND b.name =~ $bikeName " +
-			"  AND t.location = $location " +
-			"RETURN b";
+		String cypher = "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike) - [:USED_ON] -> (t:Trip) "
+				+ "WHERE t.takenOn > $aDate " + "  AND b.name =~ $bikeName " + "  AND t.location = $location " + "RETURN b";
 
-		Flux<Map<String, Object>> usedBikes = client
-			.query(cypher)
-			.bind("michael").to("name")
-			.bindAll(parameters)
-			.bind(LocalDate.of(2019, 1, 1)).to("aDate")
-			.fetch()
-			.all();
+		Flux<Map<String, Object>> usedBikes = client.query(cypher).bind("michael").to("name").bindAll(parameters)
+				.bind(LocalDate.of(2019, 1, 1)).to("aDate").fetch().all();
 
-		StepVerifier.create(usedBikes)
-			.expectNextCount(2L)
-			.verifyComplete();
+		StepVerifier.create(usedBikes).expectNextCount(2L).verifyComplete();
 
 		verifyDatabaseSelection(null);
 
@@ -157,16 +139,10 @@ class ReactiveNeo4jClientTest {
 		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 
 		String cypher = "MATCH (u:User) WHERE u.name =~ $name";
-		Mono<Map<String, Object>> firstMatchingUser = client
-			.query(cypher)
-			.in("bikingDatabase")
-			.bind("Someone.*").to("name")
-			.fetch()
-			.first();
+		Mono<Map<String, Object>> firstMatchingUser = client.query(cypher).in("bikingDatabase").bind("Someone.*").to("name")
+				.fetch().first();
 
-		StepVerifier.create(firstMatchingUser)
-			.expectNextCount(1L)
-			.verifyComplete();
+		StepVerifier.create(firstMatchingUser).expectNextCount(1L).verifyComplete();
 
 		verifyDatabaseSelection("bikingDatabase");
 
@@ -192,7 +168,7 @@ class ReactiveNeo4jClientTest {
 		String[] invalidDatabaseNames = { "", " ", "\t" };
 		for (String invalidDatabaseName : invalidDatabaseNames) {
 			assertThatIllegalArgumentException()
-				.isThrownBy(() -> client.delegateTo(r -> Mono.empty()).in(invalidDatabaseName));
+					.isThrownBy(() -> client.delegateTo(r -> Mono.empty()).in(invalidDatabaseName));
 		}
 
 		for (String invalidDatabaseName : invalidDatabaseNames) {
@@ -214,13 +190,9 @@ class ReactiveNeo4jClientTest {
 			when(transaction.commit()).thenReturn(Mono.empty());
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
-			Mono<Integer> singleResult = client
-				.delegateTo(runner -> Mono.just(21))
-				.run();
+			Mono<Integer> singleResult = client.delegateTo(runner -> Mono.just(21)).run();
 
-			StepVerifier.create(singleResult)
-				.expectNext(21)
-				.verifyComplete();
+			StepVerifier.create(singleResult).expectNext(21).verifyComplete();
 
 			verifyDatabaseSelection(null);
 
@@ -237,14 +209,9 @@ class ReactiveNeo4jClientTest {
 			when(transaction.commit()).thenReturn(Mono.empty());
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
-			Mono<Integer> singleResult = client
-				.delegateTo(runner -> Mono.just(21))
-				.in("aDatabase")
-				.run();
+			Mono<Integer> singleResult = client.delegateTo(runner -> Mono.just(21)).in("aDatabase").run();
 
-			StepVerifier.create(singleResult)
-				.expectNext(21)
-				.verifyComplete();
+			StepVerifier.create(singleResult).expectNext(21).verifyComplete();
 
 			verifyDatabaseSelection("aDatabase");
 
@@ -270,19 +237,13 @@ class ReactiveNeo4jClientTest {
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 
-			String cypher = "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike)" +
-				"RETURN o, collect(b) as bikes";
+			String cypher = "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike)" + "RETURN o, collect(b) as bikes";
 
 			Neo4jClientTest.BikeOwnerReader mappingFunction = new Neo4jClientTest.BikeOwnerReader();
-			Flux<Neo4jClientTest.BikeOwner> bikeOwners = client
-				.query(cypher)
-				.bind("michael").to("name")
-				.fetchAs(Neo4jClientTest.BikeOwner.class).mappedBy(mappingFunction)
-				.all();
+			Flux<Neo4jClientTest.BikeOwner> bikeOwners = client.query(cypher).bind("michael").to("name")
+					.fetchAs(Neo4jClientTest.BikeOwner.class).mappedBy(mappingFunction).all();
 
-			StepVerifier.create(bikeOwners)
-				.expectNextMatches(o -> o.getName().equals("michael"))
-				.verifyComplete();
+			StepVerifier.create(bikeOwners).expectNextMatches(o -> o.getName().equals("michael")).verifyComplete();
 
 			verifyDatabaseSelection(null);
 
@@ -308,24 +269,21 @@ class ReactiveNeo4jClientTest {
 			when(record1.get("name")).thenReturn(Values.value("michael"));
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
-			Flux<Neo4jClientTest.BikeOwner> bikeOwners = client
-				.query("MATCH (n) RETURN n")
-				.fetchAs(Neo4jClientTest.BikeOwner.class).mappedBy((t, r) -> {
-					if (r == record1) {
-						return new Neo4jClientTest.BikeOwner(r.get("name").asString(), Collections.emptyList());
-					} else {
-						return null;
-					}
-				})
-				.all();
+			Flux<Neo4jClientTest.BikeOwner> bikeOwners = client.query("MATCH (n) RETURN n")
+					.fetchAs(Neo4jClientTest.BikeOwner.class).mappedBy((t, r) -> {
+						if (r == record1) {
+							return new Neo4jClientTest.BikeOwner(r.get("name").asString(), Collections.emptyList());
+						} else {
+							return null;
+						}
+					}).all();
 
-			StepVerifier.create(bikeOwners)
-				.expectNextCount(1)
-				.verifyError();
+			StepVerifier.create(bikeOwners).expectNextCount(1).verifyError();
 
 			verifyDatabaseSelection(null);
 
-			verify(transaction).run(eq("MATCH (n) RETURN n"), argThat(new Neo4jClientTest.MapAssertionMatcher(Collections.emptyMap())));
+			verify(transaction).run(eq("MATCH (n) RETURN n"),
+					argThat(new Neo4jClientTest.MapAssertionMatcher(Collections.emptyMap())));
 			verify(result).records();
 			verify(record1).get("name");
 			verify(transaction).commit();
@@ -345,20 +303,15 @@ class ReactiveNeo4jClientTest {
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 
-			Neo4jClientTest.BikeOwner michael = new Neo4jClientTest.BikeOwner("Michael", Arrays.asList(new Neo4jClientTest.Bike("Road"), new Neo4jClientTest.Bike("MTB")));
-			String cypher = "MERGE (u:User {name: 'Michael'}) "
-				+ "WITH u UNWIND $bikes as bike "
-				+ "MERGE (b:Bike {name: bike}) "
-				+ "MERGE (u) - [o:OWNS] -> (b) ";
+			Neo4jClientTest.BikeOwner michael = new Neo4jClientTest.BikeOwner("Michael",
+					Arrays.asList(new Neo4jClientTest.Bike("Road"), new Neo4jClientTest.Bike("MTB")));
+			String cypher = "MERGE (u:User {name: 'Michael'}) " + "WITH u UNWIND $bikes as bike "
+					+ "MERGE (b:Bike {name: bike}) " + "MERGE (u) - [o:OWNS] -> (b) ";
 
-			Mono<ResultSummary> summary = client
-				.query(cypher)
-				.bind(michael).with(new Neo4jClientTest.BikeOwnerBinder())
-				.run();
+			Mono<ResultSummary> summary = client.query(cypher).bind(michael).with(new Neo4jClientTest.BikeOwnerBinder())
+					.run();
 
-			StepVerifier.create(summary)
-				.expectNext(resultSummary)
-				.verifyComplete();
+			StepVerifier.create(summary).expectNext(resultSummary).verifyComplete();
 
 			verifyDatabaseSelection(null);
 
@@ -387,14 +340,9 @@ class ReactiveNeo4jClientTest {
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 
 			String cypher = "MATCH (b:Bike) RETURN count(b)";
-			Mono<Long> numberOfBikes = client
-				.query(cypher)
-				.fetchAs(Long.class)
-				.one();
+			Mono<Long> numberOfBikes = client.query(cypher).fetchAs(Long.class).one();
 
-			StepVerifier.create(numberOfBikes)
-				.expectNext(23L)
-				.verifyComplete();
+			StepVerifier.create(numberOfBikes).expectNext(23L).verifyComplete();
 
 			verifyDatabaseSelection(null);
 
@@ -420,14 +368,9 @@ class ReactiveNeo4jClientTest {
 
 		String cypher = "DETACH DELETE (b) WHERE name = $name";
 
-		Mono<ResultSummary> deletionResult = client
-			.query(cypher)
-			.bind("fixie").to("name")
-			.run();
+		Mono<ResultSummary> deletionResult = client.query(cypher).bind("fixie").to("name").run();
 
-		StepVerifier.create(deletionResult)
-			.expectNext(resultSummary)
-			.verifyComplete();
+		StepVerifier.create(deletionResult).expectNext(resultSummary).verifyComplete();
 
 		verifyDatabaseSelection(null);
 

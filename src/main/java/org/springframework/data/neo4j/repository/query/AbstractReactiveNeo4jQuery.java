@@ -41,7 +41,7 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 	protected final ReactiveNeo4jOperations neo4jOperations;
 
 	AbstractReactiveNeo4jQuery(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-		Neo4jQueryMethod queryMethod, Neo4jQueryType queryType) {
+			Neo4jQueryMethod queryMethod, Neo4jQueryType queryType) {
 
 		super(mappingContext, queryMethod, queryType);
 
@@ -61,16 +61,15 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 		ResultProcessor resultProcessor = queryMethod.getResultProcessor().withDynamicProjection(parameterAccessor);
 
 		PreparedQuery<?> preparedQuery = prepareQuery(resultProcessor.getReturnedType().getReturnedType(),
-			getInputProperties(resultProcessor), parameterAccessor, null, getMappingFunction(resultProcessor));
+				getInputProperties(resultProcessor), parameterAccessor, null, getMappingFunction(resultProcessor));
 
-		Object rawResult = new Neo4jQueryExecution.ReactiveQueryExecution(neo4jOperations).execute(
-			preparedQuery, queryMethod.isCollectionLikeQuery());
+		Object rawResult = new Neo4jQueryExecution.ReactiveQueryExecution(neo4jOperations).execute(preparedQuery,
+				queryMethod.isCollectionLikeQuery());
 
 		return resultProcessor.processResult(rawResult, OptionalUnwrappingConverter.INSTANCE);
 	}
 
-	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(
-		Class<T> returnedType, List<String> includedProperties, Neo4jParameterAccessor parameterAccessor,
-		@Nullable Neo4jQueryType queryType,
-		@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction);
+	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
+			List<String> includedProperties, Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
+			@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction);
 }

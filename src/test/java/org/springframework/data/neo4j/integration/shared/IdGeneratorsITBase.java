@@ -49,7 +49,7 @@ public abstract class IdGeneratorsITBase {
 		try (Transaction transaction = driver.session().beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.run("CREATE (t:ThingWithGeneratedId {name: $name, theId: $theId}) RETURN id(t) as id",
-				Values.parameters("name", EXISTING_THING_NAME, "theId", ID_OF_EXISTING_THING));
+					Values.parameters("name", EXISTING_THING_NAME, "theId", ID_OF_EXISTING_THING));
 			transaction.commit();
 		}
 	}
@@ -57,10 +57,8 @@ public abstract class IdGeneratorsITBase {
 	protected void verifyDatabase(String id, String name) {
 
 		try (Session session = driver.session()) {
-			Node node = session
-				.run("MATCH (t) WHERE t.theId = $theId RETURN t",
-					Values.parameters("theId", id))
-				.single().get("t").asNode();
+			Node node = session.run("MATCH (t) WHERE t.theId = $theId RETURN t", Values.parameters("theId", id)).single()
+					.get("t").asNode();
 
 			assertThat(node.get("name").asString()).isEqualTo(name);
 			assertThat(node.get("theId").asString()).isEqualTo(id);

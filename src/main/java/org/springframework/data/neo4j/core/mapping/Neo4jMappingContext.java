@@ -45,15 +45,15 @@ import org.springframework.lang.Nullable;
 
 /**
  * An implementation of both a {@link Schema} as well as a Neo4j version of Spring Data's
- * {@link org.springframework.data.mapping.context.MappingContext}. It is recommended to provide
- * the initial set of classes through {@link #setInitialEntitySet(Set)}.
+ * {@link org.springframework.data.mapping.context.MappingContext}. It is recommended to provide the initial set of
+ * classes through {@link #setInitialEntitySet(Set)}.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public final class Neo4jMappingContext
-	extends AbstractMappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty> implements Schema {
+public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty>
+		implements Schema {
 
 	/**
 	 * A map of fallback id generators, that have not been added to the application context
@@ -61,8 +61,8 @@ public final class Neo4jMappingContext
 	private final Map<Class<? extends IdGenerator<?>>, IdGenerator<?>> idGenerators = new ConcurrentHashMap<>();
 
 	/**
-	 * The {@link NodeDescriptionStore} is basically a {@link Map} and it is used to break the dependency
-	 * cycle between this class and the {@link DefaultNeo4jConverter}.
+	 * The {@link NodeDescriptionStore} is basically a {@link Map} and it is used to break the dependency cycle between
+	 * this class and the {@link DefaultNeo4jConverter}.
 	 */
 	private final NodeDescriptionStore nodeDescriptionStore = new NodeDescriptionStore();
 
@@ -107,28 +107,25 @@ public final class Neo4jMappingContext
 
 		if (this.nodeDescriptionStore.containsKey(primaryLabel)) {
 			// @formatter:off
-			throw new MappingException(
-				String.format(Locale.ENGLISH, "The schema already contains a node description under the primary label %s",
-						primaryLabel));
+			throw new MappingException(String.format(Locale.ENGLISH,
+					"The schema already contains a node description under the primary label %s", primaryLabel));
 			// @formatter:on
 		}
 
 		if (this.nodeDescriptionStore.containsValue(newEntity)) {
-			Optional<String> label = this.nodeDescriptionStore.entrySet().stream()
-				.filter(e -> e.getValue().equals(newEntity)).map(
-					Map.Entry::getKey).findFirst();
+			Optional<String> label = this.nodeDescriptionStore.entrySet().stream().filter(e -> e.getValue().equals(newEntity))
+					.map(Map.Entry::getKey).findFirst();
 
-			throw new MappingException(
-				String.format(Locale.ENGLISH, "The schema already contains description %s under the primary label %s",
-					newEntity, label.orElse("n/a")));
+			throw new MappingException(String.format(Locale.ENGLISH,
+					"The schema already contains description %s under the primary label %s", newEntity, label.orElse("n/a")));
 		}
 
 		NodeDescription<?> existingDescription = this.getNodeDescription(newEntity.getUnderlyingClass());
 		if (existingDescription != null) {
 
 			throw new MappingException(String.format(Locale.ENGLISH,
-				"The schema already contains description with the underlying class %s under the primary label %s",
-				newEntity.getUnderlyingClass().getName(), existingDescription.getPrimaryLabel()));
+					"The schema already contains description with the underlying class %s under the primary label %s",
+					newEntity.getUnderlyingClass().getName(), existingDescription.getPrimaryLabel()));
 		}
 
 		this.nodeDescriptionStore.put(primaryLabel, newEntity);
@@ -163,8 +160,8 @@ public final class Neo4jMappingContext
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentProperty(org.springframework.data.mapping.model.Property, org.springframework.data.mapping.model.MutablePersistentEntity, org.springframework.data.mapping.model.SimpleTypeHolder)
 	 */
 	@Override
-	protected Neo4jPersistentProperty createPersistentProperty(Property property,
-		Neo4jPersistentEntity<?> owner, SimpleTypeHolder simpleTypeHolder) {
+	protected Neo4jPersistentProperty createPersistentProperty(Property property, Neo4jPersistentEntity<?> owner,
+			SimpleTypeHolder simpleTypeHolder) {
 
 		return new DefaultNeo4jPersistentProperty(property, owner, this, simpleTypeHolder);
 	}
@@ -196,7 +193,7 @@ public final class Neo4jMappingContext
 				idGenerator = BeanUtils.instantiateClass(idGeneratorType);
 			} else {
 				idGenerator = this.beanFactory.getBeanProvider(idGeneratorType)
-					.getIfUnique(() -> this.beanFactory.createBean(idGeneratorType));
+						.getIfUnique(() -> this.beanFactory.createBean(idGeneratorType));
 			}
 			this.idGenerators.put(idGeneratorType, idGenerator);
 			return idGenerator;

@@ -37,18 +37,18 @@ import org.springframework.util.Assert;
 /**
  * Mapping of spatial types.
  * <p>
- * This replicates the behaviour of SDN+OGM. Spring Data Commons geographic points are x/y based and usually treat
- * x/y as lat/long.
+ * This replicates the behaviour of SDN+OGM. Spring Data Commons geographic points are x/y based and usually treat x/y
+ * as lat/long.
  * <p>
- * Neo4j however stores x/y as long/lat when used with an Srid of 4326 or 4979 (those are geographic points). We
- * take this into account with our dedicated spatial types which can be used alternatively.
+ * Neo4j however stores x/y as long/lat when used with an Srid of 4326 or 4979 (those are geographic points). We take
+ * this into account with our dedicated spatial types which can be used alternatively.
  * <p>
- * However, when converting an Spring Data Commons point to the internal value, you'll notice that we store y as x and vice versa.
- * This is intentionally. We use a hardcoded WGS-84 Srid during storage, thus you'll get back your x as latitude, y as longitude, as
- * described above.
+ * However, when converting an Spring Data Commons point to the internal value, you'll notice that we store y as x and
+ * vice versa. This is intentionally. We use a hardcoded WGS-84 Srid during storage, thus you'll get back your x as
+ * latitude, y as longitude, as described above.
  * <p>
- * The biggest degree of freedom will come from using an attribute of type {@link org.neo4j.driver.types.Point} directly.
- * This will be passed on as is.
+ * The biggest degree of freedom will come from using an attribute of type {@link org.neo4j.driver.types.Point}
+ * directly. This will be passed on as is.
  *
  * @author Michael J. Simons
  * @since 1.0
@@ -60,13 +60,10 @@ final class SpatialTypes {
 	static {
 
 		List<ConverterBuilder.ConverterAware> hlp = new ArrayList<>();
-		hlp.add(reading(Value.class, Point.class, SpatialTypes::asSpringDataPoint)
-			.andWriting(SpatialTypes::value));
-		hlp.add(reading(Value.class, Point[].class, SpatialTypes::asPointArray)
-			.andWriting(SpatialTypes::value));
+		hlp.add(reading(Value.class, Point.class, SpatialTypes::asSpringDataPoint).andWriting(SpatialTypes::value));
+		hlp.add(reading(Value.class, Point[].class, SpatialTypes::asPointArray).andWriting(SpatialTypes::value));
 
-		hlp.add(reading(Value.class, Neo4jPoint.class, SpatialTypes::asNeo4jPoint)
-			.andWriting(SpatialTypes::value));
+		hlp.add(reading(Value.class, Neo4jPoint.class, SpatialTypes::asNeo4jPoint).andWriting(SpatialTypes::value));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
 	}
@@ -92,8 +89,7 @@ final class SpatialTypes {
 			return Values.point(point.getSrid(), point.getLongitude(), point.getLatitude());
 		} else if (object instanceof GeographicPoint3d) {
 			GeographicPoint3d point = (GeographicPoint3d) object;
-			return Values.point(point.getSrid(), point.getLongitude(), point.getLatitude(),
-				point.getHeight());
+			return Values.point(point.getSrid(), point.getLongitude(), point.getLatitude(), point.getHeight());
 		} else {
 			throw new IllegalArgumentException("Unsupported point implementation: " + object.getClass());
 		}
@@ -134,6 +130,5 @@ final class SpatialTypes {
 		return Values.value(values);
 	}
 
-	private SpatialTypes() {
-	}
+	private SpatialTypes() {}
 }

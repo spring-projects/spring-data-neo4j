@@ -27,17 +27,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 class DefaultNeo4jPersistentPropertyTest {
 
 	@ParameterizedTest
-	@CsvSource({
-		"aName, A_NAME",
-		"ANumberedNam3, A_NUMBERED_NAM_3",
-		"Foo3Bar, FOO_3_BAR",
-		"Foo3BaR, FOO_3_BA_R",
-		"foo3BaR, FOO_3_BA_R",
-		"🖖someThing, 🖖_SOME_THING",
-		"$someThing, $_SOME_THING",
-		"$$some33Thing, $_$_SOME_3_3_THING",
-		"🧐someThing✋, 🧐_SOME_THING_✋",
-	})
+	@CsvSource({ "aName, A_NAME", "ANumberedNam3, A_NUMBERED_NAM_3", "Foo3Bar, FOO_3_BAR", "Foo3BaR, FOO_3_BA_R",
+			"foo3BaR, FOO_3_BA_R", "🖖someThing, 🖖_SOME_THING", "$someThing, $_SOME_THING",
+			"$$some33Thing, $_$_SOME_3_3_THING", "🧐someThing✋, 🧐_SOME_THING_✋", })
 	void toUpperSnakeCaseShouldWork(String name, String expectedEscapedName) {
 
 		assertThat(DefaultNeo4jPersistentProperty.deriveRelationshipType(name)).isEqualTo(expectedEscapedName);
@@ -46,14 +38,12 @@ class DefaultNeo4jPersistentPropertyTest {
 	@Test
 	void toUpperSnakeCaseShouldDealWithNull() {
 
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> DefaultNeo4jPersistentProperty.deriveRelationshipType(null));
+		assertThatIllegalArgumentException().isThrownBy(() -> DefaultNeo4jPersistentProperty.deriveRelationshipType(null));
 	}
 
 	@Test
 	void toUpperSnakeCaseShouldDealWithEmptyString() {
 
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> DefaultNeo4jPersistentProperty.deriveRelationshipType(""));
+		assertThatIllegalArgumentException().isThrownBy(() -> DefaultNeo4jPersistentProperty.deriveRelationshipType(""));
 	}
 }

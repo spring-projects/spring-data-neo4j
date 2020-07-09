@@ -73,21 +73,24 @@ public interface Neo4jClient {
 	/**
 	 * Delegates interaction with the default database to the given callback.
 	 *
-	 * @param callback A function receiving a statement runner for database interaction that can optionally return a result.
-	 * @param <T>      The type of the result being produced
+	 * @param callback A function receiving a statement runner for database interaction that can optionally return a
+	 *          result.
+	 * @param <T> The type of the result being produced
 	 * @return A single result object or an empty optional if the callback didn't produce a result
 	 */
 	<T> OngoingDelegation<T> delegateTo(Function<QueryRunner, Optional<T>> callback);
 
 	/**
-	 * Contract for a runnable query that can be either run returning it's result, run without results or be parameterized.
+	 * Contract for a runnable query that can be either run returning it's result, run without results or be
+	 * parameterized.
+	 *
 	 * @since 1.0
 	 */
 	interface RunnableSpec extends RunnableSpecTightToDatabase {
 
 		/**
-		 * Pins the previously defined query to a specific database. A value of {@literal null} chooses the default database.
-		 * The empty string {@literal ""} is not permitted.
+		 * Pins the previously defined query to a specific database. A value of {@literal null} chooses the default
+		 * database. The empty string {@literal ""} is not permitted.
 		 *
 		 * @param targetDatabase selected database to use
 		 * @return A runnable query specification that is now tight to a given database.
@@ -97,6 +100,7 @@ public interface Neo4jClient {
 
 	/**
 	 * Contract for a runnable query inside a dedicated database.
+	 *
 	 * @since 1.0
 	 */
 	interface RunnableSpecTightToDatabase extends BindSpec<RunnableSpecTightToDatabase> {
@@ -105,7 +109,7 @@ public interface Neo4jClient {
 		 * Create a mapping for each record return to a specific type.
 		 *
 		 * @param targetClass The class each record should be mapped to
-		 * @param <T>         The type of the class
+		 * @param <T> The type of the class
 		 * @return A mapping spec that allows specifying a mapping function.
 		 */
 		<T> MappingSpec<T> fetchAs(Class<T> targetClass);
@@ -118,8 +122,8 @@ public interface Neo4jClient {
 		RecordFetchSpec<Map<String, Object>> fetch();
 
 		/**
-		 * Execute the query and discard the results. It returns the drivers result summary, including various counters
-		 * and other statistics.
+		 * Execute the query and discard the results. It returns the drivers result summary, including various counters and
+		 * other statistics.
 		 *
 		 * @return The native summary of the query.
 		 */
@@ -176,8 +180,8 @@ public interface Neo4jClient {
 	interface MappingSpec<T> extends RecordFetchSpec<T> {
 
 		/**
-		 * The mapping function is responsible to turn one record into one domain object. It will receive the record
-		 * itself and in addition, the type system that the Neo4j Java-Driver used while executing the query.
+		 * The mapping function is responsible to turn one record into one domain object. It will receive the record itself
+		 * and in addition, the type system that the Neo4j Java-Driver used while executing the query.
 		 *
 		 * @param mappingFunction The mapping function used to create new domain objects
 		 * @return A specification how to fetch one or more records.
@@ -258,7 +262,7 @@ public interface Neo4jClient {
 		String newTargetDatabase = databaseName == null ? null : databaseName.trim();
 		if (newTargetDatabase != null && newTargetDatabase.isEmpty()) {
 			throw new IllegalArgumentException(
-				"Either use null to indicate the default database or a valid database name. The empty string is not permitted.");
+					"Either use null to indicate the default database or a valid database name. The empty string is not permitted.");
 		}
 		return newTargetDatabase;
 	}

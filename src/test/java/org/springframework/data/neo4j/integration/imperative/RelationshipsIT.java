@@ -43,7 +43,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 class RelationshipsIT extends RelationshipsITBase {
 
-	@Autowired RelationshipsIT(Driver driver) {
+	@Autowired
+	RelationshipsIT(Driver driver) {
 		super(driver);
 	}
 
@@ -56,14 +57,12 @@ class RelationshipsIT extends RelationshipsITBase {
 		p = repository.save(p);
 
 		Optional<MultipleRelationshipsThing> loadedThing = repository.findById(p.getId());
-		assertThat(loadedThing).isPresent()
-			.map(MultipleRelationshipsThing::getTypeA)
-			.map(MultipleRelationshipsThing::getName)
-			.hasValue("c");
+		assertThat(loadedThing).isPresent().map(MultipleRelationshipsThing::getTypeA)
+				.map(MultipleRelationshipsThing::getName).hasValue("c");
 
 		try (Session session = driver.session()) {
 			List<String> names = session.run("MATCH (n:MultipleRelationshipsThing) RETURN n.name AS name")
-				.list(r -> r.get("name").asString());
+					.list(r -> r.get("name").asString());
 			assertThat(names).hasSize(2).containsExactlyInAnyOrder("p", "c");
 		}
 	}
@@ -77,14 +76,12 @@ class RelationshipsIT extends RelationshipsITBase {
 		p = repository.save(p);
 
 		Optional<MultipleRelationshipsThing> loadedThing = repository.findById(p.getId());
-		assertThat(loadedThing).isPresent()
-			.map(MultipleRelationshipsThing::getTypeB)
-			.hasValueSatisfying(
-				l -> assertThat(l).extracting(MultipleRelationshipsThing::getName).containsExactly("c"));
+		assertThat(loadedThing).isPresent().map(MultipleRelationshipsThing::getTypeB)
+				.hasValueSatisfying(l -> assertThat(l).extracting(MultipleRelationshipsThing::getName).containsExactly("c"));
 
 		try (Session session = driver.session()) {
 			List<String> names = session.run("MATCH (n:MultipleRelationshipsThing) RETURN n.name AS name")
-				.list(r -> r.get("name").asString());
+					.list(r -> r.get("name").asString());
 			assertThat(names).hasSize(2).containsExactlyInAnyOrder("p", "c");
 		}
 	}
@@ -105,28 +102,27 @@ class RelationshipsIT extends RelationshipsITBase {
 		p = repository.save(p);
 
 		Optional<MultipleRelationshipsThing> loadedThing = repository.findById(p.getId());
-		assertThat(loadedThing).isPresent()
-			.hasValueSatisfying(t -> {
+		assertThat(loadedThing).isPresent().hasValueSatisfying(t -> {
 
-				MultipleRelationshipsThing typeA = t.getTypeA();
-				List<MultipleRelationshipsThing> typeB = t.getTypeB();
-				List<MultipleRelationshipsThing> typeC = t.getTypeC();
+			MultipleRelationshipsThing typeA = t.getTypeA();
+			List<MultipleRelationshipsThing> typeB = t.getTypeB();
+			List<MultipleRelationshipsThing> typeC = t.getTypeC();
 
-				assertThat(typeA).isNotNull();
-				assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
-				assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c2");
-				assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c3");
-			});
+			assertThat(typeA).isNotNull();
+			assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
+			assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c2");
+			assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c3");
+		});
 
 		try (Session session = driver.session()) {
 
-			List<String> names = session.run(
-				"MATCH (n:MultipleRelationshipsThing {name: 'p'}) - [r:TYPE_A|TYPE_B|TYPE_C] -> (o) RETURN r, o")
-				.list(record -> {
-					String type = record.get("r").asRelationship().type();
-					String name = record.get("o").get("name").asString();
-					return type + "_" + name;
-				});
+			List<String> names = session
+					.run("MATCH (n:MultipleRelationshipsThing {name: 'p'}) - [r:TYPE_A|TYPE_B|TYPE_C] -> (o) RETURN r, o")
+					.list(record -> {
+						String type = record.get("r").asRelationship().type();
+						String name = record.get("o").get("name").asString();
+						return type + "_" + name;
+					});
 			assertThat(names).containsExactlyInAnyOrder("TYPE_A_c1", "TYPE_B_c2", "TYPE_C_c3");
 		}
 	}
@@ -148,28 +144,27 @@ class RelationshipsIT extends RelationshipsITBase {
 		p = repository.save(p);
 
 		Optional<MultipleRelationshipsThing> loadedThing = repository.findById(p.getId());
-		assertThat(loadedThing).isPresent()
-			.hasValueSatisfying(t -> {
+		assertThat(loadedThing).isPresent().hasValueSatisfying(t -> {
 
-				MultipleRelationshipsThing typeA = t.getTypeA();
-				List<MultipleRelationshipsThing> typeB = t.getTypeB();
-				List<MultipleRelationshipsThing> typeC = t.getTypeC();
+			MultipleRelationshipsThing typeA = t.getTypeA();
+			List<MultipleRelationshipsThing> typeB = t.getTypeB();
+			List<MultipleRelationshipsThing> typeC = t.getTypeC();
 
-				assertThat(typeA).isNotNull();
-				assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
-				assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
-				assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
-			});
+			assertThat(typeA).isNotNull();
+			assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
+			assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
+			assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
+		});
 
 		try (Session session = driver.session()) {
 
-			List<String> names = session.run(
-				"MATCH (n:MultipleRelationshipsThing {name: 'p'}) - [r:TYPE_A|TYPE_B|TYPE_C] -> (o) RETURN r, o")
-				.list(record -> {
-					String type = record.get("r").asRelationship().type();
-					String name = record.get("o").get("name").asString();
-					return type + "_" + name;
-				});
+			List<String> names = session
+					.run("MATCH (n:MultipleRelationshipsThing {name: 'p'}) - [r:TYPE_A|TYPE_B|TYPE_C] -> (o) RETURN r, o")
+					.list(record -> {
+						String type = record.get("r").asRelationship().type();
+						String name = record.get("o").get("name").asString();
+						return type + "_" + name;
+					});
 			assertThat(names).containsExactlyInAnyOrder("TYPE_A_c1", "TYPE_B_c1", "TYPE_C_c1");
 		}
 	}
@@ -181,7 +176,7 @@ class RelationshipsIT extends RelationshipsITBase {
 	 */
 	@Test
 	void shouldSaveMultipleRelationshipsOfSameInstanceWithBackReference(
-		@Autowired MultipleRelationshipsThingRepository repository) {
+			@Autowired MultipleRelationshipsThingRepository repository) {
 
 		MultipleRelationshipsThing p = new MultipleRelationshipsThing("p");
 		MultipleRelationshipsThing c = new MultipleRelationshipsThing("c1");
@@ -194,18 +189,17 @@ class RelationshipsIT extends RelationshipsITBase {
 		p = repository.save(p);
 
 		Optional<MultipleRelationshipsThing> loadedThing = repository.findById(p.getId());
-		assertThat(loadedThing).isPresent()
-			.hasValueSatisfying(t -> {
+		assertThat(loadedThing).isPresent().hasValueSatisfying(t -> {
 
-				MultipleRelationshipsThing typeA = t.getTypeA();
-				List<MultipleRelationshipsThing> typeB = t.getTypeB();
-				List<MultipleRelationshipsThing> typeC = t.getTypeC();
+			MultipleRelationshipsThing typeA = t.getTypeA();
+			List<MultipleRelationshipsThing> typeB = t.getTypeB();
+			List<MultipleRelationshipsThing> typeC = t.getTypeC();
 
-				assertThat(typeA).isNotNull();
-				assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
-				assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
-				assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
-			});
+			assertThat(typeA).isNotNull();
+			assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
+			assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
+			assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
+		});
 
 		try (Session session = driver.session()) {
 
@@ -224,8 +218,7 @@ class RelationshipsIT extends RelationshipsITBase {
 		}
 	}
 
-	interface MultipleRelationshipsThingRepository extends CrudRepository<MultipleRelationshipsThing, Long> {
-	}
+	interface MultipleRelationshipsThingRepository extends CrudRepository<MultipleRelationshipsThing, Long> {}
 
 	@Configuration
 	@EnableTransactionManagement

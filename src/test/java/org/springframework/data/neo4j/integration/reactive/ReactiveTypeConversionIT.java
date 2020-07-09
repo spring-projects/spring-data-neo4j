@@ -58,7 +58,8 @@ class ReactiveTypeConversionIT {
 
 	private final Driver driver;
 
-	@Autowired ReactiveTypeConversionIT(Driver driver) {
+	@Autowired
+	ReactiveTypeConversionIT(Driver driver) {
 		this.driver = driver;
 	}
 
@@ -66,14 +67,10 @@ class ReactiveTypeConversionIT {
 	void idsShouldBeConverted(@Autowired ConvertedIDsRepository repository) {
 
 		List<ThingWithUUIDID> stored = new ArrayList<>();
-		StepVerifier.create(repository.save(new ThingWithUUIDID("a thing")))
-			.recordWith(() -> stored)
-			.expectNextCount(1L)
-			.verifyComplete();
+		StepVerifier.create(repository.save(new ThingWithUUIDID("a thing"))).recordWith(() -> stored).expectNextCount(1L)
+				.verifyComplete();
 
-		StepVerifier.create(repository.findById(stored.get(0).getId()))
-			.expectNextCount(1L)
-			.verifyComplete();
+		StepVerifier.create(repository.findById(stored.get(0).getId())).expectNextCount(1L).verifyComplete();
 	}
 
 	@Test
@@ -83,23 +80,18 @@ class ReactiveTypeConversionIT {
 		aThing.setAnotherThing(new ThingWithUUIDID("Another thing"));
 
 		List<ThingWithUUIDID> stored = new ArrayList<>();
-		StepVerifier.create(repository.save(aThing))
-			.recordWith(() -> stored)
-			.expectNextCount(1L)
-			.verifyComplete();
+		StepVerifier.create(repository.save(aThing)).recordWith(() -> stored).expectNextCount(1L).verifyComplete();
 
 		ThingWithUUIDID savedThing = stored.get(0);
 		assertThat(savedThing.getId()).isNotNull();
 		assertThat(savedThing.getAnotherThing().getId()).isNotNull();
 
-		StepVerifier.create(Flux.concat(repository.findById(savedThing.getId()),
-			repository.findById(savedThing.getAnotherThing().getId())))
-			.expectNextCount(2L)
-			.verifyComplete();
+		StepVerifier.create(
+				Flux.concat(repository.findById(savedThing.getId()), repository.findById(savedThing.getAnotherThing().getId())))
+				.expectNextCount(2L).verifyComplete();
 	}
 
-	public interface ConvertedIDsRepository extends ReactiveNeo4jRepository<ThingWithUUIDID, UUID> {
-	}
+	public interface ConvertedIDsRepository extends ReactiveNeo4jRepository<ThingWithUUIDID, UUID> {}
 
 	@Configuration
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)

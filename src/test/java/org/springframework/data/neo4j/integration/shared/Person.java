@@ -30,8 +30,7 @@ public class Person {
 	private String firstName;
 	private String lastName;
 
-	@Relationship("LIVES_AT")
-	private Address address;
+	@Relationship("LIVES_AT") private Address address;
 
 	@Node
 	static class Address {
@@ -52,11 +51,7 @@ public class Person {
 
 	@Override
 	public String toString() {
-		return "Person{" +
-			"id=" + id +
-			", firstName='" + firstName + '\'' +
-			", lastName='" + lastName + '\'' +
-			", address=" + address +
-			'}';
+		return "Person{" + "id=" + id + ", firstName='" + firstName + '\'' + ", lastName='" + lastName + '\'' + ", address="
+				+ address + '}';
 	}
 }

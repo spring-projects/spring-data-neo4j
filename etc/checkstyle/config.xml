@@ -105,7 +105,12 @@
         <module name="com.puppycrawl.tools.checkstyle.checks.whitespace.ParenPadCheck" />
         <module name="com.puppycrawl.tools.checkstyle.checks.whitespace.TypecastParenPadCheck" />
         <module name="com.puppycrawl.tools.checkstyle.checks.whitespace.WhitespaceAfterCheck" />
-        <module name="com.puppycrawl.tools.checkstyle.checks.whitespace.WhitespaceAroundCheck" />
+        <module name="com.puppycrawl.tools.checkstyle.checks.whitespace.WhitespaceAroundCheck">
+            <property name="allowEmptyTypes" value="true" />
+            <property name="allowEmptyConstructors" value="true" />
+            <property name="allowEmptyMethods" value="true" />
+            <property name="allowEmptyCatches" value="true" />
+        </module>
 
         <!-- We have some empty blocks and statements.  -->
         <module name="SuppressionCommentFilter"/>

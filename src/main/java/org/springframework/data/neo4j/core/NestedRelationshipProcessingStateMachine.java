@@ -34,10 +34,7 @@ import org.springframework.lang.Nullable;
 final class NestedRelationshipProcessingStateMachine {
 
 	enum ProcessState {
-		PROCESSED_NONE,
-		PROCESSED_BOTH,
-		PROCESSED_ONLY_RELATIONSHIP,
-		PROCESSED_ALL_VALUES
+		PROCESSED_NONE, PROCESSED_BOTH, PROCESSED_ONLY_RELATIONSHIP, PROCESSED_ALL_VALUES
 	}
 
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -56,7 +53,7 @@ final class NestedRelationshipProcessingStateMachine {
 
 	/**
 	 * @param relationshipDescription Check whether this relationship description has been processed
-	 * @param valuesToStore           Check whether all the values in the collection have been processed
+	 * @param valuesToStore Check whether all the values in the collection have been processed
 	 * @return The state of things processed
 	 */
 	ProcessState getStateOf(RelationshipDescription relationshipDescription, @Nullable Collection<?> valuesToStore) {
@@ -84,7 +81,7 @@ final class NestedRelationshipProcessingStateMachine {
 	 * Marks the passed objects as processed
 	 *
 	 * @param relationshipDescription To be marked as processed
-	 * @param valuesToStore           If not {@literal null}, all non-null values will be marked as processed
+	 * @param valuesToStore If not {@literal null}, all non-null values will be marked as processed
 	 */
 	void markAsProcessed(RelationshipDescription relationshipDescription, @Nullable Collection<?> valuesToStore) {
 

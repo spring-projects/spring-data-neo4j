@@ -55,8 +55,8 @@ import org.springframework.transaction.reactive.TransactionalOperator;
  * The goal of this tests is to ensure a sensible coexistence of declarative {@link Transactional @Transactional}
  * transaction when the user uses the {@link Neo4jClient} in the same or another database.
  * <p>
- * While it does not integrate against a real database (multi-database is an enterprise feature), it is still an integration
- * test due to the high integration with Spring framework code.
+ * While it does not integrate against a real database (multi-database is an enterprise feature), it is still an
+ * integration test due to the high integration with Spring framework code.
  */
 @ExtendWith(SpringExtension.class)
 class ReactiveTransactionManagerMixedDatabasesTest {
@@ -68,10 +68,8 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 
 	private final ReactiveNeo4jTransactionManager neo4jTransactionManager;
 
-	@Autowired ReactiveTransactionManagerMixedDatabasesTest(
-		Driver driver,
-		ReactiveNeo4jTransactionManager neo4jTransactionManager
-	) {
+	@Autowired
+	ReactiveTransactionManagerMixedDatabasesTest(Driver driver, ReactiveNeo4jTransactionManager neo4jTransactionManager) {
 
 		this.driver = driver;
 		this.neo4jTransactionManager = neo4jTransactionManager;
@@ -80,48 +78,36 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 	@Test
 	void withoutActiveTransactions(@Autowired ReactiveNeo4jClient neo4jClient) {
 
-		Mono<Long> numberOfNodes =
-			neo4jClient.query(TEST_QUERY).in(DATABASE_NAME).fetchAs(Long.class).one();
+		Mono<Long> numberOfNodes = neo4jClient.query(TEST_QUERY).in(DATABASE_NAME).fetchAs(Long.class).one();
 
-		StepVerifier
-			.create(numberOfNodes)
-			.expectNext(1L)
-			.verifyComplete();
+		StepVerifier.create(numberOfNodes).expectNext(1L).verifyComplete();
 	}
 
 	@Test
 	void usingTheSameDatabaseDeclarative(@Autowired WrapperService wrapperService) {
 
-		StepVerifier
-			.create(wrapperService.usingTheSameDatabaseDeclarative())
-			.expectNext(0L)
-			.verifyComplete();
+		StepVerifier.create(wrapperService.usingTheSameDatabaseDeclarative()).expectNext(0L).verifyComplete();
 	}
 
 	@Test
 	void usingSameDatabaseExplicitTx(@Autowired ReactiveNeo4jClient neo4jClient) {
 		ReactiveNeo4jTransactionManager otherTransactionManger = new ReactiveNeo4jTransactionManager(driver,
-			ReactiveDatabaseSelectionProvider.createStaticDatabaseSelectionProvider(DATABASE_NAME));
+				ReactiveDatabaseSelectionProvider.createStaticDatabaseSelectionProvider(DATABASE_NAME));
 		TransactionalOperator otherTransactionTemplate = TransactionalOperator.create(otherTransactionManger);
 
 		Mono<Long> numberOfNodes = neo4jClient.query(TEST_QUERY).in(DATABASE_NAME).fetchAs(Long.class).one()
-			.as(otherTransactionTemplate::transactional);
+				.as(otherTransactionTemplate::transactional);
 
-		StepVerifier
-			.create(numberOfNodes)
-			.expectNext(1L)
-			.verifyComplete();
+		StepVerifier.create(numberOfNodes).expectNext(1L).verifyComplete();
 	}
 
 	@Test
 	void usingAnotherDatabaseDeclarative(@Autowired WrapperService wrapperService) {
 
-		StepVerifier
-			.create(wrapperService.usingAnotherDatabaseDeclarative())
-			.expectErrorMatches(e ->
-				e instanceof IllegalStateException && e.getMessage().equals(
-					"There is already an ongoing Spring transaction for the default database, but you request 'boom'"))
-			.verify();
+		StepVerifier.create(wrapperService.usingAnotherDatabaseDeclarative())
+				.expectErrorMatches(e -> e instanceof IllegalStateException && e.getMessage()
+						.equals("There is already an ongoing Spring transaction for the default database, but you request 'boom'"))
+				.verify();
 	}
 
 	@Test
@@ -130,42 +116,35 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 		TransactionalOperator transactionTemplate = TransactionalOperator.create(neo4jTransactionManager);
 
 		Mono<Long> numberOfNodes = neo4jClient.query("MATCH (n) RETURN COUNT(n)").in(DATABASE_NAME).fetchAs(Long.class)
-			.one()
-			.as(transactionTemplate::transactional);
+				.one().as(transactionTemplate::transactional);
 
-		StepVerifier
-			.create(numberOfNodes)
-			.expectErrorMatches(e ->
-				e instanceof IllegalStateException && e.getMessage().equals(
-					"There is already an ongoing Spring transaction for the default database, but you request 'boom'"))
-			.verify();
+		StepVerifier.create(numberOfNodes)
+				.expectErrorMatches(e -> e instanceof IllegalStateException && e.getMessage()
+						.equals("There is already an ongoing Spring transaction for the default database, but you request 'boom'"))
+				.verify();
 	}
 
 	@Test
 	void usingAnotherDatabaseDeclarativeFromRepo(@Autowired ReactivePersonRepository repository) {
 
 		ReactiveNeo4jTransactionManager otherTransactionManger = new ReactiveNeo4jTransactionManager(driver,
-			ReactiveDatabaseSelectionProvider.createStaticDatabaseSelectionProvider(DATABASE_NAME));
+				ReactiveDatabaseSelectionProvider.createStaticDatabaseSelectionProvider(DATABASE_NAME));
 		TransactionalOperator otherTransactionTemplate = TransactionalOperator.create(otherTransactionManger);
 
-		Mono<PersonWithAllConstructor> p =
-			repository.save(new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
-				LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null))
+		Mono<PersonWithAllConstructor> p = repository.save(new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen",
+				true, 1509L, LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null))
 				.as(otherTransactionTemplate::transactional);
 
-		StepVerifier
-			.create(p)
-			.expectErrorMatches(e ->
-				e instanceof IllegalStateException && e.getMessage().equals(
-					"There is already an ongoing Spring transaction for 'boom', but you request the default database"))
-			.verify();
+		StepVerifier.create(p)
+				.expectErrorMatches(e -> e instanceof IllegalStateException && e.getMessage()
+						.equals("There is already an ongoing Spring transaction for 'boom', but you request the default database"))
+				.verify();
 	}
 
 	/**
-	 * We need this wrapper service, as reactive {@link Transactional @Transactional} annotated methods are not
-	 * recognized as such (See other also https://github.com/spring-projects/spring-framework/issues/23277).
-	 *
-	 * The class must be public to make the declarative transactions work. Please don't change its visibility.
+	 * We need this wrapper service, as reactive {@link Transactional @Transactional} annotated methods are not recognized
+	 * as such (See other also https://github.com/spring-projects/spring-framework/issues/23277). The class must be public
+	 * to make the declarative transactions work. Please don't change its visibility.
 	 */
 	public static class WrapperService {
 
@@ -228,8 +207,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 			RxSession defaultSession = mock(RxSession.class);
 			when(defaultSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(defaultResult);
 			when(defaultSession.beginTransaction()).thenReturn(Mono.just(defaultTransaction));
-			when(defaultSession.beginTransaction(any(TransactionConfig.class)))
-				.thenReturn(Mono.just(defaultTransaction));
+			when(defaultSession.beginTransaction(any(TransactionConfig.class))).thenReturn(Mono.just(defaultTransaction));
 			when(defaultSession.close()).thenReturn(Mono.empty());
 
 			Driver driver = mock(Driver.class);
@@ -237,7 +215,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 			when(driver.rxSession(any(SessionConfig.class))).then(invocation -> {
 				SessionConfig sessionConfig = invocation.getArgument(0);
 				return sessionConfig.database().map(n -> n.equals(DATABASE_NAME) ? boomSession : defaultSession)
-					.orElse(defaultSession);
+						.orElse(defaultSession);
 			});
 
 			return driver;

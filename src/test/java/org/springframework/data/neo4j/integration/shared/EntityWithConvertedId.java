@@ -22,15 +22,13 @@ import org.springframework.data.neo4j.core.schema.Id;
  */
 public class EntityWithConvertedId {
 
-	@Id
-	private IdentifyingEnum identifyingEnum;
+	@Id private IdentifyingEnum identifyingEnum;
 
 	public IdentifyingEnum getIdentifyingEnum() {
 		return identifyingEnum;
 	}
 
-	public void setIdentifyingEnum(
-		IdentifyingEnum identifyingEnum) {
+	public void setIdentifyingEnum(IdentifyingEnum identifyingEnum) {
 		this.identifyingEnum = identifyingEnum;
 	}
 
@@ -38,7 +36,6 @@ public class EntityWithConvertedId {
 	 * Could also be another type that gets converted inside the framework
 	 */
 	public enum IdentifyingEnum {
-		A,
-		B
+		A, B
 	}
 }

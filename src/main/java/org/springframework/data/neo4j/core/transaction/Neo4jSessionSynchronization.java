@@ -27,8 +27,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
  * @author Michael J. Simons
  * @since 1.0
  */
-final class Neo4jSessionSynchronization
-	extends ResourceHolderSynchronization<Neo4jTransactionHolder, Object> {
+final class Neo4jSessionSynchronization extends ResourceHolderSynchronization<Neo4jTransactionHolder, Object> {
 
 	private final Neo4jTransactionHolder localConnectionHolder;
 

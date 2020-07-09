@@ -27,10 +27,10 @@ import org.neo4j.junit.jupiter.causal_cluster.NeedsCausalCluster;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * Base annotation for tests that depend on a Causal Cluster. The causal cluster setup via Docker puts a high load on the system
- * and also requires acceptance of the commercial license. Therefore it is only enabled when the environment variable
- * {@literal SDN_RX_NEO4J_ACCEPT_COMMERCIAL_EDITION} is set to {@literal yes} and a {@literal SDN_RX_NEO4J_VERSION} points
- * to a stable 4.0.x version.
+ * Base annotation for tests that depend on a Causal Cluster. The causal cluster setup via Docker puts a high load on
+ * the system and also requires acceptance of the commercial license. Therefore it is only enabled when the environment
+ * variable {@literal SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION} is set to {@literal yes} and a {@literal SDN_NEO4J_VERSION}
+ * points to a stable 4.0.x version.
  *
  * @author Michael J. Simons
  * @soundtrack Command & Conquer - Alarmstufe Rot
@@ -41,7 +41,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @NeedsCausalCluster(password = "secret", startupTimeOutInMillis = 600_000L)
 @ExtendWith(SpringExtension.class)
 @Tag("CausalClusterRequired")
-@EnabledIfEnvironmentVariable(named = "SDN_RX_NEO4J_ACCEPT_COMMERCIAL_EDITION", matches = "yes")
-@EnabledIfEnvironmentVariable(named = "SDN_RX_NEO4J_VERSION", matches = "4\\.0\\.\\d(-.+)?")
+@EnabledIfEnvironmentVariable(named = "SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION", matches = "yes")
+@EnabledIfEnvironmentVariable(named = "SDN_NEO4J_VERSION", matches = "4\\.0\\.\\d(-.+)?")
 public @interface CausalClusterIntegrationTest {
 }

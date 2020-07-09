@@ -1,5 +1,6 @@
 /**
- * The main mapping framework. This package contains all the public facing annotations necessary to mark Spring Data Neo4j entities.
+ * The main mapping framework. This package contains all the public facing annotations necessary to mark Spring Data
+ * Neo4j entities.
  *
  * @author Michael J. Simons
  */

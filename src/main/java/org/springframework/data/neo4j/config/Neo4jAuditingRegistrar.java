@@ -39,7 +39,7 @@ import org.springframework.util.ClassUtils;
 final class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 
 	private static final boolean PROJECT_REACTOR_AVAILABLE = ClassUtils.isPresent("reactor.core.publisher.Mono",
-		Neo4jAuditingRegistrar.class.getClassLoader());
+			Neo4jAuditingRegistrar.class.getClassLoader());
 
 	private static final String AUDITING_HANDLER_BEAN_NAME = "neo4jAuditingHandler";
 	private static final String MAPPING_CONTEXT_BEAN_NAME = "neo4jMappingContext";
@@ -81,19 +81,18 @@ final class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppor
 	 */
 	@Override
 	protected void registerAuditListenerBeanDefinition(BeanDefinition auditingHandlerDefinition,
-		BeanDefinitionRegistry registry) {
+			BeanDefinitionRegistry registry) {
 
 		Assert.notNull(auditingHandlerDefinition, "BeanDefinition must not be null!");
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null!");
 
 		BeanDefinitionBuilder listenerBeanDefinitionBuilder = BeanDefinitionBuilder
-			.rootBeanDefinition(AuditingBeforeBindCallback.class);
+				.rootBeanDefinition(AuditingBeforeBindCallback.class);
 		listenerBeanDefinitionBuilder
-			.addConstructorArgValue(
-				ParsingUtils.getObjectFactoryBeanDefinition(getAuditingHandlerBeanName(), registry));
+				.addConstructorArgValue(ParsingUtils.getObjectFactoryBeanDefinition(getAuditingHandlerBeanName(), registry));
 
 		registerInfrastructureBeanWithId(listenerBeanDefinitionBuilder.getBeanDefinition(),
-			AuditingBeforeBindCallback.class.getName(), registry);
+				AuditingBeforeBindCallback.class.getName(), registry);
 
 		if (PROJECT_REACTOR_AVAILABLE) {
 			registerReactiveAuditingEntityCallback(registry, auditingHandlerDefinition.getSource());
@@ -111,9 +110,8 @@ final class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppor
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(IsNewAwareAuditingHandler.class);
 
-		BeanDefinitionBuilder persistentEntities = BeanDefinitionBuilder
-			.genericBeanDefinition(PersistentEntities.class)
-			.setFactoryMethod("of");
+		BeanDefinitionBuilder persistentEntities = BeanDefinitionBuilder.genericBeanDefinition(PersistentEntities.class)
+				.setFactoryMethod("of");
 		persistentEntities.addConstructorArgReference(MAPPING_CONTEXT_BEAN_NAME);
 
 		builder.addConstructorArgValue(persistentEntities.getBeanDefinition());
@@ -122,14 +120,12 @@ final class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppor
 
 	private void registerReactiveAuditingEntityCallback(BeanDefinitionRegistry registry, Object source) {
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-			.rootBeanDefinition(ReactiveAuditingBeforeBindCallback.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(ReactiveAuditingBeforeBindCallback.class);
 
-		builder.addConstructorArgValue(
-			ParsingUtils.getObjectFactoryBeanDefinition(getAuditingHandlerBeanName(), registry));
+		builder.addConstructorArgValue(ParsingUtils.getObjectFactoryBeanDefinition(getAuditingHandlerBeanName(), registry));
 		builder.getRawBeanDefinition().setSource(source);
 
-		registerInfrastructureBeanWithId(builder.getBeanDefinition(),
-			ReactiveAuditingBeforeBindCallback.class.getName(), registry);
+		registerInfrastructureBeanWithId(builder.getBeanDefinition(), ReactiveAuditingBeforeBindCallback.class.getName(),
+				registry);
 	}
 }

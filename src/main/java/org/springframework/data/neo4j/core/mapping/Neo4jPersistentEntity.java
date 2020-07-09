@@ -24,11 +24,10 @@ import org.springframework.data.mapping.model.MutablePersistentEntity;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 
 /**
- * A {@link org.springframework.data.mapping.PersistentEntity} interface with additional methods for metadata related to Neo4j.
- *
- * Both Spring Data methods {@link #doWithProperties(PropertyHandler)} and {@link #doWithAssociations(AssociationHandler)} are
- * aware which field of a class is meant to be mapped as a property of a node or a relationship or if it is a relationship
- * (in Spring Data terms: if it is an association).
+ * A {@link org.springframework.data.mapping.PersistentEntity} interface with additional methods for metadata related to
+ * Neo4j. Both Spring Data methods {@link #doWithProperties(PropertyHandler)} and
+ * {@link #doWithAssociations(AssociationHandler)} are aware which field of a class is meant to be mapped as a property
+ * of a node or a relationship or if it is a relationship (in Spring Data terms: if it is an association).
  *
  * @author Michael J. Simons
  * @param <T> type of the underlying class
@@ -36,10 +35,11 @@ import org.springframework.data.neo4j.core.schema.NodeDescription;
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public interface Neo4jPersistentEntity<T>
-	extends MutablePersistentEntity<T, Neo4jPersistentProperty>, NodeDescription<T> {
+		extends MutablePersistentEntity<T, Neo4jPersistentProperty>, NodeDescription<T> {
 
 	/**
-	 * @return An optional property pointing to a {@link java.util.Collection Collection&lt;String&gt;} containing dynamic "runtime managed" labels.
+	 * @return An optional property pointing to a {@link java.util.Collection Collection&lt;String&gt;} containing dynamic
+	 *         "runtime managed" labels.
 	 */
 	Optional<Neo4jPersistentProperty> getDynamicLabelsProperty();
 }

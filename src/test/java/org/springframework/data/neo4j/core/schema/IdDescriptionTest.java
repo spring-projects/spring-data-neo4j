@@ -43,17 +43,18 @@ class IdDescriptionTest {
 	@Test
 	void idIsGeneratedExternally() {
 
-		assertThat(IdDescription.forExternallyGeneratedIds(DummyIdGenerator.class, null, "foobar").isAssignedId()).isFalse();
-		assertThat(IdDescription.forExternallyGeneratedIds(DummyIdGenerator.class, null, "foobar").isExternallyGeneratedId())
-			.isTrue();
-		assertThat(IdDescription.forExternallyGeneratedIds(DummyIdGenerator.class, null, "foobar").isInternallyGeneratedId())
-			.isFalse();
+		assertThat(IdDescription.forExternallyGeneratedIds(DummyIdGenerator.class, null, "foobar").isAssignedId())
+				.isFalse();
+		assertThat(
+				IdDescription.forExternallyGeneratedIds(DummyIdGenerator.class, null, "foobar").isExternallyGeneratedId())
+						.isTrue();
+		assertThat(
+				IdDescription.forExternallyGeneratedIds(DummyIdGenerator.class, null, "foobar").isInternallyGeneratedId())
+						.isFalse();
 
 		assertThat(IdDescription.forExternallyGeneratedIds(null, "someId", "foobar").isAssignedId()).isFalse();
-		assertThat(IdDescription.forExternallyGeneratedIds(null, "someId", "foobar").isExternallyGeneratedId())
-			.isTrue();
-		assertThat(IdDescription.forExternallyGeneratedIds(null, "someId", "foobar").isInternallyGeneratedId())
-			.isFalse();
+		assertThat(IdDescription.forExternallyGeneratedIds(null, "someId", "foobar").isExternallyGeneratedId()).isTrue();
+		assertThat(IdDescription.forExternallyGeneratedIds(null, "someId", "foobar").isInternallyGeneratedId()).isFalse();
 	}
 
 	private static class DummyIdGenerator implements IdGenerator<Void> {

@@ -46,8 +46,8 @@ import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 /**
  * Support class for "query by example" executors.
  * <p>
- * This wraps all information necessary to predicate a match: A root condition and actual parameters to fill
- * in formal parameters inside the condition.
+ * This wraps all information necessary to predicate a match: A root condition and actual parameters to fill in formal
+ * parameters inside the condition.
  *
  * @author Michael J. Simons
  * @since 1.0
@@ -79,10 +79,9 @@ final class Predicate {
 			boolean internalId = graphProperty.isIdProperty() && probeNodeDescription.isUsingInternalIds();
 			String propertyName = graphProperty.getPropertyName();
 
-			ExampleMatcher.PropertyValueTransformer transformer = matcherAccessor
-				.getValueTransformerForPath(currentPath);
+			ExampleMatcher.PropertyValueTransformer transformer = matcherAccessor.getValueTransformerForPath(currentPath);
 			Optional<Object> optionalValue = transformer
-				.apply(Optional.ofNullable(beanWrapper.getPropertyValue(currentPath)));
+					.apply(Optional.ofNullable(beanWrapper.getPropertyValue(currentPath)));
 
 			if (!optionalValue.isPresent()) {
 				if (!internalId && matcherAccessor.getNullHandler().equals(ExampleMatcher.NullHandler.INCLUDE)) {
@@ -96,8 +95,8 @@ final class Predicate {
 			if (graphProperty.isRelationship()) {
 				log.error("Querying by example does not support traversing of relationships.");
 			} else if (graphProperty.isIdProperty() && probeNodeDescription.isUsingInternalIds()) {
-				predicate
-					.add(mode, predicate.neo4jPersistentEntity.getIdExpression().isEqualTo(literalOf(optionalValue.get())));
+				predicate.add(mode,
+						predicate.neo4jPersistentEntity.getIdExpression().isEqualTo(literalOf(optionalValue.get())));
 			} else {
 				Expression property = property(NAME_OF_ROOT_NODE, propertyName);
 				Expression parameter = parameter(propertyName);
@@ -130,13 +129,13 @@ final class Predicate {
 							break;
 						default:
 							throw new IllegalArgumentException(
-								"Unsupported StringMatcher " + matcherAccessor.getStringMatcherForPath(currentPath));
+									"Unsupported StringMatcher " + matcherAccessor.getStringMatcherForPath(currentPath));
 					}
 				}
 				predicate.add(mode, condition);
-				predicate.parameters.put(propertyName, optionalValue
-					.map(v -> converter.writeValueFromProperty(v, ((Neo4jPersistentProperty) graphProperty).getTypeInformation()))
-					.get());
+				predicate.parameters.put(propertyName, optionalValue.map(
+						v -> converter.writeValueFromProperty(v, ((Neo4jPersistentProperty) graphProperty).getTypeInformation()))
+						.get());
 			}
 		}
 
@@ -154,7 +153,7 @@ final class Predicate {
 	}
 
 	StatementBuilder.OrderableOngoingReadingAndWith useWithReadingFragment(
-		BiFunction<NodeDescription<?>, Condition, StatementBuilder.OrderableOngoingReadingAndWith> readingFragmentSupplier) {
+			BiFunction<NodeDescription<?>, Condition, StatementBuilder.OrderableOngoingReadingAndWith> readingFragmentSupplier) {
 		return readingFragmentSupplier.apply(this.neo4jPersistentEntity, this.condition);
 	}
 

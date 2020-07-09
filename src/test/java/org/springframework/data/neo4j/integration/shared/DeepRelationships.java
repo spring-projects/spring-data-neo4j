@@ -99,6 +99,7 @@ public class DeepRelationships {
 		public LoopingType2 nextType;
 		@Id @GeneratedValue private Long id;
 	}
+
 	/**
 	 * Some type
 	 */
@@ -107,6 +108,7 @@ public class DeepRelationships {
 		public LoopingType3 nextType;
 		@Id @GeneratedValue private Long id;
 	}
+
 	/**
 	 * Some type
 	 */

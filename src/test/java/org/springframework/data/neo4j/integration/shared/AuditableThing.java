@@ -23,8 +23,12 @@ import java.time.LocalDateTime;
 public interface AuditableThing {
 
 	LocalDateTime getCreatedAt();
+
 	String getCreatedBy();
+
 	LocalDateTime getModifiedAt();
+
 	String getModifiedBy();
+
 	String getName();
 }

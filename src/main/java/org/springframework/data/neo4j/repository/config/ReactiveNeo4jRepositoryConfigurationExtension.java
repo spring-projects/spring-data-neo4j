@@ -104,10 +104,10 @@ public final class ReactiveNeo4jRepositoryConfigurationExtension extends Reposit
 	public void postProcess(BeanDefinitionBuilder builder, RepositoryConfigurationSource source) {
 
 		builder.addPropertyValue("transactionManager",
-			source.getAttribute("transactionManagerRef").orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
+				source.getAttribute("transactionManagerRef").orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
 		builder.addPropertyReference("neo4jOperations",
-			source.getAttribute("neo4jTemplateRef").orElse(DEFAULT_NEO4J_TEMPLATE_BEAN_NAME));
+				source.getAttribute("neo4jTemplateRef").orElse(DEFAULT_NEO4J_TEMPLATE_BEAN_NAME));
 		builder.addPropertyReference("neo4jMappingContext",
-			source.getAttribute("neo4jMappingContextRef").orElse(DEFAULT_MAPPING_CONTEXT_BEAN_NAME));
+				source.getAttribute("neo4jMappingContextRef").orElse(DEFAULT_MAPPING_CONTEXT_BEAN_NAME));
 	}
 }

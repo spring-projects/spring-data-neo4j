@@ -25,10 +25,9 @@ import org.springframework.data.neo4j.core.schema.RelationshipDescription;
 import org.springframework.lang.Nullable;
 
 /**
- * Working on nested relationships happens in a certain algorithmic context.
- * This context enables a tight cohesion between the algorithmic steps and the data, these steps are performed on.
- * In our the interaction happens between the data that describes the relationship and the specific steps of
- * the algorithm.
+ * Working on nested relationships happens in a certain algorithmic context. This context enables a tight cohesion
+ * between the algorithmic steps and the data, these steps are performed on. In our the interaction happens between the
+ * data that describes the relationship and the specific steps of the algorithm.
  *
  * @author Philipp Tölle
  * @author Gerrit Meier
@@ -43,7 +42,7 @@ final class NestedRelationshipContext {
 	private final boolean inverseValueIsEmpty;
 
 	private NestedRelationshipContext(Neo4jPersistentProperty inverse, @Nullable Object value,
-		RelationshipDescription relationship, Class<?> associationTargetType, boolean inverseValueIsEmpty) {
+			RelationshipDescription relationship, Class<?> associationTargetType, boolean inverseValueIsEmpty) {
 		this.inverse = inverse;
 		this.value = value;
 		this.relationship = relationship;
@@ -92,25 +91,20 @@ final class NestedRelationshipContext {
 	}
 
 	static NestedRelationshipContext of(Association<Neo4jPersistentProperty> handler,
-		PersistentPropertyAccessor<?> propertyAccessor,
-		Neo4jPersistentEntity<?> neo4jPersistentEntity) {
+			PersistentPropertyAccessor<?> propertyAccessor, Neo4jPersistentEntity<?> neo4jPersistentEntity) {
 
 		Neo4jPersistentProperty inverse = handler.getInverse();
 
 		boolean inverseValueIsEmpty = propertyAccessor.getProperty(inverse) == null;
 		Object value = propertyAccessor.getProperty(inverse);
 
-		RelationshipDescription relationship = neo4jPersistentEntity
-			.getRelationships().stream()
-			.filter(r -> r.getFieldName().equals(inverse.getName()))
-			.findFirst().get();
+		RelationshipDescription relationship = neo4jPersistentEntity.getRelationships().stream()
+				.filter(r -> r.getFieldName().equals(inverse.getName())).findFirst().get();
 
 		// if we have a relationship with properties, the targetNodeType is the map key
-		Class<?> associationTargetType = relationship.hasRelationshipProperties()
-			? inverse.getComponentType()
-			: inverse.getAssociationTargetType();
+		Class<?> associationTargetType = relationship.hasRelationshipProperties() ? inverse.getComponentType()
+				: inverse.getAssociationTargetType();
 
-		return new NestedRelationshipContext(inverse, value, relationship, associationTargetType,
-			inverseValueIsEmpty);
+		return new NestedRelationshipContext(inverse, value, relationship, associationTargetType, inverseValueIsEmpty);
 	}
 }

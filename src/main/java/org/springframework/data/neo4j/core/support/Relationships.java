@@ -33,23 +33,20 @@ public final class Relationships {
 
 	/**
 	 * The value for a relationship can be a scalar object (1:1), a collection (1:n), a map (1:n, but with dynamic
-	 * relationship types) or a map (1:n) with properties for each relationship.
-	 * This method unifies the type into something iterable, depending on the given inverse type.
+	 * relationship types) or a map (1:n) with properties for each relationship. This method unifies the type into
+	 * something iterable, depending on the given inverse type.
 	 *
 	 * @param rawValue The raw value to unify
-	 * @return A unified collection (Either a collection of Map.Entry for dynamic and relationships with properties
-	 * or a list of related values)
+	 * @return A unified collection (Either a collection of Map.Entry for dynamic and relationships with properties or a
+	 *         list of related values)
 	 */
 	@Nullable
 	public static Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, Object rawValue) {
 		Collection<?> unifiedValue;
 		if (property.isDynamicAssociation()) {
 			if (property.isDynamicOneToManyAssociation()) {
-				unifiedValue = ((Map<String, Collection<?>>) rawValue)
-					.entrySet()
-					.stream()
-					.flatMap(e -> e.getValue().stream().map(v -> new SimpleEntry(e.getKey(), v)))
-					.collect(toList());
+				unifiedValue = ((Map<String, Collection<?>>) rawValue).entrySet().stream()
+						.flatMap(e -> e.getValue().stream().map(v -> new SimpleEntry(e.getKey(), v))).collect(toList());
 			} else {
 				unifiedValue = ((Map<String, Object>) rawValue).entrySet();
 			}
@@ -63,6 +60,5 @@ public final class Relationships {
 		return unifiedValue;
 	}
 
-	private Relationships() {
-	}
+	private Relationships() {}
 }

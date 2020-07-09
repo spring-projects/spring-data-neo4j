@@ -24,24 +24,24 @@ import org.apiguardian.api.API;
 @API(status = API.Status.STABLE, since = "1.0")
 public final class PointBuilder {
 
-    private final int srid;
+	private final int srid;
 
-    public static PointBuilder withSrid(int srid) {
-        return new PointBuilder(srid);
-    }
+	public static PointBuilder withSrid(int srid) {
+		return new PointBuilder(srid);
+	}
 
-    private PointBuilder(int srid) {
-        this.srid = srid;
-    }
+	private PointBuilder(int srid) {
+		this.srid = srid;
+	}
 
-    public AbstractPoint build(Coordinate coordinate) {
+	public AbstractPoint build(Coordinate coordinate) {
 
-        boolean is3d = coordinate.getZ() != null;
+		boolean is3d = coordinate.getZ() != null;
 
-        if (srid == CartesianPoint2d.SRID || srid == CartesianPoint3d.SRID) {
-            return is3d ? new CartesianPoint3d(coordinate) : new CartesianPoint2d(coordinate);
-        } else {
-            return is3d ? new GeographicPoint3d(coordinate, srid) : new GeographicPoint2d(coordinate, srid);
-        }
-    }
+		if (srid == CartesianPoint2d.SRID || srid == CartesianPoint3d.SRID) {
+			return is3d ? new CartesianPoint3d(coordinate) : new CartesianPoint2d(coordinate);
+		} else {
+			return is3d ? new GeographicPoint3d(coordinate, srid) : new GeographicPoint2d(coordinate, srid);
+		}
+	}
 }

@@ -37,7 +37,7 @@ import org.springframework.data.repository.core.support.TransactionalRepositoryF
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
 public final class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
-	extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
+		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
 	private Neo4jOperations neo4jOperations;
 

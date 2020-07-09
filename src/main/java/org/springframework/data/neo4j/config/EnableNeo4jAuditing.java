@@ -27,7 +27,7 @@ import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.AuditorAware;
 
 /**
- * Annotation to enable auditing for SDN-RX entities via annotation configuration.
+ * Annotation to enable auditing for SDN entities via annotation configuration.
  *
  * @author Michael J. Simons
  * @since 1.0
@@ -62,8 +62,8 @@ public @interface EnableNeo4jAuditing {
 	boolean modifyOnCreate() default true;
 
 	/**
-	 * Configures a {@link DateTimeProvider} bean name that allows customizing actual date time class to be
-	 * used for setting creation and modification dates.
+	 * Configures a {@link DateTimeProvider} bean name that allows customizing actual date time class to be used for
+	 * setting creation and modification dates.
 	 *
 	 * @return
 	 */

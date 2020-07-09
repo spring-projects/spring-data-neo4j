@@ -56,7 +56,8 @@ class ReactiveProjectionIT {
 
 	private final Driver driver;
 
-	@Autowired ReactiveProjectionIT(Driver driver) {
+	@Autowired
+	ReactiveProjectionIT(Driver driver) {
 		this.driver = driver;
 	}
 
@@ -67,9 +68,8 @@ class ReactiveProjectionIT {
 
 		transaction.run("MATCH (n) detach delete n");
 
-		transaction.run("CREATE (:Person{firstName:'" + FIRST_NAME + "', lastName:'" + LAST_NAME + "'})"
-			+ "-[:LIVES_AT]->"
-			+ "(:Address{city:'" + CITY + "'})");
+		transaction.run("CREATE (:Person{firstName:'" + FIRST_NAME + "', lastName:'" + LAST_NAME + "'})" + "-[:LIVES_AT]->"
+				+ "(:Address{city:'" + CITY + "'})");
 
 		transaction.commit();
 		transaction.close();
@@ -79,81 +79,72 @@ class ReactiveProjectionIT {
 	@Test
 	void loadNamesOnlyProjection(@Autowired ReactiveProjectionPersonRepository repository) {
 
-		StepVerifier.create(repository.findByLastName(LAST_NAME))
-			.assertNext(person -> {
-				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
-				assertThat(person.getLastName()).isEqualTo(LAST_NAME);
+		StepVerifier.create(repository.findByLastName(LAST_NAME)).assertNext(person -> {
+			assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
+			assertThat(person.getLastName()).isEqualTo(LAST_NAME);
 
-				String expectedFullName = FIRST_NAME + " " + LAST_NAME;
-				assertThat(person.getFullName()).isEqualTo(expectedFullName);
-			})
-			.verifyComplete();
+			String expectedFullName = FIRST_NAME + " " + LAST_NAME;
+			assertThat(person.getFullName()).isEqualTo(expectedFullName);
+		}).verifyComplete();
 	}
 
 	@Test
 	void loadPersonSummaryProjection(@Autowired ReactiveProjectionPersonRepository repository) {
 
-		StepVerifier.create(repository.findByFirstName(FIRST_NAME))
-			.assertNext(person -> {
-				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
-				assertThat(person.getLastName()).isEqualTo(LAST_NAME);
-				assertThat(person.getAddress()).isNotNull();
+		StepVerifier.create(repository.findByFirstName(FIRST_NAME)).assertNext(person -> {
+			assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
+			assertThat(person.getLastName()).isEqualTo(LAST_NAME);
+			assertThat(person.getAddress()).isNotNull();
 
-				PersonSummary.AddressSummary address = person.getAddress();
-				assertThat(address.getCity()).isEqualTo(CITY);
-			})
-			.verifyComplete();
+			PersonSummary.AddressSummary address = person.getAddress();
+			assertThat(address.getCity()).isEqualTo(CITY);
+		}).verifyComplete();
 	}
 
 	@Test
 	void loadNamesOnlyDtoProjection(@Autowired ReactiveProjectionPersonRepository repository) {
 
-		StepVerifier.create(repository.findByFirstNameAndLastName(FIRST_NAME, LAST_NAME))
-			.assertNext(person -> {
-				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
-				assertThat(person.getLastName()).isEqualTo(LAST_NAME);
-			})
-			.verifyComplete();
+		StepVerifier.create(repository.findByFirstNameAndLastName(FIRST_NAME, LAST_NAME)).assertNext(person -> {
+			assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
+			assertThat(person.getLastName()).isEqualTo(LAST_NAME);
+		}).verifyComplete();
 	}
 
 	@Test
 	void findDynamicProjectionForNamesOnly(@Autowired ReactiveProjectionPersonRepository repository) {
 
 		StepVerifier.create(repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, NamesOnly.class))
-			.assertNext(person -> {
-				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
-				assertThat(person.getLastName()).isEqualTo(LAST_NAME);
+				.assertNext(person -> {
+					assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
+					assertThat(person.getLastName()).isEqualTo(LAST_NAME);
 
-				String expectedFullName = FIRST_NAME + " " + LAST_NAME;
-				assertThat(person.getFullName()).isEqualTo(expectedFullName);
-			})
-			.verifyComplete();
+					String expectedFullName = FIRST_NAME + " " + LAST_NAME;
+					assertThat(person.getFullName()).isEqualTo(expectedFullName);
+				}).verifyComplete();
 	}
 
 	@Test
 	void findDynamicProjectionForPersonSummary(@Autowired ReactiveProjectionPersonRepository repository) {
 
 		StepVerifier.create(repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, PersonSummary.class))
-			.assertNext(person -> {
-				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
-				assertThat(person.getLastName()).isEqualTo(LAST_NAME);
-				assertThat(person.getAddress()).isNotNull();
+				.assertNext(person -> {
+					assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
+					assertThat(person.getLastName()).isEqualTo(LAST_NAME);
+					assertThat(person.getAddress()).isNotNull();
 
-				PersonSummary.AddressSummary address = person.getAddress();
-				assertThat(address.getCity()).isEqualTo(CITY);
-			})
-			.verifyComplete();
+					PersonSummary.AddressSummary address = person.getAddress();
+					assertThat(address.getCity()).isEqualTo(CITY);
+				}).verifyComplete();
 	}
 
 	@Test
 	void findDynamicProjectionForNamesOnlyDto(@Autowired ReactiveProjectionPersonRepository repository) {
 
 		StepVerifier.create(repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, NamesOnlyDto.class))
-			.assertNext(person -> {
-				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
-				assertThat(person.getLastName()).isEqualTo(LAST_NAME);
-			})
-			.verifyComplete();
+				.assertNext(person -> {
+					assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
+					assertThat(person.getLastName()).isEqualTo(LAST_NAME);
+				}).verifyComplete();
 	}
 
 	interface ReactiveProjectionPersonRepository extends ReactiveNeo4jRepository<Person, Long> {

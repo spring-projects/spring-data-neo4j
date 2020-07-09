@@ -9,7 +9,7 @@
 
 = Query creation
 
-This chapter is about the technical creation of queries when using SDN/RX's abstraction layers.
+This chapter is about the technical creation of queries when using SDN's abstraction layers.
 There will be some simplifications because we do not discuss every possible case but stick with the general idea behind it.
 
 == Save
@@ -38,16 +38,15 @@ A save operation call in general issues multiple statements against the database
 . For the next defined relationship on the root entity start with 2. but replace _first_ with _next_.
 
 
-NOTE: As you can see SDN/RX does its best to keep your graph model in sync with the Java world.
-      This is one of the reasons why we really advise you to not load, manipulate and save sub-graphs
-      as this might cause relationships to get removed from the database.
+NOTE: As you can see SDN does its best to keep your graph model in sync with the Java world.
+This is one of the reasons why we really advise you to not load, manipulate and save sub-graphs as this might cause relationships to get removed from the database.
 
 === Multiple entities
 
 The `save` operation is overloaded with the functionality for accepting multiple entities of the same type.
 If you are working with generated id values or make use of optimistic locking, every entity will result in a separate `CREATE` call.
 
-In other cases SDN/RX will create a parameter list with the entity information and provide it with a `MERGE` call.
+In other cases SDN will create a parameter list with the entity information and provide it with a `MERGE` call.
 
 `UNWIND ${neo4jEntities} AS entity MERGE (n:Person {customId: entity.${neo4jId}}) SET n = entity.{neo4jProperties} RETURN collect(n.customId) AS ${neo4jIds}`
 
@@ -64,7 +63,7 @@ It will match all nodes with the label of the type you queried for and does a fi
 
 `MATCH (n:Person) WHERE id(n) = 1364`
 
-If there is a custom id provided SDN/RX will use the property you have defined as the id.
+If there is a custom id provided SDN will use the property you have defined as the id.
 
 `MATCH (n:Person) WHERE n.customId = 'anId'`
 
@@ -83,5 +82,5 @@ The above return part will then look like:
 
 `RETURN n{.first_name, ..., Person_Has_Hobby: [(n)-[:Has]->(n_hobbies:Hobby)|n_hobbies{{neo4jInternalId}: id(n_hobbies), .name, __nodeLabels__: labels(n_hobbies)}]}`
 
-The map projection and pattern comprehension used by SDN/RX ensures that only the properties and relationships you have defined are getting queried.
+The map projection and pattern comprehension used by SDN ensures that only the properties and relationships you have defined are getting queried.
 

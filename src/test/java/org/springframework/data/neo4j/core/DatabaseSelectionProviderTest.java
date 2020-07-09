@@ -30,7 +30,7 @@ class DatabaseSelectionProviderTest {
 	void defaultProviderShallDefaultToNullDatabase() {
 
 		assertThat(DatabaseSelectionProvider.getDefaultSelectionProvider().getDatabaseSelection())
-			.isEqualTo(DatabaseSelection.undecided());
+				.isEqualTo(DatabaseSelection.undecided());
 	}
 
 	@Nested
@@ -40,23 +40,22 @@ class DatabaseSelectionProviderTest {
 		void databaseNameMustNotBeNull() {
 
 			assertThatIllegalArgumentException()
-				.isThrownBy(() -> DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(null))
-				.withMessage("The database name must not be null.");
+					.isThrownBy(() -> DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(null))
+					.withMessage("The database name must not be null.");
 		}
 
 		@Test
 		void databaseNameMustNotBeEmpty() {
 
 			assertThatIllegalArgumentException()
-				.isThrownBy(() -> DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(" \t"))
-				.withMessage("The database name must not be empty.");
+					.isThrownBy(() -> DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(" \t"))
+					.withMessage("The database name must not be empty.");
 		}
 
 		@Test
 		void shouldReturnConfiguredName() {
 
-			DatabaseSelectionProvider provider = DatabaseSelectionProvider
-				.createStaticDatabaseSelectionProvider("foobar");
+			DatabaseSelectionProvider provider = DatabaseSelectionProvider.createStaticDatabaseSelectionProvider("foobar");
 			assertThat(provider.getDatabaseSelection()).isEqualTo(DatabaseSelection.byName("foobar"));
 		}
 	}

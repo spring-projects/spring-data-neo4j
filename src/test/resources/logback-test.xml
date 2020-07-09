@@ -17,24 +17,24 @@
 
 <configuration>
 
-	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-		<encoder>
-			<pattern>[%t] %d %5p %40.40c:%4L - %m%n</pattern>
-		</encoder>
-	</appender>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%t] %d %5p %40.40c:%4L - %m%n</pattern>
+        </encoder>
+    </appender>
 
-	<logger name="org.neo4j.driver" level="info"/>
-	<logger name="GraphDatabase" level="info" />
-	<logger name="Driver" level="info" />
-	<logger name="OutboundMessageHandler" level="info" />
-	<logger name="InboundMessageDispatcher" level="info" />
+    <logger name="org.neo4j.driver" level="info"/>
+    <logger name="GraphDatabase" level="info"/>
+    <logger name="Driver" level="info"/>
+    <logger name="OutboundMessageHandler" level="info"/>
+    <logger name="InboundMessageDispatcher" level="info"/>
 
-	<logger name="org.springframework.data.neo4j.cypher" level="info"/>
-	<logger name="org.springframework.data.neo4j" level="info"/>
-	<logger name="org.springframework.data.neo4j.test" level="info"/>
+    <logger name="org.springframework.data.neo4j.cypher" level="info"/>
+    <logger name="org.springframework.data.neo4j" level="info"/>
+    <logger name="org.springframework.data.neo4j.test" level="info"/>
 
-	<root level="warn">
-		<appender-ref ref="console" />
-	</root>
+    <root level="warn">
+        <appender-ref ref="console"/>
+    </root>
 
 </configuration>

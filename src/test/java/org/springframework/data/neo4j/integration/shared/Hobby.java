@@ -46,11 +46,9 @@ public class Hobby {
 		this.name = name;
 	}
 
-	@Override public String toString() {
-		return "Hobby{" +
-			"id=" + id +
-			", name='" + name + '\'' +
-			'}';
+	@Override
+	public String toString() {
+		return "Hobby{" + "id=" + id + ", name='" + name + '\'' + '}';
 	}
 
 	@Override
@@ -62,8 +60,7 @@ public class Hobby {
 			return false;
 		}
 		Hobby hobby = (Hobby) o;
-		return id.equals(hobby.id) &&
-			name.equals(hobby.name);
+		return id.equals(hobby.id) && name.equals(hobby.name);
 	}
 
 	@Override

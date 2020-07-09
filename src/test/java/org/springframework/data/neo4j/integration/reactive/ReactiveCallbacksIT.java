@@ -52,7 +52,8 @@ class ReactiveCallbacksIT extends CallbacksITBase {
 
 	private final ReactiveTransactionManager transactionManager;
 
-	@Autowired ReactiveCallbacksIT(Driver driver, ReactiveTransactionManager transactionManager) {
+	@Autowired
+	ReactiveCallbacksIT(Driver driver, ReactiveTransactionManager transactionManager) {
 
 		super(driver);
 		this.transactionManager = transactionManager;
@@ -68,12 +69,8 @@ class ReactiveCallbacksIT extends CallbacksITBase {
 
 		List<ThingWithAssignedId> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator
-			.execute(t -> operationUnderTest)
-			.as(StepVerifier::create)
-			.recordWith(() -> savedThings)
-			.expectNextMatches(t -> t.getName().equals("A name (Edited)"))
-			.verifyComplete();
+		transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create).recordWith(() -> savedThings)
+				.expectNextMatches(t -> t.getName().equals("A name (Edited)")).verifyComplete();
 
 		verifyDatabase(savedThings);
 	}
@@ -91,13 +88,9 @@ class ReactiveCallbacksIT extends CallbacksITBase {
 
 		List<ThingWithAssignedId> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator
-			.execute(t -> operationUnderTest)
-			.as(StepVerifier::create)
-			.recordWith(() -> savedThings)
-			.expectNextMatches(t -> t.getName().equals("A name (Edited)"))
-			.expectNextMatches(t -> t.getName().equals("Another name (Edited)"))
-			.verifyComplete();
+		transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create).recordWith(() -> savedThings)
+				.expectNextMatches(t -> t.getName().equals("A name (Edited)"))
+				.expectNextMatches(t -> t.getName().equals("Another name (Edited)")).verifyComplete();
 
 		verifyDatabase(savedThings);
 	}
@@ -115,13 +108,9 @@ class ReactiveCallbacksIT extends CallbacksITBase {
 
 		List<ThingWithAssignedId> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator
-			.execute(t -> operationUnderTest)
-			.as(StepVerifier::create)
-			.recordWith(() -> savedThings)
-			.expectNextMatches(t -> t.getName().equals("A name (Edited)"))
-			.expectNextMatches(t -> t.getName().equals("Another name (Edited)"))
-			.verifyComplete();
+		transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create).recordWith(() -> savedThings)
+				.expectNextMatches(t -> t.getName().equals("A name (Edited)"))
+				.expectNextMatches(t -> t.getName().equals("Another name (Edited)")).verifyComplete();
 
 		verifyDatabase(savedThings);
 	}

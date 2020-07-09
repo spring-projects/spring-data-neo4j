@@ -1,18 +1,18 @@
 [[testing]]
 = Testing
 
-We offer `org.neo4j.springframework.boot.test.autoconfigure.data.DataNeo4jTest` and `org.neo4j.springframework.boot.test.autoconfigure.data.ReactiveDataNeo4jTest`
+We offer `org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest` and `org.springframework.boot.test.autoconfigure.data.neo4j.ReactiveDataNeo4jTest`
 inside an additional module under the following coordinates:
-`org.neo4j.springframework.data:spring-data-neo4j-rx-spring-boot-test-autoconfigure`.
+`org.springframework.data.neo4j:spring-data-neo4j-spring-boot-test-autoconfigure`.
 Include the following dependency in your project setup
 
 [source,xml,subs="verbatim,attributes"]
-.spring-data-neo4j-rx-spring-boot-test-autoconfigure for Maven
+.spring-data-neo4j-spring-boot-test-autoconfigure for Maven
 ----
 <dependency>
-    <groupId>org.neo4j.springframework.data</groupId>
-    <artifactId>spring-data-neo4j-rx-spring-boot-test-autoconfigure</artifactId>
-    <version>{spring-data-neo4j-rx-version}</version>
+    <groupId>org.springframework.data.neo4j</groupId>
+    <artifactId>spring-data-neo4j-spring-boot-test-autoconfigure</artifactId>
+    <version>{version}</version>
     <scope>test</scope>
 </dependency>
 ----
@@ -20,20 +20,20 @@ Include the following dependency in your project setup
 Or with Gradle
 
 [source,groovy,subs="verbatim,attributes"]
-.spring-data-neo4j-rx-spring-boot-test-autoconfigure for Gradle
+.spring-data-neo4j-spring-boot-test-autoconfigure for Gradle
 ----
 dependencies {
-    testImplementation 'org.neo4j.springframework.data:spring-data-neo4j-rx-spring-boot-test-autoconfigure:{spring-data-neo4j-rx-version}'
+    testImplementation 'org.springframework.data.neo4j:spring-data-neo4j-spring-boot-test-autoconfigure:{version}'
 }
 ----
 
 Both `@DataNeo4jTest` and `@ReactiveDataNeo4jTest` are Spring Boot https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-testing[test slices].
 By default, they provide the Neo4j test harness through the transitive dependency of https://github.com/neo4j/neo4j-java-driver-spring-boot-starter/tree/master/neo4j-java-driver-test-harness-spring-boot-autoconfigure[neo4j-java-driver-test-harness-spring-boot-autoconfigure].
-Both slices provide all the necessary infrastructure for tests using Neo4j: A driver bean, a transaction manager, a client, a template and declared repositories,
-in their imperative or reactive variants.
+Both slices provide all the necessary infrastructure for tests using Neo4j: A driver bean, a transaction manager, a client, a template and declared repositories, in their imperative or reactive variants.
 `@DataNeo4jTest` provides both variants if reactive repositories are enabled while `@ReactiveDataNeo4jTest` provides only reactive infrastructure.
 
-The dependencies include the Neo4j test harness in version 3.5.x by default. Thus, reactive database access and multiple databases cannot be tested out of the box.
+The dependencies include the Neo4j test harness in version 3.5.x by default.
+Thus, reactive database access and multiple databases cannot be tested out of the box.
 The reason for doing this is simple: Spring Data's JDK baseline is JDK 8. The Neo4j test harness in version 4 requires JDK 11+, so we cannot make it the default.
 
 Here are the available options.
@@ -58,7 +58,7 @@ This class uses the included Neo4j test harness 3.5 by default.
 [[dataneo4jtest-template-example]]
 .TemplateExampleTest.java
 ----
-include::../../examples/imperative-web/src/test/java/org/neo4j/springframework/data/examples/spring_boot/TemplateExampleTest.java[tags=testing.dataneo4jtest]
+include::../../../../src/test/java/org/springframework/data/neo4j/documentation/spring_boot/TemplateExampleTest.java[tags=testing.dataneo4jtest]
 ----
 
 === With Neo4j 4.0 test harness
@@ -99,9 +99,9 @@ Bring in the required dependencies:
 .Dependencies for Testcontainers
 ----
 <dependency>
-        <groupId>org.neo4j.springframework.data</groupId>
-        <artifactId>spring-data-neo4j-rx-spring-boot-test-autoconfigure</artifactId>
-        <version>{spring-data-neo4j-rx-version}</version>
+        <groupId>org.springframework.data.neo4j</groupId>
+        <artifactId>spring-data-neo4j-spring-boot-test-autoconfigure</artifactId>
+        <version>{version}</version>
         <scope>test</scope>
         <exclusions>
                 <exclusion> <!--.-->
@@ -124,8 +124,8 @@ Bring in the required dependencies:
 </dependency>
 
 ----
-<.> Be aware of this exclusion. If you don't exclude that dependency, it will have
-    precedence over any manual configuration of the Neo4j URL.
+<.> Be aware of this exclusion.
+If you don't exclude that dependency, it will have precedence over any manual configuration of the Neo4j URL.
 
 As of Spring Framework 5.2.5, the TestContext framework provides support for dynamic property sources via the `@DynamicPropertySource` annotation.
 This annotation can be used in integration tests that need to add properties with dynamic values.
@@ -137,7 +137,7 @@ A `@DataNeo4jTest` using `@DynamicPropertySource` together with Testcontainers l
 [[configure-your-container-source]]
 .Configure your Neo4j URLs dynamically in a Spring Boot Test
 ----
-import org.neo4j.springframework.boot.test.autoconfigure.data.DataNeo4jTest;
+import org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest;
 
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -189,13 +189,12 @@ class PriorToBoot226Test {
 
 [IMPORTANT]
 ====
-If you dont want to exclude `org.neo4j.test:neo4j-harness` as advised in <<testcontainers-dependencies>>, you can manually exclude
-the `Neo4jTestHarnessAutoConfiguration.class` from the test slice like this:
+If you dont want to exclude `org.neo4j.test:neo4j-harness` as advised in <<testcontainers-dependencies>>, you can manually exclude the `Neo4jTestHarnessAutoConfiguration.class` from the test slice like this:
 
 [source,java]
 ----
 import org.neo4j.driver.springframework.boot.test.autoconfigure.Neo4jTestHarnessAutoConfiguration;
-import org.neo4j.springframework.boot.test.autoconfigure.data.DataNeo4jTest;
+import org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest;
 
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -211,8 +210,7 @@ public class TemplateExampleTest {
 == `@ReactiveDataNeo4jTest`
 
 Everything said about `@DataNeo4jTest` applies to `@ReactiveDataNeo4jTest` as well.
-However, `@ReactiveDataNeo4jTest` enables reactive infrastructure only and is not meta-annotated with `@Transactional`,
-thus it doesn't depend on a `PlatformTransactionManager`.
+However, `@ReactiveDataNeo4jTest` enables reactive infrastructure only and is not meta-annotated with `@Transactional`, thus it doesn't depend on a `PlatformTransactionManager`.
 
 `@ReactiveDataNeo4jTest` also checks whether the Neo4j instance configured is capable of handling reactive connections.
 
@@ -224,5 +222,5 @@ A typical example would look like this:
 [[reactivedataneo4jtest-repository-example]]
 .RepositoryIT.java
 ----
-include::../../examples/reactive-web/src/test/java/org/neo4j/springframework/data/examples/spring_boot/RepositoryIT.java[tags=testing.reactivedataneo4jtest]
+include::../../../../src/test/java/org/springframework/data/neo4j/documentation/spring_boot/RepositoryIT.java[tags=testing.reactivedataneo4jtest]
 ----

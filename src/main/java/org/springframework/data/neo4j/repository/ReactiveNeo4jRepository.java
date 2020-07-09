@@ -29,5 +29,4 @@ import org.springframework.data.repository.reactive.ReactiveSortingRepository;
  */
 @NoRepositoryBean
 public interface ReactiveNeo4jRepository<T, ID>
-	extends ReactiveSortingRepository<T, ID>, ReactiveQueryByExampleExecutor<T> {
-}
+		extends ReactiveSortingRepository<T, ID>, ReactiveQueryByExampleExecutor<T> {}

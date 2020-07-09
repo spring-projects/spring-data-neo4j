@@ -38,8 +38,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 class CallbacksIT extends CallbacksITBase {
 
-
-	@Autowired CallbacksIT(Driver driver) {
+	@Autowired
+	CallbacksIT(Driver driver) {
 		super(driver);
 	}
 
@@ -64,8 +64,8 @@ class CallbacksIT extends CallbacksITBase {
 		thing2.setName("Another name");
 		Iterable<ThingWithAssignedId> savedThings = repository.saveAll(Arrays.asList(thing1, thing2));
 
-		assertThat(savedThings).extracting(ThingWithAssignedId::getName)
-			.containsExactlyInAnyOrder("A name (Edited)", "Another name (Edited)");
+		assertThat(savedThings).extracting(ThingWithAssignedId::getName).containsExactlyInAnyOrder("A name (Edited)",
+				"Another name (Edited)");
 
 		verifyDatabase(savedThings);
 	}

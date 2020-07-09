@@ -50,28 +50,28 @@ class RelationshipsAsConstructorParametersIT {
 
 		try (Session session = driver.session(); Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n").consume();
-			transaction.run(
-				"CREATE (b:NodeTypeB {name: 'detail'}) - [:BELONGS_TO] -> (a:NodeTypeA {name: 'master'}) RETURN a, b")
-				.consume();
+			transaction
+					.run("CREATE (b:NodeTypeB {name: 'detail'}) - [:BELONGS_TO] -> (a:NodeTypeA {name: 'master'}) RETURN a, b")
+					.consume();
 			transaction.commit();
 		}
 	}
 
 	/**
-	 * Partially immutable entity with association filled during construction. Failed originally due to the
-	 * fact that we did not check if the association was a constructor property.
+	 * Partially immutable entity with association filled during construction. Failed originally due to the fact that we
+	 * did not check if the association was a constructor property.
 	 *
 	 * @param template Needed for executing the query.
 	 */
 	@Test
 	void shouldCreateMasterDetailRelationshipViaConstructor(@Autowired Neo4jTemplate template) {
 
-		List<RelationshipsAsConstructorParametersEntities.NodeTypeB> details = template.findAll(
-			RelationshipsAsConstructorParametersEntities.NodeTypeB.class);
+		List<RelationshipsAsConstructorParametersEntities.NodeTypeB> details = template
+				.findAll(RelationshipsAsConstructorParametersEntities.NodeTypeB.class);
 		assertThat(details).hasSize(1).element(0).satisfies(content -> {
 			assertThat(content.getName()).isEqualTo("detail");
-			assertThat(content.getNodeTypeA()).isNotNull().extracting(
-				RelationshipsAsConstructorParametersEntities.NodeTypeA::getName).isEqualTo("master");
+			assertThat(content.getNodeTypeA()).isNotNull()
+					.extracting(RelationshipsAsConstructorParametersEntities.NodeTypeA::getName).isEqualTo("master");
 		});
 	}
 

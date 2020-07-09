@@ -52,22 +52,16 @@ public abstract class DynamicRelationshipsITBase<T> {
 
 	@BeforeEach
 	protected void setupData() {
-		try (
-			Session session = driver.session();
-			Transaction transaction = session.beginTransaction()
-		) {
+		try (Session session = driver.session(); Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
-			idOfExistingPerson = transaction.run(""
-				+ "CREATE (t:" + labelOfTestSubject + " {name: 'A'}) WITH t "
-				+ "CREATE (t) - [:HAS_WIFE] -> (w:Person {firstName: 'B'}) "
-				+ "CREATE (t) - [:HAS_DAUGHTER] -> (d:Person {firstName: 'C'}) "
-				+ "WITH t "
-				+ "UNWIND ['Tom', 'Garfield'] AS cat "
-				+ "CREATE (t) - [:CATS] -> (w:Pet {name: cat}) "
-				+ "WITH DISTINCT t "
-				+ "UNWIND ['Benji', 'Lassie'] AS dog "
-				+ "CREATE (t) - [:DOGS] -> (w:Pet {name: dog}) "
-				+ "RETURN DISTINCT id(t) as id").single().get("id").asLong();
+			idOfExistingPerson = transaction
+					.run("" + "CREATE (t:" + labelOfTestSubject + " {name: 'A'}) WITH t "
+							+ "CREATE (t) - [:HAS_WIFE] -> (w:Person {firstName: 'B'}) "
+							+ "CREATE (t) - [:HAS_DAUGHTER] -> (d:Person {firstName: 'C'}) " + "WITH t "
+							+ "UNWIND ['Tom', 'Garfield'] AS cat " + "CREATE (t) - [:CATS] -> (w:Pet {name: cat}) "
+							+ "WITH DISTINCT t " + "UNWIND ['Benji', 'Lassie'] AS dog "
+							+ "CREATE (t) - [:DOGS] -> (w:Pet {name: dog}) " + "RETURN DISTINCT id(t) as id")
+					.single().get("id").asLong();
 			transaction.commit();
 		}
 	}

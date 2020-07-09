@@ -34,11 +34,9 @@ public class PersonWithRelationshipWithProperties {
 
 	private final String name;
 
-	@Relationship("LIKES")
-	private Map<Hobby, LikesHobbyRelationship> hobbies;
+	@Relationship("LIKES") private Map<Hobby, LikesHobbyRelationship> hobbies;
 
-	@Relationship("OWNS")
-	private Set<Pet> pets;
+	@Relationship("OWNS") private Set<Pet> pets;
 
 	public PersonWithRelationshipWithProperties(String name) {
 		this.name = name;

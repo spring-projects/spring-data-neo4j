@@ -21,50 +21,48 @@ import java.util.Objects;
  * @author Michael J. Simons
  */
 public final class Coordinate {
-    private final double x;
+	private final double x;
 
-    private final double y;
+	private final double y;
 
-    private final Double z;
+	private final Double z;
 
-    public Coordinate(double x, double y) {
-        this(x, y, null);
-    }
+	public Coordinate(double x, double y) {
+		this(x, y, null);
+	}
 
-    public Coordinate(double x, double y, Double z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
+	public Coordinate(double x, double y, Double z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
 
-    double getX() {
-        return x;
-    }
+	double getX() {
+		return x;
+	}
 
-    double getY() {
-        return y;
-    }
+	double getY() {
+		return y;
+	}
 
-    Double getZ() {
-        return z;
-    }
+	Double getZ() {
+		return z;
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Coordinate)) {
-            return false;
-        }
-        Coordinate that = (Coordinate) o;
-        return Double.compare(that.x, x) == 0 &&
-            Double.compare(that.y, y) == 0 &&
-            Objects.equals(z, that.z);
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof Coordinate)) {
+			return false;
+		}
+		Coordinate that = (Coordinate) o;
+		return Double.compare(that.x, x) == 0 && Double.compare(that.y, y) == 0 && Objects.equals(z, that.z);
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(x, y, z);
-    }
+	@Override
+	public int hashCode() {
+		return Objects.hash(x, y, z);
+	}
 }

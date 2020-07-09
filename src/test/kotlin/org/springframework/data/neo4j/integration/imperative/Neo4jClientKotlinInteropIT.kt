@@ -41,8 +41,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
  */
 @Neo4jIntegrationTest
 class Neo4jClientKotlinInteropIT @Autowired constructor(
-    private val driver: Driver,
-    private val neo4jClient: Neo4jClient
+        private val driver: Driver,
+        private val neo4jClient: Neo4jClient
 ) {
 
     companion object {
@@ -85,11 +85,11 @@ class Neo4jClientKotlinInteropIT @Autowired constructor(
 
         val dieAerzte = neo4jClient
                 .query(" MATCH (b:Band {name: \$name}) - [:HAS_MEMBER] -> (m)" +
-                    " RETURN b as band, collect(m.name) as members")
+                        " RETURN b as band, collect(m.name) as members")
                 .bind("Die Ärzte").to("name")
                 .mappedBy { _, r ->
                     val members = r["members"].asList { v -> Artist(v.asString()) }
-					Band(r["band"]["name"].asString(), members)
+                    Band(r["band"]["name"].asString(), members)
                 }
                 .one()
 

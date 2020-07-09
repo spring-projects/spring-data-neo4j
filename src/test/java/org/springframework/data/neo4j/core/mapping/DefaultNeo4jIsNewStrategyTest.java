@@ -35,14 +35,11 @@ import org.springframework.data.support.IsNewStrategy;
 @ExtendWith(MockitoExtension.class)
 class DefaultNeo4jIsNewStrategyTest {
 
-	@Mock
-	Neo4jPersistentEntity<?> entityMetaData;
+	@Mock Neo4jPersistentEntity<?> entityMetaData;
 
-	@Mock
-	Neo4jPersistentProperty idProperty;
+	@Mock Neo4jPersistentProperty idProperty;
 
-	@Mock
-	Neo4jPersistentProperty versionProperty;
+	@Mock Neo4jPersistentProperty versionProperty;
 
 	@Nested
 	class InternallyGenerated {
@@ -112,8 +109,8 @@ class DefaultNeo4jIsNewStrategyTest {
 			doReturn(idProperty).when(entityMetaData).getRequiredIdProperty();
 
 			assertThatIllegalArgumentException().isThrownBy(() -> DefaultNeo4jIsNewStrategy.basedOn(entityMetaData))
-				.withMessage(
-					"Cannot use org.springframework.data.neo4j.core.mapping.DefaultNeo4jIsNewStrategy with externally generated, primitive ids.");
+					.withMessage(
+							"Cannot use org.springframework.data.neo4j.core.mapping.DefaultNeo4jIsNewStrategy with externally generated, primitive ids.");
 		}
 	}
 

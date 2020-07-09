@@ -51,9 +51,7 @@ public class ThingWithAllAdditionalTypes {
 		ValueA, ValueB, TheUsualMisfit, ValueC
 	}
 
-	@Id @GeneratedValue
-	@With
-	public final Long id;
+	@Id @GeneratedValue @With public final Long id;
 
 	private boolean[] booleanArray;
 

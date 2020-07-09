@@ -75,14 +75,10 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 	private final DefaultConversionService defaultConversionService;
 
-	@Autowired TypeConversionIT(
-		Driver driver,
-		CypherTypesRepository cypherTypesRepository,
-		AdditionalTypesRepository additionalTypesRepository,
-		SpatialTypesRepository spatialTypesRepository,
-		CustomTypesRepository customTypesRepository,
-		Neo4jConversions neo4jConversions
-	) {
+	@Autowired
+	TypeConversionIT(Driver driver, CypherTypesRepository cypherTypesRepository,
+			AdditionalTypesRepository additionalTypesRepository, SpatialTypesRepository spatialTypesRepository,
+			CustomTypesRepository customTypesRepository, Neo4jConversions neo4jConversions) {
 		this.driver = driver;
 		this.cypherTypesRepository = cypherTypesRepository;
 		this.additionalTypesRepository = additionalTypesRepository;
@@ -96,11 +92,12 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 	void thereShallBeNoDefaultValuesForNonExistingAttributes(@Autowired NonExistingPrimitivesRepository repository) {
 
 		assertThatExceptionOfType(MappingException.class)
-			.isThrownBy(() -> repository.findById(ID_OF_NON_EXISTING_PRIMITIVES_NODE))
-			.withMessageMatching("Error mapping Record<\\{n: \\{__internalNeo4jId__: \\d+, someBoolean: NULL, __nodeLabels__: \\[\"NonExistingPrimitives\"\\]\\}\\}>")
-			.withStackTraceContaining(
-				"org.springframework.dao.TypeMismatchDataAccessException: Could not convert NULL into boolean; nested exception is org.springframework.core.convert.ConversionFailedException: Failed to convert from type [null] to type [boolean] for value 'null'; nested exception is java.lang.IllegalArgumentException: A null value cannot be assigned to a primitive type")
-			.withRootCauseInstanceOf(IllegalArgumentException.class);
+				.isThrownBy(() -> repository.findById(ID_OF_NON_EXISTING_PRIMITIVES_NODE))
+				.withMessageMatching(
+						"Error mapping Record<\\{n: \\{__internalNeo4jId__: \\d+, someBoolean: NULL, __nodeLabels__: \\[\"NonExistingPrimitives\"\\]\\}\\}>")
+				.withStackTraceContaining(
+						"org.springframework.dao.TypeMismatchDataAccessException: Could not convert NULL into boolean; nested exception is org.springframework.core.convert.ConversionFailedException: Failed to convert from type [null] to type [boolean] for value 'null'; nested exception is java.lang.IllegalArgumentException: A null value cannot be assigned to a primitive type")
+				.withRootCauseInstanceOf(IllegalArgumentException.class);
 	}
 
 	@TestFactory
@@ -112,50 +109,44 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		supportedTypes.put("SpatialTypes", SPATIAL_TYPES);
 		supportedTypes.put("CustomTypes", CUSTOM_TYPES);
 
-		return supportedTypes.entrySet().stream()
-			.map(entry -> {
+		return supportedTypes.entrySet().stream().map(entry -> {
 
-				Object thing;
-				Object copyOfThing;
-				switch (entry.getKey()) {
-					case "CypherTypes":
-						ThingWithAllCypherTypes hlp = cypherTypesRepository.findById(ID_OF_CYPHER_TYPES_NODE).get();
-						copyOfThing = cypherTypesRepository.save(hlp.withId(null));
-						thing = hlp;
-						break;
-					case "AdditionalTypes":
-						ThingWithAllAdditionalTypes hlp2 = additionalTypesRepository
-							.findById(ID_OF_ADDITIONAL_TYPES_NODE).get();
-						copyOfThing = additionalTypesRepository.save(hlp2.withId(null));
-						thing = hlp2;
-						break;
-					case "SpatialTypes":
-						ThingWithAllSpatialTypes hlp3 = spatialTypesRepository.findById(ID_OF_SPATIAL_TYPES_NODE)
-							.get();
-						copyOfThing = spatialTypesRepository.save(hlp3.withId(null));
-						thing = hlp3;
-						break;
-					case "CustomTypes":
-						ThingWithCustomTypes hlp4 = customTypesRepository.findById(ID_OF_CUSTOM_TYPE_NODE)
-							.get();
-						copyOfThing = customTypesRepository.save(hlp4.withId(null));
-						thing = hlp4;
-						break;
-					default:
-						throw new UnsupportedOperationException("Unsupported types: " + entry.getKey());
-				}
+			Object thing;
+			Object copyOfThing;
+			switch (entry.getKey()) {
+				case "CypherTypes":
+					ThingWithAllCypherTypes hlp = cypherTypesRepository.findById(ID_OF_CYPHER_TYPES_NODE).get();
+					copyOfThing = cypherTypesRepository.save(hlp.withId(null));
+					thing = hlp;
+					break;
+				case "AdditionalTypes":
+					ThingWithAllAdditionalTypes hlp2 = additionalTypesRepository.findById(ID_OF_ADDITIONAL_TYPES_NODE).get();
+					copyOfThing = additionalTypesRepository.save(hlp2.withId(null));
+					thing = hlp2;
+					break;
+				case "SpatialTypes":
+					ThingWithAllSpatialTypes hlp3 = spatialTypesRepository.findById(ID_OF_SPATIAL_TYPES_NODE).get();
+					copyOfThing = spatialTypesRepository.save(hlp3.withId(null));
+					thing = hlp3;
+					break;
+				case "CustomTypes":
+					ThingWithCustomTypes hlp4 = customTypesRepository.findById(ID_OF_CUSTOM_TYPE_NODE).get();
+					copyOfThing = customTypesRepository.save(hlp4.withId(null));
+					thing = hlp4;
+					break;
+				default:
+					throw new UnsupportedOperationException("Unsupported types: " + entry.getKey());
+			}
 
-				DynamicContainer reads = DynamicContainer.dynamicContainer("read", entry.getValue().entrySet().stream()
-					.map(a -> dynamicTest(a.getKey(),
-						() -> assertThat(ReflectionTestUtils.getField(thing, a.getKey())).isEqualTo(a.getValue()))));
+			DynamicContainer reads = DynamicContainer.dynamicContainer("read",
+					entry.getValue().entrySet().stream().map(a -> dynamicTest(a.getKey(),
+							() -> assertThat(ReflectionTestUtils.getField(thing, a.getKey())).isEqualTo(a.getValue()))));
 
-				DynamicContainer writes = DynamicContainer
-					.dynamicContainer("write", entry.getValue().entrySet().stream()
-						.map(a -> dynamicTest(a.getKey(),
-							() -> assertWrite(copyOfThing, a.getKey(), defaultConversionService))));
+			DynamicContainer writes = DynamicContainer.dynamicContainer("write", entry.getValue().entrySet().stream()
+					.map(a -> dynamicTest(a.getKey(), () -> assertWrite(copyOfThing, a.getKey(), defaultConversionService))));
 
-				return DynamicContainer.dynamicContainer(entry.getKey(), Arrays.asList(reads, writes));
-			});
+			return DynamicContainer.dynamicContainer(entry.getKey(), Arrays.asList(reads, writes));
+		});
 	}
 
 	void assertWrite(Object thing, String fieldName, ConversionService conversionService) {
@@ -166,8 +157,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		Value driverValue;
 		if (domainValue != null && Collection.class.isAssignableFrom(domainValue.getClass())) {
 			Collection<?> sourceCollection = (Collection<?>) domainValue;
-			Object[] targetCollection = (sourceCollection).stream().map(element ->
-				conversionService.convert(element, Value.class)).toArray();
+			Object[] targetCollection = (sourceCollection).stream()
+					.map(element -> conversionService.convert(element, Value.class)).toArray();
 			driverValue = Values.value(targetCollection);
 		} else {
 			driverValue = conversionService.convert(domainValue, Value.class);
@@ -179,10 +170,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 			parameters.put("attribute", fieldName);
 			parameters.put("v", driverValue);
 
-			long cnt = session
-				.run("MATCH (n) WHERE id(n) = $id  AND n[$attribute] = $v RETURN COUNT(n) AS cnt",
-					parameters)
-				.single().get("cnt").asLong();
+			long cnt = session.run("MATCH (n) WHERE id(n) = $id  AND n[$attribute] = $v RETURN COUNT(n) AS cnt", parameters)
+					.single().get("cnt").asLong();
 			assertThat(cnt).isEqualTo(1L);
 		}
 	}
@@ -210,29 +199,17 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		Assertions.assertThat(repository.findById(savedThing.getAnotherThing().getId())).isPresent();
 	}
 
-	public interface ConvertedIDsRepository
-		extends Neo4jRepository<ThingWithUUIDID, UUID> {
-	}
+	public interface ConvertedIDsRepository extends Neo4jRepository<ThingWithUUIDID, UUID> {}
 
-	public interface CypherTypesRepository
-		extends Neo4jRepository<ThingWithAllCypherTypes, Long> {
-	}
+	public interface CypherTypesRepository extends Neo4jRepository<ThingWithAllCypherTypes, Long> {}
 
-	public interface AdditionalTypesRepository
-		extends Neo4jRepository<ThingWithAllAdditionalTypes, Long> {
-	}
+	public interface AdditionalTypesRepository extends Neo4jRepository<ThingWithAllAdditionalTypes, Long> {}
 
-	public interface SpatialTypesRepository
-		extends Neo4jRepository<ThingWithAllSpatialTypes, Long> {
-	}
+	public interface SpatialTypesRepository extends Neo4jRepository<ThingWithAllSpatialTypes, Long> {}
 
-	public interface NonExistingPrimitivesRepository
-		extends Neo4jRepository<ThingWithNonExistingPrimitives, Long> {
-	}
+	public interface NonExistingPrimitivesRepository extends Neo4jRepository<ThingWithNonExistingPrimitives, Long> {}
 
-	public interface CustomTypesRepository
-		extends Neo4jRepository<ThingWithCustomTypes, Long> {
-	}
+	public interface CustomTypesRepository extends Neo4jRepository<ThingWithCustomTypes, Long> {}
 
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)

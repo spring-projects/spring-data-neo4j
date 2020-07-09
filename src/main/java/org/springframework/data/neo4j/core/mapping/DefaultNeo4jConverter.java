@@ -75,9 +75,9 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(DefaultNeo4jConverter.class));
 
 	/**
-	 * The shared entity instantiators of this context. Those should not be recreated for each entity or even not for
-	 * each query, as otherwise the cache of Spring's org.springframework.data.convert.ClassGeneratingEntityInstantiator
-	 * won't apply
+	 * The shared entity instantiators of this context. Those should not be recreated for each entity or even not for each
+	 * query, as otherwise the cache of Spring's org.springframework.data.convert.ClassGeneratingEntityInstantiator won't
+	 * apply
 	 */
 	private static final EntityInstantiators INSTANTIATORS = new EntityInstantiators();
 
@@ -100,8 +100,8 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 	@Override
 	public <R> R read(Class<R> targetType, Record record) {
 
-		Neo4jPersistentEntity<R> rootNodeDescription =
-			(Neo4jPersistentEntity) nodeDescriptionStore.getNodeDescription(targetType);
+		Neo4jPersistentEntity<R> rootNodeDescription = (Neo4jPersistentEntity) nodeDescriptionStore
+				.getNodeDescription(targetType);
 
 		try {
 			List<Value> recordValues = record.values();
@@ -128,7 +128,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 
 			if (queryRoot == null) {
 				log.warn(() -> String.format("Could not find mappable nodes or relationships inside %s for %s", record,
-					rootNodeDescription));
+						rootNodeDescription));
 				return null; // todo should not be null because of the @nonnullapi annotation in the EntityReader. Fail?
 			} else {
 				return map(queryRoot, rootNodeDescription, new KnownObjects());
@@ -149,8 +149,8 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 
 			if (!valueIsLiteralNullOrNullValue && isCollection(type)) {
 				Collection<Object> target = createCollection(rawType, type.getComponentType().getType(), value.size());
-				value.values().forEach(
-					element -> target.add(conversionService.convert(element, type.getComponentType().getType())));
+				value.values()
+						.forEach(element -> target.add(conversionService.convert(element, type.getComponentType().getType())));
 				return target;
 			}
 
@@ -172,8 +172,8 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 	public void write(Object source, Map<String, Object> parameters) {
 		Map<String, Object> properties = new HashMap<>();
 
-		Neo4jPersistentEntity<?> nodeDescription =
-			(Neo4jPersistentEntity<?>) nodeDescriptionStore.getNodeDescription(source.getClass());
+		Neo4jPersistentEntity<?> nodeDescription = (Neo4jPersistentEntity<?>) nodeDescriptionStore
+				.getNodeDescription(source.getClass());
 
 		PersistentPropertyAccessor propertyAccessor = nodeDescription.getPropertyAccessor(source);
 		nodeDescription.doWithProperties((Neo4jPersistentProperty p) -> {
@@ -193,7 +193,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		if (nodeDescription.hasIdProperty()) {
 			Neo4jPersistentProperty idProperty = nodeDescription.getRequiredIdProperty();
 			parameters.put(Constants.NAME_OF_ID,
-				writeValueFromProperty(propertyAccessor.getProperty(idProperty), idProperty.getTypeInformation()));
+					writeValueFromProperty(propertyAccessor.getProperty(idProperty), idProperty.getTypeInformation()));
 		}
 		// in case of relationship properties ignore internal id property
 		if (nodeDescription.hasVersionProperty()) {
@@ -213,8 +213,8 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 
 		if (isCollection(type)) {
 			Collection<?> sourceCollection = (Collection<?>) value;
-			Object[] targetCollection = (sourceCollection).stream().map(element ->
-				conversionService.convert(element, Value.class)).toArray();
+			Object[] targetCollection = (sourceCollection).stream()
+					.map(element -> conversionService.convert(element, Value.class)).toArray();
 			return Values.value(targetCollection);
 		}
 
@@ -233,7 +233,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 	 * Merges the root node of a query and the remaining record into one map, adding the internal ID of the node, too.
 	 * Merge happens only when the record contains additional values.
 	 *
-	 * @param node   Node whose attributes are about to be merged
+	 * @param node Node whose attributes are about to be merged
 	 * @param record Record that should be merged
 	 * @return
 	 */
@@ -248,26 +248,24 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 	}
 
 	/**
-	 * @param queryResult     The original query result
+	 * @param queryResult The original query result
 	 * @param nodeDescription The node description of the current entity to be mapped from the result
-	 * @param knownObjects    The current list of known objects
-	 * @param <ET>            As in entity type
+	 * @param knownObjects The current list of known objects
+	 * @param <ET> As in entity type
 	 * @return
 	 */
-	private <ET> ET map(MapAccessor queryResult,
-		Neo4jPersistentEntity<ET> nodeDescription,
-		KnownObjects knownObjects) {
+	private <ET> ET map(MapAccessor queryResult, Neo4jPersistentEntity<ET> nodeDescription, KnownObjects knownObjects) {
 
 		List<String> allLabels = getLabels(queryResult);
 		NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore
-			.deriveConcreteNodeDescription(nodeDescription, allLabels);
+				.deriveConcreteNodeDescription(nodeDescription, allLabels);
 		Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels
-			.getNodeDescription();
+				.getNodeDescription();
 
 		Collection<RelationshipDescription> relationships = concreteNodeDescription.getRelationships();
 
 		ET instance = instantiate(concreteNodeDescription, queryResult, knownObjects, relationships,
-			nodeDescriptionAndLabels.getDynamicLabels());
+				nodeDescriptionAndLabels.getDynamicLabels());
 
 		PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(instance);
 
@@ -275,14 +273,14 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 
 			// Fill simple properties
 			Predicate<Neo4jPersistentProperty> isConstructorParameter = concreteNodeDescription
-				.getPersistenceConstructor()::isConstructorParameter;
-			PropertyHandler<Neo4jPersistentProperty> handler = populateFrom(
-				queryResult, propertyAccessor, isConstructorParameter, nodeDescriptionAndLabels.getDynamicLabels());
+					.getPersistenceConstructor()::isConstructorParameter;
+			PropertyHandler<Neo4jPersistentProperty> handler = populateFrom(queryResult, propertyAccessor,
+					isConstructorParameter, nodeDescriptionAndLabels.getDynamicLabels());
 			concreteNodeDescription.doWithProperties(handler);
 
 			// Fill associations
 			concreteNodeDescription.doWithAssociations(
-				populateFrom(queryResult, propertyAccessor, isConstructorParameter, relationships, knownObjects));
+					populateFrom(queryResult, propertyAccessor, isConstructorParameter, relationships, knownObjects));
 		}
 		return instance;
 	}
@@ -306,22 +304,17 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		return labels;
 	}
 
-	private <ET> ET instantiate(Neo4jPersistentEntity<ET> nodeDescription,
-		MapAccessor values,
-		KnownObjects knownObjects,
-		Collection<RelationshipDescription> relationships,
-		Collection<String> surplusLabels) {
+	private <ET> ET instantiate(Neo4jPersistentEntity<ET> nodeDescription, MapAccessor values, KnownObjects knownObjects,
+			Collection<RelationshipDescription> relationships, Collection<String> surplusLabels) {
 
 		ParameterValueProvider<Neo4jPersistentProperty> parameterValueProvider = new ParameterValueProvider<Neo4jPersistentProperty>() {
 			@Override
 			public Object getParameterValue(PreferredConstructor.Parameter parameter) {
 
-				Neo4jPersistentProperty matchingProperty = nodeDescription
-					.getRequiredPersistentProperty(parameter.getName());
+				Neo4jPersistentProperty matchingProperty = nodeDescription.getRequiredPersistentProperty(parameter.getName());
 
 				if (matchingProperty.isRelationship()) {
-					return createInstanceOfRelationships(matchingProperty, values, knownObjects, relationships)
-						.orElse(null);
+					return createInstanceOfRelationships(matchingProperty, values, knownObjects, relationships).orElse(null);
 				} else if (matchingProperty.isDynamicLabels()) {
 					return createDynamicLabelsProperty(matchingProperty.getTypeInformation(), surplusLabels);
 				}
@@ -329,38 +322,30 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			}
 		};
 
-		return INSTANTIATORS.getInstantiatorFor(nodeDescription)
-			.createInstance(nodeDescription, parameterValueProvider);
+		return INSTANTIATORS.getInstantiatorFor(nodeDescription).createInstance(nodeDescription, parameterValueProvider);
 	}
 
-	private PropertyHandler<Neo4jPersistentProperty> populateFrom(
-		MapAccessor queryResult,
-		PersistentPropertyAccessor<?> propertyAccessor,
-		Predicate<Neo4jPersistentProperty> isConstructorParameter,
-		Collection<String> surplusLabels
-	) {
+	private PropertyHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult,
+			PersistentPropertyAccessor<?> propertyAccessor, Predicate<Neo4jPersistentProperty> isConstructorParameter,
+			Collection<String> surplusLabels) {
 		return property -> {
 			if (isConstructorParameter.test(property)) {
 				return;
 			}
 
 			if (property.isDynamicLabels()) {
-				propertyAccessor
-					.setProperty(property, createDynamicLabelsProperty(property.getTypeInformation(), surplusLabels));
+				propertyAccessor.setProperty(property,
+						createDynamicLabelsProperty(property.getTypeInformation(), surplusLabels));
 			} else {
 				propertyAccessor.setProperty(property,
-					readValueForProperty(extractValueOf(property, queryResult), property.getTypeInformation()));
+						readValueForProperty(extractValueOf(property, queryResult), property.getTypeInformation()));
 			}
 		};
 	}
 
-	private AssociationHandler<Neo4jPersistentProperty> populateFrom(
-		MapAccessor queryResult,
-		PersistentPropertyAccessor<?> propertyAccessor,
-		Predicate<Neo4jPersistentProperty> isConstructorParameter,
-		Collection<RelationshipDescription> relationships,
-		KnownObjects knownObjects
-	) {
+	private AssociationHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult,
+			PersistentPropertyAccessor<?> propertyAccessor, Predicate<Neo4jPersistentProperty> isConstructorParameter,
+			Collection<RelationshipDescription> relationships, KnownObjects knownObjects) {
 		return association -> {
 
 			Neo4jPersistentProperty persistentProperty = association.getInverse();
@@ -369,30 +354,27 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			}
 
 			createInstanceOfRelationships(persistentProperty, queryResult, knownObjects, relationships)
-				.ifPresent(value -> propertyAccessor.setProperty(persistentProperty, value));
+					.ifPresent(value -> propertyAccessor.setProperty(persistentProperty, value));
 		};
 	}
 
-	private Optional<Object> createInstanceOfRelationships(Neo4jPersistentProperty persistentProperty,
-		MapAccessor values,
-		KnownObjects knownObjects,
-		Collection<RelationshipDescription> relationshipDescriptions) {
+	private Optional<Object> createInstanceOfRelationships(Neo4jPersistentProperty persistentProperty, MapAccessor values,
+			KnownObjects knownObjects, Collection<RelationshipDescription> relationshipDescriptions) {
 
 		RelationshipDescription relationshipDescription = relationshipDescriptions.stream()
-			.filter(r -> r.getFieldName().equals(persistentProperty.getName()))
-			.findFirst().get();
+				.filter(r -> r.getFieldName().equals(persistentProperty.getName())).findFirst().get();
 
 		String relationshipType = relationshipDescription.getType();
 		String targetLabel = relationshipDescription.getTarget().getPrimaryLabel();
 
-		Neo4jPersistentEntity<?> genericTargetNodeDescription =
-			(Neo4jPersistentEntity<?>) relationshipDescription.getTarget();
+		Neo4jPersistentEntity<?> genericTargetNodeDescription = (Neo4jPersistentEntity<?>) relationshipDescription
+				.getTarget();
 
 		List<String> allLabels = getLabels(values);
 		NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore
-			.deriveConcreteNodeDescription(genericTargetNodeDescription, allLabels);
+				.deriveConcreteNodeDescription(genericTargetNodeDescription, allLabels);
 		Neo4jPersistentEntity<?> concreteTargetNodeDescription = (Neo4jPersistentEntity<?>) nodeDescriptionAndLabels
-			.getNodeDescription();
+				.getNodeDescription();
 
 		List<Object> value = new ArrayList<>();
 		Map<Object, Object> dynamicValue = new HashMap<>();
@@ -409,8 +391,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			TypeInformation<?> actualType = persistentProperty.getTypeInformation().getRequiredActualType();
 			mappedObjectHandler = (type, mappedObject) -> {
 				List<Object> bucket = (List<Object>) dynamicValue.computeIfAbsent(keyTransformer.apply(type),
-					s -> createCollection(actualType.getType(), persistentProperty.getAssociationTargetType(),
-						values.size()));
+						s -> createCollection(actualType.getType(), persistentProperty.getAssociationTargetType(), values.size()));
 				bucket.add(mappedObject);
 			};
 		} else if (persistentProperty.isDynamicAssociation()) {
@@ -428,28 +409,21 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 
 			Predicate<Value> isList = entry -> entry instanceof Value && typeSystem.LIST().isTypeOf(entry);
 
-			Predicate<Value> containsOnlyRelationships = entry -> entry.asList(Function.identity())
-				.stream()
-				.allMatch(listEntry -> typeSystem.RELATIONSHIP().isTypeOf(listEntry));
+			Predicate<Value> containsOnlyRelationships = entry -> entry.asList(Function.identity()).stream()
+					.allMatch(listEntry -> typeSystem.RELATIONSHIP().isTypeOf(listEntry));
 
-			Predicate<Value> containsOnlyNodes = entry -> entry.asList(Function.identity())
-				.stream()
-				.allMatch(listEntry -> typeSystem.NODE().isTypeOf(listEntry));
+			Predicate<Value> containsOnlyNodes = entry -> entry.asList(Function.identity()).stream()
+					.allMatch(listEntry -> typeSystem.NODE().isTypeOf(listEntry));
 
 			// find relationships in the result
 			List<Relationship> allMatchingTypeRelationshipsInResult = StreamSupport
-				.stream(values.values().spliterator(), false)
-				.filter(isList.and(containsOnlyRelationships))
-				.flatMap(entry -> entry.asList(Value::asRelationship).stream())
-				.filter(r -> r.type().equals(relationshipType))
-				.collect(toList());
+					.stream(values.values().spliterator(), false).filter(isList.and(containsOnlyRelationships))
+					.flatMap(entry -> entry.asList(Value::asRelationship).stream()).filter(r -> r.type().equals(relationshipType))
+					.collect(toList());
 
-			List<Node> allNodesWithMatchingLabelInResult = StreamSupport
-				.stream(values.values().spliterator(), false)
-				.filter(isList.and(containsOnlyNodes))
-				.flatMap(entry -> entry.asList(Value::asNode).stream())
-				.filter(n -> n.hasLabel(targetLabel))
-				.collect(toList());
+			List<Node> allNodesWithMatchingLabelInResult = StreamSupport.stream(values.values().spliterator(), false)
+					.filter(isList.and(containsOnlyNodes)).flatMap(entry -> entry.asList(Value::asNode).stream())
+					.filter(n -> n.hasLabel(targetLabel)).collect(toList());
 
 			if (allNodesWithMatchingLabelInResult.isEmpty() && allMatchingTypeRelationshipsInResult.isEmpty()) {
 				return Optional.empty();
@@ -466,8 +440,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 							Class<?> propertiesClass = relationshipDescription.getRelationshipPropertiesClass();
 
 							Object relationshipProperties = map(possibleRelationship,
-								(Neo4jPersistentEntity) nodeDescriptionStore.getNodeDescription(propertiesClass),
-								knownObjects);
+									(Neo4jPersistentEntity) nodeDescriptionStore.getNodeDescription(propertiesClass), knownObjects);
 							relationshipsAndProperties.put(mappedObject, relationshipProperties);
 						} else {
 							mappedObjectHandler.accept(possibleRelationship.type(), mappedObject);
@@ -481,27 +454,25 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 				Neo4jPersistentProperty idProperty = concreteTargetNodeDescription.getRequiredIdProperty();
 
 				// internal (generated) id or external set
-				String relatedEntityIdKey = idProperty.isInternalIdProperty()
-					? Constants.NAME_OF_INTERNAL_ID
-					: concreteTargetNodeDescription.getIdDescription()
-						.getOptionalGraphPropertyName()
-						.orElse(idProperty.getName());
+				String relatedEntityIdKey = idProperty.isInternalIdProperty() ? Constants.NAME_OF_INTERNAL_ID
+						: concreteTargetNodeDescription.getIdDescription().getOptionalGraphPropertyName()
+								.orElse(idProperty.getName());
 				Object idValue = relatedEntity.get(relatedEntityIdKey);
 
 				Object valueEntry = knownObjects.computeIfAbsent(idValue,
-					() -> map(relatedEntity, concreteTargetNodeDescription, knownObjects));
+						() -> map(relatedEntity, concreteTargetNodeDescription, knownObjects));
 
 				if (relationshipDescription.hasRelationshipProperties()) {
-					Relationship relatedEntityRelationship = relatedEntity.get(
-						RelationshipDescription.NAME_OF_RELATIONSHIP).asRelationship();
+					Relationship relatedEntityRelationship = relatedEntity.get(RelationshipDescription.NAME_OF_RELATIONSHIP)
+							.asRelationship();
 					Class<?> propertiesClass = relationshipDescription.getRelationshipPropertiesClass();
 
 					Object relationshipProperties = map(relatedEntityRelationship,
-						(Neo4jPersistentEntity) nodeDescriptionStore.getNodeDescription(propertiesClass),
-						knownObjects);
+							(Neo4jPersistentEntity) nodeDescriptionStore.getNodeDescription(propertiesClass), knownObjects);
 					relationshipsAndProperties.put(valueEntry, relationshipProperties);
 				} else {
-					mappedObjectHandler.accept(relatedEntity.get(RelationshipDescription.NAME_OF_RELATIONSHIP_TYPE).asString(), valueEntry);
+					mappedObjectHandler.accept(relatedEntity.get(RelationshipDescription.NAME_OF_RELATIONSHIP_TYPE).asString(),
+							valueEntry);
 				}
 			}
 		}
@@ -526,9 +497,8 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 
 	private static Value extractValueOf(Neo4jPersistentProperty property, MapAccessor propertyContainer) {
 		if (property.isInternalIdProperty()) {
-			return propertyContainer instanceof Node ?
-				Values.value(((Node) propertyContainer).id()) :
-				propertyContainer.get(Constants.NAME_OF_INTERNAL_ID);
+			return propertyContainer instanceof Node ? Values.value(((Node) propertyContainer).id())
+					: propertyContainer.get(Constants.NAME_OF_INTERNAL_ID);
 		} else {
 			String graphPropertyName = property.getPropertyName();
 			return propertyContainer.get(graphPropertyName);

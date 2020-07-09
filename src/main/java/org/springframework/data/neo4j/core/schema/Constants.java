@@ -44,6 +44,5 @@ public final class Constants {
 
 	public static final String FROM_ID_PARAMETER_NAME = "fromId";
 
-	private Constants() {
-	}
+	private Constants() {}
 }

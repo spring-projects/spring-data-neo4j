@@ -47,9 +47,11 @@ final class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 		return session;
 	}
 
-	@Nullable RxTransaction getTransaction(String inDatabase) {
+	@Nullable
+	RxTransaction getTransaction(String inDatabase) {
 
-		return Neo4jTransactionUtils.namesMapToTheSameDatabase(this.context.getDatabaseName(), inDatabase) ? transaction : null;
+		return Neo4jTransactionUtils.namesMapToTheSameDatabase(this.context.getDatabaseName(), inDatabase) ? transaction
+				: null;
 	}
 
 	Mono<Bookmark> commit() {

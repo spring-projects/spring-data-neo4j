@@ -35,8 +35,8 @@ import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.util.Assert;
 
 /**
- * Support class for validating parts of either a {@link PartTreeNeo4jQuery} or the
- * {@link ReactivePartTreeNeo4jQuery reactive pendant}.
+ * Support class for validating parts of either a {@link PartTreeNeo4jQuery} or the {@link ReactivePartTreeNeo4jQuery
+ * reactive pendant}.
  *
  * @author Michael J. Simons
  * @soundtrack Antilopen Gang - Abwasser
@@ -46,16 +46,14 @@ class PartValidator {
 
 	/**
 	 * A set of the temporal types that are directly passable to the driver and support a meaningful comparision in a
-	 * temporal sense (after, before).
-	 * See <a href="See https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system" />
+	 * temporal sense (after, before). See
+	 * <a href="See https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system" />
 	 */
-	private static final Set<Class<?>> COMPARABLE_TEMPORAL_TYPES = Collections
-		.unmodifiableSet(new HashSet<>(Arrays.asList(LocalDate.class, OffsetTime.class, ZonedDateTime.class,
-			LocalDateTime.class, Instant.class)));
+	private static final Set<Class<?>> COMPARABLE_TEMPORAL_TYPES = Collections.unmodifiableSet(new HashSet<>(
+			Arrays.asList(LocalDate.class, OffsetTime.class, ZonedDateTime.class, LocalDateTime.class, Instant.class)));
 
-	private static final EnumSet<Part.Type> TYPES_SUPPORTING_CASE_INSENSITIVITY = EnumSet
-		.of(Part.Type.CONTAINING, Part.Type.ENDING_WITH, Part.Type.LIKE, Part.Type.NEGATING_SIMPLE_PROPERTY,
-			Part.Type.NOT_CONTAINING,
+	private static final EnumSet<Part.Type> TYPES_SUPPORTING_CASE_INSENSITIVITY = EnumSet.of(Part.Type.CONTAINING,
+			Part.Type.ENDING_WITH, Part.Type.LIKE, Part.Type.NEGATING_SIMPLE_PROPERTY, Part.Type.NOT_CONTAINING,
 			Part.Type.NOT_LIKE, Part.Type.SIMPLE_PROPERTY, Part.Type.STARTING_WITH);
 
 	private final Neo4jQueryMethod queryMethod;
@@ -85,36 +83,32 @@ class PartValidator {
 
 	private void validateIgnoreCase(Part part) {
 
-		Assert.isTrue(part.shouldIgnoreCase() != Part.IgnoreCaseType.ALWAYS || canIgnoreCase(part),
-			() -> String.format(
+		Assert.isTrue(part.shouldIgnoreCase() != Part.IgnoreCaseType.ALWAYS || canIgnoreCase(part), () -> String.format(
 				"Can not derive query for '%s': Only the case of String based properties can be ignored within the following keywords: %s",
-				queryMethod,
-				formatTypes(TYPES_SUPPORTING_CASE_INSENSITIVITY)));
+				queryMethod, formatTypes(TYPES_SUPPORTING_CASE_INSENSITIVITY)));
 	}
 
 	private void validateTemporalProperty(Part part) {
 
-		Assert.isTrue(COMPARABLE_TEMPORAL_TYPES.contains(part.getProperty().getLeafType()), () -> String
-			.format(
+		Assert.isTrue(COMPARABLE_TEMPORAL_TYPES.contains(part.getProperty().getLeafType()), () -> String.format(
 				"Can not derive query for '%s': The keywords %s work only with properties with one of the following types: %s",
-				queryMethod, formatTypes(Collections.singletonList(part.getType())),
-				COMPARABLE_TEMPORAL_TYPES));
+				queryMethod, formatTypes(Collections.singletonList(part.getType())), COMPARABLE_TEMPORAL_TYPES));
 	}
 
 	private void validateCollectionProperty(Part part) {
 
-		Assert.isTrue(part.getProperty().getLeafProperty().isCollection(), () -> String
-			.format("Can not derive query for '%s': The keywords %s work only with collection properties",
-				queryMethod,
-				formatTypes(Collections.singletonList(part.getType()))));
+		Assert.isTrue(part.getProperty().getLeafProperty().isCollection(),
+				() -> String.format("Can not derive query for '%s': The keywords %s work only with collection properties",
+						queryMethod, formatTypes(Collections.singletonList(part.getType()))));
 	}
 
 	private void validatePointProperty(Part part) {
 
-		Assert.isTrue(ClassTypeInformation.from(Point.class)
-			.isAssignableFrom(part.getProperty().getLeafProperty().getTypeInformation()), () -> String
-			.format("Can not derive query for '%s': %s works only with spatial properties", queryMethod,
-				part.getType()));
+		Assert.isTrue(
+				ClassTypeInformation.from(Point.class)
+						.isAssignableFrom(part.getProperty().getLeafProperty().getTypeInformation()),
+				() -> String.format("Can not derive query for '%s': %s works only with spatial properties", queryMethod,
+						part.getType()));
 	}
 
 	private static String formatTypes(Collection<Part.Type> types) {
@@ -128,7 +122,7 @@ class PartValidator {
 	 * @return True when {@code part} can be queried case insensitive.
 	 */
 	static boolean canIgnoreCase(Part part) {
-		return part.getProperty().getLeafType() == String.class && TYPES_SUPPORTING_CASE_INSENSITIVITY
-			.contains(part.getType());
+		return part.getProperty().getLeafType() == String.class
+				&& TYPES_SUPPORTING_CASE_INSENSITIVITY.contains(part.getType());
 	}
 }

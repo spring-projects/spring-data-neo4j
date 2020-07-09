@@ -22,9 +22,8 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
 /**
- * This thing has several relationships to other things of the same kind but with a different type.
- * It is used to test whether all types are stored correctly even if those relationships point to
- * the same instance of the thing.
+ * This thing has several relationships to other things of the same kind but with a different type. It is used to test
+ * whether all types are stored correctly even if those relationships point to the same instance of the thing.
  *
  * @author Michael J. Simons
  */

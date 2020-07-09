@@ -47,8 +47,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Additional types that are supported out of the box.
- * Mostly all of {@link org.springframework.data.mapping.model.SimpleTypeHolder SimpleTypeHolder's} defaults.
+ * Additional types that are supported out of the box. Mostly all of
+ * {@link org.springframework.data.mapping.model.SimpleTypeHolder SimpleTypeHolder's} defaults.
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
@@ -82,12 +82,9 @@ final class AdditionalTypes {
 		hlp.add(reading(Value.class, short.class, AdditionalTypes::asShort).andWriting(AdditionalTypes::value));
 		hlp.add(reading(Value.class, short[].class, AdditionalTypes::asShortArray).andWriting(AdditionalTypes::value));
 		hlp.add(reading(Value.class, String[].class, AdditionalTypes::asStringArray).andWriting(Values::value));
-		hlp.add(
-			reading(Value.class, BigDecimal.class, AdditionalTypes::asBigDecimal).andWriting(AdditionalTypes::value));
-		hlp.add(
-			reading(Value.class, BigInteger.class, AdditionalTypes::asBigInteger).andWriting(AdditionalTypes::value));
-		hlp.add(
-			reading(Value.class, TemporalAmount.class, AdditionalTypes::asTemporalAmount)
+		hlp.add(reading(Value.class, BigDecimal.class, AdditionalTypes::asBigDecimal).andWriting(AdditionalTypes::value));
+		hlp.add(reading(Value.class, BigInteger.class, AdditionalTypes::asBigInteger).andWriting(AdditionalTypes::value));
+		hlp.add(reading(Value.class, TemporalAmount.class, AdditionalTypes::asTemporalAmount)
 				.andWriting(AdditionalTypes::value));
 		hlp.add(reading(Value.class, Instant.class, AdditionalTypes::asInstant).andWriting(AdditionalTypes::value));
 		hlp.add(reading(Value.class, UUID.class, AdditionalTypes::asUUID).andWriting(AdditionalTypes::value));
@@ -216,12 +213,13 @@ final class AdditionalTypes {
 	}
 
 	/**
-	 * This is a workaround for the fact that Spring Data Commons requires {@link GenericConverter generic converters}
-	 * to have a non-null convertible pair since 2.3. Without it, they get filtered out and thus not registered in a
-	 * conversion service. We do this as an after thought in {@link Neo4jConversions#registerConvertersIn(ConverterRegistry)}.
+	 * This is a workaround for the fact that Spring Data Commons requires {@link GenericConverter generic converters} to
+	 * have a non-null convertible pair since 2.3. Without it, they get filtered out and thus not registered in a
+	 * conversion service. We do this as an after thought in
+	 * {@link Neo4jConversions#registerConvertersIn(ConverterRegistry)}.
 	 * <p>
-	 * This class uses is a {@link GenericConverter} without a concrete pair of convertible types. By making it implement {@link ConditionalConverter} it
-	 * works with Springs conversion service out of the box.
+	 * This class uses is a {@link GenericConverter} without a concrete pair of convertible types. By making it implement
+	 * {@link ConditionalConverter} it works with Springs conversion service out of the box.
 	 */
 	static final class EnumArrayConverter implements GenericConverter, ConditionalConverter {
 
@@ -248,8 +246,8 @@ final class AdditionalTypes {
 		}
 
 		private static boolean describesSupportedEnumVariant(TypeDescriptor typeDescriptor) {
-			return typeDescriptor.isArray() && Enum.class
-				.isAssignableFrom(typeDescriptor.getElementTypeDescriptor().getType());
+			return typeDescriptor.isArray()
+					&& Enum.class.isAssignableFrom(typeDescriptor.getElementTypeDescriptor().getType());
 		}
 
 		@Override
@@ -266,13 +264,14 @@ final class AdditionalTypes {
 				Object[] targetArray = (Object[]) Array.newInstance(elementTypeDescriptor.getType(), source.size());
 
 				Arrays.setAll(targetArray,
-					i -> delegate.convert(source.get(i), TypeDescriptor.valueOf(Value.class), elementTypeDescriptor));
+						i -> delegate.convert(source.get(i), TypeDescriptor.valueOf(Value.class), elementTypeDescriptor));
 				return targetArray;
 			} else {
 				Enum[] source = (Enum[]) object;
 
-				return Values.value(Arrays.stream(source).map(e -> delegate
-					.convert(e, sourceType.getElementTypeDescriptor(), TypeDescriptor.valueOf(Value.class))).toArray());
+				return Values.value(Arrays.stream(source)
+						.map(e -> delegate.convert(e, sourceType.getElementTypeDescriptor(), TypeDescriptor.valueOf(Value.class)))
+						.toArray());
 			}
 		}
 	}
@@ -412,6 +411,5 @@ final class AdditionalTypes {
 		return Values.value(values);
 	}
 
-	private AdditionalTypes() {
-	}
+	private AdditionalTypes() {}
 }

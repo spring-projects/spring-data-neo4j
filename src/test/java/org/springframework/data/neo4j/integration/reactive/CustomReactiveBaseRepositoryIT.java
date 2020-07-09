@@ -51,26 +51,21 @@ public class CustomReactiveBaseRepositoryIT {
 	@Test
 	public void customBaseRepositoryShouldBeInUse(@Autowired MyPersonRepository repository) {
 
-		StepVerifier.create(repository.findAll()).expectErrorMatches(e ->
-			e instanceof UnsupportedOperationException && e.getMessage().equals(
-				"This implementation does not support `findAll`.")
-		);
+		StepVerifier.create(repository.findAll()).expectErrorMatches(e -> e instanceof UnsupportedOperationException
+				&& e.getMessage().equals("This implementation does not support `findAll`."));
 	}
 
-
-	interface MyPersonRepository extends ReactiveNeo4jRepository<PersonWithAllConstructor, Long> {
-	}
+	interface MyPersonRepository extends ReactiveNeo4jRepository<PersonWithAllConstructor, Long> {}
 
 	static class MyRepositoryImpl<T, ID> extends SimpleReactiveNeo4jRepository<T, ID> {
 
-		MyRepositoryImpl(ReactiveNeo4jOperations neo4jOperations,
-			Neo4jEntityInformation<T, ID> entityInformation) {
+		MyRepositoryImpl(ReactiveNeo4jOperations neo4jOperations, Neo4jEntityInformation<T, ID> entityInformation) {
 			super(neo4jOperations, entityInformation);
 
 			assertThat(neo4jOperations).isNotNull();
 			assertThat(entityInformation).isNotNull();
 			Assertions.assertThat(entityInformation.getEntityMetaData().getUnderlyingClass())
-				.isEqualTo(PersonWithAllConstructor.class);
+					.isEqualTo(PersonWithAllConstructor.class);
 		}
 
 		@Override
@@ -80,11 +75,8 @@ public class CustomReactiveBaseRepositoryIT {
 	}
 
 	@Configuration
-	@EnableReactiveNeo4jRepositories(
-		repositoryBaseClass = MyRepositoryImpl.class,
-		considerNestedRepositories = true,
-		includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = MyPersonRepository.class)
-	)
+	@EnableReactiveNeo4jRepositories(repositoryBaseClass = MyRepositoryImpl.class, considerNestedRepositories = true,
+			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = MyPersonRepository.class))
 	@EnableTransactionManagement
 	static class Config extends AbstractReactiveNeo4jConfig {
 

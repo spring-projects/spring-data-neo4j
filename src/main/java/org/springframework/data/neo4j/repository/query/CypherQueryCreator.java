@@ -59,8 +59,8 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 /**
- * A Cypher-DSL based implementation of the {@link AbstractQueryCreator} that eventually creates Cypher queries as strings
- * to be used by a Neo4j client or driver as statement template.
+ * A Cypher-DSL based implementation of the {@link AbstractQueryCreator} that eventually creates Cypher queries as
+ * strings to be used by a Neo4j client or driver as statement template.
  * <p/>
  * This class is not thread safe and not reusable.
  *
@@ -100,12 +100,9 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 	private final List<PropertyPathWrapper> propertyPathWrappers;
 
-	CypherQueryCreator(Neo4jMappingContext mappingContext, Class<?> domainType, Neo4jQueryType queryType,
-		PartTree tree,
-		ParametersParameterAccessor actualParameters,
-		List<String> includedProperties,
-		Function<Object, Object> parameterConversion
-	) {
+	CypherQueryCreator(Neo4jMappingContext mappingContext, Class<?> domainType, Neo4jQueryType queryType, PartTree tree,
+			ParametersParameterAccessor actualParameters, List<String> includedProperties,
+			Function<Object, Object> parameterConversion) {
 		super(tree, actualParameters);
 		this.mappingContext = mappingContext;
 
@@ -125,10 +122,9 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 		AtomicInteger symbolicNameIndex = new AtomicInteger();
 
 		propertyPathWrappers = tree.getParts().stream()
-			.map(part ->
-				new PropertyPathWrapper(symbolicNameIndex.getAndIncrement(),
-					mappingContext.getPersistentPropertyPath(part.getProperty())))
-			.collect(toList());
+				.map(part -> new PropertyPathWrapper(symbolicNameIndex.getAndIncrement(),
+						mappingContext.getPersistentPropertyPath(part.getProperty())))
+				.collect(toList());
 
 	}
 
@@ -171,8 +167,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 			ExposesRelationships<?> cypherRelationship = existingRelationshipChain;
 			for (PersistentProperty<?> persistentProperty : propertyPathList) {
 
-				RelationshipDescription relationshipDescription = (RelationshipDescription) persistentProperty
-					.getAssociation();
+				RelationshipDescription relationshipDescription = (RelationshipDescription) persistentProperty.getAssociation();
 
 				if (relationshipDescription == null) {
 					break;
@@ -188,16 +183,16 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 				switch (relationshipDescription.getDirection()) {
 					case OUTGOING:
-						cypherRelationship = (RelationshipPattern) cypherRelationship
-							.relationshipTo(relatedNode, relationshipDescription.getType());
+						cypherRelationship = (RelationshipPattern) cypherRelationship.relationshipTo(relatedNode,
+								relationshipDescription.getType());
 						break;
 					case INCOMING:
-						cypherRelationship = (RelationshipPattern) cypherRelationship
-							.relationshipFrom(relatedNode, relationshipDescription.getType());
+						cypherRelationship = (RelationshipPattern) cypherRelationship.relationshipFrom(relatedNode,
+								relationshipDescription.getType());
 						break;
 					default:
-						cypherRelationship = (RelationshipPattern) cypherRelationship
-							.relationshipBetween(relatedNode, relationshipDescription.getType());
+						cypherRelationship = (RelationshipPattern) cypherRelationship.relationshipBetween(relatedNode,
+								relationshipDescription.getType());
 				}
 
 				if (lastNode) {
@@ -240,8 +235,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 		Statement statement = createStatement(condition, sort);
 
-		Map<String, Object> convertedParameters = this.boundedParameters
-			.stream().collect(toMap(p -> p.nameOrIndex, p -> parameterConversion.apply(p.value)));
+		Map<String, Object> convertedParameters = this.boundedParameters.stream()
+				.collect(toMap(p -> p.nameOrIndex, p -> parameterConversion.apply(p.value)));
 
 		return new QueryAndParameters(Renderer.getDefaultRenderer().render(statement), convertedParameters);
 	}
@@ -252,9 +247,10 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 		// all the ways we could query for
 		Node startNode = Cypher.node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())
-			.named(NAME_OF_ROOT_NODE);
+				.named(NAME_OF_ROOT_NODE);
 
-		ExposesReturning matchAndCondition = Cypher.match(startNode).where(Optional.ofNullable(condition).orElseGet(Conditions::noCondition));
+		ExposesReturning matchAndCondition = Cypher.match(startNode)
+				.where(Optional.ofNullable(condition).orElseGet(Conditions::noCondition));
 		StatementBuilder.OngoingReadingWithoutWhere matches = null;
 
 		Iterator<PropertyPathWrapper> wrapperIterator = propertyPathWrappers.iterator();
@@ -277,19 +273,15 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 		Statement statement;
 
 		if (queryType == Neo4jQueryType.COUNT) {
-			statement = matchAndCondition
-				.returning(Functions.count(Cypher.asterisk()))
-				.build();
+			statement = matchAndCondition.returning(Functions.count(Cypher.asterisk())).build();
 
 		} else {
-			OngoingMatchAndReturnWithOrder ongoingMatchAndReturnWithOrder =
-				matchAndCondition.returning(cypherGenerator.createReturnStatementForMatch(nodeDescription, includedProperties))
-				.orderBy(
-					Stream.concat(
-						sortItems.stream(),
-						pagingParameter.getSort().and(sort).stream().map(CypherAdapterUtils.sortAdapterFor(nodeDescription))
-					).toArray(SortItem[]::new)
-				);
+			OngoingMatchAndReturnWithOrder ongoingMatchAndReturnWithOrder = matchAndCondition
+					.returning(cypherGenerator.createReturnStatementForMatch(nodeDescription, includedProperties))
+					.orderBy(Stream
+							.concat(sortItems.stream(),
+									pagingParameter.getSort().and(sort).stream().map(CypherAdapterUtils.sortAdapterFor(nodeDescription)))
+							.toArray(SortItem[]::new));
 
 			if (pagingParameter.isUnpaged()) {
 				statement = ongoingMatchAndReturnWithOrder.limit(maxResults).build();
@@ -304,8 +296,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 	private Condition createImpl(Part part, Iterator<Object> actualParameters) {
 
-		PersistentPropertyPath<Neo4jPersistentProperty> path = mappingContext
-			.getPersistentPropertyPath(part.getProperty());
+		PersistentPropertyPath<Neo4jPersistentProperty> path = mappingContext.getPersistentPropertyPath(part.getProperty());
 		Neo4jPersistentProperty persistentProperty = path.getRequiredLeafProperty();
 
 		boolean ignoreCase = ignoreCase(part);
@@ -313,29 +304,29 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 			case AFTER:
 			case GREATER_THAN:
 				return toCypherProperty(persistentProperty, ignoreCase)
-					.gt(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
+						.gt(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case BEFORE:
 			case LESS_THAN:
 				return toCypherProperty(persistentProperty, ignoreCase)
-					.lt(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
+						.lt(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case BETWEEN:
 				return betweenCondition(persistentProperty, actualParameters, ignoreCase);
 			case CONTAINING:
 				return toCypherProperty(persistentProperty, ignoreCase)
-					.contains(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
+						.contains(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case ENDING_WITH:
 				return toCypherProperty(persistentProperty, ignoreCase)
-					.endsWith(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
+						.endsWith(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case EXISTS:
 				return Predicates.exists(toCypherProperty(persistentProperty));
 			case FALSE:
 				return toCypherProperty(persistentProperty, ignoreCase).isFalse();
 			case GREATER_THAN_EQUAL:
 				return toCypherProperty(persistentProperty, ignoreCase)
-					.gte(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
+						.gte(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case IN:
 				return toCypherProperty(persistentProperty, ignoreCase)
-					.in(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
+						.in(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case IS_EMPTY:
 				return toCypherProperty(persistentProperty, ignoreCase).isEmpty();
 			case IS_NOT_EMPTY:
@@ -346,34 +337,31 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 				return toCypherProperty(persistentProperty, ignoreCase).isNull();
 			case LESS_THAN_EQUAL:
 				return toCypherProperty(persistentProperty, ignoreCase)
-					.lte(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
+						.lte(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case LIKE:
-				return likeCondition(persistentProperty, nextRequiredParameter(actualParameters).nameOrIndex,
-					ignoreCase);
+				return likeCondition(persistentProperty, nextRequiredParameter(actualParameters).nameOrIndex, ignoreCase);
 			case NEAR:
 				return createNearCondition(persistentProperty, actualParameters);
 			case NEGATING_SIMPLE_PROPERTY:
 				return toCypherProperty(persistentProperty, ignoreCase)
-					.isNotEqualTo(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
+						.isNotEqualTo(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case NOT_CONTAINING:
 				return toCypherProperty(persistentProperty, ignoreCase)
-					.contains(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase)).not();
+						.contains(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase)).not();
 			case NOT_IN:
 				return toCypherProperty(persistentProperty, ignoreCase)
-					.in(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase))
-					.not();
+						.in(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase)).not();
 			case NOT_LIKE:
-				return likeCondition(persistentProperty, nextRequiredParameter(actualParameters).nameOrIndex,
-					ignoreCase).not();
+				return likeCondition(persistentProperty, nextRequiredParameter(actualParameters).nameOrIndex, ignoreCase).not();
 			case SIMPLE_PROPERTY:
 				return toCypherProperty(persistentProperty, ignoreCase)
-					.isEqualTo(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
+						.isEqualTo(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case STARTING_WITH:
 				return toCypherProperty(persistentProperty, ignoreCase)
-					.startsWith(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
+						.startsWith(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case REGEX:
 				return toCypherProperty(persistentProperty, ignoreCase)
-					.matches(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
+						.matches(toCypherParameter(nextRequiredParameter(actualParameters), ignoreCase));
 			case TRUE:
 				return toCypherProperty(persistentProperty, ignoreCase).isTrue();
 			case WITHIN:
@@ -384,8 +372,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 	}
 
 	/**
-	 * Checks whether or not to ignore the case for some operations. {@link PartTreeNeo4jQuery} will already have validated
-	 * which properties can be made case insensitive given a certain keyword.
+	 * Checks whether or not to ignore the case for some operations. {@link PartTreeNeo4jQuery} will already have
+	 * validated which properties can be made case insensitive given a certain keyword.
 	 *
 	 * @param part query part to get checked if case should get ignored
 	 * @return should the case get ignored
@@ -405,16 +393,14 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 	}
 
 	private Condition likeCondition(Neo4jPersistentProperty persistentProperty, String parameterName,
-		boolean ignoreCase) {
+			boolean ignoreCase) {
 		String regexOptions = ignoreCase ? "(?i)" : "";
-		return toCypherProperty(persistentProperty, false)
-			.matches(Cypher.literalOf(regexOptions + ".*")
-				.concat(Cypher.parameter(parameterName))
-				.concat(Cypher.literalOf(".*")));
+		return toCypherProperty(persistentProperty, false).matches(
+				Cypher.literalOf(regexOptions + ".*").concat(Cypher.parameter(parameterName)).concat(Cypher.literalOf(".*")));
 	}
 
 	private Condition betweenCondition(Neo4jPersistentProperty persistentProperty, Iterator<Object> actualParameters,
-		boolean ignoreCase) {
+			boolean ignoreCase) {
 
 		Parameter lowerBoundOrRange = nextRequiredParameter(actualParameters);
 
@@ -424,12 +410,11 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 		} else {
 			Parameter upperBound = nextRequiredParameter(actualParameters);
 			return property.gte(toCypherParameter(lowerBoundOrRange, ignoreCase))
-				.and(property.lte(toCypherParameter(upperBound, ignoreCase)));
+					.and(property.lte(toCypherParameter(upperBound, ignoreCase)));
 		}
 	}
 
-	private Condition createNearCondition(Neo4jPersistentProperty persistentProperty,
-		Iterator<Object> actualParameters) {
+	private Condition createNearCondition(Neo4jPersistentProperty persistentProperty, Iterator<Object> actualParameters) {
 
 		Parameter p1 = nextRequiredParameter(actualParameters);
 		Optional<Parameter> p2 = nextOptionalParameter(actualParameters);
@@ -445,7 +430,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 			other = Optional.of(p1);
 		} else {
 			throw new IllegalArgumentException(
-				String.format("The NEAR operation requires a reference point of type %s", Point.class));
+					String.format("The NEAR operation requires a reference point of type %s", Point.class));
 		}
 
 		Expression distanceFunction = Functions.distance(toCypherProperty(persistentProperty, false), referencePoint);
@@ -455,7 +440,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 		} else if (other.filter(p -> p.hasValueOfType(Range.class)).isPresent()) {
 			return createRangeConditionForProperty(distanceFunction, other.get());
 		} else {
-			// We only have a point toCypherParameter, that's ok, but we have to put back the last toCypherParameter when it wasn't null
+			// We only have a point toCypherParameter, that's ok, but we have to put back the last toCypherParameter when it
+			// wasn't null
 			other.ifPresent(this.lastParameter::offer);
 
 			// Also, we cannot filter, but need to sort in the end.
@@ -465,17 +451,14 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 	}
 
 	private Condition createWithinCondition(Neo4jPersistentProperty persistentProperty,
-		Iterator<Object> actualParameters) {
+			Iterator<Object> actualParameters) {
 		Parameter area = nextRequiredParameter(actualParameters);
 		if (area.hasValueOfType(Circle.class)) {
 			// We don't know the CRS of the point, so we assume the same as the reference toCypherProperty
-			Expression referencePoint = point(Cypher.mapOf(
-				"x", createCypherParameter(area.nameOrIndex + ".x", false),
-				"y", createCypherParameter(area.nameOrIndex + ".y", false),
-				"srid", Cypher.property(toCypherProperty(persistentProperty, false), "srid"))
-			);
-			Expression distanceFunction = Functions
-				.distance(toCypherProperty(persistentProperty, false), referencePoint);
+			Expression referencePoint = point(Cypher.mapOf("x", createCypherParameter(area.nameOrIndex + ".x", false), "y",
+					createCypherParameter(area.nameOrIndex + ".y", false), "srid",
+					Cypher.property(toCypherProperty(persistentProperty, false), "srid")));
+			Expression distanceFunction = Functions.distance(toCypherProperty(persistentProperty, false), referencePoint);
 			return distanceFunction.lte(createCypherParameter(area.nameOrIndex + ".radius", false));
 		} else if (area.hasValueOfType(BoundingBox.class) || area.hasValueOfType(Box.class)) {
 			Expression llx = createCypherParameter(area.nameOrIndex + ".llx", false);
@@ -488,9 +471,12 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 			return llx.lte(x).and(x.lte(urx)).and(lly.lte(y)).and(y.lte(ury));
 		} else if (area.hasValueOfType(Polygon.class)) {
-			throw new IllegalArgumentException(String.format("The WITHIN operation does not support a %s. You might want to pass a bounding box instead: %s.of(polygon).", Polygon.class, BoundingBox.class));
+			throw new IllegalArgumentException(String.format(
+					"The WITHIN operation does not support a %s. You might want to pass a bounding box instead: %s.of(polygon).",
+					Polygon.class, BoundingBox.class));
 		} else {
-			throw new IllegalArgumentException(String.format("The WITHIN operation requires an area of type %s or %s.", Circle.class, Box.class));
+			throw new IllegalArgumentException(
+					String.format("The WITHIN operation requires an area of type %s or %s.", Circle.class, Box.class));
 		}
 	}
 
@@ -505,16 +491,14 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 		Condition betweenCondition = Conditions.noCondition();
 		if (range.getLowerBound().isBounded()) {
 			Expression parameterPlaceholder = createCypherParameter(rangeParameter.nameOrIndex + ".lb", false);
-			betweenCondition = betweenCondition.and(range.getLowerBound().isInclusive() ?
-				property.gte(parameterPlaceholder) :
-				property.gt(parameterPlaceholder));
+			betweenCondition = betweenCondition.and(
+					range.getLowerBound().isInclusive() ? property.gte(parameterPlaceholder) : property.gt(parameterPlaceholder));
 		}
 
 		if (range.getUpperBound().isBounded()) {
 			Expression parameterPlaceholder = createCypherParameter(rangeParameter.nameOrIndex + ".ub", false);
-			betweenCondition = betweenCondition.and(range.getUpperBound().isInclusive() ?
-				property.lte(parameterPlaceholder) :
-				property.lt(parameterPlaceholder));
+			betweenCondition = betweenCondition.and(
+					range.getUpperBound().isInclusive() ? property.lte(parameterPlaceholder) : property.lt(parameterPlaceholder));
 		}
 		return betweenCondition;
 	}
@@ -533,8 +517,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 			expression = Cypher.property(NAME_OF_ROOT_NODE, persistentProperty.getPropertyName());
 		} else {
 			PropertyPathWrapper propertyPathWrapper = propertyPathWrappers.stream()
-				.filter(rp -> rp.getLeafProperty().equals(persistentProperty))
-				.findFirst().get();
+					.filter(rp -> rp.getLeafProperty().equals(persistentProperty)).findFirst().get();
 
 			String cypherElementName;
 			// this "entity" is a representation of a relationship with properties
@@ -574,8 +557,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 			return Optional.of(nextRequiredParameter);
 		} else if (formalParameters.hasNext()) {
 			final Neo4jQueryMethod.Neo4jParameter parameter = (Neo4jQueryMethod.Neo4jParameter) formalParameters.next();
-			Parameter boundedParameter = new Parameter(parameter.getName().orElseGet(indexSupplier),
-				actualParameters.next());
+			Parameter boundedParameter = new Parameter(parameter.getName().orElseGet(indexSupplier), actualParameters.next());
 			boundedParameters.add(boundedParameter);
 			return Optional.of(boundedParameter);
 		} else {
@@ -593,8 +575,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 				throw new IllegalStateException("Not enough formal, bindable parameters for parts");
 			}
 			final Neo4jQueryMethod.Neo4jParameter parameter = (Neo4jQueryMethod.Neo4jParameter) formalParameters.next();
-			Parameter boundedParameter = new Parameter(parameter.getName().orElseGet(indexSupplier),
-				actualParameters.next());
+			Parameter boundedParameter = new Parameter(parameter.getName().orElseGet(indexSupplier), actualParameters.next());
 			boundedParameters.add(boundedParameter);
 			return boundedParameter;
 		}
@@ -617,16 +598,13 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 		@Override
 		public String toString() {
-			return "Parameter{" +
-				"nameOrIndex='" + nameOrIndex + '\'' +
-				", value=" + value +
-				'}';
+			return "Parameter{" + "nameOrIndex='" + nameOrIndex + '\'' + ", value=" + value + '}';
 		}
 	}
 
 	/**
-	 * Provides unique, incrementing indexes for parameter. Parameter indexes in derived query methods
-	 * are not necessary dense.
+	 * Provides unique, incrementing indexes for parameter. Parameter indexes in derived query methods are not necessary
+	 * dense.
 	 */
 	static final class IndexSupplier implements Supplier<String> {
 

@@ -53,7 +53,8 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 
 	private final ReactiveTransactionManager transactionManager;
 
-	@Autowired ReactiveIdGeneratorsIT(Driver driver, ReactiveTransactionManager transactionManager) {
+	@Autowired
+	ReactiveIdGeneratorsIT(Driver driver, ReactiveTransactionManager transactionManager) {
 
 		super(driver);
 		this.transactionManager = transactionManager;
@@ -64,18 +65,12 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 
 		List<ThingWithGeneratedId> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator
-			.execute(t -> repository.save(new ThingWithGeneratedId("WrapperService")))
-			.as(StepVerifier::create)
-			.recordWith(() -> savedThings)
-			.consumeNextWith(savedThing -> {
+		transactionalOperator.execute(t -> repository.save(new ThingWithGeneratedId("WrapperService")))
+				.as(StepVerifier::create).recordWith(() -> savedThings).consumeNextWith(savedThing -> {
 
-				assertThat(savedThing.getName()).isEqualTo("WrapperService");
-				assertThat(savedThing.getTheId())
-					.isNotBlank()
-					.matches("thingWithGeneratedId-\\d+");
-			})
-			.verifyComplete();
+					assertThat(savedThing.getName()).isEqualTo("WrapperService");
+					assertThat(savedThing.getTheId()).isNotBlank().matches("thingWithGeneratedId-\\d+");
+				}).verifyComplete();
 
 		verifyDatabase(savedThings.get(0).getTheId(), savedThings.get(0).getName());
 	}
@@ -85,16 +80,12 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 
 		List<ThingWithIdGeneratedByBean> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator
-			.execute(t -> repository.save(new ThingWithIdGeneratedByBean("WrapperService")))
-			.as(StepVerifier::create)
-			.recordWith(() -> savedThings)
-			.consumeNextWith(savedThing -> {
+		transactionalOperator.execute(t -> repository.save(new ThingWithIdGeneratedByBean("WrapperService")))
+				.as(StepVerifier::create).recordWith(() -> savedThings).consumeNextWith(savedThing -> {
 
-				assertThat(savedThing.getName()).isEqualTo("WrapperService");
-				assertThat(savedThing.getTheId()).isEqualTo("ReactiveID.");
-			})
-			.verifyComplete();
+					assertThat(savedThing.getName()).isEqualTo("WrapperService");
+					assertThat(savedThing.getTheId()).isEqualTo("ReactiveID.");
+				}).verifyComplete();
 
 		verifyDatabase(savedThings.get(0).getTheId(), savedThings.get(0).getName());
 	}
@@ -102,57 +93,43 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 	@Test
 	void idGenerationWithNewEntitiesShouldWork(@Autowired ThingWithGeneratedIdRepository repository) {
 
-		List<ThingWithGeneratedId> things = IntStream.rangeClosed(1, 10)
-			.mapToObj(i -> new ThingWithGeneratedId("name" + i))
-			.collect(toList());
+		List<ThingWithGeneratedId> things = IntStream.rangeClosed(1, 10).mapToObj(i -> new ThingWithGeneratedId("name" + i))
+				.collect(toList());
 
 		Set<String> generatedIds = new HashSet<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator
-			.execute(t -> repository.saveAll(things))
-			.map(ThingWithGeneratedId::getTheId)
-			.as(StepVerifier::create)
-			.recordWith(() -> generatedIds)
-			.expectNextCount(things.size())
-			.expectRecordedMatches(recorded -> {
-				assertThat(recorded)
-					.hasSize(things.size())
-					.allMatch(generatedId -> generatedId.matches("thingWithGeneratedId-\\d+"));
-				return true;
-			})
-			.verifyComplete();
+		transactionalOperator.execute(t -> repository.saveAll(things)).map(ThingWithGeneratedId::getTheId)
+				.as(StepVerifier::create).recordWith(() -> generatedIds).expectNextCount(things.size())
+				.expectRecordedMatches(recorded -> {
+					assertThat(recorded).hasSize(things.size())
+							.allMatch(generatedId -> generatedId.matches("thingWithGeneratedId-\\d+"));
+					return true;
+				}).verifyComplete();
 	}
 
 	@Test
 	void shouldNotOverwriteExistingId(@Autowired ThingWithGeneratedIdRepository repository) {
 
-		Mono<ThingWithGeneratedId> findAndUpdateAThing = repository.findById(ID_OF_EXISTING_THING)
-			.flatMap(thing -> {
-				thing.setName("changed");
-				return repository.save(thing);
-			});
+		Mono<ThingWithGeneratedId> findAndUpdateAThing = repository.findById(ID_OF_EXISTING_THING).flatMap(thing -> {
+			thing.setName("changed");
+			return repository.save(thing);
+		});
 
 		List<ThingWithGeneratedId> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator
-			.execute(t -> findAndUpdateAThing)
-			.as(StepVerifier::create)
-			.recordWith(() -> savedThings)
-			.consumeNextWith(savedThing -> {
+		transactionalOperator.execute(t -> findAndUpdateAThing).as(StepVerifier::create).recordWith(() -> savedThings)
+				.consumeNextWith(savedThing -> {
 
-				assertThat(savedThing.getName()).isEqualTo("changed");
-				assertThat(savedThing.getTheId()).isEqualTo(ID_OF_EXISTING_THING);
-			})
-			.verifyComplete();
+					assertThat(savedThing.getName()).isEqualTo("changed");
+					assertThat(savedThing.getTheId()).isEqualTo(ID_OF_EXISTING_THING);
+				}).verifyComplete();
 
 		verifyDatabase(savedThings.get(0).getTheId(), savedThings.get(0).getName());
 	}
 
-	interface ThingWithGeneratedIdRepository extends ReactiveCrudRepository<ThingWithGeneratedId, String> {
-	}
+	interface ThingWithGeneratedIdRepository extends ReactiveCrudRepository<ThingWithGeneratedId, String> {}
 
-	interface ThingWithIdGeneratedByBeanRepository extends ReactiveCrudRepository<ThingWithIdGeneratedByBean, String> {
-	}
+	interface ThingWithIdGeneratedByBeanRepository extends ReactiveCrudRepository<ThingWithIdGeneratedByBean, String> {}
 
 	@Configuration
 	@EnableTransactionManagement

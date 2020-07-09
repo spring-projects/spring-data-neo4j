@@ -32,8 +32,8 @@ import org.neo4j.driver.types.IsoDuration;
 import org.neo4j.driver.types.Point;
 
 /**
- * Conversions for all known Cypher types, directly supported by the driver.
- * See <a href="https://neo4j.com/docs/driver-manual/current/cypher-values/">Working with Cypher values</a>.
+ * Conversions for all known Cypher types, directly supported by the driver. See
+ * <a href="https://neo4j.com/docs/driver-manual/current/cypher-values/">Working with Cypher values</a>.
  *
  * @author Michael J. Simons
  * @since 1.0
@@ -66,6 +66,5 @@ final class CypherTypes {
 		CONVERTERS = Collections.unmodifiableList(hlp);
 	}
 
-	private CypherTypes() {
-	}
+	private CypherTypes() {}
 }

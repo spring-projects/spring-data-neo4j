@@ -22,19 +22,19 @@ import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 
 /**
- * A {@link org.springframework.data.mapping.PersistentProperty} interface with additional methods for metadata related to Neo4j.
+ * A {@link org.springframework.data.mapping.PersistentProperty} interface with additional methods for metadata related
+ * to Neo4j.
  *
  * @author Michael J. Simons
  * @author Philipp Tölle
  * @since 1.0
  */
 @API(status = API.Status.INTERNAL, since = "1.0")
-public interface Neo4jPersistentProperty
-	extends PersistentProperty<Neo4jPersistentProperty>, GraphPropertyDescription {
+public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersistentProperty>, GraphPropertyDescription {
 
 	/**
-	 * Dynamic associations are associations to non-simple types stored in a map
-	 * with a key type of {@literal java.lang.String} or enum.
+	 * Dynamic associations are associations to non-simple types stored in a map with a key type of
+	 * {@literal java.lang.String} or enum.
 	 *
 	 * @return True, if this association is a dynamic association.
 	 */
@@ -43,8 +43,8 @@ public interface Neo4jPersistentProperty
 	}
 
 	/**
-	 * Dynamic one-to-many associations are associations to non-simple types stored in a map
-	 * with a key type of {@literal java.lang.String} and values of {@literal java.util.Collection}.
+	 * Dynamic one-to-many associations are associations to non-simple types stored in a map with a key type of
+	 * {@literal java.lang.String} and values of {@literal java.util.Collection}.
 	 *
 	 * @return True, if this association is a dynamic association with multple values per type.
 	 * @since 1.0.1
@@ -68,9 +68,7 @@ public interface Neo4jPersistentProperty
 	 * @return True, if this association has properties
 	 */
 	default boolean isRelationshipWithProperties() {
-		return isAssociation()
-			&& isMap()
-			&& getMapValueType() != null
-			&& getMapValueType().isAnnotationPresent(RelationshipProperties.class);
+		return isAssociation() && isMap() && getMapValueType() != null
+				&& getMapValueType().isAnnotationPresent(RelationshipProperties.class);
 	}
 }

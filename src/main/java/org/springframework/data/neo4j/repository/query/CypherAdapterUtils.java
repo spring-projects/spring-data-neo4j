@@ -39,8 +39,7 @@ import org.springframework.data.neo4j.core.schema.NodeDescription;
 public final class CypherAdapterUtils {
 
 	/**
-	 * Maps Spring Datas {@link Sort.Order} to a {@link SortItem}.
-	 * See {@link #toSortItems(NodeDescription, Sort)}.
+	 * Maps Spring Datas {@link Sort.Order} to a {@link SortItem}. See {@link #toSortItems(NodeDescription, Sort)}.
 	 *
 	 * @param nodeDescription {@link NodeDescription} to get properties for sorting from.
 	 * @return A stream if sort items. Will be empty when sort is unsorted.
@@ -48,9 +47,8 @@ public final class CypherAdapterUtils {
 	public static Function<Sort.Order, SortItem> sortAdapterFor(NodeDescription<?> nodeDescription) {
 		return order -> {
 			String property = nodeDescription.getGraphProperty(order.getProperty())
-				.map(GraphPropertyDescription::getPropertyName)
-				.orElseThrow(() -> new IllegalStateException(
-					String.format("Cannot order by the unknown graph property: '%s'", order.getProperty())));
+					.map(GraphPropertyDescription::getPropertyName).orElseThrow(() -> new IllegalStateException(
+							String.format("Cannot order by the unknown graph property: '%s'", order.getProperty())));
 			SortItem sortItem = Cypher.sort(property(NAME_OF_ROOT_NODE, property));
 
 			// Spring's Sort.Order defaults to ascending, so we just need to change this if we have descending order.
@@ -65,7 +63,7 @@ public final class CypherAdapterUtils {
 	 * Converts a Spring Data sort to an equivalent list of {@link SortItem sort items}.
 	 *
 	 * @param nodeDescription The node description to map the properties
-	 * @param sort            The sort object to convert
+	 * @param sort The sort object to convert
 	 * @return An of sort items. It will be empty when sort is unsorted.
 	 */
 	public static SortItem[] toSortItems(NodeDescription<?> nodeDescription, Sort sort) {
@@ -73,10 +71,8 @@ public final class CypherAdapterUtils {
 		return sort.stream().map(sortAdapterFor(nodeDescription)).toArray(SortItem[]::new);
 	}
 
-	public static StatementBuilder.BuildableStatement addPagingParameter(
-		NodeDescription<?> nodeDescription,
-		Pageable pageable,
-		StatementBuilder.OngoingReadingAndReturn returning) {
+	public static StatementBuilder.BuildableStatement addPagingParameter(NodeDescription<?> nodeDescription,
+			Pageable pageable, StatementBuilder.OngoingReadingAndReturn returning) {
 
 		Sort sort = pageable.getSort();
 
@@ -87,6 +83,5 @@ public final class CypherAdapterUtils {
 		return returning.orderBy(toSortItems(nodeDescription, sort)).skip(skip).limit(pageSize);
 	}
 
-	private CypherAdapterUtils() {
-	}
+	private CypherAdapterUtils() {}
 }

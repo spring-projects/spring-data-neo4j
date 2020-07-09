@@ -24,22 +24,22 @@ import org.neo4j.driver.summary.ResultSummary
 import org.neo4j.driver.types.TypeSystem
 
 /**
- * Extension for [ReactiveNeo4jClient.RunnableSpec.in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
+ * Extension for [ReactiveNeo4jClient.RunnableSpec. in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
 fun ReactiveNeo4jClient.RunnableSpec.inDatabase(targetDatabase: String):
-		ReactiveNeo4jClient.RunnableSpecTightToDatabase = `in`(targetDatabase)
+        ReactiveNeo4jClient.RunnableSpecTightToDatabase = `in`(targetDatabase)
 
 /**
- * Extension for [ReactiveNeo4jClient.OngoingDelegation.in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
+ * Extension for [ReactiveNeo4jClient.OngoingDelegation. in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
  *
  * @author Michael J. Simons
  * @since 1.0
  */
 fun <T : Any?> ReactiveNeo4jClient.OngoingDelegation<T>.inDatabase(targetDatabase: String):
-		ReactiveNeo4jClient.RunnableDelegation<T> = `in`(targetDatabase)
+        ReactiveNeo4jClient.RunnableDelegation<T> = `in`(targetDatabase)
 
 /**
  * Extension for [ReactiveNeo4jClient.RunnableSpecTightToDatabase.fetchAs] leveraging reified type parameters.
@@ -47,7 +47,7 @@ fun <T : Any?> ReactiveNeo4jClient.OngoingDelegation<T>.inDatabase(targetDatabas
  * @since 1.0
  */
 inline fun <reified T : Any> ReactiveNeo4jClient.RunnableSpecTightToDatabase.fetchAs():
-		ReactiveNeo4jClient.MappingSpec<T> = fetchAs(T::class.java)
+        ReactiveNeo4jClient.MappingSpec<T> = fetchAs(T::class.java)
 
 /**
  * Extension for [ReactiveNeo4jClient.RunnableSpecTightToDatabase.mappedBy] leveraging reified type parameters and removing
@@ -56,7 +56,7 @@ inline fun <reified T : Any> ReactiveNeo4jClient.RunnableSpecTightToDatabase.fet
  * @since 1.0
  */
 inline fun <reified T : Any> ReactiveNeo4jClient.RunnableSpecTightToDatabase.mappedBy(
-    noinline mappingFunction: (TypeSystem, Record) -> T
+        noinline mappingFunction: (TypeSystem, Record) -> T
 ): ReactiveNeo4jClient.RecordFetchSpec<T> =
         fetchAs(T::class.java).mappedBy(mappingFunction)
 
@@ -67,7 +67,7 @@ inline fun <reified T : Any> ReactiveNeo4jClient.RunnableSpecTightToDatabase.map
  * @since 1.0
  */
 suspend inline fun ReactiveNeo4jClient.RunnableSpecTightToDatabase.await(): ResultSummary =
-    run().awaitSingle()
+        run().awaitSingle()
 
 /**
  * Nullable Coroutines variant of [ReactiveNeo4jClient.RecordFetchSpec.one].
@@ -76,7 +76,7 @@ suspend inline fun ReactiveNeo4jClient.RunnableSpecTightToDatabase.await(): Resu
  * @since 1.0
  */
 suspend inline fun <reified T : Any> ReactiveNeo4jClient.RecordFetchSpec<T>.awaitOneOrNull(): T? =
-    one().awaitFirstOrNull()
+        one().awaitFirstOrNull()
 
 /**
  * Nullable Coroutines variant of [ReactiveNeo4jClient.RecordFetchSpec.first].
@@ -85,7 +85,7 @@ suspend inline fun <reified T : Any> ReactiveNeo4jClient.RecordFetchSpec<T>.awai
  * @since 1.0
  */
 suspend inline fun <reified T : Any> ReactiveNeo4jClient.RecordFetchSpec<T>.awaitFirstOrNull(): T? =
-    first().awaitFirstOrNull()
+        first().awaitFirstOrNull()
 
 /**
  * Coroutines [Flow] variant of [ReactiveNeo4jClient.RecordFetchSpec.all].
@@ -94,7 +94,7 @@ suspend inline fun <reified T : Any> ReactiveNeo4jClient.RecordFetchSpec<T>.awai
  * @since 1.0
  */
 inline fun <reified T : Any> ReactiveNeo4jClient.RecordFetchSpec<T>.fetchAll(): Flow<T> =
-    all().asFlow()
+        all().asFlow()
 
 /**
  * Nullable Coroutines variant of [ReactiveNeo4jClient.RunnableDelegation.run].
@@ -103,4 +103,4 @@ inline fun <reified T : Any> ReactiveNeo4jClient.RecordFetchSpec<T>.fetchAll(): 
  * @since 1.0
  */
 suspend inline fun <reified T : Any> ReactiveNeo4jClient.RunnableDelegation<T>.awaitFirstOrNull(): T? =
-    run().awaitFirstOrNull()
+        run().awaitFirstOrNull()

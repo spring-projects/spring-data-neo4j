@@ -52,48 +52,40 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * This tests needs a Neo4j causal cluster. We run them based on Testcontainers. It requires some resources
- * as well as acceptance of the commercial license, so this test is disabled by default.
+ * This tests needs a Neo4j causal cluster. We run them based on Testcontainers. It requires some resources as well as
+ * acceptance of the commercial license, so this test is disabled by default.
  *
  * @author Michael J. Simons
  */
 @CausalClusterIntegrationTest
 class ReactiveCausalClusterLoadTestIT {
 
-	@Neo4jUri
-	private static URI neo4jUri;
+	@Neo4jUri private static URI neo4jUri;
 
 	@RepeatedTest(20)
 	void transactionsShouldBeSerializable(@Autowired ThingService thingService) throws InterruptedException {
 
 		int numberOfRequests = 100;
 		AtomicLong sequence = new AtomicLong(0L);
-		thingService.getMaxInstance()
-			.as(StepVerifier::create)
-			.consumeNextWith(sequence::set)
-			.verifyComplete();
+		thingService.getMaxInstance().as(StepVerifier::create).consumeNextWith(sequence::set).verifyComplete();
 
 		Callable<ThingWithSequence> createAndRead = () -> {
 			List<ThingWithSequence> result = new ArrayList<>();
 			long sequenceNumber = sequence.incrementAndGet();
-			thingService.newThing(sequenceNumber)
-				.then(thingService.findOneBySequenceNumber(sequenceNumber))
-				.as(StepVerifier::create)
-				.recordWith((() -> result))
-				.expectNextMatches(t -> t.getSequenceNumber().equals(sequenceNumber))
-				.verifyComplete();
+			thingService.newThing(sequenceNumber).then(thingService.findOneBySequenceNumber(sequenceNumber))
+					.as(StepVerifier::create).recordWith((() -> result))
+					.expectNextMatches(t -> t.getSequenceNumber().equals(sequenceNumber)).verifyComplete();
 			return result.get(0);
 		};
 
 		ExecutorService executor = Executors.newCachedThreadPool();
-		List<Future<ThingWithSequence>> executedWrites = executor.invokeAll(IntStream.range(0, numberOfRequests)
-			.mapToObj(i -> createAndRead).collect(toList()));
+		List<Future<ThingWithSequence>> executedWrites = executor
+				.invokeAll(IntStream.range(0, numberOfRequests).mapToObj(i -> createAndRead).collect(toList()));
 		try {
 			executedWrites.forEach(request -> {
 				try {
 					request.get();
-				} catch (InterruptedException e) {
-				} catch (ExecutionException e) {
+				} catch (InterruptedException e) {} catch (ExecutionException e) {
 					Assertions.fail("At least one request failed " + e.getMessage());
 				}
 			});
@@ -117,10 +109,8 @@ class ReactiveCausalClusterLoadTestIT {
 		}
 
 		public Mono<Long> getMaxInstance() {
-			return neo4jClient
-				.query("MATCH (t:ThingWithSequence) RETURN COALESCE(MAX(t.sequenceNumber), -1) AS maxInstance")
-				.fetchAs(Long.class)
-				.one();
+			return neo4jClient.query("MATCH (t:ThingWithSequence) RETURN COALESCE(MAX(t.sequenceNumber), -1) AS maxInstance")
+					.fetchAs(Long.class).one();
 		}
 
 		@Transactional
@@ -143,7 +133,7 @@ class ReactiveCausalClusterLoadTestIT {
 		public Driver driver() {
 
 			Driver driver = GraphDatabase.driver(neo4jUri, AuthTokens.basic("neo4j", "secret"),
-				Config.builder().withConnectionTimeout(2, TimeUnit.MINUTES).build());
+					Config.builder().withConnectionTimeout(2, TimeUnit.MINUTES).build());
 			driver.verifyConnectivity();
 			return driver;
 		}

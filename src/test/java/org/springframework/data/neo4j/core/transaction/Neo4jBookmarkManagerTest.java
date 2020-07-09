@@ -69,7 +69,6 @@ class Neo4jBookmarkManagerTest {
 		assertThat(bookmarkManager.getBookmarks()).containsExactly(newBookmark);
 	}
 
-
 	static private class BookmarkForTesting implements Bookmark {
 		private final Set<String> values;
 
@@ -82,7 +81,8 @@ class Neo4jBookmarkManagerTest {
 			return values;
 		}
 
-		@Override public boolean isEmpty() {
+		@Override
+		public boolean isEmpty() {
 			return values.isEmpty();
 		}
 	}

@@ -32,7 +32,8 @@ import org.springframework.lang.Nullable;
 
 /**
  * Neo4j specific implementation of {@link QueryMethod}. It contains a custom implementation of {@link Parameter} which
- * supports Neo4js specific placeholder as well as a convenient method to return either the parameters index or name without placeholder.
+ * supports Neo4js specific placeholder as well as a convenient method to return either the parameters index or name
+ * without placeholder.
  *
  * @author Gerrit Meier
  * @author Michael J. Simons

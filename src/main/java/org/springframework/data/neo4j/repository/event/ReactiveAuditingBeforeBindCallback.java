@@ -42,8 +42,8 @@ public final class ReactiveAuditingBeforeBindCallback implements ReactiveBeforeB
 	private final ObjectFactory<IsNewAwareAuditingHandler> auditingHandlerFactory;
 
 	/**
-	 * Creates a new {@link ReactiveAuditingBeforeBindCallback} using the {@link AuditingHandler} provided by the
-	 * given {@link ObjectFactory}.
+	 * Creates a new {@link ReactiveAuditingBeforeBindCallback} using the {@link AuditingHandler} provided by the given
+	 * {@link ObjectFactory}.
 	 *
 	 * @param auditingHandlerFactory must not be {@literal null}.
 	 */
@@ -55,7 +55,7 @@ public final class ReactiveAuditingBeforeBindCallback implements ReactiveBeforeB
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.neo4j.springframework.data.repository.event.ReactiveBeforeBindCallback#onBeforeBind(java.lang.Object)
+	 * @see org.springframework.data.neo4j.repository.event.ReactiveBeforeBindCallback#onBeforeBind(java.lang.Object)
 	 */
 	@Override
 	public Publisher<Object> onBeforeBind(Object entity) {

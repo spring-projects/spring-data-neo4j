@@ -56,28 +56,21 @@ import org.neo4j.driver.types.TypeSystem;
 @ExtendWith(MockitoExtension.class)
 class Neo4jClientTest {
 
-	@Mock
-	private Driver driver;
+	@Mock private Driver driver;
 
 	private ArgumentCaptor<SessionConfig> configArgumentCaptor = ArgumentCaptor.forClass(SessionConfig.class);
 
-	@Mock
-	private Session session;
+	@Mock private Session session;
 
-	@Mock
-	private TypeSystem typeSystem;
+	@Mock private TypeSystem typeSystem;
 
-	@Mock
-	private Result result;
+	@Mock private Result result;
 
-	@Mock
-	private ResultSummary resultSummary;
+	@Mock private ResultSummary resultSummary;
 
-	@Mock
-	private Record record1;
+	@Mock private Record record1;
 
-	@Mock
-	private Record record2;
+	@Mock private Record record2;
 
 	void prepareMocks() {
 
@@ -105,19 +98,15 @@ class Neo4jClientTest {
 		parameters.put("bikeName", "M.*");
 		parameters.put("location", "Sweden");
 
-		String cypher = "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike) - [:USED_ON] -> (t:Trip) " +
-			"WHERE t.takenOn > $aDate " +
-			"  AND b.name =~ $bikeName " +
-			"  AND t.location = $location " +  // TODO Nice place to add coordinates
-			"RETURN b";
+		String cypher = "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike) - [:USED_ON] -> (t:Trip) "
+				+ "WHERE t.takenOn > $aDate " + "  AND b.name =~ $bikeName " + "  AND t.location = $location " + // TODO Nice
+																																																					// place to
+																																																					// add
+																																																					// coordinates
+				"RETURN b";
 
-		Collection<Map<String, Object>> usedBikes = client
-			.query(cypher)
-			.bind("michael").to("name")
-			.bindAll(parameters)
-			.bind(LocalDate.of(2019, 1, 1)).to("aDate")
-			.fetch()
-			.all();
+		Collection<Map<String, Object>> usedBikes = client.query(cypher).bind("michael").to("name").bindAll(parameters)
+				.bind(LocalDate.of(2019, 1, 1)).to("aDate").fetch().all();
 
 		assertThat(usedBikes).hasSize(2);
 
@@ -147,12 +136,8 @@ class Neo4jClientTest {
 
 		String cypher = "MATCH (u:User) WHERE u.name =~ $name";
 
-		Optional<Map<String, Object>> firstMatchingUser = client
-			.query(cypher)
-			.in("bikingDatabase")
-			.bind("Someone.*").to("name")
-			.fetch()
-			.first();
+		Optional<Map<String, Object>> firstMatchingUser = client.query(cypher).in("bikingDatabase").bind("Someone.*")
+				.to("name").fetch().first();
 
 		assertThat(firstMatchingUser).isPresent();
 
@@ -178,7 +163,7 @@ class Neo4jClientTest {
 		String[] invalidDatabaseNames = { "", " ", "\t" };
 		for (String invalidDatabaseName : invalidDatabaseNames) {
 			assertThatIllegalArgumentException()
-				.isThrownBy(() -> client.delegateTo(r -> Optional.empty()).in(invalidDatabaseName));
+					.isThrownBy(() -> client.delegateTo(r -> Optional.empty()).in(invalidDatabaseName));
 		}
 
 		for (String invalidDatabaseName : invalidDatabaseNames) {
@@ -198,9 +183,7 @@ class Neo4jClientTest {
 			prepareMocks();
 
 			Neo4jClient client = Neo4jClient.create(driver);
-			Optional<Integer> singleResult = client
-				.delegateTo(runner -> Optional.of(42))
-				.run();
+			Optional<Integer> singleResult = client.delegateTo(runner -> Optional.of(42)).run();
 
 			assertThat(singleResult).isPresent().hasValue(42);
 
@@ -215,10 +198,7 @@ class Neo4jClientTest {
 			prepareMocks();
 
 			Neo4jClient client = Neo4jClient.create(driver);
-			Optional<Integer> singleResult = client
-				.delegateTo(runner -> Optional.of(42))
-				.in("aDatabase")
-				.run();
+			Optional<Integer> singleResult = client.delegateTo(runner -> Optional.of(42)).in("aDatabase").run();
 
 			assertThat(singleResult).isPresent().hasValue(42);
 
@@ -243,18 +223,13 @@ class Neo4jClientTest {
 
 			Neo4jClient client = Neo4jClient.create(driver);
 
-			String cypher = "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike)" +
-				"RETURN o, collect(b) as bikes";
+			String cypher = "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike)" + "RETURN o, collect(b) as bikes";
 
 			BikeOwnerReader mappingFunction = new BikeOwnerReader();
-			Collection<BikeOwner> bikeOwners = client
-				.query(cypher)
-				.bind("michael").to("name")
-				.fetchAs(BikeOwner.class).mappedBy(mappingFunction)
-				.all();
+			Collection<BikeOwner> bikeOwners = client.query(cypher).bind("michael").to("name").fetchAs(BikeOwner.class)
+					.mappedBy(mappingFunction).all();
 
-			assertThat(bikeOwners).hasSize(1).first()
-				.hasFieldOrPropertyWithValue("name", "michael");
+			assertThat(bikeOwners).hasSize(1).first().hasFieldOrPropertyWithValue("name", "michael");
 
 			verifyDatabaseSelection(null);
 
@@ -278,16 +253,14 @@ class Neo4jClientTest {
 
 			Neo4jClient client = Neo4jClient.create(driver);
 
-			assertThatIllegalStateException().isThrownBy(() -> client
-				.query("MATCH (n) RETURN n")
-				.fetchAs(BikeOwner.class).mappedBy((t, r) -> {
-					if (r == record1) {
-						return new BikeOwner(r.get("name").asString(), Collections.emptyList());
-					} else {
-						return null;
-					}
-				})
-				.all());
+			assertThatIllegalStateException()
+					.isThrownBy(() -> client.query("MATCH (n) RETURN n").fetchAs(BikeOwner.class).mappedBy((t, r) -> {
+						if (r == record1) {
+							return new BikeOwner(r.get("name").asString(), Collections.emptyList());
+						} else {
+							return null;
+						}
+					}).all());
 
 			verifyDatabaseSelection(null);
 
@@ -308,14 +281,9 @@ class Neo4jClientTest {
 			Neo4jClient client = Neo4jClient.create(driver);
 
 			BikeOwner michael = new BikeOwner("Michael", Arrays.asList(new Bike("Road"), new Bike("MTB")));
-			String cypher = "MERGE (u:User {name: 'Michael'}) "
-				+ "WITH u UNWIND $bikes as bike "
-				+ "MERGE (b:Bike {name: bike}) "
-				+ "MERGE (u) - [o:OWNS] -> (b) ";
-			ResultSummary summary = client
-				.query(cypher)
-				.bind(michael).with(new BikeOwnerBinder())
-				.run();
+			String cypher = "MERGE (u:User {name: 'Michael'}) " + "WITH u UNWIND $bikes as bike "
+					+ "MERGE (b:Bike {name: bike}) " + "MERGE (u) - [o:OWNS] -> (b) ";
+			ResultSummary summary = client.query(cypher).bind(michael).with(new BikeOwnerBinder()).run();
 
 			verifyDatabaseSelection(null);
 
@@ -342,10 +310,7 @@ class Neo4jClientTest {
 			Neo4jClient client = Neo4jClient.create(driver);
 
 			String cypher = "MATCH (b:Bike) RETURN count(b)";
-			Optional<Long> numberOfBikes = client
-				.query(cypher)
-				.fetchAs(Long.class)
-				.one();
+			Optional<Long> numberOfBikes = client.query(cypher).fetchAs(Long.class).one();
 
 			assertThat(numberOfBikes).isPresent().hasValue(23L);
 
@@ -371,10 +336,7 @@ class Neo4jClientTest {
 
 		String cypher = "DETACH DELETE (b) WHERE name = $name";
 
-		client
-			.query(cypher)
-			.bind("fixie").to("name")
-			.run();
+		client.query(cypher).bind("fixie").to("name").run();
 
 		verifyDatabaseSelection(null);
 

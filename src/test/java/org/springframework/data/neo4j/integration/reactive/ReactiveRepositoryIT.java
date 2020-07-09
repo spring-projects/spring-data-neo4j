@@ -126,32 +126,26 @@ class ReactiveRepositoryIT {
 			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
 					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
 					+ "RETURN id(n)",
-				parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
-					NEO4J_HQ))
-				.next().get(0).asLong();
+					parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
+							NEO4J_HQ))
+					.next().get(0).asLong();
 
 			id2 = transaction.run(
-				"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-				parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place",
-					SFO))
-				.next().get(0).asLong();
+					"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
+					parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
+					.next().get(0).asLong();
 
-			transaction
-				.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
-			IntStream.rangeClosed(1, 20).forEach(i ->
-				transaction.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})",
-					parameters("i", String.format("%02d", i))));
+			transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
+			IntStream.rangeClosed(1, 20).forEach(i -> transaction
+					.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})", parameters("i", String.format("%02d", i))));
 
-			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				true,
-				1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, null);
+			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, null);
 
-			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
+			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
 		}
 
 		@Test
@@ -160,7 +154,7 @@ class ReactiveRepositoryIT {
 			List<PersonWithAllConstructor> personList = Arrays.asList(person1, person2);
 
 			StepVerifier.create(repository.findAll()).expectNextMatches(personList::contains)
-				.expectNextMatches(personList::contains).verifyComplete();
+					.expectNextMatches(personList::contains).verifyComplete();
 		}
 
 		@Test
@@ -176,17 +170,14 @@ class ReactiveRepositoryIT {
 			int limit = 1;
 
 			StepVerifier.create(repository.findByNameStartingWith("Test", PageRequest.of(page, limit, sort)))
-				.assertNext(person -> assertThat(person).isEqualTo(person1))
-				.verifyComplete();
-
+					.assertNext(person -> assertThat(person).isEqualTo(person1)).verifyComplete();
 
 			sort = Sort.by("name");
 			page = 1;
 			limit = 1;
 
 			StepVerifier.create(repository.findByNameStartingWith("Test", PageRequest.of(page, limit, sort)))
-				.assertNext(person -> assertThat(person).isEqualTo(person2))
-				.verifyComplete();
+					.assertNext(person -> assertThat(person).isEqualTo(person2)).verifyComplete();
 		}
 
 		@Test
@@ -195,7 +186,7 @@ class ReactiveRepositoryIT {
 			List<PersonWithAllConstructor> personList = Arrays.asList(person1, person2);
 
 			StepVerifier.create(repository.findAllById(Arrays.asList(id1, id2))).expectNextMatches(personList::contains)
-				.expectNextMatches(personList::contains).verifyComplete();
+					.expectNextMatches(personList::contains).verifyComplete();
 		}
 
 		@Test
@@ -204,7 +195,7 @@ class ReactiveRepositoryIT {
 			List<PersonWithAllConstructor> personList = Arrays.asList(person1, person2);
 
 			StepVerifier.create(repository.findAllById(Flux.just(id1, id2))).expectNextMatches(personList::contains)
-				.expectNextMatches(personList::contains).verifyComplete();
+					.expectNextMatches(personList::contains).verifyComplete();
 		}
 
 		@Test
@@ -230,19 +221,19 @@ class ReactiveRepositoryIT {
 		@Test
 		void findAllWithSortByOrderAsc(@Autowired ReactivePersonRepository repository) {
 			StepVerifier.create(repository.findAll(Sort.by(Sort.Order.asc("name")))).expectNext(person1, person2)
-				.verifyComplete();
+					.verifyComplete();
 		}
 
 		@Test
 		void findAllWithSortByOrderDesc(@Autowired ReactivePersonRepository repository) {
 			StepVerifier.create(repository.findAll(Sort.by(Sort.Order.desc("name")))).expectNext(person2, person1)
-				.verifyComplete();
+					.verifyComplete();
 		}
 
 		@Test
 		void findOneByExample(@Autowired ReactivePersonRepository repository) {
 			Example<PersonWithAllConstructor> example = Example.of(person1,
-				ExampleMatcher.matchingAll().withIgnoreNullValues());
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
 
 			StepVerifier.create(repository.findOne(example)).expectNext(person1).verifyComplete();
 		}
@@ -250,7 +241,7 @@ class ReactiveRepositoryIT {
 		@Test
 		void findAllByExample(@Autowired ReactivePersonRepository repository) {
 			Example<PersonWithAllConstructor> example = Example.of(person1,
-				ExampleMatcher.matchingAll().withIgnoreNullValues());
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
 			StepVerifier.create(repository.findAll(example)).expectNext(person1).verifyComplete();
 		}
 
@@ -260,33 +251,29 @@ class ReactiveRepositoryIT {
 			Example<PersonWithAllConstructor> example;
 
 			person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME, TEST_PERSON2_FIRST_NAME, null, null, null, null,
-				null, null, null, null);
+					null, null, null, null);
 			example = Example.of(person, ExampleMatcher.matchingAny());
 
-			StepVerifier.create(repository.findAll(example))
-				.recordWith(ArrayList::new)
-				.expectNextCount(2)
-				.expectRecordedMatches(recordedPersons -> recordedPersons.containsAll(Arrays.asList(person1, person2)))
-				.verifyComplete();
+			StepVerifier.create(repository.findAll(example)).recordWith(ArrayList::new).expectNextCount(2)
+					.expectRecordedMatches(recordedPersons -> recordedPersons.containsAll(Arrays.asList(person1, person2)))
+					.verifyComplete();
 
 			person = new PersonWithAllConstructor(null, TEST_PERSON1_NAME.toUpperCase(), TEST_PERSON2_FIRST_NAME, null, null,
-				null, null, null, null, null, null);
+					null, null, null, null, null, null);
 			example = Example.of(person, ExampleMatcher.matchingAny().withIgnoreCase("name"));
 
-			StepVerifier.create(repository.findAll(example))
-				.recordWith(ArrayList::new)
-				.expectNextCount(2)
-				.expectRecordedMatches(recordedPersons -> recordedPersons.containsAll(Arrays.asList(person1, person2)))
-				.verifyComplete();
+			StepVerifier.create(repository.findAll(example)).recordWith(ArrayList::new).expectNextCount(2)
+					.expectRecordedMatches(recordedPersons -> recordedPersons.containsAll(Arrays.asList(person1, person2)))
+					.verifyComplete();
 
 			person = new PersonWithAllConstructor(null,
-				TEST_PERSON2_NAME.substring(TEST_PERSON2_NAME.length() - 2).toUpperCase(),
-				TEST_PERSON2_FIRST_NAME.substring(0, 2), TEST_PERSON_SAMEVALUE.substring(3, 5), null, null, null, null, null,
-				null, null);
+					TEST_PERSON2_NAME.substring(TEST_PERSON2_NAME.length() - 2).toUpperCase(),
+					TEST_PERSON2_FIRST_NAME.substring(0, 2), TEST_PERSON_SAMEVALUE.substring(3, 5), null, null, null, null, null,
+					null, null);
 			example = Example.of(person, ExampleMatcher.matchingAll()
-				.withMatcher("name", ExampleMatcher.GenericPropertyMatcher.of(ExampleMatcher.StringMatcher.ENDING, true))
-				.withMatcher("firstName", ExampleMatcher.GenericPropertyMatcher.of(ExampleMatcher.StringMatcher.STARTING))
-				.withMatcher("sameValue", ExampleMatcher.GenericPropertyMatcher.of(ExampleMatcher.StringMatcher.CONTAINING)));
+					.withMatcher("name", ExampleMatcher.GenericPropertyMatcher.of(ExampleMatcher.StringMatcher.ENDING, true))
+					.withMatcher("firstName", ExampleMatcher.GenericPropertyMatcher.of(ExampleMatcher.StringMatcher.STARTING))
+					.withMatcher("sameValue", ExampleMatcher.GenericPropertyMatcher.of(ExampleMatcher.StringMatcher.CONTAINING)));
 
 			StepVerifier.create(repository.findAll(example)).expectNext(person2).verifyComplete();
 
@@ -296,7 +283,7 @@ class ReactiveRepositoryIT {
 			StepVerifier.create(repository.findAll(example)).expectNext(person1).verifyComplete();
 
 			example = Example.of(person,
-				ExampleMatcher.matchingAll().withStringMatcher(ExampleMatcher.StringMatcher.REGEX).withIncludeNullValues());
+					ExampleMatcher.matchingAll().withStringMatcher(ExampleMatcher.StringMatcher.REGEX).withIncludeNullValues());
 
 			StepVerifier.create(repository.findAll(example)).verifyComplete();
 		}
@@ -305,8 +292,8 @@ class ReactiveRepositoryIT {
 		void findAllByExampleWithSort(@Autowired ReactivePersonRepository repository) {
 			Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
 
-			StepVerifier.create(repository.findAll(example, Sort.by(Sort.Direction.DESC, "name"))).expectNext(person2, person1)
-				.verifyComplete();
+			StepVerifier.create(repository.findAll(example, Sort.by(Sort.Direction.DESC, "name")))
+					.expectNext(person2, person1).verifyComplete();
 		}
 
 		@Test
@@ -357,7 +344,7 @@ class ReactiveRepositoryIT {
 			List<PersonWithAllConstructor> personList = Arrays.asList(person1, person2);
 
 			StepVerifier.create(repository.getAllPersonsViaQuery()).expectNextMatches(personList::contains)
-				.expectNextMatches(personList::contains).verifyComplete();
+					.expectNextMatches(personList::contains).verifyComplete();
 		}
 
 		@Test
@@ -369,29 +356,27 @@ class ReactiveRepositoryIT {
 		void findBySimplePropertiesAnded(@Autowired ReactivePersonRepository repository) {
 
 			StepVerifier.create(repository.findOneByNameAndFirstName(TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME))
-				.expectNext(person1).verifyComplete();
+					.expectNext(person1).verifyComplete();
 
 			StepVerifier.create(repository.findOneByNameAndFirstNameAllIgnoreCase(TEST_PERSON1_NAME.toUpperCase(),
-				TEST_PERSON1_FIRST_NAME.toUpperCase())).expectNext(person1).verifyComplete();
+					TEST_PERSON1_FIRST_NAME.toUpperCase())).expectNext(person1).verifyComplete();
 
 		}
 
 		@Test
 		void findBySimplePropertiesOred(@Autowired ReactivePersonRepository repository) {
 
-			repository.findAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME)
-				.as(StepVerifier::create)
-				.recordWith(ArrayList::new)
-				.expectNextCount(2)
-				.expectRecordedMatches(recordedPersons -> recordedPersons.containsAll(Arrays.asList(person1, person2)))
-				.verifyComplete();
+			repository.findAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME).as(StepVerifier::create)
+					.recordWith(ArrayList::new).expectNextCount(2)
+					.expectRecordedMatches(recordedPersons -> recordedPersons.containsAll(Arrays.asList(person1, person2)))
+					.verifyComplete();
 		}
 
 		@Test // GH-112
 		void countBySimplePropertiesOred(@Autowired ReactivePersonRepository repository) {
 
-			repository.countAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME)
-				.as(StepVerifier::create).expectNext(2L).verifyComplete();
+			repository.countAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME).as(StepVerifier::create).expectNext(2L)
+					.verifyComplete();
 		}
 
 		@Test
@@ -399,54 +384,49 @@ class ReactiveRepositoryIT {
 			List<PersonWithAllConstructor> personList = Arrays.asList(person1, person2);
 
 			StepVerifier.create(repository.findAllBySameValue(TEST_PERSON_SAMEVALUE)).expectNextMatches(personList::contains)
-				.expectNextMatches(personList::contains).verifyComplete();
+					.expectNextMatches(personList::contains).verifyComplete();
 		}
 
 		@Test
 		void findByPropertyThatNeedsConversion(@Autowired ReactivePersonRepository repository) {
 
 			StepVerifier.create(repository.findAllByPlace(new GeographicPoint2d(NEO4J_HQ.y(), NEO4J_HQ.x())))
-				.expectNextCount(1)
-				.verifyComplete();
+					.expectNextCount(1).verifyComplete();
 		}
 
 		@Test
 		void findByPropertyFailsIfNoConverterIsAvailable(@Autowired ReactivePersonRepository repository) {
 
 			assertThatExceptionOfType(ConverterNotFoundException.class)
-				.isThrownBy(() -> repository.findAllByPlace(new ThingWithGeneratedId("hello")))
-				.withMessageStartingWith("No converter found capable of converting from type");
+					.isThrownBy(() -> repository.findAllByPlace(new ThingWithGeneratedId("hello")))
+					.withMessageStartingWith("No converter found capable of converting from type");
 		}
 
 		@Test
 		void findByAssignedId(@Autowired ReactiveThingRepository repository) {
 
-			StepVerifier.create(repository.findById("anId"))
-				.assertNext(thing -> {
+			StepVerifier.create(repository.findById("anId")).assertNext(thing -> {
 
-					assertThat(thing.getTheId()).isEqualTo("anId");
-					assertThat(thing.getName()).isEqualTo("Homer");
+				assertThat(thing.getTheId()).isEqualTo("anId");
+				assertThat(thing.getName()).isEqualTo("Homer");
 
-					AnotherThingWithAssignedId anotherThing = new AnotherThingWithAssignedId(4711L);
-					anotherThing.setName("Bart");
-					assertThat(thing.getThings()).containsExactlyInAnyOrder(anotherThing);
-				})
-				.verifyComplete();
+				AnotherThingWithAssignedId anotherThing = new AnotherThingWithAssignedId(4711L);
+				anotherThing.setName("Bart");
+				assertThat(thing.getThings()).containsExactlyInAnyOrder(anotherThing);
+			}).verifyComplete();
 		}
 
 		@Test
 		void loadWithAssignedIdViaQuery(@Autowired ReactiveThingRepository repository) {
 
-			StepVerifier.create(repository.getViaQuery())
-				.assertNext(thing -> {
-					assertThat(thing.getTheId()).isEqualTo("anId");
-					assertThat(thing.getName()).isEqualTo("Homer");
+			StepVerifier.create(repository.getViaQuery()).assertNext(thing -> {
+				assertThat(thing.getTheId()).isEqualTo("anId");
+				assertThat(thing.getName()).isEqualTo("Homer");
 
-					AnotherThingWithAssignedId anotherThing = new AnotherThingWithAssignedId(4711L);
-					anotherThing.setName("Bart");
-					assertThat(thing.getThings()).containsExactly(anotherThing);
-				})
-				.verifyComplete();
+				AnotherThingWithAssignedId anotherThing = new AnotherThingWithAssignedId(4711L);
+				anotherThing.setName("Bart");
+				assertThat(thing.getThings()).containsExactly(anotherThing);
+			}).verifyComplete();
 		}
 
 		@Test
@@ -455,12 +435,10 @@ class ReactiveRepositoryIT {
 				session.run("CREATE (:EntityWithConvertedId{identifyingEnum:'A'})");
 			}
 
-			StepVerifier.create(repository.findById(EntityWithConvertedId.IdentifyingEnum.A))
-				.assertNext(entity -> {
-					assertThat(entity).isNotNull();
-					assertThat(entity.getIdentifyingEnum()).isEqualTo(EntityWithConvertedId.IdentifyingEnum.A);
-				})
-				.verifyComplete();
+			StepVerifier.create(repository.findById(EntityWithConvertedId.IdentifyingEnum.A)).assertNext(entity -> {
+				assertThat(entity).isNotNull();
+				assertThat(entity.getIdentifyingEnum()).isEqualTo(EntityWithConvertedId.IdentifyingEnum.A);
+			}).verifyComplete();
 		}
 
 		@Test
@@ -470,10 +448,9 @@ class ReactiveRepositoryIT {
 			}
 
 			StepVerifier.create(repository.findAllById(singleton(EntityWithConvertedId.IdentifyingEnum.A)))
-				.assertNext(
-					entity -> assertThat(entity.getIdentifyingEnum()).isEqualTo(EntityWithConvertedId.IdentifyingEnum.A)
-				)
-				.verifyComplete();
+					.assertNext(
+							entity -> assertThat(entity.getIdentifyingEnum()).isEqualTo(EntityWithConvertedId.IdentifyingEnum.A))
+					.verifyComplete();
 		}
 	}
 
@@ -488,32 +465,26 @@ class ReactiveRepositoryIT {
 			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
 					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
 					+ "RETURN id(n)",
-				parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
-					NEO4J_HQ))
-				.next().get(0).asLong();
+					parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
+							NEO4J_HQ))
+					.next().get(0).asLong();
 
 			id2 = transaction.run(
-				"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-				parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place",
-					SFO))
-				.next().get(0).asLong();
+					"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
+					parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
+					.next().get(0).asLong();
 
-			transaction
-				.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
-			IntStream.rangeClosed(1, 20).forEach(i ->
-				transaction.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})",
-					parameters("i", String.format("%02d", i))));
+			transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
+			IntStream.rangeClosed(1, 20).forEach(i -> transaction
+					.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})", parameters("i", String.format("%02d", i))));
 
-			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				true,
-				1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, null);
+			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, null);
 
-			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
+			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
 		}
 
 		@Test
@@ -528,12 +499,11 @@ class ReactiveRepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-						+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
-						+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), "
-						+ "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
-						+ "(p1)-[:Has]->(p2)"
-						+ "RETURN n, h1, h2, p1, p2, c").single();
+						.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
+								+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), " + "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
+								+ "(p1)-[:Has]->(p2)" + "RETURN n, h1, h2, p1, p2, c")
+						.single();
 
 				Node personNode = record.get("n").asNode();
 				Node clubNode = record.get("c").asNode();
@@ -550,34 +520,32 @@ class ReactiveRepositoryIT {
 				petNode2Id = petNode2.id();
 			}
 
-			StepVerifier.create(repository.findById(personId))
-				.assertNext(loadedPerson -> {
+			StepVerifier.create(repository.findById(personId)).assertNext(loadedPerson -> {
 
-					assertThat(loadedPerson.getName()).isEqualTo("Freddie");
-					Hobby hobby = loadedPerson.getHobbies();
-					assertThat(hobby).isNotNull();
-					assertThat(hobby.getId()).isEqualTo(hobbyNode1Id);
-					assertThat(hobby.getName()).isEqualTo("Music");
+				assertThat(loadedPerson.getName()).isEqualTo("Freddie");
+				Hobby hobby = loadedPerson.getHobbies();
+				assertThat(hobby).isNotNull();
+				assertThat(hobby.getId()).isEqualTo(hobbyNode1Id);
+				assertThat(hobby.getName()).isEqualTo("Music");
 
-					Club club = loadedPerson.getClub();
-					assertThat(club).isNotNull();
-					assertThat(club.getId()).isEqualTo(clubId);
-					assertThat(club.getName()).isEqualTo("ClownsClub");
+				Club club = loadedPerson.getClub();
+				assertThat(club).isNotNull();
+				assertThat(club.getId()).isEqualTo(clubId);
+				assertThat(club.getName()).isEqualTo("ClownsClub");
 
-					List<Pet> pets = loadedPerson.getPets();
-					Pet comparisonPet1 = new Pet(petNode1Id, "Jerry");
-					Pet comparisonPet2 = new Pet(petNode2Id, "Tom");
-					assertThat(pets).containsExactlyInAnyOrder(comparisonPet1, comparisonPet2);
+				List<Pet> pets = loadedPerson.getPets();
+				Pet comparisonPet1 = new Pet(petNode1Id, "Jerry");
+				Pet comparisonPet2 = new Pet(petNode2Id, "Tom");
+				assertThat(pets).containsExactlyInAnyOrder(comparisonPet1, comparisonPet2);
 
-					Pet pet1 = pets.get(pets.indexOf(comparisonPet1));
-					Pet pet2 = pets.get(pets.indexOf(comparisonPet2));
-					Hobby petHobby = pet1.getHobbies().iterator().next();
-					assertThat(petHobby.getId()).isEqualTo(hobbyNode2Id);
-					assertThat(petHobby.getName()).isEqualTo("sleeping");
+				Pet pet1 = pets.get(pets.indexOf(comparisonPet1));
+				Pet pet2 = pets.get(pets.indexOf(comparisonPet2));
+				Hobby petHobby = pet1.getHobbies().iterator().next();
+				assertThat(petHobby.getId()).isEqualTo(hobbyNode2Id);
+				assertThat(petHobby.getName()).isEqualTo("sleeping");
 
-					assertThat(pet1.getFriends()).containsExactly(pet2);
-				})
-				.verifyComplete();
+				assertThat(pet1.getFriends()).containsExactly(pet2);
+			}).verifyComplete();
 		}
 
 		@Test
@@ -589,10 +557,9 @@ class ReactiveRepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-						+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), "
-						+ "(p1)-[:Has]->(h1)"
-						+ "RETURN n, h1, p1").single();
+						.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), " + "(p1)-[:Has]->(h1)" + "RETURN n, h1, p1")
+						.single();
 
 				Node personNode = record.get("n").asNode();
 				Node hobbyNode1 = record.get("h1").asNode();
@@ -603,26 +570,24 @@ class ReactiveRepositoryIT {
 				petNode1Id = petNode1.id();
 			}
 
-			StepVerifier.create(repository.findById(personId))
-				.assertNext(loadedPerson -> {
+			StepVerifier.create(repository.findById(personId)).assertNext(loadedPerson -> {
 
-					assertThat(loadedPerson.getName()).isEqualTo("Freddie");
-					Hobby hobby = loadedPerson.getHobbies();
-					assertThat(hobby).isNotNull();
-					assertThat(hobby.getId()).isEqualTo(hobbyNode1Id);
-					assertThat(hobby.getName()).isEqualTo("Music");
+				assertThat(loadedPerson.getName()).isEqualTo("Freddie");
+				Hobby hobby = loadedPerson.getHobbies();
+				assertThat(hobby).isNotNull();
+				assertThat(hobby.getId()).isEqualTo(hobbyNode1Id);
+				assertThat(hobby.getName()).isEqualTo("Music");
 
-					List<Pet> pets = loadedPerson.getPets();
-					Pet comparisonPet1 = new Pet(petNode1Id, "Jerry");
-					assertThat(pets).containsExactlyInAnyOrder(comparisonPet1);
+				List<Pet> pets = loadedPerson.getPets();
+				Pet comparisonPet1 = new Pet(petNode1Id, "Jerry");
+				assertThat(pets).containsExactlyInAnyOrder(comparisonPet1);
 
-					Pet pet1 = pets.get(pets.indexOf(comparisonPet1));
-					Hobby petHobby = pet1.getHobbies().iterator().next();
-					assertThat(petHobby.getName()).isEqualTo("Music");
+				Pet pet1 = pets.get(pets.indexOf(comparisonPet1));
+				Hobby petHobby = pet1.getHobbies().iterator().next();
+				assertThat(petHobby.getName()).isEqualTo("Music");
 
-					assertThat(petHobby).isSameAs(hobby);
-				})
-				.verifyComplete();
+				assertThat(petHobby).isSameAs(hobby);
+			}).verifyComplete();
 		}
 
 		@Test
@@ -632,29 +597,24 @@ class ReactiveRepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run("CREATE "
-						+ "(t1:Type1)-[:NEXT_TYPE]->(t2:Type2)-[:NEXT_TYPE]->(:Type3)-[:NEXT_TYPE]->(t4:Type4)-"
-						+ "[:NEXT_TYPE]->(:Type5)-[:NEXT_TYPE]->(:Type6)-[:NEXT_TYPE]->(:Type7), "
-						+ "(t2)-[:SAME_TYPE]->"
-						+ "(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->"
-						+ "(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->"
-						+ "(:Type2) "
-						+ "RETURN t1").single();
+						.run("CREATE " + "(t1:Type1)-[:NEXT_TYPE]->(t2:Type2)-[:NEXT_TYPE]->(:Type3)-[:NEXT_TYPE]->(t4:Type4)-"
+								+ "[:NEXT_TYPE]->(:Type5)-[:NEXT_TYPE]->(:Type6)-[:NEXT_TYPE]->(:Type7), " + "(t2)-[:SAME_TYPE]->"
+								+ "(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->"
+								+ "(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->" + "(:Type2) " + "RETURN t1")
+						.single();
 
 				type1Id = record.get("t1").asNode().id();
 			}
 
-			StepVerifier.create(repository.findById(type1Id))
-				.assertNext(type1 -> {
-					// ensures that the virtual limit for same relationships does not affect distinct relationships
-					assertThat(type1.nextType.nextType.nextType.nextType.nextType.nextType).isNotNull();
+			StepVerifier.create(repository.findById(type1Id)).assertNext(type1 -> {
+				// ensures that the virtual limit for same relationships does not affect distinct relationships
+				assertThat(type1.nextType.nextType.nextType.nextType.nextType.nextType).isNotNull();
 
-					// assert that same type relationships not cause stack overflow
-					DeepRelationships.Type2 type2 = type1.nextType;
-					assertThat(type2.sameType.sameType.sameType).isNotNull();
-					assertThat(type2.sameType.sameType.sameType.sameType).isNull();
-				})
-				.verifyComplete();
+				// assert that same type relationships not cause stack overflow
+				DeepRelationships.Type2 type2 = type1.nextType;
+				assertThat(type2.sameType.sameType.sameType).isNotNull();
+				assertThat(type2.sameType.sameType.sameType.sameType).isNull();
+			}).verifyComplete();
 		}
 
 		@Test
@@ -663,34 +623,31 @@ class ReactiveRepositoryIT {
 			long type1Id;
 
 			try (Session session = createSession()) {
-				Record record = session
-					.run("CREATE "
-						+ "(t1:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-						+ "(:LoopingType1)"
-						+ "RETURN t1").single();
+				Record record = session.run(
+						"CREATE " + "(t1:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
+								+ "(:LoopingType1)" + "RETURN t1")
+						.single();
 
 				type1Id = record.get("t1").asNode().id();
 			}
 
-			StepVerifier.create(loopingRelationshipRepository.findById(type1Id))
-				.assertNext(type1 -> {
-					DeepRelationships.LoopingType1 iteration1 = type1.nextType.nextType.nextType;
-					assertThat(iteration1).isNotNull();
-					DeepRelationships.LoopingType1 iteration2 = iteration1.nextType.nextType.nextType;
-					assertThat(iteration2).isNotNull();
-					DeepRelationships.LoopingType1 iteration3 = iteration2.nextType.nextType.nextType;
-					assertThat(iteration3.nextType).isNull();
-				})
-				.verifyComplete();
+			StepVerifier.create(loopingRelationshipRepository.findById(type1Id)).assertNext(type1 -> {
+				DeepRelationships.LoopingType1 iteration1 = type1.nextType.nextType.nextType;
+				assertThat(iteration1).isNotNull();
+				DeepRelationships.LoopingType1 iteration2 = iteration1.nextType.nextType.nextType;
+				assertThat(iteration2).isNotNull();
+				DeepRelationships.LoopingType1 iteration3 = iteration2.nextType.nextType.nextType;
+				assertThat(iteration3.nextType).isNull();
+			}).verifyComplete();
 		}
 
 		@Test
@@ -699,19 +656,17 @@ class ReactiveRepositoryIT {
 			long startId;
 
 			try (Session session = createSession()) {
-				Record record = session
-					.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) "
-						+ "RETURN n").single();
+				Record record = session.run(
+						"CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) " + "RETURN n")
+						.single();
 
 				Node startNode = record.get("n").asNode();
 				startId = startNode.id();
 			}
 
-			StepVerifier.create(repository.findById(startId))
-				.assertNext(entity -> {
-					assertThat(entity.getEnds()).hasSize(1);
-				})
-				.verifyComplete();
+			StepVerifier.create(repository.findById(startId)).assertNext(entity -> {
+				assertThat(entity.getEnds()).hasSize(1);
+			}).verifyComplete();
 		}
 
 		@Test
@@ -720,19 +675,17 @@ class ReactiveRepositoryIT {
 			long endId;
 
 			try (Session session = createSession()) {
-				Record record = session
-					.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) "
-						+ "RETURN e").single();
+				Record record = session.run(
+						"CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) " + "RETURN e")
+						.single();
 
 				Node endNode = record.get("e").asNode();
 				endId = endNode.id();
 			}
 
-			StepVerifier.create(repository.findById(endId))
-				.assertNext(entity -> {
-					assertThat(entity.getStart()).isNotNull();
-				})
-				.verifyComplete();
+			StepVerifier.create(repository.findById(endId)).assertNext(entity -> {
+				assertThat(entity.getStart()).isNotNull();
+			}).verifyComplete();
 		}
 
 		@Test
@@ -745,43 +698,38 @@ class ReactiveRepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h:Hobby{name:'Music'}), "
-						+ "(n)-[:Has]->(p:Pet{name: 'Jerry'}) "
-						+ "RETURN n, h, p").single();
+						.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p:Pet{name: 'Jerry'}) " + "RETURN n, h, p")
+						.single();
 
 				hobbyNode1Id = record.get("h").asNode().id();
 				petNode1Id = record.get("p").asNode().id();
 
-				record = session
-					.run("CREATE (n:PersonWithRelationship{name:'SomeoneElse'})-[:Has]->(h:Hobby{name:'Music2'}), "
-						+ "(n)-[:Has]->(p:Pet{name: 'Jerry2'}) "
-						+ "RETURN n, h, p").single();
+				record = session.run("CREATE (n:PersonWithRelationship{name:'SomeoneElse'})-[:Has]->(h:Hobby{name:'Music2'}), "
+						+ "(n)-[:Has]->(p:Pet{name: 'Jerry2'}) " + "RETURN n, h, p").single();
 
 				hobbyNode2Id = record.get("h").asNode().id();
 				petNode2Id = record.get("p").asNode().id();
 			}
 
-			StepVerifier.create(repository.findAll())
-				.recordWith(ArrayList::new)
-				.expectNextCount(2)
-				.consumeRecordedWith(loadedPersons -> {
+			StepVerifier.create(repository.findAll()).recordWith(ArrayList::new).expectNextCount(2)
+					.consumeRecordedWith(loadedPersons -> {
 
-					Hobby hobby1 = new Hobby();
-					hobby1.setId(hobbyNode1Id);
-					hobby1.setName("Music");
+						Hobby hobby1 = new Hobby();
+						hobby1.setId(hobbyNode1Id);
+						hobby1.setName("Music");
 
-					Hobby hobby2 = new Hobby();
-					hobby2.setId(hobbyNode2Id);
-					hobby2.setName("Music2");
+						Hobby hobby2 = new Hobby();
+						hobby2.setId(hobbyNode2Id);
+						hobby2.setName("Music2");
 
-					Pet pet1 = new Pet(petNode1Id, "Jerry");
-					Pet pet2 = new Pet(petNode2Id, "Jerry2");
+						Pet pet1 = new Pet(petNode1Id, "Jerry");
+						Pet pet2 = new Pet(petNode2Id, "Jerry2");
 
-					assertThat(loadedPersons).extracting("name").containsExactlyInAnyOrder("Freddie", "SomeoneElse");
-					assertThat(loadedPersons).extracting("hobbies").containsExactlyInAnyOrder(hobby1, hobby2);
-					assertThat(loadedPersons).flatExtracting("pets").containsExactlyInAnyOrder(pet1, pet2);
-				})
-				.verifyComplete();
+						assertThat(loadedPersons).extracting("name").containsExactlyInAnyOrder("Freddie", "SomeoneElse");
+						assertThat(loadedPersons).extracting("hobbies").containsExactlyInAnyOrder(hobby1, hobby2);
+						assertThat(loadedPersons).flatExtracting("pets").containsExactlyInAnyOrder(pet1, pet2);
+					}).verifyComplete();
 		}
 
 		@Test
@@ -794,9 +742,9 @@ class ReactiveRepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-						+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) "
-						+ "RETURN n, h1, p1, p2").single();
+						.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) " + "RETURN n, h1, p1, p2")
+						.single();
 
 				Node personNode = record.get("n").asNode();
 				Node hobbyNode1 = record.get("h1").asNode();
@@ -809,21 +757,19 @@ class ReactiveRepositoryIT {
 				petNode2Id = petNode2.id();
 			}
 
-			StepVerifier.create(repository.getPersonWithRelationshipsViaQuery())
-				.assertNext(loadedPerson -> {
-					assertThat(loadedPerson.getName()).isEqualTo("Freddie");
-					assertThat(loadedPerson.getId()).isEqualTo(personId);
-					Hobby hobby = loadedPerson.getHobbies();
-					assertThat(hobby).isNotNull();
-					assertThat(hobby.getId()).isEqualTo(hobbyNodeId);
-					assertThat(hobby.getName()).isEqualTo("Music");
+			StepVerifier.create(repository.getPersonWithRelationshipsViaQuery()).assertNext(loadedPerson -> {
+				assertThat(loadedPerson.getName()).isEqualTo("Freddie");
+				assertThat(loadedPerson.getId()).isEqualTo(personId);
+				Hobby hobby = loadedPerson.getHobbies();
+				assertThat(hobby).isNotNull();
+				assertThat(hobby.getId()).isEqualTo(hobbyNodeId);
+				assertThat(hobby.getName()).isEqualTo("Music");
 
-					List<Pet> pets = loadedPerson.getPets();
-					Pet comparisonPet1 = new Pet(petNode1Id, "Jerry");
-					Pet comparisonPet2 = new Pet(petNode2Id, "Tom");
-					assertThat(pets).containsExactlyInAnyOrder(comparisonPet1, comparisonPet2);
-				})
-				.verifyComplete();
+				List<Pet> pets = loadedPerson.getPets();
+				Pet comparisonPet1 = new Pet(petNode1Id, "Jerry");
+				Pet comparisonPet2 = new Pet(petNode2Id, "Tom");
+				assertThat(pets).containsExactlyInAnyOrder(comparisonPet1, comparisonPet2);
+			}).verifyComplete();
 		}
 
 		@Test
@@ -833,20 +779,17 @@ class ReactiveRepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session
-					.run("CREATE (p:Pet{name:'Jerry'})-[:Has]->(t:Thing{theId:'t1', name:'Thing1'}) "
-						+ "RETURN p, t").single();
+						.run("CREATE (p:Pet{name:'Jerry'})-[:Has]->(t:Thing{theId:'t1', name:'Thing1'}) " + "RETURN p, t").single();
 
 				Node petNode = record.get("p").asNode();
 				petNodeId = petNode.id();
 			}
 
-			StepVerifier.create(repository.findById(petNodeId))
-				.assertNext(pet -> {
-					ThingWithAssignedId relatedThing = pet.getThings().get(0);
-					assertThat(relatedThing.getTheId()).isEqualTo("t1");
-					assertThat(relatedThing.getName()).isEqualTo("Thing1");
-				})
-				.verifyComplete();
+			StepVerifier.create(repository.findById(petNodeId)).assertNext(pet -> {
+				ThingWithAssignedId relatedThing = pet.getThings().get(0);
+				assertThat(relatedThing.getTheId()).isEqualTo("t1");
+				assertThat(relatedThing.getName()).isEqualTo("Thing1");
+			}).verifyComplete();
 		}
 
 		@Test
@@ -856,16 +799,13 @@ class ReactiveRepositoryIT {
 
 			try (Session session = createSession()) {
 				petId = session.run("CREATE (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})"
-					+ "-[:Has]->(luna2:Pet{name:'Luna'})"
-					+ "RETURN id(luna) as id").single().get("id").asLong();
+						+ "-[:Has]->(luna2:Pet{name:'Luna'})" + "RETURN id(luna) as id").single().get("id").asLong();
 			}
 
-			StepVerifier.create(repository.findById(petId))
-				.assertNext(loadedPet -> {
-					assertThat(loadedPet.getFriends().get(0).getName()).isEqualTo("Daphne");
-					assertThat(loadedPet.getFriends().get(0).getFriends().get(0).getName()).isEqualTo("Luna");
-				})
-				.verifyComplete();
+			StepVerifier.create(repository.findById(petId)).assertNext(loadedPet -> {
+				assertThat(loadedPet.getFriends().get(0).getName()).isEqualTo("Daphne");
+				assertThat(loadedPet.getFriends().get(0).getFriends().get(0).getName()).isEqualTo("Luna");
+			}).verifyComplete();
 		}
 	}
 
@@ -873,22 +813,20 @@ class ReactiveRepositoryIT {
 	class RelationshipProperties extends ReactiveIntegrationTestBase {
 
 		@Test
-		void loadEntityWithRelationshipWithProperties(@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
+		void loadEntityWithRelationshipWithProperties(
+				@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
 
 			long personId;
 			long hobbyNode1Id;
 			long hobbyNode2Id;
 
 			try (Session session = createSession()) {
-				Record record = session
-					.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
+				Record record = session.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
 						+ " (n)-[l1:LIKES"
 						+ "{since: 1995, active: true, localDate: date('1995-02-26'), myEnum: 'SOMETHING', point: point({x: 0, y: 1})}"
-						+ "]->(h1:Hobby{name:'Music'}),"
-						+ " (n)-[l2:LIKES"
+						+ "]->(h1:Hobby{name:'Music'})," + " (n)-[l2:LIKES"
 						+ "{since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}"
-						+ "]->(h2:Hobby{name:'Something else'})"
-						+ "RETURN n, h1, h2").single();
+						+ "]->(h2:Hobby{name:'Something else'})" + "RETURN n, h1, h2").single();
 
 				Node personNode = record.get("n").asNode();
 				Node hobbyNode1 = record.get("h1").asNode();
@@ -899,36 +837,35 @@ class ReactiveRepositoryIT {
 				hobbyNode2Id = hobbyNode2.id();
 			}
 
-			StepVerifier.create(repository.findById(personId))
-				.assertNext(person -> {
-					assertThat(person.getName()).isEqualTo("Freddie");
+			StepVerifier.create(repository.findById(personId)).assertNext(person -> {
+				assertThat(person.getName()).isEqualTo("Freddie");
 
-					Hobby hobby1 = new Hobby();
-					hobby1.setName("Music");
-					hobby1.setId(hobbyNode1Id);
-					LikesHobbyRelationship rel1 = new LikesHobbyRelationship(1995);
-					rel1.setActive(true);
-					rel1.setLocalDate(LocalDate.of(1995, 2, 26));
-					rel1.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING);
-					rel1.setPoint(new CartesianPoint2d(0d, 1d));
+				Hobby hobby1 = new Hobby();
+				hobby1.setName("Music");
+				hobby1.setId(hobbyNode1Id);
+				LikesHobbyRelationship rel1 = new LikesHobbyRelationship(1995);
+				rel1.setActive(true);
+				rel1.setLocalDate(LocalDate.of(1995, 2, 26));
+				rel1.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING);
+				rel1.setPoint(new CartesianPoint2d(0d, 1d));
 
-					Hobby hobby2 = new Hobby();
-					hobby2.setName("Something else");
-					hobby2.setId(hobbyNode2Id);
-					LikesHobbyRelationship rel2 = new LikesHobbyRelationship(2000);
-					rel2.setActive(false);
-					rel2.setLocalDate(LocalDate.of(2000, 6, 28));
-					rel2.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING_DIFFERENT);
-					rel2.setPoint(new CartesianPoint2d(2d, 3d));
+				Hobby hobby2 = new Hobby();
+				hobby2.setName("Something else");
+				hobby2.setId(hobbyNode2Id);
+				LikesHobbyRelationship rel2 = new LikesHobbyRelationship(2000);
+				rel2.setActive(false);
+				rel2.setLocalDate(LocalDate.of(2000, 6, 28));
+				rel2.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING_DIFFERENT);
+				rel2.setPoint(new CartesianPoint2d(2d, 3d));
 
-					assertThat(person.getHobbies()).contains(MapEntry.entry(hobby1, rel1), MapEntry.entry(hobby2, rel2));
-				})
-				.verifyComplete();
+				assertThat(person.getHobbies()).contains(MapEntry.entry(hobby1, rel1), MapEntry.entry(hobby2, rel2));
+			}).verifyComplete();
 
 		}
 
 		@Test
-		void saveEntityWithRelationshipWithProperties(@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
+		void saveEntityWithRelationshipWithProperties(
+				@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
 			// given
 			Hobby h1 = new Hobby();
 			h1.setName("Music");
@@ -966,89 +903,62 @@ class ReactiveRepositoryIT {
 			clonePerson.setHobbies(hobbies);
 
 			// when
-			Mono<PersonWithRelationshipWithProperties> operationUnderTest = repository
-				.save(clonePerson);
+			Mono<PersonWithRelationshipWithProperties> operationUnderTest = repository.save(clonePerson);
 
 			// then
 			List<PersonWithRelationshipWithProperties> shouldBeDifferentPersons = new ArrayList<>();
 
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(getTransactionManager());
-			transactionalOperator.execute(t -> operationUnderTest)
-				.as(StepVerifier::create)
-				.recordWith(() -> shouldBeDifferentPersons)
-				.expectNextCount(1L)
-				.verifyComplete();
+			transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create)
+					.recordWith(() -> shouldBeDifferentPersons).expectNextCount(1L).verifyComplete();
 
 			assertThat(shouldBeDifferentPersons).size().isEqualTo(1);
 
 			PersonWithRelationshipWithProperties shouldBeDifferentPerson = shouldBeDifferentPersons.get(0);
-			assertThat(shouldBeDifferentPerson)
-				.isNotNull()
-				.isEqualToComparingOnlyGivenFields(clonePerson, "hobbies");
+			assertThat(shouldBeDifferentPerson).isNotNull().isEqualToComparingOnlyGivenFields(clonePerson, "hobbies");
 			assertThat(shouldBeDifferentPerson.getName()).isEqualToIgnoringCase("Freddie clone");
 
 			// check content of db
-			String matchQuery =
-				"MATCH (n:PersonWithRelationshipWithProperties {name:'Freddie clone'}) "
-					+ "RETURN n, "
-					+ "[(n) -[:LIKES]->(h:Hobby) |h] as Hobbies, "
-					+ "[(n) -[r:LIKES]->(:Hobby) |r] as rels";
-			Flux.usingWhen(
-				Mono.fromSupplier(() -> createRxSession()),
-				s -> s.run(matchQuery).records(),
-				RxSession::close
-			).as(StepVerifier::create)
-				.assertNext(record -> {
+			String matchQuery = "MATCH (n:PersonWithRelationshipWithProperties {name:'Freddie clone'}) " + "RETURN n, "
+					+ "[(n) -[:LIKES]->(h:Hobby) |h] as Hobbies, " + "[(n) -[r:LIKES]->(:Hobby) |r] as rels";
+			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()), s -> s.run(matchQuery).records(), RxSession::close)
+					.as(StepVerifier::create).assertNext(record -> {
 
-					assertThat(record.containsKey("n")).isTrue();
-					assertThat(record.containsKey("Hobbies")).isTrue();
-					assertThat(record.containsKey("rels")).isTrue();
-					assertThat(record.values()).hasSize(3);
-					assertThat(record.get("Hobbies").values()).hasSize(2);
-					assertThat(record.get("rels").values()).hasSize(2);
+						assertThat(record.containsKey("n")).isTrue();
+						assertThat(record.containsKey("Hobbies")).isTrue();
+						assertThat(record.containsKey("rels")).isTrue();
+						assertThat(record.values()).hasSize(3);
+						assertThat(record.get("Hobbies").values()).hasSize(2);
+						assertThat(record.get("rels").values()).hasSize(2);
 
-					assertThat(record.get("rels").values(Value::asRelationship)).
-						extracting(
-							Relationship::type,
-							rel -> rel.get("active"),
-							rel -> rel.get("localDate"),
-							rel -> rel.get("point"),
-							rel -> rel.get("myEnum"),
-							rel -> rel.get("since")
-						)
-						.containsExactlyInAnyOrder(
-							tuple(
-								"LIKES", Values.value(rel1Active), Values.value(rel1LocalDate),
-								Values.point(rel1Point.getSrid(), rel1Point.getX(), rel1Point.getY()),
-								Values.value(rel1MyEnum.name()), Values.value(rel1Since)
-							),
-							tuple(
-								"LIKES", Values.value(rel2Active), Values.value(rel2LocalDate),
-								Values.point(rel2Point.getSrid(), rel2Point.getX(), rel2Point.getY()),
-								Values.value(rel2MyEnum.name()), Values.value(rel2Since)
-							)
-						);
-				})
-				.verifyComplete();
+						assertThat(record.get("rels").values(Value::asRelationship))
+								.extracting(Relationship::type, rel -> rel.get("active"), rel -> rel.get("localDate"),
+										rel -> rel.get("point"), rel -> rel.get("myEnum"), rel -> rel.get("since"))
+								.containsExactlyInAnyOrder(
+										tuple("LIKES", Values.value(rel1Active), Values.value(rel1LocalDate),
+												Values.point(rel1Point.getSrid(), rel1Point.getX(), rel1Point.getY()),
+												Values.value(rel1MyEnum.name()), Values.value(rel1Since)),
+										tuple("LIKES", Values.value(rel2Active), Values.value(rel2LocalDate),
+												Values.point(rel2Point.getSrid(), rel2Point.getX(), rel2Point.getY()),
+												Values.value(rel2MyEnum.name()), Values.value(rel2Since)));
+					}).verifyComplete();
 		}
 
-	@Test
-	void loadEntityWithRelationshipWithPropertiesFromCustomQuery(@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
+		@Test
+		void loadEntityWithRelationshipWithPropertiesFromCustomQuery(
+				@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
 
 			long personId;
 			long hobbyNode1Id;
 			long hobbyNode2Id;
 
 			try (Session session = createSession()) {
-				Record record = session
-					.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
+				Record record = session.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
 						+ " (n)-[l1:LIKES"
 						+ "{since: 1995, active: true, localDate: date('1995-02-26'), myEnum: 'SOMETHING', point: point({x: 0, y: 1})}"
-						+ "]->(h1:Hobby{name:'Music'}),"
-						+ " (n)-[l2:LIKES"
+						+ "]->(h1:Hobby{name:'Music'})," + " (n)-[l2:LIKES"
 						+ "{since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}"
-						+ "]->(h2:Hobby{name:'Something else'})"
-						+ "RETURN n, h1, h2").single();
+						+ "]->(h2:Hobby{name:'Something else'})" + "RETURN n, h1, h2").single();
 
 				Node personNode = record.get("n").asNode();
 				Node hobbyNode1 = record.get("h1").asNode();
@@ -1059,31 +969,29 @@ class ReactiveRepositoryIT {
 				hobbyNode2Id = hobbyNode2.id();
 			}
 
-			StepVerifier.create(repository.loadFromCustomQuery(personId))
-				.assertNext(person -> {
-					assertThat(person.getName()).isEqualTo("Freddie");
+			StepVerifier.create(repository.loadFromCustomQuery(personId)).assertNext(person -> {
+				assertThat(person.getName()).isEqualTo("Freddie");
 
-					Hobby hobby1 = new Hobby();
-					hobby1.setName("Music");
-					hobby1.setId(hobbyNode1Id);
-					LikesHobbyRelationship rel1 = new LikesHobbyRelationship(1995);
-					rel1.setActive(true);
-					rel1.setLocalDate(LocalDate.of(1995, 2, 26));
-					rel1.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING);
-					rel1.setPoint(new CartesianPoint2d(0d, 1d));
+				Hobby hobby1 = new Hobby();
+				hobby1.setName("Music");
+				hobby1.setId(hobbyNode1Id);
+				LikesHobbyRelationship rel1 = new LikesHobbyRelationship(1995);
+				rel1.setActive(true);
+				rel1.setLocalDate(LocalDate.of(1995, 2, 26));
+				rel1.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING);
+				rel1.setPoint(new CartesianPoint2d(0d, 1d));
 
-					Hobby hobby2 = new Hobby();
-					hobby2.setName("Something else");
-					hobby2.setId(hobbyNode2Id);
-					LikesHobbyRelationship rel2 = new LikesHobbyRelationship(2000);
-					rel2.setActive(false);
-					rel2.setLocalDate(LocalDate.of(2000, 6, 28));
-					rel2.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING_DIFFERENT);
-					rel2.setPoint(new CartesianPoint2d(2d, 3d));
+				Hobby hobby2 = new Hobby();
+				hobby2.setName("Something else");
+				hobby2.setId(hobbyNode2Id);
+				LikesHobbyRelationship rel2 = new LikesHobbyRelationship(2000);
+				rel2.setActive(false);
+				rel2.setLocalDate(LocalDate.of(2000, 6, 28));
+				rel2.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING_DIFFERENT);
+				rel2.setPoint(new CartesianPoint2d(2d, 3d));
 
-					assertThat(person.getHobbies()).contains(MapEntry.entry(hobby1, rel1), MapEntry.entry(hobby2, rel2));
-				})
-				.verifyComplete();
+				assertThat(person.getHobbies()).contains(MapEntry.entry(hobby1, rel1), MapEntry.entry(hobby2, rel2));
+			}).verifyComplete();
 
 		}
 	}
@@ -1098,117 +1006,106 @@ class ReactiveRepositoryIT {
 			}
 
 			StepVerifier.create(repository.findByPetsName("Jerry"))
-				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
-				.verifyComplete();
+					.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie")).verifyComplete();
 		}
 
 		@Test
 		void findByPropertyOnRelatedEntitiesOr(@Autowired ReactiveRelationshipRepository repository) {
 			try (Session session = createSession()) {
 				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Tom'}),"
-					+ "(n)-[:Has]->(:Hobby{name: 'Music'})");
+						+ "(n)-[:Has]->(:Hobby{name: 'Music'})");
 			}
 
 			StepVerifier.create(repository.findByHobbiesNameOrPetsName("Music", "Jerry"))
-				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
-				.verifyComplete();
+					.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie")).verifyComplete();
 			StepVerifier.create(repository.findByHobbiesNameOrPetsName("Sports", "Tom"))
-				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
-				.verifyComplete();
+					.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie")).verifyComplete();
 
-			StepVerifier.create(repository.findByHobbiesNameOrPetsName("Sports", "Jerry"))
-				.verifyComplete();
+			StepVerifier.create(repository.findByHobbiesNameOrPetsName("Sports", "Jerry")).verifyComplete();
 		}
 
 		@Test
 		void findByPropertyOnRelatedEntitiesAnd(@Autowired ReactiveRelationshipRepository repository) {
 			try (Session session = createSession()) {
 				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Tom'}),"
-					+ "(n)-[:Has]->(:Hobby{name: 'Music'})");
+						+ "(n)-[:Has]->(:Hobby{name: 'Music'})");
 			}
 
 			StepVerifier.create(repository.findByHobbiesNameAndPetsName("Music", "Tom"))
-				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
-				.verifyComplete();
+					.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie")).verifyComplete();
 
-			StepVerifier.create(repository.findByHobbiesNameAndPetsName("Sports", "Jerry"))
-				.verifyComplete();
+			StepVerifier.create(repository.findByHobbiesNameAndPetsName("Sports", "Jerry")).verifyComplete();
 		}
 
 		@Test
 		void findByPropertyOnRelatedEntityOfRelatedEntity(@Autowired ReactiveRelationshipRepository repository) {
 			try (Session session = createSession()) {
 				session.run("CREATE (:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Jerry'})"
-					+ "-[:Has]->(:Hobby{name: 'Sleeping'})");
+						+ "-[:Has]->(:Hobby{name: 'Sleeping'})");
 			}
 
 			StepVerifier.create(repository.findByPetsHobbiesName("Sleeping"))
-				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
-				.verifyComplete();
+					.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie")).verifyComplete();
 
-			StepVerifier.create(repository.findByPetsHobbiesName("Sports"))
-				.verifyComplete();
+			StepVerifier.create(repository.findByPetsHobbiesName("Sports")).verifyComplete();
 		}
 
 		@Test
 		void findByPropertyOnRelatedEntityOfRelatedSameEntity(@Autowired ReactiveRelationshipRepository repository) {
 			try (Session session = createSession()) {
 				session.run("CREATE (:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Pet{name: 'Jerry'})"
-					+ "-[:Has]->(:Pet{name: 'Tom'})");
+						+ "-[:Has]->(:Pet{name: 'Tom'})");
 			}
 
 			StepVerifier.create(repository.findByPetsFriendsName("Tom"))
-				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
-				.verifyComplete();
+					.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie")).verifyComplete();
 
-			StepVerifier.create(repository.findByPetsFriendsName("Jerry"))
-				.verifyComplete();
+			StepVerifier.create(repository.findByPetsFriendsName("Jerry")).verifyComplete();
 		}
 
 		@Test
-		void findByPropertyOnRelationshipWithProperties(@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
+		void findByPropertyOnRelationshipWithProperties(
+				@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
 			try (Session session = createSession()) {
-				session.run("CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020}]->(:Hobby{name: 'Bowling'})");
+				session.run(
+						"CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020}]->(:Hobby{name: 'Bowling'})");
 			}
 
 			StepVerifier.create(repository.findByHobbiesSince(2020))
-				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
-				.verifyComplete();
+					.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie")).verifyComplete();
 		}
 
 		@Test
-		void findByPropertyOnRelationshipWithPropertiesOr(@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
+		void findByPropertyOnRelationshipWithPropertiesOr(
+				@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
 			try (Session session = createSession()) {
-				session.run("CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})");
+				session.run(
+						"CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})");
 			}
 
 			StepVerifier.create(repository.findByHobbiesSinceOrHobbiesActive(2020, false))
-				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
-				.verifyComplete();
+					.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie")).verifyComplete();
 
 			StepVerifier.create(repository.findByHobbiesSinceOrHobbiesActive(2019, true))
-				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
-				.verifyComplete();
+					.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie")).verifyComplete();
 
-			StepVerifier.create(repository.findByHobbiesSinceOrHobbiesActive(2019, false))
-				.verifyComplete();
+			StepVerifier.create(repository.findByHobbiesSinceOrHobbiesActive(2019, false)).verifyComplete();
 		}
 
 		@Test
-		void findByPropertyOnRelationshipWithPropertiesAnd(@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
+		void findByPropertyOnRelationshipWithPropertiesAnd(
+				@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
 			try (Session session = createSession()) {
-				session.run("CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})");
+				session.run(
+						"CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})");
 			}
 
 			StepVerifier.create(repository.findByHobbiesSinceAndHobbiesActive(2020, true))
-				.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie"))
-				.verifyComplete();
+					.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie")).verifyComplete();
 
-			StepVerifier.create(repository.findByHobbiesSinceAndHobbiesActive(2019, true))
-				.verifyComplete();
+			StepVerifier.create(repository.findByHobbiesSinceAndHobbiesActive(2019, true)).verifyComplete();
 
-			StepVerifier.create(repository.findByHobbiesSinceAndHobbiesActive(2020, false))
-				.verifyComplete();
+			StepVerifier.create(repository.findByHobbiesSinceAndHobbiesActive(2020, false)).verifyComplete();
 		}
 	}
 
@@ -1223,204 +1120,135 @@ class ReactiveRepositoryIT {
 			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
 					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
 					+ "RETURN id(n)",
-				parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
-					NEO4J_HQ))
-				.next().get(0).asLong();
+					parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
+							NEO4J_HQ))
+					.next().get(0).asLong();
 
 			id2 = transaction.run(
-				"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-				parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place",
-					SFO))
-				.next().get(0).asLong();
+					"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
+					parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
+					.next().get(0).asLong();
 
-			transaction
-				.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
-			IntStream.rangeClosed(1, 20).forEach(i ->
-				transaction.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})",
-					parameters("i", String.format("%02d", i))));
+			transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
+			IntStream.rangeClosed(1, 20).forEach(i -> transaction
+					.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})", parameters("i", String.format("%02d", i))));
 
-			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				true,
-				1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, null);
+			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, null);
 
-			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
+			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
 		}
 
 		@Test
 		void saveSingleEntity(@Autowired ReactivePersonRepository repository) {
 
 			PersonWithAllConstructor person = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true, 1509L,
-				LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null);
+					LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null);
 
-			Mono<Long> operationUnderTest = repository
-				.save(person)
-				.map(PersonWithAllConstructor::getId);
+			Mono<Long> operationUnderTest = repository.save(person).map(PersonWithAllConstructor::getId);
 
 			List<Long> ids = new ArrayList<>();
 
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(getTransactionManager());
-			transactionalOperator
-				.execute(t -> operationUnderTest)
-				.as(StepVerifier::create)
-				.recordWith(() -> ids)
-				.expectNextCount(1L)
-				.verifyComplete();
+			transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create).recordWith(() -> ids)
+					.expectNextCount(1L).verifyComplete();
 
-			Flux.usingWhen(
-				Mono.fromSupplier(() -> createRxSession()),
-				s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n", parameters("ids", ids))
-					.records(),
-				RxSession::close
-			).map(r -> r.get("n").asNode().get("first_name").asString())
-				.as(StepVerifier::create)
-				.expectNext("Freddie")
-				.verifyComplete();
+			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()),
+					s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n", parameters("ids", ids))
+							.records(),
+					RxSession::close).map(r -> r.get("n").asNode().get("first_name").asString()).as(StepVerifier::create)
+					.expectNext("Freddie").verifyComplete();
 		}
 
 		@Test
 		void saveAll(@Autowired ReactivePersonRepository repository) {
 
-			Flux<PersonWithAllConstructor> persons = repository
-				.findById(id1)
-				.map(existingPerson -> {
-					existingPerson.setFirstName("Updated first name");
-					existingPerson.setNullable("Updated nullable field");
-					return existingPerson;
-				})
-				.concatWith(
-					Mono.fromSupplier(() -> {
-						PersonWithAllConstructor newPerson = new PersonWithAllConstructor(
-							null, "Mercury", "Freddie", "Queen", true, 1509L,
-							LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null);
-						return newPerson;
-					}));
+			Flux<PersonWithAllConstructor> persons = repository.findById(id1).map(existingPerson -> {
+				existingPerson.setFirstName("Updated first name");
+				existingPerson.setNullable("Updated nullable field");
+				return existingPerson;
+			}).concatWith(Mono.fromSupplier(() -> {
+				PersonWithAllConstructor newPerson = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true,
+						1509L, LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null);
+				return newPerson;
+			}));
 
-			Flux<Long> operationUnderTest = repository
-				.saveAll(persons)
-				.map(PersonWithAllConstructor::getId);
+			Flux<Long> operationUnderTest = repository.saveAll(persons).map(PersonWithAllConstructor::getId);
 
 			List<Long> ids = new ArrayList<>();
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(getTransactionManager());
-			transactionalOperator
-				.execute(t -> operationUnderTest)
-				.as(StepVerifier::create)
-				.recordWith(() -> ids)
-				.expectNextCount(2L)
-				.verifyComplete();
+			transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create).recordWith(() -> ids)
+					.expectNextCount(2L).verifyComplete();
 
-			Flux
-				.usingWhen(
-					Mono.fromSupplier(() -> createRxSession()),
+			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()),
 					s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
-						parameters("ids", ids))
-						.records(),
-					RxSession::close
-				).map(r -> r.get("n").asNode().get("name").asString())
-				.as(StepVerifier::create)
-				.expectNext("Mercury")
-				.expectNext(TEST_PERSON1_NAME)
-				.verifyComplete();
+							parameters("ids", ids)).records(),
+					RxSession::close).map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
+					.expectNext("Mercury").expectNext(TEST_PERSON1_NAME).verifyComplete();
 		}
 
 		@Test
 		void saveAllIterable(@Autowired ReactivePersonRepository repository) {
 
-			PersonWithAllConstructor newPerson = new PersonWithAllConstructor(
-				null, "Mercury", "Freddie", "Queen", true, 1509L,
-				LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null);
+			PersonWithAllConstructor newPerson = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true,
+					1509L, LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null);
 
-			Flux<Long> operationUnderTest = repository
-				.saveAll(Arrays.asList(newPerson))
-				.map(PersonWithAllConstructor::getId);
+			Flux<Long> operationUnderTest = repository.saveAll(Arrays.asList(newPerson)).map(PersonWithAllConstructor::getId);
 
 			List<Long> ids = new ArrayList<>();
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(getTransactionManager());
-			transactionalOperator
-				.execute(t -> operationUnderTest)
-				.as(StepVerifier::create)
-				.recordWith(() -> ids)
-				.expectNextCount(1L)
-				.verifyComplete();
+			transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create).recordWith(() -> ids)
+					.expectNextCount(1L).verifyComplete();
 
-			Flux
-				.usingWhen(
-					Mono.fromSupplier(() -> createRxSession()),
+			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()),
 					s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
-						parameters("ids", ids))
-						.records(),
-					RxSession::close
-				).map(r -> r.get("n").asNode().get("name").asString())
-				.as(StepVerifier::create)
-				.expectNext("Mercury")
-				.verifyComplete();
+							parameters("ids", ids)).records(),
+					RxSession::close).map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
+					.expectNext("Mercury").verifyComplete();
 		}
 
 		@Test
 		void updateSingleEntity(@Autowired ReactivePersonRepository repository) {
 
-			Mono<PersonWithAllConstructor> operationUnderTest = repository.findById(id1)
-				.map(originalPerson -> {
-					originalPerson.setFirstName("Updated first name");
-					originalPerson.setNullable("Updated nullable field");
-					return originalPerson;
-				})
-				.flatMap(repository::save);
+			Mono<PersonWithAllConstructor> operationUnderTest = repository.findById(id1).map(originalPerson -> {
+				originalPerson.setFirstName("Updated first name");
+				originalPerson.setNullable("Updated nullable field");
+				return originalPerson;
+			}).flatMap(repository::save);
 
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(getTransactionManager());
-			transactionalOperator
-				.execute(t -> operationUnderTest)
-				.as(StepVerifier::create)
-				.expectNextCount(1L)
-				.verifyComplete();
+			transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create).expectNextCount(1L)
+					.verifyComplete();
 
-			Flux
-				.usingWhen(
-					Mono.fromSupplier(() -> createRxSession()),
-					s -> {
-						Value parameters = parameters("id", id1);
-						return s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n", parameters).records();
-					},
-					RxSession::close
-				)
-				.map(r -> r.get("n").asNode())
-				.as(StepVerifier::create)
-				.expectNextMatches(node -> node.get("first_name").asString().equals("Updated first name") &&
-					node.get("nullable").asString().equals("Updated nullable field"))
-				.verifyComplete();
+			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()), s -> {
+				Value parameters = parameters("id", id1);
+				return s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n", parameters).records();
+			}, RxSession::close).map(r -> r.get("n").asNode()).as(StepVerifier::create)
+					.expectNextMatches(node -> node.get("first_name").asString().equals("Updated first name")
+							&& node.get("nullable").asString().equals("Updated nullable field"))
+					.verifyComplete();
 		}
 
 		@Test
 		void saveWithAssignedId(@Autowired ReactiveThingRepository repository) {
 
-			Mono<ThingWithAssignedId> operationUnderTest =
-				Mono.fromSupplier(() -> {
-					ThingWithAssignedId thing = new ThingWithAssignedId("aaBB");
-					thing.setName("That's the thing.");
-					return thing;
-				}).flatMap(repository::save);
+			Mono<ThingWithAssignedId> operationUnderTest = Mono.fromSupplier(() -> {
+				ThingWithAssignedId thing = new ThingWithAssignedId("aaBB");
+				thing.setName("That's the thing.");
+				return thing;
+			}).flatMap(repository::save);
 
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(getTransactionManager());
-			transactionalOperator
-				.execute(t -> operationUnderTest)
-				.as(StepVerifier::create)
-				.expectNextCount(1L)
-				.verifyComplete();
+			transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create).expectNextCount(1L)
+					.verifyComplete();
 
-			Flux
-				.usingWhen(
-					Mono.fromSupplier(() -> createRxSession()),
+			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()),
 					s -> s.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", parameters("id", "aaBB")).records(),
-					RxSession::close
-				)
-				.map(r -> r.get("n").asNode().get("name").asString())
-				.as(StepVerifier::create)
-				.expectNext("That's the thing.")
-				.verifyComplete();
+					RxSession::close).map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
+					.expectNext("That's the thing.").verifyComplete();
 
 			repository.count().as(StepVerifier::create).expectNext(22L).verifyComplete();
 		}
@@ -1428,46 +1256,27 @@ class ReactiveRepositoryIT {
 		@Test
 		void saveAllWithAssignedId(@Autowired ReactiveThingRepository repository) {
 
-			Flux<ThingWithAssignedId> things = repository
-				.findById("anId")
-				.map(existingThing -> {
-					existingThing.setName("Updated name.");
-					return existingThing;
-				})
-				.concatWith(
-					Mono.fromSupplier(() -> {
-						ThingWithAssignedId newThing = new ThingWithAssignedId("aaBB");
-						newThing.setName("That's the thing.");
-						return newThing;
-					})
-				);
+			Flux<ThingWithAssignedId> things = repository.findById("anId").map(existingThing -> {
+				existingThing.setName("Updated name.");
+				return existingThing;
+			}).concatWith(Mono.fromSupplier(() -> {
+				ThingWithAssignedId newThing = new ThingWithAssignedId("aaBB");
+				newThing.setName("That's the thing.");
+				return newThing;
+			}));
 
-			Flux<ThingWithAssignedId> operationUnderTest = repository
-				.saveAll(things);
+			Flux<ThingWithAssignedId> operationUnderTest = repository.saveAll(things);
 
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(getTransactionManager());
-			transactionalOperator
-				.execute(t -> operationUnderTest)
-				.as(StepVerifier::create)
-				.expectNextCount(2L)
-				.verifyComplete();
+			transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create).expectNextCount(2L)
+					.verifyComplete();
 
-			Flux
-				.usingWhen(
-					Mono.fromSupplier(() -> createRxSession()),
-					s -> {
-						Value parameters = parameters("ids", Arrays.asList("anId", "aaBB"));
-						return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC",
-							parameters)
-							.records();
-					},
-					RxSession::close
-				)
-				.map(r -> r.get("name").asString())
-				.as(StepVerifier::create)
-				.expectNext("That's the thing.")
-				.expectNext("Updated name.")
-				.verifyComplete();
+			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()), s -> {
+				Value parameters = parameters("ids", Arrays.asList("anId", "aaBB"));
+				return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters)
+						.records();
+			}, RxSession::close).map(r -> r.get("name").asString()).as(StepVerifier::create).expectNext("That's the thing.")
+					.expectNext("Updated name.").verifyComplete();
 
 			// Make sure we triggered on insert, one update
 			repository.count().as(StepVerifier::create).expectNext(22L).verifyComplete();
@@ -1486,28 +1295,15 @@ class ReactiveRepositoryIT {
 			Flux<ThingWithAssignedId> operationUnderTest = repository.saveAll(things);
 
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(getTransactionManager());
-			transactionalOperator
-				.execute(t -> operationUnderTest)
-				.as(StepVerifier::create)
-				.expectNextCount(2L)
-				.verifyComplete();
+			transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create).expectNextCount(2L)
+					.verifyComplete();
 
-			Flux
-				.usingWhen(
-					Mono.fromSupplier(() -> createRxSession()),
-					s -> {
-						Value parameters = parameters("ids", Arrays.asList("anId", "aaBB"));
-						return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC",
-							parameters)
-							.records();
-					},
-					RxSession::close
-				)
-				.map(r -> r.get("name").asString())
-				.as(StepVerifier::create)
-				.expectNext("That's the thing.")
-				.expectNext("Updated name.")
-				.verifyComplete();
+			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()), s -> {
+				Value parameters = parameters("ids", Arrays.asList("anId", "aaBB"));
+				return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters)
+						.records();
+			}, RxSession::close).map(r -> r.get("name").asString()).as(StepVerifier::create).expectNext("That's the thing.")
+					.expectNext("Updated name.").verifyComplete();
 
 			// Make sure we triggered on insert, one update
 			repository.count().as(StepVerifier::create).expectNext(22L).verifyComplete();
@@ -1517,42 +1313,29 @@ class ReactiveRepositoryIT {
 		void updateWithAssignedId(@Autowired ReactiveThingRepository repository) {
 
 			Flux<ThingWithAssignedId> operationUnderTest = Flux.concat(
-				// Without prior selection
-				Mono.fromSupplier(() -> {
-					ThingWithAssignedId thing = new ThingWithAssignedId("id07");
-					thing.setName("An updated thing");
-					return thing;
-				}).flatMap(repository::save),
+					// Without prior selection
+					Mono.fromSupplier(() -> {
+						ThingWithAssignedId thing = new ThingWithAssignedId("id07");
+						thing.setName("An updated thing");
+						return thing;
+					}).flatMap(repository::save),
 
-				// With prior selection
-				repository.findById("id15")
-					.flatMap(thing -> {
+					// With prior selection
+					repository.findById("id15").flatMap(thing -> {
 						thing.setName("Another updated thing");
 						return repository.save(thing);
-					})
-			);
+					}));
 
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(getTransactionManager());
-			transactionalOperator
-				.execute(t -> operationUnderTest)
-				.as(StepVerifier::create)
-				.expectNextCount(2L)
-				.verifyComplete();
+			transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create).expectNextCount(2L)
+					.verifyComplete();
 
-			Flux
-				.usingWhen(
-					Mono.fromSupplier(() -> createRxSession()),
-					s -> {
-						Value parameters = parameters("ids", Arrays.asList("id07", "id15"));
-						return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC",
-							parameters).records();
-					},
-					RxSession::close
-				)
-				.map(r -> r.get("name").asString())
-				.as(StepVerifier::create)
-				.expectNext("An updated thing", "Another updated thing")
-				.verifyComplete();
+			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()), s -> {
+				Value parameters = parameters("ids", Arrays.asList("id07", "id15"));
+				return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters)
+						.records();
+			}, RxSession::close).map(r -> r.get("name").asString()).as(StepVerifier::create)
+					.expectNext("An updated thing", "Another updated thing").verifyComplete();
 
 			repository.count().as(StepVerifier::create).expectNext(21L).verifyComplete();
 		}
@@ -1605,21 +1388,16 @@ class ReactiveRepositoryIT {
 
 			List<Long> ids = new ArrayList<>();
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(getTransactionManager());
-			transactionalOperator
-				.execute(t -> repository.save(person).map(PersonWithRelationship::getId))
-				.as(StepVerifier::create)
-				.recordWith(() -> ids)
-				.expectNextCount(1L)
-				.verifyComplete();
+			transactionalOperator.execute(t -> repository.save(person).map(PersonWithRelationship::getId))
+					.as(StepVerifier::create).recordWith(() -> ids).expectNextCount(1L).verifyComplete();
 
 			try (Session session = createSession()) {
 
-				Record record = session.run("MATCH (n:PersonWithRelationship)"
-						+ " RETURN n,"
-						+ " [(n)-[:Has]->(p:Pet) | [ p , [ (p)-[:Has]-(h:Hobby) | h ] ] ] as petsWithHobbies,"
-						+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies, "
-						+ " [(n)<-[:Has]-(c:Club) | c] as clubs",
-					Values.parameters("name", "Freddie")).single();
+				Record record = session.run(
+						"MATCH (n:PersonWithRelationship)" + " RETURN n,"
+								+ " [(n)-[:Has]->(p:Pet) | [ p , [ (p)-[:Has]-(h:Hobby) | h ] ] ] as petsWithHobbies,"
+								+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies, " + " [(n)<-[:Has]-(c:Club) | c] as clubs",
+						Values.parameters("name", "Freddie")).single();
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
@@ -1634,22 +1412,23 @@ class ReactiveRepositoryIT {
 				}
 
 				assertThat(pets.keySet().stream().map(pet -> ((Node) pet).get("name").asString()).collect(toList()))
-					.containsExactlyInAnyOrder("Jerry", "Tom");
+						.containsExactlyInAnyOrder("Jerry", "Tom");
 
 				assertThat(pets.values().stream()
-					.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(toList()))
-					.containsExactlyInAnyOrder("sleeping");
+						.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(toList()))
+								.containsExactlyInAnyOrder("sleeping");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
-					.containsExactlyInAnyOrder("Music");
+						.containsExactlyInAnyOrder("Music");
 
 				assertThat(record.get("clubs").asList(entry -> entry.asNode().get("name").asString()))
-					.containsExactlyInAnyOrder("ClownsClub");
+						.containsExactlyInAnyOrder("ClownsClub");
 			}
 		}
 
 		@Test
-		void saveSingleEntityWithRelationshipsTwiceDoesNotCreateMoreRelationships(@Autowired ReactiveRelationshipRepository repository) {
+		void saveSingleEntityWithRelationshipsTwiceDoesNotCreateMoreRelationships(
+				@Autowired ReactiveRelationshipRepository repository) {
 
 			PersonWithRelationship person = new PersonWithRelationship();
 			person.setName("Freddie");
@@ -1667,26 +1446,17 @@ class ReactiveRepositoryIT {
 
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(getTransactionManager());
 
-			transactionalOperator
-				.execute(t -> repository.save(person).map(PersonWithRelationship::getId))
-				.as(StepVerifier::create)
-				.recordWith(() -> ids)
-				.expectNextCount(1L)
-				.verifyComplete();
+			transactionalOperator.execute(t -> repository.save(person).map(PersonWithRelationship::getId))
+					.as(StepVerifier::create).recordWith(() -> ids).expectNextCount(1L).verifyComplete();
 
-			transactionalOperator
-				.execute(t -> repository.save(person))
-				.as(StepVerifier::create)
-				.expectNextCount(1L)
-				.verifyComplete();
+			transactionalOperator.execute(t -> repository.save(person)).as(StepVerifier::create).expectNextCount(1L)
+					.verifyComplete();
 
 			try (Session session = createSession()) {
 
-				List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
-						+ " RETURN n,"
+				List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)" + " RETURN n,"
 						+ " [(n)-[:Has]->(p:Pet) | [ p , [ (p)-[:Has]-(h:Hobby) | h ] ] ] as petsWithHobbies,"
-						+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
-					Values.parameters("name", "Freddie")).list();
+						+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies", Values.parameters("name", "Freddie")).list();
 
 				// assert that there is only one record in the returned list
 				assertThat(recordList).hasSize(1);
@@ -1706,14 +1476,14 @@ class ReactiveRepositoryIT {
 				}
 
 				assertThat(pets.keySet().stream().map(pet -> ((Node) pet).get("name").asString()).collect(toList()))
-					.containsExactlyInAnyOrder("Jerry", "Tom");
+						.containsExactlyInAnyOrder("Jerry", "Tom");
 
 				assertThat(pets.values().stream()
-					.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(toList()))
-					.containsExactlyInAnyOrder("sleeping");
+						.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(toList()))
+								.containsExactlyInAnyOrder("sleeping");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
-					.containsExactlyInAnyOrder("Music");
+						.containsExactlyInAnyOrder("Music");
 
 				// assert that only two hobbies is stored
 				recordList = session.run("MATCH (h:Hobby) RETURN h").list();
@@ -1744,19 +1514,15 @@ class ReactiveRepositoryIT {
 
 			TransactionalOperator transactionalOperator = TransactionalOperator.create(getTransactionManager());
 
-			transactionalOperator
-				.execute(t -> repository.save(person).map(PersonWithRelationship::getId))
-				.as(StepVerifier::create)
-				.recordWith(() -> ids)
-				.expectNextCount(1L)
-				.verifyComplete();
+			transactionalOperator.execute(t -> repository.save(person).map(PersonWithRelationship::getId))
+					.as(StepVerifier::create).recordWith(() -> ids).expectNextCount(1L).verifyComplete();
 
 			try (Session session = createSession()) {
 
-				List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)"
-						+ " RETURN n,"
-						+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
-					Values.parameters("name", "Freddie")).list();
+				List<Record> recordList = session
+						.run("MATCH (n:PersonWithRelationship)" + " RETURN n," + " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
+								Values.parameters("name", "Freddie"))
+						.list();
 
 				Record record = recordList.get(0);
 
@@ -1766,7 +1532,7 @@ class ReactiveRepositoryIT {
 				assertThat(rootNode.get("name").asString()).isEqualTo("Freddie");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
-					.containsExactlyInAnyOrder("Music");
+						.containsExactlyInAnyOrder("Music");
 
 				// assert that only one hobby is stored
 				recordList = session.run("MATCH (h:Hobby) RETURN h").list();
@@ -1785,14 +1551,12 @@ class ReactiveRepositoryIT {
 			petOfRootPet.setFriends(singletonList(petOfChildPet));
 			petOfChildPet.setFriends(singletonList(petOfGrandChildPet));
 
-			StepVerifier.create(repository.save(rootPet))
-				.expectNextCount(1)
-				.verifyComplete();
+			StepVerifier.create(repository.save(rootPet)).expectNextCount(1).verifyComplete();
 
 			try (Session session = createSession()) {
 				Record record = session.run("MATCH (rootPet:Pet)-[:Has]->(petOfRootPet:Pet)-[:Has]->(petOfChildPet:Pet)"
-					+ "-[:Has]->(petOfGrandChildPet:Pet) "
-					+ "RETURN rootPet, petOfRootPet, petOfChildPet, petOfGrandChildPet", emptyMap()).single();
+						+ "-[:Has]->(petOfGrandChildPet:Pet) " + "RETURN rootPet, petOfRootPet, petOfChildPet, petOfGrandChildPet",
+						emptyMap()).single();
 
 				assertThat(record.get("rootPet").asNode().get("name").asString()).isEqualTo("Luna");
 				assertThat(record.get("petOfRootPet").asNode().get("name").asString()).isEqualTo("Daphne");
@@ -1806,17 +1570,14 @@ class ReactiveRepositoryIT {
 			SimilarThing originalThing = new SimilarThing().withName("Original");
 			SimilarThing similarThing = new SimilarThing().withName("Similar");
 
-
 			originalThing.setSimilar(similarThing);
 			similarThing.setSimilarOf(originalThing);
-			StepVerifier.create(repository.save(originalThing))
-				.expectNextCount(1)
-				.verifyComplete();
+			StepVerifier.create(repository.save(originalThing)).expectNextCount(1).verifyComplete();
 
 			try (Session session = createSession()) {
 				Record record = session.run(
-					"MATCH (ot:SimilarThing{name:'Original'})-[r:SimilarTo]->(st:SimilarThing {name:'Similar'})"
-						+ " RETURN r").single();
+						"MATCH (ot:SimilarThing{name:'Original'})-[r:SimilarTo]->(st:SimilarThing {name:'Similar'})" + " RETURN r")
+						.single();
 
 				assertThat(record.keys()).isNotEmpty();
 				assertThat(record.containsKey("r")).isTrue();
@@ -1825,8 +1586,7 @@ class ReactiveRepositoryIT {
 		}
 
 		@Test
-		void createComplexSameClassRelationshipsBeforeRootObject(
-			@Autowired ImmutablePersonRepository repository) {
+		void createComplexSameClassRelationshipsBeforeRootObject(@Autowired ImmutablePersonRepository repository) {
 
 			ImmutablePerson p1 = new ImmutablePerson("Person1", Collections.emptyList());
 			ImmutablePerson p2 = new ImmutablePerson("Person2", Arrays.asList(p1));
@@ -1835,9 +1595,7 @@ class ReactiveRepositoryIT {
 
 			ImmutablePerson savedImmutablePerson = repository.save(p4).block();
 
-			StepVerifier.create(repository.findAll())
-				.expectNextCount(4)
-				.verifyComplete();
+			StepVerifier.create(repository.findAll()).expectNextCount(4).verifyComplete();
 		}
 
 		@Test
@@ -1849,14 +1607,11 @@ class ReactiveRepositoryIT {
 			luna.setFriends(singletonList(daphne));
 			daphne.setFriends(singletonList(luna));
 
-			StepVerifier.create(repository.save(luna))
-				.expectNextCount(1)
-				.verifyComplete();
+			StepVerifier.create(repository.save(luna)).expectNextCount(1).verifyComplete();
 
 			try (Session session = createSession()) {
 				Record record = session.run("MATCH (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})"
-					+ "-[:Has]->(luna2:Pet{name:'Luna'})"
-					+ "RETURN luna, daphne, luna2").single();
+						+ "-[:Has]->(luna2:Pet{name:'Luna'})" + "RETURN luna, daphne, luna2").single();
 
 				assertThat(record.get("luna").asNode().get("name").asString()).isEqualTo("Luna");
 				assertThat(record.get("daphne").asNode().get("name").asString()).isEqualTo("Daphne");
@@ -1876,91 +1631,63 @@ class ReactiveRepositoryIT {
 			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
 					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
 					+ "RETURN id(n)",
-				parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
-					NEO4J_HQ))
-				.next().get(0).asLong();
+					parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
+							NEO4J_HQ))
+					.next().get(0).asLong();
 
 			id2 = transaction.run(
-				"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-				parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place",
-					SFO))
-				.next().get(0).asLong();
+					"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
+					parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
+					.next().get(0).asLong();
 
-			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				true,
-				1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, null);
+			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, null);
 
-			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME,
-				TEST_PERSON_SAMEVALUE,
-				false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
+			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
+					false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
 		}
 
 		@Test
 		void deleteAll(@Autowired ReactivePersonRepository repository) {
 
-			repository.deleteAll()
-				.then(repository.count())
-				.as(StepVerifier::create)
-				.expectNext(0L)
-				.verifyComplete();
+			repository.deleteAll().then(repository.count()).as(StepVerifier::create).expectNext(0L).verifyComplete();
 		}
 
 		@Test
 		void deleteById(@Autowired ReactivePersonRepository repository) {
 
-			repository.deleteById(id1)
-				.then(repository.existsById(id1))
-				.concatWith(repository.existsById(id2))
-				.as(StepVerifier::create)
-				.expectNext(false, true)
-				.verifyComplete();
+			repository.deleteById(id1).then(repository.existsById(id1)).concatWith(repository.existsById(id2))
+					.as(StepVerifier::create).expectNext(false, true).verifyComplete();
 		}
 
 		@Test
 		void deleteByIdPublisher(@Autowired ReactivePersonRepository repository) {
 
-			repository.deleteById(Mono.just(id1))
-				.then(repository.existsById(id1))
-				.concatWith(repository.existsById(id2))
-				.as(StepVerifier::create)
-				.expectNext(false, true)
-				.verifyComplete();
+			repository.deleteById(Mono.just(id1)).then(repository.existsById(id1)).concatWith(repository.existsById(id2))
+					.as(StepVerifier::create).expectNext(false, true).verifyComplete();
 		}
 
 		@Test
 		void delete(@Autowired ReactivePersonRepository repository) {
 
-			repository.delete(person1)
-				.then(repository.existsById(id1))
-				.concatWith(repository.existsById(id2))
-				.as(StepVerifier::create)
-				.expectNext(false, true)
-				.verifyComplete();
+			repository.delete(person1).then(repository.existsById(id1)).concatWith(repository.existsById(id2))
+					.as(StepVerifier::create).expectNext(false, true).verifyComplete();
 		}
 
 		@Test
 		void deleteAllEntities(@Autowired ReactivePersonRepository repository) {
 
-			repository.deleteAll(Arrays.asList(person1, person2))
-				.then(repository.existsById(id1))
-				.concatWith(repository.existsById(id2))
-				.as(StepVerifier::create)
-				.expectNext(false, false)
-				.verifyComplete();
+			repository.deleteAll(Arrays.asList(person1, person2)).then(repository.existsById(id1))
+					.concatWith(repository.existsById(id2)).as(StepVerifier::create).expectNext(false, false).verifyComplete();
 		}
 
 		@Test
 		void deleteAllEntitiesPublisher(@Autowired ReactivePersonRepository repository) {
 
-			repository.deleteAll(Flux.just(person1, person2))
-				.then(repository.existsById(id1))
-				.concatWith(repository.existsById(id2))
-				.as(StepVerifier::create)
-				.expectNext(false, false)
-				.verifyComplete();
+			repository.deleteAll(Flux.just(person1, person2)).then(repository.existsById(id1))
+					.concatWith(repository.existsById(id2)).as(StepVerifier::create).expectNext(false, false).verifyComplete();
 		}
 
 		@Test
@@ -1969,41 +1696,35 @@ class ReactiveRepositoryIT {
 				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'})");
 			}
 
-			Publisher<PersonWithRelationship> personLoad = repository.getPersonWithRelationshipsViaQuery()
-				.map(person -> {
-					person.setHobbies(null);
-					return person;
-				});
+			Publisher<PersonWithRelationship> personLoad = repository.getPersonWithRelationshipsViaQuery().map(person -> {
+				person.setHobbies(null);
+				return person;
+			});
 
 			Flux<PersonWithRelationship> personSave = repository.saveAll(personLoad);
 
-			StepVerifier.create(personSave.then(repository.getPersonWithRelationshipsViaQuery()))
-				.assertNext(person -> {
-					assertThat(person.getHobbies()).isNull();
-				})
-				.verifyComplete();
+			StepVerifier.create(personSave.then(repository.getPersonWithRelationshipsViaQuery())).assertNext(person -> {
+				assertThat(person.getHobbies()).isNull();
+			}).verifyComplete();
 		}
 
 		@Test
 		void deleteCollectionRelationship(@Autowired ReactiveRelationshipRepository repository) {
 			try (Session session = createSession()) {
 				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'}), "
-					+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'})");
+						+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'})");
 			}
 
-			Publisher<PersonWithRelationship> personLoad = repository.getPersonWithRelationshipsViaQuery()
-				.map(person -> {
-					person.getPets().remove(0);
-					return person;
-				});
+			Publisher<PersonWithRelationship> personLoad = repository.getPersonWithRelationshipsViaQuery().map(person -> {
+				person.getPets().remove(0);
+				return person;
+			});
 
 			Flux<PersonWithRelationship> personSave = repository.saveAll(personLoad);
 
-			StepVerifier.create(personSave.then(repository.getPersonWithRelationshipsViaQuery()))
-				.assertNext(person -> {
-					assertThat(person.getPets()).hasSize(1);
-				})
-				.verifyComplete();
+			StepVerifier.create(personSave.then(repository.getPersonWithRelationshipsViaQuery())).assertNext(person -> {
+				assertThat(person.getPets()).hasSize(1);
+			}).verifyComplete();
 		}
 	}
 
@@ -2018,73 +1739,67 @@ class ReactiveRepositoryIT {
 			transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
 					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
 					+ "RETURN id(n)",
-				parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
-					NEO4J_HQ))
-				.next().get(0).asLong();
+					parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
+							NEO4J_HQ))
+					.next().get(0).asLong();
 
 			transaction.run(
-				"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-				parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-					TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place",
-					SFO))
-				.next().get(0).asLong();
+					"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
+					parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+							TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
+					.next().get(0).asLong();
 		}
 
 		@Test
 		void mapsInterfaceProjectionWithDerivedFinderMethod(@Autowired ReactivePersonRepository repository) {
 
 			StepVerifier.create(repository.findByName(TEST_PERSON1_NAME))
-				.assertNext(personProjection -> assertThat(personProjection.getName()).isEqualTo(TEST_PERSON1_NAME))
-				.verifyComplete();
+					.assertNext(personProjection -> assertThat(personProjection.getName()).isEqualTo(TEST_PERSON1_NAME))
+					.verifyComplete();
 		}
 
 		@Test
 		void mapsDtoProjectionWithDerivedFinderMethod(@Autowired ReactivePersonRepository repository) {
 
-			StepVerifier.create(repository.findByFirstName(TEST_PERSON1_FIRST_NAME))
-				.expectNextCount(1)
-				.verifyComplete();
+			StepVerifier.create(repository.findByFirstName(TEST_PERSON1_FIRST_NAME)).expectNextCount(1).verifyComplete();
 		}
 
 		@Test
-		void mapsInterfaceProjectionWithDerivedFinderMethodWithMultipleResults(@Autowired ReactivePersonRepository repository) {
+		void mapsInterfaceProjectionWithDerivedFinderMethodWithMultipleResults(
+				@Autowired ReactivePersonRepository repository) {
 
-			StepVerifier.create(repository.findBySameValue(TEST_PERSON_SAMEVALUE))
-				.expectNextCount(2)
-				.verifyComplete();
+			StepVerifier.create(repository.findBySameValue(TEST_PERSON_SAMEVALUE)).expectNextCount(2).verifyComplete();
 		}
 
 		@Test
 		void mapsInterfaceProjectionWithCustomQueryAndMapProjection(@Autowired ReactivePersonRepository repository) {
 
 			StepVerifier.create(repository.findByNameWithCustomQueryAndMapProjection(TEST_PERSON1_NAME))
-				.assertNext(personProjection -> assertThat(personProjection.getName()).isEqualTo(TEST_PERSON1_NAME))
-				.verifyComplete();
+					.assertNext(personProjection -> assertThat(personProjection.getName()).isEqualTo(TEST_PERSON1_NAME))
+					.verifyComplete();
 		}
 
 		@Test
-		void mapsInterfaceProjectionWithCustomQueryAndMapProjectionWithMultipleResults(@Autowired ReactivePersonRepository repository) {
+		void mapsInterfaceProjectionWithCustomQueryAndMapProjectionWithMultipleResults(
+				@Autowired ReactivePersonRepository repository) {
 
-			StepVerifier.create(repository.loadAllProjectionsWithMapProjection())
-				.expectNextCount(2)
-				.verifyComplete();
+			StepVerifier.create(repository.loadAllProjectionsWithMapProjection()).expectNextCount(2).verifyComplete();
 		}
 
 		@Test
 		void mapsInterfaceProjectionWithCustomQueryAndNodeReturn(@Autowired ReactivePersonRepository repository) {
 
 			StepVerifier.create(repository.findByNameWithCustomQueryAndNodeReturn(TEST_PERSON1_NAME))
-				.assertNext(personProjection -> assertThat(personProjection.getName()).isEqualTo(TEST_PERSON1_NAME))
-				.verifyComplete();
+					.assertNext(personProjection -> assertThat(personProjection.getName()).isEqualTo(TEST_PERSON1_NAME))
+					.verifyComplete();
 		}
 
 		@Test
-		void mapsInterfaceProjectionWithCustomQueryAndNodeReturnWithMultipleResults(@Autowired ReactivePersonRepository repository) {
+		void mapsInterfaceProjectionWithCustomQueryAndNodeReturnWithMultipleResults(
+				@Autowired ReactivePersonRepository repository) {
 
-			StepVerifier.create(repository.loadAllProjectionsWithNodeReturn())
-				.expectNextCount(2)
-				.verifyComplete();
+			StepVerifier.create(repository.loadAllProjectionsWithNodeReturn()).expectNextCount(2).verifyComplete();
 		}
 
 	}
@@ -2141,13 +1856,9 @@ class ReactiveRepositoryIT {
 				n3Id = record.get("n3").asNode().id();
 			}
 
-			StepVerifier.create(repository.findById(n1Id))
-				.expectNextCount(1)
-				.verifyComplete();
-			StepVerifier.create(repository.findById(n2Id))
-				.verifyComplete();
-			StepVerifier.create(repository.findById(n3Id))
-				.verifyComplete();
+			StepVerifier.create(repository.findById(n1Id)).expectNextCount(1).verifyComplete();
+			StepVerifier.create(repository.findById(n2Id)).verifyComplete();
+			StepVerifier.create(repository.findById(n3Id)).verifyComplete();
 		}
 
 		@Test
@@ -2176,7 +1887,8 @@ class ReactiveRepositoryIT {
 		}
 
 		@Test
-		void createNodeWithMultipleLabelsAndAssignedId(@Autowired ReactiveMultipleLabelWithAssignedIdRepository repository) {
+		void createNodeWithMultipleLabelsAndAssignedId(
+				@Autowired ReactiveMultipleLabelWithAssignedIdRepository repository) {
 
 			repository.save(new MultipleLabels.MultipleLabelsEntityWithAssignedId(4711L)).block();
 
@@ -2189,8 +1901,8 @@ class ReactiveRepositoryIT {
 		@Test
 		void createAllNodesWithMultipleLabels(@Autowired ReactiveMultipleLabelWithAssignedIdRepository repository) {
 
-			repository.saveAll(singletonList(new MultipleLabels.MultipleLabelsEntityWithAssignedId(4711L)))
-				.collectList().block();
+			repository.saveAll(singletonList(new MultipleLabels.MultipleLabelsEntityWithAssignedId(4711L))).collectList()
+					.block();
 
 			try (Session session = createSession()) {
 				Node node = session.run("MATCH (n:X) return n").single().get("n").asNode();
@@ -2199,9 +1911,11 @@ class ReactiveRepositoryIT {
 		}
 
 		@Test
-		void createNodeAndRelationshipWithMultipleLabels(@Autowired ReactiveMultipleLabelWithAssignedIdRepository repository) {
+		void createNodeAndRelationshipWithMultipleLabels(
+				@Autowired ReactiveMultipleLabelWithAssignedIdRepository repository) {
 
-			MultipleLabels.MultipleLabelsEntityWithAssignedId entity = new MultipleLabels.MultipleLabelsEntityWithAssignedId(4711L);
+			MultipleLabels.MultipleLabelsEntityWithAssignedId entity = new MultipleLabels.MultipleLabelsEntityWithAssignedId(
+					4711L);
 			entity.otherMultipleLabelEntity = new MultipleLabels.MultipleLabelsEntityWithAssignedId(42L);
 
 			repository.save(entity).block();
@@ -2223,19 +1937,16 @@ class ReactiveRepositoryIT {
 			long n3Id;
 
 			try (Session session = createSession()) {
-				Record record = session.run("CREATE (n1:X:Y:Z{id:4711}), (n2:Y:Z{id:42}), (n3:X{id:23}) return n1, n2, n3").single();
+				Record record = session.run("CREATE (n1:X:Y:Z{id:4711}), (n2:Y:Z{id:42}), (n3:X{id:23}) return n1, n2, n3")
+						.single();
 				n1Id = record.get("n1").asNode().get("id").asLong();
 				n2Id = record.get("n2").asNode().get("id").asLong();
 				n3Id = record.get("n3").asNode().get("id").asLong();
 			}
 
-			StepVerifier.create(repository.findById(n1Id))
-				.expectNextCount(1)
-				.verifyComplete();
-			StepVerifier.create(repository.findById(n2Id))
-				.verifyComplete();
-			StepVerifier.create(repository.findById(n3Id))
-				.verifyComplete();
+			StepVerifier.create(repository.findById(n1Id)).expectNextCount(1).verifyComplete();
+			StepVerifier.create(repository.findById(n2Id)).verifyComplete();
+			StepVerifier.create(repository.findById(n3Id)).verifyComplete();
 		}
 
 		@Test
@@ -2246,7 +1957,8 @@ class ReactiveRepositoryIT {
 			long n3Id;
 
 			try (Session session = createSession()) {
-				Record record = session.run("CREATE (n1:X:Y:Z{id:4711}), (n2:Y:Z{id:42}), (n3:X{id:23}) return n1, n2, n3").single();
+				Record record = session.run("CREATE (n1:X:Y:Z{id:4711}), (n2:Y:Z{id:42}), (n3:X{id:23}) return n1, n2, n3")
+						.single();
 				n1Id = record.get("n1").asNode().get("id").asLong();
 				n2Id = record.get("n2").asNode().get("id").asLong();
 				n3Id = record.get("n3").asNode().get("id").asLong();
@@ -2274,9 +1986,8 @@ class ReactiveRepositoryIT {
 				session.run("CREATE (:CustomTypes{customType:'XYZ'})");
 			}
 
-			StepVerifier.create(repository.findByCustomType(ThingWithCustomTypes.CustomType.of("XYZ")))
-				.expectNextCount(1)
-				.verifyComplete();
+			StepVerifier.create(repository.findByCustomType(ThingWithCustomTypes.CustomType.of("XYZ"))).expectNextCount(1)
+					.verifyComplete();
 		}
 
 		@Test
@@ -2286,19 +1997,19 @@ class ReactiveRepositoryIT {
 			}
 
 			StepVerifier.create(repository.findByCustomTypeCustomQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
-				.expectNextCount(1)
-				.verifyComplete();
+					.expectNextCount(1).verifyComplete();
 		}
 
 		@Test
-		void findByConvertedCustomTypeWithSpELPropertyAccessQuery(@Autowired EntityWithCustomTypePropertyRepository repository) {
+		void findByConvertedCustomTypeWithSpELPropertyAccessQuery(
+				@Autowired EntityWithCustomTypePropertyRepository repository) {
 			try (Session session = createSession()) {
 				session.run("CREATE (:CustomTypes{customType:'XYZ'})");
 			}
 
-			StepVerifier.create(repository.findByCustomTypeCustomSpELPropertyAccessQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
-				.expectNextCount(1)
-				.verifyComplete();
+			StepVerifier
+					.create(repository.findByCustomTypeCustomSpELPropertyAccessQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
+					.expectNextCount(1).verifyComplete();
 		}
 
 		@Test
@@ -2308,37 +2019,29 @@ class ReactiveRepositoryIT {
 			}
 
 			StepVerifier.create(repository.findByCustomTypeSpELObjectQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
-				.expectNextCount(1)
-				.verifyComplete();
+					.expectNextCount(1).verifyComplete();
 		}
 	}
 
-	interface BidirectionalStartRepository extends ReactiveNeo4jRepository<BidirectionalStart, Long> {
-	}
+	interface BidirectionalStartRepository extends ReactiveNeo4jRepository<BidirectionalStart, Long> {}
 
-	interface BidirectionalEndRepository extends ReactiveNeo4jRepository<BidirectionalEnd, Long> {
-	}
+	interface BidirectionalEndRepository extends ReactiveNeo4jRepository<BidirectionalEnd, Long> {}
 
-	interface ImmutablePersonRepository extends ReactiveNeo4jRepository<ImmutablePerson, String> {
-	}
+	interface ImmutablePersonRepository extends ReactiveNeo4jRepository<ImmutablePerson, String> {}
 
-	interface ReactiveDeepRelationshipRepository extends ReactiveNeo4jRepository<DeepRelationships.Type1, Long> {
-	}
+	interface ReactiveDeepRelationshipRepository extends ReactiveNeo4jRepository<DeepRelationships.Type1, Long> {}
 
 	interface ReactiveLoopingRelationshipRepository
-		extends ReactiveNeo4jRepository<DeepRelationships.LoopingType1, Long> {
-	}
+			extends ReactiveNeo4jRepository<DeepRelationships.LoopingType1, Long> {}
 
 	interface ReactiveMultipleLabelRepository
-		extends ReactiveNeo4jRepository<MultipleLabels.MultipleLabelsEntity, Long> {
-	}
+			extends ReactiveNeo4jRepository<MultipleLabels.MultipleLabelsEntity, Long> {}
 
 	interface ReactiveMultipleLabelWithAssignedIdRepository
-		extends ReactiveNeo4jRepository<MultipleLabels.MultipleLabelsEntityWithAssignedId, Long> {
-	}
+			extends ReactiveNeo4jRepository<MultipleLabels.MultipleLabelsEntityWithAssignedId, Long> {}
 
 	interface ReactivePersonWithRelationshipWithPropertiesRepository
-		extends ReactiveNeo4jRepository<PersonWithRelationshipWithProperties, Long> {
+			extends ReactiveNeo4jRepository<PersonWithRelationshipWithProperties, Long> {
 
 		@Query("MATCH (p:PersonWithRelationshipWithProperties)-[l:LIKES]->(h:Hobby) return p, collect(l), collect(h)")
 		Mono<PersonWithRelationshipWithProperties> loadFromCustomQuery(@Param("id") Long id);
@@ -2350,15 +2053,14 @@ class ReactiveRepositoryIT {
 		Mono<PersonWithRelationshipWithProperties> findByHobbiesSinceAndHobbiesActive(int since1, boolean active);
 	}
 
-	interface ReactivePetRepository extends ReactiveNeo4jRepository<Pet, Long> {
-	}
+	interface ReactivePetRepository extends ReactiveNeo4jRepository<Pet, Long> {}
 
 	interface ReactiveRelationshipRepository extends ReactiveNeo4jRepository<PersonWithRelationship, Long> {
 
 		@Query("MATCH (n:PersonWithRelationship{name:'Freddie'}) "
-			+ "OPTIONAL MATCH (n)-[r1:Has]->(p:Pet) WITH n, collect(r1) as petRels, collect(p) as pets "
-			+ "OPTIONAL MATCH (n)-[r2:Has]->(h:Hobby) "
-			+ "return n, petRels, pets, collect(r2) as hobbyRels, collect(h) as hobbies")
+				+ "OPTIONAL MATCH (n)-[r1:Has]->(p:Pet) WITH n, collect(r1) as petRels, collect(p) as pets "
+				+ "OPTIONAL MATCH (n)-[r2:Has]->(h:Hobby) "
+				+ "return n, petRels, pets, collect(r2) as hobbyRels, collect(h) as hobbies")
 		Mono<PersonWithRelationship> getPersonWithRelationshipsViaQuery();
 
 		Mono<PersonWithRelationship> findByPetsName(String petName);
@@ -2372,34 +2074,34 @@ class ReactiveRepositoryIT {
 		Mono<PersonWithRelationship> findByPetsFriendsName(String petName);
 	}
 
-	interface ReactiveSimilarThingRepository extends ReactiveCrudRepository<SimilarThing, Long> {
-	}
+	interface ReactiveSimilarThingRepository extends ReactiveCrudRepository<SimilarThing, Long> {}
 
-	interface EntityWithConvertedIdRepository extends ReactiveNeo4jRepository<EntityWithConvertedId, EntityWithConvertedId.IdentifyingEnum> {
-	}
+	interface EntityWithConvertedIdRepository
+			extends ReactiveNeo4jRepository<EntityWithConvertedId, EntityWithConvertedId.IdentifyingEnum> {}
 
 	interface EntityWithCustomTypePropertyRepository extends ReactiveNeo4jRepository<ThingWithCustomTypes, Long> {
 
 		Mono<ThingWithCustomTypes> findByCustomType(ThingWithCustomTypes.CustomType customType);
 
 		@Query("MATCH (c:CustomTypes) WHERE c.customType = $customType return c")
-		Mono<ThingWithCustomTypes> findByCustomTypeCustomQuery(@Param("customType") ThingWithCustomTypes.CustomType customType);
+		Mono<ThingWithCustomTypes> findByCustomTypeCustomQuery(
+				@Param("customType") ThingWithCustomTypes.CustomType customType);
 
 		@Query("MATCH (c:CustomTypes) WHERE c.customType = :#{#customType.value} return c")
-		Mono<ThingWithCustomTypes> findByCustomTypeCustomSpELPropertyAccessQuery(@Param("customType") ThingWithCustomTypes.CustomType customType);
+		Mono<ThingWithCustomTypes> findByCustomTypeCustomSpELPropertyAccessQuery(
+				@Param("customType") ThingWithCustomTypes.CustomType customType);
 
 		@Query("MATCH (c:CustomTypes) WHERE c.customType = :#{#customType} return c")
-		Mono<ThingWithCustomTypes> findByCustomTypeSpELObjectQuery(@Param("customType") ThingWithCustomTypes.CustomType customType);
+		Mono<ThingWithCustomTypes> findByCustomTypeSpELObjectQuery(
+				@Param("customType") ThingWithCustomTypes.CustomType customType);
 	}
 
 	@SpringJUnitConfig(ReactiveRepositoryIT.Config.class)
 	static abstract class ReactiveIntegrationTestBase {
 
-		@Autowired
-		private Driver driver;
+		@Autowired private Driver driver;
 
-		@Autowired
-		private ReactiveTransactionManager transactionManager;
+		@Autowired private ReactiveTransactionManager transactionManager;
 
 		void setupData(Transaction transaction) {
 
@@ -2417,13 +2119,13 @@ class ReactiveRepositoryIT {
 		}
 
 		Session createSession() {
-			return driver.session(Optional.ofNullable(databaseSelection.getValue())
-				.map(SessionConfig::forDatabase).orElseGet(SessionConfig::defaultConfig));
+			return driver.session(Optional.ofNullable(databaseSelection.getValue()).map(SessionConfig::forDatabase)
+					.orElseGet(SessionConfig::defaultConfig));
 		}
 
 		RxSession createRxSession() {
-			return driver.rxSession(Optional.ofNullable(databaseSelection.getValue())
-				.map(SessionConfig::forDatabase).orElseGet(SessionConfig::defaultConfig));
+			return driver.rxSession(Optional.ofNullable(databaseSelection.getValue()).map(SessionConfig::forDatabase)
+					.orElseGet(SessionConfig::defaultConfig));
 		}
 
 		ReactiveTransactionManager getTransactionManager() {
@@ -2458,8 +2160,8 @@ class ReactiveRepositoryIT {
 		@Bean
 		protected ReactiveDatabaseSelectionProvider reactiveNeo4jDatabaseNameProvider() {
 			return Optional.ofNullable(databaseSelection.getValue())
-				.map(ReactiveDatabaseSelectionProvider::createStaticDatabaseSelectionProvider)
-				.orElse(ReactiveDatabaseSelectionProvider.getDefaultSelectionProvider());
+					.map(ReactiveDatabaseSelectionProvider::createStaticDatabaseSelectionProvider)
+					.orElse(ReactiveDatabaseSelectionProvider.getDefaultSelectionProvider());
 		}
 
 	}

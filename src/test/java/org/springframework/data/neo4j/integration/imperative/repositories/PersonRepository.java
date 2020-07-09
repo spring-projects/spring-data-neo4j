@@ -70,10 +70,10 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	@Query("MATCH (n:PersonWithAllConstructor{name::#{#part1 + #part2}}) return n")
 	Optional<PersonWithAllConstructor> getOptionalPersonViaQuery(@Param("part1") String part1,
-		@Param("part2") String part2);
+			@Param("part2") String part2);
 
 	Optional<PersonWithAllConstructor> getOptionalPersonViaNamedQuery(@Param("part1") String part1,
-		@Param("part2") String part2);
+			@Param("part2") String part2);
 
 	@Query("MATCH (n:PersonWithNoConstructor) return n")
 	List<PersonWithNoConstructor> getAllPersonsWithNoConstructorViaQuery();
@@ -122,7 +122,7 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	// TODO
 	// due to a needed bug fix in Spring Data commons commented because this will turn
 	// the repository in a reactive one
-	//	CompletableFuture<PersonWithAllConstructor> findOneByFirstName(String aName);
+	// CompletableFuture<PersonWithAllConstructor> findOneByFirstName(String aName);
 
 	List<PersonWithAllConstructor> findAllBySameValue(String sameValue);
 
@@ -223,9 +223,12 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	List<PersonWithAllConstructor> findAllByOrderByFirstNameAscBornOnDesc();
 
 	// TODO Integration tests for failed validations
-	// 	List<PersonWithAllConstructor> findAllByBornOnAfter(String date);
-	// List<PersonWithAllConstructor> findAllByNameOrPersonNumberIsBetweenAndFirstNameNotInAndFirstNameEquals(String name, Long low, Long high, String wrong, List<String> haystack);
-	// List<PersonWithAllConstructor> findAllByNameOrPersonNumberIsBetweenAndCoolIsTrueAndFirstNameNotInAndFirstNameEquals(String name, Long low, Long high, String wrong, List<String> haystack);
+	// List<PersonWithAllConstructor> findAllByBornOnAfter(String date);
+	// List<PersonWithAllConstructor> findAllByNameOrPersonNumberIsBetweenAndFirstNameNotInAndFirstNameEquals(String name,
+	// Long low, Long high, String wrong, List<String> haystack);
+	// List<PersonWithAllConstructor>
+	// findAllByNameOrPersonNumberIsBetweenAndCoolIsTrueAndFirstNameNotInAndFirstNameEquals(String name, Long low, Long
+	// high, String wrong, List<String> haystack);
 	// List<PersonWithAllConstructor> findAllByNameNotEmpty();
 	// List<PersonWithAllConstructor> findAllByPlaceNear(Point p);
 	// List<PersonWithAllConstructor> findAllByPlaceNear(Point p, String);

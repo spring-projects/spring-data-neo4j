@@ -48,8 +48,8 @@ import org.springframework.core.log.LogMessage;
 import org.testcontainers.containers.Neo4jContainer;
 
 /**
- * This extension is for internal use only. It is meant to speed up development and keep test containers for normal build.
- * When both {@code SDN_RX_NEO4J_URL} and {@code SDN_RX_NEO4J_PASSWORD} are set as environment variables, the extension
+ * This extension is for internal use only. It is meant to speed up development and keep test containers for normal
+ * build. When both {@code SDN_NEO4J_URL} and {@code SDN_NEO4J_PASSWORD} are set as environment variables, the extension
  * will inject a field of type {@link Neo4jConnectionSupport} into the extended test with a connection to that instance,
  * otherwise it will start a test container and use that connection.
  *
@@ -64,17 +64,16 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 	public final static String COMMERCIAL_EDITION_ONLY = "commercialEdition";
 	public final static String REQUIRES = "Neo4j/";
 
-	private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace
-		.create(Neo4jExtension.class);
+	private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(Neo4jExtension.class);
 
 	private static final String KEY_NEO4J_INSTANCE = "neo4j.standalone";
 	private static final String KEY_DRIVER_INSTANCE = "neo4j.driver";
 
-	private static final String SYS_PROPERTY_NEO4J_URL = "SDN_RX_NEO4J_URL";
-	private static final String SYS_PROPERTY_NEO4J_PASSWORD = "SDN_RX_NEO4J_PASSWORD";
-	private static final String SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION = "SDN_RX_NEO4J_ACCEPT_COMMERCIAL_EDITION";
-	private static final String SYS_PROPERTY_NEO4J_REPOSITORY = "SDN_RX_NEO4J_REPOSITORY";
-	private static final String SYS_PROPERTY_NEO4J_VERSION = "SDN_RX_NEO4J_VERSION";
+	private static final String SYS_PROPERTY_NEO4J_URL = "SDN_NEO4J_URL";
+	private static final String SYS_PROPERTY_NEO4J_PASSWORD = "SDN_NEO4J_PASSWORD";
+	private static final String SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION = "SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION";
+	private static final String SYS_PROPERTY_NEO4J_REPOSITORY = "SDN_NEO4J_REPOSITORY";
+	private static final String SYS_PROPERTY_NEO4J_VERSION = "SDN_NEO4J_VERSION";
 
 	private static Set<String> COMMUNITY_EDITION_INDICATOR = Collections.singleton("community");
 
@@ -82,8 +81,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 	@Override
 	public void beforeAll(ExtensionContext context) throws Exception {
-		List<Field> injectableFields = ReflectionSupport
-			.findFields(context.getRequiredTestClass(),
+		List<Field> injectableFields = ReflectionSupport.findFields(context.getRequiredTestClass(),
 				field -> Modifier.isStatic(field.getModifiers()) && field.getType() == Neo4jConnectionSupport.class,
 				HierarchyTraversalMode.BOTTOM_UP);
 
@@ -95,8 +93,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		String neo4jPassword = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_PASSWORD)).orElse("").trim();
 
 		ExtensionContext.Store contextStore = context.getStore(NAMESPACE);
-		Neo4jConnectionSupport neo4jConnectionSupport = contextStore
-			.get(KEY_DRIVER_INSTANCE, Neo4jConnectionSupport.class);
+		Neo4jConnectionSupport neo4jConnectionSupport = contextStore.get(KEY_DRIVER_INSTANCE, Neo4jConnectionSupport.class);
 
 		if (neo4jConnectionSupport == null) {
 			if (!(neo4jUrl.isEmpty() || neo4jPassword.isEmpty())) {
@@ -104,9 +101,8 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 				neo4jConnectionSupport = new Neo4jConnectionSupport(neo4jUrl, AuthTokens.basic("neo4j", neo4jPassword));
 			} else {
 				log.warn("Using Neo4j test container.");
-				ContainerAdapter adapter = contextStore
-					.getOrComputeIfAbsent(KEY_NEO4J_INSTANCE, key -> new Neo4jExtension.ContainerAdapter(),
-						ContainerAdapter.class);
+				ContainerAdapter adapter = contextStore.getOrComputeIfAbsent(KEY_NEO4J_INSTANCE,
+						key -> new Neo4jExtension.ContainerAdapter(), ContainerAdapter.class);
 				adapter.start();
 				neo4jConnectionSupport = new Neo4jConnectionSupport(adapter.getBoltUrl(), AuthTokens.none());
 			}
@@ -123,39 +119,35 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 	@Override
 	public void beforeEach(ExtensionContext context) throws Exception {
 		ExtensionContext.Store contextStore = context.getStore(NAMESPACE);
-		Neo4jConnectionSupport neo4jConnectionSupport = contextStore
-			.get(KEY_DRIVER_INSTANCE, Neo4jConnectionSupport.class);
+		Neo4jConnectionSupport neo4jConnectionSupport = contextStore.get(KEY_DRIVER_INSTANCE, Neo4jConnectionSupport.class);
 		checkRequiredFeatures(neo4jConnectionSupport, context.getTags());
 	}
 
 	private void checkRequiredFeatures(Neo4jConnectionSupport neo4jConnectionSupport, Set<String> tags) {
 		if (tags.contains(NEEDS_REACTIVE_SUPPORT)) {
 			assumeThat(neo4jConnectionSupport.getServerVersion().greaterThanOrEqual(ServerVersion.v4_0_0))
-				.describedAs("This test requires at least Neo4j 4.0 for reactive database connectivity.")
-				.isTrue();
+					.describedAs("This test requires at least Neo4j 4.0 for reactive database connectivity.").isTrue();
 		}
 
 		if (tags.contains(COMMUNITY_EDITION_ONLY)) {
 			assumeThat(neo4jConnectionSupport.isCommunityEdition())
-				.describedAs("This test should be run on the community edition only")
-				.isTrue();
+					.describedAs("This test should be run on the community edition only").isTrue();
 		}
 
 		if (tags.contains(COMMERCIAL_EDITION_ONLY)) {
 			assumeThat(neo4jConnectionSupport.isCommercialEdition())
-				.describedAs("This test should be run on the commercial edition only")
-				.isTrue();
+					.describedAs("This test should be run on the commercial edition only").isTrue();
 		}
 
 		tags.stream().filter(s -> s.startsWith(REQUIRES)).map(ServerVersion::version).forEach(v -> {
 			assumeThat(neo4jConnectionSupport.getServerVersion().greaterThanOrEqual(v))
-				.describedAs("This test requires at least " + v.toString())
-				.isTrue();
+					.describedAs("This test requires at least " + v.toString()).isTrue();
 		});
 	}
 
 	/**
 	 * Support class that holds the connection information and opens a new connection on demand.
+	 *
 	 * @since 1.0
 	 */
 	public static class Neo4jConnectionSupport implements ExtensionContext.Store.CloseableResource {
@@ -181,7 +173,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 		/**
 		 * @return A possible shared driver instance, connected to either a database running inside test containers or
-		 * running locally.
+		 *         running locally.
 		 */
 		public Driver getDriver() {
 
@@ -217,8 +209,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		String getEdition() {
 			String edition = "n/a";
 			SessionConfig sessionConfig = SessionConfig.builder().withDefaultAccessMode(AccessMode.READ).build();
-			try (Session session = getDriver().session(
-				sessionConfig)) {
+			try (Session session = getDriver().session(sessionConfig)) {
 				edition = session.run("call dbms.components() yield edition").single().get("edition").asString();
 			}
 			return edition.toLowerCase(Locale.ENGLISH);
@@ -246,8 +237,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 			try {
 				log.debug("Closing Neo4j connection support.");
 				driverInstance.close();
-			} catch (Exception e) {
-			}
+			} catch (Exception e) {}
 		}
 	}
 
@@ -258,8 +248,8 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		private final String imageVersion = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_VERSION)).orElse("4.0");
 
 		private final Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>(repository + ":" + imageVersion)
-			.withoutAuthentication()
-			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION)).orElse("no"));
+				.withoutAuthentication().withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT",
+						Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION)).orElse("no"));
 
 		public String getBoltUrl() {
 			return neo4jContainer.getBoltUrl();

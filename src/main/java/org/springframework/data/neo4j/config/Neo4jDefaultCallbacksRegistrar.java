@@ -27,8 +27,9 @@ import org.springframework.data.neo4j.repository.event.IdGeneratingBeforeBindCal
 import org.springframework.data.neo4j.repository.event.OptimisticLockingBeforeBindCallback;
 
 /**
- * This brings in the default callbacks required for the default implementation of {@link Neo4jOperations} to work.
- * The offered support configuration class {@link AbstractNeo4jConfig} imports this and so does the Spring Boot autoconfiguration.
+ * This brings in the default callbacks required for the default implementation of {@link Neo4jOperations} to work. The
+ * offered support configuration class {@link AbstractNeo4jConfig} imports this and so does the Spring Boot
+ * autoconfiguration.
  *
  * @author Michael J. Simons
  * @soundtrack AC/DC - High Voltage
@@ -38,11 +39,8 @@ import org.springframework.data.neo4j.repository.event.OptimisticLockingBeforeBi
 public final class Neo4jDefaultCallbacksRegistrar implements ImportBeanDefinitionRegistrar {
 
 	@Override
-	public void registerBeanDefinitions(
-		AnnotationMetadata importingClassMetadata,
-		BeanDefinitionRegistry registry,
-		BeanNameGenerator beanNameGenerator
-	) {
+	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry,
+			BeanNameGenerator beanNameGenerator) {
 		// Id Generator
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(IdGeneratingBeforeBindCallback.class);
 		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);

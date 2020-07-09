@@ -47,10 +47,9 @@ public final class Neo4jTransactionUtils {
 	}
 
 	public static SessionConfig sessionConfig(boolean readOnly, Collection<Bookmark> bookmarks,
-		@Nullable String databaseName) {
+			@Nullable String databaseName) {
 		SessionConfig.Builder builder = SessionConfig.builder()
-			.withDefaultAccessMode(readOnly ? AccessMode.READ : AccessMode.WRITE)
-			.withBookmarks(bookmarks);
+				.withDefaultAccessMode(readOnly ? AccessMode.READ : AccessMode.WRITE).withBookmarks(bookmarks);
 
 		if (databaseName != null) {
 			builder.withDatabase(databaseName);
@@ -60,8 +59,8 @@ public final class Neo4jTransactionUtils {
 	}
 
 	/**
-	 * Maps a Spring {@link TransactionDefinition transaction definition} to a native Neo4j driver transaction.
-	 * Only the default isolation leven ({@link TransactionDefinition#ISOLATION_DEFAULT}) and
+	 * Maps a Spring {@link TransactionDefinition transaction definition} to a native Neo4j driver transaction. Only the
+	 * default isolation leven ({@link TransactionDefinition#ISOLATION_DEFAULT}) and
 	 * {@link TransactionDefinition#PROPAGATION_REQUIRED propagation required} behaviour are supported.
 	 *
 	 * @param definition The transaction definition passed to a Neo4j transaction manager
@@ -71,12 +70,14 @@ public final class Neo4jTransactionUtils {
 
 		if (definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT) {
 			throw new InvalidIsolationLevelException(
-				"Neo4jTransactionManager is not allowed to support custom isolation levels.");
+					"Neo4jTransactionManager is not allowed to support custom isolation levels.");
 		}
 
 		int propagationBehavior = definition.getPropagationBehavior();
-		if (!(propagationBehavior == TransactionDefinition.PROPAGATION_REQUIRED || propagationBehavior == TransactionDefinition.PROPAGATION_REQUIRES_NEW)) {
-			throw new IllegalTransactionStateException("Neo4jTransactionManager only supports 'required' or 'requires new' propagation.");
+		if (!(propagationBehavior == TransactionDefinition.PROPAGATION_REQUIRED
+				|| propagationBehavior == TransactionDefinition.PROPAGATION_REQUIRES_NEW)) {
+			throw new IllegalTransactionStateException(
+					"Neo4jTransactionManager only supports 'required' or 'requires new' propagation.");
 		}
 
 		TransactionConfig.Builder builder = TransactionConfig.builder();
@@ -97,10 +98,9 @@ public final class Neo4jTransactionUtils {
 		String _requestedDb = requestedDb == null ? defaultDatabase : String.format("'%s'", requestedDb);
 
 		return String.format("There is already an ongoing Spring transaction for %s, but you request %s", _currentDb,
-			_requestedDb);
+				_requestedDb);
 
 	}
 
-	private Neo4jTransactionUtils() {
-	}
+	private Neo4jTransactionUtils() {}
 }

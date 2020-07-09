@@ -71,12 +71,11 @@ final class RepositoryQueryTest {
 	private static final String CUSTOM_CYPHER_QUERY = "MATCH (n) return n";
 
 	private static final RepositoryMetadata TEST_REPOSITORY_METADATA = new DefaultRepositoryMetadata(
-		TestRepository.class);
+			TestRepository.class);
 
 	private static final ProjectionFactory PROJECTION_FACTORY = new SpelAwareProxyProjectionFactory();
 
-	@Mock
-	NamedQueries namedQueries;
+	@Mock NamedQueries namedQueries;
 
 	@Nested
 	class Neo4jQueryMethodTest {
@@ -111,19 +110,19 @@ final class RepositoryQueryTest {
 		@Test
 		void shouldFailOnMonoOfPageAsReturnType() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(() -> reactiveNeo4jQueryMethod("findAllByName", String.class, Pageable.class));
+					.isThrownBy(() -> reactiveNeo4jQueryMethod("findAllByName", String.class, Pageable.class));
 		}
 
 		@Test
 		void shouldFailForPageableParameterOnMonoOfPageAsReturnType() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(() -> reactiveNeo4jQueryMethod("findAllByName", String.class, Pageable.class));
+					.isThrownBy(() -> reactiveNeo4jQueryMethod("findAllByName", String.class, Pageable.class));
 		}
 
 		@Test
 		void shouldFailForPageableParameterOnMonoOfSliceAsReturnType() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-				.isThrownBy(() -> reactiveNeo4jQueryMethod("findAllByNameStartingWith", String.class, Pageable.class));
+					.isThrownBy(() -> reactiveNeo4jQueryMethod("findAllByNameStartingWith", String.class, Pageable.class));
 		}
 	}
 
@@ -134,12 +133,10 @@ final class RepositoryQueryTest {
 		void shouldSelectPartTreeNeo4jQuery() {
 
 			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(mock(Neo4jOperations.class),
-				mock(
-				Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT);
+					mock(Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT);
 
-			RepositoryQuery query = lookupStrategy
-				.resolveQuery(queryMethod("findById", Object.class), TEST_REPOSITORY_METADATA, PROJECTION_FACTORY,
-					namedQueries);
+			RepositoryQuery query = lookupStrategy.resolveQuery(queryMethod("findById", Object.class),
+					TEST_REPOSITORY_METADATA, PROJECTION_FACTORY, namedQueries);
 			assertThat(query).isInstanceOf(PartTreeNeo4jQuery.class);
 		}
 
@@ -147,12 +144,10 @@ final class RepositoryQueryTest {
 		void shouldSelectStringBasedNeo4jQuery() {
 
 			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(mock(Neo4jOperations.class),
-				mock(
-				Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT);
+					mock(Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT);
 
-			RepositoryQuery query = lookupStrategy
-				.resolveQuery(queryMethod("annotatedQueryWithValidTemplate"), TEST_REPOSITORY_METADATA,
-					PROJECTION_FACTORY, namedQueries);
+			RepositoryQuery query = lookupStrategy.resolveQuery(queryMethod("annotatedQueryWithValidTemplate"),
+					TEST_REPOSITORY_METADATA, PROJECTION_FACTORY, namedQueries);
 			assertThat(query).isInstanceOf(StringBasedNeo4jQuery.class);
 		}
 
@@ -164,11 +159,9 @@ final class RepositoryQueryTest {
 			when(namedQueries.getQuery(namedQueryName)).thenReturn("MATCH (n) RETURN n");
 
 			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(mock(Neo4jOperations.class),
-				mock(
-				Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT);
+					mock(Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT);
 
-			RepositoryQuery query = lookupStrategy
-				.resolveQuery(queryMethod("findAllByANamedQuery"), TEST_REPOSITORY_METADATA,
+			RepositoryQuery query = lookupStrategy.resolveQuery(queryMethod("findAllByANamedQuery"), TEST_REPOSITORY_METADATA,
 					PROJECTION_FACTORY, namedQueries);
 			assertThat(query).isInstanceOf(StringBasedNeo4jQuery.class);
 		}
@@ -192,15 +185,13 @@ final class RepositoryQueryTest {
 			query = spelExtractor.getQueryString();
 
 			assertThat(query)
-				.isEqualTo(
-					"MATCH (user:User) WHERE user.name = $__SpEL__0 and user.middleName = $__SpEL__1 RETURN user");
+					.isEqualTo("MATCH (user:User) WHERE user.name = $__SpEL__0 and user.middleName = $__SpEL__1 RETURN user");
 
 			template = "MATCH (user:User) WHERE user.name=?#{[0]} and user.name=:#{[0]} RETURN user";
 			spelExtractor = spelQueryContext.parse(template);
 			query = spelExtractor.getQueryString();
 
-			assertThat(query)
-				.isEqualTo("MATCH (user:User) WHERE user.name=$__SpEL__0 and user.name=$__SpEL__1 RETURN user");
+			assertThat(query).isEqualTo("MATCH (user:User) WHERE user.name=$__SpEL__0 and user.name=$__SpEL__1 RETURN user");
 		}
 
 		@Test
@@ -209,7 +200,7 @@ final class RepositoryQueryTest {
 			Neo4jQueryMethod method = neo4jQueryMethod("annotatedQueryWithValidTemplate");
 
 			assertThat(StringBasedNeo4jQuery.getQueryTemplate(method.getQueryAnnotation().get()))
-				.isEqualTo(CUSTOM_CYPHER_QUERY);
+					.isEqualTo(CUSTOM_CYPHER_QUERY);
 		}
 
 		@Test
@@ -217,63 +208,50 @@ final class RepositoryQueryTest {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("annotatedQueryWithoutTemplate");
 			assertThatExceptionOfType(MappingException.class)
-				.isThrownBy(
-					() -> StringBasedNeo4jQuery.create(mock(Neo4jOperations.class), mock(Neo4jMappingContext.class),
-						QueryMethodEvaluationContextProvider.DEFAULT, method))
-				.withMessage("Expected @Query annotation to have a value, but it did not.");
+					.isThrownBy(() -> StringBasedNeo4jQuery.create(mock(Neo4jOperations.class), mock(Neo4jMappingContext.class),
+							QueryMethodEvaluationContextProvider.DEFAULT, method))
+					.withMessage("Expected @Query annotation to have a value, but it did not.");
 		}
 
 		@Test
 		void shouldBindParameters() {
 
-			Neo4jQueryMethod method = RepositoryQueryTest
-				.neo4jQueryMethod("annotatedQueryWithValidTemplate", String.class, String.class);
+			Neo4jQueryMethod method = RepositoryQueryTest.neo4jQueryMethod("annotatedQueryWithValidTemplate", String.class,
+					String.class);
 
 			StringBasedNeo4jQuery repositoryQuery = spy(StringBasedNeo4jQuery.create(mock(Neo4jOperations.class),
-				mock(Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT,
-				method));
+					mock(Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT, method));
 
 			// skip conversion
 			doAnswer(invocation -> invocation.getArgument(0)).when(repositoryQuery).convertParameter(any());
 
-			Map<String, Object> resolveParameters = repositoryQuery
-				.bindParameters(new Neo4jParameterAccessor(
+			Map<String, Object> resolveParameters = repositoryQuery.bindParameters(new Neo4jParameterAccessor(
 					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(), new Object[] { "A String", "Another String" }));
 
-			assertThat(resolveParameters)
-				.containsEntry("0", "A String")
-				.containsEntry("1", "Another String");
+			assertThat(resolveParameters).containsEntry("0", "A String").containsEntry("1", "Another String");
 		}
 
 		@Test
 		void shouldResolveNamedParameters() {
 
-			Neo4jQueryMethod method = RepositoryQueryTest
-				.neo4jQueryMethod("findByDontDoThisInRealLiveNamed", org.neo4j.driver.types.Point.class, String.class,
-					String.class);
+			Neo4jQueryMethod method = RepositoryQueryTest.neo4jQueryMethod("findByDontDoThisInRealLiveNamed",
+					org.neo4j.driver.types.Point.class, String.class, String.class);
 
 			StringBasedNeo4jQuery repositoryQuery = spy(StringBasedNeo4jQuery.create(mock(Neo4jOperations.class),
-				mock(Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT,
-				method));
+					mock(Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT, method));
 
 			// skip conversion
 			doAnswer(invocation -> invocation.getArgument(0)).when(repositoryQuery).convertParameter(any());
 
 			Point thePoint = Values.point(4223, 1, 2).asPoint();
-			Map<String, Object> resolveParameters = repositoryQuery.bindParameters(
-				new Neo4jParameterAccessor((Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
-					new Object[] { thePoint, "TheName", "TheFirstName" }));
+			Map<String, Object> resolveParameters = repositoryQuery
+					.bindParameters(new Neo4jParameterAccessor((Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
+							new Object[] { thePoint, "TheName", "TheFirstName" }));
 
-			assertThat(resolveParameters)
-				.hasSize(8)
-				.containsEntry("0", thePoint)
-				.containsEntry("location", thePoint)
-				.containsEntry("1", "TheName")
-				.containsEntry("name", "TheName")
-				.containsEntry("2", "TheFirstName")
-				.containsEntry("firstName", "TheFirstName")
-				.containsEntry("__SpEL__0", "TheFirstName")
-				.containsEntry("__SpEL__1", "TheNameTheFirstName");
+			assertThat(resolveParameters).hasSize(8).containsEntry("0", thePoint).containsEntry("location", thePoint)
+					.containsEntry("1", "TheName").containsEntry("name", "TheName").containsEntry("2", "TheFirstName")
+					.containsEntry("firstName", "TheFirstName").containsEntry("__SpEL__0", "TheFirstName")
+					.containsEntry("__SpEL__1", "TheNameTheFirstName");
 		}
 	}
 
@@ -285,18 +263,17 @@ final class RepositoryQueryTest {
 	static Neo4jQueryMethod neo4jQueryMethod(String name, Class<?>... parameters) {
 
 		return new Neo4jQueryMethod(ReflectionUtils.findMethod(TestRepository.class, name, parameters),
-			TEST_REPOSITORY_METADATA, PROJECTION_FACTORY);
+				TEST_REPOSITORY_METADATA, PROJECTION_FACTORY);
 	}
 
 	static ReactiveNeo4jQueryMethod reactiveNeo4jQueryMethod(String name, Class<?>... parameters) {
 
 		return new ReactiveNeo4jQueryMethod(ReflectionUtils.findMethod(TestRepository.class, name, parameters),
-			TEST_REPOSITORY_METADATA, PROJECTION_FACTORY);
+				TEST_REPOSITORY_METADATA, PROJECTION_FACTORY);
 	}
 
 	static class TestEntity {
-		@Id @GeneratedValue
-		private Long id;
+		@Id @GeneratedValue private Long id;
 
 		private String name;
 	}
@@ -305,8 +282,7 @@ final class RepositoryQueryTest {
 
 		@Query("MATCH (n:Test) WHERE n.name = $name AND n.firstName = :#{#firstName} AND n.fullName = ?#{#name + #firstName} AND p.location = $location return n")
 		Optional<TestEntity> findByDontDoThisInRealLiveNamed(@Param("location") org.neo4j.driver.types.Point location,
-			@Param("name") String name,
-			@Param("firstName") String aFirstName);
+				@Param("name") String name, @Param("firstName") String aFirstName);
 
 		@Query("MATCH (n:Test) WHERE n.name = $0 OR n.name = $1")
 		List<TestEntity> annotatedQueryWithValidTemplate(String name, String anotherName);
@@ -326,6 +302,5 @@ final class RepositoryQueryTest {
 		Mono<Slice<TestEntity>> findAllByNameStartingWith(String name, Pageable pageable);
 	}
 
-	private RepositoryQueryTest() {
-	}
+	private RepositoryQueryTest() {}
 }

@@ -41,9 +41,7 @@ import org.springframework.data.neo4j.types.GeographicPoint3d;
 @Builder
 public class ThingWithAllSpatialTypes {
 
-	@Id @GeneratedValue
-	@With
-	public final Long id;
+	@Id @GeneratedValue @With public final Long id;
 
 	private Point sdnPoint;
 

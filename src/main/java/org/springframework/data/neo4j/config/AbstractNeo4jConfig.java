@@ -29,8 +29,8 @@ import org.springframework.data.neo4j.repository.config.Neo4jRepositoryConfigura
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
- * Base class for imperative SDN-RX configuration using JavaConfig.
- * This can be included in all scenarios in which Spring Boot is not an option.
+ * Base class for imperative SDN configuration using JavaConfig. This can be included in all scenarios in which Spring
+ * Boot is not an option.
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
@@ -61,7 +61,7 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
 	public Neo4jTemplate neo4jTemplate(final Neo4jClient neo4jClient, final Neo4jMappingContext mappingContext,
-		DatabaseSelectionProvider databaseNameProvider) {
+			DatabaseSelectionProvider databaseNameProvider) {
 
 		return new Neo4jTemplate(neo4jClient, mappingContext, databaseNameProvider);
 	}
@@ -69,13 +69,12 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	/**
 	 * Provides a {@link PlatformTransactionManager} for Neo4j based on the driver resulting from {@link #driver()}.
 	 *
-	 * @param driver               The driver to synchronize against
+	 * @param driver The driver to synchronize against
 	 * @param databaseNameProvider The configured database name provider
 	 * @return A platform transaction manager
 	 */
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
-	public PlatformTransactionManager transactionManager(Driver driver,
-		DatabaseSelectionProvider databaseNameProvider) {
+	public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
 
 		return new Neo4jTransactionManager(driver, databaseNameProvider);
 	}
@@ -83,7 +82,8 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	/**
 	 * Configures the database name provider.
 	 *
-	 * @return The default database name provider, defaulting to the default database on Neo4j 4.0 and on no default on Neo4j 3.5 and prior.
+	 * @return The default database name provider, defaulting to the default database on Neo4j 4.0 and on no default on
+	 *         Neo4j 3.5 and prior.
 	 */
 	@Bean
 	protected DatabaseSelectionProvider neo4jDatabaseNameProvider() {

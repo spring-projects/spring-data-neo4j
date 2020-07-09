@@ -34,23 +34,21 @@ import org.springframework.data.neo4j.core.schema.Node;
 @ExtendWith(MockitoExtension.class)
 class IdPopulatorTest {
 
-	@Mock
-	private Neo4jMappingContext neo4jMappingContext;
+	@Mock private Neo4jMappingContext neo4jMappingContext;
 
-	@Mock
-	private Neo4jPersistentEntity<?> nodeDescription;
+	@Mock private Neo4jPersistentEntity<?> nodeDescription;
 
 	@Test
 	void shouldRejectNullMappingContext() {
 		Assertions.assertThatIllegalArgumentException().isThrownBy(() -> new IdPopulator(null))
-			.withMessage("A mapping context is required.");
+				.withMessage("A mapping context is required.");
 	}
 
 	@Test
 	void shouldRejectNullEntity() {
 		IdPopulator idPopulator = new IdPopulator(neo4jMappingContext);
 		Assertions.assertThatIllegalArgumentException().isThrownBy(() -> idPopulator.populateIfNecessary(null))
-			.withMessage("Entity may not be null!");
+				.withMessage("Entity may not be null!");
 	}
 
 	@Test
@@ -97,8 +95,7 @@ class IdPopulatorTest {
 	@Node
 	static class Sample {
 
-		@Id @GeneratedValue(DummyIdGenerator.class)
-		private String theId;
+		@Id @GeneratedValue(DummyIdGenerator.class) private String theId;
 	}
 
 	static class DummyIdGenerator implements IdGenerator<String> {

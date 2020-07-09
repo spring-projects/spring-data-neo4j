@@ -26,16 +26,14 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class BidirectionalEnd {
 
-	@Id @GeneratedValue
-	private Long id;
+	@Id @GeneratedValue private Long id;
 
 	private String name;
 
-	@Relationship(type = "CONNECTED", direction = Relationship.Direction.INCOMING)
-	private BidirectionalStart start;
+	@Relationship(type = "CONNECTED", direction = Relationship.Direction.INCOMING) private BidirectionalStart start;
 
-	@Relationship(type = "ANOTHER_CONNECTION", direction = Relationship.Direction.INCOMING)
-	private BidirectionalStart anotherStart;
+	@Relationship(type = "ANOTHER_CONNECTION",
+			direction = Relationship.Direction.INCOMING) private BidirectionalStart anotherStart;
 
 	public BidirectionalEnd(String name) {
 		this.name = name;

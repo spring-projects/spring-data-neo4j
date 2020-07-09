@@ -1,9 +1,9 @@
-[[building-sdn-rx]]
-= Building SDN/RX
+[[building-SDN]]
+= Building Spring Data Neo4j
 
 == Requirements
 
-* JDK 13+ (Can be https://openjdk.java.net[OpenJDK] or https://www.oracle.com/technetwork/java/index.html[Oracle JDK])
+* JDK 8+ (Can be https://openjdk.java.net[OpenJDK] or https://www.oracle.com/technetwork/java/index.html[Oracle JDK])
 * Maven 3.6.2 (We provide the Maven wrapper, see `mvnw` respectively `mvnw.cmd` in the project root; the wrapper downloads the appropriate Maven version automatically)
 * A Neo4j 3.5.+ database, either
 ** running locally
@@ -11,18 +11,12 @@
 
 === About the JDK version
 
-SDN/RX itself targets JDK 8 release but builds currently on JDK13.
-We will track the current release cadence of Java.
 Choosing JDK 8 is a decision influenced by various aspects
 
-* SDN/RX is a Spring Data project.
-  Spring Data commons baseline is still JDK 8 and so is Spring Frameworks baseline.
-  Thus it is only natural to keep the JDK 8 baseline.
-* While there is an increase of projects started with JDK 11 (which is Oracles current LTS release of Java),
-  many existing projects are still on JDK 8.
-  We don't want to lose them as users right from the start.
-
-All examples (`/examples`) and also benchmarking (`/benchmarks`) will be compiled and run with the latest Java release, though.
+* SDN is a Spring Data project.
+Spring Data commons baseline is still JDK 8 and so is Spring Frameworks baseline.
+Thus it is only natural to keep the JDK 8 baseline.
+* While there is an increase of projects started with JDK 11 (which is Oracles current LTS release of Java), many existing projects are still on JDK 8. We don't want to lose them as users right from the start.
 
 == Running the build
 
@@ -31,10 +25,10 @@ The following sections are alternatives and roughly sorted by increased effort.
 All builds require a local copy of the project:
 
 [source,console,subs="verbatim,attributes"]
-[[checkout-sdn-rx]]
-.Clone SDN/RX
+[[checkout-SDN]]
+.Clone SDN
 ----
-$ git clone git@github.com:neo4j/sdn-rx.git
+$ git clone git@github.com:spring-projects/spring-data-neo4j.git
 ----
 
 Before you proceed, verify your locally installed JDK version.
@@ -64,33 +58,6 @@ Our build uses https://www.testcontainers.org/modules/databases/neo4j/[Testconta
 .Build with default settings on Linux / macOS
 ----
 $ ./mvnw clean verify
-[INFO] Scanning for projects...
-[INFO] ------------------------------------------------------------------------
-[INFO] Reactor Build Order:
-[INFO]
-[INFO] Spring Data Neo4j RX                                               [pom]
-[INFO] SDN⚡RX                                                            [jar]
-[INFO] SDN⚡RX Spring Boot Starter Parent                                 [pom]
-[INFO] SDN⚡RX Spring Boot Starter Autoconfiguration                      [jar]
-[INFO] SDN⚡RX Spring Boot Starter                                        [jar]
-[INFO] SDN⚡RX Examples for Spring Boot                                   [jar]
-[INFO] SDN⚡RX Examples Mapping                                           [jar]
-...
-[INFO] Reactor Summary:
-[INFO]
-[INFO] Spring Data Neo4j RX 1.0.0-SNAPSHOT ................ SUCCESS [  5.937 s]
-[INFO] SDN⚡RX 1.0.0-SNAPSHOT ............................. SUCCESS [09:37 min]
-[INFO] SDN⚡RX Spring Boot Starter Parent 1.0.0-SNAPSHOT .. SUCCESS [  1.734 s]
-[INFO] SDN⚡RX Spring Boot Starter Autoconfiguration 1.0.0-SNAPSHOT SUCCESS [ 57.069 s]
-[INFO] SDN⚡RX Spring Boot Starter 1.0.0-SNAPSHOT ......... SUCCESS [  0.444 s]
-[INFO] SDN⚡RX Examples for Spring Boot 999-SNAPSHOT ...... SUCCESS [  4.055 s]
-[INFO] SDN⚡RX Examples Mapping 999-SNAPSHOT .............. SUCCESS [  0.683 s]
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  10:48 min
-[INFO] Finished at: 2019-10-02T15:25:48+02:00
-[INFO] ------------------------------------------------------------------------
 ----
 
 On a Windows machine, use
@@ -104,7 +71,7 @@ $ mvnw.cmd clean verify
 
 The output should be similar.
 
-At the moment, this build tests agains Neo4j 3.5, as 4.0 is not yet available on Docker Hub.
+At the moment, this build tests against Neo4j 3.5, as 4.0 is not yet available on Docker Hub.
 As a consequence, tests requiring a reactive capable database, are skipped, as this is a feature of Neo4j 4.0.
 
 ==== Using another image
@@ -115,7 +82,7 @@ The image version to use can be configured through an environmental variable lik
 [[build-other-image]]
 .Build using a different Neo4j Docker image
 ----
-$ SDN_RX_NEO4J_VERSION=3.5.11-enterprise SDN_RX_NEO4J_ACCEPT_COMMERCIAL_EDITION=yes ./mvnw clean verify
+$ SDN_NEO4J_VERSION=3.5.11-enterprise SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION=yes ./mvnw clean verify
 ----
 
 Here we are using 3.5.11 enterprise and also accept the license agreement.
@@ -133,8 +100,7 @@ You can get a copy of Neo4j at our https://neo4j.com/download-center/#enterprise
 Especially you can get https://neo4j.com/download-center/?ref=blog/#prerelease[the current prelease of Neo4j 4.0], supporting all the reactive features.
 
 Please download the version applicable to your operating system and follow the instructions to start it.
-A required step is to open a browser and go to http://localhost:7474 after you started the database and
-change the default password from `neo4j` to something of your liking.
+A required step is to open a browser and go to http://localhost:7474 after you started the database and change the default password from `neo4j` to something of your liking.
 
 After that, you can run a complete build by specifying the local `bolt` URL:
 
@@ -142,37 +108,37 @@ After that, you can run a complete build by specifying the local `bolt` URL:
 [[build-using-locally-running-database]]
 .Build using a locally running database
 ----
-$ SDN_RX_NEO4J_URL=bolt://localhost:7687 SDN_RX_NEO4J_PASSWORD=secret ./mvnw clean verify
+$ SDN_NEO4J_URL=bolt://localhost:7687 SDN_NEO4J_PASSWORD=secret ./mvnw clean verify
 ----
 
 == Summary of environment variables controlling the build
 
-[cols="3,1,3", options="header"]
+[cols="3,1,3",options="header"]
 |===
 |Name|Default value|Meaning
 
-|`SDN_RX_NEO4J_VERSION`
+|`SDN_NEO4J_VERSION`
 |3.5.6
 |Version of the Neo4j docker image to use, see https://hub.docker.com/_/neo4j[Neo4j Docker Official Images]
 
-|`SDN_RX_NEO4J_ACCEPT_COMMERCIAL_EDITION`
+|`SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION`
 |no
 |Some tests may require the enterprise edition of Neo4j.
- We build and test against the enterprise edition internally, but we won't force you
- to accept the license if you don't want to.
+We build and test against the enterprise edition internally, but we won't force you
+to accept the license if you don't want to.
 
-|`SDN_RX_NEO4J_URL`
+|`SDN_NEO4J_URL`
 |not set
 |Setting this environment allows connecting to a locally running Neo4j instance.
- We use this a lot during development.
+We use this a lot during development.
 
-|`SDN_RX_NEO4J_PASSWORD`
+|`SDN_NEO4J_PASSWORD`
 |not set
-|Password for the `neo4j` user of the instance configured with `SDN_RX_NEO4J_URL`.
+|Password for the `neo4j` user of the instance configured with `SDN_NEO4J_URL`.
 
 |===
 
-NOTE: You need to set both `SDN_RX_NEO4J_URL` and `SDN_RX_NEO4J_PASSWORD` to use a local instance.
+NOTE: You need to set both `SDN_NEO4J_URL` and `SDN_NEO4J_PASSWORD` to use a local instance.
 
 == Checkstyle and friends
 
@@ -186,7 +152,7 @@ Your build will break on formatting errors or something like unused imports.
 We also use https://jqassistant.org[jQAssistant], a Neo4j-based tool, to verify some aspects of our architecture.
 The rules are described with Cypher and your build will break when they are violated:
 
-include::../../etc/jqassistant/index.adoc[leveloffset=4]
+include::../../../../etc/jqassistant/index.adoc[leveloffset=4]
 
 ==== Accessing the jQAssistant database
 
@@ -198,7 +164,7 @@ When the build finishes, execute the following command:
 [[start-jqassistant]]
 .Start jQAssistant
 ----
-$ ./mvnw -pl org.neo4j.springframework.data:spring-data-neo4j-rx jqassistant:server
+$ ./mvnw -pl org.springframework.data.neo4j:spring-data-neo4j jqassistant:server
 ----
 
 Access the standard Neo4j browser at http://localhost:7474 and a dedicated jQA-Dashboard at http://localhost:7474/jqassistant/dashboard/.
@@ -209,6 +175,6 @@ The scanning and analyzing can be triggered individually, without going through 
 [[scan-with-jqassistant]]
 .Manually scan and analyze the main project
 ----
-$ ./mvnw -pl org.neo4j.springframework.data:spring-data-neo4j-rx jqassistant:scan@jqassistant-scan
-$ ./mvnw -pl org.neo4j.springframework.data:spring-data-neo4j-rx jqassistant:analyze@jqassistant-analyze
+$ ./mvnw -pl org.springframework.data.neo4j:spring-data-neo4j jqassistant:scan@jqassistant-scan
+$ ./mvnw -pl org.springframework.data.neo4j:spring-data-neo4j jqassistant:analyze@jqassistant-analyze
 ----

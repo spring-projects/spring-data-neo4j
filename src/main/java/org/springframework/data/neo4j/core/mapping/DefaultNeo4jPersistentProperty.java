@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  * @since 1.0
  */
 class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<Neo4jPersistentProperty>
-	implements Neo4jPersistentProperty {
+		implements Neo4jPersistentProperty {
 
 	private final Lazy<String> graphPropertyName;
 	private final Lazy<Boolean> isAssociation;
@@ -47,14 +47,12 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	/**
 	 * Creates a new {@link AnnotationBasedPersistentProperty}.
 	 *
-	 * @param property         must not be {@literal null}.
-	 * @param owner            must not be {@literal null}.
+	 * @param property must not be {@literal null}.
+	 * @param owner must not be {@literal null}.
 	 * @param simpleTypeHolder type holder
 	 */
-	DefaultNeo4jPersistentProperty(Property property,
-		PersistentEntity<?, Neo4jPersistentProperty> owner,
-		Neo4jMappingContext mappingContext,
-		SimpleTypeHolder simpleTypeHolder) {
+	DefaultNeo4jPersistentProperty(Property property, PersistentEntity<?, Neo4jPersistentProperty> owner,
+			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder) {
 
 		super(property, owner, simpleTypeHolder);
 
@@ -102,16 +100,15 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 		// Try to determine if there is a relationship definition that expresses logically the same relationship
 		// on the other end.
 		Optional<RelationshipDescription> obverseRelationshipDescription = obverseOwner.getRelationships().stream()
-			.filter(rel -> rel.getType().equals(type) && rel.getTarget().equals(this.getOwner()))
-			.findFirst();
+				.filter(rel -> rel.getType().equals(type) && rel.getTarget().equals(this.getOwner())).findFirst();
 
 		DefaultRelationshipDescription relationshipDescription = new DefaultRelationshipDescription(this,
-			obverseRelationshipDescription.orElse(null), type, dynamicAssociation, (NodeDescription<?>) getOwner(),
-			this.getName(), obverseOwner, direction, relationshipPropertiesClass);
+				obverseRelationshipDescription.orElse(null), type, dynamicAssociation, (NodeDescription<?>) getOwner(),
+				this.getName(), obverseOwner, direction, relationshipPropertiesClass);
 
 		// Update the previous found, if any, relationship with the newly created one as its counterpart.
 		obverseRelationshipDescription
-			.ifPresent(relationship -> relationship.setRelationshipObverse(relationshipDescription));
+				.ifPresent(relationship -> relationship.setRelationshipObverse(relationshipDescription));
 
 		return relationshipDescription;
 	}
@@ -153,12 +150,12 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 			return null;
 		}
 
-		org.springframework.data.neo4j.core.schema.Property propertyAnnotation =
-			this.findAnnotation(org.springframework.data.neo4j.core.schema.Property.class);
+		org.springframework.data.neo4j.core.schema.Property propertyAnnotation = this
+				.findAnnotation(org.springframework.data.neo4j.core.schema.Property.class);
 
 		String targetName = this.getName();
 		if (propertyAnnotation != null && !propertyAnnotation.name().isEmpty()
-			&& propertyAnnotation.name().trim().length() != 0) {
+				&& propertyAnnotation.name().trim().length() != 0) {
 			targetName = propertyAnnotation.name().trim();
 		}
 
@@ -192,7 +189,6 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 		return isAssociation();
 	}
-
 
 	static String deriveRelationshipType(String name) {
 

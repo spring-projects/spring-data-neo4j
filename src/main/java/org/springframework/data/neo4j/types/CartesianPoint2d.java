@@ -24,28 +24,26 @@ import org.apiguardian.api.API;
 @API(status = API.Status.STABLE, since = "1.0")
 public final class CartesianPoint2d extends AbstractPoint {
 
-    static final int SRID = 7203;
+	static final int SRID = 7203;
 
-    CartesianPoint2d(Coordinate coordinate) {
-        super(coordinate, SRID);
-    }
+	CartesianPoint2d(Coordinate coordinate) {
+		super(coordinate, SRID);
+	}
 
-    public CartesianPoint2d(double x, double y) {
-        super(new Coordinate(x, y), SRID);
-    }
+	public CartesianPoint2d(double x, double y) {
+		super(new Coordinate(x, y), SRID);
+	}
 
-    public double getX() {
-        return coordinate.getX();
-    }
+	public double getX() {
+		return coordinate.getX();
+	}
 
-    public double getY() {
-        return coordinate.getY();
-    }
+	public double getY() {
+		return coordinate.getY();
+	}
 
-    @Override public String toString() {
-        return "CartesianPoint2d{" +
-            "x=" + getX() +
-            ", y=" + getY() +
-            '}';
-    }
+	@Override
+	public String toString() {
+		return "CartesianPoint2d{" + "x=" + getX() + ", y=" + getY() + '}';
+	}
 }

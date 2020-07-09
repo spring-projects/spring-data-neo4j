@@ -67,19 +67,17 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 		supportedTypes.put("AdditionalTypes", ADDITIONAL_TYPES);
 		supportedTypes.put("SpatialTypes", SPATIAL_TYPES);
 
-		return supportedTypes.entrySet().stream()
-			.map(types -> {
+		return supportedTypes.entrySet().stream().map(types -> {
 
-				DynamicContainer reads = DynamicContainer.dynamicContainer("read", types.getValue().entrySet().stream()
-					.map(a -> dynamicTest(a.getKey(),
-						() -> Neo4jConversionsIT.assertRead(types.getKey(), a.getKey(), a.getValue()))));
+			DynamicContainer reads = DynamicContainer.dynamicContainer("read", types.getValue().entrySet().stream().map(
+					a -> dynamicTest(a.getKey(), () -> Neo4jConversionsIT.assertRead(types.getKey(), a.getKey(), a.getValue()))));
 
-				DynamicContainer writes = DynamicContainer.dynamicContainer("write", types.getValue().entrySet().stream()
-					.map(a -> dynamicTest(a.getKey(),
-						() -> Neo4jConversionsIT.assertWrite(types.getKey(), a.getKey(), a.getValue()))));
+			DynamicContainer writes = DynamicContainer.dynamicContainer("write",
+					types.getValue().entrySet().stream().map(a -> dynamicTest(a.getKey(),
+							() -> Neo4jConversionsIT.assertWrite(types.getKey(), a.getKey(), a.getValue()))));
 
-				return DynamicContainer.dynamicContainer(types.getKey(), Arrays.asList(reads, writes));
-			});
+			return DynamicContainer.dynamicContainer(types.getKey(), Arrays.asList(reads, writes));
+		});
 	}
 
 	@TestFactory
@@ -87,38 +85,36 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 	Stream<DynamicTest> customConversions() {
 		final DefaultConversionService customConversionService = new DefaultConversionService();
 
-		ConverterBuilder.ConverterAware converterAware = ConverterBuilder
-			.reading(Value.class, LocalDate.class, v -> {
-				String s = v.asString();
-				switch (s) {
-					case "gestern":
-						return LocalDate.now().minusDays(1);
-					case "heute":
-						return LocalDate.now();
-					case "morgen":
-						return LocalDate.now().plusDays(1);
-					default:
-						throw new IllegalArgumentException();
-				}
-			}).andWriting(d -> {
-				if (d.isBefore(LocalDate.now())) {
-					return Values.value("gestern");
-				} else if (d.isAfter(LocalDate.now())) {
-					return Values.value("morgen");
-				} else {
-					return Values.value("heute");
-				}
-			});
+		ConverterBuilder.ConverterAware converterAware = ConverterBuilder.reading(Value.class, LocalDate.class, v -> {
+			String s = v.asString();
+			switch (s) {
+				case "gestern":
+					return LocalDate.now().minusDays(1);
+				case "heute":
+					return LocalDate.now();
+				case "morgen":
+					return LocalDate.now().plusDays(1);
+				default:
+					throw new IllegalArgumentException();
+			}
+		}).andWriting(d -> {
+			if (d.isBefore(LocalDate.now())) {
+				return Values.value("gestern");
+			} else if (d.isAfter(LocalDate.now())) {
+				return Values.value("morgen");
+			} else {
+				return Values.value("heute");
+			}
+		});
 		new Neo4jConversions(converterAware.getConverters()).registerConvertersIn(customConversionService);
 
 		return Stream.of(
-			dynamicTest("read",
-				() -> assertThat(customConversionService.convert(Values.value("gestern"), LocalDate.class))
-					.isEqualTo(LocalDate.now().minusDays(1))),
-			dynamicTest("write",
-				() -> assertThat(customConversionService.convert(LocalDate.now().plusDays(1), TYPE_DESCRIPTOR_OF_VALUE))
-					.isEqualTo(Values.value("morgen")))
-		);
+				dynamicTest("read",
+						() -> assertThat(customConversionService.convert(Values.value("gestern"), LocalDate.class))
+								.isEqualTo(LocalDate.now().minusDays(1))),
+				dynamicTest("write",
+						() -> assertThat(customConversionService.convert(LocalDate.now().plusDays(1), TYPE_DESCRIPTOR_OF_VALUE))
+								.isEqualTo(Values.value("morgen"))));
 	}
 
 	@Nested
@@ -159,7 +155,7 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 	static void assertRead(String label, String attribute, Object t) {
 		try (Session session = neo4jConnectionSupport.getDriver().session()) {
 			Value v = session.run("MATCH (n) WHERE labels(n) = [$label] RETURN n[$attribute] as r",
-				Values.parameters("label", label, "attribute", attribute)).single().get("r");
+					Values.parameters("label", label, "attribute", attribute)).single().get("r");
 
 			TypeDescriptor typeDescriptor = TypeDescriptor.forObject(t);
 			if (typeDescriptor.isCollection()) {
@@ -179,8 +175,8 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 		Value driverValue;
 		if (t != null && Collection.class.isAssignableFrom(t.getClass())) {
 			Collection<?> sourceCollection = (Collection<?>) t;
-			Object[] targetCollection = (sourceCollection).stream().map(element ->
-				DEFAULT_CONVERSION_SERVICE.convert(element, Value.class)).toArray();
+			Object[] targetCollection = (sourceCollection).stream()
+					.map(element -> DEFAULT_CONVERSION_SERVICE.convert(element, Value.class)).toArray();
 			driverValue = Values.value(targetCollection);
 		} else {
 			driverValue = DEFAULT_CONVERSION_SERVICE.convert(t, Value.class);
@@ -193,9 +189,8 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 			parameters.put("v", driverValue);
 
 			long cnt = session
-				.run("MATCH (n) WHERE labels(n) = [$label]  AND n[$attribute] = $v RETURN COUNT(n) AS cnt",
-					parameters)
-				.single().get("cnt").asLong();
+					.run("MATCH (n) WHERE labels(n) = [$label]  AND n[$attribute] = $v RETURN COUNT(n) AS cnt", parameters)
+					.single().get("cnt").asLong();
 			assertThat(cnt).isEqualTo(1L);
 		}
 	}

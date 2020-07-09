@@ -64,9 +64,8 @@ public class DynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction
+					.run("" + "CREATE (e:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) " + "RETURN id(e) as existingEntityId").single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -75,18 +74,15 @@ public class DynamicLabelsIT {
 		@Test
 		void shouldReadDynamicLabels(@Autowired Neo4jTemplate template) {
 
-			Optional<SimpleDynamicLabels> optionalEntity = template
-				.findById(existingEntityId, SimpleDynamicLabels.class);
-			assertThat(optionalEntity).hasValueSatisfying(entity ->
-				assertThat(entity.moreLabels).containsExactlyInAnyOrder("Foo", "Bar", "Baz", "Foobar")
-			);
+			Optional<SimpleDynamicLabels> optionalEntity = template.findById(existingEntityId, SimpleDynamicLabels.class);
+			assertThat(optionalEntity).hasValueSatisfying(
+					entity -> assertThat(entity.moreLabels).containsExactlyInAnyOrder("Foo", "Bar", "Baz", "Foobar"));
 		}
 
 		@Test
 		void shouldUpdateDynamicLabels(@Autowired Neo4jTemplate template) {
 
-			SimpleDynamicLabels entity = template
-				.findById(existingEntityId, SimpleDynamicLabels.class).get();
+			SimpleDynamicLabels entity = template.findById(existingEntityId, SimpleDynamicLabels.class).get();
 			entity.moreLabels.remove("Foo");
 			entity.moreLabels.add("Fizz");
 			template.save(entity);
@@ -130,9 +126,9 @@ public class DynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:InheritedSimpleDynamicLabels:Foo:Bar:Baz:Foobar) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction
+					.run("" + "CREATE (e:InheritedSimpleDynamicLabels:Foo:Bar:Baz:Foobar) " + "RETURN id(e) as existingEntityId")
+					.single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -141,25 +137,23 @@ public class DynamicLabelsIT {
 		@Test
 		void shouldReadDynamicLabels(@Autowired Neo4jTemplate template) {
 
-			Optional<InheritedSimpleDynamicLabels> optionalEntity = template
-				.findById(existingEntityId, InheritedSimpleDynamicLabels.class);
-			assertThat(optionalEntity).hasValueSatisfying(entity ->
-				assertThat(entity.moreLabels).containsExactlyInAnyOrder("Foo", "Bar", "Baz", "Foobar")
-			);
+			Optional<InheritedSimpleDynamicLabels> optionalEntity = template.findById(existingEntityId,
+					InheritedSimpleDynamicLabels.class);
+			assertThat(optionalEntity).hasValueSatisfying(
+					entity -> assertThat(entity.moreLabels).containsExactlyInAnyOrder("Foo", "Bar", "Baz", "Foobar"));
 		}
 
 		@Test
 		void shouldUpdateDynamicLabels(@Autowired Neo4jTemplate template) {
 
-			InheritedSimpleDynamicLabels entity = template
-				.findById(existingEntityId, InheritedSimpleDynamicLabels.class).get();
+			InheritedSimpleDynamicLabels entity = template.findById(existingEntityId, InheritedSimpleDynamicLabels.class)
+					.get();
 			entity.moreLabels.remove("Foo");
 			entity.moreLabels.add("Fizz");
 			template.save(entity);
 
 			List<String> labels = getLabels(existingEntityId);
-			assertThat(labels)
-				.containsExactlyInAnyOrder("InheritedSimpleDynamicLabels", "Fizz", "Bar", "Baz", "Foobar");
+			assertThat(labels).containsExactlyInAnyOrder("InheritedSimpleDynamicLabels", "Fizz", "Bar", "Baz", "Foobar");
 		}
 
 		@Test
@@ -182,9 +176,8 @@ public class DynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:SimpleDynamicLabelsWithBusinessId:Foo:Bar:Baz:Foobar {id: 'E1'}) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction.run("" + "CREATE (e:SimpleDynamicLabelsWithBusinessId:Foo:Bar:Baz:Foobar {id: 'E1'}) "
+					+ "RETURN id(e) as existingEntityId").single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -193,14 +186,12 @@ public class DynamicLabelsIT {
 		@Test
 		void shouldUpdateDynamicLabels(@Autowired Neo4jTemplate template) {
 
-			SimpleDynamicLabelsWithBusinessId entity = template
-				.findById("E1", SimpleDynamicLabelsWithBusinessId.class).get();
+			SimpleDynamicLabelsWithBusinessId entity = template.findById("E1", SimpleDynamicLabelsWithBusinessId.class).get();
 			entity.moreLabels.remove("Foo");
 			entity.moreLabels.add("Fizz");
 			template.save(entity);
 			List<String> labels = getLabels(existingEntityId);
-			assertThat(labels)
-				.containsExactlyInAnyOrder("SimpleDynamicLabelsWithBusinessId", "Fizz", "Bar", "Baz", "Foobar");
+			assertThat(labels).containsExactlyInAnyOrder("SimpleDynamicLabelsWithBusinessId", "Fizz", "Bar", "Baz", "Foobar");
 		}
 
 		@Test
@@ -223,9 +214,8 @@ public class DynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:SimpleDynamicLabelsWithVersion:Foo:Bar:Baz:Foobar {myVersion: 0}) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction.run("" + "CREATE (e:SimpleDynamicLabelsWithVersion:Foo:Bar:Baz:Foobar {myVersion: 0}) "
+					+ "RETURN id(e) as existingEntityId").single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -234,16 +224,15 @@ public class DynamicLabelsIT {
 		@Test
 		void shouldUpdateDynamicLabels(@Autowired Neo4jTemplate template) {
 
-			SimpleDynamicLabelsWithVersion entity = template
-				.findById(existingEntityId, SimpleDynamicLabelsWithVersion.class).get();
+			SimpleDynamicLabelsWithVersion entity = template.findById(existingEntityId, SimpleDynamicLabelsWithVersion.class)
+					.get();
 			entity.moreLabels.remove("Foo");
 			entity.moreLabels.add("Fizz");
 			entity = template.save(entity);
 
 			assertThat(entity.myVersion).isNotNull().isEqualTo(1);
 			List<String> labels = getLabels(existingEntityId);
-			assertThat(labels)
-				.containsExactlyInAnyOrder("SimpleDynamicLabelsWithVersion", "Fizz", "Bar", "Baz", "Foobar");
+			assertThat(labels).containsExactlyInAnyOrder("SimpleDynamicLabelsWithVersion", "Fizz", "Bar", "Baz", "Foobar");
 		}
 
 		@Test
@@ -267,9 +256,10 @@ public class DynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:SimpleDynamicLabelsWithBusinessIdAndVersion:Foo:Bar:Baz:Foobar {id: 'E2', myVersion: 0}) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction.run(
+					"" + "CREATE (e:SimpleDynamicLabelsWithBusinessIdAndVersion:Foo:Bar:Baz:Foobar {id: 'E2', myVersion: 0}) "
+							+ "RETURN id(e) as existingEntityId")
+					.single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -279,14 +269,13 @@ public class DynamicLabelsIT {
 		void shouldUpdateDynamicLabels(@Autowired Neo4jTemplate template) {
 
 			SimpleDynamicLabelsWithBusinessIdAndVersion entity = template
-				.findById("E2", SimpleDynamicLabelsWithBusinessIdAndVersion.class).get();
+					.findById("E2", SimpleDynamicLabelsWithBusinessIdAndVersion.class).get();
 			entity.moreLabels.remove("Foo");
 			entity.moreLabels.add("Fizz");
 			entity = template.save(entity);
 			assertThat(entity.myVersion).isNotNull().isEqualTo(1);
 			List<String> labels = getLabels(existingEntityId);
-			assertThat(labels)
-				.containsExactlyInAnyOrder("SimpleDynamicLabelsWithBusinessIdAndVersion", "Fizz", "Bar", "Baz",
+			assertThat(labels).containsExactlyInAnyOrder("SimpleDynamicLabelsWithBusinessIdAndVersion", "Fizz", "Bar", "Baz",
 					"Foobar");
 		}
 
@@ -312,9 +301,9 @@ public class DynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:SimpleDynamicLabelsCtor:Foo:Bar:Baz:Foobar) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction
+					.run("" + "CREATE (e:SimpleDynamicLabelsCtor:Foo:Bar:Baz:Foobar) " + "RETURN id(e) as existingEntityId")
+					.single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -323,11 +312,10 @@ public class DynamicLabelsIT {
 		@Test
 		void shouldReadDynamicLabels(@Autowired Neo4jTemplate template) {
 
-			Optional<SimpleDynamicLabelsCtor> optionalEntity = template
-				.findById(existingEntityId, SimpleDynamicLabelsCtor.class);
-			assertThat(optionalEntity).hasValueSatisfying(entity ->
-				assertThat(entity.moreLabels).containsExactlyInAnyOrder("Foo", "Bar", "Baz", "Foobar")
-			);
+			Optional<SimpleDynamicLabelsCtor> optionalEntity = template.findById(existingEntityId,
+					SimpleDynamicLabelsCtor.class);
+			assertThat(optionalEntity).hasValueSatisfying(
+					entity -> assertThat(entity.moreLabels).containsExactlyInAnyOrder("Foo", "Bar", "Baz", "Foobar"));
 		}
 	}
 
@@ -336,9 +324,8 @@ public class DynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction
+					.run("" + "CREATE (e:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) " + "RETURN id(e) as existingEntityId").single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -346,21 +333,19 @@ public class DynamicLabelsIT {
 
 		@Test
 		void shouldReadDynamicLabelsOnClassWithSingleNodeLabel(@Autowired Neo4jTemplate template) {
-			Optional<DynamicLabelsWithNodeLabel> optionalEntity = template
-				.findById(existingEntityId, DynamicLabelsWithNodeLabel.class);
-			assertThat(optionalEntity).hasValueSatisfying(entity ->
-				assertThat(entity.moreLabels).containsExactlyInAnyOrder("SimpleDynamicLabels", "Foo", "Bar", "Foobar")
-			);
+			Optional<DynamicLabelsWithNodeLabel> optionalEntity = template.findById(existingEntityId,
+					DynamicLabelsWithNodeLabel.class);
+			assertThat(optionalEntity).hasValueSatisfying(entity -> assertThat(entity.moreLabels)
+					.containsExactlyInAnyOrder("SimpleDynamicLabels", "Foo", "Bar", "Foobar"));
 		}
 
 		@Test
 		void shouldReadDynamicLabelsOnClassWithMultipleNodeLabel(@Autowired Neo4jTemplate template) {
 
-			Optional<DynamicLabelsWithMultipleNodeLabels> optionalEntity = template
-				.findById(existingEntityId, DynamicLabelsWithMultipleNodeLabels.class);
-			assertThat(optionalEntity).hasValueSatisfying(entity ->
-				assertThat(entity.moreLabels).containsExactlyInAnyOrder("SimpleDynamicLabels", "Baz", "Foobar")
-			);
+			Optional<DynamicLabelsWithMultipleNodeLabels> optionalEntity = template.findById(existingEntityId,
+					DynamicLabelsWithMultipleNodeLabels.class);
+			assertThat(optionalEntity).hasValueSatisfying(
+					entity -> assertThat(entity.moreLabels).containsExactlyInAnyOrder("SimpleDynamicLabels", "Baz", "Foobar"));
 		}
 
 	}
@@ -370,9 +355,9 @@ public class DynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(""
-				+ "CREATE (e:DynamicLabelsBaseClass:ExtendedBaseClass1:D1:D2:D3) "
-				+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction.run(
+					"" + "CREATE (e:DynamicLabelsBaseClass:ExtendedBaseClass1:D1:D2:D3) " + "RETURN id(e) as existingEntityId")
+					.single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -381,11 +366,9 @@ public class DynamicLabelsIT {
 		@Test
 		void shouldReadDynamicLabelsInInheritance(@Autowired Neo4jTemplate template) {
 
-			Optional<ExtendedBaseClass1> optionalEntity = template
-				.findById(existingEntityId, ExtendedBaseClass1.class);
-			assertThat(optionalEntity).hasValueSatisfying(entity ->
-				assertThat(entity.moreLabels).containsExactlyInAnyOrder("D1", "D2", "D3")
-			);
+			Optional<ExtendedBaseClass1> optionalEntity = template.findById(existingEntityId, ExtendedBaseClass1.class);
+			assertThat(optionalEntity)
+					.hasValueSatisfying(entity -> assertThat(entity.moreLabels).containsExactlyInAnyOrder("D1", "D2", "D3"));
 		}
 	}
 
@@ -393,8 +376,7 @@ public class DynamicLabelsIT {
 	@ContextConfiguration(classes = SpringTestBase.Config.class)
 	abstract static class SpringTestBase {
 
-		@Autowired
-		protected Driver driver;
+		@Autowired protected Driver driver;
 
 		protected Long existingEntityId;
 
@@ -415,20 +397,12 @@ public class DynamicLabelsIT {
 		protected final List<String> getLabels(Condition idCondition, Object id) {
 
 			Node n = Cypher.anyNode("n");
-			String cypher = Renderer.getDefaultRenderer().render(Cypher
-				.match(n)
-				.where(idCondition).and(not(exists(n.property("moreLabels"))))
-				.returning(n.labels().as("labels"))
-				.build()
-			);
+			String cypher = Renderer.getDefaultRenderer().render(Cypher.match(n).where(idCondition)
+					.and(not(exists(n.property("moreLabels")))).returning(n.labels().as("labels")).build());
 
 			try (Session session = driver.session()) {
-				return session
-					.readTransaction(tx -> tx
-						.run(cypher, Collections.singletonMap("id", id))
-						.single().get("labels")
-						.asList(Value::asString)
-					);
+				return session.readTransaction(
+						tx -> tx.run(cypher, Collections.singletonMap("id", id)).single().get("labels").asList(Value::asString));
 			}
 		}
 

@@ -25,9 +25,10 @@ import org.apiguardian.api.API;
 import org.springframework.data.annotation.QueryAnnotation;
 
 /**
- * Annotation to provide Cypher statements that will be used for executing the method. The Cypher statement may contain named
- * parameters as supported by the <a href="https://neo4j.com/docs/driver-manual/1.7/get-started/#driver-get-started-hello-world-example">>Neo4j Java Driver</a>.
- * Those parameters will get bound to the arguments of the annotated method.
+ * Annotation to provide Cypher statements that will be used for executing the method. The Cypher statement may contain
+ * named parameters as supported by the
+ * <a href="https://neo4j.com/docs/driver-manual/1.7/get-started/#driver-get-started-hello-world-example">>Neo4j Java
+ * Driver</a>. Those parameters will get bound to the arguments of the annotated method.
  *
  * @author Michael J. Simons
  * @since 1.0
@@ -53,7 +54,6 @@ public @interface Query {
 	 * @return whether the query defined should be executed as exists projection.
 	 */
 	boolean exists() default false;
-
 
 	/**
 	 * @return whether the query defined should be used to delete nodes or relationships.

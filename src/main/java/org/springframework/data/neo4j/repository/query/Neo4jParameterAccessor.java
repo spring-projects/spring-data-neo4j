@@ -29,7 +29,7 @@ final class Neo4jParameterAccessor extends ParametersParameterAccessor {
 	 * Creates a new {@link ParametersParameterAccessor}.
 	 *
 	 * @param parameters must not be {@literal null}.
-	 * @param values     must not be {@literal null}.
+	 * @param values must not be {@literal null}.
 	 */
 	Neo4jParameterAccessor(Parameters<Neo4jParameters, Neo4jParameter> parameters, Object[] values) {
 		super(parameters, values);

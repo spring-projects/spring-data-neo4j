@@ -44,8 +44,8 @@ public final class ReactiveOptimisticLockingBeforeBindCallback implements Reacti
 	public Publisher<Object> onBeforeBind(Object entity) {
 
 		return Mono.fromSupplier(() -> {
-			Neo4jPersistentEntity<?> neo4jPersistentEntity =
-				(Neo4jPersistentEntity<?>) neo4jMappingContext.getRequiredNodeDescription(entity.getClass());
+			Neo4jPersistentEntity<?> neo4jPersistentEntity = (Neo4jPersistentEntity<?>) neo4jMappingContext
+					.getRequiredNodeDescription(entity.getClass());
 
 			if (neo4jPersistentEntity.hasVersionProperty()) {
 				PersistentPropertyAccessor<Object> propertyAccessor = neo4jPersistentEntity.getPropertyAccessor(entity);

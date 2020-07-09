@@ -47,7 +47,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelatives> {
 
-	@Autowired DynamicRelationshipsIT(Driver driver) {
+	@Autowired
+	DynamicRelationshipsIT(Driver driver) {
 		super(driver);
 	}
 
@@ -118,8 +119,8 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 		person = repository.save(person);
 		pets = person.getPets();
 		assertThat(pets).containsOnlyKeys(TypeOfPet.CATS, TypeOfPet.FISH);
-		assertThat(pets.get(TypeOfPet.CATS)).extracting(Pet::getName)
-			.containsExactlyInAnyOrder("Tom", "Garfield", "Delilah");
+		assertThat(pets.get(TypeOfPet.CATS)).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield",
+				"Delilah");
 		assertThat(pets.get(TypeOfPet.FISH)).extracting(Pet::getName).containsExactlyInAnyOrder("Nemo");
 	}
 
@@ -142,11 +143,10 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 		assertThat(relatives).containsOnlyKeys(TypeOfRelative.RELATIVE_1, TypeOfRelative.RELATIVE_2);
 
 		try (Transaction transaction = driver.session().beginTransaction()) {
-			long numberOfRelations = transaction.run(""
-				+ "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id "
-				+ "RETURN size((t)-->(:Person))"
-				+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
-				.single().get("numberOfRelations").asLong();
+			long numberOfRelations = transaction
+					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Person))"
+							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
+					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 		}
 	}
@@ -169,17 +169,15 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 		assertThat(pets).containsOnlyKeys(TypeOfPet.MONSTERS, TypeOfPet.FISH);
 
 		try (Transaction transaction = driver.session().beginTransaction()) {
-			long numberOfRelations = transaction.run(""
-				+ "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id "
-				+ "RETURN size((t)-->(:Pet))"
-				+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
-				.single().get("numberOfRelations").asLong();
+			long numberOfRelations = transaction
+					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Pet))"
+							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
+					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(3L);
 		}
 	}
 
-	interface PersonWithRelativesRepository extends CrudRepository<PersonWithRelatives, Long> {
-	}
+	interface PersonWithRelativesRepository extends CrudRepository<PersonWithRelatives, Long> {}
 
 	@Configuration
 	@EnableTransactionManagement

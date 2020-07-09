@@ -40,14 +40,14 @@ import org.springframework.util.StringUtils;
  * @since 1.0
  */
 class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty>
-	implements Neo4jPersistentEntity<T> {
+		implements Neo4jPersistentEntity<T> {
 
-	private static final Set<Class<?>> VALID_GENERATED_ID_TYPES = Collections.unmodifiableSet(new HashSet<>(
-		Arrays.asList(Long.class, long.class)));
+	private static final Set<Class<?>> VALID_GENERATED_ID_TYPES = Collections
+			.unmodifiableSet(new HashSet<>(Arrays.asList(Long.class, long.class)));
 
 	/**
-	 * If an entity is annotated with {@link Node}, we consider this as an explicit entity
-	 * that should get validated more strictly.
+	 * If an entity is annotated with {@link Node}, we consider this as an explicit entity that should get validated more
+	 * strictly.
 	 */
 	private final Boolean isExplicitEntity;
 
@@ -61,8 +61,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	/**
 	 * Projections need to be also be eligible entities but don't define id fields.
 	 */
-	@Nullable
-	private IdDescription idDescription;
+	@Nullable private IdDescription idDescription;
 
 	private final Lazy<Collection<GraphPropertyDescription>> graphProperties;
 
@@ -79,8 +78,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		this.primaryLabel = computePrimaryLabel();
 		this.additionalLabels = Lazy.of(this::computeAdditionalLabels);
 		this.graphProperties = Lazy.of(this::computeGraphProperties);
-		this.dynamicLabelsProperty = Lazy
-			.of(() -> getGraphProperties().stream().map(Neo4jPersistentProperty.class::cast)
+		this.dynamicLabelsProperty = Lazy.of(() -> getGraphProperties().stream().map(Neo4jPersistentProperty.class::cast)
 				.filter(Neo4jPersistentProperty::isDynamicLabels).findFirst().orElse(null));
 	}
 
@@ -174,8 +172,8 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 			}
 		});
 
-		Assert.state(duplicates.isEmpty(), () ->
-				String.format("Duplicate definition of propert%s %s in entity %s.", duplicates.size() == 1 ? "y" : "ies", duplicates, getUnderlyingClass()));
+		Assert.state(duplicates.isEmpty(), () -> String.format("Duplicate definition of propert%s %s in entity %s.",
+				duplicates.size() == 1 ? "y" : "ies", duplicates, getUnderlyingClass()));
 	}
 
 	private void verifyDynamicAssociations() {
@@ -186,16 +184,14 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 			if (inverse.isDynamicAssociation()) {
 				Relationship relationship = inverse.findAnnotation(Relationship.class);
 				Assert.state(relationship == null || relationship.type().isEmpty(),
-					() ->
-						"Dynamic relationships cannot be used with a fixed type. Omit @Relationship or use @Relationship(direction = "
-							+ relationship.direction().name() + ") without a type in " + this.getUnderlyingClass()
-							+ " on field " + inverse.getFieldName() + ".");
+						() -> "Dynamic relationships cannot be used with a fixed type. Omit @Relationship or use @Relationship(direction = "
+								+ relationship.direction().name() + ") without a type in " + this.getUnderlyingClass() + " on field "
+								+ inverse.getFieldName() + ".");
 
 				Assert.state(!targetEntities.contains(inverse.getAssociationTargetType()),
-					() -> this.getUnderlyingClass() + " already contains a dynamic relationship to " + inverse
-						.getAssociationTargetType()
-						+ ". Only one dynamic relationship between to entities is permitted."
-				);
+						() -> this.getUnderlyingClass() + " already contains a dynamic relationship to "
+								+ inverse.getAssociationTargetType()
+								+ ". Only one dynamic relationship between to entities is permitted.");
 				targetEntities.add(inverse.getAssociationTargetType());
 			}
 		});
@@ -212,24 +208,21 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 			String propertyName = persistentProperty.getPropertyName();
 			namesOfPropertiesWithDynamicLabels.add(propertyName);
 
-			Assert.state(persistentProperty.isCollectionLike(),
-				() -> String.format("Property %s on %s must extends %s.", persistentProperty.getFieldName(),
-					persistentProperty.getOwner().getType(), Collection.class.getName())
-			);
+			Assert.state(persistentProperty.isCollectionLike(), () -> String.format("Property %s on %s must extends %s.",
+					persistentProperty.getFieldName(), persistentProperty.getOwner().getType(), Collection.class.getName()));
 		});
 
-		Assert.state(namesOfPropertiesWithDynamicLabels.size() <= 1, () ->
-			String.format(
-				"Multiple properties in entity %s are annotated with @%s: %s.", getUnderlyingClass(),
-				DynamicLabels.class.getSimpleName(), namesOfPropertiesWithDynamicLabels));
+		Assert.state(namesOfPropertiesWithDynamicLabels.size() <= 1,
+				() -> String.format("Multiple properties in entity %s are annotated with @%s: %s.", getUnderlyingClass(),
+						DynamicLabels.class.getSimpleName(), namesOfPropertiesWithDynamicLabels));
 	}
 
 	/**
 	 * The primary label will get computed and returned by following rules:<br>
 	 * 1. If there is no {@link Node} annotation, use the class name.<br>
 	 * 2. If there is an annotation but it has no properties set, use the class name.<br>
-	 * 3. If only {@link Node#labels()} property is set, use the first one as the primary label
-	 * 4. If the {@link Node#primaryLabel()} property is set, use this as the primary label
+	 * 3. If only {@link Node#labels()} property is set, use the first one as the primary label 4. If the
+	 * {@link Node#primaryLabel()} property is set, use this as the primary label
 	 *
 	 * @return computed primary label
 	 */
@@ -253,7 +246,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	private List<String> computeAdditionalLabels() {
 
 		return Stream.concat(computeOwnAdditionalLabels().stream(), computeParentLabels().stream())
-			.collect(Collectors.toList());
+				.collect(Collectors.toList());
 	}
 
 	/**
@@ -316,21 +309,20 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		String idGeneratorRef = generatedValueAnnotation.generatorRef();
 
 		if (idProperty.getActualType() == UUID.class && idGeneratorClass == GeneratedValue.InternalIdGenerator.class
-			&& !StringUtils.hasText(idGeneratorRef)) {
+				&& !StringUtils.hasText(idGeneratorRef)) {
 			idGeneratorClass = GeneratedValue.UUIDGenerator.class;
 		}
 
 		// Internally generated ids.
 		if (idGeneratorClass == GeneratedValue.InternalIdGenerator.class && idGeneratorRef.isEmpty()) {
 			if (idProperty.findAnnotation(Property.class) != null) {
-				throw new IllegalArgumentException(
-					"Cannot use internal id strategy with custom property " + propertyName
+				throw new IllegalArgumentException("Cannot use internal id strategy with custom property " + propertyName
 						+ " on entity class " + this.getUnderlyingClass().getName());
 			}
 
 			if (!VALID_GENERATED_ID_TYPES.contains(idProperty.getActualType())) {
 				throw new IllegalArgumentException(
-					"Internally generated ids can only be assigned to one of " + VALID_GENERATED_ID_TYPES);
+						"Internally generated ids can only be assigned to one of " + VALID_GENERATED_ID_TYPES);
 			}
 
 			return IdDescription.forInternallyGeneratedIds();
@@ -344,9 +336,8 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	public Collection<RelationshipDescription> getRelationships() {
 
 		final List<RelationshipDescription> relationships = new ArrayList<>();
-		this.doWithAssociations((Association<Neo4jPersistentProperty> association) ->
-			relationships.add((RelationshipDescription) association)
-		);
+		this.doWithAssociations(
+				(Association<Neo4jPersistentProperty> association) -> relationships.add((RelationshipDescription) association));
 		return Collections.unmodifiableCollection(relationships);
 	}
 
@@ -362,8 +353,8 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	@Override
 	public Collection<GraphPropertyDescription> getGraphPropertiesInHierarchy() {
 
-		TreeSet<GraphPropertyDescription> allPropertiesInHierarchy =
-			new TreeSet<>(Comparator.comparing(GraphPropertyDescription::getPropertyName));
+		TreeSet<GraphPropertyDescription> allPropertiesInHierarchy = new TreeSet<>(
+				Comparator.comparing(GraphPropertyDescription::getPropertyName));
 
 		allPropertiesInHierarchy.addAll(getGraphProperties());
 		for (NodeDescription<?> childNodeDescription : getChildNodeDescriptionsInHierarchy()) {

@@ -36,8 +36,7 @@ final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Reco
 
 	private final Class<T> targetClass;
 
-	SingleValueMappingFunction(ConversionService conversionService,
-		Class<T> targetClass) {
+	SingleValueMappingFunction(ConversionService conversionService, Class<T> targetClass) {
 		this.conversionService = conversionService;
 		this.targetClass = targetClass;
 	}
@@ -50,8 +49,7 @@ final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Reco
 		}
 
 		if (record.size() > 1) {
-			throw new IllegalArgumentException(
-				"Records with more than one value cannot be converted without a mapper.");
+			throw new IllegalArgumentException("Records with more than one value cannot be converted without a mapper.");
 		}
 
 		Value source = record.get(0);

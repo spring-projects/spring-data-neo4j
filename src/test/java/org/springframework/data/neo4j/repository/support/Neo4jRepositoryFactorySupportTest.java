@@ -32,24 +32,24 @@ class Neo4jRepositoryFactorySupportTest {
 		void mismatchingClassTypes() {
 
 			assertThatIllegalArgumentException()
-				.isThrownBy(() -> Neo4jRepositoryFactorySupport.assertIdentifierType(String.class, Long.class))
-				.withMessage("The repository id type class java.lang.String differs from the entity id type class java.lang.Long.");
+					.isThrownBy(() -> Neo4jRepositoryFactorySupport.assertIdentifierType(String.class, Long.class)).withMessage(
+							"The repository id type class java.lang.String differs from the entity id type class java.lang.Long.");
 		}
 
 		@Test
 		void mismatchingPrimitiveTypes() {
 
 			assertThatIllegalArgumentException()
-				.isThrownBy(() -> Neo4jRepositoryFactorySupport.assertIdentifierType(int.class, long.class))
-				.withMessage("The repository id type int differs from the entity id type long.");
+					.isThrownBy(() -> Neo4jRepositoryFactorySupport.assertIdentifierType(int.class, long.class))
+					.withMessage("The repository id type int differs from the entity id type long.");
 		}
 
 		@Test
 		void mismatchingPrimitiveAndClassTypes() {
 
 			assertThatIllegalArgumentException()
-				.isThrownBy(() -> Neo4jRepositoryFactorySupport.assertIdentifierType(Integer.class, long.class))
-				.withMessage("The repository id type class java.lang.Integer differs from the entity id type long.");
+					.isThrownBy(() -> Neo4jRepositoryFactorySupport.assertIdentifierType(Integer.class, long.class))
+					.withMessage("The repository id type class java.lang.Integer differs from the entity id type long.");
 		}
 
 		@Test

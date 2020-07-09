@@ -24,34 +24,30 @@ import org.apiguardian.api.API;
 @API(status = API.Status.STABLE, since = "1.0")
 public final class CartesianPoint3d extends AbstractPoint {
 
-    static final int SRID = 9157;
+	static final int SRID = 9157;
 
-    CartesianPoint3d(Coordinate coordinate) {
-        super(coordinate, SRID);
-    }
+	CartesianPoint3d(Coordinate coordinate) {
+		super(coordinate, SRID);
+	}
 
-    public CartesianPoint3d(double x, double y, double z) {
-        super(new Coordinate(x, y, z), SRID);
-    }
+	public CartesianPoint3d(double x, double y, double z) {
+		super(new Coordinate(x, y, z), SRID);
+	}
 
-    public double getX() {
-        return coordinate.getX();
-    }
+	public double getX() {
+		return coordinate.getX();
+	}
 
-    public double getY() {
-        return coordinate.getY();
-    }
+	public double getY() {
+		return coordinate.getY();
+	}
 
-    public Double getZ() {
-        return coordinate.getZ();
-    }
+	public Double getZ() {
+		return coordinate.getZ();
+	}
 
-    @Override
-    public String toString() {
-        return "CartesianPoint3d{" +
-            "x=" + getX() +
-            ", y=" + getY() +
-            ", z=" + getZ() +
-            '}';
-    }
+	@Override
+	public String toString() {
+		return "CartesianPoint3d{" + "x=" + getX() + ", y=" + getY() + ", z=" + getZ() + '}';
+	}
 }

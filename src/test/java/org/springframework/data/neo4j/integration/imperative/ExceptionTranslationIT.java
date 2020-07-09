@@ -83,9 +83,8 @@ class ExceptionTranslationIT {
 		neo4jClient.query("CREATE (:SimplePerson {name: 'Tom'})").run();
 
 		assertThatExceptionOfType(DataIntegrityViolationException.class)
-			.isThrownBy(() -> neo4jClient.query("CREATE (:SimplePerson {name: 'Tom'})").run())
-			.withMessageMatching(
-				"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed'");
+				.isThrownBy(() -> neo4jClient.query("CREATE (:SimplePerson {name: 'Tom'})").run()).withMessageMatching(
+						"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed'");
 	}
 
 	@Test
@@ -93,9 +92,8 @@ class ExceptionTranslationIT {
 		repository.save(new SimplePerson("Jerry"));
 
 		assertThatExceptionOfType(DataIntegrityViolationException.class)
-			.isThrownBy(() -> repository.save(new SimplePerson("Jerry")))
-			.withMessageMatching(
-				"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed'");
+				.isThrownBy(() -> repository.save(new SimplePerson("Jerry"))).withMessageMatching(
+						"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed'");
 	}
 
 	/*
@@ -106,17 +104,15 @@ class ExceptionTranslationIT {
 		ResultSummary summary = customDAO.createPerson();
 		assertThat(summary.counters().nodesCreated()).isEqualTo(1L);
 
-		assertThatExceptionOfType(DataIntegrityViolationException.class)
-			.isThrownBy(() -> customDAO.createPerson())
-			.withMessageMatching(
-				"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed'");
+		assertThatExceptionOfType(DataIntegrityViolationException.class).isThrownBy(() -> customDAO.createPerson())
+				.withMessageMatching(
+						"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed'");
 	}
 
 	@Node
 	static class SimplePerson {
 
-		@Id @GeneratedValue
-		private Long id;
+		@Id @GeneratedValue private Long id;
 
 		private String name;
 
@@ -129,8 +125,7 @@ class ExceptionTranslationIT {
 		}
 	}
 
-	interface SimplePersonRepository extends Neo4jRepository<SimplePerson, Long> {
-	}
+	interface SimplePersonRepository extends Neo4jRepository<SimplePerson, Long> {}
 
 	@Repository
 	static class CustomDAO {
@@ -143,17 +138,16 @@ class ExceptionTranslationIT {
 
 		public ResultSummary createPerson() {
 
-			return neo4jClient.delegateTo(queryRunner ->
-				Optional.of(queryRunner.run("CREATE (:SimplePerson {name: 'Tom'})").consume()))
-				.run().get();
+			return neo4jClient
+					.delegateTo(queryRunner -> Optional.of(queryRunner.run("CREATE (:SimplePerson {name: 'Tom'})").consume()))
+					.run().get();
 		}
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories(
-		considerNestedRepositories = true,
-		includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = ExceptionTranslationIT.SimplePersonRepository.class)
-	)
+	@EnableNeo4jRepositories(considerNestedRepositories = true,
+			includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
+					value = ExceptionTranslationIT.SimplePersonRepository.class))
 	@EnableTransactionManagement
 	static class Config extends AbstractNeo4jConfig {
 
@@ -167,7 +161,8 @@ class ExceptionTranslationIT {
 			return new CustomDAO(neo4jClient);
 		}
 
-		// If someone wants to use the plain driver or the delegating mechanism of the client, than they must provide a couple of more beans.
+		// If someone wants to use the plain driver or the delegating mechanism of the client, than they must provide a
+		// couple of more beans.
 		@Bean
 		public Neo4jPersistenceExceptionTranslator neo4jPersistenceExceptionTranslator() {
 			return new Neo4jPersistenceExceptionTranslator();

@@ -52,7 +52,8 @@ class ProjectionIT {
 
 	private final Driver driver;
 
-	@Autowired ProjectionIT(Driver driver) {
+	@Autowired
+	ProjectionIT(Driver driver) {
 		this.driver = driver;
 	}
 
@@ -63,9 +64,8 @@ class ProjectionIT {
 
 		transaction.run("MATCH (n) detach delete n");
 
-		transaction.run("CREATE (:Person{firstName:'" + FIRST_NAME + "', lastName:'" + LAST_NAME + "'})"
-			+ "-[:LIVES_AT]->"
-			+ "(:Address{city:'" + CITY + "'})");
+		transaction.run("CREATE (:Person{firstName:'" + FIRST_NAME + "', lastName:'" + LAST_NAME + "'})" + "-[:LIVES_AT]->"
+				+ "(:Address{city:'" + CITY + "'})");
 
 		transaction.commit();
 		transaction.close();
@@ -128,8 +128,8 @@ class ProjectionIT {
 
 	@Test
 	void findDynamicProjectionForPersonSummary(@Autowired ProjectionPersonRepository repository) {
-		Collection<PersonSummary> people = repository
-			.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, PersonSummary.class);
+		Collection<PersonSummary> people = repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME,
+				PersonSummary.class);
 		assertThat(people).hasSize(1);
 
 		PersonSummary person = people.iterator().next();
@@ -144,8 +144,7 @@ class ProjectionIT {
 
 	@Test
 	void findDynamicProjectionForNamesOnlyDto(@Autowired ProjectionPersonRepository repository) {
-		Collection<NamesOnlyDto> people = repository
-			.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, NamesOnlyDto.class);
+		Collection<NamesOnlyDto> people = repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, NamesOnlyDto.class);
 		assertThat(people).hasSize(1);
 
 		NamesOnlyDto person = people.iterator().next();

@@ -63,9 +63,10 @@ class SingleValueMappingFunctionTest {
 
 			when(record.size()).thenReturn(0);
 
-			SingleValueMappingFunction<String> mappingFunction = new SingleValueMappingFunction<>(conversionService, String.class);
+			SingleValueMappingFunction<String> mappingFunction = new SingleValueMappingFunction<>(conversionService,
+					String.class);
 			assertThatIllegalArgumentException().isThrownBy(() -> mappingFunction.apply(typeSystem, record))
-				.withMessage("Record has no elements, cannot map nothing.");
+					.withMessage("Record has no elements, cannot map nothing.");
 		}
 
 		@Test
@@ -73,9 +74,10 @@ class SingleValueMappingFunctionTest {
 
 			when(record.size()).thenReturn(23);
 
-			SingleValueMappingFunction<String> mappingFunction = new SingleValueMappingFunction<>(conversionService, String.class);
+			SingleValueMappingFunction<String> mappingFunction = new SingleValueMappingFunction<>(conversionService,
+					String.class);
 			assertThatIllegalArgumentException().isThrownBy(() -> mappingFunction.apply(typeSystem, record))
-				.withMessage("Records with more than one value cannot be converted without a mapper.");
+					.withMessage("Records with more than one value cannot be converted without a mapper.");
 		}
 	}
 
@@ -85,7 +87,8 @@ class SingleValueMappingFunctionTest {
 		when(record.size()).thenReturn(1);
 		when(record.get(0)).thenReturn(Values.NULL);
 
-		SingleValueMappingFunction<String> mappingFunction = new SingleValueMappingFunction<>(conversionService, String.class);
+		SingleValueMappingFunction<String> mappingFunction = new SingleValueMappingFunction<>(conversionService,
+				String.class);
 		assertThat(mappingFunction.apply(typeSystem, record)).isNull();
 	}
 
@@ -95,9 +98,11 @@ class SingleValueMappingFunctionTest {
 		when(record.size()).thenReturn(1);
 		when(record.get(0)).thenReturn(Values.value("Guten Tag."));
 
-		SingleValueMappingFunction<Period> mappingFunction = new SingleValueMappingFunction<>(conversionService, Period.class);
-		assertThatExceptionOfType(ConversionFailedException.class).isThrownBy(() -> mappingFunction.apply(typeSystem, record))
-			.withMessageStartingWith("Failed to convert from type [org.neo4j.driver.internal.value.StringValue] to type [java.time.Period] for value '\"Guten Tag.\"'");
+		SingleValueMappingFunction<Period> mappingFunction = new SingleValueMappingFunction<>(conversionService,
+				Period.class);
+		assertThatExceptionOfType(ConversionFailedException.class)
+				.isThrownBy(() -> mappingFunction.apply(typeSystem, record)).withMessageStartingWith(
+						"Failed to convert from type [org.neo4j.driver.internal.value.StringValue] to type [java.time.Period] for value '\"Guten Tag.\"'");
 	}
 
 	@Test
@@ -109,7 +114,7 @@ class SingleValueMappingFunctionTest {
 		when(record.get(0)).thenReturn(Values.value(aDate));
 
 		SingleValueMappingFunction<LocalDate> mappingFunction = new SingleValueMappingFunction<>(conversionService,
-			LocalDate.class);
+				LocalDate.class);
 		assertThat(mappingFunction.apply(typeSystem, record)).isEqualTo(aDate);
 	}
 }

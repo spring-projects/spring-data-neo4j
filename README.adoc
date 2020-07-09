@@ -4,15 +4,13 @@ image:https://spring.io/badges/spring-data-neo4j/ga.svg[Spring Data Neo4j,link=h
 :sectanchors:
 
 // tag::properties[]
-:neo4jGroupId: org.neo4j.springframework.data
-:springGroupId: org.springframework.data.neo4j
+:neo4jGroupId: org.springframework.data.neo4j
 :artifactId: spring-data-neo4j
-:artifactIdStarter: spring-data-neo4j-rx-spring-boot-starter
+:artifactIdStarter: spring-data-neo4j-spring-boot-starter
 
 :neo4j-version: 4.0.4
-:spring-boot-version: 2.3.0.RELEASE
-:spring-data-neo4j-rx-version: 1.1.1
-:spring-data-neo4j-version: 6.0.0
+:spring-boot-version: 2.3.2.RELEASE
+:spring-data-neo4j-version: 6.0.0-SNAPSHOT
 // end::properties[]
 
 [abstract]
@@ -49,7 +47,7 @@ If you are on https://spring.io/projects/spring-boot[Spring Boot], all you have 
 <dependency>
 	<groupId>{neo4jgroupId}</groupId>
 	<artifactId>{artifactIdStarter}</artifactId>
-	<version>{spring-data-neo4j-rx-version}</version>
+	<version>{spring-data-neo4j-version}</version>
 </dependency>
 ----
 
@@ -57,9 +55,9 @@ and configure your database connection:
 
 [source,properties]
 ----
-org.neo4j.driver.uri=bolt://localhost:7687
-org.neo4j.driver.authentication.username=neo4j
-org.neo4j.driver.authentication.password=secret
+spring.neo4j.uri=bolt://localhost:7687
+spring.neo4j.authentication.username=neo4j
+spring.neo4j.authentication.password=secret
 ----
 
 Please have a look at our https://neo4j.github.io/sdn-rx[manual] for an overview about the architecture, how to define
@@ -103,9 +101,6 @@ The imperative version looks pretty much the same but uses `EnableNeo4jRepositor
 
 IMPORTANT: We recommend Spring Boot, the automatic configuration and especially the dependency management
 through the Starters in contrast to the manual work of managing dependencies and configuration.
-+
-Please consult our https://neo4j.github.io/sdn-rx[manual] for more information.
-
 
 Here is a quick teaser of a reactive application using Spring Data Repositories in Java:
 
@@ -150,7 +145,7 @@ class MyService {
 
 === Building SDN
 
-Please have a look at the documentation: https://neo4j.github.io/sdn-rx/current/#building-sdn-rx[Building SDN].
+Please have a look at the documentation: https://docs.spring.io/spring-data/neo4j/docs/current/reference/html/#building-sdn-rx[Building SDN].
 
 == Getting Help
 

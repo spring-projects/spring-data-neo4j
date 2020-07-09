@@ -30,15 +30,15 @@ class DelegatingMappingFunctionWithNullCheckTest {
 	@Test
 	void shouldBeHappyWithNonNullValues() {
 		DelegatingMappingFunctionWithNullCheck<String> function = new DelegatingMappingFunctionWithNullCheck(
-			(typeSystem, record) -> "Tada.");
+				(typeSystem, record) -> "Tada.");
 		assertThat(function.apply(mock(TypeSystem.class), mock(Record.class))).isEqualTo("Tada.");
 	}
 
 	@Test
 	void shouldThrowExceptions() {
 		DelegatingMappingFunctionWithNullCheck<String> function = new DelegatingMappingFunctionWithNullCheck(
-			(typeSystem, record) -> null);
+				(typeSystem, record) -> null);
 		assertThatIllegalStateException().isThrownBy(() -> function.apply(mock(TypeSystem.class), mock(Record.class)))
-			.withMessageMatching("Mapping function .* returned illegal null value for record .*");
+				.withMessageMatching("Mapping function .* returned illegal null value for record .*");
 	}
 }

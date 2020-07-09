@@ -42,7 +42,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 class IdGeneratorsIT extends IdGeneratorsITBase {
 
-	@Autowired IdGeneratorsIT(Driver driver) {
+	@Autowired
+	IdGeneratorsIT(Driver driver) {
 		super(driver);
 	}
 
@@ -52,9 +53,7 @@ class IdGeneratorsIT extends IdGeneratorsITBase {
 		ThingWithGeneratedId t = new ThingWithGeneratedId("Foobar");
 		t.setName("Foobar");
 		t = repository.save(t);
-		assertThat(t.getTheId())
-			.isNotBlank()
-			.matches("thingWithGeneratedId-\\d+");
+		assertThat(t.getTheId()).isNotBlank().matches("thingWithGeneratedId-\\d+");
 
 		verifyDatabase(t.getTheId(), t.getName());
 	}
@@ -73,18 +72,15 @@ class IdGeneratorsIT extends IdGeneratorsITBase {
 	@Test
 	void idGenerationWithNewEntitiesShouldWork(@Autowired ThingWithGeneratedIdRepository repository) {
 
-		List<ThingWithGeneratedId> things = IntStream.rangeClosed(1, 10)
-			.mapToObj(i -> new ThingWithGeneratedId("name" + i))
-			.collect(toList());
+		List<ThingWithGeneratedId> things = IntStream.rangeClosed(1, 10).mapToObj(i -> new ThingWithGeneratedId("name" + i))
+				.collect(toList());
 
 		Iterable<ThingWithGeneratedId> savedThings = repository.saveAll(things);
-		assertThat(savedThings)
-			.hasSize(things.size())
-			.extracting(ThingWithGeneratedId::getTheId)
-			.allMatch(s -> s.matches("thingWithGeneratedId-\\d+"));
+		assertThat(savedThings).hasSize(things.size()).extracting(ThingWithGeneratedId::getTheId)
+				.allMatch(s -> s.matches("thingWithGeneratedId-\\d+"));
 
-		Set<String> distinctIds = StreamSupport.stream(savedThings.spliterator(), false)
-			.map(ThingWithGeneratedId::getTheId).collect(toSet());
+		Set<String> distinctIds = StreamSupport.stream(savedThings.spliterator(), false).map(ThingWithGeneratedId::getTheId)
+				.collect(toSet());
 
 		assertThat(distinctIds).hasSize(things.size());
 	}
@@ -96,18 +92,14 @@ class IdGeneratorsIT extends IdGeneratorsITBase {
 		t.setName("changed");
 		t = repository.save(t);
 
-		assertThat(t.getTheId())
-			.isNotBlank()
-			.isEqualTo(ID_OF_EXISTING_THING);
+		assertThat(t.getTheId()).isNotBlank().isEqualTo(ID_OF_EXISTING_THING);
 
 		verifyDatabase(t.getTheId(), t.getName());
 	}
 
-	interface ThingWithGeneratedIdRepository extends CrudRepository<ThingWithGeneratedId, String> {
-	}
+	interface ThingWithGeneratedIdRepository extends CrudRepository<ThingWithGeneratedId, String> {}
 
-	interface ThingWithIdGeneratedByBeanRepository extends CrudRepository<ThingWithIdGeneratedByBean, String> {
-	}
+	interface ThingWithIdGeneratedByBeanRepository extends CrudRepository<ThingWithIdGeneratedByBean, String> {}
 
 	@Configuration
 	@EnableTransactionManagement

@@ -27,13 +27,12 @@ import org.neo4j.driver.types.TypeSystem;
 import org.springframework.lang.Nullable;
 
 /**
- * Typed preparation of a query that is used to create either an executable query.
- * Executable queries come in two fashions: imperative and reactive. Depending on which client is used to retrieve one,
- * you get one or the other.
+ * Typed preparation of a query that is used to create either an executable query. Executable queries come in two
+ * fashions: imperative and reactive. Depending on which client is used to retrieve one, you get one or the other.
  * <p>
  * When no mapping function is provided, the Neo4j client will assume a simple type to be returned. Otherwise make sure
- * that the query fits to the mapping function, that is: It must return all nodes, relationships and paths that is expected
- * by the mapping function to work correctly.
+ * that the query fits to the mapping function, that is: It must return all nodes, relationships and paths that is
+ * expected by the mapping function to work correctly.
  *
  * @param <T> The type of the objects returned by this query.
  * @author Michael J. Simons
@@ -118,8 +117,7 @@ public final class PreparedQuery<T> {
 			return this;
 		}
 
-		public OptionalBuildSteps<CT> usingMappingFunction(
-			@Nullable BiFunction<TypeSystem, Record, ?> newMappingFunction) {
+		public OptionalBuildSteps<CT> usingMappingFunction(@Nullable BiFunction<TypeSystem, Record, ?> newMappingFunction) {
 			this.mappingFunction = newMappingFunction;
 			return this;
 		}

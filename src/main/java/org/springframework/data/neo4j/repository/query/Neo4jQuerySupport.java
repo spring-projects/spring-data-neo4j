@@ -74,7 +74,8 @@ abstract class Neo4jQuerySupport {
 	}
 
 	protected final Neo4jParameterAccessor getParameterAccessor(Object[] actualParameters) {
-		return new Neo4jParameterAccessor((Neo4jQueryMethod.Neo4jParameters) this.queryMethod.getParameters(), actualParameters);
+		return new Neo4jParameterAccessor((Neo4jQueryMethod.Neo4jParameters) this.queryMethod.getParameters(),
+				actualParameters);
 	}
 
 	protected final ResultProcessor getResultProcessor(ParameterAccessor parameterAccessor) {
@@ -125,7 +126,7 @@ abstract class Neo4jQuerySupport {
 			// it does not make any sense to continue if a `null` value gets into a comparison
 			// but we just warn the users and do not throw an exception on `null`.
 			log.warn("Do not use `null` as a property value for comparison."
-				+ " It will always be false and return an empty result.");
+					+ " It will always be false and return an empty result.");
 
 			return Values.NULL;
 		}
@@ -146,8 +147,8 @@ abstract class Neo4jQuerySupport {
 		}
 
 		// Good hook to check the NodeManager whether the thing is an entity and we replace the value with a known id.
-		return mappingContext.getConverter()
-			.writeValueFromProperty(parameter, ClassTypeInformation.from(parameter.getClass()));
+		return mappingContext.getConverter().writeValueFromProperty(parameter,
+				ClassTypeInformation.from(parameter.getClass()));
 	}
 
 	private Map<String, Object> convertRange(Range range) {

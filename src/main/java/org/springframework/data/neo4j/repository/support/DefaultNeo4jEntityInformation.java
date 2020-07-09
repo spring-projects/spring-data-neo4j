@@ -26,7 +26,7 @@ import org.springframework.data.repository.core.support.PersistentEntityInformat
  * @since 1.0
  */
 final class DefaultNeo4jEntityInformation<T, ID> extends PersistentEntityInformation<T, ID>
-	implements Neo4jEntityInformation<T, ID> {
+		implements Neo4jEntityInformation<T, ID> {
 
 	private final Neo4jPersistentEntity<T> entityMetaData;
 

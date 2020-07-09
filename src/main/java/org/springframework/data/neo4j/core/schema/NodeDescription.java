@@ -46,8 +46,8 @@ public interface NodeDescription<T> {
 	List<String> getAdditionalLabels();
 
 	/**
-	 * @return The list of all static labels, that is the union of {@link #getPrimaryLabel()} + {@link #getAdditionalLabels()}.
-	 * Order is guaranteed to be the primary first, than the others.
+	 * @return The list of all static labels, that is the union of {@link #getPrimaryLabel()} +
+	 *         {@link #getAdditionalLabels()}. Order is guaranteed to be the primary first, than the others.
 	 * @since 1.1
 	 */
 	default List<String> getStaticLabels() {
@@ -77,7 +77,6 @@ public interface NodeDescription<T> {
 	 * @return All graph properties including all properties from the extending classes if this entity is a parent entity.
 	 */
 	Collection<GraphPropertyDescription> getGraphPropertiesInHierarchy();
-
 
 	/**
 	 * Retrieves a {@link GraphPropertyDescription} by its field name.

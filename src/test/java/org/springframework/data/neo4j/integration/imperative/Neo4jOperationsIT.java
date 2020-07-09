@@ -68,13 +68,15 @@ class Neo4jOperationsIT {
 	private Long person1Id;
 	private Long person2Id;
 
-	@Autowired Neo4jOperationsIT(Driver driver, Neo4jOperations neo4jOperations) {
+	@Autowired
+	Neo4jOperationsIT(Driver driver, Neo4jOperations neo4jOperations) {
 		this.driver = driver;
 		this.neo4jOperations = neo4jOperations;
 	}
 
 	/**
-	 * Shall be configured by test making use of database selection, so that the verification queries run in the correct database.
+	 * Shall be configured by test making use of database selection, so that the verification queries run in the correct
+	 * database.
 	 *
 	 * @return The session config used for verification methods.
 	 */
@@ -90,11 +92,9 @@ class Neo4jOperationsIT {
 		transaction.run("MATCH (n) detach delete n");
 
 		person1Id = transaction.run("CREATE (n:PersonWithAllConstructor) SET n.name = $name RETURN id(n)",
-			Values.parameters("name", TEST_PERSON1_NAME)
-		).next().get(0).asLong();
+				Values.parameters("name", TEST_PERSON1_NAME)).next().get(0).asLong();
 		person2Id = transaction.run("CREATE (n:PersonWithAllConstructor) SET n.name = $name RETURN id(n)",
-			Values.parameters("name", TEST_PERSON2_NAME)
-		).next().get(0).asLong();
+				Values.parameters("name", TEST_PERSON2_NAME)).next().get(0).asLong();
 
 		transaction.commit();
 		transaction.close();
@@ -116,9 +116,8 @@ class Neo4jOperationsIT {
 	@Test
 	void countWithStatementAndParameters() {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
-		Statement statement = Cypher.match(node)
-			.where(node.property("name").isEqualTo(Cypher.parameter("name")))
-			.returning(Functions.count(node)).build();
+		Statement statement = Cypher.match(node).where(node.property("name").isEqualTo(Cypher.parameter("name")))
+				.returning(Functions.count(node)).build();
 
 		assertThat(neo4jOperations.count(statement, singletonMap("name", TEST_PERSON1_NAME))).isEqualTo(1);
 	}
@@ -155,13 +154,11 @@ class Neo4jOperationsIT {
 	@Test
 	void findAllWithStatementAndParameters() {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
-		Statement statement = Cypher.match(node)
-			.where(node.property("name").isEqualTo(Cypher.parameter("name")))
-			.returning(node).build();
+		Statement statement = Cypher.match(node).where(node.property("name").isEqualTo(Cypher.parameter("name")))
+				.returning(node).build();
 
-		List<PersonWithAllConstructor> people = neo4jOperations.findAll(statement,
-			singletonMap("name", TEST_PERSON1_NAME),
-			PersonWithAllConstructor.class);
+		List<PersonWithAllConstructor> people = neo4jOperations.findAll(statement, singletonMap("name", TEST_PERSON1_NAME),
+				PersonWithAllConstructor.class);
 
 		assertThat(people).hasSize(1);
 	}
@@ -169,13 +166,11 @@ class Neo4jOperationsIT {
 	@Test
 	void findOneWithStatementAndParameters() {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
-		Statement statement = Cypher.match(node)
-			.where(node.property("name").isEqualTo(Cypher.parameter("name")))
-			.returning(node).build();
+		Statement statement = Cypher.match(node).where(node.property("name").isEqualTo(Cypher.parameter("name")))
+				.returning(node).build();
 
 		Optional<PersonWithAllConstructor> person = neo4jOperations.findOne(statement,
-			singletonMap("name", TEST_PERSON1_NAME),
-			PersonWithAllConstructor.class);
+				singletonMap("name", TEST_PERSON1_NAME), PersonWithAllConstructor.class);
 
 		assertThat(person).isPresent();
 	}
@@ -193,8 +188,7 @@ class Neo4jOperationsIT {
 		String cypherQuery = "MATCH (p:PersonWithAllConstructor) WHERE p.name = $name return p";
 
 		List<PersonWithAllConstructor> people = neo4jOperations.findAll(cypherQuery,
-			singletonMap("name", TEST_PERSON1_NAME),
-			PersonWithAllConstructor.class);
+				singletonMap("name", TEST_PERSON1_NAME), PersonWithAllConstructor.class);
 
 		assertThat(people).hasSize(1);
 	}
@@ -204,8 +198,7 @@ class Neo4jOperationsIT {
 		String cypherQuery = "MATCH (p:PersonWithAllConstructor) WHERE p.name = $name return p";
 
 		Optional<PersonWithAllConstructor> person = neo4jOperations.findOne(cypherQuery,
-			singletonMap("name", TEST_PERSON1_NAME),
-			PersonWithAllConstructor.class);
+				singletonMap("name", TEST_PERSON1_NAME), PersonWithAllConstructor.class);
 
 		assertThat(person).isPresent();
 	}
@@ -220,7 +213,7 @@ class Neo4jOperationsIT {
 	@Test
 	void findAllById() {
 		List<PersonWithAllConstructor> people = neo4jOperations.findAllById(Arrays.asList(person1Id, person2Id),
-			PersonWithAllConstructor.class);
+				PersonWithAllConstructor.class);
 
 		assertThat(people).hasSize(2);
 	}
@@ -254,13 +247,12 @@ class Neo4jOperationsIT {
 			paramMap.put("name1", thing1Name);
 			paramMap.put("name2", thing2Name);
 
-			Result result = session.run(
-				"MATCH (t:ThingWithGeneratedId) WHERE t.name = $name1 or t.name = $name2 return t",
-				paramMap);
+			Result result = session.run("MATCH (t:ThingWithGeneratedId) WHERE t.name = $name1 or t.name = $name2 return t",
+					paramMap);
 			List<Record> resultValues = result.list();
 			assertThat(resultValues).hasSize(2);
-			assertThat(resultValues).allMatch(record ->
-				record.asMap(Function.identity()).get("t").get("name").asString().startsWith("testThing"));
+			assertThat(resultValues).allMatch(
+					record -> record.asMap(Function.identity()).get("t").get("name").asString().startsWith("testThing"));
 		}
 	}
 

@@ -59,19 +59,18 @@ public abstract class CallbacksITBase {
 
 	protected void verifyDatabase(Iterable<ThingWithAssignedId> expectedValues) {
 
-		List<String> ids = StreamSupport.stream(expectedValues.spliterator(), false)
-			.map(ThingWithAssignedId::getTheId).collect(toList());
-		List<String> names = StreamSupport.stream(expectedValues.spliterator(), false)
-			.map(ThingWithAssignedId::getName).collect(toList());
+		List<String> ids = StreamSupport.stream(expectedValues.spliterator(), false).map(ThingWithAssignedId::getTheId)
+				.collect(toList());
+		List<String> names = StreamSupport.stream(expectedValues.spliterator(), false).map(ThingWithAssignedId::getName)
+				.collect(toList());
 		try (Session session = driver.session()) {
 			Record record = session
-				.run("MATCH (n:Thing) WHERE n.theId in $ids RETURN COLLECT(n) as things", Values.parameters("ids", ids))
-				.single();
+					.run("MATCH (n:Thing) WHERE n.theId in $ids RETURN COLLECT(n) as things", Values.parameters("ids", ids))
+					.single();
 
 			List<Node> nodes = record.get("things").asList(Value::asNode);
 			assertThat(nodes).extracting(n -> n.get("theId").asString()).containsAll(ids);
-			assertThat(nodes).extracting(n -> n.get("name").asString())
-				.containsAll(names);
+			assertThat(nodes).extracting(n -> n.get("name").asString()).containsAll(names);
 		}
 	}
 }

@@ -61,27 +61,22 @@ final class StartupLogger {
 
 		StringBuilder sb = new StringBuilder();
 
-		String sdnRx = getVersionOf(EnableNeo4jRepositories.class).map(v -> "SDN/RX v" + v)
-				.orElse("an unknown version of SDN/RX");
+		String sdnRx = getVersionOf(EnableNeo4jRepositories.class).map(v -> "SDN v" + v)
+				.orElse("an unknown version of SDN");
 		String sdC = getVersionOf(AbstractMappingContext.class).map(v -> "Spring Data Commons v" + v)
 				.orElse("an unknown version of Spring Data Commons");
 		String driver = getVersionOf(Driver.class).map(v -> "Neo4j Driver v" + v)
 				.orElse("an unknown version of the Neo4j Java Driver");
 		RepositoryConfigurationExtensionSupport f;
-		sb.append("Bootstrapping ").append(mode.displayValue).append(" Neo4j repositories based on ")
-				.append(sdnRx)
-				.append(" with ").append(sdC)
-				.append(" and ").append(driver).append(".");
+		sb.append("Bootstrapping ").append(mode.displayValue).append(" Neo4j repositories based on ").append(sdnRx)
+				.append(" with ").append(sdC).append(" and ").append(driver).append(".");
 
 		return sb.toString();
 	}
 
 	private Optional<String> getVersionOf(Class<?> clazz) {
 
-		return Optional.ofNullable(clazz)
-				.map(Class::getPackage)
-				.map(Package::getImplementationVersion)
-				.map(String::trim)
+		return Optional.ofNullable(clazz).map(Class::getPackage).map(Package::getImplementationVersion).map(String::trim)
 				.filter(v -> !v.isEmpty());
 	}
 }
