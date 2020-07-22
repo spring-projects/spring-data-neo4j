@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.2.9.RELEASE (2020-07-22)
+---------------------------------------------
+* DATAGRAPH-1335 - Upgrade to Neo4j OGM 3.2.14.
+* DATAGRAPH-1326 - Release 5.2.9 (Moore SR9).
+* DATAGRAPH-1323 - Update to Neo4j-OGM 3.2.13.
+
+
 Changes in version 5.1.19.RELEASE (2020-07-22)
 ----------------------------------------------
 * DATAGRAPH-1334 - Upgrade to Neo4j OGM 3.1.20.
@@ -1753,6 +1760,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
