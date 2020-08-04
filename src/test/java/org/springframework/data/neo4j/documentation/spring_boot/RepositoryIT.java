@@ -44,11 +44,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 // end::testing.reactivedataneo4jtest[]
-// tag::testing.reactivedataneo4jtest[]
-// end::testing.reactivedataneo4jtest[]
-// tag::testing.reactivedataneo4jtest[]
-
-// end::testing.reactivedataneo4jtest[]
 
 /**
  * @author Michael J. Simons
