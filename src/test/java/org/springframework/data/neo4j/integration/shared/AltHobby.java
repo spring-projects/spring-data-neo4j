@@ -34,7 +34,7 @@ public class AltHobby {
 
 	private String name;
 
-	@Relationship(type = "LIKED_BY", direction = INCOMING)
+	@Relationship(type = "LIKES", direction = INCOMING)
 	private Map<AltPerson, AltLikedByPersonRelationship> likedBy = new HashMap<>();
 
 	public Long getId() {

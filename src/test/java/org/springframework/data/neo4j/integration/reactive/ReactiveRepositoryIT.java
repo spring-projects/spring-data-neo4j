@@ -1002,7 +1002,7 @@ class ReactiveRepositoryIT {
 			long personId;
 
 			try (Session session = createSession()) {
-				Record record = session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKED_BY {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single();
+				Record record = session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single();
 				personId = record.get("n").asNode().id();
 			}
 
@@ -2077,8 +2077,7 @@ class ReactiveRepositoryIT {
 	interface ReactiveHobbyithRelationshipWithPropertiesRepository
 			extends ReactiveNeo4jRepository<AltHobby, Long> {
 
-		// @Query("MATCH (h:AltHobby)<-[l:LIKED_BY]->(p:AltPerson) return h, collect(l), collect(p)")
-		@Query("MATCH (p:AltPerson)-[l:LIKED_BY]->(h:AltHobby) WHERE id(p) = $personId RETURN h, collect(l), collect(p)")
+		@Query("MATCH (p:AltPerson)-[l:LIKES]->(h:AltHobby) WHERE id(p) = $personId RETURN h, collect(l), collect(p)")
 		Flux<AltHobby> loadFromCustomQuery(@Param("personId") Long personId);
 	}
 
