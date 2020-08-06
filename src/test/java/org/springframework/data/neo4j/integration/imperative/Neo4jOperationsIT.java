@@ -52,8 +52,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
-import org.springframework.data.neo4j.integration.shared.CustomPersonId;
-import org.springframework.data.neo4j.integration.shared.CustomPersonIdConverter;
 import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.PersonWithCustomId;
 import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
@@ -291,7 +289,7 @@ class Neo4jOperationsIT {
 		}
 	}
 
-	TransactionWork<ResultSummary> createPersonWithCustomId(CustomPersonId assignedId) {
+	TransactionWork<ResultSummary> createPersonWithCustomId(PersonWithCustomId.PersonId assignedId) {
 
 		return tx -> tx.run("CREATE (n:PersonWithCustomId) SET n.id = $id ",
 				Values.parameters("id", assignedId.getId())).consume();
@@ -300,7 +298,7 @@ class Neo4jOperationsIT {
 	@Test
 	void deleteByCustomId() {
 
-		CustomPersonId id = new CustomPersonId(customIdValueGenerator.incrementAndGet());
+		PersonWithCustomId.PersonId id = new PersonWithCustomId.PersonId(customIdValueGenerator.incrementAndGet());
 		try (Session session = driver.session(getSessionConfig())) {
 			session.writeTransaction(createPersonWithCustomId(id));
 		}
@@ -317,8 +315,8 @@ class Neo4jOperationsIT {
 	@Test
 	void deleteAllByCustomId() {
 
-		List<CustomPersonId> ids = Stream.generate(customIdValueGenerator::incrementAndGet)
-				.map(CustomPersonId::new)
+		List<PersonWithCustomId.PersonId> ids = Stream.generate(customIdValueGenerator::incrementAndGet)
+				.map(PersonWithCustomId.PersonId::new)
 				.limit(2)
 				.collect(Collectors.toList());
 		try (
@@ -349,7 +347,7 @@ class Neo4jOperationsIT {
 		@Bean
 		@Override
 		public Neo4jConversions neo4jConversions() {
-			return new Neo4jConversions(singletonList(new CustomPersonIdConverter()));
+			return new Neo4jConversions(singletonList(new PersonWithCustomId.CustomPersonIdConverter()));
 		}
 
 		@Override // needed here because there is no implicit registration of entities upfront some methods under test

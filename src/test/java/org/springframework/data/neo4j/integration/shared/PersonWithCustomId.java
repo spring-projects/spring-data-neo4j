@@ -16,14 +16,64 @@
 package org.springframework.data.neo4j.integration.shared;
 
 import lombok.Value;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.neo4j.driver.Values;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.neo4j.core.schema.Id;
 
 /**
  * @author Rosetta Roberts
+ * @author Michael J. Simons
  */
 @Value
 public class PersonWithCustomId {
+
+	/**
+	 * Custom ID type for a person object.
+	 */
+	@Value
+	public static class PersonId {
+
+		// Be aware that this is not the native (aka generated) Neo4j id.
+		// Natively generated IDs are only possible directly on a long field.
+		// This is an assigned id.
+		private final Long id;
+	}
+
+	/**
+	 * Converted needed to deal with the above custom type. Without that converter, an association would be assumed.
+	 */
+	public static class CustomPersonIdConverter implements GenericConverter {
+
+		@Override
+		public Set<ConvertiblePair> getConvertibleTypes() {
+			return new HashSet<>(Arrays.asList(
+					new ConvertiblePair(PersonId.class, org.neo4j.driver.Value.class),
+					new ConvertiblePair(org.neo4j.driver.Value.class, PersonId.class)
+			));
+		}
+
+		@Override
+		public Object convert(Object o, TypeDescriptor type1, TypeDescriptor type2) {
+			if (o == null) {
+				return null;
+			}
+
+			if (PersonId.class.isAssignableFrom(type1.getType())) {
+				return Values.value(((PersonId) o).getId());
+			} else {
+				return new PersonId(((org.neo4j.driver.Value) o).asLong());
+			}
+		}
+	}
+
 	@Id
-	private final CustomPersonId id;
+	private final PersonId id;
+
 	private final String name;
 }
