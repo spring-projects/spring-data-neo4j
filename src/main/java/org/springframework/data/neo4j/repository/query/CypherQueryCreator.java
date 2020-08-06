@@ -15,9 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static java.util.stream.Collectors.*;
-import static org.neo4j.cypherdsl.core.Functions.*;
-import static org.springframework.data.neo4j.core.schema.Constants.*;
+import static org.neo4j.cypherdsl.core.Functions.point;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,9 +27,23 @@ import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.neo4j.cypherdsl.core.*;
+import org.neo4j.cypherdsl.core.Condition;
+import org.neo4j.cypherdsl.core.Conditions;
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.ExposesRelationships;
+import org.neo4j.cypherdsl.core.ExposesReturning;
+import org.neo4j.cypherdsl.core.Expression;
+import org.neo4j.cypherdsl.core.Functions;
+import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.Predicates;
+import org.neo4j.cypherdsl.core.Property;
+import org.neo4j.cypherdsl.core.RelationshipPattern;
+import org.neo4j.cypherdsl.core.SortItem;
+import org.neo4j.cypherdsl.core.Statement;
+import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndReturnWithOrder;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.types.Point;
@@ -47,6 +59,7 @@ import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.core.schema.Constants;
 import org.springframework.data.neo4j.core.schema.CypherGenerator;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
@@ -124,7 +137,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 		propertyPathWrappers = tree.getParts().stream()
 				.map(part -> new PropertyPathWrapper(symbolicNameIndex.getAndIncrement(),
 						mappingContext.getPersistentPropertyPath(part.getProperty())))
-				.collect(toList());
+				.collect(Collectors.toList());
 
 	}
 
@@ -236,7 +249,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 		Statement statement = createStatement(condition, sort);
 
 		Map<String, Object> convertedParameters = this.boundedParameters.stream()
-				.collect(toMap(p -> p.nameOrIndex, p -> parameterConversion.apply(p.value)));
+				.collect(Collectors.toMap(p -> p.nameOrIndex, p -> parameterConversion.apply(p.value)));
 
 		return new QueryAndParameters(Renderer.getDefaultRenderer().render(statement), convertedParameters);
 	}
@@ -247,7 +260,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 		// all the ways we could query for
 		Node startNode = Cypher.node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())
-				.named(NAME_OF_ROOT_NODE);
+				.named(Constants.NAME_OF_ROOT_NODE);
 
 		ExposesReturning matchAndCondition = Cypher.match(startNode)
 				.where(Optional.ofNullable(condition).orElseGet(Conditions::noCondition));
@@ -505,7 +518,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 	private Property toCypherProperty(Neo4jPersistentProperty persistentProperty) {
 
-		return Cypher.property(NAME_OF_ROOT_NODE, persistentProperty.getPropertyName());
+		return Cypher.property(Constants.NAME_OF_ROOT_NODE, persistentProperty.getPropertyName());
 	}
 
 	private Expression toCypherProperty(Neo4jPersistentProperty persistentProperty, boolean addToLower) {
@@ -514,7 +527,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 		Expression expression;
 
 		if (owner.equals(this.nodeDescription)) {
-			expression = Cypher.property(NAME_OF_ROOT_NODE, persistentProperty.getPropertyName());
+			expression = Cypher.property(Constants.NAME_OF_ROOT_NODE, persistentProperty.getPropertyName());
 		} else {
 			PropertyPathWrapper propertyPathWrapper = propertyPathWrappers.stream()
 					.filter(rp -> rp.getLeafProperty().equals(persistentProperty)).findFirst().get();

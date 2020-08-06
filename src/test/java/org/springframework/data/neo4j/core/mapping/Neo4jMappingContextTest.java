@@ -15,12 +15,14 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import static java.util.Collections.*;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -163,7 +165,7 @@ class Neo4jMappingContextTest {
 			@Override
 			public Set<ConvertiblePair> getConvertibleTypes() {
 				// in the real world this should also define the opposite way
-				return singleton(new ConvertiblePair(ConvertibleType.class, StringValue.class));
+				return Collections.singleton(new ConvertiblePair(ConvertibleType.class, StringValue.class));
 			}
 
 			@Override
@@ -174,7 +176,7 @@ class Neo4jMappingContextTest {
 		}
 
 		Neo4jMappingContext schema = new Neo4jMappingContext(
-				new Neo4jConversions(singleton(new ConvertibleTypeConverter())));
+				new Neo4jConversions(Collections.singleton(new ConvertibleTypeConverter())));
 		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(EntityWithConvertibleProperty.class);
 
 		Assertions.assertThat(entity.getPersistentProperty("convertibleType").isRelationship()).isFalse();

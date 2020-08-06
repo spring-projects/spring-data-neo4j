@@ -15,11 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static java.util.stream.Collectors.*;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
@@ -73,14 +73,14 @@ class IdGeneratorsIT extends IdGeneratorsITBase {
 	void idGenerationWithNewEntitiesShouldWork(@Autowired ThingWithGeneratedIdRepository repository) {
 
 		List<ThingWithGeneratedId> things = IntStream.rangeClosed(1, 10).mapToObj(i -> new ThingWithGeneratedId("name" + i))
-				.collect(toList());
+				.collect(Collectors.toList());
 
 		Iterable<ThingWithGeneratedId> savedThings = repository.saveAll(things);
 		assertThat(savedThings).hasSize(things.size()).extracting(ThingWithGeneratedId::getTheId)
 				.allMatch(s -> s.matches("thingWithGeneratedId-\\d+"));
 
 		Set<String> distinctIds = StreamSupport.stream(savedThings.spliterator(), false).map(ThingWithGeneratedId::getTheId)
-				.collect(toSet());
+				.collect(Collectors.toSet());
 
 		assertThat(distinctIds).hasSize(things.size());
 	}

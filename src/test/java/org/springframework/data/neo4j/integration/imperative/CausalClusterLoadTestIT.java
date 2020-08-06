@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static java.util.stream.Collectors.*;
-
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Assertions;
@@ -75,7 +74,7 @@ class CausalClusterLoadTestIT {
 
 		ExecutorService executor = Executors.newCachedThreadPool();
 		List<Future<ThingWithSequence>> executedWrites = executor
-				.invokeAll(IntStream.range(0, numberOfRequests).mapToObj(i -> createAndRead).collect(toList()));
+				.invokeAll(IntStream.range(0, numberOfRequests).mapToObj(i -> createAndRead).collect(Collectors.toList()));
 		try {
 			executedWrites.forEach(request -> {
 				try {

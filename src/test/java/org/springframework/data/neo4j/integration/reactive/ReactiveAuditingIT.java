@@ -15,8 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.neo4j.test.Neo4jExtension.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -40,6 +39,7 @@ import org.springframework.data.neo4j.integration.shared.ImmutableAuditableThing
 import org.springframework.data.neo4j.integration.shared.ImmutableAuditableThingWithGeneratedId;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
+import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
@@ -47,7 +47,7 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 /**
  * @author Michael J. Simons
  */
-@Tag(NEEDS_REACTIVE_SUPPORT)
+@Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 class ReactiveAuditingIT extends AuditingITBase {
 
 	private final ReactiveTransactionManager transactionManager;

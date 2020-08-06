@@ -15,9 +15,8 @@
  */
 package org.springframework.data.neo4j.core;
 
-import static java.util.Collections.*;
-import static java.util.stream.Collectors.*;
-import static org.neo4j.cypherdsl.core.Cypher.*;
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
@@ -116,7 +116,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	@Override
 	public long count(Statement statement) {
-		return count(statement, emptyMap());
+		return count(statement, Collections.emptyMap());
 	}
 
 	@Override
@@ -126,7 +126,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	@Override
 	public long count(String cypherQuery) {
-		return count(cypherQuery, emptyMap());
+		return count(cypherQuery, Collections.emptyMap());
 	}
 
 	@Override
@@ -182,7 +182,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		Statement statement = cypherGenerator
 				.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
 				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
-		return createExecutableQuery(domainType, statement, singletonMap(Constants.NAME_OF_ID, convertIdValues(id)))
+		return createExecutableQuery(domainType, statement, Collections
+				.singletonMap(Constants.NAME_OF_ID, convertIdValues(id)))
 				.getSingleResult();
 	}
 
@@ -193,7 +194,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().in((parameter(Constants.NAME_OF_IDS))))
 				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
-		return createExecutableQuery(domainType, statement, singletonMap(Constants.NAME_OF_IDS, convertIdValues(ids)))
+		return createExecutableQuery(domainType, statement, Collections
+				.singletonMap(Constants.NAME_OF_IDS, convertIdValues(ids)))
 				.getResults();
 	}
 
@@ -282,14 +284,14 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		if (entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()) {
 			log.debug("Saving entities using single statements.");
 
-			return entities.stream().map(e -> saveImpl(e, databaseName)).collect(toList());
+			return entities.stream().map(e -> saveImpl(e, databaseName)).collect(Collectors.toList());
 		}
 
-		List<T> entitiesToBeSaved = entities.stream().map(eventSupport::maybeCallBeforeBind).collect(toList());
+		List<T> entitiesToBeSaved = entities.stream().map(eventSupport::maybeCallBeforeBind).collect(Collectors.toList());
 
 		// Save roots
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(domainClass);
-		List<Map<String, Object>> entityList = entitiesToBeSaved.stream().map(binderFunction).collect(toList());
+		List<Map<String, Object>> entityList = entitiesToBeSaved.stream().map(binderFunction).collect(Collectors.toList());
 		ResultSummary resultSummary = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData))).in(databaseName)
 				.bind(entityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM).run();
@@ -509,7 +511,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		}
 
 		public List<T> getResults() {
-			return fetchSpec.all().stream().collect(toList());
+			return fetchSpec.all().stream().collect(Collectors.toList());
 		}
 
 		public Optional<T> getSingleResult() {

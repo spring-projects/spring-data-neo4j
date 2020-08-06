@@ -17,8 +17,6 @@ package org.springframework.data.neo4j.documentation.domain;
 
 // tag::mapping.annotations[]
 
-import static org.springframework.data.neo4j.core.schema.Relationship.Direction.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +26,7 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.schema.Relationship.Direction;
 
 // end::mapping.annotations[]
 
@@ -44,12 +43,12 @@ public class MovieEntity {
 	@Property("tagline") // <.>
 	private final String description;
 
-	@Relationship(type = "ACTED_IN", direction = INCOMING) // <.>
+	@Relationship(type = "ACTED_IN", direction = Direction.INCOMING) // <.>
 	// tag::mapping.relationship.properties[]
 	private Map<PersonEntity, Roles> actorsAndRoles = new HashMap<>();
 	// end::mapping.relationship.properties[]
 
-	@Relationship(type = "DIRECTED", direction = INCOMING) private List<PersonEntity> directors = new ArrayList<>();
+	@Relationship(type = "DIRECTED", direction = Direction.INCOMING) private List<PersonEntity> directors = new ArrayList<>();
 
 	public MovieEntity(String title, String description) { // <.>
 		this.title = title;

@@ -15,10 +15,10 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.neo4j.cypherdsl.core.Conditions.not;
-import static org.neo4j.cypherdsl.core.Cypher.*;
-import static org.neo4j.cypherdsl.core.Predicates.*;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
+import static org.neo4j.cypherdsl.core.Predicates.exists;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -44,7 +44,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
-import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.*;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.DynamicLabelsWithMultipleNodeLabels;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.DynamicLabelsWithNodeLabel;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.ExtendedBaseClass1;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.InheritedSimpleDynamicLabels;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.SimpleDynamicLabels;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.SimpleDynamicLabelsCtor;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.SimpleDynamicLabelsWithBusinessId;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.SimpleDynamicLabelsWithBusinessIdAndVersion;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.SimpleDynamicLabelsWithVersion;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.SuperNode;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;

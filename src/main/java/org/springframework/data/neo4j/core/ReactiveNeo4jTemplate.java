@@ -15,9 +15,8 @@
  */
 package org.springframework.data.neo4j.core;
 
-import static java.util.Collections.*;
-import static java.util.stream.Collectors.*;
-import static org.neo4j.cypherdsl.core.Cypher.*;
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -30,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
@@ -114,7 +114,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 	@Override
 	public Mono<Long> count(Statement statement) {
-		return count(statement, emptyMap());
+		return count(statement, Collections.emptyMap());
 	}
 
 	@Override
@@ -124,7 +124,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 	@Override
 	public Mono<Long> count(String cypherQuery) {
-		return count(cypherQuery, emptyMap());
+		return count(cypherQuery, Collections.emptyMap());
 	}
 
 	@Override
@@ -184,7 +184,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
 				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
-		return createExecutableQuery(domainType, statement, singletonMap(Constants.NAME_OF_ID, convertIdValues(id)))
+		return createExecutableQuery(domainType, statement, Collections
+				.singletonMap(Constants.NAME_OF_ID, convertIdValues(id)))
 				.flatMap(ExecutableQuery::getSingleResult);
 	}
 
@@ -196,7 +197,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().in((parameter(Constants.NAME_OF_IDS))))
 				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
-		return createExecutableQuery(domainType, statement, singletonMap(Constants.NAME_OF_IDS, convertIdValues(ids)))
+		return createExecutableQuery(domainType, statement, Collections
+				.singletonMap(Constants.NAME_OF_IDS, convertIdValues(ids)))
 				.flatMapMany(ExecutableQuery::getResults);
 	}
 
@@ -306,7 +308,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 																																																											// flux
 																																																											// completes
 					List<Map<String, Object>> boundedEntityList = entitiesToBeSaved.stream().map(binderFunction)
-							.collect(toList());
+							.collect(Collectors.toList());
 
 					return neo4jClient
 							.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))

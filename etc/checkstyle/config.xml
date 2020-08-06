@@ -56,6 +56,11 @@
         <module name="com.puppycrawl.tools.checkstyle.checks.coding.OneStatementPerLineCheck" />
 
         <!-- Imports -->
+        <module name="com.puppycrawl.tools.checkstyle.checks.imports.AvoidStarImportCheck" />
+        <module name="com.puppycrawl.tools.checkstyle.checks.imports.AvoidStaticImportCheck">
+            <property name="excludes"
+                      value="org.neo4j.cypherdsl.core.Cypher.*, org.neo4j.cypherdsl.core.Functions.*, org.neo4j.cypherdsl.core.Conditions.*, org.neo4j.cypherdsl.core.Predicates.*, org.apiguardian.api.API.Status.*, org.assertj.core.api.Assertions.*, org.assertj.core.api.Assumptions.*, org.hamcrest.CoreMatchers.*, org.hamcrest.Matchers.*, org.mockito.Mockito.*, org.mockito.ArgumentMatchers.*" />
+        </module>
         <module name="com.puppycrawl.tools.checkstyle.checks.imports.IllegalImportCheck">
             <property name="regexp" value="true" />
             <property name="illegalPkgs"

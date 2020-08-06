@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
-import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils.*;
-
 import org.apiguardian.api.API;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
@@ -100,11 +98,12 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 			}
 
 			throw new IllegalStateException(
-					formatOngoingTxInAnotherDbErrorMessage(connectionHolder.getDatabaseName(), targetDatabase));
+					Neo4jTransactionUtils
+							.formatOngoingTxInAnotherDbErrorMessage(connectionHolder.getDatabaseName(), targetDatabase));
 		}
 
 		// Otherwise we open a session and synchronize it.
-		Session session = driver.session(defaultSessionConfig(targetDatabase));
+		Session session = driver.session(Neo4jTransactionUtils.defaultSessionConfig(targetDatabase));
 		Transaction transaction = session.beginTransaction(TransactionConfig.empty());
 		// Manually create a new synchronization
 		connectionHolder = new Neo4jTransactionHolder(new Neo4jTransactionContext(targetDatabase), session, transaction);
@@ -149,7 +148,7 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 	protected void doBegin(Object transaction, TransactionDefinition definition) throws TransactionException {
 		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
 
-		TransactionConfig transactionConfig = createTransactionConfigFrom(definition);
+		TransactionConfig transactionConfig = Neo4jTransactionUtils.createTransactionConfigFrom(definition);
 		boolean readOnly = definition.isReadOnly();
 
 		TransactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
@@ -160,7 +159,8 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 					databaseSelectionProvider.getDatabaseSelection().getValue(), bookmarkManager.getBookmarks());
 
 			// Configure and open session together with a native transaction
-			Session session = this.driver.session(sessionConfig(readOnly, context.getBookmarks(), context.getDatabaseName()));
+			Session session = this.driver.session(
+					Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(), context.getDatabaseName()));
 			Transaction nativeTransaction = session.beginTransaction(transactionConfig);
 
 			// Synchronize on that

@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
-import static org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactorySupport.*;
-
 import java.util.Optional;
 
 import org.springframework.beans.BeansException;
@@ -66,7 +64,7 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 	protected Object getTargetRepository(RepositoryInformation metadata) {
 
 		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
-		assertIdentifierType(metadata.getIdType(), entityInformation.getIdType());
+		Neo4jRepositoryFactorySupport.assertIdentifierType(metadata.getIdType(), entityInformation.getIdType());
 		return getTargetRepositoryViaReflection(metadata, neo4jOperations, entityInformation);
 	}
 

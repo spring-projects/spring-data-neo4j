@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.core.convert;
 
-import static org.springframework.data.convert.ConverterBuilder.*;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -30,6 +28,7 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.IsoDuration;
 import org.neo4j.driver.types.Point;
+import org.springframework.data.convert.ConverterBuilder;
 
 /**
  * Conversions for all known Cypher types, directly supported by the driver. See
@@ -44,24 +43,24 @@ final class CypherTypes {
 
 	static {
 
-		List<ConverterAware> hlp = new ArrayList<>();
-		hlp.add(reading(Value.class, Void.class, v -> null).andWriting(v -> Values.NULL));
-		hlp.add(reading(Value.class, void.class, v -> null).andWriting(v -> Values.NULL));
-		hlp.add(reading(Value.class, Boolean.class, Value::asBoolean).andWriting(Values::value));
-		hlp.add(reading(Value.class, boolean.class, Value::asBoolean).andWriting(Values::value));
-		hlp.add(reading(Value.class, Long.class, Value::asLong).andWriting(Values::value));
-		hlp.add(reading(Value.class, long.class, Value::asLong).andWriting(Values::value));
-		hlp.add(reading(Value.class, Double.class, Value::asDouble).andWriting(Values::value));
-		hlp.add(reading(Value.class, double.class, Value::asDouble).andWriting(Values::value));
-		hlp.add(reading(Value.class, String.class, Value::asString).andWriting(Values::value));
-		hlp.add(reading(Value.class, byte[].class, Value::asByteArray).andWriting(Values::value));
-		hlp.add(reading(Value.class, LocalDate.class, Value::asLocalDate).andWriting(Values::value));
-		hlp.add(reading(Value.class, OffsetTime.class, Value::asOffsetTime).andWriting(Values::value));
-		hlp.add(reading(Value.class, LocalTime.class, Value::asLocalTime).andWriting(Values::value));
-		hlp.add(reading(Value.class, ZonedDateTime.class, Value::asZonedDateTime).andWriting(Values::value));
-		hlp.add(reading(Value.class, LocalDateTime.class, Value::asLocalDateTime).andWriting(Values::value));
-		hlp.add(reading(Value.class, IsoDuration.class, Value::asIsoDuration).andWriting(Values::value));
-		hlp.add(reading(Value.class, Point.class, Value::asPoint).andWriting(Values::value));
+		List<ConverterBuilder.ConverterAware> hlp = new ArrayList<>();
+		hlp.add(ConverterBuilder.reading(Value.class, Void.class, v -> null).andWriting(v -> Values.NULL));
+		hlp.add(ConverterBuilder.reading(Value.class, void.class, v -> null).andWriting(v -> Values.NULL));
+		hlp.add(ConverterBuilder.reading(Value.class, Boolean.class, Value::asBoolean).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, boolean.class, Value::asBoolean).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Long.class, Value::asLong).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, long.class, Value::asLong).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Double.class, Value::asDouble).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, double.class, Value::asDouble).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, String.class, Value::asString).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, byte[].class, Value::asByteArray).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, LocalDate.class, Value::asLocalDate).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, OffsetTime.class, Value::asOffsetTime).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, LocalTime.class, Value::asLocalTime).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, ZonedDateTime.class, Value::asZonedDateTime).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, LocalDateTime.class, Value::asLocalDateTime).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, IsoDuration.class, Value::asIsoDuration).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Point.class, Value::asPoint).andWriting(Values::value));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
 	}

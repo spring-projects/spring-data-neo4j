@@ -15,9 +15,16 @@
  */
 package org.springframework.data.neo4j.core;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyMap;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -40,6 +47,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.hamcrest.MockitoHamcrest;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
@@ -116,7 +124,7 @@ class Neo4jClientTest {
 		expectedParameters.putAll(parameters);
 		expectedParameters.put("name", "michael");
 		expectedParameters.put("aDate", LocalDate.of(2019, 1, 1));
-		verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
+		verify(session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 
 		verify(result).stream();
 		verify(record1).asMap();
@@ -146,7 +154,7 @@ class Neo4jClientTest {
 		Map<String, Object> expectedParameters = new HashMap<>();
 		expectedParameters.put("name", "Someone.*");
 
-		verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
+		verify(session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(result).stream();
 		verify(record1).asMap();
 		verify(session).close();
@@ -236,7 +244,7 @@ class Neo4jClientTest {
 			Map<String, Object> expectedParameters = new HashMap<>();
 			expectedParameters.put("name", "michael");
 
-			verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
+			verify(session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 			verify(result).stream();
 			verify(record1).get("name");
 			verify(session).close();
@@ -264,7 +272,7 @@ class Neo4jClientTest {
 
 			verifyDatabaseSelection(null);
 
-			verify(session).run(eq("MATCH (n) RETURN n"), argThat(new MapAssertionMatcher(Collections.emptyMap())));
+			verify(session).run(eq("MATCH (n) RETURN n"), MockitoHamcrest.argThat(new MapAssertionMatcher(Collections.emptyMap())));
 			verify(result).stream();
 			verify(record1).get("name");
 			verify(session).close();
@@ -290,7 +298,7 @@ class Neo4jClientTest {
 			Map<String, Object> expectedParameters = new HashMap<>();
 			expectedParameters.put("name", "Michael");
 
-			verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
+			verify(session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 			verify(result).consume();
 			verify(session).close();
 		}
@@ -343,7 +351,7 @@ class Neo4jClientTest {
 		Map<String, Object> expectedParameters = new HashMap<>();
 		expectedParameters.put("name", "fixie");
 
-		verify(session).run(eq(cypher), argThat(new MapAssertionMatcher(expectedParameters)));
+		verify(session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(result).consume();
 		verify(session).close();
 	}

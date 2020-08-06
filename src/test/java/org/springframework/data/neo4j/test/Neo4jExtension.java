@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.test;
 
-import static org.assertj.core.api.Assumptions.*;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 import lombok.extern.apachecommons.CommonsLog;
 

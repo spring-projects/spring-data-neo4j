@@ -15,9 +15,6 @@
  */
 package org.springframework.data.neo4j.core;
 
-import static java.util.stream.Collectors.*;
-import static org.springframework.data.neo4j.core.Neo4jClient.*;
-
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationHandler;
@@ -30,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.QueryRunner;
@@ -203,7 +201,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@Override
 		public RunnableSpecTightToDatabase in(@SuppressWarnings("HiddenField") String targetDatabase) {
 
-			this.targetDatabase = verifyDatabaseName(targetDatabase);
+			this.targetDatabase = Neo4jClient.verifyDatabaseName(targetDatabase);
 			return this;
 		}
 
@@ -317,7 +315,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
 				Result result = runnableStatement.runWith(statementRunner);
-				return result.stream().map(partialMappingFunction(typeSystem)).collect(toList());
+				return result.stream().map(partialMappingFunction(typeSystem)).collect(Collectors.toList());
 			} catch (RuntimeException e) {
 				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
 			}
@@ -350,7 +348,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@Override
 		public RunnableDelegation in(@Nullable @SuppressWarnings("HiddenField") String targetDatabase) {
 
-			this.targetDatabase = verifyDatabaseName(targetDatabase);
+			this.targetDatabase = Neo4jClient.verifyDatabaseName(targetDatabase);
 			return this;
 		}
 

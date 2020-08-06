@@ -15,9 +15,8 @@
  */
 package org.springframework.data.neo4j.core.schema;
 
-import static org.apiguardian.api.API.Status.*;
-
 import org.apiguardian.api.API;
+import org.apiguardian.api.API.Status;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.SymbolicName;
 
@@ -28,7 +27,7 @@ import org.neo4j.cypherdsl.core.SymbolicName;
  * @soundtrack Milky Chance - Sadnecessary
  * @since 1.0
  */
-@API(status = INTERNAL, since = "1.0")
+@API(status = Status.INTERNAL, since = "1.0")
 public final class Constants {
 
 	public static final SymbolicName NAME_OF_ROOT_NODE = Cypher.name("n");

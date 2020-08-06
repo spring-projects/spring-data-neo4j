@@ -15,12 +15,11 @@
  */
 package org.springframework.data.neo4j.core;
 
-import static java.util.stream.Collectors.*;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -78,7 +77,7 @@ final class NamedParameters {
 	@Override
 	public String toString() {
 		return parameters.entrySet().stream().map(e -> String.format("%s: %s", e.getKey(), formatValue(e.getValue())))
-				.collect(joining(", ", ":params {", "}"));
+				.collect(Collectors.joining(", ", ":params {", "}"));
 	}
 
 	private static Object formatValue(Object value) {
@@ -88,9 +87,11 @@ final class NamedParameters {
 			return Cypher.quote((String) value);
 		} else if (value instanceof Map) {
 			return ((Map<?, ?>) value).entrySet().stream()
-					.map(e -> String.format("%s: %s", e.getKey(), formatValue(e.getValue()))).collect(joining(", ", "{", "}"));
+					.map(e -> String.format("%s: %s", e.getKey(), formatValue(e.getValue()))).collect(
+							Collectors.joining(", ", "{", "}"));
 		} else if (value instanceof Collection) {
-			return ((Collection) value).stream().map(NamedParameters::formatValue).collect(joining(", ", "[", "]"));
+			return ((Collection) value).stream().map(NamedParameters::formatValue).collect(
+					Collectors.joining(", ", "[", "]"));
 		}
 
 		return value.toString();

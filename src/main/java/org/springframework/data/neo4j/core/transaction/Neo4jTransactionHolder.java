@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
-import static org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils.*;
-
 import java.util.Collection;
 
 import org.neo4j.driver.Bookmark;
@@ -62,7 +60,7 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 	 */
 	@Nullable
 	Transaction getTransaction(String inDatabase) {
-		return namesMapToTheSameDatabase(this.context.getDatabaseName(), inDatabase) ? transaction : null;
+		return Neo4jTransactionUtils.namesMapToTheSameDatabase(this.context.getDatabaseName(), inDatabase) ? transaction : null;
 	}
 
 	@Nullable

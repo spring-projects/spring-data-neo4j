@@ -15,12 +15,11 @@
  */
 package org.springframework.data.neo4j.core.support;
 
-import static java.util.stream.Collectors.*;
-
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.lang.Nullable;
@@ -46,7 +45,8 @@ public final class Relationships {
 		if (property.isDynamicAssociation()) {
 			if (property.isDynamicOneToManyAssociation()) {
 				unifiedValue = ((Map<String, Collection<?>>) rawValue).entrySet().stream()
-						.flatMap(e -> e.getValue().stream().map(v -> new SimpleEntry(e.getKey(), v))).collect(toList());
+						.flatMap(e -> e.getValue().stream().map(v -> new SimpleEntry(e.getKey(), v))).collect(
+								Collectors.toList());
 			} else {
 				unifiedValue = ((Map<String, Object>) rawValue).entrySet();
 			}

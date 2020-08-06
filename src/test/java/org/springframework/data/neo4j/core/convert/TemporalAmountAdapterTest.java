@@ -15,12 +15,12 @@
  */
 package org.springframework.data.neo4j.core.convert;
 
-import static java.time.temporal.ChronoUnit.*;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.temporal.ChronoUnit;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Values;
@@ -45,7 +45,7 @@ class TemporalAmountAdapterTest {
 	public void durationsShouldStayDurations() {
 		final TemporalAmountAdapter adapter = new TemporalAmountAdapter();
 
-		Duration duration = MONTHS.getDuration().multipliedBy(13).plus(DAYS.getDuration().multipliedBy(32)).plusHours(25)
+		Duration duration = ChronoUnit.MONTHS.getDuration().multipliedBy(13).plus(ChronoUnit.DAYS.getDuration().multipliedBy(32)).plusHours(25)
 				.plusMinutes(120);
 
 		assertThat(adapter.apply(Values.value(duration).asIsoDuration())).isEqualTo(duration);

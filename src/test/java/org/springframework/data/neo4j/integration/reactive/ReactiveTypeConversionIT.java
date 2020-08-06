@@ -15,8 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.neo4j.test.Neo4jExtension.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
@@ -51,7 +50,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ExtendWith(Neo4jExtension.class)
 @SpringJUnitConfig
 @DirtiesContext
-@Tag(NEEDS_REACTIVE_SUPPORT)
+@Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 class ReactiveTypeConversionIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;

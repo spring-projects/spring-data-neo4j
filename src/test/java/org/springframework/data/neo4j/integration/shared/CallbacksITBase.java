@@ -15,10 +15,10 @@
  */
 package org.springframework.data.neo4j.integration.shared;
 
-import static java.util.stream.Collectors.*;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -60,9 +60,9 @@ public abstract class CallbacksITBase {
 	protected void verifyDatabase(Iterable<ThingWithAssignedId> expectedValues) {
 
 		List<String> ids = StreamSupport.stream(expectedValues.spliterator(), false).map(ThingWithAssignedId::getTheId)
-				.collect(toList());
+				.collect(Collectors.toList());
 		List<String> names = StreamSupport.stream(expectedValues.spliterator(), false).map(ThingWithAssignedId::getName)
-				.collect(toList());
+				.collect(Collectors.toList());
 		try (Session session = driver.session()) {
 			Record record = session
 					.run("MATCH (n:Thing) WHERE n.theId in $ids RETURN COLLECT(n) as things", Values.parameters("ids", ids))

@@ -15,8 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.DynamicTest.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicNode;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.neo4j.driver.Driver;
@@ -139,11 +140,12 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 			}
 
 			DynamicContainer reads = DynamicContainer.dynamicContainer("read",
-					entry.getValue().entrySet().stream().map(a -> dynamicTest(a.getKey(),
+					entry.getValue().entrySet().stream().map(a -> DynamicTest.dynamicTest(a.getKey(),
 							() -> assertThat(ReflectionTestUtils.getField(thing, a.getKey())).isEqualTo(a.getValue()))));
 
 			DynamicContainer writes = DynamicContainer.dynamicContainer("write", entry.getValue().entrySet().stream()
-					.map(a -> dynamicTest(a.getKey(), () -> assertWrite(copyOfThing, a.getKey(), defaultConversionService))));
+					.map(a -> DynamicTest
+							.dynamicTest(a.getKey(), () -> assertWrite(copyOfThing, a.getKey(), defaultConversionService))));
 
 			return DynamicContainer.dynamicContainer(entry.getKey(), Arrays.asList(reads, writes));
 		});

@@ -15,10 +15,11 @@
  */
 package org.springframework.data.neo4j.core;
 
-import static java.util.Collections.*;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -116,7 +117,7 @@ class NamedParametersTest {
 
 			Map<String, Object> outer = new TreeMap<>();
 			outer.put("oma", "Something");
-			outer.put("omb", singletonMap("ims", "Something else"));
+			outer.put("omb", Collections.singletonMap("ims", "Something else"));
 
 			NamedParameters p = new NamedParameters();
 			p.add("aKey", outer);
@@ -129,8 +130,8 @@ class NamedParametersTest {
 
 			Map<String, Object> outer = new TreeMap<>();
 			outer.put("oma", "Something");
-			outer.put("omb", singletonMap("ims", singletonMap("imi", "Embedded Thing")));
-			outer.put("omc", singletonMap("ims", "Something else"));
+			outer.put("omb", Collections.singletonMap("ims", Collections.singletonMap("imi", "Embedded Thing")));
+			outer.put("omc", Collections.singletonMap("ims", "Something else"));
 
 			NamedParameters p = new NamedParameters();
 			p.add("aKey", outer);
@@ -145,7 +146,8 @@ class NamedParametersTest {
 			NamedParameters p = new NamedParameters();
 			p.add("a", Arrays.asList("Something", "Else"));
 			p.add("l", Arrays.asList(1L, 2L, 3L));
-			p.add("m", Arrays.asList(singletonMap("a", "av"), singletonMap("b", Arrays.asList("A", "b"))));
+			p.add("m", Arrays.asList(
+					Collections.singletonMap("a", "av"), Collections.singletonMap("b", Arrays.asList("A", "b"))));
 
 			assertThat(p.toString())
 					.isEqualTo(":params {a: ['Something', 'Else'], l: [1, 2, 3], m: [{a: 'av'}, {b: ['A', 'b']}]}");

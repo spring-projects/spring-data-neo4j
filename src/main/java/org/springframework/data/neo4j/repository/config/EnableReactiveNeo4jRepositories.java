@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
-import static org.springframework.data.neo4j.repository.config.ReactiveNeo4jRepositoryConfigurationExtension.*;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -88,17 +86,17 @@ public @interface EnableReactiveNeo4jRepositories {
 	/**
 	 * Configures the name of the {@link Neo4jMappingContext} bean to be used with the repositories detected.
 	 */
-	String neo4jMappingContextRef() default DEFAULT_MAPPING_CONTEXT_BEAN_NAME;
+	String neo4jMappingContextRef() default ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_MAPPING_CONTEXT_BEAN_NAME;
 
 	/**
 	 * Configures the name of the {@link ReactiveNeo4jTemplate} bean to be used with the repositories detected.
 	 */
-	String neo4jTemplateRef() default DEFAULT_NEO4J_TEMPLATE_BEAN_NAME;
+	String neo4jTemplateRef() default ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME;
 
 	/**
 	 * Configures the name of the {@link ReactiveNeo4jTransactionManager} bean to be used with the repositories detected.
 	 */
-	String transactionManagerRef() default DEFAULT_TRANSACTION_MANAGER_BEAN_NAME;
+	String transactionManagerRef() default ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME;
 
 	/**
 	 * Specifies which types are eligible for component scanning. Further narrows the set of candidate components from

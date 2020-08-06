@@ -15,8 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.neo4j.test.Neo4jExtension.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Optional;
 
@@ -42,6 +42,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.support.Neo4jPersistenceExceptionTranslator;
+import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -52,7 +53,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Neo4jIntegrationTest
 class ExceptionTranslationIT {
 
-	protected static Neo4jConnectionSupport neo4jConnectionSupport;
+	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	@BeforeAll
 	static void createConstraints(@Autowired Driver driver) {

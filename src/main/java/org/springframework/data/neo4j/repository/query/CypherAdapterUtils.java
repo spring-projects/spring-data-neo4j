@@ -15,8 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static org.neo4j.cypherdsl.core.Cypher.*;
-import static org.springframework.data.neo4j.core.schema.Constants.*;
+import static org.neo4j.cypherdsl.core.Cypher.property;
 
 import java.util.function.Function;
 
@@ -26,6 +25,7 @@ import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.core.schema.Constants;
 import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 
@@ -49,7 +49,7 @@ public final class CypherAdapterUtils {
 			String property = nodeDescription.getGraphProperty(order.getProperty())
 					.map(GraphPropertyDescription::getPropertyName).orElseThrow(() -> new IllegalStateException(
 							String.format("Cannot order by the unknown graph property: '%s'", order.getProperty())));
-			SortItem sortItem = Cypher.sort(property(NAME_OF_ROOT_NODE, property));
+			SortItem sortItem = Cypher.sort(property(Constants.NAME_OF_ROOT_NODE, property));
 
 			// Spring's Sort.Order defaults to ascending, so we just need to change this if we have descending order.
 			if (order.isDescending()) {

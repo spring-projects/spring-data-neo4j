@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.springframework.data.neo4j.test.Neo4jExtension.*;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -45,7 +43,7 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 /**
  * @author Michael J. Simons
  */
-@Tag(NEEDS_REACTIVE_SUPPORT)
+@Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 class ReactiveCallbacksIT extends CallbacksITBase {
 
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;

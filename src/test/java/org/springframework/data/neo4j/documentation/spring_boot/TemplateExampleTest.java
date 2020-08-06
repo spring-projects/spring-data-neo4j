@@ -17,9 +17,9 @@ package org.springframework.data.neo4j.documentation.spring_boot;
 
 // tag::faq.template-imperative[]
 
-import static java.util.Collections.*;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +46,8 @@ public class TemplateExampleTest {
 				"A movie that follows the adventures of Herbie, Herbie's driver, "
 						+ "Jim Douglas (Dean Jones), and Jim's love interest, " + "Carole Bennett (Michele Lee)");
 
-		movie.getActorsAndRoles().put(new PersonEntity(1931, "Dean Jones"), new Roles(singletonList("Didi")));
-		movie.getActorsAndRoles().put(new PersonEntity(1942, "Michele Lee"), new Roles(singletonList("Michi")));
+		movie.getActorsAndRoles().put(new PersonEntity(1931, "Dean Jones"), new Roles(Collections.singletonList("Didi")));
+		movie.getActorsAndRoles().put(new PersonEntity(1942, "Michele Lee"), new Roles(Collections.singletonList("Michi")));
 
 		neo4jTemplate.save(movie);
 

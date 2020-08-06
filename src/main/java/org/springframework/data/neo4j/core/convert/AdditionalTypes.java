@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.core.convert;
 
-import static org.springframework.data.convert.ConverterBuilder.*;
-
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -41,6 +39,7 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.ConditionalConverter;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.converter.GenericConverter;
+import org.springframework.data.convert.ConverterBuilder;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.util.Assert;
@@ -61,33 +60,33 @@ final class AdditionalTypes {
 	static {
 
 		List<Object> hlp = new ArrayList<>();
-		hlp.add(reading(Value.class, boolean[].class, AdditionalTypes::asBooleanArray).andWriting(Values::value));
-		hlp.add(reading(Value.class, Byte.class, AdditionalTypes::asByte).andWriting(AdditionalTypes::value));
-		hlp.add(reading(Value.class, byte.class, AdditionalTypes::asByte).andWriting(AdditionalTypes::value));
-		hlp.add(reading(Value.class, Character.class, AdditionalTypes::asCharacter).andWriting(Values::value));
-		hlp.add(reading(Value.class, char.class, AdditionalTypes::asCharacter).andWriting(Values::value));
-		hlp.add(reading(Value.class, char[].class, AdditionalTypes::asCharArray).andWriting(Values::value));
-		hlp.add(reading(Value.class, Date.class, AdditionalTypes::asDate).andWriting(AdditionalTypes::value));
-		hlp.add(reading(Value.class, double[].class, AdditionalTypes::asDoubleArray).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, boolean[].class, AdditionalTypes::asBooleanArray).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Byte.class, AdditionalTypes::asByte).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, byte.class, AdditionalTypes::asByte).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Character.class, AdditionalTypes::asCharacter).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, char.class, AdditionalTypes::asCharacter).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, char[].class, AdditionalTypes::asCharArray).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Date.class, AdditionalTypes::asDate).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, double[].class, AdditionalTypes::asDoubleArray).andWriting(Values::value));
 		hlp.add(new EnumConverter());
-		hlp.add(reading(Value.class, Float.class, AdditionalTypes::asFloat).andWriting(AdditionalTypes::value));
-		hlp.add(reading(Value.class, float.class, AdditionalTypes::asFloat).andWriting(AdditionalTypes::value));
-		hlp.add(reading(Value.class, float[].class, AdditionalTypes::asFloatArray).andWriting(AdditionalTypes::value));
-		hlp.add(reading(Value.class, Integer.class, Value::asInt).andWriting(Values::value));
-		hlp.add(reading(Value.class, int.class, Value::asInt).andWriting(Values::value));
-		hlp.add(reading(Value.class, int[].class, AdditionalTypes::asIntArray).andWriting(Values::value));
-		hlp.add(reading(Value.class, Locale.class, AdditionalTypes::asLocale).andWriting(AdditionalTypes::value));
-		hlp.add(reading(Value.class, long[].class, AdditionalTypes::asLongArray).andWriting(Values::value));
-		hlp.add(reading(Value.class, Short.class, AdditionalTypes::asShort).andWriting(AdditionalTypes::value));
-		hlp.add(reading(Value.class, short.class, AdditionalTypes::asShort).andWriting(AdditionalTypes::value));
-		hlp.add(reading(Value.class, short[].class, AdditionalTypes::asShortArray).andWriting(AdditionalTypes::value));
-		hlp.add(reading(Value.class, String[].class, AdditionalTypes::asStringArray).andWriting(Values::value));
-		hlp.add(reading(Value.class, BigDecimal.class, AdditionalTypes::asBigDecimal).andWriting(AdditionalTypes::value));
-		hlp.add(reading(Value.class, BigInteger.class, AdditionalTypes::asBigInteger).andWriting(AdditionalTypes::value));
-		hlp.add(reading(Value.class, TemporalAmount.class, AdditionalTypes::asTemporalAmount)
+		hlp.add(ConverterBuilder.reading(Value.class, Float.class, AdditionalTypes::asFloat).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, float.class, AdditionalTypes::asFloat).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, float[].class, AdditionalTypes::asFloatArray).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Integer.class, Value::asInt).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, int.class, Value::asInt).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, int[].class, AdditionalTypes::asIntArray).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Locale.class, AdditionalTypes::asLocale).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, long[].class, AdditionalTypes::asLongArray).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Short.class, AdditionalTypes::asShort).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, short.class, AdditionalTypes::asShort).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, short[].class, AdditionalTypes::asShortArray).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, String[].class, AdditionalTypes::asStringArray).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, BigDecimal.class, AdditionalTypes::asBigDecimal).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, BigInteger.class, AdditionalTypes::asBigInteger).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, TemporalAmount.class, AdditionalTypes::asTemporalAmount)
 				.andWriting(AdditionalTypes::value));
-		hlp.add(reading(Value.class, Instant.class, AdditionalTypes::asInstant).andWriting(AdditionalTypes::value));
-		hlp.add(reading(Value.class, UUID.class, AdditionalTypes::asUUID).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Instant.class, AdditionalTypes::asInstant).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, UUID.class, AdditionalTypes::asUUID).andWriting(AdditionalTypes::value));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
 	}

@@ -15,17 +15,33 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import static java.util.Collections.*;
-import static org.springframework.util.StringUtils.*;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
-import org.springframework.data.neo4j.core.schema.*;
+import org.springframework.data.neo4j.core.schema.DynamicLabels;
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
+import org.springframework.data.neo4j.core.schema.IdDescription;
+import org.springframework.data.neo4j.core.schema.IdGenerator;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.NodeDescription;
+import org.springframework.data.neo4j.core.schema.Property;
+import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.schema.RelationshipDescription;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
@@ -231,7 +247,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		Node nodeAnnotation = this.findAnnotation(Node.class);
 		if (nodeAnnotation == null || hasEmptyLabelInformation(nodeAnnotation)) {
 			return this.getType().getSimpleName();
-		} else if (hasText(nodeAnnotation.primaryLabel())) {
+		} else if (StringUtils.hasText(nodeAnnotation.primaryLabel())) {
 			return nodeAnnotation.primaryLabel();
 		} else {
 			return nodeAnnotation.labels()[0];
@@ -262,8 +278,8 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	private List<String> computeOwnAdditionalLabels() {
 		Node nodeAnnotation = this.findAnnotation(Node.class);
 		if (nodeAnnotation == null || hasEmptyLabelInformation(nodeAnnotation)) {
-			return emptyList();
-		} else if (hasText(nodeAnnotation.primaryLabel())) {
+			return Collections.emptyList();
+		} else if (StringUtils.hasText(nodeAnnotation.primaryLabel())) {
 			return Arrays.asList(nodeAnnotation.labels());
 		} else {
 			return Arrays.asList(Arrays.copyOfRange(nodeAnnotation.labels(), 1, nodeAnnotation.labels().length));
@@ -283,7 +299,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	}
 
 	private static boolean hasEmptyLabelInformation(Node nodeAnnotation) {
-		return nodeAnnotation.labels().length < 1 && !hasText(nodeAnnotation.primaryLabel());
+		return nodeAnnotation.labels().length < 1 && !StringUtils.hasText(nodeAnnotation.primaryLabel());
 	}
 
 	@Nullable

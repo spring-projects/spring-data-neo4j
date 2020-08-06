@@ -15,10 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static java.util.Collections.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.neo4j.cypherdsl.core.Cypher.*;
-import static org.springframework.data.neo4j.test.Neo4jExtension.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import reactor.test.StepVerifier;
 
@@ -59,8 +57,9 @@ import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.PersonWithCustomId;
 import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
+import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
-import org.springframework.data.neo4j.test.Neo4jExtension.*;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -68,7 +67,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
-@Tag(NEEDS_REACTIVE_SUPPORT)
+@Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 class ReactiveNeo4jOperationsIT {
 	private static final String TEST_PERSON1_NAME = "Test";
 	private static final String TEST_PERSON2_NAME = "Test2";
@@ -138,7 +137,7 @@ class ReactiveNeo4jOperationsIT {
 		Statement statement = Cypher.match(node).where(node.property("name").isEqualTo(parameter("name")))
 				.returning(Functions.count(node)).build();
 
-		StepVerifier.create(neo4jOperations.count(statement, singletonMap("name", TEST_PERSON1_NAME)))
+		StepVerifier.create(neo4jOperations.count(statement, Collections.singletonMap("name", TEST_PERSON1_NAME)))
 				.assertNext(count -> assertThat(count).isEqualTo(1)).verifyComplete();
 	}
 
@@ -155,7 +154,7 @@ class ReactiveNeo4jOperationsIT {
 	void countWithCypherQueryAndParameters() {
 		String cypherQuery = "MATCH (p:PersonWithAllConstructor) WHERE p.name = $name return count(p)";
 
-		StepVerifier.create(neo4jOperations.count(cypherQuery, singletonMap("name", TEST_PERSON1_NAME)))
+		StepVerifier.create(neo4jOperations.count(cypherQuery, Collections.singletonMap("name", TEST_PERSON1_NAME)))
 				.assertNext(count -> assertThat(count).isEqualTo(1)).verifyComplete();
 	}
 
@@ -354,12 +353,12 @@ class ReactiveNeo4jOperationsIT {
 		@Bean
 		@Override
 		public Neo4jConversions neo4jConversions() {
-			return new Neo4jConversions(singletonList(new PersonWithCustomId.CustomPersonIdConverter()));
+			return new Neo4jConversions(Collections.singletonList(new PersonWithCustomId.CustomPersonIdConverter()));
 		}
 
 		@Override // needed here because there is no implicit registration of entities upfront some methods under test
 		protected Collection<String> getMappingBasePackages() {
-			return singletonList(PersonWithAllConstructor.class.getPackage().getName());
+			return Collections.singletonList(PersonWithAllConstructor.class.getPackage().getName());
 		}
 	}
 }

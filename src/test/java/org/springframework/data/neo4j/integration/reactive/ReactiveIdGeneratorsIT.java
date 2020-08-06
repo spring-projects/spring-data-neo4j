@@ -15,9 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static java.util.stream.Collectors.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.neo4j.test.Neo4jExtension.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -26,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Tag;
@@ -40,6 +39,7 @@ import org.springframework.data.neo4j.integration.shared.IdGeneratorsITBase;
 import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
 import org.springframework.data.neo4j.integration.shared.ThingWithIdGeneratedByBean;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
+import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -48,7 +48,7 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 /**
  * @author Michael J. Simons
  */
-@Tag(NEEDS_REACTIVE_SUPPORT)
+@Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 
 	private final ReactiveTransactionManager transactionManager;
@@ -94,7 +94,7 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 	void idGenerationWithNewEntitiesShouldWork(@Autowired ThingWithGeneratedIdRepository repository) {
 
 		List<ThingWithGeneratedId> things = IntStream.rangeClosed(1, 10).mapToObj(i -> new ThingWithGeneratedId("name" + i))
-				.collect(toList());
+				.collect(Collectors.toList());
 
 		Set<String> generatedIds = new HashSet<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
