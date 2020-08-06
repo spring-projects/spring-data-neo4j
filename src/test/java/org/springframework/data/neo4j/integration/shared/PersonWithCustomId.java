@@ -23,7 +23,7 @@ import org.springframework.data.neo4j.core.schema.Id;
  */
 @Value
 public class PersonWithCustomId {
-    @Id
+	@Id
 	private final CustomPersonId id;
-    private final String name;
+	private final String name;
 }
