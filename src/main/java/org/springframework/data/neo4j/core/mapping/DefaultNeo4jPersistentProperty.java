@@ -172,7 +172,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 		String propertyName = this.graphPropertyName.getNullable();
 		if (propertyName == null) {
-			throw new MappingException("This property is not mapped to a Graph property!");
+			throw new MappingException("The property '" + propertyName + "' is not mapped to a Graph property!");
 		}
 
 		return propertyName;

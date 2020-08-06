@@ -28,7 +28,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -43,14 +46,18 @@ import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
+import org.neo4j.driver.TransactionWork;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.summary.ResultSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
+import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
+import org.springframework.data.neo4j.integration.shared.PersonWithCustomId;
 import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.test.Neo4jExtension.*;
@@ -71,6 +78,7 @@ class ReactiveNeo4jOperationsIT {
 	private final Driver driver;
 	private final ReactiveNeo4jOperations neo4jOperations;
 
+	private final AtomicLong customIdValueGenerator = new AtomicLong();
 	private Long person1Id;
 	private Long person2Id;
 
@@ -94,16 +102,19 @@ class ReactiveNeo4jOperationsIT {
 	@BeforeEach
 	void setupData() {
 
-		Transaction transaction = driver.session(getSessionConfig()).beginTransaction();
-		transaction.run("MATCH (n) detach delete n");
+		try (
+				Session session = driver.session(getSessionConfig());
+				Transaction transaction = session.beginTransaction();
+		) {
+			transaction.run("MATCH (n) detach delete n");
 
-		person1Id = transaction.run("CREATE (n:PersonWithAllConstructor) SET n.name = $name RETURN id(n)",
-				Values.parameters("name", TEST_PERSON1_NAME)).next().get(0).asLong();
-		person2Id = transaction.run("CREATE (n:PersonWithAllConstructor) SET n.name = $name RETURN id(n)",
-				Values.parameters("name", TEST_PERSON2_NAME)).next().get(0).asLong();
+			person1Id = transaction.run("CREATE (n:PersonWithAllConstructor) SET n.name = $name RETURN id(n) AS id",
+					Values.parameters("name", TEST_PERSON1_NAME)).single().get("id").asLong();
+			person2Id = transaction.run("CREATE (n:PersonWithAllConstructor) SET n.name = $name RETURN id(n) AS id",
+					Values.parameters("name", TEST_PERSON2_NAME)).single().get("id").asLong();
 
-		transaction.commit();
-		transaction.close();
+			transaction.commit();
+		}
 	}
 
 	@Test
@@ -265,14 +276,68 @@ class ReactiveNeo4jOperationsIT {
 		}
 	}
 
+	TransactionWork<ResultSummary> createPersonWithCustomId(PersonWithCustomId.PersonId assignedId) {
+
+		return tx -> tx.run("CREATE (n:PersonWithCustomId) SET n.id = $id ",
+				Values.parameters("id", assignedId.getId())).consume();
+	}
+
+	@Test
+	void deleteByCustomId() {
+
+		PersonWithCustomId.PersonId id = new PersonWithCustomId.PersonId(customIdValueGenerator.incrementAndGet());
+		try (Session session = driver.session(getSessionConfig())) {
+			session.writeTransaction(createPersonWithCustomId(id));
+		}
+
+		StepVerifier.create(neo4jOperations.count(PersonWithCustomId.class))
+				.expectNext(1L)
+				.verifyComplete();
+
+		StepVerifier.create(neo4jOperations.deleteById(id, PersonWithCustomId.class))
+				.verifyComplete();
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Result result = session.run("MATCH (p:PersonWithCustomId) return count(p) as count");
+			assertThat(result.single().get("count").asLong()).isEqualTo(0);
+		}
+	}
+
 	@Test
 	void deleteAllById() {
+
 		StepVerifier
 				.create(neo4jOperations.deleteAllById(Arrays.asList(person1Id, person2Id), PersonWithAllConstructor.class))
 				.verifyComplete();
 
 		try (Session session = driver.session(getSessionConfig())) {
 			Result result = session.run("MATCH (p:PersonWithAllConstructor) return count(p) as count");
+			assertThat(result.single().get("count").asLong()).isEqualTo(0);
+		}
+	}
+
+	@Test
+	void deleteAllByCustomId() {
+
+		List<PersonWithCustomId.PersonId> ids = Stream.generate(customIdValueGenerator::incrementAndGet)
+				.map(PersonWithCustomId.PersonId::new)
+				.limit(2)
+				.collect(Collectors.toList());
+		try (
+				Session session = driver.session(getSessionConfig());
+		) {
+			ids.forEach(id -> session.writeTransaction(createPersonWithCustomId(id)));
+		}
+
+		StepVerifier.create(neo4jOperations.count(PersonWithCustomId.class))
+				.expectNext(2L)
+				.verifyComplete();
+
+		StepVerifier.create(neo4jOperations.deleteAllById(ids, PersonWithCustomId.class))
+				.verifyComplete();
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Result result = session.run("MATCH (p:PersonWithCustomId) return count(p) as count");
 			assertThat(result.single().get("count").asLong()).isEqualTo(0);
 		}
 	}
@@ -284,6 +349,12 @@ class ReactiveNeo4jOperationsIT {
 		@Bean
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Bean
+		@Override
+		public Neo4jConversions neo4jConversions() {
+			return new Neo4jConversions(singletonList(new PersonWithCustomId.CustomPersonIdConverter()));
 		}
 
 		@Override // needed here because there is no implicit registration of entities upfront some methods under test
