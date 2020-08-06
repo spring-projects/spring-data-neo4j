@@ -316,7 +316,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		log.debug(() -> String.format("Deleting entity with id %s ", id));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
-		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).in(getDatabaseName()).bind(id)
+		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).in(getDatabaseName()).bind(convertIdValues(id))
 				.to(nameOfParameter).run();
 
 		log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
@@ -333,7 +333,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		log.debug(() -> String.format("Deleting all entities with the following ids: %s ", ids));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
-		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).in(getDatabaseName()).bind(ids)
+		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).in(getDatabaseName()).bind(convertIdValues(ids))
 				.to(nameOfParameter).run();
 
 		log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
