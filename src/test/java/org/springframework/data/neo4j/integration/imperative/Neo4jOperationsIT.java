@@ -45,8 +45,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.Neo4jOperations;
-import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
-import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
+import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.integration.shared.*;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -54,6 +54,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 /**
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @author Rosetta Roberts
  */
 @Neo4jIntegrationTest
 class Neo4jOperationsIT {
@@ -81,8 +82,12 @@ class Neo4jOperationsIT {
 	 * @return The session config used for verification methods.
 	 */
 	SessionConfig getSessionConfig() {
-
 		return SessionConfig.defaultConfig();
+	}
+
+	@Bean
+	Neo4jConversions conversions() {
+		return new Neo4jConversions(singletonList(new CustomPersonIdConverter()));
 	}
 
 	@BeforeEach
@@ -267,8 +272,31 @@ class Neo4jOperationsIT {
 	}
 
 	@Test
+	void deleteByCustomId() {
+		neo4jOperations.deleteById(new CustomPersonId(person1Id), PersonWithCustomId.class);
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Result result = session.run("MATCH (p:PersonWithAllConstructor) return count(p) as count");
+			assertThat(result.single().get("count").asLong()).isEqualTo(1);
+		}
+	}
+
+	@Test
 	void deleteAllById() {
 		neo4jOperations.deleteAllById(Arrays.asList(person1Id, person2Id), PersonWithAllConstructor.class);
+
+		try (Session session = driver.session(getSessionConfig())) {
+			Result result = session.run("MATCH (p:PersonWithAllConstructor) return count(p) as count");
+			assertThat(result.single().get("count").asLong()).isEqualTo(0);
+		}
+	}
+
+	@Test
+	void deleteAllByCustomId() {
+		neo4jOperations.deleteAllById(
+				Arrays.asList(new CustomPersonId(person1Id), new CustomPersonId(person2Id)),
+				PersonWithCustomId.class
+		);
 
 		try (Session session = driver.session(getSessionConfig())) {
 			Result result = session.run("MATCH (p:PersonWithAllConstructor) return count(p) as count");
