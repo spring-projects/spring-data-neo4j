@@ -329,7 +329,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 		return getDatabaseName().flatMap(databaseName -> this.neo4jClient.query(() -> renderer.render(statement))
-				.in(databaseName.getValue()).bind(ids).to(nameOfParameter).run().then());
+				.in(databaseName.getValue()).bind(convertIdValues(ids)).to(nameOfParameter).run().then());
 	}
 
 	@Override
@@ -343,7 +343,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 		return getDatabaseName().flatMap(databaseName -> this.neo4jClient.query(() -> renderer.render(statement))
-				.in(databaseName.getValue()).bind(id).to(nameOfParameter).run().then());
+				.in(databaseName.getValue()).bind(convertIdValues(id)).to(nameOfParameter).run().then());
 	}
 
 	@Override
