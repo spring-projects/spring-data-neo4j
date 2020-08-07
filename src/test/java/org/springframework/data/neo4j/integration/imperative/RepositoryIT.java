@@ -15,16 +15,26 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static java.util.Collections.*;
-import static java.util.stream.Collectors.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.domain.Range.Bound.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.tuple;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
@@ -69,7 +79,28 @@ import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.integration.imperative.repositories.PersonRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
-import org.springframework.data.neo4j.integration.shared.*;
+import org.springframework.data.neo4j.integration.shared.AnotherThingWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.BidirectionalEnd;
+import org.springframework.data.neo4j.integration.shared.BidirectionalStart;
+import org.springframework.data.neo4j.integration.shared.Club;
+import org.springframework.data.neo4j.integration.shared.DeepRelationships;
+import org.springframework.data.neo4j.integration.shared.EntityWithConvertedId;
+import org.springframework.data.neo4j.integration.shared.Hobby;
+import org.springframework.data.neo4j.integration.shared.ImmutablePerson;
+import org.springframework.data.neo4j.integration.shared.Inheritance;
+import org.springframework.data.neo4j.integration.shared.KotlinPerson;
+import org.springframework.data.neo4j.integration.shared.LikesHobbyRelationship;
+import org.springframework.data.neo4j.integration.shared.MultipleLabels;
+import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
+import org.springframework.data.neo4j.integration.shared.PersonWithNoConstructor;
+import org.springframework.data.neo4j.integration.shared.PersonWithRelationship;
+import org.springframework.data.neo4j.integration.shared.PersonWithRelationshipWithProperties;
+import org.springframework.data.neo4j.integration.shared.PersonWithWither;
+import org.springframework.data.neo4j.integration.shared.Pet;
+import org.springframework.data.neo4j.integration.shared.SimilarThing;
+import org.springframework.data.neo4j.integration.shared.ThingWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.ThingWithCustomTypes;
+import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.BoundingBox;
@@ -152,7 +183,7 @@ class RepositoryIT {
 			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
 					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, createdAt.toInstant());
 			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
-					false, 2L, TEST_PERSON2_BORN_ON, null, emptyList(), SFO, null);
+					false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
 		}
 
 		@Test
@@ -219,7 +250,7 @@ class RepositoryIT {
 
 			AnotherThingWithAssignedId anotherThing = new AnotherThingWithAssignedId(4711L);
 			anotherThing.setName("Bart");
-			assertThat(optionalThing).map(ThingWithAssignedId::getThings).contains(singletonList(anotherThing));
+			assertThat(optionalThing).map(ThingWithAssignedId::getThings).contains(Collections.singletonList(anotherThing));
 		}
 
 		@Test
@@ -239,7 +270,7 @@ class RepositoryIT {
 				session.run("CREATE (:EntityWithConvertedId{identifyingEnum:'A'})");
 			}
 
-			List<EntityWithConvertedId> entities = repository.findAllById(singleton(EntityWithConvertedId.IdentifyingEnum.A));
+			List<EntityWithConvertedId> entities = repository.findAllById(Collections.singleton(EntityWithConvertedId.IdentifyingEnum.A));
 
 			assertThat(entities).hasSize(1);
 			assertThat(entities.get(0).getIdentifyingEnum()).isEqualTo(EntityWithConvertedId.IdentifyingEnum.A);
@@ -1085,7 +1116,7 @@ class RepositoryIT {
 		void saveAll(@Autowired PersonRepository repository) {
 
 			PersonWithAllConstructor newPerson = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true,
-					1509L, LocalDate.of(1946, 9, 15), null, emptyList(), null, null);
+					1509L, LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null);
 
 			PersonWithAllConstructor existingPerson = repository.findById(id1).get();
 			existingPerson.setFirstName("Updated first name");
@@ -1095,7 +1126,7 @@ class RepositoryIT {
 
 			List<Long> ids = StreamSupport
 					.stream(repository.saveAll(Arrays.asList(existingPerson, newPerson)).spliterator(), false)
-					.map(PersonWithAllConstructor::getId).collect(toList());
+					.map(PersonWithAllConstructor::getId).collect(Collectors.toList());
 
 			assertThat(repository.count()).isEqualTo(2);
 
@@ -1118,7 +1149,7 @@ class RepositoryIT {
 			originalPerson.setFirstName("Updated first name");
 			originalPerson.setNullable("Updated nullable field");
 			assertThat(originalPerson.getThings()).isNotEmpty();
-			originalPerson.setThings(emptyList());
+			originalPerson.setThings(Collections.emptyList());
 
 			PersonWithAllConstructor savedPerson = repository.save(originalPerson);
 			try (Session session = createSession()) {
@@ -1259,7 +1290,7 @@ class RepositoryIT {
 			Pet pet2 = new Pet("Tom");
 			Hobby petHobby = new Hobby();
 			petHobby.setName("sleeping");
-			pet1.setHobbies(singleton(petHobby));
+			pet1.setHobbies(Collections.singleton(petHobby));
 			person.setPets(Arrays.asList(pet1, pet2));
 
 			PersonWithRelationship savedPerson = repository.save(person);
@@ -1283,11 +1314,13 @@ class RepositoryIT {
 					pets.put(petWithHobbies.get(0), ((List<Node>) petWithHobbies.get(1)));
 				}
 
-				assertThat(pets.keySet().stream().map(pet -> ((Node) pet).get("name").asString()).collect(toList()))
+				assertThat(pets.keySet().stream().map(pet -> ((Node) pet).get("name").asString()).collect(
+						Collectors.toList()))
 						.containsExactlyInAnyOrder("Jerry", "Tom");
 
 				assertThat(pets.values().stream()
-						.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(toList()))
+						.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(
+								Collectors.toList()))
 								.containsExactlyInAnyOrder("sleeping");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
@@ -1311,7 +1344,7 @@ class RepositoryIT {
 			Pet pet2 = new Pet("Tom");
 			Hobby petHobby = new Hobby();
 			petHobby.setName("sleeping");
-			pet1.setHobbies(singleton(petHobby));
+			pet1.setHobbies(Collections.singleton(petHobby));
 			person.setPets(Arrays.asList(pet1, pet2));
 
 			PersonWithRelationship savedPerson = repository.save(person);
@@ -1339,11 +1372,13 @@ class RepositoryIT {
 					pets.put(petWithHobbies.get(0), ((List<Node>) petWithHobbies.get(1)));
 				}
 
-				assertThat(pets.keySet().stream().map(pet -> ((Node) pet).get("name").asString()).collect(toList()))
+				assertThat(pets.keySet().stream().map(pet -> ((Node) pet).get("name").asString()).collect(
+						Collectors.toList()))
 						.containsExactlyInAnyOrder("Jerry", "Tom");
 
 				assertThat(pets.values().stream()
-						.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(toList()))
+						.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(
+								Collectors.toList()))
 								.containsExactlyInAnyOrder("sleeping");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
@@ -1456,16 +1491,16 @@ class RepositoryIT {
 			Pet petOfChildPet = new Pet("Mucki");
 			Pet petOfGrandChildPet = new Pet("Blacky");
 
-			rootPet.setFriends(singletonList(petOfRootPet));
-			petOfRootPet.setFriends(singletonList(petOfChildPet));
-			petOfChildPet.setFriends(singletonList(petOfGrandChildPet));
+			rootPet.setFriends(Collections.singletonList(petOfRootPet));
+			petOfRootPet.setFriends(Collections.singletonList(petOfChildPet));
+			petOfChildPet.setFriends(Collections.singletonList(petOfGrandChildPet));
 
 			repository.save(rootPet);
 
 			try (Session session = createSession()) {
 				Record record = session.run("MATCH (rootPet:Pet)-[:Has]->(petOfRootPet:Pet)-[:Has]->(petOfChildPet:Pet)"
 						+ "-[:Has]->(petOfGrandChildPet:Pet) " + "RETURN rootPet, petOfRootPet, petOfChildPet, petOfGrandChildPet",
-						emptyMap()).single();
+						Collections.emptyMap()).single();
 
 				assertThat(record.get("rootPet").asNode().get("name").asString()).isEqualTo("Luna");
 				assertThat(record.get("petOfRootPet").asNode().get("name").asString()).isEqualTo("Daphne");
@@ -1479,8 +1514,8 @@ class RepositoryIT {
 			Pet luna = new Pet("Luna");
 			Pet daphne = new Pet("Daphne");
 
-			luna.setFriends(singletonList(daphne));
-			daphne.setFriends(singletonList(luna));
+			luna.setFriends(Collections.singletonList(daphne));
+			daphne.setFriends(Collections.singletonList(luna));
 
 			repository.save(luna);
 
@@ -1521,7 +1556,7 @@ class RepositoryIT {
 			thing.setName("That's the thing.");
 			AnotherThingWithAssignedId anotherThing = new AnotherThingWithAssignedId(4711L);
 			anotherThing.setName("AnotherThing");
-			thing.setThings(singletonList(anotherThing));
+			thing.setThings(Collections.singletonList(anotherThing));
 			thing = repository.save(thing);
 
 			try (Session session = createSession()) {
@@ -1548,8 +1583,8 @@ class RepositoryIT {
 			thing.setName("That's the thing.");
 			AnotherThingWithAssignedId anotherThing = new AnotherThingWithAssignedId(4711L);
 			anotherThing.setName("AnotherThing");
-			thing.setThings(singletonList(anotherThing));
-			repository.saveAll(singletonList(thing));
+			thing.setThings(Collections.singletonList(anotherThing));
+			repository.saveAll(Collections.singletonList(thing));
 
 			try (Session session = createSession()) {
 				Record record = session.run("MATCH (n:Thing)-[:Has]->(t:Thing2) WHERE n.theId = $id RETURN n, t",
@@ -1685,7 +1720,7 @@ class RepositoryIT {
 			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
 					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, createdAt.toInstant());
 			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
-					false, 2L, TEST_PERSON2_BORN_ON, null, emptyList(), SFO, null);
+					false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
 		}
 
 		@Test
@@ -1820,7 +1855,7 @@ class RepositoryIT {
 			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
 					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, createdAt.toInstant());
 			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
-					false, 2L, TEST_PERSON2_BORN_ON, null, emptyList(), SFO, null);
+					false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
 		}
 
 		@Test
@@ -1955,22 +1990,22 @@ class RepositoryIT {
 		void findByBetweenRange(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> persons;
-			persons = repository.findAllByPersonNumberIsBetween(Range.from(inclusive(1L)).to(inclusive(2L)));
+			persons = repository.findAllByPersonNumberIsBetween(Range.from(Bound.inclusive(1L)).to(Bound.inclusive(2L)));
 			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 
-			persons = repository.findAllByPersonNumberIsBetween(Range.from(inclusive(1L)).to(exclusive(2L)));
+			persons = repository.findAllByPersonNumberIsBetween(Range.from(Bound.inclusive(1L)).to(Bound.exclusive(2L)));
 			assertThat(persons).hasSize(1).contains(person1);
 
-			persons = repository.findAllByPersonNumberIsBetween(Range.from(inclusive(1L)).to(unbounded()));
+			persons = repository.findAllByPersonNumberIsBetween(Range.from(Bound.inclusive(1L)).to(Bound.unbounded()));
 			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 
-			persons = repository.findAllByPersonNumberIsBetween(Range.from(exclusive(1L)).to(unbounded()));
+			persons = repository.findAllByPersonNumberIsBetween(Range.from(Bound.exclusive(1L)).to(Bound.unbounded()));
 			assertThat(persons).hasSize(1).contains(person2);
 
-			persons = repository.findAllByPersonNumberIsBetween(Range.from(Bound.<Long>unbounded()).to(inclusive(2L)));
+			persons = repository.findAllByPersonNumberIsBetween(Range.from(Bound.<Long>unbounded()).to(Bound.inclusive(2L)));
 			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
 
-			persons = repository.findAllByPersonNumberIsBetween(Range.from(Bound.<Long>unbounded()).to(exclusive(2L)));
+			persons = repository.findAllByPersonNumberIsBetween(Range.from(Bound.<Long>unbounded()).to(Bound.exclusive(2L)));
 			assertThat(persons).hasSize(1).contains(person1);
 
 			persons = repository.findAllByPersonNumberIsBetween(Range.unbounded());
@@ -2081,7 +2116,7 @@ class RepositoryIT {
 			persons = repository.findAllByPlaceNear(SFO);
 			assertThat(persons).containsExactly(person2, person1);
 
-			persons = repository.findAllByPlaceNearAndFirstNameIn(SFO, singletonList(TEST_PERSON1_FIRST_NAME));
+			persons = repository.findAllByPlaceNearAndFirstNameIn(SFO, Collections.singletonList(TEST_PERSON1_FIRST_NAME));
 			assertThat(persons).containsExactly(person1);
 
 			Distance distance = new Distance(200.0 / 1000.0, Metrics.KILOMETERS);
@@ -2099,8 +2134,8 @@ class RepositoryIT {
 					Distance.between(100.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
 			assertThat(persons).isEmpty();
 
-			final Range<Distance> distanceRange = Range.of(inclusive(new Distance(100.0 / 1000.0, Metrics.KILOMETERS)),
-					unbounded());
+			final Range<Distance> distanceRange = Range.of(Bound.inclusive(new Distance(100.0 / 1000.0, Metrics.KILOMETERS)),
+					Bound.unbounded());
 			persons = repository.findAllByPlaceNear(MINC, distanceRange);
 			assertThat(persons).hasSize(1).contains(person2);
 
@@ -2281,7 +2316,7 @@ class RepositoryIT {
 
 		@Test
 		void createAllNodesWithMultipleLabels(@Autowired MultipleLabelRepository multipleLabelRepository) {
-			multipleLabelRepository.saveAll(singletonList(new MultipleLabels.MultipleLabelsEntity()));
+			multipleLabelRepository.saveAll(Collections.singletonList(new MultipleLabels.MultipleLabelsEntity()));
 
 			try (Session session = createSession()) {
 				Node node = session.run("MATCH (n:A) return n").single().get("n").asNode();
@@ -2360,7 +2395,7 @@ class RepositoryIT {
 
 		@Test
 		void createAllNodesWithMultipleLabels(@Autowired MultipleLabelWithAssignedIdRepository multipleLabelRepository) {
-			multipleLabelRepository.saveAll(singletonList(new MultipleLabels.MultipleLabelsEntityWithAssignedId(4711L)));
+			multipleLabelRepository.saveAll(Collections.singletonList(new MultipleLabels.MultipleLabelsEntityWithAssignedId(4711L)));
 
 			try (Session session = createSession()) {
 				Node node = session.run("MATCH (n:X) return n").single().get("n").asNode();
@@ -2828,7 +2863,7 @@ class RepositoryIT {
 
 		@Override
 		protected Collection<String> getMappingBasePackages() {
-			return singletonList(PersonWithAllConstructor.class.getPackage().getName());
+			return Collections.singletonList(PersonWithAllConstructor.class.getPackage().getName());
 		}
 
 		@Bean

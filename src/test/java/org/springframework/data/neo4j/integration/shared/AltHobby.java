@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.shared;
 
-import static org.springframework.data.neo4j.core.schema.Relationship.Direction.*;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,7 +32,7 @@ public class AltHobby {
 
 	private String name;
 
-	@Relationship(type = "LIKES", direction = INCOMING)
+	@Relationship(type = "LIKES", direction = Relationship.Direction.INCOMING)
 	private Map<AltPerson, AltLikedByPersonRelationship> likedBy = new HashMap<>();
 
 	public Long getId() {

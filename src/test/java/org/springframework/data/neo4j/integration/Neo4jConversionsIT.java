@@ -15,8 +15,7 @@
  */
 package org.springframework.data.neo4j.integration;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.DynamicTest.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -70,10 +69,11 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 		return supportedTypes.entrySet().stream().map(types -> {
 
 			DynamicContainer reads = DynamicContainer.dynamicContainer("read", types.getValue().entrySet().stream().map(
-					a -> dynamicTest(a.getKey(), () -> Neo4jConversionsIT.assertRead(types.getKey(), a.getKey(), a.getValue()))));
+					a -> DynamicTest
+							.dynamicTest(a.getKey(), () -> Neo4jConversionsIT.assertRead(types.getKey(), a.getKey(), a.getValue()))));
 
 			DynamicContainer writes = DynamicContainer.dynamicContainer("write",
-					types.getValue().entrySet().stream().map(a -> dynamicTest(a.getKey(),
+					types.getValue().entrySet().stream().map(a -> DynamicTest.dynamicTest(a.getKey(),
 							() -> Neo4jConversionsIT.assertWrite(types.getKey(), a.getKey(), a.getValue()))));
 
 			return DynamicContainer.dynamicContainer(types.getKey(), Arrays.asList(reads, writes));
@@ -109,10 +109,10 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 		new Neo4jConversions(converterAware.getConverters()).registerConvertersIn(customConversionService);
 
 		return Stream.of(
-				dynamicTest("read",
+				DynamicTest.dynamicTest("read",
 						() -> assertThat(customConversionService.convert(Values.value("gestern"), LocalDate.class))
 								.isEqualTo(LocalDate.now().minusDays(1))),
-				dynamicTest("write",
+				DynamicTest.dynamicTest("write",
 						() -> assertThat(customConversionService.convert(LocalDate.now().plusDays(1), TYPE_DESCRIPTOR_OF_VALUE))
 								.isEqualTo(Values.value("morgen"))));
 	}

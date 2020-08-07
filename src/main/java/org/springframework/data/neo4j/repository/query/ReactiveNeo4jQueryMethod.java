@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static org.springframework.data.repository.util.ClassUtils.*;
-
 import java.lang.reflect.Method;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -54,7 +52,7 @@ final class ReactiveNeo4jQueryMethod extends Neo4jQueryMethod {
 	ReactiveNeo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
 		super(method, metadata, factory);
 
-		if (hasParameterOfType(method, Pageable.class)) {
+		if (org.springframework.data.repository.util.ClassUtils.hasParameterOfType(method, Pageable.class)) {
 
 			TypeInformation<?> returnType = ClassTypeInformation.fromReturnTypeOf(method);
 

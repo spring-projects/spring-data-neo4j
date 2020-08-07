@@ -15,8 +15,10 @@
  */
 package org.springframework.data.neo4j.repository.event;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;

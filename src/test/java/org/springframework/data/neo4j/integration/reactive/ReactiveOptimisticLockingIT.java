@@ -15,14 +15,13 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static java.util.Collections.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.neo4j.test.Neo4jExtension.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -49,7 +48,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Gerrit Meier
  */
 @Neo4jIntegrationTest
-@Tag(NEEDS_REACTIVE_SUPPORT)
+@Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 class ReactiveOptimisticLockingIT {
 
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
@@ -101,7 +100,7 @@ class ReactiveOptimisticLockingIT {
 		VersionedThing parentThing = new VersionedThing("Thing1");
 		VersionedThing childThing = new VersionedThing("Thing2");
 
-		parentThing.setOtherVersionedThings(singletonList(childThing));
+		parentThing.setOtherVersionedThings(Collections.singletonList(childThing));
 
 		StepVerifier.create(repository.save(parentThing))
 				.assertNext(
@@ -139,7 +138,7 @@ class ReactiveOptimisticLockingIT {
 
 		VersionedThing thing = new VersionedThing("Thing1");
 		VersionedThing childThing = new VersionedThing("Thing2");
-		thing.setOtherVersionedThings(singletonList(childThing));
+		thing.setOtherVersionedThings(Collections.singletonList(childThing));
 		VersionedThing savedThing = repository.save(thing).block();
 		savedThing.getOtherVersionedThings().get(0).setMyVersion(1L); // Version in DB is 0
 

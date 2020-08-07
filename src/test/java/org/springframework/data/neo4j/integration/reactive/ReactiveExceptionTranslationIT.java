@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.springframework.data.neo4j.test.Neo4jExtension.*;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -45,6 +43,7 @@ import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.repository.support.Neo4jPersistenceExceptionTranslator;
 import org.springframework.data.neo4j.repository.support.ReactivePersistenceExceptionTranslationPostProcessor;
+import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -53,10 +52,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
-@Tag(NEEDS_REACTIVE_SUPPORT)
+@Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 class ReactiveExceptionTranslationIT {
 
-	protected static Neo4jConnectionSupport neo4jConnectionSupport;
+	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	// @formatter:off
 	private final Predicate<Throwable> aTranslatedException = ex -> ex instanceof DataIntegrityViolationException && //

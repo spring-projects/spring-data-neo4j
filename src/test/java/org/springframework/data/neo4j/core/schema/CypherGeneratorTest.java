@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.core.schema;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 import java.util.Map;
 

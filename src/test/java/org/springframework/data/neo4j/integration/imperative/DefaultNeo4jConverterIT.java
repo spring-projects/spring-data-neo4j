@@ -15,8 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.neo4j.test.Neo4jExtension.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -36,6 +35,7 @@ import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Neo4jIntegrationTest
 class DefaultNeo4jConverterIT {
 
-	protected static Neo4jConnectionSupport neo4jConnectionSupport;
+	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	@Test
 	void itShouldReturnsAllTheRelatedEntities(@Autowired Entity2Repository entity2Repository) {

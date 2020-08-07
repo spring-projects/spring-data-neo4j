@@ -15,10 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static java.util.Collections.*;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -97,7 +98,7 @@ class OptimisticLockingIT {
 		VersionedThing parentThing = new VersionedThing("Thing1");
 		VersionedThing childThing = new VersionedThing("Thing2");
 
-		parentThing.setOtherVersionedThings(singletonList(childThing));
+		parentThing.setOtherVersionedThings(Collections.singletonList(childThing));
 
 		VersionedThing thing = repository.save(parentThing);
 
@@ -137,7 +138,7 @@ class OptimisticLockingIT {
 	void shouldFailIncrementVersionsOnRelatedEntities(@Autowired VersionedThingRepository repository) {
 		VersionedThing parentThing = new VersionedThing("Thing1");
 		VersionedThing childThing = new VersionedThing("Thing2");
-		parentThing.setOtherVersionedThings(singletonList(childThing));
+		parentThing.setOtherVersionedThings(Collections.singletonList(childThing));
 
 		VersionedThing thing = repository.save(parentThing);
 

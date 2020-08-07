@@ -15,8 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.neo4j.test.Neo4jExtension.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import reactor.test.StepVerifier;
 
@@ -36,6 +35,7 @@ import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.integration.shared.MultipleRelationshipsThing;
 import org.springframework.data.neo4j.integration.shared.RelationshipsITBase;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
+import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  *
  * @author Michael J. Simons
  */
-@Tag(NEEDS_REACTIVE_SUPPORT)
+@Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 class ReactiveRelationshipsIT extends RelationshipsITBase {
 
 	@Autowired

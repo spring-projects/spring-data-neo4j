@@ -15,12 +15,11 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
-import static java.util.stream.Collectors.*;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
@@ -197,7 +196,7 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 
 		Assert.notNull(entities, "The given Iterable of entities must not be null!");
 		List<ID> ids = StreamSupport.stream(entities.spliterator(), false).map(this.entityInformation::getId)
-				.collect(toList());
+				.collect(Collectors.toList());
 		return this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
 	}
 

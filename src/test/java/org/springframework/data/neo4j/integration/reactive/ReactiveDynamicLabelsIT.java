@@ -15,10 +15,9 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.neo4j.cypherdsl.core.Conditions.not;
-import static org.neo4j.cypherdsl.core.Predicates.*;
-import static org.springframework.data.neo4j.test.Neo4jExtension.*;
+import static org.neo4j.cypherdsl.core.Predicates.exists;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -47,7 +46,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
-import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.*;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.DynamicLabelsWithMultipleNodeLabels;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.DynamicLabelsWithNodeLabel;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.ExtendedBaseClass1;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.InheritedSimpleDynamicLabels;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.SimpleDynamicLabels;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.SimpleDynamicLabelsCtor;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.SimpleDynamicLabelsWithBusinessId;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.SimpleDynamicLabelsWithBusinessIdAndVersion;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.SimpleDynamicLabelsWithVersion;
+import org.springframework.data.neo4j.integration.shared.EntitiesWithDynamicLabels.SuperNode;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -56,7 +64,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 /**
  * @author Michael J. Simons
  */
-@Tag(NEEDS_REACTIVE_SUPPORT)
+@Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 @ExtendWith(Neo4jExtension.class)
 public class ReactiveDynamicLabelsIT {
 

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
-import static org.neo4j.cypherdsl.core.Cypher.*;
-import static org.springframework.data.neo4j.repository.query.CypherAdapterUtils.*;
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -28,6 +27,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.schema.CypherGenerator;
+import org.springframework.data.neo4j.repository.query.CypherAdapterUtils;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
 
 /**
@@ -78,7 +78,7 @@ class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleE
 
 		Predicate predicate = Predicate.create(mappingContext, example);
 		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf).returning(asterisk())
-				.orderBy(toSortItems(predicate.getNeo4jPersistentEntity(), sort)).build();
+				.orderBy(CypherAdapterUtils.toSortItems(predicate.getNeo4jPersistentEntity(), sort)).build();
 
 		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
 	}

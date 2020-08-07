@@ -15,14 +15,13 @@
  */
 package org.springframework.data.neo4j.documentation.repositories.populators;
 
-import static org.springframework.data.neo4j.core.schema.Relationship.Direction.*;
-
 import java.util.Set;
 
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.schema.Relationship.Direction;
 
 /**
  * @author Michael J. Simons
@@ -35,9 +34,9 @@ public class MovieEntity {
 
 	@Property("tagline") private final String description;
 
-	@Relationship(type = "ACTED_IN", direction = INCOMING) private Set<PersonEntity> actors;
+	@Relationship(type = "ACTED_IN", direction = Direction.INCOMING) private Set<PersonEntity> actors;
 
-	@Relationship(type = "DIRECTED", direction = INCOMING) private Set<PersonEntity> directors;
+	@Relationship(type = "DIRECTED", direction = Direction.INCOMING) private Set<PersonEntity> directors;
 
 	public MovieEntity(String title, String description) {
 		this.title = title;

@@ -15,11 +15,10 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
-import static java.util.stream.Collectors.*;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.function.LongSupplier;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
@@ -165,7 +164,7 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 	public void deleteAll(Iterable<? extends T> entities) {
 
 		List<Object> ids = StreamSupport.stream(entities.spliterator(), false).map(this.entityInformation::getId)
-				.collect(toList());
+				.collect(Collectors.toList());
 
 		this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
 	}

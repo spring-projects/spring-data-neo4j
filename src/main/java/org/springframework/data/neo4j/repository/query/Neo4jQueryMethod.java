@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static java.lang.String.*;
-
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
@@ -121,9 +119,9 @@ class Neo4jQueryMethod extends QueryMethod {
 		public String getPlaceholder() {
 
 			if (isNamedParameter()) {
-				return format(NAMED_PARAMETER_TEMPLATE, getName().get());
+				return String.format(NAMED_PARAMETER_TEMPLATE, getName().get());
 			} else {
-				return format(POSITION_PARAMETER_TEMPLATE, getIndex());
+				return String.format(POSITION_PARAMETER_TEMPLATE, getIndex());
 			}
 		}
 

@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.core.convert;
 
-import static org.springframework.data.convert.ConverterBuilder.*;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -60,10 +58,10 @@ final class SpatialTypes {
 	static {
 
 		List<ConverterBuilder.ConverterAware> hlp = new ArrayList<>();
-		hlp.add(reading(Value.class, Point.class, SpatialTypes::asSpringDataPoint).andWriting(SpatialTypes::value));
-		hlp.add(reading(Value.class, Point[].class, SpatialTypes::asPointArray).andWriting(SpatialTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Point.class, SpatialTypes::asSpringDataPoint).andWriting(SpatialTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Point[].class, SpatialTypes::asPointArray).andWriting(SpatialTypes::value));
 
-		hlp.add(reading(Value.class, Neo4jPoint.class, SpatialTypes::asNeo4jPoint).andWriting(SpatialTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Neo4jPoint.class, SpatialTypes::asNeo4jPoint).andWriting(SpatialTypes::value));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
 	}

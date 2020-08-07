@@ -15,8 +15,10 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;

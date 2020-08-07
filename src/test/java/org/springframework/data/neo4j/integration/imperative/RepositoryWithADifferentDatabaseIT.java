@@ -15,21 +15,20 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.springframework.data.neo4j.test.Neo4jExtension.*;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.springframework.data.neo4j.core.DatabaseSelection;
+import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.test.annotation.DirtiesContext;
 
 /**
  * @author Michael J. Simons
  */
-@Tag(COMMERCIAL_EDITION_ONLY)
-@Tag(REQUIRES + "4.0.0")
+@Tag(Neo4jExtension.COMMERCIAL_EDITION_ONLY)
+@Tag(Neo4jExtension.REQUIRES + "4.0.0")
 @DirtiesContext
 class RepositoryWithADifferentDatabaseIT extends RepositoryIT {
 

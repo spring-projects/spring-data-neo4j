@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.exceptions.ClientException;

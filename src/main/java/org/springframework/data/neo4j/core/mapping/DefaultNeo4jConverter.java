@@ -15,9 +15,6 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import static java.util.stream.Collectors.*;
-import static org.springframework.core.CollectionFactory.*;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,6 +29,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apache.commons.logging.LogFactory;
@@ -42,6 +40,7 @@ import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.TypeSystem;
+import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -148,7 +147,8 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			Class<?> rawType = type.getType();
 
 			if (!valueIsLiteralNullOrNullValue && isCollection(type)) {
-				Collection<Object> target = createCollection(rawType, type.getComponentType().getType(), value.size());
+				Collection<Object> target = CollectionFactory
+						.createCollection(rawType, type.getComponentType().getType(), value.size());
 				value.values()
 						.forEach(element -> target.add(conversionService.convert(element, type.getComponentType().getType())));
 				return target;
@@ -163,7 +163,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 
 	private Collection<String> createDynamicLabelsProperty(TypeInformation<?> type, Collection<String> dynamicLabels) {
 
-		Collection<String> target = createCollection(type.getType(), String.class, dynamicLabels.size());
+		Collection<String> target = CollectionFactory.createCollection(type.getType(), String.class, dynamicLabels.size());
 		target.addAll(dynamicLabels);
 		return target;
 	}
@@ -391,7 +391,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			TypeInformation<?> actualType = persistentProperty.getTypeInformation().getRequiredActualType();
 			mappedObjectHandler = (type, mappedObject) -> {
 				List<Object> bucket = (List<Object>) dynamicValue.computeIfAbsent(keyTransformer.apply(type),
-						s -> createCollection(actualType.getType(), persistentProperty.getAssociationTargetType(), values.size()));
+						s -> CollectionFactory.createCollection(actualType.getType(), persistentProperty.getAssociationTargetType(), values.size()));
 				bucket.add(mappedObject);
 			};
 		} else if (persistentProperty.isDynamicAssociation()) {
@@ -419,11 +419,11 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			List<Relationship> allMatchingTypeRelationshipsInResult = StreamSupport
 					.stream(values.values().spliterator(), false).filter(isList.and(containsOnlyRelationships))
 					.flatMap(entry -> entry.asList(Value::asRelationship).stream()).filter(r -> r.type().equals(relationshipType))
-					.collect(toList());
+					.collect(Collectors.toList());
 
 			List<Node> allNodesWithMatchingLabelInResult = StreamSupport.stream(values.values().spliterator(), false)
 					.filter(isList.and(containsOnlyNodes)).flatMap(entry -> entry.asList(Value::asNode).stream())
-					.filter(n -> n.hasLabel(targetLabel)).collect(toList());
+					.filter(n -> n.hasLabel(targetLabel)).collect(Collectors.toList());
 
 			if (allNodesWithMatchingLabelInResult.isEmpty() && allMatchingTypeRelationshipsInResult.isEmpty()) {
 				return Optional.empty();

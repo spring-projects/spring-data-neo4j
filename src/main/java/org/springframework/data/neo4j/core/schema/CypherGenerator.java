@@ -15,8 +15,13 @@
  */
 package org.springframework.data.neo4j.core.schema;
 
-import static org.neo4j.cypherdsl.core.Cypher.*;
-import static org.springframework.data.neo4j.core.schema.RelationshipDescription.*;
+import static org.neo4j.cypherdsl.core.Cypher.anyNode;
+import static org.neo4j.cypherdsl.core.Cypher.listBasedOn;
+import static org.neo4j.cypherdsl.core.Cypher.literalOf;
+import static org.neo4j.cypherdsl.core.Cypher.match;
+import static org.neo4j.cypherdsl.core.Cypher.node;
+import static org.neo4j.cypherdsl.core.Cypher.optionalMatch;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,10 +31,19 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 import org.apiguardian.api.API;
-import org.neo4j.cypherdsl.core.*;
+import org.neo4j.cypherdsl.core.Condition;
+import org.neo4j.cypherdsl.core.Conditions;
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Expression;
+import org.neo4j.cypherdsl.core.Functions;
+import org.neo4j.cypherdsl.core.MapProjection;
 import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.Parameter;
 import org.neo4j.cypherdsl.core.Relationship;
+import org.neo4j.cypherdsl.core.Statement;
+import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate;
+import org.neo4j.cypherdsl.core.SymbolicName;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
@@ -426,7 +440,8 @@ public enum CypherGenerator {
 
 			addMapProjection(relationshipTargetName,
 					listBasedOn(relationship).returning(projectAllPropertiesAndRelationships(endNodeDescription,
-							relationshipFieldName, new ArrayList<>(processedRelationships)).and(NAME_OF_RELATIONSHIP_TYPE,
+							relationshipFieldName, new ArrayList<>(processedRelationships)).and(
+							RelationshipDescription.NAME_OF_RELATIONSHIP_TYPE,
 									Functions.type(relationship))),
 					mapProjectionLists);
 

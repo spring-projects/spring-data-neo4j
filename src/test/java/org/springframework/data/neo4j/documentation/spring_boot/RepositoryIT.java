@@ -17,7 +17,7 @@ package org.springframework.data.neo4j.documentation.spring_boot;
 
 // tag::testing.reactivedataneo4jtest[]
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

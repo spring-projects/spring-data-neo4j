@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static java.util.stream.Collectors.*;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,6 +26,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.neo4j.driver.types.Point;
 import org.springframework.data.repository.query.parser.Part;
@@ -112,7 +111,7 @@ class PartValidator {
 	}
 
 	private static String formatTypes(Collection<Part.Type> types) {
-		return types.stream().flatMap(t -> t.getKeywords().stream()).collect(joining(", ", "[", "]"));
+		return types.stream().flatMap(t -> t.getKeywords().stream()).collect(Collectors.joining(", ", "[", "]"));
 	}
 
 	/**

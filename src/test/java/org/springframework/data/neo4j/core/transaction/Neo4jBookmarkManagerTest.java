@@ -15,10 +15,11 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
-import static java.util.Collections.*;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,7 +35,7 @@ class Neo4jBookmarkManagerTest {
 
 	@Test
 	void updatesPreviouslyEmptyBookmarks() {
-		BookmarkForTesting bookmark = new BookmarkForTesting(singleton("a"));
+		BookmarkForTesting bookmark = new BookmarkForTesting(Collections.singleton("a"));
 		bookmarkManager.updateBookmarks(new HashSet<>(), bookmark);
 
 		assertThat(bookmarkManager.getBookmarks()).containsExactly(bookmark);
@@ -42,7 +43,7 @@ class Neo4jBookmarkManagerTest {
 
 	@Test
 	void returnsUnmodifiableCopyOfBookmarks() {
-		BookmarkForTesting bookmark = new BookmarkForTesting(singleton("a"));
+		BookmarkForTesting bookmark = new BookmarkForTesting(Collections.singleton("a"));
 		bookmarkManager.updateBookmarks(new HashSet<>(), bookmark);
 
 		Collection<Bookmark> bookmarks = bookmarkManager.getBookmarks();
@@ -51,20 +52,20 @@ class Neo4jBookmarkManagerTest {
 
 	@Test
 	void updatesPreviouslySetBookmarks() {
-		BookmarkForTesting oldBookmark = new BookmarkForTesting(singleton("a"));
+		BookmarkForTesting oldBookmark = new BookmarkForTesting(Collections.singleton("a"));
 		bookmarkManager.updateBookmarks(new HashSet<>(), oldBookmark);
 
-		BookmarkForTesting newBookmark = new BookmarkForTesting(singleton("b"));
-		bookmarkManager.updateBookmarks(singleton(oldBookmark), newBookmark);
+		BookmarkForTesting newBookmark = new BookmarkForTesting(Collections.singleton("b"));
+		bookmarkManager.updateBookmarks(Collections.singleton(oldBookmark), newBookmark);
 
 		assertThat(bookmarkManager.getBookmarks()).containsExactly(newBookmark);
 	}
 
 	@Test
 	void updatesPreviouslyUnknownBookmarks() {
-		BookmarkForTesting oldBookmark = new BookmarkForTesting(singleton("a"));
-		BookmarkForTesting newBookmark = new BookmarkForTesting(singleton("b"));
-		bookmarkManager.updateBookmarks(singleton(oldBookmark), newBookmark);
+		BookmarkForTesting oldBookmark = new BookmarkForTesting(Collections.singleton("a"));
+		BookmarkForTesting newBookmark = new BookmarkForTesting(Collections.singleton("b"));
+		bookmarkManager.updateBookmarks(Collections.singleton(oldBookmark), newBookmark);
 
 		assertThat(bookmarkManager.getBookmarks()).containsExactly(newBookmark);
 	}

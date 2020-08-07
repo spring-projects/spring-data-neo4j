@@ -15,18 +15,26 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static java.util.Collections.*;
-import static java.util.stream.Collectors.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.neo4j.driver.Values.*;
-import static org.springframework.data.neo4j.test.Neo4jExtension.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.tuple;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.assertj.core.data.MapEntry;
@@ -62,7 +70,25 @@ import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.integration.reactive.repositories.ReactivePersonRepository;
 import org.springframework.data.neo4j.integration.reactive.repositories.ReactiveThingRepository;
-import org.springframework.data.neo4j.integration.shared.*;
+import org.springframework.data.neo4j.integration.shared.AltHobby;
+import org.springframework.data.neo4j.integration.shared.AnotherThingWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.BidirectionalEnd;
+import org.springframework.data.neo4j.integration.shared.BidirectionalStart;
+import org.springframework.data.neo4j.integration.shared.Club;
+import org.springframework.data.neo4j.integration.shared.DeepRelationships;
+import org.springframework.data.neo4j.integration.shared.EntityWithConvertedId;
+import org.springframework.data.neo4j.integration.shared.Hobby;
+import org.springframework.data.neo4j.integration.shared.ImmutablePerson;
+import org.springframework.data.neo4j.integration.shared.LikesHobbyRelationship;
+import org.springframework.data.neo4j.integration.shared.MultipleLabels;
+import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
+import org.springframework.data.neo4j.integration.shared.PersonWithRelationship;
+import org.springframework.data.neo4j.integration.shared.PersonWithRelationshipWithProperties;
+import org.springframework.data.neo4j.integration.shared.Pet;
+import org.springframework.data.neo4j.integration.shared.SimilarThing;
+import org.springframework.data.neo4j.integration.shared.ThingWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.ThingWithCustomTypes;
+import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -85,7 +111,7 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 @ExtendWith(Neo4jExtension.class)
 @SpringJUnitConfig
 @DirtiesContext
-@Tag(NEEDS_REACTIVE_SUPPORT)
+@Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 class ReactiveRepositoryIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
@@ -126,20 +152,21 @@ class ReactiveRepositoryIT {
 			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
 					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
 					+ "RETURN id(n)",
-					parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
 							NEO4J_HQ))
 					.next().get(0).asLong();
 
 			id2 = transaction.run(
 					"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-					parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+					Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
 					.next().get(0).asLong();
 
 			transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
 			IntStream.rangeClosed(1, 20).forEach(i -> transaction
-					.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})", parameters("i", String.format("%02d", i))));
+					.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})", Values
+							.parameters("i", String.format("%02d", i))));
 
 			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
 					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, null);
@@ -447,7 +474,7 @@ class ReactiveRepositoryIT {
 				session.run("CREATE (:EntityWithConvertedId{identifyingEnum:'A'})");
 			}
 
-			StepVerifier.create(repository.findAllById(singleton(EntityWithConvertedId.IdentifyingEnum.A)))
+			StepVerifier.create(repository.findAllById(Collections.singleton(EntityWithConvertedId.IdentifyingEnum.A)))
 					.assertNext(
 							entity -> assertThat(entity.getIdentifyingEnum()).isEqualTo(EntityWithConvertedId.IdentifyingEnum.A))
 					.verifyComplete();
@@ -465,20 +492,21 @@ class ReactiveRepositoryIT {
 			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
 					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
 					+ "RETURN id(n)",
-					parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
 							NEO4J_HQ))
 					.next().get(0).asLong();
 
 			id2 = transaction.run(
 					"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-					parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+					Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
 					.next().get(0).asLong();
 
 			transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
 			IntStream.rangeClosed(1, 20).forEach(i -> transaction
-					.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})", parameters("i", String.format("%02d", i))));
+					.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})", Values
+							.parameters("i", String.format("%02d", i))));
 
 			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
 					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, null);
@@ -1141,20 +1169,21 @@ class ReactiveRepositoryIT {
 			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
 					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
 					+ "RETURN id(n)",
-					parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
 							NEO4J_HQ))
 					.next().get(0).asLong();
 
 			id2 = transaction.run(
 					"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-					parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+					Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
 					.next().get(0).asLong();
 
 			transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
 			IntStream.rangeClosed(1, 20).forEach(i -> transaction
-					.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})", parameters("i", String.format("%02d", i))));
+					.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})", Values
+							.parameters("i", String.format("%02d", i))));
 
 			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON_SAMEVALUE,
 					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, null);
@@ -1178,7 +1207,8 @@ class ReactiveRepositoryIT {
 					.expectNextCount(1L).verifyComplete();
 
 			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()),
-					s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n", parameters("ids", ids))
+					s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n", Values
+							.parameters("ids", ids))
 							.records(),
 					RxSession::close).map(r -> r.get("n").asNode().get("first_name").asString()).as(StepVerifier::create)
 					.expectNext("Freddie").verifyComplete();
@@ -1206,7 +1236,7 @@ class ReactiveRepositoryIT {
 
 			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()),
 					s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
-							parameters("ids", ids)).records(),
+							Values.parameters("ids", ids)).records(),
 					RxSession::close).map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
 					.expectNext("Mercury").expectNext(TEST_PERSON1_NAME).verifyComplete();
 		}
@@ -1226,7 +1256,7 @@ class ReactiveRepositoryIT {
 
 			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()),
 					s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
-							parameters("ids", ids)).records(),
+							Values.parameters("ids", ids)).records(),
 					RxSession::close).map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
 					.expectNext("Mercury").verifyComplete();
 		}
@@ -1245,7 +1275,7 @@ class ReactiveRepositoryIT {
 					.verifyComplete();
 
 			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()), s -> {
-				Value parameters = parameters("id", id1);
+				Value parameters = Values.parameters("id", id1);
 				return s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n", parameters).records();
 			}, RxSession::close).map(r -> r.get("n").asNode()).as(StepVerifier::create)
 					.expectNextMatches(node -> node.get("first_name").asString().equals("Updated first name")
@@ -1267,7 +1297,7 @@ class ReactiveRepositoryIT {
 					.verifyComplete();
 
 			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()),
-					s -> s.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", parameters("id", "aaBB")).records(),
+					s -> s.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", Values.parameters("id", "aaBB")).records(),
 					RxSession::close).map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
 					.expectNext("That's the thing.").verifyComplete();
 
@@ -1293,7 +1323,7 @@ class ReactiveRepositoryIT {
 					.verifyComplete();
 
 			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()), s -> {
-				Value parameters = parameters("ids", Arrays.asList("anId", "aaBB"));
+				Value parameters = Values.parameters("ids", Arrays.asList("anId", "aaBB"));
 				return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters)
 						.records();
 			}, RxSession::close).map(r -> r.get("name").asString()).as(StepVerifier::create).expectNext("That's the thing.")
@@ -1320,7 +1350,7 @@ class ReactiveRepositoryIT {
 					.verifyComplete();
 
 			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()), s -> {
-				Value parameters = parameters("ids", Arrays.asList("anId", "aaBB"));
+				Value parameters = Values.parameters("ids", Arrays.asList("anId", "aaBB"));
 				return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters)
 						.records();
 			}, RxSession::close).map(r -> r.get("name").asString()).as(StepVerifier::create).expectNext("That's the thing.")
@@ -1352,7 +1382,7 @@ class ReactiveRepositoryIT {
 					.verifyComplete();
 
 			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()), s -> {
-				Value parameters = parameters("ids", Arrays.asList("id07", "id15"));
+				Value parameters = Values.parameters("ids", Arrays.asList("id07", "id15"));
 				return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters)
 						.records();
 			}, RxSession::close).map(r -> r.get("name").asString()).as(StepVerifier::create)
@@ -1404,7 +1434,7 @@ class ReactiveRepositoryIT {
 			Pet pet2 = new Pet("Tom");
 			Hobby petHobby = new Hobby();
 			petHobby.setName("sleeping");
-			pet1.setHobbies(singleton(petHobby));
+			pet1.setHobbies(Collections.singleton(petHobby));
 			person.setPets(Arrays.asList(pet1, pet2));
 
 			List<Long> ids = new ArrayList<>();
@@ -1432,11 +1462,13 @@ class ReactiveRepositoryIT {
 					pets.put(petWithHobbies.get(0), ((List<Node>) petWithHobbies.get(1)));
 				}
 
-				assertThat(pets.keySet().stream().map(pet -> ((Node) pet).get("name").asString()).collect(toList()))
+				assertThat(pets.keySet().stream().map(pet -> ((Node) pet).get("name").asString()).collect(
+						Collectors.toList()))
 						.containsExactlyInAnyOrder("Jerry", "Tom");
 
 				assertThat(pets.values().stream()
-						.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(toList()))
+						.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(
+								Collectors.toList()))
 								.containsExactlyInAnyOrder("sleeping");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
@@ -1460,7 +1492,7 @@ class ReactiveRepositoryIT {
 			Pet pet2 = new Pet("Tom");
 			Hobby petHobby = new Hobby();
 			petHobby.setName("sleeping");
-			pet1.setHobbies(singleton(petHobby));
+			pet1.setHobbies(Collections.singleton(petHobby));
 			person.setPets(Arrays.asList(pet1, pet2));
 
 			List<Long> ids = new ArrayList<>();
@@ -1496,11 +1528,13 @@ class ReactiveRepositoryIT {
 					pets.put(petWithHobbies.get(0), ((List<Node>) petWithHobbies.get(1)));
 				}
 
-				assertThat(pets.keySet().stream().map(pet -> ((Node) pet).get("name").asString()).collect(toList()))
+				assertThat(pets.keySet().stream().map(pet -> ((Node) pet).get("name").asString()).collect(
+						Collectors.toList()))
 						.containsExactlyInAnyOrder("Jerry", "Tom");
 
 				assertThat(pets.values().stream()
-						.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(toList()))
+						.flatMap(petHobbies -> petHobbies.stream().map(node -> node.get("name").asString())).collect(
+								Collectors.toList()))
 								.containsExactlyInAnyOrder("sleeping");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
@@ -1568,16 +1602,16 @@ class ReactiveRepositoryIT {
 			Pet petOfChildPet = new Pet("Mucki");
 			Pet petOfGrandChildPet = new Pet("Blacky");
 
-			rootPet.setFriends(singletonList(petOfRootPet));
-			petOfRootPet.setFriends(singletonList(petOfChildPet));
-			petOfChildPet.setFriends(singletonList(petOfGrandChildPet));
+			rootPet.setFriends(Collections.singletonList(petOfRootPet));
+			petOfRootPet.setFriends(Collections.singletonList(petOfChildPet));
+			petOfChildPet.setFriends(Collections.singletonList(petOfGrandChildPet));
 
 			StepVerifier.create(repository.save(rootPet)).expectNextCount(1).verifyComplete();
 
 			try (Session session = createSession()) {
 				Record record = session.run("MATCH (rootPet:Pet)-[:Has]->(petOfRootPet:Pet)-[:Has]->(petOfChildPet:Pet)"
 						+ "-[:Has]->(petOfGrandChildPet:Pet) " + "RETURN rootPet, petOfRootPet, petOfChildPet, petOfGrandChildPet",
-						emptyMap()).single();
+						Collections.emptyMap()).single();
 
 				assertThat(record.get("rootPet").asNode().get("name").asString()).isEqualTo("Luna");
 				assertThat(record.get("petOfRootPet").asNode().get("name").asString()).isEqualTo("Daphne");
@@ -1625,8 +1659,8 @@ class ReactiveRepositoryIT {
 			Pet luna = new Pet("Luna");
 			Pet daphne = new Pet("Daphne");
 
-			luna.setFriends(singletonList(daphne));
-			daphne.setFriends(singletonList(luna));
+			luna.setFriends(Collections.singletonList(daphne));
+			daphne.setFriends(Collections.singletonList(luna));
 
 			StepVerifier.create(repository.save(luna)).expectNextCount(1).verifyComplete();
 
@@ -1652,14 +1686,14 @@ class ReactiveRepositoryIT {
 			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
 					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
 					+ "RETURN id(n)",
-					parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
 							NEO4J_HQ))
 					.next().get(0).asLong();
 
 			id2 = transaction.run(
 					"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-					parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+					Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
 					.next().get(0).asLong();
 
@@ -1760,14 +1794,14 @@ class ReactiveRepositoryIT {
 			transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
 					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
 					+ "RETURN id(n)",
-					parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
 							NEO4J_HQ))
 					.next().get(0).asLong();
 
 			transaction.run(
 					"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-					parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+					Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
 					.next().get(0).asLong();
 		}
@@ -1840,7 +1874,7 @@ class ReactiveRepositoryIT {
 
 		@Test
 		void createAllNodesWithMultipleLabels(@Autowired ReactiveMultipleLabelRepository repository) {
-			repository.saveAll(singletonList(new MultipleLabels.MultipleLabelsEntity())).collectList().block();
+			repository.saveAll(Collections.singletonList(new MultipleLabels.MultipleLabelsEntity())).collectList().block();
 
 			try (Session session = createSession()) {
 				Node node = session.run("MATCH (n:A) return n").single().get("n").asNode();
@@ -1922,7 +1956,7 @@ class ReactiveRepositoryIT {
 		@Test
 		void createAllNodesWithMultipleLabels(@Autowired ReactiveMultipleLabelWithAssignedIdRepository repository) {
 
-			repository.saveAll(singletonList(new MultipleLabels.MultipleLabelsEntityWithAssignedId(4711L))).collectList()
+			repository.saveAll(Collections.singletonList(new MultipleLabels.MultipleLabelsEntityWithAssignedId(4711L))).collectList()
 					.block();
 
 			try (Session session = createSession()) {
@@ -2181,7 +2215,7 @@ class ReactiveRepositoryIT {
 
 		@Override
 		protected Collection<String> getMappingBasePackages() {
-			return singletonList(PersonWithAllConstructor.class.getPackage().getName());
+			return Collections.singletonList(PersonWithAllConstructor.class.getPackage().getName());
 		}
 
 		@Override

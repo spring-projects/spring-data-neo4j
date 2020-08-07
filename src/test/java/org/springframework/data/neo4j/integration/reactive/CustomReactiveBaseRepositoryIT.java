@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.documentation.repositories.domain_events;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Optional;
 

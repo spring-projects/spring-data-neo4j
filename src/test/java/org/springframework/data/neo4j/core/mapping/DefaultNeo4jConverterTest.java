@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;

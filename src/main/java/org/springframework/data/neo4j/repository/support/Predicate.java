@@ -15,8 +15,9 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
-import static org.neo4j.cypherdsl.core.Cypher.*;
-import static org.springframework.data.neo4j.core.schema.Constants.*;
+import static org.neo4j.cypherdsl.core.Cypher.literalOf;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
+import static org.neo4j.cypherdsl.core.Cypher.property;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -38,6 +39,7 @@ import org.springframework.data.neo4j.core.convert.Neo4jConverter;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.core.schema.Constants;
 import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.support.ExampleMatcherAccessor;
@@ -85,7 +87,7 @@ final class Predicate {
 
 			if (!optionalValue.isPresent()) {
 				if (!internalId && matcherAccessor.getNullHandler().equals(ExampleMatcher.NullHandler.INCLUDE)) {
-					predicate.add(mode, property(NAME_OF_ROOT_NODE, propertyName).isNull());
+					predicate.add(mode, property(Constants.NAME_OF_ROOT_NODE, propertyName).isNull());
 				}
 				continue;
 			}
@@ -98,7 +100,7 @@ final class Predicate {
 				predicate.add(mode,
 						predicate.neo4jPersistentEntity.getIdExpression().isEqualTo(literalOf(optionalValue.get())));
 			} else {
-				Expression property = property(NAME_OF_ROOT_NODE, propertyName);
+				Expression property = property(Constants.NAME_OF_ROOT_NODE, propertyName);
 				Expression parameter = parameter(propertyName);
 				Condition condition = property.isEqualTo(parameter);
 

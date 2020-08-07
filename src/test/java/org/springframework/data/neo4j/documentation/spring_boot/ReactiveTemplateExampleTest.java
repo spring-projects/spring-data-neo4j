@@ -17,9 +17,9 @@ package org.springframework.data.neo4j.documentation.spring_boot;
 
 // tag::faq.template-reactive[]
 
-import static java.util.Collections.*;
-
 import reactor.test.StepVerifier;
+
+import java.util.Collections;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
@@ -59,8 +59,8 @@ class ReactiveTemplateExampleTest {
 				"A movie that follows the adventures of Herbie, Herbie's driver, "
 						+ "Jim Douglas (Dean Jones), and Jim's love interest, " + "Carole Bennett (Michele Lee)");
 
-		movie.getActorsAndRoles().put(new PersonEntity(1931, "Dean Jones"), new Roles(singletonList("Didi")));
-		movie.getActorsAndRoles().put(new PersonEntity(1942, "Michele Lee"), new Roles(singletonList("Michi")));
+		movie.getActorsAndRoles().put(new PersonEntity(1931, "Dean Jones"), new Roles(Collections.singletonList("Didi")));
+		movie.getActorsAndRoles().put(new PersonEntity(1942, "Michele Lee"), new Roles(Collections.singletonList("Michi")));
 
 		StepVerifier.create(neo4jTemplate.save(movie)).expectNextCount(1L).verifyComplete();
 

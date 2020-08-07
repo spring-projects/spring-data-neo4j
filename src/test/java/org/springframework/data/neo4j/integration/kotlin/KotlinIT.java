@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.kotlin;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
