@@ -99,7 +99,7 @@ public class ThingWithAllAdditionalTypes {
 	private Instant anInstant;
 
 	private UUID aUUID;
-	
+
 	private URL aURL;
 
 	private SomeEnum anEnum;
