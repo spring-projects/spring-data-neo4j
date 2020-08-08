@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.core.convert;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -87,6 +89,7 @@ final class AdditionalTypes {
 				.andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, Instant.class, AdditionalTypes::asInstant).andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, UUID.class, AdditionalTypes::asUUID).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, URL.class, AdditionalTypes::asURL).andWriting(AdditionalTypes::value));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
 	}
@@ -101,6 +104,18 @@ final class AdditionalTypes {
 		}
 
 		return Values.value(uuid.toString());
+	}
+
+	static URL asURL(Value url) {
+		try {
+			return (null == url) ? null : new URL(url.asString());
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	static Value value(URL url) {
+		return Values.value(url.toString());
 	}
 
 	static Instant asInstant(Value value) {
