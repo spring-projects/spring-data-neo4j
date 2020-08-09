@@ -44,6 +44,7 @@ import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.convert.ConverterBuilder;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -53,6 +54,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
+ * @author Dennis Crissman
  * @since 1.0
  */
 final class AdditionalTypes {
@@ -106,15 +108,19 @@ final class AdditionalTypes {
 		return Values.value(uuid.toString());
 	}
 
-	static URL asURL(Value url) {
+	static URL asURL(Value value) {
 		try {
-			return (null == url) ? null : new URL(url.asString());
+			return new URL(value.asString());
 		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
+			throw new MappingException("Could not create URL from value: " + value.asString(), e);
 		}
 	}
 
 	static Value value(URL url) {
+		if (url == null) {
+			return Values.NULL;
+		}
+
 		return Values.value(url.toString());
 	}
 
