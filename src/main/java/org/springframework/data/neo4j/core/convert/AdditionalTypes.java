@@ -19,6 +19,7 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -92,6 +93,7 @@ final class AdditionalTypes {
 		hlp.add(ConverterBuilder.reading(Value.class, Instant.class, AdditionalTypes::asInstant).andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, UUID.class, AdditionalTypes::asUUID).andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, URL.class, AdditionalTypes::asURL).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, URI.class, AdditionalTypes::asURI).andWriting(AdditionalTypes::value));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
 	}
@@ -122,6 +124,17 @@ final class AdditionalTypes {
 		}
 
 		return Values.value(url.toString());
+	}
+
+	static URI asURI(Value value) {
+		return URI.create(value.asString());
+	}
+
+	static Value value(URI uri) {
+		if (uri == null) {
+			return Values.NULL;
+		}
+		return Values.value(uri.toString());
 	}
 
 	static Instant asInstant(Value value) {
