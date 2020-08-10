@@ -31,9 +31,9 @@ import org.springframework.data.neo4j.core.schema.NodeDescription;
  *
  * @author Michael J. Simons
  * @param <T> type of the underlying class
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public interface Neo4jPersistentEntity<T>
 		extends MutablePersistentEntity<T, Neo4jPersistentProperty>, NodeDescription<T> {
 

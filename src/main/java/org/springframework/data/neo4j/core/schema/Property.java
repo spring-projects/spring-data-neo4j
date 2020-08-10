@@ -29,13 +29,13 @@ import org.springframework.core.annotation.AliasFor;
  * The annotation to configure the mapping from a property to an attribute and vice versa.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @Documented
 @Inherited
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public @interface Property {
 
 	/**

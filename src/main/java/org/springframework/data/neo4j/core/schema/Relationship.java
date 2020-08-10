@@ -29,19 +29,19 @@ import org.springframework.core.annotation.AliasFor;
  * Annotation to configure mappings of relationship.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @Documented
 @Inherited
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public @interface Relationship {
 
 	/**
 	 * Enumeration of the direction a relationship can take.
 	 *
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	enum Direction {
 

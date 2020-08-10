@@ -30,9 +30,9 @@ import org.springframework.lang.Nullable;
  *
  * @param <T> The type of the underlying class
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public interface NodeDescription<T> {
 
 	/**
@@ -48,7 +48,7 @@ public interface NodeDescription<T> {
 	/**
 	 * @return The list of all static labels, that is the union of {@link #getPrimaryLabel()} +
 	 *         {@link #getAdditionalLabels()}. Order is guaranteed to be the primary first, than the others.
-	 * @since 1.1
+	 * @since 6.0
 	 */
 	default List<String> getStaticLabels() {
 		List<String> staticLabels = new ArrayList<>();

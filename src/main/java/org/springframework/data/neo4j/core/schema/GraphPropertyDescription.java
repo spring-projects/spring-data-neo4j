@@ -26,9 +26,9 @@ import org.apiguardian.api.API;
  * Associations between different node types can be queried on the {@link Schema} itself.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public interface GraphPropertyDescription {
 
 	/**

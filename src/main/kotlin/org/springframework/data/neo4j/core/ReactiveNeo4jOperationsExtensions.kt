@@ -23,7 +23,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
  * Coroutines [Flow] variant of [ReactiveNeo4jOperations.ExecutableQuery.getResults].
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 inline fun <reified T : Any> ReactiveNeo4jOperations.ExecutableQuery<T>.fetchAllResults(): Flow<T> =
         results.asFlow()
@@ -32,7 +32,7 @@ inline fun <reified T : Any> ReactiveNeo4jOperations.ExecutableQuery<T>.fetchAll
  * Nullable Coroutines variant of [ReactiveNeo4jOperations.ExecutableQuery.getSingleResult].
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 suspend inline fun <reified T : Any> ReactiveNeo4jOperations.ExecutableQuery<T>.awaitSingleResultOrNull(): T? =
         singleResult.awaitFirstOrNull()

@@ -29,9 +29,9 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
  * Callback to increment the value of the version property for a given entity.
  *
  * @author Gerrit Meier
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public final class ReactiveOptimisticLockingBeforeBindCallback implements ReactiveBeforeBindCallback<Object>, Ordered {
 
 	private final Neo4jMappingContext neo4jMappingContext;

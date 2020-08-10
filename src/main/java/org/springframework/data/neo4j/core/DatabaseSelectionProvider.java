@@ -33,9 +33,9 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  * @soundtrack N.W.A. - Straight Outta Compton
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 @FunctionalInterface
 public interface DatabaseSelectionProvider {
 

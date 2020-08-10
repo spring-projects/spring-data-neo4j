@@ -38,7 +38,7 @@ import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
  * configuration class.
  *
  * @author Gerrit Meier
- * @since 1.0
+ * @since 6.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

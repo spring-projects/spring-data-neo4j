@@ -28,7 +28,7 @@ import org.springframework.core.convert.ConversionService;
  *
  * @author Michael J. Simons
  * @param <T> type of the domain class to map
- * @since 1.0
+ * @since 6.0
  */
 final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Record, T> {
 

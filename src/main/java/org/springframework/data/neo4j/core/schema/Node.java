@@ -28,13 +28,13 @@ import org.springframework.core.annotation.AliasFor;
  * The annotation to configure the mapping from a node with a given set of labels to a class and vice versa.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
 @org.springframework.data.annotation.Persistent
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public @interface Node {
 
 	/**

@@ -27,7 +27,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Michael J. Simons
  * @soundtrack Evanescence - Fallen
- * @since 1.0
+ * @since 6.0
  */
 final class Neo4jTransactionContext {
 

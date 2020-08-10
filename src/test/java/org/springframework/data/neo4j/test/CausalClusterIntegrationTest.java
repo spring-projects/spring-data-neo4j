@@ -34,7 +34,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  *
  * @author Michael J. Simons
  * @soundtrack Command & Conquer - Alarmstufe Rot
- * @since 1.0
+ * @since 6.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

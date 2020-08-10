@@ -23,7 +23,7 @@ import org.springframework.data.repository.core.support.PersistentEntityInformat
  *
  * @author Michael J. Simons
  * @soundtrack Bear McCreary - Battlestar Galactica Season 1
- * @since 1.0
+ * @since 6.0
  */
 final class DefaultNeo4jEntityInformation<T, ID> extends PersistentEntityInformation<T, ID>
 		implements Neo4jEntityInformation<T, ID> {

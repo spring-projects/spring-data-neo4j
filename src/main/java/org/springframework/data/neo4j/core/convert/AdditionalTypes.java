@@ -56,7 +56,7 @@ import org.springframework.util.StringUtils;
  * @author Michael J. Simons
  * @author Gerrit Meier
  * @author Dennis Crissman
- * @since 1.0
+ * @since 6.0
  */
 final class AdditionalTypes {
 

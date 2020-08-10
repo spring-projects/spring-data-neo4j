@@ -33,9 +33,9 @@ import org.springframework.data.neo4j.repository.event.OptimisticLockingBeforeBi
  *
  * @author Michael J. Simons
  * @soundtrack AC/DC - High Voltage
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public final class Neo4jDefaultCallbacksRegistrar implements ImportBeanDefinitionRegistrar {
 
 	@Override

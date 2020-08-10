@@ -31,13 +31,13 @@ import org.springframework.data.annotation.QueryAnnotation;
  * Driver</a>. Those parameters will get bound to the arguments of the annotated method.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @QueryAnnotation
 @Documented
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public @interface Query {
 
 	/**

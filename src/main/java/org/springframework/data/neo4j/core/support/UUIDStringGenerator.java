@@ -25,9 +25,9 @@ import org.springframework.data.neo4j.core.schema.IdGenerator;
  *
  * @author Michael J. Simons
  * @soundtrack Various - Kung Fury (Original Motion Picture Soundtrack)
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public final class UUIDStringGenerator implements IdGenerator<String> {
 
 	@Override

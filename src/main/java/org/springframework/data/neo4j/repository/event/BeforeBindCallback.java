@@ -24,11 +24,11 @@ import org.springframework.data.mapping.callback.EntityCallback;
  *
  * @author Michael J. Simons
  * @param <T> The type of the entity.
- * @since 1.0
+ * @since 6.0
  * @soundtrack Bon Jovi - Slippery When Wet
  */
 @FunctionalInterface
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public interface BeforeBindCallback<T> extends EntityCallback<T> {
 
 	/**

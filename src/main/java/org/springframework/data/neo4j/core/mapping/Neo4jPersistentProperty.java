@@ -27,9 +27,9 @@ import org.springframework.data.neo4j.core.schema.RelationshipProperties;
  *
  * @author Michael J. Simons
  * @author Philipp Tölle
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersistentProperty>, GraphPropertyDescription {
 
 	/**
@@ -47,7 +47,7 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 	 * {@literal java.lang.String} and values of {@literal java.util.Collection}.
 	 *
 	 * @return True, if this association is a dynamic association with multple values per type.
-	 * @since 1.0.1
+	 * @since 6.0.1
 	 */
 	default boolean isDynamicOneToManyAssociation() {
 
@@ -56,7 +56,7 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 
 	/**
 	 * @return whether the property is an property describing dynamic labels
-	 * @since 1.1
+	 * @since 6.0
 	 */
 	default boolean isDynamicLabels() {
 		return this.isAnnotationPresent(DynamicLabels.class) && this.isCollectionLike();

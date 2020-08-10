@@ -35,7 +35,7 @@ import org.springframework.util.ClassUtils;
  * would only contain duplications of several classes.
  *
  * @author Gerrit Meier
- * @since 1.0
+ * @since 6.0
  */
 final class ReactiveNeo4jQueryMethod extends Neo4jQueryMethod {
 

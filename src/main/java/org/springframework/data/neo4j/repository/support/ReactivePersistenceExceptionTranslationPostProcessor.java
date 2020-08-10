@@ -51,9 +51,9 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  * @soundtrack Fatoni - Andorra
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public final class ReactivePersistenceExceptionTranslationPostProcessor
 		extends AbstractBeanFactoryAwareAdvisingPostProcessor {
 

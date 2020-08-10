@@ -40,13 +40,13 @@ import org.springframework.util.Assert;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  * @param <T> the type of the domain class managed by this repository
  * @param <ID> the type of the unique identifier of the domain class
  */
 @Repository
 @Transactional(readOnly = true)
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<T, ID> {
 
 	private final ReactiveNeo4jOperations neo4jOperations;

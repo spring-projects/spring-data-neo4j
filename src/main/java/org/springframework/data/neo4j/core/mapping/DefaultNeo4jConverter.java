@@ -67,7 +67,7 @@ import org.springframework.util.Assert;
  * @author Gerrit Meier
  * @author Philipp Tölle
  * @soundtrack The Kleptones - A Night At The Hip-Hopera
- * @since 1.0
+ * @since 6.0
  */
 final class DefaultNeo4jConverter implements Neo4jConverter {
 

@@ -43,13 +43,13 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @author Ján Šúr
- * @since 1.0
+ * @since 6.0
  * @param <T> the type of the domain class managed by this repository
  * @param <ID> the type of the unique identifier of the domain class
  */
 @Repository
 @Transactional(readOnly = true)
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> {
 
 	private final Neo4jOperations neo4jOperations;

@@ -27,12 +27,12 @@ import org.apiguardian.api.API;
  * Specialized version of {@link Query} whose values is always used as count projection.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Documented
 @Query(count = true)
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public @interface CountQuery {
 }

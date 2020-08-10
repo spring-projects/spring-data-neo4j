@@ -27,9 +27,9 @@ import org.springframework.data.convert.CustomConversions;
 /**
  * @author Michael J. Simons
  * @soundtrack The Kleptones - A Night At The Hip-Hopera
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public final class Neo4jConversions extends CustomConversions {
 
 	private static final StoreConversions STORE_CONVERSIONS;

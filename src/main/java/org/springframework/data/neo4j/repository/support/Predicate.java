@@ -52,7 +52,7 @@ import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
  * parameters inside the condition.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 final class Predicate {
 

@@ -39,7 +39,7 @@ import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

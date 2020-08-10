@@ -27,9 +27,9 @@ import org.neo4j.cypherdsl.core.Cypher;
 /**
  * @author Michael J. Simons
  * @soundtrack Bananafishbones - Viva Conputa
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 final class NamedParameters {
 
 	private final Map<String, Object> parameters = new HashMap<>();

@@ -30,7 +30,7 @@ import org.neo4j.driver.types.TypeSystem;
  * @author Michael J. Simons
  * @param <T> The expected type of this function
  * @soundtrack Manowar - Fighting The World
- * @since 1.0
+ * @since 6.0
  */
 class DelegatingMappingFunctionWithNullCheck<T> implements BiFunction<TypeSystem, Record, T> {
 

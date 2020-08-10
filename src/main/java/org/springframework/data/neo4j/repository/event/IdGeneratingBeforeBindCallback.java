@@ -24,9 +24,9 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
  *
  * @author Michael J. Simons
  * @soundtrack Various - Kung Fury (Original Motion Picture Soundtrack)
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public final class IdGeneratingBeforeBindCallback implements BeforeBindCallback<Object>, Ordered {
 
 	private final IdPopulator idPopulator;

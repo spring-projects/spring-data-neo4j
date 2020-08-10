@@ -25,7 +25,7 @@ import org.springframework.data.repository.core.EntityInformation;
  * @param <T> The type of the entity
  * @param <ID> The type of the id
  * @soundtrack Bear McCreary - Battlestar Galactica Season 1
- * @since 1.0
+ * @since 6.0
  */
 public interface Neo4jEntityInformation<T, ID> extends EntityInformation<T, ID> {
 

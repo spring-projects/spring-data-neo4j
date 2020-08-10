@@ -35,7 +35,7 @@ import org.springframework.data.neo4j.core.schema.NodeDescription;
  * @author Michael J. Simons
  * @author Gerrit Meier
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public final class CypherAdapterUtils {
 
 	/**

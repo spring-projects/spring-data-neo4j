@@ -37,9 +37,9 @@ import org.springframework.lang.Nullable;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public interface Neo4jClient {
 
 	// TODO Create examples how to use the callbacks etc. with Springs TransactionTemplate to deal with rollbacks etc.
@@ -84,7 +84,7 @@ public interface Neo4jClient {
 	 * Contract for a runnable query that can be either run returning it's result, run without results or be
 	 * parameterized.
 	 *
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface RunnableSpec extends RunnableSpecTightToDatabase {
 
@@ -101,7 +101,7 @@ public interface Neo4jClient {
 	/**
 	 * Contract for a runnable query inside a dedicated database.
 	 *
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface RunnableSpecTightToDatabase extends BindSpec<RunnableSpecTightToDatabase> {
 
@@ -134,7 +134,7 @@ public interface Neo4jClient {
 	 * Contract for binding parameters to a query.
 	 *
 	 * @param <S> This {@link BindSpec specs} own type
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface BindSpec<S extends BindSpec<S>> {
 
@@ -152,7 +152,7 @@ public interface Neo4jClient {
 	 *
 	 * @param <S> This {@link OngoingBindSpec specs} own type
 	 * @param <T> Binding value type
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface OngoingBindSpec<T, S extends BindSpec<S>> {
 
@@ -175,7 +175,7 @@ public interface Neo4jClient {
 
 	/**
 	 * @param <T> The resulting type of this mapping
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface MappingSpec<T> extends RecordFetchSpec<T> {
 
@@ -191,7 +191,7 @@ public interface Neo4jClient {
 
 	/**
 	 * @param <T> The type to which the fetched records are eventually mapped
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface RecordFetchSpec<T> {
 
@@ -221,7 +221,7 @@ public interface Neo4jClient {
 	 * A contract for an ongoing delegation in the selected database.
 	 *
 	 * @param <T> The type of the returned value.
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface OngoingDelegation<T> extends RunnableDelegation<T> {
 
@@ -238,7 +238,7 @@ public interface Neo4jClient {
 	 * A runnable delegation.
 	 *
 	 * @param <T> the type that gets returned
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface RunnableDelegation<T> {
 

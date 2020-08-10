@@ -65,9 +65,9 @@ import org.springframework.util.CollectionUtils;
  * @author Michael J. Simons
  * @author Philipp Tölle
  * @soundtrack Motörhead - We Are Motörhead
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jTemplate.class));

@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  * @soundtrack Antilopen Gang - Abwasser
- * @since 1.0
+ * @since 6.0
  */
 class PartValidator {
 

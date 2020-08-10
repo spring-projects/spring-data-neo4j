@@ -29,7 +29,7 @@ import org.neo4j.driver.Bookmark;
  *
  * @author Michael J. Simons
  * @soundtrack Metallica - Death Magnetic
- * @since 1.0
+ * @since 6.0
  */
 final class Neo4jBookmarkManager {
 

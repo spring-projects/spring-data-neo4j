@@ -26,9 +26,9 @@ import org.springframework.lang.Nullable;
  *
  * @author Michael J. Simons
  * @soundtrack Rage - Reign Of Fear
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public final class DatabaseSelection {
 
 	private final static DatabaseSelection DEFAULT_DATABASE_NAME = new DatabaseSelection(null);

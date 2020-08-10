@@ -36,7 +36,7 @@ import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @param <T> type of the domain class
- * @since 1.0
+ * @since 6.0
  */
 class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQueryByExampleExecutor<T> {
 

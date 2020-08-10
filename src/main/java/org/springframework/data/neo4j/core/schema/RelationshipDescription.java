@@ -25,9 +25,9 @@ import org.springframework.lang.Nullable;
  * {@link #getTarget}.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public interface RelationshipDescription {
 
 	String NAME_OF_RELATIONSHIP = "__relationship__";

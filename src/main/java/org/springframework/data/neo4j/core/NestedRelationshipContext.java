@@ -31,7 +31,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Philipp Tölle
  * @author Gerrit Meier
- * @since 1.0
+ * @since 6.0
  */
 final class NestedRelationshipContext {
 	private final Neo4jPersistentProperty inverse;

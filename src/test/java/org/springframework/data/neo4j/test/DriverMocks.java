@@ -35,7 +35,7 @@ import org.neo4j.driver.reactive.RxTransaction;
  *
  * @author Michael J. Simons
  * @soundtrack Elton John - Greatest Hits 1970-2002
- * @since 1.0
+ * @since 6.0
  */
 public final class DriverMocks {
 

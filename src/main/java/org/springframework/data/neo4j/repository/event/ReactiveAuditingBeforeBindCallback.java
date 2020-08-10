@@ -32,9 +32,9 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @soundtrack Iron Maiden - The Number Of The Beast
  * @see AuditingBeforeBindCallback
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public final class ReactiveAuditingBeforeBindCallback implements ReactiveBeforeBindCallback<Object>, Ordered {
 
 	public static final int NEO4J_REACTIVE_AUDITING_ORDER = 100;

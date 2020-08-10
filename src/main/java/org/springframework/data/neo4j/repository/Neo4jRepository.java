@@ -30,7 +30,7 @@ import org.springframework.data.repository.query.QueryByExampleExecutor;
  * @author Ján Šúr
  * @param <T> type of the domain class to map
  * @param <ID> identifier type in the domain class
- * @since 1.0
+ * @since 6.0
  */
 @NoRepositoryBean
 public interface Neo4jRepository<T, ID> extends PagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {

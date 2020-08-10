@@ -28,10 +28,10 @@ import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
  * @author Michael J. Simons
  * @soundtrack Iron Maiden - Killers
  * @see ReactiveEntityCallbacks
- * @since 1.0
+ * @since 6.0
  */
 @FunctionalInterface
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public interface ReactiveBeforeBindCallback<T> extends EntityCallback<T> {
 
 	/**

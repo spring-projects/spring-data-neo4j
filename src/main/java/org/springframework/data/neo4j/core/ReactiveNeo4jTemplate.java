@@ -68,9 +68,9 @@ import org.springframework.util.CollectionUtils;
  * @author Michael J. Simons
  * @author Gerrit Meier
  * @author Philipp Tölle
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, BeanFactoryAware {
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(ReactiveNeo4jTemplate.class));

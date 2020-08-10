@@ -45,7 +45,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 
