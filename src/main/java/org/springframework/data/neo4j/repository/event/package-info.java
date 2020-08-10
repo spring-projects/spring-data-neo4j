@@ -8,7 +8,7 @@
  * {@link org.springframework.data.domain.DomainEvents} on an aggregate root.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  * @soundtrack Bon Jovi - Slippery When Wet
  */
 @NonNullApi

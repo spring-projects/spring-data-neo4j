@@ -34,7 +34,7 @@ import org.springframework.util.ClassUtils;
 /**
  * @author Michael J. Simons
  * @soundtrack Iron Maiden - Killers
- * @since 1.0
+ * @since 6.0
  */
 final class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 

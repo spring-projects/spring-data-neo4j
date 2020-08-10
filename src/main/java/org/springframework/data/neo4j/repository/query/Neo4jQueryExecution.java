@@ -28,7 +28,7 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
- * @since 1.0
+ * @since 6.0
  */
 @FunctionalInterface
 interface Neo4jQueryExecution {

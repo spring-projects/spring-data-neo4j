@@ -37,9 +37,9 @@ import org.springframework.data.repository.core.RepositoryMetadata;
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public final class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
 
 	private static final String MODULE_PREFIX = "neo4j";

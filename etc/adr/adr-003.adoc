@@ -11,7 +11,7 @@ to be part of the public API.
 
 === Decision
 
-Those classes should be marked `@API(status = API.Status.INTERNAL, since = "1.0")` as well as made final to at least
+Those classes should be marked `@API(status = API.Status.INTERNAL, since = "6.0")` as well as made final to at least
 prevent people from inheriting from them.
 
 === Consequences

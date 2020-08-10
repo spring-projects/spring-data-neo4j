@@ -33,9 +33,9 @@ import org.springframework.lang.Nullable;
  * Contains the descriptions of all nodes, their properties and relationships known to SDN.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public interface Schema {
 
 	/**

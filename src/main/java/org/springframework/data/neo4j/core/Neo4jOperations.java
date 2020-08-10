@@ -29,9 +29,9 @@ import org.springframework.data.neo4j.repository.NoResultException;
  *
  * @author Michael J. Simons
  * @soundtrack Motörhead - We Are Motörhead
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public interface Neo4jOperations {
 
 	/**
@@ -226,7 +226,7 @@ public interface Neo4jOperations {
 	 * An interface for controlling query execution.
 	 *
 	 * @param <T> the type that gets returned by the query
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface ExecutableQuery<T> {
 

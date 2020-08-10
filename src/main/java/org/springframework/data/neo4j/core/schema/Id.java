@@ -69,13 +69,13 @@ import org.apiguardian.api.API;
  * arbitrarily named via {@code @Property}.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @Documented
 @Inherited
 @org.springframework.data.annotation.Id
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public @interface Id {
 }

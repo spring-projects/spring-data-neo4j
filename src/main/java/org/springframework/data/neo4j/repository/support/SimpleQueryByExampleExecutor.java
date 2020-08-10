@@ -42,7 +42,7 @@ import org.springframework.data.repository.support.PageableExecutionUtils;
  * @author Michael J. Simons
  * @author Ján Šúr
  * @param <T> type of the domain class
- * @since 1.0
+ * @since 6.0
  */
 class SimpleQueryByExampleExecutor<T> implements QueryByExampleExecutor<T> {
 

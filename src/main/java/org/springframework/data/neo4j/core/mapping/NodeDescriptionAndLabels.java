@@ -24,7 +24,7 @@ import org.springframework.data.neo4j.core.schema.NodeDescription;
  * of labels not statically defined in the resolved node hierarchy.
  *
  * @author Michael J. Simons
- * @since 1.1
+ * @since 6.0
  * @soundtrack The Rolling Stones - Living In A Ghost Town
  */
 final class NodeDescriptionAndLabels {

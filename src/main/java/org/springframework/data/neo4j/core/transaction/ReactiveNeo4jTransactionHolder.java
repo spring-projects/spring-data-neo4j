@@ -28,7 +28,7 @@ import org.springframework.transaction.support.ResourceHolderSupport;
 /**
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 final class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 

@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * <strong>Note:</strong> Intended for internal usage only.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 final class Neo4jTransactionHolder extends ResourceHolderSupport {
 

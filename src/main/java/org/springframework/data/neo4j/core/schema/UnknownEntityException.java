@@ -23,9 +23,9 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
  * information is not available.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public final class UnknownEntityException extends InvalidDataAccessApiUsageException {
 
 	private final Class<?> targetClass;

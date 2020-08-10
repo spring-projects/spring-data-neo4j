@@ -23,9 +23,9 @@ import org.springframework.dao.EmptyResultDataAccessException;
  *
  * @author Michael J. Simons
  * @soundtrack Deichkind - Niveau weshalb warum
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public class NoResultException extends EmptyResultDataAccessException {
 
 	private final String query;

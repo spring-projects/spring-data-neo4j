@@ -53,7 +53,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Michael J. Simons
  * @author Gerrit Meier
- * @since 1.0
+ * @since 6.0
  */
 class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty>
 		implements Neo4jPersistentEntity<T> {

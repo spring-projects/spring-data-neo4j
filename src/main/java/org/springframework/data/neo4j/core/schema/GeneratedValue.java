@@ -36,13 +36,13 @@ import org.springframework.core.annotation.AliasFor;
  * To use an external id generator, specify on the
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @Documented
 @Inherited
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public @interface GeneratedValue {
 
 	/**
@@ -78,7 +78,7 @@ public @interface GeneratedValue {
 	 * This generator is automatically applied when a field of type {@link java.util.UUID} is annotated with
 	 * {@link Id @Id} and {@link GeneratedValue @GeneratedValue}.
 	 *
-	 * @since 1.0.1
+	 * @since 6.0.1
 	 */
 	final class UUIDGenerator implements IdGenerator<UUID> {
 

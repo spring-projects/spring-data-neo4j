@@ -28,9 +28,9 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
  * Specifies reactive operations one can perform on a database, based on an <em>Domain Type</em>.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public interface ReactiveNeo4jOperations {
 
 	/**
@@ -225,7 +225,7 @@ public interface ReactiveNeo4jOperations {
 	 * An interface for controlling query execution in a reactive fashion.
 	 *
 	 * @param <T> the type that gets returned by the query
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface ExecutableQuery<T> {
 

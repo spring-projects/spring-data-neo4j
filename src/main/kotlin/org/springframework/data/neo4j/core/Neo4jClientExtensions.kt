@@ -23,7 +23,7 @@ import java.util.function.BiFunction
  * Extension for [Neo4jClient.RunnableSpec. in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 fun Neo4jClient.RunnableSpec.inDatabase(targetDatabase: String): Neo4jClient.RunnableSpecTightToDatabase =
         `in`(targetDatabase)
@@ -32,7 +32,7 @@ fun Neo4jClient.RunnableSpec.inDatabase(targetDatabase: String): Neo4jClient.Run
  * Extension for [Neo4jClient.OngoingDelegation. in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 fun <T : Any?> Neo4jClient.OngoingDelegation<T>.inDatabase(targetDatabase: String): Neo4jClient.RunnableDelegation<T> =
         `in`(targetDatabase)
@@ -67,7 +67,7 @@ class KMappingSpec<T : Any>(private val delegate: Neo4jClient.MappingSpec<T>) {
 /**
  * Extension for [Neo4jClient.RunnableSpecTightToDatabase.fetchAs] leveraging reified type parameters.
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 inline fun <reified T : Any> Neo4jClient.RunnableSpecTightToDatabase.fetchAs(): KMappingSpec<T> =
         KMappingSpec(fetchAs(T::class.java))
@@ -76,7 +76,7 @@ inline fun <reified T : Any> Neo4jClient.RunnableSpecTightToDatabase.fetchAs(): 
  * Extension for [Neo4jClient.RunnableSpecTightToDatabase.mappedBy] leveraging reified type parameters and removing
  * the need for an explicit `fetchAs`.
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 inline fun <reified T : Any> Neo4jClient.RunnableSpecTightToDatabase.mappedBy(
         noinline mappingFunction: (TypeSystem, Record) -> T

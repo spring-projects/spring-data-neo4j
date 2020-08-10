@@ -27,7 +27,7 @@ import org.springframework.data.geo.Polygon;
  * upper right point.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 public final class BoundingBox {
 

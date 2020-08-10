@@ -37,9 +37,9 @@ import org.springframework.lang.Nullable;
  * @param <T> The type of the objects returned by this query.
  * @author Michael J. Simons
  * @soundtrack Deichkind - Arbeit nervt
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public final class PreparedQuery<T> {
 
 	public static <CT> RequiredBuildStep<CT> queryFor(Class<CT> resultType) {
@@ -76,7 +76,7 @@ public final class PreparedQuery<T> {
 
 	/**
 	 * @param <CT> The concrete type of this build step.
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	public static class RequiredBuildStep<CT> {
 		private final Class<CT> resultType;
@@ -92,7 +92,7 @@ public final class PreparedQuery<T> {
 
 	/**
 	 * @param <CT> The concrete type of this build step.
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	public static class OptionalBuildSteps<CT> {
 

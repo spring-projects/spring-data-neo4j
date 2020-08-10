@@ -30,7 +30,7 @@ import org.springframework.data.domain.AuditorAware;
  * Annotation to enable auditing for SDN entities via annotation configuration.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  * @soundtrack Iron Maiden - Killers
  */
 @Inherited

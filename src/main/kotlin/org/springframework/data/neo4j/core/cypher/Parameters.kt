@@ -22,7 +22,7 @@ package org.springframework.data.neo4j.core.cypher
  * Extension on [String] returning the string itself prefixed with an escaped `$`.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 inline fun String.asParam() = "\$" + this
 
@@ -30,6 +30,6 @@ inline fun String.asParam() = "\$" + this
  * Extension on [String]'s companion object returning the string passed to it prefixed with an escaped `$`.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 infix fun String.Companion.asParam(s: String) = "\$" + s

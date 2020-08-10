@@ -39,9 +39,9 @@ import org.springframework.data.neo4j.core.Neo4jClient.BindSpec;
  *
  * @author Michael J. Simons
  * @soundtrack Die Toten Hosen - Im Auftrag des Herrn
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public interface ReactiveNeo4jClient {
 
 	LogAccessor cypherLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher"));
@@ -82,7 +82,7 @@ public interface ReactiveNeo4jClient {
 
 	/**
 	 * @param <T> The resulting type of this mapping
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface MappingSpec<T> extends RecordFetchSpec<T> {
 
@@ -98,7 +98,7 @@ public interface ReactiveNeo4jClient {
 
 	/**
 	 * @param <T> The type to which the fetched records are eventually mapped
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface RecordFetchSpec<T> {
 
@@ -128,7 +128,7 @@ public interface ReactiveNeo4jClient {
 	 * Contract for a runnable query that can be either run returning it's result, run without results or be
 	 * parameterized.
 	 *
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface RunnableSpec extends RunnableSpecTightToDatabase {
 
@@ -144,7 +144,7 @@ public interface ReactiveNeo4jClient {
 	/**
 	 * Contract for a runnable query inside a dedicated database.
 	 *
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface RunnableSpecTightToDatabase extends BindSpec<RunnableSpecTightToDatabase> {
 
@@ -177,7 +177,7 @@ public interface ReactiveNeo4jClient {
 	 * A contract for an ongoing delegation in the selected database.
 	 *
 	 * @param <T> The type of the returned value.
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface OngoingDelegation<T> extends RunnableDelegation<T> {
 
@@ -194,7 +194,7 @@ public interface ReactiveNeo4jClient {
 	 * A runnable delegation.
 	 *
 	 * @param <T> the type that gets returned by the query
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	interface RunnableDelegation<T> {
 

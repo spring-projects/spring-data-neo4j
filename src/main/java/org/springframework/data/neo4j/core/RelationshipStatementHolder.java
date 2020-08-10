@@ -34,7 +34,7 @@ import org.springframework.lang.NonNull;
  *
  * @author Philipp Tölle
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 final class RelationshipStatementHolder {
 	private final Statement relationshipCreationQuery;

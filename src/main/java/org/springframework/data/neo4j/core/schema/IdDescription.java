@@ -30,9 +30,9 @@ import org.springframework.util.Assert;
  * Description how to generate Ids for entities.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public final class IdDescription {
 
 	/**

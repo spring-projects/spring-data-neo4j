@@ -24,9 +24,9 @@ import org.apiguardian.api.API;
  * <a href="https://neo4j.com/docs/cypher-manual/current/syntax/spatial/#cypher-spatial">Spatial values</a>.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public interface Neo4jPoint {
 
 	/**

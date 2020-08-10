@@ -54,7 +54,7 @@ import org.testcontainers.containers.Neo4jContainer;
  * otherwise it will start a test container and use that connection.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 @CommonsLog
 public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
@@ -148,7 +148,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 	/**
 	 * Support class that holds the connection information and opens a new connection on demand.
 	 *
-	 * @since 1.0
+	 * @since 6.0
 	 */
 	public static class Neo4jConnectionSupport implements ExtensionContext.Store.CloseableResource {
 

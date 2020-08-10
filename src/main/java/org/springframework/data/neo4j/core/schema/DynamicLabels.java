@@ -34,11 +34,11 @@ import org.apiguardian.api.API;
  *
  * @author Michael J. Simons
  * @soundtrack Danger Dan - Nudeln und Klopapier
- * @since 1.1
+ * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @Documented
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public @interface DynamicLabels {
 }

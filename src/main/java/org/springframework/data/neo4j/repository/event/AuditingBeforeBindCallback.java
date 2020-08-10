@@ -28,9 +28,9 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  * @soundtrack Iron Maiden - Iron Maiden
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public final class AuditingBeforeBindCallback implements BeforeBindCallback<Object>, Ordered {
 
 	public static final int NEO4J_AUDITING_ORDER = 100;

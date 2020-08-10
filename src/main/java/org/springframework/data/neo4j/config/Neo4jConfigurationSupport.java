@@ -38,9 +38,9 @@ import org.springframework.util.StringUtils;
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 abstract class Neo4jConfigurationSupport {
 
 	@Bean

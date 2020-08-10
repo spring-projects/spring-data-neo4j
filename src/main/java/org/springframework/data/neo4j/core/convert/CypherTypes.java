@@ -35,7 +35,7 @@ import org.springframework.data.convert.ConverterBuilder;
  * <a href="https://neo4j.com/docs/driver-manual/current/cypher-values/">Working with Cypher values</a>.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 final class CypherTypes {
 

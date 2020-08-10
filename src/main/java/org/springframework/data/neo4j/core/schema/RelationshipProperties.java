@@ -34,6 +34,6 @@ import org.apiguardian.api.API;
 @Target(ElementType.TYPE)
 @Documented
 @Inherited
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public @interface RelationshipProperties {
 }

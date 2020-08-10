@@ -49,7 +49,7 @@ import org.springframework.util.Assert;
  * directly. This will be passed on as is.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 final class SpatialTypes {
 

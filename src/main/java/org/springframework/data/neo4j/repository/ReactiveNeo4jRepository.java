@@ -25,7 +25,7 @@ import org.springframework.data.repository.reactive.ReactiveSortingRepository;
  * @author Michael J. Simons
  * @param <T> type of the domain class to map
  * @param <ID> identifier type in the domain class
- * @since 1.0
+ * @since 6.0
  */
 @NoRepositoryBean
 public interface ReactiveNeo4jRepository<T, ID>

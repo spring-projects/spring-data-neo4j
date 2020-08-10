@@ -34,10 +34,10 @@ import org.springframework.transaction.PlatformTransactionManager;
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
- * @since 1.0
+ * @since 6.0
  */
 @Configuration
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 @Import(Neo4jDefaultCallbacksRegistrar.class)
 public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 

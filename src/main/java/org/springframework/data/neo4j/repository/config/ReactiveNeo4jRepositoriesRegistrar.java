@@ -28,7 +28,7 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 class ReactiveNeo4jRepositoriesRegistrar extends RepositoryBeanDefinitionRegistrarSupport {
 

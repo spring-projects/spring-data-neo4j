@@ -19,9 +19,9 @@ import org.apiguardian.api.API;
 
 /**
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public final class CartesianPoint2d extends AbstractPoint {
 
 	static final int SRID = 7203;

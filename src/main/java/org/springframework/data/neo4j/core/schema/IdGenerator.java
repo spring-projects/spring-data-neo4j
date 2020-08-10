@@ -22,10 +22,10 @@ import org.apiguardian.api.API;
  *
  * @param <T> Type of the id to generate
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 @FunctionalInterface
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public interface IdGenerator<T> {
 
 	/**

@@ -32,9 +32,9 @@ import org.springframework.data.repository.query.RepositoryQuery;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 
 	private final Neo4jMappingContext mappingContext;

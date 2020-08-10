@@ -60,9 +60,9 @@ import org.springframework.util.Assert;
  * @author Gerrit Meier
  * @author Philipp Tölle
  * @soundtrack Rammstein - Herzeleid
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public enum CypherGenerator {
 
 	INSTANCE;
@@ -119,7 +119,7 @@ public enum CypherGenerator {
 	 *
 	 * @param nodeDescription The node description for which the statement should be generated
 	 * @return A statement having one parameter.
-	 * @since 1.1
+	 * @since 6.0
 	 */
 	public Statement createStatementReturningDynamicLabels(NodeDescription<?> nodeDescription) {
 

@@ -35,10 +35,10 @@ import org.springframework.transaction.ReactiveTransactionManager;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 @Configuration
-@API(status = API.Status.STABLE, since = "1.0")
+@API(status = API.Status.STABLE, since = "6.0")
 @Import(Neo4jDefaultReactiveCallbacksRegistrar.class)
 public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupport {
 

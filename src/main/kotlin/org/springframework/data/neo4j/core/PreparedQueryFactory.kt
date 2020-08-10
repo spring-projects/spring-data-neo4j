@@ -21,7 +21,7 @@ import kotlin.reflect.KClass
  * Helper class for [PreparedQuery.queryFor] that removes the need of adding `::class.java` manually.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 class PreparedQueryFactory<T : Any>(val c: KClass<T>) {
     fun withCypherQuery(cypherQuery: String): PreparedQuery.OptionalBuildSteps<T> =

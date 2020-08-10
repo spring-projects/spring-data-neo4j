@@ -49,7 +49,7 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @author Gerrit Meier
  * @soundtrack Die Toten Hosen - Im Auftrag des Herrn
- * @since 1.0
+ * @since 6.0
  */
 class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 

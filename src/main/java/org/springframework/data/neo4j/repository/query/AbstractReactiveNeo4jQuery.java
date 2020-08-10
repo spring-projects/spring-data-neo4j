@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements RepositoryQuery {
 

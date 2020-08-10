@@ -36,7 +36,7 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 

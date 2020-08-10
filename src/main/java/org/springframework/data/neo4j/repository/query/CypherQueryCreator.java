@@ -78,7 +78,7 @@ import org.springframework.lang.Nullable;
  * This class is not thread safe and not reusable.
  *
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, Condition> {
 

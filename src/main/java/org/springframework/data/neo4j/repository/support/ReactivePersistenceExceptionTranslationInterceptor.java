@@ -45,7 +45,7 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  * @soundtrack Fatoni - Andorra
- * @since 1.0
+ * @since 6.0
  */
 final class ReactivePersistenceExceptionTranslationInterceptor implements MethodInterceptor {
 

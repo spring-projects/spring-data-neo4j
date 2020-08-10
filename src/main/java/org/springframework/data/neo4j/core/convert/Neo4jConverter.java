@@ -30,7 +30,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Michael J. Simons
  * @soundtrack The Kleptones - A Night At The Hip-Hopera
- * @since 1.0
+ * @since 6.0
  */
 public interface Neo4jConverter extends EntityReader<Object, Record>, EntityWriter<Object, Map<String, Object>> {
 

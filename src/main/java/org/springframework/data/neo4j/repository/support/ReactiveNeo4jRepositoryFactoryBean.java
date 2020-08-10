@@ -35,9 +35,9 @@ import org.springframework.lang.Nullable;
  * @param <T> the type of the repository
  * @param <S> type of the domain class to map
  * @param <ID> identifier type in the domain class
- * @since 1.0
+ * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "1.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 public final class ReactiveNeo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
 		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 

@@ -32,7 +32,7 @@ import org.springframework.transaction.TransactionDefinition;
 /**
  * Internal use only.
  *
- * @since 1.0
+ * @since 6.0
  */
 public final class Neo4jTransactionUtils {
 

@@ -51,7 +51,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.0
+ * @since 6.0
  */
 final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
