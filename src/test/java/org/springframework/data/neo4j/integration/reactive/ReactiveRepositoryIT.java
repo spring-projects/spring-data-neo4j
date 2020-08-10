@@ -2220,7 +2220,7 @@ class ReactiveRepositoryIT {
 
 		@Override
 		@Bean
-		protected ReactiveDatabaseSelectionProvider reactiveNeo4jDatabaseNameProvider() {
+		protected ReactiveDatabaseSelectionProvider reactiveDatabaseSelectionProvider() {
 			return Optional.ofNullable(databaseSelection.getValue())
 					.map(ReactiveDatabaseSelectionProvider::createStaticDatabaseSelectionProvider)
 					.orElse(ReactiveDatabaseSelectionProvider.getDefaultSelectionProvider());

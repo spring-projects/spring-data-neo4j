@@ -163,7 +163,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		/**
 		 * Shared instance of the standard (non-routing) driver.
 		 */
-		public volatile Driver driverInstance;
+		private volatile Driver driverInstance;
 
 		public Neo4jConnectionSupport(String url, AuthToken authToken) {
 			this.url = url;

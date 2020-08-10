@@ -16,9 +16,9 @@
 package org.springframework.data.neo4j.config;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.apiguardian.api.API;
@@ -27,6 +27,7 @@ import org.springframework.data.mapping.callback.EntityCallback;
 import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jClient;
+import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -40,70 +41,74 @@ import org.springframework.transaction.PlatformTransactionManager;
  * Support class that can be used as is for all necessary CDI beans or as a blueprint for custom producers.
  *
  * @author Michael J. Simons
+ * @soundtrack Buckethead - SIGIL Soundtrack
  * @since 6.0
  */
-@API(status = API.Status.STABLE, since = "6.0")
+@API(status = API.Status.INTERNAL, since = "6.0")
 @ApplicationScoped
-public final class Neo4jCDIConfigurationSupport {
+class Neo4jCdiConfigurationSupport {
 
-	private final Driver driver;
+	private <T> T resolve(Instance<T> instance) {
+		if (!instance.isAmbiguous()) {
+			return instance.get();
+		}
 
-	@Inject
-	public Neo4jCDIConfigurationSupport(final Driver driver) {
-		this.driver = driver;
+		Instance<T> defaultInstance = instance.select(Neo4jCdiExtension.DEFAULT_BEAN);
+		return defaultInstance.get();
 	}
 
-	@Produces
-	@Singleton
+	@Produces @Builtin @Singleton
 	public Neo4jConversions neo4jConversions() {
 		return new Neo4jConversions();
 	}
 
-	@Produces
-	@Singleton
-	public Neo4jMappingContext neo4jMappingContext(Neo4jConversions neo4JConversions) {
-		return new Neo4jMappingContext(neo4JConversions);
+	@Produces @Builtin @Singleton
+	public DatabaseSelectionProvider databaseSelectionProvider() {
+
+		return DatabaseSelectionProvider.getDefaultSelectionProvider();
 	}
 
-	@Produces
-	@Singleton
+	@Produces @Builtin @Singleton
+	public Neo4jOperations neo4jOperations(
+			final @Any Instance<Neo4jClient> neo4jClient,
+			final @Any Instance<Neo4jMappingContext> mappingContext,
+			final @Any Instance<DatabaseSelectionProvider> databaseNameProvider,
+			final Instance<BeforeBindCallback> services
+	) {
+
+		EntityCallbacks entityCallbacks = EntityCallbacks.create(services.stream().toArray(EntityCallback[]::new));
+		return new Neo4jTemplate(resolve(neo4jClient), resolve(mappingContext), resolve(databaseNameProvider),
+				entityCallbacks);
+	}
+
+	@Produces @Singleton
 	public Neo4jClient neo4jClient(Driver driver) {
 		return Neo4jClient.create(driver);
 	}
 
-	@Produces
-	@Singleton
-	public Neo4jTemplate neo4jTemplate(final Neo4jClient neo4jClient, final Neo4jMappingContext mappingContext,
-			DatabaseSelectionProvider databaseNameProvider, Instance<BeforeBindCallback> services) {
-
-		EntityCallbacks entityCallbacks = EntityCallbacks.create(services.stream().toArray(EntityCallback[]::new));
-		return new Neo4jTemplate(neo4jClient, mappingContext, databaseNameProvider, entityCallbacks);
+	@Produces @Singleton
+	public Neo4jMappingContext neo4jMappingContext(final @Any Instance<Neo4jConversions> neo4JConversions) {
+		return new Neo4jMappingContext(resolve(neo4JConversions));
 	}
 
-	@Produces
-	@Singleton
-	public BeforeBindCallback<Object> idGeneratingBeforeBindCallback(final Neo4jMappingContext mappingContext) {
-		return new IdGeneratingBeforeBindCallback(mappingContext);
+	@Produces @Singleton
+	public BeforeBindCallback<Object> idGeneratingBeforeBindCallback(
+			final @Any Instance<Neo4jMappingContext> mappingContext) {
+
+		return new IdGeneratingBeforeBindCallback(resolve(mappingContext));
 	}
 
-	@Produces
-	@Singleton
-	public BeforeBindCallback<Object> optimisticLockingBeforeBindCallback(final Neo4jMappingContext mappingContext) {
-		return new OptimisticLockingBeforeBindCallback(mappingContext);
+	@Produces @Singleton
+	public BeforeBindCallback<Object> optimisticLockingBeforeBindCallback(
+			final @Any Instance<Neo4jMappingContext> mappingContext) {
+
+		return new OptimisticLockingBeforeBindCallback(resolve(mappingContext));
 	}
 
-	@Produces
-	@Singleton
-	public PlatformTransactionManager transactionManager(Driver driver,
-			DatabaseSelectionProvider databaseNameProvider) {
+	@Produces @Singleton
+	public PlatformTransactionManager transactionManager(
+			Driver driver, @Any Instance<DatabaseSelectionProvider> databaseNameProvider) {
 
-		return new Neo4jTransactionManager(driver, databaseNameProvider);
-	}
-
-	@Produces
-	@Singleton
-	protected DatabaseSelectionProvider neo4jDatabaseNameProvider() {
-
-		return DatabaseSelectionProvider.getDefaultSelectionProvider();
+		return new Neo4jTransactionManager(driver, resolve(databaseNameProvider));
 	}
 }

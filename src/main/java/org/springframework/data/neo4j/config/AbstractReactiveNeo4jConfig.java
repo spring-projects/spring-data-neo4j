@@ -87,7 +87,7 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 	 *         Neo4j 3.5 and prior.
 	 */
 	@Bean
-	protected ReactiveDatabaseSelectionProvider reactiveNeo4jDatabaseNameProvider() {
+	protected ReactiveDatabaseSelectionProvider reactiveDatabaseSelectionProvider() {
 
 		return ReactiveDatabaseSelectionProvider.getDefaultSelectionProvider();
 	}

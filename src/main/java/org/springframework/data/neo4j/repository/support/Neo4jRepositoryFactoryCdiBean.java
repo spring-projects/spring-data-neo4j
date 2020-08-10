@@ -18,53 +18,58 @@ package org.springframework.data.neo4j.repository.support;
 import java.lang.annotation.Annotation;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.apiguardian.api.API;
+import org.springframework.data.neo4j.config.Neo4jCdiExtension;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.cdi.CdiRepositoryBean;
 import org.springframework.data.repository.config.CustomRepositoryImplementationDetector;
 
 /**
+ * The CDI pendant to the {@link Neo4jRepositoryFactoryBean}. It creates instances of {@link Neo4jRepositoryFactory}.
+ *
+ * @param <T> The type of the repository being created
  * @author Michael J. Simons
+ * @soundtrack Various - TRON Legacy R3conf1gur3d
  * @since 6.0
  */
-public class Neo4jCdiRepositoryBean<T> extends CdiRepositoryBean<T> {
+@API(status = API.Status.INTERNAL, since = "6.0")
+public final class Neo4jRepositoryFactoryCdiBean<T> extends CdiRepositoryBean<T> {
 
 	private final BeanManager beanManager;
-	private Bean<Neo4jOperations> neo4jOperationsBean;
-	private Bean<Neo4jMappingContext> mappingContextBean;
 
-	public Neo4jCdiRepositoryBean(Set<Annotation> qualifiers, Class<T> repositoryType,
+	public Neo4jRepositoryFactoryCdiBean(Set<Annotation> qualifiers, Class<T> repositoryType,
 			BeanManager beanManager, Optional<CustomRepositoryImplementationDetector> detector) {
 		super(qualifiers, repositoryType, beanManager, detector);
 
 		this.beanManager = beanManager;
-
-		this.neo4jOperationsBean = (Bean<Neo4jOperations>) beanManager.getBeans(Neo4jOperations.class).stream()
-				.findFirst().orElseThrow(
-						() -> new NoSuchBeanDefinitionException(Neo4jOperations.class));
-
-		this.mappingContextBean = (Bean<Neo4jMappingContext>) beanManager.getBeans(Neo4jMappingContext.class).stream()
-				.findFirst().orElseThrow(
-						() -> new NoSuchBeanDefinitionException(Neo4jMappingContext.class));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.cdi.CdiRepositoryBean#create(javax.enterprise.context.spi.CreationalContext, java.lang.Class)
-	 */
 	@Override
 	protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType) {
 
-		Neo4jOperations neo4jOperations = (Neo4jOperations) beanManager
-				.getReference(neo4jOperationsBean, Neo4jOperations.class, creationalContext);
-		Neo4jMappingContext mappingContext = (Neo4jMappingContext) beanManager
-				.getReference(mappingContextBean, Neo4jMappingContext.class, creationalContext);
+		Neo4jOperations neo4jOperations = getReference(Neo4jOperations.class, creationalContext);
+		Neo4jMappingContext mappingContext = getReference(Neo4jMappingContext.class, creationalContext);
+
 		return create(() -> new Neo4jRepositoryFactory(neo4jOperations, mappingContext), repositoryType);
+	}
+
+	private <T> T getReference(Class<T> clazz, CreationalContext<?> creationalContext) {
+
+		Set<Bean<?>> beans = beanManager.getBeans(clazz, Neo4jCdiExtension.ANY_BEAN);
+		if (beans.size() > 1) {
+			beans = beans.stream()
+					.filter(b -> b.getQualifiers().contains(Neo4jCdiExtension.DEFAULT_BEAN))
+					.collect(Collectors.toSet());
+		}
+
+		Bean<?> bean = beanManager.resolve(beans);
+		return (T) beanManager.getReference(bean, clazz, creationalContext);
 	}
 }
