@@ -41,7 +41,7 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
  * @soundtrack Various - TRON Legacy R3conf1gur3d
  */
 @ExtendWith(Neo4jExtension.class)
-class CdiExtensionIT {
+class Neo4jCdiExtensionIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport connectionSupport;
 
