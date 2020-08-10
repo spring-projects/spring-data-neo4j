@@ -19,6 +19,8 @@ import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -102,11 +104,16 @@ public abstract class Neo4jConversionsITBase {
 		hlp.put("aPeriod", Period.of(23, 4, 7));
 		hlp.put("aDuration", Duration.ofHours(25).plusMinutes(63).plusSeconds(65));
 		hlp.put("stringArray", new String[] { "Hallo", "Welt" });
-		hlp.put("listOfStrings", new ArrayList<>(Arrays.asList("Hello", "World"))); // Done on purpose, otherwise the target
-																																								// collection cannot be determined.
-		hlp.put("setOfStrings", new HashSet<>(Arrays.asList("Hallo", "wereld")));
+		// Done on purpose, otherwise the target collection cannot be determined.
+		hlp.put("listOfStrings", new ArrayList<>(Arrays.asList("Hello", "World")));
+		hlp.put("setOfStrings", new HashSet<>(Arrays.asList("Hallo", "Welt")));
 		hlp.put("anInstant", Instant.from(LocalDateTime.of(2019, 9, 26, 20, 34, 23).atOffset(ZoneOffset.UTC)));
 		hlp.put("aUUID", UUID.fromString("d4ec9208-4b17-4ec7-a709-19a5e53865a8"));
+		try {
+			hlp.put("aURL", new URL("https://www.test.com"));
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
 		hlp.put("anEnum", SomeEnum.TheUsualMisfit);
 		hlp.put("anArrayOfEnums", new SomeEnum[] { SomeEnum.ValueA, SomeEnum.ValueB });
 		hlp.put("aCollectionOfEnums", Arrays.asList(SomeEnum.ValueC, SomeEnum.TheUsualMisfit));
@@ -206,9 +213,10 @@ public abstract class Neo4jConversionsITBase {
 								+ " n.shortArray = [-10, 10]," + " n.aBigDecimal = '1.79769313486231570E+309',"
 								+ " n.aBigInteger = '92233720368547758070'," + " n.aPeriod = duration('P23Y4M7D'),"
 								+ " n.aDuration = duration('PT26H4M5S')," + " n.stringArray = ['Hallo', 'Welt'],"
-								+ " n.listOfStrings = ['Hello', 'World']," + " n.setOfStrings = ['Hallo', 'wereld'],"
+								+ " n.listOfStrings = ['Hello', 'World']," + " n.setOfStrings = ['Hallo', 'Welt'],"
 								+ " n.anInstant = datetime('2019-09-26T20:34:23Z'),"
 								+ " n.aUUID = 'd4ec9208-4b17-4ec7-a709-19a5e53865a8'," + " n.listOfDoubles = [1.0],"
+								+ " n.aURL = 'https://www.test.com',"
 								+ " n.anEnum = 'TheUsualMisfit'," + " n.anArrayOfEnums = ['ValueA', 'ValueB'],"
 								+ " n.aCollectionOfEnums = ['ValueC', 'TheUsualMisfit']" + " RETURN id(n) AS id", parameters)
 						.single().get("id").asLong();

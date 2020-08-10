@@ -23,6 +23,7 @@ import lombok.With;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.Period;
@@ -98,6 +99,8 @@ public class ThingWithAllAdditionalTypes {
 	private Instant anInstant;
 
 	private UUID aUUID;
+
+	private URL aURL;
 
 	private SomeEnum anEnum;
 

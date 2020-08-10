@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.core.convert;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -42,6 +44,7 @@ import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.convert.ConverterBuilder;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -51,6 +54,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
+ * @author Dennis Crissman
  * @since 1.0
  */
 final class AdditionalTypes {
@@ -87,6 +91,7 @@ final class AdditionalTypes {
 				.andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, Instant.class, AdditionalTypes::asInstant).andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, UUID.class, AdditionalTypes::asUUID).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, URL.class, AdditionalTypes::asURL).andWriting(AdditionalTypes::value));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
 	}
@@ -101,6 +106,22 @@ final class AdditionalTypes {
 		}
 
 		return Values.value(uuid.toString());
+	}
+
+	static URL asURL(Value value) {
+		try {
+			return new URL(value.asString());
+		} catch (MalformedURLException e) {
+			throw new MappingException("Could not create URL from value: " + value.asString(), e);
+		}
+	}
+
+	static Value value(URL url) {
+		if (url == null) {
+			return Values.NULL;
+		}
+
+		return Values.value(url.toString());
 	}
 
 	static Instant asInstant(Value value) {

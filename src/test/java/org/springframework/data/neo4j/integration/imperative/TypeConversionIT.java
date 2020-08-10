@@ -59,6 +59,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Michael J. Simons
+ * @author Dennis Crissman
  * @soundtrack Tool - Fear Inoculum
  */
 @Neo4jIntegrationTest
