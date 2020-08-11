@@ -24,7 +24,7 @@ include::{manualIncludeDir}/README.adoc[tags=properties]
 :springVersion: 5.2.0.RELEASE
 :spring-framework-docs: https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference
 :spring-framework-javadoc: https://docs.spring.io/spring/docs/{springVersion}/javadoc-api
-:spring-data-commons-docs: ../../../../../other-spring-data/spring-data-commons/src/main/asciidoc/
+:spring-data-commons-docs: ../../../../../other-spring-data/spring-data-commons/src/main/asciidoc
 
 (C) 2008-2020 The original authors.
 

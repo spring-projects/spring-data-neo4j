@@ -656,7 +656,7 @@
 					<backend>html</backend>
 					<doctype>book</doctype>
 					<imagesDir>img</imagesDir>
-					<sourceDirectory>${basedir}/docs</sourceDirectory>
+					<sourceDirectory>${project.basedir}/src/main/asciidoc</sourceDirectory>
 					<sourceDocumentName>index.adoc</sourceDocumentName>
 					<sourceHighlighter>coderay</sourceHighlighter>
 					<attributes>

@@ -286,8 +286,8 @@ class MyConfiguration extends AbstractNeo4jConfig {
     }
 }
 ----
-<.> The driver bean is required
-<.> This statically selects a database named `yourDatabase`.
+<.> The driver bean is required.
+<.> This statically selects a database named `yourDatabase` and is *optional*.
 
 The following listing provides the reactive Neo4j client and template, enables reactive transaction management and discovers Neo4j related repositories:
 
@@ -367,22 +367,22 @@ If you are running in a SE Container - like the one https://weld.cdi-spec.org[We
 [[cdi-driver-producer-se]]
 .Enabling the Neo4j CDI extension in a SE container
 ----
-import java.util.Optional;
-
 import javax.enterprise.inject.se.SeContainer;
 import javax.enterprise.inject.se.SeContainerInitializer;
 
 import org.springframework.data.neo4j.config.Neo4jCdiExtension;
 
-void someMethod() {
-    try (SeContainer container = SeContainerInitializer.newInstance()
-            .disableDiscovery()
-            .addExtensions(Neo4jCdiExtension.class)
-            .addBeanClasses(YourDriverFactory.class)
-            .addPackages(Package.getPackage("your.domain.package"))
-        .initialize()
-    ) {
-        SomeRepository someRepository = container.select(SomeRepository.class).get();
+public class SomeClass {
+    void someMethod() {
+        try (SeContainer container = SeContainerInitializer.newInstance()
+                .disableDiscovery()
+                .addExtensions(Neo4jCdiExtension.class)
+                .addBeanClasses(YourDriverFactory.class)
+                .addPackages(Package.getPackage("your.domain.package"))
+            .initialize()
+        ) {
+            SomeRepository someRepository = container.select(SomeRepository.class).get();
+        }
     }
 }
 ----
