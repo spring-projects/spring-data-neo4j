@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.integration.cdi;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.util.Optional;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.AmbiguousResolutionException;
 import javax.enterprise.inject.Produces;
@@ -121,6 +123,9 @@ class Neo4jCdiExtensionIT {
 
 			Person p = client.personRepository.save(new Person("Hello"));
 			assertThat(p.getId()).isNotNull();
+
+			Optional<Person> loadedPerson = client.personRepository.findById(p.getId());
+			assertThat(loadedPerson).isPresent().hasValueSatisfying(v -> v.getId().equals(p.getId()));
 		}
 	}
 

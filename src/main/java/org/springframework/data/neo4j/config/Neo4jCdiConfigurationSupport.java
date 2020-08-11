@@ -87,8 +87,10 @@ class Neo4jCdiConfigurationSupport {
 	}
 
 	@Produces @Singleton
-	public Neo4jMappingContext neo4jMappingContext(final @Any Instance<Neo4jConversions> neo4JConversions) {
-		return new Neo4jMappingContext(resolve(neo4JConversions));
+	public Neo4jMappingContext neo4jMappingContext(final Driver driver, final @Any Instance<Neo4jConversions> neo4JConversions) {
+
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext(resolve(neo4JConversions), driver.defaultTypeSystem());
+		return neo4jMappingContext;
 	}
 
 	@Produces @Singleton

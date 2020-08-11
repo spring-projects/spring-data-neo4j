@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -82,9 +83,27 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	public Neo4jMappingContext(Neo4jConversions neo4jConversions) {
 
+		this(neo4jConversions, null);
+	}
+
+	/**
+	 * This API is primarly used from inside the CDI extension to configure the type system. This is necessary as
+	 * we don't get notified of the context via {@link #setApplicationContext(ApplicationContext applicationContext)}.
+	 *
+	 * @param neo4jConversions The conversions to be used
+	 * @param typeSystem       The current drivers typeystem
+	 */
+	@API(status = API.Status.INTERNAL, since = "6.0")
+	public Neo4jMappingContext(Neo4jConversions neo4jConversions, TypeSystem typeSystem) {
+
 		super.setSimpleTypeHolder(Neo4jSimpleTypes.HOLDER);
 		this.neo4jConversions = neo4jConversions;
-		this.converter = new DefaultNeo4jConverter(neo4jConversions, nodeDescriptionStore);
+
+		DefaultNeo4jConverter defaultNeo4jConverter = new DefaultNeo4jConverter(neo4jConversions, nodeDescriptionStore);
+		if (typeSystem != null) {
+			defaultNeo4jConverter.setTypeSystem(typeSystem);
+		}
+		this.converter = defaultNeo4jConverter;
 	}
 
 	public Neo4jConverter getConverter() {
