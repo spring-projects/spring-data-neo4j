@@ -54,14 +54,6 @@ class User {
 	}
 }
 
-// tag::faq.multidatabase[]
-// end::faq.multidatabase[]
-// tag::faq.multidatabase[]
-// end::faq.multidatabase[]
-// tag::faq.multidatabase[]
-
-// end::faq.multidatabase[]
-
 /**
  * @author Michael J. Simons
  */

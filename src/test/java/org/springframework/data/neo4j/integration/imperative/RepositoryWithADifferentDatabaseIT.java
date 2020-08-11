@@ -41,7 +41,7 @@ class RepositoryWithADifferentDatabaseIT extends RepositoryIT {
 	@BeforeAll
 	static void createTestDatabase() {
 
-		try (Session session = neo4jConnectionSupport.driverInstance.session(SessionConfig.forDatabase("system"))) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(SessionConfig.forDatabase("system"))) {
 
 			session.run("CREATE DATABASE " + TEST_DATABASE_NAME).consume();
 		}
@@ -50,7 +50,7 @@ class RepositoryWithADifferentDatabaseIT extends RepositoryIT {
 	@AfterAll
 	static void dropTestDatabase() {
 
-		try (Session session = neo4jConnectionSupport.driverInstance.session(SessionConfig.forDatabase("system"))) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(SessionConfig.forDatabase("system"))) {
 
 			session.run("DROP DATABASE " + TEST_DATABASE_NAME).consume();
 		}

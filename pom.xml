@@ -77,6 +77,7 @@
 		<changelist>-SNAPSHOT</changelist>
 		<checkstyle.version>8.29</checkstyle.version>
 		<cypher-dsl.version>2020.0.1</cypher-dsl.version>
+		<cdi>2.0</cdi>
 		<dist.id>spring-data-neo4j</dist.id>
 		<dist.key>SDNEO4J</dist.key>
 		<flatten-maven-plugin.version>1.2.1</flatten-maven-plugin.version>
@@ -406,6 +407,20 @@
 			<artifactId>jackson-databind</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>javax.enterprise</groupId>
+			<artifactId>cdi-api</artifactId>
+			<version>${cdi}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.weld.se</groupId>
+			<artifactId>weld-se-core</artifactId>
+			<version>3.1.4.Final</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -641,7 +656,7 @@
 					<backend>html</backend>
 					<doctype>book</doctype>
 					<imagesDir>img</imagesDir>
-					<sourceDirectory>${basedir}/docs</sourceDirectory>
+					<sourceDirectory>${project.basedir}/src/main/asciidoc</sourceDirectory>
 					<sourceDocumentName>index.adoc</sourceDocumentName>
 					<sourceHighlighter>coderay</sourceHighlighter>
 					<attributes>

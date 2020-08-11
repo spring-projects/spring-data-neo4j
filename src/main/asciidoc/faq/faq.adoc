@@ -3,6 +3,7 @@
 
 Here are a couple of more frequently asked question in addition to the ones in the <<what-is-sdn,preface>>.
 
+[[faq.multidatabase]]
 == Neo4j 4.0 supports multiple databases - How can I use them?
 
 You can either statically configure the database name or run your own database name provider.
@@ -32,6 +33,15 @@ Here is a working example for an imperative application secured with Spring Secu
 [[faq.databaseSelectionProvider]]
 .Neo4jConfig.java
 ----
+import org.neo4j.springframework.data.core.DatabaseSelection;
+import org.neo4j.springframework.data.core.DatabaseSelectionProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+
 include::../../../../src/test/java/org/springframework/data/neo4j/documentation/Neo4jConfig.java[tags=faq.multidatabase]
 ----
 
@@ -207,4 +217,172 @@ movieExample = Example.of(
         )
 );
 movies = this.movieRepository.findAll(movieExample);
+----
+
+== Do I need Spring Boot to use Spring Data Neo4j?
+
+No, you don't.
+While the automatic configuration of many Spring aspects through Spring Boot takes away a lot of manual cruft and is the recommended approach for setting up new Spring projects, you don't need to have to use this. 
+
+The following dependency is required for the solutions described above:
+
+[source,xml,subs="verbatim,attributes"]
+----
+<dependency>
+	<groupId>{springGroupId}</groupId>
+	<artifactId>{artifactId}</artifactId>
+	<version>{spring-data-neo4j-version}</version>
+</dependency>
+----
+
+The coordinates for a Gradle setup are the same.
+
+To select a different database - either statically or dynamically - you can add a Bean of type `DatabaseSelectionProvider` as explained in <<faq.multidatabase>>.
+For a reactive scenario, we provide `ReactiveDatabaseSelectionProvider`.
+
+=== Using Spring Data Neo4j inside a Spring context without Spring Boot
+
+We provide two abstract configuration classes to support you in bringing in the necessary beans: `AbstractNeo4jConfig` for imperative database access and `AbstractReactiveNeo4jConfig` for the reactive version.
+They are meant to be used with `@EnableNeo4jRepositories` and `@EnableReactiveNeo4jRepositories` respectively. 
+See <<bootless-imperative-configuration>> and <<bootless-reactive-configuration>> for an example usage.
+Both classes require you to override `driver()` in which you are supposed to create the driver.
+
+To get the imperative version of the <<neo4j-client,Neo4j client>>, the template and support for imperative repositories, use something similar as shown here:
+
+[source,java]
+[[bootless-imperative-configuration]]
+.Enabling Spring Data Neo4j infrastructure for imperative database access
+----
+import org.neo4j.driver.Driver;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+
+@Configuration
+@EnableNeo4jRepositories
+@EnableTransactionManagement
+class MyConfiguration extends AbstractNeo4jConfig {
+
+    @Override @Bean
+    public Driver driver() { // <.>
+        return GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"));
+    }
+
+    @Override
+    protected Collection<String> getMappingBasePackages() {
+        return Collections.singletonList(Person.class.getPackage().getName());
+    }
+
+    @Override @Bean // <.>
+    protected DatabaseSelectionProvider databaseSelectionProvider() {
+
+        return DatabaseSelectionProvider.createStaticDatabaseSelectionProvider("yourDatabase");
+    }
+}
+----
+<.> The driver bean is required.
+<.> This statically selects a database named `yourDatabase` and is *optional*.
+
+The following listing provides the reactive Neo4j client and template, enables reactive transaction management and discovers Neo4j related repositories:
+
+[source,java]
+[[bootless-reactive-configuration]]
+.Enabling Spring Data Neo4j infrastructure for reactive database access
+----
+import org.neo4j.driver.Driver;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
+import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+@Configuration
+@EnableReactiveNeo4jRepositories
+@EnableTransactionManagement
+class MyConfiguration extends AbstractReactiveNeo4jConfig {
+
+    @Bean
+    @Override
+    public Driver driver() {
+        return GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"));
+    }
+
+    @Override
+    protected Collection<String> getMappingBasePackages() {
+        return Collections.singletonList(Person.class.getPackage().getName());
+    }
+}
+----
+
+=== Using Spring Data Neo4j in a CDI 2.0 environment
+
+For your convenience we provide a CDI extension with `Neo4jCdiExtension`.
+When run in a compatible CDI 2.0 container, it will be automatically be registered and loaded through https://docs.oracle.com/javase/tutorial/ext/basics/spi.html[Java's service loader SPI].
+
+The only thing you have to bring into your application is an annotated type that produces the Neo4j Java Driver:
+
+[source,java]
+[[cdi-driver-producer]]
+.A CDI producer for the Neo4j Java Driver
+----
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Disposes;
+import javax.enterprise.inject.Produces;
+
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+
+public class Neo4jConfig {
+
+    @Produces @ApplicationScoped
+    public Driver driver() { // <.>
+        return GraphDatabase
+            .driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"));
+    }
+
+    public void close(@Disposes Driver driver) {
+        driver.close();
+    }
+
+    @Produces @Singleton
+    public DatabaseSelectionProvider getDatabaseSelectionProvider() { // <.>
+        return DatabaseSelectionProvider.createStaticDatabaseSelectionProvider("yourDatabase");
+    }
+}
+----
+<.> Same as with plain Spring in <<bootless-imperative-configuration>>, but annotated with the corresponding CDI infrastructure.
+<.> This is *optional*. However, if you run a custom database selection provider, you _must_ not qualify this bean.
+
+If you are running in a SE Container - like the one https://weld.cdi-spec.org[Weld] provides for example, you can enable the extension like that:
+
+[source,java]
+[[cdi-driver-producer-se]]
+.Enabling the Neo4j CDI extension in a SE container
+----
+import javax.enterprise.inject.se.SeContainer;
+import javax.enterprise.inject.se.SeContainerInitializer;
+
+import org.springframework.data.neo4j.config.Neo4jCdiExtension;
+
+public class SomeClass {
+    void someMethod() {
+        try (SeContainer container = SeContainerInitializer.newInstance()
+                .disableDiscovery()
+                .addExtensions(Neo4jCdiExtension.class)
+                .addBeanClasses(YourDriverFactory.class)
+                .addPackages(Package.getPackage("your.domain.package"))
+            .initialize()
+        ) {
+            SomeRepository someRepository = container.select(SomeRepository.class).get();
+        }
+    }
+}
 ----

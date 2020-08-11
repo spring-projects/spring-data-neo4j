@@ -37,7 +37,6 @@ public final class IdGeneratingBeforeBindCallback implements BeforeBindCallback<
 
 	@Override
 	public Object onBeforeBind(Object entity) {
-
 		return idPopulator.populateIfNecessary(entity);
 	}
 

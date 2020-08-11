@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jClient;
+import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
@@ -60,7 +61,7 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	}
 
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
-	public Neo4jTemplate neo4jTemplate(final Neo4jClient neo4jClient, final Neo4jMappingContext mappingContext,
+	public Neo4jOperations neo4jTemplate(final Neo4jClient neo4jClient, final Neo4jMappingContext mappingContext,
 			DatabaseSelectionProvider databaseNameProvider) {
 
 		return new Neo4jTemplate(neo4jClient, mappingContext, databaseNameProvider);
@@ -86,7 +87,7 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	 *         Neo4j 3.5 and prior.
 	 */
 	@Bean
-	protected DatabaseSelectionProvider neo4jDatabaseNameProvider() {
+	protected DatabaseSelectionProvider databaseSelectionProvider() {
 
 		return DatabaseSelectionProvider.getDefaultSelectionProvider();
 	}

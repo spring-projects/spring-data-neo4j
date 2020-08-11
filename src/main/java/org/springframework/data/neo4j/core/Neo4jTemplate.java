@@ -93,6 +93,12 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
 			DatabaseSelectionProvider databaseSelectionProvider) {
 
+		this(neo4jClient, neo4jMappingContext, databaseSelectionProvider, EntityCallbacks.create());
+	}
+
+	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
+			DatabaseSelectionProvider databaseSelectionProvider, EntityCallbacks entityCallbacks) {
+
 		Assert.notNull(neo4jClient, "The Neo4jClient is required");
 		Assert.notNull(neo4jMappingContext, "The Neo4jMappingContext is required");
 		Assert.notNull(databaseSelectionProvider, "The database name provider is required");
@@ -100,7 +106,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		this.neo4jClient = neo4jClient;
 		this.neo4jMappingContext = neo4jMappingContext;
 		this.cypherGenerator = CypherGenerator.INSTANCE;
-		this.eventSupport = new Neo4jEvents(EntityCallbacks.create());
+		this.eventSupport = new Neo4jEvents(entityCallbacks);
 
 		this.databaseSelectionProvider = databaseSelectionProvider;
 	}
