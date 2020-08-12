@@ -523,6 +523,28 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>validate</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration combine.self="override">
+					<configLocation>${project.basedir}/etc/checkstyle/config.xml</configLocation>
+					<suppressionsLocation>${project.basedir}/etc/checkstyle/suppressions.xml</suppressionsLocation>
+					<headerLocation>${project.basedir}/etc/checkstyle/java-header.txt</headerLocation>
+					<encoding>${project.build.sourceEncoding}</encoding>
+					<consoleOutput>true</consoleOutput>
+					<failsOnError>true</failsOnError>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<executions>
@@ -742,40 +764,4 @@
 		</pluginRepository>
 	</pluginRepositories>
 
-	<profiles>
-		<profile>
-			<id>always-but-ci</id>
-			<activation>
-				<property>
-					<name>!running-on-ci</name>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-checkstyle-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>validate</id>
-								<phase>validate</phase>
-								<goals>
-									<goal>check</goal>
-								</goals>
-							</execution>
-						</executions>
-						<configuration>
-							<configLocation>${project.basedir}/etc/checkstyle/config.xml</configLocation>
-							<suppressionsLocation>${project.basedir}/etc/checkstyle/suppressions.xml</suppressionsLocation>
-							<headerLocation>${project.basedir}/etc/checkstyle/java-header.txt</headerLocation>
-							<encoding>${project.build.sourceEncoding}</encoding>
-							<consoleOutput>true</consoleOutput>
-							<failsOnError>true</failsOnError>
-							<includeTestSourceDirectory>true</includeTestSourceDirectory>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
 </project>
