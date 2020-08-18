@@ -43,7 +43,6 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.dao.NonTransientDataAccessResourceException;
 import org.springframework.dao.PermissionDeniedDataAccessException;
-import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 
@@ -71,9 +70,9 @@ public final class Neo4jPersistenceExceptionTranslator implements PersistenceExc
 		} else if (ex instanceof DatabaseException) {
 			return translateImpl((Neo4jException) ex, NonTransientDataAccessResourceException::new);
 		} else if (ex instanceof ServiceUnavailableException) {
-			return translateImpl((Neo4jException) ex, NonTransientDataAccessResourceException::new);
+			return translateImpl((Neo4jException) ex, TransientDataAccessResourceException::new);
 		} else if (ex instanceof SessionExpiredException) {
-			return translateImpl((Neo4jException) ex, RecoverableDataAccessException::new);
+			return translateImpl((Neo4jException) ex, TransientDataAccessResourceException::new);
 		} else if (ex instanceof ProtocolException) {
 			return translateImpl((Neo4jException) ex, NonTransientDataAccessResourceException::new);
 		} else if (ex instanceof TransientException) {
