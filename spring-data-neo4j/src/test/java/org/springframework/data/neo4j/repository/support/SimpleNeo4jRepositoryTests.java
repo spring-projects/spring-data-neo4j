@@ -28,6 +28,10 @@ import org.neo4j.ogm.session.Session;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+/**
+ * @author Gerrit Meier
+ * @author Michael J. Simons
+ */
 public class SimpleNeo4jRepositoryTests {
 
 	private final Session sessionMock = mock(Session.class);
@@ -134,6 +138,22 @@ public class SimpleNeo4jRepositoryTests {
 		assertThat(page.getNumberOfElements()).isEqualTo(expectedElementsOnPage);
 		assertThat(page.getTotalPages()).isEqualTo(expectedPageCount);
 		assertThat(page.getTotalElements()).isEqualTo(amountOfElementsInDatabase);
+	}
+
+	@Test // DATAGRAPH-1260
+	public void idShouldBeAsserted() {
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> repository.findById(null))
+				.withMessage("The given id must not be null!");
+	}
+
+	@Test // DATAGRAPH-1260
+	public void idShouldBeAssertedWithDepth() {
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> repository.findById(null, 42))
+				.withMessage("The given id must not be null!");
 	}
 
 	private Page loadPage(PageRequest requestedPage, long amountOfElementsInDatabase) {
