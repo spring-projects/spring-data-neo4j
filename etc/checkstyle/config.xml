@@ -23,6 +23,11 @@
     <module name="NewlineAtEndOfFile"/>
     <module name="SuppressWarningsFilter" />
 
+    <module name="io.spring.nohttp.checkstyle.check.NoHttpCheck">
+        <!-- XML requires double escaping, config gets XML-processed twice -->
+        <property name="allowlist" value="http://www\.querydsl\.com.*&amp;#10;http://www\.prowaveconsulting\.com.*&amp;#10;http://www\.scispike\.com.*&amp;#10;http://.*.icu-project\.org.*" />
+    </module>
+
     <module name="com.puppycrawl.tools.checkstyle.TreeWalker">
         <module name="SuppressWarningsHolder" />
 
