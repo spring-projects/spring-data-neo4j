@@ -15,12 +15,16 @@
  */
 package org.springframework.data.neo4j.queries;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.Offset.offset;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -28,14 +32,16 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.harness.ServerControls;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.neo4j.examples.movies.domain.Gender;
 import org.springframework.data.neo4j.examples.movies.domain.Rating;
 import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.EntityWrappingQueryResult;
-import org.springframework.data.neo4j.examples.movies.domain.queryresult.Gender;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.RichUserQueryResult;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.UserQueryResult;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.UserQueryResultObject;
@@ -44,11 +50,9 @@ import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.data.Offset.offset;
 
 /**
  * @author Vince Bickers
@@ -213,7 +217,8 @@ public class QueryIntegrationTests {
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
-				User user = userRepository.findUserByNameAndSurnameUsingSpElIndexAndPlaceholderWithOneParameter("Michal");
+				User user = userRepository
+						.findUserByNameAndSurnameUsingSpElIndexAndPlaceholderWithOneParameter("Michal");
 				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
@@ -226,7 +231,8 @@ public class QueryIntegrationTests {
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
-				User user = userRepository.findUserByNameAndSurnameUsingSpElPropertyAndPlaceholderWithOneParameter("Michal");
+				User user = userRepository
+						.findUserByNameAndSurnameUsingSpElPropertyAndPlaceholderWithOneParameter("Michal");
 				assertThat(user.getName()).isEqualTo("Michal");
 			}
 		});
@@ -440,7 +446,7 @@ public class QueryIntegrationTests {
 				assertThat(userQueryResult.getUserAccount())
 						.isEqualTo(BigInteger.valueOf(3456789));
 				assertThat(userQueryResult.getUserDeposits())
-						.isEqualTo(new BigDecimal[] {BigDecimal.valueOf(12345.6), BigDecimal.valueOf(45678.9)});
+						.isEqualTo(new BigDecimal[] { BigDecimal.valueOf(12345.6), BigDecimal.valueOf(45678.9) });
 				assertThat(userIterator.hasNext()).isFalse();
 			}
 		});
@@ -519,7 +525,8 @@ public class QueryIntegrationTests {
 				assertThat(userRepository.findTotalUsers())
 						.as("There should be some users in the database").isEqualTo(2);
 
-				Iterable<UserQueryResult> expected = Arrays.asList(new UserQueryResult(null, 0), new UserQueryResult(null, 0));
+				Iterable<UserQueryResult> expected = Arrays
+						.asList(new UserQueryResult(null, 0), new UserQueryResult(null, 0));
 
 				Iterable<UserQueryResult> queryResult = userRepository.retrieveAllUsersAndTheirAges();
 				assertThat(queryResult).as("The query result shouldn't be null")
@@ -725,5 +732,41 @@ public class QueryIntegrationTests {
 				assertThat(result.getAllRatings().size()).isEqualTo(0);
 			}
 		});
+	}
+
+	@Test // DATAGRAPH-1310
+	public void enumsShouldBeConvertedOnLoad() {
+		executeUpdate("CREATE (g:User {name:'ABC', gender: 'UNDISCLOSED'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User user = userRepository.findUserByName("ABC");
+				assertThat(user).isNotNull().extracting(User::getGender).isEqualTo(Gender.UNDISCLOSED);
+			}
+		});
+	}
+
+	@Test // DATAGRAPH-1310
+	public void enumsShouldBeConvertedOnSave() {
+
+		long newUserId = transactionTemplate.execute(new TransactionCallback<Long>() {
+
+			@Override
+			public Long doInTransaction(TransactionStatus transactionStatus) {
+				User abc = new User("Miriam");
+				abc.setGender(Gender.FEMALE);
+				return userRepository.save(abc).getId();
+			}
+		});
+
+		GraphDatabaseService graph = neo4jTestServer.graph();
+		try (Transaction transaction = graph.beginTx()) {
+
+			final String gender = (String) graph.execute("MATCH (u) WHERE id(u) = $id RETURN u.gender AS gender",
+					Collections.singletonMap("id", newUserId)).next().get("gender");
+			assertThat(gender).isEqualTo("FEMALE");
+			transaction.success();
+		}
 	}
 }
