@@ -22,6 +22,7 @@ import java.time.Year;
 import org.neo4j.ogm.annotation.Property;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.springframework.data.neo4j.annotation.QueryResult;
+import org.springframework.data.neo4j.examples.movies.domain.Gender;
 
 /**
  * A {@link QueryResult} that contains rich types.

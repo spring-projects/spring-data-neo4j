@@ -26,7 +26,7 @@ import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.examples.movies.domain.User;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.EntityWrappingQueryResult;
-import org.springframework.data.neo4j.examples.movies.domain.queryresult.Gender;
+import org.springframework.data.neo4j.examples.movies.domain.Gender;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.RichUserQueryResult;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.UserQueryResult;
 import org.springframework.data.neo4j.examples.movies.domain.queryresult.UserQueryResultObject;

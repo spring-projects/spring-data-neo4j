@@ -25,11 +25,13 @@ import org.neo4j.ogm.annotation.Relationship;
  * @author Michal Bachman
  * @author Luanne Misquitta
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 public class User extends Person {
 
 	private String middleName;
 	private String surname;
+	private Gender gender;
 
 	private Collection<Genre> interested = new HashSet<>();
 
@@ -97,5 +99,13 @@ public class User extends Person {
 
 	public void setEmailAddresses(Set<String> emailAddresses) {
 		this.emailAddresses = emailAddresses;
+	}
+
+	public Gender getGender() {
+		return gender;
+	}
+
+	public void setGender(Gender gender) {
+		this.gender = gender;
 	}
 }
