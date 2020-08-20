@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @Repository
 @Transactional(readOnly = true)
@@ -140,6 +141,7 @@ public class SimpleNeo4jRepository<T, ID extends Serializable> implements Neo4jR
 
 	@Override
 	public Optional<T> findById(ID id, int depth) {
+		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 		return Optional.ofNullable(session.load(clazz, id, depth));
 	}
 
