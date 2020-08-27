@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.harness.ServerControls;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.AbstractPageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,11 +43,13 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * See DATAGRAPH-680
+ *
  * @author Luanne Misquitta
  * @author Jasper Blues
  * @author Mark Angrish
  * @author Nicolas Mervaillie
  * @author Ihor Dziuba
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = MoviesContextConfiguration.class)
 @RunWith(SpringRunner.class)
@@ -76,6 +79,52 @@ public class PagedQueryTests {
 
 	private void executeUpdate(String cypher) {
 		neo4jTestServer.graph().execute(cypher);
+	}
+
+	@Test // DATAGRAPH-1332
+	@Transactional
+	public void offsetBasedPaginationShouldWork() {
+
+		class CustomPageRequest extends AbstractPageRequest {
+
+			public CustomPageRequest(int page) {
+				super(page, 1);
+			}
+
+			@Override
+			public Sort getSort() {
+				return Sort.by("n.name").ascending();
+			}
+
+			@Override
+			public Pageable next() {
+				return new CustomPageRequest(getPageNumber() + 1);
+			}
+
+			@Override
+			public Pageable previous() {
+				return new CustomPageRequest(getPageNumber() - 1);
+			}
+
+			@Override
+			public Pageable first() {
+				return new CustomPageRequest(0);
+			}
+
+			@Override
+			public long getOffset() {
+				return 3L;
+			}
+		}
+
+		setup();
+
+		Page<Cinema> page = cinemaRepository.getPagedCinemas(new CustomPageRequest(1));
+		assertEquals(1, page.getNumberOfElements());
+		assertTrue(page.hasPrevious());
+		assertEquals("Metro", page.get().findFirst().map(Cinema::getName).orElse("N/A"));
+		assertTrue(page.hasNext());
+		assertEquals(10, page.getTotalElements());
 	}
 
 	@Test
