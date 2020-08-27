@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.conversion;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -26,12 +26,17 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.conversion.datagraph1156.Hobby;
+import org.springframework.data.neo4j.conversion.datagraph1156.HobbyRepository;
+import org.springframework.data.neo4j.conversion.datagraph1156.User;
+import org.springframework.data.neo4j.conversion.datagraph1156.UserRepository;
 import org.springframework.data.neo4j.conversion.support.ConvertedClass;
 import org.springframework.data.neo4j.conversion.support.EntityRepository;
 import org.springframework.data.neo4j.conversion.support.EntityWithConvertedAttributes;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Michael J. Simons
@@ -44,6 +49,12 @@ public class MetaDataDrivenConversionServiceIntegrationTests {
 	@Autowired private GraphDatabaseService graphDatabaseService;
 
 	@Autowired private EntityRepository entityRepository;
+
+	@Autowired private UserRepository userRepository;
+
+	@Autowired private HobbyRepository hobbyRepository;
+
+	@Autowired private TransactionTemplate transactionTemplate;
 
 	@Test // DATAGRAPH-1131
 	public void conversionWithConverterHierarchyShouldWork() {
@@ -68,8 +79,27 @@ public class MetaDataDrivenConversionServiceIntegrationTests {
 
 	}
 
+	@Test // DATAGRAPH-1156
+	public void relatedNodesWithCustomIdsShouldWork() {
+
+		User testUser = transactionTemplate.execute(tx -> userRepository.save(new User("test@test.com")));
+		User user = userRepository.findById(testUser.getId())
+				.orElseThrow(() -> new RuntimeException("User not saved."));
+
+		Hobby newHobby = transactionTemplate.execute(tx -> hobbyRepository.save(new Hobby("Cycling", user)));
+		assertThat(hobbyRepository.findById(newHobby.getId())).isPresent().hasValueSatisfying(hobby -> {
+			assertThat(hobby.getId()).isEqualTo(newHobby.getId());
+			assertThat(hobby.getHobbyist()).extracting(User::getId).isEqualTo(user.getId());
+		});
+	}
+
 	@Configuration
-	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.conversion.support",
-			repositoryPackages = "org.springframework.data.neo4j.conversion.support")
-	static class Config {}
+	@Neo4jIntegrationTest(
+			domainPackages = { "org.springframework.data.neo4j.conversion.support",
+					"org.springframework.data.neo4j.conversion.datagraph1156" },
+			repositoryPackages = { "org.springframework.data.neo4j.conversion.support",
+					"org.springframework.data.neo4j.conversion.datagraph1156" }
+	)
+	static class Config {
+	}
 }
