@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.queries;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.List;
 
 import org.junit.Before;
@@ -22,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.neo4j.harness.ServerControls;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.AbstractPageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -38,15 +41,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * See DATAGRAPH-680
+ *
  * @author Luanne Misquitta
  * @author Jasper Blues
  * @author Mark Angrish
  * @author Nicolas Mervaillie
  * @author Ihor Dziuba
+ * @author Michael J. Simons
  */
 @ContextConfiguration(classes = MoviesContextConfiguration.class)
 @RunWith(SpringRunner.class)
@@ -76,6 +79,52 @@ public class PagedQueryTests {
 
 	private void executeUpdate(String cypher) {
 		neo4jTestServer.graph().execute(cypher);
+	}
+
+	@Test // DATAGRAPH-1332
+	@Transactional
+	public void offsetBasedPaginationShouldWork() {
+
+		class CustomPageRequest extends AbstractPageRequest {
+
+			public CustomPageRequest(int page) {
+				super(page, 1);
+			}
+
+			@Override
+			public Sort getSort() {
+				return Sort.by("n.name").ascending();
+			}
+
+			@Override
+			public Pageable next() {
+				return new CustomPageRequest(getPageNumber() + 1);
+			}
+
+			@Override
+			public Pageable previous() {
+				return new CustomPageRequest(getPageNumber() - 1);
+			}
+
+			@Override
+			public Pageable first() {
+				return new CustomPageRequest(0);
+			}
+
+			@Override
+			public long getOffset() {
+				return 3L;
+			}
+		}
+
+		setup();
+
+		Page<Cinema> page = cinemaRepository.getPagedCinemas(new CustomPageRequest(1));
+		assertThat(page.getNumberOfElements()).isEqualTo(1);
+		assertThat(page.hasPrevious()).isTrue();
+		assertThat(page).first().extracting(Cinema::getName).isEqualTo("Metro");
+		assertThat(page.hasNext()).isTrue();
+		assertThat(page.getTotalElements()).isEqualTo(10);
 	}
 
 	@Test
@@ -125,20 +174,23 @@ public class PagedQueryTests {
 		assertThat(page.hasNext()).isTrue();
 		// FIXME : bug here - content is always null
 		// assertNotNull(page.getContent().get(0).getName());
-		assertThat(page.getTotalElements()).isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
-																								// estimate
+		assertThat(page.getTotalElements())
+				.isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
+		// estimate
 
 		page = cinemaRepository.getPagedCinemaQueryResults(page.nextPageable());
 		assertThat(page.getNumberOfElements()).isEqualTo(3);
 		assertThat(page.hasNext()).isTrue();
-		assertThat(page.getTotalElements()).isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
-																								// estimate
+		assertThat(page.getTotalElements())
+				.isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
+		// estimate
 
 		page = cinemaRepository.getPagedCinemaQueryResults(page.nextPageable());
 		assertThat(page.getNumberOfElements()).isEqualTo(3);
 		assertThat(page.hasNext()).isTrue();
-		assertThat(page.getTotalElements()).isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
-																								// estimate
+		assertThat(page.getTotalElements())
+				.isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
+		// estimate
 
 		page = cinemaRepository.getPagedCinemaQueryResults(page.nextPageable());
 		assertThat(page.getNumberOfElements()).isEqualTo(1);
@@ -184,20 +236,23 @@ public class PagedQueryTests {
 		assertThat(page.hasNext()).isTrue();
 		// FIXME : bug here - content is always null
 		// assertNotNull(page.getContent().get(0).getName());
-		assertThat(page.getTotalElements()).isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
-																								// estimate
+		assertThat(page.getTotalElements())
+				.isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
+		// estimate
 
 		page = cinemaRepository.getPagedCinemaQueryResultInterfaces(page.nextPageable());
 		assertThat(page.getNumberOfElements()).isEqualTo(3);
 		assertThat(page.hasNext()).isTrue();
-		assertThat(page.getTotalElements()).isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
-																								// estimate
+		assertThat(page.getTotalElements())
+				.isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
+		// estimate
 
 		page = cinemaRepository.getPagedCinemaQueryResultInterfaces(page.nextPageable());
 		assertThat(page.getNumberOfElements()).isEqualTo(3);
 		assertThat(page.hasNext()).isTrue();
-		assertThat(page.getTotalElements()).isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
-																								// estimate
+		assertThat(page.getTotalElements())
+				.isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
+		// estimate
 
 		page = cinemaRepository.getPagedCinemaQueryResultInterfaces(page.nextPageable());
 		assertThat(page.getNumberOfElements()).isEqualTo(1);
@@ -211,14 +266,16 @@ public class PagedQueryTests {
 		Pageable pageable = PageRequest.of(0, 5);
 		Page<Cinema> page = cinemaRepository.getPagedCinemasByCityWithPageCount("London", pageable);
 		assertThat(page.getNumberOfElements()).isEqualTo(5);
-		assertThat(page.getTotalElements()).isEqualTo(10); // With a count query, the total elements should equal the number
-																								// returned by the count query
+		assertThat(page.getTotalElements())
+				.isEqualTo(10); // With a count query, the total elements should equal the number
+		// returned by the count query
 		assertThat(page.hasNext()).isTrue();
 
 		page = cinemaRepository.getPagedCinemasByCityWithPageCount("London", page.nextPageable());
 		assertThat(page.getNumberOfElements()).isEqualTo(5);
-		assertThat(page.getTotalElements()).isEqualTo(10); // With a count query, the total elements should equal the number
-																								// returned by the count query
+		assertThat(page.getTotalElements())
+				.isEqualTo(10); // With a count query, the total elements should equal the number
+		// returned by the count query
 		assertThat(page.hasNext()).isFalse(); // with a count query, the next page calculation is correct
 	}
 
@@ -318,7 +375,8 @@ public class PagedQueryTests {
 	public void shouldSortPageByNestedPropertyIsInvolved() {
 		executeUpdate("CREATE (p:Theatre {name:'Picturehouse', city:'London', capacity:5000}) "
 				+ "CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500}) "
-				+ "CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 5000}) " + "CREATE (u:User {name:'Michal'}) "
+				+ "CREATE (m:Theatre {name:'Regal', city:'Bombay', capacity: 5000}) "
+				+ "CREATE (u:User {name:'Michal'}) "
 				+ "CREATE (u)-[:VISITED]->(r)  " + "CREATE (u)-[:VISITED]->(m)");
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
@@ -329,7 +387,8 @@ public class PagedQueryTests {
 				assertThat(page.getNumberOfElements()).isEqualTo(1);
 				assertThat(page.getContent().get(0).getName()).isEqualTo("Regal");
 
-				page = cinemaRepository.findByVisitedName("Michal", PageRequest.of(1, 1, Sort.Direction.DESC, "location"));
+				page = cinemaRepository
+						.findByVisitedName("Michal", PageRequest.of(1, 1, Sort.Direction.DESC, "location"));
 				assertThat(page.getNumberOfElements()).isEqualTo(1);
 				assertThat(page.getContent().get(0).getName()).isEqualTo("Regal");
 			}
@@ -393,8 +452,9 @@ public class PagedQueryTests {
 		Page<Cinema> page = cinemaRepository.getPagedCinemas(pageable);
 		assertThat(page.getNumberOfElements()).isEqualTo(4);
 		assertThat(page.hasNext()).isTrue();
-		assertThat(page.getTotalElements()).isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
-																								// estimate
+		assertThat(page.getTotalElements())
+				.isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
+		// estimate
 		assertThat(page.getContent().get(0).getName()).isEqualTo("Cineplex");
 		assertThat(page.getContent().get(1).getName()).isEqualTo("Inox");
 		assertThat(page.getContent().get(2).getName()).isEqualTo("Landmark");
@@ -403,8 +463,9 @@ public class PagedQueryTests {
 		page = cinemaRepository.getPagedCinemas(page.nextPageable());
 		assertThat(page.getNumberOfElements()).isEqualTo(4);
 		assertThat(page.hasNext()).isTrue();
-		assertThat(page.getTotalElements()).isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
-																								// estimate
+		assertThat(page.getTotalElements())
+				.isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
+		// estimate
 		assertThat(page.getContent().get(0).getName()).isEqualTo("Movietime");
 		assertThat(page.getContent().get(1).getName()).isEqualTo("PVR");
 		assertThat(page.getContent().get(2).getName()).isEqualTo("Picturehouse");
@@ -413,8 +474,9 @@ public class PagedQueryTests {
 		page = cinemaRepository.getPagedCinemas(page.nextPageable());
 		assertThat(page.getNumberOfElements()).isEqualTo(2);
 		assertThat(page.hasNext()).isFalse();
-		assertThat(page.getTotalElements()).isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
-																								// estimate
+		assertThat(page.getTotalElements())
+				.isEqualTo(10); // this should not be relied on as incorrect as the total elements is an
+		// estimate
 		assertThat(page.getContent().get(0).getName()).isEqualTo("Regal");
 		assertThat(page.getContent().get(1).getName()).isEqualTo("Ritzy");
 	}
