@@ -110,7 +110,7 @@ public class Query {
 		// Custom queries in the OGM do not support pageable
 		cypherQuery = formatBaseQuery(cypherQuery);
 		cypherQuery = cypherQuery + SKIP_LIMIT;
-		parameters.put(SKIP, pageable.getPageNumber() * pageable.getPageSize());
+		parameters.put(SKIP, pageable.getOffset());
 		if (forSlicing) {
 			parameters.put(LIMIT, pageable.getPageSize() + 1);
 		} else {
