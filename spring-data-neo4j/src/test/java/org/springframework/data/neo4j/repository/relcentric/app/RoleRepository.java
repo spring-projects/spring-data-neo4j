@@ -15,10 +15,16 @@
  */
 package org.springframework.data.neo4j.repository.relcentric.app;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
  * @author Michael J. Simons
  */
 public interface RoleRepository extends Neo4jRepository<Role, Long> {
+
+	List<Role> findAllByMovieGenreName(String genre);
+
+	List<Role> findAllByActorCountryName(String country);
 }

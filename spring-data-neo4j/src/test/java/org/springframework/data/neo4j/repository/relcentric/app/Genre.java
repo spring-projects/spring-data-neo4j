@@ -15,35 +15,31 @@
  */
 package org.springframework.data.neo4j.repository.relcentric.app;
 
-import org.neo4j.ogm.annotation.Relationship;
-
 /**
  * @author Michael J. Simons
  */
-public class Movie {
+public class Genre {
 
 	private Long id;
+
 	private String name;
 
-	@Relationship("HAS")
-	private Genre genre;
-
-	public Movie() {
+	public Genre() {
 	}
 
-	public Movie(String name) {
+	public Genre(String name) {
 		this.name = name;
+	}
+
+	public Long getId() {
+		return id;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public Genre getGenre() {
-		return genre;
-	}
-
-	public void setGenre(Genre genre) {
-		this.genre = genre;
+	public void setName(String name) {
+		this.name = name;
 	}
 }
