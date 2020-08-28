@@ -47,6 +47,7 @@ import org.springframework.data.neo4j.conversion.ogm618.MyNodeRepository;
 import org.springframework.data.neo4j.conversion.ogm618.ResultHolder;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -55,9 +56,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 /**
  * @author Michael J. Simons
  */
-@ContextConfiguration(classes = { Neo4jOgmEntityInstantiatorAdapterTest.ContextConfig.class })
+@ContextConfiguration(classes = { Neo4jOgmEntityInstantiatorAdapterTests.ContextConfig.class })
 @RunWith(SpringRunner.class)
-public class Neo4jOgmEntityInstantiatorAdapterTest {
+@DirtiesContext
+public class Neo4jOgmEntityInstantiatorAdapterTests {
 
 	private static final Config driverConfig = Config.build().withoutEncryption().toConfig();
 
@@ -68,7 +70,7 @@ public class Neo4jOgmEntityInstantiatorAdapterTest {
 	public static void initializeNeo4j() {
 
 		serverControls = TestServerBuilders.newInProcessBuilder()
-				.withProcedure(Neo4jOgmEntityInstantiatorAdapterTest.ListReturningThing.class)
+				.withProcedure(Neo4jOgmEntityInstantiatorAdapterTests.ListReturningThing.class)
 				.withFixture("CREATE (m:MyNode{name: 'All the', things: []})").newServer();
 		boltURI = serverControls.boltURI();
 	}
