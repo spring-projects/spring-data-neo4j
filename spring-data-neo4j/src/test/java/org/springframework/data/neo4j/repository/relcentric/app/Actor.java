@@ -31,6 +31,8 @@ public class Actor {
 	@Relationship(type = "ACTS_IN")
 	private List<Role> roles = new ArrayList<>();
 
+	private Country country;
+
 	public Actor() {
 	}
 
@@ -44,6 +46,14 @@ public class Actor {
 
 	public String getName() {
 		return name;
+	}
+
+	public Country getCountry() {
+		return country;
+	}
+
+	public void setCountry(Country country) {
+		this.country = country;
 	}
 }
 
