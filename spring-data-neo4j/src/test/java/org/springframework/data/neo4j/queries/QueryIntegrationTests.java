@@ -26,6 +26,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -707,6 +709,50 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 				EntityWrappingQueryResult result = userRepository.findAllRatingsNull();
 				assertNotNull(result);
 				assertEquals(0, result.getAllRatings().size());
+			}
+		});
+	}
+
+	@Test // DATAGRAPH-1249
+	public void shouldFlushSessionAfterBulkUpdateReturningNodes() {
+
+		executeUpdate("CREATE (:User {name:'Schneider'}), (:User {name:'Hundingsbane'})");
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				assertEquals(2, ((List<User>) userRepository.findAll()).size());
+
+				List<String> names = userRepository.bulkUpdateReturningNode().stream()
+						.map(User::getSurname)
+						.distinct().collect(Collectors.toList());
+				assertEquals(1, names.size());
+				assertTrue(names.contains("Helge"));
+
+				names = StreamSupport.stream(userRepository.findAll().spliterator(), false)
+						.map(User::getSurname)
+						.distinct().collect(Collectors.toList());
+				assertEquals(1, names.size());
+				assertTrue(names.contains("Helge"));
+			}
+		});
+	}
+
+	@Test // DATAGRAPH-1249
+	public void shouldFlushSessionAfterBulkUpdateWithoutNodes() {
+
+		executeUpdate("CREATE (:User {name:'Schneider'}), (:User {name:'Hundingsbane'})");
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				assertEquals(2, ((List<User>) userRepository.findAll()).size());
+
+				userRepository.bulkUpdateNoReturn();
+
+				List<String> names = StreamSupport.stream(userRepository.findAll().spliterator(), false)
+						.map(User::getSurname)
+						.distinct().collect(Collectors.toList());
+				assertEquals(1, names.size());
+				assertTrue(names.contains("Helge"));
 			}
 		});
 	}
