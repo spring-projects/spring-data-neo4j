@@ -54,6 +54,12 @@ public interface UserRepository extends PersonRepository<User, Long> {
 
 	List<User> findByRatingsStarsIgnoreCase(int stars);
 
+	@Query("MATCH (c:User) SET c.surname = 'Helge' RETURN c")
+	List<User> bulkUpdateReturningNode();
+
+	@Query("MATCH (c:User) SET c.surname = 'Helge'")
+	void bulkUpdateNoReturn();
+
 	@Query("MATCH (user:User) RETURN COUNT(user)")
 	int findTotalUsers();
 

@@ -769,4 +769,36 @@ public class QueryIntegrationTests {
 			transaction.success();
 		}
 	}
+
+	@Test // DATAGRAPH-1249
+	public void shouldFlushSessionAfterBulkUpdateReturningNodes() {
+
+		executeUpdate("CREATE (:User {name:'Schneider'}), (:User {name:'Hundingsbane'})");
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				assertThat(userRepository.findAll()).hasSize(2);
+
+				assertThat(userRepository.bulkUpdateReturningNode()).extracting(User::getSurname).containsOnly("Helge");
+
+				assertThat(userRepository.findAll()).extracting(User::getSurname).containsOnly("Helge");
+			}
+		});
+	}
+
+	@Test // DATAGRAPH-1249
+	public void shouldFlushSessionAfterBulkUpdateWithoutNodes() {
+
+		executeUpdate("CREATE (:User {name:'Schneider'}), (:User {name:'Hundingsbane'})");
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				assertThat(userRepository.findAll()).hasSize(2);
+
+				userRepository.bulkUpdateNoReturn();
+
+				assertThat(userRepository.findAll()).extracting(User::getSurname).containsOnly("Helge");
+			}
+		});
+	}
 }
