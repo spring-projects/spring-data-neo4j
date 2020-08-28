@@ -55,9 +55,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 /**
  * @author Michael J. Simons
  */
-@ContextConfiguration(classes = { Neo4jOgmEntityInstantiatorAdapterTest.ContextConfig.class })
+@ContextConfiguration(classes = { Neo4jOgmEntityInstantiatorAdapterTests.ContextConfig.class })
 @RunWith(SpringRunner.class)
-public class Neo4jOgmEntityInstantiatorAdapterTest {
+public class Neo4jOgmEntityInstantiatorAdapterTests {
 
 	private static final Config driverConfig = Config.builder().withoutEncryption().build();
 
@@ -68,7 +68,7 @@ public class Neo4jOgmEntityInstantiatorAdapterTest {
 	public static void initializeNeo4j() {
 
 		serverControls = TestServerBuilders.newInProcessBuilder()
-				.withProcedure(Neo4jOgmEntityInstantiatorAdapterTest.ListReturningThing.class)
+				.withProcedure(Neo4jOgmEntityInstantiatorAdapterTests.ListReturningThing.class)
 				.withFixture("CREATE (m:MyNode{name: 'All the', things: []})").newServer();
 		boltURI = serverControls.boltURI();
 	}
