@@ -1,0 +1,21 @@
+== ADR 6: Refactor definition of relationship with properties
+
+=== Status
+
+accepted
+
+=== Context
+
+The current implementation of relationship with properties has two major flaws:
+
+. No possibility to create derived finders reaching into the target entity.
+. Impossible to create two relationships of the same type connecting the same target node.
+
+=== Decision
+
+Signalise e.g. with an additional or modified annotation that the `@Relationship` defined on an entity points to a relationship with properties.
+Within this relationship with properties representing class there should be at least a property exist that describes the target entity of the relationship.
+
+=== Consequences
+
+Users will have to refactor the existing `@RelationshipProperties` based relationships.
