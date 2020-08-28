@@ -13,45 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.relcentric.app;
+package org.springframework.data.neo4j.repository.sample.domain;
 
-import org.neo4j.ogm.annotation.EndNode;
-import org.neo4j.ogm.annotation.RelationshipEntity;
-import org.neo4j.ogm.annotation.StartNode;
+import java.util.UUID;
+
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
+import org.neo4j.ogm.annotation.Index;
+import org.neo4j.ogm.annotation.NodeEntity;
 
 /**
- * @author Michael J. Simons
+ * @author Mark Angrish
  */
-@RelationshipEntity(type = "ACTS_IN")
-public class Role {
+@NodeEntity
+public abstract class Contact {
 
-	private Long id;
-	private String played;
+	@Id @GeneratedValue protected Long id;
 
-	@StartNode
-	private Actor actor;
+	@Index(unique = true) private String uuid;
 
-	@EndNode
-	private Movie movie;
-
-	public Role() {
-	}
-
-	public Role(String character, Actor actor, Movie movie) {
-		played = character;
-		this.actor = actor;
-		this.movie = movie;
+	public Contact() {
+		this.uuid = UUID.randomUUID().toString();
 	}
 
 	public Long getId() {
 		return id;
 	}
 
-	public Movie getMovie() {
-		return movie;
-	}
-
-	public void setMovie(Movie movie) {
-		this.movie = movie;
+	public String getUuid() {
+		return uuid;
 	}
 }

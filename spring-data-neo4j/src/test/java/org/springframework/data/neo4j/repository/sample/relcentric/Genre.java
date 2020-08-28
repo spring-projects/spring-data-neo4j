@@ -13,30 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.relcentric.app;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.neo4j.ogm.annotation.Relationship;
+package org.springframework.data.neo4j.repository.sample.relcentric;
 
 /**
  * @author Michael J. Simons
  */
-public class Actor {
+public class Genre {
 
-	public Long id;
-	String name;
+	private Long id;
 
-	@Relationship(type = "ACTS_IN")
-	private List<Role> roles = new ArrayList<>();
+	private String name;
 
-	private Country country;
-
-	public Actor() {
+	public Genre() {
 	}
 
-	public Actor(String name) {
+	public Genre(String name) {
 		this.name = name;
 	}
 
@@ -48,13 +39,7 @@ public class Actor {
 		return name;
 	}
 
-	public Country getCountry() {
-		return country;
-	}
-
-	public void setCountry(Country country) {
-		this.country = country;
+	public void setName(String name) {
+		this.name = name;
 	}
 }
-
-

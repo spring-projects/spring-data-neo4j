@@ -15,9 +15,11 @@
  */
 package org.springframework.data.neo4j.domain.sample;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.neo4j.ogm.annotation.GeneratedValue;
@@ -28,8 +30,9 @@ import org.neo4j.ogm.annotation.Version;
 import org.neo4j.ogm.annotation.typeconversion.DateString;
 
 /**
- * Domain class representing a person emphasizing the use of {@code AbstractEntity}. No declaration of an id is
- * required. The id is typed by the parameterizable superclass.
+ * @author Mark Angrish
+ * @author Gerrit Meier
+ * @author Michael Simons
  */
 @NodeEntity
 public class User {
@@ -64,11 +67,17 @@ public class User {
 
 	@DateString private Date dateOfBirth;
 
+	private List<User> friends = new ArrayList<>();
+
 	/**
 	 * Creates a new empty instance of {@code User}.
 	 */
 	public User() {
 		this(null, null, null);
+	}
+
+	public User(String lastname) {
+		this(null, lastname, null);
 	}
 
 	/**
@@ -363,5 +372,9 @@ public class User {
 	public String toString() {
 
 		return "User: " + getId() + ", " + getFirstname() + " " + getLastname() + ", " + getEmailAddress();
+	}
+
+	public List<User> getFriends() {
+		return friends;
 	}
 }

@@ -20,7 +20,8 @@ public class Cinema {
 
   @Relationship(type = "BLOCKBUSTER", direction = Relationship.OUTGOING)
   private Movie blockbusterOfTheWeek;
-  …
+
+  // …
 }
 ----
 
@@ -53,10 +54,10 @@ There are several ways to avoid that :
 ====
 [source,java]
 ----
-public interface CinemaNameAndBlockbuster {  <1>
+public interface CinemaNameAndBlockbuster {  // <1>
 
-	public String getName(); <2>
-	public Movie getBlockbusterOfTheWeek();
+	String getName(); // <2>
+	Movie getBlockbusterOfTheWeek();
 }
 ----
 This projection has the following details:
@@ -99,13 +100,13 @@ Look at the following projection interface:
 ====
 [source,java]
 ----
-interface RenamedProperty {                 <1>
+interface RenamedProperty {                 // <1>
 
   @Value("#{target.name}")
-  String getCinemaName();                   <2>
+  String getCinemaName();                   // <2>
 
   @Value("#{target.blockbusterOfTheWeek.name}")
-  String getBlockbusterOfTheWeekName();     <3>
+  String getBlockbusterOfTheWeekName();     // <3>
 }
 ----
 This projection has the following details:

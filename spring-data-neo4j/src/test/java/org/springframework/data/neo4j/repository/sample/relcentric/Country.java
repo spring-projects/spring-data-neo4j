@@ -13,11 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository;
+package org.springframework.data.neo4j.repository.sample.relcentric;
 
 /**
- * Created by markangrish on 24/03/2017.
+ * @author Michael J. Simons
  */
-public interface ContactRepository extends Neo4jRepository<Contact, String> {
+public class Country {
 
+	private Long id;
+	private String name;
+
+	public Long getId() {
+		return id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 }

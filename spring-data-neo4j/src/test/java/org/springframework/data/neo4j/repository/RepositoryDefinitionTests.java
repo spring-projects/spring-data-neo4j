@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repositories;
+package org.springframework.data.neo4j.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.neo4j.test.GraphDatabaseServiceAssert.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +27,8 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.repositories.domain.Movie;
-import org.springframework.data.neo4j.repositories.repo.MovieRepository;
+import org.springframework.data.neo4j.domain.sample.Movie;
+import org.springframework.data.neo4j.repository.sample.repo.MovieRepository;
 import org.springframework.data.neo4j.test.GraphDatabaseServiceAssert;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
@@ -80,8 +79,8 @@ public class RepositoryDefinitionTests {
 	}
 
 	@Configuration
-	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.repositories.domain",
-			repositoryPackages = "org.springframework.data.neo4j.repositories.repo")
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.domain.sample",
+			repositoryPackages = "org.springframework.data.neo4j.repository.sample.repo")
 	static class RepositoriesTestContext {}
 
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.relcentric;
+package org.springframework.data.neo4j.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,12 +27,12 @@ import org.junit.runner.RunWith;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.repository.relcentric.app.Actor;
-import org.springframework.data.neo4j.repository.relcentric.app.Country;
-import org.springframework.data.neo4j.repository.relcentric.app.Genre;
-import org.springframework.data.neo4j.repository.relcentric.app.Movie;
-import org.springframework.data.neo4j.repository.relcentric.app.Role;
-import org.springframework.data.neo4j.repository.relcentric.app.RoleRepository;
+import org.springframework.data.neo4j.repository.sample.relcentric.Actor;
+import org.springframework.data.neo4j.repository.sample.relcentric.Country;
+import org.springframework.data.neo4j.repository.sample.relcentric.Genre;
+import org.springframework.data.neo4j.repository.sample.relcentric.Movie;
+import org.springframework.data.neo4j.repository.sample.relcentric.Role;
+import org.springframework.data.neo4j.repository.sample.relcentric.RoleRepository;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -118,7 +118,7 @@ public class MinimalRelationshipEntityMappingTests {
 	}
 
 	@Configuration
-	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.repository.relcentric.app")
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.repository.sample.relcentric")
 	static class Config {
 	}
 }

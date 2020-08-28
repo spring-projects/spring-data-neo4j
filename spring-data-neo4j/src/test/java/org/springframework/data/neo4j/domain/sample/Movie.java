@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.relcentric.app;
-
-import java.util.List;
-
-import org.springframework.data.neo4j.repository.Neo4jRepository;
+package org.springframework.data.neo4j.domain.sample;
 
 /**
- * @author Michael J. Simons
+ * @author Michal Bachman
  */
-public interface RoleRepository extends Neo4jRepository<Role, Long> {
+public class Movie {
 
-	List<Role> findAllByMovieGenreName(String genre);
+	private Long id;
+	private String title;
 
-	List<Role> findAllByActorCountryName(String country);
+	public Movie() {}
+
+	public Movie(String title) {
+		this.title = title;
+	}
+
+	public String getTitle() {
+		return title;
+	}
 }

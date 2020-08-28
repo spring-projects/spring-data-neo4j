@@ -21,11 +21,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.annotation.ConfigurationClassPostProcessor;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.core.type.StandardAnnotationMetadata;
-import org.springframework.data.neo4j.repository.sample.UserRepository;
+import org.springframework.data.neo4j.repository.sample.repo.UserRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,7 +42,7 @@ public class Neo4jRepositoriesRegistrarTests {
 	@Before
 	public void setUp() {
 
-		metadata = new StandardAnnotationMetadata(Config.class, true);
+		metadata = AnnotationMetadata.introspect(Config.class);
 		registry = new DefaultListableBeanFactory();
 	}
 
@@ -52,7 +52,7 @@ public class Neo4jRepositoriesRegistrarTests {
 		Neo4jRepositoriesRegistrar registrar = new Neo4jRepositoriesRegistrar();
 		registrar.setResourceLoader(new DefaultResourceLoader());
 		registrar.setEnvironment(new StandardEnvironment());
-		registrar.registerBeanDefinitions(metadata, registry);
+		registrar.registerBeanDefinitions(metadata, registry, ConfigurationClassPostProcessor.IMPORT_BEAN_NAME_GENERATOR);
 
 		Iterable<String> names = Arrays.asList(registry.getBeanDefinitionNames());
 		assertThat(names).contains("userRepository");

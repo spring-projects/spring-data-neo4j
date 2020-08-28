@@ -13,34 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repositories.repo;
+package org.springframework.data.neo4j.repository.sample.relcentric;
 
 import java.util.List;
 
-import org.springframework.data.neo4j.repositories.domain.User;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.stereotype.Repository;
 
 /**
- * @author Michal Bachman
- * @author Vince Bickers
+ * @author Michael J. Simons
  */
-@Repository
-public interface UserRepository extends Neo4jRepository<User, Long> {
+public interface RoleRepository extends Neo4jRepository<Role, Long> {
 
-	/*
-	 * @see DATAGRAPH-813
-	 */
-	Long deleteByName(String name); // return a count of deleted objects by name
+	List<Role> findAllByMovieGenreName(String genre);
 
-	/*
-	 * @see DATAGRAPH-813
-	 */
-	List<Long> removeByName(String name); // remove users by name and return an iterable of the removed users' ids
-
-	/*
-	 * @see DATAGRAPH-813
-	 */
-	Long countByName(String name); // return a count of objects with name
-
+	List<Role> findAllByActorCountryName(String country);
 }

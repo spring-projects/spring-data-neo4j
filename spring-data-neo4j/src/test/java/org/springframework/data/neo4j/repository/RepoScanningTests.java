@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repositories;
+package org.springframework.data.neo4j.repository;
 
 import static org.springframework.data.neo4j.test.GraphDatabaseServiceAssert.*;
 
@@ -26,8 +26,8 @@ import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.repositories.domain.User;
-import org.springframework.data.neo4j.repositories.repo.UserRepository;
+import org.springframework.data.neo4j.domain.sample.User;
+import org.springframework.data.neo4j.repository.sample.repo.UserRepository;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -57,15 +57,15 @@ public class RepoScanningTests {
 		userRepository.save(user);
 
 		Map<String, Object> params = new HashMap<>();
-		params.put("name", user.getName());
+		params.put("name", user.getLastname());
 
 		assertThat(graphDatabaseService)
-				.containsNode("MATCH (n:User {name: $name}) RETURN n", params)
+				.containsNode("MATCH (n:User {lastname: $name}) RETURN n", params)
 				.withId(user.getId());
 	}
 
 	@Configuration
-	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.repositories.domain")
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.domain.sample")
 	static class PersistenceContextInTheSamePackage {}
 
 }

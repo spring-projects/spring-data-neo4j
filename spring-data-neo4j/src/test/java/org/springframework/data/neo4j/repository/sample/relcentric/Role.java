@@ -13,25 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.relcentric.app;
+package org.springframework.data.neo4j.repository.sample.relcentric;
+
+import org.neo4j.ogm.annotation.EndNode;
+import org.neo4j.ogm.annotation.RelationshipEntity;
+import org.neo4j.ogm.annotation.StartNode;
 
 /**
  * @author Michael J. Simons
  */
-public class Country {
+@RelationshipEntity(type = "ACTS_IN")
+public class Role {
 
 	private Long id;
-	private String name;
+	private String played;
+
+	@StartNode
+	private Actor actor;
+
+	@EndNode
+	private Movie movie;
+
+	public Role() {
+	}
+
+	public Role(String character, Actor actor, Movie movie) {
+		played = character;
+		this.actor = actor;
+		this.movie = movie;
+	}
 
 	public Long getId() {
 		return id;
 	}
 
-	public String getName() {
-		return name;
+	public Movie getMovie() {
+		return movie;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setMovie(Movie movie) {
+		this.movie = movie;
 	}
 }

@@ -28,7 +28,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.mapping.MetaDataProvider;
-import org.springframework.data.neo4j.repository.ContactRepository;
+import org.springframework.data.neo4j.repository.sample.repo.ContactRepository;
 
 /**
  * @author Mark Angrish
@@ -58,11 +58,9 @@ public class Neo4jRepositoryFactoryBeanTests {
 
 	/**
 	 * Assert that the instance created for the standard configuration is a valid {@code UserRepository}.
-	 *
-	 * @throws Exception
 	 */
 	@Test
-	public void setsUpBasicInstanceCorrectly() throws Exception {
+	public void setsUpBasicInstanceCorrectly() {
 
 		factoryBean.setBeanFactory(beanFactory);
 		factoryBean.afterPropertiesSet();
@@ -71,7 +69,7 @@ public class Neo4jRepositoryFactoryBeanTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void requiresListableBeanFactory() throws Exception {
+	public void requiresListableBeanFactory() {
 
 		factoryBean.setBeanFactory(mock(BeanFactory.class));
 	}

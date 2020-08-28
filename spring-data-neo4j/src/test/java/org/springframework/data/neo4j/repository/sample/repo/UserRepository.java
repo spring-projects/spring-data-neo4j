@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.sample;
+package org.springframework.data.neo4j.repository.sample.repo;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,16 +23,24 @@ import org.springframework.data.neo4j.domain.sample.User;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Repository interface for {@code User}s.
- *
- * @author Mark Angrish
- * @author Mark Paluch
- * @author Jens Schauder
+ * @author Michal Bachman
+ * @author Vince Bickers
  */
+@Repository
 public interface UserRepository extends Neo4jRepository<User, Long> {
+
+	// DATAGRAPH-813
+	Long deleteByLastname(String name); // return a count of deleted objects by name
+
+	// DATAGRAPH-813
+	List<Long> removeByLastname(String name); // remove users by name and return an iterable of the removed users' ids
+
+	// DATAGRAPH-813
+	Long countByLastname(String name); // return a count of objects with name
 
 	/**
 	 * Retrieve users by their lastname. The finder {@literal User.findByLastname} is declared in
@@ -44,14 +52,14 @@ public interface UserRepository extends Neo4jRepository<User, Long> {
 	List<User> findByLastname(String lastname);
 
 	/**
-	 * Redeclaration of {@link CrudRepository#findOne(java.io.Serializable)} to change transaction configuration.
+	 * Redeclaration of {@link CrudRepository#findById(Object)} (java.io.Serializable)} to change transaction configuration.
 	 */
 	@Override
 	@Transactional
 	Optional<User> findById(Long primaryKey);
 
 	/**
-	 * Redeclaration of {@link CrudRepository#delete(java.io.Serializable)}. to make sure the transaction configuration of
+	 * Redeclaration of {@link CrudRepository#deleteById(Object)} (java.io.Serializable)}. to make sure the transaction configuration of
 	 * the original method is considered if the redeclaration does not carry a {@link Transactional} annotation.
 	 */
 	@Override

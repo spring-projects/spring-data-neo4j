@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repositories.support;
+package org.springframework.data.neo4j.repository.support;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -42,7 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jens Schauder
  * @author Michael J. Simons
  */
-public class GraphRepositoryFactoryTests {
+public class Neo4jRepositoryFactoryTests {
 
 	Neo4jRepositoryFactory factory;
 

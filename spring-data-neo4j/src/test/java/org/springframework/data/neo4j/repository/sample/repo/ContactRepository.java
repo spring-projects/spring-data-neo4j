@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repositories.repo;
+package org.springframework.data.neo4j.repository.sample.repo;
 
-import org.springframework.data.neo4j.repositories.domain.Movie;
-import org.springframework.data.repository.RepositoryDefinition;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.repository.sample.domain.Contact;
 
 /**
- * @author Michal Bachman
+ * @author Mark Angrish
  */
-@RepositoryDefinition(domainClass = Movie.class, idClass = Long.class)
-public interface MovieRepository {
-
-	<S extends Movie> S save(S entity);
-
-	Iterable<Movie> findAll();
+public interface ContactRepository extends Neo4jRepository<Contact, String> {
 }

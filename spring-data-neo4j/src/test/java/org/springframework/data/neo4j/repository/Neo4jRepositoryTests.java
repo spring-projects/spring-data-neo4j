@@ -93,13 +93,13 @@ public class Neo4jRepositoryTests {
 	}
 
 	@Configuration
-	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.domain.sample")
+	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.domain.sample", considerNestedRepositories = true)
 	static class Config {}
-}
 
-interface SampleEntityRepository extends Neo4jRepository<SampleEntity, Long> {}
+	interface SampleEntityRepository extends Neo4jRepository<SampleEntity, Long> {}
 
-interface NodeWithUUIDAsIdRepository extends Neo4jRepository<NodeWithUUIDAsId, UUID> {
+	interface NodeWithUUIDAsIdRepository extends Neo4jRepository<NodeWithUUIDAsId, UUID> {
 
-	Optional<NodeWithUUIDAsId> findOneByMyNiceIdAndSomeProperty(UUID id, String someProperty);
+		Optional<NodeWithUUIDAsId> findOneByMyNiceIdAndSomeProperty(UUID id, String someProperty);
+	}
 }

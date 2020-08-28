@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repositories;
+package org.springframework.data.neo4j.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.neo4j.test.GraphDatabaseServiceAssert.assertThat;
@@ -33,10 +33,10 @@ import org.neo4j.harness.TestServerBuilders;
 import org.neo4j.ogm.config.Configuration;
 import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
-import org.springframework.data.neo4j.repositories.domain.Movie;
-import org.springframework.data.neo4j.repositories.domain.User;
-import org.springframework.data.neo4j.repositories.repo.MovieRepository;
-import org.springframework.data.neo4j.repositories.repo.UserRepository;
+import org.springframework.data.neo4j.domain.sample.User;
+import org.springframework.data.neo4j.domain.sample.Movie;
+import org.springframework.data.neo4j.repository.sample.repo.MovieRepository;
+import org.springframework.data.neo4j.repository.sample.repo.UserRepository;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactory;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
@@ -68,7 +68,7 @@ public class ProgrammaticRepositoryTests {
 		Configuration configuration = new Configuration.Builder() //
 				.uri(serverControls.boltURI().toString()) //
 				.build();
-		sessionFactory = new SessionFactory(configuration, "org.springframework.data.neo4j.repositories.domain");
+		sessionFactory = new SessionFactory(configuration, "org.springframework.data.neo4j.domain.sample");
 
 		PlatformTransactionManager platformTransactionManager = new Neo4jTransactionManager(sessionFactory);
 		transactionTemplate = new TransactionTemplate(platformTransactionManager);
@@ -143,12 +143,11 @@ public class ProgrammaticRepositoryTests {
 		UserRepository userRepository = factory.getRepository(UserRepository.class);
 
 		User userA = new User("A");
-		userA.setName("A");
 
 		userRepository.save(userA);
 		assertThat(userRepository.count()).isEqualTo(1);
 
-		assertThat(userRepository.deleteByName("A")).isEqualTo(new Long(1));
+		assertThat(userRepository.deleteByLastname("A")).isEqualTo(new Long(1));
 		assertThat(userRepository.count()).isEqualTo(0);
 	}
 
@@ -167,7 +166,7 @@ public class ProgrammaticRepositoryTests {
 
 		assertThat(userRepository.count()).isEqualTo(2);
 
-		List<Long> deletedUserIds = userRepository.removeByName("A");
+		List<Long> deletedUserIds = userRepository.removeByLastname("A");
 		assertThat(deletedUserIds.size()).isEqualTo(2);
 
 		Assertions.assertThat(deletedUserIds).containsExactlyInAnyOrder(userA.getId(), userAClone.getId());
@@ -192,7 +191,7 @@ public class ProgrammaticRepositoryTests {
 
 		assertThat(userRepository.count()).isEqualTo(2);
 
-		userRepository.deleteByName("A");
+		userRepository.deleteByLastname("A");
 
 		assertThat(userRepository.count()).isEqualTo(1);
 	}
@@ -205,10 +204,9 @@ public class ProgrammaticRepositoryTests {
 		UserRepository userRepository = factory.getRepository(UserRepository.class);
 
 		User userA = new User("A");
-		userA.setName("A");
 
 		userRepository.save(userA);
 
-		assertThat(userRepository.countByName("A")).isEqualTo(new Long(1));
+		assertThat(userRepository.countByLastname("A")).isEqualTo(new Long(1));
 	}
 }

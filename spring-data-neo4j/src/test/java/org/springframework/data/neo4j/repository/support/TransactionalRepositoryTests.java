@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.domain.sample.User;
-import org.springframework.data.neo4j.repository.sample.UserRepository;
+import org.springframework.data.neo4j.repository.sample.repo.UserRepository;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
 import org.springframework.test.context.ContextConfiguration;

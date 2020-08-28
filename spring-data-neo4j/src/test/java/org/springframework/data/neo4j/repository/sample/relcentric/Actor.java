@@ -13,46 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repositories.domain;
+package org.springframework.data.neo4j.repository.sample.relcentric;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.neo4j.ogm.annotation.Relationship;
+
 /**
- * @author Michal Bachman
- * @author Vince Bickers
+ * @author Michael J. Simons
  */
-public class User {
+public class Actor {
 
-	private Long id;
-	private String name;
+	public Long id;
+	String name;
 
-	private List<User> friends = new ArrayList<>();
+	@Relationship(type = "ACTS_IN")
+	private List<Role> roles = new ArrayList<>();
 
-	public User() {}
+	private Country country;
 
-	public Long getId() {
-		return this.id;
+	public Actor() {
 	}
 
-	public User(String name) {
+	public Actor(String name) {
 		this.name = name;
+	}
+
+	public Long getId() {
+		return id;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public Country getCountry() {
+		return country;
 	}
 
-	public List<User> getFriends() {
-		return friends;
+	public void setCountry(Country country) {
+		this.country = country;
 	}
-
-	public void setFriends(List<User> friends) {
-		this.friends = friends;
-	}
-
 }
+
+

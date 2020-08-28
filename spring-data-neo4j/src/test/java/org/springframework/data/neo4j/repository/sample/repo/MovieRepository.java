@@ -13,34 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository;
+package org.springframework.data.neo4j.repository.sample.repo;
 
-import java.util.UUID;
-
-import org.neo4j.ogm.annotation.GeneratedValue;
-import org.neo4j.ogm.annotation.Id;
-import org.neo4j.ogm.annotation.Index;
-import org.neo4j.ogm.annotation.NodeEntity;
+import org.springframework.data.neo4j.domain.sample.Movie;
+import org.springframework.data.repository.RepositoryDefinition;
 
 /**
- * Created by markangrish on 24/03/2017.
+ * @author Michal Bachman
  */
-@NodeEntity
-public abstract class Contact {
+@RepositoryDefinition(domainClass = Movie.class, idClass = Long.class)
+public interface MovieRepository {
 
-	@Id @GeneratedValue protected Long id;
+	<S extends Movie> S save(S entity);
 
-	@Index(unique = true) private String uuid;
-
-	public Contact() {
-		this.uuid = UUID.randomUUID().toString();
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public String getUuid() {
-		return uuid;
-	}
+	Iterable<Movie> findAll();
 }
