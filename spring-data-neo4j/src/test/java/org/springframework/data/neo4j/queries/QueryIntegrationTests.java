@@ -15,7 +15,12 @@
  */
 package org.springframework.data.neo4j.queries;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -26,6 +31,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -212,7 +220,8 @@ public class QueryIntegrationTests {
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
-				User user = userRepository.findUserByNameAndSurnameUsingSpElIndexAndPlaceholderWithOneParameter("Michal");
+				User user = userRepository
+						.findUserByNameAndSurnameUsingSpElIndexAndPlaceholderWithOneParameter("Michal");
 				assertEquals("Michal", user.getName());
 			}
 		});
@@ -225,7 +234,8 @@ public class QueryIntegrationTests {
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
 			@Override
 			public void doInTransactionWithoutResult(TransactionStatus status) {
-				User user = userRepository.findUserByNameAndSurnameUsingSpElPropertyAndPlaceholderWithOneParameter("Michal");
+				User user = userRepository
+						.findUserByNameAndSurnameUsingSpElPropertyAndPlaceholderWithOneParameter("Michal");
 				assertEquals("Michal", user.getName());
 			}
 		});
@@ -510,7 +520,8 @@ public class QueryIntegrationTests {
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				assertEquals("There should be some users in the database", 2, userRepository.findTotalUsers());
 
-				Iterable<UserQueryResult> expected = Arrays.asList(new UserQueryResult(null, 0), new UserQueryResult(null, 0));
+				Iterable<UserQueryResult> expected = Arrays
+						.asList(new UserQueryResult(null, 0), new UserQueryResult(null, 0));
 
 				Iterable<UserQueryResult> queryResult = userRepository.retrieveAllUsersAndTheirAges();
 				assertNotNull("The query result shouldn't be null", queryResult);
@@ -694,6 +705,50 @@ public class QueryIntegrationTests {
 				EntityWrappingQueryResult result = userRepository.findAllRatingsNull();
 				assertNotNull(result);
 				assertEquals(0, result.getAllRatings().size());
+			}
+		});
+	}
+
+	@Test // DATAGRAPH-1249
+	public void shouldFlushSessionAfterBulkUpdateReturningNodes() {
+
+		executeUpdate("CREATE (:User {name:'Schneider'}), (:User {name:'Hundingsbane'})");
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				assertEquals(2, ((List<User>) userRepository.findAll()).size());
+
+				List<String> names = userRepository.bulkUpdateReturningNode().stream()
+						.map(User::getSurname)
+						.distinct().collect(Collectors.toList());
+				assertEquals(1, names.size());
+				assertTrue(names.contains("Helge"));
+
+				names = StreamSupport.stream(userRepository.findAll().spliterator(), false)
+						.map(User::getSurname)
+						.distinct().collect(Collectors.toList());
+				assertEquals(1, names.size());
+				assertTrue(names.contains("Helge"));
+			}
+		});
+	}
+
+	@Test // DATAGRAPH-1249
+	public void shouldFlushSessionAfterBulkUpdateWithoutNodes() {
+
+		executeUpdate("CREATE (:User {name:'Schneider'}), (:User {name:'Hundingsbane'})");
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				assertEquals(2, ((List<User>) userRepository.findAll()).size());
+
+				userRepository.bulkUpdateNoReturn();
+
+				List<String> names = StreamSupport.stream(userRepository.findAll().spliterator(), false)
+						.map(User::getSurname)
+						.distinct().collect(Collectors.toList());
+				assertEquals(1, names.size());
+				assertTrue(names.contains("Helge"));
 			}
 		});
 	}
