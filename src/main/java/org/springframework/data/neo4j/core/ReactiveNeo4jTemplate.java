@@ -57,7 +57,6 @@ import org.springframework.data.neo4j.core.schema.Constants;
 import org.springframework.data.neo4j.core.schema.CypherGenerator;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
-import org.springframework.data.neo4j.core.support.Relationships;
 import org.springframework.data.neo4j.repository.event.ReactiveBeforeBindCallback;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.Nullable;
@@ -402,7 +401,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				NestedRelationshipContext relationshipContext = NestedRelationshipContext.of(association, propertyAccessor,
 						neo4jPersistentEntity);
 
-				Collection<?> relatedValuesToStore = Relationships.unifyRelationshipValue(relationshipContext.getInverse(),
+				Collection<?> relatedValuesToStore = MappingSupport.unifyRelationshipValue(relationshipContext.getInverse(),
 						relationshipContext.getValue());
 
 				RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
@@ -436,7 +435,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 				for (Object relatedValueToStore : relatedValuesToStore) {
 
-					Object valueToBeSavedPreEvt = relationshipContext.identifyAndExtractRelationshipValue(relatedValueToStore);
+					Object valueToBeSavedPreEvt = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
 
 					Mono<Void> createRelationship = eventSupport.maybeCallBeforeBind(valueToBeSavedPreEvt)
 							.flatMap(valueToBeSaved -> {

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.shared;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -34,7 +34,9 @@ public class PersonWithRelationshipWithProperties {
 
 	private final String name;
 
-	@Relationship("LIKES") private Map<Hobby, LikesHobbyRelationship> hobbies;
+	@Relationship("LIKES") private List<LikesHobbyRelationship> hobbies;
+
+	@Relationship("WORKS_IN") private WorksInClubRelationship club;
 
 	@Relationship("OWNS") private Set<Pet> pets;
 
@@ -46,11 +48,20 @@ public class PersonWithRelationshipWithProperties {
 		return name;
 	}
 
-	public Map<Hobby, LikesHobbyRelationship> getHobbies() {
+	public List<LikesHobbyRelationship> getHobbies() {
 		return hobbies;
 	}
 
-	public void setHobbies(Map<Hobby, LikesHobbyRelationship> hobbies) {
+	public void setHobbies(List<LikesHobbyRelationship> hobbies) {
 		this.hobbies = hobbies;
 	}
+
+	public void setClub(WorksInClubRelationship club) {
+		this.club = club;
+	}
+
+	public WorksInClubRelationship getClub() {
+		return club;
+	}
+
 }

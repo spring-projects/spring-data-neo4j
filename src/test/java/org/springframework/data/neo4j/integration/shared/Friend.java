@@ -18,49 +18,31 @@ package org.springframework.data.neo4j.integration.shared;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
 
-import java.util.Objects;
+import java.util.List;
 
 /**
- * @@author Michael J. Simons
+ * @author Gerrit Meier
  */
 @Node
-public class AltPerson {
+public class Friend {
 
-	@Id @GeneratedValue private Long id;
+	@Id	@GeneratedValue	private Long id;
 
 	private final String name;
 
-	public AltPerson(String name) {
+	@Relationship("KNOWS") private List<FriendshipRelationship> friends;
+
+	public Friend(String name) {
 		this.name = name;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		AltPerson altPerson = (AltPerson) o;
-		return id.equals(altPerson.id) && name.equals(altPerson.name);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(id, name);
+	public List<FriendshipRelationship> getFriends() {
+		return friends;
 	}
 }

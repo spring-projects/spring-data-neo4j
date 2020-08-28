@@ -39,7 +39,6 @@ import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
 import org.assertj.core.api.Assertions;
-import org.assertj.core.data.MapEntry;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -80,12 +79,17 @@ import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.integration.imperative.repositories.PersonRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
+import org.springframework.data.neo4j.integration.shared.AltHobby;
+import org.springframework.data.neo4j.integration.shared.AltLikedByPersonRelationship;
+import org.springframework.data.neo4j.integration.shared.AltPerson;
 import org.springframework.data.neo4j.integration.shared.AnotherThingWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.BidirectionalEnd;
 import org.springframework.data.neo4j.integration.shared.BidirectionalStart;
 import org.springframework.data.neo4j.integration.shared.Club;
 import org.springframework.data.neo4j.integration.shared.DeepRelationships;
 import org.springframework.data.neo4j.integration.shared.EntityWithConvertedId;
+import org.springframework.data.neo4j.integration.shared.Friend;
+import org.springframework.data.neo4j.integration.shared.FriendshipRelationship;
 import org.springframework.data.neo4j.integration.shared.Hobby;
 import org.springframework.data.neo4j.integration.shared.ImmutablePerson;
 import org.springframework.data.neo4j.integration.shared.Inheritance;
@@ -102,6 +106,7 @@ import org.springframework.data.neo4j.integration.shared.SimilarThing;
 import org.springframework.data.neo4j.integration.shared.ThingWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.ThingWithCustomTypes;
 import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
+import org.springframework.data.neo4j.integration.shared.WorksInClubRelationship;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.BoundingBox;
@@ -961,7 +966,56 @@ class RepositoryIT {
 			rel2.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING_DIFFERENT);
 			rel2.setPoint(new CartesianPoint2d(2d, 3d));
 
-			assertThat(person.getHobbies()).contains(MapEntry.entry(hobby1, rel1), MapEntry.entry(hobby2, rel2));
+			List<LikesHobbyRelationship> hobbies = person.getHobbies();
+			assertThat(hobbies).containsExactlyInAnyOrder(rel1, rel2);
+			assertThat(hobbies.get(hobbies.indexOf(rel1)).getHobby()).isEqualTo(hobby1);
+			assertThat(hobbies.get(hobbies.indexOf(rel2)).getHobby()).isEqualTo(hobby2);
+		}
+
+		@Test
+		void findEntityWithRelationshipWithPropertiesScalar(
+				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+
+			long personId;
+
+			try (Session session = createSession()) {
+				Record record = session.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
+						+ " (n)-[:WORKS_IN{since: 1995}]->(:Club{name:'Blubb'})"
+						+ "RETURN n").single();
+
+				Node personNode = record.get("n").asNode();
+				personId = personNode.id();
+			}
+
+			PersonWithRelationshipWithProperties person = repository.findById(personId).get();
+
+			WorksInClubRelationship loadedRelationship = person.getClub();
+			assertThat(loadedRelationship.getSince()).isEqualTo(1995);
+			assertThat(loadedRelationship.getClub().getName()).isEqualTo("Blubb");
+		}
+
+		@Test
+		void findEntityWithRelationshipWithPropertiesSameLabel(
+				@Autowired FriendRepository repository) {
+
+			long friendId;
+
+			try (Session session = createSession()) {
+				Record record = session.run("CREATE (n:Friend{name:'Freddie'}),"
+						+ " (n)-[:KNOWS{since: 1995}]->(:Friend{name:'Frank'})"
+						+ "RETURN n").single();
+
+				Node friendNode = record.get("n").asNode();
+				friendId = friendNode.id();
+			}
+
+			Friend person = repository.findById(friendId).get();
+
+			List<FriendshipRelationship> loadedRelationship = person.getFriends();
+			assertThat(loadedRelationship).allSatisfy(relationship -> {
+				assertThat(relationship.getSince()).isEqualTo(1995);
+				assertThat(relationship.getFriend().getName()).isEqualTo("Frank");
+			});
 		}
 
 		@Test
@@ -982,6 +1036,7 @@ class RepositoryIT {
 			rel1.setLocalDate(rel1LocalDate);
 			rel1.setMyEnum(rel1MyEnum);
 			rel1.setPoint(rel1Point);
+			rel1.setHobby(h1);
 
 			Hobby h2 = new Hobby();
 			h2.setName("Something else");
@@ -996,18 +1051,19 @@ class RepositoryIT {
 			rel2.setLocalDate(rel2LocalDate);
 			rel2.setMyEnum(rel2MyEnum);
 			rel2.setPoint(rel2Point);
+			rel2.setHobby(h2);
 
-			Map<Hobby, LikesHobbyRelationship> hobbies = new HashMap<>();
-			hobbies.put(h1, rel1);
-			hobbies.put(h2, rel2);
-			PersonWithRelationshipWithProperties clonePerson = new PersonWithRelationshipWithProperties("Freddie clone");
-			clonePerson.setHobbies(hobbies);
+			List<LikesHobbyRelationship> hobbies = new ArrayList<>();
+			PersonWithRelationshipWithProperties person = new PersonWithRelationshipWithProperties("Freddie clone");
+			hobbies.add(rel1);
+			hobbies.add(rel2);
+			person.setHobbies(hobbies);
 
 			// when
-			PersonWithRelationshipWithProperties shouldBeDifferentPerson = repository.save(clonePerson);
+			PersonWithRelationshipWithProperties shouldBeDifferentPerson = repository.save(person);
 
 			// then
-			assertThat(shouldBeDifferentPerson).isNotNull().isEqualToComparingOnlyGivenFields(clonePerson, "hobbies");
+			assertThat(shouldBeDifferentPerson).isNotNull().isEqualToComparingOnlyGivenFields(person, "hobbies");
 
 			assertThat(shouldBeDifferentPerson.getName()).isEqualToIgnoringCase("Freddie clone");
 
@@ -1072,6 +1128,7 @@ class RepositoryIT {
 			rel1.setLocalDate(LocalDate.of(1995, 2, 26));
 			rel1.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING);
 			rel1.setPoint(new CartesianPoint2d(0d, 1d));
+			rel1.setHobby(hobby1);
 
 			Hobby hobby2 = new Hobby();
 			hobby2.setName("Something else");
@@ -1081,8 +1138,62 @@ class RepositoryIT {
 			rel2.setLocalDate(LocalDate.of(2000, 6, 28));
 			rel2.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING_DIFFERENT);
 			rel2.setPoint(new CartesianPoint2d(2d, 3d));
+			rel2.setHobby(hobby2);
 
-			assertThat(person.getHobbies()).contains(MapEntry.entry(hobby1, rel1), MapEntry.entry(hobby2, rel2));
+			List<LikesHobbyRelationship> hobbies = person.getHobbies();
+			assertThat(hobbies).containsExactlyInAnyOrder(rel1, rel2);
+			assertThat(hobbies.get(hobbies.indexOf(rel1)).getHobby()).isEqualTo(hobby1);
+			assertThat(hobbies.get(hobbies.indexOf(rel2)).getHobby()).isEqualTo(hobby2);
+		}
+
+		@Test // DATAGRAPH-1350
+		void loadEntityWithRelationshipWithPropertiesFromCustomQueryIncoming(
+				@Autowired HobbyWithRelationshipWithPropertiesRepository repository) {
+
+			long personId;
+
+			try (Session session = createSession()) {
+				Record record = session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single();
+				personId = record.get("n").asNode().id();
+			}
+
+			AltHobby hobby = repository.loadFromCustomQuery(personId);
+			assertThat(hobby.getName()).isEqualTo("Music");
+			assertThat(hobby.getLikedBy()).hasSize(1);
+			assertThat(hobby.getLikedBy()).first().satisfies(entry -> {
+				assertThat(entry.getAltPerson().getId()).isEqualTo(personId);
+				assertThat(entry.getRating()).isEqualTo(5);
+			});
+		}
+
+		@Test
+		void loadSameNodeWithDoubleRelationship(@Autowired HobbyWithRelationshipWithPropertiesRepository repository) {
+			long personId;
+
+			try (Session session = createSession()) {
+				Record record = session.run("CREATE (n:AltPerson{name:'Freddie'})," +
+						" (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'})," +
+						" (n)-[l2:LIKES {rating: 1}]->(h1)" +
+						" RETURN n, h1").single();
+				personId = record.get("n").asNode().id();
+			}
+
+			AltHobby hobby = repository.loadFromCustomQuery(personId);
+			assertThat(hobby.getName()).isEqualTo("Music");
+			List<AltLikedByPersonRelationship> likedBy = hobby.getLikedBy();
+			assertThat(likedBy).hasSize(2);
+
+			AltPerson altPerson = new AltPerson("Freddie");
+			altPerson.setId(personId);
+			AltLikedByPersonRelationship rel1 = new AltLikedByPersonRelationship();
+			rel1.setRating(5);
+			rel1.setAltPerson(altPerson);
+
+			AltLikedByPersonRelationship rel2 = new AltLikedByPersonRelationship();
+			rel2.setRating(1);
+			rel2.setAltPerson(altPerson);
+
+			assertThat(likedBy).containsExactlyInAnyOrder(rel1, rel2);
 		}
 	}
 
@@ -2694,6 +2805,17 @@ class RepositoryIT {
 			assertThat(repository.findByHobbiesSinceAndHobbiesActive(2019, true)).isNull();
 			assertThat(repository.findByHobbiesSinceAndHobbiesActive(2020, false)).isNull();
 		}
+
+		@Test
+		void findByPropertyOnRelationshipWithPropertiesRelatedEntity(
+				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+			try (Session session = createSession()) {
+				session.run(
+						"CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})");
+			}
+
+			assertThat(repository.findByHobbiesHobbyName("Bowling").getName()).isEqualTo("Freddie");
+		}
 	}
 
 	@Nested
@@ -2763,6 +2885,8 @@ class RepositoryIT {
 		PersonWithRelationshipWithProperties findByHobbiesSinceOrHobbiesActive(int since1, boolean active);
 
 		PersonWithRelationshipWithProperties findByHobbiesSinceAndHobbiesActive(int since1, boolean active);
+
+		PersonWithRelationshipWithProperties findByHobbiesHobbyName(String hobbyName);
 	}
 
 	interface PetRepository extends Neo4jRepository<Pet, Long> {}
@@ -2827,6 +2951,14 @@ class RepositoryIT {
 		ThingWithCustomTypes findByCustomTypeSpELObjectQuery(
 				@Param("customType") ThingWithCustomTypes.CustomType customType);
 	}
+
+	interface HobbyWithRelationshipWithPropertiesRepository extends Neo4jRepository<AltHobby, Long> {
+
+		@Query("MATCH (p:AltPerson)-[l:LIKES]->(h:AltHobby) WHERE id(p) = $personId RETURN h, collect(l), collect(p)")
+		AltHobby loadFromCustomQuery(@Param("personId") Long personId);
+	}
+
+	interface FriendRepository extends Neo4jRepository<Friend, Long> {}
 
 	@SpringJUnitConfig(Config.class)
 	static abstract class IntegrationTestBase {

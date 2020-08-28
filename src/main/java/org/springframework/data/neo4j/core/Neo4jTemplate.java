@@ -53,7 +53,6 @@ import org.springframework.data.neo4j.core.schema.Constants;
 import org.springframework.data.neo4j.core.schema.CypherGenerator;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
-import org.springframework.data.neo4j.core.support.Relationships;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.event.BeforeBindCallback;
 import org.springframework.data.util.ClassTypeInformation;
@@ -404,7 +403,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			NestedRelationshipContext relationshipContext = NestedRelationshipContext.of(association, propertyAccessor,
 					neo4jPersistentEntity);
 
-			Collection<?> relatedValuesToStore = Relationships.unifyRelationshipValue(relationshipContext.getInverse(),
+			Collection<?> relatedValuesToStore = MappingSupport.unifyRelationshipValue(relationshipContext.getInverse(),
 					relationshipContext.getValue());
 
 			RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
@@ -439,13 +438,13 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			for (Object relatedValueToStore : relatedValuesToStore) {
 
 				// here map entry is not always anymore a dynamic association
-				Object valueToBeSavedPreEvt = relationshipContext.identifyAndExtractRelationshipValue(relatedValueToStore);
-				valueToBeSavedPreEvt = eventSupport.maybeCallBeforeBind(valueToBeSavedPreEvt);
+				Object relatedNode = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
+				relatedNode = eventSupport.maybeCallBeforeBind(relatedNode);
 
 				Neo4jPersistentEntity<?> targetNodeDescription = neo4jMappingContext
-						.getPersistentEntity(valueToBeSavedPreEvt.getClass());
+						.getPersistentEntity(relatedNode.getClass());
 
-				Long relatedInternalId = saveRelatedNode(valueToBeSavedPreEvt, relationshipContext.getAssociationTargetType(),
+				Long relatedInternalId = saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
 						targetNodeDescription, inDatabase);
 
 				RelationshipStatementHolder statementHolder = RelationshipStatementHolder.createStatement(neo4jMappingContext,
@@ -458,11 +457,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				// if an internal id is used this must get set to link this entity in the next iteration
 				if (targetNodeDescription.isUsingInternalIds()) {
 					PersistentPropertyAccessor<?> targetPropertyAccessor = targetNodeDescription
-							.getPropertyAccessor(valueToBeSavedPreEvt);
+							.getPropertyAccessor(relatedNode);
 					targetPropertyAccessor.setProperty(targetNodeDescription.getRequiredIdProperty(), relatedInternalId);
 				}
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(targetNodeDescription, valueToBeSavedPreEvt, inDatabase, stateMachine);
+					processNestedRelations(targetNodeDescription, relatedNode, inDatabase, stateMachine);
 				}
 			}
 		});

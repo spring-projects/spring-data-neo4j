@@ -42,4 +42,6 @@ public interface Neo4jPersistentEntity<T>
 	 *         "runtime managed" labels.
 	 */
 	Optional<Neo4jPersistentProperty> getDynamicLabelsProperty();
+
+	boolean isRelationshipPropertiesEntity();
 }

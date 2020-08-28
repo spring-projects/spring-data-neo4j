@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.types.CartesianPoint2d;
 
 /**
@@ -40,6 +41,9 @@ public class LikesHobbyRelationship {
 
 	// spatial type
 	private CartesianPoint2d point;
+
+	@TargetNode
+	private Hobby hobby;
 
 	public LikesHobbyRelationship(Integer since) {
 		this.since = since;
@@ -77,6 +81,14 @@ public class LikesHobbyRelationship {
 	@Override
 	public int hashCode() {
 		return Objects.hash(since, active, localDate, myEnum, point);
+	}
+
+	public Hobby getHobby() {
+		return hobby;
+	}
+
+	public void setHobby(Hobby hobby) {
+		this.hobby = hobby;
 	}
 
 	/**

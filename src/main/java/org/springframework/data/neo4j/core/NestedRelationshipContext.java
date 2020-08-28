@@ -15,6 +15,9 @@
  */
 package org.springframework.data.neo4j.core;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.mapping.Association;
@@ -22,6 +25,7 @@ import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.lang.Nullable;
 
 /**
@@ -75,16 +79,18 @@ final class NestedRelationshipContext {
 		return this.relationship.hasRelationshipProperties();
 	}
 
-	Object identifyAndExtractRelationshipValue(Object relatedValue) {
+	Object identifyAndExtractRelationshipTargetNode(Object relatedValue) {
 		Object valueToBeSaved = relatedValue;
 		if (relatedValue instanceof Map.Entry) {
 			Map.Entry relatedValueMapEntry = (Map.Entry) relatedValue;
 
 			if (this.getInverse().isDynamicAssociation()) {
 				valueToBeSaved = relatedValueMapEntry.getValue();
-			} else if (this.hasRelationshipWithProperties()) {
-				valueToBeSaved = relatedValueMapEntry.getKey();
 			}
+		}
+		if (this.hasRelationshipWithProperties()) {
+			// here comes the entity
+			valueToBeSaved = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValue).getRelatedEntity();
 		}
 
 		return valueToBeSaved;
@@ -96,15 +102,38 @@ final class NestedRelationshipContext {
 		Neo4jPersistentProperty inverse = handler.getInverse();
 
 		boolean inverseValueIsEmpty = propertyAccessor.getProperty(inverse) == null;
+		// value can be a collection or scalar of related notes, point to a relationship property (scalar or collection)
+		// or is a dynamic relationship (map)
 		Object value = propertyAccessor.getProperty(inverse);
 
 		RelationshipDescription relationship = neo4jPersistentEntity.getRelationships().stream()
 				.filter(r -> r.getFieldName().equals(inverse.getName())).findFirst().get();
 
 		// if we have a relationship with properties, the targetNodeType is the map key
-		Class<?> associationTargetType = relationship.hasRelationshipProperties() ? inverse.getComponentType()
-				: inverse.getAssociationTargetType();
+		Class<?> associationTargetType = inverse.getAssociationTargetType();
+
+		if (relationship.hasRelationshipProperties() && value != null) {
+			Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity();
+
+			List<MappingSupport.RelationshipPropertiesWithEntityHolder> relationshipProperties = new ArrayList<>();
+
+			for (Object relationshipProperty : ((Collection<Object>) value)) {
+
+				MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
+						new MappingSupport.RelationshipPropertiesWithEntityHolder(relationshipProperty,
+								getTargetNode(relationshipPropertiesEntity, relationshipProperty));
+				relationshipProperties.add(oneOfThem);
+			}
+			value = relationshipProperties;
+		}
 
 		return new NestedRelationshipContext(inverse, value, relationship, associationTargetType, inverseValueIsEmpty);
+	}
+
+	private static Object getTargetNode(Neo4jPersistentEntity<?> relationshipPropertiesEntity, Object object) {
+
+		PersistentPropertyAccessor<Object> propertyAccessor = relationshipPropertiesEntity.getPropertyAccessor(object);
+		return propertyAccessor.getProperty(relationshipPropertiesEntity.getPersistentProperty(TargetNode.class));
+
 	}
 }

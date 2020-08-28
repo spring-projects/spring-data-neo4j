@@ -85,7 +85,7 @@ public interface RelationshipDescription {
 	 * @return The type of the relationship property class for relationship with properties, otherwise {@literal null}
 	 */
 	@Nullable
-	Class<?> getRelationshipPropertiesClass();
+	NodeDescription<?> getRelationshipPropertiesEntity();
 
 	/**
 	 * Tells if this relationship is a relationship with additional properties. In such cases

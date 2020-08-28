@@ -42,13 +42,13 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 
 	private final Relationship.Direction direction;
 
-	private Class<?> relationshipPropertiesClass;
+	private final NodeDescription<?> relationshipPropertiesClass;
 
 	private RelationshipDescription relationshipObverse;
 
 	DefaultRelationshipDescription(Neo4jPersistentProperty inverse, @Nullable RelationshipDescription relationshipObverse,
 			String type, boolean dynamic, NodeDescription<?> source, String fieldName, NodeDescription<?> target,
-			Relationship.Direction direction, @Nullable Class<?> relationshipPropertiesClass) {
+			Relationship.Direction direction, @Nullable NodeDescription<?> relationshipProperties) {
 
 		// the immutable obverse association-wise is always null because we cannot determine them on both sides
 		// if we consider to support bidirectional relationships.
@@ -61,7 +61,7 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 		this.fieldName = fieldName;
 		this.target = target;
 		this.direction = direction;
-		this.relationshipPropertiesClass = relationshipPropertiesClass;
+		this.relationshipPropertiesClass = relationshipProperties;
 	}
 
 	@Override
@@ -95,13 +95,13 @@ class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty
 	}
 
 	@Override
-	public Class<?> getRelationshipPropertiesClass() {
+	public NodeDescription<?> getRelationshipPropertiesEntity() {
 		return relationshipPropertiesClass;
 	}
 
 	@Override
 	public boolean hasRelationshipProperties() {
-		return getRelationshipPropertiesClass() != null;
+		return getRelationshipPropertiesEntity() != null;
 	}
 
 	@Override

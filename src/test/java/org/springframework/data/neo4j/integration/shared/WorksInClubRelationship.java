@@ -18,49 +18,30 @@ package org.springframework.data.neo4j.integration.shared;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import java.util.Objects;
-
 /**
- * @@author Michael J. Simons
+ * @author Gerrit Meier
  */
 @RelationshipProperties
-public class AltLikedByPersonRelationship {
+public class WorksInClubRelationship {
 
-	private Integer rating;
+	private final Integer since;
 
 	@TargetNode
-	private AltPerson altPerson;
+	private Club club;
 
-	public Integer getRating() {
-		return rating;
+	public WorksInClubRelationship(Integer since) {
+		this.since = since;
 	}
 
-	public void setRating(Integer rating) {
-		this.rating = rating;
+	public Integer getSince() {
+		return since;
 	}
 
-	public AltPerson getAltPerson() {
-		return altPerson;
+	public Club getClub() {
+		return club;
 	}
 
-	public void setAltPerson(AltPerson altPerson) {
-		this.altPerson = altPerson;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)  {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		AltLikedByPersonRelationship that = (AltLikedByPersonRelationship) o;
-		return rating.equals(that.rating) && altPerson.equals(that.altPerson);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(rating, altPerson);
+	public void setClub(Club club) {
+		this.club = club;
 	}
 }

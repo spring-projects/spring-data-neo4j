@@ -103,13 +103,11 @@ public enum CypherGenerator {
 		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
 
 		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_ROOT_NODE);
-		IdDescription idDescription = nodeDescription.getIdDescription();
 
 		List<Expression> expressions = new ArrayList<>();
 		expressions.add(Constants.NAME_OF_ROOT_NODE);
-		if (idDescription.isInternallyGeneratedId()) {
-			expressions.add(Functions.id(rootNode).as(Constants.NAME_OF_INTERNAL_ID));
-		}
+		expressions.add(Functions.id(rootNode).as(Constants.NAME_OF_INTERNAL_ID));
+
 		return match(rootNode).where(conditionOrNoCondition(condition)).with(expressions.toArray(new Expression[] {}));
 	}
 
@@ -372,17 +370,15 @@ public enum CypherGenerator {
 				continue;
 			}
 
-			if (property.isInternalIdProperty()) {
-				nodePropertiesProjection.add(Constants.NAME_OF_INTERNAL_ID);
-				nodePropertiesProjection.add(Functions.id(node));
-			} else if (!((Neo4jPersistentProperty) property).isDynamicLabels()) {
+			if (!((Neo4jPersistentProperty) property).isDynamicLabels()) {
 				nodePropertiesProjection.add(property.getPropertyName());
 			}
 		}
 
 		nodePropertiesProjection.add(Constants.NAME_OF_LABELS);
 		nodePropertiesProjection.add(Functions.labels(node));
-
+		nodePropertiesProjection.add(Constants.NAME_OF_INTERNAL_ID);
+		nodePropertiesProjection.add(Functions.id(node));
 		return nodePropertiesProjection;
 	}
 

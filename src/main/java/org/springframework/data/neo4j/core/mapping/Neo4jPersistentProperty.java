@@ -68,7 +68,8 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 	 * @return True, if this association has properties
 	 */
 	default boolean isRelationshipWithProperties() {
-		return isAssociation() && isMap() && getMapValueType() != null
-				&& getMapValueType().isAnnotationPresent(RelationshipProperties.class);
+		return isAssociation() && isCollectionLike() && getActualType().isAnnotationPresent(RelationshipProperties.class);
 	}
+
+	boolean isEntityInRelationshipWithProperties();
 }
