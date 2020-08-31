@@ -15,21 +15,18 @@
  */
 package org.springframework.data.neo4j.repository.query.spel;
 
-public class Neo4jQueryPlaceholderSupplier implements PlaceholderSupplier {
+/**
+ * @author Gerrit Meier
+ * @author Michael J. Simons
+ */
+final class Neo4jQueryPlaceholderSupplier {
 
 	private static final String PLACEHOLDER = "spel_expr";
-	private int index = 0;
-
-	@Override
-	public String nextPlaceholder() {
-		return parameterName(index++);
-	}
 
 	public String parameterName(int index) {
 		return PLACEHOLDER + index;
 	}
 
-	@Override
 	public String decoratePlaceholder(String placeholder) {
 		return "$" + placeholder;
 	}
