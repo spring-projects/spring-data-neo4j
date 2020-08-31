@@ -71,10 +71,10 @@ Here is a list of useful resources:
 Spring Data Neo4j 5.1.x at minimum, requires:
 
 * JDK Version 8 and above.
-* Neo4j Graph Database 3.1 and above.
+* Neo4j Graph Database 3.4 and above.
 * Spring Framework {springVersion} and above.
 
-If you plan on altering the version of the Neo4j-OGM make sure it is a 3.0.0+ release.
+If you plan on altering the version of the Neo4j-OGM make sure it is a 3.1.0+ release, fitting into the https://github.com/neo4j/neo4j-ogm/wiki/Versions[matrix of compatible versions].
 
 [[preface.additional-resources]]
 == Additional Resources
