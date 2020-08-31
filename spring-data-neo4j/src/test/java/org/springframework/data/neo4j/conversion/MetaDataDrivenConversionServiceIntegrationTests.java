@@ -17,17 +17,27 @@ package org.springframework.data.neo4j.conversion;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.testutil.MultiDriverTestClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.conversion.datagraph1018.Email;
+import org.springframework.data.neo4j.conversion.datagraph1018.Person;
+import org.springframework.data.neo4j.conversion.datagraph1018.PersonRepository;
 import org.springframework.data.neo4j.conversion.datagraph1156.Hobby;
 import org.springframework.data.neo4j.conversion.datagraph1156.HobbyRepository;
 import org.springframework.data.neo4j.conversion.datagraph1156.User;
@@ -58,6 +68,8 @@ public class MetaDataDrivenConversionServiceIntegrationTests extends MultiDriver
 	@Autowired private HobbyRepository hobbyRepository;
 
 	@Autowired private TransactionTemplate transactionTemplate;
+
+	@Autowired private PersonRepository personRepository;
 
 	@Test // DATAGRAPH-1131
 	public void conversionWithConverterHierarchyShouldWork() {
@@ -96,8 +108,57 @@ public class MetaDataDrivenConversionServiceIntegrationTests extends MultiDriver
 		});
 	}
 
+	private List<UUID> preparePersonTestData() {
+
+		GraphDatabaseService graphDatabaseService = getGraphDatabaseService();
+		List<UUID> ids = new ArrayList<>();
+		try (Transaction tx = graphDatabaseService.beginTx()) {
+			graphDatabaseService.execute("MATCH (n) DETACH DELETE n");
+			Result r = graphDatabaseService.execute(
+					"UNWIND range(1,5) AS i WITH i CREATE (p:Person {id: randomUUID(), name: 'Person' + i, email: 'person' + i + '@test.com'}) RETURN p.id AS id");
+			r.map(m -> (String) m.get("id")).map(UUID::fromString).forEachRemaining(ids::add);
+			tx.success();
+		}
+		return ids;
+	}
+
+
+	@Test // DATAGRAPH-1018
+	public void findByConvertedIdShouldWork() {
+
+		List<UUID> ids = preparePersonTestData();
+		Optional<Person> optionalPerson = personRepository.findById(ids.get(2));
+		assertThat(optionalPerson).isPresent().map(Person::getName).hasValue("Person3");
+	}
+
+	@Test // DATAGRAPH-1018
+	public void findByConvertedIdsShouldWork() {
+
+		List<UUID> ids = preparePersonTestData();
+		Iterable<Person> people = personRepository
+				.findAllById(ids.stream().collect(Collectors.toList()));
+		assertThat(people).hasSize(ids.size());
+	}
+
+	@Test // DATAGRAPH-1018
+	public void findByConvertedAttributeShouldWork() {
+
+		List<UUID> ids = preparePersonTestData();
+		Optional<Person> optionalPerson = personRepository.findByEmail(new Email("person2@test.com"));
+		assertThat(optionalPerson).isPresent().map(Person::getId).hasValue(ids.get(1));
+	}
+
+	@Test // DATAGRAPH-1018
+	public void findByConvertedAttributesShouldWork() {
+
+		List<UUID> ids = preparePersonTestData();
+		Iterable<Person> people = personRepository
+				.findAllByEmailIn(Arrays.asList(new Email("person3@test.com"), new Email("person4@test.com")));
+		assertThat(people).extracting(Person::getId).containsOnly(ids.get(2), ids.get(3));
+	}
+
 	@Configuration
-	@EnableNeo4jRepositories(basePackageClasses = {EntityWithConvertedAttributes.class, Hobby.class})
+	@EnableNeo4jRepositories(basePackageClasses = {EntityWithConvertedAttributes.class, Hobby.class, Person.class})
 	@EnableTransactionManagement
 	public static class Config {
 
@@ -114,7 +175,7 @@ public class MetaDataDrivenConversionServiceIntegrationTests extends MultiDriver
 		@Bean
 		public SessionFactory sessionFactory() {
 			return new SessionFactory(getBaseConfiguration().build(),
-					EntityWithConvertedAttributes.class.getPackage().getName(), Hobby.class.getPackage().getName());
+					EntityWithConvertedAttributes.class.getPackage().getName(), Hobby.class.getPackage().getName(), Person.class.getPackage().getName());
 		}
 	}
 }
