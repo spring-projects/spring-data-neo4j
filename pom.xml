@@ -257,6 +257,16 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+				<configuration combine.self="append">
+					<doctype>book</doctype>
+					<attributes>
+						<neo4jOgmVersion>${neo4j.ogm.version}</neo4jOgmVersion>
+					</attributes>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
