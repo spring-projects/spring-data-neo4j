@@ -21,9 +21,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
+import org.neo4j.ogm.metadata.AnnotationsInfo;
 import org.neo4j.ogm.metadata.ClassInfo;
 import org.neo4j.ogm.metadata.FieldInfo;
 import org.neo4j.ogm.metadata.MetaData;
@@ -72,7 +76,15 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 	 */
 	public Neo4jMappingContext(MetaData metaData) {
 		this.metaData = metaData;
-		metaData.persistentEntities().stream().filter(k -> k.getUnderlyingClass() != null)
+
+		Predicate<ClassInfo> underlyingClassIsPresent = classInfo -> classInfo.getUnderlyingClass() != null;
+		Predicate<ClassInfo> isAnnotatedEntity = classInfo -> {
+			final AnnotationsInfo annotationsInfo = classInfo.annotationsInfo();
+			return annotationsInfo.get(NodeEntity.class) != null || annotationsInfo.get(RelationshipEntity.class) != null;
+		};
+
+		metaData.persistentEntities().stream()
+				.filter(underlyingClassIsPresent.and(isAnnotatedEntity))
 				.forEach(k -> addPersistentEntity(k.getUnderlyingClass()));
 
 		installDefaultConverter();
