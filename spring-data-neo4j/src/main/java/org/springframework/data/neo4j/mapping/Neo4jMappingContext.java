@@ -37,11 +37,11 @@ import org.neo4j.ogm.types.spatial.CartesianPoint2d;
 import org.neo4j.ogm.types.spatial.GeographicPoint2d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.convert.EntityInstantiator;
-import org.springframework.data.convert.EntityInstantiators;
 import org.springframework.data.geo.Point;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.context.AbstractMappingContext;
+import org.springframework.data.mapping.model.EntityInstantiator;
+import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
@@ -156,7 +156,12 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 				updateSimpleTypeHolder(simpleTypeHolder, propertyField));
 	}
 
-	public EntityInstantiator getInstantiatorFor(PersistentEntity<?, ?> entity) {
+	/**
+	 * This is not public API and should not be overwritten.
+	 * @param entity The persistent entity for which to retrieve an {@link EntityInstantiator}.
+	 * @return An instantiator for a given entity.
+	 */
+	public final EntityInstantiator getInstantiatorFor(PersistentEntity<?, ?> entity) {
 		return instantiators.getInstantiatorFor(entity);
 	}
 

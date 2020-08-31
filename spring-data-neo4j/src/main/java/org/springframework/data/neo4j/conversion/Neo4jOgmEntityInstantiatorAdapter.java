@@ -21,9 +21,9 @@ import java.util.Map;
 
 import org.neo4j.ogm.metadata.reflect.EntityAccessManager;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.convert.EntityInstantiator;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.mapping.model.EntityInstantiator;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentEntity;
