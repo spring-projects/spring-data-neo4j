@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
  * </ul>
  *
  * @author Michael J. Simons
- * @since 6.0
+ * @since 5.1.20
  */
 class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 
@@ -104,7 +104,7 @@ class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 		Object value = valueLookup.apply(entity);
 		if (idDescription.isInternallyGeneratedId()) {
 
-			boolean isNew = false;
+			boolean isNew;
 			if (value != null && valueType.isPrimitive() && Number.class.isInstance(value)) {
 				isNew = ((Number) value).longValue() < 0;
 			} else {
