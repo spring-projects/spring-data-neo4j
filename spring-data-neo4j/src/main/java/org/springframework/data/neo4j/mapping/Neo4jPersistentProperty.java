@@ -180,6 +180,6 @@ public class Neo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 	@Override
 	protected Association<Neo4jPersistentProperty> createAssociation() {
-		return new Association<Neo4jPersistentProperty>(this, null);
+		return new Association<>(this, null);
 	}
 }

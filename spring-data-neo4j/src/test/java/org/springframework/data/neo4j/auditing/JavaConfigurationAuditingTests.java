@@ -15,8 +15,9 @@
  */
 package org.springframework.data.neo4j.auditing;
 
-import static java.util.Optional.*;
-import static org.assertj.core.api.Assertions.*;
+import static java.util.Optional.of;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -32,6 +33,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.neo4j.annotation.EnableNeo4jAuditing;
 import org.springframework.data.neo4j.auditing.domain.User;
+import org.springframework.data.neo4j.auditing.domain.UserCustomIdStrategy;
+import org.springframework.data.neo4j.auditing.repository.UserCustomIdStrategyRepository;
 import org.springframework.data.neo4j.auditing.repository.UserRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.transaction.Neo4jTransactionManager;
@@ -74,6 +77,8 @@ public class JavaConfigurationAuditingTests extends MultiDriverTestClass {
 
 	@Autowired private UserRepository userRepository;
 
+	@Autowired private UserCustomIdStrategyRepository userCustomIdStrategyRepository;
+
 	@Test
 	public void whenSaveEntity_thenSetCreatedAndCreatedBy() throws Exception {
 		User user = new User("John Doe");
@@ -105,5 +110,39 @@ public class JavaConfigurationAuditingTests extends MultiDriverTestClass {
 
 		assertThat(found.getModified()).isNotNull().isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.SECONDS));
 		assertThat(found.getModifiedBy()).isEqualTo("userId");
+	}
+
+	@Test // DATAGRAPH-1212
+	public void shouldAuditEntitiesWithCustomIdStrategyOnCreation() {
+
+		UserCustomIdStrategy user = new UserCustomIdStrategy("John Doe");
+		userCustomIdStrategyRepository.save(user);
+
+		Optional<UserCustomIdStrategy> loaded = userCustomIdStrategyRepository.findById(user.getId());
+		assertThat(loaded).hasValueSatisfying(found -> {
+
+			assertThat(found.getCreated()).isNotNull().isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.SECONDS));
+			assertThat(found.getCreatedBy()).isEqualTo("userId");
+
+			assertThat(found.getModified()).isNull();
+			assertThat(found.getModifiedBy()).isNull();
+		});
+	}
+
+	@Test // DATAGRAPH-1212
+	public void shouldAuditEntitiesWithCustomIdStrategyOnUpdate() {
+
+		UserCustomIdStrategy user = new UserCustomIdStrategy("John Doe");
+		userCustomIdStrategyRepository.save(user);
+
+		user.setName("Johan Doe");
+		userCustomIdStrategyRepository.save(user);
+
+		Optional<UserCustomIdStrategy> loaded = userCustomIdStrategyRepository.findById(user.getId());
+		assertThat(loaded).hasValueSatisfying(found -> {
+
+			assertThat(found.getModified()).isNotNull().isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.SECONDS));
+			assertThat(found.getModifiedBy()).isEqualTo("userId");
+		});
 	}
 }
