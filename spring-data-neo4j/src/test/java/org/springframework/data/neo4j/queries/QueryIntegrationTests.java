@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -149,6 +150,51 @@ public class QueryIntegrationTests extends MultiDriverTestClass {
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameUsingSpElWithObject(new User("Michal"));
 				assertEquals("Michal", user.getName());
+			}
+		});
+	}
+
+	@Test // DATAGRAPH-1184
+	public void customQueriesShouldBeAbleToReturnOptionals() {
+		executeUpdate("CREATE (m:User {name:'Michael'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Optional<User> user = userRepository.findOptionalUserWithCustomQuery("Michael");
+				assertTrue(user.isPresent());
+				assertEquals("Michael", user.map(User::getName).get());
+			}
+		});
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Optional<User> user = userRepository.findOptionalUserWithCustomQuery("Joe User");
+				assertFalse(user.isPresent());
+			}
+		});
+	}
+
+	@Test // DATAGRAPH-1184
+	public void customQueriesShouldBeAbleToReturnOptionalQueryResults() {
+		executeUpdate("CREATE (m:User {name:'Michael'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Optional<UserQueryResult> user = userRepository.findOptionalUserResultWithCustomQuery("Michael");
+				assertTrue(user.isPresent());
+				assertEquals("Michael", user.map(UserQueryResult::getUserName).get());
+				assertEquals(42L, (long) user.map(UserQueryResult::getAge).get());
+			}
+		});
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Optional<UserQueryResult> user = userRepository.findOptionalUserResultWithCustomQuery("Joe User");
+				assertFalse(user.isPresent());
 			}
 		});
 	}

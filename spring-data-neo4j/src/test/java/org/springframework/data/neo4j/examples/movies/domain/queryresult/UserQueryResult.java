@@ -23,9 +23,9 @@ import org.springframework.data.neo4j.examples.movies.repo.UserRepository;
  * Example POJO {@link QueryResult} to test mapping onto arbitrary objects, even for properties that are on the nodes
  * but not in the entity classes.
  *
- * @see UserRepository
  * @author Adam George
  * @author Luanne Misquitta
+ * @author Michael J. Simons
  */
 @QueryResult
 public class UserQueryResult {
@@ -55,6 +55,14 @@ public class UserQueryResult {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public int getAge() {
+		return age;
 	}
 
 	@Override

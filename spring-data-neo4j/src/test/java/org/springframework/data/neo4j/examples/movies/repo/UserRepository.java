@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.examples.movies.repo;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -150,6 +151,12 @@ public interface UserRepository extends PersonRepository<User, Long> {
 	User findByEmailAddressesContains(List<String> emails);
 
 	List<User> findByEmailAddressesNotContaining(String email);
+
+	@Query("MATCH (user:User) WHERE user.name=$0 RETURN user")
+	Optional<User> findOptionalUserWithCustomQuery(String userName);
+
+	@Query("MATCH (user:User) WHERE user.name=$0 RETURN user.name AS userName, 42 as `user.age`")
+	Optional<UserQueryResult> findOptionalUserResultWithCustomQuery(String userName);
 
 	@Query("MATCH (user:User) WHERE user.name=:#{#searchUser.name} RETURN user")
 	User findUserByNameUsingSpElWithObject(@Param("searchUser") User user);
