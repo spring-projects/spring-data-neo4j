@@ -15,11 +15,12 @@
  */
 package org.springframework.data.neo4j.mapping;
 
+import org.neo4j.ogm.metadata.MetaData;
 import org.springframework.data.mapping.MappingException;
-import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.neo4j.mapping.Neo4jPersistentProperty.PropertyType;
 import org.springframework.data.support.IsNewStrategy;
+import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 
 /**
@@ -47,13 +48,17 @@ import org.springframework.data.util.TypeInformation;
  */
 public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty> {
 
+	private final Lazy<IsNewStrategy> fallbackIsNewStrategy;
+
 	/**
 	 * Constructs a new {@link Neo4jPersistentEntity} based on the given type information.
 	 *
 	 * @param information The {@link TypeInformation} upon which to base this persistent entity.
 	 */
-	Neo4jPersistentEntity(TypeInformation<T> information) {
+	Neo4jPersistentEntity(TypeInformation<T> information, MetaData metaData) {
+
 		super(information);
+		this.fallbackIsNewStrategy = Lazy.of(() -> DefaultNeo4jIsNewStrategy.basedOn(this, metaData));
 	}
 
 	/*
@@ -62,7 +67,7 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	 */
 	@Override
 	protected IsNewStrategy getFallbackIsNewStrategy() {
-		return new Neo4jIsNewStrategy(this);
+		return fallbackIsNewStrategy.get();
 	}
 
 	/*
@@ -90,34 +95,5 @@ public class Neo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 			preferredIdProperty = property;
 		}
 		return preferredIdProperty;
-	}
-
-	/**
-	 * Custom {@link IsNewStrategy} to also consider entities with identifiers of negative Long values new.
-	 * See also DATAGRAPH-1031.
-	 *
-	 * @author Frantisek Hartman
-	 * @author Oliver Gierke
-	 */
-	private static class Neo4jIsNewStrategy implements IsNewStrategy {
-
-		private final Neo4jPersistentEntity<?> entity;
-
-		private Neo4jIsNewStrategy(Neo4jPersistentEntity<?> entity) {
-			this.entity = entity;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.support.IsNewStrategy#isNew(java.lang.Object)
-		 */
-		@Override
-		public boolean isNew(Object bean) {
-
-			PersistentProperty<? extends PersistentProperty<?>> property = entity.getRequiredIdProperty();
-			Object value = entity.getPropertyAccessor(bean).getProperty(property);
-
-			return value == null || (value instanceof Long && ((Long) value) < 0);
-		}
 	}
 }

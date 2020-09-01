@@ -127,7 +127,7 @@ public class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentE
 	@Override
 	protected <T> Neo4jPersistentEntity<?> createPersistentEntity(TypeInformation<T> typeInformation) {
 		logger.debug("Creating Neo4jPersistentEntity from type information: {}", typeInformation);
-		return new Neo4jPersistentEntity<>(typeInformation);
+		return new Neo4jPersistentEntity<>(typeInformation, this.metaData);
 	}
 
 	@Override
