@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -139,6 +140,49 @@ public class QueryIntegrationTests {
 			public void doInTransactionWithoutResult(TransactionStatus status) {
 				User user = userRepository.findUserByNameUsingSpElWithObject(new User("Michal"));
 				assertThat(user.getName()).isEqualTo("Michal");
+			}
+		});
+	}
+
+	@Test // DATAGRAPH-1184
+	public void customQueriesShouldBeAbleToReturnOptionals() {
+		executeUpdate("CREATE (m:User {name:'Michael'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Optional<User> user = userRepository.findOptionalUserWithCustomQuery("Michael");
+				assertThat(user).map(User::getName).hasValue("Michael");
+			}
+		});
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Optional<User> user = userRepository.findOptionalUserWithCustomQuery("Joe User");
+				assertThat(user).isNotPresent();
+			}
+		});
+	}
+
+	@Test // DATAGRAPH-1184
+	public void customQueriesShouldBeAbleToReturnOptionalQueryResults() {
+		executeUpdate("CREATE (m:User {name:'Michael'})");
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Optional<UserQueryResult> user = userRepository.findOptionalUserResultWithCustomQuery("Michael");
+				assertThat(user).map(UserQueryResult::getUserName).hasValue("Michael");
+				assertThat(user).map(UserQueryResult::getAge).hasValue(42);
+			}
+		});
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				Optional<UserQueryResult> user = userRepository.findOptionalUserResultWithCustomQuery("Joe User");
+				assertThat(user).isNotPresent();
 			}
 		});
 	}
