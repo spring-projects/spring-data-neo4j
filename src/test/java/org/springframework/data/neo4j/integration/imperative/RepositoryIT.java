@@ -79,6 +79,8 @@ import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.integration.imperative.repositories.PersonRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
 import org.springframework.data.neo4j.integration.shared.AltHobby;
+import org.springframework.data.neo4j.integration.shared.AltLikedByPersonRelationship;
+import org.springframework.data.neo4j.integration.shared.AltPerson;
 import org.springframework.data.neo4j.integration.shared.AnotherThingWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.BidirectionalEnd;
 import org.springframework.data.neo4j.integration.shared.BidirectionalStart;
@@ -1100,6 +1102,36 @@ class RepositoryIT {
 				assertThat(entry.getAltPerson().getId()).isEqualTo(personId);
 				assertThat(entry.getRating()).isEqualTo(5);
 			});
+		}
+
+		@Test
+		void loadSameNodeWithDoubleRelationship(@Autowired HobbyWithRelationshipWithPropertiesRepository repository) {
+			long personId;
+
+			try (Session session = createSession()) {
+				Record record = session.run("CREATE (n:AltPerson{name:'Freddie'})," +
+						" (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'})," +
+						" (n)-[l2:LIKES {rating: 1}]->(h1)" +
+						" RETURN n, h1").single();
+				personId = record.get("n").asNode().id();
+			}
+
+			AltHobby hobby = repository.loadFromCustomQuery(personId);
+			assertThat(hobby.getName()).isEqualTo("Music");
+			List<AltLikedByPersonRelationship> likedBy = hobby.getLikedBy();
+			assertThat(likedBy).hasSize(2);
+
+			AltPerson altPerson = new AltPerson("Freddie");
+			altPerson.setId(personId);
+			AltLikedByPersonRelationship rel1 = new AltLikedByPersonRelationship();
+			rel1.setRating(5);
+			rel1.setAltPerson(altPerson);
+
+			AltLikedByPersonRelationship rel2 = new AltLikedByPersonRelationship();
+			rel2.setRating(1);
+			rel2.setAltPerson(altPerson);
+
+			assertThat(likedBy).containsExactlyInAnyOrder(rel1, rel2);
 		}
 	}
 

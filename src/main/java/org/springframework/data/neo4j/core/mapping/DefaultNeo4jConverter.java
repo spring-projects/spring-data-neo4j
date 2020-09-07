@@ -347,8 +347,6 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 					}
 
 					propertyAccessor.setProperty(property, object);
-				} else {
-					throw new RuntimeException("Alerta");
 				}
 			} else {
 				propertyAccessor.setProperty(property,
@@ -460,6 +458,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 						} else {
 							mappedObjectHandler.accept(possibleRelationship.type(), mappedObject);
 						}
+						allMatchingTypeRelationshipsInResult.remove(possibleRelationship);
 						break;
 					}
 				}

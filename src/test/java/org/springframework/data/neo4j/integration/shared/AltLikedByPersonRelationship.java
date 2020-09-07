@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.integration.shared;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
+import java.util.Objects;
+
 /**
  * @@author Michael J. Simons
  */
@@ -43,5 +45,22 @@ public class AltLikedByPersonRelationship {
 
 	public void setAltPerson(AltPerson altPerson) {
 		this.altPerson = altPerson;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)  {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		AltLikedByPersonRelationship that = (AltLikedByPersonRelationship) o;
+		return rating.equals(that.rating) && altPerson.equals(that.altPerson);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(rating, altPerson);
 	}
 }

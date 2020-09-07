@@ -19,6 +19,8 @@ import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
+import java.util.Objects;
+
 /**
  * @@author Michael J. Simons
  */
@@ -43,5 +45,22 @@ public class AltPerson {
 
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		AltPerson altPerson = (AltPerson) o;
+		return id.equals(altPerson.id) && name.equals(altPerson.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, name);
 	}
 }
