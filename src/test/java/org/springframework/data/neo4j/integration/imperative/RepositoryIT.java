@@ -2691,6 +2691,17 @@ class RepositoryIT {
 			assertThat(repository.findByHobbiesSinceAndHobbiesActive(2019, true)).isNull();
 			assertThat(repository.findByHobbiesSinceAndHobbiesActive(2020, false)).isNull();
 		}
+
+		@Test
+		void findByPropertyOnRelationshipWithPropertiesRelatedEntity(
+				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+			try (Session session = createSession()) {
+				session.run(
+						"CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})");
+			}
+
+			assertThat(repository.findByHobbiesHobbyName("Bowling").getName()).isEqualTo("Freddie");
+		}
 	}
 
 	@Nested
@@ -2760,6 +2771,8 @@ class RepositoryIT {
 		PersonWithRelationshipWithProperties findByHobbiesSinceOrHobbiesActive(int since1, boolean active);
 
 		PersonWithRelationshipWithProperties findByHobbiesSinceAndHobbiesActive(int since1, boolean active);
+
+		PersonWithRelationshipWithProperties findByHobbiesHobbyName(String hobbyName);
 	}
 
 	interface PetRepository extends Neo4jRepository<Pet, Long> {}

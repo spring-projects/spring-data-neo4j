@@ -100,7 +100,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 		// Because a dynamic association is also represented as a Map, this ensures that the
 		// relationship properties class will only have a value if it's not a dynamic association.
-		Class<?> relationshipPropertiesClass = this.hasActualTypeAnnotation(RelationshipProperties.class) ? getActualType() : null;
+		Neo4jPersistentEntity<?> relationshipPropertiesClass = this.hasActualTypeAnnotation(RelationshipProperties.class) ? this.mappingContext.getPersistentEntity(getActualType()) : null;
 
 		// Try to determine if there is a relationship definition that expresses logically the same relationship
 		// on the other end.

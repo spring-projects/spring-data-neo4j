@@ -58,12 +58,14 @@ import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.schema.Constants;
 import org.springframework.data.neo4j.core.schema.CypherGenerator;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
@@ -186,11 +188,14 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 					break;
 				}
 
+				NodeDescription<?> relationshipPropertiesEntity = relationshipDescription.getRelationshipPropertiesEntity();
+				boolean dingDong = relationshipPropertiesEntity != null && ((Neo4jPersistentEntity) relationshipPropertiesEntity).getPersistentProperty(TargetNode.class) != null;
+
 				NodeDescription<?> targetEntity = relationshipDescription.getTarget();
 				Node relatedNode = Cypher.node(targetEntity.getPrimaryLabel(), targetEntity.getAdditionalLabels());
 
 				boolean lastNode = isLastNode(persistentProperty);
-				if (lastNode) {
+				if (lastNode || dingDong) {
 					relatedNode = relatedNode.named(getNodeName());
 				}
 
@@ -208,7 +213,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 								relationshipDescription.getType());
 				}
 
-				if (lastNode) {
+				if (lastNode || dingDong) {
 					cypherRelationship = ((RelationshipPattern) cypherRelationship).named(getRelationshipName());
 				}
 			}

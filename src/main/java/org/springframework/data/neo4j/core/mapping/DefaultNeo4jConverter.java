@@ -453,10 +453,9 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 						Object mappedObject = knownObjects.computeIfAbsent(nodeId, nodeId, () -> map(possibleValueNode, concreteTargetNodeDescription, knownObjects));
 						if (relationshipDescription.hasRelationshipProperties()) {
 
-							Class<?> propertiesClass = relationshipDescription.getRelationshipPropertiesClass();
-
 							Object relationshipProperties = map(possibleRelationship,
-									(Neo4jPersistentEntity) nodeDescriptionStore.getNodeDescription(propertiesClass), knownObjects);
+									(Neo4jPersistentEntity) relationshipDescription.getRelationshipPropertiesEntity(),
+									knownObjects);
 							relationshipsAndProperties.add(relationshipProperties); // and somehow mappedObject
 						} else {
 							mappedObjectHandler.accept(possibleRelationship.type(), mappedObject);
@@ -482,10 +481,10 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 				if (relationshipDescription.hasRelationshipProperties()) {
 					Relationship relatedEntityRelationship = relatedEntity.get(RelationshipDescription.NAME_OF_RELATIONSHIP)
 							.asRelationship();
-					Class<?> propertiesClass = relationshipDescription.getRelationshipPropertiesClass();
 
 					Object relationshipProperties = map(relatedEntityRelationship,
-							(Neo4jPersistentEntity) nodeDescriptionStore.getNodeDescription(propertiesClass), knownObjects);
+							(Neo4jPersistentEntity) relationshipDescription.getRelationshipPropertiesEntity(),
+							knownObjects);
 					relationshipsAndProperties.add(relationshipProperties); // and somehow valueEntry;
 				} else {
 					mappedObjectHandler.accept(relatedEntity.get(RelationshipDescription.NAME_OF_RELATIONSHIP_TYPE).asString(),
