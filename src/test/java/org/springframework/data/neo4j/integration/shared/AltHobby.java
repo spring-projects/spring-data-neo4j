@@ -15,8 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.shared;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -33,7 +33,7 @@ public class AltHobby {
 	private String name;
 
 	@Relationship(type = "LIKES", direction = Relationship.Direction.INCOMING)
-	private Map<AltPerson, AltLikedByPersonRelationship> likedBy = new HashMap<>();
+	private List<AltLikedByPersonRelationship> likedBy = new ArrayList<>();
 
 	public Long getId() {
 		return id;
@@ -51,7 +51,7 @@ public class AltHobby {
 		this.name = name;
 	}
 
-	public Map<AltPerson, AltLikedByPersonRelationship> getLikedBy() {
+	public List<AltLikedByPersonRelationship> getLikedBy() {
 		return likedBy;
 	}
 }

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.neo4j.core;
 
-import static org.neo4j.cypherdsl.core.Cypher.asterisk;
-import static org.neo4j.cypherdsl.core.Cypher.parameter;
+import static org.neo4j.cypherdsl.core.Cypher.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -438,13 +437,13 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			for (Object relatedValueToStore : relatedValuesToStore) {
 
 				// here map entry is not always anymore a dynamic association
-				Object valueToBeSavedPreEvt = relationshipContext.identifyAndExtractRelationshipValue(relatedValueToStore);
-				valueToBeSavedPreEvt = eventSupport.maybeCallBeforeBind(valueToBeSavedPreEvt);
+				Object relatedNode = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
+				relatedNode = eventSupport.maybeCallBeforeBind(relatedNode);
 
 				Neo4jPersistentEntity<?> targetNodeDescription = neo4jMappingContext
-						.getPersistentEntity(valueToBeSavedPreEvt.getClass());
+						.getPersistentEntity(relatedNode.getClass());
 
-				Long relatedInternalId = saveRelatedNode(valueToBeSavedPreEvt, relationshipContext.getAssociationTargetType(),
+				Long relatedInternalId = saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
 						targetNodeDescription, inDatabase);
 
 				RelationshipStatementHolder statementHolder = RelationshipStatementHolder.createStatement(neo4jMappingContext,
@@ -457,11 +456,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				// if an internal id is used this must get set to link this entity in the next iteration
 				if (targetNodeDescription.isUsingInternalIds()) {
 					PersistentPropertyAccessor<?> targetPropertyAccessor = targetNodeDescription
-							.getPropertyAccessor(valueToBeSavedPreEvt);
+							.getPropertyAccessor(relatedNode);
 					targetPropertyAccessor.setProperty(targetNodeDescription.getRequiredIdProperty(), relatedInternalId);
 				}
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(targetNodeDescription, valueToBeSavedPreEvt, inDatabase, stateMachine);
+					processNestedRelations(targetNodeDescription, relatedNode, inDatabase, stateMachine);
 				}
 			}
 		});

@@ -40,6 +40,7 @@ import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
+import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.Schema;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
@@ -182,7 +183,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	protected Neo4jPersistentProperty createPersistentProperty(Property property, Neo4jPersistentEntity<?> owner,
 			SimpleTypeHolder simpleTypeHolder) {
 
-		return new DefaultNeo4jPersistentProperty(property, owner, this, simpleTypeHolder);
+		return new DefaultNeo4jPersistentProperty(property, owner, this, simpleTypeHolder, owner.isAnnotationPresent(RelationshipProperties.class));
 	}
 
 	@Override

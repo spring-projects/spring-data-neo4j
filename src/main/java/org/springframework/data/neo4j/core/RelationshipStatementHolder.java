@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +24,7 @@ import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.schema.CypherGenerator;
+import org.springframework.data.neo4j.core.support.Relationships;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
 
@@ -64,7 +66,7 @@ final class RelationshipStatementHolder {
 
 		if (relationshipContext.hasRelationshipWithProperties()) {
 			return createStatementForRelationShipWithProperties(neo4jMappingContext, neo4jPersistentEntity,
-					relationshipContext, relatedInternalId, (Map.Entry) relatedValue);
+					relationshipContext, relatedInternalId, (Relationships.RelationshipWithProperties) relatedValue);
 		} else {
 			return createStatementForRelationshipWithoutProperties(neo4jMappingContext, neo4jPersistentEntity,
 					relationshipContext, relatedInternalId, relatedValue);
@@ -73,12 +75,13 @@ final class RelationshipStatementHolder {
 
 	private static RelationshipStatementHolder createStatementForRelationShipWithProperties(
 			Neo4jMappingContext neo4jMappingContext, Neo4jPersistentEntity<?> neo4jPersistentEntity,
-			NestedRelationshipContext relationshipContext, Long relatedInternalId, Map.Entry relatedValue) {
+			NestedRelationshipContext relationshipContext, Long relatedInternalId, Relationships.RelationshipWithProperties relatedValue) {
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.createRelationshipWithPropertiesCreationQuery(
 				neo4jPersistentEntity, relationshipContext.getRelationship(), relatedInternalId);
 		Map<String, Object> propMap = new HashMap<>();
-		neo4jMappingContext.getConverter().write(relatedValue.getValue(), propMap);
+		// write relationship properties
+		neo4jMappingContext.getConverter().write(relatedValue.relationshipWithProperties, propMap);
 
 		return new RelationshipStatementHolder(relationshipCreationQuery, propMap);
 	}

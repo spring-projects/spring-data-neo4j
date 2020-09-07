@@ -13,35 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration.shared;
+package org.springframework.data.neo4j.core.schema;
 
-import org.springframework.data.neo4j.core.schema.RelationshipProperties;
-import org.springframework.data.neo4j.core.schema.TargetNode;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @@author Michael J. Simons
+ * @author Gerrit Meier
+ * @soundtrack Goldfinger - Here in your bedroom
+ * @since 6.0
  */
-@RelationshipProperties
-public class AltLikedByPersonRelationship {
-
-	private Integer rating;
-
-	@TargetNode
-	private AltPerson altPerson;
-
-	public Integer getRating() {
-		return rating;
-	}
-
-	public void setRating(Integer rating) {
-		this.rating = rating;
-	}
-
-	public AltPerson getAltPerson() {
-		return altPerson;
-	}
-
-	public void setAltPerson(AltPerson altPerson) {
-		this.altPerson = altPerson;
-	}
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface TargetNode {
 }

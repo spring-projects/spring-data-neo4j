@@ -435,7 +435,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 				for (Object relatedValueToStore : relatedValuesToStore) {
 
-					Object valueToBeSavedPreEvt = relationshipContext.identifyAndExtractRelationshipValue(relatedValueToStore);
+					Object valueToBeSavedPreEvt = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
 
 					Mono<Void> createRelationship = eventSupport.maybeCallBeforeBind(valueToBeSavedPreEvt)
 							.flatMap(valueToBeSaved -> {

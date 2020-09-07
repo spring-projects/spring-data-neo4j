@@ -876,6 +876,7 @@ class ReactiveRepositoryIT {
 				rel1.setLocalDate(LocalDate.of(1995, 2, 26));
 				rel1.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING);
 				rel1.setPoint(new CartesianPoint2d(0d, 1d));
+				rel1.setHobby(hobby1);
 
 				Hobby hobby2 = new Hobby();
 				hobby2.setName("Something else");
@@ -885,8 +886,12 @@ class ReactiveRepositoryIT {
 				rel2.setLocalDate(LocalDate.of(2000, 6, 28));
 				rel2.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING_DIFFERENT);
 				rel2.setPoint(new CartesianPoint2d(2d, 3d));
+				rel2.setHobby(hobby2);
 
-				assertThat(person.getHobbies()).contains(MapEntry.entry(hobby1, rel1), MapEntry.entry(hobby2, rel2));
+				List<LikesHobbyRelationship> hobbies = person.getHobbies();
+				assertThat(hobbies).containsExactlyInAnyOrder(rel1, rel2);
+				assertThat(hobbies.get(hobbies.indexOf(rel1)).getHobby()).isEqualTo(hobby1);
+				assertThat(hobbies.get(hobbies.indexOf(rel2)).getHobby()).isEqualTo(hobby2);
 			}).verifyComplete();
 
 		}
@@ -909,6 +914,7 @@ class ReactiveRepositoryIT {
 			rel1.setLocalDate(rel1LocalDate);
 			rel1.setMyEnum(rel1MyEnum);
 			rel1.setPoint(rel1Point);
+			rel1.setHobby(h1);
 
 			Hobby h2 = new Hobby();
 			h2.setName("Something else");
@@ -923,10 +929,11 @@ class ReactiveRepositoryIT {
 			rel2.setLocalDate(rel2LocalDate);
 			rel2.setMyEnum(rel2MyEnum);
 			rel2.setPoint(rel2Point);
+			rel2.setHobby(h2);
 
-			Map<Hobby, LikesHobbyRelationship> hobbies = new HashMap<>();
-			hobbies.put(h1, rel1);
-			hobbies.put(h2, rel2);
+			List<LikesHobbyRelationship> hobbies = new ArrayList<>();
+			hobbies.add(rel1);
+			hobbies.add(rel2);
 			PersonWithRelationshipWithProperties clonePerson = new PersonWithRelationshipWithProperties("Freddie clone");
 			clonePerson.setHobbies(hobbies);
 
@@ -1008,6 +1015,7 @@ class ReactiveRepositoryIT {
 				rel1.setLocalDate(LocalDate.of(1995, 2, 26));
 				rel1.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING);
 				rel1.setPoint(new CartesianPoint2d(0d, 1d));
+				rel1.setHobby(hobby1);
 
 				Hobby hobby2 = new Hobby();
 				hobby2.setName("Something else");
@@ -1017,8 +1025,12 @@ class ReactiveRepositoryIT {
 				rel2.setLocalDate(LocalDate.of(2000, 6, 28));
 				rel2.setMyEnum(LikesHobbyRelationship.MyEnum.SOMETHING_DIFFERENT);
 				rel2.setPoint(new CartesianPoint2d(2d, 3d));
+				rel2.setHobby(hobby2);
 
-				assertThat(person.getHobbies()).contains(MapEntry.entry(hobby1, rel1), MapEntry.entry(hobby2, rel2));
+				List<LikesHobbyRelationship> hobbies = person.getHobbies();
+				assertThat(hobbies).containsExactlyInAnyOrder(rel1, rel2);
+				assertThat(hobbies.get(hobbies.indexOf(rel1)).getHobby()).isEqualTo(hobby1);
+				assertThat(hobbies.get(hobbies.indexOf(rel2)).getHobby()).isEqualTo(hobby2);
 			}).verifyComplete();
 
 		}
@@ -1037,9 +1049,9 @@ class ReactiveRepositoryIT {
 			StepVerifier.create(repository.loadFromCustomQuery(personId)).assertNext(hobby -> {
 				assertThat(hobby.getName()).isEqualTo("Music");
 				assertThat(hobby.getLikedBy()).hasSize(1);
-				assertThat(hobby.getLikedBy().entrySet()).first().satisfies(entry -> {
-					assertThat(entry.getKey().getId()).isEqualTo(personId);
-					assertThat(entry.getValue().getRating()).isEqualTo(5);
+				assertThat(hobby.getLikedBy()).first().satisfies(entry -> {
+					assertThat(entry.getAltPerson().getId()).isEqualTo(personId);
+					assertThat(entry.getRating()).isEqualTo(5);
 				});
 			}).verifyComplete();
 		}

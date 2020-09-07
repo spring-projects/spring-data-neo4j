@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.lang.reflect.Field;
 import java.util.Optional;
 
 import org.springframework.data.mapping.Association;
@@ -27,6 +28,7 @@ import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
@@ -41,6 +43,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 	private final Lazy<String> graphPropertyName;
 	private final Lazy<Boolean> isAssociation;
+	private final boolean isEntityInRelationshipWithProperties;
 
 	private final Neo4jMappingContext mappingContext;
 
@@ -52,15 +55,16 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 	 * @param simpleTypeHolder type holder
 	 */
 	DefaultNeo4jPersistentProperty(Property property, PersistentEntity<?, Neo4jPersistentProperty> owner,
-			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder) {
+			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder, boolean isEntityInRelationshipWithProperties) {
 
 		super(property, owner, simpleTypeHolder);
+		this.isEntityInRelationshipWithProperties = isEntityInRelationshipWithProperties;
 
 		this.graphPropertyName = Lazy.of(this::computeGraphPropertyName);
 		this.isAssociation = Lazy.of(() -> {
 
 			Class<?> targetType = getActualType();
-			return !(simpleTypeHolder.isSimpleType(targetType) || mappingContext.hasCustomWriteTarget(targetType));
+			return !(simpleTypeHolder.isSimpleType(targetType) || mappingContext.hasCustomWriteTarget(targetType) || isAnnotationPresent(TargetNode.class));
 		});
 		this.mappingContext = mappingContext;
 	}
@@ -72,7 +76,8 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 		// if the target is a relationship property always take the key type from the map instead of the value type.
 		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
-			obverseOwner = this.mappingContext.getPersistentEntity(this.getComponentType());
+			Class<?> type = relationshipWithPropertiesEntityType();
+			obverseOwner = this.mappingContext.getPersistentEntity(type);
 		} else {
 			obverseOwner = this.mappingContext.getPersistentEntity(this.getAssociationTargetType());
 		}
@@ -95,7 +100,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 		// Because a dynamic association is also represented as a Map, this ensures that the
 		// relationship properties class will only have a value if it's not a dynamic association.
-		Class<?> relationshipPropertiesClass = dynamicAssociation ? null : getMapValueType();
+		Class<?> relationshipPropertiesClass = this.hasActualTypeAnnotation(RelationshipProperties.class) ? getActualType() : null;
 
 		// Try to determine if there is a relationship definition that expresses logically the same relationship
 		// on the other end.
@@ -111,6 +116,16 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 				.ifPresent(relationship -> relationship.setRelationshipObverse(relationshipDescription));
 
 		return relationshipDescription;
+	}
+
+	private Class<?> relationshipWithPropertiesEntityType() {
+		Class<?> actualType = this.getActualType();
+		for (Field field : actualType.getDeclaredFields()) {
+			if (field.getAnnotationsByType(TargetNode.class).length > 0) {
+				return field.getType();
+			}
+		}
+		throw new RuntimeException("ne");
 	}
 
 	@Override
@@ -135,7 +150,12 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 	@Override
 	public boolean isEntity() {
-		return super.isEntity() && isAssociation();
+		return super.isEntity() && isAssociation() || (super.isEntity() && isEntityInRelationshipWithProperties());
+	}
+
+	@Override
+	public boolean isEntityInRelationshipWithProperties() {
+		return isEntityInRelationshipWithProperties;
 	}
 
 	/**
