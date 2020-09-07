@@ -37,7 +37,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.assertj.core.data.MapEntry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -1037,7 +1036,7 @@ class ReactiveRepositoryIT {
 
 		@Test // DATAGRAPH-1350
 		void loadEntityWithRelationshipWithPropertiesFromCustomQueryIncoming(
-				@Autowired ReactiveHobbyithRelationshipWithPropertiesRepository repository) {
+				@Autowired ReactiveHobbyWithRelationshipWithPropertiesRepository repository) {
 
 			long personId;
 
@@ -2120,7 +2119,7 @@ class ReactiveRepositoryIT {
 		Mono<PersonWithRelationshipWithProperties> findByHobbiesSinceAndHobbiesActive(int since1, boolean active);
 	}
 
-	interface ReactiveHobbyithRelationshipWithPropertiesRepository
+	interface ReactiveHobbyWithRelationshipWithPropertiesRepository
 			extends ReactiveNeo4jRepository<AltHobby, Long> {
 
 		@Query("MATCH (p:AltPerson)-[l:LIKES]->(h:AltHobby) WHERE id(p) = $personId RETURN h, collect(l), collect(p)")

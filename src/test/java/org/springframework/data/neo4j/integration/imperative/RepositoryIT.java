@@ -39,7 +39,6 @@ import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
 import org.assertj.core.api.Assertions;
-import org.assertj.core.data.MapEntry;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -79,28 +78,7 @@ import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.integration.imperative.repositories.PersonRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
-import org.springframework.data.neo4j.integration.shared.AnotherThingWithAssignedId;
-import org.springframework.data.neo4j.integration.shared.BidirectionalEnd;
-import org.springframework.data.neo4j.integration.shared.BidirectionalStart;
-import org.springframework.data.neo4j.integration.shared.Club;
-import org.springframework.data.neo4j.integration.shared.DeepRelationships;
-import org.springframework.data.neo4j.integration.shared.EntityWithConvertedId;
-import org.springframework.data.neo4j.integration.shared.Hobby;
-import org.springframework.data.neo4j.integration.shared.ImmutablePerson;
-import org.springframework.data.neo4j.integration.shared.Inheritance;
-import org.springframework.data.neo4j.integration.shared.KotlinPerson;
-import org.springframework.data.neo4j.integration.shared.LikesHobbyRelationship;
-import org.springframework.data.neo4j.integration.shared.MultipleLabels;
-import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
-import org.springframework.data.neo4j.integration.shared.PersonWithNoConstructor;
-import org.springframework.data.neo4j.integration.shared.PersonWithRelationship;
-import org.springframework.data.neo4j.integration.shared.PersonWithRelationshipWithProperties;
-import org.springframework.data.neo4j.integration.shared.PersonWithWither;
-import org.springframework.data.neo4j.integration.shared.Pet;
-import org.springframework.data.neo4j.integration.shared.SimilarThing;
-import org.springframework.data.neo4j.integration.shared.ThingWithAssignedId;
-import org.springframework.data.neo4j.integration.shared.ThingWithCustomTypes;
-import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
+import org.springframework.data.neo4j.integration.shared.*;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.BoundingBox;
@@ -1080,6 +1058,26 @@ class RepositoryIT {
 			assertThat(hobbies).containsExactlyInAnyOrder(rel1, rel2);
 			assertThat(hobbies.get(hobbies.indexOf(rel1)).getHobby()).isEqualTo(hobby1);
 			assertThat(hobbies.get(hobbies.indexOf(rel2)).getHobby()).isEqualTo(hobby2);
+		}
+
+		@Test // DATAGRAPH-1350
+		void loadEntityWithRelationshipWithPropertiesFromCustomQueryIncoming(
+				@Autowired HobbyWithRelationshipWithPropertiesRepository repository) {
+
+			long personId;
+
+			try (Session session = createSession()) {
+				Record record = session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single();
+				personId = record.get("n").asNode().id();
+			}
+
+			AltHobby hobby = repository.loadFromCustomQuery(personId);
+			assertThat(hobby.getName()).isEqualTo("Music");
+			assertThat(hobby.getLikedBy()).hasSize(1);
+			assertThat(hobby.getLikedBy()).first().satisfies(entry -> {
+				assertThat(entry.getAltPerson().getId()).isEqualTo(personId);
+				assertThat(entry.getRating()).isEqualTo(5);
+			});
 		}
 	}
 
@@ -2836,6 +2834,12 @@ class RepositoryIT {
 		@Query("MATCH (c:CustomTypes) WHERE c.customType = :#{#customType} return c")
 		ThingWithCustomTypes findByCustomTypeSpELObjectQuery(
 				@Param("customType") ThingWithCustomTypes.CustomType customType);
+	}
+
+	interface HobbyWithRelationshipWithPropertiesRepository	extends Neo4jRepository<AltHobby, Long> {
+
+		@Query("MATCH (p:AltPerson)-[l:LIKES]->(h:AltHobby) WHERE id(p) = $personId RETURN h, collect(l), collect(p)")
+		AltHobby loadFromCustomQuery(@Param("personId") Long personId);
 	}
 
 	@SpringJUnitConfig(Config.class)
