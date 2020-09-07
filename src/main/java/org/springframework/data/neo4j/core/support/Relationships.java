@@ -15,19 +15,14 @@
  */
 package org.springframework.data.neo4j.core.support;
 
-import java.lang.reflect.Field;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.lang.Nullable;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Michael J. Simons
@@ -67,23 +62,11 @@ public final class Relationships {
 		return unifiedValue;
 	}
 
-	private static Object getTargetNode(Object object) {
-		Class<?> objectClass = object.getClass();
-		for (Field field : objectClass.getDeclaredFields()) {
-			if (field.isAnnotationPresent(TargetNode.class)) {
-				try {
-					ReflectionUtils.makeAccessible(field);
-					return field.get(object);
-				} catch (IllegalAccessException e) {
-					throw new RuntimeException("Kaputt");
-				}
-			}
-		}
-		return null;
-	}
-
 	private Relationships() {}
 
+	/**
+	 * Class that defines a tuple of relationship with properties and the connected target entity.
+	 */
 	public static class RelationshipWithProperties {
 		public final Object relationshipWithProperties;
 		public final Object relatedEntity;

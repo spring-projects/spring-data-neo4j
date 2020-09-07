@@ -15,7 +15,8 @@
  */
 package org.springframework.data.neo4j.core;
 
-import static org.neo4j.cypherdsl.core.Cypher.*;
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import java.util.ArrayList;
 import java.util.Collection;

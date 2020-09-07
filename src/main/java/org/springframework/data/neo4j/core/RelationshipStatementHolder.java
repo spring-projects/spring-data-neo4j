@@ -15,7 +15,6 @@
  */
 package org.springframework.data.neo4j.core;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
