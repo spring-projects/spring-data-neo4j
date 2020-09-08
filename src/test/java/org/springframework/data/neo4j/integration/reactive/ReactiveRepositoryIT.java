@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 
+import org.springframework.data.neo4j.integration.shared.AltLikedByPersonRelationship;
+import org.springframework.data.neo4j.integration.shared.AltPerson;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -1053,6 +1055,37 @@ class ReactiveRepositoryIT {
 					assertThat(entry.getRating()).isEqualTo(5);
 				});
 			}).verifyComplete();
+		}
+
+		@Test
+		void loadSameNodeWithDoubleRelationship(@Autowired ReactiveHobbyWithRelationshipWithPropertiesRepository repository) {
+			long personId;
+
+			try (Session session = createSession()) {
+				Record record = session.run("CREATE (n:AltPerson{name:'Freddie'})," +
+						" (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'})," +
+						" (n)-[l2:LIKES {rating: 1}]->(h1)" +
+						" RETURN n, h1").single();
+				personId = record.get("n").asNode().id();
+			}
+
+			StepVerifier.create(repository.loadFromCustomQuery(personId)).assertNext(hobby -> {
+				assertThat(hobby.getName()).isEqualTo("Music");
+				List<AltLikedByPersonRelationship> likedBy = hobby.getLikedBy();
+				assertThat(likedBy).hasSize(2);
+
+				AltPerson altPerson = new AltPerson("Freddie");
+				altPerson.setId(personId);
+				AltLikedByPersonRelationship rel1 = new AltLikedByPersonRelationship();
+				rel1.setRating(5);
+				rel1.setAltPerson(altPerson);
+
+				AltLikedByPersonRelationship rel2 = new AltLikedByPersonRelationship();
+				rel2.setRating(1);
+				rel2.setAltPerson(altPerson);
+
+				assertThat(likedBy).containsExactlyInAnyOrder(rel1, rel2);
+			});
 		}
 	}
 
