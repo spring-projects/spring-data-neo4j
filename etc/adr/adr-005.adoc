@@ -2,7 +2,7 @@
 
 === Status
 
-accepted
+rejected
 
 === Context
 
@@ -13,6 +13,7 @@ The contextual problem came up in the discussion of the refactoring of the relat
 === Decision
 
 Treat relationship with properties as properties on the defining entity.
+
 
 === Consequences
 

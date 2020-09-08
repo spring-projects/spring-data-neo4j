@@ -13,8 +13,7 @@ The current implementation of relationship with properties has two major flaws:
 
 === Decision
 
-Signalise e.g. with an additional or modified annotation that the `@Relationship` defined on an entity points to a relationship with properties.
-Within this relationship with properties representing class there should be at least a property exist that describes the target entity of the relationship.
+Don't use the format of the `Map<Entity, RelationshipPropertiesClass>` but instead define the target node within the `@RelationshipProperties` class.
 
 === Consequences
 
