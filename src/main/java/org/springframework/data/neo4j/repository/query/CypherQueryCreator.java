@@ -54,7 +54,6 @@ import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Polygon;
-import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -64,7 +63,6 @@ import org.springframework.data.neo4j.core.schema.Constants;
 import org.springframework.data.neo4j.core.schema.CypherGenerator;
 import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
-import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
@@ -189,36 +187,42 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 				}
 
 				NodeDescription<?> relationshipPropertiesEntity = relationshipDescription.getRelationshipPropertiesEntity();
-				boolean dingDong = relationshipPropertiesEntity != null && ((Neo4jPersistentEntity) relationshipPropertiesEntity).getPersistentProperty(TargetNode.class) != null;
+				boolean hasTargetNode = hasTargetNode(relationshipPropertiesEntity);
 
 				NodeDescription<?> targetEntity = relationshipDescription.getTarget();
 				Node relatedNode = Cypher.node(targetEntity.getPrimaryLabel(), targetEntity.getAdditionalLabels());
 
 				boolean lastNode = isLastNode(persistentProperty);
-				if (lastNode || dingDong) {
+				if (lastNode || hasTargetNode) {
 					relatedNode = relatedNode.named(getNodeName());
 				}
 
 				switch (relationshipDescription.getDirection()) {
 					case OUTGOING:
-						cypherRelationship = (RelationshipPattern) cypherRelationship.relationshipTo(relatedNode,
-								relationshipDescription.getType());
+						cypherRelationship = cypherRelationship
+								.relationshipTo(relatedNode, relationshipDescription.getType());
 						break;
 					case INCOMING:
-						cypherRelationship = (RelationshipPattern) cypherRelationship.relationshipFrom(relatedNode,
-								relationshipDescription.getType());
+						cypherRelationship = cypherRelationship
+								.relationshipFrom(relatedNode, relationshipDescription.getType());
 						break;
 					default:
-						cypherRelationship = (RelationshipPattern) cypherRelationship.relationshipBetween(relatedNode,
-								relationshipDescription.getType());
+						cypherRelationship = cypherRelationship
+								.relationshipBetween(relatedNode, relationshipDescription.getType());
 				}
 
-				if (lastNode || dingDong) {
+				if (lastNode || hasTargetNode) {
 					cypherRelationship = ((RelationshipPattern) cypherRelationship).named(getRelationshipName());
 				}
 			}
 
 			return cypherRelationship;
+		}
+
+		private boolean hasTargetNode(@Nullable NodeDescription<?> relationshipPropertiesEntity) {
+			return relationshipPropertiesEntity != null
+					&& ((Neo4jPersistentEntity<?>) relationshipPropertiesEntity)
+						.getPersistentProperty(TargetNode.class) != null;
 		}
 
 		// if there is no direct property access, the list size is greater than 1 and as a consequence has to contain
@@ -528,7 +532,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 	private Expression toCypherProperty(Neo4jPersistentProperty persistentProperty, boolean addToLower) {
 
-		PersistentEntity<?, Neo4jPersistentProperty> owner = persistentProperty.getOwner();
+		Neo4jPersistentEntity<?> owner = (Neo4jPersistentEntity<?>) persistentProperty.getOwner();
 		Expression expression;
 
 		if (owner.equals(this.nodeDescription)) {
@@ -539,7 +543,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 			String cypherElementName;
 			// this "entity" is a representation of a relationship with properties
-			if (owner.isAnnotationPresent(RelationshipProperties.class)) {
+			if (owner.isRelationshipPropertiesEntity()) {
 				cypherElementName = propertyPathWrapper.getRelationshipName();
 			} else {
 				cypherElementName = propertyPathWrapper.getNodeName();

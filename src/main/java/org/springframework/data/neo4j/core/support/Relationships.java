@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.lang.Nullable;
 
@@ -51,9 +52,7 @@ public final class Relationships {
 				unifiedValue = ((Map<String, Object>) rawValue).entrySet();
 			}
 		} else if (property.isRelationshipWithProperties()) {
-			// maybe split between relationship properties and entity?
 			unifiedValue = (Collection<Object>) rawValue;
-//			unifiedValue = ((Map<Object, Object>) rawValue).entrySet();
 		} else if (property.isCollectionLike()) {
 			unifiedValue = (Collection<Object>) rawValue;
 		} else {
@@ -67,13 +66,22 @@ public final class Relationships {
 	/**
 	 * Class that defines a tuple of relationship with properties and the connected target entity.
 	 */
-	public static class RelationshipWithProperties {
-		public final Object relationshipWithProperties;
-		public final Object relatedEntity;
+	@API(status = API.Status.INTERNAL)
+	public final static class RelationshipPropertiesWithEntityHolder {
+		private final Object relationshipProperties;
+		private final Object relatedEntity;
 
-		public RelationshipWithProperties(Object relationshipWithProperties, Object relatedEntity) {
-			this.relationshipWithProperties = relationshipWithProperties;
+		public RelationshipPropertiesWithEntityHolder(Object relationshipProperties, Object relatedEntity) {
+			this.relationshipProperties = relationshipProperties;
 			this.relatedEntity = relatedEntity;
+		}
+
+		public Object getRelationshipProperties() {
+			return relationshipProperties;
+		}
+
+		public Object getRelatedEntity() {
+			return relatedEntity;
 		}
 	}
 

@@ -48,7 +48,7 @@ final class IdPopulator {
 		Neo4jPersistentEntity<?> nodeDescription = neo4jMappingContext.getRequiredPersistentEntity(entity.getClass());
 		IdDescription idDescription = nodeDescription.getIdDescription();
 
-		if (idDescription == null) {
+		if (idDescription == null && nodeDescription.isRelationshipPropertiesEntity()) {
 			return entity;
 		}
 

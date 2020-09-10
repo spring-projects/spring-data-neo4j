@@ -42,6 +42,7 @@ import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
+import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
@@ -87,6 +88,8 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 
 	private final Lazy<Neo4jPersistentProperty> dynamicLabelsProperty;
 
+	private final Lazy<Boolean> isRelationshipPropertiesEntity;
+
 	DefaultNeo4jPersistentEntity(TypeInformation<T> information) {
 		super(information);
 
@@ -96,6 +99,7 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 		this.graphProperties = Lazy.of(this::computeGraphProperties);
 		this.dynamicLabelsProperty = Lazy.of(() -> getGraphProperties().stream().map(Neo4jPersistentProperty.class::cast)
 				.filter(Neo4jPersistentProperty::isDynamicLabels).findFirst().orElse(null));
+		this.isRelationshipPropertiesEntity = Lazy.of(() -> isAnnotationPresent(RelationshipProperties.class));
 	}
 
 	/*
@@ -152,6 +156,11 @@ class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPers
 	@Override
 	public Optional<Neo4jPersistentProperty> getDynamicLabelsProperty() {
 		return this.dynamicLabelsProperty.getOptional();
+	}
+
+	@Override
+	public boolean isRelationshipPropertiesEntity() {
+		return this.isRelationshipPropertiesEntity.get();
 	}
 
 	/*

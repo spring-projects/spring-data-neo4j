@@ -65,7 +65,7 @@ final class RelationshipStatementHolder {
 
 		if (relationshipContext.hasRelationshipWithProperties()) {
 			return createStatementForRelationShipWithProperties(neo4jMappingContext, neo4jPersistentEntity,
-					relationshipContext, relatedInternalId, (Relationships.RelationshipWithProperties) relatedValue);
+					relationshipContext, relatedInternalId, (Relationships.RelationshipPropertiesWithEntityHolder) relatedValue);
 		} else {
 			return createStatementForRelationshipWithoutProperties(neo4jMappingContext, neo4jPersistentEntity,
 					relationshipContext, relatedInternalId, relatedValue);
@@ -74,13 +74,13 @@ final class RelationshipStatementHolder {
 
 	private static RelationshipStatementHolder createStatementForRelationShipWithProperties(
 			Neo4jMappingContext neo4jMappingContext, Neo4jPersistentEntity<?> neo4jPersistentEntity,
-			NestedRelationshipContext relationshipContext, Long relatedInternalId, Relationships.RelationshipWithProperties relatedValue) {
+			NestedRelationshipContext relationshipContext, Long relatedInternalId, Relationships.RelationshipPropertiesWithEntityHolder relatedValue) {
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.createRelationshipWithPropertiesCreationQuery(
 				neo4jPersistentEntity, relationshipContext.getRelationship(), relatedInternalId);
 		Map<String, Object> propMap = new HashMap<>();
 		// write relationship properties
-		neo4jMappingContext.getConverter().write(relatedValue.relationshipWithProperties, propMap);
+		neo4jMappingContext.getConverter().write(relatedValue.getRelationshipProperties(), propMap);
 
 		return new RelationshipStatementHolder(relationshipCreationQuery, propMap);
 	}

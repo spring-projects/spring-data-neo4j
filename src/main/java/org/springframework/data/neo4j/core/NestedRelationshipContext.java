@@ -15,7 +15,6 @@
  */
 package org.springframework.data.neo4j.core;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -29,7 +28,6 @@ import org.springframework.data.neo4j.core.schema.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.core.support.Relationships;
 import org.springframework.lang.Nullable;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Working on nested relationships happens in a certain algorithmic context. This context enables a tight cohesion
@@ -43,17 +41,15 @@ import org.springframework.util.ReflectionUtils;
 final class NestedRelationshipContext {
 	private final Neo4jPersistentProperty inverse;
 	private final Object value;
-	private final Object relationshipProperties;
 	private final RelationshipDescription relationship;
 	private final Class<?> associationTargetType;
 
 	private final boolean inverseValueIsEmpty;
 
-	private NestedRelationshipContext(Neo4jPersistentProperty inverse, @Nullable Object value, @Nullable Object relationshipProperties,
+	private NestedRelationshipContext(Neo4jPersistentProperty inverse, @Nullable Object value,
 			RelationshipDescription relationship, Class<?> associationTargetType, boolean inverseValueIsEmpty) {
 		this.inverse = inverse;
 		this.value = value;
-		this.relationshipProperties = relationshipProperties;
 		this.relationship = relationship;
 		this.associationTargetType = associationTargetType;
 		this.inverseValueIsEmpty = inverseValueIsEmpty;
@@ -84,10 +80,6 @@ final class NestedRelationshipContext {
 		return this.relationship.hasRelationshipProperties();
 	}
 
-	public Object getRelationshipProperties() {
-		return relationshipProperties;
-	}
-
 	Object identifyAndExtractRelationshipTargetNode(Object relatedValue) {
 		Object valueToBeSaved = relatedValue;
 		if (relatedValue instanceof Map.Entry) {
@@ -99,7 +91,7 @@ final class NestedRelationshipContext {
 		}
 		if (this.hasRelationshipWithProperties()) {
 			// here comes the entity
-			valueToBeSaved = ((Relationships.RelationshipWithProperties) relatedValue).relatedEntity;
+			valueToBeSaved = ((Relationships.RelationshipPropertiesWithEntityHolder) relatedValue).getRelatedEntity();
 		}
 
 		return valueToBeSaved;
@@ -122,33 +114,28 @@ final class NestedRelationshipContext {
 		Class<?> associationTargetType = relationship.hasRelationshipProperties() ? inverse.getComponentType()
 				: inverse.getAssociationTargetType();
 
-		Object relationshipProperties = null;
 		if (relationship.hasRelationshipProperties() && value != null) {
-			List<Relationships.RelationshipWithProperties> allOfThem = new ArrayList<>();
+			Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity();
 
-			for (Object relationshipWithProperties : ((Collection) value)) {
+			List<Relationships.RelationshipPropertiesWithEntityHolder> allOfThem = new ArrayList<>();
 
-				Relationships.RelationshipWithProperties oneOfThem = new Relationships.RelationshipWithProperties(relationshipWithProperties, getTargetNode(relationshipWithProperties));
+			for (Object relationshipProperty : ((Collection<Object>) value)) {
+
+				Relationships.RelationshipPropertiesWithEntityHolder oneOfThem =
+						new Relationships.RelationshipPropertiesWithEntityHolder(relationshipProperty,
+								getTargetNode(relationshipPropertiesEntity, relationshipProperty));
 				allOfThem.add(oneOfThem);
 			}
 			value = allOfThem;
 		}
 
-		return new NestedRelationshipContext(inverse, value, relationshipProperties, relationship, associationTargetType, inverseValueIsEmpty);
+		return new NestedRelationshipContext(inverse, value, relationship, associationTargetType, inverseValueIsEmpty);
 	}
 
-	private static Object getTargetNode(Object object) {
-		Class<?> objectClass = object.getClass();
-		for (Field field : objectClass.getDeclaredFields()) {
-			if (field.isAnnotationPresent(TargetNode.class)) {
-				try {
-					ReflectionUtils.makeAccessible(field);
-					return field.get(object);
-				} catch (IllegalAccessException e) {
-					throw new RuntimeException("Kaputt");
-				}
-			}
-		}
-		return null;
+	private static Object getTargetNode(Neo4jPersistentEntity<?> relationshipPropertiesEntity, Object object) {
+
+		PersistentPropertyAccessor<Object> propertyAccessor = relationshipPropertiesEntity.getPropertyAccessor(object);
+		return propertyAccessor.getProperty(relationshipPropertiesEntity.getPersistentProperty(TargetNode.class));
+
 	}
 }
