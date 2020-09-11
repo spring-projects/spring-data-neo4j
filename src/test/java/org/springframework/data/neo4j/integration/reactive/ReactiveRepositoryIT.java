@@ -752,33 +752,6 @@ class ReactiveRepositoryIT {
 		}
 
 		@Test
-		void loadDeepRelationships(@Autowired ReactiveDeepRelationshipRepository repository) {
-
-			long type1Id;
-
-			try (Session session = createSession()) {
-				Record record = session
-						.run("CREATE " + "(t1:Type1)-[:NEXT_TYPE]->(t2:Type2)-[:NEXT_TYPE]->(:Type3)-[:NEXT_TYPE]->(t4:Type4)-"
-								+ "[:NEXT_TYPE]->(:Type5)-[:NEXT_TYPE]->(:Type6)-[:NEXT_TYPE]->(:Type7), " + "(t2)-[:SAME_TYPE]->"
-								+ "(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->"
-								+ "(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->(:Type2)-[:SAME_TYPE]->" + "(:Type2) " + "RETURN t1")
-						.single();
-
-				type1Id = record.get("t1").asNode().id();
-			}
-
-			StepVerifier.create(repository.findById(type1Id)).assertNext(type1 -> {
-				// ensures that the virtual limit for same relationships does not affect distinct relationships
-				assertThat(type1.nextType.nextType.nextType.nextType.nextType.nextType).isNotNull();
-
-				// assert that same type relationships not cause stack overflow
-				DeepRelationships.Type2 type2 = type1.nextType;
-				assertThat(type2.sameType.sameType.sameType).isNotNull();
-				assertThat(type2.sameType.sameType.sameType.sameType).isNull();
-			}).verifyComplete();
-		}
-
-		@Test
 		void loadLoopingDeepRelationships(@Autowired ReactiveLoopingRelationshipRepository loopingRelationshipRepository) {
 
 			long type1Id;
@@ -807,7 +780,22 @@ class ReactiveRepositoryIT {
 				DeepRelationships.LoopingType1 iteration2 = iteration1.nextType.nextType.nextType;
 				assertThat(iteration2).isNotNull();
 				DeepRelationships.LoopingType1 iteration3 = iteration2.nextType.nextType.nextType;
-				assertThat(iteration3.nextType).isNull();
+				assertThat(iteration3).isNotNull();
+				DeepRelationships.LoopingType1 iteration4 = iteration3.nextType.nextType.nextType;
+				assertThat(iteration4).isNotNull();
+				DeepRelationships.LoopingType1 iteration5 = iteration4.nextType.nextType.nextType;
+				assertThat(iteration5).isNotNull();
+				DeepRelationships.LoopingType1 iteration6 = iteration5.nextType.nextType.nextType;
+				assertThat(iteration6).isNotNull();
+				DeepRelationships.LoopingType1 iteration7 = iteration6.nextType.nextType.nextType;
+				assertThat(iteration7).isNotNull();
+				DeepRelationships.LoopingType1 iteration8 = iteration7.nextType.nextType.nextType;
+				assertThat(iteration8).isNotNull();
+				DeepRelationships.LoopingType1 iteration9 = iteration8.nextType.nextType.nextType;
+				assertThat(iteration9).isNotNull();
+				DeepRelationships.LoopingType1 iteration10 = iteration9.nextType.nextType.nextType;
+				assertThat(iteration10).isNotNull();
+				assertThat(iteration10.nextType).isNull();
 			}).verifyComplete();
 		}
 
@@ -2259,8 +2247,6 @@ class ReactiveRepositoryIT {
 	interface BidirectionalEndRepository extends ReactiveNeo4jRepository<BidirectionalEnd, Long> {}
 
 	interface ImmutablePersonRepository extends ReactiveNeo4jRepository<ImmutablePerson, String> {}
-
-	interface ReactiveDeepRelationshipRepository extends ReactiveNeo4jRepository<DeepRelationships.Type1, Long> {}
 
 	interface ReactiveLoopingRelationshipRepository
 			extends ReactiveNeo4jRepository<DeepRelationships.LoopingType1, Long> {}
