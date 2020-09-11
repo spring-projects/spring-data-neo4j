@@ -25,6 +25,7 @@ import org.neo4j.driver.types.Point;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -108,6 +109,8 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	Page<PersonWithAllConstructor> findAllByNameOrName(Pageable pageable, String aName, String anotherName);
 
 	Page<PersonWithAllConstructor> findAllByNameOrName(String aName, String anotherName, Pageable pageable);
+
+	Slice<PersonWithAllConstructor> findSliceByNameOrName(String aName, String anotherName, Pageable pageable);
 
 	Long countAllByNameOrName(String aName, String anotherName);
 

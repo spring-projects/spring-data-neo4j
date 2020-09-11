@@ -67,6 +67,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
@@ -536,6 +537,18 @@ class RepositoryIT {
 
 			List<PersonWithAllConstructor> persons = repository.findAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME);
 			assertThat(persons).containsExactlyInAnyOrder(person1, person2);
+		}
+
+		@Test // DATAGRAPH-1374
+		void findSliceShouldWork(@Autowired PersonRepository repository) {
+
+			Slice<PersonWithAllConstructor> slice = repository.findSliceByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME, PageRequest.of(0, 1, Sort.by("name").descending()));
+			assertThat(slice.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON2_NAME);
+			assertThat(slice.hasNext()).isTrue();
+
+			slice = repository.findSliceByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME, slice.nextPageable());
+			assertThat(slice.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON1_NAME);
+			assertThat(slice.hasNext()).isFalse();
 		}
 	}
 
