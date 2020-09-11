@@ -26,7 +26,9 @@ import static org.neo4j.cypherdsl.core.Cypher.parameter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
@@ -328,27 +330,64 @@ public enum CypherGenerator {
 				|| inputProperties.contains(s);
 
 		List<RelationshipDescription> processedRelationships = new ArrayList<>();
-
+		boolean containsPossibleCircles = containsPossibleCircles(nodeDescription);
+		System.out.println("circles:"+containsPossibleCircles);
 		return projectPropertiesAndRelationships(nodeDescription, Constants.NAME_OF_ROOT_NODE, includeField,
-				processedRelationships);
+				processedRelationships, containsPossibleCircles);
 	}
 
+	// recursive entry point
 	private MapProjection projectAllPropertiesAndRelationships(NodeDescription<?> nodeDescription, SymbolicName nodeName,
-			List<RelationshipDescription> processedRelationships) {
+			List<RelationshipDescription> processedRelationships, boolean containsPossibleCircles) {
 
 		Predicate<String> includeAllFields = (field) -> true;
-		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeAllFields, processedRelationships);
+		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeAllFields, processedRelationships, containsPossibleCircles);
 	}
 
 	private MapProjection projectPropertiesAndRelationships(NodeDescription<?> nodeDescription, SymbolicName nodeName,
-			Predicate<String> includeProperty, List<RelationshipDescription> processedRelationships) {
+			Predicate<String> includeProperty, List<RelationshipDescription> processedRelationships,
+			boolean containsPossibleCircles) {
 
 		List<Object> contentOfProjection = new ArrayList<>();
 		contentOfProjection.addAll(projectNodeProperties(nodeDescription, nodeName, includeProperty));
-		contentOfProjection.addAll(
-				generateListsFor(nodeDescription.getRelationships(), nodeName, includeProperty, processedRelationships));
+
+
+			contentOfProjection.addAll(
+					generateListsFor(nodeDescription.getRelationships(), nodeName, includeProperty, processedRelationships, containsPossibleCircles));
+
 
 		return Cypher.anyNode(nodeName).project(contentOfProjection);
+	}
+
+	private boolean containsPossibleCircles(NodeDescription<?> nodeDescription) {
+		Collection<RelationshipDescription> relationships = nodeDescription.getRelationships();
+
+		Set<RelationshipDescription> processedRelationships = new HashSet<>();
+		for (RelationshipDescription relationship : relationships) {
+			if (processedRelationships.contains(relationship)) {
+				return true;
+			}
+			processedRelationships.add(relationship);
+			if (containsPossibleCircles(relationship.getTarget(), processedRelationships)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean containsPossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships) {
+		Collection<RelationshipDescription> relationships = nodeDescription.getRelationships();
+
+		for (RelationshipDescription relationship : relationships) {
+			if (processedRelationships.contains(relationship)) {
+				return true;
+			}
+			processedRelationships.add(relationship);
+			if (containsPossibleCircles(relationship.getTarget(), processedRelationships)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -382,7 +421,7 @@ public enum CypherGenerator {
 	 * @see CypherGenerator#projectNodeProperties
 	 */
 	private List<Object> generateListsFor(Collection<RelationshipDescription> relationships, SymbolicName nodeName,
-			Predicate<String> includeField, List<RelationshipDescription> processedRelationships) {
+			Predicate<String> includeField, List<RelationshipDescription> processedRelationships, boolean containsPossibleCircles) {
 
 		List<Object> mapProjectionLists = new ArrayList<>();
 
@@ -400,18 +439,18 @@ public enum CypherGenerator {
 				continue;
 			}
 
-			if (Collections.frequency(processedRelationships, relationshipDescription) > RELATIONSHIP_DEPTH_LIMIT) {
+			if (containsPossibleCircles && Collections.frequency(processedRelationships, relationshipDescription) > RELATIONSHIP_DEPTH_LIMIT) {
 				return mapProjectionLists;
 			}
 
-			generateListFor(relationshipDescription, nodeName, processedRelationships, fieldName, mapProjectionLists);
+			generateListFor(relationshipDescription, nodeName, processedRelationships, fieldName, mapProjectionLists, containsPossibleCircles);
 		}
 
 		return mapProjectionLists;
 	}
 
 	private void generateListFor(RelationshipDescription relationshipDescription, SymbolicName nodeName,
-			List<RelationshipDescription> processedRelationships, String fieldName, List<Object> mapProjectionLists) {
+			List<RelationshipDescription> processedRelationships, String fieldName, List<Object> mapProjectionLists, boolean containsPossibleCircles) {
 
 		String relationshipType = relationshipDescription.getType();
 		String relationshipTargetName = relationshipDescription.generateRelatedNodesCollectionName();
@@ -432,7 +471,7 @@ public enum CypherGenerator {
 			relationship = relationship.named(relationshipTargetName);
 
 			MapProjection mapProjection = projectAllPropertiesAndRelationships(endNodeDescription, relationshipFieldName,
-					new ArrayList<>(processedRelationships));
+					new ArrayList<>(processedRelationships), containsPossibleCircles);
 
 			if (relationshipDescription.hasRelationshipProperties()) {
 				relationship = relationship.named(RelationshipDescription.NAME_OF_RELATIONSHIP);
@@ -450,7 +489,7 @@ public enum CypherGenerator {
 					: startNode.relationshipFrom(endNode, relationshipType);
 
 			MapProjection mapProjection = projectAllPropertiesAndRelationships(endNodeDescription, relationshipFieldName,
-					new ArrayList<>(processedRelationships));
+					new ArrayList<>(processedRelationships), containsPossibleCircles);
 
 			if (relationshipDescription.hasRelationshipProperties()) {
 				relationship = relationship.named(RelationshipDescription.NAME_OF_RELATIONSHIP);
