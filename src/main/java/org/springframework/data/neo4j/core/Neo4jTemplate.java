@@ -378,6 +378,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, String cypherStatement,
 			Map<String, Object> parameters) {
 
+		Assert.notNull(neo4jMappingContext.getPersistentEntity(domainType), "Cannot get or create persistent entity.");
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType).withCypherQuery(cypherStatement)
 				.withParameters(parameters).usingMappingFunction(neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
 				.build();

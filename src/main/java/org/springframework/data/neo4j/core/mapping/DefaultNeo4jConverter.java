@@ -405,7 +405,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		Map<Object, Object> relationshipsAndProperties = new HashMap<>();
 
 		// if the list is null the mapping is based on a custom query
-		if (list == Values.NULL) {
+		if (Values.NULL.equals(list)) {
 
 			Predicate<Value> isList = entry -> entry instanceof Value && typeSystem.LIST().isTypeOf(entry);
 
