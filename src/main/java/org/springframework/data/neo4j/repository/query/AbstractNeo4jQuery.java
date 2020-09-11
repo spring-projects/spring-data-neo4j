@@ -85,7 +85,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		} else if (queryMethod.isSliceQuery()) {
 			long total = totalSupplier.getAsLong();
 			Pageable pageable = parameterAccessor.getPageable();
-			return new SliceImpl<>((List<Object>) processedResult, pageable, pageable.getOffset() + pageable.getPageSize() < total);
+			return new SliceImpl<>((List<?>) processedResult, pageable, pageable.getOffset() + pageable.getPageSize() < total);
 		} else {
 			return processedResult;
 		}
