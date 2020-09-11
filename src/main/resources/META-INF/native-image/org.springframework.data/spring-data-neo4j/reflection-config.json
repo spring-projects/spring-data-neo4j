@@ -1,0 +1,6 @@
+[
+  {
+    "name" : "org.neo4j.driver.QueryRunner",
+    "allDeclaredMethods" : true
+  }
+]
