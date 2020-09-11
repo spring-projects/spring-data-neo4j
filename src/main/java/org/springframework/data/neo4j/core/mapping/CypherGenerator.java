@@ -332,7 +332,13 @@ public enum CypherGenerator {
 		List<RelationshipDescription> processedRelationships = new ArrayList<>();
 		boolean containsPossibleCircles = containsPossibleCircles(nodeDescription);
 		System.out.println("circles:"+containsPossibleCircles);
-		return projectPropertiesAndRelationships(nodeDescription, Constants.NAME_OF_ROOT_NODE, includeField,
+		SymbolicName nodeName = Constants.NAME_OF_ROOT_NODE;
+		if (containsPossibleCircles) {
+			return
+			return Cypher.path("p").definedBy(Cypher.anyNode(nodeName).relationshipBetween(Cypher.anyNode(),
+					collectAllRelationshipTypes(nodeDescription).toArray(new String[]{})));
+		}
+		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeField,
 				processedRelationships, containsPossibleCircles);
 	}
 
@@ -388,6 +394,20 @@ public enum CypherGenerator {
 			}
 		}
 		return false;
+	}
+
+	private Set<String> collectAllRelationshipTypes(NodeDescription<?> nodeDescription) {
+		Set<String> relationshipTypes = new HashSet<>();
+
+		for (RelationshipDescription relationshipDescription : nodeDescription.getRelationships()) {
+			String relationshipType = relationshipDescription.getType();
+			if (relationshipTypes.contains(relationshipType)) {
+				break;
+			}
+			relationshipTypes.add(relationshipType);
+			relationshipTypes.addAll(collectAllRelationshipTypes(relationshipDescription.getTarget()));
+		}
+		return relationshipTypes;
 	}
 
 	/**
