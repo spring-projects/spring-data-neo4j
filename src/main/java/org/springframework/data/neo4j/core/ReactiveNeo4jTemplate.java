@@ -374,6 +374,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, String cypherQuery,
 			Map<String, Object> parameters) {
 
+		Assert.notNull(neo4jMappingContext.getPersistentEntity(domainType), "Cannot get or create persistent entity.");
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType).withCypherQuery(cypherQuery)
 				.withParameters(parameters)
 				.usingMappingFunction(this.neo4jMappingContext.getRequiredMappingFunctionFor(domainType)).build();
