@@ -18,9 +18,12 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.LongSupplier;
 
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -42,7 +45,8 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 
 	protected final Neo4jOperations neo4jOperations;
 
-	AbstractNeo4jQuery(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod,
+	AbstractNeo4jQuery(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
+			Neo4jQueryMethod queryMethod,
 			Neo4jQueryType queryType) {
 
 		super(mappingContext, queryMethod, queryType);
@@ -66,23 +70,29 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 				getInputProperties(resultProcessor), parameterAccessor, null, getMappingFunction(resultProcessor));
 
 		Object rawResult = new Neo4jQueryExecution.DefaultQueryExecution(neo4jOperations).execute(preparedQuery,
-				queryMethod.isCollectionLikeQuery() || queryMethod.isPageQuery());
+				queryMethod.isCollectionLikeQuery() || queryMethod.isPageQuery() || queryMethod.isSliceQuery());
 
 		Object processedResult = resultProcessor.processResult(rawResult, OptionalUnwrappingConverter.INSTANCE);
 
-		if (!queryMethod.isPageQuery()) {
-			return processedResult;
-		} else {
-			return PageableExecutionUtils.getPage((List<?>) processedResult, parameterAccessor.getPageable(), () -> {
+		LongSupplier totalSupplier = () -> {
 
-				PreparedQuery<Long> countQuery = prepareQuery(Long.class, Collections.emptyList(), parameterAccessor,
-						Neo4jQueryType.COUNT, null);
-				return neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
-			});
+			PreparedQuery<Long> countQuery = prepareQuery(Long.class, Collections.emptyList(), parameterAccessor,
+					Neo4jQueryType.COUNT, null);
+			return neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
+		};
+		if (queryMethod.isPageQuery()) {
+			return PageableExecutionUtils.getPage((List<?>) processedResult, parameterAccessor.getPageable(), totalSupplier);
+		} else if (queryMethod.isSliceQuery()) {
+			long total = totalSupplier.getAsLong();
+			Pageable pageable = parameterAccessor.getPageable();
+			return new SliceImpl<>((List<?>) processedResult, pageable, pageable.getOffset() + pageable.getPageSize() < total);
+		} else {
+			return processedResult;
 		}
 	}
 
 	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
-			List<String> includedProperties, Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
+			List<String> includedProperties, Neo4jParameterAccessor parameterAccessor,
+			@Nullable Neo4jQueryType queryType,
 			@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction);
 }
