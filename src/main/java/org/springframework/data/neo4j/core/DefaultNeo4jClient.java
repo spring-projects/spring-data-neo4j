@@ -15,15 +15,12 @@
  */
 package org.springframework.data.neo4j.core;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -94,7 +91,6 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 	static class AutoCloseableQueryRunnerHandler implements InvocationHandler {
 
-		private final Map<Method, MethodHandle> cachedHandles = new ConcurrentHashMap<>();
 		private final QueryRunner target;
 
 		AutoCloseableQueryRunnerHandler(QueryRunner target) {
@@ -110,15 +106,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 				}
 				return null;
 			} else {
-				return cachedHandles.computeIfAbsent(method, this::findHandleFor).invokeWithArguments(args);
-			}
-		}
-
-		MethodHandle findHandleFor(Method method) {
-			try {
-				return MethodHandles.publicLookup().unreflect(method).bindTo(target);
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
+				return method.invoke(target, args);
 			}
 		}
 	}
@@ -178,7 +166,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 	 * Tries to convert the given {@link RuntimeException} into a {@link DataAccessException} but returns the original
 	 * exception if the conversation failed. Thus allows safe re-throwing of the return value.
 	 *
-	 * @param ex the exception to translate
+	 * @param ex                  the exception to translate
 	 * @param exceptionTranslator the {@link PersistenceExceptionTranslator} to be used for translation
 	 * @return
 	 */
@@ -293,7 +281,9 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
 				Result result = runnableStatement.runWith(statementRunner);
-				return result.hasNext() ? Optional.of(mappingFunction.apply(typeSystem, result.single())) : Optional.empty();
+				return result.hasNext() ?
+						Optional.of(mappingFunction.apply(typeSystem, result.single())) :
+						Optional.empty();
 			} catch (RuntimeException e) {
 				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
 			}
