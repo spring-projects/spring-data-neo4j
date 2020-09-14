@@ -23,7 +23,6 @@ import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.schema.CypherGenerator;
-import org.springframework.data.neo4j.core.support.Relationships;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
 
@@ -65,7 +64,7 @@ final class RelationshipStatementHolder {
 
 		if (relationshipContext.hasRelationshipWithProperties()) {
 			return createStatementForRelationShipWithProperties(neo4jMappingContext, neo4jPersistentEntity,
-					relationshipContext, relatedInternalId, (Relationships.RelationshipPropertiesWithEntityHolder) relatedValue);
+					relationshipContext, relatedInternalId, (MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValue);
 		} else {
 			return createStatementForRelationshipWithoutProperties(neo4jMappingContext, neo4jPersistentEntity,
 					relationshipContext, relatedInternalId, relatedValue);
@@ -74,7 +73,7 @@ final class RelationshipStatementHolder {
 
 	private static RelationshipStatementHolder createStatementForRelationShipWithProperties(
 			Neo4jMappingContext neo4jMappingContext, Neo4jPersistentEntity<?> neo4jPersistentEntity,
-			NestedRelationshipContext relationshipContext, Long relatedInternalId, Relationships.RelationshipPropertiesWithEntityHolder relatedValue) {
+			NestedRelationshipContext relationshipContext, Long relatedInternalId, MappingSupport.RelationshipPropertiesWithEntityHolder relatedValue) {
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.createRelationshipWithPropertiesCreationQuery(
 				neo4jPersistentEntity, relationshipContext.getRelationship(), relatedInternalId);

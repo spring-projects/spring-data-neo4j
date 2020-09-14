@@ -26,7 +26,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.schema.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.data.neo4j.core.support.Relationships;
 import org.springframework.lang.Nullable;
 
 /**
@@ -91,7 +90,7 @@ final class NestedRelationshipContext {
 		}
 		if (this.hasRelationshipWithProperties()) {
 			// here comes the entity
-			valueToBeSaved = ((Relationships.RelationshipPropertiesWithEntityHolder) relatedValue).getRelatedEntity();
+			valueToBeSaved = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValue).getRelatedEntity();
 		}
 
 		return valueToBeSaved;
@@ -117,16 +116,16 @@ final class NestedRelationshipContext {
 		if (relationship.hasRelationshipProperties() && value != null) {
 			Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity();
 
-			List<Relationships.RelationshipPropertiesWithEntityHolder> allOfThem = new ArrayList<>();
+			List<MappingSupport.RelationshipPropertiesWithEntityHolder> relationshipProperties = new ArrayList<>();
 
 			for (Object relationshipProperty : ((Collection<Object>) value)) {
 
-				Relationships.RelationshipPropertiesWithEntityHolder oneOfThem =
-						new Relationships.RelationshipPropertiesWithEntityHolder(relationshipProperty,
+				MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
+						new MappingSupport.RelationshipPropertiesWithEntityHolder(relationshipProperty,
 								getTargetNode(relationshipPropertiesEntity, relationshipProperty));
-				allOfThem.add(oneOfThem);
+				relationshipProperties.add(oneOfThem);
 			}
-			value = allOfThem;
+			value = relationshipProperties;
 		}
 
 		return new NestedRelationshipContext(inverse, value, relationship, associationTargetType, inverseValueIsEmpty);

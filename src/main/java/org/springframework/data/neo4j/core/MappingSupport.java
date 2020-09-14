@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.support;
+package org.springframework.data.neo4j.core;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
@@ -29,7 +29,7 @@ import org.springframework.lang.Nullable;
  * @author Michael J. Simons
  * @author Philipp Tölle
  */
-public final class Relationships {
+final class MappingSupport {
 
 	/**
 	 * The value for a relationship can be a scalar object (1:1), a collection (1:n), a map (1:n, but with dynamic
@@ -61,26 +61,26 @@ public final class Relationships {
 		return unifiedValue;
 	}
 
-	private Relationships() {}
+	private MappingSupport() {}
 
 	/**
 	 * Class that defines a tuple of relationship with properties and the connected target entity.
 	 */
 	@API(status = API.Status.INTERNAL)
-	public final static class RelationshipPropertiesWithEntityHolder {
+	final static class RelationshipPropertiesWithEntityHolder {
 		private final Object relationshipProperties;
 		private final Object relatedEntity;
 
-		public RelationshipPropertiesWithEntityHolder(Object relationshipProperties, Object relatedEntity) {
+		RelationshipPropertiesWithEntityHolder(Object relationshipProperties, Object relatedEntity) {
 			this.relationshipProperties = relationshipProperties;
 			this.relatedEntity = relatedEntity;
 		}
 
-		public Object getRelationshipProperties() {
+		Object getRelationshipProperties() {
 			return relationshipProperties;
 		}
 
-		public Object getRelatedEntity() {
+		Object getRelatedEntity() {
 			return relatedEntity;
 		}
 	}

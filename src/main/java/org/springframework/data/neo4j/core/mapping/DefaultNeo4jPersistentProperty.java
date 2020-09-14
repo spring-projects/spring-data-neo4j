@@ -15,7 +15,6 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import java.lang.reflect.Field;
 import java.util.Optional;
 
 import org.springframework.data.mapping.Association;
@@ -76,7 +75,7 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 
 		// if the target is a relationship property always take the key type from the map instead of the value type.
 		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
-			Class<?> type = relationshipWithPropertiesEntityType();
+			Class<?> type = this.mappingContext.getPersistentEntity(getActualType()).getPersistentProperty(TargetNode.class).getType();
 			obverseOwner = this.mappingContext.getPersistentEntity(type);
 		} else {
 			obverseOwner = this.mappingContext.getPersistentEntity(this.getAssociationTargetType());
@@ -119,16 +118,6 @@ class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<N
 				.ifPresent(relationship -> relationship.setRelationshipObverse(relationshipDescription));
 
 		return relationshipDescription;
-	}
-
-	private Class<?> relationshipWithPropertiesEntityType() {
-		Class<?> actualType = this.getActualType();
-		for (Field field : actualType.getDeclaredFields()) {
-			if (field.getAnnotationsByType(TargetNode.class).length > 0) {
-				return field.getType();
-			}
-		}
-		throw new RuntimeException("ne");
 	}
 
 	@Override

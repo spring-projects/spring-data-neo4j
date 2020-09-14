@@ -448,13 +448,13 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 
 				for (Relationship possibleRelationship : allMatchingTypeRelationshipsInResult) {
 					if (targetIdSelector.apply(possibleRelationship) == nodeId) {
-						Object mappedObject = knownObjects.computeIfAbsent(nodeId, nodeId, () -> map(possibleValueNode, concreteTargetNodeDescription, knownObjects));
+						Object mappedObject = knownObjects.computeIfAbsent(nodeId, () -> map(possibleValueNode, concreteTargetNodeDescription, knownObjects));
 						if (relationshipDescription.hasRelationshipProperties()) {
 
 							Object relationshipProperties = map(possibleRelationship,
 									(Neo4jPersistentEntity) relationshipDescription.getRelationshipPropertiesEntity(),
 									knownObjects);
-							relationshipsAndProperties.add(relationshipProperties); // and somehow mappedObject
+							relationshipsAndProperties.add(relationshipProperties);
 						} else {
 							mappedObjectHandler.accept(possibleRelationship.type(), mappedObject);
 						}
@@ -474,7 +474,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 				Object idValue = relatedEntity.get(relatedEntityIdKey);
 				Long internalIdValue = relatedEntity.get(Constants.NAME_OF_INTERNAL_ID).asLong();
 
-				Object valueEntry = knownObjects.computeIfAbsent(idValue, internalIdValue,
+				Object valueEntry = knownObjects.computeIfAbsent(internalIdValue,
 						() -> map(relatedEntity, concreteTargetNodeDescription, knownObjects));
 
 				if (relationshipDescription.hasRelationshipProperties()) {
@@ -484,7 +484,7 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 					Object relationshipProperties = map(relatedEntityRelationship,
 							(Neo4jPersistentEntity) relationshipDescription.getRelationshipPropertiesEntity(),
 							knownObjects);
-					relationshipsAndProperties.add(relationshipProperties); // and somehow valueEntry;
+					relationshipsAndProperties.add(relationshipProperties);
 				} else {
 					mappedObjectHandler.accept(relatedEntity.get(RelationshipDescription.NAME_OF_RELATIONSHIP_TYPE).asString(),
 							valueEntry);
@@ -528,11 +528,10 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 		private final Lock read = lock.readLock();
 		private final Lock write = lock.writeLock();
 
-		private final Map<Object, Object> store = new HashMap<>();
 		private final Map<Long, Object> internalIdStore = new HashMap<>();
 
-		Object computeIfAbsent(Object key, Long internalId, Supplier<Object> entitySupplier) {
-			Object knownEntity = getObject(key);
+		Object computeIfAbsent(Long internalId, Supplier<Object> entitySupplier) {
+			Object knownEntity = getObject(internalId);
 
 			// if it is not in the store, it has to get re-computed also for the internalIdStore
 			if (knownEntity != null) {
@@ -542,30 +541,11 @@ final class DefaultNeo4jConverter implements Neo4jConverter {
 			try {
 				write.lock();
 				Object computedEntity = entitySupplier.get();
-				store.put(key, computedEntity);
 				internalIdStore.put(internalId, computedEntity);
 				return computedEntity;
 			} finally {
 				write.unlock();
 			}
-		}
-
-		@Nullable
-		private Object getObject(Object key) {
-			try {
-
-				read.lock();
-
-				Object knownEntity = store.get(key);
-
-				if (knownEntity != null) {
-					return knownEntity;
-				}
-
-			} finally {
-				read.unlock();
-			}
-			return null;
 		}
 
 		@Nullable
