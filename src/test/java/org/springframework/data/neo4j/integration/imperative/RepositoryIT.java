@@ -87,6 +87,8 @@ import org.springframework.data.neo4j.integration.shared.BidirectionalStart;
 import org.springframework.data.neo4j.integration.shared.Club;
 import org.springframework.data.neo4j.integration.shared.DeepRelationships;
 import org.springframework.data.neo4j.integration.shared.EntityWithConvertedId;
+import org.springframework.data.neo4j.integration.shared.Friend;
+import org.springframework.data.neo4j.integration.shared.FriendshipRelationship;
 import org.springframework.data.neo4j.integration.shared.Hobby;
 import org.springframework.data.neo4j.integration.shared.ImmutablePerson;
 import org.springframework.data.neo4j.integration.shared.Inheritance;
@@ -103,6 +105,7 @@ import org.springframework.data.neo4j.integration.shared.SimilarThing;
 import org.springframework.data.neo4j.integration.shared.ThingWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.ThingWithCustomTypes;
 import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
+import org.springframework.data.neo4j.integration.shared.WorksInClubRelationship;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.BoundingBox;
@@ -954,6 +957,52 @@ class RepositoryIT {
 			assertThat(hobbies).containsExactlyInAnyOrder(rel1, rel2);
 			assertThat(hobbies.get(hobbies.indexOf(rel1)).getHobby()).isEqualTo(hobby1);
 			assertThat(hobbies.get(hobbies.indexOf(rel2)).getHobby()).isEqualTo(hobby2);
+		}
+
+		@Test
+		void findEntityWithRelationshipWithPropertiesScalar(
+				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+
+			long personId;
+
+			try (Session session = createSession()) {
+				Record record = session.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
+						+ " (n)-[:WORKS_IN{since: 1995}]->(:Club{name:'Blubb'})"
+						+ "RETURN n").single();
+
+				Node personNode = record.get("n").asNode();
+				personId = personNode.id();
+			}
+
+			PersonWithRelationshipWithProperties person = repository.findById(personId).get();
+
+			WorksInClubRelationship loadedRelationship = person.getClub();
+			assertThat(loadedRelationship.getSince()).isEqualTo(1995);
+			assertThat(loadedRelationship.getClub().getName()).isEqualTo("Blubb");
+		}
+
+		@Test
+		void findEntityWithRelationshipWithPropertiesSameLabel(
+				@Autowired FriendRepository repository) {
+
+			long friendId;
+
+			try (Session session = createSession()) {
+				Record record = session.run("CREATE (n:Friend{name:'Freddie'}),"
+						+ " (n)-[:KNOWS{since: 1995}]->(:Friend{name:'Frank'})"
+						+ "RETURN n").single();
+
+				Node friendNode = record.get("n").asNode();
+				friendId = friendNode.id();
+			}
+
+			Friend person = repository.findById(friendId).get();
+
+			List<FriendshipRelationship> loadedRelationship = person.getFriends();
+			assertThat(loadedRelationship).allSatisfy(relationship -> {
+				assertThat(relationship.getSince()).isEqualTo(1995);
+				assertThat(relationship.getFriend().getName()).isEqualTo("Frank");
+			});
 		}
 
 		@Test
@@ -2890,11 +2939,13 @@ class RepositoryIT {
 				@Param("customType") ThingWithCustomTypes.CustomType customType);
 	}
 
-	interface HobbyWithRelationshipWithPropertiesRepository	extends Neo4jRepository<AltHobby, Long> {
+	interface HobbyWithRelationshipWithPropertiesRepository extends Neo4jRepository<AltHobby, Long> {
 
 		@Query("MATCH (p:AltPerson)-[l:LIKES]->(h:AltHobby) WHERE id(p) = $personId RETURN h, collect(l), collect(p)")
 		AltHobby loadFromCustomQuery(@Param("personId") Long personId);
 	}
+
+	interface FriendRepository extends Neo4jRepository<Friend, Long> {}
 
 	@SpringJUnitConfig(Config.class)
 	static abstract class IntegrationTestBase {

@@ -110,8 +110,7 @@ final class NestedRelationshipContext {
 				.filter(r -> r.getFieldName().equals(inverse.getName())).findFirst().get();
 
 		// if we have a relationship with properties, the targetNodeType is the map key
-		Class<?> associationTargetType = relationship.hasRelationshipProperties() ? inverse.getComponentType()
-				: inverse.getAssociationTargetType();
+		Class<?> associationTargetType = inverse.getAssociationTargetType();
 
 		if (relationship.hasRelationshipProperties() && value != null) {
 			Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity();

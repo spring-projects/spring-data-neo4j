@@ -15,32 +15,26 @@
  */
 package org.springframework.data.neo4j.integration.shared;
 
-import java.util.List;
-import java.util.Set;
-
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
+import java.util.List;
+
 /**
  * @author Gerrit Meier
- * @author Philipp Tölle
  */
 @Node
-public class PersonWithRelationshipWithProperties {
+public class Friend {
 
-	@Id @GeneratedValue private Long id;
+	@Id	@GeneratedValue	private Long id;
 
 	private final String name;
 
-	@Relationship("LIKES") private List<LikesHobbyRelationship> hobbies;
+	@Relationship("KNOWS") private List<FriendshipRelationship> friends;
 
-	@Relationship("WORKS_IN") private WorksInClubRelationship club;
-
-	@Relationship("OWNS") private Set<Pet> pets;
-
-	public PersonWithRelationshipWithProperties(String name) {
+	public Friend(String name) {
 		this.name = name;
 	}
 
@@ -48,20 +42,7 @@ public class PersonWithRelationshipWithProperties {
 		return name;
 	}
 
-	public List<LikesHobbyRelationship> getHobbies() {
-		return hobbies;
+	public List<FriendshipRelationship> getFriends() {
+		return friends;
 	}
-
-	public void setHobbies(List<LikesHobbyRelationship> hobbies) {
-		this.hobbies = hobbies;
-	}
-
-	public void setClub(WorksInClubRelationship club) {
-		this.club = club;
-	}
-
-	public WorksInClubRelationship getClub() {
-		return club;
-	}
-
 }
