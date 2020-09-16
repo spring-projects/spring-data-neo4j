@@ -1,6 +1,29 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.3.4.RELEASE (2020-09-16)
+---------------------------------------------
+* DATAGRAPH-1371 - Remove usage of deprecated org.springframework.data.convert.EntityInstantiators.
+* DATAGRAPH-1369 - Upgrade to Neo4j-OGM 3.2.16.
+* DATAGRAPH-1368 - Fix included OGM docs.
+* DATAGRAPH-1367 - Ensure all tests classes end with *Tests.
+* DATAGRAPH-1366 - "An equivalent constraint already exists" on startup after upgrading to Neo4j 4.
+* DATAGRAPH-1364 - Upgrade to Neo4j-OGM 3.2.15.
+* DATAGRAPH-1361 - Release 5.3.4 (Neumann SR4).
+* DATAGRAPH-1332 - Use Pageable#getOffset instead of a fixed computation.
+* DATAGRAPH-1331 - Finder fails when more than one relationship hop involved.
+* DATAGRAPH-1303 - AnnotationInfo fails on package private, unrelated annotations.
+* DATAGRAPH-1260 - Align ID assertion logic in all variants of findById().
+* DATAGRAPH-1249 - Mapping Context not flushed even though node attributes changed.
+* DATAGRAPH-1228 - Cleanup Neo4jQueryPlaceholderSupplier.
+* DATAGRAPH-1212 - Improve fallback IsNewStrategy.
+* DATAGRAPH-1184 - @Query annotated methods cannot deal with Optional return values.
+* DATAGRAPH-1156 - Saving two entities with a relationship and UUID as id results in exception.
+* DATAGRAPH-1098 - Cleanup and consolidate tests related to configuration of repositories.
+* DATAGRAPH-1030 - Avoid unconditional registration of entities in Neo4jMappingContext from all scanned classes.
+* DATAGRAPH-1018 - Ensure query parameters for derived finders are converted.
+
+
 Changes in version 5.2.10.RELEASE (2020-09-16)
 ----------------------------------------------
 * DATAGRAPH-1369 - Upgrade to Neo4j-OGM 3.2.16.
@@ -1822,6 +1845,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
