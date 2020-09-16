@@ -1,6 +1,21 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.0.0-RC1 (2020-09-16)
+-----------------------------------------
+* DATAGRAPH-1379 - Upgrade to Neo4j driver 4.0.3.
+* DATAGRAPH-1378 - Bump Cypher-DSL to 2020.1.0.
+* DATAGRAPH-1376 - Make DefaultNeo4jClient compatible with GraalVM native.
+* DATAGRAPH-1375 - Upgrade to Cypher DSL 2020.1.0.
+* DATAGRAPH-1374 - Add support for sliced queries.
+* DATAGRAPH-1373 - Refactor RelationshipProperties API.
+* DATAGRAPH-1371 - Remove usage of deprecated org.springframework.data.convert.EntityInstantiators.
+* DATAGRAPH-1363 - Provide Predicate for retryable exceptions.
+* DATAGRAPH-1362 - Translate both ServiceUnavailableException and SessionExpiredException into TransientDataAccessResourceException.
+* DATAGRAPH-1360 - Release 6.0 RC1 (2020.0.0).
+* DATAGRAPH-1024 - Introduce reactive repository API.
+
+
 Changes in version 5.3.4.RELEASE (2020-09-16)
 ---------------------------------------------
 * DATAGRAPH-1371 - Remove usage of deprecated org.springframework.data.convert.EntityInstantiators.
@@ -1845,6 +1860,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
