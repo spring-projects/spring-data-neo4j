@@ -107,7 +107,7 @@
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<mockito>${mockito.version}</mockito>
 		<mockito.version>3.2.4</mockito.version>
-		<neo4j-java-driver.version>4.0.1</neo4j-java-driver.version>
+		<neo4j-java-driver.version>4.0.3</neo4j-java-driver.version>
 		<neo4j.version>4.0.3</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
 		<!-- mockk requires objenesis >= 3 -->
