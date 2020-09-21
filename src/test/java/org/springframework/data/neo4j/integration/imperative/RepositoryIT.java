@@ -1951,6 +1951,174 @@ class RepositoryIT {
 			assertThat(count).isEqualTo(1);
 		}
 
+		@Test
+		void findEntityWithRelationshipByFindOneByExample(@Autowired RelationshipRepository repository) {
+
+			long personId;
+			long hobbyNodeId;
+			long petNode1Id;
+			long petNode2Id;
+
+			try (Session session = createSession()) {
+				Record record = session
+						.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) " + "RETURN n, h1, p1, p2")
+						.single();
+
+				Node personNode = record.get("n").asNode();
+				Node hobbyNode1 = record.get("h1").asNode();
+				Node petNode1 = record.get("p1").asNode();
+				Node petNode2 = record.get("p2").asNode();
+
+				personId = personNode.id();
+				hobbyNodeId = hobbyNode1.id();
+				petNode1Id = petNode1.id();
+				petNode2Id = petNode2.id();
+			}
+
+			PersonWithRelationship probe = new PersonWithRelationship();
+			probe.setName("Freddie");
+			PersonWithRelationship loadedPerson = repository.findOne(Example.of(probe)).get();
+			assertThat(loadedPerson.getName()).isEqualTo("Freddie");
+			assertThat(loadedPerson.getId()).isEqualTo(personId);
+			Hobby hobby = loadedPerson.getHobbies();
+			assertThat(hobby).isNotNull();
+			assertThat(hobby.getId()).isEqualTo(hobbyNodeId);
+			assertThat(hobby.getName()).isEqualTo("Music");
+
+			List<Pet> pets = loadedPerson.getPets();
+			Pet comparisonPet1 = new Pet(petNode1Id, "Jerry");
+			Pet comparisonPet2 = new Pet(petNode2Id, "Tom");
+			assertThat(pets).containsExactlyInAnyOrder(comparisonPet1, comparisonPet2);
+
+		}
+
+		@Test
+		void findEntityWithRelationshipByFindAllByExample(@Autowired RelationshipRepository repository) {
+
+			long personId;
+			long hobbyNodeId;
+			long petNode1Id;
+			long petNode2Id;
+
+			try (Session session = createSession()) {
+				Record record = session
+						.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) " + "RETURN n, h1, p1, p2")
+						.single();
+
+				Node personNode = record.get("n").asNode();
+				Node hobbyNode1 = record.get("h1").asNode();
+				Node petNode1 = record.get("p1").asNode();
+				Node petNode2 = record.get("p2").asNode();
+
+				personId = personNode.id();
+				hobbyNodeId = hobbyNode1.id();
+				petNode1Id = petNode1.id();
+				petNode2Id = petNode2.id();
+			}
+
+			PersonWithRelationship probe = new PersonWithRelationship();
+			probe.setName("Freddie");
+			PersonWithRelationship loadedPerson = repository.findAll(Example.of(probe)).get(0);
+			assertThat(loadedPerson.getName()).isEqualTo("Freddie");
+			assertThat(loadedPerson.getId()).isEqualTo(personId);
+			Hobby hobby = loadedPerson.getHobbies();
+			assertThat(hobby).isNotNull();
+			assertThat(hobby.getId()).isEqualTo(hobbyNodeId);
+			assertThat(hobby.getName()).isEqualTo("Music");
+
+			List<Pet> pets = loadedPerson.getPets();
+			Pet comparisonPet1 = new Pet(petNode1Id, "Jerry");
+			Pet comparisonPet2 = new Pet(petNode2Id, "Tom");
+			assertThat(pets).containsExactlyInAnyOrder(comparisonPet1, comparisonPet2);
+
+		}
+
+		@Test
+		void findEntityWithRelationshipByFindAllByExampleWithSort(@Autowired RelationshipRepository repository) {
+
+			long personId;
+			long hobbyNodeId;
+			long petNode1Id;
+			long petNode2Id;
+
+			try (Session session = createSession()) {
+				Record record = session
+						.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) " + "RETURN n, h1, p1, p2")
+						.single();
+
+				Node personNode = record.get("n").asNode();
+				Node hobbyNode1 = record.get("h1").asNode();
+				Node petNode1 = record.get("p1").asNode();
+				Node petNode2 = record.get("p2").asNode();
+
+				personId = personNode.id();
+				hobbyNodeId = hobbyNode1.id();
+				petNode1Id = petNode1.id();
+				petNode2Id = petNode2.id();
+			}
+
+			PersonWithRelationship probe = new PersonWithRelationship();
+			probe.setName("Freddie");
+			PersonWithRelationship loadedPerson = repository.findAll(Example.of(probe), Sort.by("name")).get(0);
+			assertThat(loadedPerson.getName()).isEqualTo("Freddie");
+			assertThat(loadedPerson.getId()).isEqualTo(personId);
+			Hobby hobby = loadedPerson.getHobbies();
+			assertThat(hobby).isNotNull();
+			assertThat(hobby.getId()).isEqualTo(hobbyNodeId);
+			assertThat(hobby.getName()).isEqualTo("Music");
+
+			List<Pet> pets = loadedPerson.getPets();
+			Pet comparisonPet1 = new Pet(petNode1Id, "Jerry");
+			Pet comparisonPet2 = new Pet(petNode2Id, "Tom");
+			assertThat(pets).containsExactlyInAnyOrder(comparisonPet1, comparisonPet2);
+
+		}
+
+		@Test
+		void findEntityWithRelationshipByFindAllByExampleWithPageable(@Autowired RelationshipRepository repository) {
+
+			long personId;
+			long hobbyNodeId;
+			long petNode1Id;
+			long petNode2Id;
+
+			try (Session session = createSession()) {
+				Record record = session
+						.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) " + "RETURN n, h1, p1, p2")
+						.single();
+
+				Node personNode = record.get("n").asNode();
+				Node hobbyNode1 = record.get("h1").asNode();
+				Node petNode1 = record.get("p1").asNode();
+				Node petNode2 = record.get("p2").asNode();
+
+				personId = personNode.id();
+				hobbyNodeId = hobbyNode1.id();
+				petNode1Id = petNode1.id();
+				petNode2Id = petNode2.id();
+			}
+
+			PersonWithRelationship probe = new PersonWithRelationship();
+			probe.setName("Freddie");
+			PersonWithRelationship loadedPerson = repository.findAll(Example.of(probe),  PageRequest.of(0, 1, Sort.by("name"))).toList().get(0);
+			assertThat(loadedPerson.getName()).isEqualTo("Freddie");
+			assertThat(loadedPerson.getId()).isEqualTo(personId);
+			Hobby hobby = loadedPerson.getHobbies();
+			assertThat(hobby).isNotNull();
+			assertThat(hobby.getId()).isEqualTo(hobbyNodeId);
+			assertThat(hobby.getName()).isEqualTo("Music");
+
+			List<Pet> pets = loadedPerson.getPets();
+			Pet comparisonPet1 = new Pet(petNode1Id, "Jerry");
+			Pet comparisonPet2 = new Pet(petNode2Id, "Tom");
+			assertThat(pets).containsExactlyInAnyOrder(comparisonPet1, comparisonPet2);
+
+		}
+
 	}
 
 	@Nested
