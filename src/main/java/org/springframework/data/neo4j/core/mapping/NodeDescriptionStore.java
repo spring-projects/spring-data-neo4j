@@ -76,7 +76,7 @@ final class NodeDescriptionStore {
 		return null;
 	}
 
-	public NodeDescriptionAndLabels deriveConcreteNodeDescription(Neo4jPersistentEntity<?> entityDescription,
+	public static NodeDescriptionAndLabels deriveConcreteNodeDescription(Neo4jPersistentEntity<?> entityDescription,
 			List<String> labels) {
 		if (labels == null || labels.isEmpty()) {
 			return new NodeDescriptionAndLabels(entityDescription, Collections.emptyList());
