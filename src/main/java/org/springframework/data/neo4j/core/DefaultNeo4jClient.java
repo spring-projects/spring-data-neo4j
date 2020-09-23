@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -246,7 +247,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
 				Result result = runnableStatement.runWith(statementRunner);
-				return result.consume();
+				return ResultSummaries.process(result.consume());
 			} catch (RuntimeException e) {
 				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
 			}
@@ -281,9 +282,11 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
 				Result result = runnableStatement.runWith(statementRunner);
-				return result.hasNext() ?
+				Optional<T> optionalValue = result.hasNext() ?
 						Optional.of(mappingFunction.apply(typeSystem, result.single())) :
 						Optional.empty();
+				ResultSummaries.process(result.consume());
+				return optionalValue;
 			} catch (RuntimeException e) {
 				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
 			}
@@ -294,7 +297,9 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
 				Result result = runnableStatement.runWith(statementRunner);
-				return result.stream().map(partialMappingFunction(typeSystem)).findFirst();
+				Optional<T> optionalValue = result.stream().map(partialMappingFunction(typeSystem)).findFirst();
+				ResultSummaries.process(result.consume());
+				return optionalValue;
 			} catch (RuntimeException e) {
 				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
 			}
@@ -305,7 +310,9 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
 				Result result = runnableStatement.runWith(statementRunner);
-				return result.stream().map(partialMappingFunction(typeSystem)).collect(Collectors.toList());
+				List<T> values = result.stream().map(partialMappingFunction(typeSystem)).collect(Collectors.toList());
+				ResultSummaries.process(result.consume());
+				return values;
 			} catch (RuntimeException e) {
 				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
 			}

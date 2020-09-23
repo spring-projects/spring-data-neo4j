@@ -102,6 +102,7 @@ class ReactiveNeo4jClientTest {
 		when(transaction.run(anyString(), anyMap())).thenReturn(result);
 		when(transaction.commit()).thenReturn(Mono.empty());
 		when(result.records()).thenReturn(Flux.just(record1, record2));
+		when(result.consume()).thenReturn(Mono.just(resultSummary));
 
 		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 
@@ -126,6 +127,8 @@ class ReactiveNeo4jClientTest {
 		verify(transaction).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
 
 		verify(result).records();
+		verify(result).consume();
+		verify(resultSummary).notifications();
 		verify(record1).asMap();
 		verify(record2).asMap();
 		verify(transaction).commit();
@@ -141,6 +144,7 @@ class ReactiveNeo4jClientTest {
 		when(transaction.run(anyString(), anyMap())).thenReturn(result);
 		when(transaction.commit()).thenReturn(Mono.empty());
 		when(result.records()).thenReturn(Flux.just(record1, record2));
+		when(result.consume()).thenReturn(Mono.just(resultSummary));
 
 		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 
@@ -157,6 +161,8 @@ class ReactiveNeo4jClientTest {
 
 		verify(transaction).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
 		verify(result).records();
+		verify(result).consume();
+		verify(resultSummary).notifications();
 		verify(record1).asMap();
 		verify(transaction).commit();
 		verify(transaction).rollback();
@@ -239,6 +245,7 @@ class ReactiveNeo4jClientTest {
 			when(transaction.run(anyString(), anyMap())).thenReturn(result);
 			when(transaction.commit()).thenReturn(Mono.empty());
 			when(result.records()).thenReturn(Flux.just(record1));
+			when(result.consume()).thenReturn(Mono.just(resultSummary));
 			when(record1.get("name")).thenReturn(Values.value("michael"));
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
@@ -258,6 +265,7 @@ class ReactiveNeo4jClientTest {
 
 			verify(transaction).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
 			verify(result).records();
+			verify(resultSummary).notifications();
 			verify(record1).get("name");
 			verify(transaction).commit();
 			verify(transaction).rollback();
@@ -272,6 +280,7 @@ class ReactiveNeo4jClientTest {
 			when(transaction.run(anyString(), anyMap())).thenReturn(result);
 			when(transaction.rollback()).thenReturn(Mono.empty());
 			when(result.records()).thenReturn(Flux.just(record1, record2));
+			when(result.consume()).thenReturn(Mono.just(resultSummary));
 			when(record1.get("name")).thenReturn(Values.value("michael"));
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
@@ -291,6 +300,7 @@ class ReactiveNeo4jClientTest {
 			verify(transaction).run(eq("MATCH (n) RETURN n"),
 					MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(Collections.emptyMap())));
 			verify(result).records();
+			verify(resultSummary).notifications();
 			verify(record1).get("name");
 			verify(transaction).commit();
 			verify(transaction).rollback();
@@ -326,6 +336,7 @@ class ReactiveNeo4jClientTest {
 
 			verify(transaction).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
 			verify(result).consume();
+			verify(resultSummary).notifications();
 			verify(transaction).commit();
 			verify(transaction).rollback();
 			verify(session).close();
@@ -340,6 +351,7 @@ class ReactiveNeo4jClientTest {
 			when(transaction.run(anyString(), anyMap())).thenReturn(result);
 			when(transaction.commit()).thenReturn(Mono.empty());
 			when(result.records()).thenReturn(Flux.just(record1));
+			when(result.consume()).thenReturn(Mono.just(resultSummary));
 			when(record1.size()).thenReturn(1);
 			when(record1.get(0)).thenReturn(Values.value(23L));
 
@@ -352,6 +364,8 @@ class ReactiveNeo4jClientTest {
 
 			verifyDatabaseSelection(null);
 
+			verify(result).consume();
+			verify(resultSummary).notifications();
 			verify(transaction).run(eq(cypher), anyMap());
 			verify(transaction).commit();
 			verify(transaction).rollback();
@@ -385,6 +399,7 @@ class ReactiveNeo4jClientTest {
 
 		verify(transaction).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
 		verify(result).consume();
+		verify(resultSummary).notifications();
 		verify(transaction).commit();
 		verify(transaction).rollback();
 		verify(session).close();

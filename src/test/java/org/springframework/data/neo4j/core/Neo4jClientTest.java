@@ -99,6 +99,7 @@ class Neo4jClientTest {
 
 		when(session.run(anyString(), anyMap())).thenReturn(result);
 		when(result.stream()).thenReturn(Stream.of(record1, record2));
+		when(result.consume()).thenReturn(resultSummary);
 
 		Neo4jClient client = Neo4jClient.create(driver);
 
@@ -127,6 +128,7 @@ class Neo4jClientTest {
 		verify(session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 
 		verify(result).stream();
+		verify(result).consume();
 		verify(record1).asMap();
 		verify(record2).asMap();
 		verify(session).close();
@@ -139,6 +141,7 @@ class Neo4jClientTest {
 
 		when(session.run(anyString(), anyMap())).thenReturn(result);
 		when(result.stream()).thenReturn(Stream.of(record1, record2));
+		when(result.consume()).thenReturn(resultSummary);
 
 		Neo4jClient client = Neo4jClient.create(driver);
 
@@ -156,6 +159,7 @@ class Neo4jClientTest {
 
 		verify(session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(result).stream();
+		verify(result).consume();
 		verify(record1).asMap();
 		verify(session).close();
 	}
@@ -227,6 +231,7 @@ class Neo4jClientTest {
 
 			when(session.run(anyString(), anyMap())).thenReturn(result);
 			when(result.stream()).thenReturn(Stream.of(record1));
+			when(result.consume()).thenReturn(resultSummary);
 			when(record1.get("name")).thenReturn(Values.value("michael"));
 
 			Neo4jClient client = Neo4jClient.create(driver);
@@ -246,6 +251,7 @@ class Neo4jClientTest {
 
 			verify(session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 			verify(result).stream();
+			verify(result).consume();
 			verify(record1).get("name");
 			verify(session).close();
 		}
@@ -312,6 +318,7 @@ class Neo4jClientTest {
 			when(session.run(anyString(), anyMap())).thenReturn(result);
 			when(result.hasNext()).thenReturn(true);
 			when(result.single()).thenReturn(record1);
+			when(result.consume()).thenReturn(resultSummary);
 			when(record1.size()).thenReturn(1);
 			when(record1.get(0)).thenReturn(Values.value(23L));
 
@@ -327,6 +334,7 @@ class Neo4jClientTest {
 			verify(session).run(eq(cypher), anyMap());
 			verify(result).hasNext();
 			verify(result).single();
+			verify(result).consume();
 			verify(session).close();
 		}
 	}
