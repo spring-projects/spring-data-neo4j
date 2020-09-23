@@ -51,6 +51,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jClient;
@@ -77,6 +78,7 @@ class Neo4jTransactionManagerTest {
 	@Mock private Transaction transaction;
 	@Mock private Result statementResult;
 	@Mock private UserTransaction userTransaction;
+	@Mock private ResultSummary resultSummary;
 
 	@Test
 	void shouldWorkWithoutSynchronizations() {
@@ -95,6 +97,7 @@ class Neo4jTransactionManagerTest {
 		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(session.isOpen()).thenReturn(true);
+		when(statementResult.consume()).thenReturn(resultSummary);
 		when(transaction.isOpen()).thenReturn(true, false);
 
 		Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
@@ -138,6 +141,7 @@ class Neo4jTransactionManagerTest {
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(session.isOpen()).thenReturn(true);
 		when(transaction.isOpen()).thenReturn(true, false);
+		when(statementResult.consume()).thenReturn(resultSummary);
 
 		Neo4jTransactionManager txManager = spy(new Neo4jTransactionManager(driver));
 		Neo4jBookmarkManager bookmarkManager = mock(Neo4jBookmarkManager.class);

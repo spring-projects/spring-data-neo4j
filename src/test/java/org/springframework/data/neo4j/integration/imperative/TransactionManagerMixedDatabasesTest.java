@@ -37,6 +37,7 @@ import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.summary.ResultSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -159,10 +160,12 @@ class TransactionManagerMixedDatabasesTest {
 			Result boomResult = mock(Result.class);
 			when(boomResult.hasNext()).thenReturn(true);
 			when(boomResult.single()).thenReturn(boomRecord);
+			when(boomResult.consume()).thenReturn(mock(ResultSummary.class));
 
 			Result defaultResult = mock(Result.class);
 			when(defaultResult.hasNext()).thenReturn(true);
 			when(defaultResult.single()).thenReturn(defaultRecord);
+			when(defaultResult.consume()).thenReturn(mock(ResultSummary.class));
 
 			Transaction boomTransaction = mock(Transaction.class);
 			when(boomTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomResult);

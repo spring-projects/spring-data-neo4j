@@ -37,6 +37,7 @@ import org.neo4j.driver.Values;
 import org.neo4j.driver.reactive.RxResult;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
+import org.neo4j.driver.summary.ResultSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -186,9 +187,11 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 
 			RxResult boomResult = mock(RxResult.class);
 			when(boomResult.records()).thenReturn(Mono.just(boomRecord));
+			when(boomResult.consume()).thenReturn(Mono.just(mock(ResultSummary.class)));
 
 			RxResult defaultResult = mock(RxResult.class);
 			when(defaultResult.records()).thenReturn(Mono.just(defaultRecord));
+			when(defaultResult.consume()).thenReturn(Mono.just(mock(ResultSummary.class)));
 
 			RxTransaction boomTransaction = mock(RxTransaction.class);
 			when(boomTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(boomResult);

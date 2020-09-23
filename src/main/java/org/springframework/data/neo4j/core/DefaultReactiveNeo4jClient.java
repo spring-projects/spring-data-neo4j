@@ -222,7 +222,9 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		Flux<T> executeWith(Tuple2<String, Map<String, Object>> t, RxQueryRunner runner) {
 
-			return Flux.from(runner.run(t.getT1(), t.getT2()).records()).map(r -> mappingFunction.apply(typeSystem, r));
+			return Flux.usingWhen(Flux.just(runner.run(t.getT1(), t.getT2())),
+					result -> Flux.from(result.records()).map(r -> mappingFunction.apply(typeSystem, r)),
+					result -> Flux.from(result.consume()).doOnNext(ResultSummaries::process));
 		}
 
 		@Override
@@ -253,7 +255,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 			return doInQueryRunnerForMono(targetDatabase, runner -> prepareStatement().flatMap(t -> {
 				RxResult rxResult = runner.run(t.getT1(), t.getT2());
-				return Flux.from(rxResult.records()).then(Mono.from(rxResult.consume()));
+				return Flux.from(rxResult.records()).then(Mono.from(rxResult.consume()).map(ResultSummaries::process));
 			})).onErrorMap(RuntimeException.class, DefaultReactiveNeo4jClient.this::potentiallyConvertRuntimeException);
 		}
 	}
