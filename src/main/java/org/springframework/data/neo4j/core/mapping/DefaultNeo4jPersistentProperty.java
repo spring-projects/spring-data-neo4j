@@ -94,21 +94,33 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		Neo4jPersistentEntity<?> relationshipPropertiesClass = null;
 
 		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
-			Class<?> type = this.mappingContext.getPersistentEntity(getActualType()).getPersistentProperty(TargetNode.class).getType();
+			Class<?> type = getRelationshipPropertiesTargetType(getActualType());
 			obverseOwner = this.mappingContext.getPersistentEntity(type);
 			relationshipPropertiesClass = this.mappingContext.getPersistentEntity(getActualType());
 		} else if (dynamicAssociation) {
-			if (this.mappingContext.getPersistentEntity(getTypeInformation().getMapValueType().getActualType().getType()).isRelationshipPropertiesEntity()) {
-				Class<?> type = this.mappingContext.getPersistentEntity(getTypeInformation().getMapValueType().getActualType().getType()).getPersistentProperty(TargetNode.class).getType();
+
+			TypeInformation<?> mapValueType = this.getTypeInformation().getMapValueType();
+
+			boolean relationshipPropertiesCollection =
+					this.mappingContext.getPersistentEntity(mapValueType.getActualType().getType())
+							.isRelationshipPropertiesEntity();
+
+			boolean relationshipPropertiesScalar =
+					mapValueType.getType().isAnnotationPresent(RelationshipProperties.class);
+
+			if (relationshipPropertiesCollection) {
+				Class<?> type = getRelationshipPropertiesTargetType(mapValueType.getActualType().getType());
 				obverseOwner = this.mappingContext.getPersistentEntity(type);
-				relationshipPropertiesClass = this.mappingContext.getPersistentEntity(this.getTypeInformation().getMapValueType().getComponentType().getType());
-			} else if (this.getTypeInformation().getMapValueType().getType().isAnnotationPresent(RelationshipProperties.class)) {
+				relationshipPropertiesClass = this.mappingContext
+						.getPersistentEntity(mapValueType.getComponentType().getType());
+
+			} else if (relationshipPropertiesScalar) {
 				obverseOwner = this.mappingContext.getPersistentEntity(this.getAssociationTargetType());
-				relationshipPropertiesClass = this.mappingContext.getPersistentEntity(this.getTypeInformation().getMapValueType().getType());
+				relationshipPropertiesClass = this.mappingContext.getPersistentEntity(mapValueType.getType());
 			} else {
 				obverseOwner = this.mappingContext.getPersistentEntity(this.getAssociationTargetType());
 			}
-		}else {
+		} else {
 			obverseOwner = this.mappingContext.getPersistentEntity(this.getAssociationTargetType());
 		}
 
