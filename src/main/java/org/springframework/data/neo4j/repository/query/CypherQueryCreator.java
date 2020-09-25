@@ -89,7 +89,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 	private final Neo4jQueryType queryType;
 
-	private final Iterator<?> formalParameters;
+	private final Iterator<Neo4jQueryMethod.Neo4jParameter> formalParameters;
 	private final Queue<Parameter> lastParameter = new LinkedList<>();
 
 	private final Supplier<String> indexSupplier = new IndexSupplier();
@@ -114,7 +114,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 	private final List<PropertyPathWrapper> propertyPathWrappers;
 
 	CypherQueryCreator(Neo4jMappingContext mappingContext, Class<?> domainType, Neo4jQueryType queryType, PartTree tree,
-			ParametersParameterAccessor actualParameters, List<String> includedProperties,
+			Neo4jParameterAccessor actualParameters, List<String> includedProperties,
 			Function<Object, Object> parameterConversion) {
 		super(tree, actualParameters);
 		this.mappingContext = mappingContext;
@@ -578,7 +578,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 		if (nextRequiredParameter != null) {
 			return Optional.of(nextRequiredParameter);
 		} else if (formalParameters.hasNext()) {
-			final Neo4jQueryMethod.Neo4jParameter parameter = (Neo4jQueryMethod.Neo4jParameter) formalParameters.next();
+			final Neo4jQueryMethod.Neo4jParameter parameter = formalParameters.next();
 			Parameter boundedParameter = new Parameter(parameter.getName().orElseGet(indexSupplier), actualParameters.next());
 			boundedParameters.add(boundedParameter);
 			return Optional.of(boundedParameter);
@@ -596,7 +596,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 			if (!formalParameters.hasNext()) {
 				throw new IllegalStateException("Not enough formal, bindable parameters for parts");
 			}
-			final Neo4jQueryMethod.Neo4jParameter parameter = (Neo4jQueryMethod.Neo4jParameter) formalParameters.next();
+			final Neo4jQueryMethod.Neo4jParameter parameter = formalParameters.next();
 			Parameter boundedParameter = new Parameter(parameter.getName().orElseGet(indexSupplier), actualParameters.next());
 			boundedParameters.add(boundedParameter);
 			return boundedParameter;
