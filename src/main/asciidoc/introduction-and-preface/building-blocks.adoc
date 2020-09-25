@@ -1,10 +1,12 @@
 [[building-blocks]]
 = Building blocks
 
-SDN consists of compossible building blocks.
+== Overview
+
+SDN consists of composable building blocks.
 It builds on top of the https://github.com/neo4j/neo4j-java-driver[Neo4j Java Driver].
-The instance of the Java driver is provided by our link:{java-driver-starter-href}[starter].
-All configuration options of the driver can be configured through the starter in the namespace `org.neo4j.driver`.
+The instance of the Java driver is provided through Spring Boot's automatic configuration itself.
+All configuration options of the driver are accessible in the namespace `spring.neo4j`.
 The driver bean provides imperative, asynchronous and reactive methods to interact with Neo4j.
 
 You can use all transaction methods the driver provides on that bean such as https://neo4j.com/docs/driver-manual/4.0/terminology/#term-auto-commit[auto-commit transactions],
@@ -13,7 +15,7 @@ Be aware that those transactions are not tight to an ongoing Spring transaction.
 
 Integration with Spring Data and Spring's platform or reactive transaction manager starts at the <<neo4j-client,Neo4j Client>>.
 The client is part of SDN is configured through a separate starter, `{artifactIdStarter}`.
-The configuration namespace of that starter is `org.neo4j.data`.
+The configuration namespace of that starter is `spring.data.neo4j`.
 
 The client is mapping agnostic.
 It doesn't know about your domain classes and you are responsible for mapping a result to an object suiting your needs.
@@ -71,3 +73,44 @@ The template mechanism is similar to the templates of others stores.
 Find some more information about it in <<template-support,our FAQ>>.
 The Neo4j Client as such is unique to SDN.
 You will find it's documentation in the <<neo4j-client,appendix>>.
+
+== On the package level
+
+[%header,cols=2*]
+|===
+|Package
+|Description
+
+|`org.springframework.data.neo4j.config`
+|
+include::../../../main/java/org/springframework/data/neo4j/config/package-info.java[tags=intent,indent=0]
+
+|`org.springframework.data.neo4j.core`
+|
+include::../../../main/java/org/springframework/data/neo4j/core/package-info.java[tags=intent,indent=0]
+
+|`org.springframework.data.neo4j.core.convert`
+|
+include::../../../main/java/org/springframework/data/neo4j/core/convert/package-info.java[tags=intent,indent=]
+
+|`org.springframework.data.neo4j.core.support`
+|
+include::../../../main/java/org/springframework/data/neo4j/core/support/package-info.java[tags=intent,indent=]
+
+|`org.springframework.data.neo4j.core.transaction`
+|
+include::../../../main/java/org/springframework/data/neo4j/core/transaction/package-info.java[tags=intent,indent=]
+
+|`org.springframework.data.neo4j.repository`
+|
+include::../../../main/java/org/springframework/data/neo4j/repository/package-info.java[tags=intent,indent=0]
+
+|`org.springframework.data.neo4j.repository.config`
+|
+include::../../../main/java/org/springframework/data/neo4j/repository/config/package-info.java[tags=intent,indent=0]
+
+|`org.springframework.data.neo4j.repository.support`
+|
+include::../../../main/java/org/springframework/data/neo4j/repository/support/package-info.java[tags=intent,indent=0]
+
+|===

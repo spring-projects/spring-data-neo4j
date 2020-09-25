@@ -49,10 +49,10 @@ import org.springframework.data.neo4j.core.NestedRelationshipProcessingStateMach
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.core.schema.Constants;
-import org.springframework.data.neo4j.core.schema.CypherGenerator;
-import org.springframework.data.neo4j.core.schema.NodeDescription;
-import org.springframework.data.neo4j.core.schema.RelationshipDescription;
+import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.NodeDescription;
+import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.event.BeforeBindCallback;
 import org.springframework.data.util.ClassTypeInformation;
@@ -206,7 +206,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	private Object convertIdValues(Object idValues) {
 
-		return neo4jMappingContext.getConverter().writeValueFromProperty(idValues,
+		return neo4jMappingContext.getEntityAccessor().writeValueFromProperty(idValues,
 				ClassTypeInformation.from(idValues.getClass()));
 	}
 

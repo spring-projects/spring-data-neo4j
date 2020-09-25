@@ -19,7 +19,6 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.data.neo4j.core.schema.IdDescription;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;

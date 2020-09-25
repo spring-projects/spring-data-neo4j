@@ -18,9 +18,7 @@ package org.springframework.data.neo4j.core.mapping;
 import java.util.Objects;
 
 import org.springframework.data.mapping.Association;
-import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.Relationship;
-import org.springframework.data.neo4j.core.schema.RelationshipDescription;
 import org.springframework.lang.Nullable;
 
 /**

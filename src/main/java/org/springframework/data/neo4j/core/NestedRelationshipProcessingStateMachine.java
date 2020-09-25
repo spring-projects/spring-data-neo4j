@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.springframework.data.neo4j.core.schema.RelationshipDescription;
+import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.lang.Nullable;
 
 /**

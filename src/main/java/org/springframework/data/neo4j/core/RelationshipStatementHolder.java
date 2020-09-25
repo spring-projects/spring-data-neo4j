@@ -22,7 +22,7 @@ import java.util.Map;
 import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.core.schema.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
 
@@ -79,7 +79,7 @@ final class RelationshipStatementHolder {
 				neo4jPersistentEntity, relationshipContext.getRelationship(), relatedInternalId);
 		Map<String, Object> propMap = new HashMap<>();
 		// write relationship properties
-		neo4jMappingContext.getConverter().write(relatedValue.getRelationshipProperties(), propMap);
+		neo4jMappingContext.getEntityAccessor().write(relatedValue.getRelationshipProperties(), propMap);
 
 		return new RelationshipStatementHolder(relationshipCreationQuery, propMap);
 	}
@@ -94,7 +94,7 @@ final class RelationshipStatementHolder {
 		} else {
 			TypeInformation<?> keyType = relationshipContext.getInverse().getTypeInformation().getRequiredComponentType();
 			Object key = ((Map.Entry<?, ?>) relatedValue).getKey();
-			relationshipType = neo4jMappingContext.getConverter().writeValueFromProperty(key, keyType).asString();
+			relationshipType = neo4jMappingContext.getEntityAccessor().writeValueFromProperty(key, keyType).asString();
 		}
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.createRelationshipCreationQuery(

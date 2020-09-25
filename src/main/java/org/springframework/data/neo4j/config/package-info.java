@@ -1,6 +1,9 @@
 /**
- * This package contains configuration related support classes that can be used for the application specific
- * {@link org.springframework.context.annotation.Configuration}.
+ * <!-- tag::intent[] -->
+   This package contains configuration related support classes that can be used for application specific, annotated
+   configuration classes. The abstract base classes are helpful if you don't rely on Spring Boots autoconfiguration.
+   The package provides some additional annotations that enable auditing.
+ * <!-- end::intent[] -->
  */
 @NonNullApi
 package org.springframework.data.neo4j.config;

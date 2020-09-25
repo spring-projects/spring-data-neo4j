@@ -24,7 +24,7 @@ import java.util.function.UnaryOperator;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate;
-import org.springframework.data.neo4j.core.schema.Constants;
+import org.springframework.data.neo4j.core.mapping.Constants;
 
 /**
  * Decorator for an ongoing update statement that removes obsolete dynamic labels and adds new ones.

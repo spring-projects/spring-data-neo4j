@@ -1,8 +1,8 @@
 /**
- * This package contains infrastructure code that set up the needed Spring beans to register the repository
- * capabilities. Additional it holds the implementations of the
- * {@link org.springframework.data.repository.PagingAndSortingRepository} and
- * {@link org.springframework.data.repository.reactive.ReactiveSortingRepository}.
+ * <!-- tag::intent[] -->
+   This package provides support classes for building custom imperative and reactive Spring Data Neo4j repository base classes.
+   The support classes are the same classes used by SDN itself.
+ * <!-- end::intent[] -->
  */
 @NonNullApi
 package org.springframework.data.neo4j.repository.support;

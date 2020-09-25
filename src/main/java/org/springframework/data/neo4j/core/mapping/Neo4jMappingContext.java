@@ -35,12 +35,9 @@ import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
-import org.springframework.data.neo4j.core.convert.Neo4jConverter;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.NodeDescription;
-import org.springframework.data.neo4j.core.schema.Schema;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 
@@ -63,14 +60,14 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	/**
 	 * The {@link NodeDescriptionStore} is basically a {@link Map} and it is used to break the dependency cycle between
-	 * this class and the {@link DefaultNeo4jConverter}.
+	 * this class and the {@link DefaultNeo4jEntityAccessor}.
 	 */
 	private final NodeDescriptionStore nodeDescriptionStore = new NodeDescriptionStore();
 
 	/**
 	 * The converter used in this mapping context.
 	 */
-	private final Neo4jConverter converter;
+	private final Neo4jEntityAccessor entityAccessor;
 
 	private final Neo4jConversions neo4jConversions;
 
@@ -99,15 +96,15 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		super.setSimpleTypeHolder(Neo4jSimpleTypes.HOLDER);
 		this.neo4jConversions = neo4jConversions;
 
-		DefaultNeo4jConverter defaultNeo4jConverter = new DefaultNeo4jConverter(neo4jConversions, nodeDescriptionStore);
+		DefaultNeo4jEntityAccessor defaultNeo4jConverter = new DefaultNeo4jEntityAccessor(neo4jConversions, nodeDescriptionStore);
 		if (typeSystem != null) {
 			defaultNeo4jConverter.setTypeSystem(typeSystem);
 		}
-		this.converter = defaultNeo4jConverter;
+		this.entityAccessor = defaultNeo4jConverter;
 	}
 
-	public Neo4jConverter getConverter() {
-		return converter;
+	public Neo4jEntityAccessor getEntityAccessor() {
+		return entityAccessor;
 	}
 
 	boolean hasCustomWriteTarget(Class<?> targetType) {
@@ -234,6 +231,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 		this.beanFactory = applicationContext.getAutowireCapableBeanFactory();
 		Driver driver = this.beanFactory.getBean(Driver.class);
-		((DefaultNeo4jConverter) this.converter).setTypeSystem(driver.defaultTypeSystem());
+		((DefaultNeo4jEntityAccessor) this.entityAccessor).setTypeSystem(driver.defaultTypeSystem());
 	}
 }

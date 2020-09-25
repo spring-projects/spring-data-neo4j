@@ -21,7 +21,6 @@ import org.apiguardian.api.API;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.MutablePersistentEntity;
-import org.springframework.data.neo4j.core.schema.NodeDescription;
 
 /**
  * A {@link org.springframework.data.mapping.PersistentEntity} interface with additional methods for metadata related to
