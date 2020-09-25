@@ -356,7 +356,7 @@ public enum CypherGenerator {
 		List<Expression> blubb = new ArrayList<>();
 		List<Object> c = projectNodeProperties(nodeDescription, nodeName, includeProperty);
 		contentOfProjection.addAll(c);
-		if (containsPossibleCircles && !containsPossibleCircles) {
+		if (containsPossibleCircles) {
 
 			Relationship pattern = anyNode(nodeName).relationshipBetween(anyNode(),
 					collectAllRelationshipTypes(nodeDescription).toArray(new String[]{})).unbounded();
