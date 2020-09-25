@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.core.mapping;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.neo4j.core.mapping.IdDescription;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 
 /**

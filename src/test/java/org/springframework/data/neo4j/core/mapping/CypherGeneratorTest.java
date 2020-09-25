@@ -24,11 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
-import org.springframework.data.neo4j.core.mapping.CypherGenerator;
-import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
