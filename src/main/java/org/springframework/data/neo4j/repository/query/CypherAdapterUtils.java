@@ -25,9 +25,9 @@ import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.core.schema.Constants;
-import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
-import org.springframework.data.neo4j.core.schema.NodeDescription;
+import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
+import org.springframework.data.neo4j.core.mapping.NodeDescription;
 
 /**
  * Bridging between Spring Data domain Objects and Cypher constructs.

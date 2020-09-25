@@ -6,10 +6,10 @@ image:https://spring.io/badges/spring-data-neo4j/ga.svg[Spring Data Neo4j,link=h
 // tag::properties[]
 :neo4jGroupId: org.springframework.data.neo4j
 :artifactId: spring-data-neo4j
-:artifactIdStarter: spring-data-neo4j-spring-boot-starter
+:artifactIdStarter: spring-boot-starter-data-neo4j
 
 :neo4j-version: 4.0.4
-:spring-boot-version: 2.3.2.RELEASE
+:spring-boot-version: 2.4.0.M3
 :spring-data-neo4j-version: 6.0.0-SNAPSHOT
 // end::properties[]
 

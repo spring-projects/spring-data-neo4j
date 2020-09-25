@@ -87,6 +87,7 @@ abstract class Neo4jQuerySupport {
 		final Class<?> returnedType = resultProcessor.getReturnedType().getReturnedType();
 
 		final BiFunction<TypeSystem, Record, ?> mappingFunction;
+
 		if (Neo4jSimpleTypes.HOLDER.isSimpleType(returnedType)) {
 			// Clients automatically selects a single value mapping function.
 			// It will thrown an error if the query contains more than one column.
@@ -147,7 +148,7 @@ abstract class Neo4jQuerySupport {
 		}
 
 		// Good hook to check the NodeManager whether the thing is an entity and we replace the value with a known id.
-		return mappingContext.getConverter().writeValueFromProperty(parameter,
+		return mappingContext.getEntityConverter().writeValueFromProperty(parameter,
 				ClassTypeInformation.from(parameter.getClass()));
 	}
 

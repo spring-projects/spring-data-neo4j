@@ -51,7 +51,7 @@ import org.springframework.data.neo4j.types.GeographicPoint3d;
  * @author Michael J. Simons
  * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public final class Neo4jSimpleTypes {
 
 	private static final Set<Class<?>> NEO4J_NATIVE_TYPES;

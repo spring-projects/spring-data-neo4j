@@ -34,14 +34,10 @@ import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
-import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
-import org.springframework.data.neo4j.core.schema.IdDescription;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
-import org.springframework.data.neo4j.core.schema.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.data.util.Lazy;
@@ -56,7 +52,7 @@ import org.springframework.util.StringUtils;
  * @author Gerrit Meier
  * @since 6.0
  */
-class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty>
+final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty>
 		implements Neo4jPersistentEntity<T> {
 
 	private static final Set<Class<?>> VALID_GENERATED_ID_TYPES = Collections

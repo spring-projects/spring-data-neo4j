@@ -17,8 +17,6 @@ package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Collection;
 
-import org.springframework.data.neo4j.core.schema.NodeDescription;
-
 /**
  * Wraps a resolved node description together with the complete list of labels returned from the database and the list
  * of labels not statically defined in the resolved node hierarchy.
