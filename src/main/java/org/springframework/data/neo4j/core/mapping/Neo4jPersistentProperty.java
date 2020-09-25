@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.core.mapping;
 import org.apiguardian.api.API;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
-import org.springframework.data.neo4j.core.schema.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 
 /**

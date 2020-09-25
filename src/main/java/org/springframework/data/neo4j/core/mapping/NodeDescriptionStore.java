@@ -25,16 +25,15 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.mapping.context.AbstractMappingContext;
-import org.springframework.data.neo4j.core.schema.NodeDescription;
 import org.springframework.lang.Nullable;
 
 /**
  * This class is more or less just a wrapper around the node description lookup map. It ensures that there is no cyclic
- * dependency between {@link Neo4jMappingContext} and {@link DefaultNeo4jConverter}.
+ * dependency between {@link Neo4jMappingContext} and {@link DefaultNeo4jEntityConverter}.
  *
  * @author Gerrit Meier
  */
-class NodeDescriptionStore {
+final class NodeDescriptionStore {
 
 	/**
 	 * A lookup of entities based on their primary label. We depend on the locking mechanism provided by the

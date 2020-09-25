@@ -29,7 +29,7 @@ import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
-import org.springframework.data.neo4j.repository.support.ReactiveNeo4jRepositoryFactoryBean;
+import org.springframework.data.neo4j.repository.core.ReactiveNeo4jRepositoryFactoryBean;
 import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
 
 /**

@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apiguardian.api.API;
+import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.beans.BeanUtils;
@@ -35,12 +37,9 @@ import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
-import org.springframework.data.neo4j.core.convert.Neo4jConverter;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.NodeDescription;
-import org.springframework.data.neo4j.core.schema.Schema;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 
@@ -63,14 +62,14 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	/**
 	 * The {@link NodeDescriptionStore} is basically a {@link Map} and it is used to break the dependency cycle between
-	 * this class and the {@link DefaultNeo4jConverter}.
+	 * this class and the {@link DefaultNeo4jEntityConverter}.
 	 */
 	private final NodeDescriptionStore nodeDescriptionStore = new NodeDescriptionStore();
 
 	/**
 	 * The converter used in this mapping context.
 	 */
-	private final Neo4jConverter converter;
+	private final Neo4jEntityConverter entityConverter;
 
 	private final Neo4jConversions neo4jConversions;
 
@@ -99,15 +98,15 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		super.setSimpleTypeHolder(Neo4jSimpleTypes.HOLDER);
 		this.neo4jConversions = neo4jConversions;
 
-		DefaultNeo4jConverter defaultNeo4jConverter = new DefaultNeo4jConverter(neo4jConversions, nodeDescriptionStore);
+		DefaultNeo4jEntityConverter defaultNeo4jConverter = new DefaultNeo4jEntityConverter(neo4jConversions, nodeDescriptionStore);
 		if (typeSystem != null) {
 			defaultNeo4jConverter.setTypeSystem(typeSystem);
 		}
-		this.converter = defaultNeo4jConverter;
+		this.entityConverter = defaultNeo4jConverter;
 	}
 
-	public Neo4jConverter getConverter() {
-		return converter;
+	public Neo4jEntityConverter getEntityConverter() {
+		return entityConverter;
 	}
 
 	boolean hasCustomWriteTarget(Class<?> targetType) {
@@ -234,6 +233,48 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 		this.beanFactory = applicationContext.getAutowireCapableBeanFactory();
 		Driver driver = this.beanFactory.getBean(Driver.class);
-		((DefaultNeo4jConverter) this.converter).setTypeSystem(driver.defaultTypeSystem());
+		((DefaultNeo4jEntityConverter) this.entityConverter).setTypeSystem(driver.defaultTypeSystem());
+	}
+
+	public CreateRelationshipStatementHolder createStatement(Neo4jPersistentEntity<?> neo4jPersistentEntity, NestedRelationshipContext relationshipContext,
+			Long relatedInternalId, Object relatedValue) {
+
+		if (relationshipContext.hasRelationshipWithProperties()) {
+			return createStatementForRelationShipWithProperties(neo4jPersistentEntity,
+					relationshipContext, relatedInternalId, (MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValue);
+		} else {
+			return createStatementForRelationshipWithoutProperties(neo4jPersistentEntity,
+					relationshipContext, relatedInternalId, relatedValue);
+		}
+	}
+
+	private CreateRelationshipStatementHolder createStatementForRelationShipWithProperties(Neo4jPersistentEntity<?> neo4jPersistentEntity,
+			NestedRelationshipContext relationshipContext, Long relatedInternalId, MappingSupport.RelationshipPropertiesWithEntityHolder relatedValue) {
+
+		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.createRelationshipWithPropertiesCreationQuery(
+				neo4jPersistentEntity, relationshipContext.getRelationship(), relatedInternalId);
+		Map<String, Object> propMap = new HashMap<>();
+		// write relationship properties
+		entityConverter.write(relatedValue.getRelationshipProperties(), propMap);
+
+		return new CreateRelationshipStatementHolder(relationshipCreationQuery, propMap);
+	}
+
+	private CreateRelationshipStatementHolder createStatementForRelationshipWithoutProperties(
+			Neo4jPersistentEntity<?> neo4jPersistentEntity,
+			NestedRelationshipContext relationshipContext, Long relatedInternalId, Object relatedValue) {
+
+		String relationshipType;
+		if (!relationshipContext.getRelationship().isDynamic()) {
+			relationshipType = null;
+		} else {
+			TypeInformation<?> keyType = relationshipContext.getInverse().getTypeInformation().getRequiredComponentType();
+			Object key = ((Map.Entry<?, ?>) relatedValue).getKey();
+			relationshipType = entityConverter.writeValueFromProperty(key, keyType).asString();
+		}
+
+		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.createRelationshipCreationQuery(
+				neo4jPersistentEntity, relationshipContext.getRelationship(), relationshipType, relatedInternalId);
+		return new CreateRelationshipStatementHolder(relationshipCreationQuery);
 	}
 }

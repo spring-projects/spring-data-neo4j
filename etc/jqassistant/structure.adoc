@@ -1,5 +1,5 @@
 [[structure:Default]]
-[role=group,includesConstraints="structure:mapping"]
+[role=group,includesConstraints="structure:mapping,structure:support-packages"]
 
 Most of the time, the package structure under `org.springframework.data.neo4j` should reflect the main building parts.
 
@@ -13,5 +13,16 @@ WITH collect(s) as allowed, a
 MATCH (a) -[:CONTAINS]-> (p1:Package) -[:DEPENDS_ON]-> (p2:Package) <-[:CONTAINS]- (a)
 WHERE p1.fqn = 'org.springframework.data.neo4j.core.mapping'
   AND NOT (p2 in allowed OR (p1) -[:CONTAINS]-> (p2))
-return p1,p2
+RETURN p1,p2
+----
+
+[[structure:support-packages]]
+[source,cypher,role=constraint,requiresConcepts="dependency:Package"]
+.The public support packages must not depend directly on the mapping package
+----
+MATCH (a:Main:Artifact)
+MATCH (a) -[:CONTAINS]-> (p1:Package) -[:DEPENDS_ON]-> (p2:Package) <-[:CONTAINS]- (a)
+WHERE p1.fqn in ['org.springframework.data.neo4j.core.convert', 'org.springframework.data.neo4j.core.schema', 'org.springframework.data.neo4j.core.support', 'org.springframework.data.neo4j.core.transaction']
+  AND p2.fqn = 'org.springframework.data.neo4j.core.mapping'
+RETURN p1, p2
 ----
