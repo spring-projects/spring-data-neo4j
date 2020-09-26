@@ -35,6 +35,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @author Mark Paluch
  * @since 6.0
  */
 class Neo4jQueryMethod extends QueryMethod {
@@ -59,7 +60,7 @@ class Neo4jQueryMethod extends QueryMethod {
 	}
 
 	boolean isCollectionLikeQuery() {
-		return super.isCollectionQuery() || super.isStreamQuery();
+		return isCollectionQuery() || isStreamQuery();
 	}
 
 	/**
