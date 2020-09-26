@@ -60,14 +60,14 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	/**
 	 * The {@link NodeDescriptionStore} is basically a {@link Map} and it is used to break the dependency cycle between
-	 * this class and the {@link DefaultNeo4jEntityAccessor}.
+	 * this class and the {@link DefaultNeo4jEntityConverter}.
 	 */
 	private final NodeDescriptionStore nodeDescriptionStore = new NodeDescriptionStore();
 
 	/**
 	 * The converter used in this mapping context.
 	 */
-	private final Neo4jEntityAccessor entityAccessor;
+	private final Neo4jEntityConverter entityConverter;
 
 	private final Neo4jConversions neo4jConversions;
 
@@ -96,15 +96,15 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		super.setSimpleTypeHolder(Neo4jSimpleTypes.HOLDER);
 		this.neo4jConversions = neo4jConversions;
 
-		DefaultNeo4jEntityAccessor defaultNeo4jConverter = new DefaultNeo4jEntityAccessor(neo4jConversions, nodeDescriptionStore);
+		DefaultNeo4jEntityConverter defaultNeo4jConverter = new DefaultNeo4jEntityConverter(neo4jConversions, nodeDescriptionStore);
 		if (typeSystem != null) {
 			defaultNeo4jConverter.setTypeSystem(typeSystem);
 		}
-		this.entityAccessor = defaultNeo4jConverter;
+		this.entityConverter = defaultNeo4jConverter;
 	}
 
-	public Neo4jEntityAccessor getEntityAccessor() {
-		return entityAccessor;
+	public Neo4jEntityConverter getEntityConverter() {
+		return entityConverter;
 	}
 
 	boolean hasCustomWriteTarget(Class<?> targetType) {
@@ -231,6 +231,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 		this.beanFactory = applicationContext.getAutowireCapableBeanFactory();
 		Driver driver = this.beanFactory.getBean(Driver.class);
-		((DefaultNeo4jEntityAccessor) this.entityAccessor).setTypeSystem(driver.defaultTypeSystem());
+		((DefaultNeo4jEntityConverter) this.entityConverter).setTypeSystem(driver.defaultTypeSystem());
 	}
 }

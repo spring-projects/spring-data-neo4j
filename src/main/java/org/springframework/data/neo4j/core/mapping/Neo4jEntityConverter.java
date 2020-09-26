@@ -35,7 +35,7 @@ import org.springframework.lang.Nullable;
  * @since 6.0
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
-public interface Neo4jEntityAccessor extends EntityReader<Object, Record>, EntityWriter<Object, Map<String, Object>> {
+public interface Neo4jEntityConverter extends EntityReader<Object, Record>, EntityWriter<Object, Map<String, Object>> {
 
 	/**
 	 * Reads a {@link Value} returned by the driver and converts it into a {@link Neo4jSimpleTypes simple type} supported

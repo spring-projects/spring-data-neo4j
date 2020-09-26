@@ -29,7 +29,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * This class is more or less just a wrapper around the node description lookup map. It ensures that there is no cyclic
- * dependency between {@link Neo4jMappingContext} and {@link DefaultNeo4jEntityAccessor}.
+ * dependency between {@link Neo4jMappingContext} and {@link DefaultNeo4jEntityConverter}.
  *
  * @author Gerrit Meier
  */

@@ -35,7 +35,7 @@ import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.neo4j.core.mapping.Neo4jEntityAccessor;
+import org.springframework.data.neo4j.core.mapping.Neo4jEntityConverter;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
@@ -92,7 +92,7 @@ final class Predicate {
 				continue;
 			}
 
-			Neo4jEntityAccessor entityAccessor = mappingContext.getEntityAccessor();
+			Neo4jEntityConverter entityAccessor = mappingContext.getEntityConverter();
 
 			if (graphProperty.isRelationship()) {
 				log.error("Querying by example does not support traversing of relationships.");

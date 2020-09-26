@@ -92,10 +92,13 @@ public interface Schema {
 		if (nodeDescription == null) {
 			throw new UnknownEntityException(targetClass);
 		}
-		return (typeSystem, record) -> getEntityAccessor().read(targetClass, record);
+		return (typeSystem, record) -> getEntityConverter().read(targetClass, record);
 	}
 
-	Neo4jEntityAccessor getEntityAccessor();
+	/**
+	 * @return The (reading and writing) converter used to read records into entities and write entities into maps.
+	 */
+	Neo4jEntityConverter getEntityConverter();
 
 	default <T> Function<T, Map<String, Object>> getRequiredBinderFunctionFor(Class<T> sourceClass) {
 
@@ -105,7 +108,7 @@ public interface Schema {
 
 		return t -> {
 			Map<String, Object> parameters = new HashMap<>();
-			getEntityAccessor().write(t, parameters);
+			getEntityConverter().write(t, parameters);
 			return parameters;
 		};
 	}

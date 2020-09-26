@@ -79,7 +79,7 @@ final class RelationshipStatementHolder {
 				neo4jPersistentEntity, relationshipContext.getRelationship(), relatedInternalId);
 		Map<String, Object> propMap = new HashMap<>();
 		// write relationship properties
-		neo4jMappingContext.getEntityAccessor().write(relatedValue.getRelationshipProperties(), propMap);
+		neo4jMappingContext.getEntityConverter().write(relatedValue.getRelationshipProperties(), propMap);
 
 		return new RelationshipStatementHolder(relationshipCreationQuery, propMap);
 	}
@@ -94,7 +94,7 @@ final class RelationshipStatementHolder {
 		} else {
 			TypeInformation<?> keyType = relationshipContext.getInverse().getTypeInformation().getRequiredComponentType();
 			Object key = ((Map.Entry<?, ?>) relatedValue).getKey();
-			relationshipType = neo4jMappingContext.getEntityAccessor().writeValueFromProperty(key, keyType).asString();
+			relationshipType = neo4jMappingContext.getEntityConverter().writeValueFromProperty(key, keyType).asString();
 		}
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.createRelationshipCreationQuery(

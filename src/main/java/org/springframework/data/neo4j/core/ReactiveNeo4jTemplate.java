@@ -203,7 +203,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 	private Object convertIdValues(Object idValues) {
 
-		return neo4jMappingContext.getEntityAccessor().writeValueFromProperty(idValues,
+		return neo4jMappingContext.getEntityConverter().writeValueFromProperty(idValues,
 				ClassTypeInformation.from(idValues.getClass()));
 	}
 

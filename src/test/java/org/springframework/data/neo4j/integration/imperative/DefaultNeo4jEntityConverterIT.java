@@ -45,7 +45,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Andrea Santurbano
  */
 @Neo4jIntegrationTest
-class DefaultNeo4jEntityAccessorIT {
+class DefaultNeo4jEntityConverterIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 

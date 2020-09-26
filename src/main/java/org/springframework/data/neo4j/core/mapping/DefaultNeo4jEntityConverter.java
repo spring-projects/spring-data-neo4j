@@ -67,9 +67,9 @@ import org.springframework.util.Assert;
  * @soundtrack The Kleptones - A Night At The Hip-Hopera
  * @since 6.0
  */
-final class DefaultNeo4jEntityAccessor implements Neo4jEntityAccessor {
+final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
-	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(DefaultNeo4jEntityAccessor.class));
+	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(DefaultNeo4jEntityConverter.class));
 
 	/**
 	 * The shared entity instantiators of this context. Those should not be recreated for each entity or even not for each
@@ -83,7 +83,7 @@ final class DefaultNeo4jEntityAccessor implements Neo4jEntityAccessor {
 
 	private TypeSystem typeSystem;
 
-	DefaultNeo4jEntityAccessor(Neo4jConversions neo4jConversions, NodeDescriptionStore nodeDescriptionStore) {
+	DefaultNeo4jEntityConverter(Neo4jConversions neo4jConversions, NodeDescriptionStore nodeDescriptionStore) {
 
 		Assert.notNull(neo4jConversions, "Neo4jConversions must not be null!");
 
