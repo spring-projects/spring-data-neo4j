@@ -19,10 +19,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,17 +46,15 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
-import org.springframework.data.neo4j.core.support.ConvertAs;
+import org.springframework.data.neo4j.core.convert.ConvertWith;
 import org.springframework.data.neo4j.integration.shared.Neo4jConversionsITBase;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllAdditionalTypes;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllCypherTypes;
@@ -63,7 +67,6 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -167,13 +170,15 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		Object domainValue = ReflectionTestUtils.getField(thing, fieldName);
 
 		Field field = ReflectionUtils.findField(thing.getClass(), fieldName);
-		Optional<ConvertAs> annotation = AnnotationUtils.findAnnotation(field, ConvertAs.class);
-		Function<Object, Value> conversion = annotation.map(ConvertAs::writingConverter)
-				.map(BeanUtils::instantiateClass)
-				.map(c -> ((Converter<Object, Value>)c))
-				.map(c -> (Function<Object, Value>) c::convert)
-				.orElseGet(() -> o -> conversionService.convert(o, Value.class));
-
+		Optional<ConvertWith> annotation = AnnotationUtils.findAnnotation(field, ConvertWith.class);
+		Function<Object, Value> conversion;
+		if (fieldName.equals("dateAsLong")) {
+			conversion = o -> Values.value(((Date) o).getTime());
+		} else if (fieldName.equals("dateAsString")) {
+			conversion = o -> Values.value(new SimpleDateFormat("yyyy-MM-dd").format(o));
+		} else {
+			conversion = o -> conversionService.convert(o, Value.class);
+		}
 		Value driverValue;
 		if (domainValue != null && Collection.class.isAssignableFrom(domainValue.getClass())) {
 			Collection<?> sourceCollection = (Collection<?>) domainValue;
@@ -219,6 +224,13 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		Assertions.assertThat(repository.findById(savedThing.getAnotherThing().getId())).isPresent();
 	}
 
+	@Test
+	void parametersTargetingConvertedAttributesMustBeConverted(@Autowired CustomTypesRepository repository) {
+
+		assertThat(repository.findAllByDateAsString(Date.from(ZonedDateTime.of(2013, 5, 6,
+				12, 0, 0, 0, ZoneId.of("Europe/Berlin")).toInstant().truncatedTo(ChronoUnit.DAYS)))).hasSizeGreaterThan(0);
+	}
+
 	public interface ConvertedIDsRepository extends Neo4jRepository<ThingWithUUIDID, UUID> {}
 
 	public interface CypherTypesRepository extends Neo4jRepository<ThingWithAllCypherTypes, Long> {}
@@ -229,7 +241,10 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 	public interface NonExistingPrimitivesRepository extends Neo4jRepository<ThingWithNonExistingPrimitives, Long> {}
 
-	public interface CustomTypesRepository extends Neo4jRepository<ThingWithCustomTypes, Long> {}
+	public interface CustomTypesRepository extends Neo4jRepository<ThingWithCustomTypes, Long> {
+
+		List<ThingWithCustomTypes> findAllByDateAsString(Date theDate);
+	}
 
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)

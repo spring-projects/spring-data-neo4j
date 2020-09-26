@@ -15,12 +15,13 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.lang.annotation.Annotation;
 import java.util.Optional;
 import java.util.function.Function;
 
 import org.neo4j.driver.Value;
-import org.springframework.beans.BeanUtils;
-import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
@@ -30,11 +31,14 @@ import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.data.neo4j.core.support.ConvertAs;
+import org.springframework.data.neo4j.core.convert.ConvertWith;
+import org.springframework.data.neo4j.core.convert.CustomConversionFactory;
+import org.springframework.data.neo4j.core.convert.CustomConversion;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Michael J. Simons
@@ -49,42 +53,39 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	private final Neo4jMappingContext mappingContext;
 
-	private final Lazy<Function<Object, Value>> writingConverter;
-	private final Lazy<Function<Value, Object>> readingConverter;
+	private final Lazy<CustomConversion> customConversion;
 
 	/**
 	 * Creates a new {@link AnnotationBasedPersistentProperty}.
 	 *
-	 * @param property must not be {@literal null}.
-	 * @param owner must not be {@literal null}.
+	 * @param property         must not be {@literal null}.
+	 * @param owner            must not be {@literal null}.
 	 * @param simpleTypeHolder type holder
 	 */
 	DefaultNeo4jPersistentProperty(Property property, PersistentEntity<?, Neo4jPersistentProperty> owner,
-			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder, boolean isEntityInRelationshipWithProperties) {
+			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder,
+			boolean isEntityInRelationshipWithProperties) {
 
 		super(property, owner, simpleTypeHolder);
 		this.isEntityInRelationshipWithProperties = isEntityInRelationshipWithProperties;
+		this.mappingContext = mappingContext;
 
 		this.graphPropertyName = Lazy.of(this::computeGraphPropertyName);
 		this.isAssociation = Lazy.of(() -> {
 
 			Class<?> targetType = getActualType();
-			return !(simpleTypeHolder.isSimpleType(targetType) || mappingContext.hasCustomWriteTarget(targetType) || isAnnotationPresent(TargetNode.class));
+			return !(simpleTypeHolder.isSimpleType(targetType) || this.mappingContext.hasCustomWriteTarget(targetType)
+					|| isAnnotationPresent(TargetNode.class));
 		});
-		// TODO Configuration of converters needs to be accounted for.
-		this.writingConverter = Lazy.of(() -> {
 
-			ConvertAs annotation = findAnnotation(ConvertAs.class);
-			return annotation == null ? null :
-					(Function<Object, Value>) BeanUtils.instantiateClass(annotation.writingConverter());
-		});
-		this.readingConverter = Lazy.of(() -> {
+		this.customConversion = Lazy.of(() -> {
 
-			ConvertAs annotation = findAnnotation(ConvertAs.class);
-			return annotation == null ? null :
-					(Function<Value, Object>) BeanUtils.instantiateClass(annotation.readingConverter());
+			if(this.isEntity()) {
+				return null;
+			}
+
+			return this.mappingContext.getOptionalCustomConversionsFor(getRequiredField(), getActualType());
 		});
-		this.mappingContext = mappingContext;
 	}
 
 	@Override
@@ -166,11 +167,12 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	@Override
 	public Function<Object, Value> getOptionalWritingConverter() {
-		return isEntity() ? null : writingConverter.getNullable();
+		return (Function<Object, Value>) customConversion.getOptional().map(CustomConversion::getWritingConverter).orElse(null);
 	}
 
+	@Override
 	public Function<Value, Object> getOptionalReadingConverter() {
-		return isEntity() ? null : readingConverter.getNullable();
+		return (Function<Value, Object>) customConversion.getOptional().map(CustomConversion::getReadingConverter).orElse(null);
 	}
 
 	@Override

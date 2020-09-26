@@ -23,9 +23,10 @@ import java.lang.annotation.Target;
 import java.util.Date;
 import java.util.function.Function;
 
+import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
-import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.neo4j.core.convert.ConvertWith;
 
 /**
  * Indicates OGM to store dates as long in the database.
@@ -33,15 +34,17 @@ import org.springframework.core.convert.converter.Converter;
  *
  * @author Michael J. Simons
  * @soundtrack Linkin Park - One More Light Live
+ * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.PARAMETER })
+@Target({ ElementType.FIELD })
 @Inherited
-@ConvertAs(writingConverter = DateToLongValueConverter.class, readingConverter = LongValueToDateConverter.class)
+@ConvertWith(writingConverter = DateToLongValueConverter.class, readingConverter = LongValueToDateConverter.class)
+@API(status = API.Status.STABLE, since = "6.0")
 public @interface DateLong {
 }
 
-class DateToLongValueConverter implements Function<Date, Value> {
+final class DateToLongValueConverter implements Function<Date, Value> {
 
 	@Override
 	public Value apply(Date source) {
@@ -49,11 +52,10 @@ class DateToLongValueConverter implements Function<Date, Value> {
 	}
 }
 
-
-class LongValueToDateConverter implements Function<Value, Date> {
+final class LongValueToDateConverter implements Function<Value, Date> {
 
 	@Override
 	public Date apply(Value source) {
-		return source == null ? null : new Date(source.asLong());
+		return source == null || source.isNull() ? null : new Date(source.asLong());
 	}
 }

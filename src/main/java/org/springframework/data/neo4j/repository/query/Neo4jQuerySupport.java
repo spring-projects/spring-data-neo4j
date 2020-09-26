@@ -22,9 +22,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.log.LogAccessor;
@@ -39,6 +41,7 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -121,6 +124,17 @@ abstract class Neo4jQuerySupport {
 	 * @return A parameter that fits the place holders of a generated query
 	 */
 	final Object convertParameter(Object parameter) {
+		return this.convertParameter(parameter, null);
+	}
+
+	/**
+	 * Converts parameter as needed by the query generated, which is not covered by standard conversion services.
+	 *
+	 * @param parameter The parameter to fit into the generated query.
+	 * @param conversionOverride Passed to the entity converter if present.
+	 * @return A parameter that fits the place holders of a generated query
+	 */
+	final Object convertParameter(Object parameter, @Nullable Function<Object, Value> conversionOverride) {
 
 		if (parameter == null) {
 			// According to https://neo4j.com/docs/cypher-manual/current/syntax/working-with-null/#cypher-null-intro
@@ -147,9 +161,9 @@ abstract class Neo4jQuerySupport {
 			return convertBoundingBox((BoundingBox) parameter);
 		}
 
-		// Good hook to check the NodeManager whether the thing is an entity and we replace the value with a known id.
+		// TODO Good hook to check the NodeManager whether the thing is an entity and we replace the value with a known id.
 		return mappingContext.getEntityConverter().writeValueFromProperty(parameter,
-				ClassTypeInformation.from(parameter.getClass()));
+				ClassTypeInformation.from(parameter.getClass()), conversionOverride);
 	}
 
 	private Map<String, Object> convertRange(Range range) {

@@ -32,6 +32,8 @@ import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -175,6 +177,8 @@ public abstract class Neo4jConversionsITBase {
 		hlp.put("customType", ThingWithCustomTypes.CustomType.of("ABCD"));
 		hlp.put("dateAsLong", Date.from(ZonedDateTime.of(2020, 9, 21,
 				12, 0, 0, 0, ZoneId.of("Europe/Berlin")).toInstant()));
+		hlp.put("dateAsString", Date.from(ZonedDateTime.of(2013, 5, 6,
+				12, 0, 0, 0, ZoneId.of("Europe/Berlin")).toInstant().truncatedTo(ChronoUnit.DAYS)));
 		CUSTOM_TYPES = Collections.unmodifiableMap(hlp);
 	}
 
@@ -242,8 +246,9 @@ public abstract class Neo4jConversionsITBase {
 				parameters = new HashMap<>();
 				parameters.put("customType", "ABCD");
 				parameters.put("dateAsLong", 1600682400000L);
+				parameters.put("dateAsString", "2013-05-06");
 				ID_OF_CUSTOM_TYPE_NODE = w
-						.run("CREATE (n:CustomTypes) SET n.customType = $customType, n.dateAsLong = $dateAsLong RETURN id(n) AS id", parameters)
+						.run("CREATE (n:CustomTypes) SET n.customType = $customType, n.dateAsLong = $dateAsLong, n.dateAsString = $dateAsString RETURN id(n) AS id", parameters)
 						.single().get("id").asLong();
 				w.commit();
 				return null;
