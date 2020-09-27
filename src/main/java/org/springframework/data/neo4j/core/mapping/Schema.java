@@ -15,7 +15,6 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import java.lang.reflect.AnnotatedElement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -26,9 +25,7 @@ import org.apiguardian.api.API;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.mapping.MappingException;
-import org.springframework.data.neo4j.core.convert.CustomConversion;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
-import org.springframework.data.neo4j.core.convert.CustomConversionFactory;
 import org.springframework.lang.Nullable;
 
 /**

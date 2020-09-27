@@ -26,7 +26,6 @@ import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
-import org.springframework.data.neo4j.core.convert.CustomConversion;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;

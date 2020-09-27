@@ -21,21 +21,20 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.function.Function;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 
 /**
- * This annotation can be used to define either custom conversions for single attributes by specifying both a writing
- * and a reading converter class and if needed, a custom factory for those or it can be used to build custom meta-annotated
- * annotations like {@code @org.springframework.data.neo4j.core.support.DateLong}.
+ * This annotation can be used to define either custom conversions for single attributes by specifying a custom
+ * {@link Neo4jPersistentPropertyConverter} and if needed, a custom factory to create that converter or the annotation
+ * can be used to build custom meta-annotated annotations like {@code @org.springframework.data.neo4j.core.support.DateLong}.
  *
  * <p>Custom conversions are applied to both attributes of entities and parameters of repository methods that map to those
  * attributes (which does apply to all derived queries and queries by example but not to string based queries).
  *
- * <p>Converter functions that have a default constructor don't need a dedicated factory. A dedicated factory will
- * be provided with either this annotation and its values or with the meta annotated annotation, including all configuration
+ * <p>Converters that have a default constructor don't need a dedicated factory. A dedicated factory will be provided with
+ * either this annotation and its values or with the meta annotated annotation, including all configuration
  * available.
  *
  * @author Michael J. Simons
@@ -49,31 +48,21 @@ import org.neo4j.driver.Value;
 @API(status = API.Status.STABLE, since = "6.0")
 public @interface ConvertWith {
 
-	Class<? extends Function<?, Value>> writingConverter() default WritingPlaceholder.class;
+	Class<? extends Neo4jPersistentPropertyConverter<?>> converter() default UnsetConverter.class;
 
-	Class<? extends Function<Value, ?>> readingConverter() default ReadingPlaceholder.class;
-
-	Class<? extends CustomConversionFactory> converterFactory() default DefaultCustomConversionFactory.class;
+	Class<? extends Neo4jPersistentPropertyConverterFactory> converterFactory() default DefaultNeo4jPersistentPropertyConverterFactory.class;
 
 	/**
-	 * Indicates an unset writing converter.
+	 * Indicates an unset converter.
 	 */
-	final class WritingPlaceholder implements Function<Object, Value> {
+	final class UnsetConverter implements Neo4jPersistentPropertyConverter<Object> {
 
-		@Override
-		public Value apply(Object o) {
-			throw new UnsupportedOperationException();
+		@Override public Value write(Object source) {
+			return null;
 		}
-	}
 
-	/**
-	 * Indicates an unset reading converter.
-	 */
-	final class ReadingPlaceholder implements Function<Value, Object> {
-
-		@Override
-		public Object apply(Value value) {
-			throw new UnsupportedOperationException();
+		@Override public Object read(Value source) {
+			return null;
 		}
 	}
 }

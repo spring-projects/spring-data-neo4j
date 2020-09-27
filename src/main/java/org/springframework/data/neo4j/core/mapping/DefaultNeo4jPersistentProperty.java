@@ -15,13 +15,11 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import java.lang.annotation.Annotation;
 import java.util.Optional;
 import java.util.function.Function;
 
 import org.neo4j.driver.Value;
-import org.springframework.core.annotation.MergedAnnotation;
-import org.springframework.core.annotation.MergedAnnotations;
+import org.neo4j.driver.Values;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
@@ -31,14 +29,11 @@ import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.data.neo4j.core.convert.ConvertWith;
-import org.springframework.data.neo4j.core.convert.CustomConversionFactory;
-import org.springframework.data.neo4j.core.convert.CustomConversion;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Michael J. Simons
@@ -53,7 +48,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	private final Neo4jMappingContext mappingContext;
 
-	private final Lazy<CustomConversion> customConversion;
+	private final Lazy<Neo4jPersistentPropertyConverter> customConversion;
 
 	/**
 	 * Creates a new {@link AnnotationBasedPersistentProperty}.
@@ -84,7 +79,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 				return null;
 			}
 
-			return this.mappingContext.getOptionalCustomConversionsFor(getRequiredField(), getActualType());
+			return this.mappingContext.getOptionalCustomConversionsFor(this);
 		});
 	}
 
@@ -165,14 +160,22 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		return super.isEntity() && isAssociation() || (super.isEntity() && isEntityInRelationshipWithProperties());
 	}
 
+	private static Function<Object, Value> nullSafeWrite(Function<Object, Value> delegate) {
+		return source -> source == null ? Values.NULL : delegate.apply(source);
+	}
+
 	@Override
 	public Function<Object, Value> getOptionalWritingConverter() {
-		return (Function<Object, Value>) customConversion.getOptional().map(CustomConversion::getWritingConverter).orElse(null);
+		return customConversion.getOptional().map(c -> nullSafeWrite(c::write)).orElse(null);
+	}
+
+	private static Function<Value, Object> nullSafeRead(Function<Value, Object> delegate) {
+		return source -> source == null || source.isNull() ? null : delegate.apply(source);
 	}
 
 	@Override
 	public Function<Value, Object> getOptionalReadingConverter() {
-		return (Function<Value, Object>) customConversion.getOptional().map(CustomConversion::getReadingConverter).orElse(null);
+		return customConversion.getOptional().map(c -> nullSafeRead(c::read)).orElse(null);
 	}
 
 	@Override

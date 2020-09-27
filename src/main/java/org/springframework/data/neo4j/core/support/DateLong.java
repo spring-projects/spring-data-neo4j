@@ -21,15 +21,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Date;
-import java.util.function.Function;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 
 /**
- * Indicates OGM to store dates as long in the database.
+ * Indicates SDN to store dates as long in the database.
  * Applicable to `java.util.Date` and `java.time.Instant`
  *
  * @author Michael J. Simons
@@ -39,23 +39,20 @@ import org.springframework.data.neo4j.core.convert.ConvertWith;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD })
 @Inherited
-@ConvertWith(writingConverter = DateToLongValueConverter.class, readingConverter = LongValueToDateConverter.class)
+@ConvertWith(converter = DateLongConverter.class)
 @API(status = API.Status.STABLE, since = "6.0")
 public @interface DateLong {
 }
 
-final class DateToLongValueConverter implements Function<Date, Value> {
+final class DateLongConverter implements Neo4jPersistentPropertyConverter<Date> {
 
 	@Override
-	public Value apply(Date source) {
-		return source == null ? Values.NULL : Values.value(source.getTime());
+	public Value write(Date source) {
+		return Values.value(source.getTime());
 	}
-}
-
-final class LongValueToDateConverter implements Function<Value, Date> {
 
 	@Override
-	public Date apply(Value source) {
-		return source == null || source.isNull() ? null : new Date(source.asLong());
+	public Date read(Value source) {
+		return new Date(source.asLong());
 	}
 }

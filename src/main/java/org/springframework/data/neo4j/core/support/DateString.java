@@ -24,15 +24,15 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.function.Function;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
-import org.springframework.data.neo4j.core.convert.CustomConversion;
-import org.springframework.data.neo4j.core.convert.CustomConversionFactory;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverterFactory;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 
 /**
  * Indicates SDN 6 to store dates as {@link String} in the database. Applicable to {@link Date} and
@@ -45,7 +45,7 @@ import org.springframework.data.neo4j.core.convert.CustomConversionFactory;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD })
 @Inherited
-@ConvertWith(converterFactory = DateStringCustomConversionFactory.class)
+@ConvertWith(converterFactory = DateStringConverterFactory.class)
 @API(status = API.Status.STABLE, since = "6.0")
 public @interface DateString {
 
@@ -68,19 +68,16 @@ public @interface DateString {
 	 * @return The zone id to use when applying a custom pattern to an instant temporal.
 	 */
 	String zoneId() default DEFAULT_ZONE_ID;
-
 }
 
-final class DateStringCustomConversionFactory implements CustomConversionFactory<DateString> {
+final class DateStringConverterFactory implements Neo4jPersistentPropertyConverterFactory {
 
 	@Override
-	public CustomConversion buildConversion(DateString config, Class<?> typeOfAnnotatedElement) {
+	public Neo4jPersistentPropertyConverter buildConversion(Neo4jPersistentProperty persistentProperty) {
 
-		if (typeOfAnnotatedElement == Date.class) {
-			return new CustomConversion(
-					new DateToStringValueConverter(config.value()),
-					new StringValueToDateConverter(config.value())
-			);
+		if (persistentProperty.getActualType() == Date.class) {
+			DateString config = persistentProperty.getRequiredAnnotation(DateString.class);
+			return new DateStringConverter(config.value());
 		} else {
 			throw new UnsupportedOperationException(
 					"Other types than java.util.Date are not yet supported. Please file a ticket.");
@@ -88,44 +85,32 @@ final class DateStringCustomConversionFactory implements CustomConversionFactory
 	}
 }
 
-abstract class DateStringBaseConverter {
+final class DateStringConverter implements Neo4jPersistentPropertyConverter<Date> {
+
 	private final String format;
 
-	DateStringBaseConverter(String format) {
+	DateStringConverter(String format) {
 		this.format = format;
 	}
 
-	SimpleDateFormat getFormat() {
+	private SimpleDateFormat getFormat() {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
 		simpleDateFormat.setTimeZone(TimeZone.getTimeZone(DateString.DEFAULT_ZONE_ID));
 		return simpleDateFormat;
 	}
-}
 
-final class DateToStringValueConverter extends DateStringBaseConverter implements Function<Date, Value> {
-
-	DateToStringValueConverter(String format) {
-		super(format);
+	@Override
+	public Value write(Date source) {
+		return Values.value(getFormat().format(source));
 	}
 
 	@Override
-	public Value apply(Date source) {
-		return source == null ? Values.NULL : Values.value(getFormat().format(source));
-	}
-}
-
-final class StringValueToDateConverter extends DateStringBaseConverter implements Function<Value, Date> {
-
-	StringValueToDateConverter(String format) {
-		super(format);
-	}
-
-	@Override
-	public Date apply(Value source) {
+	public Date read(Value source) {
 		try {
-			return source == null || source.isNull() ? null : getFormat().parse(source.asString());
+			return getFormat().parse(source.asString());
 		} catch (ParseException e) {
 			throw new RuntimeException(e);
 		}
 	}
+
 }

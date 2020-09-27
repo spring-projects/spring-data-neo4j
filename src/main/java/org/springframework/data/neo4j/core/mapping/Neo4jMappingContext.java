@@ -41,12 +41,12 @@ import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
-import org.springframework.data.neo4j.core.convert.CustomConversion;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.convert.CustomConversionFactory;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverterFactory;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
@@ -68,7 +68,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 */
 	private final Map<Class<? extends IdGenerator<?>>, IdGenerator<?>> idGenerators = new ConcurrentHashMap<>();
 
-	private final Map<Class<? extends CustomConversionFactory>, CustomConversionFactory> converterFactorys = new ConcurrentHashMap<>();
+	private final Map<Class<? extends Neo4jPersistentPropertyConverterFactory>, Neo4jPersistentPropertyConverterFactory> converterFactorys = new ConcurrentHashMap<>();
 
 	/**
 	 * The {@link NodeDescriptionStore} is basically a {@link Map} and it is used to break the dependency cycle between
@@ -235,44 +235,25 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		}
 	}
 
-	private <T extends CustomConversionFactory<?>> T getOrCreateConverterFactoryOfType(Class<T> converterFactoryType) {
+	private <T extends Neo4jPersistentPropertyConverterFactory> T getOrCreateConverterFactoryOfType(Class<T> converterFactoryType) {
 
 		return (T) this.converterFactorys.computeIfAbsent(converterFactoryType, this::createBeanOrInstantiate);
 	}
 
 	/**
-	 * @param annotatedElement The annotated element
-	 * @param actualType       The actual type (The original property type if no generics were used, the
-	 *                         component type for collection-like types and arrays or the value type for map properties.
-	 * @return
+	 * @param persistentProperty The persistent property for which the conversion should be build.
+	 * @return An optional conversion.
 	 */
-	public CustomConversion getOptionalCustomConversionsFor(AnnotatedElement annotatedElement, Class<?> actualType) {
+	@Nullable  Neo4jPersistentPropertyConverter getOptionalCustomConversionsFor(Neo4jPersistentProperty persistentProperty) {
 
 		// Is the annotation present at all?
-		MergedAnnotation<ConvertWith> convertWith = MergedAnnotations.from(annotatedElement).get(ConvertWith.class);
-		if (!convertWith.isPresent()) {
+		ConvertWith convertWith = persistentProperty.findAnnotation(ConvertWith.class);
+		if (convertWith == null) {
 			return null;
 		}
 
-		// Retrieve the concrete class used to provide the conversion
-		Class<CustomConversionFactory<?>> converterFactoryClass = (Class<CustomConversionFactory<?>>) convertWith
-				.getClass("converterFactory");
-
-		// Determine the concrete annotation.
-		// It is either the "source" annotation ConvertWith, or the root of a meta annotated.
-		// As the synthesized annotation is passed to the factory and annotations cannot inherit from one another
-		// we have to manually check if the converter takes in the default annotation or not and make sure
-		// we synthesize the correct type
-		Annotation synthesizedAnnotation;
-		if (ReflectionUtils.findMethod(converterFactoryClass, "buildConversion", ConvertWith.class, Class.class)
-				!= null) {
-			synthesizedAnnotation = convertWith.synthesize();
-		} else {
-			synthesizedAnnotation = convertWith.getRoot().synthesize();
-		}
-
-		CustomConversionFactory customConversionFactory = this.getOrCreateConverterFactoryOfType(converterFactoryClass);
-		return customConversionFactory.buildConversion(synthesizedAnnotation, actualType);
+		Neo4jPersistentPropertyConverterFactory persistentPropertyConverterFactory = this.getOrCreateConverterFactoryOfType(convertWith.converterFactory());
+		return persistentPropertyConverterFactory.buildConversion(persistentProperty);
 	}
 
 	@Override
