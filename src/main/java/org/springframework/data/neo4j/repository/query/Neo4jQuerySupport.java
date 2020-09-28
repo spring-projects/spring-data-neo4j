@@ -162,7 +162,7 @@ abstract class Neo4jQuerySupport {
 		}
 
 		// TODO Good hook to check the NodeManager whether the thing is an entity and we replace the value with a known id.
-		return mappingContext.getEntityConverter().writeValueFromProperty(parameter,
+		return mappingContext.getEntityConverter().writeValue(parameter,
 				ClassTypeInformation.from(parameter.getClass()), conversionOverride);
 	}
 

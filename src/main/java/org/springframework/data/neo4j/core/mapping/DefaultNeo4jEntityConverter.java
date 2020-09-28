@@ -43,7 +43,6 @@ import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.log.LogAccessor;
@@ -139,7 +138,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	@Override
 	@Nullable
-	public Object readValueForProperty(@Nullable Value value, TypeInformation<?> type, @Nullable Function<Value, Object> conversionOverride) {
+	public Object readValue(@Nullable Value value, TypeInformation<?> type, @Nullable Function<Value, Object> conversionOverride) {
 
 		BiFunction<Value, Class<?>, Object> conversion = conversionOverride == null ? (v, t) -> conversionService.convert(v, t) : (v, t) -> conversionOverride.apply(v);
 		return readValueForPropertyImpl(value, type, conversion);
@@ -190,7 +189,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				return;
 			}
 
-			final Object value = writeValueFromProperty(propertyAccessor.getProperty(p), p.getTypeInformation(), p.getOptionalWritingConverter());
+			final Object value = writeValue(propertyAccessor.getProperty(p), p.getTypeInformation(), p.getOptionalWritingConverter());
 			properties.put(p.getPropertyName(), value);
 		});
 
@@ -200,7 +199,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		if (nodeDescription.hasIdProperty()) {
 			Neo4jPersistentProperty idProperty = nodeDescription.getRequiredIdProperty();
 			parameters.put(Constants.NAME_OF_ID,
-					writeValueFromProperty(propertyAccessor.getProperty(idProperty), idProperty.getTypeInformation(), idProperty.getOptionalWritingConverter()));
+					writeValue(propertyAccessor.getProperty(idProperty), idProperty.getTypeInformation(), idProperty.getOptionalWritingConverter()));
 		}
 		// in case of relationship properties ignore internal id property
 		if (nodeDescription.hasVersionProperty()) {
@@ -212,13 +211,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	}
 
 	@Override
-	public Value writeValueFromProperty(@Nullable Object value, TypeInformation<?> type) {
-
-		return writeValueFromPropertyImpl(value, type, v -> conversionService.convert(v, Value.class));
-	}
-
-	@Override
-	public Value writeValueFromProperty(@Nullable Object value, TypeInformation<?> type,  @Nullable Function<Object, Value> writingConverter) {
+	public Value writeValue(@Nullable Object value, TypeInformation<?> type,  @Nullable Function<Object, Value> writingConverter) {
 
 		Function<Object, Value> conversion = writingConverter == null ? v -> conversionService.convert(v, Value.class) : writingConverter;
 		return writeValueFromPropertyImpl(value, type, conversion);
@@ -350,7 +343,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				} else if (matchingProperty.isDynamicLabels()) {
 					return createDynamicLabelsProperty(matchingProperty.getTypeInformation(), surplusLabels);
 				}
-				return readValueForProperty(extractValueOf(matchingProperty, values), parameter.getType(), matchingProperty.getOptionalReadingConverter());
+				return readValue(extractValueOf(matchingProperty, values), parameter.getType(), matchingProperty.getOptionalReadingConverter());
 			}
 		};
 
@@ -374,7 +367,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				}
 			} else {
 				propertyAccessor.setProperty(property,
-						readValueForProperty(extractValueOf(property, queryResult), property.getTypeInformation(), property.getOptionalReadingConverter()));
+						readValue(extractValueOf(property, queryResult), property.getTypeInformation(), property.getOptionalReadingConverter()));
 			}
 		};
 	}

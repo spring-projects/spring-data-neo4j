@@ -51,7 +51,7 @@ public interface Neo4jEntityConverter extends EntityReader<Object, Record>, Enti
 	 * @throws TypeMismatchDataAccessException In case the value cannot be converted to the target type
 	 */
 	@Nullable
-	Object readValueForProperty(@Nullable Value value, TypeInformation<?> type, @Nullable Function<Value, Object> conversionOverride);
+	Object readValue(@Nullable Value value, TypeInformation<?> type, @Nullable Function<Value, Object> conversionOverride);
 
 	/**
 	 * Converts an {@link Object} to a driver's value object.
@@ -60,7 +60,5 @@ public interface Neo4jEntityConverter extends EntityReader<Object, Record>, Enti
 	 * @param type The type information describing the target type.
 	 * @return A driver compatible value object.
 	 */
-	Value writeValueFromProperty(@Nullable Object value, TypeInformation<?> type);
-
-	Value writeValueFromProperty(@Nullable Object value, TypeInformation<?> type, @Nullable Function<Object, Value> conversionOverride);
+	Value writeValue(@Nullable Object value, TypeInformation<?> type, @Nullable Function<Object, Value> conversionOverride);
 }

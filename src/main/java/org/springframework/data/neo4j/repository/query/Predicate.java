@@ -141,7 +141,7 @@ final class Predicate {
 						v -> {
 							Neo4jPersistentProperty neo4jPersistentProperty = (Neo4jPersistentProperty) graphProperty;
 							return entityAccessor
-									.writeValueFromProperty(v, neo4jPersistentProperty.getTypeInformation(),
+									.writeValue(v, neo4jPersistentProperty.getTypeInformation(),
 											neo4jPersistentProperty.getOptionalWritingConverter());
 						})
 						.get());

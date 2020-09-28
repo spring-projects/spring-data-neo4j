@@ -31,8 +31,8 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 public interface Neo4jPersistentPropertyConverterFactory {
 
 	/**
-	 * @param persistentProperty The property for which the conversion should be build.
-	 * @return The actual conversion
+	 * @param persistentProperty The property for which the converter should be build.
+	 * @return The new or existing converter
 	 */
-	Neo4jPersistentPropertyConverter buildConversion(Neo4jPersistentProperty persistentProperty);
+	Neo4jPersistentPropertyConverter getPropertyConverterFor(Neo4jPersistentProperty persistentProperty);
 }

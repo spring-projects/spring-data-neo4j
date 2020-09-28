@@ -26,7 +26,7 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 final class DefaultNeo4jPersistentPropertyConverterFactory implements Neo4jPersistentPropertyConverterFactory {
 
 	@Override
-	public Neo4jPersistentPropertyConverter buildConversion(Neo4jPersistentProperty persistentProperty) {
+	public Neo4jPersistentPropertyConverter getPropertyConverterFor(Neo4jPersistentProperty persistentProperty) {
 
 		ConvertWith config = persistentProperty.findAnnotation(ConvertWith.class);
 		if (config.converter() == ConvertWith.UnsetConverter.class) {

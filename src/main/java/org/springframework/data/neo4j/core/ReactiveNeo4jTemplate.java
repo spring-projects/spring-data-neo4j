@@ -44,7 +44,6 @@ import org.neo4j.driver.summary.SummaryCounters;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -210,7 +209,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 	private Object convertIdValues(Object idValues, Function<Object, Value> optionalWritingConverter) {
 
-		return neo4jMappingContext.getEntityConverter().writeValueFromProperty(idValues,
+		return neo4jMappingContext.getEntityConverter().writeValue(idValues,
 				ClassTypeInformation.from(idValues.getClass()), optionalWritingConverter);
 	}
 

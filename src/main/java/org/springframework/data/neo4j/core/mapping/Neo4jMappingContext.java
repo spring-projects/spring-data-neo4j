@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Locale;
@@ -34,8 +32,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.annotation.MergedAnnotation;
-import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.Property;
@@ -49,7 +45,6 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverterFactory;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * An implementation of both a {@link Schema} as well as a Neo4j version of Spring Data's
@@ -253,7 +248,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		}
 
 		Neo4jPersistentPropertyConverterFactory persistentPropertyConverterFactory = this.getOrCreateConverterFactoryOfType(convertWith.converterFactory());
-		return persistentPropertyConverterFactory.buildConversion(persistentProperty);
+		return persistentPropertyConverterFactory.getPropertyConverterFor(persistentProperty);
 	}
 
 	@Override
