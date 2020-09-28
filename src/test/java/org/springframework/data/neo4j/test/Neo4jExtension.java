@@ -46,6 +46,7 @@ import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.internal.util.ServerVersion;
 import org.springframework.core.log.LogMessage;
 import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * This extension is for internal use only. It is meant to speed up development and keep test containers for normal
@@ -247,9 +248,14 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 		private final String imageVersion = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_VERSION)).orElse("4.0");
 
+		private final boolean containerReuseSupported = TestcontainersConfiguration
+				.getInstance().environmentSupportsReuse();
+
 		private final Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>(repository + ":" + imageVersion)
-				.withoutAuthentication().withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT",
-						Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION)).orElse("no"));
+				.withoutAuthentication()
+				.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT",
+						Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION)).orElse("no"))
+				.withReuse(containerReuseSupported);
 
 		public String getBoltUrl() {
 			return neo4jContainer.getBoltUrl();
@@ -261,7 +267,9 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 		@Override
 		public void close() {
-			this.neo4jContainer.close();
+			if (!containerReuseSupported) {
+				this.neo4jContainer.close();
+			}
 		}
 	}
 }

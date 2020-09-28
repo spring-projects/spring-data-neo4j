@@ -25,6 +25,7 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.util.ReactiveWrappers;
 import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.ClassUtils;
 
@@ -35,12 +36,15 @@ import org.springframework.util.ClassUtils;
  * would only contain duplications of several classes.
  *
  * @author Gerrit Meier
+ * @author Mark Paluch
  * @since 6.0
  */
 final class ReactiveNeo4jQueryMethod extends Neo4jQueryMethod {
 
 	private static final ClassTypeInformation<Page> PAGE_TYPE = ClassTypeInformation.from(Page.class);
 	private static final ClassTypeInformation<Slice> SLICE_TYPE = ClassTypeInformation.from(Slice.class);
+
+	private final Lazy<Boolean> isCollectionQuery;
 
 	/**
 	 * Creates a new {@link ReactiveNeo4jQueryMethod} from the given parameters.
@@ -72,15 +76,36 @@ final class ReactiveNeo4jQueryMethod extends Neo4jQueryMethod {
 						"Method has to use a multi-item reactive wrapper return type. Offending method: %s", method.toString()));
 			}
 		}
+
+		this.isCollectionQuery = Lazy.of(() -> (!(isPageQuery() || isSliceQuery())
+				&& ReactiveWrappers.isMultiValueType(metadata.getReturnType(method).getType())) || super.isCollectionQuery());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.query.QueryMethod#isCollectionQuery()
+	 */
+	@Override
+	public boolean isCollectionQuery() {
+		return isCollectionQuery.get();
 	}
 
 	/**
-	 * Will always return true because a reactive result will always be a stream query.
+	 * Always return {@literal true} to skip {@link Pageable} validation in
+	 * {@link org.springframework.data.repository.query.QueryMethod#QueryMethod(Method, RepositoryMetadata, ProjectionFactory)}.
 	 *
-	 * @return always true
+	 * @return always {@literal true}.
 	 */
 	@Override
 	public boolean isStreamQuery() {
 		return true;
+	}
+
+	/**
+	 * Consider only {@link #isCollectionQuery()} as {@link java.util.stream.Stream} query isn't applicable here.
+	 */
+	@Override
+	boolean isCollectionLikeQuery() {
+		return isCollectionQuery();
 	}
 }
