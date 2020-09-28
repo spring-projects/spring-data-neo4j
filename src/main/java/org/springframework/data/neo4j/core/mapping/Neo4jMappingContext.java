@@ -297,9 +297,10 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		if (!relationshipContext.getRelationship().isDynamic()) {
 			relationshipType = null;
 		} else {
-			TypeInformation<?> keyType = relationshipContext.getInverse().getTypeInformation().getRequiredComponentType();
+			Neo4jPersistentProperty inverse = relationshipContext.getInverse();
+			TypeInformation<?> keyType = inverse.getTypeInformation().getRequiredComponentType();
 			Object key = ((Map.Entry<?, ?>) relatedValue).getKey();
-			relationshipType = entityConverter.writeValueFromProperty(key, keyType).asString();
+			relationshipType = conversionService.writeValue(key, keyType, inverse.getOptionalWritingConverter()).asString();
 		}
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.createRelationshipCreationQuery(

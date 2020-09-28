@@ -19,7 +19,6 @@ import java.util.function.Function;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
@@ -32,7 +31,7 @@ import org.springframework.data.neo4j.core.schema.RelationshipProperties;
  * @author Philipp Tölle
  * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersistentProperty>, GraphPropertyDescription {
 
 	/**

@@ -32,7 +32,7 @@ import org.springframework.lang.Nullable;
  * @author Michael J. Simons
  * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public interface NodeDescription<T> {
 
 	/**

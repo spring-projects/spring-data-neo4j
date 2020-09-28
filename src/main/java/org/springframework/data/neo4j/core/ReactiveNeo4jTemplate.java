@@ -37,7 +37,6 @@ import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
-import org.neo4j.driver.Value;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
@@ -189,7 +188,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
 		return createExecutableQuery(domainType, statement, Collections
-				.singletonMap(Constants.NAME_OF_ID, convertIdValues(id, entityMetaData.getRequiredIdProperty().getOptionalWritingConverter())))
+				.singletonMap(Constants.NAME_OF_ID, convertIdValues(entityMetaData.getRequiredIdProperty(), id)))
 				.flatMap(ExecutableQuery::getSingleResult);
 	}
 
@@ -203,14 +202,14 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		return createExecutableQuery(domainType, statement, Collections
 				.singletonMap(Constants.NAME_OF_IDS,
-						convertIdValues(ids, entityMetaData.getRequiredIdProperty().getOptionalWritingConverter())))
+						convertIdValues(entityMetaData.getRequiredIdProperty(), ids)))
 				.flatMapMany(ExecutableQuery::getResults);
 	}
 
-	private Object convertIdValues(Object idValues, Function<Object, Value> optionalWritingConverter) {
+	private Object convertIdValues(@Nullable Neo4jPersistentProperty idProperty, Object idValues) {
 
 		return neo4jMappingContext.getConversionService().writeValue(idValues,
-				ClassTypeInformation.from(idValues.getClass()), optionalWritingConverter);
+				ClassTypeInformation.from(idValues.getClass()), idProperty == null ? null : idProperty.getOptionalWritingConverter());
 	}
 
 	@Override
@@ -336,8 +335,9 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 		return getDatabaseName().flatMap(databaseName -> this.neo4jClient.query(() -> renderer.render(statement))
-				.in(databaseName.getValue()).bind(convertIdValues(ids,
-						entityMetaData.getRequiredIdProperty().getOptionalWritingConverter())).to(nameOfParameter).run().then());
+				.in(databaseName.getValue())
+				.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), ids))
+				.to(nameOfParameter).run().then());
 	}
 
 	@Override
@@ -351,8 +351,9 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 		return getDatabaseName().flatMap(databaseName -> this.neo4jClient.query(() -> renderer.render(statement))
-				.in(databaseName.getValue()).bind(convertIdValues(id,
-						entityMetaData.getRequiredIdProperty().getOptionalWritingConverter())).to(nameOfParameter).run().then());
+				.in(databaseName.getValue())
+				.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), id))
+				.to(nameOfParameter).run().then());
 	}
 
 	@Override
@@ -430,8 +431,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 					Statement relationshipRemoveQuery = cypherGenerator.createRelationshipRemoveQuery(neo4jPersistentEntity,
 							relationshipDescription, previouslyRelatedPersistentEntity);
 					relationshipCreationMonos.add(
-							neo4jClient.query(renderer.render(relationshipRemoveQuery)).in(inDatabase).bind(convertIdValues(fromId,
-									previouslyRelatedPersistentEntity.getRequiredIdProperty().getOptionalWritingConverter()))
+							neo4jClient.query(renderer.render(relationshipRemoveQuery)).in(inDatabase)
+									.bind(convertIdValues(previouslyRelatedPersistentEntity.getIdProperty(), fromId))
 									.to(Constants.FROM_ID_PARAMETER_NAME).run().checkpoint("delete relationships").then());
 				}
 
@@ -467,8 +468,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 											// in case of no properties the bind will just return an empty map
 											Mono<ResultSummary> relationshipCreationMonoNested = neo4jClient
 													.query(renderer.render(statementHolder.getStatement())).in(inDatabase)
-													.bind(convertIdValues(fromId, targetNodeDescription.getRequiredIdProperty()
-															.getOptionalWritingConverter())).to(Constants.FROM_ID_PARAMETER_NAME)
+													.bind(convertIdValues(targetNodeDescription.getRequiredIdProperty(), fromId))
+													.to(Constants.FROM_ID_PARAMETER_NAME)
 													.bindAll(statementHolder.getProperties()).run();
 
 											if (processState != ProcessState.PROCESSED_ALL_VALUES) {

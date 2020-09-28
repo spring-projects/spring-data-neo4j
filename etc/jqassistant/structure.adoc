@@ -21,8 +21,17 @@ RETURN p1,p2
 .The public support packages must not depend directly on the mapping package
 ----
 MATCH (a:Main:Artifact)
-MATCH (a) -[:CONTAINS]-> (p1:Package) -[:DEPENDS_ON]-> (p2:Package) <-[:CONTAINS]- (a)
-WHERE p1.fqn in ['org.springframework.data.neo4j.core.convert', 'org.springframework.data.neo4j.core.schema', 'org.springframework.data.neo4j.core.support', 'org.springframework.data.neo4j.core.transaction']
+MATCH (a) -[:CONTAINS]-> (p1:Package)
+WHERE p1.fqn in [
+        'org.springframework.data.neo4j.core.convert',
+        'org.springframework.data.neo4j.core.schema',
+        'org.springframework.data.neo4j.core.support',
+        'org.springframework.data.neo4j.core.transaction'
+      ]
+WITH p1, a
+MATCH (p1) - [:CONTAINS] -> (t:Type)
+MATCH (t) - [:DEPENDS_ON] -> (t2:Type) <- [:CONTAINS] - (p2:Package) <-[:CONTAINS]- (a)
+WHERE t2.fqn <> 'org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty'
   AND p2.fqn = 'org.springframework.data.neo4j.core.mapping'
-RETURN p1, p2
+RETURN t
 ----
