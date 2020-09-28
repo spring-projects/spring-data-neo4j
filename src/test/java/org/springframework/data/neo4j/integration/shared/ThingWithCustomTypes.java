@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.shared;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -27,9 +28,12 @@ import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.support.DateLong;
+import org.springframework.data.neo4j.core.support.DateString;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @Node("CustomTypes")
 public class ThingWithCustomTypes {
@@ -38,17 +42,29 @@ public class ThingWithCustomTypes {
 
 	private CustomType customType;
 
-	public ThingWithCustomTypes(Long id, CustomType customType) {
+	@DateLong
+	private Date dateAsLong;
+
+	@DateString("yyyy-MM-dd")
+	private Date dateAsString;
+
+	public ThingWithCustomTypes(Long id, CustomType customType, Date dateAsLong, Date dateAsString) {
 		this.id = id;
 		this.customType = customType;
+		this.dateAsLong = dateAsLong;
+		this.dateAsString = dateAsString;
 	}
 
 	public ThingWithCustomTypes withId(Long newId) {
-		return new ThingWithCustomTypes(newId, this.customType);
+		return new ThingWithCustomTypes(newId, this.customType, this.dateAsLong, this.dateAsString);
 	}
 
 	public CustomType getCustomType() {
 		return customType;
+	}
+
+	public void setDateAsLong(Date dateAsLong) {
+		this.dateAsLong = dateAsLong;
 	}
 
 	/**
