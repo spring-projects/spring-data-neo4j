@@ -52,7 +52,7 @@ import org.springframework.util.StringUtils;
  * @author Gerrit Meier
  * @since 6.0
  */
-class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty>
+final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty>
 		implements Neo4jPersistentEntity<T> {
 
 	private static final Set<Class<?>> VALID_GENERATED_ID_TYPES = Collections

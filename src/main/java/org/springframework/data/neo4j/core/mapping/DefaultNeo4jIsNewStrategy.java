@@ -45,7 +45,7 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 5.1.20
  */
-class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
+final class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(DefaultNeo4jIsNewStrategy.class));
 

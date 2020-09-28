@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core;
+package org.springframework.data.neo4j.core.mapping;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
@@ -22,14 +22,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
  * @author Philipp Tölle
+ * @since 6.0
  */
-final class MappingSupport {
+@API(status = API.Status.INTERNAL, since = "6.0")
+public final class MappingSupport {
 
 	/**
 	 * The value for a relationship can be a scalar object (1:1), a collection (1:n), a map (1:n, but with dynamic

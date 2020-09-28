@@ -26,7 +26,7 @@ import org.springframework.lang.Nullable;
  * @author Gerrit Meier
  * @since 6.0
  */
-class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty> implements RelationshipDescription {
+final class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty> implements RelationshipDescription {
 
 	private final String type;
 

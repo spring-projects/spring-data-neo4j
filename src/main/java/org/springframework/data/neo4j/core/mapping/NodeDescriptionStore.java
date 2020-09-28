@@ -33,7 +33,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Gerrit Meier
  */
-class NodeDescriptionStore {
+final class NodeDescriptionStore {
 
 	/**
 	 * A lookup of entities based on their primary label. We depend on the locking mechanism provided by the

@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 6.0
  */
-class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<Neo4jPersistentProperty>
+final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<Neo4jPersistentProperty>
 		implements Neo4jPersistentProperty {
 
 	private final Lazy<String> graphPropertyName;

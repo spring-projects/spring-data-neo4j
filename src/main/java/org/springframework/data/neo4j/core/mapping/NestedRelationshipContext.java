@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core;
+package org.springframework.data.neo4j.core.mapping;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.apiguardian.api.API;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.lang.Nullable;
 
@@ -37,7 +35,8 @@ import org.springframework.lang.Nullable;
  * @author Gerrit Meier
  * @since 6.0
  */
-final class NestedRelationshipContext {
+@API(status = API.Status.INTERNAL, since = "6.0")
+public final class NestedRelationshipContext {
 	private final Neo4jPersistentProperty inverse;
 	private final Object value;
 	private final RelationshipDescription relationship;
@@ -54,20 +53,20 @@ final class NestedRelationshipContext {
 		this.inverseValueIsEmpty = inverseValueIsEmpty;
 	}
 
-	Neo4jPersistentProperty getInverse() {
+	public Neo4jPersistentProperty getInverse() {
 		return inverse;
 	}
 
 	@Nullable
-	Object getValue() {
+	public Object getValue() {
 		return value;
 	}
 
-	RelationshipDescription getRelationship() {
+	public RelationshipDescription getRelationship() {
 		return relationship;
 	}
 
-	Class<?> getAssociationTargetType() {
+	public Class<?> getAssociationTargetType() {
 		return associationTargetType;
 	}
 
@@ -79,7 +78,7 @@ final class NestedRelationshipContext {
 		return this.relationship.hasRelationshipProperties();
 	}
 
-	Object identifyAndExtractRelationshipTargetNode(Object relatedValue) {
+	public  Object identifyAndExtractRelationshipTargetNode(Object relatedValue) {
 		Object valueToBeSaved = relatedValue;
 		if (relatedValue instanceof Map.Entry) {
 			Map.Entry relatedValueMapEntry = (Map.Entry) relatedValue;
@@ -96,7 +95,7 @@ final class NestedRelationshipContext {
 		return valueToBeSaved;
 	}
 
-	static NestedRelationshipContext of(Association<Neo4jPersistentProperty> handler,
+	public static NestedRelationshipContext of(Association<Neo4jPersistentProperty> handler,
 			PersistentPropertyAccessor<?> propertyAccessor, Neo4jPersistentEntity<?> neo4jPersistentEntity) {
 
 		Neo4jPersistentProperty inverse = handler.getInverse();

@@ -45,7 +45,10 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.callback.EntityCallbacks;
-import org.springframework.data.neo4j.core.NestedRelationshipProcessingStateMachine.ProcessState;
+import org.springframework.data.neo4j.core.mapping.MappingSupport;
+import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
+import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine;
+import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
@@ -53,6 +56,7 @@ import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
+import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.event.BeforeBindCallback;
 import org.springframework.data.util.ClassTypeInformation;
@@ -447,10 +451,10 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				Long relatedInternalId = saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
 						targetNodeDescription, inDatabase);
 
-				RelationshipStatementHolder statementHolder = RelationshipStatementHolder.createStatement(neo4jMappingContext,
+				CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatement(
 						neo4jPersistentEntity, relationshipContext, relatedInternalId, relatedValueToStore);
 
-				neo4jClient.query(renderer.render(statementHolder.getRelationshipCreationQuery())).in(inDatabase)
+				neo4jClient.query(renderer.render(statementHolder.getStatement())).in(inDatabase)
 						.bind(convertIdValues(fromId)).to(Constants.FROM_ID_PARAMETER_NAME).bindAll(statementHolder.getProperties())
 						.run();
 
