@@ -177,6 +177,8 @@ If you require the time zone, use a type that supports it (i.e. `ZoneDateTime`) 
 
 == Custom conversions
 
+=== For attributes of a given type
+
 If you prefer to work with your own types in the entities or as parameters for `@Query` annotated methods, you can define and provide a custom converter implementation.
 First you have to implement a `GenericConverter` and register the types your converter should handle.
 For entity property type converters you need to take care of converting your type to *and* from a Neo4j Java Driver `Value`.
@@ -199,3 +201,12 @@ include::../../../../src/test/java/org/springframework/data/neo4j/documentation/
 ----
 
 If you need multiple converters in your application, you can add as many as you need in the `Neo4jConversions` constructor.
+
+=== For specific attributes only
+
+If you need conversions only for some specific attributes, we provide `@ConvertWith`.
+This is an annotation that can be put on attributes carrying a `Neo4jPersistentPropertyConverter` on it's `converter` attribute
+and an optional `Neo4jPersistentPropertyConverterFactory` to construct the former.
+With an implementation of `Neo4jPersistentPropertyConverter` all specific conversions for a given type can be addressed.
+
+We provide `@DateLong` and `@DateString` as meta-annotated annotations for backward compatibility with Neo4j-OGM schemes not using native types.
