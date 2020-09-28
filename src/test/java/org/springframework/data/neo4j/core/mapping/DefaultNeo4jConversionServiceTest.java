@@ -37,9 +37,9 @@ import org.springframework.data.util.ClassTypeInformation;
  * @author Michael J. Simons
  * @soundtrack Trettmann, KitschKrieg - Trettmann
  */
-class DefaultNeo4jEntityConverterTest {
+class DefaultNeo4jConversionServiceTest {
 
-	private final DefaultNeo4jEntityConverter defaultNeo4jEntityAccessor = new DefaultNeo4jEntityConverter(new Neo4jConversions(), null);
+	private final DefaultNeo4jConversionService defaultNeo4jEntityAccessor = new DefaultNeo4jConversionService(new Neo4jConversions());
 
 	@Nested
 	class Reads {
@@ -48,7 +48,7 @@ class DefaultNeo4jEntityConverterTest {
 			Value value = Values.value("Das funktioniert nicht.");
 
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class)
-					.isThrownBy(() -> defaultNeo4jEntityAccessor.readValueForProperty(value, ClassTypeInformation.from(Date.class)))
+					.isThrownBy(() -> defaultNeo4jEntityAccessor.readValue(value, ClassTypeInformation.from(Date.class), null))
 					.withMessageStartingWith("Could not convert \"Das funktioniert nicht.\" into java.util.Date;")
 					.withCauseInstanceOf(ConversionFailedException.class).withRootCauseInstanceOf(DateTimeParseException.class);
 		}
@@ -59,7 +59,7 @@ class DefaultNeo4jEntityConverterTest {
 
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class)
 					.isThrownBy(
-							() -> defaultNeo4jEntityAccessor.readValueForProperty(value, ClassTypeInformation.from(LocalDate.class)))
+							() -> defaultNeo4jEntityAccessor.readValue(value, ClassTypeInformation.from(LocalDate.class), null))
 					.withMessageStartingWith("Could not convert \"Das funktioniert nicht.\" into java.time.LocalDate;")
 					.withCauseInstanceOf(ConversionFailedException.class).withRootCauseInstanceOf(Uncoercible.class);
 		}
@@ -69,7 +69,7 @@ class DefaultNeo4jEntityConverterTest {
 			Value value = Values.value("Das funktioniert nicht.");
 
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class).isThrownBy(
-					() -> defaultNeo4jEntityAccessor.readValueForProperty(value, ClassTypeInformation.from(ReactiveNeo4jClient.class)))
+					() -> defaultNeo4jEntityAccessor.readValue(value, ClassTypeInformation.from(ReactiveNeo4jClient.class), null))
 					.withMessageStartingWith(
 							"Could not convert \"Das funktioniert nicht.\" into org.springframework.data.neo4j.core.ReactiveNeo4jClient;")
 					.withRootCauseInstanceOf(ConverterNotFoundException.class);

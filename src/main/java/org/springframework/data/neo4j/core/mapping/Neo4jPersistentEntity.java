@@ -32,7 +32,7 @@ import org.springframework.data.mapping.model.MutablePersistentEntity;
  * @param <T> type of the underlying class
  * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public interface Neo4jPersistentEntity<T>
 		extends MutablePersistentEntity<T, Neo4jPersistentProperty>, NodeDescription<T> {
 

@@ -16,13 +16,17 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Optional;
+import java.util.function.Function;
 
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
@@ -44,26 +48,39 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	private final Neo4jMappingContext mappingContext;
 
+	private final Lazy<Neo4jPersistentPropertyConverter> customConversion;
+
 	/**
 	 * Creates a new {@link AnnotationBasedPersistentProperty}.
 	 *
-	 * @param property must not be {@literal null}.
-	 * @param owner must not be {@literal null}.
+	 * @param property         must not be {@literal null}.
+	 * @param owner            must not be {@literal null}.
 	 * @param simpleTypeHolder type holder
 	 */
 	DefaultNeo4jPersistentProperty(Property property, PersistentEntity<?, Neo4jPersistentProperty> owner,
-			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder, boolean isEntityInRelationshipWithProperties) {
+			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder,
+			boolean isEntityInRelationshipWithProperties) {
 
 		super(property, owner, simpleTypeHolder);
 		this.isEntityInRelationshipWithProperties = isEntityInRelationshipWithProperties;
+		this.mappingContext = mappingContext;
 
 		this.graphPropertyName = Lazy.of(this::computeGraphPropertyName);
 		this.isAssociation = Lazy.of(() -> {
 
 			Class<?> targetType = getActualType();
-			return !(simpleTypeHolder.isSimpleType(targetType) || mappingContext.hasCustomWriteTarget(targetType) || isAnnotationPresent(TargetNode.class));
+			return !(simpleTypeHolder.isSimpleType(targetType) || this.mappingContext.hasCustomWriteTarget(targetType)
+					|| isAnnotationPresent(TargetNode.class));
 		});
-		this.mappingContext = mappingContext;
+
+		this.customConversion = Lazy.of(() -> {
+
+			if (this.isEntity()) {
+				return null;
+			}
+
+			return this.mappingContext.getOptionalCustomConversionsFor(this);
+		});
 	}
 
 	@Override
@@ -141,6 +158,24 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	@Override
 	public boolean isEntity() {
 		return super.isEntity() && isAssociation() || (super.isEntity() && isEntityInRelationshipWithProperties());
+	}
+
+	private static Function<Object, Value> nullSafeWrite(Function<Object, Value> delegate) {
+		return source -> source == null ? Values.NULL : delegate.apply(source);
+	}
+
+	@Override
+	public Function<Object, Value> getOptionalWritingConverter() {
+		return customConversion.getOptional().map(c -> nullSafeWrite(c::write)).orElse(null);
+	}
+
+	private static Function<Value, Object> nullSafeRead(Function<Value, Object> delegate) {
+		return source -> source == null || source.isNull() ? null : delegate.apply(source);
+	}
+
+	@Override
+	public Function<Value, Object> getOptionalReadingConverter() {
+		return customConversion.getOptional().map(c -> nullSafeRead(c::read)).orElse(null);
 	}
 
 	@Override
