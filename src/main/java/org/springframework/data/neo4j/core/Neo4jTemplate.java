@@ -216,7 +216,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	private Object convertIdValues(Object idValues, Function<Object, Value> optionalWritingConverter) {
 
-		return neo4jMappingContext.getEntityConverter().writeValue(idValues,
+		return neo4jMappingContext.getConversionService().writeValue(idValues,
 				ClassTypeInformation.from(idValues.getClass()), optionalWritingConverter);
 	}
 

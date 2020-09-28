@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -42,11 +41,7 @@ import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.CollectionFactory;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.ConfigurableConversionService;
-import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.dao.TypeMismatchDataAccessException;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -54,7 +49,6 @@ import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.ParameterValueProvider;
-import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
@@ -80,18 +74,15 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	private static final EntityInstantiators INSTANTIATORS = new EntityInstantiators();
 
 	private final NodeDescriptionStore nodeDescriptionStore;
-	private final ConversionService conversionService;
+	private final Neo4jConversionService conversionService;
 
 	private TypeSystem typeSystem;
 
-	DefaultNeo4jEntityConverter(Neo4jConversions neo4jConversions, NodeDescriptionStore nodeDescriptionStore) {
+	DefaultNeo4jEntityConverter(Neo4jConversionService conversionService, NodeDescriptionStore nodeDescriptionStore) {
 
-		Assert.notNull(neo4jConversions, "Neo4jConversions must not be null!");
+		Assert.notNull(conversionService, "Neo4jConversionService must not be null!");
 
-		final ConfigurableConversionService configurableConversionService = new DefaultConversionService();
-		neo4jConversions.registerConvertersIn(configurableConversionService);
-
-		this.conversionService = configurableConversionService;
+		this.conversionService = conversionService;
 		this.nodeDescriptionStore = nodeDescriptionStore;
 	}
 
@@ -136,37 +127,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		}
 	}
 
-	@Override
-	@Nullable
-	public Object readValue(@Nullable Value value, TypeInformation<?> type, @Nullable Function<Value, Object> conversionOverride) {
-
-		BiFunction<Value, Class<?>, Object> conversion = conversionOverride == null ? (v, t) -> conversionService.convert(v, t) : (v, t) -> conversionOverride.apply(v);
-		return readValueForPropertyImpl(value, type, conversion);
-	}
-
-	@Nullable
-	private Object readValueForPropertyImpl(@Nullable Value value, TypeInformation<?> type, BiFunction<Value, Class<?>, Object> conversion) {
-
-		boolean valueIsLiteralNullOrNullValue = value == null || value == Values.NULL;
-
-		try {
-			Class<?> rawType = type.getType();
-
-			if (!valueIsLiteralNullOrNullValue && isCollection(type)) {
-				Collection<Object> target = CollectionFactory
-						.createCollection(rawType, type.getComponentType().getType(), value.size());
-				value.values()
-						.forEach(element -> target.add(conversion.apply(element, type.getComponentType().getType())));
-				return target;
-			}
-
-			return conversion.apply(valueIsLiteralNullOrNullValue ? null : value, rawType);
-		} catch (Exception e) {
-			String msg = String.format("Could not convert %s into %s", value, type.toString());
-			throw new TypeMismatchDataAccessException(msg, e);
-		}
-	}
-
 	private Collection<String> createDynamicLabelsProperty(TypeInformation<?> type, Collection<String> dynamicLabels) {
 
 		Collection<String> target = CollectionFactory.createCollection(type.getType(), String.class, dynamicLabels.size());
@@ -189,7 +149,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				return;
 			}
 
-			final Object value = writeValue(propertyAccessor.getProperty(p), p.getTypeInformation(), p.getOptionalWritingConverter());
+			final Object value = conversionService.writeValue(propertyAccessor.getProperty(p), p.getTypeInformation(), p.getOptionalWritingConverter());
 			properties.put(p.getPropertyName(), value);
 		});
 
@@ -199,7 +159,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		if (nodeDescription.hasIdProperty()) {
 			Neo4jPersistentProperty idProperty = nodeDescription.getRequiredIdProperty();
 			parameters.put(Constants.NAME_OF_ID,
-					writeValue(propertyAccessor.getProperty(idProperty), idProperty.getTypeInformation(), idProperty.getOptionalWritingConverter()));
+					conversionService.writeValue(propertyAccessor.getProperty(idProperty), idProperty.getTypeInformation(), idProperty.getOptionalWritingConverter()));
 		}
 		// in case of relationship properties ignore internal id property
 		if (nodeDescription.hasVersionProperty()) {
@@ -208,33 +168,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			// we incremented this upfront the persist operation so the matching version would be one "before"
 			parameters.put(Constants.NAME_OF_VERSION_PARAM, versionProperty - 1);
 		}
-	}
-
-	@Override
-	public Value writeValue(@Nullable Object value, TypeInformation<?> type,  @Nullable Function<Object, Value> writingConverter) {
-
-		Function<Object, Value> conversion = writingConverter == null ? v -> conversionService.convert(v, Value.class) : writingConverter;
-		return writeValueFromPropertyImpl(value, type, conversion);
-	}
-
-	private Value writeValueFromPropertyImpl(@Nullable Object value, TypeInformation<?> type, Function<Object, Value> conversion) {
-
-		if (value == null) {
-			return Values.NULL;
-		}
-
-		if (isCollection(type)) {
-			Collection<?> sourceCollection = (Collection<?>) value;
-			Object[] targetCollection = (sourceCollection).stream()
-					.map(conversion::apply).toArray();
-			return Values.value(targetCollection);
-		}
-
-		return conversion.apply(value);
-	}
-
-	private static boolean isCollection(TypeInformation<?> type) {
-		return Collection.class.isAssignableFrom(type.getType());
 	}
 
 	void setTypeSystem(TypeSystem typeSystem) {
@@ -343,7 +276,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				} else if (matchingProperty.isDynamicLabels()) {
 					return createDynamicLabelsProperty(matchingProperty.getTypeInformation(), surplusLabels);
 				}
-				return readValue(extractValueOf(matchingProperty, values), parameter.getType(), matchingProperty.getOptionalReadingConverter());
+				return conversionService.readValue(extractValueOf(matchingProperty, values), parameter.getType(), matchingProperty.getOptionalReadingConverter());
 			}
 		};
 
@@ -367,7 +300,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				}
 			} else {
 				propertyAccessor.setProperty(property,
-						readValue(extractValueOf(property, queryResult), property.getTypeInformation(), property.getOptionalReadingConverter()));
+						conversionService.readValue(extractValueOf(property, queryResult), property.getTypeInformation(), property.getOptionalReadingConverter()));
 			}
 		};
 	}

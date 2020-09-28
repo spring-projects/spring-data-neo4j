@@ -76,7 +76,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 */
 	private final Neo4jEntityConverter entityConverter;
 
-	private final Neo4jConversions neo4jConversions;
+	private final Neo4jConversionService conversionService;
 
 	private @Nullable AutowireCapableBeanFactory beanFactory;
 
@@ -101,9 +101,9 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	public Neo4jMappingContext(Neo4jConversions neo4jConversions, TypeSystem typeSystem) {
 
 		super.setSimpleTypeHolder(Neo4jSimpleTypes.HOLDER);
-		this.neo4jConversions = neo4jConversions;
+		this.conversionService = new DefaultNeo4jConversionService(neo4jConversions);
 
-		DefaultNeo4jEntityConverter defaultNeo4jConverter = new DefaultNeo4jEntityConverter(neo4jConversions, nodeDescriptionStore);
+		DefaultNeo4jEntityConverter defaultNeo4jConverter = new DefaultNeo4jEntityConverter(conversionService, nodeDescriptionStore);
 		if (typeSystem != null) {
 			defaultNeo4jConverter.setTypeSystem(typeSystem);
 		}
@@ -114,8 +114,12 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		return entityConverter;
 	}
 
+	public Neo4jConversionService getConversionService() {
+		return conversionService;
+	}
+
 	boolean hasCustomWriteTarget(Class<?> targetType) {
-		return neo4jConversions.hasCustomWriteTarget(targetType);
+		return conversionService.hasCustomWriteTarget(targetType);
 	}
 
 	/*
@@ -239,7 +243,8 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 * @param persistentProperty The persistent property for which the conversion should be build.
 	 * @return An optional conversion.
 	 */
-	@Nullable  Neo4jPersistentPropertyConverter getOptionalCustomConversionsFor(Neo4jPersistentProperty persistentProperty) {
+	@Nullable
+	Neo4jPersistentPropertyConverter getOptionalCustomConversionsFor(Neo4jPersistentProperty persistentProperty) {
 
 		// Is the annotation present at all?
 		ConvertWith convertWith = persistentProperty.findAnnotation(ConvertWith.class);

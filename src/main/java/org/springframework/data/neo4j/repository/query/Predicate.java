@@ -37,6 +37,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
+import org.springframework.data.neo4j.core.mapping.Neo4jConversionService;
 import org.springframework.data.neo4j.core.mapping.Neo4jEntityConverter;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
@@ -93,7 +94,7 @@ final class Predicate {
 				continue;
 			}
 
-			Neo4jEntityConverter entityAccessor = mappingContext.getEntityConverter();
+			Neo4jConversionService conversionService = mappingContext.getConversionService();
 
 			if (graphProperty.isRelationship()) {
 				log.error("Querying by example does not support traversing of relationships.");
@@ -140,8 +141,7 @@ final class Predicate {
 				predicate.parameters.put(propertyName, optionalValue.map(
 						v -> {
 							Neo4jPersistentProperty neo4jPersistentProperty = (Neo4jPersistentProperty) graphProperty;
-							return entityAccessor
-									.writeValue(v, neo4jPersistentProperty.getTypeInformation(),
+							return conversionService.writeValue(v, neo4jPersistentProperty.getTypeInformation(),
 											neo4jPersistentProperty.getOptionalWritingConverter());
 						})
 						.get());

@@ -37,9 +37,9 @@ import org.springframework.data.util.ClassTypeInformation;
  * @author Michael J. Simons
  * @soundtrack Trettmann, KitschKrieg - Trettmann
  */
-class DefaultNeo4jEntityConverterTest {
+class DefaultNeo4jConversionServiceTest {
 
-	private final DefaultNeo4jEntityConverter defaultNeo4jEntityAccessor = new DefaultNeo4jEntityConverter(new Neo4jConversions(), null);
+	private final DefaultNeo4jConversionService defaultNeo4jEntityAccessor = new DefaultNeo4jConversionService(new Neo4jConversions());
 
 	@Nested
 	class Reads {
