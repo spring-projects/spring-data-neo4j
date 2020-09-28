@@ -13,22 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.mapping;
-
-import java.util.Map;
+package org.springframework.data.neo4j.core.convert;
 
 import org.apiguardian.api.API;
-import org.neo4j.driver.Record;
-import org.springframework.data.convert.EntityReader;
-import org.springframework.data.convert.EntityWriter;
+import org.neo4j.driver.Value;
 
 /**
- * This orchestrates the build-in store conversions and any additional Spring converters.
+ * This  interface represents a pair of methods capable of converting values of type {@code T} to and from {@link Value values}.
  *
+ * @param <T> The type of the property to convert (the type of the actual attribute).
  * @author Michael J. Simons
- * @soundtrack The Kleptones - A Night At The Hip-Hopera
+ * @soundtrack Antilopen Gang - Adrenochrom
  * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
-public interface Neo4jEntityConverter extends EntityReader<Object, Record>, EntityWriter<Object, Map<String, Object>> {
+@API(status = API.Status.STABLE, since = "6.0")
+public interface Neo4jPersistentPropertyConverter<T> {
+
+	/**
+	 * @param source The value to store, never null.
+	 * @return
+	 */
+	Value write(T source);
+
+	/**
+	 * @param source The value to read, never null or {@link org.neo4j.driver.Values#NULL}
+	 * @return
+	 */
+	T read(Value source);
 }

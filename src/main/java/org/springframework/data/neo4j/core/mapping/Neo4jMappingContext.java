@@ -36,10 +36,13 @@ import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.data.neo4j.core.convert.ConvertWith;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverterFactory;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 
@@ -60,6 +63,8 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 */
 	private final Map<Class<? extends IdGenerator<?>>, IdGenerator<?>> idGenerators = new ConcurrentHashMap<>();
 
+	private final Map<Class<? extends Neo4jPersistentPropertyConverterFactory>, Neo4jPersistentPropertyConverterFactory> converterFactorys = new ConcurrentHashMap<>();
+
 	/**
 	 * The {@link NodeDescriptionStore} is basically a {@link Map} and it is used to break the dependency cycle between
 	 * this class and the {@link DefaultNeo4jEntityConverter}.
@@ -71,7 +76,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 */
 	private final Neo4jEntityConverter entityConverter;
 
-	private final Neo4jConversions neo4jConversions;
+	private final Neo4jConversionService conversionService;
 
 	private @Nullable AutowireCapableBeanFactory beanFactory;
 
@@ -96,9 +101,9 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	public Neo4jMappingContext(Neo4jConversions neo4jConversions, TypeSystem typeSystem) {
 
 		super.setSimpleTypeHolder(Neo4jSimpleTypes.HOLDER);
-		this.neo4jConversions = neo4jConversions;
+		this.conversionService = new DefaultNeo4jConversionService(neo4jConversions);
 
-		DefaultNeo4jEntityConverter defaultNeo4jConverter = new DefaultNeo4jEntityConverter(neo4jConversions, nodeDescriptionStore);
+		DefaultNeo4jEntityConverter defaultNeo4jConverter = new DefaultNeo4jEntityConverter(conversionService, nodeDescriptionStore);
 		if (typeSystem != null) {
 			defaultNeo4jConverter.setTypeSystem(typeSystem);
 		}
@@ -109,8 +114,12 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		return entityConverter;
 	}
 
+	public Neo4jConversionService getConversionService() {
+		return conversionService;
+	}
+
 	boolean hasCustomWriteTarget(Class<?> targetType) {
-		return neo4jConversions.hasCustomWriteTarget(targetType);
+		return conversionService.hasCustomWriteTarget(targetType);
 	}
 
 	/*
@@ -200,22 +209,20 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		return super.addPersistentEntity(type);
 	}
 
+	private <T> T createBeanOrInstantiate(Class<T> t) {
+		T idGenerator;
+		if (this.beanFactory == null) {
+			idGenerator = BeanUtils.instantiateClass(t);
+		} else {
+			idGenerator = this.beanFactory.getBeanProvider(t).getIfUnique(() -> this.beanFactory.createBean(t));
+		}
+		return idGenerator;
+	}
+
 	@Override
 	public <T extends IdGenerator<?>> T getOrCreateIdGeneratorOfType(Class<T> idGeneratorType) {
 
-		if (this.idGenerators.containsKey(idGeneratorType)) {
-			return (T) this.idGenerators.get(idGeneratorType);
-		} else {
-			T idGenerator;
-			if (this.beanFactory == null) {
-				idGenerator = BeanUtils.instantiateClass(idGeneratorType);
-			} else {
-				idGenerator = this.beanFactory.getBeanProvider(idGeneratorType)
-						.getIfUnique(() -> this.beanFactory.createBean(idGeneratorType));
-			}
-			this.idGenerators.put(idGeneratorType, idGenerator);
-			return idGenerator;
-		}
+		return (T) this.idGenerators.computeIfAbsent(idGeneratorType, this::createBeanOrInstantiate);
 	}
 
 	@Override
@@ -225,6 +232,28 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		} catch (NoSuchBeanDefinitionException e) {
 			return Optional.empty();
 		}
+	}
+
+	private <T extends Neo4jPersistentPropertyConverterFactory> T getOrCreateConverterFactoryOfType(Class<T> converterFactoryType) {
+
+		return (T) this.converterFactorys.computeIfAbsent(converterFactoryType, this::createBeanOrInstantiate);
+	}
+
+	/**
+	 * @param persistentProperty The persistent property for which the conversion should be build.
+	 * @return An optional conversion.
+	 */
+	@Nullable
+	Neo4jPersistentPropertyConverter getOptionalCustomConversionsFor(Neo4jPersistentProperty persistentProperty) {
+
+		// Is the annotation present at all?
+		ConvertWith convertWith = persistentProperty.findAnnotation(ConvertWith.class);
+		if (convertWith == null) {
+			return null;
+		}
+
+		Neo4jPersistentPropertyConverterFactory persistentPropertyConverterFactory = this.getOrCreateConverterFactoryOfType(convertWith.converterFactory());
+		return persistentPropertyConverterFactory.getPropertyConverterFor(persistentProperty);
 	}
 
 	@Override
@@ -268,9 +297,10 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		if (!relationshipContext.getRelationship().isDynamic()) {
 			relationshipType = null;
 		} else {
-			TypeInformation<?> keyType = relationshipContext.getInverse().getTypeInformation().getRequiredComponentType();
+			Neo4jPersistentProperty inverse = relationshipContext.getInverse();
+			TypeInformation<?> keyType = inverse.getTypeInformation().getRequiredComponentType();
 			Object key = ((Map.Entry<?, ?>) relatedValue).getKey();
-			relationshipType = entityConverter.writeValueFromProperty(key, keyType).asString();
+			relationshipType = conversionService.writeValue(key, keyType, inverse.getOptionalWritingConverter()).asString();
 		}
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.createRelationshipCreationQuery(

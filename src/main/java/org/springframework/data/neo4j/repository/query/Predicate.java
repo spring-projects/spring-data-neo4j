@@ -35,12 +35,12 @@ import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.neo4j.core.mapping.Neo4jEntityConverter;
+import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
+import org.springframework.data.neo4j.core.mapping.Neo4jConversionService;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.core.mapping.Constants;
-import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.support.ExampleMatcherAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
@@ -81,7 +81,8 @@ final class Predicate {
 			boolean internalId = graphProperty.isIdProperty() && probeNodeDescription.isUsingInternalIds();
 			String propertyName = graphProperty.getPropertyName();
 
-			ExampleMatcher.PropertyValueTransformer transformer = matcherAccessor.getValueTransformerForPath(currentPath);
+			ExampleMatcher.PropertyValueTransformer transformer = matcherAccessor
+					.getValueTransformerForPath(currentPath);
 			Optional<Object> optionalValue = transformer
 					.apply(Optional.ofNullable(beanWrapper.getPropertyValue(currentPath)));
 
@@ -92,7 +93,7 @@ final class Predicate {
 				continue;
 			}
 
-			Neo4jEntityConverter entityAccessor = mappingContext.getEntityConverter();
+			Neo4jConversionService conversionService = mappingContext.getConversionService();
 
 			if (graphProperty.isRelationship()) {
 				log.error("Querying by example does not support traversing of relationships.");
@@ -131,12 +132,17 @@ final class Predicate {
 							break;
 						default:
 							throw new IllegalArgumentException(
-									"Unsupported StringMatcher " + matcherAccessor.getStringMatcherForPath(currentPath));
+									"Unsupported StringMatcher " + matcherAccessor
+											.getStringMatcherForPath(currentPath));
 					}
 				}
 				predicate.add(mode, condition);
 				predicate.parameters.put(propertyName, optionalValue.map(
-						v -> entityAccessor.writeValueFromProperty(v, ((Neo4jPersistentProperty) graphProperty).getTypeInformation()))
+						v -> {
+							Neo4jPersistentProperty neo4jPersistentProperty = (Neo4jPersistentProperty) graphProperty;
+							return conversionService.writeValue(v, neo4jPersistentProperty.getTypeInformation(),
+											neo4jPersistentProperty.getOptionalWritingConverter());
+						})
 						.get());
 			}
 		}
