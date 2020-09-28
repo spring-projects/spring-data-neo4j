@@ -15,6 +15,9 @@
  */
 package org.springframework.data.neo4j.integration.shared;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -27,9 +30,11 @@ import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.support.DateLong;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @Node("CustomTypes")
 public class ThingWithCustomTypes {
@@ -38,17 +43,34 @@ public class ThingWithCustomTypes {
 
 	private CustomType customType;
 
-	public ThingWithCustomTypes(Long id, CustomType customType) {
+	@DateLong
+	private Date dateAsLong;
+
+	public ThingWithCustomTypes(Long id, CustomType customType, Date dateAsLong) {
 		this.id = id;
 		this.customType = customType;
+		this.dateAsLong = dateAsLong;
 	}
 
 	public ThingWithCustomTypes withId(Long newId) {
-		return new ThingWithCustomTypes(newId, this.customType);
+		return new ThingWithCustomTypes(newId, this.customType, this.dateAsLong);
 	}
 
 	public CustomType getCustomType() {
 		return customType;
+	}
+
+	public Date getDateAsLong() {
+		return dateAsLong;
+	}
+
+	public void setDateAsLong(Date dateAsLong) {
+		this.dateAsLong = dateAsLong;
+	}
+
+	public static void main(String...a) {
+		System.out.println(Date.from(ZonedDateTime.of(2020, 9, 21,
+				12, 0, 0, 0, ZoneId.of("Europe/Berlin")).toInstant()).getTime());
 	}
 
 	/**

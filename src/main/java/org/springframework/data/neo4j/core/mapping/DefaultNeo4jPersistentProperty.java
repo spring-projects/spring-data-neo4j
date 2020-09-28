@@ -16,7 +16,11 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Optional;
+import java.util.function.Function;
 
+import org.neo4j.driver.Value;
+import org.springframework.beans.BeanUtils;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
@@ -26,6 +30,7 @@ import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.neo4j.core.support.ConvertAs;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
@@ -43,6 +48,9 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	private final boolean isEntityInRelationshipWithProperties;
 
 	private final Neo4jMappingContext mappingContext;
+
+	private final Lazy<Function<Object, Value>> writingConverter;
+	private final Lazy<Function<Value, Object>> readingConverter;
 
 	/**
 	 * Creates a new {@link AnnotationBasedPersistentProperty}.
@@ -62,6 +70,19 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 			Class<?> targetType = getActualType();
 			return !(simpleTypeHolder.isSimpleType(targetType) || mappingContext.hasCustomWriteTarget(targetType) || isAnnotationPresent(TargetNode.class));
+		});
+		// TODO Configuration of converters needs to be accounted for.
+		this.writingConverter = Lazy.of(() -> {
+
+			ConvertAs annotation = findAnnotation(ConvertAs.class);
+			return annotation == null ? null :
+					(Function<Object, Value>) BeanUtils.instantiateClass(annotation.writingConverter());
+		});
+		this.readingConverter = Lazy.of(() -> {
+
+			ConvertAs annotation = findAnnotation(ConvertAs.class);
+			return annotation == null ? null :
+					(Function<Value, Object>) BeanUtils.instantiateClass(annotation.readingConverter());
 		});
 		this.mappingContext = mappingContext;
 	}
@@ -141,6 +162,15 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	@Override
 	public boolean isEntity() {
 		return super.isEntity() && isAssociation() || (super.isEntity() && isEntityInRelationshipWithProperties());
+	}
+
+	@Override
+	public Function<Object, Value> getOptionalWritingConverter() {
+		return isEntity() ? null : writingConverter.getNullable();
+	}
+
+	public Function<Value, Object> getOptionalReadingConverter() {
+		return isEntity() ? null : readingConverter.getNullable();
 	}
 
 	@Override

@@ -37,12 +37,14 @@ import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -182,33 +184,34 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	@Override
 	public <T> Mono<T> findById(Object id, Class<T> domainType) {
 
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Statement statement = cypherGenerator
 				.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
 				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
 		return createExecutableQuery(domainType, statement, Collections
-				.singletonMap(Constants.NAME_OF_ID, convertIdValues(id)))
+				.singletonMap(Constants.NAME_OF_ID, convertIdValues(id, entityMetaData.getRequiredIdProperty().getOptionalWritingConverter())))
 				.flatMap(ExecutableQuery::getSingleResult);
 	}
 
 	@Override
 	public <T> Flux<T> findAllById(Iterable<?> ids, Class<T> domainType) {
 
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Statement statement = cypherGenerator
 				.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().in((parameter(Constants.NAME_OF_IDS))))
 				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
 		return createExecutableQuery(domainType, statement, Collections
-				.singletonMap(Constants.NAME_OF_IDS, convertIdValues(ids)))
+				.singletonMap(Constants.NAME_OF_IDS,
+						convertIdValues(ids, entityMetaData.getRequiredIdProperty().getOptionalWritingConverter())))
 				.flatMapMany(ExecutableQuery::getResults);
 	}
 
-	private Object convertIdValues(Object idValues) {
+	private Object convertIdValues(Object idValues, Function<Object, Value> optionalWritingConverter) {
 
 		return neo4jMappingContext.getEntityConverter().writeValueFromProperty(idValues,
-				ClassTypeInformation.from(idValues.getClass()));
+				ClassTypeInformation.from(idValues.getClass()), optionalWritingConverter);
 	}
 
 	@Override
@@ -328,13 +331,14 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	@Override
 	public <T> Mono<Void> deleteAllById(Iterable<?> ids, Class<T> domainType) {
 
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		String nameOfParameter = "ids";
 		Condition condition = entityMetaData.getIdExpression().in(parameter(nameOfParameter));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 		return getDatabaseName().flatMap(databaseName -> this.neo4jClient.query(() -> renderer.render(statement))
-				.in(databaseName.getValue()).bind(convertIdValues(ids)).to(nameOfParameter).run().then());
+				.in(databaseName.getValue()).bind(convertIdValues(ids,
+						entityMetaData.getRequiredIdProperty().getOptionalWritingConverter())).to(nameOfParameter).run().then());
 	}
 
 	@Override
@@ -343,12 +347,13 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Assert.notNull(id, "The given id must not be null!");
 
 		String nameOfParameter = "id";
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 		return getDatabaseName().flatMap(databaseName -> this.neo4jClient.query(() -> renderer.render(statement))
-				.in(databaseName.getValue()).bind(convertIdValues(id)).to(nameOfParameter).run().then());
+				.in(databaseName.getValue()).bind(convertIdValues(id,
+						entityMetaData.getRequiredIdProperty().getOptionalWritingConverter())).to(nameOfParameter).run().then());
 	}
 
 	@Override
@@ -426,7 +431,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 					Statement relationshipRemoveQuery = cypherGenerator.createRelationshipRemoveQuery(neo4jPersistentEntity,
 							relationshipDescription, previouslyRelatedPersistentEntity);
 					relationshipCreationMonos.add(
-							neo4jClient.query(renderer.render(relationshipRemoveQuery)).in(inDatabase).bind(convertIdValues(fromId))
+							neo4jClient.query(renderer.render(relationshipRemoveQuery)).in(inDatabase).bind(convertIdValues(fromId,
+									previouslyRelatedPersistentEntity.getRequiredIdProperty().getOptionalWritingConverter()))
 									.to(Constants.FROM_ID_PARAMETER_NAME).run().checkpoint("delete relationships").then());
 				}
 
@@ -462,7 +468,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 											// in case of no properties the bind will just return an empty map
 											Mono<ResultSummary> relationshipCreationMonoNested = neo4jClient
 													.query(renderer.render(statementHolder.getStatement())).in(inDatabase)
-													.bind(convertIdValues(fromId)).to(Constants.FROM_ID_PARAMETER_NAME)
+													.bind(convertIdValues(fromId, targetNodeDescription.getRequiredIdProperty()
+															.getOptionalWritingConverter())).to(Constants.FROM_ID_PARAMETER_NAME)
 													.bindAll(statementHolder.getProperties()).run();
 
 											if (processState != ProcessState.PROCESSED_ALL_VALUES) {

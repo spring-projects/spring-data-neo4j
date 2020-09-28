@@ -33,27 +33,33 @@ import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.callback.EntityCallbacks;
+<<<<<<< HEAD
 import org.springframework.data.neo4j.core.mapping.MappingSupport;
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine;
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
+=======
+import org.springframework.data.neo4j.core.NestedRelationshipProcessingStateMachine.ProcessState;
+import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+>>>>>>> 7bed9962c... First shot at individual conversion.
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.core.mapping.Constants;
-import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
@@ -187,31 +193,32 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	@Override
 	public <T> Optional<T> findById(Object id, Class<T> domainType) {
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Statement statement = cypherGenerator
 				.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
 				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 		return createExecutableQuery(domainType, statement, Collections
-				.singletonMap(Constants.NAME_OF_ID, convertIdValues(id)))
+				.singletonMap(Constants.NAME_OF_ID, convertIdValues(id, entityMetaData.getRequiredIdProperty().getOptionalWritingConverter())))
 				.getSingleResult();
 	}
 
 	@Override
 	public <T> List<T> findAllById(Iterable<?> ids, Class<T> domainType) {
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Statement statement = cypherGenerator
 				.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().in((parameter(Constants.NAME_OF_IDS))))
 				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
 		return createExecutableQuery(domainType, statement, Collections
-				.singletonMap(Constants.NAME_OF_IDS, convertIdValues(ids)))
+				.singletonMap(Constants.NAME_OF_IDS,
+						convertIdValues(ids, entityMetaData.getRequiredIdProperty().getOptionalWritingConverter())))
 				.getResults();
 	}
 
-	private Object convertIdValues(Object idValues) {
+	private Object convertIdValues(Object idValues, Function<Object, Value> optionalWritingConverter) {
 
 		return neo4jMappingContext.getEntityConverter().writeValueFromProperty(idValues,
-				ClassTypeInformation.from(idValues.getClass()));
+				ClassTypeInformation.from(idValues.getClass()), optionalWritingConverter);
 	}
 
 	@Override
@@ -320,14 +327,15 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	@Override
 	public <T> void deleteById(Object id, Class<T> domainType) {
 
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		String nameOfParameter = "id";
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter));
 
 		log.debug(() -> String.format("Deleting entity with id %s ", id));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
-		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).in(getDatabaseName()).bind(convertIdValues(id))
+		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).in(getDatabaseName()).bind(
+				convertIdValues(id, entityMetaData.getRequiredIdProperty().getOptionalWritingConverter()))
 				.to(nameOfParameter).run();
 
 		log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
@@ -337,14 +345,15 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	@Override
 	public <T> void deleteAllById(Iterable<?> ids, Class<T> domainType) {
 
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		String nameOfParameter = "ids";
 		Condition condition = entityMetaData.getIdExpression().in(parameter(nameOfParameter));
 
 		log.debug(() -> String.format("Deleting all entities with the following ids: %s ", ids));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
-		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).in(getDatabaseName()).bind(convertIdValues(ids))
+		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).in(getDatabaseName()).bind(
+				convertIdValues(ids, entityMetaData.getRequiredIdProperty().getOptionalWritingConverter()))
 				.to(nameOfParameter).run();
 
 		log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
@@ -428,7 +437,9 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				Statement relationshipRemoveQuery = cypherGenerator.createRelationshipRemoveQuery(neo4jPersistentEntity,
 						relationshipDescription, previouslyRelatedPersistentEntity);
 
-				neo4jClient.query(renderer.render(relationshipRemoveQuery)).in(inDatabase).bind(convertIdValues(fromId))
+				neo4jClient.query(renderer.render(relationshipRemoveQuery)).in(inDatabase).bind(
+						convertIdValues(fromId, previouslyRelatedPersistentEntity.getRequiredIdProperty()
+								.getOptionalWritingConverter()))
 						.to(Constants.FROM_ID_PARAMETER_NAME).run();
 			}
 
@@ -455,7 +466,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 						neo4jPersistentEntity, relationshipContext, relatedInternalId, relatedValueToStore);
 
 				neo4jClient.query(renderer.render(statementHolder.getStatement())).in(inDatabase)
-						.bind(convertIdValues(fromId)).to(Constants.FROM_ID_PARAMETER_NAME).bindAll(statementHolder.getProperties())
+						.bind(convertIdValues(fromId, targetNodeDescription.getRequiredIdProperty()
+								.getOptionalWritingConverter())).to(Constants.FROM_ID_PARAMETER_NAME).bindAll(statementHolder.getProperties())
 						.run();
 
 				// if an internal id is used this must get set to link this entity in the next iteration

@@ -18,12 +18,15 @@ package org.springframework.data.neo4j.integration.imperative;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.Assertions;
@@ -32,18 +35,22 @@ import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
+import org.junit.platform.commons.util.AnnotationUtils;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.support.ConvertAs;
 import org.springframework.data.neo4j.integration.shared.Neo4jConversionsITBase;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllAdditionalTypes;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllCypherTypes;
@@ -56,6 +63,8 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Michael J. Simons
@@ -157,14 +166,22 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		long id = (long) ReflectionTestUtils.getField(thing, "id");
 		Object domainValue = ReflectionTestUtils.getField(thing, fieldName);
 
+		Field field = ReflectionUtils.findField(thing.getClass(), fieldName);
+		Optional<ConvertAs> annotation = AnnotationUtils.findAnnotation(field, ConvertAs.class);
+		Function<Object, Value> conversion = annotation.map(ConvertAs::writingConverter)
+				.map(BeanUtils::instantiateClass)
+				.map(c -> ((Converter<Object, Value>)c))
+				.map(c -> (Function<Object, Value>) c::convert)
+				.orElseGet(() -> o -> conversionService.convert(o, Value.class));
+
 		Value driverValue;
 		if (domainValue != null && Collection.class.isAssignableFrom(domainValue.getClass())) {
 			Collection<?> sourceCollection = (Collection<?>) domainValue;
 			Object[] targetCollection = (sourceCollection).stream()
-					.map(element -> conversionService.convert(element, Value.class)).toArray();
+					.map(element -> conversion.apply(element)).toArray();
 			driverValue = Values.value(targetCollection);
 		} else {
-			driverValue = conversionService.convert(domainValue, Value.class);
+			driverValue = conversion.apply(domainValue);
 		}
 
 		try (Session session = neo4jConnectionSupport.getDriver().session()) {

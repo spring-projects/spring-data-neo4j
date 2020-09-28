@@ -15,7 +15,11 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.util.function.Function;
+
 import org.apiguardian.api.API;
+import org.neo4j.driver.Value;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
@@ -69,6 +73,10 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 	default boolean isRelationshipWithProperties() {
 		return isAssociation() && isCollectionLike() && getActualType().isAnnotationPresent(RelationshipProperties.class);
 	}
+
+	Function<Object, Value> getOptionalWritingConverter();
+
+	Function<Value, Object> getOptionalReadingConverter();
 
 	boolean isEntityInRelationshipWithProperties();
 }

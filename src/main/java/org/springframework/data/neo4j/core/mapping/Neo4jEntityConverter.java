@@ -16,10 +16,12 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Map;
+import java.util.function.Function;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.TypeMismatchDataAccessException;
 import org.springframework.data.convert.EntityReader;
 import org.springframework.data.convert.EntityWriter;
@@ -44,11 +46,12 @@ public interface Neo4jEntityConverter extends EntityReader<Object, Record>, Enti
 	 *
 	 * @param value The value to be read, may be null.
 	 * @param type The type information describing the target type.
+	 * @param conversionOverride An optional conversion override.
 	 * @return A simple type or null, if the value was {@literal null} or {@link org.neo4j.driver.Values#NULL}.
 	 * @throws TypeMismatchDataAccessException In case the value cannot be converted to the target type
 	 */
 	@Nullable
-	Object readValueForProperty(@Nullable Value value, TypeInformation<?> type);
+	Object readValueForProperty(@Nullable Value value, TypeInformation<?> type, @Nullable Function<Value, Object> conversionOverride);
 
 	/**
 	 * Converts an {@link Object} to a driver's value object.
@@ -59,4 +62,5 @@ public interface Neo4jEntityConverter extends EntityReader<Object, Record>, Enti
 	 */
 	Value writeValueFromProperty(@Nullable Object value, TypeInformation<?> type);
 
+	Value writeValueFromProperty(@Nullable Object value, TypeInformation<?> type, @Nullable Function<Object, Value> conversionOverride);
 }
