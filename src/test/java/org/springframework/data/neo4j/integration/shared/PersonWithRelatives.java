@@ -43,6 +43,14 @@ public class PersonWithRelatives {
 		CATS, DOGS, FISH, MONSTERS
 	}
 
+	public enum TypeOfHobby {
+		ACTIVE, WATCHING
+	}
+
+	public enum TypeOfClub {
+		FOOTBALL, BASEBALL
+	}
+
 	@Id @GeneratedValue private Long id;
 
 	private final String name;
@@ -50,6 +58,10 @@ public class PersonWithRelatives {
 	private Map<TypeOfRelative, Person> relatives = new HashMap<>();
 
 	private Map<TypeOfPet, List<Pet>> pets = new HashMap<>();
+
+	private Map<TypeOfHobby, List<HobbyRelationship>> hobbies = new HashMap<>();
+
+	private Map<TypeOfClub, ClubRelationship> clubs = new HashMap<>();
 
 	public PersonWithRelatives(String name) {
 		this.name = name;
@@ -69,5 +81,13 @@ public class PersonWithRelatives {
 
 	public Map<TypeOfPet, List<Pet>> getPets() {
 		return pets;
+	}
+
+	public Map<TypeOfHobby, List<HobbyRelationship>> getHobbies() {
+		return hobbies;
+	}
+
+	public Map<TypeOfClub, ClubRelationship> getClubs() {
+		return clubs;
 	}
 }

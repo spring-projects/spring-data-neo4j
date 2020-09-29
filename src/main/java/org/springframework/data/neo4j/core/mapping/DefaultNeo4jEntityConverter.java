@@ -405,6 +405,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 									(Neo4jPersistentEntity) relationshipDescription.getRelationshipPropertiesEntity(),
 									knownObjects, mappedObject);
 							relationshipsAndProperties.add(relationshipProperties);
+							mappedObjectHandler.accept(possibleRelationship.type(), relationshipProperties);
 						} else {
 							mappedObjectHandler.accept(possibleRelationship.type(), mappedObject);
 						}
@@ -429,6 +430,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 							(Neo4jPersistentEntity) relationshipDescription.getRelationshipPropertiesEntity(),
 							knownObjects, valueEntry);
 					relationshipsAndProperties.add(relationshipProperties);
+					mappedObjectHandler.accept(relatedEntity.get(RelationshipDescription.NAME_OF_RELATIONSHIP_TYPE).asString(), relationshipProperties);
 				} else {
 					mappedObjectHandler.accept(relatedEntity.get(RelationshipDescription.NAME_OF_RELATIONSHIP_TYPE).asString(),
 							valueEntry);

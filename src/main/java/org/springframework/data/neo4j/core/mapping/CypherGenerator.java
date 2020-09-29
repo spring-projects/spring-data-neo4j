@@ -266,8 +266,6 @@ public enum CypherGenerator {
 
 		Assert.isTrue(relationship.hasRelationshipProperties(),
 				"Properties required to create a relationship with properties");
-		Assert.isTrue(!relationship.isDynamic(),
-				"Creation of relationships with properties is only supported for non-dynamic relationships");
 
 		Node startNode = anyNode(START_NODE_NAME);
 		Node endNode = anyNode(END_NODE_NAME);
@@ -428,15 +426,22 @@ public enum CypherGenerator {
 		processedRelationships.add(relationshipDescription);
 
 		if (relationshipDescription.isDynamic()) {
-			Relationship relationship = relationshipDescription.isOutgoing() ? startNode.relationshipTo(endNode)
+			Relationship relationship = relationshipDescription.isOutgoing()
+					? startNode.relationshipTo(endNode)
 					: startNode.relationshipFrom(endNode);
 			relationship = relationship.named(relationshipTargetName);
 
+			MapProjection mapProjection = projectAllPropertiesAndRelationships(endNodeDescription, relationshipFieldName,
+					new ArrayList<>(processedRelationships));
+
+			if (relationshipDescription.hasRelationshipProperties()) {
+				relationship = relationship.named(RelationshipDescription.NAME_OF_RELATIONSHIP);
+				mapProjection = mapProjection.and(relationship);
+			}
+
 			addMapProjection(relationshipTargetName,
-					listBasedOn(relationship).returning(projectAllPropertiesAndRelationships(endNodeDescription,
-							relationshipFieldName, new ArrayList<>(processedRelationships)).and(
-							RelationshipDescription.NAME_OF_RELATIONSHIP_TYPE,
-									Functions.type(relationship))),
+					listBasedOn(relationship).returning(mapProjection
+							.and(RelationshipDescription.NAME_OF_RELATIONSHIP_TYPE, Functions.type(relationship))),
 					mapProjectionLists);
 
 		} else {

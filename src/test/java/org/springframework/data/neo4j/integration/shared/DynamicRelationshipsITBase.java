@@ -57,6 +57,8 @@ public abstract class DynamicRelationshipsITBase<T> {
 			idOfExistingPerson = transaction
 					.run("" + "CREATE (t:" + labelOfTestSubject + " {name: 'A'}) WITH t "
 							+ "CREATE (t) - [:HAS_WIFE] -> (w:Person {firstName: 'B'}) "
+							+ "CREATE (t) - [:ACTIVE{performance:'average'}] -> (:Hobby {name: 'Biking'}) "
+							+ "CREATE (t) - [:FOOTBALL{place:'Brunswick'}] -> (:Club {name: 'BTSV'}) "
 							+ "CREATE (t) - [:HAS_DAUGHTER] -> (d:Person {firstName: 'C'}) " + "WITH t "
 							+ "UNWIND ['Tom', 'Garfield'] AS cat " + "CREATE (t) - [:CATS] -> (w:Pet {name: cat}) "
 							+ "WITH DISTINCT t " + "UNWIND ['Benji', 'Lassie'] AS dog "

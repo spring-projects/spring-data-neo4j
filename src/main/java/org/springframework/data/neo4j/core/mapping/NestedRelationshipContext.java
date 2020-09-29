@@ -17,6 +17,8 @@ package org.springframework.data.neo4j.core.mapping;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -82,12 +84,14 @@ public final class NestedRelationshipContext {
 		Object valueToBeSaved = relatedValue;
 		if (relatedValue instanceof Map.Entry) {
 			Map.Entry relatedValueMapEntry = (Map.Entry) relatedValue;
-
-			if (this.getInverse().isDynamicAssociation()) {
+			if (this.hasRelationshipWithProperties()) {
+				Object value = ((Map.Entry<?, ?>) relatedValue).getValue();
+				value = value instanceof List ? ((List) value).get(0) : value;
+				valueToBeSaved = ((MappingSupport.RelationshipPropertiesWithEntityHolder) value).getRelatedEntity();
+			} else if (this.getInverse().isDynamicAssociation()) {
 				valueToBeSaved = relatedValueMapEntry.getValue();
 			}
-		}
-		if (this.hasRelationshipWithProperties()) {
+		} else if (this.hasRelationshipWithProperties()) {
 			// here comes the entity
 			valueToBeSaved = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValue).getRelatedEntity();
 		}
@@ -114,16 +118,34 @@ public final class NestedRelationshipContext {
 		if (relationship.hasRelationshipProperties() && value != null) {
 			Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity();
 
-			List<MappingSupport.RelationshipPropertiesWithEntityHolder> relationshipProperties = new ArrayList<>();
 
-			for (Object relationshipProperty : ((Collection<Object>) value)) {
+			if (relationship.isDynamic()) {
+				Map<Object, List<MappingSupport.RelationshipPropertiesWithEntityHolder>> relationshipProperties = new HashMap<>();
+				for (Map.Entry<Object, Object> o : ((Map<Object, Object>) value).entrySet()) {
+					List<MappingSupport.RelationshipPropertiesWithEntityHolder> objects = new ArrayList<>();
+					relationshipProperties.put(o.getKey(), objects);
+					Object value1 = o.getValue();
+					value1 = value1 instanceof Collection<?> ? value1 : Collections.singletonList(value1);
+					for (Object relationshipProperty : ((List<Object>) value1)) {
 
-				MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
-						new MappingSupport.RelationshipPropertiesWithEntityHolder(relationshipProperty,
-								getTargetNode(relationshipPropertiesEntity, relationshipProperty));
-				relationshipProperties.add(oneOfThem);
+						MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
+								new MappingSupport.RelationshipPropertiesWithEntityHolder(relationshipProperty,
+										getTargetNode(relationshipPropertiesEntity, relationshipProperty));
+						objects.add(oneOfThem);
+					}
+				}
+				value = relationshipProperties;
+			} else {
+				List<MappingSupport.RelationshipPropertiesWithEntityHolder> relationshipProperties = new ArrayList<>();
+				for (Object relationshipProperty : ((Collection<Object>) value)) {
+
+					MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
+							new MappingSupport.RelationshipPropertiesWithEntityHolder(relationshipProperty,
+									getTargetNode(relationshipPropertiesEntity, relationshipProperty));
+					relationshipProperties.add(oneOfThem);
+				}
+				value = relationshipProperties;
 			}
-			value = relationshipProperties;
 		}
 
 		return new NestedRelationshipContext(inverse, value, relationship, associationTargetType, inverseValueIsEmpty);

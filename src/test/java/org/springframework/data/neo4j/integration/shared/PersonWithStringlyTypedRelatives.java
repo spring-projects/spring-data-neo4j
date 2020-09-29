@@ -37,6 +37,10 @@ public class PersonWithStringlyTypedRelatives {
 
 	private Map<String, List<Pet>> pets = new HashMap<>();
 
+	private Map<String, List<HobbyRelationship>> hobbies = new HashMap<>();
+
+	private Map<String, ClubRelationship> clubs = new HashMap<>();
+
 	public PersonWithStringlyTypedRelatives(String name) {
 		this.name = name;
 	}
@@ -55,5 +59,21 @@ public class PersonWithStringlyTypedRelatives {
 
 	public Map<String, List<Pet>> getPets() {
 		return pets;
+	}
+
+	public Map<String, List<HobbyRelationship>> getHobbies() {
+		return hobbies;
+	}
+
+	public void setHobbies(Map<String, List<HobbyRelationship>> hobbies) {
+		this.hobbies = hobbies;
+	}
+
+	public Map<String, ClubRelationship> getClubs() {
+		return clubs;
+	}
+
+	public void setClubs(Map<String, ClubRelationship> clubs) {
+		this.clubs = clubs;
 	}
 }

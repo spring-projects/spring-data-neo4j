@@ -89,8 +89,12 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		Neo4jPersistentEntity<?> obverseOwner;
 
 		// if the target is a relationship property always take the key type from the map instead of the value type.
+		boolean dynamicAssociation = this.isDynamicAssociation();
 		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
 			Class<?> type = this.mappingContext.getPersistentEntity(getActualType()).getPersistentProperty(TargetNode.class).getType();
+			obverseOwner = this.mappingContext.getPersistentEntity(type);
+		} else if (dynamicAssociation && this.mappingContext.getPersistentEntity(getTypeInformation().getMapValueType().getActualType().getType()).isRelationshipPropertiesEntity()) {
+			Class<?> type = this.mappingContext.getPersistentEntity(getTypeInformation().getMapValueType().getActualType().getType()).getPersistentProperty(TargetNode.class).getType();
 			obverseOwner = this.mappingContext.getPersistentEntity(type);
 		} else {
 			obverseOwner = this.mappingContext.getPersistentEntity(this.getAssociationTargetType());
@@ -110,14 +114,21 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 			direction = outgoingRelationship.direction();
 		}
 
-		boolean dynamicAssociation = this.isDynamicAssociation();
 
 		// Because a dynamic association is also represented as a Map, this ensures that the
 		// relationship properties class will only have a value if it's not a dynamic association.
-		Neo4jPersistentEntity<?> relationshipPropertiesClass =
-				this.hasActualTypeAnnotation(RelationshipProperties.class)
-						? this.mappingContext.getPersistentEntity(getActualType())
-						: null;
+		Neo4jPersistentEntity<?> relationshipPropertiesClass = null;
+		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
+			relationshipPropertiesClass = this.mappingContext.getPersistentEntity(getActualType());
+		}
+		else if (dynamicAssociation) {
+			if (this.getTypeInformation().getMapValueType().isCollectionLike()
+					&& this.getTypeInformation().getMapValueType().getComponentType().getType().isAnnotationPresent(RelationshipProperties.class)) {
+				relationshipPropertiesClass = this.mappingContext.getPersistentEntity(this.getTypeInformation().getMapValueType().getComponentType().getType());
+			} else if (this.getTypeInformation().getMapValueType().getType().isAnnotationPresent(RelationshipProperties.class)) {
+				relationshipPropertiesClass = this.mappingContext.getPersistentEntity(this.getTypeInformation().getMapValueType().getType());
+			}
+		}
 
 		// Try to determine if there is a relationship definition that expresses logically the same relationship
 		// on the other end.
