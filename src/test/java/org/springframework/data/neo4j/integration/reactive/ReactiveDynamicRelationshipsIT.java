@@ -18,6 +18,12 @@ package org.springframework.data.neo4j.integration.reactive;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
 
+import org.springframework.data.neo4j.integration.shared.Club;
+import org.springframework.data.neo4j.integration.shared.ClubRelationship;
+import org.springframework.data.neo4j.integration.shared.Hobby;
+import org.springframework.data.neo4j.integration.shared.HobbyRelationship;
+import org.springframework.data.neo4j.integration.shared.PersonWithRelatives.TypeOfClub;
+import org.springframework.data.neo4j.integration.shared.PersonWithRelatives.TypeOfHobby;
 import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
@@ -68,6 +74,11 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 			assertThat(relatives).containsOnlyKeys(TypeOfRelative.HAS_WIFE, TypeOfRelative.HAS_DAUGHTER);
 			assertThat(relatives.get(TypeOfRelative.HAS_WIFE).getFirstName()).isEqualTo("B");
 			assertThat(relatives.get(TypeOfRelative.HAS_DAUGHTER).getFirstName()).isEqualTo("C");
+
+			Map<TypeOfClub, ClubRelationship> clubs = person.getClubs();
+			assertThat(clubs).containsOnlyKeys(TypeOfClub.FOOTBALL);
+			assertThat(clubs.get(TypeOfClub.FOOTBALL).getPlace()).isEqualTo("Brunswick");
+			assertThat(clubs.get(TypeOfClub.FOOTBALL).getClub().getName()).isEqualTo("BTSV");
 		}).verifyComplete();
 	}
 
@@ -82,6 +93,10 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 			assertThat(pets).containsOnlyKeys(TypeOfPet.CATS, TypeOfPet.DOGS);
 			assertThat(pets.get(TypeOfPet.CATS)).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield");
 			assertThat(pets.get(TypeOfPet.DOGS)).extracting(Pet::getName).containsExactlyInAnyOrder("Benji", "Lassie");
+			Map<TypeOfHobby, List<HobbyRelationship>> hobbies = person.getHobbies();
+			assertThat(hobbies.get(TypeOfHobby.ACTIVE)).extracting(HobbyRelationship::getPerformance).containsExactly("average");
+			assertThat(hobbies.get(TypeOfHobby.ACTIVE)).extracting(HobbyRelationship::getHobby)
+					.extracting(Hobby::getName).containsExactly("Biking");
 		}).verifyComplete();
 	}
 
@@ -100,12 +115,26 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 			ReflectionTestUtils.setField(d, "firstName", "D");
 			relatives.put(TypeOfRelative.HAS_SON, d);
 			ReflectionTestUtils.setField(relatives.get(TypeOfRelative.HAS_DAUGHTER), "firstName", "C2");
+
+			Map<TypeOfClub, ClubRelationship> clubs = person.getClubs();
+			clubs.remove(TypeOfClub.FOOTBALL);
+			ClubRelationship clubRelationship = new ClubRelationship("Boston");
+			Club club = new Club();
+			club.setName("Red Sox");
+			clubRelationship.setClub(club);
+			clubs.put(TypeOfClub.BASEBALL, clubRelationship);
 			return person;
 		}).flatMap(repository::save).as(StepVerifier::create).consumeNextWith(person -> {
 			Map<TypeOfRelative, Person> relatives = person.getRelatives();
 			assertThat(relatives).containsOnlyKeys(TypeOfRelative.HAS_DAUGHTER, TypeOfRelative.HAS_SON);
 			assertThat(relatives.get(TypeOfRelative.HAS_DAUGHTER).getFirstName()).isEqualTo("C2");
 			assertThat(relatives.get(TypeOfRelative.HAS_SON).getFirstName()).isEqualTo("D");
+
+			Map<TypeOfClub, ClubRelationship> clubs = person.getClubs();
+			assertThat(clubs).containsOnlyKeys(TypeOfClub.BASEBALL);
+			assertThat(clubs.get(TypeOfClub.BASEBALL)).extracting(ClubRelationship::getPlace).isEqualTo("Boston");
+			assertThat(clubs.get(TypeOfClub.BASEBALL)).extracting(ClubRelationship::getClub)
+					.extracting(Club::getName).isEqualTo("Red Sox");
 		}).verifyComplete();
 	}
 
@@ -124,6 +153,14 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 
 			pets.put(TypeOfPet.FISH, Collections.singletonList(new Pet("Nemo")));
 
+			Map<TypeOfHobby, List<HobbyRelationship>> hobbies = person.getHobbies();
+			hobbies.remove(TypeOfHobby.ACTIVE);
+
+			HobbyRelationship hobbyRelationship = new HobbyRelationship("average");
+			Hobby hobby = new Hobby();
+			hobby.setName("Football");
+			hobbyRelationship.setHobby(hobby);
+			hobbies.put(TypeOfHobby.WATCHING, Collections.singletonList(hobbyRelationship));
 			return person;
 		}).flatMap(repository::save).as(StepVerifier::create).consumeNextWith(person -> {
 			Map<TypeOfPet, List<Pet>> pets = person.getPets();
@@ -131,6 +168,13 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 			assertThat(pets.get(TypeOfPet.CATS)).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield",
 					"Delilah");
 			assertThat(pets.get(TypeOfPet.FISH)).extracting(Pet::getName).containsExactlyInAnyOrder("Nemo");
+
+			Map<TypeOfHobby, List<HobbyRelationship>> hobbies = person.getHobbies();
+			assertThat(hobbies).containsOnlyKeys(TypeOfHobby.WATCHING);
+			assertThat(hobbies.get(TypeOfHobby.WATCHING)).extracting(HobbyRelationship::getPerformance)
+					.containsExactly("average");
+			assertThat(hobbies.get(TypeOfHobby.WATCHING)).extracting(HobbyRelationship::getHobby)
+					.extracting(Hobby::getName).containsExactly("Football");
 		}).verifyComplete();
 	}
 
@@ -145,6 +189,19 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 		ReflectionTestUtils.setField(d, "firstName", "R2");
 		newPerson.getRelatives().put(TypeOfRelative.RELATIVE_2, d);
 
+		Map<TypeOfClub, ClubRelationship> clubs = newPerson.getClubs();
+		ClubRelationship clubRelationship = new ClubRelationship("Brunswick");
+		Club club1 = new Club();
+		club1.setName("BTSV");
+		clubRelationship.setClub(club1);
+		clubs.put(TypeOfClub.FOOTBALL, clubRelationship);
+
+		clubRelationship = new ClubRelationship("Boston");
+		Club club2 = new Club();
+		club2.setName("Red Sox");
+		clubRelationship.setClub(club2);
+		clubs.put(TypeOfClub.BASEBALL, clubRelationship);
+
 		List<PersonWithRelatives> recorded = new ArrayList<>();
 		repository.save(newPerson).as(StepVerifier::create).recordWith(() -> recorded)
 				.consumeNextWith(personWithRelatives -> {
@@ -158,6 +215,11 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 							+ " as numberOfRelations", Values.parameters("id", recorded.get(0).getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
+			numberOfRelations = transaction
+					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Club))"
+							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
+					.single().get("numberOfRelations").asLong();
+			assertThat(numberOfRelations).isEqualTo(2L);
 		}
 	}
 
@@ -166,6 +228,7 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 
 		PersonWithRelatives newPerson = new PersonWithRelatives("Test");
 		Map<TypeOfPet, List<Pet>> pets = newPerson.getPets();
+		Map<TypeOfHobby, List<HobbyRelationship>> hobbies = newPerson.getHobbies();
 
 		List<Pet> monsters = pets.computeIfAbsent(TypeOfPet.MONSTERS, s -> new ArrayList<>());
 		monsters.add(new Pet("Godzilla"));
@@ -173,6 +236,21 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 
 		List<Pet> fish = pets.computeIfAbsent(TypeOfPet.FISH, s -> new ArrayList<>());
 		fish.add(new Pet("Nemo"));
+
+		List<HobbyRelationship> hobbyRelationships = hobbies
+				.computeIfAbsent(TypeOfHobby.ACTIVE, s -> new ArrayList<>());
+		HobbyRelationship hobbyRelationship = new HobbyRelationship("ok");
+		Hobby hobby1 = new Hobby();
+		hobby1.setName("Football");
+		hobbyRelationship.setHobby(hobby1);
+		hobbyRelationships.add(hobbyRelationship);
+
+		HobbyRelationship hobbyRelationship2 = new HobbyRelationship("perfect");
+		Hobby hobby2 = new Hobby();
+		hobby2.setName("Music");
+		hobbyRelationship2.setHobby(hobby2);
+
+		hobbyRelationships.add(hobbyRelationship2);
 
 		List<PersonWithRelatives> recorded = new ArrayList<>();
 		repository.save(newPerson).as(StepVerifier::create).recordWith(() -> recorded).consumeNextWith(person -> {
@@ -186,6 +264,11 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 							+ " as numberOfRelations", Values.parameters("id", recorded.get(0).getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(3L);
+			numberOfRelations = transaction
+					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Hobby))"
+							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
+					.single().get("numberOfRelations").asLong();
+			assertThat(numberOfRelations).isEqualTo(2L);
 		}
 	}
 

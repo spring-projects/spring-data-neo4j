@@ -18,6 +18,10 @@ package org.springframework.data.neo4j.integration.reactive;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
 
+import org.springframework.data.neo4j.integration.shared.Club;
+import org.springframework.data.neo4j.integration.shared.ClubRelationship;
+import org.springframework.data.neo4j.integration.shared.Hobby;
+import org.springframework.data.neo4j.integration.shared.HobbyRelationship;
 import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
@@ -66,6 +70,11 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 			assertThat(relatives).containsOnlyKeys("HAS_WIFE", "HAS_DAUGHTER");
 			assertThat(relatives.get("HAS_WIFE").getFirstName()).isEqualTo("B");
 			assertThat(relatives.get("HAS_DAUGHTER").getFirstName()).isEqualTo("C");
+
+			Map<String, ClubRelationship> clubs = person.getClubs();
+			assertThat(clubs).containsOnlyKeys("FOOTBALL");
+			assertThat(clubs.get("FOOTBALL").getPlace()).isEqualTo("Brunswick");
+			assertThat(clubs.get("FOOTBALL").getClub().getName()).isEqualTo("BTSV");
 		}).verifyComplete();
 	}
 
@@ -80,6 +89,11 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 			assertThat(pets).containsOnlyKeys("CATS", "DOGS");
 			assertThat(pets.get("CATS")).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield");
 			assertThat(pets.get("DOGS")).extracting(Pet::getName).containsExactlyInAnyOrder("Benji", "Lassie");
+
+			Map<String, List<HobbyRelationship>> hobbies = person.getHobbies();
+			assertThat(hobbies.get("ACTIVE")).extracting(HobbyRelationship::getPerformance).containsExactly("average");
+			assertThat(hobbies.get("ACTIVE")).extracting(HobbyRelationship::getHobby)
+					.extracting(Hobby::getName).containsExactly("Biking");
 		}).verifyComplete();
 	}
 
@@ -98,12 +112,27 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 			ReflectionTestUtils.setField(d, "firstName", "D");
 			relatives.put("HAS_SON", d);
 			ReflectionTestUtils.setField(relatives.get("HAS_DAUGHTER"), "firstName", "C2");
+
+			Map<String, ClubRelationship> clubs = person.getClubs();
+			clubs.remove("FOOTBALL");
+			ClubRelationship clubRelationship = new ClubRelationship("Boston");
+			Club club = new Club();
+			club.setName("Red Sox");
+			clubRelationship.setClub(club);
+			clubs.put("BASEBALL", clubRelationship);
+
 			return person;
 		}).flatMap(repository::save).as(StepVerifier::create).consumeNextWith(person -> {
 			Map<String, Person> relatives = person.getRelatives();
 			assertThat(relatives).containsOnlyKeys("HAS_DAUGHTER", "HAS_SON");
 			assertThat(relatives.get("HAS_DAUGHTER").getFirstName()).isEqualTo("C2");
 			assertThat(relatives.get("HAS_SON").getFirstName()).isEqualTo("D");
+
+			Map<String, ClubRelationship> clubs = person.getClubs();
+			assertThat(clubs).containsOnlyKeys("BASEBALL");
+			assertThat(clubs.get("BASEBALL")).extracting(ClubRelationship::getPlace).isEqualTo("Boston");
+			assertThat(clubs.get("BASEBALL")).extracting(ClubRelationship::getClub)
+					.extracting(Club::getName).isEqualTo("Red Sox");
 		}).verifyComplete();
 	}
 
@@ -122,12 +151,28 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 
 			pets.put("FISH", Collections.singletonList(new Pet("Nemo")));
 
+			Map<String, List<HobbyRelationship>> hobbies = person.getHobbies();
+			hobbies.remove("ACTIVE");
+
+			HobbyRelationship hobbyRelationship = new HobbyRelationship("average");
+			Hobby hobby = new Hobby();
+			hobby.setName("Football");
+			hobbyRelationship.setHobby(hobby);
+			hobbies.put("WATCHING", Collections.singletonList(hobbyRelationship));
+
 			return person;
 		}).flatMap(repository::save).as(StepVerifier::create).consumeNextWith(person -> {
 			Map<String, List<Pet>> pets = person.getPets();
 			assertThat(pets).containsOnlyKeys("CATS", "FISH");
 			assertThat(pets.get("CATS")).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield", "Delilah");
 			assertThat(pets.get("FISH")).extracting(Pet::getName).containsExactlyInAnyOrder("Nemo");
+
+			Map<String, List<HobbyRelationship>> hobbies = person.getHobbies();
+			assertThat(hobbies).containsOnlyKeys("WATCHING");
+			assertThat(hobbies.get("WATCHING")).extracting(HobbyRelationship::getPerformance)
+					.containsExactly("average");
+			assertThat(hobbies.get("WATCHING")).extracting(HobbyRelationship::getHobby)
+					.extracting(Hobby::getName).containsExactly("Football");
 		}).verifyComplete();
 	}
 
@@ -142,6 +187,19 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 		ReflectionTestUtils.setField(d, "firstName", "R2");
 		newPerson.getRelatives().put("RELATIVE_2", d);
 
+		Map<String, ClubRelationship> clubs = newPerson.getClubs();
+		ClubRelationship clubRelationship1 = new ClubRelationship("Brunswick");
+		Club club1 = new Club();
+		club1.setName("BTSV");
+		clubRelationship1.setClub(club1);
+		clubs.put("FOOTBALL", clubRelationship1);
+
+		ClubRelationship clubRelationship2 = new ClubRelationship("Boston");
+		Club club2 = new Club();
+		club2.setName("Red Sox");
+		clubRelationship2.setClub(club2);
+		clubs.put("BASEBALL", clubRelationship2);
+
 		List<PersonWithStringlyTypedRelatives> recorded = new ArrayList<>();
 		repository.save(newPerson).as(StepVerifier::create).recordWith(() -> recorded)
 				.consumeNextWith(personWithRelatives -> {
@@ -155,6 +213,11 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 							+ " as numberOfRelations", Values.parameters("id", recorded.get(0).getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
+			numberOfRelations = transaction
+					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Club))"
+							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
+					.single().get("numberOfRelations").asLong();
+			assertThat(numberOfRelations).isEqualTo(2L);
 		}
 	}
 
@@ -163,6 +226,7 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 
 		PersonWithStringlyTypedRelatives newPerson = new PersonWithStringlyTypedRelatives("Test");
 		Map<String, List<Pet>> pets = newPerson.getPets();
+		Map<String, List<HobbyRelationship>> hobbies = newPerson.getHobbies();
 
 		List<Pet> monsters = pets.computeIfAbsent("MONSTERS", s -> new ArrayList<>());
 		monsters.add(new Pet("Godzilla"));
@@ -170,6 +234,19 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 
 		List<Pet> fish = pets.computeIfAbsent("FISH", s -> new ArrayList<>());
 		fish.add(new Pet("Nemo"));
+
+		List<HobbyRelationship> hobbyRelationships = hobbies.computeIfAbsent("ACTIVE", s -> new ArrayList<>());
+		HobbyRelationship hobbyRelationship1 = new HobbyRelationship("ok");
+		Hobby hobby1 = new Hobby();
+		hobby1.setName("Football");
+		hobbyRelationship1.setHobby(hobby1);
+		hobbyRelationships.add(hobbyRelationship1);
+
+		HobbyRelationship hobbyRelationship2 = new HobbyRelationship("perfect");
+		Hobby hobby2 = new Hobby();
+		hobby2.setName("Music");
+		hobbyRelationship2.setHobby(hobby2);
+		hobbyRelationships.add(hobbyRelationship2);
 
 		List<PersonWithStringlyTypedRelatives> recorded = new ArrayList<>();
 		repository.save(newPerson).as(StepVerifier::create).recordWith(() -> recorded).consumeNextWith(person -> {
@@ -183,6 +260,11 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 							+ " as numberOfRelations", Values.parameters("id", recorded.get(0).getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(3L);
+			numberOfRelations = transaction
+					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Hobby))"
+							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
+					.single().get("numberOfRelations").asLong();
+			assertThat(numberOfRelations).isEqualTo(2L);
 		}
 	}
 

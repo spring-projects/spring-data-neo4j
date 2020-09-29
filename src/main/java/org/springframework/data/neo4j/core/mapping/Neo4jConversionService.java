@@ -70,8 +70,7 @@ public interface Neo4jConversionService {
 	 */
 	@Nullable
 	Object readValue(
-			@Nullable Value source, TypeInformation<?> targetType, @Nullable
-			Function<Value, Object> conversionOverride
+			@Nullable Value source, TypeInformation<?> targetType, @Nullable Function<Value, Object> conversionOverride
 	);
 
 	/**
@@ -82,7 +81,6 @@ public interface Neo4jConversionService {
 	 * @return A driver compatible value object.
 	 */
 	Value writeValue(
-			@Nullable Object value, TypeInformation<?> sourceType,
-			@Nullable Function<Object, Value> conversionOverride
+			@Nullable Object value, TypeInformation<?> sourceType, @Nullable Function<Object, Value> conversionOverride
 	);
 }

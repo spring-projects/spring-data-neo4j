@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.core.mapping;
 
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -269,11 +270,21 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			Long relatedInternalId, Object relatedValue) {
 
 		if (relationshipContext.hasRelationshipWithProperties()) {
-			return createStatementForRelationShipWithProperties(neo4jPersistentEntity,
-					relationshipContext, relatedInternalId, (MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValue);
+			MappingSupport.RelationshipPropertiesWithEntityHolder relatedValueEntityHolder =
+					(MappingSupport.RelationshipPropertiesWithEntityHolder) (
+							// either this is a scalar entity holder value
+							// or a dynamic relationship with
+							// either a list of entity holders
+							// or a scalar value
+							relatedValue instanceof MappingSupport.RelationshipPropertiesWithEntityHolder
+									? relatedValue
+									: ((Map.Entry<?, ?>) relatedValue).getValue() instanceof List
+									? ((List<?>) ((Map.Entry<?, ?>) relatedValue).getValue()).get(0)
+									: ((Map.Entry<?, ?>) relatedValue).getValue());
+
+			return createStatementForRelationShipWithProperties(neo4jPersistentEntity, relationshipContext, relatedInternalId, relatedValueEntityHolder);
 		} else {
-			return createStatementForRelationshipWithoutProperties(neo4jPersistentEntity,
-					relationshipContext, relatedInternalId, relatedValue);
+			return createStatementForRelationshipWithoutProperties(neo4jPersistentEntity, relationshipContext, relatedInternalId, relatedValue);
 		}
 	}
 

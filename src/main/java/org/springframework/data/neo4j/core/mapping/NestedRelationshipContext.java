@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.core.mapping;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -81,13 +82,16 @@ public final class NestedRelationshipContext {
 	public  Object identifyAndExtractRelationshipTargetNode(Object relatedValue) {
 		Object valueToBeSaved = relatedValue;
 		if (relatedValue instanceof Map.Entry) {
-			Map.Entry relatedValueMapEntry = (Map.Entry) relatedValue;
-
-			if (this.getInverse().isDynamicAssociation()) {
+			Map.Entry<?, ?> relatedValueMapEntry = (Map.Entry<?, ?>) relatedValue;
+			if (this.hasRelationshipWithProperties()) {
+				Object mapValue = ((Map.Entry<?, ?>) relatedValue).getValue();
+				// it can be either a scalar entity holder or a list of it
+				mapValue = mapValue instanceof List ? ((List<?>) mapValue).get(0) : mapValue;
+				valueToBeSaved = ((MappingSupport.RelationshipPropertiesWithEntityHolder) mapValue).getRelatedEntity();
+			} else if (this.getInverse().isDynamicAssociation()) {
 				valueToBeSaved = relatedValueMapEntry.getValue();
 			}
-		}
-		if (this.hasRelationshipWithProperties()) {
+		} else if (this.hasRelationshipWithProperties()) {
 			// here comes the entity
 			valueToBeSaved = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValue).getRelatedEntity();
 		}
@@ -114,16 +118,44 @@ public final class NestedRelationshipContext {
 		if (relationship.hasRelationshipProperties() && value != null) {
 			Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity();
 
-			List<MappingSupport.RelationshipPropertiesWithEntityHolder> relationshipProperties = new ArrayList<>();
+			// If this is dynamic relationship (Map<Object, Object>), extract the keys as relationship names
+			// and the map values as values.
+			// The values themself can be either a scalar or a List.
+			if (relationship.isDynamic()) {
+				Map<Object, List<MappingSupport.RelationshipPropertiesWithEntityHolder>> relationshipProperties = new HashMap<>();
+				for (Map.Entry<Object, Object> mapEntry : ((Map<Object, Object>) value).entrySet()) {
+					List<MappingSupport.RelationshipPropertiesWithEntityHolder> relationshipValues = new ArrayList<>();
+					// register the relationship type as key
+					relationshipProperties.put(mapEntry.getKey(), relationshipValues);
+					Object mapEntryValue = mapEntry.getValue();
 
-			for (Object relationshipProperty : ((Collection<Object>) value)) {
+					if (mapEntryValue instanceof List) {
+						for (Object relationshipProperty : ((List<Object>) mapEntryValue)) {
+							MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
+									new MappingSupport.RelationshipPropertiesWithEntityHolder(relationshipProperty,
+											getTargetNode(relationshipPropertiesEntity, relationshipProperty));
+							relationshipValues.add(oneOfThem);
+						}
+					} else { // scalar
+						MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
+								new MappingSupport.RelationshipPropertiesWithEntityHolder(mapEntryValue,
+										getTargetNode(relationshipPropertiesEntity, mapEntryValue));
+						relationshipValues.add(oneOfThem);
+					}
 
-				MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
-						new MappingSupport.RelationshipPropertiesWithEntityHolder(relationshipProperty,
-								getTargetNode(relationshipPropertiesEntity, relationshipProperty));
-				relationshipProperties.add(oneOfThem);
+				}
+				value = relationshipProperties;
+			} else {
+				List<MappingSupport.RelationshipPropertiesWithEntityHolder> relationshipProperties = new ArrayList<>();
+				for (Object relationshipProperty : ((Collection<Object>) value)) {
+
+					MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
+							new MappingSupport.RelationshipPropertiesWithEntityHolder(relationshipProperty,
+									getTargetNode(relationshipPropertiesEntity, relationshipProperty));
+					relationshipProperties.add(oneOfThem);
+				}
+				value = relationshipProperties;
 			}
-			value = relationshipProperties;
 		}
 
 		return new NestedRelationshipContext(inverse, value, relationship, associationTargetType, inverseValueIsEmpty);
