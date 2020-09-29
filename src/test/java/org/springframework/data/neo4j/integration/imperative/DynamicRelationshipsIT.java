@@ -15,11 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -143,7 +143,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 		pets.remove(TypeOfPet.DOGS);
 		pets.get(TypeOfPet.CATS).add(new Pet("Delilah"));
 
-		pets.put(TypeOfPet.FISH, singletonList(new Pet("Nemo")));
+		pets.put(TypeOfPet.FISH, Collections.singletonList(new Pet("Nemo")));
 
 		Map<TypeOfHobby, List<HobbyRelationship>> hobbies = person.getHobbies();
 		hobbies.remove(TypeOfHobby.ACTIVE);
@@ -152,7 +152,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 		Hobby hobby = new Hobby();
 		hobby.setName("Football");
 		hobbyRelationship.setHobby(hobby);
-		hobbies.put(TypeOfHobby.WATCHING, singletonList(hobbyRelationship));
+		hobbies.put(TypeOfHobby.WATCHING, Collections.singletonList(hobbyRelationship));
 
 		person = repository.save(person);
 		pets = person.getPets();

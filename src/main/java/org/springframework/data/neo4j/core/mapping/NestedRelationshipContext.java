@@ -85,9 +85,9 @@ public final class NestedRelationshipContext {
 		if (relatedValue instanceof Map.Entry) {
 			Map.Entry relatedValueMapEntry = (Map.Entry) relatedValue;
 			if (this.hasRelationshipWithProperties()) {
-				Object value = ((Map.Entry<?, ?>) relatedValue).getValue();
-				value = value instanceof List ? ((List) value).get(0) : value;
-				valueToBeSaved = ((MappingSupport.RelationshipPropertiesWithEntityHolder) value).getRelatedEntity();
+				Object changeMyName = ((Map.Entry<?, ?>) relatedValue).getValue();
+				changeMyName = changeMyName instanceof List ? ((List) changeMyName).get(0) : changeMyName;
+				valueToBeSaved = ((MappingSupport.RelationshipPropertiesWithEntityHolder) changeMyName).getRelatedEntity();
 			} else if (this.getInverse().isDynamicAssociation()) {
 				valueToBeSaved = relatedValueMapEntry.getValue();
 			}

@@ -43,10 +43,16 @@ public class PersonWithRelatives {
 		CATS, DOGS, FISH, MONSTERS
 	}
 
+	/**
+	 * Some enum representing hobby states.
+	 */
 	public enum TypeOfHobby {
 		ACTIVE, WATCHING
 	}
 
+	/**
+	 * Some enum representing sport genres.
+	 */
 	public enum TypeOfClub {
 		FOOTBALL, BASEBALL
 	}

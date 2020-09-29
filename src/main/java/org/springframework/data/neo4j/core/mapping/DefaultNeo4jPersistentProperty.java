@@ -120,8 +120,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		Neo4jPersistentEntity<?> relationshipPropertiesClass = null;
 		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
 			relationshipPropertiesClass = this.mappingContext.getPersistentEntity(getActualType());
-		}
-		else if (dynamicAssociation) {
+		} else if (dynamicAssociation) {
 			if (this.getTypeInformation().getMapValueType().isCollectionLike()
 					&& this.getTypeInformation().getMapValueType().getComponentType().getType().isAnnotationPresent(RelationshipProperties.class)) {
 				relationshipPropertiesClass = this.mappingContext.getPersistentEntity(this.getTypeInformation().getMapValueType().getComponentType().getType());

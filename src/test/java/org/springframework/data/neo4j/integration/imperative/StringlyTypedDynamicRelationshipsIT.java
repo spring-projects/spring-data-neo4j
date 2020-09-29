@@ -15,7 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
 
@@ -150,7 +149,7 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 		Hobby hobby = new Hobby();
 		hobby.setName("Football");
 		hobbyRelationship.setHobby(hobby);
-		hobbies.put("WATCHING", singletonList(hobbyRelationship));
+		hobbies.put("WATCHING", Collections.singletonList(hobbyRelationship));
 
 		person = repository.save(person);
 		pets = person.getPets();
@@ -225,19 +224,17 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 		List<Pet> fish = pets.computeIfAbsent("FISH", s -> new ArrayList<>());
 		fish.add(new Pet("Nemo"));
 
-		List<HobbyRelationship> hobbyRelationships = hobbies
-				.computeIfAbsent("ACTIVE", s -> new ArrayList<>());
-		HobbyRelationship hobbyRelationship = new HobbyRelationship("ok");
+		List<HobbyRelationship> hobbyRelationships = hobbies.computeIfAbsent("ACTIVE", s -> new ArrayList<>());
+		HobbyRelationship hobbyRelationship1 = new HobbyRelationship("ok");
 		Hobby hobby1 = new Hobby();
 		hobby1.setName("Football");
-		hobbyRelationship.setHobby(hobby1);
-		hobbyRelationships.add(hobbyRelationship);
+		hobbyRelationship1.setHobby(hobby1);
+		hobbyRelationships.add(hobbyRelationship1);
 
 		HobbyRelationship hobbyRelationship2 = new HobbyRelationship("perfect");
 		Hobby hobby2 = new Hobby();
 		hobby2.setName("Music");
 		hobbyRelationship2.setHobby(hobby2);
-
 		hobbyRelationships.add(hobbyRelationship2);
 
 		newPerson = repository.save(newPerson);
