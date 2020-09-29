@@ -32,6 +32,7 @@ import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -88,15 +89,26 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 		Neo4jPersistentEntity<?> obverseOwner;
 
-		// if the target is a relationship property always take the key type from the map instead of the value type.
 		boolean dynamicAssociation = this.isDynamicAssociation();
+
+		Neo4jPersistentEntity<?> relationshipPropertiesClass = null;
+
 		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
 			Class<?> type = this.mappingContext.getPersistentEntity(getActualType()).getPersistentProperty(TargetNode.class).getType();
 			obverseOwner = this.mappingContext.getPersistentEntity(type);
-		} else if (dynamicAssociation && this.mappingContext.getPersistentEntity(getTypeInformation().getMapValueType().getActualType().getType()).isRelationshipPropertiesEntity()) {
-			Class<?> type = this.mappingContext.getPersistentEntity(getTypeInformation().getMapValueType().getActualType().getType()).getPersistentProperty(TargetNode.class).getType();
-			obverseOwner = this.mappingContext.getPersistentEntity(type);
-		} else {
+			relationshipPropertiesClass = this.mappingContext.getPersistentEntity(getActualType());
+		} else if (dynamicAssociation) {
+			if (this.mappingContext.getPersistentEntity(getTypeInformation().getMapValueType().getActualType().getType()).isRelationshipPropertiesEntity()) {
+				Class<?> type = this.mappingContext.getPersistentEntity(getTypeInformation().getMapValueType().getActualType().getType()).getPersistentProperty(TargetNode.class).getType();
+				obverseOwner = this.mappingContext.getPersistentEntity(type);
+				relationshipPropertiesClass = this.mappingContext.getPersistentEntity(this.getTypeInformation().getMapValueType().getComponentType().getType());
+			} else if (this.getTypeInformation().getMapValueType().getType().isAnnotationPresent(RelationshipProperties.class)) {
+				obverseOwner = this.mappingContext.getPersistentEntity(this.getAssociationTargetType());
+				relationshipPropertiesClass = this.mappingContext.getPersistentEntity(this.getTypeInformation().getMapValueType().getType());
+			} else {
+				obverseOwner = this.mappingContext.getPersistentEntity(this.getAssociationTargetType());
+			}
+		}else {
 			obverseOwner = this.mappingContext.getPersistentEntity(this.getAssociationTargetType());
 		}
 
@@ -114,21 +126,6 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 			direction = outgoingRelationship.direction();
 		}
 
-
-		// Because a dynamic association is also represented as a Map, this ensures that the
-		// relationship properties class will only have a value if it's not a dynamic association.
-		Neo4jPersistentEntity<?> relationshipPropertiesClass = null;
-		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
-			relationshipPropertiesClass = this.mappingContext.getPersistentEntity(getActualType());
-		} else if (dynamicAssociation) {
-			if (this.getTypeInformation().getMapValueType().isCollectionLike()
-					&& this.getTypeInformation().getMapValueType().getComponentType().getType().isAnnotationPresent(RelationshipProperties.class)) {
-				relationshipPropertiesClass = this.mappingContext.getPersistentEntity(this.getTypeInformation().getMapValueType().getComponentType().getType());
-			} else if (this.getTypeInformation().getMapValueType().getType().isAnnotationPresent(RelationshipProperties.class)) {
-				relationshipPropertiesClass = this.mappingContext.getPersistentEntity(this.getTypeInformation().getMapValueType().getType());
-			}
-		}
-
 		// Try to determine if there is a relationship definition that expresses logically the same relationship
 		// on the other end.
 		Optional<RelationshipDescription> obverseRelationshipDescription = obverseOwner.getRelationships().stream()
@@ -143,6 +140,12 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 				.ifPresent(relationship -> relationship.setRelationshipObverse(relationshipDescription));
 
 		return relationshipDescription;
+	}
+
+	@NonNull
+	private Class<?> getRelationshipPropertiesTargetType(Class<?> relationshipPropertiesType) {
+		return this.mappingContext.getPersistentEntity(relationshipPropertiesType)
+				.getPersistentProperty(TargetNode.class).getType();
 	}
 
 	@Override
