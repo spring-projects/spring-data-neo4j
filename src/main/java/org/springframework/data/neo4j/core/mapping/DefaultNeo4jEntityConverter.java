@@ -50,10 +50,6 @@ import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.ParameterValueProvider;
-import org.springframework.data.neo4j.core.convert.Neo4jConversions;
-import org.springframework.data.neo4j.core.convert.Neo4jConverter;
-import org.springframework.data.neo4j.core.schema.Constants;
-import org.springframework.data.neo4j.core.schema.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
@@ -411,31 +407,24 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					.flatMap(p -> StreamSupport.stream(p.spliterator(), false))
 					.filter(s -> s.start().id() == startNodeId
 							&& (relationshipDescription.isIncoming() ? s.relationship().endNodeId() : s.relationship().startNodeId()) == startNodeId
-							&& s.relationship().hasType(relationshipType)
+							&& (s.relationship().hasType(relationshipType) || relationshipDescription.isDynamic())
 							&& s.end().hasLabel(targetLabel))
 					.distinct()
 					.collect(Collectors.toList());
-
-			if (segments.isEmpty()) {
-				return Optional.empty();
-			}
 
 			for (Path.Segment segment : segments) {
 				if (processedSegments.contains(segment)) {
 					continue;
 				}
 				processedSegments.add(segment);
-				long relStartNodeId = segment.relationship().startNodeId();
-				long relEndNodeId = segment.relationship().endNodeId();
-
-				long targetId = relationshipDescription.isIncoming() ? relStartNodeId : relEndNodeId;
-				Object mappedObject = knownObjects.computeIfAbsent(targetId, () -> map(asdf(segment.end(), allPaths), concreteTargetNodeDescription, knownObjects, processedSegments));
+				Object mappedObject = map(asdf(segment.end(), allPaths), concreteTargetNodeDescription, knownObjects, processedSegments);
 				if (relationshipDescription.hasRelationshipProperties()) {
 
 					Object relationshipProperties = map(segment.relationship(),
 							(Neo4jPersistentEntity) relationshipDescription.getRelationshipPropertiesEntity(),
 							knownObjects, mappedObject, processedSegments);
 					relationshipsAndProperties.add(relationshipProperties);
+					mappedObjectHandler.accept(segment.relationship().type(), relationshipProperties);
 				} else {
 					mappedObjectHandler.accept(segment.relationship().type(), mappedObject);
 				}

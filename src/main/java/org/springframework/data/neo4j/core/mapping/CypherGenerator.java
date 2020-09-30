@@ -356,8 +356,9 @@ public enum CypherGenerator {
 		contentOfProjection.addAll(c);
 		if (containsPossibleCircles) {
 
+			Set<String> allRelationshipTypes = collectAllRelationshipTypes(nodeDescription);
 			Relationship pattern = anyNode(nodeName).relationshipBetween(anyNode(),
-					collectAllRelationshipTypes(nodeDescription).toArray(new String[]{})).unbounded();
+					allRelationshipTypes.toArray(new String[]{})).unbounded();
 			NamedPath p = Cypher.path("p").definedBy(pattern);
 			c.add(Constants.NAME_OF_PATHS);
 			c.add(Cypher.listBasedOn(p).returning(p));
@@ -410,6 +411,10 @@ public enum CypherGenerator {
 			if (relationshipTypes.contains(relationshipType)) {
 				break;
 			}
+			if (relationshipDescription.isDynamic()) {
+				relationshipTypes.clear();
+				break;
+			}
 			relationshipTypes.add(relationshipType);
 			collectAllRelationshipTypes(relationshipDescription.getTarget(), relationshipTypes);
 		}
@@ -421,7 +426,7 @@ public enum CypherGenerator {
 		for (RelationshipDescription relationshipDescription : nodeDescription.getRelationships()) {
 			String relationshipType = relationshipDescription.getType();
 			if (processedRelationshipTypes.contains(relationshipType)) {
-				break;
+				continue;
 			}
 			processedRelationshipTypes.add(relationshipType);
 		}
@@ -507,8 +512,8 @@ public enum CypherGenerator {
 					: startNode.relationshipFrom(endNode);
 			relationship = relationship.named(relationshipTargetName);
 
-			MapProjection mapProjection = projectAllPropertiesAndRelationships(endNodeDescription, relationshipFieldName,
-					new ArrayList<>(processedRelationships), containsPossibleCircles);
+			MapProjection mapProjection = (MapProjection) projectAllPropertiesAndRelationships(endNodeDescription, relationshipFieldName,
+					new ArrayList<>(processedRelationships), containsPossibleCircles)[0];
 
 			if (relationshipDescription.hasRelationshipProperties()) {
 				relationship = relationship.named(RelationshipDescription.NAME_OF_RELATIONSHIP);
