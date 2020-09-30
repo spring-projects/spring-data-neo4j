@@ -214,33 +214,52 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	private <ET> ET map(MapAccessor queryResult, Neo4jPersistentEntity<ET> nodeDescription, KnownObjects knownObjects,
 						@Nullable Object lastMappedEntity) {
 
-		List<String> allLabels = getLabels(queryResult);
-		NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore
-				.deriveConcreteNodeDescription(nodeDescription, allLabels);
-		Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels
-				.getNodeDescription();
+		// if the given result does not contain an identifier to the mapped object cannot get temporarily saved
+		Long internalId = queryResult.get(Constants.NAME_OF_INTERNAL_ID).isNull()
+			? null
+			:	queryResult instanceof Node
+				? ((Node) queryResult).id()
+				: queryResult.get(Constants.NAME_OF_INTERNAL_ID).asLong();
 
-		Collection<RelationshipDescription> relationships = concreteNodeDescription.getRelationships();
+		Supplier<Object> mappedObjectSupplier = () -> {
 
-		ET instance = instantiate(concreteNodeDescription, queryResult, knownObjects, relationships,
-				nodeDescriptionAndLabels.getDynamicLabels());
+			List<String> allLabels = getLabels(queryResult);
+			NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore
+					.deriveConcreteNodeDescription(nodeDescription, allLabels);
+			Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels
+					.getNodeDescription();
 
-		PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(instance);
+			Collection<RelationshipDescription> relationships = concreteNodeDescription.getRelationships();
 
-		if (concreteNodeDescription.requiresPropertyPopulation()) {
+			ET instance = instantiate(concreteNodeDescription, queryResult, knownObjects, relationships,
+					nodeDescriptionAndLabels.getDynamicLabels());
 
-			// Fill simple properties
-			Predicate<Neo4jPersistentProperty> isConstructorParameter = concreteNodeDescription
-					.getPersistenceConstructor()::isConstructorParameter;
-			PropertyHandler<Neo4jPersistentProperty> handler = populateFrom(queryResult, knownObjects, propertyAccessor,
-					isConstructorParameter, nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity);
-			concreteNodeDescription.doWithProperties(handler);
+			PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(instance);
 
-			// Fill associations
-			concreteNodeDescription.doWithAssociations(
-					populateFrom(queryResult, propertyAccessor, isConstructorParameter, relationships, knownObjects));
-		}
-		return propertyAccessor.getBean();
+			if (concreteNodeDescription.requiresPropertyPopulation()) {
+
+				// Fill simple properties
+				Predicate<Neo4jPersistentProperty> isConstructorParameter = concreteNodeDescription
+						.getPersistenceConstructor()::isConstructorParameter;
+				PropertyHandler<Neo4jPersistentProperty> handler = populateFrom(queryResult, propertyAccessor,
+						isConstructorParameter, nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity);
+				concreteNodeDescription.doWithProperties(handler);
+
+				// in a cyclic graph / with bidirectional relationships, we could end up in a state in which we
+				// reference the start again. Because it is getting still constructed, it won't be in the knownObjects
+				// store unless we temporarily put it there.
+				knownObjects.storeObject(internalId, instance);
+				// Fill associations
+				concreteNodeDescription.doWithAssociations(
+						populateFrom(queryResult, propertyAccessor, isConstructorParameter, relationships, knownObjects));
+			}
+			ET bean = propertyAccessor.getBean();
+
+			// save final state of the bean
+			knownObjects.storeObject(internalId, bean);
+			return bean;
+		};
+		return (ET) knownObjects.getObject(internalId).orElseGet(mappedObjectSupplier);
 	}
 
 	/**
@@ -283,7 +302,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		return INSTANTIATORS.getInstantiatorFor(nodeDescription).createInstance(nodeDescription, parameterValueProvider);
 	}
 
-	private PropertyHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult, KnownObjects knownObjects,
+	private PropertyHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult,
 			PersistentPropertyAccessor<?> propertyAccessor, Predicate<Neo4jPersistentProperty> isConstructorParameter,
 			Collection<String> surplusLabels, Object targetNode) {
 		return property -> {
@@ -398,7 +417,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 				for (Relationship possibleRelationship : allMatchingTypeRelationshipsInResult) {
 					if (targetIdSelector.apply(possibleRelationship) == nodeId) {
-						Object mappedObject = knownObjects.computeIfAbsent(nodeId, () -> map(possibleValueNode, concreteTargetNodeDescription, knownObjects));
+						Object mappedObject = map(possibleValueNode, concreteTargetNodeDescription, knownObjects);
 						if (relationshipDescription.hasRelationshipProperties()) {
 
 							Object relationshipProperties = map(possibleRelationship,
@@ -417,10 +436,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		} else {
 			for (Value relatedEntity : list.asList(Function.identity())) {
 
-				Long internalIdValue = relatedEntity.get(Constants.NAME_OF_INTERNAL_ID).asLong();
-
-				Object valueEntry = knownObjects.computeIfAbsent(internalIdValue,
-						() -> map(relatedEntity, concreteTargetNodeDescription, knownObjects));
+				Object valueEntry = map(relatedEntity, concreteTargetNodeDescription, knownObjects);
 
 				if (relationshipDescription.hasRelationshipProperties()) {
 					Relationship relatedEntityRelationship = relatedEntity.get(RelationshipDescription.NAME_OF_RELATIONSHIP)
@@ -476,26 +492,22 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		private final Map<Long, Object> internalIdStore = new HashMap<>();
 
-		Object computeIfAbsent(Long internalId, Supplier<Object> entitySupplier) {
-			Object knownEntity = getObject(internalId);
-
-			// if it is not in the store, it has to get re-computed also for the internalIdStore
-			if (knownEntity != null) {
-				return knownEntity;
+		private void storeObject(@Nullable Long internalId, Object object) {
+			if (internalId == null) {
+				return;
 			}
-
 			try {
 				write.lock();
-				Object computedEntity = entitySupplier.get();
-				internalIdStore.put(internalId, computedEntity);
-				return computedEntity;
+				internalIdStore.put(internalId, object);
 			} finally {
 				write.unlock();
 			}
 		}
 
-		@Nullable
-		private Object getObject(Long internalId) {
+		private Optional<Object> getObject(@Nullable Long internalId) {
+			if (internalId == null) {
+				return Optional.empty();
+			}
 			try {
 
 				read.lock();
@@ -503,13 +515,13 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				Object knownEntity = internalIdStore.get(internalId);
 
 				if (knownEntity != null) {
-					return knownEntity;
+					return Optional.of(knownEntity);
 				}
 
 			} finally {
 				read.unlock();
 			}
-			return null;
+			return Optional.empty();
 		}
 	}
 }
