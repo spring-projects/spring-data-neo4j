@@ -332,9 +332,7 @@ public enum CypherGenerator {
 
 		List<RelationshipDescription> processedRelationships = new ArrayList<>();
 		boolean containsPossibleCircles = containsPossibleCircles(nodeDescription);
-		System.out.println("circles:"+containsPossibleCircles);
 		SymbolicName nodeName = Constants.NAME_OF_ROOT_NODE;
-
 
 		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeField,
 				processedRelationships, containsPossibleCircles);
@@ -361,7 +359,7 @@ public enum CypherGenerator {
 			Relationship pattern = anyNode(nodeName).relationshipBetween(anyNode(),
 					collectAllRelationshipTypes(nodeDescription).toArray(new String[]{})).unbounded();
 			NamedPath p = Cypher.path("p").definedBy(pattern);
-			c.add("paths");
+			c.add(Constants.NAME_OF_PATHS);
 			c.add(Cypher.listBasedOn(p).returning(p));
 			blubb.add(Cypher.anyNode(Constants.NAME_OF_ROOT_NODE).project(c));
 			return blubb.toArray(new Expression[]{});
