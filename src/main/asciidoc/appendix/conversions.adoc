@@ -210,3 +210,13 @@ and an optional `Neo4jPersistentPropertyConverterFactory` to construct the forme
 With an implementation of `Neo4jPersistentPropertyConverter` all specific conversions for a given type can be addressed.
 
 We provide `@DateLong` and `@DateString` as meta-annotated annotations for backward compatibility with Neo4j-OGM schemes not using native types.
+
+[[composite-properties]]
+==== Composite properties
+
+With `@CompositeProperty`,  attributes of type `Map<String, Object>` or Map<? extends Enum, Object>` can be stored as composite properties.
+All entries inside the map will be added as properties to the node or relationship containing the property.
+Either with a configured prefix or prefixed with the name of the property.
+While we only offer that feature for maps out of the box, you can `Neo4jPersistentPropertyToMapConverter` and configure it
+as the converter to use on `@CompositeProperty`. A `Neo4jPersistentPropertyToMapConverter` needs to know how a given type can
+be decomposed to and composed back from a map.
