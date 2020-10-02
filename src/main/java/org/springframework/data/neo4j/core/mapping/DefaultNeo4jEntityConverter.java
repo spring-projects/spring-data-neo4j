@@ -542,9 +542,9 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					: propertyContainer.get(Constants.NAME_OF_INTERNAL_ID);
 		} else if (property.isComposite()) {
 			CompositeProperty config = property.getRequiredAnnotation(CompositeProperty.class);
-			String prefix = CompositeProperty.CompositePropertyConverter.computePrefixWithDelimiter(property, config);
+			String prefix = property.computePrefixWithDelimiter();
 
-			if(propertyContainer.containsKey(Constants.NAME_OF_ALL_PROPERTIES)) {
+			if (propertyContainer.containsKey(Constants.NAME_OF_ALL_PROPERTIES)) {
 				return extractCompositePropertyValues(propertyContainer.get(Constants.NAME_OF_ALL_PROPERTIES), prefix);
 			} else {
 				return extractCompositePropertyValues(propertyContainer, prefix);

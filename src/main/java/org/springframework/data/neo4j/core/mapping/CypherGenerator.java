@@ -447,8 +447,7 @@ public enum CypherGenerator {
 			nodePropertiesProjection.add(graphProperty.getPropertyName());
 		}
 
-
-		if(hasCompositeProperties) {
+		if (hasCompositeProperties) {
 			nodePropertiesProjection.add(Constants.NAME_OF_ALL_PROPERTIES);
 			nodePropertiesProjection.add(node.project(Cypher.asterisk()));
 		}

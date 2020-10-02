@@ -20,7 +20,6 @@ import java.util.function.Function;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.springframework.dao.TypeMismatchDataAccessException;
-import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 

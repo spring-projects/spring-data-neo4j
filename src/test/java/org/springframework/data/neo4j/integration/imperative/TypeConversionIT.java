@@ -127,14 +127,16 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		someCustomThings.put("y", ThingWithCustomTypes.CustomType.of("c2"));
 		t.setCustomTypeMap(someCustomThings);
 
-		t.setSomeDatesByEnumA(Collections.singletonMap(ThingWithMapProperties.EnumA.VALUE_AA, LocalDate.of(2020, 10, 1)));
+		t.setSomeDatesByEnumA(
+				Collections.singletonMap(ThingWithMapProperties.EnumA.VALUE_AA, LocalDate.of(2020, 10, 1)));
 		Map<ThingWithMapProperties.EnumB, LocalDate> someDatesByEnumB = new HashMap<>();
 		someDatesByEnumB.put(ThingWithMapProperties.EnumB.VALUE_BA, LocalDate.of(2020, 10, 2));
 		someDatesByEnumB.put(ThingWithMapProperties.EnumB.VALUE_BB, LocalDate.of(2020, 10, 3));
 		t.setSomeDatesByEnumB(someDatesByEnumB);
 
 		t.setDatesWithTransformedKey(Collections.singletonMap("TEST", LocalDate.of(1979, 9, 21)));
-		t.setDatesWithTransformedKeyAndEnum(Collections.singletonMap(ThingWithMapProperties.EnumB.VALUE_BA, LocalDate.of(1938, 9, 15)));
+		t.setDatesWithTransformedKeyAndEnum(
+				Collections.singletonMap(ThingWithMapProperties.EnumB.VALUE_BA, LocalDate.of(1938, 9, 15)));
 
 		long id = thingWithMapPropertiesRepository.save(t).getId();
 
@@ -151,7 +153,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 			assertThat(n.get("someDatesByEnumB.VALUE_BB").asObject()).isEqualTo(LocalDate.of(2020, 10, 3));
 
 			assertThat(n.get("datesWithTransformedKey.test").asObject()).isEqualTo(LocalDate.of(1979, 9, 21));
-			assertThat(n.get("datesWithTransformedKeyAndEnum.value_ba").asObject()).isEqualTo(LocalDate.of(1938, 9, 15));
+			assertThat(n.get("datesWithTransformedKeyAndEnum.value_ba").asObject())
+					.isEqualTo(LocalDate.of(1938, 9, 15));
 		}
 	}
 
@@ -182,7 +185,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		Long id;
 		try (Session session = driver.session()) {
 			id = session.writeTransaction(
-					tx -> tx.run("CREATE (t:MapProperties) SET t = $properties RETURN id(t)", Collections.singletonMap("properties", properties)).single().get(0)
+					tx -> tx.run("CREATE (t:MapProperties) SET t = $properties RETURN id(t)",
+							Collections.singletonMap("properties", properties)).single().get(0)
 							.asLong());
 		}
 
@@ -195,17 +199,21 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		assertThat(t.getSomeOtherDates()).containsValues(LocalDate.of(1981, 7, 7));
 
 		assertThat(t.getCustomTypeMap()).containsOnlyKeys("x", "y");
-		assertThat(t.getCustomTypeMap().values()).extracting(ThingWithCustomTypes.CustomType::getValue).containsExactlyInAnyOrder("c1", "c2");
+		assertThat(t.getCustomTypeMap().values()).extracting(ThingWithCustomTypes.CustomType::getValue)
+				.containsExactlyInAnyOrder("c1", "c2");
 
 		assertThat(t.getSomeDatesByEnumA()).containsOnlyKeys(ThingWithMapProperties.EnumA.VALUE_AA);
-		assertThat(t.getSomeDatesByEnumA()).containsValue(LocalDate.of(2020,10,1));
+		assertThat(t.getSomeDatesByEnumA()).containsValue(LocalDate.of(2020, 10, 1));
 
 		assertThat(t.getSomeDatesByEnumA()).containsOnlyKeys(ThingWithMapProperties.EnumA.VALUE_AA);
-		assertThat(t.getSomeDatesByEnumB().get(ThingWithMapProperties.EnumB.VALUE_BA)).isEqualTo(LocalDate.of(2020,10,2));
-		assertThat(t.getSomeDatesByEnumB().get(ThingWithMapProperties.EnumB.VALUE_BB)).isEqualTo(LocalDate.of(2020,10,3));
+		assertThat(t.getSomeDatesByEnumB().get(ThingWithMapProperties.EnumB.VALUE_BA))
+				.isEqualTo(LocalDate.of(2020, 10, 2));
+		assertThat(t.getSomeDatesByEnumB().get(ThingWithMapProperties.EnumB.VALUE_BB))
+				.isEqualTo(LocalDate.of(2020, 10, 3));
 
 		assertThat(t.getDatesWithTransformedKey()).containsEntry("TEST", LocalDate.of(1979, 9, 21));
-		assertThat(t.getDatesWithTransformedKeyAndEnum()).containsEntry(ThingWithMapProperties.EnumB.VALUE_BA, LocalDate.of(1938, 9, 15));
+		assertThat(t.getDatesWithTransformedKeyAndEnum())
+				.containsEntry(ThingWithMapProperties.EnumB.VALUE_BA, LocalDate.of(1938, 9, 15));
 	}
 
 	@Test

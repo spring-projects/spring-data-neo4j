@@ -22,7 +22,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -36,7 +35,6 @@ import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverterFactory;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.core.schema.CompositeProperty.CompositePropertyConverter;
 import org.springframework.data.neo4j.core.schema.CompositeProperty.Phase;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
@@ -87,6 +85,9 @@ public @interface CompositeProperty {
 	 */
 	Class<? extends BiFunction<Phase, String, String>> transformKeysWith() default NoopTransformation.class;
 
+	/**
+	 * The default operation for transforming the keys. Defaults to a no-op.
+	 */
 	class NoopTransformation implements BiFunction<Phase, String, String> {
 
 		@Override
@@ -109,77 +110,81 @@ public @interface CompositeProperty {
 		 */
 		READ
 	}
+}
 
-	final class CompositePropertyConverter<K> implements Neo4jPersistentPropertyConverter<Map<K, Object>> {
+/**
+ * Dedicated and highly specialized converter for reading and writing {@link Map} with either enum or string keys
+ * into multiple properties of Nodes or Relationships inside the Neo4j database. This is an internal API only.
+ *
+ * @param <K> The type of the key
+ */
+final class CompositePropertyConverter<K> implements Neo4jPersistentPropertyConverter<Map<K, Object>> {
 
-		protected final String prefixWithDelimiter;
+	protected final String prefixWithDelimiter;
 
-		protected final Neo4jConversionService neo4jConversionService;
+	protected final Neo4jConversionService neo4jConversionService;
 
-		protected final Class<?> typeOfKeys;
+	protected final Class<?> typeOfKeys;
 
-		protected final TypeInformation<?> typeInformationForValues;
+	protected final TypeInformation<?> typeInformationForValues;
 
-		private final Function<K, String> keyWriter;
+	private final Function<K, String> keyWriter;
 
-		private final Function<String, K> keyReader;
+	private final Function<String, K> keyReader;
 
-		/**
-		 * A post processor of the map that is eventually be stored in the entity. In case a user wishes for entities
-		 * with immutable collection, that would be the place to configure it.
-		 */
-		protected final UnaryOperator<Map<K, Object>> mapPostProcessor;
+	/**
+	 * A post processor of the map that is eventually be stored in the entity. In case a user wishes for entities
+	 * with immutable collection, that would be the place to configure it.
+	 */
+	protected final UnaryOperator<Map<K, Object>> mapPostProcessor;
 
-		CompositePropertyConverter(
-				String prefixWithDelimiter,
-				Neo4jConversionService neo4jConversionService,
-				Class<?> typeOfKeys,
-				Class<?> typeOfValues,
-				Function<K, String> keyWriter,
-				Function<String, K> keyReader
-		) {
-			this.prefixWithDelimiter = prefixWithDelimiter;
-			this.neo4jConversionService = neo4jConversionService;
-			this.typeOfKeys = typeOfKeys;
-			this.typeInformationForValues = ClassTypeInformation.from(typeOfValues);
-			this.keyWriter = keyWriter;
-			this.keyReader = keyReader;
-			this.mapPostProcessor = UnaryOperator.identity();
-		}
+	CompositePropertyConverter(
+			String prefixWithDelimiter,
+			Neo4jConversionService neo4jConversionService,
+			Class<?> typeOfKeys,
+			Class<?> typeOfValues,
+			Function<K, String> keyWriter,
+			Function<String, K> keyReader
+	) {
+		this.prefixWithDelimiter = prefixWithDelimiter;
+		this.neo4jConversionService = neo4jConversionService;
+		this.typeOfKeys = typeOfKeys;
+		this.typeInformationForValues = ClassTypeInformation.from(typeOfValues);
+		this.keyWriter = keyWriter;
+		this.keyReader = keyReader;
+		this.mapPostProcessor = UnaryOperator.identity();
+	}
 
-		@Override
-		public Value write(Map<K, Object> source) {
+	@Override
+	public Value write(Map<K, Object> source) {
 
-			Map<String, Object> temp = new HashMap<>();
-			source.forEach((key, value) -> temp.put(prefixWithDelimiter + keyWriter.apply(key), neo4jConversionService.writeValue(value, typeInformationForValues, null)));
-			return Values.value(temp);
-		}
+		Map<String, Object> temp = new HashMap<>();
+		source.forEach((key, value) -> temp.put(prefixWithDelimiter + keyWriter.apply(key), neo4jConversionService.writeValue(value, typeInformationForValues, null)));
+		return Values.value(temp);
+	}
 
-		@Override
-		public Map<K, Object> read(Value source) {
-			Map<K, Object> temp = new HashMap<>();
-			source.keys().forEach(k -> {
-				if (k.startsWith(prefixWithDelimiter)) {
-					K key = keyReader.apply(k.substring(prefixWithDelimiter.length()));
-					Object convertedValue = neo4jConversionService.readValue(source.get(k), typeInformationForValues, null);
-					temp.put(key, convertedValue);
-				}
-			});
-			return mapPostProcessor.apply(temp);
-		}
-
-		public static String computePrefixWithDelimiter(Neo4jPersistentProperty property, CompositeProperty config) {
-			return Optional.of(config.prefix()).map(String::trim).filter(s -> !s.isEmpty())
-					.orElseGet(property::getFieldName) + config.delimiter();
-		}
+	@Override
+	public Map<K, Object> read(Value source) {
+		Map<K, Object> temp = new HashMap<>();
+		source.keys().forEach(k -> {
+			if (k.startsWith(prefixWithDelimiter)) {
+				K key = keyReader.apply(k.substring(prefixWithDelimiter.length()));
+				Object convertedValue = neo4jConversionService.readValue(source.get(k), typeInformationForValues, null);
+				temp.put(key, convertedValue);
+			}
+		});
+		return mapPostProcessor.apply(temp);
 	}
 }
 
+/**
+ * Internal API for creating composite converters.
+ */
 final class CompositePropertyConverterFactory implements Neo4jPersistentPropertyConverterFactory {
 
 	private final Neo4jConversionService conversionServiceDelegate;
 
-	public CompositePropertyConverterFactory(@Nullable Neo4jConversionService conversionServiceDelegate) {
+	CompositePropertyConverterFactory(@Nullable Neo4jConversionService conversionServiceDelegate) {
 		this.conversionServiceDelegate = conversionServiceDelegate;
 	}
 
@@ -214,8 +219,7 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 			keyWriter = (String key) -> keyTransformation.apply(Phase.WRITE, key);
 		}
 
-		String prefixWithDelimiter = CompositePropertyConverter
-				.computePrefixWithDelimiter(persistentProperty,config);
+		String prefixWithDelimiter = persistentProperty.computePrefixWithDelimiter();
 		return new CompositePropertyConverter(
 				prefixWithDelimiter, conversionServiceDelegate, componentType, persistentProperty.getActualType(),
 				keyWriter, keyReader);
