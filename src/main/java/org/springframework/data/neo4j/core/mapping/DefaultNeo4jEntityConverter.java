@@ -51,7 +51,6 @@ import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
-import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
@@ -524,7 +523,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				return Optional.ofNullable(value.isEmpty() ? null : value.get(0));
 			}
 		}
-
 	}
 
 	private MapAccessor extractNextNodeAndAppendPath(Node possibleValueNode, List<Path> allPaths) {
@@ -541,7 +539,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			return propertyContainer instanceof Node ? Values.value(((Node) propertyContainer).id())
 					: propertyContainer.get(Constants.NAME_OF_INTERNAL_ID);
 		} else if (property.isComposite()) {
-			CompositeProperty config = property.getRequiredAnnotation(CompositeProperty.class);
 			String prefix = property.computePrefixWithDelimiter();
 
 			if (propertyContainer.containsKey(Constants.NAME_OF_ALL_PROPERTIES)) {

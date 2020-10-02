@@ -70,6 +70,7 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 		BiFunction<Value, Class<?>, Object> conversion = conversionOverride == null ?
 				(v, t) -> conversionService.convert(v, t) :
 				(v, t) -> conversionOverride.apply(v);
+
 		return readValueImpl(source, targetType, conversion);
 	}
 

@@ -16,10 +16,16 @@
 package org.springframework.data.neo4j.integration.shared;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiFunction;
 
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
+import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyToMapConverter;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -81,6 +87,44 @@ public class ThingWithMapProperties {
 
 	@CompositeProperty(transformKeysWith = LowerCasePropertiesFilter.class)
 	private Map<EnumB, LocalDate> datesWithTransformedKeyAndEnum;
+
+	/**
+	 * Arbitrary DTO.
+	 */
+	public static class SomeOtherDTO {
+
+		final String x;
+		final Long y;
+		final Double z;
+
+		public SomeOtherDTO(String x, Long y, Double z) {
+			this.x = x;
+			this.y = y;
+			this.z = z;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			SomeOtherDTO that = (SomeOtherDTO) o;
+			return x.equals(that.x) &&
+					y.equals(that.y) &&
+					z.equals(that.z);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(x, y, z);
+		}
+	}
+
+	@CompositeProperty(converter = SomeOtherDTOToMapConverter.class, prefix = "dto")
+	private SomeOtherDTO someOtherDTO;
 
 	public Long getId() {
 		return id;
@@ -146,6 +190,15 @@ public class ThingWithMapProperties {
 		this.datesWithTransformedKeyAndEnum = datesWithTransformedKeyAndEnum;
 	}
 
+	public SomeOtherDTO getSomeOtherDTO() {
+		return someOtherDTO;
+	}
+
+	public void setSomeOtherDTO(
+			SomeOtherDTO someOtherDTO) {
+		this.someOtherDTO = someOtherDTO;
+	}
+
 	static class LowerCasePropertiesFilter implements BiFunction<CompositeProperty.Phase, String, String> {
 
 		@Override
@@ -162,6 +215,26 @@ public class ThingWithMapProperties {
 				default:
 					throw new IllegalArgumentException();
 			}
+		}
+	}
+
+	/**
+	 * Some arbitrary converter.
+	 */
+	static class SomeOtherDTOToMapConverter implements Neo4jPersistentPropertyToMapConverter<String, SomeOtherDTO> {
+
+		@Override
+		public Map<String, Value> decompose(SomeOtherDTO property, Neo4jConversionService conversionService) {
+			final HashMap<String, Value> decomposed = new HashMap<>();
+			decomposed.put("x", Values.value(property.x));
+			decomposed.put("y", Values.value(property.y));
+			decomposed.put("z", Values.value(property.z));
+			return decomposed;
+		}
+
+		@Override
+		public SomeOtherDTO compose(Map<String, Value> source, Neo4jConversionService conversionService) {
+			return new SomeOtherDTO(source.get("x").asString(), source.get("y").asLong(), source.get("z").asDouble());
 		}
 	}
 }

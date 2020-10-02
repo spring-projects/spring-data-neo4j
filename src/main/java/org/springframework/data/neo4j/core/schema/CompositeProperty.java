@@ -20,34 +20,37 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.springframework.beans.BeanUtils;
+import org.springframework.core.GenericTypeResolver;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverterFactory;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyToMapConverter;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.schema.CompositeProperty.Phase;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * This annotation indicates a {@link org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty persistent property}
  * that is composed from multiple properties on a node or relationship. The properties must share a common prefix. SDN defaults
  * to the name of the field declared on the {@link org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity persistent entity}.
- *
  * <p>This annotation is mainly to be used on properties of type {@link Map Map&lt;String, Object&gt;}. All values in the
  * map are subject to conversions by other registered converters. <b>Nested maps are not supported.</b>
- *
  * <p>This annotation is the pendant to Neo4j-OGMs {@literal org.neo4j.ogm.annotation.Properties}.
  *
  * @author Michael J. Simons
@@ -60,6 +63,12 @@ import org.springframework.lang.Nullable;
 @ConvertWith(converterFactory = CompositePropertyConverterFactory.class)
 @API(status = API.Status.STABLE, since = "6.0")
 public @interface CompositeProperty {
+
+	/**
+	 * @return A converter that allows to store arbitrary objects as decomposed maps on nodes and relationships. The
+	 * default converter allows only maps as composite properties.
+	 */
+	Class<? extends Neo4jPersistentPropertyToMapConverter> converter() default CompositeProperty.DefaultToMapConverter.class;
 
 	/**
 	 * Allows to specify the prefix for the map properties. The default empty value indicates SDN to used the
@@ -88,11 +97,47 @@ public @interface CompositeProperty {
 	/**
 	 * The default operation for transforming the keys. Defaults to a no-op.
 	 */
-	class NoopTransformation implements BiFunction<Phase, String, String> {
+	final class NoopTransformation implements BiFunction<Phase, String, String> {
 
 		@Override
 		public String apply(Phase phase, String s) {
 			return s;
+		}
+	}
+
+	/**
+	 * The default implementation, passing map properties through as they are on the way to the graph and possibly
+	 * applying a post processor on the way out of the graph.
+	 *
+	 * @param <K> The type of the keys.
+	 */
+	final class DefaultToMapConverter<K> implements Neo4jPersistentPropertyToMapConverter<K, Map<K, Object>> {
+
+		/**
+		 * A post processor of the map that is eventually be stored in the entity. In case a user wishes for entities
+		 * with immutable collection, that would be the place to configure it.
+		 */
+		private final UnaryOperator<Map<K, Object>> mapPostProcessor = UnaryOperator.identity();
+
+		private final TypeInformation<?> typeInformationForValues;
+
+		DefaultToMapConverter(TypeInformation<?> typeInformationForValues) {
+			this.typeInformationForValues = typeInformationForValues;
+		}
+
+		@Override
+		public Map<K, Value> decompose(Map<K, Object> property, Neo4jConversionService conversionService) {
+			Map<K, Value> decomposed = new HashMap<>(property.size());
+			property.forEach(
+					(k, v) -> decomposed.put(k, conversionService.writeValue(v, typeInformationForValues, null)));
+			return decomposed;
+		}
+
+		@Override
+		public Map<K, Object> compose(Map<K, Value> source, Neo4jConversionService conversionService) {
+			Map<K, Object> composed = new HashMap<>(source.size());
+			source.forEach((k, v) -> composed.put(k, conversionService.readValue(v, typeInformationForValues, null)));
+			return mapPostProcessor.apply(composed);
 		}
 	}
 
@@ -118,7 +163,9 @@ public @interface CompositeProperty {
  *
  * @param <K> The type of the key
  */
-final class CompositePropertyConverter<K> implements Neo4jPersistentPropertyConverter<Map<K, Object>> {
+final class CompositePropertyConverter<K, P> implements Neo4jPersistentPropertyConverter<P> {
+
+	protected final Neo4jPersistentPropertyToMapConverter<K, P> delegate;
 
 	protected final String prefixWithDelimiter;
 
@@ -126,54 +173,46 @@ final class CompositePropertyConverter<K> implements Neo4jPersistentPropertyConv
 
 	protected final Class<?> typeOfKeys;
 
-	protected final TypeInformation<?> typeInformationForValues;
-
 	private final Function<K, String> keyWriter;
 
 	private final Function<String, K> keyReader;
 
-	/**
-	 * A post processor of the map that is eventually be stored in the entity. In case a user wishes for entities
-	 * with immutable collection, that would be the place to configure it.
-	 */
-	protected final UnaryOperator<Map<K, Object>> mapPostProcessor;
-
 	CompositePropertyConverter(
+			Neo4jPersistentPropertyToMapConverter<K, P> delegate,
 			String prefixWithDelimiter,
 			Neo4jConversionService neo4jConversionService,
 			Class<?> typeOfKeys,
-			Class<?> typeOfValues,
 			Function<K, String> keyWriter,
 			Function<String, K> keyReader
 	) {
+		this.delegate = delegate;
 		this.prefixWithDelimiter = prefixWithDelimiter;
 		this.neo4jConversionService = neo4jConversionService;
 		this.typeOfKeys = typeOfKeys;
-		this.typeInformationForValues = ClassTypeInformation.from(typeOfValues);
 		this.keyWriter = keyWriter;
 		this.keyReader = keyReader;
-		this.mapPostProcessor = UnaryOperator.identity();
 	}
 
 	@Override
-	public Value write(Map<K, Object> source) {
+	public Value write(P property) {
 
+		Map<K, Value> source = delegate.decompose(property, neo4jConversionService);
 		Map<String, Object> temp = new HashMap<>();
-		source.forEach((key, value) -> temp.put(prefixWithDelimiter + keyWriter.apply(key), neo4jConversionService.writeValue(value, typeInformationForValues, null)));
+		source.forEach((key, value) -> temp.put(prefixWithDelimiter + keyWriter.apply(key), value));
 		return Values.value(temp);
 	}
 
 	@Override
-	public Map<K, Object> read(Value source) {
-		Map<K, Object> temp = new HashMap<>();
+	public P read(Value source) {
+
+		Map<K, Value> temp = new HashMap<>();
 		source.keys().forEach(k -> {
 			if (k.startsWith(prefixWithDelimiter)) {
 				K key = keyReader.apply(k.substring(prefixWithDelimiter.length()));
-				Object convertedValue = neo4jConversionService.readValue(source.get(k), typeInformationForValues, null);
-				temp.put(key, convertedValue);
+				temp.put(key, source.get(k));
 			}
 		});
-		return mapPostProcessor.apply(temp);
+		return this.delegate.compose(temp, neo4jConversionService);
 	}
 }
 
@@ -191,42 +230,76 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 	@Override
 	public Neo4jPersistentPropertyConverter getPropertyConverterFor(Neo4jPersistentProperty persistentProperty) {
 
-		if (!persistentProperty.isMap()) {
-			throw new IllegalArgumentException("@" + CompositeProperty.class.getSimpleName()
-					+ " can only be used on Map properties without additional configuration. " + generateLocation(
-					persistentProperty));
+		CompositeProperty config = persistentProperty.getRequiredAnnotation(CompositeProperty.class);
+		Class<? extends Neo4jPersistentPropertyToMapConverter> delegateClass = config.converter();
+
+		Class<?> componentType;
+
+		if (persistentProperty.isMap()) {
+			componentType = persistentProperty.getComponentType();
+		} else {
+
+			if (delegateClass == CompositeProperty.DefaultToMapConverter.class) {
+				throw new IllegalArgumentException("@" + CompositeProperty.class.getSimpleName()
+						+ " can only be used on Map properties without additional configuration. Was "
+						+ generateLocation(
+						persistentProperty));
+			}
+
+			// Avoid resolving this as long as possible.
+			Map<String, Type> typeVariableMap = GenericTypeResolver.getTypeVariableMap(delegateClass).entrySet()
+					.stream()
+					.collect(Collectors.toMap(e -> e.getKey().getName(), e -> e.getValue()));
+
+			Assert.isTrue(typeVariableMap.containsKey("K"),
+					() -> "SDN could not determine the key type of your toMap converter " + generateLocation(
+							persistentProperty));
+			Assert.isTrue(typeVariableMap.containsKey("P"),
+					() -> "SDN could not determine the property type of your toMap converter " + generateLocation(
+							persistentProperty));
+
+			if (persistentProperty.getActualType() != typeVariableMap.get("P")) {
+				throw new IllegalArgumentException(
+						"The property type `" + typeVariableMap.get("P").getTypeName() + "` created by `"
+								+ delegateClass.getName() + "` " + generateLocation(persistentProperty)
+								+ " doesn't match the actual property type.");
+			}
+			componentType = (Class<?>) typeVariableMap.get("K");
 		}
 
-		Class<?> componentType = persistentProperty.getComponentType();
 		boolean isEnum = componentType.isEnum();
 		if (!(componentType == String.class || isEnum)) {
 			throw new IllegalArgumentException("@" + CompositeProperty.class.getSimpleName()
-					+ " can only be used on Map properties with a key type of String or enum. " + generateLocation(
+					+ " can only be used on Map properties with a key type of String or enum. Was " + generateLocation(
 					persistentProperty));
 		}
 
-		CompositeProperty config = persistentProperty.getRequiredAnnotation(CompositeProperty.class);
 		BiFunction<Phase, String, String> keyTransformation = BeanUtils.instantiateClass(config.transformKeysWith());
 
 		Function<String, ?> keyReader;
 		Function<?, String> keyWriter;
 		if (isEnum) {
-			keyReader = key -> Enum.valueOf(((Class<Enum>) componentType), keyTransformation.apply(
-					Phase.READ, key));
+			keyReader = key -> Enum.valueOf(((Class<Enum>) componentType), keyTransformation.apply(Phase.READ, key));
 			keyWriter = (Enum key) -> keyTransformation.apply(Phase.WRITE, key.name());
 		} else {
 			keyReader = key -> keyTransformation.apply(Phase.READ, key);
 			keyWriter = (String key) -> keyTransformation.apply(Phase.WRITE, key);
 		}
 
+		Neo4jPersistentPropertyToMapConverter<?, Map<?, Object>> delegate;
+		if (delegateClass == CompositeProperty.DefaultToMapConverter.class) {
+			delegate = new CompositeProperty.DefaultToMapConverter(ClassTypeInformation.from(persistentProperty.getActualType()));
+		} else {
+			delegate = BeanUtils.instantiateClass(delegateClass);
+		}
+
 		String prefixWithDelimiter = persistentProperty.computePrefixWithDelimiter();
 		return new CompositePropertyConverter(
-				prefixWithDelimiter, conversionServiceDelegate, componentType, persistentProperty.getActualType(),
-				keyWriter, keyReader);
+				delegate, prefixWithDelimiter, conversionServiceDelegate, componentType,  keyWriter, keyReader);
 	}
 
 	private static String generateLocation(Neo4jPersistentProperty persistentProperty) {
-		return "Was used on `" + persistentProperty.getFieldName() + "` in `" + persistentProperty.getOwner().getName()
+		return "used on `" + persistentProperty.getFieldName() + "` in `" + persistentProperty.getOwner().getName()
 				+ "`";
 	}
 }

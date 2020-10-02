@@ -138,6 +138,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		t.setDatesWithTransformedKeyAndEnum(
 				Collections.singletonMap(ThingWithMapProperties.EnumB.VALUE_BA, LocalDate.of(1938, 9, 15)));
 
+		t.setSomeOtherDTO(new ThingWithMapProperties.SomeOtherDTO("A", 6L, 2.3));
+
 		long id = thingWithMapPropertiesRepository.save(t).getId();
 
 		try (Session session = driver.session()) {
@@ -155,6 +157,10 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 			assertThat(n.get("datesWithTransformedKey.test").asObject()).isEqualTo(LocalDate.of(1979, 9, 21));
 			assertThat(n.get("datesWithTransformedKeyAndEnum.value_ba").asObject())
 					.isEqualTo(LocalDate.of(1938, 9, 15));
+
+			assertThat(n.get("dto.x").asObject()).isEqualTo("A");
+			assertThat(n.get("dto.y").asObject()).isEqualTo(6L);
+			assertThat(n.get("dto.z").asObject()).isEqualTo(2.3);
 		}
 	}
 
@@ -181,6 +187,10 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 		properties.put("datesWithTransformedKey.test", LocalDate.of(1979, 9, 21));
 		properties.put("datesWithTransformedKeyAndEnum.value_ba", LocalDate.of(1938, 9, 15));
+
+		properties.put("dto.x", "X");
+		properties.put("dto.y", 1L);
+		properties.put("dto.z", 4.2);
 
 		Long id;
 		try (Session session = driver.session()) {
@@ -214,6 +224,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		assertThat(t.getDatesWithTransformedKey()).containsEntry("TEST", LocalDate.of(1979, 9, 21));
 		assertThat(t.getDatesWithTransformedKeyAndEnum())
 				.containsEntry(ThingWithMapProperties.EnumB.VALUE_BA, LocalDate.of(1938, 9, 15));
+
+		assertThat(t.getSomeOtherDTO()).isEqualTo(new ThingWithMapProperties.SomeOtherDTO("X", 1L, 4.2));
 	}
 
 	@Test

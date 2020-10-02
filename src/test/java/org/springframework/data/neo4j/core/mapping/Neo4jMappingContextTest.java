@@ -30,12 +30,15 @@ import java.util.Set;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.internal.value.StringValue;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.Association;
+import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyToMapConverter;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -220,7 +223,7 @@ class Neo4jMappingContextTest {
 	@Test
 	void shouldPreventIllegalCompositeUsageOnScalars() {
 		Neo4jMappingContext schema = new Neo4jMappingContext();
-		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(InvalidIdType.class)));
+		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(WithInvalidCompositeUsage.class)));
 		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(WithInvalidCompositeUsage.class);
 		Neo4jPersistentProperty property = entity.getRequiredPersistentProperty("doesntWorkOnScalar");
 
@@ -230,9 +233,17 @@ class Neo4jMappingContextTest {
 	}
 
 	@Test
+	void shouldNotPreventlegalCompositeUsageOnScalars() {
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(WithValidCompositeUsage.class);
+		Neo4jPersistentProperty property = entity.getRequiredPersistentProperty("worksWithExplictConverter");
+
+		schema.getOptionalCustomConversionsFor(property);
+	}
+
+	@Test
 	void shouldPreventIllegalCompositeUsageOnCollections() {
 		Neo4jMappingContext schema = new Neo4jMappingContext();
-		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(InvalidIdType.class)));
 		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(WithInvalidCompositeUsage.class);
 		Neo4jPersistentProperty property = entity.getRequiredPersistentProperty("doesntWorkOnCollection");
 
@@ -242,9 +253,19 @@ class Neo4jMappingContextTest {
 	}
 
 	@Test
+	void shouldPreventIllegalCompositeUsageWithCustomMapConverters() {
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(WithInvalidCompositeUsage.class);
+		Neo4jPersistentProperty property = entity.getRequiredPersistentProperty("mismatch");
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> schema.getOptionalCustomConversionsFor(property))
+				.withMessageMatching("The property type `.*` created by `.*` used on `.*` in `.*` doesn't match the actual property type.");
+	}
+
+	@Test
 	void shouldPreventIllegalCompositeUsageOnUnsupportedMapKeys() {
 		Neo4jMappingContext schema = new Neo4jMappingContext();
-		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(InvalidIdType.class)));
 		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(WithInvalidCompositeUsage.class);
 		Neo4jPersistentProperty property = entity.getRequiredPersistentProperty("doesntWorkOnWrongMapType");
 
@@ -365,5 +386,28 @@ class Neo4jMappingContextTest {
 
 		@CompositeProperty
 		List<String> doesntWorkOnCollection;
+
+		@CompositeProperty(converter = MissingIdToMapConverter.class)
+		String mismatch;
+	}
+
+	@Node
+	static class WithValidCompositeUsage {
+
+		@Id @GeneratedValue private Long id;
+
+		@CompositeProperty(converter = MissingIdToMapConverter.class)
+		MissingId worksWithExplictConverter;
+	}
+
+	static class MissingIdToMapConverter implements Neo4jPersistentPropertyToMapConverter<String, MissingId> {
+
+		@Override public Map<String, Value> decompose(MissingId property, Neo4jConversionService conversionService) {
+			return null;
+		}
+
+		@Override public MissingId compose(Map<String, Value> source,  Neo4jConversionService conversionService) {
+			return null;
+		}
 	}
 }
