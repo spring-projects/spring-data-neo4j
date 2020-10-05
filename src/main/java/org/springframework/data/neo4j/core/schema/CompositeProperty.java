@@ -221,6 +221,9 @@ final class CompositePropertyConverter<K, P> implements Neo4jPersistentPropertyC
  */
 final class CompositePropertyConverterFactory implements Neo4jPersistentPropertyConverterFactory {
 
+	private static final String KEY_TYPE_KEY = "K";
+	private static final String PROPERTY_TYPE_KEY = "P";
+
 	private final Neo4jConversionService conversionServiceDelegate;
 
 	CompositePropertyConverterFactory(@Nullable Neo4jConversionService conversionServiceDelegate) {
@@ -251,20 +254,20 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 					.stream()
 					.collect(Collectors.toMap(e -> e.getKey().getName(), e -> e.getValue()));
 
-			Assert.isTrue(typeVariableMap.containsKey("K"),
+			Assert.isTrue(typeVariableMap.containsKey(KEY_TYPE_KEY),
 					() -> "SDN could not determine the key type of your toMap converter " + generateLocation(
 							persistentProperty));
-			Assert.isTrue(typeVariableMap.containsKey("P"),
+			Assert.isTrue(typeVariableMap.containsKey(PROPERTY_TYPE_KEY),
 					() -> "SDN could not determine the property type of your toMap converter " + generateLocation(
 							persistentProperty));
 
-			if (persistentProperty.getActualType() != typeVariableMap.get("P")) {
+			if (persistentProperty.getActualType() != typeVariableMap.get(PROPERTY_TYPE_KEY)) {
 				throw new IllegalArgumentException(
-						"The property type `" + typeVariableMap.get("P").getTypeName() + "` created by `"
+						"The property type `" + typeVariableMap.get(PROPERTY_TYPE_KEY).getTypeName() + "` created by `"
 								+ delegateClass.getName() + "` " + generateLocation(persistentProperty)
 								+ " doesn't match the actual property type.");
 			}
-			componentType = (Class<?>) typeVariableMap.get("K");
+			componentType = (Class<?>) typeVariableMap.get(KEY_TYPE_KEY);
 		}
 
 		boolean isEnum = componentType.isEnum();
