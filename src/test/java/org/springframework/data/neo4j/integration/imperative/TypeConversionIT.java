@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -43,9 +44,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.platform.commons.util.AnnotationUtils;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.types.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -53,13 +56,14 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
-import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
+import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.integration.shared.Neo4jConversionsITBase;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllAdditionalTypes;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllCypherTypes;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllSpatialTypes;
 import org.springframework.data.neo4j.integration.shared.ThingWithCustomTypes;
+import org.springframework.data.neo4j.integration.shared.ThingWithMapProperties;
 import org.springframework.data.neo4j.integration.shared.ThingWithNonExistingPrimitives;
 import org.springframework.data.neo4j.integration.shared.ThingWithUUIDID;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -89,17 +93,119 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 	private final DefaultConversionService defaultConversionService;
 
-	@Autowired
-	TypeConversionIT(Driver driver, CypherTypesRepository cypherTypesRepository,
+	private final ThingWithMapPropertiesRepository thingWithMapPropertiesRepository;
+
+	@Autowired TypeConversionIT(Driver driver, CypherTypesRepository cypherTypesRepository,
 			AdditionalTypesRepository additionalTypesRepository, SpatialTypesRepository spatialTypesRepository,
-			CustomTypesRepository customTypesRepository, Neo4jConversions neo4jConversions) {
+			CustomTypesRepository customTypesRepository,
+			ThingWithMapPropertiesRepository thingWithMapPropertiesRepository,
+			Neo4jConversions neo4jConversions) {
 		this.driver = driver;
 		this.cypherTypesRepository = cypherTypesRepository;
 		this.additionalTypesRepository = additionalTypesRepository;
 		this.spatialTypesRepository = spatialTypesRepository;
 		this.customTypesRepository = customTypesRepository;
+		this.thingWithMapPropertiesRepository = thingWithMapPropertiesRepository;
 		this.defaultConversionService = new DefaultConversionService();
 		neo4jConversions.registerConvertersIn(defaultConversionService);
+	}
+
+	@Test
+	void customMapPropertiesShouldBeWritten() {
+
+		ThingWithMapProperties t = new ThingWithMapProperties();
+		Map<String, LocalDate> someDates = new HashMap<>();
+		someDates.put("a", LocalDate.of(2009, 12, 4));
+		someDates.put("o", LocalDate.of(2013, 5, 6));
+		t.setSomeDates(someDates);
+
+		Map<String, LocalDate> someOtherDates = Collections.singletonMap("t", LocalDate.of(1981, 7, 7));
+		t.setSomeOtherDates(someOtherDates);
+
+		Map<String, ThingWithCustomTypes.CustomType> someCustomThings = new HashMap<>();
+		someCustomThings.put("x", ThingWithCustomTypes.CustomType.of("c1"));
+		someCustomThings.put("y", ThingWithCustomTypes.CustomType.of("c2"));
+		t.setCustomTypeMap(someCustomThings);
+
+		t.setSomeDatesByEnumA(Collections.singletonMap(ThingWithMapProperties.EnumA.VALUE_AA, LocalDate.of(2020, 10, 1)));
+		Map<ThingWithMapProperties.EnumB, LocalDate> someDatesByEnumB = new HashMap<>();
+		someDatesByEnumB.put(ThingWithMapProperties.EnumB.VALUE_BA, LocalDate.of(2020, 10, 2));
+		someDatesByEnumB.put(ThingWithMapProperties.EnumB.VALUE_BB, LocalDate.of(2020, 10, 3));
+		t.setSomeDatesByEnumB(someDatesByEnumB);
+
+		t.setDatesWithTransformedKey(Collections.singletonMap("TEST", LocalDate.of(1979, 9, 21)));
+		t.setDatesWithTransformedKeyAndEnum(Collections.singletonMap(ThingWithMapProperties.EnumB.VALUE_BA, LocalDate.of(1938, 9, 15)));
+
+		long id = thingWithMapPropertiesRepository.save(t).getId();
+
+		try (Session session = driver.session()) {
+			Record r = session.readTransaction(tx -> tx.run("MATCH (t:MapProperties) WHERE id(t) = $id RETURN t",
+					Collections.singletonMap("id", id)).single());
+			Node n = r.get("t").asNode();
+			assertThat(n.get("someDates.a").asObject()).isEqualTo(someDates.get("a"));
+			assertThat(n.get("someDates.o").asObject()).isEqualTo(someDates.get("o"));
+			assertThat(n.get("in_another_time.t").asObject()).isEqualTo(someOtherDates.get("t"));
+			assertThat(n.get("customTypeMap.x").asString()).isEqualTo("c1");
+			assertThat(n.get("someDatesByEnumA.VALUE_AA").asObject()).isEqualTo(LocalDate.of(2020, 10, 1));
+			assertThat(n.get("someDatesByEnumB.VALUE_BA").asObject()).isEqualTo(LocalDate.of(2020, 10, 2));
+			assertThat(n.get("someDatesByEnumB.VALUE_BB").asObject()).isEqualTo(LocalDate.of(2020, 10, 3));
+
+			assertThat(n.get("datesWithTransformedKey.test").asObject()).isEqualTo(LocalDate.of(1979, 9, 21));
+			assertThat(n.get("datesWithTransformedKeyAndEnum.value_ba").asObject()).isEqualTo(LocalDate.of(1938, 9, 15));
+		}
+	}
+
+	@Test
+	void customMapPropertiesShouldBeRead() {
+
+		Map<String, LocalDate> someDates = new HashMap<>();
+		someDates.put("someDates.a", LocalDate.of(2009, 12, 4));
+		someDates.put("someDates.o", LocalDate.of(2013, 5, 6));
+
+		Map<String, LocalDate> someOtherDates = Collections.singletonMap("in_another_time.t", LocalDate.of(1981, 7, 7));
+
+		Map<String, String> someCustomThings = new HashMap<>();
+		someCustomThings.put("customTypeMap.x", "c1");
+		someCustomThings.put("customTypeMap.y", "c2");
+
+		Map<String, Object> properties = new HashMap<>();
+		someDates.forEach(properties::put);
+		someOtherDates.forEach(properties::put);
+		someCustomThings.forEach(properties::put);
+		properties.put("someDatesByEnumA.VALUE_AA", LocalDate.of(2020, 10, 1));
+		properties.put("someDatesByEnumB.VALUE_BA", LocalDate.of(2020, 10, 2));
+		properties.put("someDatesByEnumB.VALUE_BB", LocalDate.of(2020, 10, 3));
+
+		properties.put("datesWithTransformedKey.test", LocalDate.of(1979, 9, 21));
+		properties.put("datesWithTransformedKeyAndEnum.value_ba", LocalDate.of(1938, 9, 15));
+
+		Long id;
+		try (Session session = driver.session()) {
+			id = session.writeTransaction(
+					tx -> tx.run("CREATE (t:MapProperties) SET t = $properties RETURN id(t)", Collections.singletonMap("properties", properties)).single().get(0)
+							.asLong());
+		}
+
+		ThingWithMapProperties t = thingWithMapPropertiesRepository.findById(id).get();
+		assertThat(t.getSomeDates()).containsOnlyKeys("a", "o");
+		assertThat(t.getSomeDates())
+				.containsValues(someDates.get("someDates.a"), someDates.get("someDates.o"));
+
+		assertThat(t.getSomeOtherDates()).containsOnlyKeys("t");
+		assertThat(t.getSomeOtherDates()).containsValues(LocalDate.of(1981, 7, 7));
+
+		assertThat(t.getCustomTypeMap()).containsOnlyKeys("x", "y");
+		assertThat(t.getCustomTypeMap().values()).extracting(ThingWithCustomTypes.CustomType::getValue).containsExactlyInAnyOrder("c1", "c2");
+
+		assertThat(t.getSomeDatesByEnumA()).containsOnlyKeys(ThingWithMapProperties.EnumA.VALUE_AA);
+		assertThat(t.getSomeDatesByEnumA()).containsValue(LocalDate.of(2020,10,1));
+
+		assertThat(t.getSomeDatesByEnumA()).containsOnlyKeys(ThingWithMapProperties.EnumA.VALUE_AA);
+		assertThat(t.getSomeDatesByEnumB().get(ThingWithMapProperties.EnumB.VALUE_BA)).isEqualTo(LocalDate.of(2020,10,2));
+		assertThat(t.getSomeDatesByEnumB().get(ThingWithMapProperties.EnumB.VALUE_BB)).isEqualTo(LocalDate.of(2020,10,3));
+
+		assertThat(t.getDatesWithTransformedKey()).containsEntry("TEST", LocalDate.of(1979, 9, 21));
+		assertThat(t.getDatesWithTransformedKeyAndEnum()).containsEntry(ThingWithMapProperties.EnumB.VALUE_BA, LocalDate.of(1938, 9, 15));
 	}
 
 	@Test
@@ -244,6 +350,9 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 	public interface CustomTypesRepository extends Neo4jRepository<ThingWithCustomTypes, Long> {
 
 		List<ThingWithCustomTypes> findAllByDateAsString(Date theDate);
+	}
+
+	public interface ThingWithMapPropertiesRepository extends Neo4jRepository<ThingWithMapProperties, Long> {
 	}
 
 	@Configuration

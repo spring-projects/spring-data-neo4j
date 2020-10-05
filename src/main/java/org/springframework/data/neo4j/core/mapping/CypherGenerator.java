@@ -434,14 +434,23 @@ public enum CypherGenerator {
 
 		List<Object> nodePropertiesProjection = new ArrayList<>();
 		Node node = anyNode(nodeName);
-		for (GraphPropertyDescription property : nodeDescription.getGraphPropertiesInHierarchy()) {
-			if (!includeField.test(property.getFieldName())) {
+		boolean hasCompositeProperties = false;
+		for (GraphPropertyDescription graphProperty : nodeDescription.getGraphPropertiesInHierarchy()) {
+
+			Neo4jPersistentProperty property = (Neo4jPersistentProperty) graphProperty;
+			hasCompositeProperties = hasCompositeProperties || property.isComposite();
+
+			if (!includeField.test(property.getFieldName()) || property.isDynamicLabels() || property.isComposite()) {
 				continue;
 			}
 
-			if (!((Neo4jPersistentProperty) property).isDynamicLabels()) {
-				nodePropertiesProjection.add(property.getPropertyName());
-			}
+			nodePropertiesProjection.add(graphProperty.getPropertyName());
+		}
+
+
+		if(hasCompositeProperties) {
+			nodePropertiesProjection.add(Constants.NAME_OF_ALL_PROPERTIES);
+			nodePropertiesProjection.add(node.project(Cypher.asterisk()));
 		}
 
 		nodePropertiesProjection.add(Constants.NAME_OF_LABELS);

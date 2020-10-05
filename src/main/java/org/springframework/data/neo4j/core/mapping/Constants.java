@@ -41,6 +41,7 @@ public final class Constants {
 	public static final String NAME_OF_STATIC_LABELS_PARAM = "__staticLabels__";
 	public static final String NAME_OF_ENTITY_LIST_PARAM = "__entities__";
 	public static final String NAME_OF_PATHS = "__paths__";
+	public static final String NAME_OF_ALL_PROPERTIES = "__allProperties__";
 
 	public static final String FROM_ID_PARAMETER_NAME = "fromId";
 

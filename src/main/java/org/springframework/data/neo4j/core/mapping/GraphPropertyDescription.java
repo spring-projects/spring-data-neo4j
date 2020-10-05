@@ -62,4 +62,9 @@ public interface GraphPropertyDescription {
 	 * @return Whether this property describes a relationship or not.
 	 */
 	boolean isRelationship();
+
+	/**
+	 * @return True if the entities property (this object) is stored as multiple properties on a node or relationship.
+	 */
+	boolean isComposite();
 }

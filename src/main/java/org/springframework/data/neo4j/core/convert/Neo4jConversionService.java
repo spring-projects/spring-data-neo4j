@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.mapping;
+package org.springframework.data.neo4j.core.convert;
 
 import java.util.function.Function;
 
@@ -32,7 +32,7 @@ import org.springframework.lang.Nullable;
  * @soundtrack Die Ärzte - Die Nacht der Dämonen
  * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public interface Neo4jConversionService {
 
 	/**

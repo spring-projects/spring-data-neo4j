@@ -50,6 +50,8 @@ import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.ParameterValueProvider;
+import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
+import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
@@ -150,8 +152,12 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				return;
 			}
 
-			final Object value = conversionService.writeValue(propertyAccessor.getProperty(p), p.getTypeInformation(), p.getOptionalWritingConverter());
-			properties.put(p.getPropertyName(), value);
+			final Value value = conversionService.writeValue(propertyAccessor.getProperty(p), p.getTypeInformation(), p.getOptionalWritingConverter());
+			if (p.isComposite()) {
+				value.keys().forEach(k -> properties.put(k, value.get(k)));
+			} else {
+				properties.put(p.getPropertyName(), value);
+			}
 		});
 
 		parameters.put(Constants.NAME_OF_PROPERTIES_PARAM, properties);
@@ -534,10 +540,29 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		if (property.isInternalIdProperty()) {
 			return propertyContainer instanceof Node ? Values.value(((Node) propertyContainer).id())
 					: propertyContainer.get(Constants.NAME_OF_INTERNAL_ID);
+		} else if (property.isComposite()) {
+			CompositeProperty config = property.getRequiredAnnotation(CompositeProperty.class);
+			String prefix = CompositeProperty.CompositePropertyConverter.computePrefixWithDelimiter(property, config);
+
+			if(propertyContainer.containsKey(Constants.NAME_OF_ALL_PROPERTIES)) {
+				return extractCompositePropertyValues(propertyContainer.get(Constants.NAME_OF_ALL_PROPERTIES), prefix);
+			} else {
+				return extractCompositePropertyValues(propertyContainer, prefix);
+			}
 		} else {
 			String graphPropertyName = property.getPropertyName();
 			return propertyContainer.get(graphPropertyName);
 		}
+	}
+
+	private static Value extractCompositePropertyValues(MapAccessor propertyContainer, String prefix) {
+		Map<String, Value>  hlp = new HashMap<>(propertyContainer.size());
+		propertyContainer.keys().forEach(k -> {
+			if (k.startsWith(prefix)) {
+				hlp.put(k, propertyContainer.get(k));
+			}
+		});
+		return Values.value(hlp);
 	}
 
 	static class KnownObjects {

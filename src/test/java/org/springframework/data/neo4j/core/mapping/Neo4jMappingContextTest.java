@@ -36,6 +36,7 @@ import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
@@ -216,6 +217,42 @@ class Neo4jMappingContextTest {
 		assertThat(associations).hasSize(2);
 	}
 
+	@Test
+	void shouldPreventIllegalCompositeUsageOnScalars() {
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(InvalidIdType.class)));
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(WithInvalidCompositeUsage.class);
+		Neo4jPersistentProperty property = entity.getRequiredPersistentProperty("doesntWorkOnScalar");
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> schema.getOptionalCustomConversionsFor(property))
+				.withMessageMatching("@CompositeProperty can only be used on Map properties without additional configuration. Was used on `.*` in `.*`");
+	}
+
+	@Test
+	void shouldPreventIllegalCompositeUsageOnCollections() {
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(InvalidIdType.class)));
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(WithInvalidCompositeUsage.class);
+		Neo4jPersistentProperty property = entity.getRequiredPersistentProperty("doesntWorkOnCollection");
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> schema.getOptionalCustomConversionsFor(property))
+				.withMessageMatching("@CompositeProperty can only be used on Map properties without additional configuration. Was used on `.*` in `.*`");
+	}
+
+	@Test
+	void shouldPreventIllegalCompositeUsageOnUnsupportedMapKeys() {
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(InvalidIdType.class)));
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(WithInvalidCompositeUsage.class);
+		Neo4jPersistentProperty property = entity.getRequiredPersistentProperty("doesntWorkOnWrongMapType");
+
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> schema.getOptionalCustomConversionsFor(property))
+				.withMessageMatching("@CompositeProperty can only be used on Map properties with a key type of String or enum. Was used on `.*` in `.*`");
+	}
+
 	static class DummyIdGenerator implements IdGenerator<Void> {
 
 		@Override
@@ -314,4 +351,19 @@ class Neo4jMappingContextTest {
 	}
 
 	static class ConvertibleType {}
+
+	@Node
+	static class WithInvalidCompositeUsage {
+
+		@Id @GeneratedValue private Long id;
+
+		@CompositeProperty
+		String doesntWorkOnScalar;
+
+		@CompositeProperty
+		Map<Long, Object> doesntWorkOnWrongMapType;
+
+		@CompositeProperty
+		List<String> doesntWorkOnCollection;
+	}
 }

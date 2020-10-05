@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
@@ -38,12 +39,14 @@ import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
-import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
+import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverterFactory;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverterFactory;
+import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 
@@ -235,9 +238,17 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		}
 	}
 
-	private <T extends Neo4jPersistentPropertyConverterFactory> T getOrCreateConverterFactoryOfType(Class<T> converterFactoryType) {
+	private <T extends Neo4jPersistentPropertyConverterFactory> T getOrCreateConverterFactoryOfType(
+			Class<T> converterFactoryType) {
 
-		return (T) this.converterFactorys.computeIfAbsent(converterFactoryType, this::createBeanOrInstantiate);
+		return (T) this.converterFactorys.computeIfAbsent(converterFactoryType, t -> {
+			Optional<Constructor<?>> optionalConstructor = ReflectionUtils
+					.findConstructor(t, this.conversionService);
+			return optionalConstructor
+					.map(c -> (T) BeanUtils.instantiateClass(c, this.conversionService))
+					.orElseGet(() -> (T) BeanUtils.instantiateClass(t));
+
+		});
 	}
 
 	/**
@@ -248,11 +259,11 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	Neo4jPersistentPropertyConverter getOptionalCustomConversionsFor(Neo4jPersistentProperty persistentProperty) {
 
 		// Is the annotation present at all?
-		ConvertWith convertWith = persistentProperty.findAnnotation(ConvertWith.class);
-		if (convertWith == null) {
+		if (!persistentProperty.isAnnotationPresent(ConvertWith.class)) {
 			return null;
 		}
 
+		ConvertWith convertWith = persistentProperty.getRequiredAnnotation(ConvertWith.class);
 		Neo4jPersistentPropertyConverterFactory persistentPropertyConverterFactory = this.getOrCreateConverterFactoryOfType(convertWith.converterFactory());
 		return persistentPropertyConverterFactory.getPropertyConverterFor(persistentProperty);
 	}
