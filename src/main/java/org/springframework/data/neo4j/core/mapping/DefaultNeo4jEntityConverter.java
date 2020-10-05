@@ -502,13 +502,10 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		}
 
 		if (persistentProperty.getTypeInformation().isCollectionLike()) {
-			if (relationshipDescription.hasRelationshipProperties()) {
-				return Optional.of(relationshipsAndProperties);
-			} else if (persistentProperty.getType().equals(Set.class)) {
-				return Optional.of(new HashSet(value));
-			} else {
-				return Optional.of(value);
-			}
+			List<Object> returnedValues = relationshipDescription.hasRelationshipProperties() ?  relationshipsAndProperties : value;
+			Collection<Object> target = CollectionFactory.createCollection(persistentProperty.getRawType(), persistentProperty.getComponentType(), returnedValues.size());
+			returnedValues.forEach(target::add);
+			return Optional.of(target);
 		} else {
 			if (relationshipDescription.isDynamic()) {
 				return Optional.ofNullable(dynamicValue.isEmpty() ? null : dynamicValue);
@@ -518,7 +515,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				return Optional.ofNullable(value.isEmpty() ? null : value.get(0));
 			}
 		}
-
 	}
 
 	private MapAccessor extractNextNodeAndAppendPath(Node possibleValueNode, List<Path> allPaths) {

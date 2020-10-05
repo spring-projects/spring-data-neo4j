@@ -76,6 +76,7 @@ import org.springframework.data.geo.Polygon;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.integration.imperative.repositories.PersonRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
@@ -100,6 +101,7 @@ import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructo
 import org.springframework.data.neo4j.integration.shared.PersonWithNoConstructor;
 import org.springframework.data.neo4j.integration.shared.PersonWithRelationship;
 import org.springframework.data.neo4j.integration.shared.PersonWithRelationshipWithProperties;
+import org.springframework.data.neo4j.integration.shared.PersonWithRelationshipWithProperties2;
 import org.springframework.data.neo4j.integration.shared.PersonWithWither;
 import org.springframework.data.neo4j.integration.shared.Pet;
 import org.springframework.data.neo4j.integration.shared.SimilarThing;
@@ -903,6 +905,40 @@ class RepositoryIT {
 	@Nested
 	class RelationshipProperties extends IntegrationTestBase {
 
+		@Test // DATAGRAPH-1397
+		void shouldBeStorableOnSets(
+				@Autowired Neo4jTemplate template) {
+
+			long personId;
+			long hobbyNode1Id;
+			long hobbyNode2Id;
+
+			try (Session session = createSession()) {
+				Record record = session.run("CREATE (n:PersonWithRelationshipWithProperties2{name:'Freddie'}),"
+						+ " (n)-[l1:LIKES "
+						+ "{since: 1995, active: true, localDate: date('1995-02-26'), myEnum: 'SOMETHING', point: point({x: 0, y: 1})}"
+						+ "]->(h1:Hobby{name:'Music'}), "
+						+ "(n)-[l2:LIKES "
+						+ "{since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}"
+						+ "]->(h2:Hobby{name:'Something else'})"
+						+ "RETURN n, h1, h2").single();
+
+				Node personNode = record.get("n").asNode();
+				Node hobbyNode1 = record.get("h1").asNode();
+				Node hobbyNode2 = record.get("h2").asNode();
+
+				personId = personNode.id();
+				hobbyNode1Id = hobbyNode1.id();
+				hobbyNode2Id = hobbyNode2.id();
+			}
+
+			Optional<PersonWithRelationshipWithProperties2> optionalPerson = template.findById(personId, PersonWithRelationshipWithProperties2.class);
+			assertThat(optionalPerson).hasValueSatisfying(person -> {
+				assertThat(person.getName()).isEqualTo("Freddie");
+				assertThat(person.getHobbies()).hasSize(2).extracting(LikesHobbyRelationship::getSince).containsExactlyInAnyOrder(1995, 2000);
+			});
+		}
+
 		@Test
 		void findEntityWithRelationshipWithProperties(
 				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
@@ -913,11 +949,14 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
-						+ " (n)-[l1:LIKES"
+						+ " (n)-[l1:LIKES "
 						+ "{since: 1995, active: true, localDate: date('1995-02-26'), myEnum: 'SOMETHING', point: point({x: 0, y: 1})}"
-						+ "]->(h1:Hobby{name:'Music'})," + " (n)-[l2:LIKES"
+						+ "]->(h1:Hobby{name:'Music'}), "
+						+ "(n)-[l2:LIKES "
 						+ "{since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}"
-						+ "]->(h2:Hobby{name:'Something else'})" + "RETURN n, h1, h2").single();
+						+ "]->(h2:Hobby{name:'Something else'}), "
+						+ "(n) - [:OWNS] -> (p:Pet {name: 'A Pet'}) "
+						+ "RETURN n, h1, h2").single();
 
 				Node personNode = record.get("n").asNode();
 				Node hobbyNode1 = record.get("h1").asNode();
@@ -932,6 +971,7 @@ class RepositoryIT {
 			assertThat(optionalPerson).isPresent();
 			PersonWithRelationshipWithProperties person = optionalPerson.get();
 			assertThat(person.getName()).isEqualTo("Freddie");
+			assertThat(person.getPets()).hasSize(1).first().extracting(Pet::getName).isEqualTo("A Pet");
 
 			Hobby hobby1 = new Hobby();
 			hobby1.setName("Music");
