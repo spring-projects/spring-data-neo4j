@@ -30,14 +30,15 @@ import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
- * Test class verifying composite propeties behaviour.
+ * Test class verifying composite properties behaviour.
  *
  * @author Michael J. Simons
  */
-@Node("MapProperties")
-public class ThingWithMapProperties {
+@Node("CompositeProperties")
+public class ThingWithCompositeProperties {
 
 	/**
 	 * Map by enum key.
@@ -87,6 +88,9 @@ public class ThingWithMapProperties {
 
 	@CompositeProperty(transformKeysWith = LowerCasePropertiesFilter.class)
 	private Map<EnumB, LocalDate> datesWithTransformedKeyAndEnum;
+
+	@Relationship("IRRELEVANT_TYPE")
+	private RelationshipWithCompositeProperties relationship;
 
 	/**
 	 * Arbitrary DTO.
@@ -194,9 +198,17 @@ public class ThingWithMapProperties {
 		return someOtherDTO;
 	}
 
-	public void setSomeOtherDTO(
-			SomeOtherDTO someOtherDTO) {
+	public void setSomeOtherDTO(SomeOtherDTO someOtherDTO) {
 		this.someOtherDTO = someOtherDTO;
+	}
+
+	public RelationshipWithCompositeProperties getRelationship() {
+		return relationship;
+	}
+
+	public void setRelationship(
+			RelationshipWithCompositeProperties relationship) {
+		this.relationship = relationship;
 	}
 
 	static class LowerCasePropertiesFilter implements BiFunction<CompositeProperty.Phase, String, String> {
@@ -234,7 +246,9 @@ public class ThingWithMapProperties {
 
 		@Override
 		public SomeOtherDTO compose(Map<String, Value> source, Neo4jConversionService conversionService) {
-			return new SomeOtherDTO(source.get("x").asString(), source.get("y").asLong(), source.get("z").asDouble());
+			return source.isEmpty() ?
+					null :
+					new SomeOtherDTO(source.get("x").asString(), source.get("y").asLong(), source.get("z").asDouble());
 		}
 	}
 }

@@ -49,6 +49,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Relationship;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,12 +59,14 @@ import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.integration.shared.Club;
 import org.springframework.data.neo4j.integration.shared.Neo4jConversionsITBase;
+import org.springframework.data.neo4j.integration.shared.RelationshipWithCompositeProperties;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllAdditionalTypes;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllCypherTypes;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllSpatialTypes;
 import org.springframework.data.neo4j.integration.shared.ThingWithCustomTypes;
-import org.springframework.data.neo4j.integration.shared.ThingWithMapProperties;
+import org.springframework.data.neo4j.integration.shared.ThingWithCompositeProperties;
 import org.springframework.data.neo4j.integration.shared.ThingWithNonExistingPrimitives;
 import org.springframework.data.neo4j.integration.shared.ThingWithUUIDID;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -93,27 +96,78 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 	private final DefaultConversionService defaultConversionService;
 
-	private final ThingWithMapPropertiesRepository thingWithMapPropertiesRepository;
+	private final ThingWithCompositePropertiesRepository thingWithCompositePropertiesRepository;
 
 	@Autowired TypeConversionIT(Driver driver, CypherTypesRepository cypherTypesRepository,
 			AdditionalTypesRepository additionalTypesRepository, SpatialTypesRepository spatialTypesRepository,
 			CustomTypesRepository customTypesRepository,
-			ThingWithMapPropertiesRepository thingWithMapPropertiesRepository,
+			ThingWithCompositePropertiesRepository thingWithCompositePropertiesRepository,
 			Neo4jConversions neo4jConversions) {
 		this.driver = driver;
 		this.cypherTypesRepository = cypherTypesRepository;
 		this.additionalTypesRepository = additionalTypesRepository;
 		this.spatialTypesRepository = spatialTypesRepository;
 		this.customTypesRepository = customTypesRepository;
-		this.thingWithMapPropertiesRepository = thingWithMapPropertiesRepository;
+		this.thingWithCompositePropertiesRepository = thingWithCompositePropertiesRepository;
 		this.defaultConversionService = new DefaultConversionService();
 		neo4jConversions.registerConvertersIn(defaultConversionService);
 	}
 
 	@Test
-	void customMapPropertiesShouldBeWritten() {
+	void writingCompositePropertiesShouldWorkOnRelationships() {
 
-		ThingWithMapProperties t = new ThingWithMapProperties();
+		ThingWithCompositeProperties source = new ThingWithCompositeProperties();
+		Club target = new Club();
+		RelationshipWithCompositeProperties relationshipWithCompositeProperties = new RelationshipWithCompositeProperties(target);
+
+		relationshipWithCompositeProperties.setSomeProperties(Collections.singletonMap("a", "B"));
+		relationshipWithCompositeProperties.setSomeOtherDTO(new ThingWithCompositeProperties.SomeOtherDTO("A", 23L, 42.0));
+
+		source.setRelationship(relationshipWithCompositeProperties);
+		long id = thingWithCompositePropertiesRepository.save(source).getId();
+
+		try (Session session = driver.session()) {
+			Record r = session.readTransaction(tx -> tx.run("MATCH (t:CompositeProperties) - [r:IRRELEVANT_TYPE] -> () WHERE id(t) = $id RETURN r",
+					Collections.singletonMap("id", id)).single());
+			Relationship rel = r.get("r").asRelationship();
+			assertThat(rel.get("someProperties.a").asObject()).isEqualTo("B");
+
+			assertThat(rel.get("dto.x").asObject()).isEqualTo("A");
+			assertThat(rel.get("dto.y").asObject()).isEqualTo(23L);
+			assertThat(rel.get("dto.z").asObject()).isEqualTo(42.0);
+		}
+	}
+
+	@Test
+	void compositePropertiesShouldWorkOnRelationships() {
+
+		Map<String, Object> properties = new HashMap<>();
+		properties.put("someProperties.a", "B");
+		properties.put("dto.x", "A");
+		properties.put("dto.y", 23L);
+		properties.put("dto.z", 42.0);
+
+		Long id;
+		try (Session session = driver.session()) {
+			id = session.writeTransaction(
+					tx -> tx.run("CREATE (t:CompositeProperties) -[r:IRRELEVANT_TYPE] -> (:Club) SET r = $properties RETURN id(t)",
+							Collections.singletonMap("properties", properties)).single().get(0)
+							.asLong());
+		}
+
+		ThingWithCompositeProperties t = thingWithCompositePropertiesRepository.findById(id).get();
+		assertThat(t.getRelationship()).isNotNull();
+		assertThat(t.getRelationship()).satisfies(rel -> {
+
+			assertThat(rel.getSomeProperties()).containsEntry("a", "B");
+			assertThat(rel.getSomeOtherDTO()).isEqualTo(new ThingWithCompositeProperties.SomeOtherDTO("A", 23L, 42.0));
+		});
+	}
+
+	@Test
+	void customCompositePropertiesShouldBeWritten() {
+
+		ThingWithCompositeProperties t = new ThingWithCompositeProperties();
 		Map<String, LocalDate> someDates = new HashMap<>();
 		someDates.put("a", LocalDate.of(2009, 12, 4));
 		someDates.put("o", LocalDate.of(2013, 5, 6));
@@ -128,22 +182,22 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		t.setCustomTypeMap(someCustomThings);
 
 		t.setSomeDatesByEnumA(
-				Collections.singletonMap(ThingWithMapProperties.EnumA.VALUE_AA, LocalDate.of(2020, 10, 1)));
-		Map<ThingWithMapProperties.EnumB, LocalDate> someDatesByEnumB = new HashMap<>();
-		someDatesByEnumB.put(ThingWithMapProperties.EnumB.VALUE_BA, LocalDate.of(2020, 10, 2));
-		someDatesByEnumB.put(ThingWithMapProperties.EnumB.VALUE_BB, LocalDate.of(2020, 10, 3));
+				Collections.singletonMap(ThingWithCompositeProperties.EnumA.VALUE_AA, LocalDate.of(2020, 10, 1)));
+		Map<ThingWithCompositeProperties.EnumB, LocalDate> someDatesByEnumB = new HashMap<>();
+		someDatesByEnumB.put(ThingWithCompositeProperties.EnumB.VALUE_BA, LocalDate.of(2020, 10, 2));
+		someDatesByEnumB.put(ThingWithCompositeProperties.EnumB.VALUE_BB, LocalDate.of(2020, 10, 3));
 		t.setSomeDatesByEnumB(someDatesByEnumB);
 
 		t.setDatesWithTransformedKey(Collections.singletonMap("TEST", LocalDate.of(1979, 9, 21)));
 		t.setDatesWithTransformedKeyAndEnum(
-				Collections.singletonMap(ThingWithMapProperties.EnumB.VALUE_BA, LocalDate.of(1938, 9, 15)));
+				Collections.singletonMap(ThingWithCompositeProperties.EnumB.VALUE_BA, LocalDate.of(1938, 9, 15)));
 
-		t.setSomeOtherDTO(new ThingWithMapProperties.SomeOtherDTO("A", 6L, 2.3));
+		t.setSomeOtherDTO(new ThingWithCompositeProperties.SomeOtherDTO("A", 6L, 2.3));
 
-		long id = thingWithMapPropertiesRepository.save(t).getId();
+		long id = thingWithCompositePropertiesRepository.save(t).getId();
 
 		try (Session session = driver.session()) {
-			Record r = session.readTransaction(tx -> tx.run("MATCH (t:MapProperties) WHERE id(t) = $id RETURN t",
+			Record r = session.readTransaction(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
 					Collections.singletonMap("id", id)).single());
 			Node n = r.get("t").asNode();
 			assertThat(n.get("someDates.a").asObject()).isEqualTo(someDates.get("a"));
@@ -165,7 +219,7 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 	}
 
 	@Test
-	void customMapPropertiesShouldBeRead() {
+	void customCompositePropertiesShouldBeRead() {
 
 		Map<String, LocalDate> someDates = new HashMap<>();
 		someDates.put("someDates.a", LocalDate.of(2009, 12, 4));
@@ -195,12 +249,12 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		Long id;
 		try (Session session = driver.session()) {
 			id = session.writeTransaction(
-					tx -> tx.run("CREATE (t:MapProperties) SET t = $properties RETURN id(t)",
+					tx -> tx.run("CREATE (t:CompositeProperties) SET t = $properties RETURN id(t)",
 							Collections.singletonMap("properties", properties)).single().get(0)
 							.asLong());
 		}
 
-		ThingWithMapProperties t = thingWithMapPropertiesRepository.findById(id).get();
+		ThingWithCompositeProperties t = thingWithCompositePropertiesRepository.findById(id).get();
 		assertThat(t.getSomeDates()).containsOnlyKeys("a", "o");
 		assertThat(t.getSomeDates())
 				.containsValues(someDates.get("someDates.a"), someDates.get("someDates.o"));
@@ -212,20 +266,20 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		assertThat(t.getCustomTypeMap().values()).extracting(ThingWithCustomTypes.CustomType::getValue)
 				.containsExactlyInAnyOrder("c1", "c2");
 
-		assertThat(t.getSomeDatesByEnumA()).containsOnlyKeys(ThingWithMapProperties.EnumA.VALUE_AA);
+		assertThat(t.getSomeDatesByEnumA()).containsOnlyKeys(ThingWithCompositeProperties.EnumA.VALUE_AA);
 		assertThat(t.getSomeDatesByEnumA()).containsValue(LocalDate.of(2020, 10, 1));
 
-		assertThat(t.getSomeDatesByEnumA()).containsOnlyKeys(ThingWithMapProperties.EnumA.VALUE_AA);
-		assertThat(t.getSomeDatesByEnumB().get(ThingWithMapProperties.EnumB.VALUE_BA))
+		assertThat(t.getSomeDatesByEnumA()).containsOnlyKeys(ThingWithCompositeProperties.EnumA.VALUE_AA);
+		assertThat(t.getSomeDatesByEnumB().get(ThingWithCompositeProperties.EnumB.VALUE_BA))
 				.isEqualTo(LocalDate.of(2020, 10, 2));
-		assertThat(t.getSomeDatesByEnumB().get(ThingWithMapProperties.EnumB.VALUE_BB))
+		assertThat(t.getSomeDatesByEnumB().get(ThingWithCompositeProperties.EnumB.VALUE_BB))
 				.isEqualTo(LocalDate.of(2020, 10, 3));
 
 		assertThat(t.getDatesWithTransformedKey()).containsEntry("TEST", LocalDate.of(1979, 9, 21));
 		assertThat(t.getDatesWithTransformedKeyAndEnum())
-				.containsEntry(ThingWithMapProperties.EnumB.VALUE_BA, LocalDate.of(1938, 9, 15));
+				.containsEntry(ThingWithCompositeProperties.EnumB.VALUE_BA, LocalDate.of(1938, 9, 15));
 
-		assertThat(t.getSomeOtherDTO()).isEqualTo(new ThingWithMapProperties.SomeOtherDTO("X", 1L, 4.2));
+		assertThat(t.getSomeOtherDTO()).isEqualTo(new ThingWithCompositeProperties.SomeOtherDTO("X", 1L, 4.2));
 	}
 
 	@Test
@@ -372,7 +426,7 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		List<ThingWithCustomTypes> findAllByDateAsString(Date theDate);
 	}
 
-	public interface ThingWithMapPropertiesRepository extends Neo4jRepository<ThingWithMapProperties, Long> {
+	public interface ThingWithCompositePropertiesRepository extends Neo4jRepository<ThingWithCompositeProperties, Long> {
 	}
 
 	@Configuration

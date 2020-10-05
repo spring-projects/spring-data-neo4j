@@ -39,7 +39,7 @@ import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllAdditionalTypes;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllCypherTypes;
-import org.springframework.data.neo4j.integration.shared.ThingWithMapProperties;
+import org.springframework.data.neo4j.integration.shared.ThingWithCompositeProperties;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.core.RepositoryInformation;
 
@@ -106,7 +106,7 @@ class Neo4jRepositoryFactoryTest {
 			mappingContext.setInitialEntitySet(new HashSet<>(
 					Arrays.asList(ThingWithAllAdditionalTypes.class,
 							ThingWithAllCypherTypes.class,
-							ThingWithMapProperties.class)));
+							ThingWithCompositeProperties.class)));
 			repositoryFactory = new Neo4jRepositoryFactory(Mockito.mock(Neo4jTemplate.class), mappingContext);
 		}
 
@@ -167,8 +167,8 @@ class Neo4jRepositoryFactoryTest {
 		Optional<ThingWithAllCypherTypes> findOneByALongIsNear(Point point);
 	}
 
-	interface DerivedWithComposite extends Neo4jRepository<ThingWithMapProperties, Long> {
+	interface DerivedWithComposite extends Neo4jRepository<ThingWithCompositeProperties, Long> {
 
-		Optional<ThingWithMapProperties> findOneByCustomTypeMapTrue();
+		Optional<ThingWithCompositeProperties> findOneByCustomTypeMapTrue();
 	}
 }
