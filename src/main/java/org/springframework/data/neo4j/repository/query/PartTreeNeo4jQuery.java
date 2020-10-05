@@ -52,7 +52,7 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 
 		this.tree = tree;
 		// Validate parts. Sort properties will be validated by Spring Data already.
-		PartValidator validator = new PartValidator(queryMethod);
+		PartValidator validator = new PartValidator(mappingContext, queryMethod);
 		this.tree.flatMap(OrPart::stream).forEach(validator::validatePart);
 	}
 
