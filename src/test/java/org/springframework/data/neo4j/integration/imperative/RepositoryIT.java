@@ -1044,6 +1044,12 @@ class RepositoryIT {
 			hobbies.add(rel2);
 			person.setHobbies(hobbies);
 
+			WorksInClubRelationship worksInClub = new WorksInClubRelationship(2002);
+			Club club = new Club();
+			club.setName("BlubbClub");
+			worksInClub.setClub(club);
+			person.setClub(worksInClub);
+
 			// when
 			PersonWithRelationshipWithProperties shouldBeDifferentPerson = repository.save(person);
 
@@ -3051,6 +3057,8 @@ class RepositoryIT {
 		PersonWithRelationship getPersonWithRelationshipsViaQuery();
 
 		PersonWithRelationship findByPetsName(String petName);
+
+		PersonWithRelationship findByName(String name);
 
 		PersonWithRelationship findByHobbiesNameOrPetsName(String hobbyName, String petName);
 

@@ -146,15 +146,20 @@ public final class NestedRelationshipContext {
 				}
 				value = relationshipProperties;
 			} else {
-				List<MappingSupport.RelationshipPropertiesWithEntityHolder> relationshipProperties = new ArrayList<>();
-				for (Object relationshipProperty : ((Collection<Object>) value)) {
+				if (inverse.isCollectionLike()) {
+					List<MappingSupport.RelationshipPropertiesWithEntityHolder> relationshipProperties = new ArrayList<>();
+					for (Object relationshipProperty : ((Collection<Object>) value)) {
 
-					MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
-							new MappingSupport.RelationshipPropertiesWithEntityHolder(relationshipProperty,
-									getTargetNode(relationshipPropertiesEntity, relationshipProperty));
-					relationshipProperties.add(oneOfThem);
+						MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
+								new MappingSupport.RelationshipPropertiesWithEntityHolder(relationshipProperty,
+										getTargetNode(relationshipPropertiesEntity, relationshipProperty));
+						relationshipProperties.add(oneOfThem);
+					}
+					value = relationshipProperties;
+				} else {
+					value = new MappingSupport.RelationshipPropertiesWithEntityHolder(value,
+							getTargetNode(relationshipPropertiesEntity, value));
 				}
-				value = relationshipProperties;
 			}
 		}
 

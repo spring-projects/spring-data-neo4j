@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import org.springframework.data.neo4j.integration.shared.AltLikedByPersonRelationship;
 import org.springframework.data.neo4j.integration.shared.AltPerson;
+import org.springframework.data.neo4j.integration.shared.WorksInClubRelationship;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -1055,11 +1056,17 @@ class ReactiveRepositoryIT {
 			List<LikesHobbyRelationship> hobbies = new ArrayList<>();
 			hobbies.add(rel1);
 			hobbies.add(rel2);
-			PersonWithRelationshipWithProperties clonePerson = new PersonWithRelationshipWithProperties("Freddie clone");
-			clonePerson.setHobbies(hobbies);
+			PersonWithRelationshipWithProperties person = new PersonWithRelationshipWithProperties("Freddie clone");
+			person.setHobbies(hobbies);
+
+			WorksInClubRelationship worksInClub = new WorksInClubRelationship(2002);
+			Club club = new Club();
+			club.setName("BlubbClub");
+			worksInClub.setClub(club);
+			person.setClub(worksInClub);
 
 			// when
-			Mono<PersonWithRelationshipWithProperties> operationUnderTest = repository.save(clonePerson);
+			Mono<PersonWithRelationshipWithProperties> operationUnderTest = repository.save(person);
 
 			// then
 			List<PersonWithRelationshipWithProperties> shouldBeDifferentPersons = new ArrayList<>();
@@ -1071,7 +1078,7 @@ class ReactiveRepositoryIT {
 			assertThat(shouldBeDifferentPersons).size().isEqualTo(1);
 
 			PersonWithRelationshipWithProperties shouldBeDifferentPerson = shouldBeDifferentPersons.get(0);
-			assertThat(shouldBeDifferentPerson).isNotNull().isEqualToComparingOnlyGivenFields(clonePerson, "hobbies");
+			assertThat(shouldBeDifferentPerson).isNotNull().isEqualToComparingOnlyGivenFields(person, "hobbies");
 			assertThat(shouldBeDifferentPerson.getName()).isEqualToIgnoringCase("Freddie clone");
 
 			// check content of db
