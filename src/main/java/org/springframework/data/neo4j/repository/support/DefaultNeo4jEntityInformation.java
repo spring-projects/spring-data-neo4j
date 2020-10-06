@@ -13,24 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.core;
+package org.springframework.data.neo4j.repository.support;
 
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.data.repository.core.EntityInformation;
+import org.springframework.data.repository.core.support.PersistentEntityInformation;
 
 /**
- * Neo4j specific contract for {@link EntityInformation entity informations}.
+ * Default implementation of Neo4j specific entity information.
  *
  * @author Michael J. Simons
- * @param <T> The type of the entity
- * @param <ID> The type of the id
  * @soundtrack Bear McCreary - Battlestar Galactica Season 1
  * @since 6.0
  */
-public interface Neo4jEntityInformation<T, ID> extends EntityInformation<T, ID> {
+final class DefaultNeo4jEntityInformation<T, ID> extends PersistentEntityInformation<T, ID>
+		implements Neo4jEntityInformation<T, ID> {
 
-	/**
-	 * @return The full schema based description for the underlying entity.
+	private final Neo4jPersistentEntity<T> entityMetaData;
+
+	DefaultNeo4jEntityInformation(Neo4jPersistentEntity<T> entityMetaData) {
+		super(entityMetaData);
+		this.entityMetaData = entityMetaData;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see Neo4jEntityInformation#getEntityMetaData()
 	 */
-	Neo4jPersistentEntity<T> getEntityMetaData();
+	@Override
+	public Neo4jPersistentEntity<T> getEntityMetaData() {
+		return this.entityMetaData;
+	}
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.core;
+package org.springframework.data.neo4j.repository.support;
 
 import java.util.Optional;
 
@@ -24,7 +24,6 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
-import org.springframework.data.neo4j.repository.support.SimpleReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.query.ReactiveNeo4jQueryLookupStrategy;
 import org.springframework.data.neo4j.repository.query.SimpleReactiveQueryByExampleExecutor;
 import org.springframework.data.repository.core.RepositoryInformation;

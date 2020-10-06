@@ -31,7 +31,7 @@ import javax.enterprise.util.AnnotationLiteral;
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.data.neo4j.repository.core.Neo4jRepositoryFactoryCdiBean;
+import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryCdiBean;
 import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
 import org.springframework.data.repository.config.CustomRepositoryImplementationDetector;
 
