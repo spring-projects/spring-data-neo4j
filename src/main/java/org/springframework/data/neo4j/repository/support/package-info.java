@@ -1,7 +1,7 @@
 /**
  * <!-- tag::intent[] -->
-   This package provides support classes for building custom imperative and reactive Spring Data Neo4j repository base classes.
-   The support classes are the same classes used by SDN itself.
+   This package provides a couple of public support classes for building custom imperative and reactive Spring Data Neo4j
+   repository base classes. The support classes are the same classes used by SDN itself.
  * <!-- end::intent[] -->
  */
 @NonNullApi
