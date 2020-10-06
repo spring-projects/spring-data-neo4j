@@ -182,7 +182,8 @@ class RepositoryIT {
 			transaction.run("CREATE (n:PersonWithNoConstructor) SET n.name = $name, n.first_name = $firstName",
 					Values.parameters("name", TEST_PERSON1_NAME, "firstName", TEST_PERSON1_FIRST_NAME));
 			transaction.run("CREATE (n:PersonWithWither) SET n.name = '" + TEST_PERSON1_NAME + "'");
-			transaction.run("CREATE (n:KotlinPerson) SET n.name = '" + TEST_PERSON1_NAME + "'");
+			transaction.run("CREATE (n:KotlinPerson), "
+					+ " (n)-[:WORKS_IN{since: 2019}]->(:KotlinClub{name: 'Golf club'}) SET n.name = '" + TEST_PERSON1_NAME + "'");
 			transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
 
 			IntStream.rangeClosed(1, 20)
@@ -1087,7 +1088,7 @@ class RepositoryIT {
 			club.setName("BlubbClub");
 			WorksInClubRelationship worksInClub = new WorksInClubRelationship(2002, club);
 			PersonWithRelationshipWithProperties person =
-					new PersonWithRelationshipWithProperties(null, "Freddie clone", hobbies, worksInClub);
+					new PersonWithRelationshipWithProperties("Freddie clone", hobbies, worksInClub);
 
 			// when
 			PersonWithRelationshipWithProperties shouldBeDifferentPerson = repository.save(person);

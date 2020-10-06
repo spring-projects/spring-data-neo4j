@@ -16,12 +16,17 @@
 
 package org.springframework.data.neo4j.integration.shared
 
-import org.springframework.data.neo4j.core.schema.GeneratedValue
-import org.springframework.data.neo4j.core.schema.Id
-import org.springframework.data.neo4j.core.schema.Node
+import org.springframework.data.neo4j.core.schema.*
 
 /**
  * @author Gerrit Meier
  */
 @Node
-data class KotlinPerson(@Id @GeneratedValue val id: Long, val name: String)
+data class KotlinPerson(@Id @GeneratedValue val id: Long, val name: String,
+                        @Relationship("WORKS_IN") val clubs:List<KotlinClubRelationship>)
+
+@RelationshipProperties
+data class KotlinClubRelationship(val since: Int, @TargetNode val club: KotlinClub)
+
+@Node
+data class KotlinClub(@Id @GeneratedValue val id: Long, val name: String)

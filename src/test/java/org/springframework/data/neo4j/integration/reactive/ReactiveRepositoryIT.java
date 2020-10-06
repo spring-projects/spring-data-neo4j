@@ -1062,7 +1062,7 @@ class ReactiveRepositoryIT {
 			WorksInClubRelationship worksInClub = new WorksInClubRelationship(2002, club);
 
 			PersonWithRelationshipWithProperties person =
-					new PersonWithRelationshipWithProperties(null, "Freddie clone", hobbies, worksInClub);
+					new PersonWithRelationshipWithProperties("Freddie clone", hobbies, worksInClub);
 
 			// when
 			Mono<PersonWithRelationshipWithProperties> operationUnderTest = repository.save(person);

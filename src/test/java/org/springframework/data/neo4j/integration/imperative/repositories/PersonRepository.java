@@ -94,13 +94,13 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	@Query("MATCH (n:PersonWithWither{name:'Test'}) return n")
 	Optional<PersonWithWither> getOptionalPersonWithWitherViaQuery();
 
-	@Query("MATCH (n:KotlinPerson) return n")
+	@Query("MATCH (n:KotlinPerson)-[w:WORKS_IN]->(c:KotlinClub) return n, collect(w), collect(c)")
 	List<KotlinPerson> getAllKotlinPersonsViaQuery();
 
-	@Query("MATCH (n:KotlinPerson{name:'Test'}) return n")
+	@Query("MATCH (n:KotlinPerson{name:'Test'})-[w:WORKS_IN]->(c:KotlinClub) return n, collect(w), collect(c)")
 	KotlinPerson getOneKotlinPersonViaQuery();
 
-	@Query("MATCH (n:KotlinPerson{name:'Test'}) return n")
+	@Query("MATCH (n:KotlinPerson{name:'Test'})-[w:WORKS_IN]->(c:KotlinClub) return n, collect(w), collect(c)")
 	Optional<KotlinPerson> getOptionalKotlinPersonViaQuery();
 
 	// Derived finders, should be extracted into another repo.

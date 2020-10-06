@@ -30,7 +30,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class PersonWithRelationshipWithProperties {
 
-	@Id @GeneratedValue private final Long id;
+	@Id @GeneratedValue private Long id;
 
 	private final String name;
 
@@ -48,6 +48,16 @@ public class PersonWithRelationshipWithProperties {
 		this.name = name;
 		this.hobbies = hobbies;
 		this.club = club;
+	}
+
+	public PersonWithRelationshipWithProperties(String name, List<LikesHobbyRelationship> hobbies, WorksInClubRelationship club) {
+		this.name = name;
+		this.hobbies = hobbies;
+		this.club = club;
+	}
+
+	public PersonWithRelationshipWithProperties withId(Long newId) {
+		return new PersonWithRelationshipWithProperties(newId, this.name, this.hobbies, this.club);
 	}
 
 	public String getName() {
