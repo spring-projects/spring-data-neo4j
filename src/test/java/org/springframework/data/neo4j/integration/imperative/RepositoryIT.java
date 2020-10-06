@@ -87,6 +87,7 @@ import org.springframework.data.neo4j.integration.shared.AnotherThingWithAssigne
 import org.springframework.data.neo4j.integration.shared.BidirectionalEnd;
 import org.springframework.data.neo4j.integration.shared.BidirectionalStart;
 import org.springframework.data.neo4j.integration.shared.Club;
+import org.springframework.data.neo4j.integration.shared.ClubRelationship;
 import org.springframework.data.neo4j.integration.shared.DeepRelationships;
 import org.springframework.data.neo4j.integration.shared.EntityWithConvertedId;
 import org.springframework.data.neo4j.integration.shared.Friend;
@@ -948,7 +949,9 @@ class RepositoryIT {
 						+ "(n)-[l2:LIKES "
 						+ "{since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}"
 						+ "]->(h2:Hobby{name:'Something else'}), "
-						+ "(n) - [:OWNS] -> (p:Pet {name: 'A Pet'}) "
+						+ "(n) - [:OWNS] -> (p:Pet {name: 'A Pet'}), "
+						+ "(n) - [:OWNS {place: 'The place to be'}] -> (c1:Club {name: 'Berlin Mitte'}), "
+						+ "(n) - [:OWNS {place: 'Whatever'}] -> (c2:Club {name: 'Schachklub'}) "
 						+ "RETURN n, h1, h2").single();
 
 				Node personNode = record.get("n").asNode();
@@ -988,11 +991,14 @@ class RepositoryIT {
 			assertThat(hobbies).containsExactlyInAnyOrder(rel1, rel2);
 			assertThat(hobbies.get(hobbies.indexOf(rel1)).getHobby()).isEqualTo(hobby1);
 			assertThat(hobbies.get(hobbies.indexOf(rel2)).getHobby()).isEqualTo(hobby2);
+
+			assertThat(person.getClubs()).hasSize(2)
+					.extracting(ClubRelationship::getPlace)
+					.containsExactlyInAnyOrder("The place to be", "Whatever");
 		}
 
 		@Test
-		void findEntityWithRelationshipWithPropertiesScalar(
-				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+		void findEntityWithRelationshipWithPropertiesScalar(@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
 
 			long personId;
 

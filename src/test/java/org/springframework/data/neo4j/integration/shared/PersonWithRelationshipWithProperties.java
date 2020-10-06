@@ -40,6 +40,8 @@ public class PersonWithRelationshipWithProperties {
 
 	@Relationship("OWNS") private Set<Pet> pets;
 
+	@Relationship("OWNS") private List<ClubRelationship> clubs;
+
 	public PersonWithRelationshipWithProperties(String name) {
 		this.name = name;
 	}
@@ -66,5 +68,9 @@ public class PersonWithRelationshipWithProperties {
 
 	public Set<Pet> getPets() {
 		return pets;
+	}
+
+	public List<ClubRelationship> getClubs() {
+		return clubs;
 	}
 }
