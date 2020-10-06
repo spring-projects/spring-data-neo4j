@@ -238,7 +238,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Collection<RelationshipDescription> relationships = concreteNodeDescription.getRelationships();
 
 			ET instance = instantiate(concreteNodeDescription, queryResult, knownObjects, relationships,
-					nodeDescriptionAndLabels.getDynamicLabels(), processedSegments);
+					nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity, processedSegments);
 
 			PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(instance);
 
@@ -294,7 +294,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	}
 
 	private <ET> ET instantiate(Neo4jPersistentEntity<ET> nodeDescription, MapAccessor values, KnownObjects knownObjects,
-			Collection<RelationshipDescription> relationships, Collection<String> surplusLabels, Set<Path.Segment> processedSegments) {
+			Collection<RelationshipDescription> relationships, Collection<String> surplusLabels, Object lastMappedEntity,
+								Set<Path.Segment> processedSegments) {
 
 		ParameterValueProvider<Neo4jPersistentProperty> parameterValueProvider = new ParameterValueProvider<Neo4jPersistentProperty>() {
 			@Override
@@ -306,6 +307,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					return createInstanceOfRelationships(matchingProperty, values, knownObjects, relationships, processedSegments).orElse(null);
 				} else if (matchingProperty.isDynamicLabels()) {
 					return createDynamicLabelsProperty(matchingProperty.getTypeInformation(), surplusLabels);
+				} else if (matchingProperty.isEntity() && matchingProperty.isEntityInRelationshipWithProperties()) {
+					return lastMappedEntity;
 				}
 				return conversionService.readValue(extractValueOf(matchingProperty, values), parameter.getType(), matchingProperty.getOptionalReadingConverter());
 			}
