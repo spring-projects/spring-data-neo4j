@@ -1004,7 +1004,9 @@ class RepositoryIT {
 
 			try (Session session = createSession()) {
 				Record record = session.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
-						+ " (n)-[:WORKS_IN{since: 1995}]->(:Club{name:'Blubb'})"
+						+ " (n)-[:WORKS_IN{since: 1995}]->(:Club{name:'Blubb'}),"
+						+ "(n) - [:OWNS {place: 'The place to be'}] -> (c1:Club {name: 'Berlin Mitte'}), "
+						+ "(n) - [:OWNS {place: 'Whatever'}] -> (c2:Club {name: 'Schachklub'}) "
 						+ "RETURN n").single();
 
 				Node personNode = record.get("n").asNode();

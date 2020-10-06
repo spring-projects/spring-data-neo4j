@@ -401,11 +401,11 @@ public enum CypherGenerator {
 		for (RelationshipDescription relationshipDescription : nodeDescription.getRelationships()) {
 			String relationshipType = relationshipDescription.getType();
 			if (relationshipTypes.contains(relationshipType)) {
-				break;
+				continue;
 			}
 			if (relationshipDescription.isDynamic()) {
 				relationshipTypes.clear();
-				break;
+				continue;
 			}
 			relationshipTypes.add(relationshipType);
 			collectAllRelationshipTypes(relationshipDescription.getTarget(), relationshipTypes);
