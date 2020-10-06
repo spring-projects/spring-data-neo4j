@@ -504,7 +504,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		if (persistentProperty.getTypeInformation().isCollectionLike()) {
 			List<Object> returnedValues = relationshipDescription.hasRelationshipProperties() ?  relationshipsAndProperties : value;
 			Collection<Object> target = CollectionFactory.createCollection(persistentProperty.getRawType(), persistentProperty.getComponentType(), returnedValues.size());
-			returnedValues.forEach(target::add);
+			target.addAll(returnedValues);
 			return Optional.of(target);
 		} else {
 			if (relationshipDescription.isDynamic()) {

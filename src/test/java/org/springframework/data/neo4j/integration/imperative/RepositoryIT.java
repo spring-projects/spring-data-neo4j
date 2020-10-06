@@ -910,8 +910,6 @@ class RepositoryIT {
 				@Autowired Neo4jTemplate template) {
 
 			long personId;
-			long hobbyNode1Id;
-			long hobbyNode2Id;
 
 			try (Session session = createSession()) {
 				Record record = session.run("CREATE (n:PersonWithRelationshipWithProperties2{name:'Freddie'}),"
@@ -924,12 +922,7 @@ class RepositoryIT {
 						+ "RETURN n, h1, h2").single();
 
 				Node personNode = record.get("n").asNode();
-				Node hobbyNode1 = record.get("h1").asNode();
-				Node hobbyNode2 = record.get("h2").asNode();
-
 				personId = personNode.id();
-				hobbyNode1Id = hobbyNode1.id();
-				hobbyNode2Id = hobbyNode2.id();
 			}
 
 			Optional<PersonWithRelationshipWithProperties2> optionalPerson = template.findById(personId, PersonWithRelationshipWithProperties2.class);
