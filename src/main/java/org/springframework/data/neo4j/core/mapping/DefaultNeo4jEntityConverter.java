@@ -307,7 +307,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					return createInstanceOfRelationships(matchingProperty, values, knownObjects, relationships, processedSegments).orElse(null);
 				} else if (matchingProperty.isDynamicLabels()) {
 					return createDynamicLabelsProperty(matchingProperty.getTypeInformation(), surplusLabels);
-				} else if (matchingProperty.isEntity() && matchingProperty.isEntityInRelationshipWithProperties()) {
+				} else if (matchingProperty.isEntityInRelationshipWithProperties()) {
 					return lastMappedEntity;
 				}
 				return conversionService.readValue(extractValueOf(matchingProperty, values), parameter.getType(), matchingProperty.getOptionalReadingConverter());
