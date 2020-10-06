@@ -15,11 +15,13 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 
@@ -41,6 +43,7 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 	 * @return True, if this association is a dynamic association.
 	 */
 	default boolean isDynamicAssociation() {
+
 		return isAssociation() && isMap() && (getComponentType() == String.class || getComponentType().isEnum());
 	}
 
@@ -78,4 +81,16 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 	Function<Value, Object> getOptionalReadingConverter();
 
 	boolean isEntityInRelationshipWithProperties();
+
+	/**
+	 * Computes a prefix to be used on multiple properties on a node when this persistent property is annotated with
+	 * {@link CompositeProperty @CompositeProperty}.
+	 *
+	 * @return A valid prefix
+	 */
+	default String computePrefixWithDelimiter() {
+		CompositeProperty compositeProperty = getRequiredAnnotation(CompositeProperty.class);
+		return Optional.of(compositeProperty.prefix()).map(String::trim).filter(s -> !s.isEmpty())
+				.orElseGet(this::getFieldName) + compositeProperty.delimiter();
+	}
 }

@@ -21,8 +21,10 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
  * This interface needs to be implemented to provide custom configuration for a {@link Neo4jPersistentPropertyConverter}. Use cases may
  * be specific date formats or the like. The build method will receive the whole property. It is safe to assume that at
  * least  the {@link ConvertWith @ConvertWith} annotation is present on the property, either directly or meta-annotated.
- * <p>Classes implementing this interface should have a default constructor. In a normal Spring setup (not CDI), they
- * might declare autowired constructor parameters, too.
+ *
+ * <p>Classes implementing this interface should have a default constructor. In case they provide a constructor asking for
+ * an instance of {@link Neo4jConversionService}, such service is provided. This allows for conversions delegating part
+ * of the conversion.
  *
  * @author Michael J. Simons
  * @soundtrack Antilopen Gang - Abwasser

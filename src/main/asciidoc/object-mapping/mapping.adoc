@@ -22,8 +22,19 @@ If you do not use this annotation, your application takes a slight performance h
 * `@Id`: Applied at the field level to mark the field used for identity purpose.
 * `@GeneratedValue`: Applied at the field level together with `@Id` to specify how unique identifiers should be generated.
 * `@Property`: Applied at the field level to modify the mapping from attributes to properties.
+* `@CompositeProperty`: Applied at the field level on attributes of type Map that shall be read back as a composite. See <<composite-properties>>.
 * `@Relationship`: Applied at the field level to specify the details of a relationship.
 * `@DynamicLabels`: Applied at the field level to specify the source of dynamic labels.
+* `@RelationshipProperties`: Applied at the class level to indicate this class as the target for properties of a relationship.
+* `@TargetNode`: Applied on a field of a class annotated with `@RelationshipProperties` to mark the target of that relationship from the perspective of the other end.
+
+The following annotations are used to specify conversions and ensure backwards compatibility with OGM.
+
+* `@DateLong`
+* `@DateString`
+* `@ConvertWith`
+
+See <<conversions>> for more information on that.
 
 ==== From Spring Data commons
 

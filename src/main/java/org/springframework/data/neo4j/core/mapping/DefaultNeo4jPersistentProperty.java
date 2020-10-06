@@ -27,6 +27,7 @@ import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
+import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
@@ -71,7 +72,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 			Class<?> targetType = getActualType();
 			return !(simpleTypeHolder.isSimpleType(targetType) || this.mappingContext.hasCustomWriteTarget(targetType)
-					|| isAnnotationPresent(TargetNode.class));
+					|| isAnnotationPresent(TargetNode.class) || isComposite());
 		});
 
 		this.customConversion = Lazy.of(() -> {
@@ -182,7 +183,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	@Override
 	public boolean isEntity() {
-		return super.isEntity() && isAssociation() || (super.isEntity() && isEntityInRelationshipWithProperties());
+		return super.isEntity() && isAssociation() || (super.isEntity() && isEntityInRelationshipWithProperties() && !isComposite());
 	}
 
 	private static Function<Object, Value> nullSafeWrite(Function<Object, Value> delegate) {
@@ -258,6 +259,12 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	public boolean isRelationship() {
 
 		return isAssociation();
+	}
+
+	@Override
+	public boolean isComposite() {
+
+		return isAnnotationPresent(CompositeProperty.class);
 	}
 
 	static String deriveRelationshipType(String name) {

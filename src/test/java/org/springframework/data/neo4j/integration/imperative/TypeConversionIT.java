@@ -53,12 +53,13 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
-import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
+import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.integration.shared.Neo4jConversionsITBase;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllAdditionalTypes;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllCypherTypes;
 import org.springframework.data.neo4j.integration.shared.ThingWithAllSpatialTypes;
+import org.springframework.data.neo4j.integration.shared.ThingWithCompositeProperties;
 import org.springframework.data.neo4j.integration.shared.ThingWithCustomTypes;
 import org.springframework.data.neo4j.integration.shared.ThingWithNonExistingPrimitives;
 import org.springframework.data.neo4j.integration.shared.ThingWithUUIDID;
@@ -89,10 +90,10 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 	private final DefaultConversionService defaultConversionService;
 
-	@Autowired
-	TypeConversionIT(Driver driver, CypherTypesRepository cypherTypesRepository,
+	@Autowired TypeConversionIT(Driver driver, CypherTypesRepository cypherTypesRepository,
 			AdditionalTypesRepository additionalTypesRepository, SpatialTypesRepository spatialTypesRepository,
-			CustomTypesRepository customTypesRepository, Neo4jConversions neo4jConversions) {
+			CustomTypesRepository customTypesRepository,
+			Neo4jConversions neo4jConversions) {
 		this.driver = driver;
 		this.cypherTypesRepository = cypherTypesRepository;
 		this.additionalTypesRepository = additionalTypesRepository;
@@ -134,7 +135,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 					thing = hlp;
 					break;
 				case "AdditionalTypes":
-					ThingWithAllAdditionalTypes hlp2 = additionalTypesRepository.findById(ID_OF_ADDITIONAL_TYPES_NODE).get();
+					ThingWithAllAdditionalTypes hlp2 = additionalTypesRepository.findById(ID_OF_ADDITIONAL_TYPES_NODE)
+							.get();
 					copyOfThing = additionalTypesRepository.save(hlp2.withId(null));
 					thing = hlp2;
 					break;
@@ -154,11 +156,13 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 			DynamicContainer reads = DynamicContainer.dynamicContainer("read",
 					entry.getValue().entrySet().stream().map(a -> DynamicTest.dynamicTest(a.getKey(),
-							() -> assertThat(ReflectionTestUtils.getField(thing, a.getKey())).isEqualTo(a.getValue()))));
+							() -> assertThat(ReflectionTestUtils.getField(thing, a.getKey()))
+									.isEqualTo(a.getValue()))));
 
 			DynamicContainer writes = DynamicContainer.dynamicContainer("write", entry.getValue().entrySet().stream()
 					.map(a -> DynamicTest
-							.dynamicTest(a.getKey(), () -> assertWrite(copyOfThing, a.getKey(), defaultConversionService))));
+							.dynamicTest(a.getKey(),
+									() -> assertWrite(copyOfThing, a.getKey(), defaultConversionService))));
 
 			return DynamicContainer.dynamicContainer(entry.getKey(), Arrays.asList(reads, writes));
 		});
@@ -195,7 +199,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 			parameters.put("attribute", fieldName);
 			parameters.put("v", driverValue);
 
-			long cnt = session.run("MATCH (n) WHERE id(n) = $id  AND n[$attribute] = $v RETURN COUNT(n) AS cnt", parameters)
+			long cnt = session
+					.run("MATCH (n) WHERE id(n) = $id  AND n[$attribute] = $v RETURN COUNT(n) AS cnt", parameters)
 					.single().get("cnt").asLong();
 			assertThat(cnt).isEqualTo(1L);
 		}
@@ -228,22 +233,32 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 	void parametersTargetingConvertedAttributesMustBeConverted(@Autowired CustomTypesRepository repository) {
 
 		assertThat(repository.findAllByDateAsString(Date.from(ZonedDateTime.of(2013, 5, 6,
-				12, 0, 0, 0, ZoneId.of("Europe/Berlin")).toInstant().truncatedTo(ChronoUnit.DAYS)))).hasSizeGreaterThan(0);
+				12, 0, 0, 0, ZoneId.of("Europe/Berlin")).toInstant().truncatedTo(ChronoUnit.DAYS))))
+				.hasSizeGreaterThan(0);
 	}
 
-	public interface ConvertedIDsRepository extends Neo4jRepository<ThingWithUUIDID, UUID> {}
+	public interface ConvertedIDsRepository extends Neo4jRepository<ThingWithUUIDID, UUID> {
+	}
 
-	public interface CypherTypesRepository extends Neo4jRepository<ThingWithAllCypherTypes, Long> {}
+	public interface CypherTypesRepository extends Neo4jRepository<ThingWithAllCypherTypes, Long> {
+	}
 
-	public interface AdditionalTypesRepository extends Neo4jRepository<ThingWithAllAdditionalTypes, Long> {}
+	public interface AdditionalTypesRepository extends Neo4jRepository<ThingWithAllAdditionalTypes, Long> {
+	}
 
-	public interface SpatialTypesRepository extends Neo4jRepository<ThingWithAllSpatialTypes, Long> {}
+	public interface SpatialTypesRepository extends Neo4jRepository<ThingWithAllSpatialTypes, Long> {
+	}
 
-	public interface NonExistingPrimitivesRepository extends Neo4jRepository<ThingWithNonExistingPrimitives, Long> {}
+	public interface NonExistingPrimitivesRepository extends Neo4jRepository<ThingWithNonExistingPrimitives, Long> {
+	}
 
 	public interface CustomTypesRepository extends Neo4jRepository<ThingWithCustomTypes, Long> {
 
 		List<ThingWithCustomTypes> findAllByDateAsString(Date theDate);
+	}
+
+	public interface ThingWithCompositePropertiesRepository
+			extends Neo4jRepository<ThingWithCompositeProperties, Long> {
 	}
 
 	@Configuration

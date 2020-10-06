@@ -27,6 +27,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.TypeMismatchDataAccessException;
+import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
@@ -69,6 +70,7 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 		BiFunction<Value, Class<?>, Object> conversion = conversionOverride == null ?
 				(v, t) -> conversionService.convert(v, t) :
 				(v, t) -> conversionOverride.apply(v);
+
 		return readValueImpl(source, targetType, conversion);
 	}
 

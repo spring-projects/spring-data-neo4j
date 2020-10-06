@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Point;
@@ -138,7 +139,7 @@ final class RepositoryQueryTest {
 		void shouldSelectPartTreeNeo4jQuery() {
 
 			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(mock(Neo4jOperations.class),
-					mock(Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT);
+					mock(Neo4jMappingContext.class, Mockito.RETURNS_DEEP_STUBS), QueryMethodEvaluationContextProvider.DEFAULT);
 
 			RepositoryQuery query = lookupStrategy.resolveQuery(queryMethod("findById", Object.class),
 					TEST_REPOSITORY_METADATA, PROJECTION_FACTORY, namedQueries);
