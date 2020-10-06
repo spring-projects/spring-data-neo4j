@@ -72,7 +72,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 			Class<?> targetType = getActualType();
 			return !(simpleTypeHolder.isSimpleType(targetType) || this.mappingContext.hasCustomWriteTarget(targetType)
-					|| isAnnotationPresent(TargetNode.class) || isAnnotationPresent(CompositeProperty.class));
+					|| isAnnotationPresent(TargetNode.class) || isComposite());
 		});
 
 		this.customConversion = Lazy.of(() -> {
@@ -183,7 +183,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	@Override
 	public boolean isEntity() {
-		return super.isEntity() && isAssociation() || (super.isEntity() && isEntityInRelationshipWithProperties() && !isAnnotationPresent(CompositeProperty.class));
+		return super.isEntity() && isAssociation() || (super.isEntity() && isEntityInRelationshipWithProperties() && !isComposite());
 	}
 
 	private static Function<Object, Value> nullSafeWrite(Function<Object, Value> delegate) {
