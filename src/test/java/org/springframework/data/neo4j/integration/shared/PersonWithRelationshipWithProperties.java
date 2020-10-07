@@ -16,8 +16,8 @@
 package org.springframework.data.neo4j.integration.shared;
 
 import java.util.List;
-import java.util.Set;
 
+import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -30,20 +30,24 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class PersonWithRelationshipWithProperties {
 
-	@Id @GeneratedValue private Long id;
+	@Id @GeneratedValue private final Long id;
 
 	private final String name;
 
-	@Relationship("LIKES") private List<LikesHobbyRelationship> hobbies;
+	@Relationship("LIKES") private final List<LikesHobbyRelationship> hobbies;
 
-	@Relationship("WORKS_IN") private WorksInClubRelationship club;
+	@Relationship("WORKS_IN") private final WorksInClubRelationship club;
 
 	@Relationship("OWNS") private Set<Pet> pets;
 
 	@Relationship("OWNS") private List<ClubRelationship> clubs;
 
-	public PersonWithRelationshipWithProperties(String name) {
+	@PersistenceConstructor
+	public PersonWithRelationshipWithProperties(Long id, String name, List<LikesHobbyRelationship> hobbies, WorksInClubRelationship club) {
+		this.id = id;
 		this.name = name;
+		this.hobbies = hobbies;
+		this.club = club;
 	}
 
 	public String getName() {
@@ -52,14 +56,6 @@ public class PersonWithRelationshipWithProperties {
 
 	public List<LikesHobbyRelationship> getHobbies() {
 		return hobbies;
-	}
-
-	public void setHobbies(List<LikesHobbyRelationship> hobbies) {
-		this.hobbies = hobbies;
-	}
-
-	public void setClub(WorksInClubRelationship club) {
-		this.club = club;
 	}
 
 	public WorksInClubRelationship getClub() {

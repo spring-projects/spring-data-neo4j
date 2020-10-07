@@ -1080,16 +1080,14 @@ class RepositoryIT {
 			rel2.setHobby(h2);
 
 			List<LikesHobbyRelationship> hobbies = new ArrayList<>();
-			PersonWithRelationshipWithProperties person = new PersonWithRelationshipWithProperties("Freddie clone");
 			hobbies.add(rel1);
 			hobbies.add(rel2);
-			person.setHobbies(hobbies);
 
-			WorksInClubRelationship worksInClub = new WorksInClubRelationship(2002);
 			Club club = new Club();
 			club.setName("BlubbClub");
-			worksInClub.setClub(club);
-			person.setClub(worksInClub);
+			WorksInClubRelationship worksInClub = new WorksInClubRelationship(2002, club);
+			PersonWithRelationshipWithProperties person =
+					new PersonWithRelationshipWithProperties(null, "Freddie clone", hobbies, worksInClub);
 
 			// when
 			PersonWithRelationshipWithProperties shouldBeDifferentPerson = repository.save(person);
