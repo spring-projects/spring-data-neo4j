@@ -78,7 +78,6 @@ public @interface GeneratedValue {
 	 * This generator is automatically applied when a field of type {@link java.util.UUID} is annotated with
 	 * {@link Id @Id} and {@link GeneratedValue @GeneratedValue}.
 	 *
-	 * @since 6.0.1
 	 */
 	final class UUIDGenerator implements IdGenerator<UUID> {
 
