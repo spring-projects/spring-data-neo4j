@@ -49,6 +49,7 @@ class Neo4jClientExtensionsTest {
 
         val runnableSpec = mockk<Neo4jClient.RunnableSpecTightToDatabase>(relaxed = true)
 
+        @Suppress("UNUSED_VARIABLE")
         val mappingSpec: KRecordFetchSpec<String> =
                 runnableSpec.mappedBy { _, _ -> "Foo" }
 
