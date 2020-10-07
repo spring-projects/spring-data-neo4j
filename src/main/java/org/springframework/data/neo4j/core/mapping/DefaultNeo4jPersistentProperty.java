@@ -46,7 +46,6 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	private final Lazy<String> graphPropertyName;
 	private final Lazy<Boolean> isAssociation;
-	private final boolean isEntityInRelationshipWithProperties;
 
 	private final Neo4jMappingContext mappingContext;
 
@@ -60,11 +59,9 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	 * @param simpleTypeHolder type holder
 	 */
 	DefaultNeo4jPersistentProperty(Property property, PersistentEntity<?, Neo4jPersistentProperty> owner,
-			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder,
-			boolean isEntityInRelationshipWithProperties) {
+			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder) {
 
 		super(property, owner, simpleTypeHolder);
-		this.isEntityInRelationshipWithProperties = isEntityInRelationshipWithProperties;
 		this.mappingContext = mappingContext;
 
 		this.graphPropertyName = Lazy.of(this::computeGraphPropertyName);
@@ -183,7 +180,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	@Override
 	public boolean isEntity() {
-		return super.isEntity() && isAssociation() || (super.isEntity() && isEntityInRelationshipWithProperties() && !isComposite());
+		return super.isEntity() && isAssociation() || (isEntityInRelationshipWithProperties() && !isComposite());
 	}
 
 	private static Function<Object, Value> nullSafeWrite(Function<Object, Value> delegate) {
@@ -206,7 +203,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	@Override
 	public boolean isEntityInRelationshipWithProperties() {
-		return isEntityInRelationshipWithProperties;
+		return super.isEntity() && ((Neo4jPersistentEntity<?>) getOwner()).isRelationshipPropertiesEntity();
 	}
 
 	/**

@@ -194,7 +194,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	protected Neo4jPersistentProperty createPersistentProperty(Property property, Neo4jPersistentEntity<?> owner,
 			SimpleTypeHolder simpleTypeHolder) {
 
-		return new DefaultNeo4jPersistentProperty(property, owner, this, simpleTypeHolder, owner.isRelationshipPropertiesEntity());
+		return new DefaultNeo4jPersistentProperty(property, owner, this, simpleTypeHolder);
 	}
 
 	@Override

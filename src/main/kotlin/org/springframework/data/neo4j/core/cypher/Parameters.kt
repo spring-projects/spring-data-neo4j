@@ -24,7 +24,7 @@ package org.springframework.data.neo4j.core.cypher
  * @author Michael J. Simons
  * @since 6.0
  */
-inline fun String.asParam() = "\$" + this
+fun String.asParam() = "\$" + this
 
 /**
  * Extension on [String]'s companion object returning the string passed to it prefixed with an escaped `$`.

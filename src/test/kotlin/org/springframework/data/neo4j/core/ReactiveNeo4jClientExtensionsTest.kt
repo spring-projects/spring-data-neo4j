@@ -57,6 +57,7 @@ class ReactiveNeo4jClientExtensionsTest {
 
         val runnableSpec = mockk<ReactiveNeo4jClient.RunnableSpecTightToDatabase>(relaxed = true)
 
+        @Suppress("UNUSED_VARIABLE")
         val mappingSpec: ReactiveNeo4jClient.MappingSpec<String> = runnableSpec.fetchAs()
 
         verify(exactly = 1) { runnableSpec.fetchAs(String::class.java) }

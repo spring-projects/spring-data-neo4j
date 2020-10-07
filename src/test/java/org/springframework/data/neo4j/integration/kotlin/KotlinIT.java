@@ -27,17 +27,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.integration.shared.KotlinClub;
+import org.springframework.data.neo4j.integration.shared.KotlinClubRelationship;
 import org.springframework.data.neo4j.integration.shared.KotlinPerson;
 import org.springframework.data.neo4j.integration.shared.KotlinRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Gerrit Meier
  * @author Michael J. Simons
  */
+@SpringJUnitConfig(KotlinIT.Config.class)
 @Neo4jIntegrationTest
 class KotlinIT {
 
@@ -45,28 +49,30 @@ class KotlinIT {
 
 	private static Neo4jConnectionSupport neo4jConnectionSupport;
 
-	private final Driver driver;
-
 	@Autowired
-	KotlinIT(Driver driver) {
-		this.driver = driver;
-	}
+	private Driver driver;
 
 	@BeforeEach
 	void setup() {
 		try (Session session = driver.session(); Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n").consume();
-			transaction.run("CREATE (n:KotlinPerson) SET n.name = $personName", Values.parameters("personName", PERSON_NAME))
+			transaction.run("CREATE (n:KotlinPerson), "
+					+ " (n)-[:WORKS_IN{since: 2019}]->(:KotlinClub{name: 'Golf club'}) SET n.name = $personName",
+					Values.parameters("personName", PERSON_NAME))
 					.consume();
 			transaction.commit();
 		}
 	}
 
-	@Test
+	@Test // with addition by DATAGRAPH-1395
 	void findAllKotlinPersons(@Autowired KotlinRepository repository) {
 
-		Iterable<KotlinPerson> person = repository.findAll();
-		assertThat(person.iterator().next().getName()).isEqualTo(PERSON_NAME);
+		Iterable<KotlinPerson> people = repository.findAll();
+		assertThat(people).extracting(KotlinPerson::getName).containsExactly(PERSON_NAME);
+		KotlinPerson person = people.iterator().next();
+		assertThat(person.getClubs()).extracting(KotlinClubRelationship::getSince).containsExactly(2019);
+		assertThat(person.getClubs()).extracting(KotlinClubRelationship::getClub)
+				.extracting(KotlinClub::getName).containsExactly("Golf club");
 	}
 
 	@Configuration

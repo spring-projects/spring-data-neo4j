@@ -1056,14 +1056,13 @@ class ReactiveRepositoryIT {
 			List<LikesHobbyRelationship> hobbies = new ArrayList<>();
 			hobbies.add(rel1);
 			hobbies.add(rel2);
-			PersonWithRelationshipWithProperties person = new PersonWithRelationshipWithProperties("Freddie clone");
-			person.setHobbies(hobbies);
 
-			WorksInClubRelationship worksInClub = new WorksInClubRelationship(2002);
 			Club club = new Club();
 			club.setName("BlubbClub");
-			worksInClub.setClub(club);
-			person.setClub(worksInClub);
+			WorksInClubRelationship worksInClub = new WorksInClubRelationship(2002, club);
+
+			PersonWithRelationshipWithProperties person =
+					new PersonWithRelationshipWithProperties("Freddie clone", hobbies, worksInClub);
 
 			// when
 			Mono<PersonWithRelationshipWithProperties> operationUnderTest = repository.save(person);

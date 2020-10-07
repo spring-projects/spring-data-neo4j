@@ -27,10 +27,11 @@ public class WorksInClubRelationship {
 	private final Integer since;
 
 	@TargetNode
-	private Club club;
+	private final Club club;
 
-	public WorksInClubRelationship(Integer since) {
+	public WorksInClubRelationship(Integer since, Club club) {
 		this.since = since;
+		this.club = club;
 	}
 
 	public Integer getSince() {
@@ -39,9 +40,5 @@ public class WorksInClubRelationship {
 
 	public Club getClub() {
 		return club;
-	}
-
-	public void setClub(Club club) {
-		this.club = club;
 	}
 }
