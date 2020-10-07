@@ -91,6 +91,10 @@ public class LikesHobbyRelationship {
 		this.hobby = hobby;
 	}
 
+	public Integer getSince() {
+		return since;
+	}
+
 	/**
 	 * The missing javadoc
 	 */
