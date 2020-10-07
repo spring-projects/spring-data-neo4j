@@ -47,7 +47,7 @@ public final class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQu
 
 	private final CypherGenerator cypherGenerator;
 
-	SimpleReactiveQueryByExampleExecutor(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext) {
+	public SimpleReactiveQueryByExampleExecutor(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext) {
 
 		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;

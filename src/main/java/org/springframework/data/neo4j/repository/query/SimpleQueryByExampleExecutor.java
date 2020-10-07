@@ -53,7 +53,7 @@ public final class SimpleQueryByExampleExecutor<T> implements QueryByExampleExec
 
 	private final CypherGenerator cypherGenerator;
 
-	SimpleQueryByExampleExecutor(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext) {
+	public SimpleQueryByExampleExecutor(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext) {
 
 		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
