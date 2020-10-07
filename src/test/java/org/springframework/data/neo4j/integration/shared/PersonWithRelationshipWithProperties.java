@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.integration.shared;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -26,6 +27,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 /**
  * @author Gerrit Meier
  * @author Philipp Tölle
+ * @author Michael J. Simons
  */
 @Node
 public class PersonWithRelationshipWithProperties {
