@@ -68,7 +68,7 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 	public Object convert(EntityInstanceWithSource entityInstanceAndSource) {
 
 		final Object entityInstance = entityInstanceAndSource.getEntityInstance();
-		if (targetType.isInterface()) {
+		if (targetType.isInterface() || targetType.isInstance(entityInstance)) {
 			return entityInstance;
 		}
 

@@ -77,4 +77,9 @@ final class RecordMapAccessor implements MapAccessor {
 	public <T> Map<String, T> asMap(Function<Value, T> mapFunction) {
 		return this.delegate.asMap(mapFunction);
 	}
+
+	@Override
+	public String toString() {
+		return this.delegate.toString();
+	}
 }

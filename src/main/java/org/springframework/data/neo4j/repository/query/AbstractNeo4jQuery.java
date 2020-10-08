@@ -80,8 +80,8 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 			DtoInstantiatingConverter converter = new DtoInstantiatingConverter(returnedType.getReturnedType(), mappingContext);
 
 			// Neo4jQuerySupport ensure we will get an EntityInstanceWithSource in the projecting case
-			preparingConverter = source -> OptionalUnwrappingConverter.INSTANCE.convert(
-					converter.convert((EntityInstanceWithSource) source));
+			preparingConverter = source -> converter.convert(
+					(EntityInstanceWithSource) OptionalUnwrappingConverter.INSTANCE.convert(source));
 		}
 
 		Object processedResult = resultProcessor.processResult(rawResult, preparingConverter);
