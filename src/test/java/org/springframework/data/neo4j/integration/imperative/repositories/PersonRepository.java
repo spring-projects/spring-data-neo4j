@@ -31,6 +31,7 @@ import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Polygon;
 import org.springframework.data.neo4j.integration.shared.DtoPersonProjection;
+import org.springframework.data.neo4j.integration.shared.DtoPersonProjectionContainingAdditionalFields;
 import org.springframework.data.neo4j.integration.shared.KotlinPerson;
 import org.springframework.data.neo4j.integration.shared.PersonProjection;
 import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
@@ -241,6 +242,12 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	List<PersonProjection> findBySameValue(String sameValue);
 
 	List<DtoPersonProjection> findByFirstName(String firstName);
+
+	@Query(""
+			+ "MATCH (n:PersonWithAllConstructor) where n.name = $name "
+			+ "WITH n MATCH(m:PersonWithAllConstructor) WHERE id(n) <> id(m) "
+			+ "RETURN n, collect(m) AS otherPeople, 4711 AS someLongValue, [21.42, 42.21] AS someDoubles")
+	List<DtoPersonProjectionContainingAdditionalFields> findAllDtoProjectionsWithAdditionalProperties(@Param("name") String name);
 
 	@Query("MATCH (n:PersonWithAllConstructor) where n.name = $name return n{.name}")
 	PersonProjection findByNameWithCustomQueryAndMapProjection(@Param("name") String name);

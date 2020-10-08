@@ -62,7 +62,7 @@ abstract class Neo4jQuerySupport {
 	 */
 	protected final Neo4jQueryType queryType;
 
-	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jQuerySupport.class));
+	static final LogAccessor REPOSITORY_QUERY_LOG = new LogAccessor(LogFactory.getLog(Neo4jQuerySupport.class));
 
 	Neo4jQuerySupport(Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod, Neo4jQueryType queryType) {
 
@@ -95,6 +95,9 @@ abstract class Neo4jQuerySupport {
 			// Clients automatically selects a single value mapping function.
 			// It will thrown an error if the query contains more than one column.
 			mappingFunction = null;
+		} else if (resultProcessor.getReturnedType().isProjecting()) {
+			BiFunction<TypeSystem, Record, ?> target = this.mappingContext.getRequiredMappingFunctionFor(domainType);
+			mappingFunction = (t, r) -> new EntityInstanceWithSource(target.apply(t, r), t, r);
 		} else {
 			mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
 		}
@@ -130,7 +133,7 @@ abstract class Neo4jQuerySupport {
 			// According to https://neo4j.com/docs/cypher-manual/current/syntax/working-with-null/#cypher-null-intro
 			// it does not make any sense to continue if a `null` value gets into a comparison
 			// but we just warn the users and do not throw an exception on `null`.
-			log.warn("Do not use `null` as a property value for comparison."
+			REPOSITORY_QUERY_LOG.warn("Do not use `null` as a property value for comparison."
 					+ " It will always be false and return an empty result.");
 
 			return Values.NULL;

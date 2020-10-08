@@ -92,7 +92,7 @@ public interface Schema {
 		if (nodeDescription == null) {
 			throw new UnknownEntityException(targetClass);
 		}
-		return (typeSystem, record) -> getEntityConverter().read(targetClass, record);
+		return (typeSystem, record) -> getEntityConverter().read(targetClass, new RecordMapAccessor(record));
 	}
 
 	/**

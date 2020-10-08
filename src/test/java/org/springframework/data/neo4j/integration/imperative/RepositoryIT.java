@@ -90,6 +90,7 @@ import org.springframework.data.neo4j.integration.shared.Club;
 import org.springframework.data.neo4j.integration.shared.ClubRelationship;
 import org.springframework.data.neo4j.integration.shared.DeepRelationships;
 import org.springframework.data.neo4j.integration.shared.DtoPersonProjection;
+import org.springframework.data.neo4j.integration.shared.DtoPersonProjectionContainingAdditionalFields;
 import org.springframework.data.neo4j.integration.shared.EntityWithConvertedId;
 import org.springframework.data.neo4j.integration.shared.Friend;
 import org.springframework.data.neo4j.integration.shared.FriendshipRelationship;
@@ -99,7 +100,6 @@ import org.springframework.data.neo4j.integration.shared.Inheritance;
 import org.springframework.data.neo4j.integration.shared.KotlinPerson;
 import org.springframework.data.neo4j.integration.shared.LikesHobbyRelationship;
 import org.springframework.data.neo4j.integration.shared.MultipleLabels;
-import org.springframework.data.neo4j.integration.shared.PersonProjection;
 import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.PersonWithNoConstructor;
 import org.springframework.data.neo4j.integration.shared.PersonWithRelationship;
@@ -2608,6 +2608,24 @@ class RepositoryIT {
 			assertThat(repository.loadAllProjectionsWithNodeReturn()).hasSize(2);
 		}
 
+		@Test
+		void mapsInterfaceProjectionWithCustomQueryAndNodeReturn2(@Autowired PersonRepository repository) {
+
+			List<DtoPersonProjectionContainingAdditionalFields> projectedPeople = repository
+					.findAllDtoProjectionsWithAdditionalProperties(TEST_PERSON1_NAME);
+
+			assertThat(projectedPeople).hasSize(1)
+					.first()
+					.satisfies(dto -> {
+						assertThat(dto.getFirstName()).isEqualTo(TEST_PERSON1_FIRST_NAME);
+						assertThat(dto.getSomeLongValue()).isEqualTo(4711L);
+						assertThat(dto.getSomeDoubles()).containsExactly(21.42, 42.21);
+						assertThat(dto.getOtherPeople()).hasSize(1)
+								.first()
+								.extracting(PersonWithAllConstructor::getFirstName)
+								.isEqualTo(TEST_PERSON2_FIRST_NAME);
+					});
+		}
 	}
 
 	@Nested
