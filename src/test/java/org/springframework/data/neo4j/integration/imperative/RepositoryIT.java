@@ -445,21 +445,21 @@ class RepositoryIT {
 		}
 
 		@Test
-		void loadAllKotlinPersons(@Autowired PersonRepository repository) {
+		void loadAllKotlinPersons(@Autowired KotlinPersonRepository repository) {
 
 			List<KotlinPerson> persons = repository.getAllKotlinPersonsViaQuery();
 			assertThat(persons).anyMatch(person -> person.getName().equals(TEST_PERSON1_NAME));
 		}
 
 		@Test
-		void loadOneKotlinPerson(@Autowired PersonRepository repository) {
+		void loadOneKotlinPerson(@Autowired KotlinPersonRepository repository) {
 
 			KotlinPerson person = repository.getOneKotlinPersonViaQuery();
 			assertThat(person.getName()).isEqualTo(TEST_PERSON1_NAME);
 		}
 
 		@Test
-		void loadOptionalKotlinPerson(@Autowired PersonRepository repository) {
+		void loadOptionalKotlinPerson(@Autowired KotlinPersonRepository repository) {
 
 			Optional<KotlinPerson> person = repository.getOptionalKotlinPersonViaQuery();
 			assertThat(person).isPresent();
@@ -3184,6 +3184,18 @@ class RepositoryIT {
 	}
 
 	interface FriendRepository extends Neo4jRepository<Friend, Long> {}
+
+	interface KotlinPersonRepository extends Neo4jRepository<KotlinPerson, Long> {
+
+		@Query("MATCH (n:KotlinPerson)-[w:WORKS_IN]->(c:KotlinClub) return n, collect(w), collect(c)")
+		List<KotlinPerson> getAllKotlinPersonsViaQuery();
+
+		@Query("MATCH (n:KotlinPerson{name:'Test'})-[w:WORKS_IN]->(c:KotlinClub) return n, collect(w), collect(c)")
+		KotlinPerson getOneKotlinPersonViaQuery();
+
+		@Query("MATCH (n:KotlinPerson{name:'Test'})-[w:WORKS_IN]->(c:KotlinClub) return n, collect(w), collect(c)")
+		Optional<KotlinPerson> getOptionalKotlinPersonViaQuery();
+	}
 
 	@SpringJUnitConfig(Config.class)
 	static abstract class IntegrationTestBase {

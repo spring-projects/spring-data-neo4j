@@ -32,7 +32,6 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Polygon;
 import org.springframework.data.neo4j.integration.shared.DtoPersonProjection;
 import org.springframework.data.neo4j.integration.shared.DtoPersonProjectionContainingAdditionalFields;
-import org.springframework.data.neo4j.integration.shared.KotlinPerson;
 import org.springframework.data.neo4j.integration.shared.PersonProjection;
 import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.PersonWithNoConstructor;
@@ -94,15 +93,6 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	@Query("MATCH (n:PersonWithWither{name:'Test'}) return n")
 	Optional<PersonWithWither> getOptionalPersonWithWitherViaQuery();
-
-	@Query("MATCH (n:KotlinPerson)-[w:WORKS_IN]->(c:KotlinClub) return n, collect(w), collect(c)")
-	List<KotlinPerson> getAllKotlinPersonsViaQuery();
-
-	@Query("MATCH (n:KotlinPerson{name:'Test'})-[w:WORKS_IN]->(c:KotlinClub) return n, collect(w), collect(c)")
-	KotlinPerson getOneKotlinPersonViaQuery();
-
-	@Query("MATCH (n:KotlinPerson{name:'Test'})-[w:WORKS_IN]->(c:KotlinClub) return n, collect(w), collect(c)")
-	Optional<KotlinPerson> getOptionalKotlinPersonViaQuery();
 
 	// Derived finders, should be extracted into another repo.
 	Optional<PersonWithAllConstructor> findOneByNameAndFirstName(String name, String firstName);
