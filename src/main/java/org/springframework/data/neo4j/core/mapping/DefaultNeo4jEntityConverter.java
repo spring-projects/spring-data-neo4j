@@ -68,22 +68,19 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(DefaultNeo4jEntityConverter.class));
 
-	/**
-	 * The shared entity instantiators of this context. Those should not be recreated for each entity or even not for each
-	 * query, as otherwise the cache of Spring's org.springframework.data.convert.ClassGeneratingEntityInstantiator won't
-	 * apply
-	 */
-	private static final EntityInstantiators INSTANTIATORS = new EntityInstantiators();
-
+	private final EntityInstantiators entityInstantiators;
 	private final NodeDescriptionStore nodeDescriptionStore;
 	private final Neo4jConversionService conversionService;
 
 	private TypeSystem typeSystem;
 
-	DefaultNeo4jEntityConverter(Neo4jConversionService conversionService, NodeDescriptionStore nodeDescriptionStore) {
+	DefaultNeo4jEntityConverter(EntityInstantiators entityInstantiators, Neo4jConversionService conversionService, NodeDescriptionStore nodeDescriptionStore) {
 
+		Assert.notNull(entityInstantiators, "EntityInstantiators must not be null!");
 		Assert.notNull(conversionService, "Neo4jConversionService must not be null!");
+		Assert.notNull(nodeDescriptionStore, "NodeDescriptionStore must not be null!");
 
+		this.entityInstantiators = entityInstantiators;
 		this.conversionService = conversionService;
 		this.nodeDescriptionStore = nodeDescriptionStore;
 	}
@@ -314,7 +311,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		};
 
-		return INSTANTIATORS.getInstantiatorFor(nodeDescription).createInstance(nodeDescription, parameterValueProvider);
+		return entityInstantiators.getInstantiatorFor(nodeDescription).createInstance(nodeDescription, parameterValueProvider);
 	}
 
 	private PropertyHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult,

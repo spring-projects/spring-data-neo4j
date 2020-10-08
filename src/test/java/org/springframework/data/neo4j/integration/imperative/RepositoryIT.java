@@ -89,6 +89,7 @@ import org.springframework.data.neo4j.integration.shared.BidirectionalStart;
 import org.springframework.data.neo4j.integration.shared.Club;
 import org.springframework.data.neo4j.integration.shared.ClubRelationship;
 import org.springframework.data.neo4j.integration.shared.DeepRelationships;
+import org.springframework.data.neo4j.integration.shared.DtoPersonProjection;
 import org.springframework.data.neo4j.integration.shared.EntityWithConvertedId;
 import org.springframework.data.neo4j.integration.shared.Friend;
 import org.springframework.data.neo4j.integration.shared.FriendshipRelationship;
@@ -98,6 +99,7 @@ import org.springframework.data.neo4j.integration.shared.Inheritance;
 import org.springframework.data.neo4j.integration.shared.KotlinPerson;
 import org.springframework.data.neo4j.integration.shared.LikesHobbyRelationship;
 import org.springframework.data.neo4j.integration.shared.MultipleLabels;
+import org.springframework.data.neo4j.integration.shared.PersonProjection;
 import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.PersonWithNoConstructor;
 import org.springframework.data.neo4j.integration.shared.PersonWithRelationship;
@@ -2563,12 +2565,18 @@ class RepositoryIT {
 		@Test
 		void mapsInterfaceProjectionWithDerivedFinderMethod(@Autowired PersonRepository repository) {
 
-			assertThat(repository.findByName(TEST_PERSON1_NAME).getName()).isEqualTo(TEST_PERSON1_NAME);
+			assertThat(repository.findByName(TEST_PERSON1_NAME)).satisfies(projection -> {
+				assertThat(projection.getName()).isEqualTo(TEST_PERSON1_NAME);
+				assertThat(projection.getFirstName()).isEqualTo(TEST_PERSON1_FIRST_NAME);
+			});
 		}
 
 		@Test
 		void mapsDtoProjectionWithDerivedFinderMethod(@Autowired PersonRepository repository) {
-			assertThat(repository.findByFirstName(TEST_PERSON1_FIRST_NAME)).hasSize(1);
+			assertThat(repository.findByFirstName(TEST_PERSON1_FIRST_NAME))
+					.hasSize(1)
+					.extracting(DtoPersonProjection::getFirstName)
+					.first().isEqualTo(TEST_PERSON1_FIRST_NAME);
 		}
 
 		@Test

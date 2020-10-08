@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
@@ -35,7 +37,10 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.mapping.MappingException;
+import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.context.AbstractMappingContext;
+import org.springframework.data.mapping.model.EntityInstantiator;
+import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
@@ -61,6 +66,13 @@ import org.springframework.lang.Nullable;
 @API(status = API.Status.INTERNAL, since = "6.0")
 public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty>
 		implements Schema {
+
+	/**
+	 * The shared entity instantiators of this context. Those should not be recreated for each entity or even not for each
+	 * query, as otherwise the cache of Spring's org.springframework.data.convert.ClassGeneratingEntityInstantiator won't
+	 * apply
+	 */
+	private static final EntityInstantiators INSTANTIATORS = new EntityInstantiators();
 
 	/**
 	 * A map of fallback id generators, that have not been added to the application context
@@ -107,7 +119,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		super.setSimpleTypeHolder(Neo4jSimpleTypes.HOLDER);
 		this.conversionService = new DefaultNeo4jConversionService(neo4jConversions);
 
-		DefaultNeo4jEntityConverter defaultNeo4jConverter = new DefaultNeo4jEntityConverter(conversionService, nodeDescriptionStore);
+		DefaultNeo4jEntityConverter defaultNeo4jConverter = new DefaultNeo4jEntityConverter(INSTANTIATORS, conversionService, nodeDescriptionStore);
 		if (typeSystem != null) {
 			defaultNeo4jConverter.setTypeSystem(typeSystem);
 		}
@@ -120,6 +132,10 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	public Neo4jConversionService getConversionService() {
 		return conversionService;
+	}
+
+	public EntityInstantiator getInstantiatorFor(PersistentEntity<?, ?> entity) {
+		return INSTANTIATORS.getInstantiatorFor(entity);
 	}
 
 	boolean hasCustomWriteTarget(Class<?> targetType) {

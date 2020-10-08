@@ -22,6 +22,7 @@ import java.util.function.LongSupplier;
 
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.neo4j.core.Neo4jOperations;
@@ -72,7 +73,29 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		Object rawResult = new Neo4jQueryExecution.DefaultQueryExecution(neo4jOperations).execute(preparedQuery,
 				queryMethod.isCollectionLikeQuery() || queryMethod.isPageQuery() || queryMethod.isSliceQuery());
 
-		Object processedResult = resultProcessor.processResult(rawResult, OptionalUnwrappingConverter.INSTANCE);
+		Converter<Object, Object> preparingConverter = OptionalUnwrappingConverter.INSTANCE;
+		if(resultProcessor.getReturnedType().isProjecting() && !resultProcessor.getReturnedType().getReturnedType().isInterface()) {
+			DtoInstantiatingConverter converter = new DtoInstantiatingConverter(resultProcessor.getReturnedType().getReturnedType(), mappingContext);
+			preparingConverter = source -> OptionalUnwrappingConverter.INSTANCE.convert(converter.convert(source));
+		}
+
+		/*
+		else if (resultProcessor.getReturnedType().isProjecting()) {
+			System.out.println(resultProcessor.getReturnedType().getDomainType());
+			System.out.println(resultProcessor.getReturnedType().getTypeToRead());
+			System.out.println(returnedType);
+			if (returnedType.isInterface()) {
+				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
+			} else if (this.mappingContext.hasPersistentEntityFor(returnedType)) {
+				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(returnedType);
+			} else {
+				// Given an return type for which no persistent entity exists, we use the given domain type
+				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
+			}
+		} else {
+		 */
+
+		Object processedResult = resultProcessor.processResult(rawResult, preparingConverter);
 
 		LongSupplier totalSupplier = () -> {
 

@@ -95,16 +95,6 @@ abstract class Neo4jQuerySupport {
 			// Clients automatically selects a single value mapping function.
 			// It will thrown an error if the query contains more than one column.
 			mappingFunction = null;
-		} else if (resultProcessor.getReturnedType().isProjecting()) {
-
-			if (returnedType.isInterface()) {
-				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
-			} else if (this.mappingContext.hasPersistentEntityFor(returnedType)) {
-				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(returnedType);
-			} else {
-				this.mappingContext.addPersistentEntity(returnedType);
-				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(returnedType);
-			}
 		} else {
 			mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
 		}
