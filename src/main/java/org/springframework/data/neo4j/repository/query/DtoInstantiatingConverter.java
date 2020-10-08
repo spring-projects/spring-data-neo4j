@@ -67,15 +67,15 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 	@Override
 	public Object convert(EntityInstanceWithSource entityInstanceAndSource) {
 
-		final Object entityInstance = entityInstanceAndSource.getEntityInstance();
+		Object entityInstance = entityInstanceAndSource.getEntityInstance();
 		if (targetType.isInterface() || targetType.isInstance(entityInstance)) {
 			return entityInstance;
 		}
 
-		final PersistentEntity<?, ?> sourceEntity = context.getRequiredPersistentEntity(entityInstance.getClass());
-		final PersistentPropertyAccessor sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
-		final PersistentEntity<?, ?> targetEntity = context.getRequiredPersistentEntity(targetType);
-		final PreferredConstructor<?, ? extends PersistentProperty<?>> constructor = targetEntity
+		PersistentEntity<?, ?> sourceEntity = context.getRequiredPersistentEntity(entityInstance.getClass());
+		PersistentPropertyAccessor sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
+		PersistentEntity<?, ?> targetEntity = context.getRequiredPersistentEntity(targetType);
+		PreferredConstructor<?, ? extends PersistentProperty<?>> constructor = targetEntity
 				.getPersistenceConstructor();
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -93,7 +93,7 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 					}
 				});
 
-		final PersistentPropertyAccessor dtoAccessor = targetEntity.getPropertyAccessor(dto);
+		PersistentPropertyAccessor dtoAccessor = targetEntity.getPropertyAccessor(dto);
 		targetEntity.doWithProperties((SimplePropertyHandler) property -> {
 
 			if (constructor.isConstructorParameter(property)) {
@@ -110,8 +110,8 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 	Object getPropertyValueFor(PersistentProperty<?> targetProperty, PersistentEntity<?, ?> sourceEntity,
 			PersistentPropertyAccessor sourceAccessor, EntityInstanceWithSource entityInstanceAndSource) {
 
-		final TypeSystem typeSystem = entityInstanceAndSource.getTypeSystem();
-		final Record sourceRecord = entityInstanceAndSource.getSourceRecord();
+		TypeSystem typeSystem = entityInstanceAndSource.getTypeSystem();
+		Record sourceRecord = entityInstanceAndSource.getSourceRecord();
 
 		String targetPropertyName = targetProperty.getName();
 		PersistentProperty<?> sourceProperty = sourceEntity.getPersistentProperty(targetPropertyName);
