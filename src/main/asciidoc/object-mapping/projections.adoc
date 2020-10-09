@@ -39,7 +39,7 @@ Given the following entities, projections and the corresponding repository:
 [source,java]
 .A simple entity
 ----
-import org.springframework.data.neo4j.core.schema.Property;@Node
+@Node
 class TestEntity {
     @Id @GeneratedValue private Long id;
 
