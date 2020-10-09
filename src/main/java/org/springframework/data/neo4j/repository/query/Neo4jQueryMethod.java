@@ -130,9 +130,4 @@ class Neo4jQueryMethod extends QueryMethod {
 			return this.getName().orElseGet(() -> Integer.toString(this.getIndex()));
 		}
 	}
-
-	@Override
-	public Class<?> getDomainClass() {
-		return super.getDomainClass();
-	}
 }

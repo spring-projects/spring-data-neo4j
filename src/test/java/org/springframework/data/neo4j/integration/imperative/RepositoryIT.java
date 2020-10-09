@@ -92,6 +92,7 @@ import org.springframework.data.neo4j.integration.shared.DeepRelationships;
 import org.springframework.data.neo4j.integration.shared.DtoPersonProjection;
 import org.springframework.data.neo4j.integration.shared.DtoPersonProjectionContainingAdditionalFields;
 import org.springframework.data.neo4j.integration.shared.EntityWithConvertedId;
+import org.springframework.data.neo4j.integration.shared.ExtendedParentNode;
 import org.springframework.data.neo4j.integration.shared.Friend;
 import org.springframework.data.neo4j.integration.shared.FriendshipRelationship;
 import org.springframework.data.neo4j.integration.shared.Hobby;
@@ -100,6 +101,7 @@ import org.springframework.data.neo4j.integration.shared.Inheritance;
 import org.springframework.data.neo4j.integration.shared.KotlinPerson;
 import org.springframework.data.neo4j.integration.shared.LikesHobbyRelationship;
 import org.springframework.data.neo4j.integration.shared.MultipleLabels;
+import org.springframework.data.neo4j.integration.shared.ParentNode;
 import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.PersonWithNoConstructor;
 import org.springframework.data.neo4j.integration.shared.PersonWithRelationship;
@@ -3084,6 +3086,39 @@ class RepositoryIT {
 		}
 	}
 
+	/**
+	 * The tests in this class ensure that in case of an inheritance scenario no DTO is projected but the extending class
+	 * is used. If it wasn't the case, we wouldn't find the relationship nor the other attribute.
+	 */
+	@Nested
+	class DtoVsInheritance extends IntegrationTestBase {
+
+		@Override
+		void setupData(Transaction transaction) {
+			transaction.run(""
+					+ "create (p:ParentNode:ExtendedParentNode {someAttribute: 'Foo', someOtherAttribute: 'Bar'})"
+					+ "create (p) -[:CONNECTED_TO]-> (:PersonWithAllConstructor {name: 'Bazbar'})");
+		}
+
+		@Test
+		void shouldFindExtendedNodeViaBaseAttribute(@Autowired ParentRepository repository) {
+
+			assertThat(repository.findExtendedParentNodeBySomeAttribute("Foo")).hasValueSatisfying(ep -> {
+				assertThat(ep.getSomeOtherAttribute()).isEqualTo("Bar");
+				assertThat(ep.getPeople()).extracting(PersonWithAllConstructor::getName).containsExactly("Bazbar");
+			});
+		}
+
+		@Test
+		void shouldFindExtendedNodeViaExtendedAttribute(@Autowired ParentRepository repository) {
+
+			assertThat(repository.findExtendedParentNodeBySomeOtherAttribute("Bar")).hasValueSatisfying(ep -> {
+				assertThat(ep.getSomeAttribute()).isEqualTo("Foo");
+				assertThat(ep.getPeople()).extracting(PersonWithAllConstructor::getName).containsExactly("Bazbar");
+			});
+		}
+	}
+
 	interface BidirectionalStartRepository extends Neo4jRepository<BidirectionalStart, Long> {}
 
 	interface BidirectionalEndRepository extends Neo4jRepository<BidirectionalEnd, Long> {}
@@ -3195,6 +3230,23 @@ class RepositoryIT {
 
 		@Query("MATCH (n:KotlinPerson{name:'Test'})-[w:WORKS_IN]->(c:KotlinClub) return n, collect(w), collect(c)")
 		Optional<KotlinPerson> getOptionalKotlinPersonViaQuery();
+	}
+
+	interface ParentRepository extends Neo4jRepository<ParentNode, Long> {
+
+		/**
+		 * Ensure things can be found by base attribute.
+		 * @param someAttribute Base attribute
+		 * @return optional entity
+		 */
+		Optional<ExtendedParentNode> findExtendedParentNodeBySomeAttribute(String someAttribute);
+
+		/**
+		 * Ensure things can be found by extended attribute.
+		 * @param someOtherAttribute Base attribute
+		 * @return optional entity
+		 */
+		Optional<ExtendedParentNode> findExtendedParentNodeBySomeOtherAttribute(String someOtherAttribute);
 	}
 
 	@SpringJUnitConfig(Config.class)

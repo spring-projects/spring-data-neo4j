@@ -34,7 +34,11 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -58,6 +62,7 @@ import org.springframework.data.repository.core.support.DefaultRepositoryMetadat
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.util.ReflectionUtils;
 
@@ -261,6 +266,53 @@ final class RepositoryQueryTest {
 		}
 	}
 
+	@Nested
+	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+	class ResultProcessTest {
+
+		private Stream<Arguments> params() {
+			return Stream.of(
+					Arguments.of(
+							"findAllByANamedQuery",
+							false,
+							TestEntity.class,
+							TestEntity.class
+					),
+					Arguments.of(
+							"findAllInterfaceProjections",
+							true,
+							TestEntityInterfaceProjection.class,
+							TestEntity.class
+					),
+					Arguments.of(
+							"findAllDTOProjections",
+							true,
+							TestEntityDTOProjection.class,
+							TestEntity.class
+					),
+					Arguments.of(
+							"findAllExtendedEntites",
+							false,
+							ExtendedTestEntity.class,
+							ExtendedTestEntity.class
+					)
+			);
+		}
+
+		@ParameterizedTest
+		@MethodSource("params")
+		void shouldDetectCorrectProjectionBehaviour(String methodName, boolean projecting, Class<?> queryReturnedType, Class<?> domainType) {
+
+			Neo4jQueryMethod method = RepositoryQueryTest.neo4jQueryMethod(methodName);
+
+			ReturnedType returnedType = method.getResultProcessor().getReturnedType();
+			assertThat(returnedType.isProjecting()).isEqualTo(projecting);
+			assertThat(returnedType.getReturnedType()).isEqualTo(queryReturnedType);
+			assertThat(returnedType.getDomainType()).isEqualTo(domainType);
+			assertThat(Neo4jQuerySupport.getDomainType(method)).isEqualTo(domainType);
+		}
+	}
+
 	static Method queryMethod(String name, Class<?>... parameters) {
 
 		return ReflectionUtils.findMethod(TestRepository.class, name, parameters);
@@ -282,6 +334,39 @@ final class RepositoryQueryTest {
 		@Id @GeneratedValue private Long id;
 
 		private String name;
+	}
+
+	static class ExtendedTestEntity extends TestEntity {
+
+		private String otherAttribute;
+	}
+
+	interface TestEntityInterfaceProjection {
+
+		String getName();
+	}
+
+	static class TestEntityDTOProjection {
+
+		private String name;
+
+		private Long numberOfRelations;
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public Long getNumberOfRelations() {
+			return numberOfRelations;
+		}
+
+		public void setNumberOfRelations(Long numberOfRelations) {
+			this.numberOfRelations = numberOfRelations;
+		}
 	}
 
 	interface TestRepository extends CrudRepository<TestEntity, Long> {
@@ -306,6 +391,12 @@ final class RepositoryQueryTest {
 		Mono<Page<TestEntity>> findAllByName(String name, Pageable pageable);
 
 		Mono<Slice<TestEntity>> findAllByNameStartingWith(String name, Pageable pageable);
+
+		List<TestEntityInterfaceProjection> findAllInterfaceProjections();
+
+		List<TestEntityDTOProjection> findAllDTOProjections();
+
+		List<ExtendedTestEntity> findAllExtendedEntites();
 	}
 
 	private RepositoryQueryTest() {}

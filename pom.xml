@@ -124,6 +124,8 @@
 		<skipUnitTests>${skipTests}</skipUnitTests>
 		<springdata.commons>2.4.0-SNAPSHOT</springdata.commons>
 		<testcontainers.version>1.13.0</testcontainers.version>
+
+		<spring-data-commons-docs.dir>../../../../../spring-data-commons/src/main/asciidoc</spring-data-commons-docs.dir>
 	</properties>
 
 	<dependencyManagement>
@@ -716,6 +718,7 @@
 						<setanchors/>
 						<idprefix/>
 						<idseparator/>
+						<spring-data-commons-docs>${spring-data-commons-docs.dir}</spring-data-commons-docs>
 					</attributes>
 					<requires>
 						<require>asciidoctor-diagram</require>
