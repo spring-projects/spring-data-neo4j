@@ -22,6 +22,7 @@ import java.util.function.LongSupplier;
 
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.neo4j.core.Neo4jOperations;
@@ -30,6 +31,7 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -66,13 +68,23 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		Neo4jParameterAccessor parameterAccessor = getParameterAccessor(parameters);
 		ResultProcessor resultProcessor = queryMethod.getResultProcessor().withDynamicProjection(parameterAccessor);
 
-		PreparedQuery<?> preparedQuery = prepareQuery(resultProcessor.getReturnedType().getReturnedType(),
+		ReturnedType returnedType = resultProcessor.getReturnedType();
+		PreparedQuery<?> preparedQuery = prepareQuery(returnedType.getReturnedType(),
 				getInputProperties(resultProcessor), parameterAccessor, null, getMappingFunction(resultProcessor));
 
 		Object rawResult = new Neo4jQueryExecution.DefaultQueryExecution(neo4jOperations).execute(preparedQuery,
 				queryMethod.isCollectionLikeQuery() || queryMethod.isPageQuery() || queryMethod.isSliceQuery());
 
-		Object processedResult = resultProcessor.processResult(rawResult, OptionalUnwrappingConverter.INSTANCE);
+		Converter<Object, Object> preparingConverter = OptionalUnwrappingConverter.INSTANCE;
+		if (returnedType.isProjecting()) {
+			DtoInstantiatingConverter converter = new DtoInstantiatingConverter(returnedType.getReturnedType(), mappingContext);
+
+			// Neo4jQuerySupport ensure we will get an EntityInstanceWithSource in the projecting case
+			preparingConverter = source -> converter.convert(
+					(EntityInstanceWithSource) OptionalUnwrappingConverter.INSTANCE.convert(source));
+		}
+
+		Object processedResult = resultProcessor.processResult(rawResult, preparingConverter);
 
 		LongSupplier totalSupplier = () -> {
 

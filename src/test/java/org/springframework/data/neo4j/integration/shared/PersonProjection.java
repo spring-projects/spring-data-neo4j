@@ -17,10 +17,13 @@ package org.springframework.data.neo4j.integration.shared;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 public interface PersonProjection {
 
 	String getName();
+
+	String getFirstName();
 
 	String getSameValue();
 }

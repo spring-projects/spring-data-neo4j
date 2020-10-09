@@ -43,7 +43,7 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 	public static RepositoryQuery create(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
 			Neo4jQueryMethod queryMethod) {
 		return new PartTreeNeo4jQuery(neo4jOperations, mappingContext, queryMethod,
-				new PartTree(queryMethod.getName(), queryMethod.getDomainClass()));
+				new PartTree(queryMethod.getName(), getDomainType(queryMethod)));
 	}
 
 	private PartTreeNeo4jQuery(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
@@ -61,7 +61,7 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
 			@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction) {
 
-		CypherQueryCreator queryCreator = new CypherQueryCreator(mappingContext, domainType,
+		CypherQueryCreator queryCreator = new CypherQueryCreator(mappingContext, getDomainType(queryMethod),
 				Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,
 				includedProperties, this::convertParameter);
 

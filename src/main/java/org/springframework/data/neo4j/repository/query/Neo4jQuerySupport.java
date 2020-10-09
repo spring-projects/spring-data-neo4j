@@ -37,7 +37,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import org.springframework.data.repository.query.ParameterAccessor;
+import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.ClassTypeInformation;
@@ -56,13 +56,24 @@ abstract class Neo4jQuerySupport {
 
 	protected final Neo4jMappingContext mappingContext;
 	protected final Neo4jQueryMethod queryMethod;
-	protected final Class<?> domainType;
 	/**
 	 * The query type.
 	 */
 	protected final Neo4jQueryType queryType;
 
-	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jQuerySupport.class));
+	static final LogAccessor REPOSITORY_QUERY_LOG = new LogAccessor(LogFactory.getLog(Neo4jQuerySupport.class));
+
+	/**
+	 * Centralizes inquiry of the domain type to use the result processor of the query method as the point of truth.
+	 * While this could be exposed on the query method itself, we would risk working with another type if at some point
+	 * we osk the result processor only.
+	 *
+	 * @param queryMethod The query method whose domain type is requested
+	 * @return The domain type of the given query method.
+	 */
+	static Class<?> getDomainType(QueryMethod queryMethod) {
+		return queryMethod.getResultProcessor().getReturnedType().getDomainType();
+	}
 
 	Neo4jQuerySupport(Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod, Neo4jQueryType queryType) {
 
@@ -72,7 +83,6 @@ abstract class Neo4jQuerySupport {
 
 		this.mappingContext = mappingContext;
 		this.queryMethod = queryMethod;
-		this.domainType = queryMethod.getDomainClass();
 		this.queryType = queryType;
 	}
 
@@ -81,13 +91,11 @@ abstract class Neo4jQuerySupport {
 				actualParameters);
 	}
 
-	protected final ResultProcessor getResultProcessor(ParameterAccessor parameterAccessor) {
-		return queryMethod.getResultProcessor().withDynamicProjection(parameterAccessor);
-	}
-
 	protected final BiFunction<TypeSystem, Record, ?> getMappingFunction(final ResultProcessor resultProcessor) {
 
-		final Class<?> returnedType = resultProcessor.getReturnedType().getReturnedType();
+		final ReturnedType returnedTypeMetadata = resultProcessor.getReturnedType();
+		final Class<?> returnedType = returnedTypeMetadata.getReturnedType();
+		final Class<?> domainType = returnedTypeMetadata.getDomainType();
 
 		final BiFunction<TypeSystem, Record, ?> mappingFunction;
 
@@ -95,16 +103,9 @@ abstract class Neo4jQuerySupport {
 			// Clients automatically selects a single value mapping function.
 			// It will thrown an error if the query contains more than one column.
 			mappingFunction = null;
-		} else if (resultProcessor.getReturnedType().isProjecting()) {
-
-			if (returnedType.isInterface()) {
-				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
-			} else if (this.mappingContext.hasPersistentEntityFor(returnedType)) {
-				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(returnedType);
-			} else {
-				this.mappingContext.addPersistentEntity(returnedType);
-				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(returnedType);
-			}
+		} else if (returnedTypeMetadata.isProjecting()) {
+			BiFunction<TypeSystem, Record, ?> target = this.mappingContext.getRequiredMappingFunctionFor(domainType);
+			mappingFunction = (t, r) -> new EntityInstanceWithSource(target.apply(t, r), t, r);
 		} else {
 			mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
 		}
@@ -140,7 +141,7 @@ abstract class Neo4jQuerySupport {
 			// According to https://neo4j.com/docs/cypher-manual/current/syntax/working-with-null/#cypher-null-intro
 			// it does not make any sense to continue if a `null` value gets into a comparison
 			// but we just warn the users and do not throw an exception on `null`.
-			log.warn("Do not use `null` as a property value for comparison."
+			REPOSITORY_QUERY_LOG.warn("Do not use `null` as a property value for comparison."
 					+ " It will always be false and return an empty result.");
 
 			return Values.NULL;

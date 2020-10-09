@@ -26,13 +26,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import org.apache.commons.logging.LogFactory;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.StatementBuilder;
-import org.springframework.core.log.LogAccessor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.neo4j.core.mapping.Constants;
@@ -55,8 +53,6 @@ import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
  * @since 6.0
  */
 final class Predicate {
-
-	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Predicate.class));
 
 	static <S> Predicate create(Neo4jMappingContext mappingContext, Example<S> example) {
 
@@ -96,7 +92,7 @@ final class Predicate {
 			Neo4jConversionService conversionService = mappingContext.getConversionService();
 
 			if (graphProperty.isRelationship()) {
-				log.error("Querying by example does not support traversing of relationships.");
+				Neo4jQuerySupport.REPOSITORY_QUERY_LOG.error("Querying by example does not support traversing of relationships.");
 			} else if (graphProperty.isIdProperty() && probeNodeDescription.isUsingInternalIds()) {
 				predicate.add(mode,
 						predicate.neo4jPersistentEntity.getIdExpression().isEqualTo(literalOf(optionalValue.get())));

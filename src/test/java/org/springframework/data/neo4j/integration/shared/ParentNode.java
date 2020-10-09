@@ -13,22 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.mapping;
+package org.springframework.data.neo4j.integration.shared;
 
-import java.util.Map;
-
-import org.apiguardian.api.API;
-import org.neo4j.driver.types.MapAccessor;
-import org.springframework.data.convert.EntityReader;
-import org.springframework.data.convert.EntityWriter;
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
 
 /**
- * This orchestrates the build-in store conversions and any additional Spring converters.
- *
  * @author Michael J. Simons
- * @soundtrack The Kleptones - A Night At The Hip-Hopera
- * @since 6.0
+ * @soundtrack Die Toten Hosen - Zurück zum Glück
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
-public interface Neo4jEntityConverter extends EntityReader<Object, MapAccessor>, EntityWriter<Object, Map<String, Object>> {
+@Node
+public class ParentNode {
+	@Id @GeneratedValue
+	private Long id;
+
+	private String someAttribute;
+
+	public Long getId() {
+		return id;
+	}
+
+	public String getSomeAttribute() {
+		return someAttribute;
+	}
+
+	public void setSomeAttribute(String someAttribute) {
+		this.someAttribute = someAttribute;
+	}
 }

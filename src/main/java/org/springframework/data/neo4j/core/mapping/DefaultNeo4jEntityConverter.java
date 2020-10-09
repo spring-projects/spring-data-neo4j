@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.core.mapping;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,7 +34,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apache.commons.logging.LogFactory;
-import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
@@ -68,40 +68,38 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(DefaultNeo4jEntityConverter.class));
 
-	/**
-	 * The shared entity instantiators of this context. Those should not be recreated for each entity or even not for each
-	 * query, as otherwise the cache of Spring's org.springframework.data.convert.ClassGeneratingEntityInstantiator won't
-	 * apply
-	 */
-	private static final EntityInstantiators INSTANTIATORS = new EntityInstantiators();
-
+	private final EntityInstantiators entityInstantiators;
 	private final NodeDescriptionStore nodeDescriptionStore;
 	private final Neo4jConversionService conversionService;
 
 	private TypeSystem typeSystem;
 
-	DefaultNeo4jEntityConverter(Neo4jConversionService conversionService, NodeDescriptionStore nodeDescriptionStore) {
+	DefaultNeo4jEntityConverter(EntityInstantiators entityInstantiators, Neo4jConversionService conversionService, NodeDescriptionStore nodeDescriptionStore) {
 
+		Assert.notNull(entityInstantiators, "EntityInstantiators must not be null!");
 		Assert.notNull(conversionService, "Neo4jConversionService must not be null!");
+		Assert.notNull(nodeDescriptionStore, "NodeDescriptionStore must not be null!");
 
+		this.entityInstantiators = entityInstantiators;
 		this.conversionService = conversionService;
 		this.nodeDescriptionStore = nodeDescriptionStore;
 	}
 
 	@Override
-	public <R> R read(Class<R> targetType, Record record) {
+	public <R> R read(Class<R> targetType, MapAccessor mapAccessor) {
 
 		Neo4jPersistentEntity<R> rootNodeDescription = (Neo4jPersistentEntity) nodeDescriptionStore
 				.getNodeDescription(targetType);
 
 		try {
-			List<Value> recordValues = record.values();
+			Iterable<Value> recordValues = mapAccessor instanceof Value && ((Value) mapAccessor).hasType(typeSystem.NODE()) ?
+					Collections.singletonList((Value) mapAccessor) : mapAccessor.values();
 			String nodeLabel = rootNodeDescription.getPrimaryLabel();
 			MapAccessor queryRoot = null;
 			for (Value value : recordValues) {
 				if (value.hasType(typeSystem.NODE()) && value.asNode().hasLabel(nodeLabel)) {
-					if (recordValues.size() > 1) {
-						queryRoot = mergeRootNodeWithRecord(value.asNode(), record);
+					if (mapAccessor.size() > 1) {
+						queryRoot = mergeRootNodeWithRecord(value.asNode(), mapAccessor);
 					} else {
 						queryRoot = value.asNode();
 					}
@@ -118,14 +116,12 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 
 			if (queryRoot == null) {
-				log.warn(() -> String.format("Could not find mappable nodes or relationships inside %s for %s", record,
-						rootNodeDescription));
-				return null; // todo should not be null because of the @nonnullapi annotation in the EntityReader. Fail?
+				throw new MappingException(String.format("Could not find mappable nodes or relationships inside %s for %s", mapAccessor, rootNodeDescription));
 			} else {
 				return map(queryRoot, rootNodeDescription, new KnownObjects(), new HashSet<>());
 			}
 		} catch (Exception e) {
-			throw new MappingException("Error mapping " + record.toString(), e);
+			throw new MappingException("Error mapping " + mapAccessor.toString(), e);
 		}
 	}
 
@@ -188,7 +184,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	 * @param record Record that should be merged
 	 * @return
 	 */
-	private static MapAccessor mergeRootNodeWithRecord(Node node, Record record) {
+	private static MapAccessor mergeRootNodeWithRecord(Node node, MapAccessor record) {
 		Map<String, Object> mergedAttributes = new HashMap<>(node.size() + record.size() + 1);
 
 		mergedAttributes.put(Constants.NAME_OF_INTERNAL_ID, node.id());
@@ -314,7 +310,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		};
 
-		return INSTANTIATORS.getInstantiatorFor(nodeDescription).createInstance(nodeDescription, parameterValueProvider);
+		return entityInstantiators.getInstantiatorFor(nodeDescription).createInstance(nodeDescription, parameterValueProvider);
 	}
 
 	private PropertyHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult,

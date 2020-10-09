@@ -31,7 +31,7 @@ import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Polygon;
 import org.springframework.data.neo4j.integration.shared.DtoPersonProjection;
-import org.springframework.data.neo4j.integration.shared.KotlinPerson;
+import org.springframework.data.neo4j.integration.shared.DtoPersonProjectionContainingAdditionalFields;
 import org.springframework.data.neo4j.integration.shared.PersonProjection;
 import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.PersonWithNoConstructor;
@@ -93,15 +93,6 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	@Query("MATCH (n:PersonWithWither{name:'Test'}) return n")
 	Optional<PersonWithWither> getOptionalPersonWithWitherViaQuery();
-
-	@Query("MATCH (n:KotlinPerson)-[w:WORKS_IN]->(c:KotlinClub) return n, collect(w), collect(c)")
-	List<KotlinPerson> getAllKotlinPersonsViaQuery();
-
-	@Query("MATCH (n:KotlinPerson{name:'Test'})-[w:WORKS_IN]->(c:KotlinClub) return n, collect(w), collect(c)")
-	KotlinPerson getOneKotlinPersonViaQuery();
-
-	@Query("MATCH (n:KotlinPerson{name:'Test'})-[w:WORKS_IN]->(c:KotlinClub) return n, collect(w), collect(c)")
-	Optional<KotlinPerson> getOptionalKotlinPersonViaQuery();
 
 	// Derived finders, should be extracted into another repo.
 	Optional<PersonWithAllConstructor> findOneByNameAndFirstName(String name, String firstName);
@@ -241,6 +232,12 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	List<PersonProjection> findBySameValue(String sameValue);
 
 	List<DtoPersonProjection> findByFirstName(String firstName);
+
+	@Query(""
+			+ "MATCH (n:PersonWithAllConstructor) where n.name = $name "
+			+ "WITH n MATCH(m:PersonWithAllConstructor) WHERE id(n) <> id(m) "
+			+ "RETURN n, collect(m) AS otherPeople, 4711 AS someLongValue, [21.42, 42.21] AS someDoubles")
+	List<DtoPersonProjectionContainingAdditionalFields> findAllDtoProjectionsWithAdditionalProperties(@Param("name") String name);
 
 	@Query("MATCH (n:PersonWithAllConstructor) where n.name = $name return n{.name}")
 	PersonProjection findByNameWithCustomQueryAndMapProjection(@Param("name") String name);

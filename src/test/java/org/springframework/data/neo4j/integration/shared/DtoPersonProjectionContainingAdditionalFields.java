@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.mapping;
+package org.springframework.data.neo4j.integration.shared;
 
-import java.util.Map;
+import lombok.Value;
 
-import org.apiguardian.api.API;
-import org.neo4j.driver.types.MapAccessor;
-import org.springframework.data.convert.EntityReader;
-import org.springframework.data.convert.EntityWriter;
+import java.util.List;
 
 /**
- * This orchestrates the build-in store conversions and any additional Spring converters.
- *
  * @author Michael J. Simons
- * @soundtrack The Kleptones - A Night At The Hip-Hopera
- * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
-public interface Neo4jEntityConverter extends EntityReader<Object, MapAccessor>, EntityWriter<Object, Map<String, Object>> {
+@Value
+public class DtoPersonProjectionContainingAdditionalFields {
+
+	String name;
+	String sameValue;
+	String firstName;
+
+	List<PersonWithAllConstructor> otherPeople;
+
+	Long someLongValue;
+
+	List<Double> someDoubles;
 }
