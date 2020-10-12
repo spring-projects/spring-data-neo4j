@@ -40,7 +40,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  */
 // tag::faq.template-reactive[]
 @Testcontainers
-@ReactiveDataNeo4jTest
+@DataNeo4jTest
 class ReactiveTemplateExampleTest {
 
 	@Container private static Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>("neo4j:4.0");

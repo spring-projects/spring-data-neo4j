@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 
 import org.neo4j.driver.summary.InputPosition;
 import org.neo4j.driver.summary.Notification;
+import org.neo4j.driver.summary.Plan;
 import org.neo4j.driver.summary.ResultSummary;
 
 /**
@@ -93,6 +94,38 @@ final class ResultSummaries {
 		}
 		return String.format("%s: %s%n%s%s", notification.code(), notification.title(), queryHint,
 				notification.description());
+	}
+
+	/**
+	 * Logs the plan of the result summary if available and log level is at least debug.
+	 *
+	 * @param resultSummary The result summary that might contain a plan
+	 */
+	private static void logPlan(ResultSummary resultSummary) {
+
+		if (!(resultSummary.hasPlan() && Neo4jClient.cypherLog.isDebugEnabled())) {
+			return;
+		}
+
+		Consumer<String> log = Neo4jClient.cypherLog::debug;
+
+		log.accept("Plan:");
+		printPlan(log, resultSummary.plan(), 0);
+	}
+
+	private static void printPlan(Consumer<String> log, Plan plan, int level) {
+
+		String tabs = Stream.generate(() -> "\t").limit(level).collect(Collectors.joining());
+		log.accept(tabs + "operatorType: " + plan.operatorType());
+		log.accept(tabs + "identifiers: " + String.join(",", plan.identifiers()));
+		log.accept(tabs + "arguments: ");
+		plan.arguments().forEach((k, v) -> log.accept(tabs + "\t" + k + "=" + v));
+		if (!plan.children().isEmpty()) {
+			log.accept(tabs + "children: ");
+			for (Plan childPlan : plan.children()) {
+				printPlan(log, childPlan, level + 1);
+			}
+		}
 	}
 
 	private ResultSummaries() {
