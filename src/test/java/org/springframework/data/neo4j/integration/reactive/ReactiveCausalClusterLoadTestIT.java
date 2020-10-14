@@ -37,7 +37,8 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.junit.jupiter.causal_cluster.Neo4jUri;
+import org.neo4j.junit.jupiter.causal_cluster.CausalCluster;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -59,7 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
 @CausalClusterIntegrationTest
 class ReactiveCausalClusterLoadTestIT {
 
-	@Neo4jUri private static URI neo4jUri;
+	@CausalCluster private static URI neo4jUri;
 
 	@RepeatedTest(20)
 	void transactionsShouldBeSerializable(@Autowired ThingService thingService) throws InterruptedException {

@@ -89,7 +89,7 @@
 		<jqassistant-dashboard-plugin.version>1.8.0</jqassistant-dashboard-plugin.version>
 		<jqassistant.plugin.version>1.8.0</jqassistant.plugin.version>
 		<jqassistant.version>1.8.0</jqassistant.version>
-		<junit-cc-testcontainer>4.0.2.2</junit-cc-testcontainer>
+		<junit-cc-testcontainer>2020.0.3</junit-cc-testcontainer>
 		<maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
 		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
 		<maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
