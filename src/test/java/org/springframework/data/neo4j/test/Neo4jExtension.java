@@ -45,6 +45,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.internal.util.ServerVersion;
 import org.springframework.core.log.LogMessage;
+import org.springframework.lang.Nullable;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
@@ -118,7 +119,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 	}
 
 	@Override
-	public void beforeEach(ExtensionContext context) throws Exception {
+	public void beforeEach(ExtensionContext context) {
 		ExtensionContext.Store contextStore = context.getStore(NAMESPACE);
 		Neo4jConnectionSupport neo4jConnectionSupport = contextStore.get(KEY_DRIVER_INSTANCE, Neo4jConnectionSupport.class);
 		checkRequiredFeatures(neo4jConnectionSupport, context.getTags());
@@ -173,22 +174,49 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		}
 
 		/**
-		 * @return A possible shared driver instance, connected to either a database running inside test containers or
-		 *         running locally.
+		 * This method asserts that the current driver instance is usable before handing it out. If it isn't usable, it
+		 * creates a new one.
+		 *
+		 * @return A shared driver instance, connected to either a database running inside test containers or
+		 * running locally.
 		 */
 		public Driver getDriver() {
 
 			Driver driver = this.driverInstance;
-			if (driver == null) {
+			if (!isUsable(driver)) {
 				synchronized (this) {
 					driver = this.driverInstance;
-					if (driver == null) {
+					if (!isUsable(driver)) {
 						this.driverInstance = GraphDatabase.driver(url, authToken, config);
 						driver = this.driverInstance;
 					}
 				}
 			}
 			return driver;
+		}
+
+		/**
+		 * A driver is usable if it's not null and can verify its connectivity. This method force closes
+		 * the bean if the connectivity cannot be verified to avoid having a netty pool dangling around.
+		 *
+		 * @param driver The driver that should be checked for usability
+		 * @return true if the driver is currently usable.
+		 */
+		private static boolean isUsable(@Nullable Driver driver) {
+
+			if (driver == null) {
+				return false;
+			}
+			try {
+				driver.verifyConnectivity();
+				return true;
+			} catch (Exception ex) {
+				try {
+					driver.close();
+				} catch (Exception nested) {
+				}
+				return false;
+			}
 		}
 
 		ServerVersion getServerVersion() {
@@ -238,7 +266,8 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 			try {
 				log.debug("Closing Neo4j connection support.");
 				driverInstance.close();
-			} catch (Exception e) {}
+			} catch (Exception e) {
+			}
 		}
 	}
 
