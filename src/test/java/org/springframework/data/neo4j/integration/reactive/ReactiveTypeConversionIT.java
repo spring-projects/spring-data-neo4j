@@ -27,7 +27,6 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -39,17 +38,14 @@ import org.springframework.data.neo4j.integration.shared.ThingWithUUIDID;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jExtension;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Michael J. Simons
  * @soundtrack Tom Morello - The Atlas Underground
  */
-@ExtendWith(Neo4jExtension.class)
-@SpringJUnitConfig
-@DirtiesContext
+@Neo4jIntegrationTest
 @Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 class ReactiveTypeConversionIT {
 

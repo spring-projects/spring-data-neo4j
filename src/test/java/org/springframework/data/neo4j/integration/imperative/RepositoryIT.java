@@ -134,7 +134,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @ExtendWith(Neo4jExtension.class)
 @SpringJUnitConfig
-@DirtiesContext
+@DirtiesContext // We need this here as the nested tests all inherit from the integration test base but the database selection here is different
 class RepositoryIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;

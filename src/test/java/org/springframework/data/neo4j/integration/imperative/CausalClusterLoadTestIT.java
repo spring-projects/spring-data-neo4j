@@ -128,7 +128,7 @@ class CausalClusterLoadTestIT {
 		public Driver driver() {
 
 			Driver driver = GraphDatabase.driver(neo4jUri, AuthTokens.basic("neo4j", "secret"),
-					Config.builder().withConnectionTimeout(2, TimeUnit.MINUTES).build());
+					Config.builder().withConnectionTimeout(5, TimeUnit.MINUTES).build());
 			driver.verifyConnectivity();
 			return driver;
 		}

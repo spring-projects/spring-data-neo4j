@@ -22,14 +22,12 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.test.Neo4jExtension;
-import org.springframework.test.annotation.DirtiesContext;
 
 /**
  * @author Michael J. Simons
  */
 @Tag(Neo4jExtension.COMMERCIAL_EDITION_ONLY)
 @Tag(Neo4jExtension.REQUIRES + "4.0.0")
-@DirtiesContext
 class RepositoryWithADifferentDatabaseIT extends RepositoryIT {
 
 	private static final String TEST_DATABASE_NAME = "aTestDatabase";

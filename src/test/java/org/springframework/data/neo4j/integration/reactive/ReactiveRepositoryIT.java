@@ -112,8 +112,8 @@ import org.springframework.transaction.reactive.TransactionalOperator;
  */
 @ExtendWith(Neo4jExtension.class)
 @SpringJUnitConfig
-@DirtiesContext
 @Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
+@DirtiesContext // We need this here as the nested tests all inherit from the integration test base but the database selection here is different
 class ReactiveRepositoryIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
