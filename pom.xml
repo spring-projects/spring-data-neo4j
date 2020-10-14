@@ -73,8 +73,6 @@
 		<asciidoctorj-diagram.version>2.0.1</asciidoctorj-diagram.version>
 
 		<!-- For whatever reason, redeclaring those dependencies in our managed dependencies doesn't have any affect... -->
-		<assertj>${assertj.version}</assertj>
-		<assertj.version>3.15.0</assertj.version>
 		<byte-buddy.version>1.10.9</byte-buddy.version>
 		<cdi>2.0</cdi>
 		<changelist>-SNAPSHOT</changelist>
@@ -92,7 +90,6 @@
 		<jqassistant.plugin.version>1.8.0</jqassistant.plugin.version>
 		<jqassistant.version>1.8.0</jqassistant.version>
 		<junit-cc-testcontainer>4.0.2.2</junit-cc-testcontainer>
-		<junit-jupiter.version>5.6.1</junit-jupiter.version>
 		<maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
 		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
 		<maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
@@ -123,7 +120,6 @@
 
 		<skipUnitTests>${skipTests}</skipUnitTests>
 		<springdata.commons>2.4.0-SNAPSHOT</springdata.commons>
-		<testcontainers.version>1.13.0</testcontainers.version>
 
 		<spring-data-commons-docs.dir>../../../../../spring-data-commons/src/main/asciidoc</spring-data-commons-docs.dir>
 	</properties>
@@ -180,31 +176,6 @@
 				<version>${apiguardian.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.assertj</groupId>
-				<artifactId>assertj-core</artifactId>
-				<version>${assertj.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.junit</groupId>
-				<artifactId>junit-bom</artifactId>
-				<version>${junit-jupiter.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.mockito</groupId>
-				<artifactId>mockito-core</artifactId>
-				<version>${mockito.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.mockito</groupId>
-				<artifactId>mockito-junit-jupiter</artifactId>
-				<version>${mockito.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
 				<groupId>org.neo4j</groupId>
 				<artifactId>neo4j</artifactId>
 				<version>${neo4j.version}</version>
@@ -241,21 +212,10 @@
 			</dependency>
 			<dependency>
 				<groupId>org.testcontainers</groupId>
-				<artifactId>junit-jupiter</artifactId>
-				<version>${testcontainers.version}</version>
-				<scope>test</scope>
-				<exclusions>
-					<exclusion>
-						<artifactId>annotations</artifactId>
-						<groupId>org.jetbrains</groupId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>org.testcontainers</groupId>
-				<artifactId>neo4j</artifactId>
-				<version>${testcontainers.version}</version>
-				<scope>test</scope>
+				<artifactId>testcontainers-bom</artifactId>
+				<version>${testcontainers}</version>
+				<type>pom</type>
+				<scope>import</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -326,11 +286,6 @@
 			<artifactId>apiguardian-api</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.assertj</groupId>
-			<artifactId>assertj-core</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.jboss.weld.se</groupId>
 			<artifactId>weld-se-core</artifactId>
 			<version>3.1.4.Final</version>
@@ -357,35 +312,12 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-core</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-junit-jupiter</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-cypher-dsl</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j.driver</groupId>
 			<artifactId>neo4j-java-driver</artifactId>
-		</dependency>
-		<!-- Reduce scope of Lombok to test (it is defined by Spring Data Parent) -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>${lombok}</version>
-			<scope>test</scope>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -410,13 +342,19 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-r2dbc</artifactId>
-			<version>1.0.0.RELEASE</version>
+			<version>1.1.0.RELEASE</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>annotations</artifactId>
+					<groupId>org.jetbrains</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
