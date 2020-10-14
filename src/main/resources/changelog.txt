@@ -1,6 +1,24 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.0.0-RC2 (2020-10-14)
+-----------------------------------------
+* DATAGRAPH-1404 - Streamline POM dependencies setup.
+* DATAGRAPH-1401 - Update outdated chapter about testing.
+* DATAGRAPH-1397 - Create correct target collection type for relationship with properties.
+* DATAGRAPH-1396 - ClassCastException when writing scalar relationship properties field.
+* DATAGRAPH-1395 - Support [At]TargetNode properties in persistence constructors.
+* DATAGRAPH-1393 - Add support for OGM's CompositeAttributeConverter.
+* DATAGRAPH-1392 - Optimize loading of cyclic data.
+* DATAGRAPH-1391 - Mapper does not respect existing objects.
+* DATAGRAPH-1390 - Provide attribute specific conversions.
+* DATAGRAPH-1388 - Add "legacy" converters for DateLong and DateString.
+* DATAGRAPH-1387 - Finalize and document package structure.
+* DATAGRAPH-1386 - Log Query notifications.
+* DATAGRAPH-1384 - FindByExample only returns root node.
+* DATAGRAPH-1382 - Release 6.0 RC2 (2020.0.0).
+
+
 Changes in version 6.0.0-RC1 (2020-09-16)
 -----------------------------------------
 * DATAGRAPH-1379 - Upgrade to Neo4j driver 4.0.3.
@@ -1866,6 +1884,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
