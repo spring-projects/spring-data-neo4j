@@ -72,7 +72,6 @@
 		<asciidoctor-maven-plugin.version>1.6.0</asciidoctor-maven-plugin.version>
 		<asciidoctorj-diagram.version>2.0.1</asciidoctorj-diagram.version>
 
-		<!-- For whatever reason, redeclaring those dependencies in our managed dependencies doesn't have any affect... -->
 		<byte-buddy.version>1.10.9</byte-buddy.version>
 		<cdi>2.0</cdi>
 		<changelist>-SNAPSHOT</changelist>
@@ -85,7 +84,6 @@
 		<java-module-name>spring.data.neo4j</java-module-name>
 		<java.version>1.8</java.version>
 		<jaxb.version>2.3.1</jaxb.version>
-		<!-- Align with testcontainers' version -->
 		<jqassistant-dashboard-plugin.version>1.8.0</jqassistant-dashboard-plugin.version>
 		<jqassistant.plugin.version>1.8.0</jqassistant.plugin.version>
 		<jqassistant.version>1.8.0</jqassistant.version>
@@ -104,10 +102,9 @@
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<mockito>${mockito.version}</mockito>
 		<mockito.version>3.2.4</mockito.version>
-		<neo4j-java-driver.version>4.0.3</neo4j-java-driver.version>
+		<neo4j-java-driver.version>4.1.1</neo4j-java-driver.version>
 		<neo4j.version>4.0.3</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
-		<!-- mockk requires objenesis >= 3 -->
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<r2dbc.releasetrain>Arabba-SR5</r2dbc.releasetrain>
