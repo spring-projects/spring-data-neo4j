@@ -78,21 +78,13 @@ The test slice provides all the necessary infrastructure for tests using Neo4j: 
 depending on reactive dependencies present or not.
 The test slice already includes `@ExtendWith(SpringExtension.class)` so that it runs automatically with JUnit 5 (JUnit Jupiter).
 
-`@DataNeo4jTest` provides both imperative and reactive infrastructure by default.
-It does *not* make your test `@Transactional` however.
+`@DataNeo4jTest` provides both imperative and reactive infrastructure by default and also adds an implicit `@Transactional` as well.
+`@Transactional` in Spring tests however always means imperative transactional, as declarative transactions needs the
+return type of a method to decide whether the imperative `PlatformTransactionManager` or the reactive `ReactiveTransactionManager` is needed.
 
-`@Transactional` in Spring tests however always means imperative transactional,
-as declarative transactions needs the return type of a method to decide whether the imperative `PlatformTransactionManager`
-or the reactive `ReactiveTransactionManager` is needed. Testmethods however don't return anything and neither the
-Spring Framework itself, the testing framework or Spring Data Neo4j can decide this in a reliable way for the user.
-
-IMPORTANT: Make sure to add `@Transactional` to your test class in case you want to test imperative transactions
-           that should be automatically rolled back after the test.
-           To assert the correct transactional behaviour for reactive repositories or services, you will need to
-           inject a `TransactionalOperator` into the test or wrap your domain logic in services that use annotated
-           methods exposing a return type that makes it possible for the infrastructure to select the correct
-           transaction manager.
-
+To assert the correct transactional behaviour for reactive repositories or services, you will need to inject a `TransactionalOperator`
+into the test or wrap your domain logic in services that use annotated  methods exposing a return type that makes it possible
+for the infrastructure to select the correct transaction manager.
 
 The test slice does not bring in an embedded database or any other connection setting.
 It is up to you to use an appropriate connection.
