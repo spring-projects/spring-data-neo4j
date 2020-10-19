@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.query;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.LongSupplier;
 
@@ -88,8 +89,10 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 
 		LongSupplier totalSupplier = () -> {
 
-			PreparedQuery<Long> countQuery = prepareQuery(Long.class, Collections.emptyList(), parameterAccessor,
-					Neo4jQueryType.COUNT, null);
+			PreparedQuery<Long> countQuery = getCountQuery(parameterAccessor)
+					.orElse(
+						prepareQuery(Long.class, Collections.emptyList(), parameterAccessor, Neo4jQueryType.COUNT, null)
+					);
 			return neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
 		};
 		if (queryMethod.isPageQuery()) {
@@ -107,4 +110,8 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 			List<String> includedProperties, Neo4jParameterAccessor parameterAccessor,
 			@Nullable Neo4jQueryType queryType,
 			@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction);
+
+	protected Optional<PreparedQuery<Long>> getCountQuery(Neo4jParameterAccessor parameterAccessor) {
+		return Optional.empty();
+	}
 }
