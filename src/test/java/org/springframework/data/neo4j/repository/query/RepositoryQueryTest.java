@@ -206,15 +206,6 @@ final class RepositoryQueryTest {
 		}
 
 		@Test
-		void shouldExtractQueryTemplate() {
-
-			Neo4jQueryMethod method = neo4jQueryMethod("annotatedQueryWithValidTemplate");
-
-			assertThat(StringBasedNeo4jQuery.getQueryTemplate(method.getQueryAnnotation().get()))
-					.isEqualTo(CUSTOM_CYPHER_QUERY);
-		}
-
-		@Test
 		void shouldDetectInvalidAnnotation() {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("annotatedQueryWithoutTemplate");

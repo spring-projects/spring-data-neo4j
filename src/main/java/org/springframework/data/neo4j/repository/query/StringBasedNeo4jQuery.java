@@ -128,12 +128,6 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 		this.cypherQuery = spelExtractor.getQueryString();
 	}
 
-	static String getQueryTemplate(Query queryAnnotation) {
-
-		return Optional.ofNullable(queryAnnotation.value()).filter(StringUtils::hasText)
-				.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not."));
-	}
-
 	@Override
 	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, List<String> includedProperties,
 			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
