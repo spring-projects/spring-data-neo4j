@@ -161,6 +161,16 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 		return resolvedParameters;
 	}
 
+	@Override
+	protected Optional<PreparedQuery<Long>> getCountQuery() {
+		if (!queryMethod.hasQueryAnnotation()) {
+			return Optional.empty();
+		}
+		System.out.println(queryMethod.getParameters().hasPageableParameter());
+		return queryMethod.getQueryAnnotation().map(queryAnnotation ->
+				PreparedQuery.queryFor(Long.class).withCypherQuery(cypherQuery).build());
+	}
+
 	/**
 	 * @param index position of this parameter placeholder
 	 * @param originalSpelExpression Not used for configuring parameter names atm.

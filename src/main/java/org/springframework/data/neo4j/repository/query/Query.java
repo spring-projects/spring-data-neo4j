@@ -45,6 +45,8 @@ public @interface Query {
 	 */
 	String value() default "";
 
+	String countQuery() default "";
+
 	/**
 	 * @return whether the query defined should be executed as count projection.
 	 */

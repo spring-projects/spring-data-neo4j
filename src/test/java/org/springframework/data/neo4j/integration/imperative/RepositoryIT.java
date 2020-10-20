@@ -64,6 +64,7 @@ import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.domain.Slice;
@@ -805,6 +806,18 @@ class RepositoryIT {
 
 			assertThat(loadedPet.getFriends().get(0).getName()).isEqualTo("Daphne");
 			assertThat(loadedPet.getFriends().get(0).getFriends().get(0).getName()).isEqualTo("Luna");
+
+		}
+
+		@Test
+		void pagingAllAround(@Autowired PetRepository repository) {
+
+			try (Session session = createSession()) {
+				session.run("CREATE (luna:Pet{name:'Luna'})").consume();
+			}
+			Page<Pet> loadedPets = repository.pagedPets(PageRequest.of(0,1));
+
+			assertThat(loadedPets.getTotalElements()).isEqualTo(1);
 
 		}
 
