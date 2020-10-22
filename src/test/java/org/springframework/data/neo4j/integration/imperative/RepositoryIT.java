@@ -563,6 +563,31 @@ class RepositoryIT {
 			assertThat(slice.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON1_NAME);
 			assertThat(slice.hasNext()).isFalse();
 		}
+
+		@Test // DATAGRAPH-1412
+		void customFindMapsDeepRelationships(@Autowired PetRepository repository) {
+			long petNode1Id;
+			long petNode2Id;
+			long petNode3Id;
+
+			try (Session session = createSession()) {
+				Record record = session.run("CREATE " + "(p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'}), "
+						+ "(p2)-[:Has]->(p3:Pet{name: 'Pet3'}) " + "RETURN p1, p2, p3").single();
+
+				petNode1Id = record.get("p1").asNode().id();
+				petNode2Id = record.get("p2").asNode().id();
+				petNode3Id = record.get("p3").asNode().id();
+			}
+
+			Pet loadedPet = repository.customQueryWithDeepRelationshipMapping(petNode1Id);
+
+			Pet comparisonPet2 = new Pet(petNode2Id, "Pet2");
+			Pet comparisonPet3 = new Pet(petNode3Id, "Pet3");
+			assertThat(loadedPet.getFriends()).containsExactlyInAnyOrder(comparisonPet2);
+
+			Pet pet2 = loadedPet.getFriends().get(loadedPet.getFriends().indexOf(comparisonPet2));
+			assertThat(pet2.getFriends()).containsExactly(comparisonPet3);
+		}
 	}
 
 	@Nested
@@ -645,7 +670,6 @@ class RepositoryIT {
 			}
 
 			Pet loadedPet = repository.findById(petNode1Id).get();
-
 			Pet comparisonPet2 = new Pet(petNode2Id, "Pet2");
 			Pet comparisonPet3 = new Pet(petNode3Id, "Pet3");
 			assertThat(loadedPet.getFriends()).containsExactlyInAnyOrder(comparisonPet2);
@@ -3147,7 +3171,12 @@ class RepositoryIT {
 		PersonWithRelationshipWithProperties findByHobbiesHobbyName(String hobbyName);
 	}
 
-	interface PetRepository extends Neo4jRepository<Pet, Long> {}
+	interface PetRepository extends Neo4jRepository<Pet, Long> {
+
+		@Query("MATCH (p:Pet)-[r1:Has]->(p2:Pet)-[r2:Has]->(p3:Pet) " +
+				"where id(p) = $petNode1Id return p, collect(r1), collect(p2), collect(r2), collect(p3)")
+		Pet customQueryWithDeepRelationshipMapping(@Param("petNode1Id") long petNode1Id);
+	}
 
 	interface RelationshipRepository extends Neo4jRepository<PersonWithRelationship, Long> {
 
