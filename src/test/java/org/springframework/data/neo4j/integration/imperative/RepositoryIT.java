@@ -622,6 +622,24 @@ class RepositoryIT {
 			assertThat(loadedPets.getTotalElements()).isEqualTo(1);
 		}
 
+		@Test // DATAGRAPH-1409
+		void findSliceWithCustomQuery(@Autowired PetRepository repository) {
+
+			try (Session session = createSession()) {
+				session.run("CREATE (luna:Pet{name:'Luna'})").consume();
+			}
+			Slice<Pet> loadedPets = repository.slicedPets(PageRequest.of(0, 1));
+
+			assertThat(loadedPets.getNumberOfElements()).isEqualTo(1);
+			assertThat(loadedPets.isFirst()).isTrue();
+			assertThat(loadedPets.isLast()).isTrue();
+
+			loadedPets = repository.slicedPets(PageRequest.of(1, 1));
+			assertThat(loadedPets.getNumberOfElements()).isEqualTo(0);
+			assertThat(loadedPets.isFirst()).isFalse();
+			assertThat(loadedPets.isLast()).isTrue();
+		}
+
 	}
 
 	@Nested
@@ -3213,9 +3231,13 @@ class RepositoryIT {
 		@Query(value = "MATCH (p:Pet) return p SKIP $skip LIMIT $limit", countQuery = "MATCH (p:Pet) return count(p)")
 		Page<Pet> pagedPets(Pageable pageable);
 
+		@Query(value = "MATCH (p:Pet) return p SKIP $skip LIMIT $limit", countQuery = "MATCH (p:Pet) return count(p)")
+		Slice<Pet> slicedPets(Pageable pageable);
+
 		@Query(value = "MATCH (p:Pet) where p.name=$petName return p SKIP $skip LIMIT $limit",
 				countQuery = "MATCH (p:Pet) return count(p)")
 		Page<Pet> pagedPetsWithParameter(@Param("petName") String petName, Pageable pageable);
+
 	}
 
 	interface RelationshipRepository extends Neo4jRepository<PersonWithRelationship, Long> {
