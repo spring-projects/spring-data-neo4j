@@ -40,7 +40,9 @@ import org.springframework.data.neo4j.integration.shared.Person;
 import org.springframework.data.neo4j.integration.shared.PersonWithStringlyTypedRelatives;
 import org.springframework.data.neo4j.integration.shared.Pet;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -255,7 +257,46 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 		}
 	}
 
-	interface PersonWithRelativesRepository extends CrudRepository<PersonWithStringlyTypedRelatives, Long> {}
+	@Test // DATAGRAPH-1411
+	void shouldReadDynamicRelationshipsWithCustomQuery(@Autowired PersonWithRelativesRepository repository) {
+
+		PersonWithStringlyTypedRelatives person = repository.byCustomQuery(idOfExistingPerson);
+		assertThat(person).isNotNull();
+		assertThat(person.getName()).isEqualTo("A");
+
+		Map<String, Person> relatives = person.getRelatives();
+		assertThat(relatives).containsOnlyKeys("HAS_WIFE", "HAS_DAUGHTER");
+		assertThat(relatives.get("HAS_WIFE").getFirstName()).isEqualTo("B");
+		assertThat(relatives.get("HAS_DAUGHTER").getFirstName()).isEqualTo("C");
+
+		Map<String, ClubRelationship> clubs = person.getClubs();
+		assertThat(clubs).containsOnlyKeys("FOOTBALL");
+		assertThat(clubs.get("FOOTBALL").getPlace()).isEqualTo("Brunswick");
+		assertThat(clubs.get("FOOTBALL").getClub().getName()).isEqualTo("BTSV");
+	}
+
+	@Test // DATAGRAPH-1411
+	void shouldReadDynamicCollectionRelationshipsWithCustomQuery(@Autowired PersonWithRelativesRepository repository) {
+
+		PersonWithStringlyTypedRelatives person = repository.byCustomQuery(idOfExistingPerson);
+		assertThat(person).isNotNull();
+		assertThat(person.getName()).isEqualTo("A");
+
+		Map<String, List<Pet>> pets = person.getPets();
+		assertThat(pets).containsOnlyKeys("CATS", "DOGS");
+		assertThat(pets.get("CATS")).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield");
+		assertThat(pets.get("DOGS")).extracting(Pet::getName).containsExactlyInAnyOrder("Benji", "Lassie");
+
+		Map<String, List<HobbyRelationship>> hobbies = person.getHobbies();
+		assertThat(hobbies.get("ACTIVE")).extracting(HobbyRelationship::getPerformance).containsExactly("average");
+		assertThat(hobbies.get("ACTIVE")).extracting(HobbyRelationship::getHobby).extracting(Hobby::getName).containsExactly("Biking");
+	}
+
+	interface PersonWithRelativesRepository extends CrudRepository<PersonWithStringlyTypedRelatives, Long> {
+
+		@Query("MATCH (p:PersonWithStringlyTypedRelatives)-[r] -> (o) WHERE id(p) = $personId return p, collect(r), collect(o)")
+		PersonWithStringlyTypedRelatives byCustomQuery(@Param("personId") Long personId);
+	}
 
 	@Configuration
 	@EnableTransactionManagement

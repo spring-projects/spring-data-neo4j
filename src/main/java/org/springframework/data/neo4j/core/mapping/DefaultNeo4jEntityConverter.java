@@ -449,7 +449,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			// find relationships in the result
 			List<Relationship> allMatchingTypeRelationshipsInResult = StreamSupport
 					.stream(allValues.values().spliterator(), false).filter(isList.and(containsOnlyRelationships))
-					.flatMap(entry -> entry.asList(Value::asRelationship).stream()).filter(r -> r.type().equals(relationshipType))
+					.flatMap(entry -> entry.asList(Value::asRelationship).stream())
+					.filter(r -> r.type().equals(relationshipType) || relationshipDescription.isDynamic())
 					.collect(Collectors.toList());
 
 			List<Node> allNodesWithMatchingLabelInResult = StreamSupport.stream(allValues.values().spliterator(), false)
