@@ -589,6 +589,39 @@ class RepositoryIT {
 			Pet pet2 = loadedPet.getFriends().get(loadedPet.getFriends().indexOf(comparisonPet2));
 			assertThat(pet2.getFriends()).containsExactly(comparisonPet3);
 		}
+
+		@Test // DATAGRAPH-1409
+		void findPageWithCustomQuery(@Autowired PetRepository repository) {
+
+			try (Session session = createSession()) {
+				session.run("CREATE (luna:Pet{name:'Luna'})").consume();
+			}
+			Page<Pet> loadedPets = repository.pagedPets(PageRequest.of(0, 1));
+
+			assertThat(loadedPets.getNumberOfElements()).isEqualTo(1);
+			assertThat(loadedPets.getTotalElements()).isEqualTo(1);
+
+			loadedPets = repository.pagedPets(PageRequest.of(1, 1));
+			assertThat(loadedPets.getNumberOfElements()).isEqualTo(0);
+			assertThat(loadedPets.getTotalElements()).isEqualTo(1);
+		}
+
+		@Test // DATAGRAPH-1409
+		void findPageWithCustomQueryAndParameters(@Autowired PetRepository repository) {
+
+			try (Session session = createSession()) {
+				session.run("CREATE (luna:Pet{name:'Luna'})").consume();
+			}
+			Page<Pet> loadedPets = repository.pagedPetsWithParameter("Luna", PageRequest.of(0, 1));
+
+			assertThat(loadedPets.getNumberOfElements()).isEqualTo(1);
+			assertThat(loadedPets.getTotalElements()).isEqualTo(1);
+
+			loadedPets = repository.pagedPetsWithParameter("Luna", PageRequest.of(1, 1));
+			assertThat(loadedPets.getNumberOfElements()).isEqualTo(0);
+			assertThat(loadedPets.getTotalElements()).isEqualTo(1);
+		}
+
 	}
 
 	@Nested
@@ -806,18 +839,6 @@ class RepositoryIT {
 
 			assertThat(loadedPet.getFriends().get(0).getName()).isEqualTo("Daphne");
 			assertThat(loadedPet.getFriends().get(0).getFriends().get(0).getName()).isEqualTo("Luna");
-
-		}
-
-		@Test
-		void pagingAllAround(@Autowired PetRepository repository) {
-
-			try (Session session = createSession()) {
-				session.run("CREATE (luna:Pet{name:'Luna'})").consume();
-			}
-			Page<Pet> loadedPets = repository.pagedPets(PageRequest.of(0,1));
-
-			assertThat(loadedPets.getTotalElements()).isEqualTo(1);
 
 		}
 
@@ -3189,6 +3210,12 @@ class RepositoryIT {
 		@Query("MATCH (p:Pet)-[r1:Has]->(p2:Pet)-[r2:Has]->(p3:Pet) " +
 				"where id(p) = $petNode1Id return p, collect(r1), collect(p2), collect(r2), collect(p3)")
 		Pet customQueryWithDeepRelationshipMapping(@Param("petNode1Id") long petNode1Id);
+		@Query(value = "MATCH (p:Pet) return p SKIP $skip LIMIT $limit", countQuery = "MATCH (p:Pet) return count(p)")
+		Page<Pet> pagedPets(Pageable pageable);
+
+		@Query(value = "MATCH (p:Pet) where p.name=$petName return p SKIP $skip LIMIT $limit",
+				countQuery = "MATCH (p:Pet) return count(p)")
+		Page<Pet> pagedPetsWithParameter(@Param("petName") String petName, Pageable pageable);
 	}
 
 	interface RelationshipRepository extends Neo4jRepository<PersonWithRelationship, Long> {

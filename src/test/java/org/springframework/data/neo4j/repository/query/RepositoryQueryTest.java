@@ -215,6 +215,16 @@ final class RepositoryQueryTest {
 					.withMessage("Expected @Query annotation to have a value, but it did not.");
 		}
 
+		@Test // DATAGRAPH-1409
+		void shouldDetectMissingCountQuery() {
+
+			Neo4jQueryMethod method = neo4jQueryMethod("missingCountQuery", Pageable.class);
+			assertThatExceptionOfType(MappingException.class)
+					.isThrownBy(() -> StringBasedNeo4jQuery.create(mock(Neo4jOperations.class), mock(Neo4jMappingContext.class),
+							QueryMethodEvaluationContextProvider.DEFAULT, method))
+					.withMessage("Expected paging query method to have a count query!");
+		}
+
 		@Test
 		void shouldBindParameters() {
 
@@ -388,6 +398,9 @@ final class RepositoryQueryTest {
 		List<TestEntityDTOProjection> findAllDTOProjections();
 
 		List<ExtendedTestEntity> findAllExtendedEntites();
+
+		@Query("MATCH (n:Test) SKIP $skip LIMIT $limit")
+		Page<TestEntity> missingCountQuery(Pageable pageable);
 	}
 
 	private RepositoryQueryTest() {}

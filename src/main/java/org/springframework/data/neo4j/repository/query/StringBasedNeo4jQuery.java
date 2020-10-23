@@ -23,11 +23,11 @@ import java.util.function.BiFunction;
 
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -90,6 +90,10 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 		Query queryAnnotation = queryMethod.getQueryAnnotation()
 				.orElseThrow(() -> new MappingException("Expected @Query annotation on the query method!"));
 
+		if (queryAnnotation.countQuery().isEmpty() && (queryMethod.isSliceQuery() || queryMethod.isPageQuery())) {
+			throw new MappingException("Expected paging query method to have a count query!");
+		}
+
 		String cypherTemplate = Optional.ofNullable(queryAnnotation.value()).filter(StringUtils::hasText)
 				.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not."));
 
@@ -147,7 +151,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 			resolvedParameters.put(evaluatedParam.getKey(), super.convertParameter(evaluatedParam.getValue()));
 		}
 
-		formalParameters.stream().filter(Parameter::isBindable).forEach(parameter -> {
+		formalParameters.getBindableParameters().forEach(parameter -> {
 
 			int parameterIndex = parameter.getIndex();
 			Object parameterValue = super.convertParameter(parameterAccessor.getBindableValue(parameterIndex));
@@ -158,17 +162,22 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 			resolvedParameters.put(Integer.toString(parameterIndex), parameterValue);
 		});
 
+		if (formalParameters.hasPageableParameter()) {
+			Pageable pageable = parameterAccessor.getPageable();
+			resolvedParameters.put("limit", pageable.getPageSize());
+			resolvedParameters.put("skip", pageable.getOffset());
+		}
+
 		return resolvedParameters;
 	}
 
 	@Override
-	protected Optional<PreparedQuery<Long>> getCountQuery() {
-		if (!queryMethod.hasQueryAnnotation()) {
-			return Optional.empty();
-		}
-		System.out.println(queryMethod.getParameters().hasPageableParameter());
+	protected Optional<PreparedQuery<Long>> getCountQuery(Neo4jParameterAccessor parameterAccessor) {
+
 		return queryMethod.getQueryAnnotation().map(queryAnnotation ->
-				PreparedQuery.queryFor(Long.class).withCypherQuery(cypherQuery).build());
+				PreparedQuery.queryFor(Long.class)
+						.withCypherQuery(queryAnnotation.countQuery())
+						.withParameters(bindParameters(parameterAccessor)).build());
 	}
 
 	/**

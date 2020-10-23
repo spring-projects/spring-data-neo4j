@@ -89,7 +89,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 
 		LongSupplier totalSupplier = () -> {
 
-			PreparedQuery<Long> countQuery = getCountQuery()
+			PreparedQuery<Long> countQuery = getCountQuery(parameterAccessor)
 					.orElse(
 						prepareQuery(Long.class, Collections.emptyList(), parameterAccessor, Neo4jQueryType.COUNT, null)
 					);
@@ -111,7 +111,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 			@Nullable Neo4jQueryType queryType,
 			@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction);
 
-	protected Optional<PreparedQuery<Long>> getCountQuery() {
+	protected Optional<PreparedQuery<Long>> getCountQuery(Neo4jParameterAccessor parameterAccessor) {
 		return Optional.empty();
 	}
 }
