@@ -46,7 +46,7 @@ public @interface Query {
 	String value() default "";
 
 	/**
-	 * The Cypher statement to get executed for the total numbers if custom cypher returns a page or slice.
+	 * The Cypher statement for counting the total number of expected results. Only needed for methods returning pages or slices based on custom queries.
 	 */
 	String countQuery() default "";
 
