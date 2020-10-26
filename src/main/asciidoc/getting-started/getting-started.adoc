@@ -42,10 +42,6 @@ The easiest way to setup a Spring Boot project is https://start.spring.io[start.
 Select the "Spring Web Starter" to get all the dependencies needed for creating a Spring based web application.
 The Spring Initializr will take care of creating a valid project structure for you, with all the files and settings in place for the selected build tool.
 
-WARNING: Don't choose Spring Data Neo4j here, as it will get you the previous generation of Spring Data Neo4j including OGM and additional abstraction over the driver.
-
-You might want to follow https://start.spring.io/#!type=maven-project&language=java&platformVersion=2.2.4.RELEASE&packaging=jar&jvmVersion=1.8&groupId=com.example&artifactId=demo&name=Neo4j%20Spring%20Boot%20Example&description=Demo%20project%20for%20Spring%20Boot&packageName=com.example.demo&dependencies=webflux,actuator[this link for a preconfigured setup].
-
 === Using Maven
 
 You can issue a _curl_ request against the Spring Initializer to create a basic Maven project:
@@ -55,7 +51,7 @@ You can issue a _curl_ request against the Spring Initializer to create a basic 
 .Create a basic Maven project with the Spring Initializr
 ----
 curl https://start.spring.io/starter.tgz \
-  -d dependencies=webflux,actuator \
+  -d dependencies=webflux,actuator,data-neo4j  \
   -d bootVersion={spring-boot-version} \
   -d baseDir=Neo4jSpringBootExample \
   -d name=Neo4j%20SpringBoot%20Example | tar -xzvf -
@@ -71,7 +67,6 @@ As this starter is not yet on the initializer, you will have to add the followin
 <dependency>
 	<groupId>{groupId}</groupId>
 	<artifactId>{artifactIdStarter}</artifactId>
-	<version>{version}</version>
 </dependency>
 ----
 
@@ -86,7 +81,7 @@ The idea is the same, just generate a Gradle project:
 .Create a basic Gradle project with the Spring Initializr
 ----
 curl https://start.spring.io/starter.tgz \
-  -d dependencies=webflux,actuator \
+  -d dependencies=webflux,actuator,data-neo4j \
   -d type=gradle-project \
   -d bootVersion={spring-boot-version} \
   -d baseDir=Neo4jSpringBootExampleGradle \
@@ -99,7 +94,7 @@ The dependency for Gradle looks like this and must be added to `build.gradle`:
 .Inclusion of the spring-data-neo4j-spring-boot-starter in a Gradle project
 ----
 dependencies {
-    implementation '{groupId}:{artifactIdStarter}:{version}'
+    implementation '{groupId}:{artifactIdStarter}'
 }
 ----
 
