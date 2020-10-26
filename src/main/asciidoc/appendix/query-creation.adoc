@@ -38,7 +38,7 @@ A save operation call in general issues multiple statements against the database
 . For the next defined relationship on the root entity start with 2. but replace _first_ with _next_.
 
 
-NOTE: As you can see SDN does its best to keep your graph model in sync with the Java world.
+WARNING: As you can see SDN does its best to keep your graph model in sync with the Java world.
 This is one of the reasons why we really advise you to not load, manipulate and save sub-graphs as this might cause relationships to get removed from the database.
 
 === Multiple entities
@@ -84,3 +84,10 @@ The above return part will then look like:
 
 The map projection and pattern comprehension used by SDN ensures that only the properties and relationships you have defined are getting queried.
 
+In cases where you have self-referencing nodes or creating schemas that potentially lead to cycles in the data that gets returned,
+SDN falls back to a path-based query creation that does a wildcard mapping on all available relationship types reachable from
+the initial domain entity.
+
+The return pattern looks similar to this:
+
+`RETURN n{..., __paths__: [p = (n)-[:HAS|KNOWS*]-() | p]}`

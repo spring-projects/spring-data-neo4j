@@ -133,15 +133,15 @@ The `type` or the `value` attribute allow configuration of the relationship's ty
 The default direction in SDN is `Relationship.Direction#OUTGOING`.
 
 We support dynamic relationships.
-Dynamic relationships are represented as a `Map<String, AnnotatedDomainClass>`.
+Dynamic relationships are represented as a `Map<String, AnnotatedDomainClass>` or `Map<Enum, AnnotatedDomainClass>`.
 In such a case, the type of the relationship to the other domain class is given by the maps key and must not be configured through the `@Relationship`.
 
 ==== Map relationship properties
 
 Neo4j supports defining properties not only on nodes but also on relationships.
 To express those properties in the model SDN provides `@RelationshipProperties` to be applied on a simple Java class.
-
-In the entity class the relationship can be modelled as before but its type has to be a `Map` with the related node as the key and the relation property class as value.
+Within the properties class there have to be exactly one field marked as `@TargetNode` to define the entity the relationship points towards.
+Or, in an `INCOMING` relationship context, is coming from.
 
 A relationship property class and its usage may look like this:
 
@@ -157,15 +157,18 @@ include::../../../../src/test/java/org/springframework/data/neo4j/documentation/
 include::../../../../src/test/java/org/springframework/data/neo4j/documentation/domain/MovieEntity.java[tags=mapping.relationship.properties]
 ----
 
-==== Relationship query limit
+==== Relationship query remarks
 
 In general there is no limitation of relationships / hops for creating the queries.
 SDN parses the whole reachable graph from your modelled nodes.
-It is possible to have self-referencing entities and self-referencing concrete instances.
 
-If these entities or instances for a cycle we have a strict limit of *2* repetitions of walking the same path through the graph.
-E.g. You model a social network of `(:Person)-[:HAS_FRIEND]->(:Person)-[:HAS_FRIEND]...` you will only get the friends of the second degree.
-If you need a more specific mapping for your domain we advise you to use custom queries.
+This said, when there is the idea of mapping a relationship bidirectional, meaning you define the relationship on both ends of your entity,
+you might do not only get what you are expecting.
+
+Consider an example where a _movie_ has _actors_, and you want to fetch a certain movie with all its actors.
+This won't be problematical if the relationship from _movie_ to _actor_ were just unidirectional.
+In a bidirectional scenario SDN would fetch the particular _movie_, its _actors_ but also the other movies defined for this _actor_ per definition of the relationship.
+In the worst case, this will cascade to fetching the whole graph for a single entity.
 
 === A complete example
 

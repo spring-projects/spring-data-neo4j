@@ -43,9 +43,9 @@ public class MovieEntity {
 	@Property("tagline") // <.>
 	private final String description;
 
-	@Relationship(type = "ACTED_IN", direction = Direction.INCOMING) // <.>
 	// tag::mapping.relationship.properties[]
-	private Map<PersonEntity, Roles> actorsAndRoles = new HashMap<>();
+	@Relationship(type = "ACTED_IN", direction = Direction.INCOMING) // <.>
+	private List<Roles> actorsAndRoles;
 	// end::mapping.relationship.properties[]
 
 	@Relationship(type = "DIRECTED", direction = Direction.INCOMING) private List<PersonEntity> directors = new ArrayList<>();
@@ -66,7 +66,7 @@ public class MovieEntity {
 		return description;
 	}
 
-	public Map<PersonEntity, Roles> getActorsAndRoles() {
+	public List<Roles> getActorsAndRoles() {
 		return actorsAndRoles;
 	}
 

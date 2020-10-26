@@ -46,8 +46,10 @@ public class TemplateExampleTest {
 				"A movie that follows the adventures of Herbie, Herbie's driver, "
 						+ "Jim Douglas (Dean Jones), and Jim's love interest, " + "Carole Bennett (Michele Lee)");
 
-		movie.getActorsAndRoles().put(new PersonEntity(1931, "Dean Jones"), new Roles(Collections.singletonList("Didi")));
-		movie.getActorsAndRoles().put(new PersonEntity(1942, "Michele Lee"), new Roles(Collections.singletonList("Michi")));
+		Roles roles1 = new Roles(new PersonEntity(1931, "Dean Jones"), Collections.singletonList("Didi"));
+		Roles roles2 = new Roles(new PersonEntity(1942, "Michele Lee"), Collections.singletonList("Michi"));
+		movie.getActorsAndRoles().add(roles1);
+		movie.getActorsAndRoles().add(roles2);
 
 		neo4jTemplate.save(movie);
 

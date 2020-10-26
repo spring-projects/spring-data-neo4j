@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.documentation.domain;
 import java.util.List;
 
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
  * @author Gerrit Meier
@@ -28,7 +29,11 @@ public class Roles {
 
 	private final List<String> roles;
 
-	public Roles(List<String> roles) {
+	@TargetNode
+	private final PersonEntity person;
+
+	public Roles(PersonEntity person, List<String> roles) {
+		this.person = person;
 		this.roles = roles;
 	}
 

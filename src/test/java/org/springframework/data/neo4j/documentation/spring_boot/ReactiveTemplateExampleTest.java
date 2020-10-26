@@ -59,8 +59,10 @@ class ReactiveTemplateExampleTest {
 				"A movie that follows the adventures of Herbie, Herbie's driver, "
 						+ "Jim Douglas (Dean Jones), and Jim's love interest, " + "Carole Bennett (Michele Lee)");
 
-		movie.getActorsAndRoles().put(new PersonEntity(1931, "Dean Jones"), new Roles(Collections.singletonList("Didi")));
-		movie.getActorsAndRoles().put(new PersonEntity(1942, "Michele Lee"), new Roles(Collections.singletonList("Michi")));
+		Roles role1 = new Roles(new PersonEntity(1931, "Dean Jones"), Collections.singletonList("Didi"));
+		Roles role2 = new Roles(new PersonEntity(1942, "Michele Lee"), Collections.singletonList("Michi"));
+		movie.getActorsAndRoles().add(role1);
+		movie.getActorsAndRoles().add(role2);
 
 		StepVerifier.create(neo4jTemplate.save(movie)).expectNextCount(1L).verifyComplete();
 
