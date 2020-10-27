@@ -31,9 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.auditing.DateTimeProvider;
-import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.domain.ReactiveAuditorAware;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
-import org.springframework.data.neo4j.config.EnableNeo4jAuditing;
+import org.springframework.data.neo4j.config.EnableReactiveNeo4jAuditing;
 import org.springframework.data.neo4j.integration.shared.AuditingITBase;
 import org.springframework.data.neo4j.integration.shared.ImmutableAuditableThing;
 import org.springframework.data.neo4j.integration.shared.ImmutableAuditableThingWithGeneratedId;
@@ -152,7 +152,7 @@ class ReactiveAuditingIT extends AuditingITBase {
 	@Configuration
 	@EnableTransactionManagement
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
-	@EnableNeo4jAuditing(modifyOnCreate = false, auditorAwareRef = "auditorProvider",
+	@EnableReactiveNeo4jAuditing(modifyOnCreate = false, auditorAwareRef = "auditorProvider",
 			dateTimeProviderRef = "fixedDateTimeProvider")
 	static class Config extends AbstractReactiveNeo4jConfig {
 
@@ -162,8 +162,8 @@ class ReactiveAuditingIT extends AuditingITBase {
 		}
 
 		@Bean
-		public AuditorAware<String> auditorProvider() {
-			return () -> Optional.of("A user");
+		public ReactiveAuditorAware<String> auditorProvider() {
+			return () -> Mono.just("A user");
 		}
 
 		@Bean
