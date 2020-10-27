@@ -25,6 +25,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.Arrays;
@@ -33,7 +34,7 @@ import java.util.HashSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.Ordered;
-import org.springframework.data.auditing.IsNewAwareAuditingHandler;
+import org.springframework.data.auditing.ReactiveIsNewAwareAuditingHandler;
 import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 
@@ -42,7 +43,7 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
  */
 class ReactiveAuditingBeforeBindCallbackTest {
 
-	IsNewAwareAuditingHandler spyOnHandler;
+	ReactiveIsNewAwareAuditingHandler spyOnHandler;
 
 	ReactiveAuditingBeforeBindCallback callback;
 
@@ -53,7 +54,7 @@ class ReactiveAuditingBeforeBindCallbackTest {
 		mappingContext.setInitialEntitySet(new HashSet<>(Arrays.asList(Sample.class, ImmutableSample.class)));
 		mappingContext.initialize();
 
-		IsNewAwareAuditingHandler originalHandler = new IsNewAwareAuditingHandler(
+		ReactiveIsNewAwareAuditingHandler originalHandler = new ReactiveIsNewAwareAuditingHandler(
 				new PersistentEntities(Arrays.asList(mappingContext)));
 		spyOnHandler = spy(originalHandler);
 		callback = new ReactiveAuditingBeforeBindCallback(() -> spyOnHandler);
@@ -107,8 +108,8 @@ class ReactiveAuditingBeforeBindCallbackTest {
 		ImmutableSample sample = new ImmutableSample();
 
 		ImmutableSample newSample = new ImmutableSample();
-		IsNewAwareAuditingHandler handler = mock(IsNewAwareAuditingHandler.class);
-		doReturn(newSample).when(handler).markAudited(eq(sample));
+		ReactiveIsNewAwareAuditingHandler handler = mock(ReactiveIsNewAwareAuditingHandler.class);
+		doReturn(Mono.just(newSample)).when(handler).markAudited(eq(sample));
 
 		ReactiveAuditingBeforeBindCallback localCallback = new ReactiveAuditingBeforeBindCallback(() -> handler);
 		StepVerifier.create(localCallback.onBeforeBind(sample)).expectNext(newSample);

@@ -20,22 +20,22 @@ import java.lang.annotation.Annotation;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.data.auditing.IsNewAwareAuditingHandler;
+import org.springframework.data.auditing.ReactiveIsNewAwareAuditingHandler;
 import org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport;
 import org.springframework.data.auditing.config.AuditingConfiguration;
 import org.springframework.data.config.ParsingUtils;
 import org.springframework.data.mapping.context.PersistentEntities;
-import org.springframework.data.neo4j.repository.event.AuditingBeforeBindCallback;
+import org.springframework.data.neo4j.repository.event.ReactiveAuditingBeforeBindCallback;
 import org.springframework.util.Assert;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Iron Maiden - Killers
+ * @soundtrack Ferris MC - Missglückte Asimetrie
  * @since 6.0
  */
-final class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
+final class ReactiveNeo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 
-	private static final String AUDITING_HANDLER_BEAN_NAME = "neo4jAuditingHandler";
+	private static final String AUDITING_HANDLER_BEAN_NAME = "reactiveNeo4jAuditingHandler";
 	private static final String MAPPING_CONTEXT_BEAN_NAME = "neo4jMappingContext";
 
 	/*
@@ -44,7 +44,7 @@ final class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppor
 	 */
 	@Override
 	protected Class<? extends Annotation> getAnnotation() {
-		return EnableNeo4jAuditing.class;
+		return EnableReactiveNeo4jAuditing.class;
 	}
 
 	/*
@@ -67,12 +67,12 @@ final class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppor
 		Assert.notNull(auditingHandlerDefinition, "BeanDefinition must not be null!");
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null!");
 
-		BeanDefinitionBuilder listenerBeanDefinitionBuilder = BeanDefinitionBuilder
-				.rootBeanDefinition(AuditingBeforeBindCallback.class);
-		listenerBeanDefinitionBuilder.addConstructorArgValue(ParsingUtils.getObjectFactoryBeanDefinition(getAuditingHandlerBeanName(), registry));
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(ReactiveAuditingBeforeBindCallback.class);
 
-		registerInfrastructureBeanWithId(listenerBeanDefinitionBuilder.getBeanDefinition(),
-				AuditingBeforeBindCallback.class.getName(), registry);
+		builder.addConstructorArgValue(ParsingUtils.getObjectFactoryBeanDefinition(getAuditingHandlerBeanName(), registry));
+		builder.getRawBeanDefinition().setSource(auditingHandlerDefinition.getSource());
+
+		registerInfrastructureBeanWithId(builder.getBeanDefinition(), ReactiveAuditingBeforeBindCallback.class.getName(), registry);
 	}
 
 	/*
@@ -84,7 +84,7 @@ final class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppor
 
 		Assert.notNull(configuration, "AuditingConfiguration must not be null!");
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(IsNewAwareAuditingHandler.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(ReactiveIsNewAwareAuditingHandler.class);
 
 		BeanDefinitionBuilder persistentEntities = BeanDefinitionBuilder.genericBeanDefinition(PersistentEntities.class)
 				.setFactoryMethod("of");

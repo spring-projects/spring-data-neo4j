@@ -15,14 +15,12 @@
  */
 package org.springframework.data.neo4j.repository.event;
 
-import reactor.core.publisher.Mono;
-
 import org.apiguardian.api.API;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.core.Ordered;
 import org.springframework.data.auditing.AuditingHandler;
-import org.springframework.data.auditing.IsNewAwareAuditingHandler;
+import org.springframework.data.auditing.ReactiveIsNewAwareAuditingHandler;
 import org.springframework.data.mapping.callback.EntityCallback;
 import org.springframework.util.Assert;
 
@@ -31,7 +29,6 @@ import org.springframework.util.Assert;
  *
  * @author Michael J. Simons
  * @soundtrack Iron Maiden - The Number Of The Beast
- * @see AuditingBeforeBindCallback
  * @since 6.0
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
@@ -39,7 +36,7 @@ public final class ReactiveAuditingBeforeBindCallback implements ReactiveBeforeB
 
 	public static final int NEO4J_REACTIVE_AUDITING_ORDER = 100;
 
-	private final ObjectFactory<IsNewAwareAuditingHandler> auditingHandlerFactory;
+	private final ObjectFactory<ReactiveIsNewAwareAuditingHandler> auditingHandlerFactory;
 
 	/**
 	 * Creates a new {@link ReactiveAuditingBeforeBindCallback} using the {@link AuditingHandler} provided by the given
@@ -47,7 +44,7 @@ public final class ReactiveAuditingBeforeBindCallback implements ReactiveBeforeB
 	 *
 	 * @param auditingHandlerFactory must not be {@literal null}.
 	 */
-	public ReactiveAuditingBeforeBindCallback(ObjectFactory<IsNewAwareAuditingHandler> auditingHandlerFactory) {
+	public ReactiveAuditingBeforeBindCallback(ObjectFactory<ReactiveIsNewAwareAuditingHandler> auditingHandlerFactory) {
 
 		Assert.notNull(auditingHandlerFactory, "IsNewAwareAuditingHandler must not be null!");
 		this.auditingHandlerFactory = auditingHandlerFactory;
@@ -60,7 +57,7 @@ public final class ReactiveAuditingBeforeBindCallback implements ReactiveBeforeB
 	@Override
 	public Publisher<Object> onBeforeBind(Object entity) {
 
-		return Mono.fromSupplier(() -> auditingHandlerFactory.getObject().markAudited(entity));
+		return auditingHandlerFactory.getObject().markAudited(entity);
 	}
 
 	/*
