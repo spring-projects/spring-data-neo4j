@@ -18,9 +18,7 @@ package org.springframework.data.neo4j.documentation.domain;
 // tag::mapping.annotations[]
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
