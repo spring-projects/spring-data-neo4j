@@ -1,6 +1,16 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.0.0 (2020-10-28)
+-------------------------------------
+* DATAGRAPH-1414 - Documentation for relationships and mapping.
+* DATAGRAPH-1412 - Support more return patterns.
+* DATAGRAPH-1411 - SDN/RX @Query is not populating dynamic relationships.
+* DATAGRAPH-1409 - Add missing support for custom paged queries.
+* DATAGRAPH-1406 - Release 6.0 GA (2020.0.0).
+* DATAGRAPH-1403 - Add reactive DataNeo4jAuditing support.
+
+
 Changes in version 5.3.5.RELEASE (2020-10-28)
 ---------------------------------------------
 * DATAGRAPH-1399 - Upgrade to Neo4j-OGM 3.2.17.
@@ -1895,6 +1905,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
