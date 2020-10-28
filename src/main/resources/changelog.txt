@@ -1,6 +1,11 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.1.21.RELEASE (2020-10-28)
+----------------------------------------------
+* DATAGRAPH-1413 - Release 5.1.21 (Lovelace SR21).
+
+
 Changes in version 6.0.0-RC2 (2020-10-14)
 -----------------------------------------
 * DATAGRAPH-1404 - Streamline POM dependencies setup.
@@ -1884,6 +1889,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
