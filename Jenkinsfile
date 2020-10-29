@@ -23,16 +23,14 @@ pipeline {
 				docker {
 					image 'adoptopenjdk/openjdk8:latest'
 					label 'data'
-					args '-v $HOME:/tmp/jenkins-home'
-					args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
+					args '-u root -v /var/run/docker.sock:/var/run/docker.sock -v $HOME:/tmp/jenkins-home'
 				}
 			}
 			options { timeout(time: 30, unit: 'MINUTES') }
 			steps {
-				sh 'mkdir -p /tmp/jenkins-home'
+				sh 'mkdir -p /tmp/jenkins-home/.m2/spring-data-neo4j'
 				sh 'chown -R 1001:1001 .'
-				sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw clean dependency:list verify -Dsort -U -B'
-				sh 'chown -R 1001:1001 .'
+				sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw clean dependency:list verify -Dsort -U -B -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-neo4j'
 			}
 		}
 
@@ -49,16 +47,12 @@ pipeline {
 						docker {
 							image 'adoptopenjdk/openjdk11:latest'
 							label 'data'
-							args '-v $HOME:/tmp/jenkins-home'
-							args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
+							args '-u root -v /var/run/docker.sock:/var/run/docker.sock -v $HOME:/tmp/jenkins-home'
 						}
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }
 					steps {
-						sh 'mkdir -p /tmp/jenkins-home'
-						sh 'chown -R 1001:1001 .'
-						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pjava11 clean dependency:list verify -Dsort -U -B'
-						sh 'chown -R 1001:1001 .'
+						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pjava11 clean dependency:list verify -Dsort -U -B -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-neo4j'
 					}
 				}
 
@@ -67,16 +61,12 @@ pipeline {
 						docker {
 							image 'adoptopenjdk/openjdk15:latest'
 							label 'data'
-							args '-v $HOME:/tmp/jenkins-home'
-							args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
+							args '-u root -v /var/run/docker.sock:/var/run/docker.sock -v $HOME:/tmp/jenkins-home'
 						}
 					}
 					options { timeout(time: 30, unit: 'MINUTES') }
 					steps {
-						sh 'mkdir -p /tmp/jenkins-home'
-						sh 'chown -R 1001:1001 .'
-						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pjava11 clean dependency:list verify -Dsort -U -B'
-						sh 'chown -R 1001:1001 .'
+						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pjava11 clean dependency:list verify -Dsort -U -B -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-neo4j'
 					}
 				}
 			}
@@ -93,7 +83,7 @@ pipeline {
 				docker {
 					image 'adoptopenjdk/openjdk8:latest'
 					label 'data'
-					args '-v $HOME/.m2:/tmp/jenkins-home/.m2'
+					args '-u root -v /var/run/docker.sock:/var/run/docker.sock -v $HOME:/tmp/jenkins-home'
 				}
 			}
 			options { timeout(time: 20, unit: 'MINUTES') }
@@ -103,8 +93,7 @@ pipeline {
 			}
 
 			steps {
-				sh 'mkdir -p /tmp/jenkins-home'
-				sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,artifactory ' +
+				sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,artifactory -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-neo4j ' +
 						'-Dartifactory.server=https://repo.spring.io ' +
 						"-Dartifactory.username=${ARTIFACTORY_USR} " +
 						"-Dartifactory.password=${ARTIFACTORY_PSW} " +
@@ -123,7 +112,7 @@ pipeline {
 				docker {
 					image 'adoptopenjdk/openjdk8:latest'
 					label 'data'
-					args '-v $HOME:/tmp/jenkins-home'
+					args '-u root -v /var/run/docker.sock:/var/run/docker.sock -v $HOME:/tmp/jenkins-home'
 				}
 			}
 			options { timeout(time: 20, unit: 'MINUTES') }
@@ -133,7 +122,7 @@ pipeline {
 			}
 
 			steps {
-				sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,distribute ' +
+				sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,distribute -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-neo4j ' +
 						'-Dartifactory.server=https://repo.spring.io ' +
 						"-Dartifactory.username=${ARTIFACTORY_USR} " +
 						"-Dartifactory.password=${ARTIFACTORY_PSW} " +
