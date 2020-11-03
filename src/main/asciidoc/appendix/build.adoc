@@ -94,7 +94,6 @@ Building against a locally running database is faster, as it does not restart a 
 We do this a lot during our development.
 
 You can get a copy of Neo4j at our https://neo4j.com/download-center/#enterprise[download center] free of charge.
-Especially you can get https://neo4j.com/download-center/?ref=blog/#prerelease[the current prelease of Neo4j 4.0], supporting all the reactive features.
 
 Please download the version applicable to your operating system and follow the instructions to start it.
 A required step is to open a browser and go to http://localhost:7474 after you started the database and change the default password from `neo4j` to something of your liking.
