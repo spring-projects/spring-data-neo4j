@@ -64,7 +64,7 @@ As this starter is not yet on the initializer, you will have to add the followin
 .Inclusion of the spring-data-neo4j-spring-boot-starter in a Maven project
 ----
 <dependency>
-	<groupId>{groupId}</groupId>
+	<groupId>{groupIdStarter}</groupId>
 	<artifactId>{artifactIdStarter}</artifactId>
 </dependency>
 ----
@@ -93,7 +93,7 @@ The dependency for Gradle looks like this and must be added to `build.gradle`:
 .Inclusion of the spring-data-neo4j-spring-boot-starter in a Gradle project
 ----
 dependencies {
-    implementation '{groupId}:{artifactIdStarter}'
+    implementation '{groupIdStarter}:{artifactIdStarter}'
 }
 ----
 
