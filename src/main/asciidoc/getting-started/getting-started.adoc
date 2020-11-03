@@ -128,7 +128,7 @@ Our domain layer should accomplish two things:
 SDN fully supports unmodifiable entities, for both Java and `data` classes in Kotlin.
 Therefor we will focus on immutable entities here, <<movie-entity>> shows a such an entity.
 
-NOTE: SDN supports all data types the Neo4j Java Driver supports, see https://neo4j.com/docs/driver-manual/current/cypher-values/#driver-neo4j-type-system[Map Neo4j types to native language types] inside the chapter "The Cypher type system".
+NOTE: SDN supports all data types the Neo4j Java Driver supports, see https://neo4j.com/docs/driver-manual/current/cypher-workflow/#driver-type-mapping[Map Neo4j types to native language types] inside the chapter "The Cypher type system".
 Future versions will support additional converters.
 
 [source,java]
