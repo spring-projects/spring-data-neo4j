@@ -62,7 +62,7 @@ It also provides the flexibility to the developer to supply custom queries where
 
 === What's in the box?
 
-Spring Data Neo4j or in short SDN is a next-generation https://spring.io/projects/spring-data[Spring Data] module, created and maintained by https://neo4j.com[Neo4j, Inc.] in close collaboration with https://pivotal.io[Pivotal's] Spring Data Team.
+Spring Data Neo4j or in short SDN is a next-generation https://spring.io/projects/spring-data[Spring Data] module, created and maintained by https://neo4j.com[Neo4j, Inc.] in close collaboration with https://www.vmware.com/[VMware's] Spring Data Team.
 
 SDN relies completely on the https://github.com/neo4j/neo4j-java-driver[Neo4j Java Driver], without introducing another "driver" or "transport" layer between the mapping framework and the driver.
 The Neo4j Java Driver - sometimes dubbed Bolt or the Bolt driver - is used as a protocol much like JDBC is with relational databases.
