@@ -31,10 +31,10 @@ Here is a list of useful resources:
 [[preface.spring-data]]
 == Spring and Spring Data
 
-Spring Data uses Spring Framework's https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html[core] functionality, such as the https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#beans[IoC] container,
-https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#core-convert[type conversion system],
-https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#expressions[expression language],
-https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/integration.html#jmx[JMX integration], and portable https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/data-access.html#dao-exceptions[DAO exception hierarchy].
+Spring Data uses Spring Framework's {spring-framework-ref}/core.html[core] functionality, such as the {spring-framework-ref}/core.html#beans[IoC] container,
+{spring-framework-ref}/core.html#core-convert[type conversion system],
+{spring-framework-ref}/core.html#expressions[expression language],
+{spring-framework-ref}/integration.html#jmx[JMX integration], and portable {spring-framework-ref}/data-access.html#dao-exceptions[DAO exception hierarchy].
 While it is not necessary to know all the Spring APIs, understanding the concepts behind them is.
 At a minimum, the idea behind IoC should be familiar.
 

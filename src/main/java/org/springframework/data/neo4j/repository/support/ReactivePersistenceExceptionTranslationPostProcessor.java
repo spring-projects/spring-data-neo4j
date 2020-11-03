@@ -40,7 +40,7 @@ import org.springframework.util.Assert;
  * Bean post-processor that automatically applies persistence exception translation to all methods returning either
  * {@link reactor.core.publisher.Mono} or {@link reactor.core.publisher.Flux} of any bean marked with
  * Spring's @{@link Repository Repository} annotation, adding a corresponding
- * {@link ReactivePersistenceExceptionTranslationAdvisor} to the exposed proxy (either an existing AOP proxy or a newly
+ * {@link AbstractPointcutAdvisor} to the exposed proxy (either an existing AOP proxy or a newly
  * generated proxy that implements all of the target's interfaces).
  * <p>
  * That proxy will modify the reactive types by the matched method and inject an exception translation into the reactive

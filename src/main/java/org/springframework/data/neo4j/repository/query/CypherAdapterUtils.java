@@ -39,7 +39,7 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 public final class CypherAdapterUtils {
 
 	/**
-	 * Maps Spring Datas {@link Sort.Order} to a {@link SortItem}. See {@link #toSortItems(NodeDescription, Sort)}.
+	 * Maps Spring Datas {@link org.springframework.data.domain.Sort.Order} to a {@link SortItem}. See {@link #toSortItems(NodeDescription, Sort)}.
 	 *
 	 * @param nodeDescription {@link NodeDescription} to get properties for sorting from.
 	 * @return A stream if sort items. Will be empty when sort is unsorted.

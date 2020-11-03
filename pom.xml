@@ -80,7 +80,7 @@
 		<dist.id>spring-data-neo4j</dist.id>
 		<dist.key>SDNEO4J</dist.key>
 		<flatten-maven-plugin.version>1.2.1</flatten-maven-plugin.version>
-		<jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
+		<jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
 		<java-module-name>spring.data.neo4j</java-module-name>
 		<java.version>1.8</java.version>
 		<jaxb.version>2.3.1</jaxb.version>
@@ -118,7 +118,7 @@
 		<skipUnitTests>${skipTests}</skipUnitTests>
 		<springdata.commons>2.4.1-SNAPSHOT</springdata.commons>
 
-		<spring-data-commons-docs.dir>../../../../../spring-data-commons/src/main/asciidoc</spring-data-commons-docs.dir>
+		<spring-data-commons-docs.dir>../../../../spring-data-commons/src/main/asciidoc</spring-data-commons-docs.dir>
 	</properties>
 
 	<dependencyManagement>
@@ -499,6 +499,19 @@
 					<consoleOutput>true</consoleOutput>
 					<failsOnError>true</failsOnError>
 					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration combine.self="append">
+					<tags>
+						<tag>
+							<name>soundtrack</name>
+							<placement>X</placement>
+							<head>Soundtrack</head>
+						</tag>
+					</tags>
 				</configuration>
 			</plugin>
 			<plugin>
