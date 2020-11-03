@@ -71,9 +71,6 @@ $ mvnw.cmd clean verify
 
 The output should be similar.
 
-At the moment, this build tests against Neo4j 3.5, as 4.0 is not yet available on Docker Hub.
-As a consequence, tests requiring a reactive capable database, are skipped, as this is a feature of Neo4j 4.0.
-
 ==== Using another image
 
 The image version to use can be configured through an environmental variable like this:
