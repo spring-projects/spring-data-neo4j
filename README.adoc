@@ -32,7 +32,7 @@ Please report unacceptable behavior to spring-code-of-conduct@pivotal.io.
 == Manual
 
 For a gentle introduction and some getting started guides, please use our
-https://neo4j.github.io/sdn-rx[Manual].
+https://docs.spring.io/spring-data/neo4j/docs/current/reference/html/#reference[Manual].
 
 == Getting Started
 
@@ -60,7 +60,7 @@ spring.neo4j.authentication.username=neo4j
 spring.neo4j.authentication.password=secret
 ----
 
-Please have a look at our https://neo4j.github.io/sdn-rx[manual] for an overview about the architecture, how to define
+Please have a look at our https://docs.spring.io/spring-data/neo4j/docs/current/reference/html/#reference[manual] for an overview about the architecture, how to define
 mappings and more.
 
 ==== Without Spring Boot
