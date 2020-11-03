@@ -229,7 +229,7 @@ The following dependency is required for the solutions described above:
 [source,xml,subs="verbatim,attributes"]
 ----
 <dependency>
-	<groupId>{springGroupId}</groupId>
+	<groupId>{neo4jGroupId}</groupId>
 	<artifactId>{artifactId}</artifactId>
 	<version>{spring-data-neo4j-version}</version>
 </dependency>
