@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.util.Arrays;
@@ -28,12 +29,15 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.schema.RelationshipProperties;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
  * @author Gerrit Meier
@@ -88,6 +92,23 @@ class DefaultNeo4jPersistentEntityTest {
 			Neo4jMappingContext schema = new Neo4jMappingContext();
 			schema.setInitialEntitySet(new HashSet<>(Arrays.asList(entityToTest)));
 			assertThatIllegalStateException().isThrownBy(() -> schema.initialize()).withMessageMatching(expectedMessage);
+		}
+
+		@Test // DATAGRAPH-1420
+		void doesNotFailOnCorrectRelationshipProperties() {
+			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
+					.getPersistentEntity(EntityWithCorrectRelationshipProperties.class);
+
+			assertThat(persistentEntity).isNotNull();
+		}
+
+		@Test // DATAGRAPH-1420
+		void doesFailOnRelationshipPropertiesWithMissingTargetNode() {
+
+			assertThatExceptionOfType(MappingException.class)
+					.isThrownBy(() -> new Neo4jMappingContext()
+							.getPersistentEntity(EntityWithInCorrectRelationshipProperties.class))
+					.withMessageContaining("Missing @TargetNode declaration in");
 		}
 	}
 
@@ -390,5 +411,27 @@ class DefaultNeo4jPersistentEntityTest {
 		private Map<String, List<Neo4jMappingContextTest.BikeNode>> bikes1;
 
 		private Map<String, List<Neo4jMappingContextTest.BikeNode>> bikes2;
+	}
+
+	static class EntityWithCorrectRelationshipProperties {
+		@Id private String id;
+		@Relationship HasTargetNodeRelationshipProperties rel;
+	}
+
+	static class EntityWithInCorrectRelationshipProperties {
+		@Id private String id;
+		@Relationship HasNoTargetNodeRelationshipProperties rel;
+	}
+
+	@RelationshipProperties
+	static class HasTargetNodeRelationshipProperties {
+
+		@TargetNode
+		EntityWithExplicitPrimaryLabel entity;
+	}
+
+	@RelationshipProperties
+	static class HasNoTargetNodeRelationshipProperties {
+
 	}
 }

@@ -154,8 +154,12 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	@NonNull
 	private Class<?> getRelationshipPropertiesTargetType(Class<?> relationshipPropertiesType) {
-		return this.mappingContext.getPersistentEntity(relationshipPropertiesType)
-				.getPersistentProperty(TargetNode.class).getType();
+		Neo4jPersistentProperty persistentProperty = this.mappingContext.getPersistentEntity(relationshipPropertiesType)
+				.getPersistentProperty(TargetNode.class);
+		if (persistentProperty == null) {
+			throw new MappingException("Missing @TargetNode declaration in " + relationshipPropertiesType);
+		}
+		return persistentProperty.getType();
 	}
 
 	@Override
