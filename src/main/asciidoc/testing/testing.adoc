@@ -111,7 +111,7 @@ You need the following dependencies to run <<dataneo4jtest-harness35-example>>:
 <dependency>
     <groupId>org.neo4j.test</groupId>
     <artifactId>neo4j-harness</artifactId>
-    <version>3.5.21</version>
+    <version>3.5.23</version>
     <scope>test</scope>
 </dependency>
 ----
