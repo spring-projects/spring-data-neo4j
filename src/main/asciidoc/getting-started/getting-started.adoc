@@ -14,7 +14,6 @@ SDN supports
 
 Those are all included in the same binary.
 The reactive programming model requires a 4.0 Neo4j server on the database side and reactive Spring on the other hand.
-Have a look at the link:{gh-base}/tree/master/examples[examples directory] for all examples.
 
 == Prepare the database
 
