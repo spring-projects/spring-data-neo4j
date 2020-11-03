@@ -95,7 +95,7 @@ NOTE: Make sure you use the same driver instance for the client as you used for 
 in case you have enabled transactions.
 The client won't be able to synchronize transactions if you use another instance of a driver.
 
-Our Spring Boot starter provide a ready to use bean of the Neo4j Client that fit the environment (imperative or reactive) and you usually don't have to configure your own instance.
+Our Spring Boot starter provide a ready to use bean of the Neo4j Client that fits the environment (imperative or reactive) and you usually don't have to configure your own instance.
 
 == Usage
 
@@ -176,19 +176,19 @@ ResultSummary resultSummary = imperativeClient
 SummaryCounters counters = resultSummary.counters();
 System.out.println(counters.nodesDeleted() + " nodes have been deleted")
 ----
-<.> Here the query is triggered immediate.
+<.> Here the query is immediately triggered.
 
 === Mapping parameters
 
 Queries can contain named parameters (`$someName`).
-The Neo4j client allows comfortable binding to those.
+The Neo4j client allows relaxed bindings to those.
 
-NOTE: The client doesn't check whether all parameters are bound or whether there are to many values.
+NOTE: The client doesn't check whether all parameters are bound or whether there are too many values.
 That is left to the driver.
-However the client prevents you from using a parameter name twice.
+However, the client prevents you from using a parameter name twice.
 
 You can either map simple types that the Java driver understands or complex classes.
-Please have a look at the https://neo4j.com/docs/driver-manual/current/cypher-values/#driver-neo4j-type-system[drivers manual], to see which simple types are understood.
+Please have a look at the https://neo4j.com/docs/driver-manual/current/cypher-workflow/#driver-type-mapping[drivers manual], to see which simple types are supported.
 
 [[neo4j-client-mapping-simple-types]]
 [source,java]
@@ -282,14 +282,14 @@ Mono<ResultSummary> summary = client
     })
     .run();
 ----
-<.> The with method allows for specifying the binder function.
+<.> The `with` method allows for specifying the binder function.
 
 === Working with result objects
 
 Both clients return collections or publishers of maps (`Map<String, Object>`).
-Those maps corresponds exactly with the records that a query might have produced.
+Those maps correspond exactly with the records that a query might have produced.
 
-In addition, you can plugin your own `BiFunction<TypeSystem, Record, T>` through `fetchAs` to reproduce your domain object.
+In addition, you can plug in your own `BiFunction<TypeSystem, Record, T>` through `fetchAs` to reproduce your domain object.
 
 [[neo4j-client-reader]]
 [source,java]

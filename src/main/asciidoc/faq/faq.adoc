@@ -13,7 +13,7 @@ or of course with a simple script upfront.
 
 === Statically configured
 
-Configure the database name to use in your Spring Boot configuration like this (The same property applies of course for YML or environment based configuration, with Spring Boots conventions applied):
+Configure the database name to use in your Spring Boot configuration like this (the same property applies of course for YML or environment based configuration, with Spring Boot's conventions applied):
 
 [source,properties]
 ----
@@ -47,7 +47,7 @@ include::../../../../src/test/java/org/springframework/data/neo4j/documentation/
 
 NOTE: Be careful that you don't mix up entities retrieved from one database with another database.
 The database name is requested for each new transaction, so you might end up with less or more entities than expected when changing the database name in between calls.
-Or worse, you could inevitable store the wrong entities in the wrong database.
+Or worse, you could inevitably store the wrong entities in the wrong database.
 
 == Do I need specific configuration so that transactions work seamless with a Neo4j Causal Cluster?
 
@@ -82,13 +82,13 @@ You are free to use the following, equivalent Spring Data annotations:
 
 == How do I use assigned ids?
 
-Just `@Id` without `@GeneratedValue` and fill your id attribute via a constructor parameter or a setter or _wither_.
+Just use `@Id` without `@GeneratedValue` and fill your id attribute via a constructor parameter or a setter or _wither_.
 See this https://medium.com/neo4j/neo4j-ogm-and-spring-data-neo4j-a55a866df68c[blog post] for some general remarks about finding good ids.
 
 == How do I use externally generated ids?
 
 We provide the interface `org.springframework.data.neo4j.core.schema.IdGenerator`.
-Implement it anyway you want and configure your implementation like this:
+Implement it in any way you want and configure your implementation like this:
 
 [source,java]
 .ThingWithGeneratedId.java
@@ -124,7 +124,7 @@ NOTE: Setters are not required on non-final fields for the id.
 == Do I have to create repositories for each domain class?
 
 No.
-Have a look at the <<sdn-building-blocks, SDN building blocks>> and find the `Neo4jTemplate` respectively the `ReactiveNeo4jTemplate.`
+Have a look at the <<sdn-building-blocks, SDN building blocks>> and find the `Neo4jTemplate` or the `ReactiveNeo4jTemplate`.
 
 Those templates know your domain and provide all necessary basic CRUD methods for retrieving, writing and counting entities.
 

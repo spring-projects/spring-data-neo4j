@@ -14,9 +14,9 @@
 Choosing JDK 8 is a decision influenced by various aspects
 
 * SDN is a Spring Data project.
-Spring Data commons baseline is still JDK 8 and so is Spring Frameworks baseline.
-Thus it is only natural to keep the JDK 8 baseline.
-* While there is an increase of projects started with JDK 11 (which is Oracles current LTS release of Java), many existing projects are still on JDK 8. We don't want to lose them as users right from the start.
+Spring Data commons baseline is still JDK 8 and so is Spring Framework's baseline.
+Thus, it is only natural to keep the JDK 8 baseline.
+* While there is an increase of projects started with JDK 11 (which is Oracle's current LTS release of Java), many existing projects are still on JDK 8. We don't want to lose them as users right from the start.
 
 == Running the build
 
@@ -49,7 +49,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 12.0.1+12, mixed mode, sharing)
 ==== Using the default image
 
 If you don't have https://en.wikipedia.org/wiki/Docker_(software)[Docker] installed, head over to https://www.docker.com/products/docker-desktop[Docker Desktop].
-In short, Docker is a tool that helps you running lightweight software images using OS-level virtualization in so called containers.
+In short, Docker is a tool that helps you running lightweight software images using OS-level virtualization in so-called containers.
 
 Our build uses https://www.testcontainers.org/modules/databases/neo4j/[Testcontainers Neo4j] to bring up a database instance.
 

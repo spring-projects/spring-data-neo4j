@@ -1,7 +1,7 @@
 [[preface.nosql]]
 = NoSQL and Graph databases
 
-A graph database is a storage engine that is specialized in storing and retrieving vast networks of information.
+A graph database is a storage engine that specializes in storing and retrieving vast networks of information.
 It efficiently stores data as nodes with relationships to other or even the same nodes, thus allowing high-performance retrieval and querying of those structures.
 Properties can be added to both nodes and relationships.
 Nodes can be labelled by zero or more labels, relationships are always directed and named.
@@ -52,7 +52,7 @@ There are a lot of articles, blog entries and books on the matter - take a look 
 == What is Spring Data Neo4j
 
 The current Spring Data Neo4j is the successor to Spring Data Neo4j + Neo4j-OGM.
-The separate layer of Neo4j-OGM (Neo4j Object Graph Mapper) has been replaced by Spring infrastructure, but the basic concepts of an Object Graph Mapper (OGM) still apply:
+The separate layer of Neo4j-OGM (Neo4j Object Graph Mapper) has been replaced by Spring infrastructure, but the basic concepts of an Object Graph Mapper (OGM) still apply.
 
 An OGM maps nodes and relationships in the graph to objects and references in a domain model.
 Object instances are mapped to nodes while object references are mapped using relationships, or serialized to properties (e.g. references to a Date).
@@ -84,11 +84,11 @@ SDN has several features not present in SDN+OGM, notably
 
 === How does SDN relate to Neo4j-OGM?
 
-https://neo4j.com/docs/ogm-manual/current/[Neo4j-OGM] is an Object Graph Mapping library, which is mainly used by Spring Data Neo4j as its backend for the heavy lifting of mapping nodes and relationships into domain object.
-The new SDN *does not need* and *does not support* Neo4j-OGM.
+https://neo4j.com/docs/ogm-manual/current/[Neo4j-OGM] is an Object Graph Mapping library, which is mainly used by previous versions of Spring Data Neo4j as its backend for the heavy lifting of mapping nodes and relationships into domain object.
+The current SDN *does not need* and *does not support* Neo4j-OGM.
 SDN uses Spring Data's mapping context exclusively for scanning classes and building the meta model.
 
-While this pins SDN to the Spring eco systems, it has several advantages, among them the smaller footprint in regards of CPU and memory usage and especially, all the features of Springs mapping context.
+While this pins SDN to the Spring ecosystem, it has several advantages, among them the smaller footprint regarding CPU and memory usage and especially, all the features of Spring's mapping context.
 
 === Does SDN support connections over HTTP to Neo4j?
 

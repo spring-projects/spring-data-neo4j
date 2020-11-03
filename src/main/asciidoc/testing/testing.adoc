@@ -3,7 +3,7 @@
 
 == Without Spring Boot
 
-We work a lot with our abstract base classes for configuration in our own integration tests. They can be use like this:
+We work a lot with our abstract base classes for configuration in our own integration tests. They can be used like this:
 
 [source,java]
 .One possible test setup without Spring Boot
@@ -50,7 +50,7 @@ Similar classes are provided for reactive tests.
 == With Spring Boot and `@DataNeo4jTest`
 
 Spring Boot offers `@DataNeo4jTest` through `org.springframework.boot:spring-boot-starter-test`.
-The later brings in `org.springframework.boot:spring-boot-test-autoconfigure` which contains the annotion and the
+The latter brings in `org.springframework.boot:spring-boot-test-autoconfigure` which contains the annotation and the
 required infrastructure code.
 
 [source,xml,subs="verbatim,attributes"]
@@ -63,8 +63,6 @@ required infrastructure code.
 </dependency>
 ----
 
-Or with Gradle
-
 [source,groovy,subs="verbatim,attributes"]
 .Include Spring Boot Starter Test in a Gradle build
 ----
@@ -74,7 +72,7 @@ dependencies {
 ----
 
 `@DataNeo4jTest` is a Spring Boot https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-testing[test slice].
-The test slice provides all the necessary infrastructure for tests using Neo4j: A transaction manager, a client, a template and declared repositories, in their imperative or reactive variants,
+The test slice provides all the necessary infrastructure for tests using Neo4j: a transaction manager, a client, a template and declared repositories, in their imperative or reactive variants,
 depending on reactive dependencies present or not.
 The test slice already includes `@ExtendWith(SpringExtension.class)` so that it runs automatically with JUnit 5 (JUnit Jupiter).
 
@@ -89,12 +87,12 @@ for the infrastructure to select the correct transaction manager.
 The test slice does not bring in an embedded database or any other connection setting.
 It is up to you to use an appropriate connection.
 
-We recommend one of two options: Either use the https://www.testcontainers.org/modules/databases/neo4j/[Neo4j Testcontainers module]
+We recommend one of two options: either use the https://www.testcontainers.org/modules/databases/neo4j/[Neo4j Testcontainers module]
 or the Neo4j test harness.
 While Testcontainers is a known project with modules for a lot of different services, Neo4j test harness is rather unknown.
 It is an embedded instance that is especially useful when testing stored procedures as described in https://medium.com/neo4j/testing-your-neo4j-based-java-application-34bef487cc3c[Testing your Neo4j-based Java application].
 The test harness can however be used to test an application as well.
-As it brings up a database inside the same JVM as your application, performance and timings may not reassemble your production setup.
+As it brings up a database inside the same JVM as your application, performance and timings may not resemble your production setup.
 
 For your convinience we provide three possible scenarios, Neo4j test harness 3.5 and 4.0 as well as Testcontainers Neo4j.
 We provide different examples for 3.5 and 4.0 as the test harness changed between those versions.
@@ -261,10 +259,10 @@ class MovieRepositoryTest {
 }
 ----
 <.> Entrypoint to create an embedded Neo4j
-<.> Don't need Neoj4's HTTP server
+<.> Disable the unneeded Neo4j HTTP server
 <.> This is a Spring Boot annotation that allows for dynamically registered
     application properties. We overwrite the corresponding Neo4j settings.
-<.> Shutdown Neo4j after all tests.
+<.> Shut down Neo4j after all tests.
 
 
 [[dataneo4jtest-testcontainers]]
