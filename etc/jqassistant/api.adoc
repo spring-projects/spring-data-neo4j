@@ -11,8 +11,8 @@ and annotations.
 [source,cypher,role="constraint"]
 .@API Guardian annotations must not be used on fields
 ----
-MATCH (c:Java) - [:ANNOTATED_BY] -> (a) - [:OF_TYPE] -> (t:Type {fqn: 'org.apiguardian.api.API'}),
-      (p) - [:DECLARES] -> (c)
+MATCH (c:Java)-[:ANNOTATED_BY]->(a)-[:OF_TYPE]->(t:Type {fqn: 'org.apiguardian.api.API'}),
+      (p)-[:DECLARES]->(c)
 WHERE c:Member AND NOT c:Constructor
 RETURN p.fqn, c.name
 ----
@@ -23,8 +23,8 @@ Public interfaces, classes or annotations are either part of internal or public 
 [source,cypher,role="concept",verify=rowCount,rowCountMin=0]
 .Define which Java artifacts are part of internal or public API
 ----
-MATCH (c:Java) - [:ANNOTATED_BY] -> (a) - [:OF_TYPE] -> (t:Type {fqn: 'org.apiguardian.api.API'}),
-      (a) - [:HAS] -> ({name: 'status'}) - [:IS] -> (s)
+MATCH (c:Java)-[:ANNOTATED_BY]->(a)-[:OF_TYPE]->(t:Type {fqn: 'org.apiguardian.api.API'}),
+      (a)-[:HAS]->({name: 'status'})-[:IS]->(s)
 WHERE ANY (label IN labels(c) WHERE label in ['Interface', 'Class', 'Annotation'])
 WITH  c, trim(split(s.signature, ' ')[1]) AS status
 WITH  c, status,
@@ -33,7 +33,7 @@ WITH  c, status,
         ELSE 'Public'
       END AS type
 MERGE (a:Api {type: type, status: status})
-MERGE (c) - [:IS_PART_OF] -> (a)
+MERGE (c)-[:IS_PART_OF]->(a)
 RETURN c,a
 ----
 
@@ -45,7 +45,7 @@ See ADR-003.
 [source,cypher,role="constraint",requiresConcepts="api:api-guardian-api-concept"]
 .Non abstract, public classes that are only part of internal API must be final
 ----
-MATCH (c:Class) - [:IS_PART_OF] -> (:Api {type: 'Internal'})
+MATCH (c:Class)-[:IS_PART_OF]->(:Api {type: 'Internal'})
 WHERE c.visibility = 'public'
   AND coalesce(c.abstract, false) = false
   AND NOT exists(c.final)
