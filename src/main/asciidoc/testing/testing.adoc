@@ -190,7 +190,7 @@ You need the following dependencies to run <<dataneo4jtest-harness40-example>>:
 <dependency>
     <groupId>org.neo4j.test</groupId>
     <artifactId>neo4j-harness</artifactId>
-    <version>4.0.8</version>
+    <version>{neo4j-version}</version>
     <scope>test</scope>
     <exclusions>
         <exclusion>
