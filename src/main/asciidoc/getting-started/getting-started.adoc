@@ -5,7 +5,7 @@ We provide a Spring Boot starter for SDN.
 Please include the starter module via your dependency management and configure the bolt URL to use, for example `org.neo4j.driver.uri=bolt://localhost:7687`.
 The starter assumes that the server has disabled authentication.
 As the SDN starter depends on the starter for the Java Driver, all things regarding configuration said there, apply here as well.
-For a reference of the available properties, use your IDEs autocompletion in the `org.neo4j.driver` namespace or look at the link:{java-driver-starter-href}/blob/master/docs/manual.adoc[dedicated manual].
+For a reference of the available properties, use your IDEs autocompletion in the `org.neo4j.driver` namespace or look at the link:{java-driver-starter-href}/blob/master/docs/manual/index.adoc[dedicated manual].
 
 SDN supports
 
