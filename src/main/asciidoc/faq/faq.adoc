@@ -166,7 +166,7 @@ If this is not feasible for any reason, you can either add
 
 == How do I use Spring Expression Language in custom queries?
 
-https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#expressions[Spring Expression Language (SpEL)] can be used in custom queries inside `:#{}`.
+{spring-framework-ref}/core.html#expressions[Spring Expression Language (SpEL)] can be used in custom queries inside `:#{}`.
 This is the standard Spring Data way of defining a block of text inside a query that undergoes SpEL evaluation.
 
 The following example basically defines the same query as above, but uses a `WHERE` clause to avoid even more curly braces:

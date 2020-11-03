@@ -83,34 +83,34 @@ You will find it's documentation in the <<neo4j-client,appendix>>.
 
 |`org.springframework.data.neo4j.config`
 |
-include::../../../main/java/org/springframework/data/neo4j/config/package-info.java[tags=intent,indent=0]
+include::../../../../src/main/java/org/springframework/data/neo4j/config/package-info.java[tags=intent,indent=0]
 
 |`org.springframework.data.neo4j.core`
 |
-include::../../../main/java/org/springframework/data/neo4j/core/package-info.java[tags=intent,indent=0]
+include::../../../../src/main/java/org/springframework/data/neo4j/core/package-info.java[tags=intent,indent=0]
 
 |`org.springframework.data.neo4j.core.convert`
 |
-include::../../../main/java/org/springframework/data/neo4j/core/convert/package-info.java[tags=intent,indent=]
+include::../../../../src/main/java/org/springframework/data/neo4j/core/convert/package-info.java[tags=intent,indent=]
 
 |`org.springframework.data.neo4j.core.support`
 |
-include::../../../main/java/org/springframework/data/neo4j/core/support/package-info.java[tags=intent,indent=]
+include::../../../../src/main/java/org/springframework/data/neo4j/core/support/package-info.java[tags=intent,indent=]
 
 |`org.springframework.data.neo4j.core.transaction`
 |
-include::../../../main/java/org/springframework/data/neo4j/core/transaction/package-info.java[tags=intent,indent=]
+include::../../../../src/main/java/org/springframework/data/neo4j/core/transaction/package-info.java[tags=intent,indent=]
 
 |`org.springframework.data.neo4j.repository`
 |
-include::../../../main/java/org/springframework/data/neo4j/repository/package-info.java[tags=intent,indent=0]
+include::../../../../src/main/java/org/springframework/data/neo4j/repository/package-info.java[tags=intent,indent=0]
 
 |`org.springframework.data.neo4j.repository.config`
 |
-include::../../../main/java/org/springframework/data/neo4j/repository/config/package-info.java[tags=intent,indent=0]
+include::../../../../src/main/java/org/springframework/data/neo4j/repository/config/package-info.java[tags=intent,indent=0]
 
 |`org.springframework.data.neo4j.repository.support`
 |
-include::../../../main/java/org/springframework/data/neo4j/repository/support/package-info.java[tags=intent,indent=0]
+include::../../../../src/main/java/org/springframework/data/neo4j/repository/support/package-info.java[tags=intent,indent=0]
 
 |===

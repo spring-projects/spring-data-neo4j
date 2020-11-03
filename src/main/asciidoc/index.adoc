@@ -21,10 +21,8 @@ include::{manualIncludeDir}/README.adoc[tags=properties]
 
 :gh-base: https://github.com/spring-projects/spring-data-neo4j
 :java-driver-starter-href: https://github.com/neo4j/neo4j-java-driver-spring-boot-starter
-:springVersion: 5.3.0-RC1
-:spring-framework-docs: https://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference
-:spring-framework-javadoc: https://docs.spring.io/spring/docs/{springVersion}/javadoc-api
-:spring-data-commons-docs: ../../../../../spring-data-commons/src/main/asciidoc
+:spring-framework-ref: https://docs.spring.io/spring/docs/{springVersion}/reference/html
+:spring-data-commons-docs: ../../../../spring-data-commons/src/main/asciidoc
 
 (C) 2008-2020 The original authors.
 

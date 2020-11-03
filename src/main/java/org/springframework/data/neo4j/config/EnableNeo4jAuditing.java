@@ -43,21 +43,21 @@ public @interface EnableNeo4jAuditing {
 	/**
 	 * Configures the {@link AuditorAware} bean to be used to lookup the current principal.
 	 *
-	 * @return
+	 * @return The name of the {@link AuditorAware} bean to be used to lookup the current principal.
 	 */
 	String auditorAwareRef() default "";
 
 	/**
 	 * Configures whether the creation and modification dates are set. Defaults to {@literal true}.
 	 *
-	 * @return
+	 * @return whether to set the creation and modification dates.
 	 */
 	boolean setDates() default true;
 
 	/**
 	 * Configures whether the entity shall be marked as modified on creation. Defaults to {@literal true}.
 	 *
-	 * @return
+	 * @return whether to mark the entity as modified on creation.
 	 */
 	boolean modifyOnCreate() default true;
 
@@ -65,7 +65,7 @@ public @interface EnableNeo4jAuditing {
 	 * Configures a {@link DateTimeProvider} bean name that allows customizing actual date time class to be used for
 	 * setting creation and modification dates.
 	 *
-	 * @return
+	 * @return The name of the {@link DateTimeProvider} bean to provide the current date time for creation and modification dates.
 	 */
 	String dateTimeProviderRef() default "";
 }
