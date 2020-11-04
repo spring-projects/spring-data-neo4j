@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.repository.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -94,10 +95,22 @@ class IdPopulatorTest {
 		assertThat(populatedSample.theId).isEqualTo("Not necessary unique.");
 	}
 
+	@Test // DATAGRAPH-1423
+	void shouldNotFailWithNPEOnMissingIDGenerator() {
+
+		IdPopulator idPopulator = new IdPopulator(new Neo4jMappingContext());
+		assertThatIllegalStateException().isThrownBy(() -> idPopulator.populateIfNecessary(new ImplicitEntityWithoutId()))
+				.withMessage("Cannot persist implicit entity due to missing id property on " + ImplicitEntityWithoutId.class + ".");
+	}
+
 	@Node
 	static class Sample {
 
 		@Id @GeneratedValue(DummyIdGenerator.class) private String theId;
+	}
+
+	static class ImplicitEntityWithoutId {
+
 	}
 
 	static class DummyIdGenerator implements IdGenerator<String> {

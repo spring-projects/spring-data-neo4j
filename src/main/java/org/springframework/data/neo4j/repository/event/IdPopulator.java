@@ -48,8 +48,14 @@ final class IdPopulator {
 		Neo4jPersistentEntity<?> nodeDescription = neo4jMappingContext.getRequiredPersistentEntity(entity.getClass());
 		IdDescription idDescription = nodeDescription.getIdDescription();
 
-		if (idDescription == null && nodeDescription.isRelationshipPropertiesEntity()) {
-			return entity;
+		if (idDescription == null) {
+			if (nodeDescription.isRelationshipPropertiesEntity()) {
+				return entity;
+			} else {
+				throw new IllegalStateException(
+						"Cannot persist implicit entity due to missing id property on " + nodeDescription.getUnderlyingClass()
+								+ ".");
+			}
 		}
 
 		// Filter in two steps to avoid unnecessary object creation.
