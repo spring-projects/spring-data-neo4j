@@ -14,9 +14,9 @@
 Choosing JDK 8 is a decision influenced by various aspects
 
 * SDN is a Spring Data project.
-Spring Data commons baseline is still JDK 8 and so is Spring Frameworks baseline.
-Thus it is only natural to keep the JDK 8 baseline.
-* While there is an increase of projects started with JDK 11 (which is Oracles current LTS release of Java), many existing projects are still on JDK 8. We don't want to lose them as users right from the start.
+Spring Data commons baseline is still JDK 8 and so is Spring Framework's baseline.
+Thus, it is only natural to keep the JDK 8 baseline.
+* While there is an increase of projects started with JDK 11 (which is Oracle's current LTS release of Java), many existing projects are still on JDK 8. We don't want to lose them as users right from the start.
 
 == Running the build
 
@@ -49,7 +49,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 12.0.1+12, mixed mode, sharing)
 ==== Using the default image
 
 If you don't have https://en.wikipedia.org/wiki/Docker_(software)[Docker] installed, head over to https://www.docker.com/products/docker-desktop[Docker Desktop].
-In short, Docker is a tool that helps you running lightweight software images using OS-level virtualization in so called containers.
+In short, Docker is a tool that helps you running lightweight software images using OS-level virtualization in so-called containers.
 
 Our build uses https://www.testcontainers.org/modules/databases/neo4j/[Testcontainers Neo4j] to bring up a database instance.
 
@@ -70,9 +70,6 @@ $ mvnw.cmd clean verify
 ----
 
 The output should be similar.
-
-At the moment, this build tests against Neo4j 3.5, as 4.0 is not yet available on Docker Hub.
-As a consequence, tests requiring a reactive capable database, are skipped, as this is a feature of Neo4j 4.0.
 
 ==== Using another image
 
@@ -97,7 +94,6 @@ Building against a locally running database is faster, as it does not restart a 
 We do this a lot during our development.
 
 You can get a copy of Neo4j at our https://neo4j.com/download-center/#enterprise[download center] free of charge.
-Especially you can get https://neo4j.com/download-center/?ref=blog/#prerelease[the current prelease of Neo4j 4.0], supporting all the reactive features.
 
 Please download the version applicable to your operating system and follow the instructions to start it.
 A required step is to open a browser and go to http://localhost:7474 after you started the database and change the default password from `neo4j` to something of your liking.

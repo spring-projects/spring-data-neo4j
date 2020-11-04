@@ -1,7 +1,7 @@
 [[introduction]]
 = Your way through this document
 
-If you already familiar with the core concepts of Spring Data, head straight to <<getting-started>>.
+If you are already familiar with the core concepts of Spring Data, head straight to <<getting-started>>.
 This chapter will walk you through different options of configuring an application to connect to a Neo4j instance and how to model your domain.
 
 In most cases, you will need a domain.

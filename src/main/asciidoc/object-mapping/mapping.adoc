@@ -163,7 +163,7 @@ In general there is no limitation of relationships / hops for creating the queri
 SDN parses the whole reachable graph from your modelled nodes.
 
 This said, when there is the idea of mapping a relationship bidirectional, meaning you define the relationship on both ends of your entity,
-you might do not only get what you are expecting.
+you might get more than what you are expecting.
 
 Consider an example where a _movie_ has _actors_, and you want to fetch a certain movie with all its actors.
 This won't be problematical if the relationship from _movie_ to _actor_ were just unidirectional.
@@ -318,10 +318,10 @@ That leaves the assignment itself:
 The generated value will be stable and there won’t be a need to change it later on.
 * Disadvantage: The generated strategy is applied on the application side of things.
 In those days most applications will be deployed in more than one instance to scale nicely.
-If your strategy is prone to generate duplicates than inserts will fail as uniques of the primary key will be violated.
+If your strategy is prone to generate duplicates then inserts will fail as the uniqueness property of the primary key will be violated.
 So while you don’t have to think about a unique business key in this scenario, you have to think more what to generate.
 
-You have several options to role your own ID generator.
+You have several options to roll out your own ID generator.
 One is a POJO implementing a generator:
 
 .Naive sequence generator
