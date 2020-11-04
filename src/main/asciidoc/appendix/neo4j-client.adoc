@@ -180,14 +180,14 @@ System.out.println(counters.nodesDeleted() + " nodes have been deleted")
 
 === Mapping parameters
 
-Queries can contain named parameters (`$someName`).
-The Neo4j client allows relaxed bindings to those.
+Queries can contain named parameters (`$someName`) and the Neo4j client makes it easy to bind values to them.
 
 NOTE: The client doesn't check whether all parameters are bound or whether there are too many values.
 That is left to the driver.
 However, the client prevents you from using a parameter name twice.
 
-You can either map simple types that the Java driver understands or complex classes.
+You can either bind simple types that the Java driver understands without conversion or complex classes.
+For complex classes you need to provide a binder function as shown in <<neo4j-client-binder,this listing>>.
 Please have a look at the https://neo4j.com/docs/driver-manual/current/cypher-workflow/#driver-type-mapping[drivers manual], to see which simple types are supported.
 
 [[neo4j-client-mapping-simple-types]]
