@@ -19,17 +19,17 @@ The domain type is the type that has been defined through the repository declara
 Interface based projections will always be dynamic proxies to the underlying domain type. The names of the accessors defined
 on such interfaces (like `getName`) must resolve to properties (here: `name`) that are present on the projected entity.
 Whether those properties have accessors or not on the domain type is not relevant, as long as they can be accessed through
-the common Spring Data infrastructure. The later is ensure already, as the domain type wouldn't be a persistent entity in
+the common Spring Data infrastructure. The latter is already ensured, as the domain type wouldn't be a persistent entity in
 the first place.
 
 DTO based projections are somewhat more flexible when used with custom queries. While the standard query is derived from
 the original domain type and therefore only the properties and relationship beeing defined there can be used, custom queries
 can add additional properties.
 
-The rules are as follows: First, the properties of the domain type are used to populate the DTO. In case the DTO declare
+The rules are as follows: first, the properties of the domain type are used to populate the DTO. In case the DTO declares
 additional properties - via accessors or fields - Spring Data Neo4j looks in the resulting record for matching properties.
 Properties must match exactly by name and can be of simple types (as defined in `org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes`)
-or of known persistent entites. Collections of those are supported, but no maps.
+or of known persistent entites. Collections of those are supported, but maps are not.
 
 === A full example
 

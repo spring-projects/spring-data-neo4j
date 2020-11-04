@@ -208,7 +208,7 @@ Instead, defaulting of properties is handled within the factory method.
 
 * _Try to stick to immutable objects_ --
 Immutable objects are straightforward to create as materializing an object is then a matter of calling its constructor only.
-Also, this avoids your domain objects to be littered with setter methods that allow client code to manipulate the objects state.
+Also, this prevents your domain objects from being littered with setter methods that allow client code to manipulate the objects state.
 If you need those, prefer to make them package protected so that they can only be invoked by a limited amount of co-located types.
 Constructor-only materialization is up to 30% faster than properties population.
 * _Provide an all-args constructor_ --
