@@ -673,6 +673,52 @@ public class MoviesIntegrationTests {
 		assertThat(foundUser.isEmpty()).isTrue();
 	}
 
+	@Test // DATAGRAPH-1407
+	public void shouldRemoveGenreFromUserDespiteReadonlyCustomQuery() {
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User michal = new User("Michal");
+				Genre drama = new Genre("Drama");
+				michal.interestedIn(drama);
+
+				userRepository.save(michal);
+
+				michal.notInterestedIn(drama);
+
+				userRepository.getAllUsers();
+				userRepository.save(michal);
+			}
+		});
+
+		assertThat(graphDatabaseService)
+				.containsNode("MATCH (m:User:Person {name:'Michal'})," + "(g:Genre {name:'Drama'})" +
+						" WHERE NOT (m)-[:INTERESTED]->(g) RETURN m AS n");
+	}
+
+	@Test // DATAGRAPH-1407
+	public void shouldRemoveGenreFromUserDespiteReadonlyCustomQueryWithQueryResult() {
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			public void doInTransactionWithoutResult(TransactionStatus status) {
+				User michal = new User("Michal");
+				Genre drama = new Genre("Drama");
+				michal.interestedIn(drama);
+
+				userRepository.save(michal);
+
+				michal.notInterestedIn(drama);
+
+				userRepository.retrieveAllUsersAndTheirAges();
+				userRepository.save(michal);
+			}
+		});
+
+		assertThat(graphDatabaseService)
+				.containsNode("MATCH (m:User:Person {name:'Michal'})," + "(g:Genre {name:'Drama'})" +
+						" WHERE NOT (m)-[:INTERESTED]->(g) RETURN m AS n");
+	}
+
 	private void createUserForContainsTest() {
 		User user = new User("Somebody");
 		Set<String> emailAddresses = new HashSet<>();
