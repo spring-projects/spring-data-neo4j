@@ -15,6 +15,7 @@ SDN supports
 Those are all included in the same binary.
 The reactive programming model requires a 4.0 Neo4j server on the database side and reactive Spring on the other hand.
 
+[[prepare-the-database]]
 == Prepare the database
 
 For this example, we stay within the https://neo4j.com/developer/movie-database/[movie graph], as it comes for free with every Neo4j instance.
@@ -33,6 +34,7 @@ The above command sets the password of the server to `secret`.
 Note the command ready to run in the prompt (`:play movies`).
 Execute it to fill your database with some test data.
 
+[[create-spring-boot-project]]
 == Create a new Spring Boot project
 
 The easiest way to setup a Spring Boot project is https://start.spring.io[start.spring.io]
@@ -41,6 +43,7 @@ The easiest way to setup a Spring Boot project is https://start.spring.io[start.
 Select the "Spring Web Starter" to get all the dependencies needed for creating a Spring based web application.
 The Spring Initializr will take care of creating a valid project structure for you, with all the files and settings in place for the selected build tool.
 
+[[create-spring-boot-project-using-maven]]
 === Using Maven
 
 You can issue a _curl_ request against the Spring Initializer to create a basic Maven project:
@@ -71,6 +74,7 @@ As this starter is not yet on the initializer, you will have to add the followin
 
 You would also add the dependency manually in case of an existing project.
 
+[[create-spring-boot-project-using-gradle]]
 === Using Gradle
 
 The idea is the same, just generate a Gradle project:
@@ -99,6 +103,7 @@ dependencies {
 
 You would also add the dependency manually in case of an existing project.
 
+[[configure-spring-boot-project]]
 == Configure the project
 
 Now open any of those projects in your favorite IDE.
@@ -106,9 +111,9 @@ Find `application.properties` and configure your Neo4j credentials:
 
 [source,properties]
 ----
-org.neo4j.driver.uri=bolt://localhost:7687
-org.neo4j.driver.authentication.username=neo4j
-org.neo4j.driver.authentication.password=secret
+spring.neo4j.uri=bolt://localhost:7687
+spring.neo4j.authentication.username=neo4j
+spring.neo4j.authentication.password=secret
 ----
 
 This is the bare minimum of what you need to connect to a Neo4j instance.
@@ -116,6 +121,7 @@ This is the bare minimum of what you need to connect to a Neo4j instance.
 NOTE: It is not necessary to add any programmatic configuration of the driver when you use this starter.
 SDN repositories will be automatically enabled by this starter.
 
+[[create-domain-spring-boot-project]]
 == Create your domain
 
 Our domain layer should accomplish two things:
@@ -123,6 +129,7 @@ Our domain layer should accomplish two things:
 * Map your graph to objects
 * Provide access to those
 
+[[example-node-spring-boot-project]]
 === Example Node-Entity
 
 SDN fully supports unmodifiable entities, for both Java and `data` classes in Kotlin.
@@ -200,6 +207,7 @@ It creates a new entity and sets the field accordingly, without modifying the or
 You can of course use SDN with https://kotlinlang.org/[Kotlin] and model your domain with Kotlin's data classes.
 https://projectlombok.org/[Project Lombok] is an alternative if you want or need to stay purely within Java.
 
+[[spring-data-repositories-spring-boot-project]]
 === Declaring Spring Data repositories
 
 You basically have two options here:

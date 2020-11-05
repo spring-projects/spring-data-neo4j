@@ -1,6 +1,7 @@
-[[testing]]
+[[sdn.testing]]
 = Testing
 
+[[sdn.testing.without.spring-boot]]
 == Without Spring Boot
 
 We work a lot with our abstract base classes for configuration in our own integration tests. They can be used like this:
@@ -339,6 +340,7 @@ class MovieRepositoryTCTest {
 }
 ----
 
+[[dataneo4jtest-dynamicpropertysource-alternatives]]
 === Alternatives to a `@DynamicPropertySource`
 
 There are some scenarios in which the above annotation does not fit your usecase.

@@ -175,8 +175,10 @@ If you require the time zone, use a type that supports it (i.e. `ZoneDateTime`) 
 
 |===
 
+[[custom.conversions]]
 == Custom conversions
 
+[[custom.conversions.attribute.types]]
 === For attributes of a given type
 
 If you prefer to work with your own types in the entities or as parameters for `@Query` annotated methods, you can define and provide a custom converter implementation.
@@ -202,6 +204,7 @@ include::../../../../src/test/java/org/springframework/data/neo4j/documentation/
 
 If you need multiple converters in your application, you can add as many as you need in the `Neo4jConversions` constructor.
 
+[[custom.conversions.attribute.specific]]
 === For specific attributes only
 
 If you need conversions only for some specific attributes, we provide `@ConvertWith`.
@@ -211,7 +214,7 @@ With an implementation of `Neo4jPersistentPropertyConverter` all specific conver
 
 We provide `@DateLong` and `@DateString` as meta-annotated annotations for backward compatibility with Neo4j-OGM schemes not using native types.
 
-[[composite-properties]]
+[[custom.conversions.composite-properties]]
 ==== Composite properties
 
 With `@CompositeProperty`, attributes of type `Map<String, Object>` or `Map<? extends Enum, Object>` can be stored as composite properties.
