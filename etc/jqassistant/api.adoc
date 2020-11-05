@@ -1,7 +1,6 @@
 [[api:Default]]
 [role=group,includesConstraints="api:*"]
 
-[[api:api-general-considerations]]
 === General considerations
 
 We use https://github.com/apiguardian-team/apiguardian[@API Guardian] to keep track of what we expose as public or internal API.
@@ -38,7 +37,6 @@ MERGE (c)-[:IS_PART_OF]->(a)
 RETURN c,a
 ----
 
-[[api:api-internal-api]]
 === Internal API
 
 See ADR-003.
