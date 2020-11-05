@@ -74,6 +74,7 @@ Find some more information about it in <<template-support,our FAQ>>.
 The Neo4j Client as such is unique to SDN.
 You will find it's documentation in the <<neo4j-client,appendix>>.
 
+[[sdn-packages]]
 == On the package level
 
 [%header,cols=2*]

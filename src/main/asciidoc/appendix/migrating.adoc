@@ -1,6 +1,7 @@
 [[Migrating]]
 = Migrating from SDN+OGM to SDN
 
+[[migrating.known-issues]]
 == Known issues with past SDN+OGM migrations
 
 SDN+OGM has had quite a history over the years and we understand that migrating big application systems is neither fun nor something that provides immediate profit.
@@ -29,12 +30,14 @@ TIP: Backed by those observations, we recommend to make sure you're using only t
 Thus, your application and the access layer of your application is to large extend independent from the databases version.
 From that state, consider moving from SDN+OGM to SDN.
 
+[[migrating.preparation]]
 == Prepare the migration from SDN+OGM Lovelace or SDN+OGM Moore to SDN
 
 NOTE: The _Lovelace_ release train corresponds to SDN 5.1.x and OGM 3.1.x, while the _Moore_ is SDN 5.2.x and OGM 3.2.x.
 
 First, you must make sure that your application runs against Neo4j in server mode over the Bolt protocol, which means work in two of three cases:
 
+[[migrating.embedded]]
 === You're on embedded
 
 You have added `org.neo4j:neo4j-ogm-embedded-driver` and `org.neo4j:neo4j` to you project and starting the database via OGM facilities.
@@ -46,16 +49,19 @@ Migrating from the embedded solution is probably the toughest migration, as you 
 It is however the one that gives you much value in itself:
 In the future, you will be able to upgrade the database itself without having to consider your application framework, and your data access framework as well.
 
+[[migrating.http]]
 === You're using the HTTP transport
 
 You have added `org.neo4j:neo4j-ogm-http-driver` and configured an url like `http://user:password@localhost:7474`.
 The dependency has to be replaced with `org.neo4j:neo4j-ogm-bolt-driver` and you need to configure a Bolt url like `bolt://localhost:7687` or use the new `neo4j://` scheme, which takes care of routing, too.
 
+[[migrating.bolt]]
 === You're already using Bolt indirectly
 
 A default SDN+OGM project uses `org.neo4j:neo4j-ogm-bolt-driver` and thus indirectly, the pure Java Driver.
 You can keep your existing URL.
 
+[[migrating.migrating]]
 == Migrating
 
 Once you have made sure, that your SDN+OGM application works over Bolt as expected, you can start migrating to SDN.
@@ -123,6 +129,7 @@ You're then ready to replace annotations:
 NOTE: Several Neo4j-OGM annotations have not yet a corresponding annotation in SDN, some will never have.
 We will add to the list above as we support additional features.
 
+[[migrating.bookmarks]]
 === Bookmarkmanagement
 
 Both `@EnableBookmarkManagement` and `@UseBookmark` as well as the `org.springframework.data.neo4j.bookmark.BookmarkManager`

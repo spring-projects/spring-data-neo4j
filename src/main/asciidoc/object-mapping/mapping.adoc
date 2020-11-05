@@ -14,9 +14,11 @@ To take full advantage of the object mapping functionality inside SDN, you shoul
 Although it is not necessary for the mapping framework to have this annotation (your POJOs are mapped correctly, even without any annotations), it lets the classpath scanner find and pre-process your domain objects to extract the necessary metadata.
 If you do not use this annotation, your application takes a slight performance hit the first time you store a domain object, because the mapping framework needs to build up its internal metadata model so that it knows about the properties of your domain object and how to persist them.
 
+[[mapping.annotations.overview]]
 === Mapping Annotation Overview
 
-==== From SDN:
+[[mapping.annotations.overview.from.sdn]]
+==== From SDN
 
 * `@Node`: Applied at the class level to indicate this class is a candidate for mapping to the database.
 * `@Id`: Applied at the field level to mark the field used for identity purpose.
@@ -36,6 +38,7 @@ The following annotations are used to specify conversions and ensure backwards c
 
 See <<conversions>> for more information on that.
 
+[[mapping.annotations.overview.from.commons]]
 ==== From Spring Data commons
 
 * `@org.springframework.data.annotation.Id` same as `@Id` from SDN, in fact, `@Id` is annotated with Spring Data Common's Id-annotation.
@@ -50,6 +53,7 @@ The initial value is zero which is bumped automatically on every update.
 
 Have a look at <<auditing>> for all annotations regarding auditing support.
 
+[[mapping.annotations.node]]
 === The basic building block: `@Node`
 
 The `@Node` annotation is used to mark a class as a managed domain class, subject to the classpath scanning by the mapping context.
@@ -76,6 +80,7 @@ This allows polymorphic queries: You can pass in base or intermediate classes an
 This is only supported for abstract bases annotated with `@Node`.
 The labels defined on such a class will be used as additional labels together with the labels of the concrete implementations.
 
+[[mapping.annotations.node.dynamic.labels]]
 ==== Dynamic or "runtime" managed labels
 
 All labels implicitly defined through the simple class name or explicitly via the `@Node` annotation are static.
@@ -89,6 +94,7 @@ During writes, all labels of the node will be replaced with the statically defin
 WARNING: If you have other applications add additional labels to nodes, don't use `@DynamicLabels`.
 If `@DynamicLabels` is present on a managed entity, the resulting set of labels will be "the truth" written to the database.
 
+[[mapping.annotations.id]]
 === Identifying instances: `@Id`
 
 While `@Node` creates a mapping between a class and nodes having a specific label, we also need to make the connection between individual instances of that class (objects) and instances of the node.
@@ -116,6 +122,7 @@ That bean also needs to implement `IdGenerator`, but can make use of everything 
 
 NOTE: Don't skip the important notes about ID handling in <<mapping.id-handling>>
 
+[[mapping.annotations.property]]
 === Mapping properties: `@Property`
 
 All attributes of a `@Node`-annotated class will be persisted as properties of Neo4j nodes and relationships.
@@ -124,6 +131,7 @@ Without further configuration, the name of the attribute in the Java or Kotlin c
 If you are working with an existing Neo4j schema or just like to adapt the mapping to your needs, you will need to use `@Property`.
 The `name` is used to specify the name of the property inside the database.
 
+[[mapping.annotations.relationship]]
 === Connecting nodes: `@Relationship`
 
 The `@Relationship` annotation can be used on all attributes that are not a simple type.
@@ -136,6 +144,7 @@ We support dynamic relationships.
 Dynamic relationships are represented as a `Map<String, AnnotatedDomainClass>` or `Map<Enum, AnnotatedDomainClass>`.
 In such a case, the type of the relationship to the other domain class is given by the maps key and must not be configured through the `@Relationship`.
 
+[[mapping.annotations.relationship.properties]]
 ==== Map relationship properties
 
 Neo4j supports defining properties not only on nodes but also on relationships.
@@ -157,6 +166,7 @@ include::../../../../src/test/java/org/springframework/data/neo4j/documentation/
 include::../../../../src/test/java/org/springframework/data/neo4j/documentation/domain/MovieEntity.java[tags=mapping.relationship.properties]
 ----
 
+[[mapping.annotations.relationship.remarks]]
 ==== Relationship query remarks
 
 In general there is no limitation of relationships / hops for creating the queries.
@@ -170,6 +180,7 @@ This won't be problematical if the relationship from _movie_ to _actor_ were jus
 In a bidirectional scenario SDN would fetch the particular _movie_, its _actors_ but also the other movies defined for this _actor_ per definition of the relationship.
 In the worst case, this will cascade to fetching the whole graph for a single entity.
 
+[[mapping.annotations.example]]
 === A complete example
 
 Putting all those together, we can create a simple domain.
@@ -213,6 +224,7 @@ While you can do this, you may end up rebuilding a graph database inside your ob
 [[mapping.id-handling]]
 == Handling and provisioning of unique IDs
 
+[[mapping.id-handling.internal-id]]
 === Using the internal Neo4j id
 
 The easiest way to give your domain classes an unique identifier is the combination of `@Id` and `@GeneratedValue`
@@ -283,6 +295,7 @@ You either have to provide a setter for the id attribute or something like a _wi
 * Disadvantage: It is tied to Neo4js internal database id, which is not unique to our application entity only over a database lifetime.
 * Disadvantage: It takes more effort to create an immutable entity
 
+[[mapping.id-handling.external-id]]
 === Use externally provided surrogate keys
 
 The `@GeneratedValue` annotation can take a class implementing `org.springframework.data.neo4j.core.schema.IdGenerator` as parameter.
@@ -388,6 +401,7 @@ public class MovieEntity {
 ----
 ====
 
+[[mapping.id-handling.business-key]]
 === Using a business key
 
 We have been using a business key in the complete example's `MovieEntity` and <<mapping.complete-example.person,`PersonEntity`>>.

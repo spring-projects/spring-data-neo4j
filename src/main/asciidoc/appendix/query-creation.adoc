@@ -12,6 +12,7 @@
 This chapter is about the technical creation of queries when using SDN's abstraction layers.
 There will be some simplifications because we do not discuss every possible case but stick with the general idea behind it.
 
+[[query-creation.save]]
 == Save
 
 Beside the `find/load` operations the `save` operation is one of the most used when working with data.
@@ -41,6 +42,7 @@ A save operation call in general issues multiple statements against the database
 WARNING: As you can see SDN does its best to keep your graph model in sync with the Java world.
 This is one of the reasons why we really advise you to not load, manipulate and save sub-graphs as this might cause relationships to get removed from the database.
 
+[[query-creation.save.multiple-entities]]
 === Multiple entities
 
 The `save` operation is overloaded with the functionality for accepting multiple entities of the same type.
@@ -54,6 +56,7 @@ and the parameters look like
 
 `:params {{neo4jEntities}: [{{neo4jId}: 'aa', {neo4jProperties}: {name: "PersonName", theId: "aa"}}, {{neo4jId} 'bb', {neo4jProperties}: {name: "AnotherPersonName", theId: "bb"}}]}`
 
+[[query-creation.load]]
 == Load
 
 The `load` documentation will not only show you how the _MATCH_ part of the query looks like but also how the data gets returned.

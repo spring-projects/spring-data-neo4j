@@ -204,6 +204,7 @@ Even if the intent is that the calculation should be preferred, it's important t
 The core idea here is to use factory methods instead of additional constructors to avoid the need for constructor disambiguation through `@PersistenceConstructor`.
 Instead, defaulting of properties is handled within the factory method.
 
+[[mapping.fundamentals.recommendations]]
 == General recommendations
 
 * _Try to stick to immutable objects_ --
@@ -226,6 +227,7 @@ As persistence operations usually require a constructor taking all arguments, th
 
 Spring Data adapts specifics of Kotlin to allow object creation and mutation.
 
+[[mapping.fundamentals.kotlin.object-creation]]
 === Kotlin object creation
 
 Kotlin classes are supported to be instantiated , all classes are immutable by default and require explicit property declarations to define mutable properties.
@@ -265,6 +267,7 @@ data class Person(var id: String, val name: String = "unknown")
 
 Every time the `name` parameter is either not part of the result or its value is `null`, then the `name` defaults to `unknown`.
 
+[[mapping.fundamentals.kotlin.property-population]]
 === Property population of Kotlin data classes
 
 In Kotlin, all classes are immutable by default and require explicit property declarations to define mutable properties.

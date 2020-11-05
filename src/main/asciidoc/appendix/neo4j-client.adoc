@@ -26,6 +26,7 @@ The Neo4j Client comes in two flavors:
 While both versions provide an API using the same vocabulary and syntax, they are not API compatible.
 Both versions feature the same, fluent API to specify queries, bind parameters and extract results.
 
+[[neo4j-client.imperative.reactive]]
 == Imperative or reactive?
 
 Interactions with a Neo4j Client usually ends with a call to
@@ -41,6 +42,7 @@ The reactive version will in contrast return a publisher of the requested type.
 Interaction with the database and retrieval of the results will not happen until the publisher is subscribed to.
 The publisher can only be subscribed once.
 
+[[neo4j-client.instance]]
 == Getting an instance of the client
 
 As with most things in SDN, both clients depend on a configured driver instance.
@@ -97,6 +99,7 @@ The client won't be able to synchronize transactions if you use another instance
 
 Our Spring Boot starter provide a ready to use bean of the Neo4j Client that fits the environment (imperative or reactive) and you usually don't have to configure your own instance.
 
+[[neo4j-client.usage]]
 == Usage
 
 [[neo4j-client-selecting-the-target-database]]
@@ -118,13 +121,14 @@ Flux<Map<String, Object>> allActors = client
 ----
 <.> Select the target database in which the query is to be executed.
 
+[[neo4j-client.specifying.queryies]]
 === Specifying queries
 
 The interaction with the clients starts with a query.
 A query can be defined by a plain `String` or a `Supplier<String>`.
 The supplier will be evaluated as late as possible and can be provided by any query builder.
 
-[[neo4j-client-specifying-queries]]
+[[neo4j-client-specifying-queries.example]]
 [source,java]
 .Specifying a query
 ----
@@ -134,6 +138,7 @@ Mono<Map<String, Object>> firstActor = client
 	.first();
 ----
 
+[[neo4j-client.retrieving.results]]
 === Retrieving results
 
 As the previous listings shows, the interaction with the client always ends with a call to `fetch` and how many results shall be received.
@@ -178,6 +183,7 @@ System.out.println(counters.nodesDeleted() + " nodes have been deleted")
 ----
 <.> Here the query is immediately triggered.
 
+[[neo4j-client.mapping.parameters]]
 === Mapping parameters
 
 Queries can contain named parameters (`$someName`) and the Neo4j client makes it easy to bind values to them.
@@ -284,6 +290,7 @@ Mono<ResultSummary> summary = client
 ----
 <.> The `with` method allows for specifying the binder function.
 
+[[neo4j-client.result-objects]]
 === Working with result objects
 
 Both clients return collections or publishers of maps (`Map<String, Object>`).
@@ -310,6 +317,7 @@ Mono<Director> lily = client
 
 `TypeSystem` gives access to the types the underlying Java driver used to fill the record.
 
+[[neo4j-client.interacting.driver.directly]]
 === Interacting directly with the driver while using managed transactions
 
 In case you don't want or don't like the opinionated "client" approach of the `Neo4jClient` or the `ReactiveNeo4jClient`, you can have the client delegate all interactions with the database to your code.

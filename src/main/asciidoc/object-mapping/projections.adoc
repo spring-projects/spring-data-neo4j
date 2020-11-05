@@ -1,7 +1,7 @@
-[[projections]]
+[[projections.sdn]]
 = Projections
 
-[[projections.general-remarks]]
+[[projections.sdn.general-remarks]]
 == General remarks
 
 As stated above, projections come in two flavors: Interface and DTO based projections.
@@ -31,7 +31,8 @@ additional properties - via accessors or fields - Spring Data Neo4j looks in the
 Properties must match exactly by name and can be of simple types (as defined in `org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes`)
 or of known persistent entites. Collections of those are supported, but maps are not.
 
-=== A full example
+[[projections.sdn.full-example]]
+== A full example
 
 Given the following entities, projections and the corresponding repository:
 

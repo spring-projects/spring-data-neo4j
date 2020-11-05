@@ -51,7 +51,7 @@ include::object-mapping/index.adoc[]
 
 include::{spring-data-commons-docs}/repository-projections.adoc[leveloffset=+1]
 
-include::object-mapping/projections.adoc[leveloffset=+1,lines=5..]
+include::object-mapping/projections.adoc[leveloffset=+1,lines=4..]
 
 include::testing/index.adoc[]
 

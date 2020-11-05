@@ -1,3 +1,4 @@
+[[coding-rules]]
 = Coding Rules
 
 The following rules are checked during a build:
@@ -8,16 +9,19 @@ The following rules are checked during a build:
 - <<naming:Default>>
 - <<structure:Default>>
 
+[[coding-rules.api]]
 == API
 
 Ensure that we publish our API in a sane and consistent way.
 
 include::api.adoc[]
 
+[[coding-rules.naming]]
 == Naming things
 
 include::naming.adoc[]
 
+[[coding-rules.structure]]
 == Structuring things
 
 include::structure.adoc[]
