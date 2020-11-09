@@ -31,7 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
-import org.springframework.data.neo4j.integration.shared.Multiple1O1Relationships;
+import org.springframework.data.neo4j.integration.shared.common.Multiple1O1Relationships;
 import org.springframework.data.neo4j.integration.shared.common.MultipleRelationshipsThing;
 import org.springframework.data.neo4j.integration.shared.common.RelationshipsITBase;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
