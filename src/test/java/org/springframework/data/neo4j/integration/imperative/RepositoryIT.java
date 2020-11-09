@@ -29,11 +29,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
@@ -58,7 +56,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConverterNotFoundException;
-import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.StringMatcher;
@@ -79,42 +76,42 @@ import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.integration.imperative.repositories.PersonRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
-import org.springframework.data.neo4j.integration.shared.AltHobby;
-import org.springframework.data.neo4j.integration.shared.AltLikedByPersonRelationship;
-import org.springframework.data.neo4j.integration.shared.AltPerson;
-import org.springframework.data.neo4j.integration.shared.AnotherThingWithAssignedId;
-import org.springframework.data.neo4j.integration.shared.BidirectionalEnd;
-import org.springframework.data.neo4j.integration.shared.BidirectionalStart;
-import org.springframework.data.neo4j.integration.shared.Club;
-import org.springframework.data.neo4j.integration.shared.ClubRelationship;
-import org.springframework.data.neo4j.integration.shared.DeepRelationships;
-import org.springframework.data.neo4j.integration.shared.DtoPersonProjection;
-import org.springframework.data.neo4j.integration.shared.DtoPersonProjectionContainingAdditionalFields;
-import org.springframework.data.neo4j.integration.shared.EntityWithConvertedId;
-import org.springframework.data.neo4j.integration.shared.ExtendedParentNode;
-import org.springframework.data.neo4j.integration.shared.Friend;
-import org.springframework.data.neo4j.integration.shared.FriendshipRelationship;
-import org.springframework.data.neo4j.integration.shared.Hobby;
-import org.springframework.data.neo4j.integration.shared.ImmutablePerson;
-import org.springframework.data.neo4j.integration.shared.Inheritance;
-import org.springframework.data.neo4j.integration.shared.KotlinPerson;
-import org.springframework.data.neo4j.integration.shared.LikesHobbyRelationship;
-import org.springframework.data.neo4j.integration.shared.MultipleLabels;
-import org.springframework.data.neo4j.integration.shared.ParentNode;
-import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
-import org.springframework.data.neo4j.integration.shared.PersonWithNoConstructor;
-import org.springframework.data.neo4j.integration.shared.PersonWithRelationship;
-import org.springframework.data.neo4j.integration.shared.PersonWithRelationshipWithProperties;
-import org.springframework.data.neo4j.integration.shared.PersonWithRelationshipWithProperties2;
-import org.springframework.data.neo4j.integration.shared.PersonWithWither;
-import org.springframework.data.neo4j.integration.shared.Pet;
-import org.springframework.data.neo4j.integration.shared.SimilarThing;
-import org.springframework.data.neo4j.integration.shared.ThingWithAssignedId;
-import org.springframework.data.neo4j.integration.shared.ThingWithCustomTypes;
-import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
-import org.springframework.data.neo4j.integration.shared.WorksInClubRelationship;
+import org.springframework.data.neo4j.integration.shared.common.KotlinPerson;
+import org.springframework.data.neo4j.integration.shared.common.AltHobby;
+import org.springframework.data.neo4j.integration.shared.common.AltLikedByPersonRelationship;
+import org.springframework.data.neo4j.integration.shared.common.AltPerson;
+import org.springframework.data.neo4j.integration.shared.common.AnotherThingWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.common.BidirectionalEnd;
+import org.springframework.data.neo4j.integration.shared.common.BidirectionalStart;
+import org.springframework.data.neo4j.integration.shared.common.Club;
+import org.springframework.data.neo4j.integration.shared.common.ClubRelationship;
+import org.springframework.data.neo4j.integration.shared.common.DeepRelationships;
+import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjection;
+import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjectionContainingAdditionalFields;
+import org.springframework.data.neo4j.integration.shared.common.EntityWithConvertedId;
+import org.springframework.data.neo4j.integration.shared.common.ExtendedParentNode;
+import org.springframework.data.neo4j.integration.shared.common.Friend;
+import org.springframework.data.neo4j.integration.shared.common.FriendshipRelationship;
+import org.springframework.data.neo4j.integration.shared.common.Hobby;
+import org.springframework.data.neo4j.integration.shared.common.ImmutablePerson;
+import org.springframework.data.neo4j.integration.shared.common.Inheritance;
+import org.springframework.data.neo4j.integration.shared.common.LikesHobbyRelationship;
+import org.springframework.data.neo4j.integration.shared.common.MultipleLabels;
+import org.springframework.data.neo4j.integration.shared.common.ParentNode;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithNoConstructor;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithRelationship;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithRelationshipWithProperties;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithRelationshipWithProperties2;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithWither;
+import org.springframework.data.neo4j.integration.shared.common.Pet;
+import org.springframework.data.neo4j.integration.shared.common.SimilarThing;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
+import org.springframework.data.neo4j.integration.shared.common.WorksInClubRelationship;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.BoundingBox;
@@ -3121,47 +3118,6 @@ class RepositoryIT {
 		}
 	}
 
-	@Nested
-	class Converter extends IntegrationTestBase {
-
-		@Override
-		void setupData(Transaction transaction) {
-			transaction.run("CREATE (:CustomTypes{customType:'XYZ'})");
-		}
-
-		@Test
-		void findByConvertedCustomType(@Autowired EntityWithCustomTypePropertyRepository repository) {
-
-			assertThat(repository.findByCustomType(ThingWithCustomTypes.CustomType.of("XYZ"))).isNotNull();
-		}
-
-		@Test
-		void findByConvertedCustomTypeWithCustomQuery(@Autowired EntityWithCustomTypePropertyRepository repository) {
-
-			assertThat(repository.findByCustomTypeCustomQuery(ThingWithCustomTypes.CustomType.of("XYZ"))).isNotNull();
-		}
-
-		@Test
-		void findByConvertedCustomTypeWithSpELPropertyAccessQuery(
-				@Autowired EntityWithCustomTypePropertyRepository repository) {
-
-			assertThat(repository.findByCustomTypeCustomSpELPropertyAccessQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
-					.isNotNull();
-		}
-
-		@Test
-		void findByConvertedCustomTypeWithSpELObjectQuery(@Autowired EntityWithCustomTypePropertyRepository repository) {
-
-			assertThat(repository.findByCustomTypeSpELObjectQuery(ThingWithCustomTypes.CustomType.of("XYZ"))).isNotNull();
-		}
-
-		@Test
-		void findByConvertedDifferentTypeWithSpELObjectQuery(@Autowired EntityWithCustomTypePropertyRepository repository) {
-
-			assertThat(repository.findByDifferentTypeCustomQuery(ThingWithCustomTypes.DifferentType.of("XYZ"))).isNotNull();
-		}
-	}
-
 	/**
 	 * The tests in this class ensure that in case of an inheritance scenario no DTO is projected but the extending class
 	 * is used. If it wasn't the case, we wouldn't find the relationship nor the other attribute.
@@ -3283,26 +3239,6 @@ class RepositoryIT {
 	interface EntityWithConvertedIdRepository
 			extends Neo4jRepository<EntityWithConvertedId, EntityWithConvertedId.IdentifyingEnum> {}
 
-	interface EntityWithCustomTypePropertyRepository extends Neo4jRepository<ThingWithCustomTypes, Long> {
-
-		ThingWithCustomTypes findByCustomType(ThingWithCustomTypes.CustomType customType);
-
-		@Query("MATCH (c:CustomTypes) WHERE c.customType = $customType return c")
-		ThingWithCustomTypes findByCustomTypeCustomQuery(@Param("customType") ThingWithCustomTypes.CustomType customType);
-
-		@Query("MATCH (c:CustomTypes) WHERE c.customType = $differentType return c")
-		ThingWithCustomTypes findByDifferentTypeCustomQuery(
-				@Param("differentType") ThingWithCustomTypes.DifferentType differentType);
-
-		@Query("MATCH (c:CustomTypes) WHERE c.customType = :#{#customType.value} return c")
-		ThingWithCustomTypes findByCustomTypeCustomSpELPropertyAccessQuery(
-				@Param("customType") ThingWithCustomTypes.CustomType customType);
-
-		@Query("MATCH (c:CustomTypes) WHERE c.customType = :#{#customType} return c")
-		ThingWithCustomTypes findByCustomTypeSpELObjectQuery(
-				@Param("customType") ThingWithCustomTypes.CustomType customType);
-	}
-
 	interface HobbyWithRelationshipWithPropertiesRepository extends Neo4jRepository<AltHobby, Long> {
 
 		@Query("MATCH (p:AltPerson)-[l:LIKES]->(h:AltHobby) WHERE id(p) = $personId RETURN h, collect(l), collect(p)")
@@ -3378,17 +3314,18 @@ class RepositoryIT {
 		}
 
 		@Override
-		public Neo4jConversions neo4jConversions() {
-			Set<GenericConverter> additionalConverters = new HashSet<>();
-			additionalConverters.add(new ThingWithCustomTypes.CustomTypeConverter());
-			additionalConverters.add(new ThingWithCustomTypes.DifferentTypeConverter());
-
-			return new Neo4jConversions(additionalConverters);
+		protected Collection<String> getMappingBasePackages() {
+			return Arrays.asList(PersonWithAllConstructor.class.getPackage().getName());
 		}
 
-		@Override
-		protected Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(PersonWithAllConstructor.class.getPackage().getName());
+		@Bean
+		public Neo4jMappingContext neo4jMappingContext(Neo4jConversions neo4JConversions) throws ClassNotFoundException {
+
+			Neo4jMappingContext mappingContext = new Neo4jMappingContext(neo4JConversions);
+			mappingContext.setInitialEntitySet(getInitialEntitySet());
+			mappingContext.setStrict(true);
+
+			return mappingContext;
 		}
 
 		@Bean

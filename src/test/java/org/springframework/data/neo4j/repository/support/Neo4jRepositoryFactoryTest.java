@@ -37,9 +37,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.integration.shared.ThingWithAllAdditionalTypes;
-import org.springframework.data.neo4j.integration.shared.ThingWithAllCypherTypes;
-import org.springframework.data.neo4j.integration.shared.ThingWithCompositeProperties;
+import org.springframework.data.neo4j.integration.shared.conversion.ThingWithAllAdditionalTypes;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithAllCypherTypes;
+import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCompositeProperties;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.core.RepositoryInformation;
 

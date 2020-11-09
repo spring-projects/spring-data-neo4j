@@ -298,6 +298,7 @@ class Neo4jMappingContextTest {
 		@Property(name = "firstName") String first_name;
 	}
 
+	@Node
 	static class SomeOtherClass {
 
 	}
@@ -318,6 +319,7 @@ class Neo4jMappingContextTest {
 		}
 	}
 
+	@Node
 	static class BikeNode {
 
 		@Id private String id;
@@ -334,6 +336,7 @@ class Neo4jMappingContextTest {
 		Map<String, Object> funnyDynamicProperties;
 	}
 
+	@Node
 	static class EnumRelNode {
 
 		@Id private String id;
@@ -343,6 +346,7 @@ class Neo4jMappingContextTest {
 		Map<ExtendedA, BikeNode> relEA;
 	}
 
+	@Node
 	static class TripNode {
 
 		@Id private String id;
@@ -350,11 +354,13 @@ class Neo4jMappingContextTest {
 		String name;
 	}
 
+	@Node
 	static class InvalidId {
 
 		@Id @GeneratedValue @Property("getMappingFunctionFor") private String id;
 	}
 
+	@Node
 	static class InvalidIdType {
 
 		@Id @GeneratedValue private String id;

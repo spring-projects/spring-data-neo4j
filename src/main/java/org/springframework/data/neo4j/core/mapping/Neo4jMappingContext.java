@@ -179,11 +179,11 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		Class<? super T> superclass = typeInformation.getType().getSuperclass();
 
 		if (isValidParentNode(superclass)) {
-			Neo4jPersistentEntity<?> parentNodeDescription = getPersistentEntity(superclass);
-			if (parentNodeDescription != null) {
+			addPersistentEntity(superclass).ifPresent(parentNodeDescription -> {
 				parentNodeDescription.addChildNodeDescription(newEntity);
 				newEntity.setParentNodeDescription(parentNodeDescription);
-			}
+			});
+
 		}
 
 		return newEntity;

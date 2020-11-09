@@ -386,6 +386,7 @@ class DefaultNeo4jPersistentEntityTest {
 		private String name;
 	}
 
+	@Node
 	static class TypeWithInvalidDynamicRelationshipMappings1 {
 
 		@Id private String id;
@@ -395,6 +396,7 @@ class DefaultNeo4jPersistentEntityTest {
 		private Map<String, Neo4jMappingContextTest.BikeNode> bikes2;
 	}
 
+	@Node
 	static class TypeWithInvalidDynamicRelationshipMappings2 {
 
 		@Id private String id;
@@ -404,6 +406,7 @@ class DefaultNeo4jPersistentEntityTest {
 		private Map<String, List<Neo4jMappingContextTest.BikeNode>> bikes2;
 	}
 
+	@Node
 	static class TypeWithInvalidDynamicRelationshipMappings3 {
 
 		@Id private String id;
@@ -413,11 +416,13 @@ class DefaultNeo4jPersistentEntityTest {
 		private Map<String, List<Neo4jMappingContextTest.BikeNode>> bikes2;
 	}
 
+	@Node
 	static class EntityWithCorrectRelationshipProperties {
 		@Id private String id;
 		@Relationship HasTargetNodeRelationshipProperties rel;
 	}
 
+	@Node
 	static class EntityWithInCorrectRelationshipProperties {
 		@Id private String id;
 		@Relationship HasNoTargetNodeRelationshipProperties rel;

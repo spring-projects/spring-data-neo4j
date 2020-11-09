@@ -36,9 +36,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.repository.support.Neo4jPersistenceExceptionTranslator;
@@ -134,22 +132,6 @@ class ReactiveExceptionTranslationIT {
 		@Bean
 		public ReactivePersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor() {
 			return new ReactivePersistenceExceptionTranslationPostProcessor();
-		}
-	}
-
-	@Node
-	static class SimplePerson {
-
-		@Id @GeneratedValue private Long id;
-
-		private String name;
-
-		SimplePerson(String name) {
-			this.name = name;
-		}
-
-		public String getName() {
-			return name;
 		}
 	}
 

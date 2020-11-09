@@ -26,10 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -44,19 +41,15 @@ import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
-import org.neo4j.driver.TransactionWork;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
-import org.neo4j.driver.summary.ResultSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
-import org.springframework.data.neo4j.core.convert.Neo4jConversions;
-import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
-import org.springframework.data.neo4j.integration.shared.PersonWithCustomId;
-import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
@@ -77,7 +70,6 @@ class ReactiveNeo4jOperationsIT {
 	private final Driver driver;
 	private final ReactiveNeo4jOperations neo4jOperations;
 
-	private final AtomicLong customIdValueGenerator = new AtomicLong();
 	private Long person1Id;
 	private Long person2Id;
 
@@ -275,33 +267,6 @@ class ReactiveNeo4jOperationsIT {
 		}
 	}
 
-	TransactionWork<ResultSummary> createPersonWithCustomId(PersonWithCustomId.PersonId assignedId) {
-
-		return tx -> tx.run("CREATE (n:PersonWithCustomId) SET n.id = $id ",
-				Values.parameters("id", assignedId.getId())).consume();
-	}
-
-	@Test
-	void deleteByCustomId() {
-
-		PersonWithCustomId.PersonId id = new PersonWithCustomId.PersonId(customIdValueGenerator.incrementAndGet());
-		try (Session session = driver.session(getSessionConfig())) {
-			session.writeTransaction(createPersonWithCustomId(id));
-		}
-
-		StepVerifier.create(neo4jOperations.count(PersonWithCustomId.class))
-				.expectNext(1L)
-				.verifyComplete();
-
-		StepVerifier.create(neo4jOperations.deleteById(id, PersonWithCustomId.class))
-				.verifyComplete();
-
-		try (Session session = driver.session(getSessionConfig())) {
-			Result result = session.run("MATCH (p:PersonWithCustomId) return count(p) as count");
-			assertThat(result.single().get("count").asLong()).isEqualTo(0);
-		}
-	}
-
 	@Test
 	void deleteAllById() {
 
@@ -315,32 +280,6 @@ class ReactiveNeo4jOperationsIT {
 		}
 	}
 
-	@Test
-	void deleteAllByCustomId() {
-
-		List<PersonWithCustomId.PersonId> ids = Stream.generate(customIdValueGenerator::incrementAndGet)
-				.map(PersonWithCustomId.PersonId::new)
-				.limit(2)
-				.collect(Collectors.toList());
-		try (
-				Session session = driver.session(getSessionConfig());
-		) {
-			ids.forEach(id -> session.writeTransaction(createPersonWithCustomId(id)));
-		}
-
-		StepVerifier.create(neo4jOperations.count(PersonWithCustomId.class))
-				.expectNext(2L)
-				.verifyComplete();
-
-		StepVerifier.create(neo4jOperations.deleteAllById(ids, PersonWithCustomId.class))
-				.verifyComplete();
-
-		try (Session session = driver.session(getSessionConfig())) {
-			Result result = session.run("MATCH (p:PersonWithCustomId) return count(p) as count");
-			assertThat(result.single().get("count").asLong()).isEqualTo(0);
-		}
-	}
-
 	@Configuration
 	@EnableTransactionManagement
 	static class Config extends AbstractReactiveNeo4jConfig {
@@ -348,12 +287,6 @@ class ReactiveNeo4jOperationsIT {
 		@Bean
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
-		}
-
-		@Bean
-		@Override
-		public Neo4jConversions neo4jConversions() {
-			return new Neo4jConversions(Collections.singletonList(new PersonWithCustomId.CustomPersonIdConverter()));
 		}
 
 		@Override // needed here because there is no implicit registration of entities upfront some methods under test

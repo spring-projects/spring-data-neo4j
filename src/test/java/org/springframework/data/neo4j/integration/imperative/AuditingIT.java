@@ -17,6 +17,8 @@ package org.springframework.data.neo4j.integration.imperative;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -28,9 +30,9 @@ import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.config.EnableNeo4jAuditing;
-import org.springframework.data.neo4j.integration.shared.AuditingITBase;
-import org.springframework.data.neo4j.integration.shared.ImmutableAuditableThing;
-import org.springframework.data.neo4j.integration.shared.ImmutableAuditableThingWithGeneratedId;
+import org.springframework.data.neo4j.integration.shared.common.AuditingITBase;
+import org.springframework.data.neo4j.integration.shared.common.ImmutableAuditableThing;
+import org.springframework.data.neo4j.integration.shared.common.ImmutableAuditableThingWithGeneratedId;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -134,6 +136,11 @@ class AuditingIT extends AuditingITBase {
 		@Bean
 		public AuditorAware<String> auditorProvider() {
 			return () -> Optional.of("A user");
+		}
+
+		@Override
+		protected Collection<String> getMappingBasePackages() {
+			return Collections.singleton(ImmutableAuditableThing.class.getPackage().getName());
 		}
 
 		@Bean

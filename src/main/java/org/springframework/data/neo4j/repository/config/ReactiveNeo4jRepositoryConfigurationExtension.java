@@ -16,13 +16,16 @@
 package org.springframework.data.neo4j.repository.config;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
 import org.apiguardian.api.API;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.data.annotation.Persistent;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.support.ReactiveNeo4jRepositoryFactoryBean;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
@@ -83,7 +86,7 @@ public final class ReactiveNeo4jRepositoryConfigurationExtension extends Reposit
 
 	@Override
 	protected Collection<Class<? extends Annotation>> getIdentifyingAnnotations() {
-		return Collections.singleton(Node.class);
+		return Arrays.asList(Node.class, RelationshipProperties.class, Persistent.class);
 	}
 
 	@Override
