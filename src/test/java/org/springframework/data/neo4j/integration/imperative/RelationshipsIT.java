@@ -26,10 +26,12 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.integration.shared.Multiple1O1Relationships;
 import org.springframework.data.neo4j.integration.shared.MultipleRelationshipsThing;
 import org.springframework.data.neo4j.integration.shared.RelationshipsITBase;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -218,7 +220,40 @@ class RelationshipsIT extends RelationshipsITBase {
 		}
 	}
 
+	@Test // DATAGRAPH-1424
+	void shouldMatchOnTheCorrectRelationship(@Autowired Multiple1O1RelationshipsRepository repository) {
+
+		try (Session session = driver.session();
+				Transaction tx = session.beginTransaction()) {
+			tx.run(""
+				   + "CREATE (p1:AltPerson {name: 'val1'})\n"
+				   + "CREATE (p2:AltPerson {name: 'val2'})\n"
+				   + "CREATE (p3:AltPerson {name: 'val3'})\n"
+				   + "CREATE (m1:Multiple1O1Relationships {name: 'm1'})\n"
+				   + "CREATE (m2:Multiple1O1Relationships {name: 'm2'})\n"
+				   + "CREATE (m1) - [:REL_1] -> (p1)\n"
+				   + "CREATE (m1) - [:REL_2] -> (p2)\n"
+				   + "CREATE (m2) - [:REL_1] -> (p1)\n"
+				   + "CREATE (m2) - [:REL_2] -> (p3)");
+			tx.commit();
+		}
+
+		List<Multiple1O1Relationships> objects = repository.findAllByPerson1NameAndPerson2Name("val1", "val2");
+
+		assertThat(objects).hasSize(1).first()
+				.satisfies(m -> {
+					assertThat(m.getName()).isEqualTo("m1");
+					assertThat(m.getPerson1().getName()).isEqualTo("val1");
+					assertThat(m.getPerson2().getName()).isEqualTo("val2");
+				});
+	}
+
 	interface MultipleRelationshipsThingRepository extends CrudRepository<MultipleRelationshipsThing, Long> {}
+
+	interface Multiple1O1RelationshipsRepository extends CrudRepository<Multiple1O1Relationships, Long> {
+
+		List<Multiple1O1Relationships> findAllByPerson1NameAndPerson2Name(String name1, String name2);
+	}
 
 	@Configuration
 	@EnableTransactionManagement
